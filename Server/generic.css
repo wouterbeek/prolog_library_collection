@@ -1,0 +1,89 @@
+*.action {
+  background-color: yellow;
+  color: black;
+  font-family: monospace;
+}
+
+*.file_name {
+  font-family: monospace;
+}
+
+*.emphasis {
+  font-style: italic;
+  font-family: monospace;
+}
+
+*.module_name {
+  font-family: monospace;
+}
+
+*.predicate_name {
+  font-family: monospace;
+}
+
+*.shell_command {
+  font-family: monospace;
+}
+
+*.syntax {
+  background-color: black;
+  color: yellow;
+  font-family: monospace;
+}
+
+*.term {
+  background-color: white;
+  color: red;
+  font-family: monospace;
+}
+
+*.type {
+  background-color: white;
+  color: blue;
+  font-family: monospace;
+}
+
+body {
+  background-color: white;
+  color: black;
+}
+
+dl:hover {
+  background-color: black;
+  color: white;
+}
+
+h1:hover {
+  background-color: black;
+  color: white;
+}
+
+h2:hover {
+  background-color: black;
+  color: white;
+}
+
+li:hover {
+  background-color: black;
+  color: white;
+}
+
+p {
+  font-family: serif;
+}
+
+p:hover {
+  background-color: black;
+  color: white;
+}
+
+pre:hover {
+  background-color: black;
+  color: white;
+}
+
+tr:hover {
+  background-color: black;
+  color: white;
+}
+

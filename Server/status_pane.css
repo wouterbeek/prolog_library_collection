@@ -1,0 +1,10 @@
+#status_pane {
+  background-color: Window;
+  bottom: 0%;
+  height: 7.5%;
+  overflow: scroll;
+  position: absolute;
+  top: 92.5%;
+  width: 95%
+}
+

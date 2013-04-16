@@ -1,0 +1,8 @@
+#console_output {
+  background-color: Window;
+  bottom: 7.5%;
+  overflow: scroll;
+  position: absolute;
+  top: 150px;
+}
+
