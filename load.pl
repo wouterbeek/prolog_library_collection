@@ -1,3 +1,6 @@
+% The load file for the Prolog Generics Collection.
+% This assumes that the search path =project= is already defined.
+
 load:-
   assert(user:file_search_path(generics,     pgc('Generics'))),
   assert(user:file_search_path(graph_theory, pgc('Graph Theory'))),
