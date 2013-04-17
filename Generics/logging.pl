@@ -35,7 +35,7 @@ Methods for logging.
 @version 2012/05-2012/07, 2013/03
 */
 
-:- use_module(generic(file_ext)).
+:- use_module(pgc(file_ext)).
 :- use_module(library(http/http_client)).
 
 :- multifile(prolog:message/1).

@@ -99,7 +99,7 @@ Extra arithmetic functions for use in SWI-Prolog.
 @version 2011/08-2012/02, 2012/09-2012/10, 2012/12
 */
 
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(meta_ext)).
 
 
 

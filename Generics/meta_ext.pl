@@ -89,8 +89,8 @@ Extensions to the SWI-Prolog meta predicates.
 @version 2012/07-2012/08, 2013/01, 2013/03
 */
 
-:- use_module(generic(list_ext)).
-:- use_module(generic(thread_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(thread_ext)).
 
 :- meta_predicate(call_semidet(0)).
 :- meta_predicate(nonvar_det(0)).

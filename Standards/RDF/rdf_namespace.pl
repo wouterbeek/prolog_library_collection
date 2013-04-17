@@ -30,8 +30,8 @@ Namespace support for RDF(S).
 @version 2013/03
 */
 
-:- use_module(generic(list_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_read)).

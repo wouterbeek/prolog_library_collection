@@ -77,7 +77,7 @@ Binary relations can be efficiently represented as =|list(pair)|=
 @version 2012/11
 */
 
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(meta_ext)).
 
 :- meta_predicate equivalence_class(+,2,+,-).
 

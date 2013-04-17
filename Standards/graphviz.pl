@@ -74,11 +74,11 @@ representing a name-value pair.
 @version 2011-2013/03
 */
 
-:- use_module(generic(exception_handling)).
-:- use_module(generic(file_ext)).
-:- use_module(generic(os_ext)).
-:- use_module(generic(print)).
-:- use_module(generic(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(pgc(exception_handling)).
+:- use_module(pgc(file_ext)).
+:- use_module(pgc(os_ext)).
+:- use_module(pgc(print)).
+:- use_module(pgc(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(process)).
 :- use_module(standards(brewer)).
 :- use_module(standards(c)).

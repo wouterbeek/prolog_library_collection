@@ -27,8 +27,8 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 @version 2013/03-2013/04
 */
 
-:- use_module(generic(atom_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(atom_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_read)).

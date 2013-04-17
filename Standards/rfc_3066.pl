@@ -14,7 +14,7 @@
 @version 2013/02
 */
 
-:- use_module(generic(parse_ext)).
+:- use_module(pgc(parse_ext)).
 :- use_module(standards(iso_639_1), [language/2 as language_iso_639_1]).
 :- use_module(standards(iso_639_2), [language/2 as language_iso_639_2]).
 

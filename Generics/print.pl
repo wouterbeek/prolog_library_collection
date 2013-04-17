@@ -32,8 +32,8 @@ is a list of proofs and/or premises that are written using =print_premise/3=.
 @version 2013/01-2013/02
 */
 
-:- use_module(generic(atom_ext)). % Meta-calls.
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(atom_ext)). % Meta-calls.
+:- use_module(pgc(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(rdf(rdf_export)).
 

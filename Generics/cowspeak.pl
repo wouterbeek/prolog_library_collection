@@ -17,7 +17,7 @@ A Virtual Character for communicating with users.
 @version 2012/09-2012/10
 */
 
-:- use_module(generic(atom_ext)).
+:- use_module(pgc(atom_ext)).
 :- use_module(library(debug)).
 :- use_module(library(process)).
 

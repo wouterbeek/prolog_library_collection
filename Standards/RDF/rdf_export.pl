@@ -61,14 +61,14 @@ The procedure for determining the color of a vertex:
 @version 2013/01-2013/03
 */
 
-:- use_module(generic(atom_ext)).
-:- use_module(generic(list_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(atom_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(
   generic(print),
   [indent/2, lines/2 as print_lines, list/2 as print_list]
 ).
-:- use_module(generic(type_checking)).
+:- use_module(pgc(type_checking)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_datatype)).

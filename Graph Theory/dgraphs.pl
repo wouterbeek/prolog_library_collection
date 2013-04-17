@@ -113,9 +113,9 @@ Directed graphs.
 @version 2012/08
 */
 
-:- use_module(generic(list_ext)).
-:- use_module(generic(math_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(math_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(
   graph_theory(ugraphs_ext),
   [

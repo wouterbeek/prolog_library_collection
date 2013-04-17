@@ -148,8 +148,8 @@ as their lean subgraphs.
 @version 2012/01-2013/03
 */
 
-:- use_module(generic(file_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(file_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_graph)).

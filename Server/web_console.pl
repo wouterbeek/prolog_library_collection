@@ -26,7 +26,7 @@ The Web-based console for PraSem.
 @version 2012/10, 2013/02-2013/03
 */
 
-:- use_module(generic(list_ext)).
+:- use_module(pgc(list_ext)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(server(error_web)).

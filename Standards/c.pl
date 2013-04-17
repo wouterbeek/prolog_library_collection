@@ -14,7 +14,7 @@ Support for the C programming language.
 @version 2013/02
 */
 
-:- use_module(generic(parse_ext)).
+:- use_module(pgc(parse_ext)).
 
 
 

@@ -6,7 +6,7 @@
 @version 2012/07
 */
 
-:- use_module(generic(file_ext)).
+:- use_module(pgc(file_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_read)).

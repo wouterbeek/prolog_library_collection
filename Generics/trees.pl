@@ -14,8 +14,8 @@
 @version 2013/04
 */
 
-:- use_module(generic(list_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(meta_ext)).
 
 
 

@@ -25,7 +25,7 @@ positions in iterations of spring embedding.
 @version 2013/01
 */
 
-:- use_module(generic(list_ext)).
+:- use_module(pgc(list_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(math(math_ext)).

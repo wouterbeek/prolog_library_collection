@@ -49,8 +49,8 @@ LIMIT 10
 @version 2012/12-2013/01, 2013/03-2013/04
 */
 
-:- use_module(generic(file_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(file_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(semweb/sparql_client)).
 :- use_module(rdf(rdf_namespace)).

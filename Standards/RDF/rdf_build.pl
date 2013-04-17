@@ -64,7 +64,7 @@ datatypes and literals.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04
 */
 
-:- use_module(generic(atom_ext)).
+:- use_module(pgc(atom_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(math(math_ext)).

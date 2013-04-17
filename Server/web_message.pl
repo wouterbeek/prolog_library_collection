@@ -14,8 +14,8 @@ Acts on messages printed by print_message/2.
 @version 2013/02
 */
 
-:- use_module(generic(file_ext)).
-:- use_module(generic(logging)).
+:- use_module(pgc(file_ext)).
+:- use_module(pgc(logging)).
 :- use_module(library(http/http_open)).
 :- use_module(server(wallace)).
 :- use_module(standards(html)).

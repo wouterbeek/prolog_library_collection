@@ -34,7 +34,7 @@ Supported serialization formats:
 @version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/03
 */
 
-:- use_module(generic(file_ext)).
+:- use_module(pgc(file_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).

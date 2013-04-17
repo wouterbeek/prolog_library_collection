@@ -87,9 +87,9 @@ For the output formats we require the following things:
 @version 2012/12-2013/03
 */
 
-:- use_module(generic(file_ext)).
-:- use_module(generic(list_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(pgc(file_ext)).
+:- use_module(pgc(list_ext)).
+:- use_module(pgc(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
