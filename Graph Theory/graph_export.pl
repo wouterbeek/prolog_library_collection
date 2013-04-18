@@ -87,19 +87,19 @@ For the output formats we require the following things:
 @version 2012/12-2013/03
 */
 
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(math(math_ext)).
 :- use_module(rdfs(rdfs_read)).
 :- use_module(standards(graphviz)).
-:- use_module(standards(html)).
+:- use_module(html(html)).
 :- use_module(standards(markup)).
 :- use_module(standards(standards)).
-:- use_module(standards(svg)).
+:- use_module(svg(svg)).
 
 default_border(size(2, [0.5, 0.5])).
 default_surface(size(2, [10.0, 10.0])).

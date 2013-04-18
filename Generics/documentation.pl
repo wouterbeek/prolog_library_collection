@@ -18,8 +18,8 @@ Methods for generating the plDoc documentation in LaTeX format.
 @tbd This should be tested.
 */
 
-:- use_module(pgc(atom_ext)).
-:- use_module(pgc(file_ext)).
+:- use_module(generics(atom_ext)).
+:- use_module(generics(file_ext)).
 :- use_module(library(doc_latex)).
 
 

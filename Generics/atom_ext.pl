@@ -76,7 +76,7 @@ scheme.
 @version 2011/08-2012/12, 2013/02-2013/04
 */
 
-:- use_module(pgc(list_ext)).
+:- use_module(generics(list_ext)).
 :- use_module(math(math_ext)).
 
 

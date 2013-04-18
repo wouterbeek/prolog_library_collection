@@ -31,7 +31,7 @@ theoretic operations of RDF data must be redefined.
 @version 2012/01-2013/03
 */
 
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_read)). % Used for meta-calls.

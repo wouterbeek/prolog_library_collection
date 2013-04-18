@@ -14,8 +14,8 @@
 @version 2011-2012/09
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 
 :- dynamic(runner_opponent_result/3).
 :- dynamic(runner_result/2).

@@ -18,7 +18,7 @@ Standard support for XML Schema.
 @version 2013/01, 2013/03
 */
 
-:- use_module(pgc(atom_ext)).
+:- use_module(generics(atom_ext)).
 :- use_module(library(semweb/rdf_db)).
 
 :- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#', [keep(true)]).

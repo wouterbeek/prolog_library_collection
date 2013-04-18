@@ -18,7 +18,7 @@
 @version 2013/03
 */
 
-:- use_module(pgc(list_ext)).
+:- use_module(generics(list_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(ugraphs)).
 

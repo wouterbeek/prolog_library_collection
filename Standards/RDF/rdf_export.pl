@@ -61,14 +61,11 @@ The procedure for determining the color of a vertex:
 @version 2013/01-2013/03
 */
 
-:- use_module(pgc(atom_ext)).
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
-:- use_module(
-  generic(print),
-  [indent/2, lines/2 as print_lines, list/2 as print_list]
-).
-:- use_module(pgc(type_checking)).
+:- use_module(generics(atom_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
+:- use_module(generics(print_ext)).
+:- use_module(generics(type_checking)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_datatype)).
@@ -77,7 +74,7 @@ The procedure for determining the color of a vertex:
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdfs(rdfs_read)).
-:- use_module(standards(svg)).
+:- use_module(svg(svg)).
 
 :- dynamic(class_color(_Graph, _Class, _Color)).
 :- dynamic(namespace_color(_Graph, _Namespace, _Color)).
@@ -402,7 +399,7 @@ rdf_vertex_naming(Options, Vertex, Name):-
     Names1 = [Name1]
   ),
   % Done!
-  print_lines(atom(Name), Names1).
+  print_list(atom(Name), Names1).
 
 rdf_vertex_picturing(Options, Vertex, Picture):-
   option(graph(Graph), Options),

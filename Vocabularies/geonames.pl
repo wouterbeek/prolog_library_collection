@@ -16,8 +16,8 @@ GeoNames predicates.
 @version 2013/01
 */
 
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(type_checking)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(type_checking)).
 :- use_module(library(http/http_open)).
 
 

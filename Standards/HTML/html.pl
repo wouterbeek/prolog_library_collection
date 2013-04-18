@@ -46,8 +46,8 @@ HTML attribute parsing, used in HTML table generation.
 @version 2012/09-2013/03
 */
 
-:- use_module(pgc(parse_ext)).
-:- use_module(pgc(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(generics(parse_ext)).
+:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 

@@ -15,7 +15,7 @@ Support for Cascading Style Sheets.
 @version 2012/10, 2013/02
 */
 
-:- use_module(pgc(parse_ext)).
+:- use_module(generics(parse_ext)).
 
 
 

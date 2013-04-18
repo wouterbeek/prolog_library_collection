@@ -125,9 +125,9 @@ graph_format/2
 @version 2013/01-2013/04
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
-:- use_module(pgc(type_checking)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
+:- use_module(generics(type_checking)).
 :- use_module(graph_theory(ugraphs_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).

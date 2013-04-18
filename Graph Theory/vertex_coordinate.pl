@@ -25,11 +25,11 @@ positions in iterations of spring embedding.
 @version 2013/01
 */
 
-:- use_module(pgc(list_ext)).
+:- use_module(generics(list_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(math(math_ext)).
-:- use_module(standards(html)).
+:- use_module(html(html)).
 
 
 

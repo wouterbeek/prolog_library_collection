@@ -63,8 +63,8 @@ It has the form =|vertex_coordinate(<vertive>, <2d_coordinate>)|=.
 @version 2012/09-2013/02
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext), except([complete/3])).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext), except([complete/3])).
 :- use_module(graph_theory(graph_generic)).
 :- use_module(math(math_ext)).
 

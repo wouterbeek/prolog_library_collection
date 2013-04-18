@@ -16,6 +16,7 @@
     rdf_register_namespace/1, % +Prefix:atom
     rdf_register_namespace/2, % +Prefix:atom
                               % +URI:uri
+    rdf_register_namespaces/0,
     rdf_resource_to_namespace/3 % +Resource:uri
                                 % -Namespace:atom
                                 % -Name:atom
@@ -30,8 +31,8 @@ Namespace support for RDF(S).
 @version 2013/03
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_read)).
@@ -139,11 +140,14 @@ rdf_known_namespace('dbpedia-owl', 'http://dbpedia.org/ontology/'               
 rdf_known_namespace(dbpprop,       'http://dbpedia.org/property/'                 ).
 rdf_known_namespace(dc,            'http://purl.org/dc/terms/'                    ).
 rdf_known_namespace(foaf,          'http://xmlns.com/foaf/0.1/'                   ).
+rdf_known_namespace(geo,           'http://www.w3.org/2003/01/geo/wgs84_pos#'     ).
+rdf_known_namespace(georss,        'http://www.georss.org/georss'                 ).
 rdf_known_namespace(lexvo,         'http://lexvo.org/id/'                         ).
 rdf_known_namespace(ogc,           'http://lod.geodan.nl/geosparql_vocab_all.rdf#').
 rdf_known_namespace(owl,           'http://www.w3.org/2002/07/owl#'               ).
 rdf_known_namespace(plod,          'http://plod.nieuwland.nl/top10nl/resource/'   ).
 rdf_known_namespace('powder-s',    'http://www.w3.org/2007/05/powder-s#'          ).
+rdf_known_namespace(prov,          'http://www.w3.org/ns/prov#'                   ).
 rdf_known_namespace(prv,           'http://purl.org/net/provenance/ns#'           ).
 rdf_known_namespace(rdf,           'http://www.w3.org/1999/02/22-rdf-syntax-ns#'  ).
 rdf_known_namespace(rdfs,          'http://www.w3.org/2000/01/rdf-schema#'        ).
@@ -174,6 +178,12 @@ rdf_register_namespace(Prefix):-
 
 rdf_register_namespace(Prefix, URI):-
   rdf_register_prefix(Prefix, URI, [force(false), keep(true)]).
+
+rdf_register_namespaces:-
+  forall(
+    rdf_known_namespace(Prefix, URI),
+    rdf_register_namespace(Prefix, URI)
+  ).
 
 %% rdf_resource_to_namespace(
 %%   +Resource:uri,

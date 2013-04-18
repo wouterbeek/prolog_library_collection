@@ -15,7 +15,7 @@ Scripts for asserting RDF graphs that can be used for debugging.
 @version 2012/12-2013/02
 */
 
-:- use_module(pgc(os_ext)).
+:- use_module(generics(os_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(owl(owl_build)).

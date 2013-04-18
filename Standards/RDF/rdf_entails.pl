@@ -33,7 +33,7 @@ Entailment regime for RDF(S) and OWL.
 @version 2013/01
 */
 
-:- use_module(pgc(proof), [proof/3 as proof_print]).
+:- use_module(generics(proof), [proof/3 as proof_print]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdfs(rdfs_read)).

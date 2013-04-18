@@ -71,7 +71,7 @@ literals.
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/03
 */
 
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(math(math_ext)).
 :- use_module(rdf(rdf_datatype)).

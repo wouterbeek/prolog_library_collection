@@ -11,9 +11,9 @@
 @tbd This is work in progress.
 */
 
-:- use_module(pgc(atom_ext)).
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(atom_ext)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(standards(ascii)).
 
 :- dynamic(doc(_Doc)).

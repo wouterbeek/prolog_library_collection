@@ -34,7 +34,7 @@ Supported serialization formats:
 @version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/03
 */
 
-:- use_module(pgc(file_ext)).
+:- use_module(generics(file_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).
@@ -102,13 +102,13 @@ rdf_load2(File, SerializationFormat, Graph):-
   nonvar(File),
   exists_file(File),
   access_file(File, read),
-  
+
   % Check whether the format is given, exists, and is supported.
   nonvar(SerializationFormat),
   % Make sure the serialization format is supported, and take the display
   % name for use in the debug message.
   once(rdf_serialization(_FileType, SerializationFormat, true, _URI)),
-  
+
   % Check whether the graph name is given.
   nonvar(Graph),
   !,
@@ -122,12 +122,10 @@ rdf_load2(File, SerializationFormat, Graph):-
   rdf_load(
     File,
     [
-      cache(true),
       format(Format),
-      graph(Graph),
-      if(not_loaded),
-      register_namespaces(true),
-      silent(fail) % We like to get feedback.
+      graph(Graph)
+      %register_namespaces(true),
+      %silent(fail) % We like to get feedback.
     ]
   ),
 
@@ -233,18 +231,10 @@ rdf_save2(Graph, 'Turtle', File):-
     stream(Stream),
     [
       align_prefixes(true),
-      canonize_numbers(false),
-      comment(true),
-      encoding(utf8),
       graph(Graph),
-      group(true),
       indent(2),
-      only_known_prefixes(false),
-      silent(false),
-      single_line_bnodes(false),
-      subject_white_lines(1),
-      tab_distance(0),
-      user_prefixes(true)
+      only_known_prefixes(true),
+      tab_distance(0)
     ]
   ),
   debug(

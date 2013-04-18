@@ -74,15 +74,15 @@ representing a name-value pair.
 @version 2011-2013/03
 */
 
-:- use_module(pgc(exception_handling)).
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(os_ext)).
-:- use_module(pgc(print)).
-:- use_module(pgc(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(generics(exception_handling)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(os_ext)).
+:- use_module(generics(print_ext)).
+:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(process)).
 :- use_module(standards(brewer)).
 :- use_module(standards(c)).
-:- use_module(standards(svg)).
+:- use_module(svg(svg)).
 :- use_module(standards(x11)).
 
 user:file_search_path(www, project(www)).
@@ -559,7 +559,7 @@ write_attributes0(Stream, [Attribute | Attributes], Separator):-
 % @param Edge A GraphViz edge compound term.
 
 write_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
-  indent(Stream, 1),
+  print_indent(Stream, 1),
   format(Stream, 'node_~w -> node_~w ', [FromVertexID, ToVertexID]),
   write_attributes(Stream, EdgeAttributes, ', '),
   format(Stream, ';', []),
@@ -598,7 +598,7 @@ write_graphviz_to_stream(Stream, graph(Vertices, Edges, GraphAttributes)):-
 % @param GraphAttributes A list of name-value pairs.
 
 write_graph_attributes(Stream, GraphAttributes):-
-  indent(Stream, 1),
+  print_indent(Stream, 1),
   write_attributes0(Stream, GraphAttributes, '\n  '),
   nl(Stream).
 
@@ -609,7 +609,7 @@ write_graph_attributes(Stream, GraphAttributes):-
 % @param Vertex A GraphViz vertex compound term.
 
 write_vertex(Stream, node(VertexID, VerticeAttributes)):-
-  indent(Stream, 1),
+  print_indent(Stream, 1),
   format(Stream, 'node_~w ', [VertexID]),
   write_attributes(Stream, VerticeAttributes, ', '),
   format(Stream, ';', []),

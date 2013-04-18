@@ -47,8 +47,8 @@ Bad to the bone but fine as wine
 @version 2012/10
 */
 
-:- use_module(pgc(atom_ext), [replace/3 as replace_atom]).
-:- use_module(pgc(file_ext)).
+:- use_module(generics(atom_ext), [replace/3 as replace_atom]).
+:- use_module(generics(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(uri)).
 

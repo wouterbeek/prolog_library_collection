@@ -25,8 +25,8 @@ Allows one to monitor running threads that register.
 @version 2013/03
 */
 
-:- use_module(pgc(atom_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(atom_ext)).
+:- use_module(generics(meta_ext)).
 
 :- dynamic(end_flag(_ThreadAlias, _NumberOfTasks)).
 :- dynamic(workload(_ThreadAlias, _Module, _Goal, _TaskList)).

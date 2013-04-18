@@ -31,7 +31,7 @@ Statistics for RDF data.
 @version 2013/01, 2013/03
 */
 
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_graph)).

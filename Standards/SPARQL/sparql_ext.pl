@@ -49,8 +49,8 @@ LIMIT 10
 @version 2012/12-2013/01, 2013/03-2013/04
 */
 
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(semweb/sparql_client)).
 :- use_module(rdf(rdf_namespace)).
@@ -58,7 +58,7 @@ LIMIT 10
 :- dynamic(sparql_prefix(_Prefix, _URI)).
 :- dynamic(sparql_remote(_Remote, _Server, _Path)).
 
-:- debug(sparql).
+:- nodebug(sparql).
 
 
 

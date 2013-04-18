@@ -1,6 +1,8 @@
 :- module(
   dbpedia,
   [
+    assert_resource/2, % +Resource:uri
+                       % +Graph:atom
     describe_resource/2, % +Resource:uri
                          % -Rows:list(row)
     find_dbpedia_agent/4, % +Name:atom
@@ -54,8 +56,8 @@ WHERE
 @version 2013/03
 */
 
-:- use_module(generic(list_ext)).
-:- use_module(generic(meta_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(owl(owl_build)).
 :- use_module(rdf(rdf_graph)).
@@ -81,6 +83,8 @@ WHERE
 :- register_sparql_prefix(umbel).
 :- register_sparql_prefix(yago).
 
+:- rdf_meta(assert_resource(r,+)).
+:- rdf_meta(describe_resource(r,-)).
 :- rdf_meta(find_dbpedia_agent(+,+,+,r)).
 :- rdf_meta(link_to_dbpedia_agent(+,r)).
 
@@ -89,6 +93,15 @@ WHERE
 :- debug(dbpedia).
 
 
+
+assert_resource(Subject, Graph):-
+  rdf_is_resource(Subject),
+  atom(Graph),
+  describe_resource(Subject, Rows),
+  forall(
+    member(row(Predicate, Object), Rows),
+    rdf_assert(Subject, Predicate, Object, Graph)
+  ).
 
 describe_resource(Resource, Rows):-
   format(atom(Where), '  <~w> ?p ?o .', [Resource]),

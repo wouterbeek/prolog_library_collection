@@ -58,7 +58,7 @@
     permutations/3, % +NumberOfObjects:integer
                     % +PermutationLength:integer
                     % -NumberOfPermutations:integer
-    plus/3, % ?X:number
+    plus_float/3, % ?X:number
             % ?Y:number
             % ?Z:number
     pred/2, % +X:integer
@@ -99,7 +99,7 @@ Extra arithmetic functions for use in SWI-Prolog.
 @version 2011/08-2012/02, 2012/09-2012/10, 2012/12
 */
 
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(meta_ext)).
 
 
 
@@ -382,23 +382,23 @@ permutations(NumberOfObjects, PermutationLength, NumberOfPermutations):-
   factorial(Compensation, F2),
   NumberOfPermutations is F1 / F2.
 
-%% plus(?X:number, ?Y:number, ?Z:number) is det.
+%% plus_float(?X:number, ?Y:number, ?Z:number) is det.
 % Calculates the sum Z = X + Y as long as at least two arguments are
 % instantiated.
 %
 % @see The builin plus/3 only works for integers.
 
-plus(X, Y, Z):-
+plus_float(X, Y, Z):-
   nonvar(X),
   nonvar(Y),
   !,
   Z is X + Y.
-plus(X, Y, Z):-
+plus_float(X, Y, Z):-
   nonvar(X),
   nonvar(Z),
   !,
   Y is Z - X.
-plus(X, Y, Z):-
+plus_float(X, Y, Z):-
   nonvar(Y),
   nonvar(Z),
   !,

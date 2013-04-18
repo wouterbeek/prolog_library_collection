@@ -23,7 +23,7 @@ Web front-end for SPARQL queries.
 
 :- use_module(server(web_console)).
 :- use_module(sparql(sparql_ext)).
-:- use_module(standards(html)).
+:- use_module(html(html)).
 
 :- dynamic(default_remote(_Remote)).
 :- assert(default_remote(dbpedia)).

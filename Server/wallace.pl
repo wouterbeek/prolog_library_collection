@@ -38,7 +38,7 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(server(vc)).
 :- use_module(server(web_console)).
 :- use_module(server(sparql_web)).
-:- use_module(standards(html)).
+:- use_module(html(html)).
 :- use_module(standards(http)).
 
 :- dynamic(content_queue(_Type, _DTD_Name, _StyleName, _DOM)).

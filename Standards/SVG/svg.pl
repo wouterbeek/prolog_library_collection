@@ -40,8 +40,8 @@ represent by an integer between 0 and 255 (inclusive).
 @version 2012/10, 2013/01-2013/03
 */
 
-:- use_module(pgc(parse_ext)).
-:- use_module(pgc(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(generics(parse_ext)).
+:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(standards(ascii)).
 :- use_module(standards(markup)).
 

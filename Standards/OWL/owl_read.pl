@@ -3,8 +3,17 @@
   [
     owl_class_equivalence/2, % ?Class1:uri
                              % ?Class2:uri
-    owl_resource_identity/2 % ?Resource1:uri
+    owl_resource_identity/2, % ?Resource1:uri
+                             % ?Resource2:uri
+    owl_resource_identity/4, % ?Resource1:uri
+                             % ?Graph1:atom
+                             % ?Resource2:uri
+                             % ?Graph2:atom
+    owl_resource_identity/5 % ?Resource1:uri
+                            % ?Graph1:atom
                             % ?Resource2:uri
+                            % ?Graph2:atom
+                            % ?LinkGraph:atom
   ]
 ).
 
@@ -13,7 +22,7 @@
 Predicates for reading from OWL data.
 
 @author Wouter Beek
-@version 2013/01, 2013/03
+@version 2013/01, 2013/03-2013/04
 */
 
 :- use_module(library(semweb/rdf_db)).
@@ -31,4 +40,12 @@ owl_class_equivalence(Class1, Class2):-
 
 owl_resource_identity(Resource1, Resource2):-
   rdf_has(Resource1, owl:sameAs, Resource2).
+
+owl_resource_identity(Resource1, Graph1, Resource2, Graph2):-
+  owl_resource_identity(Resource1, Graph1, Resource2, Graph2, _LinkGraph).
+
+owl_resource_identity(Resource1, Graph1, Resource2, Graph2, LinkGraph):-
+  rdf(Resource1, owl:sameAs, Resource2, LinkGraph),
+  rdf(Resource1, rdf:type, _Class1, Graph1),
+  rdf(Resource2, rdf:type, _Class2, Graph2).
 

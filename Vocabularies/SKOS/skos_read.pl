@@ -23,7 +23,7 @@
 
 :- use_module(graph_theory(graph_export)).
 :- use_module(graph_theory(graph_generic)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_namespace)).

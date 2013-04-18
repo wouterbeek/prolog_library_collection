@@ -34,8 +34,8 @@ Extra set functions for use in SWI-Prolog.
 @version 2011/11-2011/12, 2012/02, 2012/08, 2012/10
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(meta_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 
 :- meta_predicate delete_sets(+,+,2,-,-).
 :- meta_predicate transitive_closure(2,+,-).

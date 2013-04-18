@@ -89,8 +89,8 @@ Extensions to the SWI-Prolog meta predicates.
 @version 2012/07-2012/08, 2013/01, 2013/03
 */
 
-:- use_module(pgc(list_ext)).
-:- use_module(pgc(thread_ext)).
+:- use_module(generics(list_ext)).
+:- use_module(generics(thread_ext)).
 
 :- meta_predicate(call_semidet(0)).
 :- meta_predicate(nonvar_det(0)).
@@ -296,7 +296,7 @@ modules(Modules):-
 % MULTI-THREADING %
 
 run_on_sublists(List, Module:Goal):-
-  split_list_by_number_of_sublists(List, 12, Sublists),
+  split_list_by_number_of_sublists(List, 10, Sublists),
   forall(
     member(TaskList, Sublists),
     thread_start(Module, Goal, TaskList, _ThreadId)

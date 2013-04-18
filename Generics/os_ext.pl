@@ -62,9 +62,9 @@ This module contains the OS extensions for SWI-Prolog.
 @version 2011/11-2012/06, 2012/12-2013/02
 */
 
-:- use_module(pgc(exception_handling)).
-:- use_module(pgc(file_ext)).
-:- use_module(pgc(print)).
+:- use_module(generics(exception_handling)).
+:- use_module(generics(file_ext)).
+:- use_module(generics(print_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(www_browser)).
 
