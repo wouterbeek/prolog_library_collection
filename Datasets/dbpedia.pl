@@ -1,6 +1,8 @@
 :- module(
   dbpedia,
   [
+    assert_identity_resource/2, % +Resource:uri
+                                % +Graph:atom
     assert_resource/2, % +Resource:uri
                        % +Graph:atom
     describe_resource/2, % +Resource:uri
@@ -53,7 +55,7 @@ WHERE
     <specific_mappingbased_properties_en.ttl> .
 
 @author Wouter Beek
-@version 2013/03
+@version 2013/03-2013/04
 */
 
 :- use_module(generics(list_ext)).
@@ -89,10 +91,24 @@ WHERE
 :- rdf_meta(link_to_dbpedia_agent(+,r)).
 
 :- register_sparql_remote(dbpedia, 'dbpedia.org', '/sparql').
+:- register_sparql_remote(dbpedia, 
 
 :- debug(dbpedia).
 
 
+
+assert_identity_resource(FromSubject, Graph):-
+  setoff(
+    ToSubject,
+    owl_resource_identity(FromSubject, ToSubject),
+    ToSubjects
+  ),
+  forall(
+    member(Subject, [FromSubject | ToSubjects]),
+    (
+      assert_resource(Subject, Graph)
+    )
+  ).
 
 assert_resource(Subject, Graph):-
   rdf_is_resource(Subject),
