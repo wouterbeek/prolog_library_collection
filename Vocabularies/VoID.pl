@@ -37,7 +37,6 @@ VoID is a W3C Interest Group Note as of 2011/03/03.
 :- use_module(library(filesex)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_file_type)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_graph)).
@@ -237,7 +236,7 @@ void_save_library(VoID_Graph):-
     member(ThreadId, ThreadIds),
     thread_join(ThreadId, true)
   ),
-  rdf_save2(VoID_Graph).
+  rdf_save2(VoID_Graph, 'Turtle', _VoID_File).
 
 void_update_library(VoID_Graph):-
   set_prolog_stack(global, limit(2*10**9)),

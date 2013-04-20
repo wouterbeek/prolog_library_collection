@@ -16,8 +16,10 @@
                      % -PI:atom
     uri_to_xml/2, % +URI:uri
                   % -XML:dom
-    xml_declaration//2 % +Version:versionm
-                       % +Standalone:atom
+    xml_declaration//2, % +Version:versionm
+                        % +Standalone:atom
+    xml_doctype/2 % +Stream:stream
+                  % -DocType
   ]
 ).
 
@@ -26,13 +28,15 @@
 XML, Extendable Markup Language specification.
 
 @author Wouter Beek
-@version 2012/10, 2013/02-2013/03
+@version 2012/10, 2013/02-2013/04
 */
 
 :- use_module(generics(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
+:- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
+:- use_module(standards(sgml_parse)).
 :- use_module(standards(standards), [charset/1]).
 
 :- assert(prolog_file_type(xml, xml)).
@@ -134,4 +138,45 @@ xml_declaration(version(Major/Minor/_Variant, _Year), Standalone) -->
   {format(atom(StandaloneDeclaration), 'standalone="~w"', [Standalone])},
   [StandaloneDeclaration],
   ['?>'].
+
+%% xml_doctype(+Stream, -DocType) is semidet.
+% Parse a _repositional_ stream and get the  name of the first XML
+% element *and* demand that this   element defines XML namespaces.
+% Fails if the document is illegal XML before the first element.
+%
+% Note that it is not  possible   to  define valid RDF/XML without
+% namespaces, while it is not possible  to define a valid absolute
+% Turtle URI (using <URI>) with a valid xmlns declaration.
+%
+% @author Jan Wielemaker
+% @version 2011
+
+xml_doctype(Stream, DocType):-
+  catch(
+    setup_call_cleanup(
+      make_parser(Stream, Parser, State),
+      sgml_parse(
+        Parser,
+        [
+          call(begin, on_begin),
+          call(cdata, on_cdata),
+          max_errors(1),
+          source(Stream),
+          syntax_errors(quiet)
+        ]
+      ),
+      cleanup_parser(Stream, Parser, State)
+    ),
+    Exception,
+    true
+  ),
+  nonvar(Exception),
+  Exception = tag(DocType).
+
+on_begin(Tag, Attributes, _Parser):-
+  memberchk(xmlns:_=_, Attributes),
+  throw(tag(Tag)).
+
+on_cdata(_CDATA, _Parser):-
+  throw(error(cdata)).
 

@@ -3,6 +3,8 @@
   [
     convert_turtle_to_rdf/2, % +TurtleFile:file
                              % +RDFFile:file
+    rdf_guess_data_format/2, % +Stream:stream
+                             % ?Format:oneof([turtle,xml])
     rdf_load2/1, % +Graph:atom
     rdf_load2/2, % +File:atom
                  % ?Graph:atom
@@ -31,7 +33,7 @@ Supported serialization formats:
 * TURTLE
 
 @author Wouter Beek
-@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/03
+@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/04
 */
 
 :- use_module(generics(file_ext)).
@@ -41,6 +43,7 @@ Supported serialization formats:
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(rdf(rdf_export)).
 :- use_module(rdf(rdf_namespace)).
+:- use_module(standards(xml)).
 
 :- assert(user:prolog_file_type(rdf, rdf)).
 :- assert(user:prolog_file_type(ttl, turtle)).
@@ -64,6 +67,23 @@ convert_turtle_to_rdf(Turtle, RDF):-
   ),
   rdf_save2(RDF, xml, [graph(conversion), encoding(utf8)]),
   rdf_retractall(_Subject, _Predicate, _Object, conversion).
+
+%% rdf_guess_data_format(+Stream, ?Format:oneof([turtle,xml]) is det.
+% Guess the format of an RDF file from the actual content.
+% Currently, this seeks for a valid XML document upto the rdf:RDF
+% element before concluding that the file is RDF/XML. Otherwise it
+% assumes that the document is Turtle.
+%
+% @author Jan Wielemaker
+% @version 2011
+
+rdf_guess_data_format(_, Format):-
+  nonvar(Format),
+  !.
+rdf_guess_data_format(Stream, xml):-
+  xml_doctype(Stream, _),
+  !.
+rdf_guess_data_format(_, turtle).
 
 %% rdf_load2(+Graph:atom) is semidet.
 % Loads the graph with the given name.

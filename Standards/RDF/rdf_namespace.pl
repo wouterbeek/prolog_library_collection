@@ -28,7 +28,7 @@
 Namespace support for RDF(S).
 
 @author Wouter Beek
-@version 2013/03
+@version 2013/03-2013/04
 */
 
 :- use_module(generics(list_ext)).
@@ -210,4 +210,7 @@ rdf_resource_to_namespace(Resource, Namespace, Name):-
       OtherNameLength < NameLength
     ))
   ).
+
+% Automatically load often used namespaces.
+:- rdf_register_namespaces.
 
