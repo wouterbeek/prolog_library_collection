@@ -3,7 +3,7 @@
   [
     type_check/2, % +Type:compound
                   % +Value:atom
-    uri/1 % ?Resource
+    is_uri/1 % ?Resource
   ]
 ).
 
@@ -44,9 +44,9 @@ type_check(Type, Value):-
   Call =.. [Type, ValueChars, []],
   call(Call).
 
-%% uri(?Resource:uri) is semidet.
+%% is_uri(?Resource:uri) is semidet.
 
-uri(Resource):-
+is_uri(Resource):-
   uri_components(
     Resource,
     uri_components(Scheme, Authority, Path, _Search, _Fragment)

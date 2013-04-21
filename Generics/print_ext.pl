@@ -33,6 +33,7 @@ is a list of proofs and/or premises that are written using =print_premise/3=.
 :- use_module(generics(atom_ext)). % Meta-calls.
 :- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
+:- use_module(library(memfile)).
 
 
 
@@ -42,7 +43,16 @@ print_indent(Stream, Indent):-
 
 %% print_list(+Stream:stream, +List:list) is det.
 
+print_list(atom(Atom), List):-
+  !,
+  new_memory_file(Handle),
+  open_memory_file(Handle, write, Stream),
+  print_list(Stream, List),
+  close(Stream),
+  memory_file_to_atom(Handle, Atom),
+  free_memory_file(Handle).
 print_list(Stream, List):-
+  is_stream(Stream),
   print_list(Stream, 0, List).
 
 print_list(_Stream, _Indent, []):-
@@ -56,7 +66,7 @@ print_list(Stream, Indent, [H | T]):-
 print_list(Stream, Indent, [H | T]):-
   print_indent(Stream, Indent),
   format(Stream, '~w', [H]),
-  flush_output(Stream),
+  if_then(is_stream(Stream), flush_output(Stream)),
   format(Stream, '\n', []),
   print_list(Stream, Indent, T).
 

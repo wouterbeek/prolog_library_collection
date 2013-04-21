@@ -118,12 +118,17 @@ rdf_current_namespaces(Namespaces):-
 % @param Graph The atomic name of a graph.
 % @param Namespaces An ordered set of atomic names of namespaces.
 
+rdf_current_namespaces(_Graph, Namespaces):-
+  rdf_current_namespaces(Namespaces).
+
+/* TOO EXPENSIVE!
 rdf_current_namespaces(Graph, Namespaces):-
   meta_ext:setoff_alt(
     Namespace,
     rdf_namespace:rdf_lookup_namespace(Graph, Namespace, _URI),
     Namespaces
   ).
+*/
 
 %%%% d2r http://sites.wiwiss.fu-berlin.de/suhl/bizer/d2r-server/config.rdf#
 %%%% map file:/D:/D2RServer/d2r-server-0.7/mapping.n3#

@@ -66,6 +66,22 @@ rdf_clean_datatype(Subject, Predicate, Datatype, Object, Graph):-
     Tuples
   ).
 
+rdf_convert_datatype(
+  Subject,
+  Predicate,
+  FromDatatype,
+  ToDatatype,
+  Object,
+  Graph
+):-
+  forall(
+    rdf_datatype(Subject, Predicate, FromDatatype, ToObject, Graph),
+    (
+      rdf_datatype_conversion(FromDatatype, FromObject, ToDatatype, ToObject),
+      rdf_assert_datatype(Subject, 
+    )
+  ).
+
 rdf_duplicate(Subject, Predicate, Object, Graph1, Graph2):-
   rdf(Subject, Predicate, Object, Graph1:_),
   rdf(Subject, Predicate, Object, Graph2:_),

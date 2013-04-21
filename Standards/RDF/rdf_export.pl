@@ -285,7 +285,7 @@ rdf_vertex_coloring(Options, Vertex, Color):-
     rdf_vertex_color_by_namespace(Graph, ColorScheme, Vertex, Color)
   ;
     % URI resources with unregistered namespace/prefix.
-    uri(Vertex)
+    is_uri(Vertex)
   ->
     Color = red
   ;

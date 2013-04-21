@@ -235,8 +235,8 @@ cubic(Options):-
 % @param Options A list of name-value pairs.
 %        1. =graph(Graph:ugraph)=
 %           Supported: RDF, UGRAPH.
-%        2. =literals(IncludeLiterals:boolean)= Whether or not
-%           literals are allowed as vertices in the =Edge=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
 %           Supported for: RDF.
 
 degree(Options, Vertex, Degree):-
@@ -252,8 +252,8 @@ degree(Options, Vertex, Degree):-
 % @param Options A list of name-value pairs.
 %        1. =graph(Graph:ugraph)=
 %           Supported: RDF, UGRAPH.
-%        2. =literals(IncludeLiterals:boolean)= Whether or not
-%           literals are allowed as vertices in the =Edge=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
 %           Supported for: RDF.
 % @param DegreeSequence A list of integers.
 
@@ -344,8 +344,9 @@ depth0(
 %        2. =graph(Graph:atom)= The atomic name of the graph to which =Edge=
 %           must belong.
 %           Supported for: RDF, UGRAPH.
-%        3. =literals(IncludeLiterals)= Whether or not literals are
-%           allowed as vertices in the =Edge=.
+%        3. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
+%           Default: =collapse=.
 %           Supported for: RDF.
 %        4. =in(Format:oneof([rdf,ugraph_ext]))=
 % @param Edge An edge, of the form =|From-To|=.
@@ -390,8 +391,9 @@ edges_to_vertices(Edges, Vertices):-
 % @param Options A list of name-value pairs.
 %        1. =|graph(Graph)|=
 %           Supported by: RDF, UGRAPH.
-%        2. =|literals(boolean)|= Whether literals
-%           are seen as vertices as well. Defaults to =false=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether literals are seen as vertices as well.
+%           Default: =collapse=.
 %           Supported by: RDF.
 % @param Edges An ordered set of edges.
 
@@ -521,8 +523,8 @@ has_cycle(O1):-
 % @param Options A list of the following name-value pairs:
 %        1. =graph(Graph:atom)=
 %           Supported for: RDF, UGRAPH.
-%        2. =literals(IncludeLiterals:boolean)= Whether or not
-%           literals are allowed as vertices in the =Edge=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
 %           Supported for: RDF.
 
 neighbor(Options, Vertex, Neighbor):-
@@ -538,8 +540,8 @@ neighbor(Options, Vertex, Neighbor):-
 % @param Options A list of the following name-value pairs:
 %        1. =graph(Graph:atom)=
 %           Supported for: RDF, UGRAPH.
-%        2. =literals(IncludeLiterals:boolean)= Whether or not
-%           literals are allowed as vertices in the =Edge=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
 %           Supported for: RDF.
 
 neighbors(Options, FromVertex, ToVertices):-
@@ -830,7 +832,7 @@ vertex(Options, Vertex):-
 % @param Color The atomic name of a color for the given vertex.
 
 vertex_coloring(Options, Vertex, Color):-
-  uri(Vertex),
+  is_uri(Vertex),
   !,
   rdf_vertex_coloring(Options, Vertex, Color).
 vertex_coloring(_Options, _Vertex, black).
@@ -863,7 +865,7 @@ vertex_picturing(Options, Vertex, Image):-
   generic(Options, vertex_picturing, [Vertex, Image]).
 
 vertex_shaping(Options, Vertex, Shape):-
-  uri(Vertex),
+  is_uri(Vertex),
   !,
   rdf_vertex_shaping(Options, Vertex, Shape).
 vertex_shaping(_Options, _Vertex, [peripheries(1), shape(ellipse)]).

@@ -34,7 +34,6 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(library(http/thread_httpd)).
 :- use_module(server(error_web)).
 :- use_module(server(web_console)).
-:- use_module(sparql(sparql_process)).
 :- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
 
@@ -60,7 +59,6 @@ http:location(sparql, root(sparql), []).
 :- http_handler(root(status_pane), status_pane, []).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
 :- http_handler(js(.), serve_files_in_directory(js), [prefix]).
-:- http_handler(sparql(.), sparql, [spawn(sparql_query)]).
 
 :- html_resource(css('console_output.css'), [requires(css('wallace.css'))]).
 :- html_resource(css('status_pane.css'), [requires(css('wallace.css'))]).
@@ -121,10 +119,6 @@ push(Type, DOM):-
 push(Type, DTD_Name, StyleName, DOM):-
   %format(user, '[QQQ] ~w ~w ~w ~w\n', [Type, DTD_Name, StyleName, DOM]), %DEB
   assertz(content_queue(Type, DTD_Name, StyleName, DOM)).
-
-sparql(Request):-
-  sparql_process(Request, DOM),
-  push(console_output, html, wallace, DOM).
 
 status_pane(_Request):-
   retract(content_queue(status_pane, DTD_Name, Style_Name, DOM)),

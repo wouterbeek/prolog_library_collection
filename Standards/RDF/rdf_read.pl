@@ -36,6 +36,12 @@
                    % ?Literal:atom
                    % ?Graph:graph
 
+% MEMBERSHIP
+    rdf_member/2, % ?Member:uri
+                  % ?Members:list(uri)
+    rdf_memberchk/2, % ?Member:uri
+                     % ?Members:list(uri)
+
 % RDF HAS
     rdf_has_datatype/4, % ?Subject:uri
                         % ?Predicate:uri
@@ -68,7 +74,7 @@ Predicates for reading from RDF, customized for specific datatypes and
 literals.
 
 @author Wouter Beek
-@version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/03
+@version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04
 */
 
 :- use_module(generics(meta_ext)).
@@ -90,6 +96,9 @@ literals.
 :- rdf_meta(rdf_datatype(r,r,?,?,?)).
 :- rdf_meta(rdf_literal(r,r,?,?)).
 :- rdf_meta(rdf_literal(r,r,?,?,?)).
+% MEMBERSHIP %
+:- rdf_meta(rdf_member(r,+)).
+:- rdf_meta(rdf_memberchk(r,+)).
 % RDF HAS %
 :- rdf_meta(rdf_has_datatype(r,r,?,?)).
 % STRUCTURE-BASED READS %
@@ -261,6 +270,17 @@ rdf_literal(Subject, Predicate, Literal, Graph):-
 
 rdf_literal(Subject, Predicate, Language, Literal, Graph):-
   rdf(Subject, Predicate, literal(lang(Language, Literal)), Graph).
+
+
+
+% MEMBERSHIP %
+
+rdf_member(Member, List):-
+  member(Member0, List),
+  rdf_global_id(Member0, Member).
+
+rdf_memberchk(Member, List):-
+  once(rdf_member(Member, List)).
 
 
 

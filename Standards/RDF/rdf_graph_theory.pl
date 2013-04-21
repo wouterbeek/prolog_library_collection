@@ -51,25 +51,23 @@ theoretic operations of RDF data must be redefined.
 %           directionality of the edge is taken into account.
 %        2. =|graph(Graph:atom)|= The atomic name of the graph to which =Edge=
 %           must belong.
-%        3. =|literals(Include:boolean)|= Whether or not literals are
-%           allowed as vertices in the =Edge=.
-%           Default: =false=.
+%        3. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
+%           Default: =collapse=.
 % @param Edge An edge, either =|From-To|= or =|From-Predicate-To|=.
 
 rdf_edge(Options, From-To):-
-  % Edges within a certain graph.
-  option(graph(Graph), Options, user),
   % Whether the edge's directionality is relevant or not.
   option(directed(Directed), Options, false),
   (
     Directed == true
   ->
-    rdf(From, Predicate, To, Graph)
+    rdf_has(From, Predicate, To)
   ;
     (
-      rdf(From, Predicate, To, Graph)
+      rdf_has(From, Predicate, To)
     ;
-      rdf(To, Predicate, From, Graph)
+      rdf_has(To, Predicate, From)
     )
   ),
   % Make sure the vertices pass the vertex filter.
@@ -117,8 +115,8 @@ rdf_graph_to_ugraph(G, UG):-
 % @param Options A list of the following name-value pairs:
 %        1. =graph(Graph:atom)= The atomic name of the graph to which =Edge=
 %           must belong.
-%        2. =literals(IncludeLiterals:boolean)= Whether or not literals are
-%           allowed as vertices in the =Edge=.
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
+%           Whether or not literals are allowed as vertices in the =Edge=.
 
 rdf_neighbor(Options0, Vertex, Neighbor):-
   merge_options([literals(show)], Options0, Options),
@@ -154,7 +152,7 @@ rdf_subgraph(Options, SubVertices, SubGraph):-
 %
 % @param Options A list of name-value pairs.
 %        1. =graph(Graph:atom)= The atomic name of a graph.
-%        2. =|literals(oneof([collapse,hide,show]))|=
+%        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
 %           Whether or not literals are allowed as vertices in the =Edge=.
 %           Default: =collapse=.
 %        3. =|rdf_list(onef([concise,full]))|= Whether vertices that are part
