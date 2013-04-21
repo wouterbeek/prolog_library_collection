@@ -27,6 +27,7 @@ The Web-based console for PraSem.
 */
 
 :- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(server(error_web)).
@@ -179,6 +180,8 @@ register_module(Module):-
   !.
 % Register the module.
 register_module(Module):-
+  % The module must already be loaded.
+  current_module(Module),
   assert(registered_module(Module)).
 
 registered_module(web_console).

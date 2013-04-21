@@ -19,6 +19,10 @@
     delete_files/2, % +Directory:atom
                     % +FileTypes:list(atom)
 
+% HOME DIRECTORIES
+    assert_home_directory/0,
+    assert_home_subdirectory/1, % +Subdirectory:list(atom)
+    
 % OS IDENTIFICATION
     is_mac/0,
     is_unix/0,
@@ -187,6 +191,28 @@ delete_files(Directory, FileType):-
   catch(maplist(delete_file, Files), _Error, true).
 delete_files(Directory, FileTypes):-
   maplist(delete_files(Directory), FileTypes).
+
+
+
+% HOME DIRECTORIES
+
+assert_home_directory:-
+  file_search_path(home, _),
+  !.
+assert_home_directory:-
+  % The personal or user directory is relatively difficult to
+  % construe, since I only know how to retrieve the user's home
+  % path using the XPCE library.
+  new(PCEDirectory, directory('~')),
+  get(PCEDirectory, path, HomeDirectory),
+  assert(file_search_path(home, HomeDirectory)).
+
+assert_home_subdirectory(Subdirectory):-
+  assert_home_directory,
+  project_name(Project),
+  format(atom(Project0), '.~w', [Project]),
+  Subdirectory0 =.. [Project0, Subdirectory],
+  nested_dir_name(home(Subdirectory0), _AbsoluteDirectory).
 
 
 

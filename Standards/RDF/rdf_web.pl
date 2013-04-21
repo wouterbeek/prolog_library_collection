@@ -23,6 +23,7 @@ Web predicates for RDF graphs.
 @version 2012/12-2013/01, 2013/03
 */
 
+:- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_serial)).
 

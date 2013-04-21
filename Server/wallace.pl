@@ -15,7 +15,7 @@
 
 /** <module> Wallace webserver
 
-Currently used for debugging purposes only.
+Using this module automatically starts the server.
 
 http://semanticweb.cs.vu.nl/prasem/
 
@@ -23,38 +23,24 @@ http://semanticweb.cs.vu.nl/prasem/
 @version 2012/05, 2012/09-2012/12, 2013/02-2013/04
 */
 
+:- use_module(html(html)).
+:- use_module(generics(logging)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_error)).
 :- use_module(library(http/http_files)).
 :- use_module(library(http/http_parameters)).
-:- use_module(server(crawler_web)).
+:- use_module(library(http/thread_httpd)).
 :- use_module(server(error_web)).
-:- use_module(server(graph_web)).
-:- use_module(server(poems_web)).
-:- use_module(server(qsim_web)).
-:- use_module(server(ragent_web)).
-:- use_module(server(vc)).
 :- use_module(server(web_console)).
-:- use_module(server(sparql_web)).
-:- use_module(html(html)).
+:- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
 
 :- dynamic(content_queue(_Type, _DTD_Name, _StyleName, _DOM)).
 
-% By registering these modules, their web predicates become accessible
-% from the web console.
-:- register_module(crawler_web).
-:- register_module(graph_web).
-:- register_module(poems_web).
-:- register_module(qsim_web).
-:- register_module(ragent_web).
-:- register_module(rdf_web).
-:- register_module(sparql_web).
-:- register_module(stcn_web).
-:- register_module(thread_ext).
-:- register_module(vc).
+% By registering these modules, their Web predicates become accessible
+% from the Web console.
 :- register_module(web_message).
 
 :- multifile(http:location/3).
@@ -107,6 +93,30 @@ http:location(pldoc,         http_root(help),  [priority(1000)]).
 :- multifile(user:head//2).
 
 
+
+% START SERVER %
+
+default_port(5000).
+
+start_wallace:-
+  default_port(Port),
+  http_server_property(Port, start_time(_Time)),
+  !.
+start_wallace:-
+  % Logging is required one Wallace is started, because module
+  % =|web_message|= causes debug messages to be appended to the current
+  % logging stream.
+  start_log,
+  
+  default_port(Port),
+  % Make sure Wallace is shut down whenever Prolog shuts down.
+  assert(user:at_halt(http_stop_server(Port, []))),
+  http_server(http_dispatch, [port(Port)]).
+:- start_wallace.
+
+
+
+% WEB FRONTEND %
 
 console_output -->
   html([
@@ -167,19 +177,6 @@ status_pane -->
     \html_requires(http_www_js('status_pane.js')),
     div(id(status_pane), [])
   ]).
-
-stcn(Request):-
-  memberchk(path(Path0), Request),
-  (
-    Path0 == '/prasem/stcn'
-  ->
-    reply_html_file(stcn, stcn)
-  ;
-    % A subpath, dereference the indicated PPN (if any).
-    atom_concat('/prasem/stcn/', Path, Path0),
-    catch_web(vertex_web(stcn, Path), Markup),
-    reply_html_page(stcn, [], Markup)
-  ).
 
 test(Out):-
   format(Out, 'Content-type: application/xml~n~n', []),

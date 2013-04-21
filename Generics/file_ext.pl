@@ -207,44 +207,45 @@ file_type_alternative(FromFile, ToFileType, ToFile):-
   file_name_type(Base, _FromFileType, FromFile),
   file_name_type(Base, ToFileType, ToFile).
 
-%% nested_dir_name(+Dirs:compound, +FileType:atom, -File:atom) is det.
+%% nested_dir_name(+NestedDirectory:compound, -AbsoluteDirectory:atom) is det.
 % Returns a nested file path.
 %
-% @param Dirs A compound term of linearly nested atoms representing the
-%        subsequent subdirectories. The final atom is the name of the file.
-% @param FileType The atomic name of a file type, as registered by PraSem.
-% @param File The absolute path of a file.
+% @param NestedDirectory A compound term of linearly nested atoms
+%        representing the subsequent subdirectories. The final atom
+%        is the name of the file.
+% @param AbsoluteDirectory The absolute path of the nested directory
+%        specification.
 
-nested_dir_name(Dirs, AbsoluteDir):-
-  Dirs =.. [Dir | NewDirs1],
+nested_dir_name(NestedDirectory, AbsoluteDirectory):-
+  NestedDirectory =.. [OuterDirectory | InnerDirectories],
   (
-    RelativeDir =.. [Dir, '.'],
+    RelativeDir =.. [OuterDirectory, '.'],
     absolute_file_name(RelativeDir, Path),
     !
   ;
-    Path = Dir
+    Path = OuterDirectory
   ),
   create_directory(Path),
   % Make sure that non-nested directories can also be resolved.
   (
-    NewDirs1 == []
+    InnerDirectories == []
   ->
-    AbsoluteDir = Path
+    AbsoluteDirectory = Path
   ;
-    NewDirs1 = [NewDirs],
-    nested_dir_name1(NewDirs, Path, AbsoluteDir)
+    InnerDirectories = [InnerDirectories0],
+    nested_dir_name1(InnerDirectories0, Path, AbsoluteDirectory)
   ).
 
-nested_dir_name1(Dir, Path, AbsoluteDir):-
-  atomic(Dir),
+nested_dir_name1(Directory, Path, AbsoluteDirectory):-
+  atomic(Directory),
   !,
-  concat_path(Path, Dir, AbsoluteDir),
-  create_directory(AbsoluteDir).
-nested_dir_name1(Dirs, Path, AbsoluteDir):-
-  Dirs =.. [SubDir, NewDirs],
-  concat_path(Path, SubDir, NewPath),
+  concat_path(Path, Directory, AbsoluteDirectory),
+  create_directory(AbsoluteDirectory).
+nested_dir_name1(NestedDirectory, Path, AbsoluteDirectory):-
+  NestedDirectory =.. [OuterDirectory, InnerDirectories],
+  concat_path(Path, OuterDirectory, NewPath),
   create_directory(NewPath),
-  nested_dir_name1(NewDirs, NewPath, AbsoluteDir).
+  nested_dir_name1(InnerDirectories, NewPath, AbsoluteDirectory).
 
 %% path_walk_forest(
 %%   +Directories:list(atom),

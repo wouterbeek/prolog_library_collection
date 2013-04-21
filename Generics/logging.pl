@@ -22,6 +22,7 @@
     set_current_log_file/1, % ?File:atom
     set_current_log_stream/1, % ?Stream:stream
     set_situation/1,
+    situation/1, % ?Situation:atom
     start_log/0
   ]
 ).
@@ -32,21 +33,33 @@ Methods for logging.
 
 @author Wouter Beek
 @author Sander Latour
-@version 2012/05-2012/07, 2013/03
+@version 2012/05-2012/07, 2013/03-2013/04
 */
 
 :- use_module(generics(file_ext)).
+:- use_module(generics(os_ext)).
 :- use_module(library(http/http_client)).
 
 :- multifile(prolog:message/1).
 
 :- dynamic(log_mode/1).
-:- dynamic(situation/1).
+:- dynamic(situation0/1).
 
 :- dynamic(current_log_file/1).
 :- dynamic(current_log_stream/1).
 
 :- assert(user:prolog_file_type(log, log)).
+
+init:-
+  file_search_path(log, _Directory),
+  !.
+init:-
+  assert_home_subdirectory(log),
+  project_name(Project),
+  format(atom(Project0), '.~w', [Project]),
+  assert(user:file_search_path(personal, home(Project0))),
+  assert(user:file_search_path(log, personal(log))).
+:- init.
 
 
 
@@ -207,12 +220,17 @@ set_current_log_stream(Stream):-
 
 % Already set.
 set_situation(Situation):-
-  situation(Situation),
+  situation0(Situation),
   !,
   fail.
 % Set for the first (any only) time.
 set_situation(Situation):-
-  assert(situation(Situation)).
+  assert(situation0(Situation)).
+
+situation(Situation):-
+  situation0(Situation),
+  !.
+situation(no_situation).
 
 %% start_log is det.
 % Starts logging.
