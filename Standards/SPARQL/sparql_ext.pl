@@ -12,12 +12,14 @@
     register_sparql_prefix/1, % +Prefix:atom
     register_sparql_prefix/2, % +Prefix:atom
                               % +URI:uri
-    register_sparql_remote/3, % +Remote:atom
+    register_sparql_remote/4, % +Remote:atom
                               % +Server:atom
+                              % +Port:oneof(default,integer)
                               % +Path:atom
-    sparql_remote/3, % +Remote:atom
-                     % +Server:atom
-                     % +Path:atom
+    sparql_remote/4, % ?Remote:atom
+                     % ?Server:atom
+                     % ?Port:oneof(default,integer)
+                     % ?Path:atom
 
 % QUERYING
     enqueue_sparql/4, % +Remote:atom
@@ -56,7 +58,7 @@ LIMIT 10
 :- use_module(rdf(rdf_namespace)).
 
 :- dynamic(sparql_prefix(_Prefix, _URI)).
-:- dynamic(sparql_remote(_Remote, _Server, _Path)).
+:- dynamic(sparql_remote(_Remote, _Server, _Port, _Path)).
 
 :- nodebug(sparql).
 
@@ -142,11 +144,12 @@ register_sparql_prefix(Prefix, URI):-
 register_sparql_prefix(Prefix, URI):-
   assert(sparql_prefix(Prefix, URI)).
 
-register_sparql_remote(Remote, Server, Path):-
-  sparql_remote(Remote, Server, Path),
+register_sparql_remote(Remote, Server, Port, Path):-
+  sparql_remote(Remote, Server, Port, Path),
   !.
-register_sparql_remote(Remote, Server, Path):-
-  assert(sparql_remote(Remote, Server, Path)).
+register_sparql_remote(Remote, Server, Port, Path):-
+  assert(sparql_remote(Remote, Server, Port, Path)).
+:- register_sparql_remote(localhost, localhost, 5000, '/sparql/').
 
 
 
@@ -178,23 +181,38 @@ enqueue_sparql(Remote, Query, VarNames, Results):-
 %% ) is det.
 
 query_sparql(Remote, Query, VarNames, Results):-
-  once(sparql_remote(Remote, Host, Path)),
+  once(sparql_remote(Remote, Host, Port, Path)),
+  (
+    Port == default
+  ->
+    PortOption = []
+  ;
+    PortOption = [port(Port)]
+  ),
   findall(
     Result,
     sparql_query(
       Query,
       Result,
-      [host(Host), path(Path), variable_names(VarNames)]
+      [host(Host), path(Path), variable_names(VarNames) | PortOption]
     ),
     Results
   ).
 
+/*
 sparql_debug(Remote, Query, VarNames, Result):-
-  once(sparql_remote(Remote, Host, Path)),
+  once(sparql_remote(Remote, Host, Port, Path)),
+  (
+    Port == default
+  ->
+    PortOption = []
+  ;
+    PortOption = [port(Port)]
+  ),
   sparql_http(
     Query,
     Result,
-    [host(Host), path(Path), variable_names(VarNames)]
+    [host(Host), path(Path), variable_names(VarNames) | PortOption]
   ).
 
 sparql_http(Query, Result, Options):-
@@ -219,10 +237,11 @@ sparql_http(Query, Result, Options):-
       PortOptions
     ],
     Stream,
-    [header(content_type, ContentType), request_header('Accept' = '*/*')]
+    [header(content_type, ContentType), request_header('Accept' = '*')]
   ),
   write(ContentType),nl,
   stream_to_atom(Stream, Result).
+*/
 
 /* DCG
 % Pose a SELECT SPARQL query from Prolog.

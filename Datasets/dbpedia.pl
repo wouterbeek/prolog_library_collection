@@ -90,8 +90,7 @@ WHERE
 :- rdf_meta(find_dbpedia_agent(+,+,+,r)).
 :- rdf_meta(link_to_dbpedia_agent(+,r)).
 
-:- register_sparql_remote(dbpedia, 'dbpedia.org', '/sparql').
-:- register_sparql_remote(dbpedia, 
+:- register_sparql_remote(dbpedia, 'dbpedia.org', default, '/sparql').
 
 :- debug(dbpedia).
 

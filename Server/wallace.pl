@@ -34,6 +34,7 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(library(http/thread_httpd)).
 :- use_module(server(error_web)).
 :- use_module(server(web_console)).
+:- use_module(sparql(sparql_process)).
 :- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
 
@@ -49,16 +50,17 @@ http://semanticweb.cs.vu.nl/prasem/
 http:location(css, root(css), []).
 http:location(img, root(img), []).
 http:location(js, root(js), []).
+http:location(sparql, root(sparql), []).
 
 :- assert(user:file_search_path(css, server(css))).
 :- assert(user:file_search_path(js, server(js))).
 
-:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
-:- http_handler(js(.), serve_files_in_directory(js), [prefix]).
-
 :- http_handler(root(.), wallace, []).
 :- http_handler(root(console_output), console_output, []).
 :- http_handler(root(status_pane), status_pane, []).
+:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+:- http_handler(js(.), serve_files_in_directory(js), [prefix]).
+:- http_handler(sparql(.), sparql, [spawn(sparql_query)]).
 
 :- html_resource(css('console_output.css'), [requires(css('wallace.css'))]).
 :- html_resource(css('status_pane.css'), [requires(css('wallace.css'))]).
@@ -120,6 +122,10 @@ push(Type, DTD_Name, StyleName, DOM):-
   %format(user, '[QQQ] ~w ~w ~w ~w\n', [Type, DTD_Name, StyleName, DOM]), %DEB
   assertz(content_queue(Type, DTD_Name, StyleName, DOM)).
 
+sparql(Request):-
+  sparql_process(Request, DOM),
+  push(console_output, html, wallace, DOM).
+
 status_pane(_Request):-
   retract(content_queue(status_pane, DTD_Name, Style_Name, DOM)),
   !,
@@ -155,9 +161,13 @@ user:head(wallace, Head) -->
   html(head(title(Project), Head)).
 
 wallace(Request):-
-  http_parameters(Request, [
-    web_command(Command, [default(no_command)]),
-    web_input(Query, [default(no_input)])]),
+  http_parameters(
+    Request,
+    [
+      web_command(Command, [default(no_command)]),
+      web_input(Query, [default(no_input)])
+    ]
+  ),
   (
     Command \== no_command
   ->

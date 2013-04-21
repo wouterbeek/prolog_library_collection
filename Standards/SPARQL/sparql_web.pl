@@ -25,16 +25,20 @@ Web front-end for SPARQL queries.
 :- use_module(sparql(sparql_ext)).
 :- use_module(html(html)).
 
-:- dynamic(default_remote(_Remote)).
-:- assert(default_remote(dbpedia)).
+:- dynamic(default_remote0(_Remote)).
 
 :- debug(sparql_web).
 
 
 
+default_remote(Remote):-
+  default_remote0(Remote),
+  !.
+default_remote(localhost).
+
 % The default remote musy be registered at the SPARQL backend.
 set_default_remote(Remote):-
-  \+ sparql_remote(Remote, _Server, _Path),
+  \+ sparql_remote(Remote, _Server, _Port, _Path),
   !,
   debug(
     sparql_web,
@@ -44,17 +48,23 @@ set_default_remote(Remote):-
   existence_error(remote, Remote).
 % The default remote stays the same.
 set_default_remote(Remote):-
-  default_remote(Remote),
+  default_remote0(Remote),
   !.
 % The default remote is changed.
 set_default_remote(NewRemote):-
-  retract(default_remote(OldRemote)),
-  debug(
-    sparql_web,
-    'Reset SPARQL remote default from ~w to ~w.',
-    [OldRemote, NewRemote]
+  (
+    default_remote0(OldRemote)
+  ->
+    retract(default_remote0(OldRemote)),
+    debug(
+      sparql_web,
+      'Reset SPARQL remote default from ~w to ~w.',
+      [OldRemote, NewRemote]
+    )
+  ;
+    debug(sparql_web, 'Set SPARQL remote default to ~w.', [NewRemote])
   ),
-  assert(default_remote(NewRemote)).
+  assert(default_remote0(NewRemote)).
 
 sparql_input_web(Markup):-
   input_ui(Markup).
