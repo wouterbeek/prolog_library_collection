@@ -45,7 +45,7 @@ prolog:debug_print_hook(Type, Format, Arguments):-
   push(
     status_pane,
     html,
-    prasem,
+    wallace,
     [element(p, [], ['[', Type, ']', ' ', Message])]
   ),
   append_to_log(Type, Format, Arguments).

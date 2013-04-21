@@ -14,6 +14,8 @@
 
 RDF datatypes. The XML Schema datatype plus custom defined datatypes.
 
+This module uses the =|img|= search file name for finding images.
+
 @author Wouter Beek
 @version 2013/03
 */
@@ -26,9 +28,6 @@ RDF datatypes. The XML Schema datatype plus custom defined datatypes.
 :- rdf_meta(rdf_datatype(?,r)).
 :- rdf_meta(rdf_datatype(?,?,r,?)).
 
-user:file_search_path(www, project(www)).
-user:file_search_path(www_img, www(img)).
-
 
 
 rdf_datatype(image, prasem:image).
@@ -38,7 +37,7 @@ rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue):-
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(CanonicalValue),
   !,
-  absolute_file_name(www_img(CanonicalValue), LexicalValue, [access(read), file_type(png)]).
+  absolute_file_name(img(CanonicalValue), LexicalValue, [access(read), file_type(png)]).
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(LexicalValue),
   !,

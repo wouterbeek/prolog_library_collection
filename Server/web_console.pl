@@ -23,7 +23,7 @@
 The Web-based console for PraSem.
 
 @author Wouter Beek
-@version 2012/10, 2013/02-2013/03
+@version 2012/10, 2013/02-2013/04
 */
 
 :- use_module(generics(list_ext)).
@@ -48,10 +48,11 @@ The Web-based console for PraSem.
 
 :- dynamic registered_module/1.
 
-:- html_resource(
-  http_www_css('console_input.css'),
-  [requires(http_www_css('prasem.css'))]
-).
+% Serve CSS files.
+http:location(css, root(css), []).
+:- assert(user:file_search_path(css, server(css))).
+:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+:- html_resource(css('console_input.css'), [requires(css('generic.css'))]).
 
 
 
@@ -94,7 +95,7 @@ console_input -->
         br([]),
         \command_input,
         \submit_button,
-        \html_requires(http_www_css('console_input.css'))])])]).
+        \html_requires(css('console_input.css'))])])]).
 
 %% deregister_module(+Module:atom) is det.
 % Deregisters the given module. This means that the =|_web|=-predicates
@@ -164,7 +165,7 @@ markup_mold(DTD_Name/StyleName/DOM, DTD_Name, StyleName, DOM):-
   !.
 markup_mold(StyleName/DOM, html, StyleName, DOM):-
   !.
-markup_mold(DOM, html, prasem, DOM):-
+markup_mold(DOM, html, wallace, DOM):-
   !.
 
 %% register_module(+Module:atom) is det.

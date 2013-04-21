@@ -23,9 +23,9 @@ Scripts for asserting RDF graphs that can be used for debugging.
 :- use_module(rdfs(rdfs_build)).
 :- use_module(standards(graphviz)).
 
-:- rdf_register_prefix(ch,  'http://www.wouterbeek.com/prasem/ch.owl#' ).
-:- rdf_register_prefix(dbp, 'http://www.wouterbeek.com/prasem/dbp.owl#').
-:- rdf_register_prefix(nl,  'http://www.wouterbeek.com/prasem/nl.owl#' ).
+:- rdf_register_prefix(ch,  'http://www.wouterbeek.com/ch.owl#' ).
+:- rdf_register_prefix(dbp, 'http://www.wouterbeek.com/dbp.owl#').
+:- rdf_register_prefix(nl,  'http://www.wouterbeek.com/nl.owl#' ).
 
 assert_visum:-
   Graph = visum,

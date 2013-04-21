@@ -39,27 +39,27 @@ XML, Extendable Markup Language specification.
 :- use_module(standards(sgml_parse)).
 :- use_module(standards(standards), [charset/1]).
 
-:- assert(prolog_file_type(xml, xml)).
+:- assert(user:prolog_file_type(css, css)).
+:- assert(user:prolog_file_type(dtd, dtd)).
+:- assert(user:prolog_file_type(xml, xml)).
 
 :- multifile(http:location/3).
 :- dynamic(http:location/3).
 
-http:location(http_www,     http_root(www), []).
-http:location(http_www_css, http_www(css),  []).
+http:location(css(.), root(css),  []).
 
-user:file_search_path(www,     project(www)).
-user:file_search_path(www_css, www(css)    ).
-user:file_search_path(www_dtd, www(dtd)    ).
+% Project-specific CSS and DTD files.
+:- assert(user:file_search_path(css, server(css))).
 
 
 
 dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   new_dtd(DTD_Name, DTD),
-  absolute_file_name(www_dtd(DTD_Name), DTD_File, [access(read), file_type(dtd)]),
+  dtd_file(DTD_Name, DTD_File),
   load_dtd(DTD, DTD_File),
   tmp_file_stream(text, TemporaryFile, Out),
-  format(atom(Style), '~w.css', [Style_Name]),
-  stylesheet_pi(http_www_css(Style), PI),
+  file_name_type(Style_Name, css, Style),
+  stylesheet_pi(css(Style), PI),
   % Set the header to false, since this XML content will be inserted inside
   % a Web page.
   % We do add the stylesheet parsing instruction, since this is allowed by
@@ -71,6 +71,9 @@ dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   close(In),
   delete_file(TemporaryFile),
   free_dtd(DTD).
+
+dtd_file(html, File):-
+  absolute_file_name(html(html), File, [access(read), file_type(dtd)]).
 
 file_to_xml(File, XML):-
   setup_call_cleanup(

@@ -48,7 +48,7 @@ Web front-end for generic graph visualizations.
 
 %% circle_graph_web(+Graph:graph, -Markup:list) is det.
 
-circle_graph_web(Graph, html/prasem/[GraphElement | TableMarkup]):-
+circle_graph_web(Graph, html/wallace/[GraphElement | TableMarkup]):-
   export_graph(
     [
       edge_labels(all),
@@ -66,7 +66,7 @@ circle_graph_web(Graph, html/prasem/[GraphElement | TableMarkup]):-
 % @param Graph
 % @param Markup
 
-graph_web(Graph, svg11/prasem/SVG):-
+graph_web(Graph, svg11/wallace/SVG):-
   write_graph(
     [
       colorscheme(svg),
@@ -156,7 +156,7 @@ spring_embedding_web(Graph, Iterations, Markup):-
 
 %% table_graph_web(+Graph:graph, -Markup:triple) is det.
 
-table_graph_web(Graph, html/prasem/[TableElement]):-
+table_graph_web(Graph, html/wallace/[TableElement]):-
   export_graph(
     [
       colorscheme(none),
