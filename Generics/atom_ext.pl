@@ -179,17 +179,20 @@ progress_bar(End, End, ProgressBar2):-
 progress_bar(Current, End, ProgressBar):-
   progress_bar0(Current, End, ProgressBar).
 
-progress_bar0(Current, End, ProgressBar):-
-  Percentage is round(Current / End * 100),
-  format_integer(Percentage, 2, Percentage1),
-  Progress is round(Current / (End / 10)),
+progress_bar0(Current1, End, ProgressBar):-
+  Percentage is round(Current1 / End * 100),
+  format_integer(Percentage, 3, Percentage1),
+  Progress is round(Current1 / (End / 10)),
+  atom_number(EndAtom, End),
+  atom_length(EndAtom, EndLength),
+  format_integer(Current1, EndLength, Current2),
   repeating_atom('=', Progress, Bar),
   Fill is 10 - Progress,
   repeating_atom('-', Fill, NonBar),
   format(
     atom(ProgressBar),
     '~w% ~w~w (~w/~w)',
-    [Percentage1, Bar, NonBar, Current, End]
+    [Percentage1, Bar, NonBar, Current2, End]
   ).
 
 %% punctuate(+Atom:atom, -Punctuated:atom) is det.

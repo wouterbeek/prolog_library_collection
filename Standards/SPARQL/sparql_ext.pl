@@ -161,13 +161,15 @@ register_sparql_remote(Remote, Server, Port, Path):-
 %%   -VarNames:list,
 %%   -Results:list
 %% ) is det.
+% @error =|existence_error(url,URL)|= with context
+%        =|context(_, status(509, 'Bandwidth Limit Exceeded'))|=
 
 enqueue_sparql(Remote, Query, VarNames, Results):-
   catch(
     query_sparql(Remote, Query, VarNames, Results),
-    error(existence_error(url, _Query), context(_Var, status(503, _Message))),
+    Exception,
     (
-      debug(sparql, 'Query added to queue: ~w', [Query]),
+      debug(sparql, 'EXCEPTION', [Exception]),
       sleep(10),
       enqueue_sparql(Remote, Query, VarNames, Results)
     )
@@ -189,6 +191,7 @@ query_sparql(Remote, Query, VarNames, Results):-
   ;
     PortOption = [port(Port)]
   ),
+gtrace,
   findall(
     Result,
     sparql_query(

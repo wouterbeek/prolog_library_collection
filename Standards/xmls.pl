@@ -23,8 +23,6 @@ Standards support for XML Schema.
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
 
-:- rdf_register_namespace(xsd).
-
 :- rdf_meta(xmls_convert_datatype(r,+,r,-)).
 :- rdf_meta(xmls_datatype(?,r)).
 :- rdf_meta(xmls_datatype(?,?,r,?)).

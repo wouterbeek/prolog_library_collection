@@ -11,14 +11,15 @@
 Acts on messages printed by print_message/2.
 
 @author Wouter Beek
-@version 2013/02
+@version 2013/02, 2013/04
 */
 
 :- use_module(generics(file_ext)).
 :- use_module(generics(logging)).
-:- use_module(library(http/http_open)).
-:- use_module(server(wallace)).
 :- use_module(html(html)).
+:- use_module(library(http/http_open)).
+:- use_module(server(error_web)).
+:- use_module(server(wallace)).
 
 :- dynamic(current_log_row/1).
 
@@ -38,8 +39,15 @@ log_web([HTML_Table]):-
     HTML_Table
   ).
 
-%prolog:debug_print_hook(_Type, Format, Arguments):-
-%  format(user, Format, Arguments).
+prolog:debug_print_hook(_Type, 'EXCEPTION', [Exception]):-
+gtrace,
+  error_web(Exception, Markup),
+  push(status_pane, html, wallace, Markup),
+  !.
+prolog:debug_print_hook(_Type, 'EXCEPTION', [Exception]):-
+  !,
+  gtrace, %DEB
+  format(user, '~w', [Exception]). %DEB
 prolog:debug_print_hook(Type, Format, Arguments):-
   format(atom(Message), Format, Arguments),
   push(

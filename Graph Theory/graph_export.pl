@@ -258,7 +258,6 @@ export_vertex(O1, Vertex, GraphElement):-
 % EXPORT TO DOM %
 
 graph_element_to_dom(Options, GraphElement, SVG):-
-gtrace,
   % The stream for the GraphViz data.
   %new_memory_file(Handle),
   %open_memory_file(Handle, write, Stream),
