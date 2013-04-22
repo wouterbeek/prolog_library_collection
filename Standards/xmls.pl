@@ -33,6 +33,12 @@ Standards support for XML Schema.
 
 
 
+%% xmls_datatype(?DatatypeName:atom, ?Datatype:uri) is nondet.
+% Translations between datatype names and datatype URIs.
+%
+% @param DatatypeName The atomic name of an XML Schema datatype.
+% @param Datatype The URI of an XML Schema datatype.
+
 xmls_datatype(DatatypeName, Datatype):-
   var(DatatypeName),
   var(Datatype),

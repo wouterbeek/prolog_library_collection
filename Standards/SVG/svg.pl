@@ -4,6 +4,8 @@
 % FETCHING
     file_to_svg/2, % +File:atom
                    % -SVG:dom
+    stream_to_svg/2, % +Stream:stream
+                     % -SVG:dom
 
 % GENERATING
     svg_head/2, % +Size:size
@@ -37,7 +39,7 @@ A compound term =rgb(Red, Green, Blue)=, where the three color parts are
 represent by an integer between 0 and 255 (inclusive).
 
 @author Wouter Beek
-@version 2012/10, 2013/01-2013/03
+@version 2012/10, 2013/01-2013/04
 */
 
 :- use_module(generics(parse_ext)).

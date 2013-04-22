@@ -27,6 +27,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_namespace)).
+:- use_module(standards(graphviz)).
 
 :- rdf_register_namespace(skos).
 
@@ -40,12 +41,12 @@ skos_broader(Broader, Narrower, Graph):-
 skos_export_hierarchy(Root):-
   rdf_global_id(skos:broader, Predicate),
   beam([], Root, [Predicate], Vertices, Edges),
-  write_graph(
+  graph_to_dom(
     [edges(Edges), out(graphviz), vertices(Vertices)],
     'STCN_Topics',
-    File
+    SVG
   ),
-  write(File).
+  write(SVG).
 
 skos_narrower(Narrower, Broader, Graph):-
   rdf(Narrower, skos:narrower, Broader, Graph).

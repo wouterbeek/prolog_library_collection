@@ -237,6 +237,7 @@ rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue),
   rdf(Subject, Predicate, literal(type(Datatype, CanonicalValue)), Graph).
 rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
+  rdf_datatype(DatatypeName, Datatype),
   rdf(Subject, Predicate, literal(type(Datatype, CanonicalValue)), Graph),
   rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue).
 

@@ -10,8 +10,6 @@
                   % -Markup:list
     random_graph_web/2, % +Graph:graph
                         % -Markup:list
-    schema_web/2, % +Graph:graph
-                  % -Markup:list
     spring_embedding_web/2, % +Graph:graph
                             % -Markup:list
     spring_embedding_web/3, % +Graph:graph
@@ -67,7 +65,7 @@ circle_graph_web(Graph, html/wallace/[GraphElement | TableMarkup]):-
 % @param Markup
 
 graph_web(Graph, svg11/wallace/SVG):-
-  write_graph(
+  graph_to_dom(
     [
       colorscheme(svg),
       edge_labels(replace),
@@ -79,9 +77,8 @@ graph_web(Graph, svg11/wallace/SVG):-
       vertex(rdf_node)
     ],
     Graph,
-    GraphViz_File
-  ),
-  graphviz_to_svg(GraphViz_File, sfdp, SVG).
+    SVG
+  ).
 
 %% harary_web(+K:integer, +N:integer, -Markup:list) is det.
 % Returns markup represening the K-connected Harary graph with N vertices.
@@ -102,22 +99,6 @@ random_graph_web(Graph, [GraphElement, TableElement]):-
   random_vertice_coordinates([graph(Graph)], RandomVerticeCoordinates),
   vertice_coordinates_web(Graph, RandomVerticeCoordinates, GraphElement),
   vertice_coordinates_table(RandomVerticeCoordinates, TableElement).
-
-schema_web(Graph, SVG):-
-  write_schema(
-    [
-      directed(true),
-      edge_labels(all),
-      graph(Graph),
-      in(rdf),
-      literals(collapse),
-      out(graphviz)
-    ],
-    Graph,
-    graph,
-    GraphViz_File
-  ),
-  graphviz_to_svg(GraphViz_File, sfdp, SVG).
 
 %% spring_embedding_web(+Graph:graph, -Markup:list) is det.
 % @see spring_embedding_web/3
@@ -179,7 +160,7 @@ table_graph_web(Graph, html/wallace/[TableElement]):-
 vertex_web(Graph, Vertex0, SVG):-
   term_atom(Vertex0, Vertice1),
   rdf_global_id(Graph:Vertice1, Vertex),
-  write_vertex(
+  vertex_to_dom(
     [
       directed(true),
       edge_labels(all),
@@ -189,8 +170,6 @@ vertex_web(Graph, Vertex0, SVG):-
       out(graphviz)
     ],
     Vertex,
-    vertex,
-    GraphViz_File
-  ),
-  graphviz_to_svg(GraphViz_File, sfdp, SVG).
+    SVG
+  ).
 

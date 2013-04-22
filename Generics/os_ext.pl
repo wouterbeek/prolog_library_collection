@@ -22,7 +22,7 @@
 % HOME DIRECTORIES
     assert_home_directory/0,
     assert_home_subdirectory/1, % +Subdirectory:list(atom)
-    
+
 % OS IDENTIFICATION
     is_mac/0,
     is_unix/0,
@@ -319,7 +319,7 @@ open_pdf(File):-
 :- if(is_unix).
 open_pdf_unix(File):-
   process_create(path(xpdf), [File, '&'], [process(PID)]),
-  process_wait(PID, ShellStatus),
+  process_wait(PID, exit(ShellStatus)),
   catch(
     shell_status(ShellStatus),
     error(shell_error(FormalMessage), _Context),

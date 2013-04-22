@@ -2,21 +2,21 @@
   graphviz,
   [
 % FILE CONVERSION
-    convert_graphviz/4, % +FromFile:atom
+    convert_graphviz/4, % +FromFile
                         % +Method:onef([dot,sfdp])
                         % +ToFileType:oneof([jpeg,pdf,svg,xdot])
-                        % ?ToFile:atom
-    graphviz_to_svg/3, % +GraphViz_File:atom
+                        % ?ToFile
+    graphviz_to_svg/3, % +FromFile:stream
                        % +Method:onef([dot,sfdp])
-                       % -SVG:dom
+                       % -SVG:list
 
 % PARSING
     parse_attributes_graphviz/2, % +Context:oneof([edge,graph,node])
                                  % +Attributes:list(nvpair)
 
-% WRITING
-    write_graphviz_to_stream/2 % +Stream:stream
-                               % +Graph:element
+% STREAMING
+    stream_graphviz/2 % +Stream:stream
+                      % +Graph:element
   ]
 ).
 
@@ -71,7 +71,7 @@ Name(Value)
 representing a name-value pair.
 
 @author Wouter Beek
-@version 2011-2013/03
+@version 2011-2013/04
 */
 
 :- use_module(generics(exception_handling)).
@@ -85,8 +85,7 @@ representing a name-value pair.
 :- use_module(svg(svg)).
 :- use_module(standards(x11)).
 
-user:file_search_path(www, project(www)).
-user:file_search_path(www_img, www(img)).
+:- assert(user:prolog_file_type(dot, graphviz)).
 
 
 
@@ -233,10 +232,10 @@ color_scheme_default_color(_, black).
 :- assert(user:prolog_file_type(xdot, xdot    )).
 
 %% convert_graphviz(
-%%   +FromFile:atom,
+%%   +FromFile,
 %%   +Method:oneof([dot,sfdp]),
 %%   +ToFileType:oneof([jpeg,pdf,svg,xdot]),
-%%   ?ToFile:atom
+%%   ?ToFile
 %% ) is det.
 % Converts a GraphViz DOT file to an image file, using a specific
 % visualization method.
@@ -244,38 +243,24 @@ color_scheme_default_color(_, black).
 % @param FromFile
 % @param Method
 % @param ToFileType
-% @param ToFile This is either instantiated to the file location where the
-%        output is to be sotre, or this is uninstantiated and then the
-%        default location and file naming procedures are used.
+% @param ToFile
 
 convert_graphviz(FromFile, Method, ToFileType, ToFile):-
+  absolute_file_name(
+    personal(to),
+    ToFile,
+    [access(write), file_type(svg)]
+  ),
   type_check(oneof([dot,sfdp]), Method),
   type_check(oneof([jpeg,pdf,svg,xdot]), ToFileType),
   prolog_file_type(ToExtension, ToFileType),
-
-  % The file where the output is put.
-  (
-    var(ToFile)
-  ->
-    % No output file location is given, so create one.
-    file_name_type(Base0, _FromFileType, FromFile),
-    % Add the conversion method to the output file name.
-    format(atom(Base), '~w_~w', [Base0, Method]),
-    file_name_type(Base, ToFileType, ToFile),
-    % We only need one extension name.
-    !
-  ;
-    % An output file location is given, so use it.
-    true
-  ),
-  
   format(atom(OutputType), '-T~w', [ToExtension]),
   process_create(
     path(Method),
     [OutputType, FromFile, '-o', ToFile],
     [process(PID)]
   ),
-  process_wait(PID, ShellStatus),
+  process_wait(PID, exit(ShellStatus)),
   rethrow(
     shell_status(ShellStatus),
     error(shell_error(FormalMessage), context(_Predicate, ContextMessage)),
@@ -285,10 +270,10 @@ convert_graphviz(FromFile, Method, ToFileType, ToFile):-
     )
   ).
 
-graphviz_to_svg(GraphViz_File, Method, SVG):-
-  absolute_file_name(www_img(tmp), SVG_File, [access(write), file_type(svg)]),
-  convert_graphviz(GraphViz_File, Method, svg, SVG_File),
-  file_to_svg(SVG_File, SVG).
+graphviz_to_svg(FromFile, Method, SVG):-
+  convert_graphviz(FromFile, Method, svg, ToFile),
+  file_to_svg(ToFile, SVG),
+  delete_file(ToFile).
 
 
 
@@ -502,16 +487,16 @@ type_check(Type, Value):-
 
 
 
-% WRITING %
+% STREAMING %
 
-%% write_attribute(+Stream:stream, +Attribute:nvpair, +Separator:atom) is det.
+%% stream_attribute(+Stream:stream, +Attribute:nvpair, +Separator:atom) is det.
 % Writes an attribute, together with a separator.
 %
 % @param Stream An output stream.
 % @param Attribute A name-value pair.
 % @param Separator An atomic separator.
 
-write_attribute(Stream, Separator, Attribute):-
+stream_attribute(Stream, Separator, Attribute):-
   Attribute =.. [Name, Value],
   (
     attribute(Name, _Type, _Context, _Attributes, _Default)
@@ -522,7 +507,7 @@ write_attribute(Stream, Separator, Attribute):-
     true
   ).
 
-%% write_attributes(
+%% stream_attributes(
 %%   +Stream:stream,
 %%   +Attributes:list(nvpair),
 %%   +Separator:atom
@@ -534,56 +519,58 @@ write_attribute(Stream, Separator, Attribute):-
 % @param Separator An atomic separator that is written between the attributes.
 
 % Empty attribute list.
-write_attributes(_Stream, [], _Separator):-
+stream_attributes(_Stream, [], _Separator):-
   !.
 % Non-empty attribute list.
 % Write the open and colsing signs of the attribute list.
-write_attributes(Stream, Attributes, Separator):-
+stream_attributes(Stream, Attributes, Separator):-
   format(Stream, '[', []),
-  write_attributes0(Stream, Attributes, Separator),
+  stream_attributes0(Stream, Attributes, Separator),
   format(Stream, ']', []).
 
 % We know that the list in not empty.
 % For the last attribute in the list we use the empty separator.
-write_attributes0(Stream, [Attribute], _Separator):-
+stream_attributes0(Stream, [Attribute], _Separator):-
   !,
-  write_attribute(Stream, '', Attribute).
-write_attributes0(Stream, [Attribute | Attributes], Separator):-
-  write_attribute(Stream, Separator, Attribute),
-  write_attributes0(Stream, Attributes, Separator).
+  stream_attribute(Stream, '', Attribute).
+stream_attributes0(Stream, [Attribute | Attributes], Separator):-
+  stream_attribute(Stream, Separator, Attribute),
+  stream_attributes0(Stream, Attributes, Separator).
 
-%% write_edge(+Stream:stream, +Edge:edge) is det.
+%% stream_edge(+Stream:stream, +Edge:edge) is det.
 % Writes an edge term.
 %
 % @param Stream An output stream.
 % @param Edge A GraphViz edge compound term.
 
-write_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
+stream_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
   print_indent(Stream, 1),
   format(Stream, 'node_~w -> node_~w ', [FromVertexID, ToVertexID]),
-  write_attributes(Stream, EdgeAttributes, ', '),
+  stream_attributes(Stream, EdgeAttributes, ', '),
   format(Stream, ';', []),
   nl(Stream).
 
-%% write_graphviz_to_stream(+Stream:stream, +Graph:graph) is det.
+%% stream_graphviz(+Stream:stream, +GraphElement:compound) is det.
 % Writes a GraphViz structure to an output stream.
 %
 % @param Stream An output stream.
-% @param Graph A GraphViz graph compound term.
+% @param GraphElement A GraphViz graph compound term of the form
+%        =|graph(Vertices, Edges, GraphAttributes)|=.
 
-write_graphviz_to_stream(Stream, graph(Vertices, Edges, GraphAttributes)):-
+stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
   option(label(GraphName), GraphAttributes, noname),
   format(Stream, 'digraph ~w {', [GraphName]),
   nl(Stream),
-  maplist(write_vertex(Stream), Vertices),
+  maplist(vertex_to_dom(Stream), Vertices),
   nl(Stream),
-  maplist(write_edge(Stream), Edges),
+  maplist(stream_edge(Stream), Edges),
   nl(Stream),
-  write_graph_attributes(Stream, GraphAttributes),
+  stream_graph_attributes(Stream, GraphAttributes),
   format(Stream, '}', []),
-  nl(Stream).
+  nl(Stream),
+  flush_output(Stream).
 
-%% write_graph_attributes(
+%% stream_graph_attributes(
 %%   +Stream:stream,
 %%   +GraphAttributes:list(nvpair)
 %% ) is det.
@@ -597,21 +584,21 @@ write_graphviz_to_stream(Stream, graph(Vertices, Edges, GraphAttributes)):-
 % @param Stream An output stream.
 % @param GraphAttributes A list of name-value pairs.
 
-write_graph_attributes(Stream, GraphAttributes):-
+stream_graph_attributes(Stream, GraphAttributes):-
   print_indent(Stream, 1),
-  write_attributes0(Stream, GraphAttributes, '\n  '),
+  stream_attributes0(Stream, GraphAttributes, '\n  '),
   nl(Stream).
 
-%% write_vertex(+Stream:stream, +Vertex:vertex) is det.
+%% vertex_to_dom(+Stream:stream, +Vertex:vertex) is det.
 % Writes a vertex term.
 %
 % @param Stream An output stream.
 % @param Vertex A GraphViz vertex compound term.
 
-write_vertex(Stream, node(VertexID, VerticeAttributes)):-
+vertex_to_dom(Stream, node(VertexID, VerticeAttributes)):-
   print_indent(Stream, 1),
   format(Stream, 'node_~w ', [VertexID]),
-  write_attributes(Stream, VerticeAttributes, ', '),
+  stream_attributes(Stream, VerticeAttributes, ', '),
   format(Stream, ';', []),
   nl(Stream).
 

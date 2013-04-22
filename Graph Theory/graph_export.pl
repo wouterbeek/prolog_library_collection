@@ -1,39 +1,31 @@
 :- module(
   graph_export,
   [
+% SETTINGS
     default_border/1, % ?Border:size
     default_surface/1, % ?Surface:size
+
+% EXPORTING
     export_graph/3, % +Options:list(nvpair)
                     % +Graph:graph
                     % -Export:element
-    export_schema/3, % +Options:list(nvpair)
-                     % +G:graph
-                     % -Export:element
     export_triples/3, % +Options:list(nvpair)
                       % +Triples:list(triple)
                       % -Export:element
     export_vertex/3, % +Options:list(nvpair)
                      % +Vertex:vertex
                      % -Export:element
-    write_graph/3, % +Options:list(nvpair)
-                   % +Graph:graph
-                   % -File:atom
-    write_graph/4, % +Options:list(nvpair)
-                   % +Graph:graph
-                   % +FileName:atom
-                   % -File:atom
-    write_schema/4, % +Options:list(nvpair)
+
+% EXPORT TO DOM
+    graph_to_dom/3, % +Options:list(nvpair)
                     % +Graph:graph
-                    % +FileName:atom
-                    % -File:atom
-    write_triples/4, % +Options:list(nvpair)
-                     % +Triples:list(triple)
-                     % +FileName:atom
-                     % -File:atom
-    write_vertex/4 % +Options:list(nvpair)
-                   % +Vertex:vertex
-                   % +FileName:atom
-                   % -File:atom
+                    % -Stream:stream
+    triples_to_dom/3, % +Options:list(nvpair)
+                      % +Triples:list(triple)
+                      % -Stream:stream
+    vertex_to_dom/3 % +Options:list(nvpair)
+                    % +Vertex:vertex
+                    % -Stream:stream
   ]
 ).
 
@@ -84,28 +76,30 @@ For the output formats we require the following things:
        list of pairs of vertex descriptions and vertex coordinates.
 
 @author Wouter Beek
-@version 2012/12-2013/03
+@version 2012/12-2013/04
 */
 
-:- use_module(generics(file_ext)).
-:- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_generic)).
-:- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(math(math_ext)).
-:- use_module(rdfs(rdfs_read)).
 :- use_module(standards(graphviz)).
 :- use_module(html(html)).
 :- use_module(standards(markup)).
+:- use_module(standards(graphviz)).
 :- use_module(standards(standards)).
 :- use_module(svg(svg)).
+
+
+
+% SETTINGS %
 
 default_border(size(2, [0.5, 0.5])).
 default_surface(size(2, [10.0, 10.0])).
 default_vertice_radius(0.1).
 
 
+
+% EXPORTING %
 
 % BASIC PROCEDURES: CREATE (INPUT -> GRAPH) & WRITE (GRAPH -> OUTPUT) %
 
@@ -155,7 +149,7 @@ export_graph(Options0, Graph, GraphElement):-
   % Set graph name and input format.
   graph_format(Graph, InputFormat),
   merge_options([graph(Graph), in(InputFormat)], Options0, Options1),
-  
+
   % Set edges.
   (
     option(edges(_Edges), Options1)
@@ -165,7 +159,7 @@ export_graph(Options0, Graph, GraphElement):-
     edges1(Options1, Edges),
     merge_options([edges(Edges)], Options1, Options2)
   ),
-  
+
   % Set vertices.
   (
     option(vertices(_Vertices), Options2)
@@ -175,37 +169,9 @@ export_graph(Options0, Graph, GraphElement):-
     vertices1(Options2, Vertices),
     merge_options([vertices(Vertices)], Options2, Options3)
   ),
-  
+
   % Let's go...
   export_triples0(Options3, GraphElement).
-
-%% export_schema(+Options:list(nvpair), +Graph:graph, -GraphElement) is det.
-
-export_schema(O1, Graph, GraphElement):-
-  merge_options([graph(Graph)], O1, O2),
-  setoff(
-    Vertex,
-    (
-      (
-        rdfs_individual_of(Vertex, rdfs:'Class')
-      ;
-        rdfs_individual_of(Vertex, rdf:'Property')
-      ),
-      rdf_export:rdf_vertex(O2, Vertex)
-    ),
-    Vertices
-  ),
-  setoff(
-    Vertex1-Vertex2,
-    (
-      member(Vertex1, Vertex2, Vertices),
-      rdf(Vertex1, _Predicate5, Vertex2, Graph),
-      rdf_export:rdf_edge(O2, Vertex1-Vertex2)
-    ),
-    Edges
-  ),
-  merge_options([edges(Edges), vertices(Vertices)], O2, O3),
-  export_triples0(O3, GraphElement).
 
 export_triples(Options, Triples, GraphElement):-
   triples_to_vertices(Triples, Vertices),
@@ -213,23 +179,6 @@ export_triples(Options, Triples, GraphElement):-
   export_triples0(
     [edges(Edges), vertices(Vertices) | Options],
     GraphElement
-  ).
-
-triples_to_edges(Triples, Edges):-
-  setoff(
-    FromVertex-ToVertex,
-    member(rdf(FromVertex, _, ToVertex), Triples),
-    Edges
-  ).
-
-triples_to_vertices(Triples, Vertices):-
-  setoff(
-    Vertex,
-    (
-      member(rdf(Vertex1, _, Vertex2), Triples),
-      (Vertex = Vertex1 ; Vertex = Vertex2)
-    ),
-    Vertices
   ).
 
 export_triples0(Options, GraphElement):-
@@ -248,8 +197,7 @@ export_triples0(Options, GraphElement):-
     VertexPairs
   ),
   option(out(OutputFormat), Options),
-  
-gtrace,
+
   % Vertex elements.
   findall(
     VertexElement,
@@ -305,14 +253,35 @@ export_vertex(O1, Vertex, GraphElement):-
   merge_options([edges(Edges), vertices(Vertices)], O2, O3),
   export_triples0(O3, GraphElement).
 
-write_graph(Options, Graph, File):-
-  write_graph(Options, Graph, Graph, File).
 
-%% write_graph(
+
+% EXPORT TO DOM %
+
+graph_element_to_dom(Options, GraphElement, SVG):-
+gtrace,
+  % The stream for the GraphViz data.
+  %new_memory_file(Handle),
+  %open_memory_file(Handle, write, Stream),
+  absolute_file_name(
+    personal(from),
+    FromFile,
+    [access(write), file_type(graphviz)]
+  ),
+  open(FromFile, write, FromStream, []),
+  (
+    option(out(graphviz), Options)
+  ->
+    stream_graphviz(FromStream, GraphElement),
+    graphviz_to_svg(FromFile, sfdp, SVG)
+  ),
+  close(FromStream),
+  delete_file(FromFile).
+  %free_memory_file(Handle).
+
+%% graph_to_dom(
 %%   +Options:list(nvpair),
 %%   +Graph:atom,
-%%   +FileName:atom,
-%%   -File:atom
+%%   -DOM:list
 %% ) is det.
 % Writes the graph with the given name to the given file name.
 % The files are located in =debug(rdf_graph)=. Since this method is
@@ -321,60 +290,48 @@ write_graph(Options, Graph, File):-
 % @param Options A list of name-value pairs. See export_graph/3 for the list
 %        of options.
 % @param Graph The atomic name of a graph.
-% @param FileName The atomic name of a file.
-% @param File The atomic representation of the absolute path of the file the
-%        graph is written to.
+% @param DOM
 
-write_graph(Options, Graph, FileName, File):-
+graph_to_dom(Options, Graph, DOM):-
   export_graph(Options, Graph, GraphElement),
-  write_graph_element(Options, GraphElement, FileName, File).
+  graph_element_to_dom(Options, GraphElement, DOM).
 
-write_graph_element(Options, GraphElement, FileName, File):-
-  option(out(OutputFormat), Options),
-  create_file(debug(graph_export), FileName, OutputFormat, File),
-  open(File, write, Stream, [close_on_abort(true), type(text)]),
-  write_graph_element_to_stream(Stream, Options, GraphElement),
-  close(Stream).
-
-write_graph_element_to_stream(Stream, Options, GraphElement):-
-  option(out(graphviz), Options),
-  !,
-  write_graphviz_to_stream(Stream, GraphElement).
-
-%% write_schema(
-%%   +Options:list(nvpair),
-%%   +Graph:graph,
-%%   +FileName:atom,
-%%   -File:atom
-%% ) is det.
-% Writes only the schema of the given graph.
-% Only supported for input format RDF.
-
-write_schema(Options, Graph, FileName, File):-
-  export_schema(Options, Graph, GraphElement),
-  write_graph_element(GraphElement, FileName, Options, File).
-
-write_triples(Options, Triples, FileName, File):-
+triples_to_dom(Options, Triples, DOM):-
   export_triples(Options, Triples, GraphElement),
-  write_graph_element(GraphElement, FileName, Options, File).
+  graph_element_to_dom(Options, GraphElement, DOM).
 
-%% write_vertex(
+triples_to_edges(Triples, Edges):-
+  setoff(
+    FromVertex-ToVertex,
+    member(rdf(FromVertex, _, ToVertex), Triples),
+    Edges
+  ).
+
+triples_to_vertices(Triples, Vertices):-
+  setoff(
+    Vertex,
+    (
+      member(rdf(Vertex1, _, Vertex2), Triples),
+      (Vertex = Vertex1 ; Vertex = Vertex2)
+    ),
+    Vertices
+  ).
+
+%% vertex_to_dom(
 %%   +Options:list(nvpair),
 %%   +Vertex:vertex,
-%%   +FileName:atom,
-%%   -File:atom
+%%   -DOM:list
 %% ) is det.
 % Exports the given vertex to the interchangeable graph element format.
 %
 % @param Options A list of name-value pairs. See export_vertex/3 for the list
 %        of options.
 % @param Vertex
-% @param FileName
-% @param File
+% @param DOM
 
-write_vertex(Options, Vertex, FileName, File):-
+vertex_to_dom(Options, Vertex, DOM):-
   export_vertex(Options, Vertex, GraphElement),
-  write_graph_element(GraphElement, FileName, Options, File).
+  graph_element_to_dom(Options, GraphElement, DOM).
 
 
 
