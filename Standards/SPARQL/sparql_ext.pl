@@ -47,6 +47,20 @@ WHERE { ?s rdf:type rdfs:Class }
 LIMIT 10
 ==
 
+---+ Warnings
+
+When the results from a SPARQL endpoint are in XML/RDF without
+proper end tags, then the following warnings will be given by
+the XML parser:
+
+==
+Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "uri"
+Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "binding"
+Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "result"
+Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "results"
+Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "sparql"
+==
+
 @author Wouter Beek
 @version 2012/12-2013/01, 2013/03-2013/04
 */
@@ -191,7 +205,6 @@ query_sparql(Remote, Query, VarNames, Results):-
   ;
     PortOption = [port(Port)]
   ),
-gtrace,
   findall(
     Result,
     sparql_query(

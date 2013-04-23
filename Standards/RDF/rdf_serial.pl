@@ -17,6 +17,7 @@
     rdf_save2/3, % ?Graph:atom
                  % ?SerializationFormat:oneof(['N-Triples','N3','RDF/XML','RDFa','Turtle'])
                  % ?File:atom
+    rdf_save_all/0,
     rdf_serialization/4 % ?FileType:oneof([n_triples,n3,rdf,rdfa,turtle]).
                         % ?SerializationFormat:oneof(['N-Triples','N3','RDF/XML','RDFa','Turtle'])
                         % ?Supported:boolean
@@ -143,9 +144,9 @@ rdf_load2(File, SerializationFormat, Graph):-
     File,
     [
       format(Format),
-      graph(Graph)
-      %register_namespaces(true),
-      %silent(fail) % We like to get feedback.
+      graph(Graph),
+      register_namespaces(true),
+      silent(fail) % We like to get feedback.
     ]
   ),
 
@@ -277,6 +278,12 @@ rdf_save2(Graph, 'RDF/XML', File):-
     [Graph, File]
   ),
   close(Stream).
+
+rdf_save_all:-
+  forall(
+    rdf_graph(Graph),
+    rdf_save2(Graph)
+  ).
 
 %% rdf_serialization(
 %%   ?FileType:oneof([n_triples,n3,rdf,rdfa,turtle]),

@@ -29,7 +29,7 @@
 % When swipl is started from within a terminal this does not change
 % anything, so this setting applies e.g. to contexts where PraSem
 % would be loaded by a shortcut on the Desktop.
-%:- ignore(send(@pce, show_console, iconic)),
+%:- ignore(send(@pce, show_console, iconic)).
 :- ignore(send(@pce, show_console, open)).
 
 % Debug monitor.
@@ -37,7 +37,7 @@
 % debug tool in existence. I would like to write a Web-based version at
 % some point.
 %:- use_module(library(swi_ide)).
-%:- prolog_ide(debug_monitor),
+%:- prolog_ide(debug_monitor).
 
 :- [load].
 
