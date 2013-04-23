@@ -25,6 +25,7 @@ Standards support for XML Schema.
 
 :- rdf_meta(xmls_convert_datatype(r,+,r,-)).
 :- rdf_meta(xmls_datatype(?,r)).
+:- rdf_meta(xmls_datatype0(?,r)).
 :- rdf_meta(xmls_datatype(?,?,r,?)).
 :- rdf_meta(xmls_datatype0(?,?,r,?)).
 :- rdf_meta(xmls_datatype_check(r,+)).
