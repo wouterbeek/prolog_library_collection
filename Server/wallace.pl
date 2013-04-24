@@ -105,7 +105,6 @@ console_output -->
 console_output(_Request):-
   retract(content_queue(console_output, DTD_Name, Style_Name, DOM)),
   !,
-gtrace,
   serve_xml(DTD_Name, Style_Name, DOM).
 console_output(Request):-
   serve_nothing(Request).

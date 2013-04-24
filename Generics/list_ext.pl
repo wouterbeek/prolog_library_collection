@@ -380,12 +380,17 @@ split_list_by_number_of_sublists(List, NumberOfSublists, Sublists):-
   SizeOfSublists is Length div ReducedNumberOfSublists,
   split_list_by_size(List, SizeOfSublists, Sublists).
 
+% The last sublists is exactly of the requested size.
+% The empty list indicates this.
+split_list_by_size([], _SizeOfSublists, []):-
+  !.
 split_list_by_size(List, SizeOfSublists, [Sublist | Sublists]):-
   length(Sublist, SizeOfSublists),
   append(Sublist, NewList, List),
   !,
   split_list_by_size(NewList, SizeOfSublists, Sublists).
-% The last sublist.
+% The last sublist is not exactly of the requested size. Give back
+% what remains.
 split_list_by_size(LastSublist, _SizeOfSublists, [LastSublist]).
 
 %% sublist(?SubList:list, +List:list) is nondet.

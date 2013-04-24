@@ -87,26 +87,48 @@ tr:hover {
   color: white;
 }
 
-div.img {
-  margin: 2px;
-  border: 1px solid #0000ff;
-  height: auto;
-  width: auto;
-  float: left;
-  text-align: center;
-}
-div.img img {
-  display: inline;
-  margin: 3px;
-  border: 1px solid #ffffff;
-}
-div.img a:hover img {
-  border: 1px solid #0000ff;
-}
-div.desc {
-  text-align: center;
+
+
+*.image_description {
   font-weight: normal;
-  width: 120px;
   margin: 2px;
+  text-align: center;
+  width: 220px;
+}
+
+*.image_thumbnail {
+  height: 180px;
+  max-width: 220px;
+  width: auto;
+}
+*.image_thumbnail {
+  height: auto;
+  max-height: 180px;
+  width: 220px;
+}
+
+div.image {
+  display: inline-block;
+  height: auto;
+  margin: 2px;
+  text-align: center;
+  width: auto;
+}
+
+div.image a:hover img {
+  border: 1px solid #0000ff;
+}
+
+div.image img {
+  border: 1px solid #ffffff;
+  display: inline;
+  margin: 6px;
+}
+
+*.image_group {
+  display: block;
+  height: auto;
+  margin: 6px;
+  width: auto;
 }
 
