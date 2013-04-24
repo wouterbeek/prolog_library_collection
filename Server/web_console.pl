@@ -28,8 +28,10 @@ The Web-based console for PraSem.
 
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_server_files)).
 :- use_module(server(error_web)).
 :- use_module(server(web_message)).
 :- use_module(server(wallace)).
@@ -52,7 +54,7 @@ The Web-based console for PraSem.
 http:location(css, root(css), []).
 :- assert(user:file_search_path(css, server(css))).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
-:- html_resource(css('console_input.css'), [requires(css('generic.css'))]).
+:- html_resource(css('console_input.css'), [requires(css('wallace.css'))]).
 
 
 

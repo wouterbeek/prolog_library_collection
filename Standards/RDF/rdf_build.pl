@@ -292,3 +292,4 @@ rdf_update_datatype(Subject, Predicate, Datatype, Value, Graph):-
   ;
     rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph)
   ).
+

@@ -86,7 +86,7 @@
 Extensions to the SWI-Prolog meta predicates.
 
 @author Wouter Beek
-@version 2012/07-2012/08, 2013/01, 2013/03
+@version 2012/07-2012/08, 2013/01, 2013/03-2013/04
 */
 
 :- use_module(generics(list_ext)).
@@ -115,6 +115,7 @@ Extensions to the SWI-Prolog meta predicates.
 :- meta_predicate(run_on_sublists(+,1)).
 :- meta_predicate(setoff(+,0,-)).
 :- meta_predicate(setoff_alt(+,0,-)).
+:- meta_predicate(user_interaction(+,:,+,+)).
 
 :- dynamic(memo_/1).
 :- dynamic(tmp/1).
@@ -576,7 +577,7 @@ user_interaction(Action, Goal, Headers, Tuples):-
   user_interaction(Action, Goal, 1, NumberOfTuples, Headers, Tuples).
 
 user_interaction(_Action, _Goal, _Index, _Length, _Headers, []):-
-  format(user, '\n-----\nDONE!\n-----\n', []),
+  format(user_output, '\n-----\nDONE!\n-----\n', []),
   !.
 user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
   % Display a question.
@@ -592,7 +593,7 @@ user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
   ),
   atomic_list_concat(HeaderedElements, '\n\t', TupleAtom),
   format(
-    user,
+    user_output,
     '[~w/~w] ~w\n\t~w\n(y/n/q)\n?: ',
     [Index, Length, Action, TupleAtom]
   ),
@@ -618,5 +619,18 @@ user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
     NewIndex is Index + 1,
     user_interaction(Action, Goal, NewIndex, Length, Headers, Tuples)
   ;
+    UserAtom == 'A'
+  ->
+    forall(
+      between(Index, Length, Jndex),
+      (
+        nth1(Jndex, Tuples, Juple),
+        apply(Goal, Juple),
+        format(user_output, '[~w/~w]\n', [Jndex, Length]),
+        flush_output(user_output)
+      )
+    )
+  ;
     user_interaction(Action, Goal, Index, Length, Headers, Tuples)
   ).
+

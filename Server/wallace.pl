@@ -31,6 +31,7 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(library(http/http_error)).
 :- use_module(library(http/http_files)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_server_files)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(server(error_web)).
 :- use_module(server(web_console)).
@@ -104,6 +105,7 @@ console_output -->
 console_output(_Request):-
   retract(content_queue(console_output, DTD_Name, Style_Name, DOM)),
   !,
+gtrace,
   serve_xml(DTD_Name, Style_Name, DOM).
 console_output(Request):-
   serve_nothing(Request).
