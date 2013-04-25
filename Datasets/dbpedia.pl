@@ -58,6 +58,7 @@ WHERE
 @version 2013/03-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(library(semweb/rdfs)).
@@ -68,7 +69,7 @@ WHERE
 :- use_module(rdfs(rdfs_read)).
 :- use_module(sparql(sparql_ext)).
 
-:- assert(user:prolog_file_type(ttl, turtle)).
+:- assert_novel(user:prolog_file_type(ttl, turtle)).
 
 :- rdf_register_namespace(dbpedia).
 :- rdf_register_namespace('dbpedia-owl').

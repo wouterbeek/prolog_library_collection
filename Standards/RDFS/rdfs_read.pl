@@ -113,6 +113,7 @@ rdfs_individual(X, Y, G):-
 @version 2011/08-2012/03, 2012/09, 2012/11-2013/03
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(math(math_ext)).
@@ -143,7 +144,7 @@ rdfs_individual(X, Y, G):-
 :- rdf_meta(rdfs_seq(r,?)).
 :- rdf_meta(rdfs_seq(r,-,?)).
 
-:- assert(user:prolog_file_type(rdf, rdf)).
+:- assert_novel(user:prolog_file_type(rdf, rdf)).
 
 
 

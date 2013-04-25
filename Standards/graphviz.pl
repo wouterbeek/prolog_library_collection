@@ -74,6 +74,7 @@ representing a name-value pair.
 @version 2011-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(exception_handling)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(os_ext)).
@@ -85,7 +86,7 @@ representing a name-value pair.
 :- use_module(svg(svg)).
 :- use_module(standards(x11)).
 
-:- assert(user:prolog_file_type(dot, graphviz)).
+:- assert_novel(user:prolog_file_type(dot, graphviz)).
 
 
 
@@ -253,7 +254,7 @@ convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   ),
   type_check(oneof([dot,sfdp]), Method),
   type_check(oneof([jpeg,pdf,svg,xdot]), ToFileType),
-  prolog_file_type(ToExtension, ToFileType),
+  user:prolog_file_type(ToExtension, ToFileType),
   format(atom(OutputType), '-T~w', [ToExtension]),
   process_create(
     path(Method),

@@ -31,6 +31,7 @@ XML, Extendable Markup Language specification.
 @version 2012/10, 2013/02-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
@@ -39,26 +40,35 @@ XML, Extendable Markup Language specification.
 :- use_module(standards(sgml_parse)).
 :- use_module(standards(standards), [charset/1]).
 
-:- assert(user:prolog_file_type(css, css)).
-:- assert(user:prolog_file_type(dtd, dtd)).
-:- assert(user:prolog_file_type(xml, xml)).
+:- assert_novel(user:prolog_file_type(css, css)).
+:- assert_novel(user:prolog_file_type(dtd, dtd)).
+:- assert_novel(user:prolog_file_type(xml, xml)).
 
 :- multifile(http:location/3).
 :- dynamic(http:location/3).
 
-http:location(css(.), root(css),  []).
-
-% Project-specific CSS and DTD files.
+% Serve CSS files.
+http:location(css, root(css),  []).
 :- assert(user:file_search_path(css, server(css))).
+:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
 
 
+
+%% dom_to_xml(+DTD_Name, +Style_Name, +DOM, -XML) is det.
+% Translates DOM to XML, applying DTD checks and Style decoration.
+%
+% @param DTD_Name The atomic name of a DTD file. File locations that
+%	 contain DTD files must be asserted using
+%	 =|file_search_path/3|=.
 
 dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   new_dtd(DTD_Name, DTD),
+  % Retrieve the first DTYD file with the given name.
   dtd_file(DTD_Name, DTD_File),
   load_dtd(DTD, DTD_File),
   tmp_file_stream(text, TemporaryFile, Out),
   file_name_type(Style_Name, css, Style),
+gtrace,
   stylesheet_pi(css(Style), PI),
   % Set the header to false, since this XML content will be inserted inside
   % a Web page.
@@ -72,8 +82,26 @@ dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   delete_file(TemporaryFile),
   free_dtd(DTD).
 
-dtd_file(html, File):-
-  absolute_file_name(html(html), File, [access(read), file_type(dtd)]).
+%% dtd_file(+Name:atom, -File:atom) is det.
+% Returns the first DTD file with the given name or throws an
+% existence error.
+%
+% @param Name The atomic name of a DTD file.
+% @param File The atomic name of the path of a DTD file.
+
+dtd_file(Name, File):-
+  % By setting option =solutions= to value =all= we backtrack over
+  % the various file search paths that are defined for =dtd=.
+  once(
+    absolute_file_name(
+      dtd(Name),
+      File,
+      [access(read), file_type(dtd), solutions(all)]
+    )
+  ).
+
+%% file_to_xml(+File:atom, -XML:dom) is det.
+% Reads the XML from the given file and return the DOM.
 
 file_to_xml(File, XML):-
   setup_call_cleanup(
@@ -82,10 +110,13 @@ file_to_xml(File, XML):-
     close(Stream)
   ).
 
-stream_to_xml(Stream, DOM):-
+%% stream_to_xml(+Stream:stream, -XML:dom) is det.
+% Reads the XML DOM from the given stream.
+
+stream_to_xml(Stream, XML):-
   load_structure(
     stream(Stream),
-    DOM,
+    XML,
     [
       dialect(xml),
       max_errors(-1),
@@ -102,19 +133,16 @@ stylesheet_pi(Type, CSS_FileSpecification, pi(PI)):-
   http_absolute_location(CSS_FileSpecification, CSS_File, []),
   format(atom(PI), 'xml-stylesheet type="~w" href="~w"', [Type, CSS_File]).
 
-%% uri_to_xml(+URI:resource, -DOM:list) is det.
-% Returns the HTML Document Object Model (DOM) for the website with the given
-% URI.
-%
-% @param URI
-% @param HTML
+%% uri_to_xml(+URI:uri, -XML:dom) is det.
+% Returns the HTML Document Object Model (DOM)
+% for the website with the given URI.
 
-uri_to_xml(URI, DOM):-
+uri_to_xml(URI, XML):-
   setup_call_cleanup(
     % First perform this setup once/1.
     http_open(URI, Stream, [timeout(60)]),
     % The try to make this goal succeed.
-    stream_to_xml(Stream, DOM),
+    stream_to_xml(Stream, XML),
     % If goal succeeds, then perform this cleanup.
     close(Stream)
   ).

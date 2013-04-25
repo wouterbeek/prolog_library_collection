@@ -27,6 +27,7 @@ This module uses the =|img|= search file name for finding images.
 @version 2013/03-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(type_checking)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(standards(xmls)).
@@ -35,9 +36,9 @@ This module uses the =|img|= search file name for finding images.
 :- rdf_register_prefix(prasem, 'http://www.wouterbeek.com/prasem.owl#', [keep(true)]).
 
 % Register file types used by the =|prasem:image|= datatype.
-:- assert(user:prolog_file_type(jpeg, jpeg)).
-:- assert(user:prolog_file_type(jpg, jpeg)).
-:- assert(user:prolog_file_type(png, png)).
+:- assert_novel(user:prolog_file_type(jpeg, jpeg)).
+:- assert_novel(user:prolog_file_type(jpg, jpeg)).
+:- assert_novel(user:prolog_file_type(png, png)).
 
 :- rdf_meta(rdf_convert_datatype(r,+,r,-)).
 :- rdf_meta(rdf_datatype(?,r)).

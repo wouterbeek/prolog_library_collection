@@ -37,6 +37,7 @@ Supported serialization formats:
 @version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
@@ -46,8 +47,8 @@ Supported serialization formats:
 :- use_module(rdf(rdf_namespace)).
 :- use_module(standards(xml)).
 
-:- assert(user:prolog_file_type(rdf, rdf)).
-:- assert(user:prolog_file_type(ttl, turtle)).
+:- assert_novel(user:prolog_file_type(rdf, rdf)).
+:- assert_novel(user:prolog_file_type(ttl, turtle)).
 
 :- debug(rdf_serial).
 

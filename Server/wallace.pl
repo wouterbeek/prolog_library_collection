@@ -23,8 +23,8 @@ http://semanticweb.cs.vu.nl/prasem/
 @version 2012/05, 2012/09-2012/12, 2013/02-2013/04
 */
 
-:- use_module(html(html)).
 :- use_module(generics(logging)).
+:- use_module(html(html)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
@@ -32,12 +32,14 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(library(http/http_files)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_server_files)).
+:- use_module(library(http/http_session)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(server(error_web)).
 :- use_module(server(web_console)).
 :- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
 
+% This is used to push content for the console output and status pane.
 :- dynamic(content_queue(_Type, _DTD_Name, _StyleName, _DOM)).
 
 % By registering these modules, their Web predicates become accessible
@@ -47,20 +49,29 @@ http://semanticweb.cs.vu.nl/prasem/
 :- multifile(http:location/3).
 :- dynamic(http:location/3).
 
+% Serve CSS files.
 http:location(css, root(css), []).
-http:location(img, root(img), []).
-http:location(js, root(js), []).
-http:location(sparql, root(sparql), []).
-
 :- assert(user:file_search_path(css, server(css))).
-:- assert(user:file_search_path(js, server(js))).
-
-:- http_handler(root(.), wallace, []).
-:- http_handler(root(console_output), console_output, []).
-:- http_handler(root(status_pane), status_pane, []).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+
+% Serve images.
+%http:location(img, root(img), []).
+
+% Serve JavaScript files.
+http:location(js, root(js), []).
+:- assert(user:file_search_path(js, server(js))).
 :- http_handler(js(.), serve_files_in_directory(js), [prefix]).
 
+% Create a SPRAQL endpoint.
+%http:location(sparql, root(sparql), []).
+%:- http_handler(sparql(.), sparql, [spawn(sparql_query)]).
+
+% HTTP handlers for the Wallace server.
+%:- http_handler(root(console_output), console_output, []).
+%:- http_handler(root(status_pane), status_pane, []).
+:- http_handler(root(wallace), wallace, []).
+
+% HTML resources and their dependencies.
 :- html_resource(css('console_output.css'), [requires(css('wallace.css'))]).
 :- html_resource(css('status_pane.css'), [requires(css('wallace.css'))]).
 :- html_resource(js('console_output.js'), [requires(js('wallace.js'))]).
@@ -179,9 +190,10 @@ wallace(Request):-
   reply_html_page(wallace, [], []).
 
 wallace_uri(URI):-
+gtrace,
   default_port(Port),
   http_open:parts_uri(
-    [host(localhost), path('/'), port(Port), scheme(http)],
+    [host(localhost), path('/wallace/'), port(Port), scheme(http)],
     %[host('semanticweb.cs.vu.nl'), path('/prasem/'), scheme(http)],
     URI
   ).

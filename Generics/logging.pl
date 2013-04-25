@@ -36,6 +36,7 @@ Methods for logging.
 @version 2012/05-2012/07, 2013/03-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(os_ext)).
 :- use_module(library(http/http_client)).
@@ -48,7 +49,7 @@ Methods for logging.
 :- dynamic(current_log_file/1).
 :- dynamic(current_log_stream/1).
 
-:- assert(user:prolog_file_type(log, log)).
+:- assert_novel(user:prolog_file_type(log, log)).
 
 init:-
   file_search_path(log, _Directory),

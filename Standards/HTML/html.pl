@@ -46,16 +46,17 @@ HTML attribute parsing, used in HTML table generation.
 @version 2012/09-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(parse_ext)).
 :- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 
-:- assert(user:prolog_file_type(htm, html)).
-:- assert(user:prolog_file_type(html, html)).
+:- assert_novel(user:prolog_file_type(htm, html)).
+:- assert_novel(user:prolog_file_type(html, html)).
 
 % Project-specific HTML pages.
-:- assert(user:file_search_path(project_html, project(html))).
+:- assert(user:file_search_path(html, project(html))).
 
 
 
@@ -67,7 +68,7 @@ attribute(border, pixels, [table]).
 
 
 reply_html_file(Style, File):-
-  absolute_file_name(project_html(File), HTML, [access(read), file_type(html)]),
+  absolute_file_name(html(File), HTML, [access(read), file_type(html)]),
   load_html_file(HTML, DOM),
   contains_term(element(body, _, Body), DOM),
   reply_html_page(Style, [], Body).
