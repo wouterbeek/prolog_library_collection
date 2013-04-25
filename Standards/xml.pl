@@ -68,7 +68,6 @@ dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   load_dtd(DTD, DTD_File),
   tmp_file_stream(text, TemporaryFile, Out),
   file_name_type(Style_Name, css, Style),
-gtrace,
   stylesheet_pi(css(Style), PI),
   % Set the header to false, since this XML content will be inserted inside
   % a Web page.

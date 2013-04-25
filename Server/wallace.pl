@@ -23,6 +23,7 @@ http://semanticweb.cs.vu.nl/prasem/
 @version 2012/05, 2012/09-2012/12, 2013/02-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(logging)).
 :- use_module(html(html)).
 :- use_module(library(http/html_head)).
@@ -51,15 +52,18 @@ http://semanticweb.cs.vu.nl/prasem/
 
 % Serve CSS files.
 http:location(css, root(css), []).
-:- assert(user:file_search_path(css, server(css))).
+:- assert_novel(user:file_search_path(css, server(css))).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+
+% Assert DTD file locations.
+:- assert_novel(user:file_search_path(dtd, html(.))).
 
 % Serve images.
 %http:location(img, root(img), []).
 
 % Serve JavaScript files.
 http:location(js, root(js), []).
-:- assert(user:file_search_path(js, server(js))).
+:- assert_novel(user:file_search_path(js, server(js))).
 :- http_handler(js(.), serve_files_in_directory(js), [prefix]).
 
 % Create a SPRAQL endpoint.
@@ -67,9 +71,9 @@ http:location(js, root(js), []).
 %:- http_handler(sparql(.), sparql, [spawn(sparql_query)]).
 
 % HTTP handlers for the Wallace server.
-%:- http_handler(root(console_output), console_output, []).
-%:- http_handler(root(status_pane), status_pane, []).
-:- http_handler(root(wallace), wallace, []).
+:- http_handler(root(console_output), console_output, []).
+:- http_handler(root(status_pane), status_pane, []).
+:- http_handler(root(wallace), wallace, [prefix, priority(100)]).
 
 % HTML resources and their dependencies.
 :- html_resource(css('console_output.css'), [requires(css('wallace.css'))]).
@@ -115,6 +119,7 @@ console_output -->
 
 console_output(_Request):-
   retract(content_queue(console_output, DTD_Name, Style_Name, DOM)),
+gtrace,
   !,
   serve_xml(DTD_Name, Style_Name, DOM).
 console_output(Request):-
@@ -134,6 +139,7 @@ push(Type, DTD_Name, StyleName, DOM):-
 
 status_pane(_Request):-
   retract(content_queue(status_pane, DTD_Name, Style_Name, DOM)),
+gtrace,
   !,
   serve_xml(DTD_Name, Style_Name, DOM).
 status_pane(Request):-
@@ -187,10 +193,10 @@ wallace(Request):-
   ;
     true
   ),
-  reply_html_page(wallace, [], []).
+  serve_nothing(Request).
+  %reply_html_page(wallace, [], []).
 
 wallace_uri(URI):-
-gtrace,
   default_port(Port),
   http_open:parts_uri(
     [host(localhost), path('/wallace/'), port(Port), scheme(http)],

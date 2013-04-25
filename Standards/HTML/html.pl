@@ -55,9 +55,6 @@ HTML attribute parsing, used in HTML table generation.
 :- assert_novel(user:prolog_file_type(htm, html)).
 :- assert_novel(user:prolog_file_type(html, html)).
 
-% Project-specific HTML pages.
-:- assert(user:file_search_path(html, project(html))).
-
 
 
 % This attributes specifies the width (in pixels only) of the frame around a
