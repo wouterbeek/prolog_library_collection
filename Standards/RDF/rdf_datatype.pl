@@ -35,10 +35,15 @@ This module uses the =|img|= search file name for finding images.
 % Temporary namespace for the image datatype.
 :- rdf_register_prefix(prasem, 'http://www.wouterbeek.com/prasem.owl#', [keep(true)]).
 
-% Register file types used by the =|prasem:image|= datatype.
+% Register the supported image file types.
+% These are shared with module HTML.
+:- dynamic(user:image_file_type/1).
+:- multifile(user:image_file_type/1).
 :- assert_novel(user:prolog_file_type(jpeg, jpeg)).
 :- assert_novel(user:prolog_file_type(jpg, jpeg)).
+:- assert_novel(user:image_file_type(jpg)).
 :- assert_novel(user:prolog_file_type(png, png)).
+:- assert_novel(user:image_file_type(png)).
 
 :- rdf_meta(rdf_convert_datatype(r,+,r,-)).
 :- rdf_meta(rdf_datatype(?,r)).
@@ -47,12 +52,6 @@ This module uses the =|img|= search file name for finding images.
 :- rdf_meta(rdf_datatype(?,?,r,?)).
 
 
-
-%% image_file_type(?FileType:atom) is nondet.
-% Image file types that are used for datatype =|prasem:image|=.
-
-image_file_type(jpg).
-image_file_type(png).
 
 %% rdf_convert_datatype(
 %%   ?FromDatatype:oneof([atom,uri]),
@@ -118,7 +117,7 @@ rdf_datatype(DatatypeName, LexicalValue, CanonicalValue):-
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(CanonicalValue),
   !,
-  image_file_type(FileType),
+  user:image_file_type(FileType),
   absolute_file_name(
     img(CanonicalValue),
     LexicalValue,

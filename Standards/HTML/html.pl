@@ -11,6 +11,9 @@
                    % -HTML:list
 
 % GENERATING
+    html_image/3, % +Description:atom
+                  % +Base:atom
+                  % -DIV:element
     list_to_table/3, % +Options:list(nvpair)
                      % +List:list(list(term))
                      % -Markup:element
@@ -47,22 +50,36 @@ HTML attribute parsing, used in HTML table generation.
 */
 
 :- use_module(generics(db_ext)).
+:- use_module(generics(file_ext)).
 :- use_module(generics(parse_ext)).
 :- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
+:- use_module(library(http/http_path)).
 
+% Assert the HTML file types.
 :- assert_novel(user:prolog_file_type(htm, html)).
 :- assert_novel(user:prolog_file_type(html, html)).
 
+% Register the supported image file types.
+% These are shared with module RDF_DATATYPE.
+:- dynamic(user:image_file_type/1).
+:- multifile(user:image_file_type/1).
+:- assert_novel(user:prolog_file_type(jpeg, jpeg)).
+:- assert_novel(user:prolog_file_type(jpg, jpeg)).
+:- assert_novel(user:image_file_type(jpg)).
+:- assert_novel(user:prolog_file_type(png, png)).
+:- assert_novel(user:image_file_type(png)).
 
 
-% This attributes specifies the width (in pixels only) of the frame around a
-% table (see the Note below for more information about this attribute).
-% @tbd Deprecated, use CSS2 instead.
-attribute(border, pixels, [table]).
 
-
+%% reply_html_file(+Style:atom, +File:atom) is det.
+% Serve the given HTML file using the given styling.
+%
+% @param Style The atomic name of the HTML style of the page served.
+%        This style has to be defined using the multifile
+%        preficates user:body//2 and user:head//2.
+% @param File The atomic base name of the HTML file that is served.
 
 reply_html_file(Style, File):-
   absolute_file_name(html(File), HTML, [access(read), file_type(html)]),
@@ -74,9 +91,16 @@ reply_html_file(Style, File):-
 
 % FETCHING %
 
-file_to_html(File, DOM):-
+%% file_to_html(+File:atom, -HTML:dom) is det.
+% Retrieves the HTML DOM from the file described with the given
+% absolute file name.
+
+file_to_html(File, HTML):-
   open(File, read, Stream),
-  stream_to_html(Stream, DOM).
+  stream_to_html(Stream, HTML).
+
+% stream_to_html(+Stream:stream, -HTML:dom) is det.
+% Retrieves the HTML DOM from the given stream.
 
 stream_to_html(Stream, DOM):-
   dtd(html, DTD),
@@ -118,6 +142,32 @@ uri_to_html(URI, DOM):-
 
 
 % GENERATING %
+
+%% html_image(+Description:atom, +Base:atom, -DIV:element) is det.
+% Constructs an IMG element.
+%
+% @param Description An atomic description of the image.
+% @param Base The atomic base name of the image file.
+% @param DIV The HTML image element.
+
+html_image(Description, Base, DIV):-
+  user:image_file_type(Type),
+  file_name_type(Base, Type, Name),
+  http_absolute_location(image(Name), RelativeURI, []),
+  % The DIV containing the image description.
+  Description_DIV = element(div, [class=image_description], [Description]),
+  % The image itself, using the description as alternative text.
+  ImageElement =
+    element(
+      img,
+      [alt=Description, class=image_thumbnail, src=RelativeURI],
+      []
+    ),
+  % Make the image clickable, linking to the image file.
+  LinkElement =
+    element(a, [href=RelativeURI, target='_blank'], [ImageElement]),
+  % Construe the DIV containing the image, the link, and the description.
+  DIV = element(div, [class=image], [LinkElement, Description_DIV]).
 
 %% list_to_table(
 %%   +Options:list(nvpair),
@@ -172,12 +222,23 @@ table_row0(
   % If we use term_to_atom/2 for atom terms, extra single quotes are added
   % in front and at the end of the atom. Therefore, we first check whether
   % the term is an atom.
-  (atom(H) -> Atom = H ; term_to_atom(H, Atom)),
+  (
+    atom(H)
+  ->
+    Atom = H
+  ;
+    term_to_atom(H, Atom)
+  ),
   table_row0(T, HTML_Entity, Markup).
 
 
 
 % PARSING %
+
+% This attributes specifies the width (in pixels only) of the frame around a
+% table (see the Note below for more information about this attribute).
+% @tbd Deprecated, use CSS2 instead.
+attribute(border, pixels, [table]).
 
 %% html_char(+Options:list(nvpair), ?Results)//
 % Returns the HTML atom representing the character given.

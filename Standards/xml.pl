@@ -33,6 +33,7 @@ XML, Extendable Markup Language specification.
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
 :- use_module(library(sgml)).
