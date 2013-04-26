@@ -28,6 +28,7 @@ This module uses the =|img|= search file name for finding images.
 */
 
 :- use_module(generics(db_ext)).
+:- use_module(generics(file_ext)).
 :- use_module(generics(type_checking)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(standards(xmls)).
@@ -41,7 +42,7 @@ This module uses the =|img|= search file name for finding images.
 :- multifile(user:image_file_type/1).
 :- assert_novel(user:prolog_file_type(jpeg, jpeg)).
 :- assert_novel(user:prolog_file_type(jpg, jpeg)).
-:- assert_novel(user:image_file_type(jpg)).
+:- assert_novel(user:image_file_type(jpeg)).
 :- assert_novel(user:prolog_file_type(png, png)).
 :- assert_novel(user:image_file_type(png)).
 
@@ -117,12 +118,9 @@ rdf_datatype(DatatypeName, LexicalValue, CanonicalValue):-
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(CanonicalValue),
   !,
+  file_name_type(_Base, FileType, CanonicalValue),
   user:image_file_type(FileType),
-  absolute_file_name(
-    img(CanonicalValue),
-    LexicalValue,
-    [access(read), file_type(FileType)]
-  ),
+  absolute_file_name(img(CanonicalValue), LexicalValue, [access(read)]),
   % Do not backtrack on image file types.
   !.
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-

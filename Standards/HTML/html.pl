@@ -150,10 +150,11 @@ uri_to_html(URI, DOM):-
 % @param Base The atomic base name of the image file.
 % @param DIV The HTML image element.
 
-html_image(Description, Base, DIV):-
+html_image(Description, File, DIV):-
+  % Make sure the file has a supported image file type.
+  file_name_type(_Base, Type, File),
   user:image_file_type(Type),
-  file_name_type(Base, Type, Name),
-  http_absolute_location(image(Name), RelativeURI, []),
+  http_absolute_location(img(File), RelativeURI, []),
   % The DIV containing the image description.
   Description_DIV = element(div, [class=image_description], [Description]),
   % The image itself, using the description as alternative text.
