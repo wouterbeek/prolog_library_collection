@@ -252,6 +252,8 @@ rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
 % @see rdf_literal/5.
 
 rdf_literal(Subject, Predicate, Literal, Graph):-
+  rdf(Subject, Predicate, literal(Literal), Graph).
+rdf_literal(Subject, Predicate, Literal, Graph):-
   rdf_literal(Subject, Predicate, en, Literal, Graph).
 
 %% rdf_literal(

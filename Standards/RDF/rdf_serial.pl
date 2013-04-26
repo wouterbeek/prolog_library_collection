@@ -5,7 +5,7 @@
                              % +RDFFile:file
     rdf_guess_data_format/2, % +Stream:stream
                              % ?Format:oneof([turtle,xml])
-    rdf_load2/1, % +Graph:atom
+    rdf_load2/1, % +File:atom
     rdf_load2/2, % +File:atom
                  % ?Graph:atom
     rdf_load2/3, % ?File:atom
@@ -43,7 +43,6 @@ Supported serialization formats:
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(semweb/rdf_turtle_write)).
-:- use_module(rdf(rdf_export)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(standards(xml)).
 
@@ -87,18 +86,11 @@ rdf_guess_data_format(Stream, xml):-
   !.
 rdf_guess_data_format(_, turtle).
 
-%% rdf_load2(+Graph:atom) is semidet.
-% Loads the graph with the given name.
-% This graph is assumed to be located in the data subdirectory of the
-% user's personal project directory.
-%
-% It is possible to load graphs in subdirectories of the data directory.
-% For instance: =|rdf_load2('STCN/STCN_Publications').|=.
-%
-% @param Graph The atomic name of a graph.
+%% rdf_load2(+File:atom) is semidet.
+% Loads the graph that is stored in the given file.
 
-rdf_load2(Graph):-
-  rdf_load2(_File, Graph).
+rdf_load2(File):-
+  rdf_load2(File, _Graph).
 
 %% rdf_load2(+File:atom, ?Graph:atom) is semidet.
 
@@ -147,7 +139,7 @@ rdf_load2(File, SerializationFormat, Graph):-
       format(Format),
       graph(Graph),
       register_namespaces(true),
-      silent(fail) % We like to get feedback.
+      silent(true) % We like to get feedback.
     ]
   ),
 
