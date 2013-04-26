@@ -55,9 +55,6 @@ http:location(css, root(css), []).
 :- assert_novel(user:file_search_path(css, server(css))).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
 
-% Assert DTD file locations.
-:- assert_novel(user:file_search_path(dtd, html(.))).
-
 % Serve images.
 %http:location(img, root(img), []).
 
@@ -119,7 +116,6 @@ console_output -->
 
 console_output(_Request):-
   retract(content_queue(console_output, DTD_Name, Style_Name, DOM)),
-gtrace,
   !,
   serve_xml(DTD_Name, Style_Name, DOM).
 console_output(Request):-
@@ -139,7 +135,6 @@ push(Type, DTD_Name, StyleName, DOM):-
 
 status_pane(_Request):-
   retract(content_queue(status_pane, DTD_Name, Style_Name, DOM)),
-gtrace,
   !,
   serve_xml(DTD_Name, Style_Name, DOM).
 status_pane(Request):-

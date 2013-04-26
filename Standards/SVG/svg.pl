@@ -42,15 +42,21 @@ represent by an integer between 0 and 255 (inclusive).
 @version 2012/10, 2013/01-2013/04
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(parse_ext)).
 :- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
-:- use_module(standards(ascii)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(standards(markup)).
 
 :- discontiguous(attribute0(_Name, _Type, _Contexts)).
 :- discontiguous(attribute0(_Name, _Type, _Contexts, _Default)).
 
 :- meta_predicate(type_check(2,+)).
+
+% Assert DTD file locations.
+:- assert_novel(user:file_search_path(dtd, svg(.))).
+
+:- rdf_register_prefix(svg, 'http://www.w3.org/2000/svg').
 
 
 
@@ -66,8 +72,8 @@ stream_to_svg(Stream, SVG):-
     SVG,
     [
       dialect(xmlns),
-      shorttag(false),
       max_errors(-1),
+      shorttag(false),
       space(default),
       syntax_errors(quiet)
     ]

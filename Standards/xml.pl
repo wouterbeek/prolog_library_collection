@@ -64,7 +64,7 @@ http:location(css, root(css),  []).
 
 dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   new_dtd(DTD_Name, DTD),
-  % Retrieve the first DTYD file with the given name.
+  % Retrieve the first DTD file with the given name.
   dtd_file(DTD_Name, DTD_File),
   load_dtd(DTD, DTD_File),
   tmp_file_stream(text, TemporaryFile, Out),

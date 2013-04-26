@@ -57,6 +57,9 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
 
+% Assert DTD file locations.
+:- assert_novel(user:file_search_path(dtd, html(.))).
+
 % Assert the HTML file types.
 :- assert_novel(user:prolog_file_type(htm, html)).
 :- assert_novel(user:prolog_file_type(html, html)).
