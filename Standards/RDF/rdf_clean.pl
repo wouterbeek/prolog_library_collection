@@ -21,6 +21,10 @@
                      % ?Object:oneof([bnode,literal,uri])
                      % ?Graph1:atom
                      % ?Graph2:atom
+    rdf_expand_namespace/4, % ?Subject:oneof([atom,bnode,uri])
+                            % ?Predicate:oneof([atom,uri])
+                            % ?Object:oneof([atom,bnode,literal,uri])
+                            % ?Graph:atom
     rdf_split_string/4, % ?Subject:onef([bnode,uri])
                         % ?Predicate:uri
                         % ?Graph:atom
@@ -50,6 +54,7 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 :- rdf_meta(rdf_clean_datatype(r,r,r,?,?)).
 :- rdf_meta(rdf_convert_datatype(r,r,+,+,+,+)).
 :- rdf_meta(rdf_duplicate(r,r,r,?,?)).
+:- rdf_meta(rdf_expand_namespace(r,r,r,?)).
 :- rdf_meta(rdf_split_string(r,r,?,+)).
 :- rdf_meta(rdf_strip_string(r,r,?)).
 
@@ -127,6 +132,62 @@ rdf_duplicate(Subject, Predicate, Object, Graph1, Graph2):-
   rdf(Subject, Predicate, Object, Graph1:_),
   rdf(Subject, Predicate, Object, Graph2:_),
   Graph1 \== Graph2.
+
+rdf_expand_namespace(BNode, BNode):-
+  rdf_is_bnode(BNode),
+  !.
+rdf_expand_namespace(
+  literal(lang(Language, Literal)),
+  literal(lang(Language, Literal))
+):-
+  !.
+% Datatypes in typed literals are treaded in a special way.
+rdf_expand_namespace(literal(type(Atom, Value)), literal(type(URI, Value))):-
+  rdf_expand_namespace(Atom, URI).
+rdf_expand_namespace(literal(Literal), literal(Literal)):-
+  !.
+% Already a URI.
+rdf_expand_namespace(URI, URI):-
+  is_uri(URI),
+  !.
+% An atom that can be converted to a URI.
+rdf_expand_namespace(Atom, URI):-
+  split_atom_exclusive(Atom, ':', [Namespace, LocalName]),
+  rdf_global_id(Namespace:LocalName, URI).
+
+rdf_expand_namespace(Subject1, Predicate1, Object1, Graph):-
+  findall(
+    [Subject1, Predicate1, Object1, Graph],
+    (
+      rdf(Subject1, Predicate1, Object1, Graph),
+      (
+        rdf_expand_namespace(Subject1, Subject2),
+        Subject1 \== Subject2
+      ;
+        rdf_expand_namespace(Predicate1, Predicate2),
+        Predicate1 \== Predicate2
+      ;
+        rdf_expand_namespace(Object1, Object2),
+        Object1 \== Object2
+      )
+    ),
+    Tuples
+  ),
+  user_interaction(
+    'EXPAND-NAMESPACE',
+    rdf_expand_namespace0,
+    ['Subject', 'Predicate', 'Object', 'Graph'],
+    Tuples
+  ).
+:- rdf_meta(rdf_expand_namespace0(r,r,r,?)).
+rdf_expand_namespace0(Subject1, Predicate1, Object1, Graph):-
+  maplist(
+    rdf_expand_namespace,
+    [Subject1, Predicate1, Object1],
+    [Subject2, Predicate2, Object2]
+  ),
+  rdf_retractall(Subject1, Predicate1, Object1, Graph),
+  rdf_assert(Subject2, Predicate2, Object2, Graph).
 
 rdf_split_string(Subject, Predicate, Graph, Split):-
   findall(

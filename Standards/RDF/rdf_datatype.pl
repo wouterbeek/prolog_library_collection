@@ -72,8 +72,8 @@ rdf_convert_datatype(FromDatatype, FromValue, ToDatatype, ToValue):-
 % @param Datatype The URI of an XML Schema datatype.
 
 rdf_datatype(DatatypeName, Datatype):-
-  nonvar(DatatypeName),
-  nonvar(Datatype),
+  var(DatatypeName),
+  var(Datatype),
   !,
   rdf_datatype0(DatatypeName, Datatype).
 rdf_datatype(DatatypeName, Datatype):-

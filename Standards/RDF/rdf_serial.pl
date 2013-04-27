@@ -5,23 +5,25 @@
                              % +RDFFile:file
     rdf_guess_data_format/2, % +Stream:stream
                              % ?Format:oneof([turtle,xml])
+    rdf_serialization/4, % ?FileType:atom
+                         % ?SerializationFormat:atom
+                         % ?Supported:boolean
+                         % ?URI:uri
+% RDF LOAD
     rdf_load2/1, % +File:atom
     rdf_load2/2, % +File:atom
                  % ?Graph:atom
     rdf_load2/3, % ?File:atom
-                 % ?SerializationFormat:oneof(['N-Triples','N3','RDF/XML','RDFa','Turtle'])
+                 % ?SerializationFormat:atom
                  % ?Graph:atom
+% RDF SAVE
+    rdf_save2/0,
     rdf_save2/1, % +Graph:atom
     rdf_save2/2, % +Graph:atom
                  % ?File:atom
-    rdf_save2/3, % ?Graph:atom
-                 % ?SerializationFormat:oneof(['N-Triples','N3','RDF/XML','RDFa','Turtle'])
-                 % ?File:atom
-    rdf_save_all/0,
-    rdf_serialization/4 % ?FileType:oneof([n_triples,n3,rdf,rdfa,turtle]).
-                        % ?SerializationFormat:oneof(['N-Triples','N3','RDF/XML','RDFa','Turtle'])
-                        % ?Supported:boolean
-                        % ?URI:uri
+    rdf_save2/3 % ?Graph:atom
+                % ?SerializationFormat:atom
+                % ?File:atom
   ]
 ).
 
@@ -43,6 +45,7 @@ Supported serialization formats:
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(semweb/rdf_turtle_write)).
+:- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(standards(xml)).
 
@@ -86,6 +89,26 @@ rdf_guess_data_format(Stream, xml):-
   !.
 rdf_guess_data_format(_, turtle).
 
+%% rdf_serialization(
+%%   ?FileType:oneof([n_triples,n3,rdf,rdfa,turtle]),
+%%   ?SerializationFormat:oneof(['N-Triples','N3','RDF.XML','RDFa','Turtle']),
+%%   ?Supported:boolean,
+%%   ?URI:uri
+%% ) is nondet.
+
+rdf_serialization(n_triples, 'N-Triples', false, 'http://www.w3.org/ns/formats/N-Triples').
+rdf_serialization(n3,        'N3',        false, 'http://www.w3.org/ns/formats/N3'       ).
+rdf_serialization(rdf,       'RDF/XML',   true,  'http://www.w3.org/ns/formats/RDF_XML'  ).
+rdf_serialization(rdfa,      'RDFa',      false, 'http://www.w3.org/ns/formats/RDFa'     ).
+rdf_serialization(turtle,    'Turtle',    true,  'http://www.w3.org/ns/formats/Turtle'   ).
+
+translate_serialization_format('RDF/XML', xml   ).
+translate_serialization_format('Turtle',  turtle).
+
+
+
+% RDF LOAD %
+
 %% rdf_load2(+File:atom) is semidet.
 % Loads the graph that is stored in the given file.
 
@@ -108,30 +131,34 @@ rdf_load2(File, Graph):-
 % +,?,-
 % ?,?,+
 
+rdf_load2(Directory, SerializationFormat, Graph):-
+  maplist(nonvar, [Directory, SerializationFormat, Graph]),
+  exists_directory(Directory),
+  % Make sure the given serialization format is supported.
+  once(rdf_serialization(FileType, SerializationFormat, true, _URI)),
+  !,
+  user:prolog_file_type(Extension, FileType),
+  format(atom(RE), '~w/*.~w', [Directory, Extension]),
+  expand_file_name(RE, Files),
+  forall(
+    member(File, Files),
+    rdf_load2(File, SerializationFormat, Graph)
+  ).
 % All arguments must be set for this predicate to succeeds.
 % The other clauses of this predicate are meant to instantiate these
 % three variables.
 rdf_load2(File, SerializationFormat, Graph):-
-  % Check whether the file is given, exists, and can be accessed.
-  nonvar(File),
+  maplist(nonvar, [File, SerializationFormat, Graph]),
   exists_file(File),
   access_file(File, read),
-
-  % Check whether the format is given, exists, and is supported.
-  nonvar(SerializationFormat),
-  % Make sure the serialization format is supported, and take the display
-  % name for use in the debug message.
+  % Pick a serialization format if none is given, or
+  % make sure the given serialization format is supported.
   once(rdf_serialization(_FileType, SerializationFormat, true, _URI)),
-
-  % Check whether the graph name is given.
-  nonvar(Graph),
   !,
-
   % Since we use more descriptive names for the serialization formats,
-  % we translate them to the format names that are using in the semweb
+  % we translate them to the format names that are used in the semweb
   % library.
   translate_serialization_format(SerializationFormat, Format),
-
   % The real job is performed by a predicate from the semweb library.
   rdf_load(
     File,
@@ -142,35 +169,40 @@ rdf_load2(File, SerializationFormat, Graph):-
       silent(true) % We like to get feedback.
     ]
   ),
-
   % Send a debug message notifying that the RDF file was successfully loaded.
   debug(
     rdf_serial,
     'Graph ~w was loaded in ~w serialization from file ~w.',
     [Graph, SerializationFormat, File]
   ).
-% File and graph are given and are not necessarily the same.
-% The serialization format is derived from the file extension.
-rdf_load2(File, SerializationFormat, Graph):-
-  nonvar(File),
-  nonvar(Graph),
+% The directory is given, look for all the files in it.
+rdf_load2(Directory, SerializationFormat, Graph):-
+  var(Graph),
+  nonvar(Directory),
+  exists_directory(Directory),
   !,
-  file_name_type(_Name, FileType, File),
+  % Try various file types.
   rdf_serialization(FileType, SerializationFormat, true, _URI),
-  % We prefer serialization formats that occur earlier in this file.
-  rdf_load2(File, SerializationFormat, Graph),
-  % Since there can be multiple serialization formats, we add a cut here.
+  user:prolog_file_type(Extension, FileType),
+  format(atom(RE), '~w/*.~w', [Directory, Extension]),
+  expand_file_name(RE, Files),
+  forall(
+    member(File, Files),
+    rdf_load2(File, SerializationFormat, Graph)
+  ),
   !.
 % The file is given but the graph is not.
-% The graph is derived from the file.
+% The graph is derived from the file path.
 rdf_load2(File, SerializationFormat, Graph):-
-  nonvar(File),
   var(Graph),
+  nonvar(File),
+  exists_file(File),
+  access_file(File, read),
   !,
   % The local name (without extension) of the file is used as the graph name.
   file_name(File, _Directory, Graph, Extension),
   user:prolog_file_type(Extension, FileType),
-  rdf_serialization(FileType, SerializationFormat, true, _URI),
+  once(rdf_serialization(FileType, SerializationFormat, true, _URI)),
   rdf_load2(File, SerializationFormat, Graph),
   !.
 % The graph is given and only the file name and/or the file type have to be
@@ -193,24 +225,66 @@ rdf_load2(File, SerializationFormat, Graph):-
   % Only load one file, i.e. use one serialization.
   !.
 
-rdf_save2(Graph):-
+
+
+% RDF SAVE %
+
+rdf_save2:-
   forall(
-    rdf_serialization(FileType, SerializationFormat, true, _URI),
-    (
-      absolute_file_name(
-        data(Graph),
-        File,
-       [access(write), file_type(FileType)]
-      ),
-      rdf_save2(Graph, SerializationFormat, File)
-    )
+    rdf_graph(Graph),
+    rdf_save2(Graph)
+  ).
+
+%% rdf_save2(+Graph:atom) is det.
+% Saves the RDF graph with the given name.
+% We use either the file from which this graph was loaded or,
+% in case the graph was constructed, a file based on the graph
+% name and the default serialization format.
+
+% The graph has an associated source file.
+rdf_save2(Graph):-
+  rdf_graph(Graph),
+  !,
+  rdf_save2(Graph, _File).
+rdf_save2(Directory):-
+  exists_directory(Directory),
+  !,
+  % Pick a serialization format.
+  once(rdf_serialization(_FileType, SerializationFormat, true, _URI)),
+  forall(
+    rdf_graph(Graph),
+    rdf_save2(Graph, SerializationFormat, _File)
   ).
 
 %% rdf_save2(+Graph:atom, ?File:atom) is det.
-% Save using all serializations.
 
+% Determine the serialization format based on the file extension.
 rdf_save2(Graph, File):-
-  rdf_save2(Graph, _SerializationFormat, File).
+  nonvar(File),
+  !,
+  file_name_type(_Base, FileType, File),
+  rdf_serialization(FileType, SerializationFormat, true, _URI),
+  rdf_save2(Graph, SerializationFormat, File).
+% The graph's source file is used.
+rdf_save2(Graph, File):-
+  var(File),
+  rdf_graph_source_file(Graph, File),
+  !,
+  % Recurse once, to extract the serialization format.
+  rdf_save2(Graph, File).
+% A default file name is created based on the graph name.
+rdf_save2(Graph, File):-
+  var(File),
+  !,
+  % Choose the first serialization format that appears in this module.
+  once(rdf_serialization(FileType, SerializationFormat, true, _URI)),
+  absolute_file_name(
+    data(Graph),
+    File,
+    [access(write), file_type(FileType)]
+  ),
+  !,
+  rdf_save2(Graph, SerializationFormat, File).
 
 %% rdf_save2(
 %%   +Graph:atom,
@@ -239,6 +313,7 @@ rdf_save2(Graph, SerializationFormat, File):-
 rdf_save2(Graph, 'Turtle', File):-
   nonvar(Graph),
   nonvar(File),
+  access_file(File, write),
   !,
   open(File, write, Stream, [close_on_abort(true), type(text)]),
   rdf_save_turtle(
@@ -261,6 +336,7 @@ rdf_save2(Graph, 'Turtle', File):-
 rdf_save2(Graph, 'RDF/XML', File):-
   nonvar(Graph),
   nonvar(File),
+  access_file(File, write),
   !,
   open(File, write, Stream, [close_on_abort(true), type(text)]),
   rdf_current_namespaces(Graph, Namespaces),
@@ -271,26 +347,4 @@ rdf_save2(Graph, 'RDF/XML', File):-
     [Graph, File]
   ),
   close(Stream).
-
-rdf_save_all:-
-  forall(
-    rdf_graph(Graph),
-    rdf_save2(Graph)
-  ).
-
-%% rdf_serialization(
-%%   ?FileType:oneof([n_triples,n3,rdf,rdfa,turtle]),
-%%   ?SerializationFormat:oneof(['N-Triples','N3','RDF.XML','RDFa','Turtle']),
-%%   ?Supported:boolean,
-%%   ?URI:uri
-%% ) is nondet.
-
-rdf_serialization(n_triples, 'N-Triples', false, 'http://www.w3.org/ns/formats/N-Triples').
-rdf_serialization(n3,        'N3',        false, 'http://www.w3.org/ns/formats/N3'       ).
-rdf_serialization(rdf,       'RDF/XML',   true,  'http://www.w3.org/ns/formats/RDF_XML'  ).
-rdf_serialization(rdfa,      'RDFa',      false, 'http://www.w3.org/ns/formats/RDFa'     ).
-rdf_serialization(turtle,    'Turtle',    true,  'http://www.w3.org/ns/formats/Turtle'   ).
-
-translate_serialization_format('RDF/XML', xml   ).
-translate_serialization_format('Turtle',  turtle).
 

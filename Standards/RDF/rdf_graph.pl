@@ -1,8 +1,6 @@
 :- module(
   rdf_graph,
   [
-    rdf_assert_directory/2, % +Directory:file
-                            % +Graph:graph
     rdf_bnode/2, % ?Graph:graph
                  % ?BNode:bnode
     rdf_clear/1, % +Graph:graph
@@ -13,6 +11,8 @@
                         % ?Object:oneof([bnode,literal,uri])
                         % +FromGraph:atom
                         % +ToGraph:atom
+    rdf_graph_source_file/2, % +Graph:atom
+                             % -File:atom
     rdf_ground/1, % +Graph:atom
     rdf_name/2, % ?Graph:atom
                 % +Name:oneof([literal,uri])
@@ -145,13 +145,14 @@ graph. Non-lean graphs have internal redundancy and express the same content
 as their lean subgraphs.
 
 @author Wouter Beek
-@version 2012/01-2013/03
+@version 2012/01-2013/04
 */
 
 :- use_module(generics(file_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(uri)).
 :- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_graph_theory)).
 :- use_module(rdf(rdf_read)).
@@ -167,33 +168,6 @@ as their lean subgraphs.
 :- rdf_meta(rdf_subject(?,r)).
 
 
-
-%% rdf_assert_directory(+Directory:file, +Graph:atom) is det.
-% Asserts all RDF files in the given directory to the given graph.
-%
-% @param Directory A directory from which the RDF files are imported.
-% @param Graph The atomic name of a graph.
-% @tbd Recursive through subdirectories.
-
-rdf_assert_directory(Directory, Graph):-
-  directory_files(Directory, Files),
-  findall(
-    AbsoluteFile,
-    (
-      member(File, Files),
-      file_name_type(_Base, resource_description_format, File),
-      absolute_file_name(File, AbsoluteFile, [relative_to(Directory)])
-    ),
-    AbsoluteFiles
-  ),
-  forall(
-    member(AbsoluteFile, AbsoluteFiles),
-    (
-      rdf_load2(import, xml, AbsoluteFile),
-      rdf_copy_graph(import, Graph),
-      rdf_unload_graph(import)
-    )
-  ).
 
 rdf_bnode(Graph, BNode):-
   (
@@ -237,6 +211,17 @@ rdf_copy_triples(Subject, Premise, Object, FromGraph, ToGraph):-
   flag(number_of_copied_triples, Id, Id),
   (Id == 1 -> Word = triple ; Word = triples),
   format(user, '~w ~w were copied.\n', [Id, Word]).
+
+%% rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
+% Returns the name of the file from which the graph with the given name
+% was loaded.
+
+rdf_graph_source_file(Graph, File):-
+  rdf_graph_property(Graph, source(Source)),
+  uri_components(
+    Source,
+    uri_components(file, _Authority, File, _Search, _Fragments)
+  ).
 
 %% rdf_ground(+Graph:graph) is semidet.
 % Succeeds if the given graph is ground, i.e., contains no blank node.

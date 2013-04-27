@@ -128,6 +128,7 @@ xmls_datatype0(float, Float, xsd:float, Atom):-
   (
     nonvar(Float)
   ->
+    float(Float),
     atom_number(Atom, Float)
   ;
     atom_number(Atom, Number),
