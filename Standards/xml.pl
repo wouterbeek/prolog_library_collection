@@ -36,6 +36,7 @@ XML, Extendable Markup Language specification.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_server_files)).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 :- use_module(standards(sgml_parse)).
@@ -51,7 +52,7 @@ XML, Extendable Markup Language specification.
 % Serve CSS files.
 http:location(css, root(css),  []).
 :- assert(user:file_search_path(css, server(css))).
-:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+:- http_handler(css(.), serve_files_in_directory(css), [prefix, priority(10)]).
 
 
 
