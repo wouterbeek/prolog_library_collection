@@ -108,5 +108,5 @@ load:-
     File,
     [access(read), file_type(rdf)]
   ),
-  rdf_load2(File, xml, lexvo).
+  rdf_load2(File, lexvo).
 

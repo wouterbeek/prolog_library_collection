@@ -15,6 +15,7 @@ load:-
     assert(user:file_search_path(rdfs,         standards('RDFS'))),
     assert(user:file_search_path(sparql,       standards('SPARQL'))),
     assert(user:file_search_path(svg,          standards('SVG'))),
+    assert(user:file_search_path(tests,        standards('Tests'))),
   assert(user:file_search_path(vocabularies, pgc('Vocabularies'))),
     assert(user:file_search_path(skos,         vocabularies('SKOS'))).
 

@@ -1,6 +1,8 @@
 :- module(
   owl_entailment,
   [
+    materialize/0,
+    materialize/1, % +Graph:atom
     rdfm/3
   ]
 ).
@@ -15,16 +17,11 @@ This entailment module does RDFS entailment.
 
 @tbd  Check the completeness
 
----+ Q&A
-
-Q: What is the intended use of rdf_db:rdf_global_object/2?
-
-Q: What is the intended use of directive (public/1)?
-
 @author Wouter Beek
 @version 2013/04
 */
 
+:- use_module(generics(meta_ext)).
 :- use_module(library(nb_set)).
 :- use_module(library(semweb/rdf_db)).
 
@@ -37,6 +34,32 @@ Q: What is the intended use of directive (public/1)?
 :- rdf_register_prefix(serql, 'http://www.openrdf.org/schema/serql#').
 
 
+
+materialize:-
+  materialize0(Triples),
+  forall(
+    member([S, P, O], Triples),
+    rdf_assert(S, P, O)
+  ).
+
+materialize(Graph):-
+  rdf_graph(Graph),
+  materialize0(Triples),
+  forall(
+    member([S, P, O], Triples),
+    rdf_assert(S, P, O, Graph)
+  ).
+
+materialize0(Triples2):-
+  findall(
+    [S, P, O],
+    rdfm(S, P, O),
+    Triples1
+  ),
+  length(Triples1, Length1),
+  sort(Triples1, Triples2),
+  length(Triples2, Length2),
+  if_then(Length1 == Length2, gtrace).
 
 % @tbd should move to compiler
 rdfm(literal(L), _, _):-

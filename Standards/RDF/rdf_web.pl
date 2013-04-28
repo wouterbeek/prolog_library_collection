@@ -64,31 +64,13 @@ rdf_graphs_web(Markup):-
 
 % Prefer turtle.
 rdf_load_web(Graph, Markup):-
-  rdf_load_web(Graph, _SerializationFormat, Markup),
-  !.
-rdf_load_web(Graph, Markup):-
-  Markup = [element(p, [], ['An RDF graph named ', Graph,
-      ' could not be found in the personal data directory.'])].
-
-rdf_load_web(Graph, SerializationFormat, Markup):-
-  rdf_load2(File, SerializationFormat, Graph),
+  rdf_load2(File, Graph),
   !,
   Markup =
-      [element(p, [], [
-        'Graph ',
-        Graph,
-        ' was loaded from file ',
-        File,
-        ' in serialization ',
-        SerializationFormat,
-        '.'
-      ])].
-rdf_load_web(Graph, _SerializationFormat, Markup):-
-  Markup = [element(p, [], [
-      'No graph with name ',
-      Graph,
-      ' could not be loaded the personal data directory.'
-  ])].
+    [element(p, [], ['Graph ', Graph, ' was loaded from file ', File, '.'])].
+rdf_load_web(Graph, Markup):-
+  Markup = [element(p, [], ['An RDF graph named ', Graph,
+    ' could not be found in the personal data directory.'])].
 
 %% rdf_namespaces_web(-Markup:list) is det.
 % Returns a list of the currently defined namespaces in HTML markup format.

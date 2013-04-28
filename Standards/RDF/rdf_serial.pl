@@ -14,8 +14,8 @@
     rdf_load2/2, % +File:atom
                  % ?Graph:atom
     rdf_load2/3, % ?File:atom
-                 % ?SerializationFormat:atom
                  % ?Graph:atom
+                 % ?Options:list(nvpair)
 % RDF SAVE
     rdf_save2/0,
     rdf_save2/1, % +Graph:atom
@@ -121,7 +121,7 @@ rdf_load2(File):-
 %% rdf_load2(+File:atom, ?Graph:atom) is semidet.
 
 rdf_load2(File, Graph):-
-  rdf_load2(File, _SerializationFormat, Graph).
+  rdf_load2(File, Graph, []).
 
 %% rdf_load2(
 %%   ?File:atom,
@@ -134,7 +134,10 @@ rdf_load2(File, Graph):-
 % +,?,-
 % ?,?,+
 
-rdf_load2(Directory, SerializationFormat, Graph):-
+rdf_load2(File, Graph, Options):-
+  rdf_load2(File, _SerializationFormat, Graph, Options).
+
+rdf_load2(Directory, SerializationFormat, Graph, Options):-
   maplist(nonvar, [Directory, SerializationFormat, Graph]),
   exists_directory(Directory),
   % Make sure the given serialization format is supported.
@@ -145,12 +148,12 @@ rdf_load2(Directory, SerializationFormat, Graph):-
   expand_file_name(RE, Files),
   forall(
     member(File, Files),
-    rdf_load2(File, SerializationFormat, Graph)
+    rdf_load2(File, SerializationFormat, Graph, Options)
   ).
 % All arguments must be set for this predicate to succeeds.
 % The other clauses of this predicate are meant to instantiate these
 % three variables.
-rdf_load2(File, SerializationFormat, Graph):-
+rdf_load2(File, SerializationFormat, Graph, Options1):-
   nonvar(Graph),
   exists_file(File),
   access_file(File, read),
@@ -163,16 +166,19 @@ rdf_load2(File, SerializationFormat, Graph):-
   % we translate them to the format names that are used in the semweb
   % library.
   translate_serialization_format(SerializationFormat, Format),
-  % The real job is performed by a predicate from the semweb library.
-  rdf_load(
-    File,
+  % Combine the given with the standard options.
+  merge_options(
+    Options1,
     [
       format(Format),
       graph(Graph),
       register_namespaces(true),
       silent(true) % We like to get feedback.
-    ]
+    ],
+    Options2
   ),
+  % The real job is performed by a predicate from the semweb library.
+  rdf_load(File, Options2),
   % Send a debug message notifying that the RDF file was successfully loaded.
   debug(
     rdf_serial,
@@ -180,7 +186,7 @@ rdf_load2(File, SerializationFormat, Graph):-
     [Graph, SerializationFormat, File]
   ).
 % The directory is given, look for all the files in it.
-rdf_load2(Directory, SerializationFormat, Graph):-
+rdf_load2(Directory, SerializationFormat, Graph, Options):-
   var(Graph),
   nonvar(Directory),
   exists_directory(Directory),
@@ -192,12 +198,12 @@ rdf_load2(Directory, SerializationFormat, Graph):-
   expand_file_name(RE, Files),
   forall(
     member(File, Files),
-    rdf_load2(File, SerializationFormat, Graph)
+    rdf_load2(File, SerializationFormat, Graph, Options)
   ),
   !.
 % The file is given but the graph is not.
 % The graph is derived from the file path.
-rdf_load2(File, SerializationFormat, Graph):-
+rdf_load2(File, SerializationFormat, Graph, Options):-
   var(Graph),
   nonvar(File),
   exists_file(File),
@@ -207,11 +213,11 @@ rdf_load2(File, SerializationFormat, Graph):-
   file_name(File, _Directory, Graph, Extension),
   user:prolog_file_type(Extension, FileType),
   once(rdf_serialization(FileType, SerializationFormat, true, _URI)),
-  rdf_load2(File, SerializationFormat, Graph),
+  rdf_load2(File, SerializationFormat, Graph, Options),
   !.
 % The graph is given and only the file name and/or the file type have to be
 % determined.
-rdf_load2(File, SerializationFormat, Graph):-
+rdf_load2(File, SerializationFormat, Graph, Options):-
   var(File),
   nonvar(Graph),
   !,
@@ -226,7 +232,7 @@ rdf_load2(File, SerializationFormat, Graph):-
     _ExistenceError,
     fail
   ),
-  rdf_load2(File, SerializationFormat, Graph),
+  rdf_load2(File, SerializationFormat, Graph, Options),
   % Only load one file, i.e. use one serialization.
   !.
 

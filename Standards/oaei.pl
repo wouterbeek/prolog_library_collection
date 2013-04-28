@@ -155,7 +155,7 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
 
 oaei_file_to_alignments(File, Graph, Alignments):-
   file_name(File, _Directory, Graph, _Extension),
-  rdf_load2(File, 'RDF/XML', Graph),
+  rdf_load2(File, Graph),
   oaei_graph_to_alignments(Graph, Alignments).
 
 %% oaei_graph

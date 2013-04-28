@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!--
+  Copyright World Wide Web Consortium, (Massachusetts Institute of
+  Technology, Institut National de Recherche en Informatique et en
+  Automatique, Keio University).
+ 
+  All Rights Reserved.
+ 
+  Please see the full Copyright clause at
+  <http://www.w3.org/Consortium/Legal/copyright-software.html>
+
+  Description: RDF Schema for test case manifest terms.
+
+  Author: Dave Beckett - http://purl.org/net/dajobe/
+
+  $Id: testSchema.rdf,v 1.4 2003/01/29 10:30:01 jgrant Exp $
+-->
+
+<!DOCTYPE rdf:RDF [
+     <!ENTITY rdfns 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+     <!ENTITY rdfsns 'http://www.w3.org/2000/01/rdf-schema#'>
+     <!ENTITY testns 'http://www.w3.org/2000/10/rdf-tests/rdfcore/testSchema#'>
+  ]>
+
+<rdf:RDF xmlns:rdf="&rdfns;"
+         xmlns:rdfs="&rdfsns;"
+         xmlns:test="&testns;">
+
+  <!-- classes -->
+
+  <rdfs:Class rdf:about="&testns;MiscellaneousTest">
+    <rdfs:label xml:lang="en">Miscellaneous Test</rdfs:label>
+    <rdfs:comment xml:lang="en">This manifest entry is used to describe test cases that do not fall into one of the categories. It may have several associated files, indicated in &lt;test:document&gt; elements.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;NT-Document">
+    <rdfs:label xml:lang="en">N-Triples Document</rdfs:label>
+    <rdfs:comment xml:lang="en"></rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;NegativeEntailmentTest">
+    <rdfs:label xml:lang="en">Negative Entailment Test</rdfs:label>
+    <rdfs:comment xml:lang="en">These tests consist of one or more premise documents, and a consequent document. An inference engine is considered to pass the test if it correctly holds that the expressions in the premise documents do not entail those in the the conclusion document.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;NegativeParserTest">
+    <rdfs:label xml:lang="en">Negative Parser Test</rdfs:label>
+    <rdfs:comment xml:lang="en">These tests consist of one input document. The document is not legal RDF/XML. A parser is considered to pass the test if it correctly holds the input document to be in error.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;PositiveEntailmentTest">
+    <rdfs:label xml:lang="en">Positive Entailment Test</rdfs:label>
+    <rdfs:comment xml:lang="en">These tests are specified by one or more premise documents (in RDF/XML or N-Triples) together with a single conclusion document. In addition, the rules used for determining entailment are specified by test:entailmentRules elements.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;PositiveParserTest">
+    <rdfs:label xml:lang="en">Positive Parser Test</rdfs:label>
+    <rdfs:comment xml:lang="en">These tests consist of one (or more) input documents in RDF/XML as revised. The expected result is defined using the N-Triples syntax.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+  <rdfs:Class rdf:about="&testns;RDF-XML-Document">
+    <rdfs:label xml:lang="en">RDF/XML Document</rdfs:label>
+    <rdfs:comment xml:lang="en"></rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdfs:Class>
+
+
+  <!-- properties -->
+
+  <rdf:Property rdf:about="&testns;approval">
+    <rdfs:label xml:lang="en">Approval</rdfs:label>
+    <rdfs:comment xml:lang="en">Contains a reference to the minutes of the WG meeting where the test case status was last changed.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;description">
+    <rdfs:label xml:lang="en">Description</rdfs:label>
+    <rdfs:comment xml:lang="en">A human-readable summary of the test case.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;discussion">
+    <rdfs:label xml:lang="en">Discussion</rdfs:label>
+    <rdfs:comment xml:lang="en">Contains a pointer to other discussion surrounding this test case or the associated issue.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;entailmentRules">
+    <rdfs:label xml:lang="en">Entailment Rules</rdfs:label>
+    <rdfs:comment xml:lang="en">The rules for determining entailment - presently RDF alone or RDF and RDFS; in addition, the requirement for datatype support machinery can be indicated.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;inputDocument">
+    <rdfs:label xml:lang="en">Input Document</rdfs:label>
+    <rdfs:comment xml:lang="en">A test case input document.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;issue">
+    <rdfs:label xml:lang="en">Issue</rdfs:label>
+    <rdfs:comment xml:lang="en">Contains a pointer to the associated issue, such as is listed on the RDF Core WG Tracking document.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;outputDocument">
+    <rdfs:label xml:lang="en">Output Document</rdfs:label>
+    <rdfs:comment xml:lang="en">A test case output document</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;status">
+    <rdfs:label xml:lang="en">Status</rdfs:label>
+    <rdfs:comment xml:lang="en">Indicates the status of the test within a process, such as the RDF Core WG process.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;warning">
+    <rdfs:label xml:lang="en">Warning</rdfs:label>
+    <rdfs:comment xml:lang="en">Indicates that while the test should pass, it may generate a warning.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;premiseDocument">
+    <rdfs:label xml:lang="en">Premise Document</rdfs:label>
+    <rdfs:comment xml:lang="en">A premise document of an entailment.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;conclusionDocument">
+    <rdfs:label xml:lang="en">Conclusion Document</rdfs:label>
+    <rdfs:comment xml:lang="en">A conclusion document of an entailment.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+  <rdf:Property rdf:about="&testns;document">
+    <rdfs:label xml:lang="en">Document</rdfs:label>
+    <rdfs:comment xml:lang="en">A test case document for a miscellaneous test.</rdfs:comment>
+    <rdfs:isDefinedBy rdf:resource="&testns;"/>
+  </rdf:Property>
+
+
+</rdf:RDF>
