@@ -11,6 +11,8 @@
                         % ?Object:oneof([bnode,literal,uri])
                         % +FromGraph:atom
                         % +ToGraph:atom
+    rdf_graph_equivalence/2, % +Graph1:atom
+                             % +Graph2:atom
     rdf_graph_source_file/2, % +Graph:atom
                              % -File:atom
     rdf_ground/1, % +Graph:atom
@@ -211,6 +213,38 @@ rdf_copy_triples(Subject, Premise, Object, FromGraph, ToGraph):-
   flag(number_of_copied_triples, Id, Id),
   (Id == 1 -> Word = triple ; Word = triples),
   format(user, '~w ~w were copied.\n', [Id, Word]).
+
+%% rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
+
+rdf_graph_equivalence(Graph1, Graph2):-
+  rdf_graph_equivalence0(Graph1, Graph2),
+  rdf_graph_equivalence0(Graph2, Graph1).
+rdf_graph_equivalence0(Graph1, Graph2):-
+  forall(
+    rdf(Subject1, Predicate, Object1, Graph1),
+    (
+      rdf(Subject2, Predicate, Object2, Graph2),
+      rdf_graph_equivalence_subject0(Graph1, Subject1, Graph2, Subject2),
+      rdf_graph_equivalence_object0(Graph1, Object1, Graph2, Object2)
+    )
+  ).
+rdf_graph_equivalence_subject0(_Graph1, Subject, _Graph2, Subject):-
+  rdf_is_resource(Subject),
+  !.
+rdf_graph_equivalence_subject0(Graph1, Subject1, Graph2, Subject2):-
+  bnode_translation0(Graph1, Subject1, Graph2, Subject2).
+rdf_graph_equivalence_object0(_Graph1, Object, _Graph2, Object):-
+  rdf_is_resource(Object),
+  !.
+rdf_graph_equivalence_object0(_Graph1, Object, _Graph2, Object):-
+  rdf_is_literal(Object),
+  !.
+rdf_graph_equivalence_object0(Graph1, Object1, Graph2, Object2):-
+  bnode_translation0(Graph1, Object1, Graph2, Object2).
+bnode_translation0(Graph1, Resource1, Graph2, Resource2):-
+  rdf_bnode(Graph1, Resource1),
+  rdf_bnode(Graph2, Resource2),
+  !.
 
 %% rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
 % Returns the name of the file from which the graph with the given name

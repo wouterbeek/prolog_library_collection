@@ -1,8 +1,7 @@
 :- module(
   oaei,
   [
-    oaei_check_alignment/3, % +ReferenceAlignments:list(list)
-                            % +RawGraph:atom
+    oaei_check_alignment/2, % +ReferenceAlignments:list(list)
                             % +RawAlignments:list(list)
     oaei_file_to_alignments/3, % +File:atom
                                % -Graph:atom
@@ -111,11 +110,11 @@ Mismatch types:
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(meta_ext)).
-:- use_module(generics(print_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
+:- use_module(math(statistics)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdf(rdf_serial)).
@@ -137,16 +136,11 @@ Mismatch types:
 
 %% oaei_check_alignment(
 %%   +ReferenceAlignments:list(list),
-%%   +RawGraph:atom,
 %%   +RawAlignments:list(list)
 %% ) is det.
 % Tests the quality of a raw alignment relative to the given reference.
 
-% Some alignment files seem to be malformed. We try to leave those out here.
-oaei_check_alignment(_ReferenceAlignments, RawGraph, _RawAlignments):-
-  \+ rdf_datatype(_Cell, align:measure, float, _Value, RawGraph),
-  !.
-oaei_check_alignment(ReferenceAlignments, RawGraph, RawAlignments):-
+oaei_check_alignment(ReferenceAlignments, RawAlignments):-
   t1_error(ReferenceAlignments, RawAlignments, FalsePositives),
   t2_error(ReferenceAlignments, RawAlignments, FalseNegatives),
   ord_intersect(ReferenceAlignments, RawAlignments, X),
@@ -154,8 +148,8 @@ oaei_check_alignment(ReferenceAlignments, RawGraph, RawAlignments):-
   % Write the results to user output.
   format(
     user_output,
-    '~w\t~w\t~w\t~w\n',
-    [RawGraph, Overlap, FalsePositives, FalseNegatives]
+    '\t~w\t~w\t~w\n',
+    [Overlap, FalsePositives, FalseNegatives]
   ),
   flush_output(user_output).
 

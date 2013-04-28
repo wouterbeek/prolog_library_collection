@@ -158,9 +158,17 @@ create_file(Directory, Name, Type, File):-
 % The splitting of a file into its directory, local name and type parts.
 
 file_name(File, Directory, Name, Extension):-
+  nonvar(File),
+  !,
   file_directory_name(File, Directory),
   file_base_name(File, LocalFile),
   file_name_extension(Name, Extension, LocalFile).
+file_name(File, Directory, Name, Extension):-
+  var(File),
+  maplist(nonvar, [Directory, Name, Extension]),
+  !,
+  file_name_extension(Name, Extension, LocalFile),
+  absolute_file_name(LocalFile, File, [relative_to(Directory)]).
 
 %% file_name_type(?Name:atom, ?Type:atom, +File:atom) is semidet.
 %% file_name_type(+Name:atom, +Type:atom, ?File:atom) is semidet.

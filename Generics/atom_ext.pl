@@ -44,15 +44,15 @@
     split_codes/3, % +Codes:list(integer)
                    % +Split:list(integer)
                    % -Results:list(list(integer))
-    strip/3, % +Strips:list(char)
-             % +Unstripped:atom
-             % -Stripped:atom
-    strip_begin/3, % +Strips:list(char)
-                   % +Unstripped:atom
-                   % -Stripped:atom
-    strip_end/3, % +Strips:list(char)
-                 % +Unstripped:atom
-                 % -Stripped:atom
+    strip/3, % +RemovableChars:oneof([char,list(char)])
+             % +Unstripped:oneof([atom,list(char)])
+             % -Stripped:oneof([atom,list(char)])
+    strip_begin/3, % +RemovableChars:oneof([char,list(char)])
+                   % +Unstripped:oneof([atom,list(char)])
+                   % -Stripped:oneof([atom,list(char)])
+    strip_end/3, % +RemovableChars:oneof([char,list(char)])
+                 % +Unstripped:oneof([atom,list(char)])
+                 % -Stripped:oneof([atom,list(char)])
     term_atom/2, % +Term:term
                  % -Atom:atom
     titlecase/2, % +Atom:atom
@@ -310,23 +310,55 @@ split_codes(Codes, Split, [Result | Results]):-
   split_codes(NewCodes, Split, Results).
 split_codes(Result, _Split, [Result]).
 
-strip(Strips, Unstripped, Stripped):-
-  atom_chars(Unstripped, UnstrippedChars1),
-  strip_begin(Strips, UnstrippedChars1, UnstrippedChars2),
-  strip_end(Strips, UnstrippedChars2, StrippedChars),
-  atom_chars(Stripped, StrippedChars).
+%% strip(+RemovableChar:char, +Unstripped:atom, -Stripped:atom) is det.
+% Strips the given atom's front and back for the given character.
 
-strip_begin(_Strips, [], []):-
-  !.
-strip_begin(Strips, [Strip | UnstrippedChars], StrippedChars):-
-  member(Strip, Strips),
+strip(RemovableChar, Unstripped, Stripped):-
+  atom(RemovableChar),
   !,
-  strip_begin(Strips, UnstrippedChars, StrippedChars).
+  strip([RemovableChar], Unstripped, Stripped).
+strip(RemovableChars, Unstripped, Stripped):-
+  is_list(RemovableChars),
+  atom(Unstripped),
+  !,
+  atom_chars(Unstripped, UnstrippedChars),
+  strip(RemovableChars, UnstrippedChars, StrippedChars),
+  atom_chars(Stripped, StrippedChars).
+strip(RemovableChars, UnstrippedChars1, StrippedChars):-
+  is_list(RemovableChars),
+  is_list(UnstrippedChars1),
+  !,
+  strip_begin(RemovableChars, UnstrippedChars1, UnstrippedChars2),
+  strip_end(RemovableChars, UnstrippedChars2, StrippedChars).
+
+strip_begin(RemovableChar, Unstripped, Stripped):-
+  atom(RemovableChar),
+  !,
+  strip_begin([RemovableChar], Unstripped, Stripped).
+strip_begin(RemovableChars, Unstripped, Stripped):-
+  is_list(RemovableChars),
+  atom(Unstripped),
+  !,
+  atom_chars(Unstripped, UnstrippedChars),
+  strip_begin(RemovableChars, UnstrippedChars, StrippedChars),
+  atom_chars(Stripped, StrippedChars).
+strip_begin(_RemovableChars, [], []):-
+  !.
+strip_begin(RemovableChars, [Strip | UnstrippedChars], StrippedChars):-
+  member(Strip, RemovableChars),
+  !,
+  strip_begin(RemovableChars, UnstrippedChars, StrippedChars).
 strip_begin(_Strips, Chars, Chars).
 
-strip_end(Strips, UnstrippedChars, StrippedChars):-
+strip_end(RemovableChars, Unstripped, Stripped):-
+  atom(Unstripped),
+  !,
+  atom_chars(Unstripped, UnstrippedChars),
+  strip_end(RemovableChars, UnstrippedChars, StrippedChars),
+  atom_chars(Stripped, StrippedChars).
+strip_end(RemovableChars, UnstrippedChars, StrippedChars):-
   once(reverse(UnstrippedChars, ReverseUnstrippedChars)),
-  strip_begin(Strips, ReverseUnstrippedChars, ReverseStrippedChars),
+  strip_begin(RemovableChars, ReverseUnstrippedChars, ReverseStrippedChars),
   once(reverse(StrippedChars, ReverseStrippedChars)).
 
 %% term_atom(+Term:term, -Atom:atom) is det.
