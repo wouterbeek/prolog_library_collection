@@ -13,6 +13,9 @@
     if_then_else/3, % :If
                     % :Then
                     % :Else
+    switch/3, % ?Map:pair
+              % +Maps:list(pair)
+              % +Default
 
 % DETERMINISM
     call_semidet/1, % :Goal
@@ -168,6 +171,13 @@ if_then_else(If, Then, Else):-
   ;
     call(Else)
   ).
+
+%% switch(?Map:pair, +Maps:list(pair), +Default) is det.
+
+switch(X-Y, Maps, _Default):-
+  memberchk(X-Y, Maps),
+  !.
+switch(_X-Default, _Maps, Default).
 
 
 
@@ -572,7 +582,7 @@ user_interaction(Action, Goal, Headers, Tuples):-
     member(Tuple, Tuples),
     length(Tuple, TuplesLength)
   ),
-  
+
   length(Tuples, NumberOfTuples),
   user_interaction(Action, Goal, 1, NumberOfTuples, Headers, Tuples).
 

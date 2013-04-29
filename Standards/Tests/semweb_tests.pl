@@ -24,6 +24,45 @@
 </rdf:RDF>
 ==
 
+---+ Test types
+
+---++ Miscellaneous Tests
+
+This manifest entry is used to describe test cases that do not fall into
+one of the earlier categories. It may have several associated files,
+indicated in <test:document> elements.
+
+---++ Negative Entailment Tests
+
+These tests are specified using a similar structure to the Positive
+Entailment Tests. The test is failed if the conclusion can be drawn from
+the premises using the rules of RDF- or RDFS-entailment. The test is
+considered to be passed when it can be conclusively demonstrated that the
+conclusion cannot be so drawn. In practice, the test may be considered to
+be passed when a thorough attempt to fail the test is unable to achieve
+failure.
+
+---++ Negative Parser Tests
+
+These tests consist of one input document. The document is not legal RDF/XML.
+A parser is considered to pass the test if it correctly holds the input
+document to be in error.
+
+---++ Positive Entailment Tests
+
+These tests are specified by one or more premise documents (in RDF/XML or
+N-Triples) together with a single conclusion document.
+
+---++ Positive Parser Tests
+
+These tests consist of one (or more) input documents in RDF/XML as is
+revised in [RDF-SYNTAX]. The expected result is defined using the N-Triples
+syntax (Section 3). A parser is considered to pass the test if it produces
+a graph equivalent to the graph described by the N-triples output document,
+according to the definition of graph equivalence given in [RDF-CONCEPTS].
+Where the input document(s) are legal RDF/XML, but a warning may be
+generated, this is indicated in the test manifest.
+
 ---+ Q&A
 
 Q: What is the intended use of rdf_db:rdf_global_object/2?
@@ -40,6 +79,7 @@ Q: How should option =|base_uri(+URI)|= for =|rdf_load/2|= be used?
 :- use_module(generics(atom_ext)).
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(owl(owl_entailment)).
 :- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_namespace)).
@@ -50,6 +90,9 @@ Q: How should option =|base_uri(+URI)|= for =|rdf_load/2|= be used?
 :- assert_novel(user:prolog_file_type(rdf, rdf)).
 
 :- rdf_register_namespace(test, 'http://www.w3.org/2000/10/rdf-tests/rdfcore/testSchema#').
+
+:- rdf_meta(run_test(r)).
+:- rdf_meta(run_test0(r,-)).
 
 
 
@@ -90,10 +133,24 @@ run_test(Test):-
   % Clean up the graphs that were used in the previous test.
   maplist(rdf_unload_graph, [conclusion,doc,in,out,premise]),
 
+  rdf(Test, rdf:type, Class),
+  rdf_global_id(_Namespace:LocalName, Class),
+  uri_to_subdirectory_file_fragment(
+    Test,
+    TestDirectory,
+    _TestFileName,
+    TestFragment
+  ),
+  format(
+    user_output,
+    '<<<~w - ~w - ~w>>>\n',
+    [LocalName, TestDirectory, TestFragment]
+  ),
+
   % If available, print the description to the screen.
   (
     rdf_literal(Test, test:description, Description1, _Graph),
-    strip_begin(['\t',' '], Description1, Description2)
+    strip([' ','\n','\t'], Description1, Description2)
   ->
     format(user_output, 'Test description: ~w\n', [Description2])
   ;
@@ -101,34 +158,34 @@ run_test(Test):-
   ),
 
   % Run the actual test.
-  run_test0(Test).
+  run_test0(Test, Status),
 
-run_test0(Test):-
-  rdf_literal(Test, test:status, Status, _Graph),
-  memberchk(Status, ['NOT_APPROVED', 'OBSOLETE', 'WITHDRAWN']),
-  !,
-  format(user_output, '<<<~w ~w>>>', [Status, Test]).
+  % Write the status to the terminal.
+  switch(Status-Color, ['FAIL'-red, 'PASS'-green], black),
+  ansi_format([bold, fg(Color)], 'STATUS: ~w\n\n', [Status]).
+
+run_test0(Test, Status):-
+  once(rdf_literal(Test, test:status, Status, _Graph)),
+  memberchk(Status, ['NOT_APPROVED','OBSOLETE','OBSOLETED','WITHDRAWN']),
+  !.
 % A miscellaneous test with a single document.
 % These tests are required to throw an exception upon attemption to
 % load the 'RDF graph'.
-run_test0(Test):-
+run_test0(Test, 'PASS'):-
   (
     owl_entailment:rdfs_individual_of(Test, test:'MiscellaneousTest')
   ;
     owl_entailment:rdfs_individual_of(Test, test:'NegativeParserTest')
   ),
-  !,
-gtrace,
-  
+
   % Load the document.
   (
     rdf(Test, test:document, URI)
   ;
     rdf(Test, test:inputDocument, URI)
   ),
-  !,
   uri_to_file(URI, File),
-  
+
   % Throw an exception.
   catch(
     \+ (
@@ -138,8 +195,8 @@ gtrace,
     _Exception,
     true
   ),
-  format(user_output, '<<<PASSED>>>\n\n\n', []).
-run_test0(Test):-
+  !.
+run_test0(Test, 'SKIPPED'):-
   owl_entailment:rdfs_individual_of(Test, test:'NegativeEntailmentTest'),
   !,
   true.
@@ -151,7 +208,7 @@ run_test0(Test):-
   rdf_load2(Premise_File, premise),
 */
 % A test with an input and an output document.
-run_test0(Test):-
+run_test0(Test, 'SKIPPED'):-
   owl_entailment:rdfs_individual_of(Test, test:'PositiveEntailmentTest'),
   !,
   true.
@@ -164,7 +221,7 @@ run_test0(Test):-
 
   % Run materialization.
   materialize(premise),
-  
+
   % The conclusion graph.
   % This is loaded after materialization (which cannot be restricted to
   % a graph).
@@ -172,15 +229,13 @@ run_test0(Test):-
   uri_to_file(Conclusion_URI, Conclusion_File),
   %%%%rdf_load2(Conclusion_File, out, [base_uri(Conclusion_URI)]),
   rdf_load2(Conclusion_File, conclusion),
-  
+
   % The materialized premise graph must be equivalent to the conclusion graph.
   rdf_graph_equivalence(premise, conclusion).
 */
-run_test0(Test):-
+run_test0(Test, 'PASS'):-
   owl_entailment:rdfs_individual_of(Test, test:'PositiveParserTest'),
-  !,
-gtrace,
-  
+
   % The input graph.
   rdf(Test, test:inputDocument, Input_URI),
   uri_to_file(Input_URI, Input_File),
@@ -195,9 +250,8 @@ gtrace,
 
   % The graphs must be equivalent.
   rdf_graph_equivalence(in, out),
-  format(user_output, '<<<PASSED>>>\n\n\n', []).
-run_test0(Test):-
-  format(user_output, '<<<FAILED ~w>>>\n\n\n', [Test]).
+  !.
+run_test0(_Test, 'FAIL').
 
 %% uri_to_file(+URI:uri, -File:atom) is det.
 % Returns the atomic name of the locally stored file that the given URI
@@ -205,13 +259,7 @@ run_test0(Test):-
 % This assumes that the test files are stored locally.
 
 uri_to_file(URI, File):-
-  uri_components(
-    URI,
-    uri_components(http, 'www.w3.org', URI_Path, _Search, _Fragment)
-  ),
-  split_atom_exclusive(URI_Path, '/', List),
-  nth_minus_0(0, List, FileName),
-  nth_minus_0(1, List, Directory),
+  uri_to_subdirectory_file_fragment(URI, Directory, FileName, _Fragment),
   absolute_file_name(
     tests(Directory),
     SubDirectory,
@@ -222,4 +270,20 @@ uri_to_file(URI, File):-
     File,
     [access(read), relative_to(SubDirectory)]
   ).
+
+%% uri_to_subdirectory_file_fragment(
+%%   +URI:uri,
+%%   -Directory:atom,
+%%   -FileName:atom,
+%%   -Fragment:atom
+%% ) is det.
+
+uri_to_subdirectory_file_fragment(URI, Directory, FileName, Fragment):-
+  uri_components(
+    URI,
+    uri_components(http, 'www.w3.org', URI_Path, _Search, Fragment)
+  ),
+  split_atom_exclusive(URI_Path, '/', List),
+  nth_minus_0(0, List, FileName),
+  nth_minus_0(1, List, Directory).
 
