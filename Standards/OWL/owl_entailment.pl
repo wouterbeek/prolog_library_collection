@@ -1,6 +1,7 @@
 :- module(
   owl_entailment,
   [
+    inconsistent/1, % +Graph:atom
     materialize/0,
     materialize/1, % +Graph:atom
     rdfm/3
@@ -35,6 +36,10 @@ This entailment module does RDFS entailment.
 
 
 
+inconsistent(Graph):-
+  rdf_graph(Graph),
+  fail.
+
 materialize:-
   materialize0(Triples),
   forall(
@@ -50,16 +55,15 @@ materialize(Graph):-
     rdf_assert(S, P, O, Graph)
   ).
 
-materialize0(Triples2):-
-  findall(
+materialize0(Triples):-
+  setoff(
     [S, P, O],
     rdfm(S, P, O),
-    Triples1
-  ),
-  length(Triples1, Length1),
-  sort(Triples1, Triples2),
-  length(Triples2, Length2),
-  if_then(Length1 == Length2, gtrace).
+    Triples
+  ).
+  %length(Triples1, Length),
+  %sort(Triples1, Triples2),
+  %length(Triples2, Length),
 
 % @tbd should move to compiler
 rdfm(literal(L), _, _):-
@@ -90,7 +94,7 @@ rdfm(S, P, C):-
   % Also use classes that result from domain/range restrictions.
   individual_of(S, C).
 % SUBCLASS-OF
-% Use a superproperty of =|rdfs:subClassOf|= for finding 
+% Use a superproperty of =|rdfs:subClassOf|= for finding
 rdfm(S, P, O):-
   rdf_reachable(rdfs:subClassOf, rdfs:subPropertyOf, P),
   !,

@@ -186,12 +186,9 @@ run_test0(Test, 'PASS'):-
   ),
   uri_to_file(URI, File),
 
-  % Throw an exception.
+  % Throw an exception or fail, please.
   catch(
-    \+ (
-      rdf_load2(File, doc),
-      fail
-    ),
+    \+ (rdf_load2(File, doc)),
     _Exception,
     true
   ),
@@ -208,31 +205,35 @@ run_test0(Test, 'SKIPPED'):-
   rdf_load2(Premise_File, premise),
 */
 % A test with an input and an output document.
-run_test0(Test, 'SKIPPED'):-
+run_test0(Test, 'PASS'):-
   owl_entailment:rdfs_individual_of(Test, test:'PositiveEntailmentTest'),
-  !,
-  true.
-/*
+gtrace,
+  
   % The premise graph.
   rdf(Test, test:premiseDocument, Premise_URI),
   uri_to_file(Premise_URI, Premise_File),
-  %%%%rdf_load2(Premise_File, in, [base_uri(Premise_URI)]),
-  rdf_load2(Premise_File, premise),
-
+  rdf_load2(Premise_File, premise, [base_uri(Premise_URI)]),
+  
   % Run materialization.
   materialize(premise),
-
+  
   % The conclusion graph.
   % This is loaded after materialization (which cannot be restricted to
   % a graph).
   rdf(Test, test:conclusionDocument, Conclusion_URI),
-  uri_to_file(Conclusion_URI, Conclusion_File),
-  %%%%rdf_load2(Conclusion_File, out, [base_uri(Conclusion_URI)]),
-  rdf_load2(Conclusion_File, conclusion),
-
-  % The materialized premise graph must be equivalent to the conclusion graph.
-  rdf_graph_equivalence(premise, conclusion).
-*/
+  (
+    rdf_is_bnode(Conclusion_URI)
+  ->
+    % The premise graph must be inconsistent.
+    inconsistent(premise)
+  ;
+    uri_to_file(Conclusion_URI, Conclusion_File),
+    rdf_load2(Conclusion_File, conclusion, [base_uri(Conclusion_URI)]),
+    % The materialized premise graph must be equivalent to the
+    % conclusion graph.
+    rdf_graph_equivalence(premise, conclusion)
+  ),
+  !.
 run_test0(Test, 'PASS'):-
   owl_entailment:rdfs_individual_of(Test, test:'PositiveParserTest'),
 
