@@ -16,9 +16,12 @@
                         % -Count:integer
     count_properties/2, % +Graph:atom
                         % -Count:integer
+    count_subjects/3, % +PO_Pairs:list(pair)
+                      % +Graphs:oneof([atom,list(atom)])
+                      % -Count:integer
     count_subjects/4 % +Predicate:uri
                      % +Object:resource
-                     % +Graph:atom
+                     % +Graph:oneof([atom,list(atom)])
                      % -Count:integer
   ]
 ).
@@ -28,7 +31,7 @@
 Statistics for RDF data.
 
 @author Wouter Beek
-@version 2013/01, 2013/03
+@version 2013/01, 2013/03-2013/04
 */
 
 :- use_module(generics(meta_ext)).
@@ -88,7 +91,36 @@ count_properties(Graph, Count):-
   ),
   length(Properties, Count).
 
+count_subjects(PO_Pairs, Gs, Count):-
+  PO_Pairs = [P1-O1 | Other_PO_Pairs],
+  setoff(
+    X,
+    (
+      member(G1, Gs),
+      rdf(X, P1, O1, G1),
+      forall(
+        member(P-O, Other_PO_Pairs),
+        (
+          member(G, Gs),
+          rdf(X, P, O, G)
+        )
+      )
+    ),
+    Xs
+  ),
+  length(Xs, Count).
+
 count_subjects(Predicate, Object, Graph, Count):-
+  atom(Graph),
+  rdf_graph(Graph),
+  !,
+  count_subjects0(Predicate, Object, Graph, Count).
+count_subjects(Predicate, Object, Graphs, Count):-
+  is_list(Graphs),
+  maplist(rdf_graph, Graphs),
+  mapsum(count_subjects0(Predicate, Object), Graphs, Count).
+
+count_subjects0(Predicate, Object, Graph, Count):-
   setoff(
     Subject,
     rdf(Subject, Predicate, Object, Graph),
