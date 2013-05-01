@@ -358,4 +358,3 @@ rdfs_subclass_of(Class, owl:'Class'):-
 
 rdfs_subproperty_of(SubProperty, Property):-
   rdf_reachable(SubProperty, rdfs:subPropertyOf, Property).
-

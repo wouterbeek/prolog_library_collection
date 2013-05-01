@@ -13,6 +13,8 @@ Database extensions.
 @version 2013/04
 */
 
+:- meta_predicate(assert_novel(:)).
+
 
 
 assert_novel(Term):-
