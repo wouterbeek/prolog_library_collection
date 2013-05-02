@@ -1,6 +1,9 @@
 :- module(
   oaei,
   [
+    oaei_alignment/3, % ?Graph:atom
+                      % ?From:uri
+                      % ?To:uri
     oaei_check_alignment/2, % +ReferenceAlignments:list(list)
                             % +RawAlignments:list(list)
     oaei_file_to_alignments/3, % +File:atom
@@ -134,6 +137,13 @@ Mismatch types:
 
 
 
+%% oaei_alignment(?Graph:atom, ?From:uri, ?To:uri) is nondet.
+
+oaei_alignment(Graph, From, To):-
+  oaei_graph(Graph),
+  rdf(BNode, align:entity1, From, Graph),
+  rdf(BNode, align:entity2, To, Graph).
+
 %% oaei_check_alignment(
 %%   +ReferenceAlignments:list(list),
 %%   +RawAlignments:list(list)
@@ -173,11 +183,7 @@ oaei_graph_to_alignments(Graph, Alignments):-
   % Avoid double occurrences in an alignment graph (you never know!).
   setoff(
     [From, To],
-    (
-      rdf(BNode, align:entity1, From, Graph),
-      rdf(BNode, align:entity2, To, Graph),
-      rdf_datatype(BNode, align:measure, float, _Measure, Graph)
-    ),
+    oaei_alignment(Graph, From, To),
     Alignments
   ).
 

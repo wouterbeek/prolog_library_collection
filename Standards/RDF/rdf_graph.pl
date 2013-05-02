@@ -3,19 +3,20 @@
   [
     rdf_bnode/2, % ?Graph:graph
                  % ?BNode:bnode
-    rdf_clear/1, % +Graph:graph
-    rdf_copy_graph/2, % +FromGraph:atom
-                      % +ToGraph:atom
-    rdf_copy_triples/5, % ?Subject:oneof([bnode,uri])
-                        % ?Predicate:uri
-                        % ?Object:oneof([bnode,literal,uri])
-                        % +FromGraph:atom
-                        % +ToGraph:atom
     rdf_graph_equivalence/2, % +Graph1:atom
                              % +Graph2:atom
+    rdf_graph_merge/2, % +Graphs:list(atom)
+                       % +MergedGraph:atom
     rdf_graph_source_file/2, % +Graph:atom
                              % -File:atom
+    rdf_graph_triples/2, % ?Graph:atom
+                         % ?Triples:list
     rdf_ground/1, % +Graph:atom
+    rdf_is_graph_instance_of/3, % +GraphInstance:atom
+                                % +Graph:atom
+                                % -BNodeMap:list(list)
+    rdf_is_graph_proper_instance_of/2, % +GraphInstance:atom
+                                       % +Graph:atom
     rdf_name/2, % ?Graph:atom
                 % +Name:oneof([literal,uri])
     rdf_object/2, % ?Graph:graph
@@ -111,21 +112,6 @@ are pairwise disjoint.
 
 ---+ TODO
 
----++ RDF graph instance
-
-Suppose that M is a mapping from a set of blank nodes to some set of
-literals, blank nodes and URI references; then any graph obtained from
-a graph G by replacing some or all of the blank nodes N in G by M(N)
-is an instance of G. Note that any graph is an instance of itself,
-an instance of an instance of G is an instance of G, and if H is
-an instance of G then every triple in H is an instance of some triple in G.
-
----++ RDF graph proper instance
-
-A proper instance of a graph is an instance in which a blank node
-has been replaced by a name, or two blank nodes in the graph have
-been mapped into the same node in the instance.
-
 ---++ RDF graph equivalence
 
 Any instance of a graph in which a blank node is mapped to a new blank
@@ -179,40 +165,18 @@ rdf_bnode(Graph, BNode):-
   ),
   rdf_is_bnode(BNode).
 
-rdf_clear(Graph):-
-  rdf_retractall(_S, _P, _O, Graph).
+%% rdf_bnode_replace(+SharedBNodes:list, +Triple, -NewTriple) is det.
+% Replaces shared bnodes in triples.
 
-rdf_copy_graph(FromGraph, ToGraph):-
-  rdf_copy_triples(_Subject, _Predicate, _Object, FromGraph, ToGraph).
+rdf_bnode_replace(SharedBNodes, rdf(S, P, O, G), rdf(NewS, P, NewO)):-
+  maplist(rdf_bnode_replace(SharedBNodes, G), [S,O], [NewS, NewO]).
 
-%% rdf_copy_triples(
-%%   ?Subject:uri,
-%%   ?Premise:uri,
-%%   ?Object:uri,
-%%   +FromGraph:atom,
-%%   +ToGraph:atom
-%% ) is det.
-% Copies RDF statements that adhere to the
-% subject/predicate/object-restrictions between the given RDF graphs.
-%
-% @param Subject A resource.
-% @param Predictae A resource.
-% @param Object A resource.
-% @param FromGraph The atomic name of a graph.
-% @param ToGraph The atomic name of a graph.
-
-rdf_copy_triples(Subject, Premise, Object, FromGraph, ToGraph):-
-  flag(number_of_copied_triples, _OldId, 0),
-  forall(
-    rdf(Subject, Premise, Object, FromGraph),
-    (
-      rdf_assert(Subject, Premise, Object, ToGraph),
-      flag(number_of_copied_triples, Id, Id + 1)
-    )
-  ),
-  flag(number_of_copied_triples, Id, Id),
-  (Id == 1 -> Word = triple ; Word = triples),
-  format(user, '~w ~w were copied.\n', [Id, Word]).
+rdf_bnode_replace(SharedBNodes, G, R, NewR):-
+  rdf_is_bnode(R),
+  memberchk(_/G/R, SharedBNodes),
+  !,
+  rdf_bnode(NewR).
+rdf_gnode_replace(_SharedBNodes, _G, R, R).
 
 %% rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
 
@@ -246,6 +210,35 @@ bnode_translation0(Graph1, Resource1, Graph2, Resource2):-
   rdf_bnode(Graph2, Resource2),
   !.
 
+%% rdf_graph_merge(+Graphs:list(atom), +MergedGraph:atom) is det.
+% When merging RDF graphs we have to make sure that their blank nodes are
+% standardized apart.
+
+rdf_graph_merge(Gs, MG):-
+  findall(
+    G1/G2/SharedBNode,
+    (
+      member(G1, G2, Gs),
+      % Use the natural order of atomic names.
+      % The idea is that we only replace shared blank nodes in
+      % the latter graph.
+      G1 @< G2,
+      rdf_bnode(G1, SharedBNode),
+      rdf_bnode(G2, SharedBNode)
+    ),
+    SharedBNodes
+  ),
+  forall(
+    (
+      member(G, Gs),
+      rdf(S, P, O, G)
+    ),
+    (
+      rdf_bnode_replace(SharedBNodes, rdf(S, P, O, G), rdf(NewS, P, NewO)),
+      rdf_assert(NewS, P, NewO, MG)
+    )
+  ).
+
 %% rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
 % Returns the name of the file from which the graph with the given name
 % was loaded.
@@ -257,24 +250,125 @@ rdf_graph_source_file(Graph, File):-
     uri_components(file, _Authority, File, _Search, _Fragments)
   ).
 
-%% rdf_ground(+Graph:graph) is semidet.
-% Succeeds if the given graph is ground, i.e., contains no blank node.
-
-rdf_ground(Graph):-
-  catch(rdf_graph(Graph), _Exception, fail),
+% Instantiations (+,+)-semidet and (-,+)-nondet.
+rdf_graph_triples(G, Triples):-
+  is_list(Triples),
   !,
+  rdf_graph(G),
   forall(
-    rdf(S, P, O, Graph),
-    rdf_ground(S, P, O)
+    member(rdf(S, P, O, G), Triples),
+    rdf(S, P, O, G)
+  ),
+  \+ (rdf(S, P, O, G), \+ member(rdf(S, P, O, G), Triples)).
+% Instantiation (+,-)-det.
+rdf_graph_triples(G, Triples):-
+  rdf_graph(G),
+  !,
+  findall(
+    rdf(S, P, O, G),
+    rdf(S, P, O, G),
+    Triples
   ).
 
-%% rdf_ground(+S:subject, +P:predicate, +O:object) is semidet.
+%% rdf_ground(+Graph:graph) is semidet.
+% Succeeds if the given graph is ground, i.e., contains no blank node.
+%% rdf_ground(+Triple) is semidet.
 % Succeeds if the given triple is ground, i.e., contains no blank node.
+% The predicate cannot be a blank node by definition.
 
-rdf_ground(S, _P, O):-
+rdf_ground(G):-
+  catch(rdf_graph(G), _Exception, fail),
+  !,
+  forall(
+    rdf(S, P, O, G),
+    rdf_ground(rdf(S, P, O))
+  ).
+rdf_ground(rdf(S, _P, O)):-
   \+ rdf_is_bnode(S),
-  % The predicate cannot be a blank node by definition.
   \+ rdf_is_bnode(O).
+
+%% rdf_is_graph_instance_of(
+%%   +GraphInstance:atom,
+%%   +Graph:atom,
+%%   -BNodeMap:list(list)
+%% ) is nondet.
+% ---+ RDF graph instance
+% Suppose that M is a mapping from a set of blank nodes to some set of
+% literals, blank nodes and URI references; then any graph obtained from
+% a graph G by replacing some or all of the blank nodes N in G by M(N)
+% is an instance of G. Note that any graph is an instance of itself,
+% an instance of an instance of G is an instance of G, and if H is
+% an instance of G then every triple in H is an instance of some triple in G.
+
+rdf_is_graph_instance_of(GI, G, BNodeMap):-
+  maplist(rdf_graph, [GI,G]),
+  rdf_graph_triples(G, Triples),
+  rdf_is_graph_instance_of0(GI, Triples, [], BNodeMap),
+  \+ (rdf(SI, P, OI, GI),
+    \+ ((
+      member(rdf(S, P, O, G), Triples),
+      rdf_is_instance_of(rdf(SI, P, OI, GI), rdf(S, P, O, G), BNodeMap)
+    ))
+  ).
+rdf_is_graph_instance_of0(_GI, [], BNodeMap, BNodeMap).
+rdf_is_graph_instance_of0(GI, [rdf(S, P, O, G) | Triples], BNodeMap, Solution):-
+  (rdf_is_instance_of(GI, SI, G, S, BNodeMap) ; NewMap1 = [[S,SI]]), !,
+  (rdf_is_instance_of(GI, OI, G, O, BNodeMap) ; NewMap2 = [[O,OI]]), !,
+  rdf(SI, P, OI, GI),
+  append([NewMap1, NewMap2, BNodeMap], NewBNodeMap),
+  rdf_is_graph_instance_of0(GI, Triples, NewBNodeMap, Solution).
+
+%% rdf_is_graph_proper_instance_of(
+%%   +GraphProperInstance:atom,
+%%   +Graph:atom
+%% ) is semidet.
+% ---+ RDF graph proper instance
+% A proper instance of a graph is an instance in which a blank node
+% has been replaced by a name, or two blank nodes in the graph have
+% been mapped into the same node in the instance.
+
+rdf_is_graph_proper_instance_of(GI, G):-
+  rdf_is_graph_instance_of(GI, G, BNodeMap),
+  (
+    member([_BNode,Name], BNodeMap),
+    rdf_name(GI, Name)
+  ;
+    member([BNode1,BNode], BNodeMap),
+    member([BNode2,BNode], BNodeMap),
+    BNode1 \== BNode2
+  ),
+  !.
+
+%% rdf_is_instance_of(+TripleInstance, +Triple) is semidet.
+
+rdf_is_instance_of(rdf(SI, P, OI, GI), rdf(S, P, O, G), BNodeMap):-
+  rdf_is_instance_of(GI, SI, G, S, BNodeMap),
+  rdf_is_instance_of(GI, OI, G, O, BNodeMap).
+
+%% rdf_is_instance_of(
+%%   +GraphInstance:atom,
+%%   +ResourceInstance:oneof([bnode,literal,uri]),
+%%   +Graph:atom,
+%%   +Resource:oneof([bnode,literal,uri]),
+%%   +BNodeMap:list(list)
+%% ) is semidet.
+
+rdf_is_instance_of(GI, R, _G, R, _BNodeMap):-
+  rdf_name(GI, R),
+  !.
+rdf_is_instance_of(_GI, RI, _G, R, BNodeMap):-
+  memberchk([R,RI], BNodeMap).
+
+%% test_rdf_is_graph_instance_of(-Maps:list(list)) is det.
+% Tests predicate rdf_is_graph_instance_of/2.
+% Should return two lists of mappings from blank nodes to uriRefs.
+
+test_rdf_is_graph_instance_of(Maps):-
+  maplist(rdf_unload_graph, [g,gi]),
+  rdf_bnode(X1), rdf_bnode(X2), rdf_bnode(X3), rdf_bnode(X4),
+  rdf_assert(X1, rdf:p, X2, g), rdf_assert(X3, rdf:p, X4, g),
+  rdf_assert(rdf:a, rdf:p, rdf:b, gi), rdf_assert(rdf:c, rdf:p, rdf:d, gi),
+  findall(Map, rdf_is_graph_instance_of(gi, g, Map), Maps).
 
 %% rdf_name(?G:atom, ?Name:oneof([literal,uri])) is nondet.
 %% rdf_name(-Name) is nondet.

@@ -9,7 +9,7 @@
 % LITERAL ASSERTIONS
     rdf_assert_datatype/5, % +Subject:uri
                            % +Predicate:uri
-                           % +DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                           % +DatatypeName:atom
                            % +Value
                            % +Graph:atom
     rdf_assert_literal/4, % +Subject:uri
@@ -28,19 +28,19 @@
                      % +Graph:atom
     rdf_overwrite_datatype/5, % +Subject:uri
                               % +Predicate:uri
-                              % +DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                              % +DatatypeName:atom
                               % +Value
                               % +Graph:atom
     rdf_update_datatype/5, % +Subject:uri
                            % +Predicate:uri
-                           % +DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                           % +DatatypeName:atom
                            % +Value
                            % +Graph:atom
 
 % LITERAL RETRACTIONS
     rdf_retractall_datatype/5, % ?Subject:uri
                                % ?Predicate:uri
-                               % ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                               % ?DatatypeName:atom
                                % ?Value
                                % ?Graph:atom
     rdf_retractall_literal/4, % ?Subject:uri
@@ -59,6 +59,17 @@
 
 Simple asserion and retraction predicates for RDF, customized for specific
 datatypes and literals.
+
+The supported datatypes:
+    * boolean
+    * ateTime
+    * double
+    * float
+    * gDay
+    * gMonth
+    * gYear
+    * image
+    * integer
 
 @author Wouter Beek
 @version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04

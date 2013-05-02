@@ -59,8 +59,8 @@
                     % +PermutationLength:integer
                     % -NumberOfPermutations:integer
     plus_float/3, % ?X:number
-            % ?Y:number
-            % ?Z:number
+                  % ?Y:number
+                  % ?Z:number
     pred/2, % +X:integer
             % -Y:integer
     random_betwixt/2, % +UpperLimit:number
