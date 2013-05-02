@@ -94,7 +94,7 @@ bijective(F):-
 
 %% closure(
 %%   +S:ord_set(pair),
-%%   +Antecedent:goal,
+%%   :Antecedent,
 %%   +Consequence:compound,
 %%   -NewS:ord_set(pair)
 %% ) is det.
