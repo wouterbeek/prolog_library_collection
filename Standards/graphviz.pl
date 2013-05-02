@@ -248,7 +248,7 @@ color_scheme_default_color(_, black).
 
 convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   absolute_file_name(
-    personal(to),
+    personal(export),
     ToFile,
     [access(write), file_type(svg)]
   ),

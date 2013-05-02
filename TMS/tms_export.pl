@@ -28,13 +28,13 @@ Exports TMS belief states,
 % Exports the TMS using GraphViz.
 
 export_tms:-
-  absolute_file_name(data(export), File, [access(write), file_type(dot)]),
+  absolute_file_name(data(export), GV_File, [access(write), file_type(dot)]),
     open(GV_File, write, Stream, []),
   format(Stream, 'digraph circuit {\n', []),
   forall(
     rdfs_individual_of(Node, doyle:'Node'),
     (
-      rdf_datatype(Node, doyle:has_id, integer, NodeID, doyle),
+      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
       format(
         Stream,
         '  n~w [color="green", fontsize="11", label="~w", shape="ellipse", style="solid"];\n',
@@ -48,7 +48,7 @@ export_tms:-
       rdf_datatype(
         Justification,
         doyle:has_id,
-        integer,
+        int,
         JustificationID,
         doyle
       ),
@@ -63,11 +63,11 @@ export_tms:-
   forall(
     rdf(Justification, doyle:has_in, Node, doyle),
     (
-      rdf_datatype(Node, doyle:has_id, integer, NodeID, doyle),
+      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
       rdf_datatype(
         Justification,
         doyle:has_id,
-        integer,
+        int,
         JustificationID, 
         doyle
       ),
@@ -81,11 +81,11 @@ export_tms:-
   forall(
     rdf(Justification, doyle:has_out, Node, doyle),
     (
-      rdf_datatype(Node, doyle:has_id, integer, NodeID, doyle),
+      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
       rdf_datatype(
         Justification,
         doyle:has_id,
-        integer,
+        int,
         JustificationID, 
         doyle
       ),
@@ -99,11 +99,11 @@ export_tms:-
   forall(
     rdf(Justification, doyle:has_consequence, Node, doyle),
     (
-      rdf_datatype(Node, doyle:has_id, integer, NodeID, doyle),
+      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
       rdf_datatype(
         Justification,
         doyle:has_id,
-        integer,
+        int,
         JustificationID,
         doyle
       ),
@@ -121,8 +121,8 @@ export_tms:-
   format(Stream, '  overlap=false\n', []),
   format(Stream, '}\n', []),
   close(Stream),
-  file_type_alternative(GV_File, svg, SVG_File),
-  convert_graphviz(GV_File, dot, svg, SVG_File).
+  %file_type_alternative(GV_File, svg, SVG_File),
+  convert_graphviz(GV_File, dot, svg, _SVG_File).
 
 /*
 truth_maintenance(Justification, Node):-
