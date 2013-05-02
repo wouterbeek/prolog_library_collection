@@ -9,6 +9,8 @@
                        % +MergedGraph:atom
     rdf_graph_source_file/2, % +Graph:atom
                              % -File:atom
+    rdf_graph_triples/2, % ?Graph:atom
+                         % ?Triples:list
     rdf_ground/1, % +Graph:atom
     rdf_is_graph_instance_of/3, % +GraphInstance:atom
                                 % +Graph:atom
