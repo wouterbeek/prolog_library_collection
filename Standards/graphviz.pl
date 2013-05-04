@@ -86,7 +86,17 @@ representing a name-value pair.
 :- use_module(svg(svg)).
 :- use_module(standards(x11)).
 
-:- assert_novel(user:prolog_file_type(dot, graphviz)).
+:- assert_novel(user:prolog_file_type(dot,  graphviz       )).
+:- assert_novel(user:prolog_file_type(jpeg, jpeg           )).
+:- assert_novel(user:prolog_file_type(jpeg, graphviz_output)).
+:- assert_novel(user:prolog_file_type(jpg,  jpeg           )).
+:- assert_novel(user:prolog_file_type(jpg,  graphviz_output)).
+:- assert_novel(user:prolog_file_type(pdf,  pdf            )).
+:- assert_novel(user:prolog_file_type(pdf,  graphviz_output)).
+:- assert_novel(user:prolog_file_type(svg,  graphviz_output)).
+:- assert_novel(user:prolog_file_type(svg,  svg            )).
+:- assert_novel(user:prolog_file_type(xdot, graphviz_output)).
+:- assert_novel(user:prolog_file_type(xdot, xdot           )).
 
 
 
@@ -236,7 +246,7 @@ color_scheme_default_color(_, black).
 %%   +FromFile,
 %%   +Method:oneof([dot,sfdp]),
 %%   +ToFileType:oneof([jpeg,pdf,svg,xdot]),
-%%   ?ToFile
+%%   ?ToFile:atom
 %% ) is det.
 % Converts a GraphViz DOT file to an image file, using a specific
 % visualization method.
@@ -247,14 +257,31 @@ color_scheme_default_color(_, black).
 % @param ToFile
 
 convert_graphviz(FromFile, Method, ToFileType, ToFile):-
-  absolute_file_name(
-    personal(export),
-    ToFile,
-    [access(write), file_type(svg)]
-  ),
+  % Type checks.
+  access_file(FromFile, read),
   type_check(oneof([dot,sfdp]), Method),
-  type_check(oneof([jpeg,pdf,svg,xdot]), ToFileType),
-  user:prolog_file_type(ToExtension, ToFileType),
+  prolog_file_type(ToExtension, ToFileType),
+  prolog_file_type(ToExtension, graphviz_output),
+  
+  % The output file is either given or created.
+  (
+    var(ToFile)
+  ->
+    absolute_file_name(
+      personal(export),
+      ToFile,
+      [access(write), file_type(ToFileType)]
+    )
+  ;
+    is_absolute_file_name(ToFile),
+    % The given output file must match a certain file extension.
+    file_name_extension(_, ToFile, ToExtension)
+  ),
+  % Now that we have the output file we can prevent the
+  % file type / file extension translation predicates from bakctracking.
+  !,
+  
+  % Run the GraphViz conversion command in the shell.
   format(atom(OutputType), '-T~w', [ToExtension]),
   process_create(
     path(Method),

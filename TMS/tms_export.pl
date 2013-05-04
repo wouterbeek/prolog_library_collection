@@ -13,12 +13,11 @@ Exports TMS belief states,
 @version 2013/05
 */
 
-:- use_module(generics(file_ext)).
+:- use_module(generics(os_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_read)).
 :- use_module(standards(graphviz)).
-:- use_module(tms(doyle)).
 
 :- rdf_register_ns(doyle, 'http://www.wouterbeek.com/doyle.owl#').
 
@@ -29,7 +28,16 @@ Exports TMS belief states,
 
 export_tms:-
   absolute_file_name(data(export), GV_File, [access(write), file_type(dot)]),
-    open(GV_File, write, Stream, []),
+  open(GV_File, write, Stream, []),
+  tms_to_graphviz(Stream),
+  close(Stream),
+  open_dot(GV_File),
+  convert_graphviz(GV_File, dot, svg, _SVG_File),
+  convert_graphviz(GV_File, dot, pdf, PDF_File),
+  open_pdf(PDF_File).
+
+
+tms_to_graphviz(Stream):-
   format(Stream, 'digraph circuit {\n', []),
   forall(
     rdfs_individual_of(Node, doyle:'Node'),
@@ -68,7 +76,7 @@ export_tms:-
         Justification,
         doyle:has_id,
         int,
-        JustificationID, 
+        JustificationID,
         doyle
       ),
       format(
@@ -86,7 +94,7 @@ export_tms:-
         Justification,
         doyle:has_id,
         int,
-        JustificationID, 
+        JustificationID,
         doyle
       ),
       format(
@@ -119,10 +127,7 @@ export_tms:-
   format(Stream, '  fontsize="11"\n', []),
   format(Stream, '  label="Doyle"\n', []),
   format(Stream, '  overlap=false\n', []),
-  format(Stream, '}\n', []),
-  close(Stream),
-  %file_type_alternative(GV_File, svg, SVG_File),
-  convert_graphviz(GV_File, dot, svg, _SVG_File).
+  format(Stream, '}\n', []).
 
 /*
 truth_maintenance(Justification, Node):-

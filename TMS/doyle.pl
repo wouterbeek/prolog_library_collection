@@ -9,7 +9,7 @@
     add_node/2, % +Statement:atom
                 % -Node:node
     reset_tms/0,
-    test/0
+    test_tms/0
   ]
 ).
 
@@ -31,11 +31,6 @@ extra-psychological rationality.
 
 ---+ Definitions
 
----++ Affected consequences
-
-For a node, those consequences of the node which contain the node in
-their set of supporting nodes.
-
 ---++ Ancestors
 
 For a node, the transitive closure of its *|supporting nodes|*.
@@ -43,36 +38,11 @@ For a node, the transitive closure of its *|supporting nodes|*.
 The ancestors are related to the nodes that may affect the support status
 of the node in any way.
 
----++ Antecedents
-
-For an _in_ node, its *|supporting nodes|*.
-
-For an _out_ node, nothing.
-
----++ Assumption
-
-A *justification* with non-empty _out_-list.
-
-A *node* with a *|non-monotonic justification|* as *|well-founded support|*,
-i.e. the nodes that explain support status _in_.
-
----++ Believed consequences
-
-Of a node, its _in_ consequences that have it in their *antecedents*.
-
----++ Believed repercussions
-
-For a node, the transitive closure of its believed consequences.
-
 ---++ Conditional-proof (CP) justification
 
 A justification that _subtracts_ the dependencies of some nodes
 (the *hypotheses* of the hypothetical argument) from the dependencies
 of others (the *conclusion* of the hypothetical argument).
-
----++ Consequences
-
-Of a node, the nodes for which it occurs in one of their justifications.
 
 ---++ Foundations
 
@@ -82,26 +52,6 @@ The foundations of a node are the nodes involved in the
 *|well-founded argument|* for belief in the node.
 
 The foundation is realted to the notion of *|well-foundedness|*.
-
----++ In
-
-A belief _b_ is _in_ iff a justification _|<In,Out>|_ of _b_ has
-_|in(b')|_ for all _b'_ in _In_ and _|out(b')|_ for all _b'_ in _Out_.
-
-A node with a *valid* justification is _in_.
-
----++ Justification
-
-A representation of a *justification*.
-
-There are two types of justification:
-    1. Support-list (SL)
-    2. Conditional-proof (CP)
-
-The *|external form|* of a justification is only significant for the problem
-solver.
-
-The *|internal form|* of a justification is only significant for the TMS.
 
 ---++ Justification-set
 
@@ -215,6 +165,7 @@ add_justification(Ins, Outs, Message, Consequence, Justification):-
   flag(justifications, ID, ID + 1),
   format(atom(Name), 'j~w', [ID]),
   rdf_global_id(doyle:Name, Justification),
+  % @tbd For now we only support SL-justifications.
   rdfs_assert_individual(Justification, doyle:'SL-Justification', doyle),
   rdf_assert_datatype(Justification, doyle:has_id, int, ID, doyle),
 
@@ -263,6 +214,7 @@ add_justification(Ins, Outs, Message, Consequence, Justification):-
     ;
       % If invalid, add to the supporting-nodes either an _out_node
       % from the _in_list, or an _in_ node from the _out_list.
+      % @tbd Are we supposed to retract over this?
       (
         member(In, Ins),
         is_out_node(In),
@@ -271,7 +223,8 @@ add_justification(Ins, Outs, Message, Consequence, Justification):-
         member(Out, Outs),
         is_in_node(Out),
         add_supporting_node(Consequence, Out)
-      )
+      ),
+      !
     )
   ).
 
@@ -333,7 +286,7 @@ evaluating_justification_set(Node):-
   % them for well-founded validity or invalidity (to be defined shortly)
   % until either a valid one is found or the justification-set is exhausted.
   % @tbd The TMS tries justifications in chronological order, oldest first.
-  justification(Node, Justification),
+  member_of_justification_set(Node, Justification),
   (
     is_valid(Justification)
   ->
@@ -424,6 +377,10 @@ add_supporting_node(Node, SupportingNode):-
 %% ) is det.
 % For a node, those consequences of the node which contain the node in
 % their set of supporting nodes.
+%
+% *|Affected consequences|*
+% For a node, those consequences of the node which contain the node in
+% their set of supporting nodes.
 
 affected_consequences(Node, AffectedConsequences):-
   setoff(
@@ -437,6 +394,10 @@ affected_consequences(Node, AffectedConsequences):-
 
 %% antecedents(+Node:node, -Antecedents:ordset(node)) is det.
 % An antecedent is a supporting node of a believed node.
+%
+% *|Antecedents|*
+% For an _in_ node, its _|supporting nodes|_.
+% For an _out_ node, the empty set.
 
 antecedents(Node, Antecedents):-
   is_in_node(Node),
@@ -448,6 +409,12 @@ antecedents(Node, []):-
 %% assumption(?Assumption:node) is nondet.
 % An assumption node is a node with a non-empty outlist for its
 % supporting justification.
+%
+% *Assumption*
+% A node with a _|non-monotonic justification|_ as _|well-founded support|_,
+% i.e. the nodes that explain support status _in_.
+%
+% Alternatively: A _|justification|_ with non-empty _out_-list.
 
 assumption(Assumption):-
   rdfs_individual_of(Assumption, doyle:'Node'),
@@ -458,7 +425,10 @@ assumption(Assumption):-
 %%   +Node:node,
 %%   -BelievedConsequences:ordset(node)
 %% ) is det.
-% Returns a believed consequence of the given node.
+% Returns the believed consequences of the given node.
+%
+% *|Believed consequences|*
+% Of a node, its _in_ consequences that have it in their *antecedents*.
 
 believed_consequences(Node, BelievedConsequences):-
   setoff(
@@ -472,6 +442,9 @@ believed_consequences(Node, BelievedConsequences):-
 
 %% believed_repercussions(+Node:node, -Repercussions:ordset(node)) is det.
 % Returns the believed repercussions of the given node.
+%
+% *|Believed repercussions|*
+% For a node, the transitive closure of its believed consequences.
 
 believed_repercussions(Node, Repercussions):-
   transitive_closure(believed_consequences, Node, Repercussions).
@@ -479,6 +452,9 @@ believed_repercussions(Node, Repercussions):-
 %% consequences(+Node:node, -Consequences:ordset(node)) is det.
 % A consequence of a node is a node which mentions the prior node
 % in one of its justifications.
+%
+% *Consequences*
+% Of a node, the nodes for which it occurs in one of their justifications.
 
 consequences(Node, Consequences):-
   setoff(
@@ -491,12 +467,6 @@ consequences(Node, Consequences):-
 
 cp_justification(CP_Justification):-
   rdfs_individual_of(CP_Justification, doyle:'CP-Justification').
-
-%% cp_justification(?Node:node, ?CP_Justification:justification) is nondet.
-
-cp_justification(Node, CP_Justification):-
-  rdf(Node, doyle:has_justitification, CP_Justification, doyle),
-  cp_justification(CP_Justification).
 
 %% foundations(+Node:node, -Foundations:ordset(node)) is det.
 % Returns the foundations of the given node.
@@ -533,6 +503,10 @@ is_cp_justification(Justification):-
   cp_justification(Justification).
 
 %% is_in_node(+Node:node) is semidet.
+% A belief _b_ is _in_ iff a justification _|<In,Out>|_ of _b_ has
+% _|in(b')|_ for all _b'_ in _In_ and _|out(b')|_ for all _b'_ in _Out_.
+%
+% A node with a *valid* justification is _in_.
 
 is_in_node(Node):-
   has_support_status(Node, in).
@@ -569,18 +543,48 @@ is_valid(Justification):-
   ).
 
 %% justification(?Justification:justification) is nondet.
+% *Justification*
+% There are two types of justification:
+%     1. Support-list (SL)
+%     2. Conditional-proof (CP)
+%
+% The *|external form|* of a justification is only significant for the problem
+% solver.
+%
+% The *|internal form|* of a justification is only significant for the TMS.
 
 justification(CP_Justification):-
   cp_justification(CP_Justification).
 justification(SL_Justification):-
   sl_justification(SL_Justification).
 
-%% justification(?Node:node, ?Justification:justification) is nondet.
+%% member_of_cp_justification_set(
+%%   ?CP_Justification:justification,
+%%   ?Node:node
+%% ) is nondet.
 
-justification(Node, Justification):-
-  sl_justification(Node, Justification).
-justification(Node, Justification):-
-  cp_justification(Node, Justification).
+member_of_cp_justification_set(Node, CP_Justification):-
+  rdf(Node, doyle:has_justitification, CP_Justification, doyle),
+  cp_justification(CP_Justification).
+
+%% member_of_justification_set(
+%%   ?Justification:justification,
+%%   ?Node:node
+%% ) is nondet.
+
+member_of_justification_set(Node, Justification):-
+  member_of_sl_justification_set(Node, Justification).
+member_of_justification_set(Node, Justification):-
+  member_of_cp_justification_set(Node, Justification).
+
+%% member_of_sl_justification_set(
+%%   ?SL_Justification:justification,
+%%   ?Node:node
+%% ) is nondet.
+
+member_of_sl_justification_set(SL_Justification, Node):-
+  rdf(Node, doyle:has_justification, SL_Justification, doyle),
+  rdfs_individual_of(SL_Justification, doyle:'SL-Justification').
 
 %% node(?Node:node) is nondet.
 
@@ -679,12 +683,6 @@ set_supporting_nodes(invalid, Node, Justification):-
 sl_justification(SL_Justification):-
   rdfs_individual_of(SL_Justification, doyle:'SL-Justification').
 
-%% sl_justification(?Node:node, ?SL_Justification:justification) is nondet.
-
-sl_justification(Node, SL_Justification):-
-  rdf(Node, doyle:has_justification, SL_Justification, doyle),
-  rdfs_individual_of(SL_Justification, doyle:'SL-Justification').
-
 %% support_status(?Node:node, ?SupportStatus:oneof([in,nil,out])) is nondet.
 
 support_status(Node, SupportStatus):-
@@ -706,7 +704,7 @@ supporting_nodes(Node, SupportingNodes):-
   ).
 
 % Tests the TMS for the example that Doyle gave.
-test:-
+test_tms:-
   init_tms,
   reset_tms,
   add_node('A', A),

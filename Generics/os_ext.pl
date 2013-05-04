@@ -63,9 +63,10 @@
 This module contains the OS extensions for SWI-Prolog.
 
 @author Wouter Beek
-@version 2011/11-2012/06, 2012/12-2013/02
+@version 2011/11-2012/06, 2012/12-2013/02, 2013/05
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(exception_handling)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(print_ext)).
@@ -75,6 +76,10 @@ This module contains the OS extensions for SWI-Prolog.
 :- multifile(prolog:message/3).
 
 :- meta_predicate os_dependent_call(:).
+
+:- assert_novel(user:prolog_file_type(dot,  dot)).
+:- assert_novel(user:prolog_file_type(xdot, dot)).
+:- assert_novel(user:prolog_file_type(pdf,  pdf)).
 
 
 
@@ -296,29 +301,39 @@ set_os_flag.
 
 % OPENING FILES %
 
-%% open_dot(File) is det.
+%% open_dot(+BaseOrFile:atom) is det.
 % Opens the given DOT file.
 %
-% @param File The atomic name of a DOT file.
+% @param BaseOrFile The atomic name of a DOT file.
 
-open_dot(File):-
+open_dot(BaseOrFile):-
+  base_or_file_to_file(BaseOrFile, dot, File),
   os_dependent_call(open_dot(File)).
 
-open_dot_unix(Base):-
-  file_name_extension(Base, gv, File),
-  process_create(path(dotty), [File, '&'], []).
-
-%% open_pdf(+File:atom) is det.
-% Opens the given PDF file.
+%% open_dot_unix(+File:atom) is det.
+% Opens the DOT file with the given name in UNIX.
 %
-% @param File The atomic name of a PDF file.
+% This requires the installation of package =dotty=.
 
-open_pdf(File):-
+:- if(is_unix).
+open_dot_unix(File):-
+  process_create(path(dotty), [File], [detached(true)]).
+:- endif.
+
+%% open_pdf(+BaseOrFile:atom) is det.
+% Opens the given PDF file.
+
+open_pdf(BaseOrFile):-
+  base_or_file_to_file(BaseOrFile, pdf, File),
   os_dependent_call(open_pdf(File)).
+
+%% open_pdf_unix(+File:atom) is det.
+%
+% This requires the installation of package =xpdf=.
 
 :- if(is_unix).
 open_pdf_unix(File):-
-  process_create(path(xpdf), [File, '&'], [process(PID)]),
+  process_create(path(xpdf), [File], [detached(true), process(PID)]),
   process_wait(PID, exit(ShellStatus)),
   catch(
     shell_status(ShellStatus),

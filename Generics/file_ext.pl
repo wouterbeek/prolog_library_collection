@@ -3,6 +3,9 @@
   [
     atom_to_file/2, % +Atom:atom
                     % +File:atom
+    base_or_file_to_file/3, % +BaseOrFile:atom
+                            % ?FileType:atom
+                            % -File:atom
     compiled_file/2, % +PL_File:atom
                      % -QLF_File:atom
     concat_path/3, % +Dir:atom
@@ -65,6 +68,37 @@ atom_to_file(Atom, File):-
   open(File, write, Stream, [close_on_abort(true), type(text)]),
   format(Stream, '~w', [Atom]),
   close(Stream).
+
+%% base_or_file_to_file(
+%%   +BaseOrFile:atom,
+%%   +FileType:atom,
+%%   -File:atom
+%% ) is semidet.
+% Predicates that take file arguments can use this to allow either
+% absolute file names or file base names to be accepted.
+% This is usefull when there are multiple file extensions associated with
+% the same file type and the calling predicate only looks at the file type
+% level.
+%
+% @param BaseOrFile Either a full file name or the base name of a file.
+%        In the former case we check for a supported file extension.
+%        In the latter case we add a supported file extension.
+% @param FileType The atomic name of a registered file type.
+% @param File An absolute file name.
+
+base_or_file_to_file(BaseOrFile, FileType, File):-
+  (
+    file_name_type(_Base, FileType, BaseOrFile)
+  ->
+    File = BaseOrFile
+  ;
+    file_name_type(BaseOrFile, FileType, File)
+  ),
+  access_file(File, read),
+  % Since there may be multiple file type / file extension translations,
+  % the above may backtrack. Therefore we discard these choicepoints here.
+  % I.e., we only use the first file we find.
+  !.
 
 %% compiled_file(PL_File, QLF_File) is det.
 % Returns the compiled version of the given Prolog file.
