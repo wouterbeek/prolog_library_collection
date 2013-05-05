@@ -1,7 +1,7 @@
 :- module(
   tms_export,
   [
-    export_tms/0
+    export_tms/1 % +TMS:atom
   ]
 ).
 
@@ -18,190 +18,124 @@ Exports TMS belief states,
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_read)).
 :- use_module(standards(graphviz)).
+:- use_module(tms(tms)).
 
 :- rdf_register_ns(doyle, 'http://www.wouterbeek.com/doyle.owl#').
 
 
 
-%% export_tms is det.
+%% export_tms(+TMS:atom) is det.
 % Exports the TMS using GraphViz.
 
-export_tms:-
-  absolute_file_name(data(export), GV_File, [access(write), file_type(dot)]),
+export_tms(TMS):-
+  absolute_file_name(
+    personal(export),
+    GV_File,
+    [access(write), file_type(dot)]
+  ),
   open(GV_File, write, Stream, []),
-  tms_to_graphviz(Stream),
+  tms_to_graphviz(TMS, Stream),
   close(Stream),
-  open_dot(GV_File),
-  convert_graphviz(GV_File, dot, svg, _SVG_File),
+  %open_dot(GV_File),
+  %convert_graphviz(GV_File, dot, svg, _SVG_File),
   convert_graphviz(GV_File, dot, pdf, PDF_File),
   open_pdf(PDF_File).
 
-
-tms_to_graphviz(Stream):-
+tms_to_graphviz(TMS, Stream):-
+  % Begin of graph.
   format(Stream, 'digraph circuit {\n', []),
+  
+  % Nodes
   forall(
-    rdfs_individual_of(Node, doyle:'Node'),
+    node(TMS, Node),
     (
-      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
-      format(
-        Stream,
-        '  n~w [color="green", fontsize="11", label="~w", shape="ellipse", style="solid"];\n',
-        [NodeID, NodeID]
-      )
-    )
-  ),
-  forall(
-    rdfs_individual_of(Justification, doyle:'Justification'),
-    (
-      rdf_datatype(
-        Justification,
-        doyle:has_id,
-        int,
-        JustificationID,
-        doyle
+      rdf_datatype(Node, tms:has_id, int, NodeID, TMS),
+      rdfs_label(Node, Label),
+      % The color indicates the support status of the node.
+      (
+        is_in_node(TMS, Node)
+      ->
+        Color = green
+      ;
+        is_out_node(TMS, Node)
+      ->
+        Color = red
+      ;
+        Color = black
       ),
       format(
         Stream,
-        '  j~w [color="blue", fontsize="11", label="~w", shape="box", style="solid"];\n',
-        [JustificationID, JustificationID]
+        '  n~w [color="~w", fontsize="11", label="~w", shape="ellipse", style="solid"];\n',
+        [NodeID, Color, Label]
       )
     )
   ),
+  
+  % Justifications
+  forall(
+    justification(TMS, Justification),
+    (
+      rdf_datatype(Justification, tms:has_id, int, JustificationID, TMS),
+      rdfs_label(Justification, Label),
+      format(
+        Stream,
+        '  j~w [color="blue", fontsize="11", label="~w", shape="diamond", style="solid"];\n',
+        [JustificationID, Label]
+      )
+    )
+  ),
+  
   format(Stream, '\n', []),
+  
+  % _In_list
   forall(
-    rdf(Justification, doyle:has_in, Node, doyle),
+    rdf(Justification, tms:has_in, Node, TMS),
     (
-      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
-      rdf_datatype(
-        Justification,
-        doyle:has_id,
-        int,
-        JustificationID,
-        doyle
-      ),
+      rdf_datatype(Node, tms:has_id, int, NodeID, TMS),
+      rdf_datatype(Justification, tms:has_id, int, JustificationID, TMS),
       format(
         Stream,
-        '  n~w -> j~w [color="black"];\n',
+        '  n~w -> j~w [color="black", style="solid"];\n',
         [NodeID, JustificationID]
       )
     )
   ),
+  
+  % _Out_list
   forall(
-    rdf(Justification, doyle:has_out, Node, doyle),
+    rdf(Justification, tms:has_out, Node, TMS),
     (
-      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
-      rdf_datatype(
-        Justification,
-        doyle:has_id,
-        int,
-        JustificationID,
-        doyle
-      ),
+      rdf_datatype(Node, tms:has_id, int, NodeID, TMS),
+      rdf_datatype(Justification, tms:has_id, int, JustificationID, TMS),
       format(
         Stream,
-        '  n~w -> j~w [color="red"];\n',
+        '  n~w -> j~w [color="black", style="dashed"];\n',
         [NodeID, JustificationID]
       )
     )
   ),
+  
+  % Consequences
   forall(
-    rdf(Justification, doyle:has_consequence, Node, doyle),
+    rdf(Justification, tms:has_consequence, Node, TMS),
     (
-      rdf_datatype(Node, doyle:has_id, int, NodeID, doyle),
-      rdf_datatype(
-        Justification,
-        doyle:has_id,
-        int,
-        JustificationID,
-        doyle
-      ),
+      rdf_datatype(Node, tms:has_id, int, NodeID, TMS),
+      rdf_datatype(Justification, tms:has_id, int, JustificationID, TMS),
       format(
         Stream,
-        '  j~w -> n~w [color="black"];\n',
+        '  j~w -> n~w [color="black", style="solid"];\n',
         [JustificationID, NodeID]
       )
     )
   ),
+  
+  % Graph properties.
   format(Stream, '\n', []),
   format(Stream, '  charset="UTF-8"\n', []),
   format(Stream, '  fontsize="11"\n', []),
-  format(Stream, '  label="Doyle"\n', []),
+  format(Stream, '  label="~w"\n', [TMS]),
   format(Stream, '  overlap=false\n', []),
+  
+  % End of graph.
   format(Stream, '}\n', []).
-
-/*
-truth_maintenance(Justification, Node):-
-  in_node(Node),
-  !.
-truth_maintenance(Justification, Node):-
-  out_node(Node),
-  \+(is_valid(Justification)),
-  !.
-truth_maintenance(Justification, Node):-
-  affected_consequences(Node, AffectedConsequences),
-  truth_maintenance2(Justification, Node, AffectedConsequences).
-
-truth_maintenance2(_Justification, _Node, []):-
-  !.
-truth_maintenance2(_Justification, Node, AffectedConsequences):-
-  repercussions(Node, Repercussions),
-  ord_add_element(Repercussions, Node, Repercussions_),
-
-write_doyle(_Request):-
-  findall(
-    tr([
-      td(Node),
-      td(SupportStatus),
-      td(SupportingJustifications),
-      td(SupportingNodes),
-      td(Antecedents),
-      td(Foundations),
-      %td(Ancestors),
-      td(Consequences),
-      td(AffectedConsequences),
-      td(BelievedConsequences),
-      td(Repercussions),
-      td(BelievedRepercussions)
-    ]),
-    (
-      node(Node),
-      support_status(Node, SupportStatus),
-      supporting_justifications(Node, SupportingJustifications),
-      supporting_nodes(Node, SupportingNodes),
-      antecedents(Node, Antecedents),
-      foundations(Node, Foundations),
-      %ancestors(Node, Ancestors),
-      consequences(Node, Consequences),
-      affected_consequences(Node, AffectedConsequences),
-      believed_consequences(Node, BelievedConsequences),
-      repercussions(Node, Repercussions),
-      believed_repercussions(Node, BelievedRepercussions)
-    ),
-    Rows
-  ),
-  reply_html_page(
-    title('Doyle'),
-    [
-      a(href('index.html'), 'Index'),
-      table(
-        [align(center), border(1), width('80%')],
-        [tr([
-          th('Node'),
-          th('SupportStatus'),
-          th('SupportingJustifications'),
-          th('SupportingNodes'),
-          th('Antecedents'),
-          th('Foundations'),
-          %th('Ancestors'),
-          th('Consequences'),
-          th('AffectedConsequences'),
-          th('BelievedConsequences'),
-          th('Repercussions'),
-          th('BelievedRepercussions')
-          | Rows
-        ])]
-      )
-    ]
-  ).
-*/
 

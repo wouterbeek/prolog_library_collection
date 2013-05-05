@@ -21,6 +21,11 @@
     call_semidet/1, % :Goal
     nonvar_det/1, % :Goal
 
+% GENERIC CALLS
+    generic/3, % +Context:atom
+               % :GenericPredicate:atom
+               % +Arguments:list
+
 % FINDALL RELATED PREDICATES
     setoff/3, % +Format:compound
               % :Goal
@@ -95,11 +100,11 @@ Extensions to the SWI-Prolog meta predicates.
 :- use_module(generics(list_ext)).
 :- use_module(generics(thread_ext)).
 
-:- meta_predicate(call_semidet(0)).
-:- meta_predicate(nonvar_det(0)).
 :- meta_predicate(call_nth(0,-)).
+:- meta_predicate(call_semidet(0)).
 :- meta_predicate(complete(2,+,-)).
 :- meta_predicate(count(0,-)).
+:- meta_predicate(generic(+,:,+)).
 :- meta_predicate(if_else(0,0)).
 :- meta_predicate(if_then(0,0)).
 :- meta_predicate(if_then_else(0,0,0)).
@@ -110,6 +115,7 @@ Extensions to the SWI-Prolog meta predicates.
 :- meta_predicate(multi(0,+)).
 :- meta_predicate(multi(2,+,+,-)).
 :- meta_predicate(multi(2,+,+,-,-)).
+:- meta_predicate(nonvar_det(0)).
 :- meta_predicate(predmerge_with_duplicates(2,+,+,-)).
 :- meta_predicate(predmerge_with_duplicates(2,+,+,+,+,+,-)).
 :- meta_predicate(predsort_with_duplicates(3,+,-)).
@@ -214,6 +220,20 @@ nonvar_det(Mod:Goal):-
   !.
 nonvar_det(Goal):-
   call(Goal).
+
+
+
+% GENERIC CALLS %
+
+generic(Context, GenericPredicate, Arguments):-
+  % Make sure the calling module prefix is discarded.
+  strip_module(GenericPredicate, Module, PlainPredicate),
+  format(atom(SpecificPredicate), '~w_~w', [Context, PlainPredicate]),
+  length(Arguments, Arity),
+  if_then(
+    current_predicate(Module:SpecificPredicate/Arity),
+    apply(Module:SpecificPredicate, Arguments)
+  ).
 
 
 

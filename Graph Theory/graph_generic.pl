@@ -400,7 +400,7 @@ edges_to_vertices(Edges, Vertices):-
 edges1(Options, Edges):-
   setoff(Edge, edge(Options, Edge), Edges).
 
-%% generic(
+%% graph_generic(
 %%   +Options:list(nvpair),
 %%   +GenericPredicate:atom,
 %%   +OtherArguments:list
@@ -408,7 +408,7 @@ edges1(Options, Edges):-
 % Calls a specific predicate based on its generic names and the
 % =input_format= option.
 
-generic(Options, GenericPredicate, OtherArguments):-
+graph_generic(Options, GenericPredicate, OtherArguments):-
   (
     option(in(InputFormat), Options)
   ;
@@ -416,14 +416,7 @@ generic(Options, GenericPredicate, OtherArguments):-
     graph_format(Graph, InputFormat)
   ),
   !,
-  format(atom(SpecificPredicate), '~w_~w', [InputFormat, GenericPredicate]),
-  if_then(
-    current_predicate(graph_generic:SpecificPredicate/_Arity),
-    (
-      Call =.. [SpecificPredicate, Options | OtherArguments],
-      call(Call)
-    )
-  ).
+  generic(InputFormat, GenericPredicate, [Options | OtherArguments]).
 
 graph(Options, Vertices, Edges):-
   edges1(Options, Edges),
