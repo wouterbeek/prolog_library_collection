@@ -18,8 +18,14 @@
     rdf_register_namespace_color/3, % +Graph:graph
                                     % +Namespace:atom
                                     % +Color:atom
+    rdf_resource_naming/2, % +Resource:oneof([bnode,literal,uri])
+                           % -Name:atom
     rdf_schema/2, % +Graph:atom
                   % -Triples:list(rdf_triple)
+    rdf_triple_naming/4, % +Subject:oneof([bnode,uri])
+                         % +Predicate:uri
+                         % +Object:oneof([bnode,literal,uri])
+                         % -Name:atom
     rdf_vertex_coloring/3, % +Options:list(nvpair)
                            % +Vertex:vertex
                            % -Color:atom
@@ -194,6 +200,25 @@ rdf_register_class_color(Graph, Class, Color):-
 rdf_register_namespace_color(Graph, Namespace, Color):-
   assertz(namespace_color(Graph, Namespace, Color)).
 
+rdf_resource_naming(literal(type(Datatype, Value)), Name):-
+  rdf_global_id(DatatypeNamespace:DatatypeLocal, Datatype),
+  format(atom(Name), '"~w"^^~w:~w', [Value,DatatypeNamespace,DatatypeLocal]),
+  !.
+rdf_resource_naming(literal(lang(Language, Literal)), Name):-
+  format(atom(Name), '"~w"@~w', [Literal,Language]),
+  !.
+rdf_resource_naming(literal(Literal), Name):-
+  format(atom(Name), '"~w"', [Literal]),
+  !.
+rdf_resource_naming(BNode, Name):-
+  rdf_is_bnode(BNode),
+  !,
+  Name = BNode.
+rdf_resource_naming(URI, Name):-
+  rdf_global_id(Namespace:Local, URI),
+  !,
+  format(atom(Name), '~w:~w', [Namespace,Local]).
+
 rdf_schema(Graph, Triples):-
   setoff(
     Vertex,
@@ -215,6 +240,10 @@ rdf_schema(Graph, Triples):-
     ),
     Triples
   ).
+
+rdf_triple_naming(S, P, O, TripleName):-
+  maplist(rdf_resource_naming, [S,P,O], [S_Name,P_Name,O_Name]),
+  format(atom(TripleName), '<~w,~w,~w>', [S_Name,P_Name,O_Name]).
 
 %% rdf_vertex_color_by_namespace(
 %%   +Graph:atom,

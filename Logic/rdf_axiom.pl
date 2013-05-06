@@ -9,6 +9,8 @@
 
 /** <module> RDF AXIOMS
 
+An axiomatic approach towards RDF(S) materialization.
+
 @author Wouter Beek
 @version 2013/05
 */
@@ -39,11 +41,12 @@ materialize:-
     rdf_assert(S, P, O)
   ).
 
-% [RDFS-12] Individuals of =|rdfs:'Datatype'|= are subclasses of =|rdfs:'Literal'|=.
+% [RDFS-12] Individuals of =|rdfs:'Datatype'|= are subclasses of
+%           =|rdfs:'Literal'|=.
 rdfax(X, rdfs:subClassOf, rdfs:'Literal'):-
   rdfax0(X, rdf:type, rdfs:'Datatype').
 % [RDFS-11] Individuals of =|rdfs:'ContainerMembershipProperty'|= are
-% subproeprties of =|rdf:member|=.
+%           subproeprties of =|rdf:member|=.
 rdfax(X, rdfs:subPropertyOf, rdfs:member):-
   rdfax0(X, rdf:type, rdfs:'ContainerMembershipProperty').
 % [RDFS-10b] Transitivity of subclass relation.
@@ -56,12 +59,12 @@ rdfax(C1, rdfs:subClassOf, C3):-
 rdfax(C, rdfs:subClassOf, C):-
   rdfax0(C, rdf:type, rdfs:'Class').
 % [RDFS-9b] Individuals are closed under transitivity of the
-% subclass hierarchy.
+%           subclass hierarchy.
 rdfax(X, rdf:type, C2):-
   rdfax0(C1, rdfs:subClassOf, C2),
   rdfax0(X, rdf:type, C1).
 % [RDFS-9a] Resources that occur in the subclass hierarchy are
-% individuals of =|rdfs:'Class'|=.
+%           individuals of =|rdfs:'Class'|=.
 rdfax(C, rdf:type, rdfs:'Class'):-
   rdfax0(C1, rdfs:subClassOf, C2),
   (C = C1 ; C = C2).
@@ -73,7 +76,7 @@ rdfax(S, P2, O):-
   rdfax0(P1, rdfs:subPropertyOf, P2),
   rdfax0(S, P1, O).
 % [RDFS-7a] Resources that occur in the subproperty relation are
-% individuals of =|rdf:'Property'|=.
+%           individuals of =|rdf:'Property'|=.
 rdfax(P, rdf:type, rdf:'Property'):-
   rdfax0(P1, rdfs:subPropertyOf, P2),
   (P = P1 ; P = P2).
@@ -105,7 +108,7 @@ rdfax(X, rdf:type, rdfs:'Resource'):-
 rdfax(Y, rdf:type, rdfs:'Class'):-
   rdfax0(_, rdf:type, Y).
 % [RDF-1] Terms that occur in the predicate position are instances of
-% =|rdf:'Property'|=.
+%         =|rdf:'Property'|=.
 rdfax(X, rdf:type, rdf:'Property'):-
   rdfax0(_, X, _).
 % [RDF-2] XML literals are instances of =|rdf:'XMLLiteral'|=.

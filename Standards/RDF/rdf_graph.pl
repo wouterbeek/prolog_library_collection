@@ -168,15 +168,19 @@ rdf_bnode(Graph, BNode):-
 %% rdf_bnode_replace(+SharedBNodes:list, +Triple, -NewTriple) is det.
 % Replaces shared bnodes in triples.
 
-rdf_bnode_replace(SharedBNodes, rdf(S, P, O, G), rdf(NewS, P, NewO)):-
-  maplist(rdf_bnode_replace(SharedBNodes, G), [S,O], [NewS, NewO]).
+% In case there are not shared blank nodes we can skip
+% rdf_bnode_replace/4.
+rdf_bnode_replace([], rdf(S, P, O, _Graph), rdf(S, P, O)):-
+  !.
+rdf_bnode_replace(SharedBNodes, rdf(S, P, O, Graph), rdf(NewS, P, NewO)):-
+  maplist(rdf_bnode_replace(SharedBNodes, Graph), [S,O], [NewS, NewO]).
 
 rdf_bnode_replace(SharedBNodes, G, R, NewR):-
   rdf_is_bnode(R),
   memberchk(_/G/R, SharedBNodes),
   !,
   rdf_bnode(NewR).
-rdf_gnode_replace(_SharedBNodes, _G, R, R).
+rdf_bnode_replace(_SharedBNodes, _G, R, R).
 
 %% rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
 
@@ -214,28 +218,39 @@ bnode_translation0(Graph1, Resource1, Graph2, Resource2):-
 % When merging RDF graphs we have to make sure that their blank nodes are
 % standardized apart.
 
-rdf_graph_merge(Gs, MG):-
+rdf_graph_merge(Graphs, MergedGraph):-
+  % Type checking.
+  maplist(rdf_graph, Graphs),
+  atom(MergedGraph),
+
+  % Collect the shared blank nodes.
   findall(
-    G1/G2/SharedBNode,
+    Graph1/Graph2/SharedBNode,
     (
-      member(G1, G2, Gs),
+      member(Graph1, Graph2, Graphs),
       % Use the natural order of atomic names.
       % The idea is that we only replace shared blank nodes in
       % the latter graph.
-      G1 @< G2,
-      rdf_bnode(G1, SharedBNode),
-      rdf_bnode(G2, SharedBNode)
+      Graph1 @< Graph2,
+      rdf_bnode(Graph1, SharedBNode),
+      rdf_bnode(Graph2, SharedBNode)
     ),
     SharedBNodes
   ),
+
+  % Replace the blank nodes.
   forall(
     (
-      member(G, Gs),
-      rdf(S, P, O, G)
+      member(Graph, Graphs),
+      rdf(S, P, O, Graph)
     ),
     (
-      rdf_bnode_replace(SharedBNodes, rdf(S, P, O, G), rdf(NewS, P, NewO)),
-      rdf_assert(NewS, P, NewO, MG)
+      rdf_bnode_replace(
+        SharedBNodes,
+        rdf(S, P, O, Graph),
+        rdf(NewS, P, NewO)
+      ),
+      rdf_assert(NewS, P, NewO, MergedGraph)
     )
   ).
 

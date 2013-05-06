@@ -178,9 +178,9 @@ doyle_add_justification(TMS, Ins, Outs, Label, Consequence, Justification):-
   format(atom(Name), '~w_j~w', [TMS,ID]),
   rdf_global_id(doyle:Name, Justification),
   % @tbd For now we only support SL-justifications.
-  rdfs_assert_individual(Justification, doyle:'SL-Justification', TMS),
-  rdf_assert_datatype(Justification, tms:has_id, int, ID, TMS),
-  rdfs_assert_label(Justification, Label, TMS),
+  rdfs_assert_individual(Justification, doyle:'SL-Justification', TMS:1),
+  rdf_assert_datatype(Justification, tms:has_id, int, ID, TMS:1),
+  rdfs_assert_label(Justification, Label, TMS:1),
 
   % Add the new justification to the node's justification-set.
   add_justification(TMS, Consequence, Justification),
@@ -191,14 +191,14 @@ doyle_add_justification(TMS, Ins, Outs, Label, Consequence, Justification):-
     member(In, Ins),
     (
       add_consequence(TMS, In, Consequence),
-      rdf_assert(Justification, tms:has_in, In, TMS)
+      rdf_assert(Justification, tms:has_in, In, TMS:1)
     )
   ),
   forall(
     member(Out, Outs),
     (
       add_consequence(TMS, Out, Consequence),
-      rdf_assert(Justification, tms:has_out, Out, TMS)
+      rdf_assert(Justification, tms:has_out, Out, TMS:1)
     )
   ),
 
@@ -355,7 +355,7 @@ evaluating_justification_set(TMS, Node):-
 
 add_consequence(TMS, Node, Consequence):-
   maplist(nonvar, [TMS, Node, Consequence]),
-  rdf_assert(Node, doyle:has_consequence, Consequence, TMS).
+  rdf_assert(Node, doyle:has_consequence, Consequence, TMS:1).
 
 %% add_justification(
 %%   +TMS:atom,
@@ -369,7 +369,7 @@ add_justification(TMS, Node, Justification):-
   is_node(Node),
   is_justification(Justification),
   
-  rdf_assert(Justification, tms:has_consequence, Node, TMS).
+  rdf_assert(Justification, tms:has_consequence, Node, TMS:1).
 
 %% doyle_add_node(+TMS:atom, +Label:atom, -Node:node) is det.
 % Adds a node.
@@ -383,9 +383,9 @@ doyle_add_node(TMS, Label, Node):-
   flag(NodesFlag, ID, ID + 1),
   format(atom(Name), '~w_n~w', [TMS,ID]),
   rdf_global_id(doyle:Name, Node),
-  rdfs_assert_individual(Node, tms:'Node', TMS),
-  rdf_assert_datatype(Node, tms:has_id, int, ID, TMS),
-  rdfs_assert_label(Node, Label, TMS),
+  rdfs_assert_individual(Node, tms:'Node', TMS:1),
+  rdf_assert_datatype(Node, tms:has_id, int, ID, TMS:1),
+  rdfs_assert_label(Node, Label, TMS:1),
 
   % The initial support status.
   set_support_status(TMS, Node, out).
@@ -397,7 +397,7 @@ add_supporting_node(TMS, Node, SupportingNode):-
   rdf_graph(TMS),
   maplist(is_node, [Node,SupportingNode]),
   
-  rdf_assert(Node, doyle:has_supporting_node, SupportingNode, TMS).
+  rdf_assert(Node, doyle:has_supporting_node, SupportingNode, TMS:1).
 
 %% affected_consequences(
 %%   +Node:node,
@@ -520,8 +520,8 @@ has_support_status(Node, SupportStatus):-
 
 doyle_init(TMS):-
   atom(TMS),
-  rdfs_assert_subclass(doyle:'SL-Justification', tms:'Justification', TMS),
-  rdfs_assert_subclass(doyle:'CP-Justification', tms:'Justification', TMS).
+  rdfs_assert_subclass(doyle:'SL-Justification', tms:'Justification', TMS:1),
+  rdfs_assert_subclass(doyle:'CP-Justification', tms:'Justification', TMS:1).
 
 %% is_cp_justification(+X) is semidet.
 
@@ -630,10 +630,10 @@ repercussions(Node, Repercussions):-
 doyle_reset(TMS):-
   retractall(cp_consequence(TMS, _CP_Justification)),
   format(atom(JustificationsFlag), '~w_justifications', [TMS]),
-  flag(JustificationsFlag, _, 1),
+  flag(JustificationsFlag, _OldJustificationsFlag, 2),
   format(atom(NodesFlag), '~w_nodes', [TMS]),
-  flag(NodesFlag, _, 1),
-  rdf_retractall(_, _, _, TMS).
+  flag(NodesFlag, _OldNodesFlag, 2),
+  rdf_retractall(_S, _P, _O, TMS:_ID).
 
 %% set_support_status(
 %%   +TMS:atom,
@@ -659,7 +659,7 @@ set_support_status(TMS, Node, SupportStatus):-
     doyle:has_support_status,
     string,
     SupportStatus,
-    TMS
+    TMS:1
   ).
 
 %% set_supporting_justification(
@@ -679,7 +679,7 @@ set_supporting_justification(TMS, Node, SupportingJustification):-
     Node,
     doyle:supporting_justification,
     SupportingJustification,
-    TMS
+    TMS:1
   ).
 
 %% set_supporting_nodes(

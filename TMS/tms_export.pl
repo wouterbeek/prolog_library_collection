@@ -79,7 +79,7 @@ tms_to_graphviz(TMS, Stream):-
       rdfs_label(Justification, Label),
       format(
         Stream,
-        '  j~w [color="blue", fontsize="11", label="~w", shape="diamond", style="solid"];\n',
+        '  j~w [color="blue", fontsize="11", label="~w", shape="rectangle", style="solid"];\n',
         [JustificationID, Label]
       )
     )
