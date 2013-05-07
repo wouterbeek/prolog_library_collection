@@ -212,7 +212,7 @@ void_load_library(Stream, LocalName):-
   rdf_load(Stream, [format(Format), graph(temp_void)]),
   once(rdfs_individual_of(DatasetDescription, void:'DatasetDescription')),
   rdf_global_id(_Namespace:LocalName, DatasetDescription),
-  rdf_copy_graph(temp_void, LocalName),
+  rdf_graph_merge(temp_void, LocalName),
   rdf_unload_graph(temp_void),
   forall(
     rdfs_individual_of(Dataset, void:'Dataset'),

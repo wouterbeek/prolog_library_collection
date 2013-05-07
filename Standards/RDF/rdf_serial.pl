@@ -36,11 +36,12 @@ Supported serialization formats:
 * TURTLE
 
 @author Wouter Beek
-@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/04
+@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/05
 */
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_ntriples)).

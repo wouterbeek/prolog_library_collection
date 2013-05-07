@@ -133,10 +133,11 @@ graph. Non-lean graphs have internal redundancy and express the same content
 as their lean subgraphs.
 
 @author Wouter Beek
-@version 2012/01-2013/04
+@version 2012/01-2013/05
 */
 
 :- use_module(generics(file_ext)).
+:- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(graph_theory(graph_export)).
 :- use_module(library(semweb/rdf_db)).
@@ -148,8 +149,6 @@ as their lean subgraphs.
 :- use_module(standards(graphviz)).
 
 :- rdf_meta(rdf_bnode(?,r)).
-:- rdf_meta(rdf_copy_graph(+,+)).
-:- rdf_meta(rdf_copy_triples(r,r,r,+,+)).
 :- rdf_meta(rdf_name(?,r)).
 :- rdf_meta(rdf_object(?,r)).
 :- rdf_meta(rdf_predicate(?,r)).
@@ -222,7 +221,8 @@ rdf_graph_merge(Graphs, MergedGraph):-
   % Type checking.
   maplist(rdf_graph, Graphs),
   atom(MergedGraph),
-
+  !,
+  
   % Collect the shared blank nodes.
   findall(
     Graph1/Graph2/SharedBNode,
@@ -253,6 +253,10 @@ rdf_graph_merge(Graphs, MergedGraph):-
       rdf_assert(NewS, P, NewO, MergedGraph)
     )
   ).
+rdf_graph(Graph, MergedGraph):-
+  rdf_graph(Graph),
+  !,
+  rdf_graph([Graph], MergedGraph).
 
 %% rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
 % Returns the name of the file from which the graph with the given name
