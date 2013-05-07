@@ -1,7 +1,12 @@
 :- module(
   rdf_tms,
   [
-    materialize/1 % +Graphs:list(atom)
+    rdf_materialize/2, % +Graphs:oneof([atom,list(atom)])
+                       % -TMS:atom
+    rdf_materialize_tms_test/1, % +TMS:atom
+    rdf_tms/3 % ?S
+              % ?P
+              % ?O
   ]
 ).
 
@@ -24,13 +29,25 @@ Uses a the Doyle TMS to keep track of RDF(S) materialization.
 :- rdf_meta(rdf_axiom(r,r,r)).
 :- rdf_meta(rdf_node(r,r,r,+,?)).
 :- rdf_meta(rdf_rule(r,r,r,+,-,-,-)).
+:- rdf_meta(rdf_test_triple(r,r,r)).
+:- rdf_meta(rdf_tms(r,r,r)).
 
 
 
-materialize(Graphs):-
-  % Start a TMS.
-  TMS = rdf_tms,
-  MergedGraph = rdf_tms_tmp,
+%% rdf_materialize(+Graphs:list(atom), -TMS:atom) is det.
+% Performs materialization closure on the triples in the given graphs.
+%
+% @param Graphs A list of atomic names of RDF graphs.
+
+rdf_materialize(Graphs, TMS):-
+  % Type checking.
+  maplist(rdf_graph, Graphs),
+  !,
+
+  % Start a new TMS.
+  flag(materialization_graphs, TMS_ID, TMS_ID + 1),
+  format(atom(TMS), 'rdf_tms_~w', [TMS_ID]),
+  format(atom(MergedGraph), 'rdf_tms_~w_tmp', [TMS_ID]),
   register_tms(doyle, TMS),
   doyle_reset(TMS),
   doyle_init(TMS),
@@ -50,21 +67,34 @@ materialize(Graphs):-
       rdf_triple_naming(S, P, O, TripleName),
       doyle_add_node(TMS, TripleName, Node),
       doyle_add_justification(TMS, [], [], 'Assumption', Node, _),
-      rdf_datatype(Node, tms:has_id, int, ID, TMS),
-      rdf_assert(S, P, O, TMS:ID)
+      % Connect TMS node and triple content
+      rdf_datatype(Node, tms:has_id, int, Node_ID, TMS),
+      rdf_assert(S, P, O, TMS:Node_ID)
     )
   ),
 
   % The merged graph is not longer needed.
   rdf_unload_graph(MergedGraph),
 
-  materialize0(TMS).
+  rdf_materialize_tms(TMS).
+rdf_materialize(Graph, TMS):-
+  rdf_graph(Graph),
+  !,
+  rdf_materialize([Graph], TMS).
 
-materialize0(TMS):-
+%% rdf_materialize_tms(+TMS:atom) is det.
+% Performs materialization closure on the triples in the given TMS.
+%
+% @param TMS The atomic name of a TMS that is registered with module TMS.
+
+rdf_materialize_tms(TMS):-
+  % Type checking.
+  is_registered_tms(TMS),
+
   % Find a new triple.
   rdf_rule(S, P, O, TMS, Ins, Outs, RuleLabel),
   \+ rdf_node(S, P, O, TMS, _ExistingNode),
-  
+
   % Store the new triple in a node.
   rdf_triple_naming(S, P, O, ConsequenceLabel),
   doyle_add_node(TMS, ConsequenceLabel, Consequence),
@@ -77,7 +107,23 @@ materialize0(TMS):-
   % Enumerate by failure.
   fail.
 % Done!
-materialize0(_TMS).
+rdf_materialize_tms(_TMS).
+
+%% rdf_materialize_tms_test(+TMS:atom) is semidet.
+% Tests whether the given TMS is in accordance with the standards for
+% RDF(S) semantics.
+%
+% @param TMS The atomic name of a TMS.
+
+rdf_materialize_tms_test(TMS):-
+  % Type checking.
+  is_registered_tms(TMS),
+
+  % The TMS must have a node for each of the test triples.
+  forall(
+    rdf_test_triple(S, P, O),
+    rdf_node(S, P, O, TMS, _Node)
+  ).
 
 %% rdf_node(
 %%   ?Subject:oneof([bnode,uri]),
@@ -88,8 +134,9 @@ materialize0(_TMS).
 %% ) is nondet.
 
 rdf_node(S, P, O, TMS, Node):-
-  rdf(S, P, O, TMS:ID),
+  is_registered_tms(TMS),
   rdf_datatype(Node, tms:has_id, int, ID, TMS),
+  rdf(S, P, O, TMS:ID),
   rdfs_individual_of(Node, tms:'Node').
 
 %% rdf_rule(
@@ -204,6 +251,14 @@ rdf_rule(Lit, rdf:type, rdf:'XMLLiteral', TMS, [Node], [], Label):-
   rdf_node(_, _, literal(type(Type, Lit)), TMS, Node),
   Label = 'XML literals are instances of rdf:XMLLiteral.'.
 
+rdf_tms(S, P, O):-
+  rdf(S, P, O),
+  once((
+    registered_tms(_Type, TMS),
+    rdf_node(S, P, O, TMS, N),
+    tms_export:export_argument(N)
+  )).
+
 % [RDF-3] RDF axiomatic triples.
 rdf_axiom(rdf:type, rdf:type, rdf:'Property').
 rdf_axiom(rdf:subject, rdf:type, rdf:'Property').
@@ -291,4 +346,45 @@ rdfax(UriRef, rdfs:range, rdfs:'Resource'):-
   format(atom(Local), '_~w', [Integer]),
   rdf_global_id(rdf:Local, UriRef).
 */
+
+%% rdf_test_triple(
+%%   ?Subject:oneof([bnode,uri]),
+%%   ?Predicate:uri,
+%%   ?Object:oneof([bnode,literal,uri])
+%% ) is nondet.
+% There triples should be part of the materialization of any RDFS graph.
+% These triples must be present in a rdf_materialized TMS.
+
+rdf_test_triple(rdfs:'Resource', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:'Class', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:'Literal', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'XMLLiteral', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:'Datatype', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'Seq', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'Bag', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'Alt', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:'Container', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'List', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:'ContainerMembershipProperty', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'Property', rdf:type, rdfs:'Class').
+rdf_test_triple(rdf:'Statement', rdf:type, rdfs:'Class').
+rdf_test_triple(rdfs:domain, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:range, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:subPropertyOf, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:subClassOf, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:member, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:seeAlso, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:isDefinedBy, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:comment, rdf:type, rdf:'Property').
+rdf_test_triple(rdfs:label, rdf:type, rdf:'Property').
+
+test:-
+  Graph = rdf_tms_test,
+  rdf_assert(rdf:a, rdf:b, rdf:c, Graph),
+  rdf_materialize(Graph, TMS),
+  tms_export:export_tms(TMS),
+  %rdfs_individual_of(N, tms:'Node'),
+  %rdf_datatype(N, tms:has_id, int, 103, TMS),
+  %tms_export:export_argument(N),
+  true.
 

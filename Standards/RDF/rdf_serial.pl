@@ -320,8 +320,7 @@ rdf_save2(Graph, SerializationFormat, File):-
   absolute_file_name(data(Graph), File, [access(write), file_type(FileType)]),
   rdf_save2(Graph, SerializationFormat, File),
   !.
-% Save to Turtle serialization.
-rdf_save2(Graph, 'Turtle', File):-
+rdf_save2(Graph, 'N-Triples', File):-
   nonvar(Graph),
   nonvar(File),
   access_file(File, write),
@@ -343,18 +342,43 @@ rdf_save2(Graph, 'Turtle', File):-
     [Graph, File]
   ),
   close(Stream).
-% Save to RDF/XML serialization.
-rdf_save2(Graph, 'RDF/XML', File):-
+% Save to RDF/XML or N-Triples serialization.
+rdf_save2(Graph, SerializationFormat, File):-
   nonvar(Graph),
+  if_then(SerializationFormat == 'RDF/XML', Format = xml),
+  if_then(SerializationFormat == 'N-Triples', Format = ntriples),
   nonvar(File),
   access_file(File, write),
   !,
   open(File, write, Stream, [close_on_abort(true), type(text)]),
   rdf_current_namespaces(Graph, Namespaces),
-  rdf_save(stream(Stream), [graph(Graph), namespaces(Namespaces)]),
+  rdf_save(stream(Stream), [format(Format), graph(Graph), namespaces(Namespaces)]),
   debug(
     rdf_serial,
-    'Graph ~w was saved in XML/RDF serialization to file ~w.',
+    'Graph ~w was saved in ~w serialization to file ~w.',
+    [Graph, SerializationFormat, File]
+  ),
+  close(Stream).
+% Save to Turtle serialization.
+rdf_save2(Graph, 'Turtle', File):-
+  nonvar(Graph),
+  nonvar(File),
+  access_file(File, write),
+  !,
+  open(File, write, Stream, [close_on_abort(true), type(text)]),
+  rdf_save_turtle(
+    stream(Stream),
+    [
+      align_prefixes(true),
+      graph(Graph),
+      indent(2),
+      only_known_prefixes(true),
+      tab_distance(0)
+    ]
+  ),
+  debug(
+    rdf_serial,
+    'Graph ~w was saved in Turtle serialization to file ~w.',
     [Graph, File]
   ),
   close(Stream).

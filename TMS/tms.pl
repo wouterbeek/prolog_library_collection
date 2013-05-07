@@ -1,9 +1,14 @@
 :- module(
   tms,
   [
+% TMS EXPLANATIONS
+    tms_argument/2, % +Node:node
+                    % -Argument:ordset(justification)
+
 % TMS REGISTRATION
     deregister_tms/2, % +Type:atom
                       % +TMS:atom
+    is_registered_tms/1, % +TMS:atom
     register_tms/2, % +Type:atom
                     % +TMS:atom
     registered_tms/2, % ?Type:atom
@@ -12,6 +17,10 @@
 % GENERIC TMS PREDICATES
     is_in_node/2, % +TMS:atom
                   % +Node:node
+    is_justification/2, % +TMS:atom
+                        % +Justification:justification
+    is_node/2, % +TMS:atom
+               % +Node:node
     is_out_node/2, % +TMS:atom
                    % +Node:node
     justification/2, % +TMS:atom
@@ -37,12 +46,29 @@ The generic predicates for Truth-Maintenance Systems.
 :- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(rdf(rdf_search)).
+:- use_module(rdfs(rdfs_build)).
 :- use_module(tms(doyle)).
 :- use_module(tms(tms_export)).
 
 :- dynamic(registered_tms(_Type, _TMS)).
 
 :- rdf_register_ns(tms, 'http://www.wouterbeek.com/tms.owl#').
+
+:- rdf_meta(tms_argument(r,-)).
+
+
+
+% TMS EXPLANATIONS %
+
+tms_argument(Node, Argument):-
+  breadth_first_rdf_traversal(
+    Node,
+    tms:has_consequent,
+    tms:has_antecedent,
+    _Nodes,
+    Argument
+  ).
 
 
 
@@ -55,6 +81,10 @@ generic_tms(TMS, Pred, Args):-
   once(registered_tms(Type, TMS)),
   generic(Type, Pred, Args).
 
+is_registered_tms(TMS):-
+  nonvar(TMS),
+  once(registered_tms(_Type, TMS)).
+
 register_tms(Type, TMS):-
   assert_novel(registered_tms(Type, TMS)).
 
@@ -65,16 +95,31 @@ register_tms(Type, TMS):-
 is_in_node(TMS, Node):-
   generic_tms(TMS, is_in_node, [Node]).
 
+is_justification(TMS, Justification):-
+  is_registered_tms(TMS),
+  nonvar(Justification),
+  once(justification(TMS, Justification)).
+
+is_node(TMS, Node):-
+  is_registered_tms(TMS),
+  nonvar(Node),
+  once(node(TMS, Node)).
+
 is_out_node(TMS, Node):-
   generic_tms(TMS, is_out_node, [Node]).
 
 justification(TMS, Justification):-
   rdfs_individual_of(Justification, tms:'Justification'),
-  rdf(Justification, _, _, TMS).
+  rdf(Justification, _, _, TMS:_).
 
 node(TMS, Node):-
   rdfs_individual_of(Node, tms:'Node'),
-  rdf(Node, _, _, TMS).
+  rdf(Node, _, _, TMS:_).
+
+tms_init(TMS):-
+  atom(TMS),
+  rdfs_assert_subproperty(tms:has_in, tms:has_antecedent, TMS),
+  rdfs_assert_subproperty(tms:has_out, tms:has_antecedent, TMS).
 
 
 

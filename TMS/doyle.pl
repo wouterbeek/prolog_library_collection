@@ -369,7 +369,7 @@ add_justification(TMS, Node, Justification):-
   is_node(Node),
   is_justification(Justification),
   
-  rdf_assert(Justification, tms:has_consequence, Node, TMS:1).
+  rdf_assert(Justification, tms:has_consequent, Node, TMS:1).
 
 %% doyle_add_node(+TMS:atom, +Label:atom, -Node:node) is det.
 % Adds a node.
@@ -519,7 +519,7 @@ has_support_status(Node, SupportStatus):-
   support_status(Node, SupportStatus).
 
 doyle_init(TMS):-
-  atom(TMS),
+  tms:tms_init(TMS),
   rdfs_assert_subclass(doyle:'SL-Justification', tms:'Justification', TMS:1),
   rdfs_assert_subclass(doyle:'CP-Justification', tms:'Justification', TMS:1).
 
@@ -591,7 +591,7 @@ justification(SL_Justification):-
 %% ) is nondet.
 
 member_of_cp_justification_set(Node, CP_Justification):-
-  rdf(CP_Justification, tms:has_consequence, Node),
+  rdf(CP_Justification, tms:has_consequent, Node),
   rdfs_individual_of(CP_Justification, doyle:'CL-Justification').
 
 %% member_of_justification_set(
@@ -610,7 +610,7 @@ member_of_justification_set(Node, Justification):-
 %% ) is nondet.
 
 member_of_sl_justification_set(SL_Justification, Node):-
-  rdf(SL_Justification, tms:has_consequence, Node),
+  rdf(SL_Justification, tms:has_consequent, Node),
   rdfs_individual_of(SL_Justification, doyle:'SL-Justification').
 
 %% premise(?Justification:justification) is nondet.
