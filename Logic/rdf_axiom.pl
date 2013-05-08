@@ -16,14 +16,14 @@ An axiomatic approach towards RDF(S) materialization.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_namespace)).
+:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(rdfax(r,r,r)).
 :- rdf_meta(rdfax0(r,r,r)).
 :- rdf_meta(test_triple(r,r,r)).
 
-:- rdf_register_namespace(rdf).
-:- rdf_register_namespace(rdfs).
+:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
+:- xml_register_namespace(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 
 
 

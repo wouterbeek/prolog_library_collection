@@ -139,11 +139,12 @@ Only SL-justifications can be well-founded justifications.
 :- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdfs(rdfs_build)).
+:- use_module(xml(xml_namespace)).
 
 :- dynamic(cp_consequence(_TMS, _CP_Justification)).
 
-:- rdf_register_ns(doyle, 'http://www.wouterbeek.com/doyle.owl#').
-:- rdf_register_ns(tms, 'http://www.wouterbeek.com/tms.owl#').
+:- xml_register_namespace(doyle, 'http://www.wouterbeek.com/doyle.owl#').
+:- xml_register_namespace(tms, 'http://www.wouterbeek.com/tms.owl#').
 
 :- rdf_meta(doyle_add_justification(+,+,+,+,r,r)).
 :- rdf_meta(doyle_add_node(+,+,r)).

@@ -107,7 +107,7 @@ Mismatch types:
     * Data semantic transformation
 
 @author Wouter Beek
-@version 2013/04
+@version 2013/04-2013/05
 */
 
 :- use_module(generics(db_ext)).
@@ -118,13 +118,12 @@ Mismatch types:
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
 :- use_module(math(statistics)).
-:- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdf(rdf_serial)).
+:- use_module(xml(xml_namespace)).
 
 % Register the namespaces.
-:- rdf_register_prefix(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
-:- rdf_register_namespaces.
+:- xml_register_namespace(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
 % Assert the used file types.
 :- assert_novel(user:prolog_file_type(owl, owl)).

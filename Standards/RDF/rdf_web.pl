@@ -20,13 +20,14 @@
 Web predicates for RDF graphs.
 
 @author Wouter Beek
-@version 2012/12-2013/01, 2013/03-2013/04
+@version 2012/12-2013/01, 2013/03-2013/05
 */
 
 :- use_module(html(html)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_serial)).
+:- use_module(xml(xml_namespace)).
 
 
 
@@ -78,7 +79,7 @@ rdf_load_web(Graph, Markup):-
 % @param Markup A list of HTML markup elements.
 
 rdf_namespaces_web(Markup):-
-  rdf_current_namespaces(Namespaces),
+  xml_current_namespaces(Namespaces),
   rdf_namespaces_web0(Namespaces, Table),
   Markup = [element(p, [], ['The currently loaded namespaces:']), Table].
 

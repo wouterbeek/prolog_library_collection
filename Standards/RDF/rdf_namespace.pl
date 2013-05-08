@@ -1,6 +1,7 @@
 :- module(
   rdf_namespace,
   [
+% RDF NAMESPACE CONVERSION
     rdf_convert_namespace/3, % +Graph:atom
                              % +FromNamespace:atom
                              % +ToNamespace:atom
@@ -8,15 +9,19 @@
                              % +From:oneof([bnode,literal,uri])
                              % +ToNamespace:atom
                              % -To:oneof([bnode,literal,uri])
-    rdf_current_namespaces/1, % -Namespaces:ord_set(atom)
+
+% RDF NAMESPACE REGISTRATION
+    rdf_current_namespace/2, % +Graph:graph
+                             % -Namespace:atom
     rdf_current_namespaces/2, % +Graph:graph
                               % -Namespaces:ord_set(atom)
-    rdf_known_namespace/2, % ?Prefix:atom
-                           % ?URI:uri
-    rdf_register_namespace/1, % +Prefix:atom
-    rdf_register_namespace/2, % +Prefix:atom
+    rdf_register_namespace/2, % +Graph:atom
+                              % +Prefix:atom
+    rdf_register_namespace/3, % +Graph:atom
+                              % +Prefix:atom
                               % +URI:uri
-    rdf_register_namespaces/0,
+
+% RDF NAMESPACE EXTRACTION
     rdf_resource_to_namespace/3 % +Resource:uri
                                 % -Namespace:atom
                                 % -Name:atom
@@ -28,7 +33,7 @@
 Namespace support for RDF(S).
 
 @author Wouter Beek
-@version 2013/03-2013/04
+@version 2013/03-2013/05
 */
 
 :- use_module(generics(list_ext)).
@@ -36,10 +41,15 @@ Namespace support for RDF(S).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_read)).
+:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(rdf_resource_to_namespace(r,-,-)).
 
+:- dynamic(rdf_current_namespace(_Graph, _Prefix)).
 
+
+
+% RDF NAMESPACE CONVERSION %
 
 %% rdf_convert_namespace(
 %%   +Graph:atom,
@@ -100,17 +110,9 @@ rdf_convert_namespace(FromNamespace, From, ToNamespace, To):-
     To = From
   ).
 
-%% rdf_current_namespaces(-Namespaces:list(atom)) is det.
-% Returns all current namespace aliases.
-%
-% @param Namespaces A list of atomic alias names.
 
-rdf_current_namespaces(Namespaces):-
-  setoff(
-    Namespace,
-    rdf_current_prefix(Namespace, _URI),
-    Namespaces
-  ).
+
+% RDF NAMESPACE REGISTRATION %
 
 %% rdf_current_namespaces(+Graph:atom, -Namespaces:ord_set(atom)) is det.
 % Returns the namespaces that occur in the given graph.
@@ -118,44 +120,21 @@ rdf_current_namespaces(Namespaces):-
 % @param Graph The atomic name of a graph.
 % @param Namespaces An ordered set of atomic names of namespaces.
 
-rdf_current_namespaces(_Graph, Namespaces):-
-  rdf_current_namespaces(Namespaces).
-
-/* TOO EXPENSIVE!
 rdf_current_namespaces(Graph, Namespaces):-
-  meta_ext:setoff_alt(
-    Namespace,
-    rdf_namespace:rdf_lookup_namespace(Graph, Namespace, _URI),
-    Namespaces
-  ).
-*/
+  setoff(Namespace, rdf_current_namespace(Graph, Namespace), Namespaces).
 
-%%%% d2r http://sites.wiwiss.fu-berlin.de/suhl/bizer/d2r-server/config.rdf#
-%%%% map file:/D:/D2RServer/d2r-server-0.7/mapping.n3#
+rdf_register_namespace(Graph, Prefix):-
+  % The given prefix must be registered as an XML namespace.
+  xml_current_namespace(Prefix, _URI),
+  assert(rdf_current_namespace(Graph, Prefix)).
 
-rdf_known_namespace(bag,           'http://lod.geodan.nl/BAG/resource/'           ).
-rdf_known_namespace(bags,          'http://lod.geodan.nl/BAG/vocab/resource/'     ).
-rdf_known_namespace(dbpedia,       'http://dbpedia.org/resource/'                 ).
-rdf_known_namespace('dbpedia-owl', 'http://dbpedia.org/ontology/'                 ).
-rdf_known_namespace(dbpprop,       'http://dbpedia.org/property/'                 ).
-rdf_known_namespace(dc,            'http://purl.org/dc/terms/'                    ).
-rdf_known_namespace(foaf,          'http://xmlns.com/foaf/0.1/'                   ).
-rdf_known_namespace(geo,           'http://www.w3.org/2003/01/geo/wgs84_pos#'     ).
-rdf_known_namespace(georss,        'http://www.georss.org/georss'                 ).
-rdf_known_namespace(lexvo,         'http://lexvo.org/id/'                         ).
-rdf_known_namespace(ogc,           'http://lod.geodan.nl/geosparql_vocab_all.rdf#').
-rdf_known_namespace(owl,           'http://www.w3.org/2002/07/owl#'               ).
-rdf_known_namespace(plod,          'http://plod.nieuwland.nl/top10nl/resource/'   ).
-rdf_known_namespace('powder-s',    'http://www.w3.org/2007/05/powder-s#'          ).
-rdf_known_namespace(prov,          'http://www.w3.org/ns/prov#'                   ).
-rdf_known_namespace(prv,           'http://purl.org/net/provenance/ns#'           ).
-rdf_known_namespace(rdf,           'http://www.w3.org/1999/02/22-rdf-syntax-ns#'  ).
-rdf_known_namespace(rdfs,          'http://www.w3.org/2000/01/rdf-schema#'        ).
-rdf_known_namespace(skos,          'http://www.w3.org/2004/02/skos/core#'         ).
-rdf_known_namespace(umbel,         'http://umbel.org/umbel/rc/'                   ).
-rdf_known_namespace(void,          'http://rdfs.org/ns/void#'                     ).
-rdf_known_namespace(xsd,           'http://www.w3.org/2001/XMLSchema#'            ).
-rdf_known_namespace(yago,          'http://dbpedia.org/class/yago/'               ).
+rdf_register_namespace(Graph, Prefix, URI):-
+  xml_register_namespace(Prefix, URI),
+  assert(rdf_current_namespace(Graph, Prefix)).
+
+
+
+% RDF NAMESPACE EXTRACTION %
 
 rdf_lookup_namespace(Graph, Namespace, URI):-
   % A namespace occurs for a resource.
@@ -171,19 +150,6 @@ rdf_lookup_namespace(Graph, Namespace, URI):-
   rdf_resource_to_namespace(Resource, Namespace, _Name),
   % Only registered prefixes/namespaces are returned.
   rdf_current_prefix(Namespace, URI).
-
-rdf_register_namespace(Prefix):-
-  once(rdf_known_namespace(Prefix, URI)),
-  rdf_register_namespace(Prefix, URI).
-
-rdf_register_namespace(Prefix, URI):-
-  rdf_register_prefix(Prefix, URI, [force(false), keep(true)]).
-
-rdf_register_namespaces:-
-  forall(
-    rdf_known_namespace(Prefix, URI),
-    rdf_register_namespace(Prefix, URI)
-  ).
 
 %% rdf_resource_to_namespace(
 %%   +Resource:uri,
@@ -210,7 +176,4 @@ rdf_resource_to_namespace(Resource, Namespace, Name):-
       OtherNameLength < NameLength
     ))
   ).
-
-% Automatically load often used namespaces.
-:- rdf_register_namespaces.
 

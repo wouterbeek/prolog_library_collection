@@ -18,7 +18,7 @@ Predicates for sending out HTTP requests.
 */
 
 :- use_module(library(http/http_header)).
-:- use_module(standards(xml)).
+:- use_module(xml(xml)).
 
 
 

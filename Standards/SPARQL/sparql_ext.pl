@@ -62,14 +62,14 @@ Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "spar
 ==
 
 @author Wouter Beek
-@version 2012/12-2013/01, 2013/03-2013/04
+@version 2012/12-2013/01, 2013/03-2013/05
 */
 
 :- use_module(generics(file_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(semweb/sparql_client)).
-:- use_module(rdf(rdf_namespace)).
+:- use_module(xml(xml_namespace)).
 
 :- dynamic(sparql_prefix(_Prefix, _URI)).
 :- dynamic(sparql_remote(_Remote, _Server, _Port, _Path)).
@@ -149,7 +149,7 @@ formulate_where(Statements, WhereStatement):-
 % QUERY PART REGISTRATION %
 
 register_sparql_prefix(Prefix):-
-  once(rdf_known_namespace(Prefix, URI)),
+  once(xml_current_namespace(Prefix, URI)),
   register_sparql_prefix(Prefix, URI).
 
 register_sparql_prefix(Prefix, URI):-

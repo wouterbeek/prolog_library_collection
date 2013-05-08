@@ -49,7 +49,8 @@ Supported serialization formats:
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_namespace)).
-:- use_module(standards(xml)).
+:- use_module(xml(xml)).
+:- use_module(xml(xml_namespace)).
 
 :- assert_novel(user:prolog_file_type(nt, n_triples)).
 :- assert_novel(user:prolog_file_type(rdf, rdf)).
@@ -346,14 +347,20 @@ rdf_save2(Graph, 'N-Triples', File):-
 % Save to RDF/XML or N-Triples serialization.
 rdf_save2(Graph, SerializationFormat, File):-
   nonvar(Graph),
-  if_then(SerializationFormat == 'RDF/XML', Format = xml),
-  if_then(SerializationFormat == 'N-Triples', Format = ntriples),
+  if_then_else(
+    SerializationFormat == 'RDF/XML',
+    Format = xml,
+    if_then_else(
+      SerializationFormat == 'N-Triples',
+      Format = ntriples,
+      false
+    )
+  ),
   nonvar(File),
   access_file(File, write),
   !,
   open(File, write, Stream, [close_on_abort(true), type(text)]),
-  rdf_current_namespaces(Graph, Namespaces),
-  rdf_save(stream(Stream), [format(Format), graph(Graph), namespaces(Namespaces)]),
+  rdf_save(stream(Stream), [format(Format), graph(Graph)]),
   debug(
     rdf_serial,
     'Graph ~w was saved in ~w serialization to file ~w.',

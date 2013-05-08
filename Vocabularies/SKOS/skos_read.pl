@@ -18,7 +18,7 @@
 /** <module> SKOS READ
 
 @author Wouter Beek
-@version 2013/04
+@version 2013/04-2013/05
 */
 
 :- use_module(graph_theory(graph_export)).
@@ -26,10 +26,10 @@
 :- use_module(generics(meta_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_namespace)).
 :- use_module(standards(graphviz)).
+:- use_module(xml(xml_namespace)).
 
-:- rdf_register_namespace(skos).
+:- xml_register_namespace(skos, 'http://www.w3.org/2004/02/skos/core#').
 
 :- rdf_meta(skos_export_hierarchy(r)).
 

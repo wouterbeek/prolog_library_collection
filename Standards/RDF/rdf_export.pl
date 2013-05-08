@@ -218,6 +218,8 @@ rdf_resource_naming(URI, Name):-
   rdf_global_id(Namespace:Local, URI),
   !,
   format(atom(Name), '~w:~w', [Namespace,Local]).
+% We're out of options.
+rdf_resource_naming(Name, Name).
 
 rdf_schema(Graph, Triples):-
   setoff(

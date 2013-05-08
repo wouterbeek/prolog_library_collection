@@ -16,6 +16,7 @@ Exports TMS belief states,
 @version 2013/05
 */
 
+:- use_module(generics(meta_ext)).
 :- use_module(generics(os_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).

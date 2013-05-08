@@ -7,11 +7,10 @@
                        % +Graph:atom
     describe_resource/2, % +Resource:uri
                          % -Rows:list(row)
-    find_dbpedia_agent/4, % +Name:atom
-                          % +Birth:integer
-                          % +Death:integer
-                          % -DBpediaAgent:uri
-    link_to_dbpedia_agents/1 % +Graph:atom
+    find_dbpedia_agent/4 % +Name:atom
+                         % +Birth:integer
+                         % +Death:integer
+                         % -DBpediaAgent:uri
   ]
 ).
 
@@ -55,7 +54,7 @@ WHERE
     <specific_mappingbased_properties_en.ttl> .
 
 @author Wouter Beek
-@version 2013/03-2013/04
+@version 2013/03-2013/05
 */
 
 :- use_module(generics(db_ext)).
@@ -68,17 +67,17 @@ WHERE
 :- use_module(rdf(rdf_read)).
 :- use_module(rdfs(rdfs_read)).
 :- use_module(sparql(sparql_ext)).
+:- use_module(xml(xml_namespace)).
 
 :- assert_novel(user:prolog_file_type(ttl, turtle)).
 
-:- rdf_register_namespace(dbpedia).
-:- rdf_register_namespace('dbpedia-owl').
-:- rdf_register_namespace(dbpprop).
-:- rdf_register_namespace(foaf).
-:- rdf_register_namespace('powder-s').
-:- rdf_register_namespace(stcn, 'http://stcn.data2semantics.org/resource/').
-:- rdf_register_namespace(umbel).
-:- rdf_register_namespace(yago).
+:- xml_register_namespace(dbpedia, 'http://dbpedia.org/resource/').
+:- xml_register_namespace('dbpedia-owl', 'http://dbpedia.org/ontology/').
+:- xml_register_namespace(dbpprop, 'http://dbpedia.org/property/').
+:- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
+:- xml_register_namespace('powder-s', 'http://www.w3.org/2007/05/powder-s#').
+:- xml_register_namespace(umbel, 'http://umbel.org/umbel/rc/').
+:- xml_register_namespace(yago, 'http://dbpedia.org/class/yago/').
 
 :- register_sparql_prefix(dbpedia).
 :- register_sparql_prefix('dbpedia-owl').
@@ -184,14 +183,6 @@ link_to_dbpedia_agents(Graph):-
 
 link_to_dbpedia_agents(Graph, Agents):-
   maplist(link_to_dbpedia_agent(Graph), Agents).
-
-link_to_dbpedia_agent(Graph, Agent):-
-  rdf_datatype(Agent, foaf:name, string, Name, Graph),
-  rdf_datatype(Agent, stcn:birth, gYear, Birth, Graph),
-  rdf_datatype(Agent, stcn:death, gYear, Death, Graph),
-  find_dbpedia_agent(Name, Birth, Death, DBpediaAgent),
-  owl_assert_resource_identity(Agent, DBpediaAgent, Graph),
-  debug(dbpedia, 'Agent ~w linked to DBpedia agent ~w.', [Agent, DBpediaAgent]).
 
 /*
 load:-

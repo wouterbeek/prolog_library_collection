@@ -22,16 +22,17 @@
 Predicates for reading from OWL data.
 
 @author Wouter Beek
-@version 2013/01, 2013/03-2013/04
+@version 2013/01, 2013/03-2013/05
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_namespace)).
+:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(owl_class_equivalence(r,r)).
 :- rdf_meta(owl_resource_identity(r,r)).
 
-:- rdf_register_namespace(owl).
+:- xml_register_namespace(owl, 'http://www.w3.org/2002/07/owl#').
+:- xml_register_namespace(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 
 
 

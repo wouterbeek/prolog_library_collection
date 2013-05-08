@@ -15,6 +15,7 @@
 @version 2013/05
 */
 
+:- use_module(generics(meta_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)). % Meta declarations.
 

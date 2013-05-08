@@ -14,12 +14,12 @@
 FOAF stands for Friend of a Friend
 
 @author Wouter Beek
-@version 2013/03
+@version 2013/03, 2013/05
 */
 
-:- use_module(rdf(rdf_namespace)).
+:- use_module(xml(xml_namespace)).
 
-:- rdf_register_namespace(foaf).
+:- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
 
 
 

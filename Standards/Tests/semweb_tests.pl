@@ -82,14 +82,14 @@ Q: How should option =|base_uri(+URI)|= for =|rdf_load/2|= be used?
 :- use_module(generics(meta_ext)).
 :- use_module(owl(owl_entailment)).
 :- use_module(rdf(rdf_graph)).
-:- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdf(rdf_serial)).
-:- use_module(standards(xml)).
+:- use_module(xml(xml)).
+:- use_module(xml(xml_namespace)).
 
 :- assert_novel(user:prolog_file_type(rdf, rdf)).
 
-:- rdf_register_namespace(test, 'http://www.w3.org/2000/10/rdf-tests/rdfcore/testSchema#').
+:- xml_register_namespace(test, 'http://www.w3.org/2000/10/rdf-tests/rdfcore/testSchema#').
 
 :- rdf_meta(run_test(r)).
 :- rdf_meta(run_test0(r,-)).

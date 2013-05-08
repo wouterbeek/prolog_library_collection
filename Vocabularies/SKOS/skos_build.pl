@@ -16,14 +16,14 @@
 /** <module> SKOS BUILD
 
 @author Wouter Beek
-@version 2013/04
+@version 2013/04-2013/05
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_namespace)).
 :- use_module(rdfs(rdfs_build)).
+:- use_module(xml(xml_namespace)).
 
-:- rdf_register_namespace(skos).
+:- xml_register_namespace(skos, 'http://www.w3.org/2004/02/skos/core#').
 
 :- rdf_meta(skos_assert_broader(r,r,+)).
 :- rdf_meta(skos_assert_hierarchy(+,r,+)).

@@ -54,7 +54,7 @@ rdf_materialize(Graphs, TMS):-
 
   % Merge the graphs.
   rdf_graph_merge(Graphs, MergedGraph),
-
+gtrace,
   % Create an assumption node for each triple in the merged graph;
   % and assert a new triple, connecting it to the node via the node ID.
   forall(
@@ -67,7 +67,7 @@ rdf_materialize(Graphs, TMS):-
       rdf_triple_naming(S, P, O, TripleName),
       doyle_add_node(TMS, TripleName, Node),
       doyle_add_justification(TMS, [], [], 'Assumption', Node, _),
-      % Connect TMS node and triple content
+      % Connect TMS node and triple content.
       rdf_datatype(Node, tms:has_id, int, Node_ID, TMS),
       rdf_assert(S, P, O, TMS:Node_ID)
     )

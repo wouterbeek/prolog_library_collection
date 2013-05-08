@@ -16,17 +16,17 @@ module(
 Support for the Dublin Core vocabulary.
 
 @author Wouter Beek
-@version 2013/03
+@version 2013/03, 2013/05
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_namespace)).
+:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(dc_class(r,r)).
 :- rdf_meta(dc_property(r,r)).
 
-:- rdf_register_namespace(dc).
-:- rdf_register_namespace(xsd).
+:- xml_register_namespace(dc, 'http://purl.org/dc/terms/').
+:- xml_register_namespace(xsd, 'http://www.w3.org/2001/XMLSchema#').
 
 
 

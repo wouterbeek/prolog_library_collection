@@ -30,7 +30,7 @@ VoID is a W3C Interest Group Note as of 2011/03/03.
 
 @author WouterBeek
 @compat http://www.w3.org/TR/void/
-@version 2013/03-2013/04
+@version 2013/03-2013/05
 */
 
 :- use_module(library(debug)).
@@ -40,11 +40,11 @@ VoID is a W3C Interest Group Note as of 2011/03/03.
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_graph)).
-:- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_serial)).
 :- use_module(rdf(rdf_statistics)).
+:- use_module(xml(xml_namespace)).
 
-:- rdf_register_namespace(void).
+:- xml_register_namespace(void, 'http://rdfs.org/ns/void#').
 
 :- dynamic(dataset(_VoID_Graph, _Dataset, _DatasetPath, _DatasetGraph)).
 
