@@ -3,13 +3,53 @@
 % Do not write module loads to the standard output stream.
 :- set_prolog_flag(verbose_load, silent).
 
+load_modules_for_pldoc:-
+  forall(
+    member(
+      DirectoryName,
+      [
+        datasets,
+        generics,
+        graph_theory,
+        logic,
+        math,
+        server,
+        standards,
+        html,
+        iso,
+        owl,
+        rdf,
+        rdfs,
+        sparql,
+        svg,
+        tests,
+        xml,
+        tms,
+        vocabularies,
+        skos
+      ]
+    ),
+    (
+      Spec =.. [DirectoryName, .],
+      absolute_file_name(Spec, Directory, [file_type(directory)]),
+      format(atom(Search), '~w/*.pl', [Directory]),
+      expand_file_name(Search, Files),
+      maplist(use_module, Files)
+    )
+  ).
+
 % Before doing much else, we start the documentation server that
 % generates Web sites based on the plDoc commenting in the swipl code files.
-%:- use_module(library(pldoc)).
-%:- doc_server(2222, [edit(true)]).
-%:- use_module(library(http/http_path)).
-%http:location(pldoc, root(help), [priority(1000)]).
-%:- http_handler(pldoc, documentation, []).
+:- use_module(library(http/http_path)).
+http:location(pldoc, root(help), [priority(10)]).
+
+:- use_module(library(pldoc)).
+:- use_module(library(www_browser)).
+:- doc_server(2222, [edit(true)]).
+
+%:- http_handler(help(.), documentation, []).
+%documentation(_Resource):-
+%  www_open_url('localhost:2222').
 
 % This library allows for exploiting the color and attribute facilities
 % of most modern terminals using ANSI escape sequences.
@@ -33,11 +73,12 @@
 :- ignore(send(@pce, show_console, open)).
 
 % Debug monitor.
-% [TODO] The PCE-based debug monitor in swipl is not the most versatile
-% debug tool in existence. I would like to write a Web-based version at
-% some point.
+% @tbd The PCE-based debug monitor in swipl is not the most versatile
+%      debug tool in existence. I would like to write a Web-based version
+%      at some point.
 %:- use_module(library(swi_ide)).
 %:- prolog_ide(debug_monitor).
 
 :- [load].
+:- load_modules_for_pldoc.
 

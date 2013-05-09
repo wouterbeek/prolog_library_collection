@@ -7,10 +7,12 @@
 /** <module> RDF provenance
 
 @author Wouter Beek
-@version 2013/03
+@version 2013/03, 2013/05
 */
 
+:- use_module(xml(xml_namespace)).
 
 
-:- rdf_register_prefix(prov, 'http://www.w3.org/ns/prov#', [keep(true)]).
+
+:- xml_register_namespace(prov, 'http://www.w3.org/ns/prov#').
 

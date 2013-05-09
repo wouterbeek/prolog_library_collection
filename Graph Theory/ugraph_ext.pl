@@ -1,5 +1,5 @@
 :- module(
-  ugraphs_ext,
+  ugraph_ext,
   [
     bipartite/3, % +Graph:ugraph
                  % -S1:list(vertex)
@@ -12,7 +12,6 @@
     edge_induced_subgraph/3, % +Graph:ugraph
                              % +ESubG:list(edge)
                              % -SubG:ugraph
-    empty/1, % ?Graph:ugraph
     harary/3, % +K:integer
               % +N:integer
               % -H:ugraph
@@ -23,18 +22,24 @@
                               % +Graph:ugraph
     ugraph_edge/2, % +Options:list(nvpair)
                    % ?Edge:edge
+    ugraph_empty/1, % ?Graph:ugraph
     ugraph_maximum_components/2, % +Graph:ugraph
                                  % -MaximumComponent:ugraph
     ugraph_neighbor/3, % +Options:list(nvpair)
                        % ?Vertex:vertex
                        % ?Neighbor:vertex
+    ugraph_neighbors/3, % +Options:list(nvpair)
+                        % +Vertex:vertex
+                        % -Neighbors:ordset(vertex)
     ugraph_subgraph/2, % ?G1:ugraph
                        % +G2:ugraph
     ugraph_vertex/2, % +Options:list(nvpair)
                      % ?Vertex:vertex
-    vertex_induced_subgraph/3 % +Graph:ugraph
-                              % +VSubG:list(vertex)
-                              % -SubG:ugraph
+    ugraph_vertex_induced_subgraph/3, % +Graph:ugraph
+                                      % +VSubG:list(vertex)
+                                      % -SubG:ugraph
+    ugraph_vertices/2 % +Options:list(nvpair)
+                      % ?Vertices:ordset(vertex)
   ]
 ).
 
@@ -210,11 +215,11 @@ ugraph_edges(Options, Edges):-
   % Use the swipl builtin.
   ugraphs:edges(Graph, Edges).
 
-%% empty(+Graph:ugraph) is semidet.
-%% empty(-Graph:ugraph) is det.
+%% ugraph_empty(+Graph:ugraph) is semidet.
+%% ugraph_empty(-Graph:ugraph) is det.
 % Succeeds on the empty graph or returns the empty graph.
 
-empty([]).
+ugraph_empty([]).
 
 %% harary(+K:integer, +N:integer, -H:ugraph) is det.
 % Generates a Harary graph that is K-connected and that has N vertices.
@@ -358,6 +363,9 @@ ugraph_neighbor(Options0, Vertex, Neighbor):-
   merge_options([directed(true)], Options0, Options),
   ugraph_edge(Options, Vertex-Neighbor).
 
+ugraph_neighbors(Options0, Vertex, Neighbors):-
+  setoff(Neighbor, ugraph_neighbor(Options0, Vertex, Neighbor), Neighbors).
+
 %% ugraph_subgraph(+G1:ugraph, +G2:ugraph) is semidet.
 %% ugraph_subgraph(-G1:ugraph, +G2:ugraph) is nondet.
 % G1 is a subgraph of G2.
@@ -389,6 +397,9 @@ ugraph_vertex(Options, Vertex):-
   ugraphs:vertices(Graph, Vertices),
   member(Vertex, Vertices).
 
+ugraph_vertices(Options, Vertices):-
+  setoff(Vertex, ugraph_vertex(Options, Vertex), Vertices).
+
 %% unsymmetric_edges(+Edges:list(edge), -UnsymmetricEdges:list(edge)) is det.
 % Returns the unsymmetric edges for the given edges.
 % For every pair of symmetric edges $\set{\tuple{V, W}, \tuple{W, V}}$
@@ -408,14 +419,14 @@ unsymmetric_edges(Edges, UnsymmetricEdges):-
     UnsymmetricEdges
   ).
 
-%% vertex_induced_subgraph(
+%% ugraph_vertex_induced_subgraph(
 %%   +Graph:ugraph,
 %%   +VSubG:list(vertex),
 %%   -SubG:ugraph
 %% ) is det.
 % Returns the vertex-induced subgraph.
 
-vertex_induced_subgraph(Graph, VSubG, SubG):-
+ugraph_vertex_induced_subgraph(Graph, VSubG, SubG):-
   ugraphs:vertices(Graph, Vs),
   ord_subtract(Vs, VSubG, DelVs),
   del_vertices(Graph, DelVs, SubG).

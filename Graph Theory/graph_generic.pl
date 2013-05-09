@@ -128,7 +128,7 @@ graph_format/2
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(type_checking)).
-:- use_module(graph_theory(ugraphs_ext)).
+:- use_module(graph_theory(ugraph_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_export)). % Meta-predicates.
@@ -435,7 +435,7 @@ graph_format(Graph, rdf):-
   !.
 graph_format(UGraph, ugraph):-
   is_list(UGraph),
-  maplist(ugraphs_ext:is_ugraph_edge, UGraph),
+  maplist(ugraph_ext:is_ugraph_edge, UGraph),
   !.
 graph_format(Graph, unrecognized):-
   existence_error(graph, Graph).

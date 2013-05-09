@@ -30,6 +30,7 @@ Two methods created during my ending days at the IvI institute:
 @version 2012/07-2012/08, 2012/10
 */
 
+:- use_module(library(semweb/rdf_db)).
 :- use_module(rdfs(rdfs_read)).
 
 :- meta_predicate depth_path(+,0,+,-).

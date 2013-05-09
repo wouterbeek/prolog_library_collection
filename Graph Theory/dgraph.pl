@@ -1,5 +1,5 @@
 :- module(
-  dgraphs,
+  dgraph,
   [
     arcs/2, % +G:dgraph
             % -As:list(arc)
@@ -52,7 +52,18 @@
                      % -Vs:list(vertex)
                      % -As:list(arc)
                      % -DirectedWalk:list(arc_vertice)
-    empty/1, % ?G:dgraph
+    dgraph_empty/1, % ?G:dgraph
+    dgraph_neighbor/3, % +V:vertex
+                       % +G:dgraph
+                       % ?W:vertex
+    dgraph_neighbors/3, % +V:vertex
+                        % +G:dgraph
+                        % -VNs:list(vertex)
+    dgraph_subgraph/2, % ?G1:dgraph
+                       % +G2:dgraph
+    dgraph_vertex_induced_subgraph/3, % +G:dgraph
+                                % +VSubG:list(vertex)
+                                % -SubG:dgraph
     has_directed_cycle/1, % +G:dgraph
     in_degree/3, % +G:dgraph
                  % +V:vertex
@@ -63,12 +74,6 @@
     in_neighbors/3, % +V:vertex
                     % +G:dgraph
                     % -InVNs:list(vertex)
-    neighbor/3, % +V:vertex
-                % +G:dgraph
-                % ?W:vertex
-    neighbors/3, % +V:vertex
-                 % +G:dgraph
-                 % -VNs:list(vertex)
     orientation/2, % +G:ugraph
                    % -O:dgraph
     out_degree/3, % +G:dgraph
@@ -85,13 +90,8 @@
                  % +W:vertex
     strict/1, % +G:dgraph
     strongly_connected/1, % +G:dgraph
-    subgraph/2, % ?G1:dgraph
-                % +G2:dgraph
     underlying/2, % +G:dgraph
                   % -U:ugraph
-    vertex_induced_subgraph/3, % +G:dgraph
-                                % +VSubG:list(vertex)
-                                % -SubG:dgraph
     vertices/2, % +G:dgraph
                 % -Vs:list(vertex)
     vertices_arcs_to_dgraph/3, % +Vs:list(vertex)
@@ -101,7 +101,7 @@
   ]
 ).
 
-/** <module> dgraphs
+/** <module> dgraph
 
 Directed graphs.
 
@@ -114,17 +114,9 @@ Directed graphs.
 */
 
 :- use_module(generics(list_ext)).
-:- use_module(generics(math_ext)).
 :- use_module(generics(meta_ext)).
-:- use_module(
-  graph_theory(ugraphs_ext),
-  [
-    connected/1,
-    neighbors/3 as undirected_neighbors,
-    vertex_induced_subgraph/3 as undirected_vertex_induced_subgraph,
-    vertices/2 as undirected_vertices
-  ]
-).
+:- use_module(math(math_ext)).
+:- use_module(graph_theory(ugraph_ext)).
 
 
 
@@ -179,7 +171,7 @@ directed_cycle(V, G, DirCycle):-
 % @param DirCycle A list that consists of interchanging vertices and edges.
 
 directed_cycle(V, G, [V | Vs], [V-W | Es], [V, V-W | DirCycle]):-
-  neighbor(V, G, W),
+  dgraph_neighbor(V, G, W),
   directed_path(W, G, V, [], Vs, [V-W], Es, DirCycle).
 
 directed_trail(V, G, W):-
@@ -194,7 +186,7 @@ directed_trail(V, G, W, Vs, As, DirTrail):-
 directed_trail(V, _G, V, _History, [V], [], [V]):-
   !.
 directed_trail(V, G, W, [V | Vs], H_As, [V-X | As], [V, V-X | DirTrail]):-
-  neighbor(V, G, X),
+  dgraph_neighbor(V, G, X),
   \+(member(V-X, H_As)),
   directed_trail(X, G, W, Vs, [V-X | H_As], As, DirTrail).
 
@@ -210,7 +202,7 @@ directed_path(V, G, W, Vs, As, DirPath):-
 directed_path(V, _G, V, _H_Vs, [V], _H_As, [], [V]):-
   !.
 directed_path(V, G, W, H_Vs, [V | Vs], H_As, [V-X | As], [V, V-X | DirPath]):-
-  neighbor(V, G, X),
+  dgraph_neighbor(V, G, X),
   \+(member(X, H_Vs)),
   \+(member(V-X, H_As)),
   directed_path(X, G, W, [X | H_Vs], Vs, [V-X | H_As], As, DirPath).
@@ -246,14 +238,14 @@ directed_walk(V, G, W, DirWalk):-
 directed_walk(V, _G, V, [], [], []):-
   !.
 directed_walk(V, G, W, [V, X | Vs], [V-X | As], [V, V-X, X | DirWalk]):-
-  neighbor(V, G, X),
+  dgraph_neighbor(V, G, X),
   directed_walk(X, G, W, Vs, As, DirWalk).
 
-%% empty(+G:dgraph) is semidet.
-%% empty(-G:dgraph) is det.
+%% dgraph_empty(+G:dgraph) is semidet.
+%% dgraph_empty(-G:dgraph) is det.
 % Succeeds on the empty digraph or returns the empty digraph.
 
-empty(dgraph([], [])).
+dgraph_empty(dgraph([], [])).
 
 %% has_directed_cycle(+G:dgraph) is semidet.
 % Succeeds if the given digraph has a cycle.
@@ -284,17 +276,17 @@ in_neighbor(V, G, InVN):-
 in_neighbors(V, dgraph(_OutG, InG), InVNs):-
   member(V-InVNs, InG).
 
-%% neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
-%% neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
+%% dgraph_neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
+%% dgraph_neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
 
-neighbor(V, G, W):-
+dgraph_neighbor(V, G, W):-
   in_neighbor(V, G, W).
-neighbor(V, G, W):-
+dgraph_neighbor(V, G, W):-
   out_neighbor(V, G, W).
 
-neighbors(V, dgraph(InG, OutG), VNs):-
-  undirected_neighbors(V, InG, InVNs),
-  undirected_neighbors(V, OutG, OutVNs),
+dgraph_neighbors(V, dgraph(InG, OutG), VNs):-
+  ugraph_neighbors(V, InG, InVNs),
+  ugraph_neighbors(V, OutG, OutVNs),
   ord_union(InVNs, OutVNs, VNs).
 
 orientation(G, O):-
@@ -352,10 +344,10 @@ strongly_connected(G):-
     directed_path(V, G, W)
   ).
 
-%% subgraph(+G1:dgraph, +G2:dgraph) is semidet.
+%% dgraph_subgraph(+G1:dgraph, +G2:dgraph) is semidet.
 % Succeeds if G1 is a subgraph of G2.
 
-subgraph(dgraph(InG1, OutG1), dgraph(InG2, OutG2)):-
+dgraph_subgraph(dgraph(InG1, OutG1), dgraph(InG2, OutG2)):-
   maplist(subgraph_, InG1, InG2),
   maplist(subgraph_, OutG1, OutG2).
 
@@ -366,7 +358,7 @@ subgraph_(V-NV1, V-NV2):-
 % Returns the underlying undirected graph for the given directed graph.
 
 underlying(G, U):-
-  undirected_vertices(G, Vs),
+  ugraph_vertices(G, Vs),
   arcs(G, As),
   underlying(Vs, As, U).
 
@@ -388,16 +380,16 @@ underlying(Vs, As, U):-
     U
   ).
 
-%% vertex_induced_subgraph(
+%% dgraph_vertex_induced_subgraph(
 %%   +G:dgraph,
 %%   +VSubG:list(vertex),
 %%   -SubG:dgraph
 %% ) is det.
 % Returns the vertex-induced subgraph.
 
-vertex_induced_subgraph(dgraph(InG, OutG), VSubG, dgraph(SubInG, SubOutG)):-
-  undirected_vertex_induced_subgraph(InG, VSubG, SubInG),
-  undirected_vertex_induced_subgraph(OutG, VSubG, SubOutG).
+dgraph_vertex_induced_subgraph(dgraph(InG, OutG), VSubG, dgraph(SubInG, SubOutG)):-
+  ugraph_vertex_induced_subgraph(InG, VSubG, SubInG),
+  ugraph_vertex_induced_subgraph(OutG, VSubG, SubOutG).
 
 %% vertices(+G:dgraph, -Vs:list(vertex)) is det.
 % Returns the vertices that occur in the given digraph.
@@ -406,8 +398,8 @@ vertex_induced_subgraph(dgraph(InG, OutG), VSubG, dgraph(SubInG, SubOutG)):-
 % @param Vs An ordered set of vertices.
 
 vertices(dgraph(InG, OutG), Vs):-
-  undirected_vertices(InG, InVs),
-  undirected_vertices(OutG, OutVs),
+  ugraph_vertices(InG, InVs),
+  ugraph_vertices(OutG, OutVs),
   ord_union(InVs, OutVs, Vs).
 
 %% vertices_arcs_to_dgraph(

@@ -11,13 +11,16 @@
 /** <module> TREES
 
 @author Wouter Beek
-@version 2013/04
+@version 2013/04-2013/05
 */
 
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 
 
+
+all_subpaths_to_tree(Subpaths, [Trees]):-
+  all_subpaths_to_tree(Subpaths, [], Trees).
 
 all_subpaths_to_tree(Lists, List, List-Trees):-
   setoff(
@@ -30,7 +33,7 @@ all_subpaths_to_tree(Lists, List, List-Trees):-
     Trees
   ).
 
-some_subpaths_to_tree(SomeSubPaths):-
+some_subpaths_to_tree(SomeSubPaths, Tree):-
   setoff(
     SubPath,
     (
@@ -40,5 +43,5 @@ some_subpaths_to_tree(SomeSubPaths):-
     ),
     AllSubPaths
   ),
-  all_subpaths_to_tree(AllSubPaths).
+  all_subpaths_to_tree(AllSubPaths, Tree).
 

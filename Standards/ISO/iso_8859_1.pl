@@ -13,5 +13,5 @@
 
 
 
-non_breaking_space(O, [160 | R0]-R0, [160 | C0]-C0).
+non_breaking_space(_O, [160 | R0]-R0, [160 | C0]-C0).
 

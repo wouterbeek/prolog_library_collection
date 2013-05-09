@@ -1,11 +1,11 @@
 :- module(
   rdf_model_theory,
   [
-    clear_model/0,
-    load_model/1, % +Name:atom
-    print_model/0,
-    satisfy/2 % +X:oneof([atom,list(triple),triple])
-              % -Assignments:ord_set(assignment)
+    rdf_model_theory_clear/0,
+    rdf_model_theory_load/1, % +Name:atom
+    rdf_model_theory_print/0,
+    rdf_model_theory_satisfy/2 % +X:oneof([atom,list(triple),triple])
+                               % -Assignments:ord_set(assignment)
   ]
 ).
 
@@ -65,7 +65,7 @@ add_typed_literal(Type, Value, Object):-
   assert_novel(resource(Object)),
   assert_novel(typed_literal([Type,Value])).
 
-clear_model:-
+rdf_model_theory_clear:-
   retractall(i_ext(_Object1, _Pair1)),
   retractall(i_l(_Pair2, _Object2)),
   retractall(i_s(_UriRef3, _Object3)),
@@ -74,13 +74,13 @@ clear_model:-
   retractall(resource(_Object6)),
   retractall(typed_literal(_Pair7)).
 
-load_model(test1):-
+rdf_model_theory_load(test1):-
   add_property(ex:a, 1, [[1,2],[2,1]]),
   add_property(ex:b, 1, [[1,2],[2,1]]),
   add_resource(ex:c, 2),
   add_typed_literal(ex:b, whatever, 2).
 
-print_model:-
+rdf_model_theory_print:-
   print_objects,
   print_properties,
   print_urirefs,
@@ -135,7 +135,7 @@ print_urirefs:-
 resource(Object):-
   literal_value(Object).
 
-satisfy(X, G):-
+rdf_model_theory_satisfy(X, G):-
   satisfy(X, [], G).
 
 % Satisfaction for an RDF graph.

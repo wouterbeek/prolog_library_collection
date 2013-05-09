@@ -76,7 +76,7 @@
     g/3,
     g_lowercase/3,
     g_uppercase/3,
-    graph/3,
+    ascii_graph/3,
     grave_accent/3,
     greater_than_sign/3,
     group_separator/3,
@@ -235,7 +235,7 @@ any(_O1, [X | R0]-R0, [X | C0]-C0):-
 any(O1, R1-R0, C1-C0):-
   control(O1, R1-R0, C1-C0).
 any(O1, R1-R0, C1-C0):-
-  graph(O1, R1-R0, C1-C0).
+  ascii_graph(O1, R1-R0, C1-C0).
 any(O1, R1-R0, C1-C0):-
   white(O1, R1-R0, C1-C0).
 
@@ -509,9 +509,9 @@ g_lowercase(_O1, [103 | R0]-R0, [103 | C0]-C0).
 
 g_uppercase(_O1, [71 | R0]-R0, [71 | C0]-C0).
 
-graph(O1, R1-R0, C1-C0):-
+ascii_graph(O1, R1-R0, C1-C0):-
   alphanumeric(O1, R1-R0, C1-C0).
-graph(O1, R1-R0, C1-C0):-
+ascii_graph(O1, R1-R0, C1-C0):-
   punctuation(O1, R1-R0, C1-C0).
 
 grave_accent(_O1, [96 | R0]-R0, [96 | C0]-C0).
@@ -837,7 +837,7 @@ plus_sign(_O1, [43 | R0]-R0, [43 | C0]-C0).
 positive_acknowledgement(_O1, [6 | R0]-R0, [6 | C0]-C0).
 
 print(O1, R1-R0, C1-C0):-
-  graph(O1, R1-R0, C1-C0).
+  ascii_graph(O1, R1-R0, C1-C0).
 print(O1, R1-R0, C1-C0):-
   space(O1, R1-R0, C1-C0).
 
@@ -1023,7 +1023,7 @@ white(O1, R1-R0, C1-C0):-
 white(O1, R1-R0, C1-C0):-
   tab(O1, R1-R0, C1-C0).
 
-% Word consist of alphanumeric character and underscores.
+% A word consists of alphanumeric characters and underscores.
 word(O1, R1-R0, C1-C0):-
   alphanumeric(O1, R1-R0, C1-C0).
 word(O1, R1-R0, C1-C0):-

@@ -1,12 +1,14 @@
 :- module(
   rdf_tms,
   [
+    rdf_materialize/1, % +Graphs:oneof([atom,list(atom)])
     rdf_materialize/2, % +Graphs:oneof([atom,list(atom)])
                        % -TMS:atom
     rdf_materialize_tms_test/1, % +TMS:atom
-    rdf_tms/3 % ?S
-              % ?P
-              % ?O
+    rdf_tms/3, % ?S
+               % ?P
+               % ?O
+    rdfs_inconsistent/1 % +Graph:atom
   ]
 ).
 
@@ -32,7 +34,24 @@ Uses a the Doyle TMS to keep track of RDF(S) materialization.
 :- rdf_meta(rdf_test_triple(r,r,r)).
 :- rdf_meta(rdf_tms(r,r,r)).
 
+:- dynamic(bnode_literal_map0(_BNode, _Literal)).
 
+
+
+bnode_literal_map(BNode, Lit):-
+  bnode_literal_map0(BNode, Lit),
+  !.
+bnode_literal_map(BNode, Lit):-
+  rdf_bnode(BNode),
+  assert(bnode_literal_map0(BNode, Lit)).
+
+% @tbd
+rdfs_inconsistent(Graph):-
+  rdf_graph(Graph),
+  !.
+
+rdf_materialize(Graphs):-
+  rdf_materialize(Graphs, _TMS).
 
 %% rdf_materialize(+Graphs:list(atom), -TMS:atom) is det.
 % Performs materialization closure on the triples in the given graphs.
@@ -54,7 +73,7 @@ rdf_materialize(Graphs, TMS):-
 
   % Merge the graphs.
   rdf_graph_merge(Graphs, MergedGraph),
-gtrace,
+  
   % Create an assumption node for each triple in the merged graph;
   % and assert a new triple, connecting it to the node via the node ID.
   forall(
@@ -64,6 +83,7 @@ gtrace,
       rdf_axiom(S, P, O)
     ),
     (
+      (rdf_global_id(cp:'WouterBeek', S) -> gtrace ; true), %DEB
       rdf_triple_naming(S, P, O, TripleName),
       doyle_add_node(TMS, TripleName, Node),
       doyle_add_justification(TMS, [], [], 'Assumption', Node, _),
@@ -246,9 +266,10 @@ rdf_rule(X, rdf:type, rdf:'Property', TMS, [Node], [], Label):-
     'Terms that occur in the predicate position are instances of\c
      rdf:Property.'.
 % [RDF-2] XML literals are instances of =|rdf:'XMLLiteral'|=.
-rdf_rule(Lit, rdf:type, rdf:'XMLLiteral', TMS, [Node], [], Label):-
+rdf_rule(BNode, rdf:type, rdf:'XMLLiteral', TMS, [Node], [], Label):-
   rdf_global_id(rdf:'XMLLiteral', Type),
   rdf_node(_, _, literal(type(Type, Lit)), TMS, Node),
+  bnode_literal_map(BNode, Lit),
   Label = 'XML literals are instances of rdf:XMLLiteral.'.
 
 rdf_tms(S, P, O):-

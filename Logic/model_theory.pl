@@ -7,9 +7,6 @@
                     % +Objects:list(atom)
     clear_model/0,
     domain/1, % ?Object:atom
-    f/3, % ?Arity:integer
-         % ?Term:atom
-         % ?Objects:list(atom)
     print_model/0,
     satisfy/1, % ?Sentence:compound
     satisfy/3 % ?Expression:compound

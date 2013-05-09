@@ -19,6 +19,21 @@
                             % +Attributes:list(nvpair)
                             % -ParsedAttributes:list(nvassignment)
 
+% SPECIFIC SHAPES
+    circle/6, % +Options:list(nvpair)
+              % +X0:number
+              % +Y0:number
+              % +R:number
+              % +Tooltip:atom
+              % -Circle:element
+    line/7, % +Options:list(nvpair)
+            % +X1:number
+            % +Y1:number
+            % +X2:number
+            % +Y2:number
+            % +Tooltip:atom
+            % -Line:element
+
 % SVG COLOR SPACE
     svg_color/2, % ?Color:atom
                  % ?RGB:rgb
@@ -39,7 +54,7 @@ A compound term =rgb(Red, Green, Blue)=, where the three color parts are
 represent by an integer between 0 and 255 (inclusive).
 
 @author Wouter Beek
-@version 2012/10, 2013/01-2013/04
+@version 2012/10, 2013/01-2013/05
 */
 
 :- use_module(generics(db_ext)).
@@ -337,6 +352,20 @@ type_check(Type, Value):-
   atom_codes(Value, ValueCodes),
   call(Type, ValueCodes-[]),
   !.
+
+
+
+% SPECIFIC SHAPES %
+
+circle(Options, X0, Y0, R, Tooltip, Element):-
+  Attributes = [cx(X0), cy(Y0), r(R) | Options],
+  parse_attributes_svg(circle, Attributes, ParsedAttributes),
+  Element = element(circle, ParsedAttributes, [Tooltip]).
+
+line(Options, X1, Y1, X2, Y2, Tooltip, Element):-
+  Attributes = [x1(X1), y1(Y1), x2(X2), y2(Y2) | Options],
+  parse_attributes_svg(line, Attributes, ParsedAttributes),
+  Element = element(line, ParsedAttributes, [Tooltip]).
 
 
 

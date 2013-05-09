@@ -17,7 +17,7 @@
 :- use_module(standards(ascii)).
 
 :- dynamic(doc(_Doc)).
-:- dynamic(word(_Word, _Sum, _Docs)).
+:- dynamic(word0(_Word, _Sum, _Docs)).
 
 :- debug(tc).
 
@@ -25,7 +25,7 @@
 
 clean:-
   retractall(doc(_Doc)),
-  retractall(word(_Word, _Sum, _Docs)),
+  retractall(word0(_Word, _Sum, _Docs)),
   flag(ex, _Examples, 0),
   flag(neg, _NegativeExamples, 0),
   flag(pos, _PositiveExamples, 0),
@@ -53,7 +53,7 @@ doc_to_vec(Doc, Vec):-
   setoff(
     Word-Occur,
     (
-      word(Word, _Sum, Docs),
+      word0(Word, _Sum, Docs),
       (
         memberchk(Doc-Occur, Docs)
       ->
@@ -66,7 +66,7 @@ doc_to_vec(Doc, Vec):-
   ).
 
 document_frequency(Term, DF):-
-  word(Term, _Sum, Docs),
+  word0(Term, _Sum, Docs),
   !,
   length(Docs, DF).
 
@@ -116,7 +116,7 @@ print_vec0(Stream, Word-Occur):-
   format(Stream, '\t~w\t~w\n', [Word, Occur]).
 
 store_word(Doc, Word):-
-  retract(word(Word, Sum, Docs)),
+  retract(word0(Word, Sum, Docs)),
   !,
   succ(Sum, NewSum),
   (
@@ -127,12 +127,12 @@ store_word(Doc, Word):-
   ;
     ord_add_element(Docs, Doc-1, NewDocs)
   ),
-  assert(word(Word, NewSum, NewDocs)).
+  assert(word0(Word, NewSum, NewDocs)).
 store_word(Doc, Word):-
-  assert(word(Word, 1, [Doc-1])).
+  assert(word0(Word, 1, [Doc-1])).
 
 term_in_doc(Term, Doc, Occur):-
-  word(Term, _Sum, Docs),
+  word0(Term, _Sum, Docs),
   memberchk(Doc-Occur, Docs),
   !.
 term_in_doc(_Term, _Doc, 0).
@@ -142,7 +142,7 @@ test:-
   load_examples,
   print_docs(user),
   forall(
-    word(Term, _Sum, _Docs),
+    word0(Term, _Sum, _Docs),
     forall(
       doc(Doc),
       (

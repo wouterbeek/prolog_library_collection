@@ -65,8 +65,8 @@ expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)):-
 
 %% rdf_meta_expand_all(
 %%   +ArgumentTypes,
-%%   +OriginalArguments
-%%   -NewArguments
+%%   +OriginalArguments,
+%%   -NewArguments,
 %%   -Expansions
 %% )
 % For each argument in OriginalArgument that 

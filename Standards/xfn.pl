@@ -3,7 +3,7 @@
 /** <module> XFN
 
 @author Wouter Beek
-@version 2012/07
+@version 2012/07, 2013/05
 */
 
 :- use_module(generics(file_ext)).
@@ -12,6 +12,9 @@
 :- use_module(rdf(rdf_read)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_read)).
+:- use_module(xml(xml_namespace)).
+
+:- xml_register_namespace(xfn, 'http://vocab.sindice.com/xfn#').
 
 
 

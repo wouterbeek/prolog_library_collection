@@ -73,7 +73,7 @@ cowsay(Text, Cow):-
       '  |\n',
       '  |\n',
       '  |  ^__^\n',
-      '   - (oo)______\n', %(
+      '   - (oo)______\n',
       '     (__)      )/|/\n',
       '       ||----w||\n',
       '      ||       ||'
@@ -99,5 +99,5 @@ cowsay_web(
 speech(Text):-
   process_create(path(espeak), [Text], []).
 speech(_Text):-
-  debug(cowspeak, 'The cow's speech cannot be played on the running OS.', []).
+  debug(cowspeak, 'The cow\'s speech cannot be played on the running OS.', []).
 

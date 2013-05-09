@@ -1,7 +1,7 @@
-module(
+:- module(
   dc,
   [
-    dc_cass/1, % ?Class:uri
+    dc_class/1, % ?Class:uri
     dc_namespace/2, % ?Prefix:atom
                     % ?URI:uri
     dc_property/2, % ?Property:uri
@@ -25,32 +25,33 @@ Support for the Dublin Core vocabulary.
 :- rdf_meta(dc_class(r,r)).
 :- rdf_meta(dc_property(r,r)).
 
-:- xml_register_namespace(dc, 'http://purl.org/dc/terms/').
+:- xml_register_namespace(dc, 'http://purl.org/dc/elements/1.1/').
+:- xml_register_namespace(dcterms, 'http://purl.org/dc/terms/').
 :- xml_register_namespace(xsd, 'http://www.w3.org/2001/XMLSchema#').
 
 
 
-dc_class(dc:'Organization').
-dc_class(dc:'Person').
+dc_class(dcterms:'Organization').
+dc_class(dcterms:'Person').
 
 dc_namespace(dc, 'http://purl.org/dc/terms/').
 
-dc_property(dc:contributor, uri     ).
-dc_property(dc:created,     xsd:date).
-dc_property(dc:creator,     uri     ).
-dc_property(dc:date,        xsd:date).
-dc_property(dc:description, literal ).
-dc_property(dc:issued,      xsd:date).
-dc_property(dc:license,     oneof(Licenses)):-
+dc_property(dcterms:contributor, uri).
+dc_property(dcterms:created, xsd:date).
+dc_property(dcterms:creator, uri).
+dc_property(dcterms:date, xsd:date).
+dc_property(dcterms:description, literal).
+dc_property(dcterms:issued, xsd:date).
+dc_property(dcterms:license, oneof(Licenses)):-
   findall(
     URI,
-    license(Name, URI),
+    license(_Name, URI),
     Licenses
   ).
-dc_property(dc:modified, xsd:date).
-dc_property(dc:publisher, uri).
-dc_property(dc:source, uri).
-dc_property(dc:title, literal).
+dc_property(dcterms:modified, xsd:date).
+dc_property(dcterms:publisher, uri).
+dc_property(dcterms:source, uri).
+dc_property(dcterms:title, literal).
 
 license(cc0,      'http://creativecommons.org/publicdomain/zero/1.0/').
 license(odc_by,   'http://www.opendatacommons.org/licenses/by/'      ).

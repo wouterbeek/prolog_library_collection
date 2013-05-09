@@ -60,8 +60,10 @@ WHERE
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(owl(owl_build)).
+:- use_module(owl(owl_read)).
 :- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
@@ -88,7 +90,6 @@ WHERE
 :- rdf_meta(assert_resource(r,+)).
 :- rdf_meta(describe_resource(r,-)).
 :- rdf_meta(find_dbpedia_agent(+,+,+,r)).
-:- rdf_meta(link_to_dbpedia_agent(+,r)).
 
 :- register_sparql_remote(dbpedia, 'dbpedia.org', default, '/sparql').
 
@@ -169,20 +170,6 @@ find_dbpedia_agent(Name, Birth, Death, DBpediaAuthor):-
   ;
     first(Resources, row(DBpediaAuthor))
   ).
-
-link_to_dbpedia_agents(Graph):-
-  setoff(
-    Agent,
-    (
-      rdfs_individual_of(Agent, foaf:'Agent'),
-      rdf_subject(Graph, Agent)
-    ),
-    Agents
-  ),
-  run_on_sublists(Agents, link_to_dbpedia_agents(Graph)).
-
-link_to_dbpedia_agents(Graph, Agents):-
-  maplist(link_to_dbpedia_agent(Graph), Agents).
 
 /*
 load:-

@@ -80,6 +80,8 @@ Q: How should option =|base_uri(+URI)|= for =|rdf_load/2|= be used?
 :- use_module(generics(db_ext)).
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(owl(owl_entailment)).
 :- use_module(rdf(rdf_graph)).
 :- use_module(rdf(rdf_read)).
@@ -124,7 +126,7 @@ run_tests:-
           test:'PositiveParserTest'
         ]
       ),
-      owl_entailment:rdfs_individual_of(Test, TestClass)
+      rdfs_individual_of(Test, TestClass)
     ),
     run_test(Test)
   ).
@@ -173,9 +175,9 @@ run_test0(Test, Status):-
 % load the 'RDF graph'.
 run_test0(Test, 'PASS'):-
   (
-    owl_entailment:rdfs_individual_of(Test, test:'MiscellaneousTest')
+    rdfs_individual_of(Test, test:'MiscellaneousTest')
   ;
-    owl_entailment:rdfs_individual_of(Test, test:'NegativeParserTest')
+    rdfs_individual_of(Test, test:'NegativeParserTest')
   ),
 
   % Load the document.
@@ -194,7 +196,7 @@ run_test0(Test, 'PASS'):-
   ),
   !.
 run_test0(Test, 'SKIPPED'):-
-  owl_entailment:rdfs_individual_of(Test, test:'NegativeEntailmentTest'),
+  rdfs_individual_of(Test, test:'NegativeEntailmentTest'),
   !,
   true.
 /*
@@ -206,7 +208,7 @@ run_test0(Test, 'SKIPPED'):-
 */
 % A test with an input and an output document.
 run_test0(Test, 'PASS'):-
-  owl_entailment:rdfs_individual_of(Test, test:'PositiveEntailmentTest'),
+  rdfs_individual_of(Test, test:'PositiveEntailmentTest'),
 gtrace,
   
   % The premise graph.
@@ -215,7 +217,7 @@ gtrace,
   rdf_load2(Premise_File, premise, [base_uri(Premise_URI)]),
   
   % Run materialization.
-  materialize(premise),
+  rdf_materialize(premise),
   
   % The conclusion graph.
   % This is loaded after materialization (which cannot be restricted to
@@ -225,7 +227,7 @@ gtrace,
     rdf_is_bnode(Conclusion_URI)
   ->
     % The premise graph must be inconsistent.
-    inconsistent(premise)
+    rdfs_inconsistent(premise)
   ;
     uri_to_file(Conclusion_URI, Conclusion_File),
     rdf_load2(Conclusion_File, conclusion, [base_uri(Conclusion_URI)]),
@@ -235,7 +237,7 @@ gtrace,
   ),
   !.
 run_test0(Test, 'PASS'):-
-  owl_entailment:rdfs_individual_of(Test, test:'PositiveParserTest'),
+  rdfs_individual_of(Test, test:'PositiveParserTest'),
 
   % The input graph.
   rdf(Test, test:inputDocument, Input_URI),

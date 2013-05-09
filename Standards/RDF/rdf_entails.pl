@@ -33,7 +33,7 @@ Entailment regime for RDF(S) and OWL.
 @version 2013/01
 */
 
-:- use_module(generics(proof), [proof/3 as proof_print]).
+:- use_module(generics(print_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdfs(rdfs_read)).
@@ -194,5 +194,5 @@ rdf_entails_dev(S, P, O, G):-
 rdf_entails_dev(S, P, O, G, MaxD):-
   rdf_entails(S, P, O, G, MaxD, D, Proof),
   debug(proof, '~w', [Proof]),
-  proof_print(user, [depth(D), indent(0), max_depth(MaxD)], [Proof]).
+  print_proof(user, [depth(D), indent(0), max_depth(MaxD)], [Proof]).
 

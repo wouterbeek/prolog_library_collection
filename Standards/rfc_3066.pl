@@ -15,13 +15,13 @@
 */
 
 :- use_module(generics(parse_ext)).
-:- use_module(standards(iso_639_1), [language/2 as language_iso_639_1]).
-:- use_module(standards(iso_639_2), [language/2 as language_iso_639_2]).
+:- use_module(iso(iso_639_1)).
+:- use_module(iso(iso_639_2)).
 
 
 
 language_tag(O1, Primary, Secondary, C1-C0):-
-  merge_options([case(lower), out(atom), q(Length)], O1, O2),
+  merge_options([case(lower), out(atom)], O1, O2),
   language_tag0(O2, Primary, C1-C2),
   language_tags(O2, Secondary, C2-C0).
 
@@ -32,12 +32,12 @@ language_tag0(O1, Tag, C1-C0):-
     % Length-2 codes must be ISO 639-1.
     Length == 2
   ->
-    language_iso_639_1(Tag, _URI1)
+    iso_639_1_language(Tag, _URI1)
   ;
     % Length-3 codes must be ISO 639-2.
     Length == 3
   ->
-    language_iso_639_2(Tag, _URI2)
+    iso_639_2_language(Tag, _URI2)
   ;
     true
   ).

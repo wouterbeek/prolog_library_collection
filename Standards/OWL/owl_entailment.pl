@@ -1,10 +1,9 @@
 :- module(
   owl_entailment,
   [
-    inconsistent/1, % +Graph:atom
-    materialize/0,
-    materialize/1, % +Graph:atom
-    rdfm/3
+    owl_inconsistent/1, % +Graph:atom
+    owl_materialize/0,
+    owl_materialize/1 % +Graph:atom
   ]
 ).
 
@@ -26,7 +25,7 @@ This entailment module does RDFS entailment.
 :- use_module(library(nb_set)).
 :- use_module(library(semweb/rdf_db)).
 
-:- rdf_meta(rdfm(o,o,o)).
+:- rdf_meta(owl_rdfm(o,o,o)).
 :- rdf_meta(individual_of(r,r)).
 :- rdf_meta(rdfs_individual_of(r,r)).
 :- rdf_meta(rdfs_subclass_of(r,r)).
@@ -36,18 +35,18 @@ This entailment module does RDFS entailment.
 
 
 
-inconsistent(Graph):-
+owl_inconsistent(Graph):-
   rdf_graph(Graph),
   fail.
 
-materialize:-
+owl_materialize:-
   materialize0(Triples),
   forall(
     member([S, P, O], Triples),
     rdf_assert(S, P, O)
   ).
 
-materialize(Graph):-
+owl_materialize(Graph):-
   rdf_graph(Graph),
   materialize0(Triples),
   forall(

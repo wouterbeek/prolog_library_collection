@@ -1,8 +1,8 @@
 :- module(
   iso_639_5,
   [
-    language_family/2 % ?ISO:atom
-                      % ?Lexvo:uri
+    iso_639_5_language_family/2 % ?ISO:atom
+                                % ?Lexvo:uri
   ]
 ).
 
@@ -18,14 +18,14 @@ WWW: [http://www.loc.gov/standards/iso639-5/]
 
 
 
-%% language_family(?ISO:atom, ?Lexvo:uri) is nondet.
+%% iso_639_5_language_family(?ISO:atom, ?Lexvo:uri) is nondet.
 
-language_family(ISO, Lexvo):-
+iso_639_5_language_family(ISO, Lexvo):-
   maplist(var, [ISO, Lexvo]),
   !,
   language_family0(ISO, _Name, Lexvo).
 % All mappings are unique.
-language_family(ISO, Lexvo):-
+iso_639_5_language_family(ISO, Lexvo):-
   language_family0(ISO, _Name, Lexvo),
   !.
 

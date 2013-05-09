@@ -38,15 +38,15 @@ A directed graph, see [dgraph.pl].
 An undirected graph, see [udgraph_ext.pl].
 
 @author Wouter Beek
-@version 2012/10, 2012/12-2013/01
+@version 2012/10, 2012/12-2013/01, 2013/05
 @tbd Integrate this with GRAPH_EXPORT.
 */
 
 :- use_module(graph_theory(graph_export)).
 :- use_module(graph_theory(graph_generic)).
-:- use_module(graph_theory(spring_embedding)).
 :- use_module(server(error_web)).
 :- use_module(standards(standards)).
+:- use_module(svg(svg)).
 
 
 
@@ -64,13 +64,13 @@ bipartite_web(UGraph, [SVG_Root, element(p, [], [AtomicG])]):-
   Line1X is X_Border,
   Line1Y1 is Y_Border,
   Line1Y2 is Height - Y_Border,
-  line(Line1X, Line1Y1, Line1X, Line1Y2, '', Line1),
+  line([], Line1X, Line1Y1, Line1X, Line1Y2, '', Line1),
 
   % The line for S2.
   Line2X is Width - X_Border,
   Line2Y1 is Y_Border,
   Line2Y2 is Height - Y_Border,
-  line(Line2X, Line2Y1, Line2X, Line2Y2, '', Line2),
+  line([], Line2X, Line2Y1, Line2X, Line2Y2, '', Line2),
 
   length(S1, LengthS1),
   Distance1 is (Height - 2 * Y_Border) / (LengthS1 - 1),
@@ -79,7 +79,7 @@ bipartite_web(UGraph, [SVG_Root, element(p, [], [AtomicG])]):-
     (
       nth0(I1, S1, _V1),
       Y1 is Y_Border + Distance1 * I1,
-      circle(Line1X, Y1, VerticeRadius, '', S1Circle)
+      circle([], Line1X, Y1, VerticeRadius, '', S1Circle)
     ),
     S1Circles
   ),
@@ -91,21 +91,21 @@ bipartite_web(UGraph, [SVG_Root, element(p, [], [AtomicG])]):-
     (
       nth0(I2, S2, _V2),
       Y2 is Y_Border + Distance2 * I2,
-      circle(Line2X, Y2, VerticeRadius, '', S2Circle)
+      circle([], Line2X, Y2, VerticeRadius, '', S2Circle)
     ),
     S2Circles
   ),
 
   edges1(UGraph, EG),
   findall(
-    Line,
+    EdgeLine,
     (
       nth0(I1, S1, Vertice1),
       member(Vertice1-Vertice2, EG),
       nth0(I2, S2, Vertice2),
       Y1 is Y_Border + Distance1 * I1,
       Y2 is Y_Border + Distance2 * I2,
-      line(Line1X, Y1, Line2X, Y2, '', Line)
+      line([], Line1X, Y1, Line2X, Y2, '', EdgeLine)
     ),
     EdgeLines
   ),

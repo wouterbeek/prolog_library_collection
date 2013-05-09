@@ -47,7 +47,7 @@ Bad to the bone but fine as wine
 @version 2012/10
 */
 
-:- use_module(generics(atom_ext), [replace/3 as replace_atom]).
+:- use_module(generics(atom_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(uri)).
@@ -106,7 +106,7 @@ google_tts(Encoding, Language, Query, URI):-
 %%%%  % But Google translate uses plusses.
 %%%%  uri_normalized(Query, NormalizedQuery),
   % Replace spaces with '+'-es.
-  replace_atom(Query, [' '-'+'], NormalizedQuery),
+  atom_replace(Query, [' '-'+'], NormalizedQuery),
 
   % Create the search components for the URI.
 %%%%  % The swipl builtin uri_query_components/3 turns spaces and
@@ -154,7 +154,7 @@ load:-
 microsoft_translate(From, To, Query, URI):-
   microsoft_app_id(AppID),
   % Replace spaces with '+'-es.
-  replace_atom(Query, [' '-'+'], NormalizedQuery),
+  atom_replace(Query, [' '-'+'], NormalizedQuery),
   format(
     atom(Search),
     'oncomplete=doneCallback&appId=~w&from=~w&to=~w&text=~w',

@@ -207,6 +207,9 @@ image(S, G, ImgX):-
     ImgX
   ).
 
+% @tbd
+inverse(X, X).
+
 %% pair(+R:binary_relation, ?Pair:list) is nondet.
 % Pairs in a binary relation. Both for checking and for generating.
 %
@@ -215,6 +218,9 @@ image(S, G, ImgX):-
 
 pair(R, X-Y):-
   member(X-Y, R).
+
+% @tbd
+preimage(X, X).
 
 %% quotient_set(+S:ord_set, +EqR:binary_relation, -QuotS:ord_set) is det.
 % Returns the quotient set for =S= under equivalence relation =EqR=.

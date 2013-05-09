@@ -1,8 +1,8 @@
 :- module(
   iso_3166_1,
   [
-    country/2 % ?Country:atom
-              % ?Code:atom
+    iso_3166_1_country/2 % ?Country:atom
+                         % ?Code:atom
   ]
 ).
 
@@ -16,13 +16,13 @@ Suopport for the ISO 3166-1 country code standard.
 
 
 
-%% country(?Code:atom, ?Country:atom) is nondet.
+%% iso_3166_1_country(?Code:atom, ?Country:atom) is nondet.
 
-country(Code, Country):-
+iso_3166_1_country(Code, Country):-
   maplist(var, [Code, Country]),
   !,
   country0(Code, _Name, Country).
-country(Code, Country):-
+iso_3166_1_country(Code, Country):-
   country0(Code, _Name, Country),
   !.
 
