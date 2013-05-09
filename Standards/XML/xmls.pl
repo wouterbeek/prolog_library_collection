@@ -156,7 +156,7 @@ xmls_datatype0(string, String, xsd:string, Atom):-
   (
     nonvar(String)
   ->
-    term_atom(String, Atom)
+    term_to_atom(String, Atom)
   ;
     nonvar(Atom)
   ->

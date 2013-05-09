@@ -15,6 +15,9 @@
 
 An association list with multiple values per keys, using ordered sets.
 
+This extends library assoc by overloading get_assoc/3 and put_assoc/4,
+and by adding ord_member/2.
+
 @author Wouter Beek
 @version 2013/04
 */
@@ -41,10 +44,12 @@ ord_member(Value, Ordset):-
 
 %% put_assoc(+Key, +OldAssoc, +Value, ?NewAssoc) is semidet.
 
+% Put the given value into the existing ordset.
 put_assoc(Key, OldAssoc, Value, NewAssoc):-
   assoc:get_assoc(Key, OldAssoc, OldOrdset),
   !,
   ord_add_element(OldOrdset, Value, NewOrdset),
   assoc:put_assoc(Key, OldAssoc, NewOrdset, NewAssoc).
+% Create a new ordset.
 put_assoc(Key, OldAssoc, Value, NewAssoc):-
   assoc:put_assoc(Key, OldAssoc, [Value], NewAssoc).

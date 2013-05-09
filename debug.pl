@@ -3,6 +3,11 @@
 % Do not write module loads to the standard output stream.
 :- set_prolog_flag(verbose_load, silent).
 
+%% load_modules_for_pldoc is det.
+% Loads all modules in PGC for debugging purposes:
+%   1. Early catching of errors.
+%   2. Fully browsable plDoc.
+
 load_modules_for_pldoc:-
   forall(
     member(
@@ -44,9 +49,9 @@ load_modules_for_pldoc:-
 http:location(pldoc, root(help), [priority(10)]).
 
 :- use_module(library(pldoc)).
-:- use_module(library(www_browser)).
 :- doc_server(2222, [edit(true)]).
 
+%:- use_module(library(www_browser)).
 %:- http_handler(help(.), documentation, []).
 %documentation(_Resource):-
 %  www_open_url('localhost:2222').

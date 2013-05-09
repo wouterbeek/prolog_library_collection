@@ -401,7 +401,7 @@ rdf_vertex_naming(Options, Vertex, Name):-
     )
   ;
     % If all else fails...
-    term_atom(Vertex, Name1)
+    term_to_atom(Vertex, Name1)
   ),
   % Then come the literals, but only if these are set to be collapsed into
   % the (directly) related vertex.

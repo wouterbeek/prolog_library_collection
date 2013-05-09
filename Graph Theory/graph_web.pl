@@ -159,7 +159,7 @@ table_graph_web(Graph, html/wallace/[TableElement]):-
 % @param Markup
 
 vertex_web(Graph, Vertex0, SVG):-
-  term_atom(Vertex0, Vertice1),
+  term_to_atom(Vertex0, Vertice1),
   rdf_global_id(Graph:Vertice1, Vertex),
   vertex_to_dom(
     [

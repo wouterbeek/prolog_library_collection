@@ -7,16 +7,16 @@ The generics collection for SWI-Prolog as maintained and used by me in various s
 ---+ Subcollections
 
 This repository consists of the following subcollections:
-* Datasets
-* Generics
-** Graph theory
-** Math
-** RDF
-** RDFS
-** SPARQL
-* Standards
-** DTD
-* Vocabularies
+    * Datasets
+    * Generics
+        * Graph theory
+        * Math
+        * RDF
+        * RDFS
+        * SPARQL
+    * Standards
+        * DTD
+    * Vocabularies
 
 ---+ Git commands to include this repository in others
 
@@ -30,3 +30,4 @@ git merge generics/master
 
 Predicates that can be reused in many contexts. This includes
 extensions to SWI-Prolog, or to one of the standard Prolog libraries.
+
