@@ -139,4 +139,3 @@ thread_success(ThreadAlias):-
     end_flag(ThreadAlias, ID),
     thread_end(ThreadAlias)
   ).
-

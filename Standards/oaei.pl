@@ -126,13 +126,13 @@ Mismatch types:
 :- xml_register_namespace(align, 'http://knowledgeweb.semanticweb.org/heterogeneity/alignment#').
 
 % Assert the used file types.
-:- assert_novel(user:prolog_file_type(owl, owl)).
+:- db_add_novel(user:prolog_file_type(owl, owl)).
 
 % Assert the file search paths.
-:- assert_novel(user:file_search_path(alignment2, data(alignment2))).
-:- assert_novel(user:file_search_path(mapping2, alignment2(alignment))).
-:- assert_novel(user:file_search_path(ontology2, alignment2(ontology))).
-:- assert_novel(user:file_search_path(reference2, alignment2(reference))).
+:- db_add_novel(user:file_search_path(alignment2, data(alignment2))).
+:- db_add_novel(user:file_search_path(mapping2, alignment2(alignment))).
+:- db_add_novel(user:file_search_path(ontology2, alignment2(ontology))).
+:- db_add_novel(user:file_search_path(reference2, alignment2(reference))).
 
 
 

@@ -3,20 +3,20 @@
   [
     test/2, % +Goal:term
             % +Stream
-    test/3, % +Goal:term
-            % +TestDescription:atom
-            % +Stream
-    write_attribute_value_pair/3 % +Stream
-                                 % +Attribute:atom
-                                 % +Value:atom
+    test/3 % +Goal:term
+           % +TestDescription:atom
+           % +Stream
   ]
 ).
 
-/** <module> Extensions for debugging and running in debug mode.
+/** <module> DEB_EXT
+
+Extensions for debugging and running in debug mode.
 
 Methods that are used while developing and inspecting code.
 
 @author Wouter Beek
+@tbd Test this module.
 @version 2011/11-2012/07, 2012/09
 */
 
@@ -63,15 +63,3 @@ test(Goal, TestName, Stream):-
     [TestName, Status, DeltaTime]
   ),
   flush_output(Stream).
-
-%% write_attribute_value_pair(+Stream, +Attribute:term, +Value:term) is det.
-% Writes and attribute/value-pair to the given stream.
-%
-% @param Stream A stream.
-% @param Attribute A term.
-% @param Value A term.
-
-write_attribute_value_pair(Stream, Attribute, Value):-
-  format(Stream, '~w = ~w\n', [Attribute, Value]),
-  flush_output(Stream).
-

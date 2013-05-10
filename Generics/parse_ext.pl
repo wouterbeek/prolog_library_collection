@@ -1,39 +1,36 @@
 :- module(
   parse_ext,
   [
-    any/3, % +O1:list(nvpair)
-           % ?R:dashpair
-           % ?C:dashpair
-    atom/2, % ?Atom:atom
-            % ?C:dashpair
-    char/2, % +P:atom
-            % ?C:dashpair
-    char/3, % +P:atom
-            % ?R:char
-            % ?C:dashpair
+    parse_atom/2, % ?Atom:atom
+                  % ?C:dlist
+    parse_char/2, % :P
+                  % ?C:dlist
+    parse_char/3, % :P
+                  % ?R:char
+                  % ?C:dlist
     contains/3, % +O:list(nvpair)
                 % +Ps:list(atom)
-                % +C:dashpair
-    discard/1, % ?C:dashpair
+                % +C:dlist
+    discard/1, % ?C:dlist
     discard_until/2, % +Atom:atom
-                     % ?C:dashpair
+                     % ?C:dlist
     exponent/3,
     integer/2, % ?Integer:integer
-               % ?C:dashpair
+               % ?C:dlist
     parse_date/2, % ?Year:integer
-                  % ?C:dashpair
+                  % ?C:dlist
     parse_date/3, % ?Begin:integer
                   % ?End:integer
-                  % ?C:dashpair
+                  % ?C:dlist
     parse_word/2, % ?Word:atom
-                  % ?C:dashpair
+                  % ?C:dlist
     parse_words/2, % ?Words:list(atom)
-                   % ?C:dashpair
-    re/3, % +O1:list(nvpair)
-          % +Ps:list(atom)
-    re/4 % +O1:list(nvpair)
-         % +Ps:list(atom)
-         % -Result:list(integer)
+                   % ?C:dlist
+    parse_re/3, % +O1:list(nvpair)
+                % +Ps:list(atom)
+    parse_re/4 % +O1:list(nvpair)
+               % +Ps:list(atom)
+               % -Result:list(integer)
   ]
 ).
 
@@ -96,29 +93,59 @@ we can define subcategory dependence/independence by choosing either =r_0= or
 a subset of \{ r_1, \ldots, r_n \}.
 
 @author Wouter Beek
-@version 2013/01-2013/03
+@version 2013/01-2013/03, 2013/05
 */
 
 :- use_module(standards(ascii)). % Used for meta-predicates.
 
 
 
-atom(Atom, C1-C0):-
+%% parse_atom(+Atom:atom, +Codes:dlist) is semidet.
+%% parse_atom(+Atom, -Codes:dlist) is det.
+%% parse_atom(-Atom, +Codes:dlist) is det.
+% Parsing atoms in a case-sensitive way.
+
+parse_atom(Atom, C1-C0):-
   nonvar(Atom),
   !,
-  atom_codes(Atom, Codes),
-  length(Codes, Length),
-  re([case(sensitive), q(Length)], [any], Codes-[], C1-C0).
-atom(Atom, C1-C0):-
+  once((
+    atom_codes(Atom, Codes),
+    length(Codes, Length),
+    parse_re([case(sensitive), q(Length)], [any], Codes-[], C1-C0)
+  )).
+% Since a code sequences can be read as an atom in multiple ways,
+parse_atom(Atom, C1-C0):-
   var(Atom),
   !,
-  re([case(sensitive), out(atom), q('*')], [any], Atom, C1-C0).
+  once(parse_re([case(sensitive), out(atom), q('*')], [any], Atom, C1-C0)).
 
-char(P, C1-C0):-
-  char(P, _R, C1-C0).
+%% parse_char(:P, +C:dlist) is semidet.
+%% parse_char(:P, -C:dlist) is nondet.
+% @see A wrapper for char/3.
 
-char(P, R, C1-C0):-
-  re([case(sensitive), out(char), q(1)], P, R, C1-C0).
+parse_char(P, C1-C0):-
+  parse_char(P, _R, C1-C0).
+
+%% parse_char(:P, ?R, +C:dlist) is semidet.
+%% parse_char(:P, ?R, -C:dlist) is nondet.
+% Parsing characters by one of their descriptive names.
+%
+% @param P A public predicate from module ASCII.
+% @param R An atomic character value; the result of the parse.
+% @param C A difference list of codes.
+%
+% The nondet case can generate alternative parses, e.g.:
+% ==
+% ?- char(a, X, [Y]-[]).
+% X = a,
+% Y = 97 ;
+% X = 'A',
+% Y = 65 ;
+% false.
+% ==
+
+parse_char(P, R, C1-C0):-
+  parse_re([case(sensitive), out(char), q(1)], P, R, C1-C0).
 
 contains(_O, _Ps, []-_Co):-
   !,
@@ -160,77 +187,78 @@ discard_until(Codes, [_ | C1]-C0):-
   discard_until(Codes, C1-C0).
 
 epoch('BC', C1-C0):-
-  char(v_lowercase, C1-C2),
-  re([q('?')], white, C2-C3),
-  char(dot, C3-C4),
-  re([q('?')], white, C4-C5),
-  atom('Chr', C5-C0).
+  parse_char(v_lowercase, C1-C2),
+  parse_re([q('?')], white, C2-C3),
+  parse_char(dot, C3-C4),
+  parse_re([q('?')], white, C4-C5),
+  parse_atom('Chr', C5-C0).
 epoch('AD', C-C).
 
 exponent(O1, R1-R0, C1-C0):-
   merge_options([q(1)], O1, O2),
-  re(O2, exponent_sign, R1-R2, C1-C2),
+  parse_re(O2, exponent_sign, R1-R2, C1-C2),
   merge_options([q('+')], O1, O3),
-  re(O3, digit, R2-R0, C2-C0).
+  parse_re(O3, digit, R2-R0, C2-C0).
 
 integer(Integer, C1-C0):-
   nonvar(Integer),
   !,
   number_codes(Integer, Codes),
   length(Codes, Length),
-  re([q(Length)], [decimal_digit], Codes-[], C1-C0).
+  parse_re([q(Length)], [decimal_digit], Codes-[], C1-C0).
 integer(Integer, C1-C0):-
   var(Integer),
   !,
-  re([out(number), q('+')], [decimal_digit], Integer, C1-C0).
+  parse_re([out(number), q('+')], [decimal_digit], Integer, C1-C0).
 
 % Point
 parse_date(Year, C1-C0):-
-  re([out(number), q(4)], decimal_digit, Year, C1-C0).
+  parse_re([out(number), q(4)], decimal_digit, Year, C1-C0).
 
 % Interval
 parse_date(Begin, End, C1-C0):-
-  re([out(number), q(4)], decimal_digit, Begin0, C1-C2),
-  char(hyphen, C2-C3),
-  re([out(number), q(4)], decimal_digit, End0, C3-C4),
+  parse_re([out(number), q(4)], decimal_digit, Begin0, C1-C2),
+  parse_char(hyphen, C2-C3),
+  parse_re([out(number), q(4)], decimal_digit, End0, C3-C4),
   epoch(Epoch, C4-C0),
   convert_epoch(Begin0, Epoch, Begin),
   convert_epoch(End0, Epoch, End).
 
 parse_word(Word, C1-C0):-
-  re([q('*'), out(atom)], letter, Word, C1-C2),
-  re([q('?')], dot, C2-C3),
-  char(end_of_word, C3-C0),
+  parse_re([q('*'), out(atom)], letter, Word, C1-C2),
+  parse_re([q('?')], dot, C2-C3),
+  parse_char(end_of_word, C3-C0),
   !.
 
 parse_words([Word | Words], C1-C0):-
   parse_word(Word, C1-C2),
-  re([q('?')], space, C2-C3),
+  parse_re([q('?')], space, C2-C3),
   !,
   parse_words(Words, C3-C0).
 parse_words([Word], C1-C0):-
   parse_word(Word, C1-C0).
 parse_words([], C-C).
 
-%% re(+O1:list(nvpair), +Ps:list(atom), ?C:dashpair(list))
-% @see re/4
+%% parse_re(+O1:list(nvpair), +Ps:list(atom), ?C:dlist(list))
+% @see Wrapper for parse_re/4.
 
-re(O1, Ps, C):-
+parse_re(O1, Ps, C):-
   nonvar(Ps),
-  re(O1, Ps, _R, C).
+  parse_re(O1, Ps, _R, C).
 
-%% re(+O1:list(nvpair), +Ps:list(atom), ?R, ?C)
+%% parse_re(+O1:list(nvpair), +Ps:list(atom), ?R, ?C)
 % @param O1 A list of name-value pairs. The following options are
 %        supported:
-%        1. =|case(oneof([insensitive,lower,sensitive,upper])|=
-%           Case-sensitivity is used for the =letter= DCG.
-%        2. =|in(oneof([atom,codes,number]))|=
-%        3. =|lang(oneof([c,xml]))|= Special language support.
-%        4. =|out(oneof([atom,codes,number]))|=
-%        5. =|q(or([integer,oneof(['?','+','*'])]))|=
-%           Regular expression quantification.
-%        6. =|replace(From:atom,To:atom)|= Replacements on the level of single
-%           codes.
+%        * =|case(oneof([insensitive,lower,sensitive,upper])|=
+%        Case-sensitivity is used for the =letter= DCG.
+%        * =|in(oneof([atom,codes,number]))|=
+%        * =|lang(oneof([c,xml]))|=
+%        Special language support.
+%        * =|out(oneof([atom,codes,number]))|=
+%        * =|q(or([integer,oneof(['?','+','*'])]))|=
+%        Regular expression quantification.
+%        * =|replace(From:atom,To:atom)|=
+%        Replacements on the level of single codes.
 % @param Ps A list of atomic names of //0 DCG production rules.
 %        If the input is not a list, then a singleton list holding this
 %        input is created.
@@ -239,55 +267,56 @@ re(O1, Ps, C):-
 %        option, defaults to =codes=.
 
 % Conversion of the result.
-re(O1, Ps, R, C):-
+parse_re(O1, Ps, R, C):-
   (var(R) ; \+ R = _-_),
   !,
   select_option(out(F), O1, O2, codes),
-  re(O2, Ps, R1-[], C),
+  parse_re(O2, Ps, R1-[], C),
   re_convert(F, R1, R).
 % Conversion of the parsed codes.
-re(O1, Ps, R, C):-
+parse_re(O1, Ps, R, C):-
   \+ C = _C1-_C0,
   !,
   select_option(in(F), O1, O2, codes),
   re_convert(F, C1, C),
-  re(O2, Ps, R, C1-[]).
+  parse_re(O2, Ps, R, C1-[]).
 % Non-list production rule.
-re(O1, P, R1-R0, C1-C0):-
+parse_re(O1, P, R1-R0, C1-C0):-
   \+ is_list(P),
   !,
-  re(O1, [P], R1-R0, C1-C0).
-re(O1, _Ps, R-R, C-C):-
+  parse_re(O1, [P], R1-R0, C1-C0).
+parse_re(O1, _Ps, R-R, C-C):-
   option(q('?'), O1).
-re(O1, Ps, R1-R0, C1-C0):-
+parse_re(O1, Ps, R1-R0, C1-C0):-
   select_option(q('?'), O1, O2),
   member(P, Ps),
   call(P, O2, R1-R0, C1-C0).
-re(O1, Ps, R1-R0, C1-C0):-
+parse_re(O1, Ps, R1-R0, C1-C0):-
   select_option(q('+'), O1, O2),
   member(P, Ps),
   call(P, O2, R1-R2, C1-C2),
   merge_options([q('*')], O2, O3),
-  re(O3, Ps, R2-R0, C2-C0).
-re(O1, _Ps, R-R, C-C):-
+  parse_re(O3, Ps, R2-R0, C2-C0).
+parse_re(O1, _Ps, R-R, C-C):-
   option(q('*'), O1).
-re(O1, Ps, R1-R0, C1-C0):-
+parse_re(O1, Ps, R1-R0, C1-C0):-
   option(q('*'), O1),
   member(P, Ps),
   call(P, O1, R1-R2, C1-C2),
   merge_options([q('*')], O1, O2),
-  re(O2, Ps, R2-R0, C2-C0).
-re(O1, _Ps, R-R, C-C):-
+  parse_re(O2, Ps, R2-R0, C2-C0).
+parse_re(O1, _Ps, R-R, C-C):-
   option(q(0), O1).
-re(O1, Ps, R1-R0, C1-C0):-
+parse_re(O1, Ps, R1-R0, C1-C0):-
   select_option(q(L), O1, O2),
   integer(L),
+  L > 0,
   !,
   member(P, Ps),
   call(P, O2, R1-R2, C1-C2),
   NewL is L - 1,
   merge_options([q(NewL)], O2, O3),
-  re(O3, Ps, R2-R0, C2-C0).
+  parse_re(O3, Ps, R2-R0, C2-C0).
 
 re_convert(atom, Codes, Atom):-
   !,
@@ -303,4 +332,3 @@ re_convert(number, Codes, Number):-
 re_convert(Format, _, _):-
   gtrace, %WB
   debug(parse_ext, 'Unrecognized format ~w for codes conversion.', [Format]).
-

@@ -144,7 +144,7 @@ rdfs_individual(X, Y, G):-
 :- rdf_meta(rdfs_seq(r,?)).
 :- rdf_meta(rdfs_seq(r,-,?)).
 
-:- assert_novel(user:prolog_file_type(rdf, rdf)).
+:- db_add_novel(user:prolog_file_type(rdf, rdf)).
 
 
 

@@ -42,9 +42,9 @@ XML, Extendable Markup Language specification.
 :- use_module(standards(sgml_parse)).
 :- use_module(standards(standards), [charset/1]).
 
-:- assert_novel(user:prolog_file_type(css, css)).
-:- assert_novel(user:prolog_file_type(dtd, dtd)).
-:- assert_novel(user:prolog_file_type(xml, xml)).
+:- db_add_novel(user:prolog_file_type(css, css)).
+:- db_add_novel(user:prolog_file_type(dtd, dtd)).
+:- db_add_novel(user:prolog_file_type(xml, xml)).
 
 :- multifile(http:location/3).
 :- dynamic(http:location/3).

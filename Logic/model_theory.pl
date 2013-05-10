@@ -10,7 +10,7 @@
     print_model/0,
     satisfy/1, % ?Sentence:compound
     satisfy/3 % ?Expression:compound
-              % ?G:ord_set(assignment)
+              % ?G:ordset(assignment)
               % ?Polarity:oneof([neg,pos])
   ]
 ).
@@ -88,10 +88,10 @@ satisfy(lambda(X, Type, Formula), G, pos, Mode):-
 %% add_domain(+Object:atom) is det.
 
 add_domain(Object):-
-  assert_novel(domain(Object)).
+  db_add_novel(domain(Object)).
 
 add_relation(Arity, Term, Extension):-
-  assert_novel(f(Arity, Term, Extension)).
+  db_add_novel(f(Arity, Term, Extension)).
 
 clear_model:-
   retractall(domain(_)),
@@ -235,7 +235,7 @@ satisfy(A, G, neg):-
   \+ (f(Arity, Predicate, Extension),
     member(Objects, Extension)).
 
-%% i(+G:ord_set(assignment), ?X:atom, -V:atom) is det.
+%% i(+G:ordset(assignment), ?X:atom, -V:atom) is det.
 % The interpretation function.
 %
 % @param G The assignment function.

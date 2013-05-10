@@ -3,7 +3,7 @@
   [
     xml_current_namespace/2, % ?Prefix:atom
                              % ?URI:uri
-    xml_current_namespaces/1, % -Namespaces:ord_set(atom)
+    xml_current_namespaces/1, % -Namespaces:ordset(atom)
     xml_register_namespace/2 % +Prefix:atom
                              % +URI:uri
   ]
@@ -113,7 +113,7 @@ xml_current_namespaces(Namespaces):-
 %         These are =xml=, =xmlns=, and any name starting with =xml=
 %         in any case-variant.
 %
-% @throws existent_error If the XML namespace is already registered with
+% @throws existence_error If the XML namespace is already registered with
 %         another URI.
 
 % Reserved XML namespaces cannot be registered.

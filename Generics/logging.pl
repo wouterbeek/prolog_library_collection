@@ -21,7 +21,7 @@
     send_log/1, % +File:atom
     set_current_log_file/1, % ?File:atom
     set_current_log_stream/1, % ?Stream:stream
-    set_situation/1,
+    set_situation/1, % +Situation:atom
     situation/1, % ?Situation:atom
     start_log/0
   ]
@@ -33,7 +33,7 @@ Methods for logging.
 
 @author Wouter Beek
 @author Sander Latour
-@version 2012/05-2012/07, 2013/03-2013/04
+@version 2012/05-2012/07, 2013/03-2013/05
 */
 
 :- use_module(generics(db_ext)).
@@ -43,24 +43,26 @@ Methods for logging.
 
 :- multifile(prolog:message/1).
 
-:- dynamic(log_mode/1).
-:- dynamic(situation0/1).
-
 :- dynamic(current_log_file/1).
 :- dynamic(current_log_stream/1).
+:- dynamic(log_mode/1).
+:- db_add_novel(log_mode(false)).
+:- dynamic(situation0/1).
 
-:- assert_novel(user:prolog_file_type(log, log)).
+:- db_add_novel(user:prolog_file_type(log, log)).
 
 init:-
   file_search_path(log, _Directory),
   !.
 init:-
+  % @tbd This fails on Windows because absolute_file_path/3 gives unexpected
+  %      results.
   assert_home_subdirectory(log),
   project_name(Project),
   format(atom(Project0), '.~w', [Project]),
   assert(user:file_search_path(personal, home(Project0))),
   assert(user:file_search_path(log, personal(log))).
-:- init.
+%:- init. %TBD
 
 
 
@@ -95,7 +97,7 @@ append_to_log(Category, Format, Arguments):-
   append_to_log_(Category, Message).
 
 append_to_log_(_Category, _Message):-
-  log_mode(fail),
+  log_mode(false),
   !.
 append_to_log_(Category, Message):-
   current_log_stream(Stream),
@@ -157,21 +159,19 @@ disable_log_mode:-
   log_mode(false),
   !.
 disable_log_mode:-
-  (log_mode(true) -> retract(log_mode(true)) ; true),
-  assert(log_mode(false)).
+  db_replace(log_mode(true), log_mode(false)).
 
 enable_log_mode:-
   log_mode(true),
   !.
 enable_log_mode:-
-  (log_mode(false) -> retract(log_mode(false)) ; true),
-  assert(log_mode(true)).
+  db_replace(log_mode(false), log_mode(true)).
 
 %% end_log is det.
 % Ends the current logging activity.
 
 end_log:-
-  log_mode(fail),
+  log_mode(false),
   !.
 end_log:-
   append_to_log(build, 'Goodnight!', []),
@@ -238,11 +238,10 @@ situation(no_situation).
 % This does nothing in case log mode is turned off.
 
 start_log:-
-  log_mode(fail),
+  log_mode(false),
   !.
 start_log:-
   create_log_file(File, Stream),
   set_current_log_file(File),
   set_current_log_stream(Stream),
   append_to_log(build, 'Goodday!', []).
-

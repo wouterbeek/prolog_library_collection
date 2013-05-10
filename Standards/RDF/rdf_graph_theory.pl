@@ -6,7 +6,7 @@
     rdf_graph_to_ugraph/2, % +Graph:atom
                            % -UG:ugraph
     rdf_subgraph/3, % +Options:list(nvpair)
-                    % +SubVertices:ord_set(vertex)
+                    % +SubVertices:ordset(vertex)
                     % +SubGraph:graph
     rdf_neighbor/3, % +Options:list(nvpair)
                     % ?Vertex:vertex
@@ -124,7 +124,7 @@ rdf_neighbor(Options0, Vertex, Neighbor):-
 
 %% rdf_subgraph(
 %%   +Options:list(nvpair),
-%%   +Vertices:ord_set(vertice),
+%%   +Vertices:ordset(vertice),
 %%   +SubGraph:graph
 %% ) is semidet.
 % Succeeds if the graph in Options has SubGraph as one of its vertice-induced

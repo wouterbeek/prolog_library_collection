@@ -194,5 +194,4 @@ rdf_entails_dev(S, P, O, G):-
 rdf_entails_dev(S, P, O, G, MaxD):-
   rdf_entails(S, P, O, G, MaxD, D, Proof),
   debug(proof, '~w', [Proof]),
-  print_proof(user, [depth(D), indent(0), max_depth(MaxD)], [Proof]).
-
+  print_ext:print_proof(user, [depth(D), indent(0), max_depth(MaxD)], [Proof]).

@@ -2,10 +2,10 @@
   graphs_trav,
   [
     cyclic_graph_traversal/5, % +Predicates:list(atom)
-                              % +Sets:list(ord_set(object))
-                              % +LastSets:list(ord_set(object))
+                              % +Sets:list(ordset(object))
+                              % +LastSets:list(ordset(object))
                               % +SetSizes:list(integer)
-                              % -Solution:list(ord_set(object))
+                              % -Solution:list(ordset(object))
     depth_path/4, % +Element:object
                   % +Predicate:term
                   % +Depth:integer
@@ -41,10 +41,10 @@ Two methods created during my ending days at the IvI institute:
 
 %% cyclic_graph_traversal(
 %%   +Predicates:list(atom),
-%%   +Sets:list(ord_set(object)),
-%%   +LastSets:list(ord_set(object)),
+%%   +Sets:list(ordset(object)),
+%%   +LastSets:list(ordset(object)),
 %%   +Sizes:list(integer),
-%%   -Solution:list(ord_set(object))
+%%   -Solution:list(ordset(object))
 %% ) is det.
 %
 % @param Predicates

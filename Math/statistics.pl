@@ -1,11 +1,11 @@
 :- module(
   statistics,
   [
-    t1_error/3, % +Set1:ord_set
-                % +Set2:ord_set
+    t1_error/3, % +Set1:ordset
+                % +Set2:ordset
                 % -T1_Error:integer
-    t2_error/3 % +Set1:ord_set
-               % +Set2:ord_set
+    t2_error/3 % +Set1:ordset
+               % +Set2:ordset
                % -T2_Error:integer
   ]
 ).
@@ -22,7 +22,7 @@ Statics predicates.
 
 
 
-%% t1_error(+True:ord_set, +Verified:ord_set, T1_Error:integer) is det.
+%% t1_error(+True:ordset, +Verified:ordset, T1_Error:integer) is det.
 % The number of cases in which the hypothesis is actually false but
 % is said to be true.
 %
@@ -37,7 +37,7 @@ t1_error(HypothesisTrue, HypothesisVerified, T1_Error):-
   ord_subtract(HypothesisVerified, HypothesisTrue, X),
   length(X, T1_Error).
 
-%% t2_error(+True:ord_set, +Verified:ord_set, T2_Error:integer) is det.
+%% t2_error(+True:ordset, +Verified:ordset, T2_Error:integer) is det.
 % The number of cases in which the hypothesis is actually true but
 % is said to be false.
 %

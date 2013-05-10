@@ -86,17 +86,17 @@ representing a name-value pair.
 :- use_module(svg(svg)).
 :- use_module(standards(x11)).
 
-:- assert_novel(user:prolog_file_type(dot,  graphviz       )).
-:- assert_novel(user:prolog_file_type(jpeg, jpeg           )).
-:- assert_novel(user:prolog_file_type(jpeg, graphviz_output)).
-:- assert_novel(user:prolog_file_type(jpg,  jpeg           )).
-:- assert_novel(user:prolog_file_type(jpg,  graphviz_output)).
-:- assert_novel(user:prolog_file_type(pdf,  pdf            )).
-:- assert_novel(user:prolog_file_type(pdf,  graphviz_output)).
-:- assert_novel(user:prolog_file_type(svg,  graphviz_output)).
-:- assert_novel(user:prolog_file_type(svg,  svg            )).
-:- assert_novel(user:prolog_file_type(xdot, graphviz_output)).
-:- assert_novel(user:prolog_file_type(xdot, xdot           )).
+:- db_add_novel(user:prolog_file_type(dot,  graphviz       )).
+:- db_add_novel(user:prolog_file_type(jpeg, jpeg           )).
+:- db_add_novel(user:prolog_file_type(jpeg, graphviz_output)).
+:- db_add_novel(user:prolog_file_type(jpg,  jpeg           )).
+:- db_add_novel(user:prolog_file_type(jpg,  graphviz_output)).
+:- db_add_novel(user:prolog_file_type(pdf,  pdf            )).
+:- db_add_novel(user:prolog_file_type(pdf,  graphviz_output)).
+:- db_add_novel(user:prolog_file_type(svg,  graphviz_output)).
+:- db_add_novel(user:prolog_file_type(svg,  svg            )).
+:- db_add_novel(user:prolog_file_type(xdot, graphviz_output)).
+:- db_add_novel(user:prolog_file_type(xdot, xdot           )).
 
 
 

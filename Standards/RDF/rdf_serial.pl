@@ -52,9 +52,9 @@ Supported serialization formats:
 :- use_module(xml(xml)).
 :- use_module(xml(xml_namespace)).
 
-:- assert_novel(user:prolog_file_type(nt, n_triples)).
-:- assert_novel(user:prolog_file_type(rdf, rdf)).
-:- assert_novel(user:prolog_file_type(ttl, turtle)).
+:- db_add_novel(user:prolog_file_type(nt, n_triples)).
+:- db_add_novel(user:prolog_file_type(rdf, rdf)).
+:- db_add_novel(user:prolog_file_type(ttl, turtle)).
 
 :- debug(rdf_serial).
 
@@ -76,7 +76,7 @@ convert_turtle_to_rdf(Turtle, RDF):-
   rdf_save2(RDF, xml, [graph(conversion), encoding(utf8)]),
   rdf_retractall(_Subject, _Predicate, _Object, conversion).
 
-%% rdf_guess_data_format(+Stream, ?Format:oneof([turtle,xml]) is det.
+%% rdf_guess_data_format(+Stream, ?Format:oneof([turtle,xml])) is det.
 % Guess the format of an RDF file from the actual content.
 % Currently, this seeks for a valid XML document upto the rdf:RDF
 % element before concluding that the file is RDF/XML. Otherwise it

@@ -20,6 +20,8 @@ Predicates that extend the swipl builtin I/O predicates.
 
 
 %% peek_atom(+Stream:stream, +Atom:atom) is semidet.
+% Succeeds if the given atom can be peeked at in the given stream, i.e. without
+% chaining the stream pointer.
 
 peek_atom(Stream, Atom):-
   atom_codes(Atom, Codes),
@@ -31,8 +33,8 @@ peek_atom(Stream, Atom):-
 %%   +Length:integer,
 %%   -Codes:list(integer)
 %% ) is semidet.
-%% peek_length(+Stream:stream, +Length:integer, -Codes:list(integer)) is det.
-% Returns the next =Length= number of =Codes=.
+% Returns the next =Length= number of =Codes= without changing the stream
+% pointer.
 
 peek_length(Stream, Length, Codes):-
   Length >= 0,
@@ -48,6 +50,7 @@ peek_length(Stream, Length, Codes):-
   ;
     Status = fail
   ),
+  % Move back to the original position in the stream.
   set_stream_position(Stream, OriginalPosition),
   call(Status).
 
@@ -57,4 +60,3 @@ peek_length0(Stream, Length, [Code | Codes]):-
   get_code(Stream, Code),
   NewLength is Length - 1,
   peek_length0(Stream, NewLength, Codes).
-

@@ -89,7 +89,7 @@ load_examples(Stream):-
   !.
 load_examples(Stream):-
   read_line_to_codes(Stream, Line),
-  char(SpaceCode, 'SP', 'White space'),
+  parse_char(SpaceCode, 'SP', 'White space'),
   split_codes(Line, [SpaceCode], ListOfCodes),
   flag(ex, Examples, Examples + 1),
   format(atom(Doc), 'd~w', [Examples]),

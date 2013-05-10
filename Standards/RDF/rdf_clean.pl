@@ -125,7 +125,7 @@ rdf_convert_datatype(
 %%   ?Predicate:uri,
 %%   ?Object:oneof([bnode,literal,uri]),
 %%   ?Graph1:atom,
-%%   ?Graph2:atom\
+%%   ?Graph2:atom
 %% ) is nondet.
 % Duplicate triples, that occur in at least two graphs.
 

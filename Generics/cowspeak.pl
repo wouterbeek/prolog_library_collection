@@ -1,20 +1,27 @@
 :- module(
   cowspeak,
   [
-    cowsay/2, % +Text:atom
+    cowsay/1, % +Text:oneof([atom,list(atom)])
+    cowsay/2, % +Text:oneof([atom,list(atom)])
               % -Cow:atom
     cowsay_web/2, % +Text:atom
                   % -Markup:list
-    speech/1 % +Text:atom
+    cowspeak/1, % +Text:oneof([atom,list(atom)])
+    speech/1 % +Text:oneof([atom,list(atom)])
   ]
 ).
 
 /** <module> Cowspeak
 
-A funncy cow for communicating with users.
+A funny cow for communicating with the user.
+
+Based on the old cowsay by Tony Monroe,
+in combination with the open source speech synthesizer eSpeak.
 
 @author Wouter Beek
-@version 2012/09-2012/10
+@see http://en.wikipedia.org/wiki/Cowsay pointers to cowsay resources.
+@see http://espeak.sourceforge.net/ home of eSpeak.
+@version 2012/09-2012/10, 2013/05
 */
 
 :- use_module(generics(atom_ext)).
@@ -24,6 +31,9 @@ A funncy cow for communicating with users.
 :- debug(cowspeak).
 
 
+
+%% cowsay(+Text:oneof([atom,list(atom)])) is det.
+% Sends the given text in a cowified format to user output.
 
 cowsay(Text):-
   cowsay(Text, Cow),
@@ -112,27 +122,33 @@ cowsay_web(
   speech(Text),
   cowsay(Text, CowText).
 
+%% cowspeak(+Text:oneof([atom,list(atom)])) is det.
+% Combines cowsay/1 and speech/1.
+% Both predicates do their own list-to-atom or atom-to-list conversions.
+
+cowspeak(Text):-
+  cowsay(Text),
+  speech(Text).
+
 max_line(76).
 
-%% speech(+Text:atom) is det.
+%% speech(+Text:oneof([atom,list(atom)])) is det.
 % Turns the given text into speech and plays this speech shound.
 %
 % @param Text An atomic text message.
 % @tbd Add speech for Windows, e.g. using Mary TTS.
 
-speech(Text1):-
-  is_list(Text1),
+speech(Lines):-
+  is_list(Lines),
   !,
-  atomic_list_concat(Text1, Text2),
-  speech(Text2).
-speech(Text):-
-  atomic(Text),
-  process_create(path(espeak), [Text], []),
+  maplist(speech, Lines).
+speech(Line):-
+  atomic(Line),
+  process_create(path(espeak), [Line], []),
   !.
-speech(_Text):-
+speech(_):-
   debug(
     cowspeak,
     'The cow\'s speech cannot be played on the current OS.',
     []
   ).
-

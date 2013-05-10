@@ -40,11 +40,11 @@ This module uses the =|img|= search file name for finding images.
 % These are shared with module HTML.
 :- dynamic(user:image_file_type/1).
 :- multifile(user:image_file_type/1).
-:- assert_novel(user:prolog_file_type(jpeg, jpeg)).
-:- assert_novel(user:prolog_file_type(jpg, jpeg)).
-:- assert_novel(user:image_file_type(jpeg)).
-:- assert_novel(user:prolog_file_type(png, png)).
-:- assert_novel(user:image_file_type(png)).
+:- db_add_novel(user:prolog_file_type(jpeg, jpeg)).
+:- db_add_novel(user:prolog_file_type(jpg, jpeg)).
+:- db_add_novel(user:image_file_type(jpeg)).
+:- db_add_novel(user:prolog_file_type(png, png)).
+:- db_add_novel(user:image_file_type(png)).
 
 :- rdf_meta(rdf_convert_datatype(r,+,r,-)).
 :- rdf_meta(rdf_datatype(?,r)).

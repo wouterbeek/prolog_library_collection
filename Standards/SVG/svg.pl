@@ -62,6 +62,7 @@ represent by an integer between 0 and 255 (inclusive).
 :- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(standards(markup)).
+:- use_module(xml(xml_namespace)).
 
 :- discontiguous(attribute0(_Name, _Type, _Contexts)).
 :- discontiguous(attribute0(_Name, _Type, _Contexts, _Default)).
@@ -69,9 +70,9 @@ represent by an integer between 0 and 255 (inclusive).
 :- meta_predicate(type_check(2,+)).
 
 % Assert DTD file locations.
-:- assert_novel(user:file_search_path(dtd, svg(.))).
+:- db_add_novel(user:file_search_path(dtd, svg(.))).
 
-:- rdf_register_prefix(svg, 'http://www.w3.org/2000/svg').
+:- xml_register_namespace(svg, 'http://www.w3.org/2000/svg').
 
 
 
@@ -150,33 +151,33 @@ char0([X | C0]-C0):-
 
 % SVG color.
 color_svg(C1-C0):-
-  char(number_sign, C1-C2),
+  parse_char(number_sign, C1-C2),
   hexdigit_mod_3(C2-C0).
 color_svg(C1-C0):-
-  atom(rgb, C1-C2),
-  char(opening_round_bracket, C2-C3),
-  re([q('?')], wsp, C3-C4),
+  parse_atom(rgb, C1-C2),
+  parse_char(opening_round_bracket, C2-C3),
+  parse_re([q('?')], wsp, C3-C4),
   integer_svg(C4-C5),
   comma0(C5-C6),
   integer_svg(C6-C7),
   comma0(C7-C8),
   integer_svg(C8-C9),
-  re([q('?')], wsp, C9-C10),
-  char(closing_round_bracket, C10-C0).
+  parse_re([q('?')], wsp, C9-C10),
+  parse_char(closing_round_bracket, C10-C0).
 color_svg(C1-C0):-
-  atom(rgb, C1-C2),
-  char(opening_round_bracket, C2-C3),
-  re([q('?')], wsp, C3-C4),
+  parse_atom(rgb, C1-C2),
+  parse_char(opening_round_bracket, C2-C3),
+  parse_re([q('?')], wsp, C3-C4),
   integer_svg(C4-C5),
-  char(percent_sign, C5-C6),
+  parse_char(percent_sign, C5-C6),
   comma0(C6-C7),
   integer_svg(C7-C8),
-  char(percent_sign, C8-C9),
+  parse_char(percent_sign, C8-C9),
   comma0(C9-C10),
   integer_svg(C10-C11),
-  char(percent_sign, C11-C12),
-  re([q('?')], wsp, C12-C13),
-  char(closing_round_bracket, C13-C0).
+  parse_char(percent_sign, C11-C12),
+  parse_re([q('?')], wsp, C12-C13),
+  parse_char(closing_round_bracket, C13-C0).
 color_svg(C1-C0):-
   color-keyword(C1-C0).
 
@@ -188,19 +189,19 @@ color-keyword(C1-C0):-
 
 % Comma, respecting whitespace.
 comma0(C1-C0):-
-  re([q('?')], wsp, C1-C2),
-  char(comma, C2-C3),
-  re([q('?')], wsp, C3-C0).
+  parse_re([q('?')], wsp, C1-C2),
+  parse_char(comma, C2-C3),
+  parse_re([q('?')], wsp, C3-C0).
 
 comma_wsp(C1-C0):-
   wsp(C1-C0).
 comma_wsp(C1-C0):-
   wsp(C1-C0),
-  char(comma, C1-C0),
-  re([q('?')], wsp, C1-C0).
+  parse_char(comma, C1-C0),
+  parse_re([q('?')], wsp, C1-C0).
 comma_wsp(C1-C0):-
-  char(comma, C1-C0),
-  re([q('?')], wsp, C1-C0).
+  parse_char(comma, C1-C0),
+  parse_re([q('?')], wsp, C1-C0).
 
 comma_wsp_numberZ(C1-C0):-
   comma_wsp(C1-C2),
@@ -216,33 +217,33 @@ coordinate(C1-C0):-
 
 % Functional notation for an IRI.
 funciri(C1-C0):-
-  atom(url, C1-C2),
-  char(opening_round_bracket, C2-C3),
+  parse_atom(url, C1-C2),
+  parse_char(opening_round_bracket, C2-C3),
   iri(C3-C4),
-  char(closing_round_bracket, C4-C0).
+  parse_char(closing_round_bracket, C4-C0).
 
 hexdigit_mod_3(C1-C0):-
-  re([q(3)], hexadecimal_digit, C1-C0).
+  parse_re([q(3)], hexadecimal_digit, C1-C0).
 hexdigit_mod_3(C1-C0):-
-  re([q(3)], hexadecimal_digit, C1-C2),
+  parse_re([q(3)], hexadecimal_digit, C1-C2),
   hexdigit_mod_3(C2-C0).
 
 % ICC color specification. References a =|color-profile|= element, and one
 % or more color component values.
 
 icccolor(C1-C0):-
-  atom(icc, C1-C2),
-  char(hyphen, C2-C3),
-  atom(color, C3-C4),
-  char(opening_round_bracket, C4-C5),
+  parse_atom(icc, C1-C2),
+  parse_char(hyphen, C2-C3),
+  parse_atom(color, C3-C4),
+  parse_char(opening_round_bracket, C4-C5),
   name_svg(C5-C6),
   comma_wsp_numberZ(C6-C7),
-  char(closing_round_bracket, C7-C0).
+  parse_char(closing_round_bracket, C7-C0).
 
 % Signed integers in SVG.
 integer_svg(C1-C0):-
-  re([q('?')], sign, C1-C2),
-  re([q('+')], decimal_digit, C2-C0).
+  parse_re([q('?')], sign, C1-C2),
+  parse_re([q('+')], decimal_digit, C2-C0).
 
 % @tbd Check whether this is a reliable check for IRIs.
 iri(C1-C0):-
@@ -252,31 +253,31 @@ length_svg(C1-C0):-
   number0(C1-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(cm, C2-C0).
+  parse_atom(cm, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(em, C2-C0).
+  parse_atom(em, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(ex, C2-C0).
+  parse_atom(ex, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(in, C2-C0).
+  parse_atom(in, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(mm, C2-C0).
+  parse_atom(mm, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(pc, C2-C0).
+  parse_atom(pc, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(pt, C2-C0).
+  parse_atom(pt, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  atom(px, C2-C0).
+  parse_atom(px, C2-C0).
 length_svg(C1-C0):-
   number0(C1-C2),
-  char(percent_sign, C2-C0).
+  parse_char(percent_sign, C2-C0).
 
 % SVG names are sequences of characters not containing ',', '(', ')'.
 name_svg(C1-C0):-
@@ -288,26 +289,26 @@ name_svg(C1-C0):-
 % Real numbers in SVG.
 number0(C1-C0):-
   integer_svg(C1-C2),
-  re([q(1)], exponent, C2-C0).
+  parse_re([q(1)], exponent, C2-C0).
 number0(C1-C0):-
-  re([q('?')], sign, C1-C2),
-  re([q('?')], decimal_digit, C2-C3),
-  char(dot, C3-C4),
-  re([q('+')], decimal_digit, C4-C5),
-  re([q('?')], exponent, C5-C0).
+  parse_re([q('?')], sign, C1-C2),
+  parse_re([q('?')], decimal_digit, C2-C3),
+  parse_char(dot, C3-C4),
+  parse_re([q('+')], decimal_digit, C4-C5),
+  parse_re([q('?')], exponent, C5-C0).
 
 paint(C1-C0):-
   paint0(C1-C0).
 paint(C1-C0):-
   funciri(C1-C2),
-  re([q('?')], paint0, C2-C0).
+  parse_re([q('?')], paint0, C2-C0).
 paint(C1-C0):-
-  atom(inherit, C1-C0).
+  parse_atom(inherit, C1-C0).
 
 paint0(C1-C0):-
-  atom(none, C1-C0).
+  parse_atom(none, C1-C0).
 paint0(C1-C0):-
-  atom(currentColor, C1-C0).
+  parse_atom(currentColor, C1-C0).
 paint0(C1-C0):-
   color_svg(C1-C0).
 paint0(C1-C0):-
@@ -316,13 +317,13 @@ paint0(C1-C0):-
 
 % Whitespace in SVG:
 wsp(C1-C0):-
-  char(carriage_return, C1-C0).
+  parse_char(carriage_return, C1-C0).
 wsp(C1-C0):-
-  char(horizontal_tab, C1-C0).
+  parse_char(horizontal_tab, C1-C0).
 wsp(C1-C0):-
-  char(line_feed, C1-C0).
+  parse_char(line_feed, C1-C0).
 wsp(C1-C0):-
-  char(space, C1-C0).
+  parse_char(space, C1-C0).
 
 %% parse_attribute(
 %%   +Context:oneof([circle,line]),
@@ -538,4 +539,3 @@ svg_colors(Colors):-
     svg_color(Color),
     Colors
   ).
-

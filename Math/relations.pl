@@ -2,41 +2,41 @@
   relations,
   [
     bijective/1, % +F:bourbaki
-    closure/4, % +S:ord_set(pair)
+    closure/4, % +S:ordset(pair)
                % +Antecedent:goal
                % +Consequence:compound
-               % -NewS:ord_set(pair)
+               % -NewS:ordset(pair)
     codomain/2, % +F:bourbaki
-                % -Y:ord_set
+                % -Y:ordset
     domain/2, % +F:bourbaki
-              % -X:ord_set
-    equivalence_class/4, % +U:ord_set,
+              % -X:ordset
+    equivalence_class/4, % +U:ordset,
                          % +R:binary_relation,
                          % +X,
-                         % -EqX:ord_set
+                         % -EqX:ordset
     equivalence/1, % +R:binary_relation
     graph/2, % +F:bourbaki
              % -G:graph
     image/2, % +F:bourbaki
-             % -ImgF:ord_set
-    image/3, % +S:ord_set
+             % -ImgF:ordset
+    image/3, % +S:ordset
              % +G:graph
-             % -ImgS:ord_set
-    pair/2, % +S:ord_set
+             % -ImgS:ordset
+    pair/2, % +S:ordset
             % -XY:pair
-    quotient_set/3, % +S:ord_set
+    quotient_set/3, % +S:ordset
                     % +EqR:binary_relation
-                    % -QuotS:ord_set) is det.
+                    % -QuotS:ordset) is det.
     reflexive/1, % +R:binary_relation
-    reflexive_closure/2, % S:ord_set(pair)
-                         % -NewS:ord_set(pair)
+    reflexive_closure/2, % S:ordset(pair)
+                         % -NewS:ordset(pair)
     surjective/1, % +F:bourbaki
     symmetric/1, % +R:binary_relation
-    symmetric_closure/2, % +S:ord_set(pair)
-                         % -NewS:ord_set(pair)
+    symmetric_closure/2, % +S:ordset(pair)
+                         % -NewS:ordset(pair)
     transitive/1, % +R:binary_relation
-    transitive_closure/2 % +S:ord_set(pair)
-                         % -NewS:ord_set(pair)
+    transitive_closure/2 % +S:ordset(pair)
+                         % -NewS:ordset(pair)
   ]
 ).
 
@@ -93,10 +93,10 @@ bijective(F):-
   inverse(F, X).
 
 %% closure(
-%%   +S:ord_set(pair),
+%%   +S:ordset(pair),
 %%   :Antecedent,
 %%   +Consequence:compound,
-%%   -NewS:ord_set(pair)
+%%   -NewS:ordset(pair)
 %% ) is det.
 % Calculates the closure for the given set of pairs.
 %
@@ -117,7 +117,7 @@ closure(S, Antecedent, Consequence, NewS):-
   % The original members are included as well.
   ord_union(S, Consequences, NewS).
 
-%% codomain(+F:bourbaki, -Y:ord_set) is det.
+%% codomain(+F:bourbaki, -Y:ordset) is det.
 % Returns the codomain of a Bourbaki function definition.
 %
 % @param F A Bourbaki function definition.
@@ -125,7 +125,7 @@ closure(S, Antecedent, Consequence, NewS):-
 
 codomain(bourbaki(_X, Y, _F), Y).
 
-%% domain(+F:bourbaki, -X:ord_set) is det.
+%% domain(+F:bourbaki, -X:ordset) is det.
 % Returns the domain of a Bourbaki function definition.
 %
 % @param F A bourbaki function definition.
@@ -144,10 +144,10 @@ equivalence(R):-
   transitive(R).
 
 %% equivalence_class(
-%%   +U:ord_set,
+%%   +U:ordset,
 %%   +R:binary_relation,
 %%   +X,
-%%   -EqX:ord_set
+%%   -EqX:ordset
 %% ) is det.
 % Returns the equivalence class of =X= relative to equivalence relation =R=.
 %
@@ -183,14 +183,14 @@ equivalence_class(U, R, X, EqX):-
 
 graph(bourbaki(_X, _Y, G), G).
 
-%% image(+F:bourbaki, -ImgF:ord_set) is det.
+%% image(+F:bourbaki, -ImgF:ordset) is det.
 % Returns the image of the function definition by the given
 % Bourbaki definition.
 
 image(bourbaki(DomF, _CodF, G), ImgX):-
   image(DomF, G, ImgX).
 
-%% image(+S:ord_set, +G:graph, -ImgS:ord_set) is det.
+%% image(+S:ordset, +G:graph, -ImgS:ordset) is det.
 % Returns the image of set =S= under the function with graph =G=.
 %
 % @param S An ordered set.
@@ -222,7 +222,7 @@ pair(R, X-Y):-
 % @tbd
 preimage(X, X).
 
-%% quotient_set(+S:ord_set, +EqR:binary_relation, -QuotS:ord_set) is det.
+%% quotient_set(+S:ordset, +EqR:binary_relation, -QuotS:ordset) is det.
 % Returns the quotient set for =S= under equivalence relation =EqR=.
 %
 % The quotient set of a set S is the set of all equivalence sets of

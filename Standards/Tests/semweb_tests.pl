@@ -89,7 +89,7 @@ Q: How should option =|base_uri(+URI)|= for =|rdf_load/2|= be used?
 :- use_module(xml(xml)).
 :- use_module(xml(xml_namespace)).
 
-:- assert_novel(user:prolog_file_type(rdf, rdf)).
+:- db_add_novel(user:prolog_file_type(rdf, rdf)).
 
 :- xml_register_namespace(test, 'http://www.w3.org/2000/10/rdf-tests/rdfcore/testSchema#').
 

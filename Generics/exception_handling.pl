@@ -36,4 +36,3 @@ Exception handling predicates.
 
 rethrow(Goal, Catcher, Exception):-
   catch(Goal, Catcher, throw(Exception)).
-

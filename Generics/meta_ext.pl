@@ -29,7 +29,7 @@
 % FINDALL RELATED PREDICATES
     setoff/3, % +Format:compound
               % :Goal
-              % -Set:ord_set
+              % -Set:ordset
 
 % MAPLIST RELATED PREDICATES
     app_list/3, % +Preds:list
@@ -40,7 +40,7 @@
                      % -List2:list
     mapset/3, % :Goal
               % +List:list
-              % -Set:ord_set
+              % -Set:ordset
     mapsum/3, % :Goal
               % +List:list
               % -Number:number
@@ -239,7 +239,7 @@ generic(Context, GenericPredicate, Arguments):-
 
 % FINDALL RELATED PREDICATES %
 
-%% setoff(+Format, :Goal, -Set:ord_set) is det.
+%% setoff(+Format, :Goal, -Set:ordset) is det.
 % The sorted version of forall/2.
 %
 % @param Format A compound term.
@@ -291,7 +291,7 @@ maplist_pairs(Goal, List1, List2):-
     List2
   ).
 
-%% mapset(:Goal, +List:list(term), -Set:ord_set(term)) is det.
+%% mapset(:Goal, +List:list(term), -Set:ordset(term)) is det.
 % The sorted version of maplist/3.
 %
 % @param Goal A goal.
@@ -509,7 +509,7 @@ predsort_with_duplicates(Predicate, UnsortedList, SortedList):-
 %%   +Length:integer,
 %%   -SortedListHalf:list(term),
 %%   -UnsortedListHalf:list(term),
-%%   -SortedList:ord_set(term)
+%%   -SortedList:ordset(term)
 %% ) is det.
 % The division between =SortedListHalf1= and =UnsortedListHalf2= is defined
 % by =Length=, which is the approximate length of both lists.
@@ -663,4 +663,3 @@ user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
   ;
     user_interaction(Action, Goal, Index, Length, Headers, Tuples)
   ).
-

@@ -9,9 +9,9 @@
   ]
 ).
 
-/** <module> Documentation
+/** <module> DOCUMENTATION
 
-Methods for generating the plDoc documentation in LaTeX format.
+Methods for generating plDoc formatted code documentation in LaTeX format.
 
 @author Wouter Beek
 @version 2012/06
@@ -178,4 +178,3 @@ file_to_name(File, Name):-
 export_module(Module):-
   module_property(Module, file(File)),
   export_file(File).
-

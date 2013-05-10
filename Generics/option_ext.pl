@@ -17,6 +17,7 @@ first argument position in the given option term (probably under the
 assumption that the option term will always be unary).
 
 @author Wouter Beek
+@tbd Tests wheter this module works.
 @version 2013/01
 */
 
@@ -45,4 +46,3 @@ option_ext(Option, Options, Default):-
     % of the given option term.
     arg(1, Option, Default)
   ).
-

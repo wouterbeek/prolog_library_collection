@@ -5,7 +5,7 @@
     rdf_model_theory_load/1, % +Name:atom
     rdf_model_theory_print/0,
     rdf_model_theory_satisfy/2 % +X:oneof([atom,list(triple),triple])
-                               % -Assignments:ord_set(assignment)
+                               % -Assignments:ordset(assignment)
   ]
 ).
 
@@ -39,31 +39,31 @@ The model theory for RDF.
 
 
 add_literal_value(Object):-
-  assert_novel(literal_value(Object)).
+  db_add_novel(literal_value(Object)).
 
 % Function *IS* maps URI resources to property objects.
 add_property(UriRef, Object, Pairs):-
-  assert_novel(i_ext(Object, Pairs)),
-  assert_novel(i_s(UriRef, Object)),
-  assert_novel(property(Object)),
+  db_add_novel(i_ext(Object, Pairs)),
+  db_add_novel(i_s(UriRef, Object)),
+  db_add_novel(property(Object)),
   forall(
     member([Former,Latter], Pairs),
     maplist(add_resource, [Former,Latter])
   ).
 
 add_resource(Object):-
-  assert_novel(resource(Object)).
+  db_add_novel(resource(Object)).
 
 % Function *IS* maps URI resources to resource objects.
 add_resource(UriRef, Object):-
-  assert_novel(i_s(UriRef, Object)),
+  db_add_novel(i_s(UriRef, Object)),
   add_resource(Object).
 
 % Function *IL* maps typed literal values onto resources.
 add_typed_literal(Type, Value, Object):-
-  assert_novel(i_l([Type,Value], Object)),
-  assert_novel(resource(Object)),
-  assert_novel(typed_literal([Type,Value])).
+  db_add_novel(i_l([Type,Value], Object)),
+  db_add_novel(resource(Object)),
+  db_add_novel(typed_literal([Type,Value])).
 
 rdf_model_theory_clear:-
   retractall(i_ext(_Object1, _Pair1)),

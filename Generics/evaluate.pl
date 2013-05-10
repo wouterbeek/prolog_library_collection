@@ -28,6 +28,7 @@
 Evaluate the results of algorithms.
 
 @author Wouter Beek
+@tbd Test this module.
 @version 2013/01
 */
 

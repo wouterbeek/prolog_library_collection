@@ -28,7 +28,7 @@
     rdf_triples/2, % +Graph:atom
                    % -Triples:list(rdf_triple)
     rdf_vocabulary/2 % +Graph:atom
-                     % -Vocabulary:ord_set(oneof([uri,literal]))
+                     % -Vocabulary:ordset(oneof([uri,literal]))
   ]
 ).
 

@@ -22,24 +22,24 @@ Support for Cascading Style Sheets.
 % PARSER %
 
 escape(C1-C0):-
-  char(backslash, C1-C2),
-  char(backslash, C2-C3),
-  re([q(1/6)], hexadecimal_digit, C3-C4),
-  re(
+  parse_char(backslash, C1-C2),
+  parse_char(backslash, C2-C3),
+  parse_re([q(1/6)], hexadecimal_digit, C3-C4),
+  parse_re(
     [q('?')],
     [carriage_return, form_feed, horizontal_tab, line_feed, space],
     C4-C0
   ).
 
 ident(C1-C0):-
-  re([q('?')], dash, C1-C2),
-  char(nmstart, C2-C3),
-  re([q('*')], nmchar, C3-C0).
+  parse_re([q('?')], dash, C1-C2),
+  parse_char(nmstart, C2-C3),
+  parse_re([q('*')], nmchar, C3-C0).
 
 nmstart(C1-C0):-
-  char(underscore, C1-C0).
+  parse_char(underscore, C1-C0).
 nmstart(C1-C0):-
-  char(letter_lowercase, C1-C0).
+  parse_char(letter_lowercase, C1-C0).
 %nmstart(C1-C0):-
 %  nonascii(C1-C0).
 nmstart(C1-C0):-
@@ -99,4 +99,3 @@ system_color('ThreeDShadow', 'Dark shadow for three-dimensional display elements
 system_color('Window', 'Window background.').
 system_color('WindowFrame', 'Window frame.').
 system_color('WindowText', 'Text in windows.').
-

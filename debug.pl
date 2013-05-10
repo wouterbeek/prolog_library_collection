@@ -86,4 +86,3 @@ http:location(pldoc, root(help), [priority(10)]).
 
 :- [load].
 :- load_modules_for_pldoc.
-

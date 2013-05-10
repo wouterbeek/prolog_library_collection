@@ -87,7 +87,7 @@ is_registered_tms(TMS):-
   once(registered_tms(_Type, TMS)).
 
 register_tms(Type, TMS):-
-  assert_novel(registered_tms(Type, TMS)).
+  db_add_novel(registered_tms(Type, TMS)).
 
 
 

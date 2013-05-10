@@ -15,9 +15,6 @@
     delete_list/3, % +List:list,
                    % +Delete:list,
                    % -NewList:list
-    depair/3, % +Pairs:list(term/term)
-              % -List1:list(term)
-              % -List2:list(term))
     element_cut/4, % +L:list,
                    % +Element,
                    % -L1:list,
@@ -26,7 +23,7 @@
              % ?First
     first/3, % +L:list,
              % +N:integer
-             % -First:list
+             % -Firsts:list
     length_cut/4, % +L:list
                   % +Cut:integer
                   % -L1:list
@@ -35,7 +32,7 @@
                     % +Replacements:list(term-term)
                     % -NewList:list
     list_to_ordered_pairs/2, % +L:list
-                             % -Pairs:ord_set(ord_set)
+                             % -Pairs:ordset(ordset)
     member/3, % ?Element1
               % ?Element2
               % ?List
@@ -45,6 +42,12 @@
     nth_minus_1/3, % +I:integer
                    % +L:list
                    % -Element:term
+    pair/3, % ?Pair
+            % ?Former
+            % ?Latter
+    pairs/3, % ?Pairs:list
+             % ?Formers:list
+             % ?Latters:list
     random_member/2, % +List:list
                      % -Member
     repeating_list/3, % +Term:term
@@ -75,26 +78,24 @@
   ]
 ).
 
-/** <module> List extensions for SWI-Prolog
+/** <module> LIST_EXT
 
 Extra list functions for use in SWI-Prolog.
 
 @author Wouter Beek
-@version 2011/08-2012/02, 2012/09-2012/10, 2012/12, 2013/03
+@version 2011/08-2012/02, 2012/09-2012/10, 2012/12, 2013/03, 2013/05
 */
 
 :- use_module(math(math_ext)).
 
 
 
-%% after(+X, +Y, +L:list) is semidet.
 %% after(?X, ?Y, +L:list) is nondet.
 % X appears after Y in the given list.
 
 after(X, Y, L):-
   before(Y, X, L).
 
-%% before(+X, +Y, +L:list) is semidet.
 %% before(?X, ?Y, +L:list) is nondet.
 % X appears before Y in the given list.
 
@@ -131,14 +132,9 @@ combination(List, Length, [H | T]):-
 % @see Allows an arbitrary number of applications of delete/3.
 
 delete_list(NewList, [], NewList).
-
 delete_list(List, [Delete | Deletes], NewList):-
   delete(List, Delete, TempNewList),
   delete_list(TempNewList, Deletes, NewList).
-
-depair([], [], []).
-depair([X1/X2 | Pairs], [X1 | T1], [X2 | T2]):-
-  depair(Pairs, T1, T2).
 
 %% element_cut(+L:list, +Element:atom, -L1:list, -L2:list) is det.
 % Cuts the given list at the given element, returning the two cut lists.
@@ -177,7 +173,6 @@ first([Element | _List], Element).
 
 first(L, N, First):-
   length_cut(L, N, First, _L2).
-
 
 %% length_cut(+L:list, +Cut:integer, -L1:list, -L2:list) is det.
 % Cuts the given list in two sublists, where the former sublist
@@ -222,7 +217,7 @@ list_replace([Replacant | T], Replacements, NewList):-
 list_replace([H | T], Replacements, [H | NewT]):-
   list_replace(T, Replacements, NewT).
 
-%% list_to_ordered_pairs(+L:list, -Pairs:ord_set(ord_set)) is det.
+%% list_to_ordered_pairs(+L:list, -Pairs:ordset(ordset)) is det.
 % Returns the ordered list of ordered pairs that occur in the given list.
 %
 % @param L The given list.
@@ -277,6 +272,23 @@ nth_minus_0(I, L, Element):-
 nth_minus_1(I, L, Element):-
   reverse(L, RevL),
   nth1(I, RevL, Element).
+
+%% pair(-Pair, +Former, +Latter) is det.
+%% pair(+Pair, -Former, -Latter) is det.
+% Supporting various pair formats.
+
+pair(X1/X2, X1, X2).
+pair(X1-X2, X1, X2).
+pair([X1,X2], X1, X2).
+
+%% pairs(+Pairs:list, -Formers:list, -Latters:list) is det.
+%% pairs(-Pairs:list, +Formers:list, +Latters:list) is det.
+
+pairs([], [], []).
+pairs([Pair | Pairs], [X1 | T1], [X2 | T2]):-
+  pair(Pair, X1, X2),
+  !,
+  pairs(Pairs, T1, T2).
 
 %% random_member(+List:list, -Member) is det.
 % Returns a randomly chosen member from the given list.
@@ -465,4 +477,3 @@ sort(Options, List, Sorted):-
   ;
     Sorted = Sorted0
   ).
-

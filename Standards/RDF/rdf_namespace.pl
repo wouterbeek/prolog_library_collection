@@ -14,7 +14,7 @@
     rdf_current_namespace/2, % +Graph:graph
                              % -Namespace:atom
     rdf_current_namespaces/2, % +Graph:graph
-                              % -Namespaces:ord_set(atom)
+                              % -Namespaces:ordset(atom)
     rdf_register_namespace/2, % +Graph:atom
                               % +Prefix:atom
     rdf_register_namespace/3, % +Graph:atom
@@ -114,7 +114,7 @@ rdf_convert_namespace(FromNamespace, From, ToNamespace, To):-
 
 % RDF NAMESPACE REGISTRATION %
 
-%% rdf_current_namespaces(+Graph:atom, -Namespaces:ord_set(atom)) is det.
+%% rdf_current_namespaces(+Graph:atom, -Namespaces:ordset(atom)) is det.
 % Returns the namespaces that occur in the given graph.
 %
 % @param Graph The atomic name of a graph.

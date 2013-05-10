@@ -4,8 +4,8 @@
     beam/5, % +Options:list(nvpair)
             % +Vertex:vertex
             % +Predicates:list(predicate)
-            % -Vertices:ord_set(vertex)
-            % -Edges:ord_set(edge)
+            % -Vertices:ordset(vertex)
+            % -Edges:ordset(edge)
     betweenness/3, % +G:graph
                    % +V:vertex
                    % -Betweenness:float
@@ -19,8 +19,8 @@
     depth/5, % +Options:list(nvpair)
              % +Vertex:vertex
              % +Depth:integer
-             % -Vertices:ord_set(vertex)
-             % -Edges:ord_set(edge)
+             % -Vertices:ordset(vertex)
+             % -Edges:ordset(edge)
     edge/2, % +Options:list(nvpair)
             % ?Edge:edge
     edge_coloring/3, % +Options:list(nvpair)
@@ -33,10 +33,10 @@
                     % +Edge:edge
                     % -Style:pair(oneof([bold,dashed,dotted,solid]),atom)
     edges1/2, % +Options:list(nvpair)
-              % -Edges:ord_set(edge)
+              % -Edges:ordset(edge)
     graph/3, % ?G:graph
-             % ?V:ord_set(vertice)
-             % ?E:ord_set(edge)
+             % ?V:ordset(vertice)
+             % ?E:ordset(edge)
     graph_format/2, % +Graph:graph
                     % -Format:oneof([rdf,ugraph])
     graph_naming/2, % +Options:list(nvpair)
@@ -50,7 +50,7 @@
                 % ?Neighbor:vertex
     neighbors/3, % +Options:list(nvpair)
                  % +Vertex:vertex
-                 % -Neighbors:ord_set(vertex)
+                 % -Neighbors:ordset(vertex)
     regular/1, % +Graph:ugraph
     regular/2, % +Graph:ugraph
                % ?K:integer
@@ -72,8 +72,8 @@
               % +First:vertex
               % +Last:vertex
               % -Distance:integer
-              % -Vertices:ord_set(vertex)
-              % -Edges:ord_set(edge)
+              % -Vertices:ordset(vertex)
+              % -Edges:ordset(edge)
               % -History:list
     travel_min/4, % +Options:list(nvpair)
                   % +First:vertex
@@ -83,8 +83,8 @@
                   % +First:vertex
                   % +Last:vertex
                   % -MinimumDistance:integer
-                  % -Vertices:ord_set(vertex)
-                  % -Edges:ord_set(edge)
+                  % -Vertices:ordset(vertex)
+                  % -Edges:ordset(edge)
                   % -History:list
     vertex/2, % +Options:list(nvpair)
               % ?Vertex:vertex
@@ -101,7 +101,7 @@
                       % +Vertex:vertex
                       % -Shape:list
     vertices1/2 % +Options:list(nvpair)
-                % -Vertices:ord_set(vertex)
+                % -Vertices:ordset(vertex)
   ]
 ).
 
@@ -278,8 +278,8 @@ degree_sequence(Options, DegreeSequence):-
 %%   +Options:list(nvpair),
 %%   +Vertex:vertex,
 %%   +Depth:integer,
-%%   -Vertices:ord_set(vertex),
-%%   -Edges:ord_set(edge)
+%%   -Vertices:ordset(vertex),
+%%   -Edges:ordset(edge)
 %% ) is det.
 % Returns all vertices and edges that are found within the given depth
 % distance from the given vertex.
@@ -385,7 +385,7 @@ edges_to_vertices(Edges, Vertices):-
     Vertices
   ).
 
-%% edges1(+Options:list(nvpair), -Edges:ord_set(edge)) is det.
+%% edges1(+Options:list(nvpair), -Edges:ordset(edge)) is det.
 % Returns the edges in the given graph.
 %
 % @param Options A list of name-value pairs.
@@ -526,7 +526,7 @@ neighbor(Options, Vertex, Neighbor):-
 %% neighbors(
 %%   +Options:list(nvpair),
 %%   +Vertex:vertex,
-%%   -Neighbors:ord_set(vertex)
+%%   -Neighbors:ordset(vertex)
 %% ) is nondet.
 % All neighboring vertices.
 %
@@ -640,8 +640,8 @@ travel(Options, First, Last, Distance):-
 %%   +First:vertex,
 %%   +Last:vertex,
 %%   -Distance:integer
-%%   -Vertices:ord_set(vertex),
-%%   -Edges:ord_set(edge),
+%%   -Vertices:ordset(vertex),
+%%   -Edges:ordset(edge),
 %%   -History:list
 %% ) is nondet.
 % Lets travel through graph land.
@@ -783,8 +783,8 @@ travel_min(Options, First, Last, MinimumDistance):-
 %%   +First:vertex,
 %%   +Last:vertex,
 %%   -MinimumDistance:integer,
-%%   -Vertices:ord_set(vertex),
-%%   -Edges:ord_set(edge),
+%%   -Vertices:ordset(vertex),
+%%   -Edges:ordset(edge),
 %%   -History:list
 %% ) is det.
 % Returns the minimum distance between the given subject and predicate terms.
@@ -863,7 +863,7 @@ vertex_shaping(Options, Vertex, Shape):-
   rdf_vertex_shaping(Options, Vertex, Shape).
 vertex_shaping(_Options, _Vertex, [peripheries(1), shape(ellipse)]).
 
-%% vertices1(+Options:list(nvpair), -Vertices:ord_set(vertex)) is det.
+%% vertices1(+Options:list(nvpair), -Vertices:ordset(vertex)) is det.
 % Returns the nodes in the graph with the given name.
 %
 % @param Options A list of name-value pairs.

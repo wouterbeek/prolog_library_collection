@@ -58,21 +58,21 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(library(http/http_path)).
 
 % Assert DTD file locations.
-:- assert_novel(user:file_search_path(dtd, html(.))).
+:- db_add_novel(user:file_search_path(dtd, html(.))).
 
 % Assert the HTML file types.
-:- assert_novel(user:prolog_file_type(htm, html)).
-:- assert_novel(user:prolog_file_type(html, html)).
+:- db_add_novel(user:prolog_file_type(htm, html)).
+:- db_add_novel(user:prolog_file_type(html, html)).
 
 % Register the supported image file types.
 % These are shared with module RDF_DATATYPE.
 :- dynamic(user:image_file_type/1).
 :- multifile(user:image_file_type/1).
-:- assert_novel(user:prolog_file_type(jpeg, jpeg)).
-:- assert_novel(user:prolog_file_type(jpg, jpeg)).
-:- assert_novel(user:image_file_type(jpg)).
-:- assert_novel(user:prolog_file_type(png, png)).
-:- assert_novel(user:image_file_type(png)).
+:- db_add_novel(user:prolog_file_type(jpeg, jpeg)).
+:- db_add_novel(user:prolog_file_type(jpg, jpeg)).
+:- db_add_novel(user:image_file_type(jpg)).
+:- db_add_novel(user:prolog_file_type(png, png)).
+:- db_add_novel(user:image_file_type(png)).
 
 
 
@@ -255,7 +255,7 @@ html_convert(Atom, HTML_Atom):-
   atom_codes(Atom, C),
   % Read the codes that constitute the given atom. This may include codes for
   % escape characters that are not legitimate C-characters.
-  re(
+  parse_re(
     [case(sensitive), out(atom), q(+)],
     html_char,
     HTML_Atom,
@@ -277,4 +277,3 @@ type_check(pixels, Value):-
   !.
 type_check(Type, Value):-
   type_check_generic(Type, Value).
-

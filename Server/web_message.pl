@@ -15,7 +15,6 @@ Acts on messages printed by print_message/2.
 */
 
 :- use_module(generics(file_ext)).
-:- use_module(generics(logging)).
 :- use_module(html(html)).
 :- use_module(library(http/http_open)).
 :- use_module(server(error_web)).

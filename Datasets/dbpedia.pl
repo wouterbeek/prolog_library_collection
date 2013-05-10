@@ -71,7 +71,7 @@ WHERE
 :- use_module(sparql(sparql_ext)).
 :- use_module(xml(xml_namespace)).
 
-:- assert_novel(user:prolog_file_type(ttl, turtle)).
+:- db_add_novel(user:prolog_file_type(ttl, turtle)).
 
 :- xml_register_namespace(dbpedia, 'http://dbpedia.org/resource/').
 :- xml_register_namespace('dbpedia-owl', 'http://dbpedia.org/ontology/').

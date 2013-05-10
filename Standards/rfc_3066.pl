@@ -26,7 +26,7 @@ language_tag(O1, Primary, Secondary, C1-C0):-
   language_tags(O2, Secondary, C2-C0).
 
 language_tag0(O1, Tag, C1-C0):-
-  re(O1, [letter], Tag, C1-C0),
+  parse_re(O1, [letter], Tag, C1-C0),
   atom_length(Tag, Length),
   (
     % Length-2 codes must be ISO 639-1.
@@ -44,7 +44,6 @@ language_tag0(O1, Tag, C1-C0):-
 
 language_tags(_O1, [], C0-C0).
 language_tags(O1, [Tag | Tags], C1-C0):-
-  char(hyphen, C1-C2),
+  parse_char(hyphen, C1-C2),
   language_tag0(O1, Tag, C2-C3),
   language_tags(O1, Tags, C3-C0).
-

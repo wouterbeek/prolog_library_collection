@@ -9,9 +9,9 @@
                      % ?Broader:uri
                      % ?Graph:atom
     tree_to_nodes/2, % +Tree:tree
-                     % -Nodes:ord_set(uri)
+                     % -Nodes:ordset(uri)
     tree_to_triples/2 % +Tree:tree
-                      % -Triples:ord_set(triple)
+                      % -Triples:ordset(triple)
   ]
 ).
 

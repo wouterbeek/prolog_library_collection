@@ -52,7 +52,7 @@ http://semanticweb.cs.vu.nl/prasem/
 
 % Serve CSS files.
 http:location(css, root(css), []).
-:- assert_novel(user:file_search_path(css, server(css))).
+:- db_add_novel(user:file_search_path(css, server(css))).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
 
 % Serve images.
@@ -60,7 +60,7 @@ http:location(css, root(css), []).
 
 % Serve JavaScript files.
 http:location(js, root(js), []).
-:- assert_novel(user:file_search_path(js, server(js))).
+:- db_add_novel(user:file_search_path(js, server(js))).
 :- http_handler(js(.), serve_files_in_directory(js), [prefix]).
 
 % Create a SPRAQL endpoint.

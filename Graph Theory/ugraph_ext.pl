@@ -208,7 +208,7 @@ edge_induced_subgraph(Graph, ESubG, SubG):-
   ord_subtract(Es, ESubG, DelEs),
   del_edges(Graph, DelEs, SubG).
 
-%% ugraph_edges(+Options:list(nvpair), -Edges:ord_set(edge)) is det.
+%% ugraph_edges(+Options:list(nvpair), -Edges:ordset(edge)) is det.
 
 ugraph_edges(Options, Edges):-
   option(graph(Graph), Options),

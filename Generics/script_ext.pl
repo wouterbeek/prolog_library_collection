@@ -12,16 +12,18 @@
 Extensions for scripting and running automated scripts.
 
 We need to indicate whether we are in script mode or not, since in
-script mode there may be bahviors that require user interaction
+script mode there may be behaviors that require user interaction
 blocking the script.
 
 @author Wouter Beek
-@version 2012/07
+@version 2012/07, 2013/05
 */
+
+:- use_module(generics(db_ext)).
 
 :- dynamic(script_mode/1).
 
-:- assert(script_mode(false)).
+:- db_add_novel(script_mode(false)).
 
 
 
@@ -35,18 +37,10 @@ in_script_mode:-
 % Starts running in script mode.
 
 start_script_mode:-
-  script_mode(true),
-  !.
-start_script_mode:-
-  retract(script_mode(false)),
-  assert(script_mode(true)).
+  db_replace_novel(script_mode(false), script_mode(true)).
 
 %% stop_script_mode is det.
 % Stops running in script mode.
 
 stop_script_mode:-
-  script_mode(false),
-  !.
-stop_script_mode:-
-  retract(script_mode(true)),
-  assert(script_mode(false)).
+  db_replace_novel(script_mode(true), script_mode(false)).
