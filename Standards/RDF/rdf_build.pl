@@ -300,13 +300,16 @@ rdf_overwrite_datatype(Subject, Predicate, Datatype, NewValue, Graph):-
     rdf_datatype(Subject, Predicate, Datatype, OldValue, Graph),
     OldValues
   ),
-  \+ member(NewValue, OldValues),
-  rdf_retractall_datatype(Subject, Predicate, Datatype, OldValue, Graph),
-  rdf_assert_datatype(Subject, Predicate, Datatype, NewValue, Graph),
-  debug(
-    rdf_build,
-    'Updated value <~w, ~w, ~w^^~w, ~w> --> <~w, ~w, ~w^^~w, ~w>\n',
-    [Subject, Predicate, OldValues, Datatype, Graph, Subject, Predicate,
-     NewValue, Datatype, Graph]
-  ).
-
+  (
+    member(NewValue, OldValues)
+  ;
+    rdf_retractall_datatype(Subject, Predicate, Datatype, OldValue, Graph),
+    rdf_assert_datatype(Subject, Predicate, Datatype, NewValue, Graph),
+    debug(
+      rdf_build,
+      'Updated value <~w, ~w, ~w^^~w, ~w> --> <~w, ~w, ~w^^~w, ~w>\n',
+      [Subject, Predicate, OldValues, Datatype, Graph, Subject, Predicate,
+      NewValue, Datatype, Graph]
+    )
+  ),
+  !.
