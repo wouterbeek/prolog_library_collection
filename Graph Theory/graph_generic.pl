@@ -127,7 +127,7 @@ graph_format/2
 
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
-:- use_module(generics(type_checking)).
+:- use_module(generics(typecheck)).
 :- use_module(graph_theory(ugraph_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).

@@ -7,16 +7,16 @@
                        % +Graph:atom
 
 % LITERAL ASSERTIONS
-    rdf_assert_datatype/5, % +Subject:uri
+    rdf_assert_datatype/5, % +Subject:oneof([bnode,uri])
                            % +Predicate:uri
-                           % +DatatypeName:atom
+                           % +Datatype:oneof([atom,uri])
                            % +Value
                            % +Graph:atom
-    rdf_assert_literal/4, % +Subject:uri
+    rdf_assert_literal/4, % +Subject:oneof([bnode,uri])
                           % +Predicate:uri
                           % +Literal:atom
                           % +Graph:atom
-    rdf_assert_literal/5, % +Subject:uri
+    rdf_assert_literal/5, % +Subject:oneof([bnode,uri])
                           % +Predicate:uri
                           % +Language:atom
                           % +Literal:atom
@@ -26,28 +26,23 @@
     rdf_increment/3, % +Link:uri
                      % +Relation:uri
                      % +Graph:atom
-    rdf_overwrite_datatype/5, % +Subject:uri
+    rdf_overwrite_datatype/5, % +Subject:oneof([bnode,uri])
                               % +Predicate:uri
-                              % +DatatypeName:atom
-                              % +Value
+                              % +Datatype:oneof([atom,uri])
+                              % +NewValue
                               % +Graph:atom
-    rdf_update_datatype/5, % +Subject:uri
-                           % +Predicate:uri
-                           % +DatatypeName:atom
-                           % +Value
-                           % +Graph:atom
 
 % LITERAL RETRACTIONS
-    rdf_retractall_datatype/5, % ?Subject:uri
+    rdf_retractall_datatype/5, % ?Subject:oneof([bnode,uri])
                                % ?Predicate:uri
-                               % ?DatatypeName:atom
+                               % ?Datatype:oneof([atom,uri])
                                % ?Value
                                % ?Graph:atom
-    rdf_retractall_literal/4, % ?Subject:uri
+    rdf_retractall_literal/4, % ?Subject:oneof([bnode,uri])
                               % ?Predicate:uri
                               % ?Literal:atom
                               % ?Graph:atom
-    rdf_retractall_literal/5 % ?Subject:uri
+    rdf_retractall_literal/5 % ?Subject:oneof([bnode,uri])
                              % ?Predicate:uri
                              % ?Language:atom
                              % ?Literal:atom
@@ -72,16 +67,14 @@ The supported datatypes:
     * integer
 
 @author Wouter Beek
-@version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/04
+@version 2011/08, 2012/01, 2012/03, 2012/09, 2012/11-2013/05
 */
 
-:- use_module(generics(atom_ext)).
 :- use_module(library(debug)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(math(math_ext)).
-:- use_module(rdf(rdf_export)).
 :- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_read)).
+:- use_module(rdf(rdf_typecheck)).
 
 % LISTS
 :- rdf_meta(rdf_assert_list(+,r,+)).
@@ -92,7 +85,6 @@ The supported datatypes:
 % LITERAL UPDATES
 :- rdf_meta(rdf_increment(r,r,+)).
 :- rdf_meta(rdf_overwrite_datatype(r,r,+,+,+)).
-:- rdf_meta(rdf_update_datatype(r,r,+,+,+)).
 % LITERAL RETRACTIONS
 :- rdf_meta(rdf_retractall_datatype(r,r,?,?,?)).
 :- rdf_meta(rdf_retractall_literal(r,r,?,?)).
@@ -149,7 +141,7 @@ add_blank_list_individual(Blank, Graph):-
 % LITERAL ASSERTIONS %
 
 %% rdf_assert_datatype(
-%%   +Subject:uri,
+%%   +Subject:oneof([bnode,uri]),
 %%   +Predicate:uri,
 %%   +DatatypeName:oneof([]),
 %%   +Value,
@@ -168,7 +160,7 @@ rdf_assert_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   rdf_assert(Subject, Predicate, literal(type(Datatype, CanonicalValue)), Graph).
 
 %% rdf_assert_literal(
-%%   +Subject:uri,
+%%   +Subject:oneof([bnode,uri]),
 %%   +Predicate:uri,
 %%   +Literal:atom,
 %%   +Graph:atom
@@ -181,11 +173,13 @@ rdf_assert_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
 % @param Graph The atomic name of an RDF graph.
 % @see rdf_assert_literal/5 also specifies the language.
 
-rdf_assert_literal(Subject, Predicate, Literal, Graph):-
-  rdf_assert_literal(Subject, Predicate, en, Literal, Graph).
+rdf_assert_literal(Subject, Predicate, Literal1, Graph):-
+  % Make sure that the literal is atomic.
+  term_to_atom(Literal1, Literal2),
+  rdf_assert_literal(Subject, Predicate, literal(Literal2), Graph).
 
 %% rdf_assert_literal(
-%%   +Subject:uri,
+%%   +Subject:oneof([bnode,uri]),
 %%   +Predicate:uri,
 %%   +Language:atom,
 %%   +Literal:atom,
@@ -199,16 +193,17 @@ rdf_assert_literal(Subject, Predicate, Literal, Graph):-
 % @param Literal An atom.
 % @param Graph The atomic name of an RDF graph.
 
-rdf_assert_literal(Subject, Predicate, Language, Literal, Graph):-
-  (atom(Literal) -> Literal1 = Literal ; term_to_atom(Literal, Literal1)),
-  rdf_assert(Subject, Predicate, literal(lang(Language, Literal1)), Graph).
+rdf_assert_literal(Subject, Predicate, Language, Literal1, Graph):-
+  % Make sure that the literal is atomic.
+  term_to_atom(Literal1, Literal2),
+  rdf_assert(Subject, Predicate, literal(lang(Language, Literal2)), Graph).
 
 
 
 % LITERAL RETRACTIONS %
 
 %% rdf_retractall_datatype(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?DatatypeName:oneof([]),
 %%   ?Value,
@@ -232,7 +227,7 @@ rdf_retractall_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   ).
 
 %% rdf_retractall_literal(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?Literal:atom,
 %%   ?Graph:atom
@@ -247,10 +242,10 @@ rdf_retractall_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
 %      a specific name.
 
 rdf_retractall_literal(Subject, Predicate, Literal, Graph):-
-  rdf_retractall_literal(Subject, Predicate, _Language, Literal, Graph).
+  rdf_retractall_literal(Subject, Predicate, literal(Literal), Graph).
 
 %% rdf_retractall_literal(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?Language:atom,
 %%   ?Literal:atom,
@@ -274,33 +269,44 @@ rdf_retractall_literal(Subject, Predicate, Language, Literal, Graph):-
 
 %% rdf_increment(+Link:uri, +Relation:uri, +Graph:atom) is det.
 % Inrements an integer stored in RDF.
-%
-% @param Link A resource.
-% @param Relation A resource.
-% @param Graph The atomic name of a graph.
 
-rdf_increment(Link, Relation, Graph):-
-  once(rdf_datatype(Link, Relation, integer, OldInteger, Graph)),
-  NewInteger is OldInteger + 1,
-  rdf_retractall_datatype(Link, Relation, integer, _OldInteger, Graph),
-  rdf_assert_datatype(Link, Relation, integer, NewInteger, Graph).
+rdf_increment(Subject, Predicate, Graph):-
+  once(rdf_datatype(Subject, Predicate, integer, OldValue, Graph)),
+  NewValue is OldValue + 1,
+  rdf_retractall_datatype(Link, Relation, integer, OldValue, Graph),
+  rdf_assert_datatype(Link, Relation, integer, NewValue, Graph).
 
-rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph):-
+%% rdf_overwrite_datatype(
+%%   +Subject:oneof([bnode,uri]),
+%%   +Predicate:uri,
+%%   +Datatype:oneof([atom,uri]),
+%%   +NewValue,
+%%   +Graph:atom
+%% ) is det.
+% The single new value is going to overwrite all old values, unless the new
+% value is already asserted. In that case none of the other values gets
+% retracted.
+
+rdf_overwrite_datatype(Subject, Predicate, Datatype, NewValue, Graph):-
+  % Type checking.
+  % We need a completely qualified RDF triple.
+  rdf_is_subject(Subject),
+  rdf_is_predicate(Predicate),
+  rdf_datatype(Datatype, NewValue, _CanonicalValue),
+  rdf_graph(Graph),
+  !,
+  findall(
+    OldValue,
+    rdf_datatype(Subject, Predicate, Datatype, OldValue, Graph),
+    OldValues
+  ),
+  \+ member(NewValue, OldValues),
   rdf_retractall_datatype(Subject, Predicate, Datatype, OldValue, Graph),
-  rdf_assert_datatype(Subject, Predicate, Datatype, Value, Graph),
+  rdf_assert_datatype(Subject, Predicate, Datatype, NewValue, Graph),
   debug(
     rdf_build,
     'Updated value <~w, ~w, ~w^^~w, ~w> --> <~w, ~w, ~w^^~w, ~w>\n',
-    [Subject, Predicate, OldValue, Datatype, Graph, Subject, Predicate, Value, Datatype, Graph]
-  ).
-
-rdf_update_datatype(Subject, Predicate, Datatype, Value, Graph):-
-  maplist(nonvar, [Subject, Predicate, Datatype, Value, Graph]),
-  (
-    rdf_datatype(Subject, Predicate, Datatype, Value, Graph)
-  ->
-    true
-  ;
-    rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph)
+    [Subject, Predicate, OldValues, Datatype, Graph, Subject, Predicate,
+     NewValue, Datatype, Graph]
   ).
 

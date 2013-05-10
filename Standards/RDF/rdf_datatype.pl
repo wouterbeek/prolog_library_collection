@@ -5,12 +5,12 @@
                             % +FromValue
                             % +ToDatatype:uri
                             % -ToValue
-    rdf_datatype/2, % ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,int])
+    rdf_datatype/2, % ?DatatypeName:atom
                     % ?Datatype:uri
-    rdf_datatype/3, % ?DatatypeName_Or_Datatype:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,int,uri])
+    rdf_datatype/3, % ?Datatype:oneof([atom,uri])
                     % ?LexicalValue
                     % ?CanonicalValue
-    rdf_datatype/4 % ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,int])
+    rdf_datatype/4 % ?DatatypeName:atom
                    % ?LexicalValue
                    % ?Datatype:uri
                    % ?CanonicalValue
@@ -29,7 +29,7 @@ This module uses the =|img|= search file name for finding images.
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
-:- use_module(generics(type_checking)).
+:- use_module(generics(typecheck)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(xml(xmls)).
 

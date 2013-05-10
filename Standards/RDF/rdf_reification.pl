@@ -40,6 +40,7 @@
 Reification for RDF. Both reading and writing.
 
 @author Wouter Beek
+@tbd Assess this module after reading the semantics standard for reification.
 @version 2013/02
 */
 

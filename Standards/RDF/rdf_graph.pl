@@ -422,24 +422,17 @@ rdf_name0(Options, Graph, Name):-
 rdf_object(G, O):-
   nonvar_det(rdf_object0(G, O)).
 rdf_object0(G, O):-
-  rdf(_, _, O, G),
-  (
-    rdf_is_resource(O)
-  ;
-    rdf_is_literal(O)
-  ).
+  rdf(_, _, O, G).
 
 rdf_predicate(G, P):-
   nonvar_det(rdf_predicate0(G, P)).
 rdf_predicate0(G, P):-
-  rdf(_, P, _, G),
-  rdf_is_resource(P).
+  rdf(_, P, _, G).
 
 rdf_subject(G, S):-
   nonvar_det(rdf_subject0(G, S)).
 rdf_subject0(G, S):-
-  rdf(S, _, _, G),
-  rdf_is_resource(S).
+  rdf(S, _, _, G).
 
 %% rdf_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
 % Returns an unsorted list containing all the triples in a graph.
@@ -456,4 +449,3 @@ rdf_vocabulary(Graph, Vocabulary):-
     rdf_name([literal(false)], Graph, Name),
     Vocabulary
   ).
-

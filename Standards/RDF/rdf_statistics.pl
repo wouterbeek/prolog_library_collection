@@ -6,11 +6,11 @@
     count_individuals/3, % +Class:uri
                          % +Graph:atom
                          % -Count:integer
-    count_objects/4, % +Subject:uri
+    count_objects/4, % +Subject:oneof([bnode,uri])
                      % +Predicate:uri
                      % +Graph:atom
                      % -Count:integer
-    count_predicates/4, % +Subject:uri
+    count_predicates/4, % +Subject:oneof([bnode,uri])
                         % +Object:resource
                         % +Graph:atom
                         % -Count:integer

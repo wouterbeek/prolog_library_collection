@@ -30,7 +30,7 @@
                        % -Element:uri
 
 % RDF-HAS
-    rdfs/4, % ?Subject:uri
+    rdfs/4, % ?Subject:oneof([bnode,uri])
             % ?Predicate:uri
             % ?Object:uri
             % ?Graph:atom

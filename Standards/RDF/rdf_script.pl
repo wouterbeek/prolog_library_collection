@@ -56,4 +56,3 @@ assert_visum:-
   owl_assert_class_equivalence(ch:capital,      nl:capital,     Graph),
   owl_assert_resource_identity(dbp:'Amsterdam', ch:'Amsterdam', Graph),
   owl_assert_resource_identity(dbp:'Amsterdam', nl:'Amsterdam', Graph).
-

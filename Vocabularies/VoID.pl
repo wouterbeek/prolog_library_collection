@@ -101,7 +101,7 @@ rdf_linkset(Triples, FromGraph, ToGraph):-
 
 void_assert_modified(Dataset, DatasetPath, VoID_Graph):-
   time_file(DatasetPath, LastModified),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     dc:modified,
     dateTime,
@@ -112,7 +112,7 @@ void_assert_modified(Dataset, DatasetPath, VoID_Graph):-
 void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
   % void:classes
   count_classes(DatasetGraph, NumberOfClasses),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     void:classes,
     int,
@@ -122,7 +122,7 @@ void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
 
   % void:distinctObjects
   count_objects(_Subject10, _Predicate10, DatasetGraph, NumberOfObjects),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     void:distinctObjects,
     int,
@@ -132,7 +132,7 @@ void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
 
   % void:distinctSubjects
   count_subjects(_Predicate20, _Object20, DatasetGraph, NumberOfSubjects),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     void:distinctSubjects,
     int,
@@ -142,7 +142,7 @@ void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
 
   % void:properties
   count_properties(DatasetGraph, NumberOfProperties),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     void:properties,
     int,
@@ -152,7 +152,7 @@ void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
 
   % void:triples
   rdf_statistics(triples_by_graph(DatasetGraph, NumberOfTriples)),
-  rdf_update_datatype(
+  rdf_overwrite_datatype(
     Dataset,
     void:triples,
     int,

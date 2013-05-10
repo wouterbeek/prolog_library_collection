@@ -17,7 +17,7 @@ GeoNames predicates.
 */
 
 :- use_module(generics(file_ext)).
-:- use_module(generics(type_checking)).
+:- use_module(generics(typecheck)).
 :- use_module(library(http/http_open)).
 
 
@@ -40,7 +40,7 @@ parse_attribute(AttributeNames, Attribute):-
   Attribute =.. [Name, Value],
   memberchk(Name, AttributeNames),
   attribute(Name, Type),
-  type_check(Type, Value).
+  typecheck(Type, Value).
 
 parse_attributes(AttributeNames, Attributes):-
   maplist(parse_attribute(AttributeNames), Attributes).

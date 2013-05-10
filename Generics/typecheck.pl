@@ -1,9 +1,8 @@
 :- module(
-  type_checking,
+  typecheck,
   [
-    type_check/2, % +Type:compound
-                  % +Value:atom
-    is_uri/1 % ?Resource
+    typecheck/2, % +Type:compound
+    is_uri/1
   ]
 ).
 
@@ -17,29 +16,29 @@ Predicates used for parsing and checking value-type conformance.
 
 
 
-%% type_check(+Type:compound, +Value:term) is semidet.
+%% typecheck(+Type:compound, +Value) is semidet.
 % Succeeds if the given value is of the given type.
 %
 % @param Type A compound term representing a type.
-% @param Value The atomic name of a value.
+% @param Value
 
-type_check(or(AlternativeTypes), Value):-
+typecheck(or(AlternativeTypes), Value):-
   member(Type, AlternativeTypes),
-  type_check(Type, Value),
+  typecheck(Type, Value),
   !.
-type_check(boolean, Value):-
-  type_check(oneof([false,true]), Value).
-type_check(double, Value):-
-  type_check(float, Value),
+typecheck(boolean, Value):-
+  typecheck(oneof([false,true]), Value).
+typecheck(double, Value):-
+  typecheck(float, Value),
   !.
-type_check(oneof(Values), Value):-
+typecheck(oneof(Values), Value):-
   memberchk(Value, Values),
   !.
-type_check(Type, Value):-
+typecheck(Type, Value):-
   must_be(Type, Value),
   !.
 % DCG defined types
-type_check(Type, Value):-
+typecheck(Type, Value):-
   atom_chars(Value, ValueChars),
   Call =.. [Type, ValueChars, []],
   call(Call).
@@ -54,4 +53,3 @@ is_uri(Resource):-
   nonvar(Scheme),
   nonvar(Authority),
   nonvar(Path).
-

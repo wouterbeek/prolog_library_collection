@@ -21,16 +21,16 @@
                          % ?PreviousElement:uri
 
 % LITERALS
-    rdf_datatype/5, % ?Subject:uri
+    rdf_datatype/5, % ?Subject:oneof([bnode,uri])
                     % ?Predicate:uri
-                    % ?Datatype:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                    % ?Datatype:oneof([atom,uri])
                     % ?Value:atomic
                     % ?Graph:graph
-    rdf_literal/4, % ?Subject:uri
+    rdf_literal/4, % ?Subject:oneof([bnode,uri])
                    % ?Predicate:uri
                    % ?Literal:atom
                    % ?Graph:graph
-    rdf_literal/5, % ?Subject:uri
+    rdf_literal/5, % ?Subject:oneof([bnode,uri])
                    % ?Predicate:uri
                    % ?Language:atom
                    % ?Literal:atom
@@ -43,20 +43,20 @@
                      % ?Members:list(uri)
 
 % RDF HAS
-    rdf_has_datatype/4, % ?Subject:uri
+    rdf_has_datatype/4, % ?Subject:oneof([bnode,uri])
                         % ?Predicate:uri
-                        % ?Datatype:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer])
+                        % ?Datatype:oneof([atom,uri])
                         % ?Value:atomic
 
 % STRUCTURE-BASED READS
-    rdf_index/5, % ?Subject:uri
+    rdf_index/5, % ?Subject:oneof([bnode,uri])
                  % ?Predicate:uri
                  % ?Object:uri
                  % ?Graph:graph
                  % ?Index:term
     rdf_node/2, % ?Graph:graph
                 % ?Node:uri
-    rdf_random/5, % -Subject:uri
+    rdf_random/5, % -Subject:oneof([bnode,uri])
                   % -Predicate:uri
                   % -Object:uri
                   % +Graph:graph
@@ -224,7 +224,7 @@ rdf_list_previous(Element, PreviousElement):-
 % LITERALS %
 
 %% rdf_datatype(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer]),
 %%   ?LexicalValue,
@@ -242,7 +242,7 @@ rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue).
 
 %% rdf_literal(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?Literal:atom,
 %%   ?Graph:graph
@@ -257,7 +257,7 @@ rdf_literal(Subject, Predicate, Literal, Graph):-
   rdf_literal(Subject, Predicate, en, Literal, Graph).
 
 %% rdf_literal(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?Language:atom,
 %%   ?Literal:atom,
@@ -303,7 +303,7 @@ rdf_has_datatype(Subject, Predicate, DatatypeName, LexicalValue):-
 % STRUCTURE-BASED READS %
 
 %% rdf_index(
-%%   ?Subject:uri,
+%%   ?Subject:oneof([bnode,uri]),
 %%   ?Predicate:uri,
 %%   ?Object:uri,
 %%   ?Graph:graph,
@@ -330,7 +330,7 @@ rdf_node0(Graph, Node):-
   rdf_object(Graph, Node).
 
 %% rdf_random(
-%%   -Subject:uri,
+%%   -Subject:oneof([bnode,uri]),
 %%   -Predicate:uri,
 %%   -Object:uri,
 %%   ?Graph:graph,

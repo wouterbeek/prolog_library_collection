@@ -16,6 +16,8 @@
     switch/3, % ?Map:pair
               % +Maps:list(pair)
               % +Default
+    unless/2, % :Unless
+              % :Do
 
 % DETERMINISM
     call_semidet/1, % :Goal
@@ -124,6 +126,7 @@ Extensions to the SWI-Prolog meta predicates.
 :- meta_predicate(run_on_sublists(+,1)).
 :- meta_predicate(setoff(+,0,-)).
 :- meta_predicate(setoff_alt(+,0,-)).
+:- meta_predicate(unless(0,0)).
 :- meta_predicate(user_interaction(+,:,+,+)).
 
 :- dynamic(memo_/1).
@@ -184,6 +187,15 @@ switch(X-Y, Maps, _Default):-
   memberchk(X-Y, Maps),
   !.
 switch(_X-Default, _Maps, Default).
+
+unless(Unless, Do):-
+  (
+    call(Unless)
+  ->
+    true
+  ;
+    call(Do)
+  ).
 
 
 

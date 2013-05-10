@@ -52,7 +52,7 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(parse_ext)).
-:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(generics(typecheck)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
@@ -267,13 +267,13 @@ parse_attribute(Context, Attribute, Name=Value):-
   attribute(Name, Type, Contexts),
   memberchk(Context, Contexts),
   !,
-  type_check(Type, Value).
+  html_typecheck(Type, Value).
 
 parse_attributes_html(Context, Attributes, ParsedAttributes):-
   maplist(parse_attribute(Context), Attributes, ParsedAttributes).
 
-type_check(pixels, Value):-
-  type_check(integer, Value),
+html_typecheck(pixels, Value):-
+  html_typecheck(integer, Value),
   !.
-type_check(Type, Value):-
-  type_check_generic(Type, Value).
+html_typecheck(Type, Value):-
+  typecheck(Type, Value).

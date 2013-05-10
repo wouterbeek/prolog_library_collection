@@ -45,7 +45,7 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 
 :- use_module(generics(atom_ext)).
 :- use_module(generics(meta_ext)).
-:- use_module(generics(type_checking)).
+:- use_module(generics(typecheck)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_datatype)).
@@ -242,4 +242,3 @@ rdf_strip_string(Subject, Predicate, Graph):-
 :- rdf_meta(rdf_overwrite_datatype0(?,r,r,?,?)).
 rdf_overwrite_datatype0(Datatype, Subject, Predicate, Value, Graph):-
   rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph).
-

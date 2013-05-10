@@ -79,7 +79,7 @@ representing a name-value pair.
 :- use_module(generics(file_ext)).
 :- use_module(generics(os_ext)).
 :- use_module(generics(print_ext)).
-:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
+:- use_module(generics(typecheck)).
 :- use_module(library(process)).
 :- use_module(standards(brewer)).
 :- use_module(standards(c)).
@@ -259,7 +259,7 @@ color_scheme_default_color(_, black).
 convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   % Type checks.
   access_file(FromFile, read),
-  type_check(oneof([dot,sfdp]), Method),
+  gv_typecheck(oneof([dot,sfdp]), Method),
   prolog_file_type(ToExtension, ToFileType),
   prolog_file_type(ToExtension, graphviz_output),
   
@@ -331,7 +331,7 @@ parse_attribute(Context, Attributes, Attribute):-
   % the attribute may be different for different elements.
   memberchk(Context, Contexts),
   !,
-  type_check(Type, Value).
+  gv_typecheck(Type, Value).
 
 %% parse_attributes_graphviz(
 %%   +Context:oneof([edge,graph,node]),
@@ -481,7 +481,7 @@ style(node, solid).
 style(node, striped).
 style(node, wedged).
 
-%% type_check(+Type:compound, +Value:term) is semidet.
+%% gv_typecheck(+Type:compound, +Value:term) is semidet.
 % Succeeds of the given value is of the given GraphViz type.
 %
 % @param Type A compound term representing a GraphViz type.
@@ -490,28 +490,24 @@ style(node, wedged).
 % @tbd Test the DCG for HTML labels.
 % @tbd Add the escape sequences for the =escString= datatype.
 
-type_check(or(AlternativeTypes), Value):-
+gv_typecheck(or(AlternativeTypes), Value):-
   member(Type, AlternativeTypes),
-  type_check(Type, Value),
+  gv_typecheck(Type, Value),
   !.
-type_check(escString, Value):-
-  type_check_generic(atom, Value),
+gv_typecheck(escString, Value):-
+  typecheck(atom, Value),
   !.
-type_check(lblString, Value):-
-  type_check(escString, Value),
+gv_typecheck(lblString, Value):-
+  gv_typecheck(escString, Value),
   !.
-type_check(lblString, Value):-
-  type_check(htmlLabel, Value),
+gv_typecheck(lblString, Value):-
+  gv_typecheck(htmlLabel, Value),
   !.
-type_check(polygon_based_shape, Value):-
-  findall(
-    Shape,
-    shape(polygon, Shape),
-    Shapes
-  ),
-  type_check_generic(oneof(Shapes), Value).
-type_check(Type, Value):-
-  type_check_generic(Type, Value).
+gv_typecheck(polygon_based_shape, Value):-
+  findall(Shape, shape(polygon, Shape), Shapes),
+  typecheck(oneof(Shapes), Value).
+gv_typecheck(Type, Value):-
+  typecheck(Type, Value).
 
 
 

@@ -71,7 +71,7 @@ The procedure for determining the color of a vertex:
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(print_ext)).
-:- use_module(generics(type_checking)).
+:- use_module(generics(typecheck)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_datatype)).

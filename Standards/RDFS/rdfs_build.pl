@@ -10,10 +10,10 @@
                             % +Graph:graph
 
 % LABELS
-    rdfs_assert_label/3, % +Subject:uri
+    rdfs_assert_label/3, % +Subject:oneof([bnode,uri])
                          % +Label:atom
                          % +Graph:graph
-    rdfs_assert_label/4, % +Subject:uri
+    rdfs_assert_label/4, % +Subject:oneof([bnode,uri])
                          % +Language:atom
                          % +Label:atom
                          % +Graph:graph
@@ -81,7 +81,7 @@ using the following triples:
 
 % LABELS %
 
-%% rdfs_assert_label(+Subject:uri, +Label:atom, +Grap:atom) is det.
+%% rdfs_assert_label(+Subject:oneof([bnode,uri]), +Label:atom, +Grap:atom) is det.
 % Assert the subject's label description.
 %
 % @param Subject A resource.
@@ -93,7 +93,7 @@ rdfs_assert_label(Subject, Label, Graph):-
   rdf_assert_literal(Subject, rdfs:label, Label, Graph).
 
 %% rdfs_assert_label(
-%%   +Subject:uri,
+%%   +Subject:oneof([bnode,uri]),
 %%   +Language:atom,
 %%   +Label:atom,
 %%   +Grap:atom

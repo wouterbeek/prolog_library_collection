@@ -59,7 +59,6 @@ represent by an integer between 0 and 255 (inclusive).
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(parse_ext)).
-:- use_module(generics(type_checking), [type_check/2 as type_check_generic]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(standards(markup)).
 :- use_module(xml(xml_namespace)).
@@ -67,7 +66,7 @@ represent by an integer between 0 and 255 (inclusive).
 :- discontiguous(attribute0(_Name, _Type, _Contexts)).
 :- discontiguous(attribute0(_Name, _Type, _Contexts, _Default)).
 
-:- meta_predicate(type_check(2,+)).
+:- meta_predicate(svg_typecheck(2,+)).
 
 % Assert DTD file locations.
 :- db_add_novel(user:file_search_path(dtd, svg(.))).
@@ -343,13 +342,13 @@ parse_attribute0(Context, Name, Value):-
   attribute(Name, Type, Contexts),
   memberchk(Context, Contexts),
   !,
-  type_check(Type, Value).
+  svg_typecheck(Type, Value).
 
 parse_attributes_svg(Context, Attributes, ParsedAttributes):-
   maplist(parse_attribute(Context), Attributes, ParsedAttributes).
 
 % DCG defined types
-type_check(Type, Value):-
+svg_typecheck(Type, Value):-
   atom_codes(Value, ValueCodes),
   call(Type, ValueCodes-[]),
   !.
