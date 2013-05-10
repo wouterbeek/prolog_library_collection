@@ -73,7 +73,7 @@ rdf_materialize(Graphs, TMS):-
 
   % Merge the graphs.
   rdf_graph_merge(Graphs, MergedGraph),
-  
+
   % Create an assumption node for each triple in the merged graph;
   % and assert a new triple, connecting it to the node via the node ID.
   forall(
@@ -155,8 +155,8 @@ rdf_materialize_tms_test(TMS):-
 
 rdf_node(S, P, O, TMS, Node):-
   is_registered_tms(TMS),
-  rdf_datatype(Node, tms:has_id, int, ID, TMS),
   rdf(S, P, O, TMS:ID),
+  rdf_datatype(Node, tms:has_id, int, ID, TMS),
   rdfs_individual_of(Node, tms:'Node').
 
 %% rdf_rule(
@@ -399,7 +399,7 @@ rdf_test_triple(rdfs:isDefinedBy, rdf:type, rdf:'Property').
 rdf_test_triple(rdfs:comment, rdf:type, rdf:'Property').
 rdf_test_triple(rdfs:label, rdf:type, rdf:'Property').
 
-test:-
+test1:-
   Graph = rdf_tms_test,
   rdf_assert(rdf:a, rdf:b, rdf:c, Graph),
   rdf_materialize(Graph, TMS),
@@ -408,4 +408,3 @@ test:-
   %rdf_datatype(N, tms:has_id, int, 103, TMS),
   %tms_export:export_argument(N),
   true.
-

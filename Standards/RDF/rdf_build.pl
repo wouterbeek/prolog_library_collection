@@ -173,10 +173,9 @@ rdf_assert_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
 % @param Graph The atomic name of an RDF graph.
 % @see rdf_assert_literal/5 also specifies the language.
 
-rdf_assert_literal(Subject, Predicate, Literal1, Graph):-
+rdf_assert_literal(Subject, Predicate, Literal, Graph):-
   % Make sure that the literal is atomic.
-  term_to_atom(Literal1, Literal2),
-  rdf_assert_literal(Subject, Predicate, literal(Literal2), Graph).
+  rdf_assert(Subject, Predicate, literal(Literal), Graph).
 
 %% rdf_assert_literal(
 %%   +Subject:oneof([bnode,uri]),
@@ -193,10 +192,9 @@ rdf_assert_literal(Subject, Predicate, Literal1, Graph):-
 % @param Literal An atom.
 % @param Graph The atomic name of an RDF graph.
 
-rdf_assert_literal(Subject, Predicate, Language, Literal1, Graph):-
+rdf_assert_literal(Subject, Predicate, Language, Literal, Graph):-
   % Make sure that the literal is atomic.
-  term_to_atom(Literal1, Literal2),
-  rdf_assert(Subject, Predicate, literal(lang(Language, Literal2)), Graph).
+  rdf_assert(Subject, Predicate, literal(lang(Language, Literal)), Graph).
 
 
 

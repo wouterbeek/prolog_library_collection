@@ -62,7 +62,7 @@ init:-
   format(atom(Project0), '.~w', [Project]),
   assert(user:file_search_path(personal, home(Project0))),
   assert(user:file_search_path(log, personal(log))).
-%:- init. %TBD
+:- init. %TBD
 
 
 

@@ -257,8 +257,7 @@ assert_home_directory:-
   % The personal or user directory is relatively difficult to
   % construe, since I only know how to retrieve the user's home
   % path using the XPCE library.
-  new(PCEDirectory, directory('~')),
-  get(PCEDirectory, path, HomeDirectory),
+  expand_file_name('~', [HomeDirectory]),
   assert(file_search_path(home, HomeDirectory)).
 
 %% assert_home_subdirectory(+SubDir:atom) is det.
