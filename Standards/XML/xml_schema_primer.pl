@@ -424,11 +424,12 @@ Nil values can only be defined for element values (not attribute values).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
+:- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(w3c, 'http://www.w3.org/').
-:- xml_register_namespace(xsd, 'http://www.w3.org/2001/XMLSchema').
+:- xml_register_namespace(xsd, 'http://www.w3.org/2001/XMLSchema#').
 % XML Scheme namespace for instances.
-:- xml_register_namespace(xsi, 'http://www.w3.org/2001/XMLSchema-instance').
+:- xml_register_namespace(xsi, 'http://www.w3.org/2001/XMLSchema-instance#').
 
 init:-
   Graph = w3c,

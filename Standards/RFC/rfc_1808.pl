@@ -173,7 +173,7 @@ base-header  = "Base" ":" "<URL:" absoluteURL ">"
 ---++ From the encapsulating entity
 
 If a document has no embedded base URL and it is enclosed within another
-entity (e.g. media type =|message/*|=, media type =|multipart/*|=, then the
+entity (e.g. media type =|message/x|=, media type =|multipart/x|=, then the
 base URL of the enclosed document is the base URL of the enclosing entity.
 
 ---++ From the retrieval URL
@@ -358,9 +358,19 @@ init:-
   Graph = rfc,
   rdf_global_id(rfc:'1808', This),
   rdf_assert_datatype(This, rfc:year, gYear, 1995, Graph),
-  rdf_assert_literal(This, rfc:title, en, 'Relative Uniform Resource Locators', Graph),
-  rdf_assert_literal(This, rfc:author, en, 'R. Fielding', Graph),
-  rdf_assert(This, foaf:homepage, 'http://www.ietf.org/rfc/rfc1808.txt', Graph),
+  rdf_assert_literal(
+    This,
+    rfc:title,
+    'Relative Uniform Resource Locators',
+    Graph
+  ),
+  rdf_assert_literal(This, rfc:author, 'R. Fielding', Graph),
+  rdf_assert(
+    This,
+    foaf:homepage,
+    'http://www.ietf.org/rfc/rfc1808.txt',
+    Graph
+  ),
   rdf_assert(This, rfc:mentions, rfc:'822', Graph), % BNF
   rdf_assert(This, rfc:mentions, rfc:'1521', Graph), % MIME
   rdf_assert(This, rfc:mentions, rfc:'1630', Graph), % Partial URLs

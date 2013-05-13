@@ -75,6 +75,7 @@ The supported datatypes:
 :- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdf(rdf_typecheck)).
+:- use_module(xml(xml_schema_datatypes)).
 
 % LISTS
 :- rdf_meta(rdf_assert_list(+,r,+)).

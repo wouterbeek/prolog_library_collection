@@ -1,5 +1,5 @@
 :- module(
-  xmls,
+  xml_schema_datatypes,
   [
     xmls_datatype/2, % ?DatatypeName:atom
                      % ?Datatype:uri
@@ -10,7 +10,7 @@
   ]
 ).
 
-/** <module> XML Schema
+/** <module> XML SCHEMA DATATYPES
 
 XML Schema 2: Datatypes (Second Edition)
 
@@ -70,10 +70,9 @@ A single defining aspect of a value space.
 @version 2013/01, 2013/03-2013/05
 */
 
-:- use_module(generics(atom_ext)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
-:- use_module(rdf(rdf_namespace)).
+:- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
@@ -86,7 +85,7 @@ A single defining aspect of a value space.
 :- rdf_meta(xmls_datatype_check(r,+)).
 
 :- xml_register_namespace(iso, 'http://www.iso.org/').
-:- xml_register_namespace(stdc, 'http://www.example.org/standards/').
+:- xml_register_namespace(std, 'http://www.example.org/standards/').
 :- xml_register_namespace(w3c, 'http://www.w3.org/').
 
 init:-
@@ -105,8 +104,7 @@ init:-
   % Language-independent datatypes.
   rdf_assert(This, w3c:mentions, iso:'11404', Graph),
   % SQL datatypes.
-  rdf_assert(This, w3c:mentions, std:'SQL', Graph),
-  true.
+  rdf_assert(This, w3c:mentions, std:'SQL', Graph).
 :- init.
 
 

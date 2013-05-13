@@ -31,7 +31,7 @@ This module uses the =|img|= search file name for finding images.
 :- use_module(generics(file_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(xml(xmls)).
+:- use_module(xml(xml_schema_datatypes)).
 
 % Temporary namespace for the image datatype.
 :- rdf_register_prefix(prasem, 'http://www.wouterbeek.com/prasem.owl#', [keep(true)]).

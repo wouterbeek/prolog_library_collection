@@ -211,7 +211,7 @@ An element must not be declared more than once.
 
 ==
 elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
-contentspec ::= 'EMPTY' | 'ANY' | Mixed | children 
+contentspec ::= 'EMPTY' | 'ANY' | Mixed | children
 ==
 
 Examples:
@@ -506,7 +506,7 @@ content      ::= CharData?
 ETag         ::= '</' Name S? '>'
 
 // Attributes
-Attribute    ::= Name Eq AttValue 
+Attribute    ::= Name Eq AttValue
 ==
 
 ---+++++ Element content
@@ -756,7 +756,7 @@ Example of parameter entity references, using a parameter entity:
 
 Parameter entities can be redefined in the internal DTD subset of a document.
 
----+++ external parameter entity 
+---+++ external parameter entity
 
 Parameter entity references to external parameter entities cause the contents
 of external DTDs to be inserted.
@@ -787,7 +787,7 @@ XMLDecl     ::= '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
 VersionInfo ::= S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
 Eq          ::= S? '=' S?
 VersionNum  ::= '1.' [0-9]+
-Misc        ::= Comment | PI | S 
+Misc        ::= Comment | PI | S
 ==
 
 A DTD consists of *|markup declarations|*:
@@ -896,16 +896,16 @@ http:location(css, root(css),  []).
 :- http_handler(css(.), serve_files_in_directory(css), [prefix, priority(10)]).
 
 :- xml_register_namespace(iso, 'http://www.iso.org/').
-:- xml_register_namespace(stdc, 'http://www.example.org/standards/').
+:- xml_register_namespace(std, 'http://www.example.org/standards/').
 :- xml_register_namespace(w3c, 'http://www.w3.org/').
 
 init:-
   Graph = w3c,
-  
+
   % XML Working Group
   rdf_global_id(w3c:'XML/Core/', XMLWG),
   rdfs_assert_label(XMLWG, 'XML Core Working Group', Graph),
-  
+
   % XML Recommendation
   rdf_global_id(w3c:'TR/2008/REC-xml-20081126/', This),
   rdfs_assert_individual(This, w3c:'Recommendation', Graph),
@@ -931,8 +931,7 @@ init:-
   % Language identification tags
   rdf_assert(This, w3c:requires, std:'IANA-LANGCODES', Graph),
   % Unicode
-  rdf_assert(This, w3c:requires, std:'Unicode', Graph),
-  true.
+  rdf_assert(This, w3c:requires, std:'Unicode', Graph).
 :- init.
 
 
