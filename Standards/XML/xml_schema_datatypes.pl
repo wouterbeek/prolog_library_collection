@@ -72,7 +72,6 @@ A single defining aspect of a value space.
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
-:- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_read)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
@@ -91,8 +90,8 @@ A single defining aspect of a value space.
 init:-
   Graph = w3c,
   rdf_global_id(w3c:'TR/2004/REC-xmlschema-2-20041028/', This),
-  rdfs_assert_individual(This, w3c:'Recommendation', Graph),
-  rdf_assert_datatype(This, w3c:year, gYear, 2004, Graph),
+  rdf_assert(This, rdf:type, w3c:'Recommendation', Graph),
+  rdf_assert(This, w3c:year, literal(type(gYear, '2004')), Graph),
   rdf_assert_literal(
     This,
     std:title,

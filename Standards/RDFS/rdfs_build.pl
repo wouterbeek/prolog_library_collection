@@ -64,6 +64,7 @@ using the following triples:
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
+:- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_export)).
 :- use_module(rdfs(rdfs_read)).
 

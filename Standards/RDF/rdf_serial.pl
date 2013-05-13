@@ -9,6 +9,7 @@
                          % ?SerializationFormat:atom
                          % ?Supported:boolean
                          % ?URI:uri
+
 % RDF LOAD
     rdf_load2/1, % +File:atom
     rdf_load2/2, % +File:atom
@@ -16,6 +17,11 @@
     rdf_load2/3, % ?File:atom
                  % ?Graph:atom
                  % ?Options:list(nvpair)
+    rdf_load2/4, % ?File:atom
+                 % ?SerializationFormat:atom
+                 % ?Graph:atom
+                 % ?Options:list(nvpair)
+
 % RDF SAVE
     rdf_save2/0,
     rdf_save2/1, % +Graph:atom
@@ -93,6 +99,10 @@ rdf_guess_data_format(Stream, xml):-
   !.
 rdf_guess_data_format(_, turtle).
 
+rdf_guess_serialization_format(Stream, SerializationFormat):-
+  rdf_guess_data_format(Stream, DataFormat),
+  translate_serialization_format(SerializationFormat, DataFormat).
+
 %% rdf_serialization(
 %%   ?FileType:atom,
 %%   ?SerializationFormat:atom,
@@ -162,7 +172,14 @@ rdf_load2(File, SerializationFormat, Graph, Options1):-
   file_name_type(_Name, FileType, File),
   % Pick a serialization format if none is given, or
   % make sure the given serialization format is supported.
-  rdf_serialization(FileType, SerializationFormat, true, _URI),
+  % We prefer the situation in which the file type matches, but this need
+  % not be the case (e.g. file type =owl= with serialization format
+  % =|RDF/XML|=.
+  (
+    rdf_serialization(FileType, SerializationFormat, true, _URI1)
+  ;
+    rdf_serialization(_OtherFileType, SerializationFormat, true, _URI2)
+  ),
   !,
   % Since we use more descriptive names for the serialization formats,
   % we translate them to the format names that are used in the semweb

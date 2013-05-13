@@ -209,7 +209,6 @@ run_test0(Test, 'SKIPPED'):-
 % A test with an input and an output document.
 run_test0(Test, 'PASS'):-
   rdfs_individual_of(Test, test:'PositiveEntailmentTest'),
-gtrace,
   
   % The premise graph.
   rdf(Test, test:premiseDocument, Premise_URI),

@@ -878,7 +878,6 @@ Examples:
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 :- use_module(rdf(rdf_build)).
-:- use_module(rdfs(rdfs_build)).
 :- use_module(standards(sgml_parse)).
 :- use_module(standards(standards), [charset/1]).
 :- use_module(xml(xml_namespace)).
@@ -904,12 +903,12 @@ init:-
 
   % XML Working Group
   rdf_global_id(w3c:'XML/Core/', XMLWG),
-  rdfs_assert_label(XMLWG, 'XML Core Working Group', Graph),
+  rdf_assert(XMLWG, rdfs:label, 'XML Core Working Group', Graph),
 
   % XML Recommendation
   rdf_global_id(w3c:'TR/2008/REC-xml-20081126/', This),
-  rdfs_assert_individual(This, w3c:'Recommendation', Graph),
-  rdf_assert_datatype(This, w3c:year, gYear, 2008, Graph),
+  rdf_assert(This, rdf:type, w3c:'Recommendation', Graph),
+  rdf_assert(This, w3c:year, literal(type(gYear, '2008')), Graph),
   rdf_assert_literal(
     This,
     w3c:title,

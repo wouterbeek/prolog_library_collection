@@ -245,16 +245,21 @@ rdf_rule(X, rdf:type, D, TMS, [Node1,Node2], [], Label):-
   rdf_node(P, rdfs:domain, D, TMS, Node1),
   rdf_node(X, P, _, TMS, Node2),
   Label = 'If <P,rdfs:domain,D> and <X,P,Y>, then <X,rdf:type,D>.'.
+/* LITERALS IN SUBJECT POSITION USING BLANK NODES!
 % [RDFS-3] Plain literals are individuals of =|rdfs:'Literal'|=.
 rdf_rule(Lit, rdf:type, rdfs:'Literal', TMS, [Node], [], Label):-
   rdf_node(_, _, literal(Lit), TMS, Node),
   Label = 'Plain literals are individuals of rdfs:Literal.'.
+*/
 % [RDFS-2] Everything is an =|rdfs:'Resource'|=.
 rdf_rule(X, rdf:type, rdfs:'Resource', TMS, [Node], [], Label):-
   rdf_node(S, P, O, TMS, Node),
   (X = S ; X = P ; X = O),
+% @tbd LITERALS IN SUBJECT POSITION USING BLANK NODES!
+\+ rdf_is_bnode(X),
   Label = 'Everything is an rdfs:Resource.'.
-% [RDFS-1] If a resource has in instance, then it must be an =|rdfs:'Class'|=.
+% [RDFS-1] If a resource has in instance, then it must be an
+% =|rdfs:'Class'|=.
 rdf_rule(Y, rdf:type, rdfs:'Class', TMS, [Node], [], Label):-
   rdf_node(_, rdf:type, Y, TMS, Node),
   Label = 'If a resource has in instance, then it must be an rdfs:Class.'.
@@ -265,12 +270,14 @@ rdf_rule(X, rdf:type, rdf:'Property', TMS, [Node], [], Label):-
   Label =
     'Terms that occur in the predicate position are instances of\c
      rdf:Property.'.
+/* LITERALS IN SUBJECT POSITION USING BLANK NODES!
 % [RDF-2] XML literals are instances of =|rdf:'XMLLiteral'|=.
 rdf_rule(BNode, rdf:type, rdf:'XMLLiteral', TMS, [Node], [], Label):-
   rdf_global_id(rdf:'XMLLiteral', Type),
   rdf_node(_, _, literal(type(Type, Lit)), TMS, Node),
   bnode_literal_map(BNode, Lit),
   Label = 'XML literals are instances of rdf:XMLLiteral.'.
+*/
 
 rdf_tms(S, P, O):-
   rdf(S, P, O),
