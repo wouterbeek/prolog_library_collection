@@ -1,9 +1,9 @@
 :- module(
   xmls,
   [
-    xmls_datatype/2, % ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,int])
+    xmls_datatype/2, % ?DatatypeName:atom
                      % ?Datatype:uri
-    xmls_datatype/4 % ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,int])
+    xmls_datatype/4 % ?DatatypeName:atom
                     % ?LexicalValue
                     % ?Datatype:uri
                     % ?CanonicalValue

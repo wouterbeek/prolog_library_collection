@@ -47,3 +47,4 @@ language_tags(O1, [Tag | Tags], C1-C0):-
   parse_char(hyphen, C1-C2),
   language_tag0(O1, Tag, C2-C3),
   language_tags(O1, Tags, C3-C0).
+

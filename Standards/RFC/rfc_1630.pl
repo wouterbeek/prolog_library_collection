@@ -7,14 +7,14 @@ and URN discussions.
 
 ---+ Definitions
 
-    * URI, Uniform Resource Identifier
+    * *|URI, Uniform Resource Identifier|*
       A member of the universal set.
       A name encapsulated in a registered name space and labeled with that
       name space.
-    * URL, Uniform Resource Location
+    * *|URL, Uniform Resource Location|*
       A form of URI which expresses an address which maps onto an access
       algorithm using network protocols.
-    * URN, Uniform Resource Name
+    * *|URN, Uniform Resource Name|*
       A name space (and presumably resolution protocols) for persistent
       object names (more persistent than URLs).
 
@@ -39,27 +39,27 @@ names and addresses, in all name spaces, becomes important."
 
 ---+ Design criteria
 
-    * Complete
+    * *Complete*
       Any naming scheme can be encoded.
-    * Extensible
+    * *Extensible*
       New naming schemes may be added.
-    * Printable
+    * *Printable*
       "It is possible to express any URI using 7-bit ASCII characters so
-      that URIs may, if necessary, be passed using pen and ink."
+      that URIs may, if necessary, be passed using pen and ink." [???]
 
 ---+ Universal syntax
 
-    * Order
+    * *Order*
       Prefixed by an arbitrary, registered string defining the decoding of
       the rest of the string (extensibility). A prefix identifies a scheme.
       Prefixes and schemes are registered by the registration authority.
-    * Punctuation of elements
+    * *|Punctuation of elements|*
       Colon separator betweeen prefix and rest.
     * Acceptable characters
       Binary names encoded in base 16 or 64 (completeness). [???]
-    * Escaping rules
-      The percent sign is used a the escape charcter for non-safe characters
-      (printability).
+    * *|Escaping rules|*
+      The _|percent sign|_ is used a the escape charcter for non-safe
+      characters (printability).
       Hexadecimal escaping method.
       All white space is encoded.
 
@@ -74,20 +74,20 @@ The first element in a URI, separated from the rest by a colon.
 The rest of the URI following the colon. The encoding format depends on the
 scheme.
 
-Slashes imply a hierarchical structure.
+_Slashes_ in the path imply a hierarchical structure.
 
 ---++ Reserved characters
 
-    1. The *percent* sign is the escape character in the encoding scheme.
-    1. The *slash* character delimits substrings whose relationship is
+    1. The _percent_ sign is the escape character in the encoding scheme.
+    1. The _slash_ character delimits substrings whose relationship is
        hierarchical.
-    1. The *hash* character separates the URI from a fragment identifier.
-    1. The *|question mark|* separates the URI of a queryable object from
+    1. The _hash_ character separates the URI from a fragment identifier.
+    1. The _|question mark|_ separates the URI of a queryable object from
        a set of words used to express a query on that object.
        The combined URI stands for the object that results from the query.
-    1. The *plus* sign is a shorthand notation for spaces in the query words
+    1. The _plus_ sign is a shorthand notation for spaces in the query words
        segment.
-    1. The *asterisk* and *|exclamation mark|* are reserved.
+    1. The _asterisk_ and _|exclamation mark|_ are reserved.
     1. Substrings consisting of one or two dots are reserved.
     1. Substrings that start with a percent and that are not followed by two
        hexadecimal digits.
@@ -210,38 +210,38 @@ which can be extracted as an object in its own right."
 
 ---++ Implemented
 
-    * file
+    * *file*
       Local file access
-    * ftp
+    * *ftp*
       File Transfer protocol
-    * gopher
+    * *gopher*
       Gopher protocol
-    * http
+    * *http*
       Hypertext Transfer Protocol (examples)
-    * mailto
+    * *mailto*
       Electronic mail address
-    * news
+    * *news*
       Usenet news
-    * telnet, rlogin and tn3270
+    * *telnet*, *rlogin* and *tn3270*
       Reference to interactive sessions
-    * wais
+    * *wais*
       Wide Area Information Servers
 
 ---++ Unimplemented
 
-    * cid
+    * *cid*
       Content identifiers for MIME body part
-    * mid
+    * *mid*
       Message identifiers for electronic mail
-    * network management database
-    * Whois++
-    * X.500
+    * *|network management database|*
+    * *Whois++*
+    * *X.500*
 
 ---++ Reserved
 
     * Starting with "x-"
       Experimental prefixes
-    * urn
+    * *urn*
       Uniform Resource Name
 
 ---+ BNF
@@ -281,150 +281,107 @@ void
 
 ==
   prefixedurl            u r l : url
-
   url                    httpaddress | ftpaddress | newsaddress |
                          nntpaddress | prosperoaddress | telnetaddress
                          | gopheraddress | waisaddress |
                          mailtoaddress  | midaddress | cidaddress
-
   scheme                 ialpha
-
   httpaddress            h t t p :   / / hostport [  / path ] [ ?
                          search ]
-
   ftpaddress             f t p : / / login / path [  ftptype ]
-
   afsaddress             a f s : / / cellname / path
-
   newsaddress            n e w s : groupart
-
   nntpaddress            n n t p : group /  digits
-
   midaddress             m i d  :  addr-spec
-
   cidaddress             c i d : content-identifier
-
   mailtoaddress          m a i l t o : xalphas @ hostname
-
   waisaddress            waisindex | waisdoc
-
   waisindex              w a i s : / / hostport / database [ ? search
                          ]
-
   waisdoc                w a i s : / / hostport / database / wtype  /
                          wpath
-
   wpath                  digits = path ;  [ wpath ]
-
   groupart               * | group | article
-
   group                  ialpha [ . group ]
-
   article                xalphas @ host
-
   database               xalphas
-
   wtype                  xalphas
-
   prosperoaddress        prosperolink
-
   prosperolink           p r o s p e r o : / / hostport / hsoname [ %
                          0 0 version [ attributes ] ]
-
   hsoname                path
-
   version                digits
-
   attributes             attribute [ attributes ]
-
   attribute              alphanums
-
   telnetaddress          t e l n e t : / / login
-
   gopheraddress          g o p h e r : / / hostport [/ gtype  [
                          gcommand ] ]
-
   login                  [ user [ : password ] @ ] hostport
-
   hostport               host [ : port ]
-
   host                   hostname | hostnumber
-
   ftptype                A formcode | E formcode | I | L digits
-
   formcode               N | T | C
-
   cellname               hostname
-
   hostname               ialpha [  .  hostname ]
-
   hostnumber             digits . digits . digits . digits
-
   port                   digits
-
   gcommand               path
-
   path                   void |  segment  [  / path ]
-
   segment                xpalphas
-
   search                 xalphas [ + search ]
-
   user                   alphanum2 [ user ]
-
   password               alphanum2 [ password ]
-
   fragmentid             xalphas
-
   gtype                  xalpha
-
   alphanum2              alpha | digit | - | _ | . | +
-
   xalpha                 alpha | digit | safe | extra | escape
-
   xalphas                xalpha [ xalphas ]
-
   xpalpha                xalpha | +
-
   xpalphas               xpalpha [ xpalphas ]
-
   ialpha                 alpha [ xalphas ]
-
   alpha                  a | b | c | d | e | f | g | h | i | j | k |
                          l | m | n | o  | p | q | r | s | t | u | v |
                          w | x | y | z | A | B | C  | D | E | F | G |
                          H | I | J | K | L | M | N | O | P |  Q | R |
                          S | T | U | V | W | X | Y | Z
-
   digit                  0 |1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-
   safe                   $ | - | _ | @ | . | &  | + | -
-
   extra                  ! | * |  " |  ' | ( | )  | ,
-
   reserved               =  |  ;  |  /  |  #  | ? |  : | space
-
   escape                 % hex hex
-
   hex                    digit | a | b | c | d | e | f | A | B | C |
                          D | E | F
-
   national               { | } | vline | [ | ] | \ | ^ | ~
-
   punctuation            < | >
-
   digits                 digit [ digits ]
-
   alphanum               alpha | digit
-
   alphanums              alphanum [ alphanums ]
-
   void
 ==
 
 @author Wouter Beek
+@compat RFC 1630
+@see http://www.ietf.org/rfc/rfc1630.txt
 @version 2013/05
 */
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(rdf(rdf_build)).
+:- use_module(rdfs(rdfs_build)).
+:- use_module(xml(xml_namespace)).
 
+:- xml_register_namespace(foaf, 'http://xmlns.com/foaf/0.1/').
+:- xml_register_namespace(rfc, 'http://www.ietf.org/rfc/').
+
+
+
+init:-
+  Graph = rfc,
+  rdf_global_id(rfc:'1630', This),
+  rdf_assert_datatype(This, rfc:year, gYear, 1994, Graph),
+  rdf_assert_literal(This, rfc:title, en, 'Universal Resource Identifiers in WWW', Graph),
+  rdf_assert_literal(This, rfc:subtitle, en, 'A Unifying Syntax for the Expression of Names and Addresses of Objects on the Network as used in the World-Wide Web', Graph),
+  rdf_assert_literal(This, rfc:author, en, 'Tim Berners-Lee', Graph),
+  rdf_assert(This, foaf:homepage, 'http://www.ietf.org/rfc/rfc1630.txt', Graph).
+:- init.
 

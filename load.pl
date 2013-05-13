@@ -15,6 +15,7 @@ load:-
     assert(user:file_search_path(owl,          standards('OWL'))),
     assert(user:file_search_path(rdf,          standards('RDF'))),
     assert(user:file_search_path(rdfs,         standards('RDFS'))),
+    assert(user:file_search_path(rfc,          standards('RFC'))),
     assert(user:file_search_path(sparql,       standards('SPARQL'))),
     assert(user:file_search_path(svg,          standards('SVG'))),
     assert(user:file_search_path(tests,        standards('Tests'))),

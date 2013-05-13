@@ -25,6 +25,7 @@ load_modules_for_pldoc:-
         owl,
         rdf,
         rdfs,
+        rfc,
         sparql,
         svg,
         tests,
