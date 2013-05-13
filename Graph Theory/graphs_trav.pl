@@ -39,19 +39,19 @@ Two methods created during my ending days at the IvI institute:
 
 
 
-%% cyclic_graph_traversal(
-%%   +Predicates:list(atom),
-%%   +Sets:list(ordset(object)),
-%%   +LastSets:list(ordset(object)),
-%%   +Sizes:list(integer),
-%%   -Solution:list(ordset(object))
-%% ) is det.
+%! cyclic_graph_traversal(
+%!   +Predicates:list(atom),
+%!   +Sets:list(ordset(object)),
+%!   +LastSets:list(ordset(object)),
+%!   +Sizes:list(integer),
+%!   -Solution:list(ordset(object))
+%! ) is det.
 %
-% @param Predicates
-% @param Sets
-% @param LastSets
-% @param Sizes
-% @param Solution
+% @arg Predicates
+% @arg Sets
+% @arg LastSets
+% @arg Sizes
+% @arg Solution
 
 cyclic_graph_traversal(
   [Module:PredicateXY | Predicates],
@@ -91,38 +91,38 @@ cyclic_graph_traversal(
     cyclic_graph_traversal(NewPredicates, NewSets, NewLastSets, NewSetSizes, Solution)
   ).
 
-%% depth_path(
-%%   +Element:uri,
-%%   +Predicate:term,
-%%   +Depth:integer,
-%%   -Path:list(uri)
-%% ) is det.
+%! depth_path(
+%!   +Element:uri,
+%!   +Predicate:term,
+%!   +Depth:integer,
+%!   -Path:list(uri)
+%! ) is det.
 % @see depth_path/5
 
 depth_path(Element, Predicate, Depth, Path):-
   depth_path(Element, Predicate, Depth, fail, Path).
 
-%% depth_path(
-%%   +Element:uri,
-%%   +Predicate:term,
-%%   +Depth:integer,
-%%   +Inv:boolean
-%%   -Path:list(uri)
-%% ) is det.
+%! depth_path(
+%!   +Element:uri,
+%!   +Predicate:term,
+%!   +Depth:integer,
+%!   +Inv:boolean
+%!   -Path:list(uri)
+%! ) is det.
 % Returns a single path from the given element via the given Prolog or RDF
 % predicate, going maximally until the given depth and possibly inverting
 % the relationship.
 %
-% @param Element The element at which the path starts.
-% @param Predicate The predicate that is used to traverse the path.
+% @arg Element The element at which the path starts.
+% @arg Predicate The predicate that is used to traverse the path.
 %        1. If this is an atom, then use the currently loaded SWI-Prolog
 %           predicate with that name.
 %        2. If this is a complex term with structure =Namespace:PredicateName=,
 %           then use the predicates from the RDF library.
-% @param Depth An integer. The maximum length of the path.
-% @param Inv When set to =true= the path is follows backwards,
+% @arg Depth An integer. The maximum length of the path.
+% @arg Inv When set to =true= the path is follows backwards,
 %        otherwise the forward variant is used.
-% @param Path A list of resources.
+% @arg Path A list of resources.
 
 % Remove the module (e.g. =user=) prefix from the predicate. This allows
 % depth_path/6 to reliably discern RDF predicates from native Prolog ones.

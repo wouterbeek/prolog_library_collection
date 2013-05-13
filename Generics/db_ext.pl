@@ -25,7 +25,7 @@ Database extensions.
 db_add(New):-
   assert(New).
 
-%% db_add_novel(+New) is det.
+%! db_add_novel(+New) is det.
 % Asserts the given fact only if it does not already exist.
 
 db_add_novel(New):-
@@ -34,7 +34,7 @@ db_add_novel(New):-
 db_add_novel(New):-
   assert(New).
 
-%% db_replace(+Old, +New) is det.
+%! db_replace(+Old, +New) is det.
 % Replaces exactly one asserted fact with another.
 
 db_replace(Old, New):-

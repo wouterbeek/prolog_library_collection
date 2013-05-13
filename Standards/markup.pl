@@ -24,23 +24,23 @@
 
 
 
-%% file_to_uri(+File, -URI) is det.
+%! file_to_uri(+File, -URI) is det.
 % Returns the URI representation of the given file.
 
 file_to_uri(File, URI):-
   format(atom(URI), 'file://~w', [File]).
 
-%% format_number(+Number:float, +Unit:unit, -Atom:atom) is det.
+%! format_number(+Number:float, +Unit:unit, -Atom:atom) is det.
 % Formats a number according to a certain unit scale.
 %
-% @param Number Any number (e.g., integer, float).
-% @param Unit An atomic unit descriptor. Units must be registered as unit/3.
-% @param Atom The atomic result of formatting.
+% @arg Number Any number (e.g., integer, float).
+% @arg Unit An atomic unit descriptor. Units must be registered as unit/3.
+% @arg Atom The atomic result of formatting.
 
 format_number(Number, Unit, Atom):-
   format(atom(Atom), '~w~w', [Number, Unit]).
 
-%% integer_sequence(+Sequence:list(integer), -Markup:compound) is det.
+%! integer_sequence(+Sequence:list(integer), -Markup:compound) is det.
 
 integer_sequence([], []).
 integer_sequence([H | T], [element(span, [style=Style], [H1]) | Markup]):-
@@ -50,7 +50,7 @@ integer_sequence([H | T], [element(span, [style=Style], [H1]) | Markup]):-
   css_attribute_value('font-size', FontSize_pct, Style),
   integer_sequence(T, Markup).
 
-%% sonnet(+Sonnet:list(atom), -Markup:compound) is det.
+%! sonnet(+Sonnet:list(atom), -Markup:compound) is det.
 
 sonnet(Sonnet, element(figure, [], Ts)):-
   sonnet0(Sonnet, Ts).

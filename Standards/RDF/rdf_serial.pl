@@ -51,7 +51,7 @@ Helper predicates for loading/saving RDF graphs.
 
 
 
-%% rdf_convert(+FromFile:atom, +ToFormat:atom, +ToFile:atom) is det.
+%! rdf_convert(+FromFile:atom, +ToFormat:atom, +ToFile:atom) is det.
 
 rdf_convert(FromFile, ToFormat, ToFile):-
   TempGraph = rdf_convert,
@@ -60,7 +60,7 @@ rdf_convert(FromFile, ToFormat, ToFile):-
   rdf_save2(ToFile, [format(ToFormat), graph(TempGraph)]),
   rdf_unload_graph(TempGraph).
 
-%% rdf_guess_data_format(+Stream, ?Format:oneof([turtle,xml])) is det.
+%! rdf_guess_data_format(+Stream, ?Format:oneof([turtle,xml])) is det.
 % Guess the format of an RDF file from the actual content.
 % Currently, this seeks for a valid XML document upto the rdf:RDF
 % element before concluding that the file is RDF/XML. Otherwise it

@@ -51,11 +51,11 @@ Namespace support for RDF(S).
 
 % RDF NAMESPACE CONVERSION %
 
-%% rdf_convert_namespace(
-%%   +Graph:atom,
-%%   +FromNamespace:atom,
-%%   +ToNamespace:atom
-%% ) is det.
+%! rdf_convert_namespace(
+%!   +Graph:atom,
+%!   +FromNamespace:atom,
+%!   +ToNamespace:atom
+%! ) is det.
 % Converts all resources in the given graph that have the given namespace
 % to similar resources that have another namespace.
 % The converted to namespace must be a current RDF prefix.
@@ -81,12 +81,12 @@ rdf_convert_namespace(Graph, FromNamespace, ToNamespace):-
   (ID2 == 1 -> Word2 = resource ; Word2 = resources),
   format(user, '~w ~w were converted.\n', [ID2, Word2]).
 
-%% rdf_convert_namespace(
-%%   +FromNamespace:atom,
-%%   +From:oneof([bnode,literal,uri]),
-%%   +ToNamespace:atom,
-%%   -To:oneof([bnode,literal,uri])
-%% ) is det.
+%! rdf_convert_namespace(
+%!   +FromNamespace:atom,
+%!   +From:oneof([bnode,literal,uri]),
+%!   +ToNamespace:atom,
+%!   -To:oneof([bnode,literal,uri])
+%! ) is det.
 % Converts a resource to the given namespace.
 % The namespace must be a current RDF prefix.
 % Blank nodes and literals are copied as is (they do not have a namespace).
@@ -114,11 +114,11 @@ rdf_convert_namespace(FromNamespace, From, ToNamespace, To):-
 
 % RDF NAMESPACE REGISTRATION %
 
-%% rdf_current_namespaces(+Graph:atom, -Namespaces:ordset(atom)) is det.
+%! rdf_current_namespaces(+Graph:atom, -Namespaces:ordset(atom)) is det.
 % Returns the namespaces that occur in the given graph.
 %
-% @param Graph The atomic name of a graph.
-% @param Namespaces An ordered set of atomic names of namespaces.
+% @arg Graph The atomic name of a graph.
+% @arg Namespaces An ordered set of atomic names of namespaces.
 
 rdf_current_namespaces(Graph, Namespaces):-
   setoff(Namespace, rdf_current_namespace(Graph, Namespace), Namespaces).
@@ -151,11 +151,11 @@ rdf_lookup_namespace(Graph, Namespace, URI):-
   % Only registered prefixes/namespaces are returned.
   rdf_current_prefix(Namespace, URI).
 
-%% rdf_resource_to_namespace(
-%%   +Resource:uri,
-%%   -Namespace:atom,
-%%   -Name:atom
-%% ) is det.
+%! rdf_resource_to_namespace(
+%!   +Resource:uri,
+%!   -Namespace:atom,
+%!   -Name:atom
+%! ) is det.
 
 rdf_resource_to_namespace(Resource, Namespace, Name):-
   rdf_is_resource(Resource),

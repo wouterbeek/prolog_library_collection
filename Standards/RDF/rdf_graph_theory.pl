@@ -43,10 +43,10 @@ theoretic operations of RDF data must be redefined.
 
 
 
-%% rdf_edge(+Options:list(nvpair), ?Edge:edge) is nondet.
+%! rdf_edge(+Options:list(nvpair), ?Edge:edge) is nondet.
 % RDF edges between resources.
 %
-% @param Options A list of the following name-value pairs:
+% @arg Options A list of the following name-value pairs:
 %        1. =|directed(DirectedGraph:boolean)|= Whether or not the
 %           directionality of the edge is taken into account.
 %        2. =|graph(Graph:atom)|= The atomic name of the graph to which =Edge=
@@ -54,7 +54,7 @@ theoretic operations of RDF data must be redefined.
 %        3. =|literals(oneof([collapse,hide,labels_only,show]))|=
 %           Whether or not literals are allowed as vertices in the =Edge=.
 %           Default: =collapse=.
-% @param Edge An edge, either =|From-To|= or =|From-Predicate-To|=.
+% @arg Edge An edge, either =|From-To|= or =|From-Predicate-To|=.
 
 rdf_edge(Options, From-To):-
   % Whether the edge's directionality is relevant or not.
@@ -85,11 +85,11 @@ rdf_edge(Options, From-To):-
     To \= literal(_)
   ).
 
-%% rdf_graph_to_ugraph(+G:atom, -UG:ugraph) is det.
+%! rdf_graph_to_ugraph(+G:atom, -UG:ugraph) is det.
 % Returns the UG representation of a loaded RDF graph.
 %
-% @param G The atomic name of a loaded RDF graph.
-% @param UG:ugraph A UG datastructure.
+% @arg G The atomic name of a loaded RDF graph.
+% @arg UG:ugraph A UG datastructure.
 
 rdf_graph_to_ugraph(G, UG):-
   setoff(
@@ -105,14 +105,14 @@ rdf_graph_to_ugraph(G, UG):-
     UG
   ).
 
-%% rdf_neighbor(
-%%   +Options:list(nvpair),
-%%   ?Vertex:vertex,
-%%   ?Neighbor:vertex
-%% ) is nondet.
+%! rdf_neighbor(
+%!   +Options:list(nvpair),
+%!   ?Vertex:vertex,
+%!   ?Neighbor:vertex
+%! ) is nondet.
 % Neighboring vertex.
 %
-% @param Options A list of the following name-value pairs:
+% @arg Options A list of the following name-value pairs:
 %        1. =graph(Graph:atom)= The atomic name of the graph to which =Edge=
 %           must belong.
 %        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
@@ -122,11 +122,11 @@ rdf_neighbor(Options0, Vertex, Neighbor):-
   merge_options([literals(show)], Options0, Options),
   rdf_edge(Options, Vertex-Neighbor).
 
-%% rdf_subgraph(
-%%   +Options:list(nvpair),
-%%   +Vertices:ordset(vertice),
-%%   +SubGraph:graph
-%% ) is semidet.
+%! rdf_subgraph(
+%!   +Options:list(nvpair),
+%!   +Vertices:ordset(vertice),
+%!   +SubGraph:graph
+%! ) is semidet.
 % Succeeds if the graph in Options has SubGraph as one of its vertice-induced
 % subgraph.
 
@@ -145,12 +145,12 @@ rdf_subgraph(Options, SubVertices, SubGraph):-
     rdf_assert(S, P, O, SubGraph)
   ).
 
-%% rdf_vertex(+Options:list(nvpair), ?Vertex:uri) is nondet.
+%! rdf_vertex(+Options:list(nvpair), ?Vertex:uri) is nondet.
 % Pairs of graphs and nodes that occur in that graph.
 % A node is either a subject or an object term in an
 % RDF triple.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        1. =graph(Graph:atom)= The atomic name of a graph.
 %        2. =|literals(oneof([collapse,hide,labels_only,show]))|=
 %           Whether or not literals are allowed as vertices in the =Edge=.
@@ -163,7 +163,7 @@ rdf_subgraph(Options, SubVertices, SubGraph):-
 %           considered as vertices.
 %           Value =rdf_term= means that subject, predicate and object terms
 %           are considered as vertices.
-%           Default: =rdf_node=.% @param Node A resource.
+%           Default: =rdf_node=.% @arg Node A resource.
 
 rdf_vertex(Options, Vertex):-
   option(graph(Graph), Options),

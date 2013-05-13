@@ -22,18 +22,18 @@ while the web method uses this markup by setting some of its parameters
 and then insering this markup into a broader context of markup that is
 ready for web browser display.
 
----+ Datatypes
+# Datatypes
 
----++ =graph=
+## =graph=
 
 The parent of the datatypes =ugraph= (i.e., undirected graph) and
 =dgraph= (i.e., directed graph).
 
----++ =dgraph=
+## =dgraph=
 
 A directed graph, see [dgraph.pl].
 
----++ =ugraph=
+## =ugraph=
 
 An undirected graph, see [udgraph_ext.pl].
 

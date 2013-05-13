@@ -145,7 +145,7 @@ rdfm(S, serql:directSubPropertyOf, O):-
 rdfm(S, P, O):-
   rdf_has(S, P, O).
 
-%% individual_of(?Resource, ?Class)
+%! individual_of(?Resource, ?Class)
 
 % Instantiation(+,?)
 individual_of(Resource, Class):-
@@ -186,8 +186,8 @@ individual_of(Resource, Class):-
   rdf_subject(Resource),
   individual_of(Resource, Class).
 
-%% rdfs_has_type(+Resource, -Class) is nondet.
-%% rdfs_has_type(-Resource, +Class) is nondet.
+%! rdfs_has_type(+Resource, -Class) is nondet.
+%! rdfs_has_type(-Resource, +Class) is nondet.
 % Perform RDFS entailment rules to enumerate the types of Resource
 % or generate all resources entailed by the given class.
 
@@ -227,9 +227,9 @@ rdfs_has_type(Resource, Class):-
     throw(error(instantiation_error, _))
   ).
 
-%% rdfs_individual_of(+Resource, +Class) is semidet.
-%% rdfs_individual_of(+Resource, -Class) is nondet.
-%% rdfs_individual_of(-Resource, +Class) is nondet.
+%! rdfs_individual_of(+Resource, +Class) is semidet.
+%! rdfs_individual_of(+Resource, -Class) is nondet.
+%! rdfs_individual_of(-Resource, +Class) is nondet.
 % Generate resources belonging to a class or classes a resource
 % belongs to. We assume everything at the `object' end of a triple
 % is a class. A validator should confirm this property.
@@ -284,7 +284,7 @@ rdfs_individual_of(Resource, Class):-
 rdfs_individual_of(_Resource, _Class):-
   throw(error(instantiation_error, _)).
 
-%% rdfs_individual_of_r_c(+Resource, ?Class) is nondet.
+%! rdfs_individual_of_r_c(+Resource, ?Class) is nondet.
 
 % Literals are individuals of =|rdfs:Literal|=.
 rdfs_individual_of_r_c(literal(_), Class):-
@@ -304,8 +304,8 @@ rdfs_individual_of_r_c(Resource, Class):-
     rdf_equal(Class, rdfs:'Resource')
   ).
 
-%% rdfs_subclass_of(+Class, ?Super) is nondet.
-%% rdfs_subclass_of(?Class, +Super) is nondet.
+%! rdfs_subclass_of(+Class, ?Super) is nondet.
+%! rdfs_subclass_of(?Class, +Super) is nondet.
 % Generate sub/super classes. rdf_reachable/3 considers the
 % rdfs:subPropertyOf relation as well as cycles. Note that by
 % definition all classes are subclass of rdfs:Resource, a case
@@ -355,8 +355,8 @@ rdfs_subclass_of(Class, owl:'Class'):-
   \+ rdfs_subclass_of(owl:'Class', rdfs:'Class'),
   rdfs_subclass_of(Class, rdfs:'Class').
 
-%% rdfs_subproperty_of(+SubProperty, ?Property) is nondet.
-%% rdfs_subproperty_of(?SubProperty, +Property) is nondet.
+%! rdfs_subproperty_of(+SubProperty, ?Property) is nondet.
+%! rdfs_subproperty_of(?SubProperty, +Property) is nondet.
 %  Query the property hierarchy.
 
 rdfs_subproperty_of(SubProperty, Property):-

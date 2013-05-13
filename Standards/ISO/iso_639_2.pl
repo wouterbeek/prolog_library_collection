@@ -22,7 +22,7 @@ WWW: [http://www.sil.org/iso639-2/]
 iso_639_2_language(ISO, Lexvo):-
   language0(ISO, Lexvo).
 
-%% language0(?ISO:atom, ?Lexvo:uri) is nondet.
+%! language0(?ISO:atom, ?Lexvo:uri) is nondet.
 
 language0(aar, 'http://lexvo.org/id/iso639-3/aar').
 language0(abk, 'http://lexvo.org/id/iso639-3/abk').

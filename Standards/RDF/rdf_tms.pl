@@ -53,10 +53,10 @@ rdfs_inconsistent(Graph):-
 rdf_materialize(Graphs):-
   rdf_materialize(Graphs, _TMS).
 
-%% rdf_materialize(+Graphs:list(atom), -TMS:atom) is det.
+%! rdf_materialize(+Graphs:list(atom), -TMS:atom) is det.
 % Performs materialization closure on the triples in the given graphs.
 %
-% @param Graphs A list of atomic names of RDF graphs.
+% @arg Graphs A list of atomic names of RDF graphs.
 
 rdf_materialize(Graphs, TMS):-
   % Type checking.
@@ -102,10 +102,10 @@ rdf_materialize(Graph, TMS):-
   !,
   rdf_materialize([Graph], TMS).
 
-%% rdf_materialize_tms(+TMS:atom) is det.
+%! rdf_materialize_tms(+TMS:atom) is det.
 % Performs materialization closure on the triples in the given TMS.
 %
-% @param TMS The atomic name of a TMS that is registered with module TMS.
+% @arg TMS The atomic name of a TMS that is registered with module TMS.
 
 rdf_materialize_tms(TMS):-
   % Type checking.
@@ -129,11 +129,11 @@ rdf_materialize_tms(TMS):-
 % Done!
 rdf_materialize_tms(_TMS).
 
-%% rdf_materialize_tms_test(+TMS:atom) is semidet.
+%! rdf_materialize_tms_test(+TMS:atom) is semidet.
 % Tests whether the given TMS is in accordance with the standards for
 % RDF(S) semantics.
 %
-% @param TMS The atomic name of a TMS.
+% @arg TMS The atomic name of a TMS.
 
 rdf_materialize_tms_test(TMS):-
   % Type checking.
@@ -145,13 +145,13 @@ rdf_materialize_tms_test(TMS):-
     rdf_node(S, P, O, TMS, _Node)
   ).
 
-%% rdf_node(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri]),
-%%   +TMS:atom,
-%%   ?Node:node
-%% ) is nondet.
+%! rdf_node(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   +TMS:atom,
+%!   ?Node:node
+%! ) is nondet.
 
 rdf_node(S, P, O, TMS, Node):-
   is_registered_tms(TMS),
@@ -159,15 +159,15 @@ rdf_node(S, P, O, TMS, Node):-
   rdf_datatype(Node, tms:has_id, int, ID, TMS),
   rdfs_individual_of(Node, tms:'Node').
 
-%% rdf_rule(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri]),
-%%   +TMS:atom,
-%%   -Ins:list(node),
-%%   -Outs:list(node),
-%%   -RuleLabel:atom
-%% ) is nondet.
+%! rdf_rule(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   +TMS:atom,
+%!   -Ins:list(node),
+%!   -Outs:list(node),
+%!   -RuleLabel:atom
+%! ) is nondet.
 
 % [RDFS-12] Individuals of =|rdfs:'Datatype'|= are subclasses of
 %           =|rdfs:'Literal'|=.
@@ -375,11 +375,11 @@ rdfax(UriRef, rdfs:range, rdfs:'Resource'):-
   rdf_global_id(rdf:Local, UriRef).
 */
 
-%% rdf_test_triple(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri])
-%% ) is nondet.
+%! rdf_test_triple(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri])
+%! ) is nondet.
 % There triples should be part of the materialization of any RDFS graph.
 % These triples must be present in a rdf_materialized TMS.
 

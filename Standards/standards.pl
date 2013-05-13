@@ -40,14 +40,14 @@ Methods for serving Web pages according to Web specifications.
 
 :- discontiguous is_xml_based/2.
 
-%% language(
-%%   ?Shorthand:atom,
-%%   ?Version:version,
-%%   ?MimeType:mime,
-%%   ?FDI:fdi,
-%%   ?DTD_Link:dtd_link,
-%%   ?Default:boolean
-%% ) is nondet.
+%! language(
+%!   ?Shorthand:atom,
+%!   ?Version:version,
+%!   ?MimeType:mime,
+%!   ?FDI:fdi,
+%!   ?DTD_Link:dtd_link,
+%!   ?Default:boolean
+%! ) is nondet.
 
 :- discontiguous language/6.
 
@@ -105,14 +105,14 @@ body_element(Contents, element(body, [], Contents)).
 
 charset('utf-8').
 
-%% default_version(+Language:atom, -DefaultVersion:version) is det.
-%% default_version(+Language:atom, +DefaultVersion:version) is semidet.
+%! default_version(+Language:atom, -DefaultVersion:version) is det.
+%! default_version(+Language:atom, +DefaultVersion:version) is semidet.
 % Either returns the default version for a given language or suucceeds
 % only if the given version is the default version of the language.
 % What is the default version of a language is made up by ourselves.
 %
-% @param Language The atomic name of a language standard.
-% @param DefaultVersion A version term.
+% @arg Language The atomic name of a language standard.
+% @arg DefaultVersion A version term.
 
 default_version(Language, DefaultVersion):-
   language(Language, DefaultVersion, _MIME, _FDI, _DTD_Link, true).
@@ -121,35 +121,35 @@ head_element(Contents, element(head, [], Contents)).
 
 prolog_charset('utf-8', utf8).
 
-%% reply_page(
-%%   +Language:atom,
-%%   +Head:list(compound),
-%%   +Body:list(compound)
-%% ) is det.
+%! reply_page(
+%!   +Language:atom,
+%!   +Head:list(compound),
+%!   +Body:list(compound)
+%! ) is det.
 % Serves a Web page for the default version of the given specification
 % language.
 % The default version is set by language/3.
 %
-% @param Language The atomic name of a spacification language.
-% @param Head A list of compound terms.
-% @param Body A list of compound terms.
+% @arg Language The atomic name of a spacification language.
+% @arg Head A list of compound terms.
+% @arg Body A list of compound terms.
 
 reply_page(Language, Head, Body):-
   default_version(Language, Version),
   reply_page(Language, Version, Head, Body).
 
-%% reply_page(
-%%   +Language:atom,
-%%   +Version:version,
-%%   +Head:list(compound),
-%%   +Bodt:list(compound)
-%% ) is det.
+%! reply_page(
+%!   +Language:atom,
+%!   +Version:version,
+%!   +Head:list(compound),
+%!   +Bodt:list(compound)
+%! ) is det.
 % Serves a Web page to the current output stream.
 %
-% @param Language The language that the Web page is formatted in.
-% @param Version The version of the language specification.
-% @param Head A list of compound terms.
-% @param Body A list of compound terms.
+% @arg Language The language that the Web page is formatted in.
+% @arg Version The version of the language specification.
+% @arg Head A list of compound terms.
+% @arg Body A list of compound terms.
 
 reply_page(Language, Version, Head, Body):-
   % The encoding of the standard =|http-handler|= stream is =ascii=.
@@ -163,7 +163,7 @@ reply_page(Language, Version, Head, Body):-
   language(Language, Version, MIME, _FDI, _DTD_Link, true),
   format('Content-type: ~w; charset=~w~n~n', [MIME, Charset]),
 
-%%%%% DOCTYYPE
+%%%%! DOCTYYPE
 %%%%doctype(Language, Version, DOCTYPE, []),
 %%%%atomic_list_concat(DOCTYPE, ' ', DOCTYPE1),
 %%%%write(DOCTYPE1),nl,
@@ -188,25 +188,25 @@ root_element(Language, Head, Body, Root):-
   language(Language, Version, _MIME, _FDI, _DTD_Link, true),
   root_element(Language, Version, Head, Body, Root).
 
-%% set_stream(+Attribute:compound) is det.
+%! set_stream(+Attribute:compound) is det.
 % Changes a property of the current stream.
 %
-% @param Attribute One of the compound terms defined for set_stream/2.
+% @arg Attribute One of the compound terms defined for set_stream/2.
 % @see set_stream/2
 
 set_stream(Attribute):-
   current_output(Stream),
   set_stream(Stream, Attribute).
 
-%% sgml_or_xml_write(Language, Version, Term, Options) is det.
+%! sgml_or_xml_write(Language, Version, Term, Options) is det.
 % Either calls xml_write/2 or sgml_write/2 based on the language and version
 % of the Web standard used.
 % This allows options to be specified for both at once.
 %
-% @param Language The language that the Web page is formatted in.
-% @param Version The version of the language specification.
-% @param Term A compound term representing the contents of the Web page.
-% @param Options The list of options that is described at xml_write/3.
+% @arg Language The language that the Web page is formatted in.
+% @arg Version The version of the language specification.
+% @arg Term A compound term representing the contents of the Web page.
+% @arg Options The list of options that is described at xml_write/3.
 
 sgml_or_xml_write(Language, Version, Term, Options):-
   is_xml_based(Language, Version),

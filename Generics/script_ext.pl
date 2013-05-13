@@ -27,19 +27,19 @@ blocking the script.
 
 
 
-%% in_script_mode is det.
+%! in_script_mode is det.
 % Succeeds if script mode is on.
 
 in_script_mode:-
   script_mode(true).
 
-%% start_script_mode is det.
+%! start_script_mode is det.
 % Starts running in script mode.
 
 start_script_mode:-
   db_replace_novel(script_mode(false), script_mode(true)).
 
-%% stop_script_mode is det.
+%! stop_script_mode is det.
 % Stops running in script mode.
 
 stop_script_mode:-

@@ -39,14 +39,14 @@ The Web-based console for PraSem.
 
 :- dynamic history/2.
 
-%% registered_module(?Module:atom) is nondet.
+%! registered_module(?Module:atom) is nondet.
 % Modules that are currently registered with the web console.
 % Only web modules can be sensibly registered, since the web console
 % looks for =|_web|=-predicates exclusively.
 % Web modules must be registered before their web methods can be accessed
 % from the web console.
 %
-% @param Module The atomic name of a Prolog module.
+% @arg Module The atomic name of a Prolog module.
 
 :- dynamic registered_module/1.
 
@@ -58,23 +58,23 @@ http:location(css, root(css), []).
 
 
 
-%% clear_web(-Markup:list) is det.
+%! clear_web(-Markup:list) is det.
 % Clears the output region of the PraSem Web interface.
 
 clear_web([]).
 
-%% command_input// is det.
+%! command_input// is det.
 % The input field for the Web console.
 
 command_input -->
   html(input(
     [maxlength=200, name=web_command, size=62, type=text, value=''])).
 
-%% console_input// is det.
+%! console_input// is det.
 % Returns the markup for the web-based console.
 % This can be inserted in (X)HTML web pages.
 %
-% @param Markup A list of compound terms representing (X)HTML markup.
+% @arg Markup A list of compound terms representing (X)HTML markup.
 
 console_input -->
   {findall(
@@ -99,7 +99,7 @@ console_input -->
         \submit_button,
         \html_requires(css('console_input.css'))])])]).
 
-%% deregister_module(+Module:atom) is det.
+%! deregister_module(+Module:atom) is det.
 % Deregisters the given module. This means that the =|_web|=-predicates
 % of this module will no longer be accessible from the web console.
 
@@ -110,7 +110,7 @@ deregister_module(Module):-
 % Fails silently.
 deregister_module(_Module).
 
-%% documentation_web(-Markup:list) is det.
+%! documentation_web(-Markup:list) is det.
 % Opens a client browser for the documentation server (plDoc).
 
 documentation_web([element(p, [], ['Documentation was opened.'])]):-
@@ -145,7 +145,7 @@ history(History, HistoryLength) -->
 
 history_length(5).
 
-%% input_ui(-Markup:list) is det.
+%! input_ui(-Markup:list) is det.
 % HTML markup for an input form.
 
 input_ui([
@@ -170,12 +170,12 @@ markup_mold(StyleName/DOM, html, StyleName, DOM):-
 markup_mold(DOM, html, wallace, DOM):-
   !.
 
-%% register_module(+Module:atom) is det.
+%! register_module(+Module:atom) is det.
 % Registers the given module for the web console.
 % If the module is a web module, i.e. contains =|_web|=-predicates,
 % then these can now be accessed from the web console.
 %
-% @param Module The atomic name of a module.
+% @arg Module The atomic name of a module.
 
 % The module is already registered, do nothing.
 register_module(Module):-
@@ -189,10 +189,10 @@ register_module(Module):-
 
 registered_module(web_console).
 
-%% registered_modules(-Modules:list(atom)) is det.
+%! registered_modules(-Modules:list(atom)) is det.
 % Returns all modules that are currently registered with the web console.
 %
-% @param Modules A list of atomic names of modules.
+% @arg Modules A list of atomic names of modules.
 
 registered_modules(Modules):-
   findall(
@@ -221,12 +221,12 @@ registered_modules_web(
     Rows
   ).
 
-%% request_web(+Request:list, -Markup:list) is det.
+%! request_web(+Request:list, -Markup:list) is det.
 % Returns a table markup element representing the header of
 % the given request.
 %
-% @param Request A compound term representing an HTTP header.
-% @param Markup A compound term encoding an (X)HTML table.
+% @arg Request A compound term representing an HTTP header.
+% @arg Markup A compound term encoding an (X)HTML table.
 
 request_web(
   Request,
@@ -255,7 +255,7 @@ request_web(
 submit_button -->
   html(button([name=submit, type=submit, value='Submit'], 'Submit')).
 
-%% web_console(+Command:atom, -DTD_Name:atom, -StyleName:atom, -DOM) is det.
+%! web_console(+Command:atom, -DTD_Name:atom, -StyleName:atom, -DOM) is det.
 % This returns either the markup that results from the execution of =Command=,
 % or it returns the markup for an error messahe that occured.
 

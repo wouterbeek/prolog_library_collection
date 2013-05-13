@@ -15,7 +15,7 @@
 
 RDF entailment extensions of simple entailment, as defined in RDF-SEMANTICS.
 
----+ Q&A
+# Q&A
 
 Q: Why does rdf_meta/1 argument 'r' not expand datatype uriRefs?
    (rdf_global_object/2 must be used for this explicitly).

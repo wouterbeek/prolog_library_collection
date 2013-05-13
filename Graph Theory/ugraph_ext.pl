@@ -56,9 +56,9 @@ Searching for a pair takes $2|V(G)|$ instead of $|V(G)|^2$.
 All edges $\tuple{v, w}$ occur twice in a ugraph,
 i.e. $v-[\ldots, w, \ldots]$ and $w-[\ldots, v, \ldots]$.
 
----+ Types
+# Types
 
----++ 2D vertex
+## 2D vertex
 
 A 2D vertex (or =|vertice_coorinate|=) is a compound term representing
 a 2D representation of a vertex.
@@ -101,7 +101,7 @@ bipartite0([W-V | EG], H_S1, S1, H_S2, S2):-
   ord_add_element(H_S2, W, New_H_S2),
   bipartite0(EG, New_H_S1, S1, New_H_S2, S2).
 
-%% complete(+Graph:ugraph) is semidet.
+%! complete(+Graph:ugraph) is semidet.
 % Succeeds for complete graphs.
 %
 % @see complete/2
@@ -110,16 +110,16 @@ complete(Graph):-
   ugraphs:vertices(Graph, VG),
   complete(VG, Graph).
 
-%% complete(+VG:list(vertex), +Graph:ugraph) is semidet.
-%% complete(+VG:list(vertex), -Graph:ugraph) is det.
+%! complete(+VG:list(vertex), +Graph:ugraph) is semidet.
+%! complete(+VG:list(vertex), -Graph:ugraph) is det.
 % Succeeds if the given graph is complete, or generates the complete graph
 % from the given vertices.
 %
 % *Definition*: A complete graph is one in which all different vertices
 %               are connected.
 %
-% @param VG An ordered set of vertices.
-% @param Graph A ugraph, i.e., a list of S-expressions.
+% @arg VG An ordered set of vertices.
+% @arg Graph A ugraph, i.e., a list of S-expressions.
 
 complete(VG, Graph):-
   complete(VG, VG, Graph).
@@ -129,7 +129,7 @@ complete(VG, [V | Vs], [V-Ws | Graph]):-
   ord_del_element(VG, V, Ws),
   complete(VG, Vs, Graph).
 
-%% component(+C:ugraph, +Graph:ugraph) is semidet.
+%! component(+C:ugraph, +Graph:ugraph) is semidet.
 % Succeeds of the former graph is a component of the latter.
 %
 % *Definition*: A component is a maximal connected subgraph.
@@ -168,15 +168,15 @@ ugraph_direct_subgraph(DirectSubGraph, Graph):-
   nth0(_J, Edges2, W-V, Edges3),
   vertices_edges_to_ugraph(Vertices, Edges3, DirectSubGraph).
 
-%% ugraph_edge(+Options:list(nvpair), ?Edge:edge) is nondet.
+%! ugraph_edge(+Options:list(nvpair), ?Edge:edge) is nondet.
 % Edges in a UGRAPH.
 %
-% @param Options A list of the following name-value pairs:
+% @arg Options A list of the following name-value pairs:
 %        1. =directed(DirectedGraph:boolean)= Whether or not the
 %           directionality of the edge is taken into account.
 %        2. =graph(Graph:atom)= The atomic name of the graph to which =Edge=
 %           must belong.
-% @param Edge An edge, of the form =|From-To|=.
+% @arg Edge An edge, of the form =|From-To|=.
 
 ugraph_edge(Options, From-To):-
   option(graph(Graph), Options),
@@ -196,11 +196,11 @@ ugraph_edge(Options, From-To):-
   %  )
   %).
 
-%% edge_induced_subgraph(
-%%   +Graph:ugraph,
-%%   +ESubG:list(edge),
-%%  -SubG:ugraph
-%% ) is det.
+%! edge_induced_subgraph(
+%!   +Graph:ugraph,
+%!   +ESubG:list(edge),
+%!  -SubG:ugraph
+%! ) is det.
 % Returns the edge-induced subgraph.
 
 edge_induced_subgraph(Graph, ESubG, SubG):-
@@ -208,28 +208,28 @@ edge_induced_subgraph(Graph, ESubG, SubG):-
   ord_subtract(Es, ESubG, DelEs),
   del_edges(Graph, DelEs, SubG).
 
-%% ugraph_edges(+Options:list(nvpair), -Edges:ordset(edge)) is det.
+%! ugraph_edges(+Options:list(nvpair), -Edges:ordset(edge)) is det.
 
 ugraph_edges(Options, Edges):-
   option(graph(Graph), Options),
   % Use the swipl builtin.
   ugraphs:edges(Graph, Edges).
 
-%% ugraph_empty(+Graph:ugraph) is semidet.
-%% ugraph_empty(-Graph:ugraph) is det.
+%! ugraph_empty(+Graph:ugraph) is semidet.
+%! ugraph_empty(-Graph:ugraph) is det.
 % Succeeds on the empty graph or returns the empty graph.
 
 ugraph_empty([]).
 
-%% harary(+K:integer, +N:integer, -H:ugraph) is det.
+%! harary(+K:integer, +N:integer, -H:ugraph) is det.
 % Generates a Harary graph that is K-connected and that has N vertices.
 %
 % *Definition*: A Harary graph is a K-connected simple graph with
 %               N vertices and the minimal number of edges.
 %
-% @param K The connectedness of the Harary graph.
-% @param N The number of vertices.
-% @param H An undirected Harary graph.
+% @arg K The connectedness of the Harary graph.
+% @arg N The number of vertices.
+% @arg H An undirected Harary graph.
 
 harary(K, N, H):-
   even(K),
@@ -282,7 +282,7 @@ is_ugraph_edge(V-Ws):-
   atomic(V),
   is_list(Ws).
 
-%% line_graph(+Graph:ugraph, -LineG:ugraph) is det.
+%! line_graph(+Graph:ugraph, -LineG:ugraph) is det.
 % Returns the line graph for the given graph.
 %
 % *Definition*: The line graph G' of graph G has V(G') = E(G) and
@@ -331,7 +331,7 @@ line_graph(Graph, LineG):-
     LineG
   ).
 
-%% ugraph(+Graph:ugraph) is semidet.
+%! ugraph(+Graph:ugraph) is semidet.
 % Succeeds if the given graph could be undirected.
 %
 % An undirected graph is represented as a ugraph that has a symmerical
@@ -349,14 +349,14 @@ ugraph(Graph):-
     member(W-V, Edges)
   ).
 
-%% ugraph_neighbor(
-%%   +Options:list(nvpair),
-%%   ?Vertex:vertex,
-%%   ?Neighbor:vertex
-%% ) is nondet.
+%! ugraph_neighbor(
+%!   +Options:list(nvpair),
+%!   ?Vertex:vertex,
+%!   ?Neighbor:vertex
+%! ) is nondet.
 % Neighboring vertex.
 %
-% @param Options A list of the following name-value pairs:
+% @arg Options A list of the following name-value pairs:
 %        1. =graph(Graph:ugraph)=
 
 ugraph_neighbor(Options0, Vertex, Neighbor):-
@@ -366,8 +366,8 @@ ugraph_neighbor(Options0, Vertex, Neighbor):-
 ugraph_neighbors(Options0, Vertex, Neighbors):-
   setoff(Neighbor, ugraph_neighbor(Options0, Vertex, Neighbor), Neighbors).
 
-%% ugraph_subgraph(+G1:ugraph, +G2:ugraph) is semidet.
-%% ugraph_subgraph(-G1:ugraph, +G2:ugraph) is nondet.
+%! ugraph_subgraph(+G1:ugraph, +G2:ugraph) is semidet.
+%! ugraph_subgraph(-G1:ugraph, +G2:ugraph) is nondet.
 % G1 is a subgraph of G2.
 
 ugraph_subgraph(G1, G2):-
@@ -385,12 +385,12 @@ ugraph_subgraph0(G1, [V-_Vs | G2], In, Out):-
   ord_add_element(Out, V, NewOut),
   ugraph_subgraph0(G1, G2, In, NewOut).
 
-%% ugraph_vertex(+Options:list(nvpair), ?Vertex:vertex) is nondet.
+%! ugraph_vertex(+Options:list(nvpair), ?Vertex:vertex) is nondet.
 % Vertices in a graph.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        1. =graph(Graph:ugraph)= A UGRAPH.
-% @param Vertex A vertex in =Graph=.
+% @arg Vertex A vertex in =Graph=.
 
 ugraph_vertex(Options, Vertex):-
   option(graph(Graph), Options),
@@ -400,7 +400,7 @@ ugraph_vertex(Options, Vertex):-
 ugraph_vertices(Options, Vertices):-
   setoff(Vertex, ugraph_vertex(Options, Vertex), Vertices).
 
-%% unsymmetric_edges(+Edges:list(edge), -UnsymmetricEdges:list(edge)) is det.
+%! unsymmetric_edges(+Edges:list(edge), -UnsymmetricEdges:list(edge)) is det.
 % Returns the unsymmetric edges for the given edges.
 % For every pair of symmetric edges $\set{\tuple{V, W}, \tuple{W, V}}$
 % we only take the edge for which the first member is smaller than the
@@ -419,11 +419,11 @@ unsymmetric_edges(Edges, UnsymmetricEdges):-
     UnsymmetricEdges
   ).
 
-%% ugraph_vertex_induced_subgraph(
-%%   +Graph:ugraph,
-%%   +VSubG:list(vertex),
-%%   -SubG:ugraph
-%% ) is det.
+%! ugraph_vertex_induced_subgraph(
+%!   +Graph:ugraph,
+%!   +VSubG:list(vertex),
+%!   -SubG:ugraph
+%! ) is det.
 % Returns the vertex-induced subgraph.
 
 ugraph_vertex_induced_subgraph(Graph, VSubG, SubG):-

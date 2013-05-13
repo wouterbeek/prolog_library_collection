@@ -15,13 +15,13 @@
 
 RDFS entailment extensions of simple entailment, as defined in RDF-SEMANTICS.
 
----+ TODO
+# TODO
 
----++ rdf_reachable/[3,5]
+## rdf_reachable/[3,5]
 
 rdf_reachable/[3,5] does not have a graphs argument.
 
----++ Relation between subproperty and subclass hierarchies?
+## Relation between subproperty and subclass hierarchies?
 
 Can the following valid inference be used for RDFS entailment?
 

@@ -15,7 +15,7 @@
 
 Web front-end for reporting on the various errors that might occur.
 
----+ Exception format
+# Exception format
 
 ==
 error(
@@ -39,7 +39,7 @@ catch_web(Goal, Markup):-
     error_web(Catcher, Markup)
   ).
 
-%% error_context_web(+Context:compound, -Markup:list) is det.
+%! error_context_web(+Context:compound, -Markup:list) is det.
 % Returns markup for the given error context.
 
 error_context_web(Context, [element(p, [], ['No context provided.'])]):-
@@ -72,7 +72,7 @@ error_context_web(
     )
   ]).
 
-%% error_formal_web(+Formal:compound, -Markup:list) is det.
+%! error_formal_web(+Formal:compound, -Markup:list) is det.
 % Returns markup for the given formal error term.
 
 % Domain error.
@@ -193,13 +193,13 @@ error_formal_web(
 error_formal_web(Formal, [element(p, [], [FormalAtom])]):-
   term_to_atom(Formal, FormalAtom).
 
-%% error_web(+Error:error, -Markup:list) is det.
+%! error_web(+Error:error, -Markup:list) is det.
 % Returns the markup for the given error or exception.
 % An error or exception consists of a formal description and a context
 % description. Both are rendered into markup.
 %
-% @param Error An error or exception of the form =error(Formal, Context)=.
-% @param Markup A list of XML elements.
+% @arg Error An error or exception of the form =error(Formal, Context)=.
+% @arg Markup A list of XML elements.
 
 error_web(error(Formal, Context), Markup):-
   error_formal_web(Formal, FormalMarkup),
@@ -210,7 +210,7 @@ error_web(error(Formal, Context), Markup):-
     Markup
   ).
 
-%% error_web(+Format, +Arguments:list, -Markup:list) is det.
+%! error_web(+Format, +Arguments:list, -Markup:list) is det.
 % This supports markup generation for simple 'error' statements.
 % The use of error_web/2, with a proper error or exception compound term,
 % if prefered.

@@ -38,7 +38,7 @@ Bitvector library.
 
 
 
-%% list_map(+Integers:list(integer), -Map:bitvector)
+%! list_map(+Integers:list(integer), -Map:bitvector)
 % Convert the given list of integers into a bit-vector.
 
 list_map(Integers, bitvector(Map)):-
@@ -49,34 +49,34 @@ list_map_([Integer | Integers], Map):-
   list_map_(Integers, PartialMap),
   Map is PartialMap \/ (1 << Integer).
 
-%% map_count(+Map:bitvector, -Count:number)
+%! map_count(+Map:bitvector, -Count:number)
 % Return the number of 1s in the bitvector.
 
 map_count(bitvector(A), Count):-
   Count is popcount(A).
 
-%% map_difference(+Map:bitvector, +Delete:bitvector, -Diff:bitvector) is det.
+%! map_difference(+Map:bitvector, +Delete:bitvector, -Diff:bitvector) is det.
 % Returns the first bitvector without the elements from the second bitvector.
 
 map_difference(bitvector(A), bitvector(B), bitvector(C)):-
   C is A xor B.
 
-%% map_intersection(
-%%   +Map1:bitvector,
-%%   +Map2:bitvector,
-%%   -Intersection:bitvector
-%% ) is det.
+%! map_intersection(
+%!   +Map1:bitvector,
+%!   +Map2:bitvector,
+%!   -Intersection:bitvector
+%! ) is det.
 
 map_intersection(bitvector(A), bitvector(B), bitvector(C)):-
   C is A /\ B.
 
-%% map_list(+Map, -Integers)
+%! map_list(+Map, -Integers)
 % Convert a bit-vector into a sorted list of integers.
 
 map_list(bitvector(Map), Integers):-
   map_list_(Map, Integers).
 
-%% map_list_(+Map:bitvector, -Integers:list(integer)) is det.
+%! map_list_(+Map:bitvector, -Integers:list(integer)) is det.
 
 map_list_(0, []):-
   !.
@@ -89,7 +89,7 @@ map_list_(Map, [Integer | Integers]):-
   PartialMap is Map /\ \(1 << Integer),
   map_list_(PartialMap, Integers).
 
-%% map_replace(+Clear, +Set, +Map1:bitvector, -Map:bitvector) is det.
+%! map_replace(+Clear, +Set, +Map1:bitvector, -Map:bitvector) is det.
 % Replace Clear by Set in Map1
 
 map_replace(Clear, Set, bitvector(A), bitvector(B)):-
@@ -97,17 +97,17 @@ map_replace(Clear, Set, bitvector(A), bitvector(B)):-
   0 =\= A /\ (1<<Clear),
   B is (A /\ \(1<<Clear)) \/ (1<<Set).
 
-%% map_union(+Map1:bitvector, +Map2:bitvector, -Union:bitvector) is det.
+%! map_union(+Map1:bitvector, +Map2:bitvector, -Union:bitvector) is det.
 % Compute the set-union of two maps
 
 map_union(bitvector(A), bitvector(B), bitvector(C)):-
   C is A \/ B.
 
-%% map_union_unique(
-%%   +Map1:bitvector,
-%%   +Map2:bitvector,
-%%   -Union:bitvector
-%% ) is det.
+%! map_union_unique(
+%!   +Map1:bitvector,
+%!   +Map2:bitvector,
+%!   -Union:bitvector
+%! ) is det.
 % Like union, but succeed only if the intersection is empty.
 
 map_union_unique(bitvector(A), bitvector(B), bitvector(C)):-

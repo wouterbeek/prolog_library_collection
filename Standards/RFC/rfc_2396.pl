@@ -11,7 +11,7 @@ possible identifier type.  This document does not define a generative
 grammar for URI; that task will be performed by the individual
 specifications of each URI scheme."
 
----+ Abbreviations
+# Abbreviations
 
     * Uniform Resource Identifier (URI)
       A means for identifying a resource.

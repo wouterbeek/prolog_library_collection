@@ -18,7 +18,7 @@
 
 Querying DBpedia using SPARQL.
 
----+ Examples
+# Examples
 
 First query for a resource:
 
@@ -47,7 +47,7 @@ WHERE
 }
 ==
 
----+ tmp
+# tmp
 
     <instance_types_en.ttl> ,
     <mappingbased_properties_en.ttl> ,
@@ -134,12 +134,12 @@ describe_resource(Resource, Rows):-
     debug(dbpedia, 'Empty results for DESCRIBE ~w.', [Resource])
   ).
 
-%% find_person(
-%%   +FullName:atom,
-%%   +Birth:integer,
-%%   +Death:integer,
-%%   -DBpediaAuthor:uri
-%% ) is semidet.
+%! find_person(
+%!   +FullName:atom,
+%!   +Birth:integer,
+%!   +Death:integer,
+%!   -DBpediaAuthor:uri
+%! ) is semidet.
 
 find_dbpedia_agent(Name, Birth, Death, DBpediaAuthor):-
   format(

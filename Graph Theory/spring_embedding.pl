@@ -18,7 +18,7 @@ Spring embedding for undirected graphs.
 
 A graph G can be visualized in 1 through $\cardinality{V(G)}$ dimensions.
 
----+ Algorithm
+# Algorithm
 
 ==
 For all vertices V:
@@ -42,13 +42,13 @@ multiplied with \frac{\abs{V_x,W_x}}{d(V,W)}.
 
 d(V,W) is the Cartesian distance between V and W.
 
----+ Example: simple grid
+# Example: simple grid
 
 ==
 spring_embedding([1-[2,4],2-[1,3,5],3-[2,4,6,8],4-[1,3,7],5-[2,6],6-[2,3,9],7-[4,8],8-[3,7,9],9-[6,8]], 100)
 ==
 
----+ Example
+# Example
 
 ==
 spring_embedding([1-[9],2-[9],3-[9],4-[9],5-[10],6-[10],7-[10],8-[10],9-[1,2,3,4,10],10-[5,6,7,8,9]], 100)
@@ -69,14 +69,14 @@ spring_embedding([1-[9],2-[9],3-[9],4-[9],5-[10],6-[10],7-[10],8-[10],9-[1,2,3,4
 
 % GENERIC SPRING EMBEDDING LOOP %
 
-%% initial_spring_embedding(
-%%   +Graph:graph,
-%%   -RandomVerticeCoordinates:list(vertex_coordinate)
-%% ) is det.
+%! initial_spring_embedding(
+%!   +Graph:graph,
+%!   -RandomVerticeCoordinates:list(vertex_coordinate)
+%! ) is det.
 % Returns random coordinates for the vertices in the given ugraph.
 %
-% @param Graph A graph.
-% @param RandomVerticeCoordinates A list of vertex coordinates in the
+% @arg Graph A graph.
+% @arg RandomVerticeCoordinates A list of vertex coordinates in the
 %        dimension set by the given size specifier.
 
 initial_spring_embedding(Graph, RandomVerticeCoordinates):-
@@ -86,15 +86,15 @@ initial_spring_embedding(Graph, RandomVerticeCoordinates):-
     RandomVerticeCoordinates
   ).
 
-%% inter_v(
-%%   +Graph:graph,
-%%   +Preds:list,
-%%   +VerticeCoordinates:list(vertex_coordinate),
-%%   +Vertices:list(vertex),
-%%   +Dimension:integer,
-%%   +V:vertex,
-%%   -Force:float
-%% ) is det.
+%! inter_v(
+%!   +Graph:graph,
+%!   +Preds:list,
+%!   +VerticeCoordinates:list(vertex_coordinate),
+%!   +Vertices:list(vertex),
+%!   +Dimension:integer,
+%!   +V:vertex,
+%!   -Force:float
+%! ) is det.
 % Calculates inter-vertex forces for vertex =V= in dimension =I=.
 % The individual forces are calculated using the predicates =Preds=.
 
@@ -124,13 +124,13 @@ inter_v(Graph, Preds, VerticeCoordinates, Dimension, V, ForceV):-
   % Average the results of all interactions with V.
   average(ForcesV, ForceV).
 
-%% netto_force(
-%%   +Dimension:integer,
-%%   +PositionV:float,
-%%   +Attraction:float,
-%%   +Repulsion:float,
-%%   -NewPositionV:float
-%% ) is det.
+%! netto_force(
+%!   +Dimension:integer,
+%!   +PositionV:float,
+%!   +Attraction:float,
+%!   +Repulsion:float,
+%!   -NewPositionV:float
+%! ) is det.
 % Returns the netto force on vertex V in the given dimension.
 
 netto_force(Dimension, PositionV, Attraction, Repulsion, NettoForce):-
@@ -146,13 +146,13 @@ netto_force(Dimension, PositionV, Attraction, Repulsion, NettoForce):-
   CeilingRepulsion is DistanceToCeiling / Limit,
   NettoForce is Attraction - Repulsion + FloorAttraction - CeilingRepulsion.
 
-%% next_spring_embedding(
-%%   +Graph:graph,
-%%   +Attractors:list,
-%%   +Repulsors:list,
-%%   +VerticeCoordinates:list(vertex_coordinate),
-%%   -NewVerticeCoordinates:list(vertex_coordinate)
-%% ) is det.
+%! next_spring_embedding(
+%!   +Graph:graph,
+%!   +Attractors:list,
+%!   +Repulsors:list,
+%!   +VerticeCoordinates:list(vertex_coordinate),
+%!   -NewVerticeCoordinates:list(vertex_coordinate)
+%! ) is det.
 
 next_spring_embedding(
   Graph,
@@ -197,29 +197,29 @@ next_spring_embedding(
     NewVerticeCoordinates
   ).
 
-%% spring_embedding(
-%%   +Graph:graph,
-%%   +Attractors:list,
-%%   +Repulsors:list,
-%%   +Iteration:integer,
-%%   -FinalVerticeCoordinates:list(vertice_coordinates),
-%%   -History:list
-%% ) is det.
+%! spring_embedding(
+%!   +Graph:graph,
+%!   +Attractors:list,
+%!   +Repulsors:list,
+%!   +Iteration:integer,
+%!   -FinalVerticeCoordinates:list(vertice_coordinates),
+%!   -History:list
+%! ) is det.
 % Returns the spring embedding of the given graph over the given number of
 % iterations. The intermediary results are returned as history.
 %
-% @param Graph A graph.
-% @param Attractors A list of atomic names of predicates that are used to
+% @arg Graph A graph.
+% @arg Attractors A list of atomic names of predicates that are used to
 %        calculate the attraction forces between vertices.
-% @param Repulsors A list of atomic names of predicates that are used to
+% @arg Repulsors A list of atomic names of predicates that are used to
 %        calculate the repulsion forces between vertices.
-% @param Iteration An integer, representing the number of subsequent function
+% @arg Iteration An integer, representing the number of subsequent function
 %        application.
-% @param FinalVerticeCoordinates A list of coordinates for the vertives
+% @arg FinalVerticeCoordinates A list of coordinates for the vertives
 %        of the graph.
 %        For one spring embedding, every coordinate is represented in the
 %        same dimension. This dimension is set by the given size.
-% @param History A list of ???, representing the intermediary results of
+% @arg History A list of ???, representing the intermediary results of
 %        spring embedding.
 
 spring_embedding(
@@ -241,12 +241,12 @@ tempval(Name, Value):-
   tempval0(Name, Value),
   !.
 
-%% update_position(
-%%   +PositionV:float,
-%%   +Iteration:integer,
-%%   +Force:float,
-%%   -NewPositionV:float
-%% ) is det.
+%! update_position(
+%!   +PositionV:float,
+%!   +Iteration:integer,
+%!   +Force:float,
+%!   -NewPositionV:float
+%! ) is det.
 
 update_position(PositionV, _Iteration, Force, NewPositionV):-
   %%%%NewPositionV is PositionV + ((1 / (Iteration + 9)) * Force).
@@ -282,22 +282,22 @@ degree_force_dimension(
   0.0
 ).
 
-%% distance_force_dimension(
-%%   +Graph:graph,
-%%   +VerticeCoordinates:list(vertex_coordinate),
-%%   +Dimension:integer,
-%%   +V:vertex,
-%%   +W:vertex,
-%%   -DimensionForce:float
-%% ) is det.
+%! distance_force_dimension(
+%!   +Graph:graph,
+%!   +VerticeCoordinates:list(vertex_coordinate),
+%!   +Dimension:integer,
+%!   +V:vertex,
+%!   +W:vertex,
+%!   -DimensionForce:float
+%! ) is det.
 % Returns the attraction between vertices V and W in the given dimension.
 %
-% @param Graph
-% @param VerticeCoordinates A list of vertex coordinates.
-% @param Dimension An integer representing a dimension.
-% @param V A vertex.
-% @param W A vertex.
-% @param DimensionForce A floating point value, representing the
+% @arg Graph
+% @arg VerticeCoordinates A list of vertex coordinates.
+% @arg Dimension An integer representing a dimension.
+% @arg V A vertex.
+% @arg W A vertex.
+% @arg DimensionForce A floating point value, representing the
 %        attraction between vertices V and W in the given dimension.
 
 distance_force_dimension(
@@ -378,12 +378,12 @@ default_spring_embedding(Graph, Iteration, Final, History):-
 
 % PUSH & PULL: GEOMETRIC DISTANCE TO NEIGHBOR
 
-%% neighbor_attraction(
-%%   +Graph:graph,
-%%   +VerticeCoordinateV:vertex_coordinate,
-%%   +VerticeCoordinateW:vertice_coordiante,
-%%   -Attraction:float
-%% ) is det.
+%! neighbor_attraction(
+%!   +Graph:graph,
+%!   +VerticeCoordinateV:vertex_coordinate,
+%!   +VerticeCoordinateW:vertice_coordiante,
+%!   -Attraction:float
+%! ) is det.
 % Returns the attraction between V and W on all coordinates.
 
 % For identical coordinates nothing happens.
@@ -410,13 +410,13 @@ neighbor_attraction(
 % Not at the same coordinates and not neighbors.
 neighbor_attraction(_Graph, _VertexCoordinateV, _VertexCoordinateW, 0.0).
 
-%% neighbor_attraction_dimension(
-%%   +Graph:graph,
-%%   +Dimension:integer,
-%%   +VerticeCoordinateV:vertex_coordinate,
-%%   +VerticeCoordinateW:vertice_coordiante,
-%%   -DimensionAttraction:float
-%% ) is det.
+%! neighbor_attraction_dimension(
+%!   +Graph:graph,
+%!   +Dimension:integer,
+%!   +VerticeCoordinateV:vertex_coordinate,
+%!   +VerticeCoordinateW:vertice_coordiante,
+%!   -DimensionAttraction:float
+%! ) is det.
 % Returns the attraction between vertices V and W for the given dimension.
 
 neighbor_attraction_dimension(
@@ -452,12 +452,12 @@ neighbor_attraction_dimension(
     [Dimension, V, W, DimensionAttraction]
   ).
 
-%% nonneighbor_repulsion(
-%%   +Graph:ugraph,
-%%   +VerticeCoordinateV:vertex_coordinate,
-%%   +VerticeCoordinateW:vertex_coordinate,
-%%   -Repulsion:float
-%% ) is det.
+%! nonneighbor_repulsion(
+%!   +Graph:ugraph,
+%!   +VerticeCoordinateV:vertex_coordinate,
+%!   +VerticeCoordinateW:vertex_coordinate,
+%!   -Repulsion:float
+%! ) is det.
 % Returns the repulsion between V and W on in dimensions.
 
 nonneighbor_repulsion(
@@ -486,13 +486,13 @@ nonneighbor_repulsion(
   Repulsion is 1 / sqrt(CartesianDistance),
   debug(spring, '    F_rep(~w,~w)=~w', [V, W, Repulsion]).
 
-%% nonneighbor_repulsion_dimension(
-%%   +Graph:ugraph,
-%%   +Dimension:integer,
-%%   +VerticeCoordinateV:vertex_coordinate,
-%%   +VerticeCoordinateW:vertex_coordinate,
-%%   -DimensionRepulsion:float
-%% ) is det.
+%! nonneighbor_repulsion_dimension(
+%!   +Graph:ugraph,
+%!   +Dimension:integer,
+%!   +VerticeCoordinateV:vertex_coordinate,
+%!   +VerticeCoordinateW:vertex_coordinate,
+%!   -DimensionRepulsion:float
+%! ) is det.
 % Returns the repulsion between vertices V and W in the given dimension.
 
 nonneighbor_repulsion_dimension(

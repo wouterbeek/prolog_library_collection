@@ -12,7 +12,7 @@
 
 Predicates for printing stuff.
 
----+ proof
+# proof
 
 A datatype of the form
 
@@ -37,7 +37,7 @@ indent_size(2).
 
 
 
-%% print_indent(+Stream:stream, +Indent:integer) is det.
+%! print_indent(+Stream:stream, +Indent:integer) is det.
 % Print the given number of indents to the given stream.
 
 print_indent(Stream, Indent):-
@@ -45,20 +45,20 @@ print_indent(Stream, Indent):-
   Spaces is Indent * IndentSize,
   multi(format(Stream, ' ', []), Spaces).
 
-%% print_list(
-%%   +Out:oneof([atom_handle,codes_handle,stream]),
-%%   +List:list
-%% ) is det.
+%! print_list(
+%!   +Out:oneof([atom_handle,codes_handle,stream]),
+%!   +List:list
+%! ) is det.
 % @see Wrapper predicate for print_list/3, using no indent.
 
 print_list(Out, List):-
   print_list(Out, 0, List).
 
-%% print_list(
-%%   +Out:oneof([atom_handle,codes_handle,stream]),
-%%   +Indent:integer,
-%%   +List:list
-%% ) is det.
+%! print_list(
+%!   +Out:oneof([atom_handle,codes_handle,stream]),
+%!   +Indent:integer,
+%!   +List:list
+%! ) is det.
 % Prints the elements of the given list to the given output stream or handle.
 %
 % Lists are printed recursively, using indentation relative to the given

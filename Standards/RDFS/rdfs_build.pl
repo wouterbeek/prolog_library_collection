@@ -82,41 +82,41 @@ using the following triples:
 
 % LABELS %
 
-%% rdfs_assert_label(+Subject:oneof([bnode,uri]), +Label:atom, +Grap:atom) is det.
+%! rdfs_assert_label(+Subject:oneof([bnode,uri]), +Label:atom, +Grap:atom) is det.
 % Assert the subject's label description.
 %
-% @param Subject A resource.
-% @param Label An atomic description of a resource.
-% @param Graph The atomic name of an RDF graph.
+% @arg Subject A resource.
+% @arg Label An atomic description of a resource.
+% @arg Graph The atomic name of an RDF graph.
 % @see rdfs_assert_label/4 also specifies the label.
 
 rdfs_assert_label(Subject, Label, Graph):-
   rdf_assert_literal(Subject, rdfs:label, Label, Graph).
 
-%% rdfs_assert_label(
-%%   +Subject:oneof([bnode,uri]),
-%%   +Language:atom,
-%%   +Label:atom,
-%%   +Grap:atom
-%% ) is det.
+%! rdfs_assert_label(
+%!   +Subject:oneof([bnode,uri]),
+%!   +Language:atom,
+%!   +Label:atom,
+%!   +Grap:atom
+%! ) is det.
 % Assert the subject's label description in the given label.
 %
-% @param Subject A resource.
-% @param Language The atomic name of a language.
-% @param Label An atomic description of a resource.
-% @param Graph The atomic name of an RDF graph.
+% @arg Subject A resource.
+% @arg Language The atomic name of a language.
+% @arg Label An atomic description of a resource.
+% @arg Graph The atomic name of an RDF graph.
 
 rdfs_assert_label(Subject, Language, Label, Graph):-
   rdf_assert_literal(Subject, rdfs:label, Language, Label, Graph).
 
 
 
-%% rdfs_assert_individual(+Individual:uri, +Class:class, +Graph:graph) is det.
+%! rdfs_assert_individual(+Individual:uri, +Class:class, +Graph:graph) is det.
 % Asserts an individual/class relationship.
 %
-% @param Individual An instance resource.
-% @param Class A class resource.
-% @param Graph The atomic name of an RDF graph.
+% @arg Individual An instance resource.
+% @arg Class A class resource.
+% @arg Graph The atomic name of an RDF graph.
 
 rdfs_assert_individual(Individual, Class, Graph):-
   rdf_assert(Individual, rdf:type, Class, Graph).
@@ -124,16 +124,16 @@ rdfs_assert_individual(Individual, Class, Graph):-
 rdfs_assert_subclass(Class, SuperClass, Graph):-
   rdf_assert(Class, rdfs:subClassOf, SuperClass, Graph).
 
-%% rdfs_assert_subproperty(
-%%   +Property:property,
-%%   +SuperProperty:property,
-%%   +Graph:graph
-%% ) is det.
+%! rdfs_assert_subproperty(
+%!   +Property:property,
+%!   +SuperProperty:property,
+%!   +Graph:graph
+%! ) is det.
 % Creates a new property that is a subproperty of the given parent property.
 %
-% @param Property An RDF property.
-% @param SuperProperty An RDF property.
-% @param Graph The atomic name of an RDF graph.
+% @arg Property An RDF property.
+% @arg SuperProperty An RDF property.
+% @arg Graph The atomic name of an RDF graph.
 
 rdfs_assert_subproperty(Property, SuperProperty, Graph):-
   rdf_assert(Property, rdfs:subPropertyOf, SuperProperty, Graph).

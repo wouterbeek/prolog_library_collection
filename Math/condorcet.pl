@@ -63,7 +63,7 @@ clear:-
 go:-
   go(vote0).
 
-%% go(+VotePredicate:atom) is det.
+%! go(+VotePredicate:atom) is det.
 % E.g. vote0/2.
 
 go(VotePredicate):-
@@ -171,7 +171,7 @@ margins_score(X, Y, MarginsScore, DB):-
   ),
   MarginsScore is NumberOfVotesRankingXOverY - NumberOfVotesRankingYOverX.
 
-%% write_condorcet_matrix is det.
+%! write_condorcet_matrix is det.
 % Writes a simple representation of the Condorset matrix to
 % the current output stream.
 
@@ -195,7 +195,7 @@ write_condorcet_matrix:-
   ),
   writef('\n').
 
-%% write_condorcet_cell(+Runner, +Opponent) is det.
+%! write_condorcet_cell(+Runner, +Opponent) is det.
 % Writes a cell of the Condorcet matrix to the current output stream.
 
 % No value is given for the runner against himself.
@@ -205,7 +205,7 @@ write_condorcet_cell(Runner, Opponent):-
   runner_opponent_result(Runner, Opponent, RunnerOpponentScore),
   writef('\t%w', [RunnerOpponentScore]).
 
-%% runner_results is det.
+%! runner_results is det.
 % Calculates and asserts the results per runner, based on the asserted
 % results for runner/opponent pairs.
 
@@ -227,7 +227,7 @@ runner_results:-
     )
   ).
 
-%% write_runner_scores is det.
+%! write_runner_scores is det.
 % Writes the asserted runner scores to the current output stream.
 
 write_runner_scores:-
@@ -236,7 +236,7 @@ write_runner_scores:-
     writef('%w: %w\n', [Runner, RunnerScore])
   ).
 
-%% runner_score_runner_pairs(-SortedRunnerScoreRunnerPairs) is det.
+%! runner_score_runner_pairs(-SortedRunnerScoreRunnerPairs) is det.
 % Returns the pairs of runner scores and runners.
 
 runner_score_runner_pairs(SortedRunnerScoreRunnerPairs):-
@@ -247,7 +247,7 @@ runner_score_runner_pairs(SortedRunnerScoreRunnerPairs):-
   ),
   keysort(RunnerScoreRunnerPairs, SortedRunnerScoreRunnerPairs).
 
-%% copeland_winner(-CopelandWinner) is semidet.
+%! copeland_winner(-CopelandWinner) is semidet.
 % Returns the Copeland winner, if there is one. Fails otherwise.
 
 copeland_winner(CopelandWinner):-
@@ -262,7 +262,7 @@ copeland_winner(CopelandWinner):-
     CopelandWinner = Winner
   ).
 
-%% copeland_loser(-CopelandLoser) is det.
+%! copeland_loser(-CopelandLoser) is det.
 % Returns the Copeland lower, if there is one. Fails otherwise.
 
 copeland_loser(CopelandLoser):-

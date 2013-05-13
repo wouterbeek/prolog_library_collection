@@ -29,12 +29,12 @@ Predicates that are exclusively used to export ugraphs.
 
 ugraph_edge_coloring(_Options, _Edge, black).
 
-%% ugraph_edge_naming(+Options:list(nvpair), +Edge:edge, -Name:atom) is det.
+%! ugraph_edge_naming(+Options:list(nvpair), +Edge:edge, -Name:atom) is det.
 % Returns a name for the given edge.
 %
-% @param Options A list of name-value pairs.
-% @param Edge An edge of the form =|FromVertex-ToVertex|=.
-% @param Name An atomic name for the given edge.
+% @arg Options A list of name-value pairs.
+% @arg Edge An edge of the form =|FromVertex-ToVertex|=.
+% @arg Name An atomic name for the given edge.
 
 ugraph_edge_naming(Options, FromVertex-ToVertex, Name):-
   maplist(

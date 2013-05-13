@@ -27,13 +27,13 @@ and by adding ord_member/2.
 
 
 
-%% get_assoc(?Key, +Assoc, ?Value) is nondet.
+%! get_assoc(?Key, +Assoc, ?Value) is nondet.
 
 get_assoc(Key, Assoc, Value):-
   assoc:get_assoc(Key, Assoc, Ordset),
   ord_member(Value, Ordset).
 
-%% ord_member(?Member, ?List:list) is nondet.
+%! ord_member(?Member, ?List:list) is nondet.
 
 ord_member(Value, Ordset):-
   nonvar(Value),
@@ -42,7 +42,7 @@ ord_member(Value, Ordset):-
 ord_member(Value, Ordset):-
   member(Value, Ordset).
 
-%% put_assoc(+Key, +OldAssoc, +Value, ?NewAssoc) is semidet.
+%! put_assoc(+Key, +OldAssoc, +Value, ?NewAssoc) is semidet.
 
 % Put the given value into the existing ordset.
 put_assoc(Key, OldAssoc, Value, NewAssoc):-

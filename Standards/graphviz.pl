@@ -26,11 +26,11 @@ Methods for writing to GraphViz.
 
 In GraphViz vertices are called 'nodes'.
 
----+ Datatypes
+# Datatypes
 
 This module uses the following non-standard datatypes.
 
----++ edge
+## edge
 
 A compound term of the form
 
@@ -40,7 +40,7 @@ edge(FromVertexID, ToVertexID, EdgeAttributes)
 
 representing a GraphViz edge.
 
----+ graph
+# graph
 
 A compound term of the form
 
@@ -50,7 +50,7 @@ graph(Vertices, Edges, GraphAttributes)
 
 representing a GraphViz graph.
 
----++ vertex
+## vertex
 
 A compound term of the form
 
@@ -60,7 +60,7 @@ vertex(VertexID, VerticeAttributes)
 
 representing a GraphViz vertex.
 
----+ nvpair
+# nvpair
 
 A compound term of the form
 
@@ -122,22 +122,22 @@ arrow_type(open).
 arrow_type(tee).
 arrow_type(vee).
 
-%% attribute(
-%%   ?Name:atom,
-%%   ?Type:term,
-%%   ?Contexts:list(oneof([edge,graph,node])),
-%%   ?Default:term
-%% ) is nondet.
+%! attribute(
+%!   ?Name:atom,
+%!   ?Type:term,
+%!   ?Contexts:list(oneof([edge,graph,node])),
+%!   ?Default:term
+%! ) is nondet.
 % Registered GraphViz attributes.
 %
-% @param Name The atomic name of a GraphViz attribute.
-% @param Type The type of the values for this attribute.
-% @param Contexts A list representing the elements for which the attribute can
+% @arg Name The atomic name of a GraphViz attribute.
+% @arg Type The type of the values for this attribute.
+% @arg Contexts A list representing the elements for which the attribute can
 %        be specified. Any non-empty combination of the following values:
 %        1. =edge=, the attribute applies to edges.
 %        2. =graph=, the attribute applies to graphs.
 %        2. =node=, the attribute applies to vertices.
-% @param Default The default value for the attribute.
+% @arg Default The default value for the attribute.
 
 attribute(arrowhead, oneof(ArrowTypes), [edge], normal):-
   findall(ArrowType, arrow_type(ArrowType), ArrowTypes).
@@ -191,25 +191,25 @@ attribute(style, oneof(Styles), [edge], ''):-
 attribute(style, oneof(Styles), [node], ''):-
   findall(Style, style(node, Style), Styles).
 
-%% attribute(
-%%   ?Name:atom,
-%%   ?Type:term,
-%%   ?Context:list(oneof([edge,graph,node])),
-%%   +Attributess:list,
-%%   ?Default:term
-%% ) is nondet.
+%! attribute(
+%!   ?Name:atom,
+%!   ?Type:term,
+%!   ?Context:list(oneof([edge,graph,node])),
+%!   +Attributess:list,
+%!   ?Default:term
+%! ) is nondet.
 % Registered GraphViz attributes.
 %
-% @param Name The atomic name of a GraphViz attribute.
-% @param Type The type of the values for this attribute.
-% @param Context A list representing the elements for which the attribute can
+% @arg Name The atomic name of a GraphViz attribute.
+% @arg Type The type of the values for this attribute.
+% @arg Context A list representing the elements for which the attribute can
 %        be specified. Any non-empty combination of the following values:
 %        1. =edge=, the attribute applies to edges.
 %        2. =graph=, the attribute applies to graphs.
 %        2. =node=, the attribute applies to nodes.
-% @param Attributess A list of attribute-value pairs. Used for looking up the
+% @arg Attributess A list of attribute-value pairs. Used for looking up the
 %        interactions between multiple attributes.
-% @param Default The default value for the attribute.
+% @arg Default The default value for the attribute.
 
 attribute(color, oneof(Colors), [edge,graph,node], Attributes, black):-
   % The default =colorscheme= is either set by its own argument assertion,
@@ -242,19 +242,19 @@ color_scheme_default_color(_, black).
 :- assert(user:prolog_file_type(svg,  svg     )).
 :- assert(user:prolog_file_type(xdot, xdot    )).
 
-%% convert_graphviz(
-%%   +FromFile,
-%%   +Method:oneof([dot,sfdp]),
-%%   +ToFileType:oneof([jpeg,pdf,svg,xdot]),
-%%   ?ToFile:atom
-%% ) is det.
+%! convert_graphviz(
+%!   +FromFile,
+%!   +Method:oneof([dot,sfdp]),
+%!   +ToFileType:oneof([jpeg,pdf,svg,xdot]),
+%!   ?ToFile:atom
+%! ) is det.
 % Converts a GraphViz DOT file to an image file, using a specific
 % visualization method.
 %
-% @param FromFile
-% @param Method
-% @param ToFileType
-% @param ToFile
+% @arg FromFile
+% @arg Method
+% @arg ToFileType
+% @arg ToFile
 
 convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   % Type checks.
@@ -307,22 +307,22 @@ graphviz_to_svg(FromFile, Method, SVG):-
 
 % PARSING %
 
-%% parse_attribute(
-%%   +Context:oneof([edge,graph,node]),
-%%   +Attributes:list,
-%%   +Attribute:nvpair
-%% ) is semidet.
+%! parse_attribute(
+%!   +Context:oneof([edge,graph,node]),
+%!   +Attributes:list,
+%!   +Attribute:nvpair
+%! ) is semidet.
 % Succeeds if the given attribute term is a valid GraphViz name-value pair.
 %
-% @param Context The atomic name of the element for which the attribute is
+% @arg Context The atomic name of the element for which the attribute is
 %        set. The same attribute may work differently for different elements.
 %        1. =edge=
 %        2. =graph=
 %        3. =node=
-% @param Attributes A list of attribute-value pairs, used for resolving
+% @arg Attributes A list of attribute-value pairs, used for resolving
 %        interactions between the given =Attribute= and some other
 %        attributes that were specified.
-% @param Attribute A name-value pair.
+% @arg Attribute A name-value pair.
 
 parse_attribute(Context, Attributes, Attribute):-
   Attribute =.. [Name, Value],
@@ -333,14 +333,14 @@ parse_attribute(Context, Attributes, Attribute):-
   !,
   gv_typecheck(Type, Value).
 
-%% parse_attributes_graphviz(
-%%   +Context:oneof([edge,graph,node]),
-%%   +Attributes:list(nvpair)
-%% ) is det.
+%! parse_attributes_graphviz(
+%!   +Context:oneof([edge,graph,node]),
+%!   +Attributes:list(nvpair)
+%! ) is det.
 % Parses a list of attributes.
 %
-% @param Context The atomic name of the element to which the attributes apply.
-% @param Attributes A list of name-value pairs.
+% @arg Context The atomic name of the element to which the attributes apply.
+% @arg Attributes A list of name-value pairs.
 
 parse_attributes_graphviz(Context, Attributes):-
   maplist(parse_attribute(Context, Attributes), Attributes).
@@ -391,11 +391,11 @@ text_item --> ['<sub>'], text, ['</sub>'].
 text_item --> ['<sup>'], text, ['</sup>'].
 */
 
-%% colorscheme_colors(?ColorScheme:atom, ?Colors:list(atom)) is det.
+%! colorscheme_colors(?ColorScheme:atom, ?Colors:list(atom)) is det.
 % The color names for each of the supported color schemes.
 %
-% @param ColorScheme The atomic name of a GraphViz supported color scheme.
-% @param Colors A list of atomic names of colors in a specific color scheme.
+% @arg ColorScheme The atomic name of a GraphViz supported color scheme.
+% @arg Colors A list of atomic names of colors in a specific color scheme.
 
 colorscheme_colors(svg, Colors):-
   svg_colors(Colors),
@@ -406,7 +406,7 @@ colorscheme_colors(x11, Colors):-
 colorscheme_colors(ColorScheme, Colors):-
   brewer_colors(ColorScheme, Colors).
 
-%% shape(?Category:oneof([polygon]), ?Name:atom) is nondet.
+%! shape(?Category:oneof([polygon]), ?Name:atom) is nondet.
 
 shape(polygon, assembly).
 shape(polygon, box).
@@ -464,7 +464,7 @@ shape(polygon, triangle).
 shape(polygon, tripleoctagon).
 shape(polygon, utr).
 
-%% style(?Class:oneof([edge,node]), ?Name:atom) is nondet.
+%! style(?Class:oneof([edge,node]), ?Name:atom) is nondet.
 
 style(edge, bold).
 style(edge, dashed).
@@ -481,11 +481,11 @@ style(node, solid).
 style(node, striped).
 style(node, wedged).
 
-%% gv_typecheck(+Type:compound, +Value:term) is semidet.
+%! gv_typecheck(+Type:compound, +Value:term) is semidet.
 % Succeeds of the given value is of the given GraphViz type.
 %
-% @param Type A compound term representing a GraphViz type.
-% @param Value The atomic name of a value.
+% @arg Type A compound term representing a GraphViz type.
+% @arg Value The atomic name of a value.
 %
 % @tbd Test the DCG for HTML labels.
 % @tbd Add the escape sequences for the =escString= datatype.
@@ -513,12 +513,12 @@ gv_typecheck(Type, Value):-
 
 % STREAMING %
 
-%% stream_attribute(+Stream:stream, +Attribute:nvpair, +Separator:atom) is det.
+%! stream_attribute(+Stream:stream, +Attribute:nvpair, +Separator:atom) is det.
 % Writes an attribute, together with a separator.
 %
-% @param Stream An output stream.
-% @param Attribute A name-value pair.
-% @param Separator An atomic separator.
+% @arg Stream An output stream.
+% @arg Attribute A name-value pair.
+% @arg Separator An atomic separator.
 
 stream_attribute(Stream, Separator, Attribute):-
   Attribute =.. [Name, Value],
@@ -531,16 +531,16 @@ stream_attribute(Stream, Separator, Attribute):-
     true
   ).
 
-%% stream_attributes(
-%%   +Stream:stream,
-%%   +Attributes:list(nvpair),
-%%   +Separator:atom
-%% ) is det.
+%! stream_attributes(
+%!   +Stream:stream,
+%!   +Attributes:list(nvpair),
+%!   +Separator:atom
+%! ) is det.
 % Writes the given list of attributes to an atom.
 %
-% @param Stream An output stream.
-% @param Attributes A list of name-value pairs.
-% @param Separator An atomic separator that is written between the attributes.
+% @arg Stream An output stream.
+% @arg Attributes A list of name-value pairs.
+% @arg Separator An atomic separator that is written between the attributes.
 
 % Empty attribute list.
 stream_attributes(_Stream, [], _Separator):-
@@ -561,11 +561,11 @@ stream_attributes0(Stream, [Attribute | Attributes], Separator):-
   stream_attribute(Stream, Separator, Attribute),
   stream_attributes0(Stream, Attributes, Separator).
 
-%% stream_edge(+Stream:stream, +Edge:edge) is det.
+%! stream_edge(+Stream:stream, +Edge:edge) is det.
 % Writes an edge term.
 %
-% @param Stream An output stream.
-% @param Edge A GraphViz edge compound term.
+% @arg Stream An output stream.
+% @arg Edge A GraphViz edge compound term.
 
 stream_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
   print_indent(Stream, 1),
@@ -574,11 +574,11 @@ stream_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
   format(Stream, ';', []),
   nl(Stream).
 
-%% stream_graphviz(+Stream:stream, +GraphElement:compound) is det.
+%! stream_graphviz(+Stream:stream, +GraphElement:compound) is det.
 % Writes a GraphViz structure to an output stream.
 %
-% @param Stream An output stream.
-% @param GraphElement A GraphViz graph compound term of the form
+% @arg Stream An output stream.
+% @arg GraphElement A GraphViz graph compound term of the form
 %        =|graph(Vertices, Edges, GraphAttributes)|=.
 
 stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
@@ -594,10 +594,10 @@ stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
   nl(Stream),
   flush_output(Stream).
 
-%% stream_graph_attributes(
-%%   +Stream:stream,
-%%   +GraphAttributes:list(nvpair)
-%% ) is det.
+%! stream_graph_attributes(
+%!   +Stream:stream,
+%!   +GraphAttributes:list(nvpair)
+%! ) is det.
 % Writes the given GraphViz graph attributes.
 %
 % The writing of graph attributes deviates a little bit from the writing of
@@ -605,19 +605,19 @@ stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
 % square brackets and they are written on separate lines (and not as
 % comma-separated lists).
 %
-% @param Stream An output stream.
-% @param GraphAttributes A list of name-value pairs.
+% @arg Stream An output stream.
+% @arg GraphAttributes A list of name-value pairs.
 
 stream_graph_attributes(Stream, GraphAttributes):-
   print_indent(Stream, 1),
   stream_attributes0(Stream, GraphAttributes, '\n  '),
   nl(Stream).
 
-%% vertex_to_dom(+Stream:stream, +Vertex:vertex) is det.
+%! vertex_to_dom(+Stream:stream, +Vertex:vertex) is det.
 % Writes a vertex term.
 %
-% @param Stream An output stream.
-% @param Vertex A GraphViz vertex compound term.
+% @arg Stream An output stream.
+% @arg Vertex A GraphViz vertex compound term.
 
 vertex_to_dom(Stream, node(VertexID, VerticeAttributes)):-
   print_indent(Stream, 1),

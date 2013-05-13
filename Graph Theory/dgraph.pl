@@ -120,7 +120,7 @@ Directed graphs.
 
 
 
-%% arcs(+G:dgraph, -As:list(arc)) is det.
+%! arcs(+G:dgraph, -As:list(arc)) is det.
 % Returns the arcs of the digraph.
 
 arcs(dgraph(G1, G2), As):-
@@ -128,7 +128,7 @@ arcs(dgraph(G1, G2), As):-
   edges(G2, EG2),
   ord_union(EG1, EG2, As).
 
-%% directed_cycle(+V:vertex, +G:dgraph) is semidet.
+%! directed_cycle(+V:vertex, +G:dgraph) is semidet.
 % Succeeds if there is a directed cycle at the given vertex, in the given
 % graph.
 %
@@ -137,11 +137,11 @@ arcs(dgraph(G1, G2), As):-
 directed_cycle(V, G):-
   directed_cycle(V, G, _DirCycle).
 
-%% directed_cycle(
-%%   +V:vertex,
-%%   +G:dgraph,
-%%   -DirCycle:list(edge_vertice)
-%% ) is nondet.
+%! directed_cycle(
+%!   +V:vertex,
+%!   +G:dgraph,
+%!   -DirCycle:list(edge_vertice)
+%! ) is nondet.
 % Returns a directed cycle through the given directed graph, starting at the
 % given vertex.
 %
@@ -150,13 +150,13 @@ directed_cycle(V, G):-
 directed_cycle(V, G, DirCycle):-
   directed_cycle(V, G, _Vs, _Es, DirCycle).
 
-%% directed_cycle(
-%%   +V:vertex,
-%%   +G:dgraph,
-%%   -Vs:list(vertex),
-%%   -Es:list(edge),
-%%   -DirCycle:list(edge_vertice)
-%% ) is nondet.
+%! directed_cycle(
+%!   +V:vertex,
+%!   +G:dgraph,
+%!   -Vs:list(vertex),
+%!   -Es:list(edge),
+%!   -DirCycle:list(edge_vertice)
+%! ) is nondet.
 % Returns directed cycles that start at the given vertex in the given graph.
 % Also returns the edges and vertices that form the cycle, in the order in
 % which they were visited.
@@ -164,11 +164,11 @@ directed_cycle(V, G, DirCycle):-
 % *Definition*: A directed cycle is a directed closed trail where all vertices
 %               are unique (as in a directed path) but with V_0 = V_n.
 %
-% @param V A vertex.
-% @param G A directed graph.
-% @param Vs A list of vertices.
-% @param Es A list of edges.
-% @param DirCycle A list that consists of interchanging vertices and edges.
+% @arg V A vertex.
+% @arg G A directed graph.
+% @arg Vs A list of vertices.
+% @arg Es A list of edges.
+% @arg DirCycle A list that consists of interchanging vertices and edges.
 
 directed_cycle(V, G, [V | Vs], [V-W | Es], [V, V-W | DirCycle]):-
   dgraph_neighbor(V, G, W),
@@ -207,31 +207,31 @@ directed_path(V, G, W, H_Vs, [V | Vs], H_As, [V-X | As], [V, V-X | DirPath]):-
   \+(member(V-X, H_As)),
   directed_path(X, G, W, [X | H_Vs], Vs, [V-X | H_As], As, DirPath).
 
-%% directed_walk(+V:vertex, +G:dgraph, ?W:vertex) is semidet.
+%! directed_walk(+V:vertex, +G:dgraph, ?W:vertex) is semidet.
 % @see directed_walk/6
 
 directed_walk(V, G, W):-
   directed_walk(V, G, W, _DirWalk).
 
-%% directed_walk(
-%%   +V:vertex,
-%%   +G:dgraph,
-%%   ?W:vertex,
-%%   -DirWalk:list(arc_vertice)
-%% ) is nondet.
+%! directed_walk(
+%!   +V:vertex,
+%!   +G:dgraph,
+%!   ?W:vertex,
+%!   -DirWalk:list(arc_vertice)
+%! ) is nondet.
 % @see directed_walk/6
 
 directed_walk(V, G, W, DirWalk):-
   directed_walk(V, G, W, _Vs, _As, DirWalk).
 
-%% directed_walk(
-%%   +V:vertex,
-%%   +G:dgraph,
-%%   ?W:vertex,
-%%   -Vs:list(vertex),
-%%   -As:list(arc),
-%%   -DirWalk:list(arc_vertice)
-%% ) is nondet.
+%! directed_walk(
+%!   +V:vertex,
+%!   +G:dgraph,
+%!   ?W:vertex,
+%!   -Vs:list(vertex),
+%!   -As:list(arc),
+%!   -DirWalk:list(arc_vertice)
+%! ) is nondet.
 % Returns the path along which the given vertices are joined
 % in the given graph.
 
@@ -241,13 +241,13 @@ directed_walk(V, G, W, [V, X | Vs], [V-X | As], [V, V-X, X | DirWalk]):-
   dgraph_neighbor(V, G, X),
   directed_walk(X, G, W, Vs, As, DirWalk).
 
-%% dgraph_empty(+G:dgraph) is semidet.
-%% dgraph_empty(-G:dgraph) is det.
+%! dgraph_empty(+G:dgraph) is semidet.
+%! dgraph_empty(-G:dgraph) is det.
 % Succeeds on the empty digraph or returns the empty digraph.
 
 dgraph_empty(dgraph([], [])).
 
-%% has_directed_cycle(+G:dgraph) is semidet.
+%! has_directed_cycle(+G:dgraph) is semidet.
 % Succeeds if the given digraph has a cycle.
 %
 % @see directed_cycle/2.
@@ -262,22 +262,22 @@ in_degree(G, V, InDegree):-
   in_neighbors(V, G, InNeighbors),
   length(InNeighbors, InDegree).
 
-%% in_neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
-%% in_neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
+%! in_neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
+%! in_neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
 % Succeeds if for an incoming vertex or returns an incoming vertex.
 
 in_neighbor(V, G, InVN):-
   in_neighbors(V, G, InVNs),
   member(InVN, InVNs).
 
-%% in_neighbors(+V:vertex, +G:dgraph, -InVNs:list(vertex)) is det.
+%! in_neighbors(+V:vertex, +G:dgraph, -InVNs:list(vertex)) is det.
 % Returns the incoming neighbors of the given vertex.
 
 in_neighbors(V, dgraph(_OutG, InG), InVNs):-
   member(V-InVNs, InG).
 
-%% dgraph_neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
-%% dgraph_neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
+%! dgraph_neighbor(+V:vertex, +G:dgraph, +W:vertex) is semidet.
+%! dgraph_neighbor(+V:vertex, +G:dgraph, -W:vertex) is nondet.
 
 dgraph_neighbor(V, G, W):-
   in_neighbor(V, G, W).
@@ -312,7 +312,7 @@ out_neighbor(V, G, OutVN):-
 out_neighbors(V, dgraph(OutG, _InG), OutVNs):-
   member(V-OutVNs, OutG).
 
-%% reachable(V, G, W) is semidet.
+%! reachable(V, G, W) is semidet.
 % Succeeds if the latter vertex is reachable from the former.
 %
 % *Definition*: A vertex W is reable from vertex V if there is
@@ -321,7 +321,7 @@ out_neighbors(V, dgraph(OutG, _InG), OutVNs):-
 reachable(V, G, W):-
   directed_path(V, G, W).
 
-%% strict(+Graph:dgraph) is semidet.
+%! strict(+Graph:dgraph) is semidet.
 % Succeeds on strict digraphs.
 %
 % *Definition*: A strict digraph has no loops and no double occurring arcs.
@@ -329,7 +329,7 @@ reachable(V, G, W):-
 strict(G):-
   \+(has_directed_cycle(G)).
 
-%% strongly_connected(+G:dgraph) is semidet.
+%! strongly_connected(+G:dgraph) is semidet.
 % Succeeds if the given graph is strongly connected.
 %
 % *Definition*: A digraph is strongly connected if all pairs of vertices
@@ -344,7 +344,7 @@ strongly_connected(G):-
     directed_path(V, G, W)
   ).
 
-%% dgraph_subgraph(+G1:dgraph, +G2:dgraph) is semidet.
+%! dgraph_subgraph(+G1:dgraph, +G2:dgraph) is semidet.
 % Succeeds if G1 is a subgraph of G2.
 
 dgraph_subgraph(dgraph(InG1, OutG1), dgraph(InG2, OutG2)):-
@@ -354,7 +354,7 @@ dgraph_subgraph(dgraph(InG1, OutG1), dgraph(InG2, OutG2)):-
 subgraph_(V-NV1, V-NV2):-
   sublist(NV1, NV2).
 
-%% underlying(+G:dgraph, -U:ugraph) is det.
+%! underlying(+G:dgraph, -U:ugraph) is det.
 % Returns the underlying undirected graph for the given directed graph.
 
 underlying(G, U):-
@@ -380,33 +380,33 @@ underlying(Vs, As, U):-
     U
   ).
 
-%% dgraph_vertex_induced_subgraph(
-%%   +G:dgraph,
-%%   +VSubG:list(vertex),
-%%   -SubG:dgraph
-%% ) is det.
+%! dgraph_vertex_induced_subgraph(
+%!   +G:dgraph,
+%!   +VSubG:list(vertex),
+%!   -SubG:dgraph
+%! ) is det.
 % Returns the vertex-induced subgraph.
 
 dgraph_vertex_induced_subgraph(dgraph(InG, OutG), VSubG, dgraph(SubInG, SubOutG)):-
   ugraph_vertex_induced_subgraph(InG, VSubG, SubInG),
   ugraph_vertex_induced_subgraph(OutG, VSubG, SubOutG).
 
-%% vertices(+G:dgraph, -Vs:list(vertex)) is det.
+%! vertices(+G:dgraph, -Vs:list(vertex)) is det.
 % Returns the vertices that occur in the given digraph.
 %
-% @param G A directed graph.
-% @param Vs An ordered set of vertices.
+% @arg G A directed graph.
+% @arg Vs An ordered set of vertices.
 
 vertices(dgraph(InG, OutG), Vs):-
   ugraph_vertices(InG, InVs),
   ugraph_vertices(OutG, OutVs),
   ord_union(InVs, OutVs, Vs).
 
-%% vertices_arcs_to_dgraph(
-%%   +Vs:list(vertex),
-%%   +As:list(arc),
-%%   -G:dgraph
-%% ) is det.
+%! vertices_arcs_to_dgraph(
+%!   +Vs:list(vertex),
+%!   +As:list(arc),
+%!   -G:dgraph
+%! ) is det.
 % Returns the digraph representation for the given vertices and arcs.
 
 vertices_arcs_to_dgraph(Vs, As, dgraph(InG, OutG)):-
@@ -435,7 +435,7 @@ vertices_arcs_to_dgraph(Vs, As, dgraph(InG, OutG)):-
     OutG
   ).
 
-%% weakly_connected(+G:dgreph) is semidet.
+%! weakly_connected(+G:dgreph) is semidet.
 % Succeeds if the given digraph is weakly connected.
 %
 % *Definition*: A weakly connected digraph has a connected underlying graph.

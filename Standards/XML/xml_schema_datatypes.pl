@@ -15,7 +15,7 @@
 XML Schema 2: Datatypes (Second Edition)
 
 
----+ Datatype
+# Datatype
 
 A triple consisting of:
   * *|Value space|*
@@ -26,7 +26,7 @@ A triple consisting of:
     Characterizing properties of the value space, individual values, or the
     lexical space.
 
----+ Value space
+# Value space
 
 The set of values for a given datatype.
 
@@ -40,7 +40,7 @@ Value space definitions:
   * * Combination* of value from different value spaces, according to some
     construction procedure (XMLS list, XMLS union).
 
----+ Lexical space
+# Lexical space
 
 The set of valid literals for a datatype.
 
@@ -49,18 +49,18 @@ Characteristics:
   * Readability: non-binary; text.
   * Parsing and serialization: taken from common languages and libraries.
 
----++ Canonical lexical representation
+## Canonical lexical representation
 
 A subset of the lexical space for which there is a one-to-one mapping to
 the value space.
 
----+ Facet
+# Facet
 
 A single defining aspect of a value space.
 
----++ Fundamental facet
+## Fundamental facet
 
----++ Constraining facet
+## Constraining facet
 
 
 @author Wouter Beek
@@ -108,11 +108,11 @@ init:-
 
 
 
-%% xmls_datatype(?DatatypeName:atom, ?Datatype:uri) is nondet.
+%! xmls_datatype(?DatatypeName:atom, ?Datatype:uri) is nondet.
 % Translations between datatype names and datatype URIs.
 %
-% @param DatatypeName The atomic name of an XML Schema datatype.
-% @param Datatype The URI of an XML Schema datatype.
+% @arg DatatypeName The atomic name of an XML Schema datatype.
+% @arg Datatype The URI of an XML Schema datatype.
 
 xmls_datatype(DatatypeName, Datatype):-
   var(DatatypeName),
@@ -133,12 +133,12 @@ xmls_datatype0(gYear,    xsd:gYear   ).
 xmls_datatype0(int,      xsd:int     ).
 xmls_datatype0(string,   xsd:string  ).
 
-%% xmls_datatype(
-%%   ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,int]),
-%%   ?LexicalValue,
-%%   ?Datatype:uri,
-%%   ?CanonicalValue
-%% ) is nondet.
+%! xmls_datatype(
+%!   ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,int]),
+%!   ?LexicalValue,
+%!   ?Datatype:uri,
+%!   ?CanonicalValue
+%! ) is nondet.
 
 xmls_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue):-
   (
@@ -152,12 +152,12 @@ xmls_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue):-
 xmls_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue):-
   xmls_datatype0(DatatypeName, LexicalValue, Datatype, CanonicalValue).
 
-%% xmls_datatype0(
-%%   ?DatatypeName:atom,
-%%   ?LexicalValue,
-%%   ?Datatype:uri,
-%%   ?CanonicalValue
-%% )
+%! xmls_datatype0(
+%!   ?DatatypeName:atom,
+%!   ?LexicalValue,
+%!   ?Datatype:uri,
+%!   ?CanonicalValue
+%! )
 
 % Boolean
 xmls_datatype0(boolean, 0, xsd:boolean, false).
@@ -239,7 +239,7 @@ xmls_datatype0(string, String, xsd:string, Atom):-
     String = Atom
   ).
 
-%% xmls_datatype_check(+Datatype:uri, +Value) is semidet.
+%! xmls_datatype_check(+Datatype:uri, +Value) is semidet.
 % Succeeds if the given value is of the given XML Schema datatype.
 
 xmls_datatype_check(xsd:boolean, Boolean):-

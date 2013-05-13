@@ -51,7 +51,7 @@ Predicates for reading/writing RDF lists.
 An RDF list is taken to be a resource that occurs in the subject position
 on the =|rdf:first|= and of the =|rdf:rest|= predicates.
 
----+ rdfs:subClassOf
+# rdfs:subClassOf
 
 ==
 rdfs_subclass(X, Y, G):-
@@ -66,7 +66,7 @@ rdfs_subclass0(X, Y, G):-
   rdfs_subclass0(Z, Y, G).
 ==
 
----+ rdfs:subPropertyOf
+# rdfs:subPropertyOf
 
 ==
 rdfs_subproperty(X, Y, G):-
@@ -81,15 +81,15 @@ rdfs_subproperty0(X, Y, G):-
   rdfs_subproperty0(Z, Y, G).
 ==
 
----+ rdf:type
+# rdf:type
 
 ==
-%% rdfs_individual(?Individual:uri, ?Class:uri, ?Graph:atom) is nondet.
+%! rdfs_individual(?Individual:uri, ?Class:uri, ?Graph:atom) is nondet.
 % Individual and class pairs.
 %
-% @param Individual An instance resource.
-% @param Class A class resource.
-% @param Graph The atomic name of a graph.
+% @arg Individual An instance resource.
+% @arg Class A class resource.
+% @arg Graph The atomic name of a graph.
 
 % We make the memberhip of RDFS class to itself explicit because otherwise
 % the class checks in method rdfs_subclass_of/2 cause rdfs_individual/3 to go
@@ -150,7 +150,7 @@ rdfs_individual(X, Y, G):-
 
 % ALTS %
 
-%% rdfs_alt(?Alt:uri, ?Graph:atom) is nondet.
+%! rdfs_alt(?Alt:uri, ?Graph:atom) is nondet.
 % Alternative collections.
 % No duplicates and unordered.
 
@@ -158,7 +158,7 @@ rdfs_alt(Alt, Graph):-
   rdfs_individual_of(Alt, rdf:'Alt'),
   rdf_subject(Graph, Alt).
 
-%% rdfs_alt(?Alt:uri, -Contents:list(uri), ?Graph:atom) is nondet.
+%! rdfs_alt(?Alt:uri, -Contents:list(uri), ?Graph:atom) is nondet.
 
 rdfs_alt(Alt, Contents, Graph):-
   rdfs_alt(Alt, Graph),
@@ -168,22 +168,22 @@ rdfs_alt(Alt, Contents, Graph):-
 
 % BAGS %
 
-%% rdfs_bag(-Bag:uri, +Graph:atom) is nondet.
+%! rdfs_bag(-Bag:uri, +Graph:atom) is nondet.
 % Returns bags in the given graph.
 %
-% @param Bag An RDF bag resource.
-% @param Graph The atomic name of a graph.
+% @arg Bag An RDF bag resource.
+% @arg Graph The atomic name of a graph.
 
 rdfs_bag(Bag, Graph):-
   rdfs_individual_of(Bag, rdf:'Bag'),
   rdf_subject(Graph, Bag).
 
-%% rdfs_bag(+Bag:uri, -Contents:list(uri), +Graph:atom) is nondet.
+%! rdfs_bag(+Bag:uri, -Contents:list(uri), +Graph:atom) is nondet.
 % Returns bags and their contents in the given graph.
 %
-% @param Bag An RDF bag.
-% @param Contents A list of resources.
-% @param Graph The atomic name of a graph.
+% @arg Bag An RDF bag.
+% @arg Contents A list of resources.
+% @arg Graph The atomic name of a graph.
 
 rdfs_bag(Bag, Contents, Graph):-
   rdfs_bag(Bag, Graph),
@@ -193,7 +193,7 @@ rdfs_bag(Bag, Contents, Graph):-
 
 % COLLECTIONS %
 
-%% container_membership_property(+Predicate:uri) is semidet.
+%! container_membership_property(+Predicate:uri) is semidet.
 % Succeeds if =Predicate= is a container membership property.
 
 container_membership_property(P):-
@@ -229,11 +229,11 @@ rdfs_collection(Collection, Contents, Graph):-
   !,
   rdf_collection0(Collection, Contents, Graph).
 
-%% rdf_collection0(
-%%   ?Collection:uri,
-%%   ?Contents:list(uri),
-%%   ?Graph:atom
-%% ) is nondet.
+%! rdf_collection0(
+%!   ?Collection:uri,
+%!   ?Contents:list(uri),
+%!   ?Graph:atom
+%! ) is nondet.
 
 rdf_collection0(Collection, Contents, Graph):-
   findall(
@@ -249,7 +249,7 @@ rdf_collection0(Collection, Contents, Graph):-
 
 % LABELS %
 
-%% rdfs_list_label(+RDF_List:uri, +Label:atom, -Element:uri) is nondet.
+%! rdfs_list_label(+RDF_List:uri, +Label:atom, -Element:uri) is nondet.
 % Returns RDF list elements that have the given label.
 
 rdfs_list_label(RDF_List, Label, Element):-

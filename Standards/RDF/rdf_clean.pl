@@ -61,12 +61,12 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 
 
 
-%% rdf_clean(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri]),
-%%   ?Graph:atom
-%% ) is det.
+%! rdf_clean(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   ?Graph:atom
+%! ) is det.
 % Clean RDF triples with explicit user-consent.
 
 rdf_clean(Subject, Predicate, Object, Graph):-
@@ -82,13 +82,13 @@ rdf_clean(Subject, Predicate, Object, Graph):-
     Tuples
   ).
 
-%% rdf_clean_datatype(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Datatype:atom,
-%%   ?Value,
-%%   ?Graph:atom
-%% ) is det.
+%! rdf_clean_datatype(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Datatype:atom,
+%!   ?Value,
+%!   ?Graph:atom
+%! ) is det.
 % Clean RDF datatype triples with explicit user-consent.
 
 rdf_clean_datatype(Subject, Predicate, Datatype, Value, Graph):-
@@ -120,13 +120,13 @@ rdf_convert_datatype(
     )
   ).
 
-%% rdf_duplicate(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri]),
-%%   ?Graph1:atom,
-%%   ?Graph2:atom
-%% ) is nondet.
+%! rdf_duplicate(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   ?Graph1:atom,
+%!   ?Graph2:atom
+%! ) is nondet.
 % Duplicate triples, that occur in at least two graphs.
 
 rdf_duplicate(Subject, Predicate, Object, Graph1, Graph2):-
@@ -216,11 +216,11 @@ rdf_split_string0(Split, Subject, Predicate, OldString, Graph):-
   ),
   rdf_retractall_datatype(Subject, Predicate, string, OldString, Graph).
 
-%% rdf_strip_string(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Graph:atom
-%% ) is det.
+%! rdf_strip_string(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Graph:atom
+%! ) is det.
 % Strip RDF string datatypes.
 
 rdf_strip_string(Subject, Predicate, Graph):-

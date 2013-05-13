@@ -46,25 +46,25 @@ Entailment regime for RDF(S) and OWL.
 
 
 
-%% rdf_entails(?S:uri, ?P:uri, ?O:uri, ?G:atom, -Proof:compound) is nondet.
+%! rdf_entails(?S:uri, ?P:uri, ?O:uri, ?G:atom, -Proof:compound) is nondet.
 % @see rdf_entails/7
 
 rdf_entails(S, P, O, G, Proof):-
   rdf_entails(S, P, O, G, infinite, _D, Proof).
 
-%% rdf_entails(?S:uri, ?P:uri, ?O:uri, ?G:atom, +MaxD:integer,
-%%   -D:integer, -Proof:compound
-%% ) is nondet.
+%! rdf_entails(?S:uri, ?P:uri, ?O:uri, ?G:atom, +MaxD:integer,
+%!   -D:integer, -Proof:compound
+%! ) is nondet.
 %
-% @param S The subject resource.
-% @param P The predicate resource.
-% @param O The object resource.
-% @param G The atomic name of a graph.
-% @param MaxD An integer indicating the maximum depth at which predicates
+% @arg S The subject resource.
+% @arg P The predicate resource.
+% @arg O The object resource.
+% @arg G The atomic name of a graph.
+% @arg MaxD An integer indicating the maximum depth at which predicates
 %        are searched to fit into the proof.
-% @param D An integer indicating the highest depth at which predicates were
+% @arg D An integer indicating the highest depth at which predicates were
 %        search for the proof.
-% @param Proof A compound term of the form =|proof(Conclusion, Predicates)|=
+% @arg Proof A compound term of the form =|proof(Conclusion, Predicates)|=
 %        representing a proof.
 
 rdf_entails(S, P, O, G, MaxD, D, Proof):-
@@ -78,19 +78,19 @@ rdf_entails(S, P, O, G, MaxD, D, Proof):-
   !,
   rdf_entails0(S, P, O, G, MaxD, 0, D, Proof).
 
-%% rdf_entails0(S, P, O, G, MaxD, MaxD, _D, _Proof) is nondet.
+%! rdf_entails0(S, P, O, G, MaxD, MaxD, _D, _Proof) is nondet.
 % Keeps track of the depth of the traversed proof space, ensuring this does not
 % exceed the maximum depth.
 %
-% @param S The subject resource.
-% @param P The predicate resource.
-% @param O The object resource.
-% @param G The atomic name of a graph.
-% @param MaxD An integer indicating the maximum depth at which predicates
+% @arg S The subject resource.
+% @arg P The predicate resource.
+% @arg O The object resource.
+% @arg G The atomic name of a graph.
+% @arg MaxD An integer indicating the maximum depth at which predicates
 %        are searched to fit into the proof.
-% @param D0 Counter, starting at 0, should not reach =MaxD=.
-% @param D The detph of =Proof=.
-% @param Proof A compound term of the form =|proof(Conclusion, Predicates)|=
+% @arg D0 Counter, starting at 0, should not reach =MaxD=.
+% @arg D The detph of =Proof=.
+% @arg Proof A compound term of the form =|proof(Conclusion, Predicates)|=
 %        representing a proof.
 
 % The maximum depth has been reached.
@@ -182,13 +182,13 @@ rdf_entails0(S, P, O, G, MaxD, D0,
   rdf_entails0(S, P, O0, G, MaxD, D1, D, Proofs).
 */
 
-%% rdf_entails_dev(?S:uri, ?P:uri, ?O:uri, ?G:atom) is nondet.
+%! rdf_entails_dev(?S:uri, ?P:uri, ?O:uri, ?G:atom) is nondet.
 % @see rdf_entails/7
 
 rdf_entails_dev(S, P, O, G):-
   rdf_entails_dev(S, P, O, G, infinite).
 
-%% rdf_entails_dev(?S:uri, ?P:uri, ?O:uri, ?G:atom, +MaxD:integer) is nondet.
+%! rdf_entails_dev(?S:uri, ?P:uri, ?O:uri, ?G:atom, +MaxD:integer) is nondet.
 % @see rdf_entails/7
 
 rdf_entails_dev(S, P, O, G, MaxD):-

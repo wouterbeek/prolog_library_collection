@@ -92,13 +92,13 @@ geonames_protocol(http).
 
 port(80).
 
-%% service(
-%%   ?Service:atom,
-%%   -Format:oneof([csv,json,kml,rdf,rss,txt,xml])
-%% ) is nondet.
+%! service(
+%!   ?Service:atom,
+%!   -Format:oneof([csv,json,kml,rdf,rss,txt,xml])
+%! ) is nondet.
 %
-% @param Name The atomic name of a GeoNames Web service.
-% @param Format The atomic name of the data exchange format that
+% @arg Name The atomic name of a GeoNames Web service.
+% @arg Format The atomic name of the data exchange format that
 %        is supported for the Web serive. One of the following:
 %        1. =csv=
 %        2. =json=
@@ -107,7 +107,7 @@ port(80).
 %        5. =rss=
 %        6. =txt=
 %        7. =xml=
-% @param Attributes A list of atomic names of attributes defined for a
+% @arg Attributes A list of atomic names of attributes defined for a
 %        specific Web service.
 
 service(Service, Formats, Attributes):-

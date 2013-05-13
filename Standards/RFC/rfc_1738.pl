@@ -5,7 +5,7 @@
 Specifies the syntax and semantics for localizing and accessing resources
 via the Internet (URLs).
 
----+ General URL form
+# General URL form
 
 ==
 <url> = <scheme>:<scheme-specific-part>
@@ -15,7 +15,7 @@ The former part is the name of the scheme used.
 
 The latter part is interpreted relative to the scheme used.
 
----+ Encoding of URLs
+# Encoding of URLs
 
   1. Character sequences in parts of a URL represent sequences of octets.
      The mapping uses the US-ASCII code character set.
@@ -45,7 +45,7 @@ Octets that must be encoded using %-escaping:
   1. *|Reserved characters|* that may have a special meaning according to a
      scheme: =|;/?:@=&|= (this is a closed collection).
 
----+ Scheme-specific syntax
+# Scheme-specific syntax
 
 URL schemes that involve the direct use of an IP-based protocol to a
 specified host on the Internet use a common syntax for the scheme-specific
@@ -55,7 +55,7 @@ data (=|[]|= means optional part):
 <scheme-specific-part> = //[<user>[:<password>]@]<host>[:<port>][/<url-path>]
 ==
 
----++ Host
+## Host
 
   * Fully qualified domain name of a network host.
     Dot-separated sequence of domain labels, starting and ending with an
@@ -64,9 +64,9 @@ data (=|[]|= means optional part):
   * IP address of a network host.
     Four dot-separated decimal digit groups.
 
----+ Schemes
+# Schemes
 
----++ FTP
+## FTP
 
 Default password: the Internet e-mail address of the end user. [???]
 Default port: 21.
@@ -89,7 +89,7 @@ CWD (Change Working Directory) commands <cwdi>
 
 <cwdi> and <name> are (possibly encoded) strings with '/' and ';' encoded.
 
----+++ Examples
+### Examples
 
 ==
 ftp://myname@host.dom/%2Fetc/motd
@@ -101,7 +101,7 @@ ftp://myname@host.dom//etc/motd
 "CWD ", "CWD etc", "RETR motd"
 ==
 
----++ HTTP
+## HTTP
 
 ==
 <url> = http://<host>[:<port>]/[<path>][?][<searchpart>]
@@ -116,7 +116,7 @@ ftp://myname@host.dom//etc/motd
   * '/' _may_ be used to designate a hierarchical structure.
   * Reserved chaarcters in =|<path>|= and =|<searchpart>|=: =|/;?|=
 
----++ GOPHER
+## GOPHER
 
 ==
 <url> = gopher://<host>[:<port>]/[<gopher-path>]
@@ -138,7 +138,7 @@ ftp://myname@host.dom//etc/motd
 
 @tbd
 
----++ MAILTO
+## MAILTO
 
 ==
 <url> = mailto:<rfc822-addr-spec>
@@ -148,7 +148,7 @@ ftp://myname@host.dom//etc/motd
 to be accessed directly; there is no sense in which it designates an object.
 It has a different use than the message/external-body type in MIME." [???]
 
----++ NEWS
+## NEWS
 
 ==
 <url> = news:<newsgroup-name>
@@ -167,7 +167,7 @@ It has a different use than the message/external-body type in MIME." [???]
 sufficient information to locate a single resource, but, rather, are
 location-independent." [???]
 
----++ NNTP
+## NNTP
 
 ==
 <url> = nntp://<host>[:<port>]/<newsgroup-name>/<article-number>
@@ -175,7 +175,7 @@ location-independent." [???]
 
   * Default port: 119.
 
----++ TELNET
+## TELNET
 
 Designates a service, not a data object.
 
@@ -186,7 +186,7 @@ Designates a service, not a data object.
   * If =|<port>|= is omitted, then the last '/' may be omitted.
   * Default port: 23.
 
----++ WAIS
+## WAIS
 
 Designate a WAIS database:
 ==
@@ -205,7 +205,7 @@ Designates a particular document:
 
   * Default port: 210.
 
----+ FILES
+# FILES
 
 Designate files accessible on a particular host computer, i.e. _not_
 universally accessible files.
@@ -219,7 +219,7 @@ universally accessible files.
   * =|<path>|= is a hierarchical directory path
     =|<directory>/<directory>/.../<name>|=.
 
----++ PROSPERO
+## PROSPERO
 
 ==
 <url> = prospero://<host>[:<port>]/<hsoname>;<field>=<value>
@@ -229,7 +229,7 @@ universally accessible files.
 
 @tbd
 
----+ Registration of new schemes
+# Registration of new schemes
 
 IANA (Internet Assigned Numbers Authority) will maintain a registry
 of URL schemes.
@@ -240,7 +240,7 @@ for accessing resources and the syntax for representing locations.
   * Prefix =|x-|=
     Reserved for experimental purposes.
 
----++ Proposed schemes
+## Proposed schemes
 
   * *afs*
     Andrew File System global file names.
@@ -257,7 +257,7 @@ for accessing resources and the syntax for representing locations.
   * *z39.50*
     Access to ANSI Z39.50 services.
 
----+ BNF
+# BNF
 
 ==
 ; The generic form of a URL is:
@@ -375,7 +375,7 @@ xchar          = unreserved | reserved | escape
 digits         = 1*digit
 ==
 
----+ URLs in context
+# URLs in context
 
 To distinguish URLs from other data structures (e.g. URI), use prefix
 =|URL:|=.
@@ -387,7 +387,7 @@ use enclosing angle brackets along with the prefix =|URL:|=.
     may (erroneously) introduce a hyphen at the end of a line when breaking
     a line.
 
----+ References
+# References
 
 [1] Anklesaria, F., McCahill, M., Lindner, P., Johnson, D.,
        Torrey, D., and B. Alberti, "The Internet Gopher Protocol

@@ -25,23 +25,23 @@ Methods that are used while developing and inspecting code.
 
 
 
-%% test(:Goal, +Stream) is det.
+%! test(:Goal, +Stream) is det.
 % Runs the given goal as a test.
 %
-% @param Goal A compound term that is the goal that is tested.
-% @param Stream The stream to which the test results are written.
+% @arg Goal A compound term that is the goal that is tested.
+% @arg Stream The stream to which the test results are written.
 % @see test/3 allows the name of the test to be specified.
 
 test(Goal, Stream):-
   term_to_atom(Goal, TestName),
   test(Goal, TestName, Stream).
 
-%% test(:Goal, +TestName:atom, +Stream) is det.
+%! test(:Goal, +TestName:atom, +Stream) is det.
 % Runs a test that is the given goal.
 %
-% @param Goal A compound term that is the goal that is tested.
-% @param TestName The name of the test.
-% @param Stream The stream to which the test results are written.
+% @arg Goal A compound term that is the goal that is tested.
+% @arg TestName The name of the test.
+% @arg Stream The stream to which the test results are written.
 
 test(Goal, TestName, Stream):-
   get_time(BeginTime),

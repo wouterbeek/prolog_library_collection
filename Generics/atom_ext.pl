@@ -79,27 +79,27 @@ scheme.
 
 
 
-%% atom_to_term(+Atom:atom, -Term:term) is det.
+%! atom_to_term(+Atom:atom, -Term:term) is det.
 % Returns the term described by the atom.
 %
-% @param Atom An atom.
-% @param Term A term.
+% @arg Atom An atom.
+% @arg Term A term.
 % @see Dumbed down version of atom_to_term/3.
 
 atom_to_term(Atom, Term):-
   atom_to_term(Atom, Term, _Bindings).
 
-%% atom_replace(
-%%   +Atom:atom,
-%%   +Replacement:list(char-char),
-%%   -NewAtom:atom
-%% ) is det.
+%! atom_replace(
+%!   +Atom:atom,
+%!   +Replacement:list(char-char),
+%!   -NewAtom:atom
+%! ) is det.
 % Returns a new atom that is like the given atom, but with the given
 % character replacement.
 %
-% @param Atom An atom.
-% @param Replacements A list of elements of the form =|char-char|=.
-% @param NewAtom An atom.
+% @arg Atom An atom.
+% @arg Replacements A list of elements of the form =|char-char|=.
+% @arg NewAtom An atom.
 
 atom_replace(Atom, Replacements, NewAtom):-
   atom_codes(Atom, Codes),
@@ -121,7 +121,7 @@ codes_replace(Codes, From, To, NewCodes):-
 codes_replace([Code | Codes], From, To, [Code | NewCodes]):-
   codes_replace(Codes, From, To, NewCodes).
 
-%% decapitalize(+Old:atom, -New:atom) is det.
+%! decapitalize(+Old:atom, -New:atom) is det.
 % Ensure that the first letter of the atom is lower case.
 % This can be used to concatenate natural language sentences.
 
@@ -130,29 +130,29 @@ decapitalize(Old, New):-
   char_type(Char, to_lower(Lower)),
   atom_chars(New, [Lower | Chars]).
 
-%% escape_underscores(+Old:atom, -New:atom) is det.
+%! escape_underscores(+Old:atom, -New:atom) is det.
 % Use backslash-encoding for underscores.
 
 escape_underscores(Atom, NewAtom):-
   atom_replace(Atom, ['_'-['\\', '_']], NewAtom).
 
-%% first_char(+Atom:atom, ?First:char) is semidet.
+%! first_char(+Atom:atom, ?First:char) is semidet.
 % The first character in the given atom.
 
 first_char(Atom, Char):-
   atom_chars(Atom, [Char | _Chars]).
 
-%% format_integer(+Integer:integer, +Length:integer, -Atom:atom) is det.
+%! format_integer(+Integer:integer, +Length:integer, -Atom:atom) is det.
 % Returns a formatted representation of the given integer that is
 % the given number of characters long.
 %
 % If the length of the formatted integer exceeds the given length, then
 % the integer is simply converted to an atom.
 %
-% @param Integer An integer, the formatted value.
-% @param Length An integer, indicating the character lenght of the
+% @arg Integer An integer, the formatted value.
+% @arg Length An integer, indicating the character lenght of the
 %        formatted integer atom.
-% @param Atom An atom, the formatted version of the integer value.
+% @arg Atom An atom, the formatted version of the integer value.
 
 format_integer(Integer, Length, Atom):-
   atom_length(Integer, IntegerLength),
@@ -167,20 +167,20 @@ format_integer0(Integer, IntegerLength, Length, Atom):-
   repeating_atom('0', ZeroLength, Zeros),
   atomic_concat(Zeros, Integer, Atom).
 
-%% last_char(+Atom:atom, ?Last:char) is semidet.
+%! last_char(+Atom:atom, ?Last:char) is semidet.
 % The first character in the given atom.
 
 last_char(Atom, Char):-
   atom_chars(Atom, Chars),
   last(Chars, Char).
 
-%% progress_bar(+Current:integer, End:integer, ProgressBar:atom) is det.
+%! progress_bar(+Current:integer, End:integer, ProgressBar:atom) is det.
 % Returns an atomic progress bar that displays the current value onto
 % the scale that runs from one to the given end value.
 %
-% @param Current An integer, representing the current processed value.
-% @param End An integer, representing the last value to be processed.
-% @param ProgressBar The atomic representation of a progress bar.
+% @arg Current An integer, representing the current processed value.
+% @arg End An integer, representing the last value to be processed.
+% @arg ProgressBar The atomic representation of a progress bar.
 
 progress_bar(End, End, ProgressBar2):-
   !,
@@ -205,7 +205,7 @@ progress_bar0(Current1, End, ProgressBar):-
     [Percentage1, Bar, NonBar, Current2, End]
   ).
 
-%% punctuate(+Old:atom, -New:atom) is det.
+%! punctuate(+Old:atom, -New:atom) is det.
 % Ensures that the atom will have a dot character at the end.
 
 punctuate(Atom, Atom):-
@@ -214,13 +214,13 @@ punctuate(Atom, Atom):-
 punctuate(Old, New):-
   atomic_concat(Old, '.', New).
 
-%% repeating_atom(+SubAtom:atom, +Repeats:integer, -Atom:atom) is det.
+%! repeating_atom(+SubAtom:atom, +Repeats:integer, -Atom:atom) is det.
 % Returns the atom that is the repetition of the given subatom the given
 % number of times.
 %
-% @param SubAtom An atom, the element that gets repeated.
-% @param Repeats A integer, the number of repeats of the subatom.
-% @param Atom An atom, the result of repeating the given atom.
+% @arg SubAtom An atom, the element that gets repeated.
+% @arg Repeats A integer, the number of repeats of the subatom.
+% @arg Atom An atom, the result of repeating the given atom.
 
 repeating_atom(_SubAtom, 0, ''):-
   !.
@@ -235,28 +235,28 @@ repeating_atom(SubAtom, Repeats, Atom):-
 slashes_to_underscores(Atom, NewAtom):-
   atom_replace(Atom, ['/'-'_'], NewAtom).
 
-%% spaces_to_underscores(+Old:atom, -New:atom) is det.
+%! spaces_to_underscores(+Old:atom, -New:atom) is det.
 % Returns the atom that is like the give atom, but with all spaces replaced
 % by underscores.
 %
-% @param Old Any atom.
-% @param New An atom with spaces replaced by underscores.
+% @arg Old Any atom.
+% @arg New An atom with spaces replaced by underscores.
 
 spaces_to_underscores(Atom, NewAtom):-
   atom_replace(Atom, [' '-'_'], NewAtom).
 
-%% split_atom_exclusive(
-%%   +Atom:atom,
-%%   +Split:oneof([atom,list(atom)]),
-%%   -Splits:list(atom)
-%% ) is det.
+%! split_atom_exclusive(
+%!   +Atom:atom,
+%!   +Split:oneof([atom,list(atom)]),
+%!   -Splits:list(atom)
+%! ) is det.
 % Returns the given atom split up in two, according to the given split.
 % The first split does not include the split atom, making this method
 % exclusive.
 %
-% @param Atom The original, unsplit atom.
-% @param Split The occurrence atoms where the splittable atom will be split.
-% @param Splits The results of splitting.
+% @arg Atom The original, unsplit atom.
+% @arg Split The occurrence atoms where the splittable atom will be split.
+% @arg Splits The results of splitting.
 % @see split_atom_inclusive/3 includes the split atom in the split results.
 
 split_atom_exclusive(Atom, Split, Splits):-
@@ -274,17 +274,17 @@ split_atom_exclusive(Atom, SplitList, [Split1 | Splits]):-
   split_atom_exclusive(NewAtom, SplitList, Splits).
 split_atom_exclusive(Atom, _SplitList, [Atom]).
 
-%% split_atom_inclusive(
-%%   +Atom:atom,
-%%   +Split:oneof([atom,list(atom)]),
-%%   -Splits:list(atom)
-%% ) is det.
+%! split_atom_inclusive(
+%!   +Atom:atom,
+%!   +Split:oneof([atom,list(atom)]),
+%!   -Splits:list(atom)
+%! ) is det.
 % Returns the given atom split up in two, according to the given split.
 % Earlier splits includes the split atom, making this method inclusive.
 %
-% @param Atom The original, unsplit atom.
-% @param Split The occurrence in atom where atom will be split.
-% @param Splits The results of splitting.
+% @arg Atom The original, unsplit atom.
+% @arg Split The occurrence in atom where atom will be split.
+% @arg Splits The results of splitting.
 % @see split_atom_exclusive/3 does not include the split atom in the split
 %      results.
 
@@ -328,11 +328,11 @@ split_codes(Codes, Split, [Result | Results]):-
   split_codes(NewCodes, Split, Results).
 split_codes(Result, _Split, [Result]).
 
-%% split_length(
-%%   +Codes:list(integer),
-%%   +Length:integer,
-%%   -Splits:list(list(integer))
-%% ) is det.
+%! split_length(
+%!   +Codes:list(integer),
+%!   +Length:integer,
+%!   -Splits:list(list(integer))
+%! ) is det.
 
 split_length(Codes, Length, [Codes]):-
   length(Codes, CodesLength),
@@ -343,7 +343,7 @@ split_length(Codes, Length, [SubCodes | Results]):-
   append(SubCodes, Rest, Codes),
   split_length(Rest, Length, Results).
 
-%% strip(+RemovableChar:char, +Unstripped:atom, -Stripped:atom) is det.
+%! strip(+RemovableChar:char, +Unstripped:atom, -Stripped:atom) is det.
 % Strips the given atom's front and back for the given character.
 
 strip(RemovableChar, Unstripped, Stripped):-
@@ -394,12 +394,12 @@ strip_end(RemovableChars, UnstrippedChars, StrippedChars):-
   strip_begin(RemovableChars, ReverseUnstrippedChars, ReverseStrippedChars),
   once(reverse(StrippedChars, ReverseStrippedChars)).
 
-%% titlecase(+Old:atom, -New:atom) is det.
+%! titlecase(+Old:atom, -New:atom) is det.
 % Returns an atom that is like the given atom, except for the first character
 % which must be either no letter or a capitalized letter.
 %
-% @param Old Any atom.
-% @param New A new atom that starts with a capital letter or with
+% @arg Old Any atom.
+% @arg New A new atom that starts with a capital letter or with
 %        no letter at all.
 
 titlecase(Atom, TitlecaseAtom):-
@@ -408,14 +408,14 @@ titlecase(Atom, TitlecaseAtom):-
   char_type(UpperChar, to_upper(Char)),
   atom_chars(TitlecaseAtom, [UpperChar | Chars]).
 
-%% truncate(+Atom:atom, +MaxLen:integer, -Truncated:atom) is det.
+%! truncate(+Atom:atom, +MaxLen:integer, -Truncated:atom) is det.
 % Returns the truncated version of the given atom.
 % If =Atom='s length exceeds the given maximum length, then its truncated
 % name will include '...' to indicate that is has been truncated.
 %
-% @param Atom An atom.
-% @param MaxLen An integer.
-% @param Truncated An atom.
+% @arg Atom An atom.
+% @arg MaxLen An integer.
+% @arg Truncated An atom.
 %
 % @author Jan Wielemaker, taken from Cliopatria.
 % @author Wouter Beek, some alterations.
@@ -432,12 +432,12 @@ truncate(Atom, _AtomLen, MaxLen, Truncated):-
   sub_atom(Atom, 0, TruncatedLen, _, Truncated1),
   atom_concat(Truncated1, ' ...', Truncated).
 
-%% underscores_to_spaces(+Old:atom, -New:atom) is det.
+%! underscores_to_spaces(+Old:atom, -New:atom) is det.
 % Retruns an atom that is like the given atom, but with any underscore
 % characters replaced by spaces.
 %
-% @param Old An atom.
-% @param New An atom with underscores replaced by spaces.
+% @arg Old An atom.
+% @arg New An atom with underscores replaced by spaces.
 
 underscores_to_spaces(Old, New):-
   atom_replace(Old, ['_'-' '], New).

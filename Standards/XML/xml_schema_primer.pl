@@ -4,7 +4,7 @@
 
 
 
----+ Attribute
+# Attribute
 
 An attribute can occur at most once for an element.
 
@@ -15,7 +15,7 @@ and a set default value.
 =xsd:schema=.
 
 
----++ Attribute declaration
+## Attribute declaration
 
 Entity =xsd:atttribute=.
 
@@ -32,7 +32,7 @@ Attributes;
 
 
 
----+ Complex types
+# Complex types
 
 Complex types can contain element declarations, element references, and
 attribute declarations.
@@ -41,7 +41,7 @@ Complex types are defined using the =xsd:complexType= element,
 with attribute =name=.
 
 
----+ Complex types with simple content
+# Complex types with simple content
 
 A type that allows an element to have attributes and contain a simple value.
 
@@ -60,7 +60,7 @@ Example:
 ==
 
 
----++ Complex types with mixed content
+## Complex types with mixed content
 
 Content that consits of both subelements and character data.
 
@@ -76,7 +76,7 @@ Example:
 ==
 
 
----++ Complex types with empty content
+## Complex types with empty content
 
 Element =xsd:complexContent= can only containt elements, but we define no
 elements in it. We can add attributes by restricting an existing datatype.
@@ -101,7 +101,7 @@ can be abbreviated as follows:
 
 
 
----+ Element
+# Element
 
 Default values are set for missing elements that have optional use
 and a set default value and that do occur as empty elements.
@@ -111,7 +111,7 @@ and a set default value and that do occur as empty elements.
 Global elements can appear at the top-level of an instance document.
 
 
----++ Element declaration
+## Element declaration
 
 Entity =xsd:element=
 
@@ -132,12 +132,12 @@ Attributes:
 
 
 
----+ Simple types
+# Simple types
 
 We distinguish between *|build-in types|* and *|defined types|*.
 
 
----++ Atomic types
+## Atomic types
 
 The atomic types are all built-in simple types:
 * anyURI
@@ -221,7 +221,7 @@ Examples of defined atomic types:
 ==
 
 
----++ List types
+## List types
 
 There are 3 buil-in list types:
 * =ENTITIES=
@@ -255,7 +255,7 @@ Examples of defined list types:
 ==
 
 
----++ Union types
+## Union types
 
 Element =xsd:union= with value =memberTypes= with a list of simple type names
 as value.
@@ -273,7 +273,7 @@ Example of a defined union type:
 
 
 
----+ Anonymous types
+# Anonymous types
 
 A defined type that is references once can be defined anonymously,
 i.e. as a sirect subelement of an element.
@@ -306,7 +306,7 @@ Expample of 2 anonymou types:
 
 
 
----+ ur-type
+# ur-type
 
 The base type from which all simple and complex types are derived, called
 =xsd:anyType=.
@@ -318,7 +318,7 @@ and element content).
 
 
 
----+ Annotations
+# Annotations
 
 =xsd:annotation= elements may appear at the beginning of most schema
 constructs. They may contain subelements =xsd:documentation= (for human
@@ -326,7 +326,7 @@ consumption) and =xsd:appinfo= (for machine consumption).
 
 
 
----+ Groups
+# Groups
 
 Disjunctive specification of subelements: element =xsd:choice=.
 
@@ -360,7 +360,7 @@ Examples:
 ==
 
 
----++ 'All' group
+## 'All' group
 
 The =xsd:all= element specifies a group every subelement of which must occur
 at most once.
@@ -383,7 +383,7 @@ Subelements cannot occur more than once (restrictions on the legal values of
 ==
 
 
----++ Attribute groups
+## Attribute groups
 
 Attributes can be grouped in an =xsd:attributeGroup= element.
 
@@ -394,7 +394,7 @@ Attribute groups must occur at the end of complex type definitions.
 
 
 
----+ Nil mechanism
+# Nil mechanism
 
 To explicitly indicate that an element has no content, rather than leaving
 the element out, the nil value can be used.

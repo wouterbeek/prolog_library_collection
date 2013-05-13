@@ -45,14 +45,14 @@
 
 Predicates for exporting RDF.
 
----+ Edge naming
+# Edge naming
 
 Specific edge labels can be hidden by adding clauses to
 rdf_edge_label_replace/2.
 
----+ Edge styling
+# Edge styling
 
----+ Vertex coloring
+# Vertex coloring
 
 The procedure for determining the color of a vertex:
     1. Look whether the =colorscheme= option is not set to =none=.
@@ -61,7 +61,7 @@ The procedure for determining the color of a vertex:
     4. If at least one vertex is not colored by class or namespace, then all
        namespaces are (re)assigned colors.
 
----+ Vertex naming
+# Vertex naming
 
 @author Wouter Beek
 @version 2013/01-2013/03
@@ -92,7 +92,7 @@ The procedure for determining the color of a vertex:
 
 
 
-%% colorize_namespaces(+Graph:atom, +ColorScheme:atom) is det.
+%! colorize_namespaces(+Graph:atom, +ColorScheme:atom) is det.
 % Uses colors from the given colorscheme to colorize the namespaces in the
 % given graph.
 %
@@ -139,10 +139,10 @@ rdf_edge_coloring(Options, FromVertex-ToVertex, Color):-
   rdf(FromVertex, Predicate, ToVertex, Graph),
   rdf_vertex_coloring(Options, Predicate, Color).
 
-%% rdf_edge_naming(+Options:list(nvpair), +Edge:edge, -Name:atom) is det.
+%! rdf_edge_naming(+Options:list(nvpair), +Edge:edge, -Name:atom) is det.
 % Returns a name for the given edge.
 %
-% @param Options A list of name-value pairs. The following options are
+% @arg Options A list of name-value pairs. The following options are
 %        supported:
 %            1. =|edge_labels(oneof([all,replace]))|=
 
@@ -183,13 +183,13 @@ rdf_edge_styling(Options, FromVertex-ToVertex, Style):-
   rdf_edge_style1(Predicate, Style),
   !.
 
-%% rdf_graph_naming(+Options:list(nvpair), -Name:atom) is det.
+%! rdf_graph_naming(+Options:list(nvpair), -Name:atom) is det.
 % Returns a name for the given graph.
 %
-% @param Options A list of name-value paris.
+% @arg Options A list of name-value paris.
 %        1. =graph(Graph:atom)= The atomic name of a graph.
-% @param Graph The atomic name of a graph.
-% @param Name An atomic name for the given graph.
+% @arg Graph The atomic name of a graph.
+% @arg Name An atomic name for the given graph.
 
 rdf_graph_naming(Options, GraphName):-
   option(graph(GraphName), Options).
@@ -247,23 +247,23 @@ rdf_triple_naming(S, P, O, TripleName):-
   maplist(rdf_resource_naming, [S,P,O], [S_Name,P_Name,O_Name]),
   format(atom(TripleName), '<~w,~w,~w>', [S_Name,P_Name,O_Name]).
 
-%% rdf_vertex_color_by_namespace(
-%%   +Graph:atom,
-%%   +ColorScheme:atom,
-%%   +Vertex,
-%%   -Color:atom
-%% ) is det.
+%! rdf_vertex_color_by_namespace(
+%!   +Graph:atom,
+%!   +ColorScheme:atom,
+%!   +Vertex,
+%!   -Color:atom
+%! ) is det.
 % Returns the automatically assigned color name.
 % The color names belong to the given colorscheme.
 % The color assignments are based on the RDF node's namespace.
 % Note that the same node may have different colors in different graphs.
 %
-% @param Graph The atomic name of a graph.
-% @param ColorScheme The atomic name of a colorscheme. Currently supported:
+% @arg Graph The atomic name of a graph.
+% @arg ColorScheme The atomic name of a colorscheme. Currently supported:
 %        1. =svg=
 %        2. =x11=
-% @param Vertex A resource.
-% @param Color The atomic name of a color within the colorscheme.
+% @arg Vertex A resource.
+% @arg Color The atomic name of a color within the colorscheme.
 
 rdf_vertex_color_by_namespace(Graph, _ColorScheme, Vertex, Color):-
   rdf_global_id(Namespace:_, Vertex),
@@ -273,19 +273,19 @@ rdf_vertex_color_by_namespace(Graph, ColorScheme, Vertex, Color):-
   colorize_namespaces(Graph, ColorScheme),
   rdf_vertex_color_by_namespace(Graph, ColorScheme, Vertex, Color).
 
-%% rdf_vertex_coloring(
-%%   +Options:list(nvpair),
-%%   +Vertex:vertex,
-%%   -Color:atom
-%% ) is det.
+%! rdf_vertex_coloring(
+%!   +Options:list(nvpair),
+%!   +Vertex:vertex,
+%!   -Color:atom
+%! ) is det.
 % Returns a color name for the given vertex.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        1. =colorscheme(ColorScheme:oneof([none,svg,x11]))= The atomic name
 %           of the color scheme from which the color names are drawn.
 %        2. =graph(Graph:atom)= The atomic name of a graph.
-% @param Vertex A vertex.
-% @param Color The atomic name of a color for the given vertex.
+% @arg Vertex A vertex.
+% @arg Color The atomic name of a color for the given vertex.
 
 rdf_vertex_coloring(Options, _Vertex, black):-
   option(colorscheme(none), Options),
@@ -332,10 +332,10 @@ vertex_label(Options, Vertex, Label):-
 vertex_label(_Options, Vertex, Label):-
   rdfs_label(Vertex, _OtherLanguage, Label).
 
-%% rdf_vertex_naming(+Options:list(nvpair), +Vertex, -VertexName:atom) is det.
+%! rdf_vertex_naming(+Options:list(nvpair), +Vertex, -VertexName:atom) is det.
 % Returns a display name for the given RDF graph vertex.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        1. =graph(Graph:atom)=
 %        2. =language(Language:atom)= The atomic tag of the language that is
 %           preferred for vertex naming.
@@ -343,8 +343,8 @@ vertex_label(_Options, Vertex, Label):-
 %        3. =|literals(oneof([collapse,hide,labels_only,show]))|=
 %           Whether or not literals are allowed as vertices in the =Edge=.
 %           Default: =collapse=.
-% @param Vertex A vertex.
-% @param VertexName An atomic name for the vertex.
+% @arg Vertex A vertex.
+% @arg VertexName An atomic name for the vertex.
 
 % The vertex is a list.
 % This comes before all this others, since all the others could be members of

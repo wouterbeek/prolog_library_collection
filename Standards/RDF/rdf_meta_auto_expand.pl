@@ -53,7 +53,7 @@ rdf_meta_expand(Term):-
     true
   ).
 
-%% expand_body(+Expansions, +Body, -ExpandedBody)
+%! expand_body(+Expansions, +Body, -ExpandedBody)
 % Expand the original Body with each element in
 % the list of Expansions by combining them in 
 % a conjunction using the ',' operator.
@@ -63,12 +63,12 @@ expand_body([Expansion], Body, (Expansion, Body)).
 expand_body([Expansion|Expansions], Body, (Expansion, ExpandedBody)):-
   expand_body(Expansions, Body, ExpandedBody).
 
-%% rdf_meta_expand_all(
-%%   +ArgumentTypes,
-%%   +OriginalArguments,
-%%   -NewArguments,
-%%   -Expansions
-%% )
+%! rdf_meta_expand_all(
+%!   +ArgumentTypes,
+%!   +OriginalArguments,
+%!   -NewArguments,
+%!   -Expansions
+%! )
 % For each argument in OriginalArgument that 
 % has the corresponding argument type 'e':
 %   1. Add a new variable to the new arguments.

@@ -136,7 +136,7 @@ Extensions to the SWI-Prolog meta predicates.
 
 % CACHING %
 
-%% memo(:Goal) is nondet.
+%! memo(:Goal) is nondet.
 % Memo goals that take relatively long to compute and that
 % are likely to be recomputed in the future.
 % This is achieved by storing the result along with the call,
@@ -157,19 +157,19 @@ reset_memo:-
 
 % CONTROL STRUCTURES %
 
-%% if_else(:If, :Else) is det.
+%! if_else(:If, :Else) is det.
 % Procedural control structure.
 
 if_else(If, Else):-
   if_then_else(If, true, Else).
 
-%% if_then(:If, :Then) is det.
+%! if_then(:If, :Then) is det.
 % Procedural control structure.
 
 if_then(If, Then):-
   if_then_else(If, Then, true).
 
-%% if_then_else(:If, :Then, :Else) is det.
+%! if_then_else(:If, :Then, :Else) is det.
 % Procedural control structure.
 
 if_then_else(If, Then, Else):-
@@ -181,7 +181,7 @@ if_then_else(If, Then, Else):-
     call(Else)
   ).
 
-%% switch(?Map:pair, +Maps:list(pair), +Default) is det.
+%! switch(?Map:pair, +Maps:list(pair), +Default) is det.
 
 switch(X-Y, Maps, _Default):-
   memberchk(X-Y, Maps),
@@ -201,7 +201,7 @@ unless(Unless, Do):-
 
 % DETERMINISM %
 
-%% call_semidet(:Goal) is det.
+%! call_semidet(:Goal) is det.
 % Executes the given semi-deterministic goal exactly once, i.e., regardless
 % of the open choice point. If the goal is not semideterministic,
 % an error is thrown.
@@ -251,12 +251,12 @@ generic(Context, GenericPredicate, Arguments):-
 
 % FINDALL RELATED PREDICATES %
 
-%% setoff(+Format, :Goal, -Set:ordset) is det.
+%! setoff(+Format, :Goal, -Set:ordset) is det.
 % The sorted version of forall/2.
 %
-% @param Format A compound term.
-% @param Goal A predicate name.
-% @param Set An ordered set.
+% @arg Format A compound term.
+% @arg Goal A predicate name.
+% @arg Set An ordered set.
 % @see forall/2
 
 setoff(Format, Goal, Set):-
@@ -277,7 +277,7 @@ setoff_alt(_Format, _Goal, Set):-
 
 % MAPLIST RELATED PREDICATES %
 
-%% app_list(+Preds:list, +Args:list, -Results:list) is det.
+%! app_list(+Preds:list, +Args:list, -Results:list) is det.
 % Applies multiple predicates to a static list of arguments.
 % Returns the results of applying the given predicates to the given argument
 % list. The number of results is the number of predicates. The arguments are
@@ -290,7 +290,7 @@ app_list([Module:Pred | Preds], Args, [Result | Results]):-
   call(Module:Call),
   app_list(Preds, Args, Results).
 
-%% maplist_pairs(:Goal, +List1:list, -List2:list) is det.
+%! maplist_pairs(:Goal, +List1:list, -List2:list) is det.
 % Applies the given goal to all pairs of elements occuring in =List1=.
 
 maplist_pairs(Goal, List1, List2):-
@@ -303,12 +303,12 @@ maplist_pairs(Goal, List1, List2):-
     List2
   ).
 
-%% mapset(:Goal, +List:list(term), -Set:ordset(term)) is det.
+%! mapset(:Goal, +List:list(term), -Set:ordset(term)) is det.
 % The sorted version of maplist/3.
 %
-% @param Goal A goal.
-% @param List A list of terms.
-% @param Set An ordered set of terms.
+% @arg Goal A goal.
+% @arg List A list of terms.
+% @arg Set An ordered set of terms.
 
 mapset(Goal, List, Set):-
   maplist(Goal, List, NewList),
@@ -322,10 +322,10 @@ mapsum(Goal, List, Sum):-
 
 % MODULES %
 
-%% modules(-Modules:list(atom)) is det.
+%! modules(-Modules:list(atom)) is det.
 % Returns a list of the names of all the loaded modules.
 %
-% @param Modules A list of atomic module names.
+% @arg Modules A list of atomic module names.
 
 modules(Modules):-
   findall(
@@ -349,7 +349,7 @@ run_on_sublists(List, Module:Goal):-
 
 % MULTIPLE CALLS %
 
-%% call_nth(:Goal, +C:integer) is semidet.
+%! call_nth(:Goal, +C:integer) is semidet.
 % Multiple calls of the same nondeterministic goal.
 % Calls the given goal the given number of times.
 % This does not exclude the case in which the goal could have been executed
@@ -365,7 +365,7 @@ call_nth(Goal, C):-
   nb_setarg(1, State, C2),
   C = C2.
 
-%% complete(:Goal, +Input, -Results:list) is det.
+%! complete(:Goal, +Input, -Results:list) is det.
 % Runs the given goal on the given input until it wears out.
 % The goal is enforced to be deteministic or semi-deterministic (the extra
 % choicepoint is automatically dropped).
@@ -381,11 +381,11 @@ complete(Goal, Input, [Input | History]):-
   complete(Goal, Intermediate, History).
 complete(_Goal, Input, [Input]).
 
-%% count(:Goal, -Count:integer) is det.
+%! count(:Goal, -Count:integer) is det.
 % Returns the number of calls that can be made of the given goal.
 %
-% @param Goal A goal.
-% @param Count An integer.
+% @arg Goal A goal.
+% @arg Count An integer.
 
 count(Goal, Count):-
   (
@@ -403,11 +403,11 @@ count(Goal, Count):-
   ),
   length(CompoundArguments, Count).
 
-%% list_compound(?List:list(term), ?Compound:compound_term) is nondet.
+%! list_compound(?List:list(term), ?Compound:compound_term) is nondet.
 % Converts between lists and compound terms of the form =x_1/.../x_n=.
 %
-% @param List A list of terms.
-% @param Compound A compound term of the form =x_1/.../x_n=.
+% @arg List A list of terms.
+% @arg Compound A compound term of the form =x_1/.../x_n=.
 
 list_compound([X], X):-
   !.
@@ -421,15 +421,15 @@ multi(Goal, Count):-
   NewCount is Count - 1,
   multi(Goal, NewCount).
 
-%% multi(:Goal, +Count:integer, +Input:term, -Output:term) is det.
+%! multi(:Goal, +Count:integer, +Input:term, -Output:term) is det.
 % Applies a predicate multiple times on the given input and its
 % subsequent outputs, i.e. repeated function application.
 %
-% @param Goal
-% @param Count The integer counter, indicating the number of times the
+% @arg Goal
+% @arg Count The integer counter, indicating the number of times the
 %        predicate is applied repeaterly.
-% @param Input A term.
-% @param Output A term.
+% @arg Input A term.
+% @arg Output A term.
 
 multi(Goal, Count, Input, Output):-
   multi(Goal, Count, Input, Output, _History).
@@ -454,15 +454,15 @@ run_in_working_directory(Call, WorkingDirectory):-
 
 % SORTING %
 
-%% predmerge_with_duplicates(+Predicate, +List1, +List2, -Solution)
+%! predmerge_with_duplicates(+Predicate, +List1, +List2, -Solution)
 % Merges the given lists based on the given sort predicate.
 % @precondition It is assumed that both lists are themselves sorted.
-% @param Predicate The sort predicate. It should be tertiary, of the form
+% @arg Predicate The sort predicate. It should be tertiary, of the form
 % <{ <, =, > }, Element1, Element2>.
 %
-% @param List1 An ordered list.
-% @param List2 An ordered list.
-% @param Solution An ordered list.
+% @arg List1 An ordered list.
+% @arg List2 An ordered list.
+% @arg Solution An ordered list.
 
 predmerge_with_duplicates(_Predicate, [], MergeResult, MergeResult):-
   !.
@@ -472,15 +472,15 @@ predmerge_with_duplicates(Predicate, [H1 | T1], [H2 | T2], Result):-
   call(Predicate, Delta, H1, H2),
   predmerge_with_duplicates(Delta, Predicate, H1, H2, T1, T2, Result).
 
-%% predmerge_with_duplicates(
-%%   +Delta,
-%%   +Predicate,
-%%   +ElementHalf1,
-%%   +ElementHalf2,
-%%   +SortedListHalf1,
-%%   +SortedListHalf2,
-%%   -SortedList
-%% ) is det.
+%! predmerge_with_duplicates(
+%!   +Delta,
+%!   +Predicate,
+%!   +ElementHalf1,
+%!   +ElementHalf2,
+%!   +SortedListHalf1,
+%!   +SortedListHalf2,
+%!   -SortedList
+%! ) is det.
 
 % H1 > H2, so place H2 in front of the result, and run again with H1.
 predmerge_with_duplicates(>, Predicate, H1, H2, T1, T2, [H2 | Result]):-
@@ -493,17 +493,17 @@ predmerge_with_duplicates(=, Predicate, H1, H2, T1, T2, [H1, H2 | Result]):-
 predmerge_with_duplicates(<, Predicate, H1, H2, T1, T2, [H1 | Result]):-
   predmerge_with_duplicates(Predicate, T1, [H2 | T2], Result).
 
-%% predsort_with_duplicates(
-%%    +Predicate:atom,
-%%    +UnsortedList:list,
-%%    -SortedList:list
-%% ) is det.
+%! predsort_with_duplicates(
+%!    +Predicate:atom,
+%!    +UnsortedList:list,
+%!    -SortedList:list
+%! ) is det.
 % Variation of the standard predicate predsort/3 that does keeps any
 % duplicates (instead of removing them).
 %
-% @param Predicate An atomic predicate name of a tertiary predicate.
-% @param UnsortedList ...
-% @param SortedList ...
+% @arg Predicate An atomic predicate name of a tertiary predicate.
+% @arg UnsortedList ...
+% @arg SortedList ...
 % @see Slight alteration of predsort/3.
 
 predsort_with_duplicates(Predicate, UnsortedList, SortedList):-
@@ -516,23 +516,23 @@ predsort_with_duplicates(Predicate, UnsortedList, SortedList):-
     SortedList
   ).
 
-%% predsort_with_duplicates(
-%%   +Predicate:atom,
-%%   +Length:integer,
-%%   -SortedListHalf:list(term),
-%%   -UnsortedListHalf:list(term),
-%%   -SortedList:ordset(term)
-%% ) is det.
+%! predsort_with_duplicates(
+%!   +Predicate:atom,
+%!   +Length:integer,
+%!   -SortedListHalf:list(term),
+%!   -UnsortedListHalf:list(term),
+%!   -SortedList:ordset(term)
+%! ) is det.
 % The division between =SortedListHalf1= and =UnsortedListHalf2= is defined
 % by =Length=, which is the approximate length of both lists.
 % The =SortedListHalf= is sorted in this predicate. The
 % =UnsortedListHalf= will be sorted in the next iteration.
 %
-% @param Predicate The atomic name of a binary semideterministic predicate.
-% @param Length An integer.
-% @param SortedListHalf A list of terms that are already sorted.
-% @param UnsortedListHalf A list of terms that are not yet sorted.
-% @param SortedList An ordered set of terms.
+% @arg Predicate The atomic name of a binary semideterministic predicate.
+% @arg Length An integer.
+% @arg SortedListHalf A list of terms that are already sorted.
+% @arg UnsortedListHalf A list of terms that are not yet sorted.
+% @arg SortedList An ordered set of terms.
 
 % There are 2 more unsorted terms.
 predsort_with_duplicates(
@@ -570,7 +570,7 @@ predsort_with_duplicates(Predicate, Length, L1, L3, SortedList):-
   % be not sorted anymore. This is what the merge does.
   predmerge_with_duplicates(Predicate, Result1, Result2, SortedList).
 
-%% sort_with_duplicates(+Delta, +Element1, +Element2, -SortedList:list)
+%! sort_with_duplicates(+Delta, +Element1, +Element2, -SortedList:list)
 % Returns the sorted list of the two given elements according to Delta.
 
 sort_with_duplicates(<, H1, H2, [H1, H2]).
@@ -581,12 +581,12 @@ sort_with_duplicates(>, H1, H2, [H2, H1]).
 
 % USER INTERACTION %
 
-%% user_interaction(
-%%   +Action:atom,
-%%   :Goal,
-%%   +Headers:list(atom),
-%%   +Tuples:list(term)
-%% ) is det.
+%! user_interaction(
+%!   +Action:atom,
+%!   :Goal,
+%!   +Headers:list(atom),
+%!   +Tuples:list(term)
+%! ) is det.
 % The generic predicate for executing arbitray Prolog goals for arbitrary
 % sequences of Prolog terms under user-interaction.
 %
@@ -594,14 +594,14 @@ sort_with_duplicates(>, H1, H2, [H2, H1]).
 % has been identified for removal by =Goal=, but a user is required to
 % assent to each removal action.
 %
-% @param Action An atomic description of the action that is performed by
+% @arg Action An atomic description of the action that is performed by
 %               the goal.
-% @param Goal An arbitrary Prolog goal that takes the number of elements
+% @arg Goal An arbitrary Prolog goal that takes the number of elements
 %             in each tuple as the number of arguments.
-% @param Headers A list of atoms describing the entries in each tuple.
+% @arg Headers A list of atoms describing the entries in each tuple.
 %                The number of headers and the number of elements in each
 %                tuple are assumed to be the same.
-% @param Tuples A list of tuples. These are the element lists for which goal
+% @arg Tuples A list of tuples. These are the element lists for which goal
 %               is executed after user-confirmation.
 
 user_interaction(Action, Goal, Headers, Tuples):-

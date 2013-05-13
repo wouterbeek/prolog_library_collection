@@ -19,7 +19,7 @@ Exception handling predicates.
 
 
 
-%% retrhow(:Goal, +Catcher, +Exception) is det.
+%! retrhow(:Goal, +Catcher, +Exception) is det.
 % Catches an exception that is thrown lower in the stack, and reappropriates
 % it for a new exception, to be caught by another method higher in the stack.
 % This is used to provide more detailed ('higher-level') information for
@@ -30,9 +30,9 @@ Exception handling predicates.
 % conversion to *jpeg* that causes the exception, reusing a generic exception
 % for convesions.
 %
-% @param Goal
-% @param Catcher
-% @param Exception
+% @arg Goal
+% @arg Catcher
+% @arg Exception
 
 rethrow(Goal, Catcher, Exception):-
   catch(Goal, Catcher, throw(Exception)).

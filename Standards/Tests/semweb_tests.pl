@@ -7,7 +7,7 @@
 
 /** <module> RDFS TEST
 
----+ MANIFEST HEADER
+# MANIFEST HEADER
 
 ==
 <?xml version="1.0"?>
@@ -18,21 +18,21 @@
 >
 ==
 
----+ MANIFEST FOOTER
+# MANIFEST FOOTER
 
 ==
 </rdf:RDF>
 ==
 
----+ Test types
+# Test types
 
----++ Miscellaneous Tests
+## Miscellaneous Tests
 
 This manifest entry is used to describe test cases that do not fall into
 one of the earlier categories. It may have several associated files,
 indicated in <test:document> elements.
 
----++ Negative Entailment Tests
+## Negative Entailment Tests
 
 These tests are specified using a similar structure to the Positive
 Entailment Tests. The test is failed if the conclusion can be drawn from
@@ -42,18 +42,18 @@ conclusion cannot be so drawn. In practice, the test may be considered to
 be passed when a thorough attempt to fail the test is unable to achieve
 failure.
 
----++ Negative Parser Tests
+## Negative Parser Tests
 
 These tests consist of one input document. The document is not legal RDF/XML.
 A parser is considered to pass the test if it correctly holds the input
 document to be in error.
 
----++ Positive Entailment Tests
+## Positive Entailment Tests
 
 These tests are specified by one or more premise documents (in RDF/XML or
 N-Triples) together with a single conclusion document.
 
----++ Positive Parser Tests
+## Positive Parser Tests
 
 These tests consist of one (or more) input documents in RDF/XML as is
 revised in [RDF-SYNTAX]. The expected result is defined using the N-Triples
@@ -63,7 +63,7 @@ according to the definition of graph equivalence given in [RDF-CONCEPTS].
 Where the input document(s) are legal RDF/XML, but a warning may be
 generated, this is indicated in the test manifest.
 
----+ Q&A
+# Q&A
 
 Q: What is the intended use of rdf_db:rdf_global_object/2?
 
@@ -255,7 +255,7 @@ run_test0(Test, 'PASS'):-
   !.
 run_test0(_Test, 'FAIL').
 
-%% uri_to_file(+URI:uri, -File:atom) is det.
+%! uri_to_file(+URI:uri, -File:atom) is det.
 % Returns the atomic name of the locally stored file that the given URI
 % refers to.
 % This assumes that the test files are stored locally.
@@ -273,12 +273,12 @@ uri_to_file(URI, File):-
     [access(read), relative_to(SubDirectory)]
   ).
 
-%% uri_to_subdirectory_file_fragment(
-%%   +URI:uri,
-%%   -Directory:atom,
-%%   -FileName:atom,
-%%   -Fragment:atom
-%% ) is det.
+%! uri_to_subdirectory_file_fragment(
+%!   +URI:uri,
+%!   -Directory:atom,
+%!   -FileName:atom,
+%!   -Fragment:atom
+%! ) is det.
 
 uri_to_subdirectory_file_fragment(URI, Directory, FileName, Fragment):-
   uri_components(

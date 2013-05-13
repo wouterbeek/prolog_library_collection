@@ -5,7 +5,7 @@
 Documenting existing practice as of 1994/06 and a reference point for URL
 and URN discussions.
 
----+ Definitions
+# Definitions
 
     * *|URI, Uniform Resource Identifier|*
       A member of the universal set.
@@ -18,7 +18,7 @@ and URN discussions.
       A name space (and presumably resolution protocols) for persistent
       object names (more persistent than URLs).
 
----+ Citations
+# Citations
 
 "There is one area, however, in which it is impractical to make conversions,
 and that is in the names and addresses used to identify objects.
@@ -37,7 +37,7 @@ different existing and proposed systems.  Therefore, the concept of
 the universal set of all objects, and hence the universal set of
 names and addresses, in all name spaces, becomes important."
 
----+ Design criteria
+# Design criteria
 
     * *Complete*
       Any naming scheme can be encoded.
@@ -47,7 +47,7 @@ names and addresses, in all name spaces, becomes important."
       "It is possible to express any URI using 7-bit ASCII characters so
       that URIs may, if necessary, be passed using pen and ink." [???]
 
----+ Universal syntax
+# Universal syntax
 
     * *Order*
       Prefixed by an arbitrary, registered string defining the decoding of
@@ -63,20 +63,20 @@ names and addresses, in all name spaces, becomes important."
       Hexadecimal escaping method.
       All white space is encoded.
 
----+ URI syntax
+# URI syntax
 
----++ Scheme
+## Scheme
 
 The first element in a URI, separated from the rest by a colon.
 
----++ Path
+## Path
 
 The rest of the URI following the colon. The encoding format depends on the
 scheme.
 
 _Slashes_ in the path imply a hierarchical structure.
 
----++ Reserved characters
+## Reserved characters
 
     1. The _percent_ sign is the escape character in the encoding scheme.
     1. The _slash_ character delimits substrings whose relationship is
@@ -92,7 +92,7 @@ _Slashes_ in the path imply a hierarchical structure.
     1. Substrings that start with a percent and that are not followed by two
        hexadecimal digits.
 
----+ Unsafe characters
+# Unsafe characters
 
     1. Control characters
     1. Spaces
@@ -108,13 +108,13 @@ provided these do not include one of the reserved characters.
 
 The percent sign, intended as such, must always be encoded.
 
----+ Comparing URIs
+# Comparing URIs
 
 Before comparison, URIs must be brought to the same encoding level.
 
----+ Examples
+# Examples
 
----++ I
+## I
 
 Identical; %2D encodes a hyphen character.
 
@@ -123,7 +123,7 @@ http://info.cern.ch/albert/bertram/marie-claude
 http://info.cern.ch/albert/bertram/marie%2Dclaude
 ==
 
----++ II
+## II
 
 Not identical, as in the second case the encoded slash does not
 have hierarchical significance.
@@ -133,7 +133,7 @@ http://info.cern.ch/albert/bertram/marie-claude
 http://info.cern.ch/albert/bertram%2Fmarie-claude
 ==
 
----++ III
+## III
 
 Illegal, as all % characters imply encodings, and there is no
 decoding defined for "%*"  or "%as" in this recommendation.
@@ -143,14 +143,14 @@ fxqn:/us/va/reston/cnri/ietf/24/asdf%*.fred
 news:12345667123%asdghfh@info.cern.ch
 ==
 
----+ Partial (relative) form
+# Partial (relative) form
 
 Purpose: terseness, robustness (information hiding).
 
 Using the reserved characters expressing hierarhy: slash, single and double
 dot substrings.
 
----++ Variant I [???]
+## Variant I [???]
 
 "If the partial URI starts with a non-zero number of consecutive
 slashes, then everything from the context URI up to (but not
@@ -159,7 +159,7 @@ consecutive slashes which has no greater number of consecutive
 slashes anywhere to the right of it is taken to be the same and
 so prepended to the partial URL to form the full URL."
 
----++ Variant II [???]
+## Variant II [???]
 
 "The last part of the path of the context URI (anything following
 the rightmost slash) is removed, and the given partial URI
@@ -169,14 +169,14 @@ Within the result, all occurrences of "xxx/../" or "/." are
 recursively removed, where xxx, ".." and "." are complete path
 elements."
 
----++ Note: Trailing slashes [???]
+## Note: Trailing slashes [???]
 
 "If a path of the context locator ends in slash, partial URIs are
 treated differently to the URI with the same path but without a
 trailing slash. The trailing slash indicates a void segment of the
 path."
 
----++ Examples
+## Examples
 
 In the context of URIs
 
@@ -195,7 +195,7 @@ g      magic://a/b/c//d/e/g
 g:h    g:h
 ==
 
----+ Fragment-id
+# Fragment-id
 
 A fragment of/ sub-function within / part of an object.
 
@@ -206,9 +206,9 @@ In the case of an empty fragment-id the URI refers to the whole object.
 "There is no implication that a fragment identifier refers to anything
 which can be extracted as an object in its own right."
 
----+ Schemes
+# Schemes
 
----++ Implemented
+## Implemented
 
     * *file*
       Local file access
@@ -227,7 +227,7 @@ which can be extracted as an object in its own right."
     * *wais*
       Wide Area Information Servers
 
----++ Unimplemented
+## Unimplemented
 
     * *cid*
       Content identifiers for MIME body part
@@ -237,16 +237,16 @@ which can be extracted as an object in its own right."
     * *Whois++*
     * *X.500*
 
----++ Reserved
+## Reserved
 
     * Starting with "x-"
       Experimental prefixes
     * *urn*
       Uniform Resource Name
 
----+ BNF
+# BNF
 
----++ URI
+## URI
 
 ==
 fragmentaddress uri [ # fragmentid ]
@@ -277,7 +277,7 @@ punctuation     < | >
 void
 ==
 
----++ URL
+## URL
 
 ==
   prefixedurl            u r l : url

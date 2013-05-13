@@ -18,7 +18,7 @@ WWW: [http://www.loc.gov/standards/iso639-5/]
 
 
 
-%% iso_639_5_language_family(?ISO:atom, ?Lexvo:uri) is nondet.
+%! iso_639_5_language_family(?ISO:atom, ?Lexvo:uri) is nondet.
 
 iso_639_5_language_family(ISO, Lexvo):-
   maplist(var, [ISO, Lexvo]),

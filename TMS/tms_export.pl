@@ -28,7 +28,7 @@ Exports TMS belief states,
 
 
 
-%% export_argument(+Node:node) is det.
+%! export_argument(+Node:node) is det.
 
 export_argument(Node):-
   % Retrieve the TMS in which the node appears.
@@ -38,7 +38,7 @@ export_argument(Node):-
   % Export the justifications that constitute the argument.
   export_tms(TMS, Justifications).
 
-%% export_file(-File:atom, -Stream:stream) is det.
+%! export_file(-File:atom, -Stream:stream) is det.
 
 export_file(File, Stream):-
   flag(tms_export, ID, ID + 1),
@@ -50,13 +50,13 @@ export_file(File, Stream):-
   ),
   open(File, write, Stream, []).
 
-%% export_pdf(+GV_File:atom) is det.
+%! export_pdf(+GV_File:atom) is det.
 
 export_pdf(GV_File):-
   convert_graphviz(GV_File, dot, pdf, PDF_File),
   open_pdf(PDF_File).
 
-%% export_tms(+TMS:atom) is det.
+%! export_tms(+TMS:atom) is det.
 % Exports the TMS using GraphViz.
 
 export_tms(TMS):-
@@ -66,7 +66,7 @@ export_tms(TMS):-
   close(Stream),
   export_pdf(GV_File).
 
-%% export_tms(+TMS:atom, +Justifications:list(justification)) is det.
+%! export_tms(+TMS:atom, +Justifications:list(justification)) is det.
 % Exports the TMS using GraphViz.
 
 export_tms(TMS, Justifications):-

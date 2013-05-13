@@ -29,14 +29,14 @@ Support for the C programming language.
  * c_char(_O1, [X | R0]-R0, [X | C0]-C0).
  */
 
-%% c_convert(+Atom:atom, -CAtom:atom) is det.
+%! c_convert(+Atom:atom, -CAtom:atom) is det.
 % Uses an internal DCG to convert atoms to C-strings, i.e. strings
 % according to the specification for the C programming language.
 %
 % GraphViz also uses C-strings for the names of nodes in the DOT format.
 %
-% @param Atom An atom.
-% @param CAtom An atom.
+% @arg Atom An atom.
+% @arg CAtom An atom.
 
 c_convert(Atom, C_Atom):-
   atom_codes(Atom, Codes),
@@ -54,7 +54,7 @@ c_convert(Atom, C_Atom):-
   !.
 
 /* This would be used instead of parse_re/4 with option lang(c).
-%% c_string(+Options:list(nvpair), +Results:diff_list)//
+%! c_string(+Options:list(nvpair), +Results:diff_list)//
 % Create a C-string. Normally =dot=  appears to be using UTF-8
 % encoding. Would there be a safer way to transport non-ASCII
 % characters, such as \uXXXX?

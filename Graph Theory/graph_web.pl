@@ -45,7 +45,7 @@ Web front-end for generic graph visualizations.
 
 
 
-%% circle_graph_web(+Graph:graph, -Markup:list) is det.
+%! circle_graph_web(+Graph:graph, -Markup:list) is det.
 
 circle_graph_web(Graph, html/wallace/[GraphElement | TableMarkup]):-
   export_graph(
@@ -59,11 +59,11 @@ circle_graph_web(Graph, html/wallace/[GraphElement | TableMarkup]):-
   ),
   table_graph_web(Graph, _DTD_Name/_StyleName/TableMarkup).
 
-%% graph_web(+Graph:graph, -Markup:list) is det.
+%! graph_web(+Graph:graph, -Markup:list) is det.
 % Writes the graph with the given name to a file in GraphViz DOT format.
 %
-% @param Graph
-% @param Markup
+% @arg Graph
+% @arg Markup
 
 graph_web(Graph, svg11/wallace/SVG):-
   graph_to_dom(
@@ -81,44 +81,44 @@ graph_web(Graph, svg11/wallace/SVG):-
     SVG
   ).
 
-%% harary_web(+K:integer, +N:integer, -Markup:list) is det.
+%! harary_web(+K:integer, +N:integer, -Markup:list) is det.
 % Returns markup represening the K-connected Harary graph with N vertices.
 
 harary_web(K, N, Markup):-
   harary(K, N, Harary),
   circle_graph_web(Harary, Markup).
 
-%% random_graph_web(+Graph:graph, -Markup:list) is det.
+%! random_graph_web(+Graph:graph, -Markup:list) is det.
 % Returns an Web representation of the RDF graph with the given title.
 % Graphs that are loaded via this front-end should be located in the user's
 % =data= subdirectory.
 %
-% @param Graph
-% @param Markup
+% @arg Graph
+% @arg Markup
 
 random_graph_web(Graph, [GraphElement, TableElement]):-
   random_vertice_coordinates([graph(Graph)], RandomVerticeCoordinates),
   vertice_coordinates_web(Graph, RandomVerticeCoordinates, GraphElement),
   vertice_coordinates_table(RandomVerticeCoordinates, TableElement).
 
-%% spring_embedding_web(+Graph:graph, -Markup:list) is det.
+%! spring_embedding_web(+Graph:graph, -Markup:list) is det.
 % @see spring_embedding_web/3
 
 spring_embedding_web(Graph, Markup):-
   spring_embedding_web(Graph, 50, Markup).
 
-%% spring_embedding_web(
-%%   +Graph:graph,
-%%   +Iterations:integer,
-%%   -Markup:list
-%% ) is det.
+%! spring_embedding_web(
+%!   +Graph:graph,
+%!   +Iterations:integer,
+%!   -Markup:list
+%! ) is det.
 % Returns the markup for the spring embedding of the given graph.
 %
-% @param Graph
-% @param Iterations An integer, representing the number of iterations
+% @arg Graph
+% @arg Iterations An integer, representing the number of iterations
 %        of spring embedding, i.e., the number of subsequent function
 %        applications.
-% @param Markup A list of markup elements.
+% @arg Markup A list of markup elements.
 
 spring_embedding_web(Graph, Iterations, Markup):-
   default_spring_embedding(
@@ -136,7 +136,7 @@ spring_embedding_web(Graph, Iterations, Markup):-
     Markup
   ).
 
-%% table_graph_web(+Graph:graph, -Markup:triple) is det.
+%! table_graph_web(+Graph:graph, -Markup:triple) is det.
 
 table_graph_web(Graph, html/wallace/[TableElement]):-
   export_graph(
@@ -151,12 +151,12 @@ table_graph_web(Graph, html/wallace/[TableElement]):-
     TableElement
   ).
 
-%% vertex_web(+Graph:atom, +Vertex:vertex, -Markup:dom) is det.
+%! vertex_web(+Graph:atom, +Vertex:vertex, -Markup:dom) is det.
 % Creates a DOM representation for the given vertex in the given graph.
 %
-% @param Graph The atomic name of an RDF graph.
-% @param Vertex
-% @param Markup
+% @arg Graph The atomic name of an RDF graph.
+% @arg Vertex
+% @arg Markup
 
 vertex_web(Graph, Vertex0, SVG):-
   term_to_atom(Vertex0, Vertice1),

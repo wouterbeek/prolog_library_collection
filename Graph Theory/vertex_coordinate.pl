@@ -33,15 +33,15 @@ positions in iterations of spring embedding.
 
 
 
-%% random_vertice_coordinates(
-%%   +Options:list(nvpair),
-%%   -VerticeCoordinates:list(vertex_coordinate)
-%% ) is det.
+%! random_vertice_coordinates(
+%!   +Options:list(nvpair),
+%!   -VerticeCoordinates:list(vertex_coordinate)
+%! ) is det.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        1. =graph(Graph:graph)=
 %        2. =surface(Size:size)=
-% @param VerticeCoordinates A list of vertex coordinates.
+% @arg VerticeCoordinates A list of vertex coordinates.
 
 random_vertice_coordinates(Options, RandomVerticeCoordinates):-
   graph_export:default_surface(DefaultSurface),
@@ -56,11 +56,11 @@ random_vertice_coordinates(Options, RandomVerticeCoordinates):-
     RandomVerticeCoordinates
   ).
 
-%% vertice_coordinates_to_size(
-%%   +Options:list(nvpair),
-%%   +VCs:list(vertex_coordinate),
-%%   -Size:size
-%% ) is det.
+%! vertice_coordinates_to_size(
+%!   +Options:list(nvpair),
+%!   +VCs:list(vertex_coordinate),
+%!   -Size:size
+%! ) is det.
 % Returns the size structure that is big enough to display the given vertex
 % coordinates. This means that the size has the following properties:
 %     1. Its dimension is the same as the dimension of each vertex coordinate
@@ -103,10 +103,10 @@ vertice_coordinates_to_size(Options, VCs, size(Dimension, Limits)):-
     Limits
   ).
 
-%% vertice_coordinates_table(
-%%   +VerticeCoordinates:list(vertex_coordinate),
-%%   -MarkupElement:element
-%% ) is det.
+%! vertice_coordinates_table(
+%!   +VerticeCoordinates:list(vertex_coordinate),
+%!   -MarkupElement:element
+%! ) is det.
 % Returns the markup for a table showing vertex coordinates.
 
 vertice_coordinates_table(VerticeCoordinates, MarkupElement):-
@@ -139,11 +139,11 @@ vertice_coordinates_table(VerticeCoordinates, MarkupElement):-
     MarkupElement
   ).
 
-%% vertice_coordinates_web(
-%%   +Graph:graph,
-%%   +VerticeCoordinates:list(vertex_coordinate),
-%%   -MarkupElement:element
-%% ) is det.
+%! vertice_coordinates_web(
+%!   +Graph:graph,
+%!   +VerticeCoordinates:list(vertex_coordinate),
+%!   -MarkupElement:element
+%! ) is det.
 % Returns the markup for the given graph and vertex coordinates.
 
 vertice_coordinates_web(Graph, VerticeCoordinates, MarkupElement):-

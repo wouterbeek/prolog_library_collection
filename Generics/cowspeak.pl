@@ -32,7 +32,7 @@ in combination with the open source speech synthesizer eSpeak.
 
 
 
-%% cowsay(+Text:oneof([atom,list(atom)])) is det.
+%! cowsay(+Text:oneof([atom,list(atom)])) is det.
 % Sends the given text in a cowified format to user output.
 
 cowsay(Text):-
@@ -40,7 +40,7 @@ cowsay(Text):-
   format(user_output, '~w', [Cow]),
   speech(Text).
 
-%% cowsay(+Text:oneof([atom,list(atom)]), -Cow:atom) is det.
+%! cowsay(+Text:oneof([atom,list(atom)]), -Cow:atom) is det.
 % Turns the given text into a cowified message, displaying the given
 % text in the cow's speech bubble.
 %
@@ -53,9 +53,9 @@ cowsay(Text):-
 %     ||       ||
 % ==
 %
-% @param Text Either an atomic text message or a list of atomic lines
+% @arg Text Either an atomic text message or a list of atomic lines
 %        constituting a message.
-% @param Cow An atomic representing of both the cow and the text message.
+% @arg Cow An atomic representing of both the cow and the text message.
 % @tbd Split lines by words (in whitespace). Add this to module ATOM_EXT.
 
 cowsay(Atom, Cow):-
@@ -113,7 +113,7 @@ cowsay(Atoms, Cow):-
     Cow
   ).
 
-%% cowsay_web(+Text:atom, -Markup:list) is det.
+%! cowsay_web(+Text:atom, -Markup:list) is det.
 
 cowsay_web(
   Text,
@@ -122,7 +122,7 @@ cowsay_web(
   speech(Text),
   cowsay(Text, CowText).
 
-%% cowspeak(+Text:oneof([atom,list(atom)])) is det.
+%! cowspeak(+Text:oneof([atom,list(atom)])) is det.
 % Combines cowsay/1 and speech/1.
 % Both predicates do their own list-to-atom or atom-to-list conversions.
 
@@ -132,10 +132,10 @@ cowspeak(Text):-
 
 max_line(76).
 
-%% speech(+Text:oneof([atom,list(atom)])) is det.
+%! speech(+Text:oneof([atom,list(atom)])) is det.
 % Turns the given text into speech and plays this speech shound.
 %
-% @param Text An atomic text message.
+% @arg Text An atomic text message.
 % @tbd Add speech for Windows, e.g. using Mary TTS.
 
 speech(Lines):-

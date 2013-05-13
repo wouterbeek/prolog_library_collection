@@ -25,7 +25,7 @@ Predicates for sending out HTTP requests.
 
 
 
-%% http_parameters_fail(Request, Parameters) is semidet.
+%! http_parameters_fail(Request, Parameters) is semidet.
 % Like http_parameters/2, but fails when a given parameter is not found
 % in the request.
 %

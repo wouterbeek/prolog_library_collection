@@ -54,22 +54,22 @@ This module uses the =|img|= search file name for finding images.
 
 
 
-%% rdf_convert_datatype(
-%%   ?FromDatatype:oneof([atom,uri]),
-%%   ?FromValue,
-%%   ?ToDatatype:oneof([atom,uri]),
-%%   ?ToValue
-%% ) is nondet.
+%! rdf_convert_datatype(
+%!   ?FromDatatype:oneof([atom,uri]),
+%!   ?FromValue,
+%!   ?ToDatatype:oneof([atom,uri]),
+%!   ?ToValue
+%! ) is nondet.
 
 rdf_convert_datatype(FromDatatype, FromValue, ToDatatype, ToValue):-
   rdf_datatype(FromDatatype, FromValue, Canonical),
   rdf_datatype(ToDatatype, ToValue, Canonical).
 
-%% rdf_datatype(?DatatypeName:atom, ?Datatype:uri) is nondet.
+%! rdf_datatype(?DatatypeName:atom, ?Datatype:uri) is nondet.
 % Translations between datatype names and datatype URIs.
 %
-% @param DatatypeName The atomic name of an XML Schema datatype.
-% @param Datatype The URI of an XML Schema datatype.
+% @arg DatatypeName The atomic name of an XML Schema datatype.
+% @arg Datatype The URI of an XML Schema datatype.
 
 rdf_datatype(DatatypeName, Datatype):-
   var(DatatypeName),
@@ -83,17 +83,17 @@ rdf_datatype0(image, prasem:image).
 rdf_datatype0(DatatypeName, Datatype):-
   xmls_datatype(DatatypeName, Datatype).
 
-%% rdf_datatype(
-%%   ?Datatype:oneof([atom,uri]),
-%%   ?LexicalValue,
-%%   ?CanonicalValue
-%% ) is nondet.
+%! rdf_datatype(
+%!   ?Datatype:oneof([atom,uri]),
+%!   ?LexicalValue,
+%!   ?CanonicalValue
+%! ) is nondet.
 % Warapper for rdf_datatype/4 allowing both datatype names and datatype URIs.
 %
-% @param Datatype Either the atomic name of a datatype or a URI
+% @arg Datatype Either the atomic name of a datatype or a URI
 %        representing a datatype.
-% @param LexicalValue
-% @param CanonicalValue
+% @arg LexicalValue
+% @arg CanonicalValue
 
 rdf_datatype(Datatype, LexicalValue, CanonicalValue):-
   is_uri(Datatype),
@@ -102,18 +102,18 @@ rdf_datatype(Datatype, LexicalValue, CanonicalValue):-
 rdf_datatype(DatatypeName, LexicalValue, CanonicalValue):-
   rdf_datatype(DatatypeName, LexicalValue, _Datatype, CanonicalValue).
 
-%% rdf_datatype(
-%%   ?DatatypeName:atom,
-%%   ?LexicalValue,
-%%   ?Datatype:uri,
-%%   ?CanonicalValue
-%% ) is nondet.
+%! rdf_datatype(
+%!   ?DatatypeName:atom,
+%!   ?LexicalValue,
+%!   ?Datatype:uri,
+%!   ?CanonicalValue
+%! ) is nondet.
 % Warapper for rdf_datatype/4 allowing both datatype names and datatype URIs.
 %
-% @param DatatypeName The atomic name of a datatype.
-% @param LexicalValue
-% @param Datatype The URI of a datatype.
-% @param CanonicalValue
+% @arg DatatypeName The atomic name of a datatype.
+% @arg LexicalValue
+% @arg Datatype The URI of a datatype.
+% @arg CanonicalValue
 
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(CanonicalValue),

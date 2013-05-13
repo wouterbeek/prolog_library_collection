@@ -114,13 +114,13 @@ literals.
 
 % LISTS %
 
-%% rdf_list(+O:list(nvpair), +RDFList:uri, -List:list) is det
+%! rdf_list(+O:list(nvpair), +RDFList:uri, -List:list) is det
 % Returns the list that starts at the given node.
 %
-% @param Options Thw following options are supported:
+% @arg Options Thw following options are supported:
 %        1. =|recursive(boolean)|=
-% @param StartNode The URI of a node that starts the RDF list.
-% @param List A prolog list.
+% @arg StartNode The URI of a node that starts the RDF list.
+% @arg List A prolog list.
 %
 % @author Wouter Beek
 % @author Sander Latour
@@ -142,20 +142,20 @@ rdf_list(O, RDFList, [H1 | T]):-
   !,
   rdf_list(O, RDFTail, T).
 
-%% rdf_list_first(?List:uri, ?First:uri) is nondet.
+%! rdf_list_first(?List:uri, ?First:uri) is nondet.
 % Pairs of lists and their first element.
 %
-% @param List an RDF list.
-% @param First The first element of an RDF list.
+% @arg List an RDF list.
+% @arg First The first element of an RDF list.
 
 rdf_list_first(List, First):-
   rdf(List, rdf:first, First).
 
-%% rdf_list_first(?List:uri, ?Last:uri) is nondet.
+%! rdf_list_first(?List:uri, ?Last:uri) is nondet.
 % Pairs of lists and their last element.
 %
-% @param List an RDF list.
-% @param Last The last element of an RDF list.
+% @arg List an RDF list.
+% @arg Last The last element of an RDF list.
 
 rdf_list_last(List, Last):-
   rdf(List, rdf:rest, rdf:nil),
@@ -165,11 +165,11 @@ rdf_list_last(List, Last):-
   rdf(List, rdf:rest, NextList),
   rdf_list_last(NextList, Last).
 
-%% rdf_list_length(+List:uri, -Length:integer) is det.
+%! rdf_list_length(+List:uri, -Length:integer) is det.
 % Returns the number of elements in the given list.
 %
-% @param List An RDF list.
-% @param Length An integer.
+% @arg List An RDF list.
+% @arg Length An integer.
 
 rdf_list_length(List, Length):-
   rdf_list_length(List, 0, Length).
@@ -182,11 +182,11 @@ rdf_list_length(List, Length, Length):-
   rdf_list_length(PartialList, PartialLength, Length),
   succ(PartialLength, Length).
 
-%% rdf_list_next(Element, NextElement) is nondet.
+%! rdf_list_next(Element, NextElement) is nondet.
 % Returns pairs of consecutive elements in a list.
 %
-% @param Element A resource that is an element in an RDF list.
-% @param NextElement A resource that is an element in an RDF list.
+% @arg Element A resource that is an element in an RDF list.
+% @arg NextElement A resource that is an element in an RDF list.
 
 rdf_list_next(Element, NextElement):-
   rdf(List, rdf:first, Element),
@@ -210,11 +210,11 @@ rdf_list_occurs_before0(Before1, After):-
   rdf_list_next(Before1, Before2),
   rdf_list_occurs_before0(Before2, After).
 
-%% rdf_list_previous(Element, PreviousElement) is nondet.
+%! rdf_list_previous(Element, PreviousElement) is nondet.
 % Returns pairs of inverted consecutive elements in a list.
 %
-% @param Element A resource that is an element in an RDF list.
-% @param PreviousElement A resource that is an element in an RDF list.
+% @arg Element A resource that is an element in an RDF list.
+% @arg PreviousElement A resource that is an element in an RDF list.
 
 rdf_list_previous(Element, PreviousElement):-
   rdf_list_next(PreviousElement, Element).
@@ -223,13 +223,13 @@ rdf_list_previous(Element, PreviousElement):-
 
 % LITERALS %
 
-%% rdf_datatype(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer]),
-%%   ?LexicalValue,
-%%   ?Graph:atom
-%% ) is nondet.
+%! rdf_datatype(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?DatatypeName:oneof([boolean,dateTime,double,float,gDay,gMonth,gYear,image,integer]),
+%!   ?LexicalValue,
+%!   ?Graph:atom
+%! ) is nondet.
 
 rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   nonvar(LexicalValue),
@@ -241,12 +241,12 @@ rdf_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
   rdf(Subject, Predicate, literal(type(Datatype, CanonicalValue)), Graph),
   rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue).
 
-%% rdf_literal(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Literal:atom,
-%%   ?Graph:graph
-%% ) is nondet.
+%! rdf_literal(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Literal:atom,
+%!   ?Graph:graph
+%! ) is nondet.
 % The RDF triple for a literal valued property.
 %
 % @see rdf_literal/5.
@@ -256,20 +256,20 @@ rdf_literal(Subject, Predicate, Literal, Graph):-
 rdf_literal(Subject, Predicate, Literal, Graph):-
   rdf_literal(Subject, Predicate, en, Literal, Graph).
 
-%% rdf_literal(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Language:atom,
-%%   ?Literal:atom,
-%%   ?Graph:graph
-%% ) is nondet.
+%! rdf_literal(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Language:atom,
+%!   ?Literal:atom,
+%!   ?Graph:graph
+%! ) is nondet.
 % The RDF triple for a literal valued property, encoded in a certain language.
 %
-% @param Subject A resource.
-% @param Predicate A resource.
-% @param Language The atomic name of a language.
-% @param Literal An atom.
-% @param Graph The atomic name of an RDF graph.
+% @arg Subject A resource.
+% @arg Predicate A resource.
+% @arg Language The atomic name of a language.
+% @arg Literal An atom.
+% @arg Graph The atomic name of an RDF graph.
 
 rdf_literal(Subject, Predicate, Language, Literal, Graph):-
   rdf(Subject, Predicate, literal(lang(Language, Literal)), Graph).
@@ -302,20 +302,20 @@ rdf_has_datatype(Subject, Predicate, DatatypeName, LexicalValue):-
 
 % STRUCTURE-BASED READS %
 
-%% rdf_index(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:uri,
-%%   ?Graph:graph,
-%%   ?Index:integer
-%% ) is nondet.
+%! rdf_index(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:uri,
+%!   ?Graph:graph,
+%!   ?Index:integer
+%! ) is nondet.
 % Returns the rdf triple that has the given index in the arbitrary sequence
 % in which SWI-Prolog returns its triples.
 %
-% @param Subject A resource.
-% @param Predicate A resource.
-% @param Object A resource.
-% @param Index A compound term of the form =Graph:Line= with =Graph= the
+% @arg Subject A resource.
+% @arg Predicate A resource.
+% @arg Object A resource.
+% @arg Index A compound term of the form =Graph:Line= with =Graph= the
 %        atomic name of an RDF graph and =Line= an integer.
 
 rdf_index(Subject, Predicate, Object, Graph, Index):-
@@ -329,20 +329,20 @@ rdf_node0(Graph, Node):-
 rdf_node0(Graph, Node):-
   rdf_object(Graph, Node).
 
-%% rdf_random(
-%%   -Subject:oneof([bnode,uri]),
-%%   -Predicate:uri,
-%%   -Object:uri,
-%%   ?Graph:graph,
-%%   -Index:integer
-%% ) is det.
+%! rdf_random(
+%!   -Subject:oneof([bnode,uri]),
+%!   -Predicate:uri,
+%!   -Object:uri,
+%!   ?Graph:graph,
+%!   -Index:integer
+%! ) is det.
 % Returns a random triple from the given graph.
 %
-% @param Subject A resource.
-% @param Predicate A resource.
-% @param Object A resource.
-% @param Graph The atomic name of a graph.
-% @param Index An integer representating the index of the randomly selected
+% @arg Subject A resource.
+% @arg Predicate A resource.
+% @arg Object A resource.
+% @arg Graph The atomic name of a graph.
+% @arg Index An integer representating the index of the randomly selected
 %        triple.
 
 rdf_random(Subject, Predicate, Object, Graph, RandomIndex):-
@@ -351,13 +351,13 @@ rdf_random(Subject, Predicate, Object, Graph, RandomIndex):-
   random_betwixt(UpperIndex, RandomIndex),
   rdf_index(Subject, Predicate, Object, Graph, RandomIndex).
 
-%% rdf_term(?Graph:graph, ?Term:uri) is nondet.
+%! rdf_term(?Graph:graph, ?Term:uri) is nondet.
 % Pairs of graphs and terms that occur in that graph.
 % A term is either a subject, predicate or object term
 % in an RDF triple.
 %
-% @param Graph The atomic name of a graph.
-% @param Term A resource.
+% @arg Graph The atomic name of a graph.
+% @arg Term A resource.
 
 rdf_term(Graph, Term):-
   rdf_node(Graph, Term).

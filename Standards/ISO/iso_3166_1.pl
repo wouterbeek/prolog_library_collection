@@ -16,7 +16,7 @@ Suopport for the ISO 3166-1 country code standard.
 
 
 
-%% iso_3166_1_country(?Code:atom, ?Country:atom) is nondet.
+%! iso_3166_1_country(?Code:atom, ?Country:atom) is nondet.
 
 iso_3166_1_country(Code, Country):-
   maplist(var, [Code, Country]),

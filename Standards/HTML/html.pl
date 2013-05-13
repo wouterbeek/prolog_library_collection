@@ -33,11 +33,11 @@
 
 Support for HTML.
 
----+ Generation
+# Generation
 
 From Prolog list to HTML table.
 
----+ Parsing
+# Parsing
 
 HTML characters, escaping the '<' and '>' characters.
 
@@ -76,13 +76,13 @@ HTML attribute parsing, used in HTML table generation.
 
 
 
-%% reply_html_file(+Style:atom, +File:atom) is det.
+%! reply_html_file(+Style:atom, +File:atom) is det.
 % Serve the given HTML file using the given styling.
 %
-% @param Style The atomic name of the HTML style of the page served.
+% @arg Style The atomic name of the HTML style of the page served.
 %        This style has to be defined using the multifile
 %        preficates user:body//2 and user:head//2.
-% @param File The atomic base name of the HTML file that is served.
+% @arg File The atomic base name of the HTML file that is served.
 
 reply_html_file(Style, File):-
   absolute_file_name(html(File), HTML, [access(read), file_type(html)]),
@@ -94,7 +94,7 @@ reply_html_file(Style, File):-
 
 % FETCHING %
 
-%% file_to_html(+File:atom, -HTML:dom) is det.
+%! file_to_html(+File:atom, -HTML:dom) is det.
 % Retrieves the HTML DOM from the file described with the given
 % absolute file name.
 
@@ -124,12 +124,12 @@ stream_to_html(Stream, DOM):-
     debug(picarta, 'HTML could not be loaded due to ~w max errors.\n', [Max])
   ).
 
-%% uri_to_html(+URI:resource, -HTML:list) is det.
+%! uri_to_html(+URI:resource, -HTML:list) is det.
 % Returns the HTML Document Object Model (DOM) for the website with the given
 % URI.
 %
-% @param URI
-% @param HTML
+% @arg URI
+% @arg HTML
 % @throws existence_error(url, Id)
 
 uri_to_html(URI, DOM):-
@@ -146,12 +146,12 @@ uri_to_html(URI, DOM):-
 
 % GENERATING %
 
-%% html_image(+Description:atom, +Base:atom, -DIV:element) is det.
+%! html_image(+Description:atom, +Base:atom, -DIV:element) is det.
 % Constructs an IMG element.
 %
-% @param Description An atomic description of the image.
-% @param Base The atomic base name of the image file.
-% @param DIV The HTML image element.
+% @arg Description An atomic description of the image.
+% @arg Base The atomic base name of the image file.
+% @arg DIV The HTML image element.
 
 html_image(Description, File, DIV):-
   % Make sure the file has a supported image file type.
@@ -173,19 +173,19 @@ html_image(Description, File, DIV):-
   % Construe the DIV containing the image, the link, and the description.
   DIV = element(div, [class=image], [LinkElement, Description_DIV]).
 
-%% list_to_table(
-%%   +Options:list(nvpair),
-%%   +Rows:list(list(term)),
-%%   -Markup
-%% ) is det.
+%! list_to_table(
+%!   +Options:list(nvpair),
+%!   +Rows:list(list(term)),
+%!   -Markup
+%! ) is det.
 % Returns the HTML markup for a table.
 %
 % @apram Options A list of name-value pairs. The following options are
 %        supported:
 %        1. =|header(boolean)|= Whether or not the first sublist should be
 %           displayed as the table header row.
-% @param Rows A 2D table of terms.
-% @param Markup An HTML table element.
+% @arg Rows A 2D table of terms.
+% @arg Markup An HTML table element.
 
 list_to_table(
   Options,
@@ -199,20 +199,20 @@ list_to_table(
 list_to_table(_Options, Rows, element(table, [border=1], MarkupRows)):-
   maplist(table_row, Rows, MarkupRows).
 
-%% table_header(+Elements:list(term), -Markup) is det.
+%! table_header(+Elements:list(term), -Markup) is det.
 % Returns the header row of an HTML table containing the given elements.
 %
-% @param Elements A list of terms.
-% @param Markup An HTML entity.
+% @arg Elements A list of terms.
+% @arg Markup An HTML entity.
 
 table_header(Elements, element(tr, [], MarkupCells)):-
   table_row0(Elements, th, MarkupCells).
 
-%% table_row(+Elements:list(term), -Markup) is det.
+%! table_row(+Elements:list(term), -Markup) is det.
 % Returns the row of an HTML table containing the given elements.
 %
-% @param Elements A list of terms.
-% @param Markup An HTML entity.
+% @arg Elements A list of terms.
+% @arg Markup An HTML entity.
 
 table_row(Elements, element(tr, [], MarkupCells)):-
   table_row0(Elements, td, MarkupCells).
@@ -244,7 +244,7 @@ table_row0(
 % @tbd Deprecated, use CSS2 instead.
 attribute(border, pixels, [table]).
 
-%% html_char(+Options:list(nvpair), ?Results)//
+%! html_char(+Options:list(nvpair), ?Results)//
 % Returns the HTML atom representing the character given.
 
 html_char(_Options, ['>' | Rest]-Rest) --> "&#62;".

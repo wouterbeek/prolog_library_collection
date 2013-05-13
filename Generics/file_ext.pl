@@ -50,7 +50,7 @@
 
 Extra methods for creating, opening, removing, and searching files.
 
----+ Abbreviations
+# Abbreviations
 
 We use the following abbreviations in this module:
   * Dir
@@ -74,11 +74,11 @@ We use the following abbreviations in this module:
 
 
 
-%% atom_to_file(+Atom:atom, -File:atom) is det.
+%! atom_to_file(+Atom:atom, -File:atom) is det.
 % Stores the given atom in the given file.
 %
-% @param Atom An atom.
-% @param File An atomic file name.
+% @arg Atom An atom.
+% @arg File An atomic file name.
 
 atom_to_file(Atom, File):-
   access_file(File, write),
@@ -86,11 +86,11 @@ atom_to_file(Atom, File):-
   format(Stream, '~w', [Atom]),
   close(Stream).
 
-%% base_or_file_to_file(
-%%   +BaseOrFile:atom,
-%%   +FileType:atom,
-%%   -File:atom
-%% ) is semidet.
+%! base_or_file_to_file(
+%!   +BaseOrFile:atom,
+%!   +FileType:atom,
+%!   -File:atom
+%! ) is semidet.
 % Predicates that take file arguments can use this to allow either
 % absolute file names or file base names to be accepted.
 %
@@ -98,11 +98,11 @@ atom_to_file(Atom, File):-
 % the same file type and the calling predicate only looks at the file type
 % level.
 %
-% @param BaseOrFile Either a full file name or the base name of a file.
+% @arg BaseOrFile Either a full file name or the base name of a file.
 %        In the former case we check for a supported file extension.
 %        In the latter case we add a supported file extension.
-% @param FileType The atomic name of a registered file type.
-% @param File An absolute file name.
+% @arg FileType The atomic name of a registered file type.
+% @arg File An absolute file name.
 
 base_or_file_to_file(BaseOrFile, FileType, File):-
   (
@@ -118,7 +118,7 @@ base_or_file_to_file(BaseOrFile, FileType, File):-
   % I.e., we only use the first file we find.
   !.
 
-%% compiled_file(PL_File, QLF_File) is det.
+%! compiled_file(PL_File, QLF_File) is det.
 % Returns the compiled version of the given Prolog file.
 %
 % Compiled files are called Quick Load Files (QLF).
@@ -126,8 +126,8 @@ base_or_file_to_file(BaseOrFile, FileType, File):-
 % This method checks whether the Prolog file needs to be recompiled,
 % or whether a previously compiled QLF file can be used instead.
 %
-% @param PL_File The atomic name of a Prolog file.
-% @param QLF_File The atomic name of a QLF file.
+% @arg PL_File The atomic name of a Prolog file.
+% @arg QLF_File The atomic name of a QLF file.
 
 compiled_file(PL_File, QLF_File):-
   file_name_type(Base, prolog,          PL_File),
@@ -147,10 +147,10 @@ compiled_file(PL_File, QLF_File):-
     debug(file_ext, 'Cannot write to QLF, loading from ~w.', [PL_File])
   ).
 
-%% create_directory(+Dir:atom) is det.
+%! create_directory(+Dir:atom) is det.
 % Creates a directory with the given name.
 %
-% @param Dir The atomic name of a directory.
+% @arg Dir The atomic name of a directory.
 
 % The directory already exists, so do nothing.
 create_directory(Dir):-
@@ -160,19 +160,19 @@ create_directory(Dir):-
 create_directory(Dir):-
   make_directory(Dir).
 
-%% create_file(+NestedDir:term, +Name:atom, +Type:atom, -File:atom) is det.
+%! create_file(+NestedDir:term, +Name:atom, +Type:atom, -File:atom) is det.
 % Creates a file with the given name, inside the given directory, and that
 % is of the given file type.
 %
 % File types are resolved using prolog_file_type/2.
 %
-% @param NestedDir The atomic name of a directory or a compound term that
+% @arg NestedDir The atomic name of a directory or a compound term that
 %        can be resolved by subsequent applications of absolute_file_name/[2,3],
 %        e.g. =|aaa(bbb(ccc))|=.
-% @param Base The atomic base name of a file.
-% @param Type The atomic name of a file type, as registered with
+% @arg Base The atomic base name of a file.
+% @arg Type The atomic name of a file type, as registered with
 %        prolog_file_type/2, e.g. =|mp3|=.
-% @param File The atomic absolute name of a file.
+% @arg File The atomic absolute name of a file.
 
 create_file(NestedDir, Base, Type, File):-
   % Resolve the directory in case the compound term notation employed
@@ -195,8 +195,8 @@ create_file(NestedDir, Base, Type, File):-
   % Append directory and file name.
   format(atom(File), '~w/~w', [Dir, Local]).
 
-%% file_name(+File:atom, ?Dir:atom, ?Base:atom, ?Ext:atom) is semidet.
-%% file_name(-File:atom, +Dir:atom, +Base:atom, +Ext:atom) is semidet.
+%! file_name(+File:atom, ?Dir:atom, ?Base:atom, ?Ext:atom) is semidet.
+%! file_name(-File:atom, +Dir:atom, +Base:atom, +Ext:atom) is semidet.
 % The splitting of a file into its directory, local name and type parts.
 
 file_name(File, Dir, Base, Ext):-
@@ -212,15 +212,15 @@ file_name(File, Dir, Base, Ext):-
   file_name_extension(Base, Ext, Local),
   absolute_file_name(Local, File, [relative_to(Dir)]).
 
-%% file_name_type(?Name:atom, ?Type:atom, +File:atom) is semidet.
-%% file_name_type(+Name:atom, +Type:atom, ?File:atom) is semidet.
+%! file_name_type(?Name:atom, ?Type:atom, +File:atom) is semidet.
+%! file_name_type(+Name:atom, +Type:atom, ?File:atom) is semidet.
 % Decomposes a file name into its base name and its file type.
 %
-% @param Name The atomic name of a file, without a directory and without
+% @arg Name The atomic name of a file, without a directory and without
 %        an extension.
-% @param Type An atomic file type. These are registered with
+% @arg Type An atomic file type. These are registered with
 %        prolog_file_type/2.
-% @param File The full name of a file.
+% @arg File The full name of a file.
 
 file_name_type(Name, Type, File):-
   nonvar(Name),
@@ -234,11 +234,11 @@ file_name_type(Name, Type, File):-
   file_name_extension(Name, Ext, File),
   user:prolog_file_type(Ext, Type).
 
-%% file_to_atom(+File:file, -Atom:atom) is det.
+%! file_to_atom(+File:file, -Atom:atom) is det.
 % Turns the given file's contents into a string.
 %
-% @param File The file whose contents are put in a string.
-% @param Atom The atom containing the contents of the given file.
+% @arg File The file whose contents are put in a string.
+% @arg Atom The atom containing the contents of the given file.
 
 file_to_atom(File, Atom):-
   % Open the file for reading, creating a stream along the way.
@@ -246,28 +246,28 @@ file_to_atom(File, Atom):-
   stream_to_atom(Stream, Atom),
   close(Stream).
 
-%% file_type_alternative(
-%%   +FromFile:atom,
-%%   +ToFileType:atom,
-%%   -ToFile:atom
-%% ) is det.
+%! file_type_alternative(
+%!   +FromFile:atom,
+%!   +ToFileType:atom,
+%!   -ToFile:atom
+%! ) is det.
 % Returns an alternative of the given file with the given file type.
 %
-% @param FromFile The atomic name of a file.
-% @param ToFileType The atomic name of a file type.
-% @param ToFile The atomic name of a file.
+% @arg FromFile The atomic name of a file.
+% @arg ToFileType The atomic name of a file type.
+% @arg ToFile The atomic name of a file.
 
 file_type_alternative(FromFile, ToFileType, ToFile):-
   file_name_type(Base, _FromFileType, FromFile),
   file_name_type(Base, ToFileType, ToFile).
 
-%% nested_dir_name(+NestedDir:compound, -Dir:atom) is det.
+%! nested_dir_name(+NestedDir:compound, -Dir:atom) is det.
 % Returns a nested file path.
 %
-% @param NestedDir A compound term of linearly nested atoms
+% @arg NestedDir A compound term of linearly nested atoms
 %        representing the subsequent subdirectories. The final atom
 %        is the name of the file.
-% @param Dir The absolute path of the nested directory specification.
+% @arg Dir The absolute path of the nested directory specification.
 
 nested_dir_name(NestedDir, Dir):-
   atomic(NestedDir),
@@ -282,7 +282,7 @@ nested_dir_name(NestedDir, Dir):-
   % Then we add the inner directories recursively.
   nested_dir_name(InnerNestedDir, OuterDirAtom, Dir).
 
-%% nested_dir_name(+NestedDir:term, +OldDir:atom, -NewDir:atom) is det.
+%! nested_dir_name(+NestedDir:term, +OldDir:atom, -NewDir:atom) is det.
 % Adds the nested directories term to the given atomic directory,
 % returning another atomic directory.
 
@@ -297,17 +297,17 @@ nested_dir_name(NestedDir, OldDir, NewDir):-
   create_directory(TempDir),
   nested_dir_name(InnerNestedDir, TempDir, NewDir).
 
-%% path_walk_forest(
-%%   +Dirs:list(atom),
-%%   +RE:atom,
-%%   -AbsoluteFileNames:list(atom)
-%% ) is det.
+%! path_walk_forest(
+%!   +Dirs:list(atom),
+%!   +RE:atom,
+%!   -AbsoluteFileNames:list(atom)
+%! ) is det.
 % Returns the absolute paths of all files that are in the given directories.
 % Search recurses through subdirectories.
 %
-% @param Dirs A list of directory names.
-% @param RE A regular expression filter on file search.
-% @param AbsoluteFileNames A list of absolute file names.
+% @arg Dirs A list of directory names.
+% @arg RE A regular expression filter on file search.
+% @arg AbsoluteFileNames A list of absolute file names.
 
 path_walk_forest([], _RE, []).
 path_walk_forest([Dir | Dirs], RE, AbsoluteFileNames):-
@@ -315,13 +315,13 @@ path_walk_forest([Dir | Dirs], RE, AbsoluteFileNames):-
   path_walk_forest(Dirs, RE, AbsoluteFileNames2),
   append(AbsoluteFileNames1, AbsoluteFileNames2, AbsoluteFileNames).
 
-%% path_walk_tree(+MainDir:atom, +RE:atom, -Paths:list(atom)) is det.
+%! path_walk_tree(+MainDir:atom, +RE:atom, -Paths:list(atom)) is det.
 % Returns the file paths in the given directory answering the given regular
 % expression. The directories are searched recursively.
 %
-% @param MainDir A directory path.
-% @param RE A regular expression filter. Example: =|'.*.pl$'|=
-% @param Paths A list of absolute file paths.
+% @arg MainDir A directory path.
+% @arg RE A regular expression filter. Example: =|'.*.pl$'|=
+% @arg Paths A list of absolute file paths.
 
 path_walk_tree(MainDir, RE, AbsoluteFileNames1):-
   % Find all relative file names.
@@ -366,12 +366,12 @@ path_walk_tree(MainDir, RE, AbsoluteFileNames1):-
   % Combine the results.
   append(AbsoluteFileNames, RecursiveAbsoluteFileNames, AbsoluteFileNames1).
 
-%% read_terms(+Stream:stream, -Terms:list(term), +Options:list(atom)) is det.
+%! read_terms(+Stream:stream, -Terms:list(term), +Options:list(atom)) is det.
 % Returns the terms as they occur on the given stream.
 %
-% @param Stream
-% @param Terms
-% @param Options
+% @arg Stream
+% @arg Terms
+% @arg Options
 
 read_terms(Stream, Terms, Options):-
   read_term(Stream, Term, Options),
@@ -382,7 +382,7 @@ read_terms0(_Stream, end_of_file, [], _Options):-
 read_terms0(Stream, Term, [Term | Terms], Options):-
   read_terms(Stream, Terms, Options).
 
-%% stream_to_atom(+Stream:stream, -Content:atom) is det.
+%! stream_to_atom(+Stream:stream, -Content:atom) is det.
 % Stores the contents of an atom stream to an atom.
 
 stream_to_atom(Stream, Atom):-
@@ -391,7 +391,7 @@ stream_to_atom(Stream, Atom):-
   % An atom is enough like a string to be used in string concatenation etc.
   atom_codes(Atom, Codes).
 
-%% stream_to_file(+Stream:stream, +File:atom) is det.
+%! stream_to_file(+Stream:stream, +File:atom) is det.
 % Stores an atomic stream to the given file.
 
 stream_to_file(Stream, File):-

@@ -31,7 +31,7 @@
 
 /** <module> Graph export
 
----+ Everybody has their reasons
+# Everybody has their reasons
 
 PraSem currently contains the following methods for graph visualization:
     * RDF2DOT in module =rdf_dot= using modules =graphviz=, =rdf_export=,
@@ -46,7 +46,7 @@ Unifying these methods would be good for the following reasons:
       formats. E.g., RDF2DOT colors the nodes based on namespace, but RDF2SVG
       does not have this feature.
 
----+ So lets do it!
+# So lets do it!
 
 We currently have two input formats: =RDF= and =UGRAPH=,
 anticipating additional formats in the future.
@@ -56,7 +56,7 @@ anticipating additional formats in the future.
 
 We have to come up with a black box in between the input and output layers.
 
----++ Input requirements for the black box
+## Input requirements for the black box
 
 From the input formats we require the following things:
     1. The list of vertices.
@@ -103,10 +103,10 @@ default_vertice_radius(0.1).
 
 % BASIC PROCEDURES: CREATE (INPUT -> GRAPH) & WRITE (GRAPH -> OUTPUT) %
 
-%% export_graph(+Options:list(nvpair), +Graph, -Export) is det.
+%! export_graph(+Options:list(nvpair), +Graph, -Export) is det.
 % Creates a graph in the format specified using the =output_format= option.
 %
-% @param Options A list of name-value pairs.
+% @arg Options A list of name-value pairs.
 %        The following options are supported:
 %        1. =|colorscheme(oneof([none,svg,x11]))|= The colorscheme for the
 %           colors assigned to vertices and edges.
@@ -142,8 +142,8 @@ default_vertice_radius(0.1).
 %           The algorithm used for determining the vertex coordinates.
 %           Default: =none=.
 %           Supported for: SVG.
-% @param Graph
-% @param Export
+% @arg Graph
+% @arg Export
 
 export_graph(Options0, Graph, GraphElement):-
   % Set graph name and input format.
@@ -234,14 +234,14 @@ export_triples0(Options, GraphElement):-
     GraphElement
   ).
 
-%% export_vertex(
-%%   +Options:list(nvpair),
-%%   +Vertex:vertex,
-%%   -GraphElement:element
-%% ) is det.
+%! export_vertex(
+%!   +Options:list(nvpair),
+%!   +Vertex:vertex,
+%!   -GraphElement:element
+%! ) is det.
 % Exports the given vertex to the interchangeable graph element format.
 %
-% @param Options A list name-value pairs. See export_graph/3 for the list of
+% @arg Options A list name-value pairs. See export_graph/3 for the list of
 %        options. In addition, the following options are defined:
 
 export_vertex(O1, Vertex, GraphElement):-
@@ -277,19 +277,19 @@ graph_element_to_dom(Options, GraphElement, SVG):-
   delete_file(FromFile).
   %free_memory_file(Handle).
 
-%% graph_to_dom(
-%%   +Options:list(nvpair),
-%%   +Graph:atom,
-%%   -DOM:list
-%% ) is det.
+%! graph_to_dom(
+%!   +Options:list(nvpair),
+%!   +Graph:atom,
+%!   -DOM:list
+%! ) is det.
 % Writes the graph with the given name to the given file name.
 % The files are located in =debug(rdf_graph)=. Since this method is
 % only used for debugging purposes, this will suffice for the moment.
 %
-% @param Options A list of name-value pairs. See export_graph/3 for the list
+% @arg Options A list of name-value pairs. See export_graph/3 for the list
 %        of options.
-% @param Graph The atomic name of a graph.
-% @param DOM
+% @arg Graph The atomic name of a graph.
+% @arg DOM
 
 graph_to_dom(Options, Graph, DOM):-
   export_graph(Options, Graph, GraphElement),
@@ -316,17 +316,17 @@ triples_to_vertices(Triples, Vertices):-
     Vertices
   ).
 
-%% vertex_to_dom(
-%%   +Options:list(nvpair),
-%%   +Vertex:vertex,
-%%   -DOM:list
-%% ) is det.
+%! vertex_to_dom(
+%!   +Options:list(nvpair),
+%!   +Vertex:vertex,
+%!   -DOM:list
+%! ) is det.
 % Exports the given vertex to the interchangeable graph element format.
 %
-% @param Options A list of name-value pairs. See export_vertex/3 for the list
+% @arg Options A list of name-value pairs. See export_vertex/3 for the list
 %        of options.
-% @param Vertex
-% @param DOM
+% @arg Vertex
+% @arg DOM
 
 vertex_to_dom(Options, Vertex, DOM):-
   export_vertex(Options, Vertex, GraphElement),
@@ -379,13 +379,13 @@ lookup_vertice_coordinates(Options, Vertex, Coordinate):-
 
 % OUTPUT FORMAT LAYER %
 
-%% create_edge(
-%%   +OutputFormat:oneof([graphviz,svg]),
-%%   +Options:list(nvpair),
-%%   +FromVertexPair:pair(vertex,integer)
-%%   +ToVertexPair:pair(vertex,integer)
-%%   -EdgeElement:element
-%% ) is det.
+%! create_edge(
+%!   +OutputFormat:oneof([graphviz,svg]),
+%!   +Options:list(nvpair),
+%!   +FromVertexPair:pair(vertex,integer)
+%!   +ToVertexPair:pair(vertex,integer)
+%!   -EdgeElement:element
+%! ) is det.
 
 create_edge(
   graphviz,
@@ -483,13 +483,13 @@ create_edge(
     [x1(X1_cm), y1(Y1_cm), x2(X2_cm), y2(Y2_cm), stroke(black)],
   parse_attributes_svg(line, EdgeAttributes, ParsedEdgeAttributes).
 
-%% create_graph(
-%%   +OutputFormat:oneof([graphviz,svg]),
-%%   +Options:list(nvpair),
-%%   +VertexElements:list(element),
-%%   +EdgeElements:list(element),
-%%   -GraphElement:element
-%% ) is det.
+%! create_graph(
+%!   +OutputFormat:oneof([graphviz,svg]),
+%!   +Options:list(nvpair),
+%!   +VertexElements:list(element),
+%!   +EdgeElements:list(element),
+%!   -GraphElement:element
+%! ) is det.
 
 create_graph(
   graphviz,
@@ -590,12 +590,12 @@ create_graph(
   append(VertexElements, EdgeElements, Elements),
   root_element(svg, SVG_Head, Elements, SVG_Root).
 
-%% create_vertex(
-%%   +OutputFormat:setof([graphviz,svg]),
-%%   +Options:list(nvpair),
-%%   +VerticePair:pair(vertex,integer),
-%%   -VertexElement:element
-%% ) is det.
+%! create_vertex(
+%!   +OutputFormat:setof([graphviz,svg]),
+%!   +Options:list(nvpair),
+%!   +VerticePair:pair(vertex,integer),
+%!   -VertexElement:element
+%! ) is det.
 
 create_vertex(graphviz, Options, Vertex/ID, node(ID, Attributes)):-
   % Label

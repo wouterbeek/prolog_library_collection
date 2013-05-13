@@ -17,7 +17,7 @@
 
 /** <module> MODEL THEORY
 
----+ Assignment
+# Assignment
 
 A compound term of the form =|g(-Var,+Val:atom)|=
 
@@ -29,15 +29,15 @@ A compound term of the form =|g(-Var,+Val:atom)|=
 :- use_module(library(apply)).
 :- use_module(library(ordsets)).
 
-%% domain(?Object:atom) is nondet.
+%! domain(?Object:atom) is nondet.
 :- dynamic(domain(_Object)).
-%% f(?Arity:integer, ?Term:atom, ?Objects:list(atom)) is nondet.
+%! f(?Arity:integer, ?Term:atom, ?Objects:list(atom)) is nondet.
 :- dynamic(f(_Arity, _Term, _Objects)).
 
 
 
 /*
-%% beta_convert(+Expression, -Result)
+%! beta_convert(+Expression, -Result)
 
 beta_convert(Expression, Result):-
   beta_convert(Expression, Result, []).
@@ -85,7 +85,7 @@ satisfy(lambda(X, Type, Formula), G, pos, Mode):-
   ).
 */
 
-%% add_domain(+Object:atom) is det.
+%! add_domain(+Object:atom) is det.
 
 add_domain(Object):-
   db_add_novel(domain(Object)).
@@ -164,7 +164,7 @@ print_relations:-
 satisfy(Sentence):-
   satisfy(Sentence, [], pos).
 
-%% satisfy(+Expression, +G, +Polarity)
+%! satisfy(+Expression, +G, +Polarity)
 % Checks whether the given formula is true in the given model, under the
 % given polarity.
 % The polarity is usefull, since it allows us to easily cope with negative
@@ -235,12 +235,12 @@ satisfy(A, G, neg):-
   \+ (f(Arity, Predicate, Extension),
     member(Objects, Extension)).
 
-%% i(+G:ordset(assignment), ?X:atom, -V:atom) is det.
+%! i(+G:ordset(assignment), ?X:atom, -V:atom) is det.
 % The interpretation function.
 %
-% @param G The assignment function.
-% @param X The constant or variable that is interpreted.
-% @param V The interpretation of X.
+% @arg G The assignment function.
+% @arg X The constant or variable that is interpreted.
+% @arg V The interpretation of X.
 
 % X is a variable. The assignment function is used to establish the
 % interpretation of X.

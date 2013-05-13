@@ -4,9 +4,9 @@
 
 Defines the syntax and semantics for such Relative Uniform Resource Locators.
 
----+ Purpose
+# Purpose
 
----++ Conciseness
+## Conciseness
 
 Absolute URLs contain a great deal of information which may already
 be known from the context of the base document's retrieval, including
@@ -15,12 +15,12 @@ In situations where the base URL is well-defined and known, it is useful
 to be able to embed a URL reference which inherits that context
 rather than re-specifying it within each instance.
 
----++ Portability
+## Portability
 
 Relative addressing of URLs allows document trees to be partially
 independent of their location and access scheme.
 
----+ Generic-RL syntax
+# Generic-RL syntax
 
 ==
 <url> = <scheme>://[<net_loc>][/<path>][;<params>][?<query>][#<fragment>]
@@ -40,7 +40,7 @@ independent of their location and access scheme.
     Fragment identifier.
     Strictly speaking not part of the URL.
 
----++ BNF
+## BNF
 
 This is _not_ the same as the RFC 1738 BNF! For instance, this allows
 login information to be part of an HTTP-scheme URL! This BNF is only used
@@ -91,19 +91,19 @@ reserved    = ";" | "/" | "?" | ":" | "@" | "&" | "="
 punctuation = "<" | ">" | "#" | "%" | <">
 ==
 
----+++ Error in RFC 1738
+### Error in RFC 1738
 
 RFC 1738 specifies that the question-mark character is allowed in an FTP or
 FILE path segment. However, this is not true in practice and is believed to
 be an error in the RFC.
 
----+++ Extension of RFC 1738
+### Extension of RFC 1738
 
 RFC 1738 allows the reserved character semicolon within an HTTP path segment,
 but does not define its semantics; the correct semantics are as defined
 by this document for =|<params>|=.
 
----+++ Relative URLs in different schemes
+### Relative URLs in different schemes
 
 Schemes that never use relative URLs:
   * *mailto*
@@ -133,7 +133,7 @@ Schemes that can always be parsed using the generic-RL syntax:
   * *nntp*
     USENET news using NNTP access
 
----+ URL parser
+# URL parser
 
   1. The substring after the first crosshatch character ('#') until the end
      of the string is the *|fragment identifier|*.
@@ -154,11 +154,11 @@ Schemes that can always be parsed using the generic-RL syntax:
      If this starts with a slash, then the path is absolute; it is relative
      otherwise.
 
----+ Establishing the base URL of a document
+# Establishing the base URL of a document
 
 Ordered by presedence (higher to lower):
 
----++ Embedded in the document's content.
+## Embedded in the document's content.
 
 Part of the media type specification.
 
@@ -170,22 +170,22 @@ base-header  = "Base" ":" "<URL:" absoluteURL ">"
   * =Base= is case-insensitive.
   * Whitespace inside the angle brackets is ignored.
 
----++ From the encapsulating entity
+## From the encapsulating entity
 
 If a document has no embedded base URL and it is enclosed within another
 entity (e.g. media type =|message/x|=, media type =|multipart/x|=, then the
 base URL of the enclosed document is the base URL of the enclosing entity.
 
----++ From the retrieval URL
+## From the retrieval URL
 
 The URL that was used to retrieve the document (i.e. the last URL in a
 redirect chain) is consisdered the base URL.
 
----++ Default base URL
+## Default base URL
 
 The empty string.
 
----+ Resolving relative URLs
+# Resolving relative URLs
 
 This algorithm cannot guarantee that the resulting URL will equal that
 intended by the original author.
@@ -236,7 +236,7 @@ Notes:
     parameter value not be used within contexts that allow relative URLs."
     [???]
 
----+ Examples
+# Examples
 
 Base URL:
 ==
@@ -311,7 +311,7 @@ it is the same as the base URL scheme:
 [~SWIPL] http:         = <URL:http:>
 ==
 
----+ References
+# References
 
 [1] Berners-Lee, T., "Universal Resource Identifiers in WWW: A
        Unifying Syntax for the Expression of Names and Addresses of

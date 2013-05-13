@@ -16,11 +16,11 @@ Predicates used for parsing and checking value-type conformance.
 
 
 
-%% typecheck(+Type:compound, +Value) is semidet.
+%! typecheck(+Type:compound, +Value) is semidet.
 % Succeeds if the given value is of the given type.
 %
-% @param Type A compound term representing a type.
-% @param Value
+% @arg Type A compound term representing a type.
+% @arg Value
 
 typecheck(or(AlternativeTypes), Value):-
   member(Type, AlternativeTypes),
@@ -43,7 +43,7 @@ typecheck(Type, Value):-
   Call =.. [Type, ValueChars, []],
   call(Call).
 
-%% is_uri(?Resource:uri) is semidet.
+%! is_uri(?Resource:uri) is semidet.
 
 is_uri(Resource):-
   uri_components(

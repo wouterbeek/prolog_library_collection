@@ -24,14 +24,14 @@ together in this file.
 
 
 
-%% cleanup_parser(+Stream:stream, +Parser, +State:term) is det.
+%! cleanup_parser(+Stream:stream, +Parser, +State:term) is det.
 % Removes the given SGML parser and sets the stream to the given position.
 % The state term (containing the stream position) allows the stream to be
 % reset to the original position before the parser was created.
 %
-% @param Stream A text stream.
-% @param Parser An SGML parser. See module =|library(sgml)|=.
-% @param State A term of the form =|state(Position)|=, the
+% @arg Stream A text stream.
+% @arg Parser An SGML parser. See module =|library(sgml)|=.
+% @arg State A term of the form =|state(Position)|=, the
 %        position that the stream is (re)set to.
 %
 % @author Jan Wielemaker
@@ -41,13 +41,13 @@ cleanup_parser(Stream, Parser, state(Position)):-
   free_sgml_parser(Parser),
   set_stream_position(Stream, Position).
 
-%% make_parser(+Stream:stream, -Parser, -State:term) is det.
+%! make_parser(+Stream:stream, -Parser, -State:term) is det.
 % Creates a parser that processes the given stream and that starts at the
 % given state.
 %
-% @param Stream A text stream.
-% @param Parser An SGML parser. See module =|library(sgml)|=.
-% @param State A term of the form =|state(Position)|=, retuning the
+% @arg Stream A text stream.
+% @arg Parser An SGML parser. See module =|library(sgml)|=.
+% @arg State A term of the form =|state(Position)|=, retuning the
 %        position in the stream at which the parser starts.
 %
 % @author Jan Wielemaker

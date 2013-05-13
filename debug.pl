@@ -3,7 +3,7 @@
 % Do not write module loads to the standard output stream.
 :- set_prolog_flag(verbose_load, silent).
 
-%% load_modules_for_pldoc is det.
+%! load_modules_for_pldoc is det.
 % Loads all modules in PGC for debugging purposes:
 %   1. Early catching of errors.
 %   2. Fully browsable plDoc.

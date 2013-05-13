@@ -48,7 +48,7 @@ nmstart(C1-C0):-
 
 
 
-%% attribute_value(+Attribute:atom, +Value:atom, -Markup:atom) is det.
+%! attribute_value(+Attribute:atom, +Value:atom, -Markup:atom) is det.
 
 attribute_value(Attribute, Value, Markup):-
   format(atom(Markup), '~w:~w;', [Attribute, Value]).

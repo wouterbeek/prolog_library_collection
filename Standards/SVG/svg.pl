@@ -46,9 +46,9 @@
 Predictaes that allow vector graphics to be drawn according to
 the SVG standards.
 
----+ Prolog datatypes
+# Prolog datatypes
 
----++ rgb
+## rgb
 
 A compound term =rgb(Red, Green, Blue)=, where the three color parts are
 represent by an integer between 0 and 255 (inclusive).
@@ -123,7 +123,7 @@ attribute0(y2, coordinate, [line], '0').
 
 % GENERICS %
 
-%% svg_head(+Size:size, -Head:list) is det.
+%! svg_head(+Size:size, -Head:list) is det.
 % Returns the markup for the SVG head for graphics with the given 2D size.
 %
 % @see svg_head/3
@@ -131,7 +131,7 @@ attribute0(y2, coordinate, [line], '0').
 svg_head(size(2, [Width, Height]), Head):-
   svg_head(Width, Height, Head).
 
-%% svg_head(+Width:integer, +Height:integer, -Head:list) is det.
+%! svg_head(+Width:integer, +Height:integer, -Head:list) is det.
 % Returns the markup for the SVG head for graphics with the given
 % height and width.
 
@@ -324,11 +324,11 @@ wsp(C1-C0):-
 wsp(C1-C0):-
   parse_char(space, C1-C0).
 
-%% parse_attribute(
-%%   +Context:oneof([circle,line]),
-%%   +Attribute:nvpair,
-%%   -ParsedAttribute:nvassignment
-%% ) is semidet.
+%! parse_attribute(
+%!   +Context:oneof([circle,line]),
+%!   +Attribute:nvpair,
+%!   -ParsedAttribute:nvassignment
+%! ) is semidet.
 % Succeeds if the given attribute can be parsed within the given context.
 
 parse_attribute(Context, Name=Value, Name=Value):-
@@ -377,7 +377,7 @@ line(Options, X1, Y1, X2, Y2, Tooltip, Element):-
 svg_color(Color):-
   svg_color(Color, _RGB).
 
-%% svg_color(?Name:atom, ?RGB:rgb) is nondet.
+%! svg_color(?Name:atom, ?RGB:rgb) is nondet.
 
 svg_color(aliceblue, rgb(240, 248, 255)).
 svg_color(antiquewhite, rgb(250, 235, 215)).
@@ -527,10 +527,10 @@ svg_color(whitesmoke, rgb(245, 245, 245)).
 svg_color(yellow, rgb(255, 255, 0)).
 svg_color(yellowgreen, rgb(154, 205, 50)).
 
-%% svg_colors(-Colors:list(atom)) is det.
+%! svg_colors(-Colors:list(atom)) is det.
 % Returns the list with supported color names.
 %
-% @param Colors A list with atomic color names.
+% @arg Colors A list with atomic color names.
 
 svg_colors(Colors):-
   findall(

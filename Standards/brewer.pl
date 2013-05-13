@@ -32,11 +32,11 @@ The Brewer color scheme standard version 1.1.
 
 
 
-%% brewer_colors(?ColorSchemeName:atom, ?ColorNames:list(atom)) is nondet.
+%! brewer_colors(?ColorSchemeName:atom, ?ColorNames:list(atom)) is nondet.
 % Color scheme lookup.
 %
-% @param ColorSchemeName The atomic name of a Brewer color scheme.
-% @param ColorNames A list of atomic color names.
+% @arg ColorSchemeName The atomic name of a Brewer color scheme.
+% @arg ColorNames A list of atomic color names.
 
 brewer_colors(ColorSchemeName, ColorNames):-
   brewer_colorscheme(
@@ -55,22 +55,22 @@ brewer_colors(ColorSchemeName, ColorNames):-
     ColorNames
   ).
 
-%% brewer_colorscheme(
-%%   ?ColorSchemeID:integer,
-%%   ?Name:atom,
-%%   ?Size:integer,
-%%   ?Type:oneof([qualitative,sequential]),
-%%   ?CriticalValue:integer
-%% ).
+%! brewer_colorscheme(
+%!   ?ColorSchemeID:integer,
+%!   ?Name:atom,
+%!   ?Size:integer,
+%!   ?Type:oneof([qualitative,sequential]),
+%!   ?CriticalValue:integer
+%! ).
 
-%% brewer_color(
-%%   ?ColorSchemeID:integer,
-%%   ?Index:integer,
-%%   ?Letter:char,
-%%   ?R:byte,
-%%   ?G:byte,
-%%   ?B:byte
-%% ) is nondet.
+%! brewer_color(
+%!   ?ColorSchemeID:integer,
+%!   ?Index:integer,
+%!   ?Letter:char,
+%!   ?R:byte,
+%!   ?G:byte,
+%!   ?B:byte
+%! ) is nondet.
 
 brewer_colorscheme(0, accent, 3, qualitative, 0).
 brewer_color(0, 1, a, 127, 201, 127, qualitative).

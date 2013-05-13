@@ -5,7 +5,7 @@
 Document specifying a mnimum set of requirements for Internet resource
 locators.
 
----+ Resource identifiers
+# Resource identifiers
 
   * *|Resource locator|*
     Conveys location and access information for a resource.
@@ -16,7 +16,7 @@ locators.
     Comprises a body of meta-information to assist resource search and
     selection.
 
----+ General Resource Locator
+# General Resource Locator
 
 A general resource locator is an object that describes the location of a
 resource.
@@ -26,20 +26,20 @@ The ability to access the location is not guaranteed:
 network accessible. Examples of the latter include human beings and
 physical objects that have no electronic instantiation [...]."
 
----+ Resource locator interpreter
+# Resource locator interpreter
 
 "A prerequisite to interpreting a locator is understanding when an
 object in question actually is a locator, or contains one or more
 locators."
 
----+ Possible aspects of resource locator uniqueness
+# Possible aspects of resource locator uniqueness
 
   1. No identical copies of a resource may exist.
   1. The same resource accessed in different attempts is the same. [???]
   1. A resource may have at most one locator.
   1. A resource locator must identity exactly one object.
 
----+ Access and availability
+# Access and availability
 
   * _Invalid_ resource locator
     A resource locator that conforms to a location standard but for which
@@ -53,7 +53,7 @@ locators."
     (2) The resource is temporarily unavailable due to heavy system loading.
     (3) The interpretor does not have rights clearance to the resource.
 
----+ Requirements
+# Requirements
 
   1. Locators are _transient_ (as opposed to names).
   1. Locators have _|global scope|_.
@@ -72,7 +72,7 @@ locators."
      unstructured environments (e.g. natural language ASCII text) with a
      high degree of probability.
 
----+ Missing definitions
+# Missing definitions
 
 The text mentions the following concepts without explaining them:
   * *|Abstract access method|*

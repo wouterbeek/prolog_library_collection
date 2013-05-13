@@ -37,7 +37,7 @@
 
 Predicates for formulating and executing SPARQL queries.
 
----++ Sample query
+## Sample query
 
 ==
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -47,7 +47,7 @@ WHERE { ?s rdf:type rdfs:Class }
 LIMIT 10
 ==
 
----+ Warnings
+# Warnings
 
 When the results from a SPARQL endpoint are in XML/RDF without
 proper end tags, then the following warnings will be given by
@@ -85,7 +85,7 @@ formulate_limit(Limit, LimitStatement):-
   !,
   format(atom(LimitStatement), 'LIMIT ~w', [Limit]).
 
-%% formulate_prefix(+Prefix:atom, +URL:atom, -SPARQL_Prefix:atom) is det.
+%! formulate_prefix(+Prefix:atom, +URL:atom, -SPARQL_Prefix:atom) is det.
 % Returns the SPARQL prefix statement for the assigning the given URL
 % to the given prefix shorthand.
 
@@ -110,20 +110,20 @@ formulate_prefixes(Prefixes, PrefixStatements):-
 
 formulate_select(SelectStatement, SelectStatement).
 
-%% formulate_sparql(
-%%   +Prefixes:list(atom),
-%%   +Select:atom,
-%%   +Where:atom,
-%%   +Limit:integer,
-%%   -Query:atom
-%% ) is det.
+%! formulate_sparql(
+%!   +Prefixes:list(atom),
+%!   +Select:atom,
+%!   +Where:atom,
+%!   +Limit:integer,
+%!   -Query:atom
+%! ) is det.
 % Formulate a SPARQL query, build out of the given components.
 %
-% @param Prefixes A list of atomic prefix names, registered as prefix/4.
-% @param Select An atomic SELECT-statements.
-% @param Where An atomic WHERE-statement.
-% @param Limit An integer representing the maximum number of results.
-% @param Query An atomic SPARQL query.
+% @arg Prefixes A list of atomic prefix names, registered as prefix/4.
+% @arg Select An atomic SELECT-statements.
+% @arg Where An atomic WHERE-statement.
+% @arg Limit An integer representing the maximum number of results.
+% @arg Query An atomic SPARQL query.
 
 formulate_sparql(Prefixes, Select, Where, Limit, Query):-
   formulate_prefixes(Prefixes, PrefixStatements),
@@ -169,12 +169,12 @@ register_sparql_remote(Remote, Server, Port, Path):-
 
 % QUERYING %
 
-%% enqueue_sparql(
-%%   +Remote:atom,
-%%   +Query:atom,
-%%   -VarNames:list,
-%%   -Results:list
-%% ) is det.
+%! enqueue_sparql(
+%!   +Remote:atom,
+%!   +Query:atom,
+%!   -VarNames:list,
+%!   -Results:list
+%! ) is det.
 % @error =|existence_error(url,URL)|= with context
 %        =|context(_, status(509, 'Bandwidth Limit Exceeded'))|=
 
@@ -189,12 +189,12 @@ enqueue_sparql(Remote, Query, VarNames, Results):-
     )
   ).
 
-%% query_sparql(
-%%   +Remote:atom,
-%%   +Query:atom,
-%%   -VarNames:list,
-%%   -Results:list
-%% ) is det.
+%! query_sparql(
+%!   +Remote:atom,
+%!   +Query:atom,
+%!   -VarNames:list,
+%!   -Results:list
+%! ) is det.
 
 query_sparql(Remote, Query, VarNames, Results):-
   once(sparql_remote(Remote, Host, Port, Path)),

@@ -100,9 +100,9 @@ a subset of \{ r_1, \ldots, r_n \}.
 
 
 
-%% parse_atom(+Atom:atom, +Codes:dlist) is semidet.
-%% parse_atom(+Atom, -Codes:dlist) is det.
-%% parse_atom(-Atom, +Codes:dlist) is det.
+%! parse_atom(+Atom:atom, +Codes:dlist) is semidet.
+%! parse_atom(+Atom, -Codes:dlist) is det.
+%! parse_atom(-Atom, +Codes:dlist) is det.
 % Parsing atoms in a case-sensitive way.
 
 parse_atom(Atom, C1-C0):-
@@ -119,20 +119,20 @@ parse_atom(Atom, C1-C0):-
   !,
   once(parse_re([case(sensitive), out(atom), q('*')], [any], Atom, C1-C0)).
 
-%% parse_char(:P, +C:dlist) is semidet.
-%% parse_char(:P, -C:dlist) is nondet.
+%! parse_char(:P, +C:dlist) is semidet.
+%! parse_char(:P, -C:dlist) is nondet.
 % @see A wrapper for char/3.
 
 parse_char(P, C1-C0):-
   parse_char(P, _R, C1-C0).
 
-%% parse_char(:P, ?R, +C:dlist) is semidet.
-%% parse_char(:P, ?R, -C:dlist) is nondet.
+%! parse_char(:P, ?R, +C:dlist) is semidet.
+%! parse_char(:P, ?R, -C:dlist) is nondet.
 % Parsing characters by one of their descriptive names.
 %
-% @param P A public predicate from module ASCII.
-% @param R An atomic character value; the result of the parse.
-% @param C A difference list of codes.
+% @arg P A public predicate from module ASCII.
+% @arg R An atomic character value; the result of the parse.
+% @arg C A difference list of codes.
 %
 % The nondet case can generate alternative parses, e.g.:
 % ==
@@ -165,14 +165,14 @@ convert_epoch(Year, 'AD', Year):-
 convert_epoch(UnsignedYear, 'BC', SignedYear):-
   SignedYear is -UnsignedYear.
 
-%% discard(+C:diff_list) is det.
+%! discard(+C:diff_list) is det.
 % Discards the rest of the difference list, always returning the empty list.
 % This is done at the end of a parsing activity, when one is no longer
 % interested in the rest of the code sequence.
 
 discard(_Codes-[]).
 
-%% discard_until(+Match:oneof([atom,codes]), +C:diff_list) is det.
+%! discard_until(+Match:oneof([atom,codes]), +C:diff_list) is det.
 % Discards codes until the given matching atom or code sequence is found.
 
 discard_until(Match, C1-C0):-
@@ -239,15 +239,15 @@ parse_words([Word], C1-C0):-
   parse_word(Word, C1-C0).
 parse_words([], C-C).
 
-%% parse_re(+O1:list(nvpair), +Ps:list(atom), ?C:dlist(list))
+%! parse_re(+O1:list(nvpair), +Ps:list(atom), ?C:dlist(list))
 % @see Wrapper for parse_re/4.
 
 parse_re(O1, Ps, C):-
   nonvar(Ps),
   parse_re(O1, Ps, _R, C).
 
-%% parse_re(+O1:list(nvpair), +Ps:list(atom), ?R, ?C)
-% @param O1 A list of name-value pairs. The following options are
+%! parse_re(+O1:list(nvpair), +Ps:list(atom), ?R, ?C)
+% @arg O1 A list of name-value pairs. The following options are
 %        supported:
 %        * =|case(oneof([insensitive,lower,sensitive,upper])|=
 %        Case-sensitivity is used for the =letter= DCG.
@@ -259,10 +259,10 @@ parse_re(O1, Ps, C):-
 %        Regular expression quantification.
 %        * =|replace(From:atom,To:atom)|=
 %        Replacements on the level of single codes.
-% @param Ps A list of atomic names of //0 DCG production rules.
+% @arg Ps A list of atomic names of //0 DCG production rules.
 %        If the input is not a list, then a singleton list holding this
 %        input is created.
-% @param Results What was parsed by this invocation of re//3.
+% @arg Results What was parsed by this invocation of re//3.
 %        The type of this argument is determined by the =output_format=
 %        option, defaults to =codes=.
 

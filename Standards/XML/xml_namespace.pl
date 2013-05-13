@@ -14,17 +14,17 @@
 The purpose of Namespaces for XML is to avoid name clashes between XML
 vocabularies.
 
----+ XML Namespace
+# XML Namespace
 
 Identified by a URI reference [RFC 3986].
 
 Attribute and element names may be placed in an XML namespace.
 
----+ Expanded name
+# Expanded name
 
 A pair consisting of a namespace name and a local name.
 
----++ Namespace name
+## Namespace name
 
 For a name N in a namespace identified by URI I, the namespace name is I.
 
@@ -33,7 +33,7 @@ a namespace name.
 
 Deprecated: The use of relative URI references in namespace declarations.
 
----+++ Identity
+### Identity
 
 Two URI references identify the same namespace iff their strings are
 identical, without %-escaping and case-sentive.
@@ -41,7 +41,7 @@ identical, without %-escaping and case-sentive.
 Note: URI references that differ only in case or in %-escaping do not
 identify identical namespace, but do resolve to the same resource.
 
----+++ Declaration
+### Declaration
 
 ==
 [1] NSAttName       ::= PrefixedAttName | DefaultAttName
@@ -50,11 +50,11 @@ identify identical namespace, but do resolve to the same resource.
 [4] NCName          ::= Name - (Char* ':' Char*)  [An XML Name, minus the ":"]
 ==
 
----++ Local name
+## Local name
 
 For a name N in a namespace identified by URI I, the local name is N.
 
----+ Qualified name
+# Qualified name
 
 A name subject to namespace interpretation.
 
@@ -89,10 +89,10 @@ URI references can contain characters that are not allowed in names.
 xml_current_namespace(Namespace, URI):-
   rdf_current_prefix(Namespace, URI).
 
-%% xml_current_namespaces(-Namespaces:ordset(atom)) is det.
+%! xml_current_namespaces(-Namespaces:ordset(atom)) is det.
 % Returns all current namespace aliases.
 %
-% @param Namespaces A list of atomic alias names.
+% @arg Namespaces A list of atomic alias names.
 
 xml_current_namespaces(Namespaces):-
   setoff(
@@ -101,7 +101,7 @@ xml_current_namespaces(Namespaces):-
     Namespaces
   ).
 
-%% xml_register_namespace(+Namespace:atom, +URI:uri) is det.
+%! xml_register_namespace(+Namespace:atom, +URI:uri) is det.
 % Registers the given URI references are identifying the XML namespace
 % with the given name.
 %

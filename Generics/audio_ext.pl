@@ -11,14 +11,14 @@
 
 /** <module> Audio extensions
 
----+ TTS conversion
+# TTS conversion
 
 Currently, the limited but free TTS feature of Google translate is used.
 
 In the furture services like Google translate and Microfost translate may be
 added.
 
----+ Sample text
+# Sample text
 
 The following sample text can be used to test predicates in this module.
 
@@ -54,13 +54,13 @@ Bad to the bone but fine as wine
 
 
 
-%% atom_to_mp3(+Line:atom, +MP3:atom) is det.
-%% atom_to_mp3(+Line:atom, -MP3:atom) is det.
+%! atom_to_mp3(+Line:atom, +MP3:atom) is det.
+%! atom_to_mp3(+Line:atom, -MP3:atom) is det.
 % Creates an MP3 file with the given line's text in spoken form.
 % If no file name is given, then one is generated using =Line='s MD5 hash.
 %
-% @param Line An atom, preferable a natural language expression.
-% @param MP3 The atomic name of an MP3 file.
+% @arg Line An atom, preferable a natural language expression.
+% @arg MP3 The atomic name of an MP3 file.
 % @tbd Currently only works for English.
 
 atom_to_mp3(Line, MP3):-
@@ -89,12 +89,12 @@ google_tts(Query, URI):-
 google_tts(Language, Query, URI):-
   google_tts('UTF-8', Language, Query, URI).
 
-%% google_tts(
-%%   +Encoding:atom,
-%%   +Language:atom,
-%%   +Query:atom,
-%%   -URI:atom
-%% ) is det.
+%! google_tts(
+%!   +Encoding:atom,
+%!   +Language:atom,
+%!   +Query:atom,
+%!   -URI:atom
+%! ) is det.
 % Returns the URI for the request to Google for returning the speech
 % variant of =Query=.
 
@@ -102,16 +102,16 @@ google_tts(_Encoding, _Language, '', _URI):-
   !,
   fail.
 google_tts(Encoding, Language, Query, URI):-
-%%%%  % Replace spaces with '%20'-s.
-%%%%  % But Google translate uses plusses.
-%%%%  uri_normalized(Query, NormalizedQuery),
+%%%!  % Replace spaces with '%20'-s.
+%%%!  % But Google translate uses plusses.
+%%%!  uri_normalized(Query, NormalizedQuery),
   % Replace spaces with '+'-es.
   atom_replace(Query, [' '-'+'], NormalizedQuery),
 
   % Create the search components for the URI.
-%%%%  % The swipl builtin uri_query_components/3 turns spaces and
-%%%%  % plusses into their symbolic equivalents.
-%%%%  uri_query_components(Search, [ie=Encoding, tl=Language, q=NormalizedQuery]),
+%%%!  % The swipl builtin uri_query_components/3 turns spaces and
+%%%!  % plusses into their symbolic equivalents.
+%%%!  uri_query_components(Search, [ie=Encoding, tl=Language, q=NormalizedQuery]),
   format(
     atom(Search),
     'ie=~w&tl=~w&q=~w',

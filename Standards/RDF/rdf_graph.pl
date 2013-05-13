@@ -40,24 +40,24 @@ Graph theory support for RDF is found in module [rdf_graph_theory].
 
 For conversions from/to serialization formats, see module [rdf_serial].
 
----+ Abstract syntax
+# Abstract syntax
 
----++ RDF triple
+## RDF triple
 
 An RDF triple contains three components:
     * *Subject*, either an RDF URI reference or a blank node.
     * *Predicate*, an RDF URI reference. Alternatively called _property_.
     * *Object*, either an RDF URI reference, a literal, or a blank node.
 
----++ RDF graph
+## RDF graph
 
 A set of RDF triples.
 
----++ RDF node
+## RDF node
 
 The subject and objects of an RDF graph.
 
----++ RDF graph equivalence
+## RDF graph equivalence
 
 RDF graphs G and G' are equivalent if there is a bijection M betweeen the sets
 of nodes of G and G' such that:
@@ -67,7 +67,7 @@ of nodes of G and G' such that:
     * The triple (s,p,o) is in G if and only if the triple (M(s),p,M(o)) is
       in G'.
 
----++ RDF URI reference
+## RDF URI reference
 
 A Unicode string encoded in UTF-8 (RFC 2279), without control characters
 and producing a valid URI character sequence as defined by RFC 2396.
@@ -79,12 +79,12 @@ Disallowed octets must be escaped by the URI escaping mechanism =|%HH|=,
 where =HH= is a 2-digit hexadecimal numberal corresponding to the octect
 value.
 
----+++ RDF URI reference equivalence
+### RDF URI reference equivalence
 
 RDF URI references are equivalent iff they compare as equal,
 character by character, as Unicode strings.
 
----++ RDF literal
+## RDF literal
 
 There are two types of literals:
     1. *|Plain literal|*s, that have (1) a lexical form and
@@ -95,7 +95,7 @@ There are two types of literals:
 
 A lexical form is a Unicode string in NFC (Unicode Normalization Form C).
 
----+++ Literal equality
+### Literal equality
 
 Two literals are equal iff:
     * The strings of the two lexical forms compare equal, character by
@@ -105,14 +105,14 @@ Two literals are equal iff:
     * Either both or neither have datatype URIs.
     * The two datatype URIs, if any, compare equal, character by character.
 
----++ Blank nodes
+## Blank nodes
 
 The set of blank nodes, the set of literals, and the set of RDF URI references
 are pairwise disjoint.
 
----+ TODO
+# TODO
 
----++ RDF graph equivalence
+## RDF graph equivalence
 
 Any instance of a graph in which a blank node is mapped to a new blank
 node not in the original graph is an instance of the original and also
@@ -126,7 +126,7 @@ issues which arise from 're-naming' nodeIDs, and is in conformance
 with the convention that blank nodes have no label. Equivalent graphs
 are mutual instances with an invertible instance mapping.
 
----++ RDF graph leanness
+## RDF graph leanness
 
 An RDF graph is lean if it has no instance which is a proper subgraph of the
 graph. Non-lean graphs have internal redundancy and express the same content
@@ -164,7 +164,7 @@ rdf_bnode(Graph, BNode):-
   ),
   rdf_is_bnode(BNode).
 
-%% rdf_bnode_replace(+SharedBNodes:list, +Triple, -NewTriple) is det.
+%! rdf_bnode_replace(+SharedBNodes:list, +Triple, -NewTriple) is det.
 % Replaces shared bnodes in triples.
 
 % In case there are not shared blank nodes we can skip
@@ -181,7 +181,7 @@ rdf_bnode_replace(SharedBNodes, G, R, NewR):-
   rdf_bnode(NewR).
 rdf_bnode_replace(_SharedBNodes, _G, R, R).
 
-%% rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
+%! rdf_graph_equivalence(+Graph1:atom, +Graph2:atom) is semidet.
 
 rdf_graph_equivalence(Graph1, Graph2):-
   rdf_graph_equivalence0(Graph1, Graph2),
@@ -213,7 +213,7 @@ bnode_translation0(Graph1, Resource1, Graph2, Resource2):-
   rdf_bnode(Graph2, Resource2),
   !.
 
-%% rdf_graph_merge(+Graphs:list(atom), +MergedGraph:atom) is det.
+%! rdf_graph_merge(+Graphs:list(atom), +MergedGraph:atom) is det.
 % When merging RDF graphs we have to make sure that their blank nodes are
 % standardized apart.
 
@@ -258,7 +258,7 @@ rdf_graph(Graph, MergedGraph):-
   !,
   rdf_graph([Graph], MergedGraph).
 
-%% rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
+%! rdf_graph_source_file(+Graph:atom, -File:atom) is semidet.
 % Returns the name of the file from which the graph with the given name
 % was loaded.
 
@@ -289,9 +289,9 @@ rdf_graph_triples(G, Triples):-
     Triples
   ).
 
-%% rdf_ground(+Graph:graph) is semidet.
+%! rdf_ground(+Graph:graph) is semidet.
 % Succeeds if the given graph is ground, i.e., contains no blank node.
-%% rdf_ground(+Triple) is semidet.
+%! rdf_ground(+Triple) is semidet.
 % Succeeds if the given triple is ground, i.e., contains no blank node.
 % The predicate cannot be a blank node by definition.
 
@@ -306,12 +306,12 @@ rdf_ground(rdf(S, _P, O)):-
   \+ rdf_is_bnode(S),
   \+ rdf_is_bnode(O).
 
-%% rdf_is_graph_instance_of(
-%%   +GraphInstance:atom,
-%%   +Graph:atom,
-%%   -BNodeMap:list(list)
-%% ) is nondet.
-% ---+ RDF graph instance
+%! rdf_is_graph_instance_of(
+%!   +GraphInstance:atom,
+%!   +Graph:atom,
+%!   -BNodeMap:list(list)
+%! ) is nondet.
+% # RDF graph instance
 % Suppose that M is a mapping from a set of blank nodes to some set of
 % literals, blank nodes and URI references; then any graph obtained from
 % a graph G by replacing some or all of the blank nodes N in G by M(N)
@@ -337,11 +337,11 @@ rdf_is_graph_instance_of0(GI, [rdf(S, P, O, G) | Triples], BNodeMap, Solution):-
   append([NewMap1, NewMap2, BNodeMap], NewBNodeMap),
   rdf_is_graph_instance_of0(GI, Triples, NewBNodeMap, Solution).
 
-%% rdf_is_graph_proper_instance_of(
-%%   +GraphProperInstance:atom,
-%%   +Graph:atom
-%% ) is semidet.
-% ---+ RDF graph proper instance
+%! rdf_is_graph_proper_instance_of(
+%!   +GraphProperInstance:atom,
+%!   +Graph:atom
+%! ) is semidet.
+% # RDF graph proper instance
 % A proper instance of a graph is an instance in which a blank node
 % has been replaced by a name, or two blank nodes in the graph have
 % been mapped into the same node in the instance.
@@ -358,19 +358,19 @@ rdf_is_graph_proper_instance_of(GI, G):-
   ),
   !.
 
-%% rdf_is_instance_of(+TripleInstance, +Triple) is semidet.
+%! rdf_is_instance_of(+TripleInstance, +Triple) is semidet.
 
 rdf_is_instance_of(rdf(SI, P, OI, GI), rdf(S, P, O, G), BNodeMap):-
   rdf_is_instance_of(GI, SI, G, S, BNodeMap),
   rdf_is_instance_of(GI, OI, G, O, BNodeMap).
 
-%% rdf_is_instance_of(
-%%   +GraphInstance:atom,
-%%   +ResourceInstance:oneof([bnode,literal,uri]),
-%%   +Graph:atom,
-%%   +Resource:oneof([bnode,literal,uri]),
-%%   +BNodeMap:list(list)
-%% ) is semidet.
+%! rdf_is_instance_of(
+%!   +GraphInstance:atom,
+%!   +ResourceInstance:oneof([bnode,literal,uri]),
+%!   +Graph:atom,
+%!   +Resource:oneof([bnode,literal,uri]),
+%!   +BNodeMap:list(list)
+%! ) is semidet.
 
 rdf_is_instance_of(GI, R, _G, R, _BNodeMap):-
   rdf_name(GI, R),
@@ -378,7 +378,7 @@ rdf_is_instance_of(GI, R, _G, R, _BNodeMap):-
 rdf_is_instance_of(_GI, RI, _G, R, BNodeMap):-
   memberchk([R,RI], BNodeMap).
 
-%% test_rdf_is_graph_instance_of(-Maps:list(list)) is det.
+%! test_rdf_is_graph_instance_of(-Maps:list(list)) is det.
 % Tests predicate rdf_is_graph_instance_of/2.
 % Should return two lists of mappings from blank nodes to uriRefs.
 
@@ -389,8 +389,8 @@ test_rdf_is_graph_instance_of(Maps):-
   rdf_assert(rdf:a, rdf:p, rdf:b, gi), rdf_assert(rdf:c, rdf:p, rdf:d, gi),
   findall(Map, rdf_is_graph_instance_of(gi, g, Map), Maps).
 
-%% rdf_name(?G:atom, ?Name:oneof([literal,uri])) is nondet.
-%% rdf_name(-Name) is nondet.
+%! rdf_name(?G:atom, ?Name:oneof([literal,uri])) is nondet.
+%! rdf_name(-Name) is nondet.
 % Succeeds if the given object is an RDF name, i.e., an RDF URI reference or
 % an RDF literal.
 
@@ -434,11 +434,11 @@ rdf_subject(G, S):-
 rdf_subject0(G, S):-
   rdf(S, _, _, G).
 
-%% rdf_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
+%! rdf_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
 % Returns an unsorted list containing all the triples in a graph.
 %
-% @param Graph The atomic name of a loaded RDF graph.
-% @param Triples A list of triple compound term.
+% @arg Graph The atomic name of a loaded RDF graph.
+% @arg Triples A list of triple compound term.
 
 rdf_triples(Graph, Triples):-
   findall(rdf(S, P, O), rdf(S, P, O, Graph), Triples).

@@ -86,7 +86,7 @@ This module contains the OS extensions for SWI-Prolog.
 
 % DATE & TIME %
 
-%% current_date(-Date:atom) is det.
+%! current_date(-Date:atom) is det.
 % Returns an atom representing the current date.
 %
 % This can be used for file names.
@@ -98,7 +98,7 @@ current_date(Date):-
   get_time(TimeStamp),
   format_time(atom(Date), '%Y_%m_%d', TimeStamp).
 
-%% current_time(-Time:atom) is det.
+%! current_time(-Time:atom) is det.
 % Returns an atomic representation of the current time.
 %
 % This can be used for file names.
@@ -107,7 +107,7 @@ current_time(Time):-
   get_time(TimeStamp),
   format_time(atom(Time), '%H_%M_%S', TimeStamp).
 
-%% date_directories(+Dir:atom, -DateDir:atom) is det.
+%! date_directories(+Dir:atom, -DateDir:atom) is det.
 % Create and retuns the current date subdirectory of the given absolute
 % directory name.
 %
@@ -124,7 +124,7 @@ date_directories(Dir, DateDir):-
   RelativeDirs =.. [Dir, RelativeSubDirs2],
   nested_dir_name(RelativeDirs, DateDir).
 
-%% date_time(-DateTime:term) is det.
+%! date_time(-DateTime:term) is det.
 % Returns a term describing the current date and time.
 %
 % @compat RFC 112
@@ -133,21 +133,21 @@ date_time(DateTime):-
   get_time(TimeStamp),
   http_timestamp(TimeStamp, DateTime).
 
-%% hash_date(-Hash:atom) is det.
+%! hash_date(-Hash:atom) is det.
 % Returns the hash of the current timestamp.
 %
-% @param Hash An atomic hash.
+% @arg Hash An atomic hash.
 
 hash_date(Hash):-
   get_time(TimeStamp),
   term_hash(TimeStamp, Hash).
 
-%% latest_file(+Files:list(atom), -Latest:atom) is det.
+%! latest_file(+Files:list(atom), -Latest:atom) is det.
 % Returns the most recently created or altered file from within a list of
 % files.
 %
-% @param Files A list of atomic absolute file names.
-% @param Latest An atomic absolute file name.
+% @arg Files A list of atomic absolute file names.
+% @arg Latest An atomic absolute file name.
 
 latest_file([First | Files], Latest):-
   time_file(First, FirstTime),
@@ -167,11 +167,11 @@ latest_file([File | Files], TopTime/TopFile, Latest):-
   ),
   latest_file(Files, NewTopTime-NewTopFile, Latest).
 
-%% posix_date(-Date:atom) is det.
+%! posix_date(-Date:atom) is det.
 % Returns the current date in POSIX format.
 %
 % @compat POSIX strfdate()
-% @param Date A compound term of the form =Year/Month/Day=,
+% @arg Date A compound term of the form =Year/Month/Day=,
 %        where =Year= consists of 4, =Month= consists of 2,
 %        and =Day= consists of 2 digits.
 
@@ -179,11 +179,11 @@ posix_date(Date):-
   get_time(TimeStamp),
   format_time(atom(Date), '%F', TimeStamp).
 
-%% posix_time(Time) is det.
+%! posix_time(Time) is det.
 % Returns the current time in POSIX format.
 %
 % @compat POSIX strftime()
-% @param Time The atomic default textual representation of a time in PraSem,
+% @arg Time The atomic default textual representation of a time in PraSem,
 %        i.e. =Hour:Minute:Second=.
 
 posix_time(Time):-
@@ -194,13 +194,13 @@ posix_time(Time):-
 
 % DELETE FILES %
 
-%% delete_files(+Dir:atom, +FileType:oneof([atom,list(atom)])) is det.
+%! delete_files(+Dir:atom, +FileType:oneof([atom,list(atom)])) is det.
 % Deletes all file in the given directory that are of the given file type.
 %
 % @throws existence_error In case a file type is not registered.
 %
-% @param Dir The atomic absolute name of a directory.
-% @param FileType The atomic name of a file type, registered via
+% @arg Dir The atomic absolute name of a directory.
+% @arg FileType The atomic name of a file type, registered via
 %        prolog_file_type/2.
 
 % Remove all files that are of the given file type from the given directory.
@@ -245,7 +245,7 @@ delete_files(_Dir, FileType):-
 
 % HOME DIRECTORY %
 
-%% assert_home_directory is det.
+%! assert_home_directory is det.
 % Asserts the home directory of the current user as a Prolog search path.
 %
 % @tbd See whether this can be done without using PCE.
@@ -260,7 +260,7 @@ assert_home_directory:-
   expand_file_name('~', [HomeDirectory]),
   assert(file_search_path(home, HomeDirectory)).
 
-%% assert_home_subdirectory(+SubDir:atom) is det.
+%! assert_home_subdirectory(+SubDir:atom) is det.
 % Asserts a project-specific directory that is a direct subdirectory of the
 % current user's home.
 %
@@ -282,7 +282,7 @@ assert_home_subdirectory(SubDir):-
 
 % OS IDENTIFICATION %
 
-%% is_mac is semidet.
+%! is_mac is semidet.
 % Succeeds if the running OS is Mac OS-X.
 %
 % This presupposes that set_os_flag/0 has been run, in order to create the
@@ -291,19 +291,19 @@ assert_home_subdirectory(SubDir):-
 is_mac:-
   current_prolog_flag(mac, true).
 
-%% is_unix is semidet.
+%! is_unix is semidet.
 % Succeeds if the running OS is Unix.
 
 is_unix:-
   current_prolog_flag(unix, true).
 
-%% is_windows is semidet.
+%! is_windows is semidet.
 % Succeeds if the running OS is Windows.
 
 is_windows:-
   current_prolog_flag(windows, true).
 
-%% os_dependent_call(:Goal)
+%! os_dependent_call(:Goal)
 % Allows goals to be carried out without the caller having to paying attention
 % to OS-specific considerations.
 %
@@ -327,7 +327,7 @@ os_dependent_call(Goal):-
 os_dependent_call(Goal):-
   debug(deb, 'The call ~w is not supported on your OS.', [Goal]).
 
-%% supported_os(?OS_Name:atom) is nondet.
+%! supported_os(?OS_Name:atom) is nondet.
 % The names of supported OS-es.
 % The name for Mac-OS is made up since it is not supported by SWI-Prolog.
 
@@ -339,19 +339,19 @@ supported_os(windows).
 
 % MacOS SPECIFIC %
 
-%% mac_y_pixel(+YPixel:integer, -MacYPixel:integer) is det.
+%! mac_y_pixel(+YPixel:integer, -MacYPixel:integer) is det.
 % Returns the Mac OS-X equivalent of the y-position of an onscreen pixel.
 %
 % Mac OS-X uses 21 pixels for the title bar.
 %
-% @param YPixel The normal y-position of a pixel.
-% @param MacYPixel The y-position of a pixel adapted for display
+% @arg YPixel The normal y-position of a pixel.
+% @arg MacYPixel The y-position of a pixel adapted for display
 %        on a Mac OS-X system.
 
 mac_y_pixel(YPixel, MacYPixel):-
   MacYPixel is YPixel + 21.
 
-%% set_os_flag is det.
+%! set_os_flag is det.
 % Distinguish between unices and MacOSX.
 % @see Since this is no [[current_prolog_flag/2]] for Mac OS-X yet.
 
@@ -365,16 +365,16 @@ set_os_flag.
 
 % OPENING FILES %
 
-%% open_dot(+BaseOrFile:atom) is det.
+%! open_dot(+BaseOrFile:atom) is det.
 % Opens the given DOT file.
 %
-% @param BaseOrFile The atomic name of a DOT file.
+% @arg BaseOrFile The atomic name of a DOT file.
 
 open_dot(BaseOrFile):-
   base_or_file_to_file(BaseOrFile, dot, File),
   os_dependent_call(open_dot(File)).
 
-%% open_dot_unix(+File:atom) is det.
+%! open_dot_unix(+File:atom) is det.
 % Opens the DOT file with the given name in UNIX.
 %
 % This requires the installation of package =dotty=.
@@ -384,14 +384,14 @@ open_dot_unix(File):-
   process_create(path(dotty), [File], [detached(true)]).
 :- endif.
 
-%% open_pdf(+BaseOrFile:atom) is det.
+%! open_pdf(+BaseOrFile:atom) is det.
 % Opens the given PDF file.
 
 open_pdf(BaseOrFile):-
   base_or_file_to_file(BaseOrFile, pdf, File),
   os_dependent_call(open_pdf(File)).
 
-%% open_pdf_unix(+File:atom) is det.
+%! open_pdf_unix(+File:atom) is det.
 %
 % This requires the installation of package =xpdf=.
 
@@ -422,10 +422,10 @@ open_pdf_windows(_File).
 
 % SCRIPTS %
 
-%% run_script(+Script:atom) is det.
+%! run_script(+Script:atom) is det.
 % Runs the given script.
 %
-% @param Script The atomic name of script file.
+% @arg Script The atomic name of script file.
 
 run_script(Script):-
   os_dependent_call(run_script(Script)).
@@ -453,7 +453,7 @@ shell_error(Formal, Context):-
     )
   ).
 
-%% shell_status(+Status:integer) is det.
+%! shell_status(+Status:integer) is det.
 % Handling of shell exit status codes.
 %
 % @throws shell_error Throws a shell error when a shell process exits with
@@ -476,7 +476,7 @@ shell_status(128, 'Invalid argument to the exit command.',
   'The exit command takes only integer args in the range 0-255.').
 shell_status(130,	'Script terminated by Control-C	', '').
 
-%% windows_shell_command(+Command) is det.
+%! windows_shell_command(+Command) is det.
 % @tbd Test this.
 
 windows_shell_command(Command):-
@@ -487,7 +487,7 @@ windows_shell_command(Command):-
     [stdin(std), stdout(std), stderr(std)]
   ).
 
-%% windows_shell_command(+Command, +File:atom) is det.
+%! windows_shell_command(+Command, +File:atom) is det.
 % @tbd Test this.
 
 windows_shell_command(Command, File):-
@@ -502,7 +502,7 @@ windows_shell_command(Command, File):-
 
 % SWI-PROLOG %
 
-%% check_prolog_version is semidet.
+%! check_prolog_version is semidet.
 % Checks whether a correct version of SWI-Prolog is installed.
 
 check_prolog_version:-
@@ -522,7 +522,7 @@ check_prolog_version:-
     fail
   ).
 
-%% minimum_prolog_version(-Version:compound) is det.
+%! minimum_prolog_version(-Version:compound) is det.
 % The minimal SWI-Prolog version that is needed for the features the
 % application uses.
 %
@@ -543,7 +543,7 @@ check_prolog_version:-
 % 6.2.6 is the latest stable release.
 % 6.3.15 is the latest development release.
 %
-% @param The version indicator is of the form =|Major/Minor/Paths|=,
+% @arg The version indicator is of the form =|Major/Minor/Paths|=,
 %        with three integers.
 
 minimum_prolog_version(6/3/15).
@@ -568,7 +568,7 @@ prolog:message(version(Version)) -->
 
 % TERMINAL EMULATORS %
 
-%% ansi_format(+Stream:stream, +Attributes, +Format:atom, +Args:list) is det.
+%! ansi_format(+Stream:stream, +Attributes, +Format:atom, +Args:list) is det.
 % Like the swipl builtin ansi_format/3, but allows writing to an arbitrary
 % output stream.
 %
@@ -585,7 +585,7 @@ ansi_format(Stream, Attributes, Format, Args):-
 
 % WWW %
 
-%% open_in_webbrowser(+URI:uri) is det.
+%! open_in_webbrowser(+URI:uri) is det.
 % Opens the given URI in the default webbrowser.
 
 open_in_webbrowser(URI):-

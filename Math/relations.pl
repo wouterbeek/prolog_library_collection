@@ -42,9 +42,9 @@
 
 /** <module> Relations
 
----+ Types
+# Types
 
----++ Bourbaki function definitions
+## Bourbaki function definitions
 
 We use function definitions as in Bourbaki1957:
 
@@ -54,21 +54,21 @@ bourbaki(X, Y, F)
 
 Where =X= is the domain, =Y= is the codomain, and =G= is the graph.
 
----++ Graph
+## Graph
 
 Graphs are collections of relations representing the data points of a
 function. We represent them as ordered sets of pairs.
 
----++ Pair
+## Pair
 
 Traditionally, pairs are represented using sets, i.e.,
 $\langle x, y \rangle =_{def} \{ x, \{ x, y \} \}$.
 
 We represent pairs as compound terms of the form =|X-Y|=.
 
----++ Relation
+## Relation
 
----+++ Binary relations
+### Binary relations
 
 Binary relations can be efficiently represented as =|list(pair)|=
 =|[x_1-y_1, \ldots, x_m-y_m]|=.
@@ -83,29 +83,29 @@ Binary relations can be efficiently represented as =|list(pair)|=
 
 
 
-%% bijective(F) is semidet.
+%! bijective(F) is semidet.
 % Succeeds if the given function is bijective.
 %
-% @param F A Bourbaki function definition.
+% @arg F A Bourbaki function definition.
 
 bijective(F):-
   preimage(F, X),
   inverse(F, X).
 
-%% closure(
-%%   +S:ordset(pair),
-%%   :Antecedent,
-%%   +Consequence:compound,
-%%   -NewS:ordset(pair)
-%% ) is det.
+%! closure(
+%!   +S:ordset(pair),
+%!   :Antecedent,
+%!   +Consequence:compound,
+%!   -NewS:ordset(pair)
+%! ) is det.
 % Calculates the closure for the given set of pairs.
 %
-% @param S An ordered set of pairs, representing a binary relation.
-% @param Antecedent An executable goals that includes =S= and that contains
+% @arg S An ordered set of pairs, representing a binary relation.
+% @arg Antecedent An executable goals that includes =S= and that contains
 %        the free variables in =Consequence=.
-% @param Consequence A compound term with free variables. These are the
+% @arg Consequence A compound term with free variables. These are the
 %        instances that will be included in =NewS=.
-% @param NewS The set =S= under closure.
+% @arg NewS The set =S= under closure.
 
 closure(S, Antecedent, Consequence, NewS):-
   % These are the elements that are added by the closure.
@@ -117,51 +117,51 @@ closure(S, Antecedent, Consequence, NewS):-
   % The original members are included as well.
   ord_union(S, Consequences, NewS).
 
-%% codomain(+F:bourbaki, -Y:ordset) is det.
+%! codomain(+F:bourbaki, -Y:ordset) is det.
 % Returns the codomain of a Bourbaki function definition.
 %
-% @param F A Bourbaki function definition.
-% @param Y An ordered set representing the codomain of a function.
+% @arg F A Bourbaki function definition.
+% @arg Y An ordered set representing the codomain of a function.
 
 codomain(bourbaki(_X, Y, _F), Y).
 
-%% domain(+F:bourbaki, -X:ordset) is det.
+%! domain(+F:bourbaki, -X:ordset) is det.
 % Returns the domain of a Bourbaki function definition.
 %
-% @param F A bourbaki function definition.
-% @param X An ordered set representing the domain of a function.
+% @arg F A bourbaki function definition.
+% @arg X An ordered set representing the domain of a function.
 
 domain(bourbaki(X, _Y, _F), X).
 
-%% equivalence(+R:binary_relation) is semidet.
+%! equivalence(+R:binary_relation) is semidet.
 % Succeeds if the given relation is an equivalence relation.
 %
-% @param R A binary relation.
+% @arg R A binary relation.
 
 equivalence(R):-
   reflexive(R),
   symmetric(R),
   transitive(R).
 
-%% equivalence_class(
-%%   +U:ordset,
-%%   +R:binary_relation,
-%%   +X,
-%%   -EqX:ordset
-%% ) is det.
+%! equivalence_class(
+%!   +U:ordset,
+%!   +R:binary_relation,
+%!   +X,
+%!   -EqX:ordset
+%! ) is det.
 % Returns the equivalence class of =X= relative to equivalence relation =R=.
 %
 % The function that maps from elements onto their equivalence classes is
 % sometimes calles the *|canonical projection map|*.
 %
-% @param U The universe of discource. This comprises =X=.
+% @arg U The universe of discource. This comprises =X=.
 %          Clearly $EqX \subseteq U=. No double occurrences and sorted.
-% @param R An binary equivalence relation, i.e., a relation that is
+% @arg R An binary equivalence relation, i.e., a relation that is
 %            1. Reflexive
 %            2. Symmetric
 %            3. Transitive
-% @param X The element whose equivalence class is returned.
-% @param EqX The equivalence class of =X=. no double occurrences and sorted.
+% @arg X The element whose equivalence class is returned.
+% @arg EqX The equivalence class of =X=. no double occurrences and sorted.
 
 equivalence_class(U, R, X, EqX):-
   % Findall/3 suffices to preserve order in =EqX=,
@@ -175,27 +175,27 @@ equivalence_class(U, R, X, EqX):-
     EqX
   ).
 
-%% graph(+F:bourbaki, -G:graph) is det.
+%! graph(+F:bourbaki, -G:graph) is det.
 % Returns the graph of a Bourbaki function definition.
 %
-% @param F A Bourbaki function definition.
-% @param G A graph.
+% @arg F A Bourbaki function definition.
+% @arg G A graph.
 
 graph(bourbaki(_X, _Y, G), G).
 
-%% image(+F:bourbaki, -ImgF:ordset) is det.
+%! image(+F:bourbaki, -ImgF:ordset) is det.
 % Returns the image of the function definition by the given
 % Bourbaki definition.
 
 image(bourbaki(DomF, _CodF, G), ImgX):-
   image(DomF, G, ImgX).
 
-%% image(+S:ordset, +G:graph, -ImgS:ordset) is det.
+%! image(+S:ordset, +G:graph, -ImgS:ordset) is det.
 % Returns the image of set =S= under the function with graph =G=.
 %
-% @param S An ordered set.
-% @param G A graph, i.e., an ordered set of pairs.
-% @param ImgS An ordered set.
+% @arg S An ordered set.
+% @arg G A graph, i.e., an ordered set of pairs.
+% @arg ImgS An ordered set.
 
 image(S, G, ImgX):-
   findall(
@@ -210,11 +210,11 @@ image(S, G, ImgX):-
 % @tbd
 inverse(X, X).
 
-%% pair(+R:binary_relation, ?Pair:list) is nondet.
+%! pair(+R:binary_relation, ?Pair:list) is nondet.
 % Pairs in a binary relation. Both for checking and for generating.
 %
-% @param R A binary relation.
-% @param Pair A list of two elements, representing a pair.
+% @arg R A binary relation.
+% @arg Pair A list of two elements, representing a pair.
 
 pair(R, X-Y):-
   member(X-Y, R).
@@ -222,7 +222,7 @@ pair(R, X-Y):-
 % @tbd
 preimage(X, X).
 
-%% quotient_set(+S:ordset, +EqR:binary_relation, -QuotS:ordset) is det.
+%! quotient_set(+S:ordset, +EqR:binary_relation, -QuotS:ordset) is det.
 % Returns the quotient set for =S= under equivalence relation =EqR=.
 %
 % The quotient set of a set S is the set of all equivalence sets of
@@ -230,9 +230,9 @@ preimage(X, X).
 % A quotient set of S is normally notated as $S/~$, where ~ is the
 % equivalence relation.
 %
-% @param S An ordered set.
-% @param EqR A binary equivalence relation.
-% @param QuotS The quotient set of =S=. An ordered set.
+% @arg S An ordered set.
+% @arg EqR A binary equivalence relation.
+% @arg QuotS The quotient set of =S=. An ordered set.
 
 quotient_set(S, EqR, QuotS):-
   setoff(
@@ -244,10 +244,10 @@ quotient_set(S, EqR, QuotS):-
     QuotS
   ).
 
-%% reflextive(R) is semidet.
+%! reflextive(R) is semidet.
 % Succeeds if the given binary relation is reflexive.
 %
-% @param R A binary relation.
+% @arg R A binary relation.
 
 reflexive(R):-
   forall(
@@ -258,7 +258,7 @@ reflexive(R):-
 reflexive_closure(S, NewS):-
   closure(S, (member(X-_, S) ; member(_-X, S)), X-X, NewS).
 
-%% surjective(+F:bourbaki) is semidet.
+%! surjective(+F:bourbaki) is semidet.
 % Succeeds if the function defined by the given Bourbaki definition is
 % surjective.
 %
@@ -269,16 +269,16 @@ reflexive_closure(S, NewS):-
 % Instead we use the following theorem: A function f is surjective iff
 % the codomain of f is the image of f's domain (under f).
 %
-% @param F A Bourbaki function definition.
+% @arg F A Bourbaki function definition.
 
 surjective(F):-
   codomain(F, X),
   image(F, X).
 
-%% symmetric(R) is semidet.
+%! symmetric(R) is semidet.
 % Succeeds if the given relation is symmetric.
 %
-% @param R A binary relation.
+% @arg R A binary relation.
 
 symmetric(R):-
   forall(
@@ -289,10 +289,10 @@ symmetric(R):-
 symmetric_closure(S, NewS):-
   closure(S, pair(S, X-Y), Y-X, NewS).
 
-%% transitive(+R:binary_relation) is semidet.
+%! transitive(+R:binary_relation) is semidet.
 % Suceeds if the given binary relation is transitive.
 %
-% @param R A binary relation.
+% @arg R A binary relation.
 
 transitive(R):-
   forall(

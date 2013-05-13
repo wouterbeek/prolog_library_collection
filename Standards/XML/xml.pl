@@ -30,7 +30,7 @@ Markup Language).
 
 
 
----+ Design goals
+# Design goals
 
 * Straightforwardly usable over the Internet.
 * Supporting a wide variety of applications.
@@ -45,7 +45,7 @@ Markup Language).
 
 
 
----+ Concepts
+# Concepts
 
   * *|Document element|*
     The single element in an XML document that has no parent element.
@@ -76,13 +76,13 @@ document ::= prolog element Misc*
 
 
 
----+ Logical structure
+# Logical structure
 
 The template that entitles the elements (and their order)
 to be included in an XML document.
 
 
----++ Character references
+## Character references
 
 Refer to specific characters in the ISO/IEC 10646 character set.
 
@@ -93,32 +93,32 @@ CharRef ::= '&#' [0-9]+ ';'	| '&#x' [0-9a-fA-F]+ ';'
 Must match the production for =Char=.
 
 
----++ Comments
+## Comments
 
 *Comments* may appear outside other markup and in some locations of the DTD.
 
 
----++ Declarations
+## Declarations
 
 
----++ Document type declarations
+## Document type declarations
 
----+++ External subset
+### External subset
 
 A pointer to a special kind of _|external entity|_ containing
 _|markup declarations|_.
 
----+++ Internal subset
+### Internal subset
 
 Direct inclusion of _|markup declarations|_ in an XML document.
 
 
----++ Markup declaration
+## Markup declaration
 
 *|External markup declaration|*: A _|markup declaration|_ that occurs in the
 _|external subject|_ or in an (internal or external) _|parameter entity|_.
 
----+++ Attribute-list declaration
+### Attribute-list declaration
 
 Attribute declaration:
 ==
@@ -202,7 +202,7 @@ Examples:
 ==
 
 
----+++ Element type declaration
+### Element type declaration
 
 Element type declarations constrain the element's content and attribute
 values.
@@ -236,16 +236,16 @@ Examples:
 ==
 
 
----+++ Entity declaration
+### Entity declaration
 
----+++ Notation declaration
+### Notation declaration
 
 
----++ XML declaration
+## XML declaration
 
 Specifying version and optionally encoding.
 
----+++ Standalone declaration
+### Standalone declaration
 
 Optionally specified as part of the _|XML declaration|_.
 
@@ -255,7 +255,7 @@ Nota that _|external entities|_ are not considered in the
 standalone declaration.
 
 
----+++ Mixed content
+### Mixed content
 
 An element has *|mixed content|* if it may contain character data
 and child elements. _|In this case the order and the number of occurrences
@@ -274,7 +274,7 @@ Examples:
 ==
 
 
----++ Processing instructions
+## Processing instructions
 
 *|Processing instructions|* must be passed through to applications.
 
@@ -283,14 +283,14 @@ Examples:
 ---
 
 
----+ Physical structure
+# Physical structure
 
 The actual data used in an XML document.
 
 
----++ Entities
+## Entities
 
----+++ Parsed entities / text entities
+### Parsed entities / text entities
 
 *|Parsed entities|* contain text data that becomes part of the XML document
 after processing.
@@ -417,7 +417,7 @@ The following _text_ is *markup*:
 
 ---+++++ Name
 
----++ Names
+## Names
 
 *Nmtoken*: Any mixture of name characters.
 
@@ -518,13 +518,13 @@ choice   ::= '(' S? cp ( S? '|' S? cp )+ S? ')'
 seq      ::= '(' S? cp ( S? ',' S? cp )* S? ')'
 ==
 
----+++ Unparsed entities
+### Unparsed entities
 
 A container whose content may be anything but XML text.
 
----+++ Predefined entities
+### Predefined entities
 
----+++ Internal entities
+### Internal entities
 
 An entity in which no separate physical storage exists.
 The content is provided in its declaration.
@@ -534,7 +534,7 @@ Example:
 <! ENTITY Publisher1 "McGrawHill Publishing Company.">
 ==
 
----+++ External entities
+### External entities
 
 Refers to a storage unit.
 
@@ -547,7 +547,7 @@ Example:
 
 
 
----++ Conditional sections
+## Conditional sections
 
 Portions of the Document Type Declaration external subset or of external
 parameter entities that are included/excluded from the logical
@@ -590,7 +590,7 @@ Another example:
 ]]>
 ==
 
----++ Entity
+## Entity
 
   * *|Parsed entity|*
     The contents of a parsed entity (called 'replacement text') are an
@@ -610,7 +610,7 @@ General and parameter entities:
   * are recognized in different contexts
   * occur in different namespaces
 
----+++ Entity declaration
+### Entity declaration
 
 ==
 EntityDecl ::= GEDecl | PEDecl
@@ -623,7 +623,7 @@ PEDef      ::= EntityValue | ExternalID
 In case the same name is used multiple times, all but the first encountered
 entity is dicarded.
 
----+++ Entity reference
+### Entity reference
 
 Refers to the contents of a named entity.
 
@@ -647,7 +647,7 @@ EntityRef   ::= '&' Name ';'
 PEReference ::= '%' Name ';'
 ==
 
----+++ External entity reference
+### External entity reference
 
 Grammar:
 ==
@@ -665,7 +665,7 @@ The external file starts with a *|text declaration|*.
 This is like an XML declaration, but with required encoding declaration,
 optional version information, and absent standalone declaration.
 
----+++ External unparsed entity [NOT OFTEN USED?]
+### External unparsed entity [NOT OFTEN USED?]
 
 Non-XML formatted content stored in external files.
 
@@ -697,7 +697,7 @@ Example:
 <image source="turing_getting_off_bus"/>
 ==
 
----+++ Internal entity
+### Internal entity
 
 An entity with an =EntityValue=.
 
@@ -708,7 +708,7 @@ Example:
 <!ENTITY Pub-Status "This is a pre-release of the specification.">
 ==
 
----++ Entity reference
+## Entity reference
 
 A way of escaping characters.
 
@@ -719,7 +719,7 @@ Predefined entity references:
   * &quot;
   * &apos;
 
----++ Language identification
+## Language identification
 
 Attribute =|xml:lang|= specifies the natural or formal language used in
 the contents and attribute values of the element for which the attribute
@@ -736,7 +736,7 @@ and notes in English:
 <!ATTLIST note   xml:lang CDATA 'en'>
 ==
 
----++ Parameter entity
+## Parameter entity
 
 Multiple elements may (partially) share the same attributes.
 
@@ -756,7 +756,7 @@ Example of parameter entity references, using a parameter entity:
 
 Parameter entities can be redefined in the internal DTD subset of a document.
 
----+++ external parameter entity
+### external parameter entity
 
 Parameter entity references to external parameter entities cause the contents
 of external DTDs to be inserted.
@@ -767,11 +767,11 @@ Example:
 %names;
 ==
 
----++ PCDATA
+## PCDATA
 
 Parsed character data.
 
----++ Prolog
+## Prolog
 
 An XML document must begin with an XML declaration specifying the XML version.
 
@@ -820,7 +820,7 @@ that will be included in the XML document.
 
 *|Parameter entities|* provide replacement text for excluse use inside a DTD.
 
----++ External subset
+## External subset
 
 ==
 extSubset     ::= TextDecl? extSubsetDecl
@@ -835,11 +835,11 @@ in a parameter entity. [???]
 SDDecl ::= S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
 ==
 
----+ Text
+# Text
 
 *Text*: A sequence of characters that may represent markup or character data.
 
----+ White space
+# White space
 
 ==
 S ::= (#x20 | #x9 | #xD | #xA)+   // Any consecutive number of spaces,
@@ -847,7 +847,7 @@ S ::= (#x20 | #x9 | #xD | #xA)+   // Any consecutive number of spaces,
                                   // horizontal tabs.
 ==
 
----++ White space preservation
+## White space preservation
 
 Attribute =|xml:space|= indicates that applications should preserve white
 space occurring in the element for which the attribute is defined.
@@ -935,10 +935,10 @@ init:-
 
 
 
-%% dom_to_xml(+DTD_Name, +Style_Name, +DOM, -XML) is det.
+%! dom_to_xml(+DTD_Name, +Style_Name, +DOM, -XML) is det.
 % Translates DOM to XML, applying DTD checks and Style decoration.
 %
-% @param DTD_Name The atomic name of a DTD file. File locations that
+% @arg DTD_Name The atomic name of a DTD file. File locations that
 %   contain DTD files must be asserted using
 %   =|file_search_path/3|=.
 
@@ -962,12 +962,12 @@ dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   delete_file(TemporaryFile),
   free_dtd(DTD).
 
-%% dtd_file(+Name:atom, -File:atom) is det.
+%! dtd_file(+Name:atom, -File:atom) is det.
 % Returns the first DTD file with the given name or throws an
 % existence error.
 %
-% @param Name The atomic name of a DTD file.
-% @param File The atomic name of the path of a DTD file.
+% @arg Name The atomic name of a DTD file.
+% @arg File The atomic name of the path of a DTD file.
 
 dtd_file(Name, File):-
   % By setting option =solutions= to value =all= we backtrack over
@@ -980,7 +980,7 @@ dtd_file(Name, File):-
     )
   ).
 
-%% file_to_xml(+File:atom, -XML:dom) is det.
+%! file_to_xml(+File:atom, -XML:dom) is det.
 % Reads the XML from the given file and return the DOM.
 
 file_to_xml(File, XML):-
@@ -990,7 +990,7 @@ file_to_xml(File, XML):-
     close(Stream)
   ).
 
-%% stream_to_xml(+Stream:stream, -XML:dom) is det.
+%! stream_to_xml(+Stream:stream, -XML:dom) is det.
 % Reads the XML DOM from the given stream.
 
 stream_to_xml(Stream, XML):-
@@ -1013,7 +1013,7 @@ stylesheet_pi(Type, CSS_FileSpecification, pi(PI)):-
   http_absolute_location(CSS_FileSpecification, CSS_File, []),
   format(atom(PI), 'xml-stylesheet type="~w" href="~w"', [Type, CSS_File]).
 
-%% uri_to_xml(+URI:uri, -XML:dom) is det.
+%! uri_to_xml(+URI:uri, -XML:dom) is det.
 % Returns the HTML Document Object Model (DOM)
 % for the website with the given URI.
 
@@ -1027,12 +1027,12 @@ uri_to_xml(URI, XML):-
     close(Stream)
   ).
 
-%% xml_declaration(+Version:version, +Standalone:yes_no)//
+%! xml_declaration(+Version:version, +Standalone:yes_no)//
 % DCG for XML declarations.
 % Based on the XML version and whether the XML is a standalone file.
 %
-% @param Version A version of XML.
-% @param Standalone Whether the XML file is standalone or not.
+% @arg Version A version of XML.
+% @arg Standalone Whether the XML file is standalone or not.
 %        Possible values:
 %        1. =yes=
 %        2. =no=
@@ -1050,7 +1050,7 @@ xml_declaration(version(Major/Minor/_Variant, _Year), Standalone) -->
   [StandaloneDeclaration],
   ['?>'].
 
-%% xml_doctype(+Stream, -DocType) is semidet.
+%! xml_doctype(+Stream, -DocType) is semidet.
 % Parse a _repositional_ stream and get the  name of the first XML
 % element *and* demand that this   element defines XML namespaces.
 % Fails if the document is illegal XML before the first element.

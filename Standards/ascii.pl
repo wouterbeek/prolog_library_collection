@@ -618,12 +618,12 @@ letter(O1, [X | R0]-R0, C1-C0):-
   letter_uppercase(O1, [Y | R0]-R0, C1-C0),
   X is Y + 32.
 
-%% letter(
-%%   +Letter:oneof([a-z]),
-%%   +Options:list(nvpair),
-%%   ?R:diffpair,
-%%   ?C:diffpair
-%% ) is nondet.
+%! letter(
+%!   +Letter:oneof([a-z]),
+%!   +Options:list(nvpair),
+%!   ?R:diffpair,
+%!   ?C:diffpair
+%! ) is nondet.
 % This is the generic method for letters. It uses the option =|case/1|= to
 % determine which uppercase and/or lowercase variants of a letter are to be
 % read and/or written.

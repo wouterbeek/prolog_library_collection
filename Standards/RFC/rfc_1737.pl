@@ -4,7 +4,7 @@
 
 The specification of a minimal set of requirements for URNs.
 
----+ URC, URL, URN
+# URC, URL, URN
 
   * *|URC, Uniform Resource Characteristics|*
     Include _|meta-information|_ of a resource.
@@ -16,22 +16,22 @@ The specification of a minimal set of requirements for URNs.
   * *|URN, Uniform Resource Name|*
     Used for _identification_ of a resource or unit of information.
 
----+ On the definition of _'resource'_
+# On the definition of _'resource'_
 
 "In order to build applications in the most general case, the user must be
 able to discover and identify the information, objects, or what we will call
 in this architecture resources, on which the application is to operate.
 Beyond this statement, the URI architecture does not define 'resource.'"
 
----+ URN
+# URN
 
 "The purpose or function of a URN is to provide a globally unique,
 persistent identifier used for recognition, for access to
 characteristics of the resource or for access to the resource itself."
 
----+ Requirements for URN
+# Requirements for URN
 
----++ Requirements for URN fucntionality
+## Requirements for URN fucntionality
 
   * *|Global scope|*
     A URN identifies the same resoruce everywhere.
@@ -55,7 +55,7 @@ characteristics of the resource or for access to the resource itself."
     If a URN has a corresponding URL, then there should be a feasible
     mechanism for translating from URN to URL.
 
----++ Requirements for URN encoding
+## Requirements for URN encoding
 
   * *|Single encoding|*
     The encoding for human presentation is the same as the encoding for

@@ -77,7 +77,7 @@ sparql_output_web(Query, Markup):-
   default_remote(Remote),
   sparql_output_web(Remote, Query, Markup).
 
-%% sparql_output_web(+Remote:atom, +Query:atom, -Markup:list) is det.
+%! sparql_output_web(+Remote:atom, +Query:atom, -Markup:list) is det.
 % Returns markup for the given SPARQL query.
 
 sparql_output_web(Remote, Query, Markup):-
@@ -87,7 +87,7 @@ sparql_output_web(Remote, Query, Markup):-
   CPU is CPU_After - CPU_Before,
   write_table(Results, [cputime(CPU), variables(VarNames)], Markup).
 
-%% write_statistics(+Options:list(nvpairs), -Markup:dom) is det.
+%! write_statistics(+Options:list(nvpairs), -Markup:dom) is det.
 % Returns the markup element representing the statistics of a SPARQL query.
 
 write_statistics(Options, element(p, [], [Message])):-
@@ -99,7 +99,7 @@ write_statistics(Options, element(p, [], [Message])):-
     [CPU, Count]
   ).
 
-%% write_table(+Rows:list, +Options:list(nvpair), -Markup:dom) is det.
+%! write_table(+Rows:list, +Options:list(nvpair), -Markup:dom) is det.
 % Returns the markup table for the given rows returned as the reply for a
 % SPARQL query.
 

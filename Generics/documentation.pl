@@ -24,7 +24,7 @@ Methods for generating plDoc formatted code documentation in LaTeX format.
 
 
 
-%% clear_for_export is det.
+%! clear_for_export is det.
 % Removes the latex files from previous exports.
 
 clear_for_export:-
@@ -41,7 +41,7 @@ clear_for_export:-
     ]
   ).
 
-%% export_all is det.
+%! export_all is det.
 % Exports all plDoc to LaTeX files.
 % Writes the include statement to each TeX file in file =|index.tex|=.
 
@@ -75,22 +75,22 @@ export_directory(Directory):-
   %absolute_file_name(project('Documentation'), ExportDirectory),
   %run_in_working_directory(run_script(compile, hide), ExportDirectory).
 
-%% export_file(+File:atom) is det.
+%! export_file(+File:atom) is det.
 % Exports the given Prolog file to LaTeX.
 %
-% @param File The atomic absolute file name of a Prolog file.
+% @arg File The atomic absolute file name of a Prolog file.
 
 export_file(File):-
   % Do not generate a summary file, generate as a standalone file.
   export_file(File, fail, true).
 
-%% export_file(+File:atom, +ShowSummary:boolean, +StandAlone:boolean) is det.
+%! export_file(+File:atom, +ShowSummary:boolean, +StandAlone:boolean) is det.
 % Export the given Prolog file to LaTeX.
 %
-% @param File The atomic absolute file name of a Prolog file.
-% @param ShowSummary Whether an additional LaTeX summary file is generated
+% @arg File The atomic absolute file name of a Prolog file.
+% @arg ShowSummary Whether an additional LaTeX summary file is generated
 %        or not.
-% @param StandAlone A boolean indicating whether this LaTeX file is part of
+% @arg StandAlone A boolean indicating whether this LaTeX file is part of
 %        a larger document or not.
 
 export_file(File, ShowSummary, StandAlone):-
@@ -128,19 +128,19 @@ export_file(File, ShowSummary, StandAlone):-
 
   close(MainStream).
 
-%% export_file(
-%%   +File:atom,
-%%   +IndexStream:stream,
-%%   +ShowSummary:boolean
-%%   +StandAlone:boolean
-%% ) is det.
+%! export_file(
+%!   +File:atom,
+%!   +IndexStream:stream,
+%!   +ShowSummary:boolean
+%!   +StandAlone:boolean
+%! ) is det.
 % Exports the given plDoc file to a TeX file and a summary TeX file.
 %
-% @param File The file whose plDoc is exported to LaTeX.
-% @param IndexStream The file whose plDoc is exported to LaTeX.
-% @param ShowSummary Whether an additional LaTeX summary file is generated
+% @arg File The file whose plDoc is exported to LaTeX.
+% @arg IndexStream The file whose plDoc is exported to LaTeX.
+% @arg ShowSummary Whether an additional LaTeX summary file is generated
 %        or not.
-% @param StandAlone A boolean indicating whether this LaTeX file is part of
+% @arg StandAlone A boolean indicating whether this LaTeX file is part of
 %        a larger document or not.
 
 export_file(File, IndexStream, ShowSummary, StandAlone):-
@@ -153,10 +153,10 @@ export_files(Files):-
   clear_for_export,
   maplist(export_file, Files).
 
-%% file_to_name(File, Name) is det.
+%! file_to_name(File, Name) is det.
 % Breaks the given file name down to its local name.
-% @param File
-% @param Name
+% @arg File
+% @arg Name
 % @tbd Remove the DynaLearn directory reference.
 
 file_to_name(File, Name):-
@@ -170,10 +170,10 @@ file_to_name(File, Name):-
     file_name_type(Name, text, Name__)
   ).
 
-%% export_module(+Module:atom) is det.
+%! export_module(+Module:atom) is det.
 % Export the module with the given name to LaTeX.
 %
-% @param The atomic name of a module.
+% @arg The atomic name of a module.
 
 export_module(Module):-
   module_property(Module, file(File)),

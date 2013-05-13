@@ -58,13 +58,13 @@ load_dataset(Dataset):-
   rdf_global_id(_Namespace:LocalName, Dataset),
   rdf_load(File, [graph(LocalName)]).
 
-%% rdf_link(
-%%   ?Subject:oneof([bnode,uri]),
-%%   ?Predicate:uri,
-%%   ?Object:oneof([bnode,literal,uri]),
-%%   ?FromGraph:atom,
-%%   ?ToGraph:atom
-%% ) is nondet.
+%! rdf_link(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   ?FromGraph:atom,
+%!   ?ToGraph:atom
+%! ) is nondet.
 % An RDF link is an RDF triple whose subject and object are described in
 % different datasets.
 
@@ -81,8 +81,8 @@ rdf_link(Subject, Predicate, Object, FromGraph, ToGraph):-
   )),
   FromGraph \== ToGraph.
 
-%% rdf_linkset(+Triples:list(rdf_triple), ?FromGraph:atom, ?ToGraph:atom) is semidet.
-%% rdf_linkset(-Triples:list(rdf_triple), +FromGraph:atom, +ToGraph:atom) is det
+%! rdf_linkset(+Triples:list(rdf_triple), ?FromGraph:atom, ?ToGraph:atom) is semidet.
+%! rdf_linkset(-Triples:list(rdf_triple), +FromGraph:atom, +ToGraph:atom) is det
 % An RDF linkset is a collection of RDF links between the same two datasets.
 
 rdf_linkset(Triples, FromGraph, ToGraph):-
@@ -160,7 +160,7 @@ void_assert_statistics(Dataset, DatasetGraph, VoID_Graph):-
     VoID_Graph
   ).
 
-%% void_load_library(+VoID_File:atom, -VoID_Graph:atom) is det.
+%! void_load_library(+VoID_File:atom, -VoID_Graph:atom) is det.
 % Loads a VoID file and all the datasets defined in it.
 % Also calculates VoID statistics for all datasets and asserts those to
 % the VoID file.
