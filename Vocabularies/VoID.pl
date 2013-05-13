@@ -225,7 +225,7 @@ void_save_library(VoID_Graph):-
     (
       dataset(VoID_Graph, _Dataset, DatasetPath, DatasetGraph),
       thread_create(
-        rdf_serial:rdf_save2(DatasetGraph, 'Turtle', DatasetPath),
+        rdf_save2(DatasetPath, [format(turtle), graph(DatasetGraph)]),
         ThreadId,
         [detached(false)]
       )
@@ -236,7 +236,7 @@ void_save_library(VoID_Graph):-
     member(ThreadId, ThreadIds),
     thread_join(ThreadId, true)
   ),
-  rdf_save2(VoID_Graph, 'Turtle', _VoID_File).
+  rdf_save2(_VoID_File, [format(turtle), graph(VoID_Graph)]).
 
 void_update_library(VoID_Graph):-
   set_prolog_stack(global, limit(2*10**9)),

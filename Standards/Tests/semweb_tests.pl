@@ -213,7 +213,7 @@ run_test0(Test, 'PASS'):-
   % The premise graph.
   rdf(Test, test:premiseDocument, Premise_URI),
   uri_to_file(Premise_URI, Premise_File),
-  rdf_load2(Premise_File, premise, [base_uri(Premise_URI)]),
+  rdf_load2(Premise_File, [base_uri(Premise_URI), graph(premise)]),
   
   % Run materialization.
   rdf_materialize(premise),
@@ -229,7 +229,7 @@ run_test0(Test, 'PASS'):-
     rdfs_inconsistent(premise)
   ;
     uri_to_file(Conclusion_URI, Conclusion_File),
-    rdf_load2(Conclusion_File, conclusion, [base_uri(Conclusion_URI)]),
+    rdf_load2(Conclusion_File, [base_uri(Conclusion_URI), graph(conclusion)]),
     % The materialized premise graph must be equivalent to the
     % conclusion graph.
     rdf_graph_equivalence(premise, conclusion)

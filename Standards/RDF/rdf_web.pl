@@ -116,7 +116,7 @@ rdf_namespaces_web0(Namespaces, Table):-
 % Saves the RDF graph with the given name from the Web interface.
 
 rdf_save_web(Graph, Markup):-
-  rdf_save2(Graph, SerializationFormat, File),
+  rdf_save2(File, [format(Format), graph(Graph)]),
   !,
   Markup =
       [element(p, [], [
@@ -125,7 +125,7 @@ rdf_save_web(Graph, Markup):-
         ' was saved to file ',
         File,
         'using serialization format ',
-        SerializationFormat,
+        Format,
         '.'
       ])].
 rdf_save_web(Graph, Markup):-
