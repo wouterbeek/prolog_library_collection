@@ -26,12 +26,17 @@ init:-
   rdf_global_id(w3c:'TR/2012/REC-xmlschema11-1-20120405/', This),
   rdfs_assert_individual(This, w3c:'Recommendation', Graph),
   rdf_assert_datatype(This, w3c:year, gYear, 2012, Graph),
-  rdf_assert_literal(This, std:title, 'XML Schema Definition Language (XSD) 1.1 Part 1: Structures', Graph),
+  rdf_assert_literal(
+    This,
+    std:title,
+    'XML Schema Definition Language (XSD) 1.1 Part 1: Structures',
+    Graph
+  ),
   rdf_assert_literal(This, w3c:author, 'Shudi (Sandy) Gao 高殊镝', Graph),
   rdf_assert_literal(This, w3c:author, 'C. M. Sperberg-McQueen', Graph),
   rdf_assert_literal(This, w3c:author, 'Henry S. Thompson', Graph),
-
-  rdf_assert(This, w3c:depends_on, w3c:'???', Graph), % XML Schema Definition Language 1.1 Part 2: Datatypes
+  % XML Schema Definition Language 1.1 Part 2: Datatypes
+  rdf_assert(This, w3c:depends_on, w3c:'???', Graph), 
   true.
 :- init.
 

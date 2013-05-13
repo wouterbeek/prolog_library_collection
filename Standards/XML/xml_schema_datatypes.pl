@@ -12,16 +12,71 @@
 
 /** <module> XML Schema
 
-Standards support for XML Schema.
+XML Schema 2: Datatypes (Second Edition)
+
+
+---+ Datatype
+
+A triple consisting of:
+  * *|Value space|*
+    A set of distinct values.
+  * *|Lexical space|*
+    A set of lexical representations.
+  * *Facets*
+    Characterizing properties of the value space, individual values, or the
+    lexical space.
+
+---+ Value space
+
+The set of values for a given datatype.
+
+Each value in the value space of a datatype is denoted by at least one
+literal in the lexical space of the same datatype.
+
+Value space definitions:
+  * *Intensional*: axiomatically from fundamental notions.
+  * *Extensional*: enumeration.
+  * *Restriction* of the value space of an already defined datatype.
+  * * Combination* of value from different value spaces, according to some
+    construction procedure (XMLS list, XMLS union).
+
+---+ Lexical space
+
+The set of valid literals for a datatype.
+
+Characteristics:
+  * Interoperability: minimum number of literals for the same value.
+  * Readability: non-binary; text.
+  * Parsing and serialization: taken from common languages and libraries.
+
+---++ Canonical lexical representation
+
+A subset of the lexical space for which there is a one-to-one mapping to
+the value space.
+
+---+ Facet
+
+A single defining aspect of a value space.
+
+---++ Fundamental facet
+
+---++ Constraining facet
+
 
 @author Wouter Beek
-@version 2013/01, 2013/03-2013/04
+@compat XML Schema 2: Datatypes (Second Edition)
+@see http://www.w3.org/TR/2004/REC-xmlschema-2-20041028/
+@tbd
+@version 2013/01, 2013/03-2013/05
 */
 
 :- use_module(generics(atom_ext)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_namespace)).
 :- use_module(rdf(rdf_read)).
+:- use_module(rdfs(rdfs_build)).
+:- use_module(xml(xml_namespace)).
 
 :- rdf_meta(xmls_convert_datatype(r,+,r,-)).
 :- rdf_meta(xmls_datatype(?,r)).
@@ -29,6 +84,30 @@ Standards support for XML Schema.
 :- rdf_meta(xmls_datatype(?,?,r,?)).
 :- rdf_meta(xmls_datatype0(?,?,r,?)).
 :- rdf_meta(xmls_datatype_check(r,+)).
+
+:- xml_register_namespace(iso, 'http://www.iso.org/').
+:- xml_register_namespace(stdc, 'http://www.example.org/standards/').
+:- xml_register_namespace(w3c, 'http://www.w3.org/').
+
+init:-
+  Graph = w3c,
+  rdf_global_id(w3c:'TR/2004/REC-xmlschema-2-20041028/', This),
+  rdfs_assert_individual(This, w3c:'Recommendation', Graph),
+  rdf_assert_datatype(This, w3c:year, gYear, 2004, Graph),
+  rdf_assert_literal(
+    This,
+    std:title,
+    'XML Schema Part 2: Datatypes Second Edition',
+    Graph
+  ),
+  rdf_assert_literal(This, w3c:author, 'Paul V. Biron', Graph),
+  rdf_assert_literal(This, w3c:author, 'Ashok Malhotra', Graph),
+  % Language-independent datatypes.
+  rdf_assert(This, w3c:mentions, iso:'11404', Graph),
+  % SQL datatypes.
+  rdf_assert(This, w3c:mentions, std:'SQL', Graph),
+  true.
+:- init.
 
 
 

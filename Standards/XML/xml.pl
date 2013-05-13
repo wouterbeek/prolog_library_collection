@@ -28,9 +28,97 @@
 The XML (Extensible Markup Language) is a subset of SGML (Standard Generalized
 Markup Language).
 
+
+
+---+ Design goals
+
+* Straightforwardly usable over the Internet.
+* Supporting a wide variety of applications.
+* Compatible with SGML.
+* Easy to write programs that process XML documents.
+* Minimum number of optional features.
+* XML documents should be human-legible and reasonably clear.
+* "The XML design should be prepared quickly." [???]
+* The design of XML shall be formal and concise.
+* XML documents shall be easy to create.
+* Terseness is of minimal importance.
+
+
+
 ---+ Concepts
 
----++ Attributes
+  * *|Document element|*
+    The single element in an XML document that has no parent element.
+  * *|Logical structure|*
+    The declarations, elements, comments, characters references, and
+    processing instructions of an XML document.
+  * *|Physical structure|*
+    The entities / units that compose and XML document.
+  * *Root*
+    Synonym of _|document element|_.
+  * *Validity*
+    The property that an XML document complies with the constraints
+    expressed in the document type declaration is references.
+  * *Well-formedness*
+    The property that an XML document matches the productions in the XML
+    specification, meets all the well-formedness constraints, and contains
+    only parsed entities that are well-formed.
+  * *|XML document|*
+    Can be split up in logical and physical structure.
+  * *|XML processor|*
+    A software module that can access the content and structure of
+    XML documents.
+
+XML document grammar rule:
+==
+document ::= prolog element Misc*
+==
+
+
+
+---+ Logical structure
+
+The template that entitles the elements (and their order)
+to be included in an XML document.
+
+
+---++ Character references
+
+Refer to specific characters in the ISO/IEC 10646 character set.
+
+==
+CharRef ::= '&#' [0-9]+ ';'	| '&#x' [0-9a-fA-F]+ ';'
+==
+
+Must match the production for =Char=.
+
+
+---++ Comments
+
+*Comments* may appear outside other markup and in some locations of the DTD.
+
+
+---++ Declarations
+
+
+---++ Document type declarations
+
+---+++ External subset
+
+A pointer to a special kind of _|external entity|_ containing
+_|markup declarations|_.
+
+---+++ Internal subset
+
+Direct inclusion of _|markup declarations|_ in an XML document.
+
+
+---++ Markup declaration
+
+*|External markup declaration|*: A _|markup declaration|_ that occurs in the
+_|external subject|_ or in an (internal or external) _|parameter entity|_.
+
+---+++ Attribute-list declaration
 
 Attribute declaration:
 ==
@@ -38,9 +126,8 @@ AttlistDecl ::= '<!ATTLIST' S Name AttDef* S? '>'
 AttDef      ::= S Name S AttType S DefaultDecl
 ==
 
----+++ Attribute types
+---++++ Attribute type
 
-Attribute type:
 ==
 AttType       ::= StringType | TokenizedType | EnumeratedType
 StringType    ::= 'CDATA'
@@ -66,7 +153,8 @@ Example of ID and IDREF attribute types:
 <!ATTLIST assignment  project_id          IDREF #REQUIRED>
 ==
 
----+++ Enumerated attribute types
+
+---++++ Enumerated attribute types
 
 Enumerated attribute types:
 ==
@@ -84,7 +172,8 @@ Example of attribute type NOTATION:
 <!ATTLIST  image type NOTATION (gif | tiff | jpeg | png) #REQUIRED>
 ==
 
----+++ Attribute defaults
+
+---++++ Attribute default values
 
 Attribute defaults:
   * =#FIXED=
@@ -112,46 +201,113 @@ Examples:
           method  CDATA   #FIXED "POST">
 ==
 
----+++ Attribute value normalization
 
-Algorithm:
-  1. All line breaks are normalized to #xA.
-  1. Begin with a normalized value consisting of the empty string.
-  1. For each character, entity reference, or character reference in the
-     unnormalized attribute value, do:
-     1. For a character reference, append the referenced character to the
-        normalized value.
-     1. For an entity reference, recursively apply step 3 to the
-        replacement text of the entity.
-     1. For a white space character (#x20, #xD, #xA, #x9), append a
-        space character (#x20) to the normalized value.
-     1. For another character, append the character to the normalized value.
-  1. If the attribute type is not CDATA, then discard leading and trailing
-     spaces, and replace sequences of spaces by a single space character.
+---+++ Element type declaration
 
----++ CDATA
+Element type declarations constrain the element's content and attribute
+values.
 
-Anywhere character data can occur, CDATA can be used to escape blocks of
-text containing characters which would otherwise be recognized as markup.
+An element must not be declared more than once.
 
 ==
-CDSect  ::= CDStart CData CDEnd
-CDStart ::= '<![CDATA['
-CData   ::= (Char* - (Char* ']]>' Char*))
-CDEnd   ::= ']]>'
+elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
+contentspec ::= 'EMPTY' | 'ANY' | Mixed | children 
 ==
 
-Since the use of entity references to encode smaller than signs and
-ampersands in lengthy XML samples can be tedious, these can be enclosed
-as CDATA instead.
+Examples:
+==
+<!ELEMENT br EMPTY>
+<!ELEMENT p (#PCDATA|emph)* >
+<!ELEMENT %name.para; %content.para; >
+<!ELEMENT container ANY>
+==
 
-Start tag: <![CDATA[
+---++++ Element content
 
-End tag: ]]>
+An element has *|element content|* if its content must only contain child
+elements and no character data. The constrain on the element's content is
+then a *|content model|*.
 
----++ Characters
+Examples:
+==
+<!ELEMENT spec (front, body, back?)>
+<!ELEMENT div1 (head, (p | list | note)*, div2*)>
+<!ELEMENT dictionary-body (%div.mix; | %dict.mix;)*>
+==
 
-*Character*: An atomic unit of text (ISO 10646).
+
+---+++ Entity declaration
+
+---+++ Notation declaration
+
+
+---++ XML declaration
+
+Specifying version and optionally encoding.
+
+---+++ Standalone declaration
+
+Optionally specified as part of the _|XML declaration|_.
+
+Signals whether there are external declarations.
+
+Nota that _|external entities|_ are not considered in the
+standalone declaration.
+
+
+---+++ Mixed content
+
+An element has *|mixed content|* if it may contain character data
+and child elements. _|In this case the order and the number of occurrences
+of child elements cannot be constrained.|_
+
+==
+Mixed ::= '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' |
+          '(' S? '#PCDATA' S? ')'
+==
+
+Examples:
+==
+<!ELEMENT p (#PCDATA|a|ul|b|i|em)*>
+<!ELEMENT p (#PCDATA | %font; | %phrase; | %special; | %form;)* >
+<!ELEMENT b (#PCDATA)>
+==
+
+
+---++ Processing instructions
+
+*|Processing instructions|* must be passed through to applications.
+
+
+
+---
+
+
+---+ Physical structure
+
+The actual data used in an XML document.
+
+
+---++ Entities
+
+---+++ Parsed entities / text entities
+
+*|Parsed entities|* contain text data that becomes part of the XML document
+after processing.
+
+---++++ Text
+
+*Text* is any sequence of characters.
+
+---+++++ End-of-line handling
+
+Normalize all line endings
+(i.e. occurrences and/or combinations of #xD (carriage return) and #xA)
+to #xA / line feeds.
+
+---+++++ Character
+
+A *character* is an atomic unit of text specified by ISO/IEC 10646.
 
 ==
 Char ::= #x9 |   // Horizontal tab
@@ -175,9 +331,28 @@ permanently undefined Unicode characters):
 [#x10FFFE-#x10FFFF].
 ==
 
----++ Character data
+---+++++ CDATA
 
-*|Character data|*: Text that is not markup.
+*CDATA* may occur anywhere _|character data|_ may occur.
+In CDATA the less than sign and ampersand need not be escaped.
+
+Anywhere character data can occur, CDATA can be used to escape blocks of
+text containing characters which would otherwise be recognized as markup.
+
+Delimiters:
+  * Start tag: <![CDATA[
+  * End tag: ]]>
+
+==
+CDSect  ::= CDStart CData CDEnd
+CDStart ::= '<![CDATA['
+CData   ::= (Char* - (Char* ']]>' Char*))
+CDEnd   ::= ']]>'
+==
+
+---+++++ Character data
+
+_Text_ that is not _markup_ is *|character data|*.
 
 ==
 CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
@@ -193,24 +368,184 @@ CDATA section. Use numberic character reference or string =&gt;=.
 Attribute values can contain single and double quotes, using =&apos;= and
 =&quot;=.
 
----++ Character references
-
-Refer to specific characters in the ISO/IEC 10646 character set.
-
-==
-CharRef ::= '&#' [0-9]+ ';'	| '&#x' [0-9a-fA-F]+ ';'   // Decimal and
-                                                      // hexadecimal notation.
-==
-
-Must match the production for =Char=.
-
----++ Comments
+---+++++ Comments
 
 ==
 Comment ::= '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
 ==
 
 Compatibility: Double hyphen must not occur in comments.
+
+---+++++ Literal data
+
+*|Literal data|* is any quoted string not containing the quotation mark that
+is used as the delimiter for that string.
+
+*|Literal data|*: Any quoted string not containing the quotation mark that
+is used as the delimiter for that string.
+
+Used for:
+  * Content of internal entities. [???]
+  * Values of attributes.
+  * External identifiers. [???]
+
+==
+EntityValue   ::= '"' ([^%&"] | PEReference | Reference)* '"' |
+                  "'" ([^%&'] | PEReference | Reference)* "'"
+AttValue      ::= '"' ([^<&"] | Reference)* '"' |
+                  "'" ([^<&'] | Reference)* "'"
+SystemLiteral ::= ('"' [^"]* '"') | ("'" [^']* "'")
+PubidLiteral  ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
+PubidChar     ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+==
+
+---+++++ Markup
+
+The following _text_ is *markup*:
+  * Start-tags
+  * End-tags
+  * Empty-element tags
+  * Entity references
+  * Character references
+  * Comments
+  * CDATA section delimiters
+  * Document type declarations
+  * Processing instructions
+  * XML declarations
+  * Text declarations
+  * White space that is at the top level of the document entity.
+
+---+++++ Name
+
+---++ Names
+
+*Nmtoken*: Any mixture of name characters.
+
+*Name*: An _Nmtoken_ with a restricted set of initial characters.
+Disallowed: digits, diacritics [???], full stop [???], hyphen.
+
+Reserved names:
+  * Names beginning with =xml=.
+  * Strings that would match =|(('X'|'x')('M'|'m')('L'|'l'))|=.
+
+Avoid the use of colon in names except for namespace purposes.
+
+==
+NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] |
+                  [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] |
+                  [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] |
+                  [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
+                  [#x10000-#xEFFFF]
+NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 |
+                  [#x0300-#x036F] | [#x203F-#x2040]
+Name          ::= NameStartChar (NameChar)*
+Names         ::= Name (#x20 Name)*
+Nmtoken       ::= (NameChar)+
+Nmtokens      ::= Nmtoken (#x20 Nmtoken)*
+==
+
+---+++++ PI, Processing Instruction
+
+Instructions for applications (specified by =PITarget=).
+
+==
+PI        ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
+PITarget  ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
+==
+
+Target names =xml= and =XML= are reserved.
+
+Since Processing Instruction targets must be an XML name, they cannot contain
+certain characters, e.g. slashes. A workaround is to define a NOTATION which
+can identify a short XML name with more complicated content.
+
+Example:
+==
+<!NOTATION tex SYSTEM "/usr/local/bin/tex">
+==
+
+
+
+
+
+---++++ Attribute
+
+Attribute value normalization algorithm:
+  1. All line breaks are normalized to #xA.
+  1. Begin with a normalized value consisting of the empty string.
+  1. For each character, entity reference, or character reference in the
+     unnormalized attribute value, do:
+     1. For a character reference, append the referenced character to the
+        normalized value.
+     1. For an entity reference, recursively apply step 3 to the
+        replacement text of the entity.
+     1. For a white space character (#x20, #xD, #xA, #x9), append a
+        space character (#x20) to the normalized value.
+     1. For another character, append the character to the normalized value.
+  1. If the attribute type is not CDATA, then discard leading and trailing
+     spaces, and replace sequences of spaces by a single space character.
+
+---++++ Element
+
+The boundaries of non-empty elements are delimited by start- and end-tags.
+
+*|GI, Generic Indentifier|*: the name of an element's type.
+
+An element type may have associated attribute specifications.
+
+==
+element      ::= EmptyElemTag | STag content ETag
+
+// Empty element tag.
+EmptyElemTag ::= '<' Name (S Attribute)* S? '/>'
+
+// Non-empty element tag.
+STag         ::= '<' Name (S Attribute)* S? '>'
+content      ::= CharData?
+                 ((element | Reference | CDSect | PI | Comment) CharData?)*
+ETag         ::= '</' Name S? '>'
+
+// Attributes
+Attribute    ::= Name Eq AttValue 
+==
+
+---+++++ Element content
+
+==
+children ::= (choice | seq) ('?' | '*' | '+')?
+cp       ::= (Name | choice | seq) ('?' | '*' | '+')?
+choice   ::= '(' S? cp ( S? '|' S? cp )+ S? ')'
+seq      ::= '(' S? cp ( S? ',' S? cp )* S? ')'
+==
+
+---+++ Unparsed entities
+
+A container whose content may be anything but XML text.
+
+---+++ Predefined entities
+
+---+++ Internal entities
+
+An entity in which no separate physical storage exists.
+The content is provided in its declaration.
+
+Example:
+==
+<! ENTITY Publisher1 "McGrawHill Publishing Company.">
+==
+
+---+++ External entities
+
+Refers to a storage unit.
+
+Example:
+==
+<ENTITY FirstImg SYSTEM "www.books.com/images/book1.gif" NDATA GIF>
+==
+
+
+
+
 
 ---++ Conditional sections
 
@@ -219,11 +554,11 @@ parameter entities that are included/excluded from the logical
 structure of the DTD.
 
 ==
-conditionalSect    ::= 	includeSect | ignoreSect
-includeSect        ::= 	'<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'
-ignoreSect         ::= 	'<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
-ignoreSectContents ::= 	Ignore ('<![' ignoreSectContents ']]>' Ignore)*
-Ignore             ::= 	Char* - (Char* ('<![' | ']]>') Char*)
+conditionalSect    ::= includeSect | ignoreSect
+includeSect        ::= '<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'
+ignoreSect         ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
+ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
+Ignore             ::= Char* - (Char* ('<![' | ']]>') Char*)
 ==
 
 Parameter entities can be redefined in the itnernal DTD subset of a document.
@@ -253,37 +588,6 @@ Another example:
 <![%final;[
 <!ELEMENT book (title, body, supplements?)>
 ]]>
-==
-
----++ Document
-
-*|XML documents|* are made up of storage units called *entities*.
-Entities contain either parsed (character data and markup) or unparsed data.
-
-*Markup* encodes a description of the document's *|storage layout|* and
-*|logical structure|*.
-
-XML provides a mechanism to impose constraints on storage layout
-and logical structure.
-
-An *|XML processor|* is a software module that can access the content and
-structure of XML documents.
-
-*|Validity constraint|*: A rule which applies to all _valid_ XML documents.
-Violation is an _error_.
-
-*|Well-formedness constraint|*: A rule which applies to all
-_|well-formed|_ XML documents.
-Violation is a _|fatal error|_.
-
-*|Well-formed|* XML document:
-  1. Matches the production labeled =document=.
-  1. Meets all well-formedness constraints.
-  1. Each parsed entity referenced (in)directly within the document is
-     well-formed.
-
-==
-document ::= prolog element Misc*
 ==
 
 ---++ Entity
@@ -404,100 +708,6 @@ Example:
 <!ENTITY Pub-Status "This is a pre-release of the specification.">
 ==
 
----++ Element
-
-*Elements* are delimited by start- and end-tags or are empty elements.
-
-*|GI, Generic Identifier|*, the type of an element.
-
-Elements may have attribute specifications.
-
-==
-element ::= EmptyElemTag | STag content ETag
-==
-
-==
-STag         ::= '<' Name (S Attribute)* S? '>'
-Attribute    ::= Name Eq AttValue 
-ETag         ::= '</' Name S? '>'
-EmptyElemTag ::= '<' Name (S Attribute)* S? '/>'
-content      ::= CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
-==
-
-The order in which attributes appear is not significant.
-
-Each attribute name may occur at most once in an entity.
-
-Attribute values must not contain (direct or indirect) entity references
-to external entities. [???]
-
-The replacement text of any entity refferd to (directly or indirectly)
-in an attribute value must not contain the less than sign. [???]
-
----+++ Element type declaration
-
-Element type declarations constrain the element's content and attribute
-values.
-
-An element must not be declared more than once.
-
-==
-elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
-contentspec ::= 'EMPTY' | 'ANY' | Mixed | children 
-==
-
-Examples:
-==
-<!ELEMENT br EMPTY>
-<!ELEMENT p (#PCDATA|emph)* >
-<!ELEMENT %name.para; %content.para; >
-<!ELEMENT container ANY>
-==
-
----+++ Element content
-
-An element has *|element content|* if its content must only contain child
-elements and no character data. The constrain on the element's content is
-then a *|content model|*.
-
-==
-children ::= (choice | seq) ('?' | '*' | '+')?
-cp       ::= (Name | choice | seq) ('?' | '*' | '+')?
-choice   ::= '(' S? cp ( S? '|' S? cp )+ S? ')'
-seq      ::= '(' S? cp ( S? ',' S? cp )* S? ')'
-==
-
-Examples:
-==
-<!ELEMENT spec (front, body, back?)>
-<!ELEMENT div1 (head, (p | list | note)*, div2*)>
-<!ELEMENT dictionary-body (%div.mix; | %dict.mix;)*>
-==
-
----+++ Mixed content
-
-An element has *|mixed content|* if it may contain character data
-and child elements. _|In this case the order and the number of occurrences
-of child elements cannot be constrained.|_
-
-==
-Mixed ::= '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' |
-          '(' S? '#PCDATA' S? ')'
-==
-
-Examples:
-==
-<!ELEMENT p (#PCDATA|a|ul|b|i|em)*>
-<!ELEMENT p (#PCDATA | %font; | %phrase; | %special; | %form;)* >
-<!ELEMENT b (#PCDATA)>
-==
-
----++ End-of-line handling
-
-Normalize all line endings
-(i.e. occurrences and/or combinations of #xD (carriage return) and #xA)
-to #xA / line feeds.
-
 ---++ Entity reference
 
 A way of escaping characters.
@@ -524,69 +734,6 @@ and notes in English:
 <!ATTLIST poem   xml:lang CDATA 'fr'>
 <!ATTLIST gloss  xml:lang CDATA 'en'>
 <!ATTLIST note   xml:lang CDATA 'en'>
-==
-
----++ Literals
-
-*|Literal data|*: Any quoted string not containing the quotation mark that
-is used as the delimiter for that string.
-
-Used for:
-  * Content of internal entities. [???]
-  * Values of attributes.
-  * External identifiers. [???]
-
-==
-EntityValue   ::= '"' ([^%&"] | PEReference | Reference)* '"' |
-                  "'" ([^%&'] | PEReference | Reference)* "'"
-AttValue      ::= '"' ([^<&"] | Reference)* '"' |
-                  "'" ([^<&'] | Reference)* "'"
-SystemLiteral ::= ('"' [^"]* '"') | ("'" [^']* "'")
-PubidLiteral  ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
-PubidChar     ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-==
-
----++ Markup
-
-*Markup*:
-  * Start-tags
-  * End-tags
-  * Empty-element tags
-  * Entity references
-  * Character references
-  * Comments
-  * CDATA section delimiters
-  * Document type declarations
-  * Processing instructions
-  * XML declarations
-  * Text declarations
-  * White space that is at the top level of the document entity.
-
----++ Names
-
-*Nmtoken*: Any mixture of name characters.
-
-*Name*: An _Nmtoken_ with a restricted set of initial characters.
-Disallowed: digits, diacritics [???], full stop [???], hyphen.
-
-Reserved names:
-  * Names beginning with =xml=.
-  * Strings that would match =|(('X'|'x')('M'|'m')('L'|'l'))|=.
-
-Avoid the use of colon in names except for namespace purposes.
-
-==
-NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] |
-                  [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] |
-                  [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] |
-                  [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] |
-                  [#x10000-#xEFFFF]
-NameChar      ::= NameStartChar | "-" | "." | [0-9] | #xB7 |
-                  [#x0300-#x036F] | [#x203F-#x2040]
-Name          ::= NameStartChar (NameChar)*
-Names         ::= Name (#x20 Name)*
-Nmtoken       ::= (NameChar)+
-Nmtokens      ::= Nmtoken (#x20 Nmtoken)*
 ==
 
 ---++ Parameter entity
@@ -623,26 +770,6 @@ Example:
 ---++ PCDATA
 
 Parsed character data.
-
----++ PIs, Processing Instructions
-
-Instructions for applications (specified by =PITarget=).
-
-==
-PI        ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
-PITarget  ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
-==
-
-Target names =xml= and =XML= are reserved.
-
-Since Processing Instruction targets must be an XML name, they cannot contain
-certain characters, e.g. slashes. A workaround is to define a NOTATION which
-can identify a short XML name with more complicated content.
-
-Example:
-==
-<!NOTATION tex SYSTEM "/usr/local/bin/tex">
-==
 
 ---++ Prolog
 
@@ -734,19 +861,6 @@ Examples:
 <!ATTLIST pre xml:space (preserve) #FIXED 'preserve'>
 ==
 
----+ Design goals
-
-* Straightforwardly usable over the Internet.
-* Supporting a wide variety of applications.
-* Compatible with SGML.
-* Easy to write programs that process XML documents.
-* Minimum number of optional features.
-* XML documents should be human-legible and reasonably clear.
-* "The XML design should be prepared quickly." [???]
-* The design of XML shall be formal and concise.
-* XML documents shall be easy to create.
-* Terseness is of minimal importance.
-
 @author Wouter Beek
 @compat XML 1.0 (Fifth Edition)
 @see http://www.w3.org/TR/2008/REC-xml-20081126/
@@ -787,20 +901,37 @@ http:location(css, root(css),  []).
 
 init:-
   Graph = w3c,
+  
+  % XML Working Group
+  rdf_global_id(w3c:'XML/Core/', XMLWG),
+  rdfs_assert_label(XMLWG, 'XML Core Working Group', Graph),
+  
+  % XML Recommendation
   rdf_global_id(w3c:'TR/2008/REC-xml-20081126/', This),
   rdfs_assert_individual(This, w3c:'Recommendation', Graph),
   rdf_assert_datatype(This, w3c:year, gYear, 2008, Graph),
+  rdf_assert_literal(
+    This,
+    w3c:title,
+    'Extensible Markup Language (XML) 1.0 (Fifth Edition)',
+    Graph
+  ),
+  rdf_assert(This, w3c:developed_by, XMLWG, Graph),
   rdf_assert_literal(This, w3c:author, 'Tim Bray', Graph),
   rdf_assert_literal(This, w3c:author, 'Jean Paoli', Graph),
   rdf_assert_literal(This, w3c:author, 'C. M. Sperberg-McQueen', Graph),
   rdf_assert_literal(This, w3c:author, 'Eve Maler', Graph),
   rdf_assert_literal(This, w3c:author, 'François Yergeau', Graph),
   rdf_assert(This, w3c:supercedes, w3c:'TR/2006/REC-xml-20060816/', Graph),
-  rdf_assert(This, w3c:mentions, iso:'8879', Graph), % SGML
-  rdf_assert(This, w3c:requires, iso:'10646', Graph), % Characters
-  rdf_assert(This, w3c:requires, std:'BCP47', Graph), % ???
-  rdf_assert(This, w3c:requires, std:'IANA-LANGCODES', Graph), % Language identification tags
-  rdf_assert(This, w3c:requires, std:'Unicode', Graph), % Unicode
+  % SGML
+  rdf_assert(This, w3c:mentions, iso:'8879', Graph),
+   % Characters
+  rdf_assert(This, w3c:requires, iso:'10646', Graph),
+  rdf_assert(This, w3c:requires, std:'BCP47', Graph),
+  % Language identification tags
+  rdf_assert(This, w3c:requires, std:'IANA-LANGCODES', Graph),
+  % Unicode
+  rdf_assert(This, w3c:requires, std:'Unicode', Graph),
   true.
 :- init.
 
