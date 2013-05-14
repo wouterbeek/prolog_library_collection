@@ -183,6 +183,10 @@ messages_web(Markup):-
   reverse(DOMs, RDOMs),
   length(RDOMs, NumberOfMessages),
   (
+    NumberOfMessages == 0
+  ->
+    DisplayedDOMs = [[element(p, [], ['There are no messages.'])]]
+  ;
     NumberOfMessages =< MaximumNumberOfMessages
   ->
     DisplayedDOMs = RDOMs
