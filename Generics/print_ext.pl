@@ -1,9 +1,12 @@
 :- module(
   print_ext,
   [
-    print_indent/2, % +Stream:stream
+    print_indent/2, % +Out
                     % +Indent:integer
-    print_list/2 % +Stream:stream
+    print_list/2, % +Out
+                  % +List:list
+    print_list/3 % +Out
+                 % +Indent:integer
                  % +List:list
   ]
 ).
@@ -24,7 +27,7 @@ where =Conclusion= is written using =print_conclusion/3= and =Premises=
 is a list of proofs and/or premises that are written using =print_premise/3=.
 
 @author Wouter Beek
-@version 2013/01-2013/02, 2013/04
+@version 2013/01-2013/02, 2013/04-2013/05
 */
 
 :- use_module(generics(atom_ext)). % Meta-calls.
@@ -63,6 +66,8 @@ print_list(Out, List):-
 %
 % Lists are printed recursively, using indentation relative to the given
 % indentation level.
+%
+% @arg Indent The number of tabs prefixed to each written line.
 %
 % @see The use of an atom and codes handle is copied from with_output_to/2.
 

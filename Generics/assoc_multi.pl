@@ -11,7 +11,11 @@
                  % +OldAssoc
                  % +Value
                  % ?NewAssoc
-    register_assoc/1 % ?Assoc
+    register_assoc/1, % ?Assoc
+    write_assoc/1, % +Assoc
+    write_assoc/3 % +Out
+                  % +Indent:integer
+                  % +Assoc
   ]
 ).
 
@@ -27,6 +31,9 @@ and by adding ord_member/2.
 */
 
 :- reexport(library(assoc), except([get_assoc/3, put_assoc/4])).
+
+:- use_module(generics(meta_ext)).
+:- use_module(generics(print_ext)).
 :- use_module(library(ordsets)).
 
 :- dynamic(current_assoc(_Name, _Assoc)).
@@ -70,4 +77,32 @@ put_assoc(Key, OldAssoc, Value, NewAssoc):-
 register_assoc(Name):-
   empty_assoc(EmptyAssoc),
   assert(current_assoc(Name, EmptyAssoc)).
+
+write_assoc(Assoc):-
+  write_assoc(user_output, 0, Assoc).
+
+write_assoc(Out, KeyIndent, Assoc):-
+  is_assoc(Assoc),
+  !,
+  assoc_to_keys(Assoc, Keys),
+  ValueIndent is KeyIndent + 1,
+  forall(
+    member(Key, Keys),
+    (
+      print_indent(Out, KeyIndent),
+      rdf_resource_naming(Key, KeyName),
+      format(Out, '~w:\n', [KeyName]),
+      forall(
+        get_assoc(Key, Assoc, Value),
+        (
+          print_indent(Out, ValueIndent),
+          rdf_resource_naming(Value, ValueName),
+          format(Out, '~w\n', [ValueName])
+        )
+      )
+    )
+  ).
+write_assoc(Out, Indent, AssocName):-
+  current_assoc(AssocName, Assoc),
+  write_assoc(Out, Indent, Assoc).
 

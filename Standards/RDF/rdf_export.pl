@@ -18,7 +18,7 @@
     rdf_register_namespace_color/3, % +Graph:graph
                                     % +Namespace:atom
                                     % +Color:atom
-    rdf_resource_naming/2, % +Resource:oneof([bnode,literal,uri])
+    rdf_resource_naming/2, % +Resource:oneof([bnode,list,literal,uri])
                            % -Name:atom
     rdf_schema/2, % +Graph:atom
                   % -Triples:list(rdf_triple)
@@ -200,6 +200,12 @@ rdf_register_class_color(Graph, Class, Color):-
 rdf_register_namespace_color(Graph, Namespace, Color):-
   assertz(namespace_color(Graph, Namespace, Color)).
 
+rdf_resource_naming(List, Name):-
+  is_list(List),
+  !,
+  maplist(rdf_resource_naming, List, Names),
+  atomic_list_concat(Names, ', ', Name_),
+  format(atom(Name), '< ~w >', [Name_]).
 rdf_resource_naming(literal(type(Datatype, Value)), Name):-
   rdf_global_id(DatatypeNamespace:DatatypeLocal, Datatype),
   format(atom(Name), '"~w"^^~w:~w', [Value,DatatypeNamespace,DatatypeLocal]),
