@@ -22,11 +22,13 @@
     rdf_new_graph/2, % +Graph1:atom
                      % -Graph2:atom
     rdf_object/2, % ?Graph:graph
-                  % ?O:oneof([bnode,literal,uri])
+                  % ?Objects:oneof([bnode,literal,uri])
     rdf_predicate/2, % ?Graph:atom
-                     % ?P:uri
+                     % ?Predicate:uri
+    rdf_predicate2/2, % +Graph:atom
+                      % -Predicates:ordset(uri)
     rdf_subject/2, % ?Graph:atom
-                   % ?S:oneof([bnode,uri])
+                   % ?Subject:oneof([bnode,uri])
     rdf_subjects/2, % +Graph:atom
                     % -Subjects:ordset(uri)
     rdf_triples/2, % +Graph:atom
@@ -453,6 +455,13 @@ rdf_predicate(G, P):-
   nonvar_det(rdf_predicate0(G, P)).
 rdf_predicate0(G, P):-
   rdf(_, P, _, G).
+
+rdf_predicates(Graph, Predicates):-
+  setoff(
+    Predicate,
+    rdf_predicate(Graph, Predicate),
+    Predicates
+  ).
 
 rdf_subject(G, S):-
   nonvar_det(rdf_subject0(G, S)).
