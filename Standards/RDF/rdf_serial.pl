@@ -103,6 +103,11 @@ rdf_load2(File, O1):-
     [Graph, Format, File]
   ),
   !.
+% Loads multiple files and/or directories.
+rdf_load2(Files, O1):-
+  is_list(Files),
+  !,
+  forall(member(File, Files), rdf_load2(File, O1)).
 % Load all files from a given directory.
 rdf_load2(Directory, O1):-
   exists_directory(Directory),
@@ -135,10 +140,13 @@ rdf_load2(Directory, O1):-
 % The graph is missing, extrapolate it from the file.
 rdf_load2(File, O1):-
   access_file(File, read),
-  \+ option(graph(Graph), O1),
+  \+ option(graph(_Graph), O1),
   !,
 
-  merge_options([graph(Graph)], O1, O2),
+  file_name(File, _Directory, Graph1, _Extension),
+  % The graph does not already exist.
+  rdf_new_graph(Graph1, Graph2),
+  merge_options([graph(Graph2)], O1, O2),
   rdf_load2(File, O2).
 % The format is missing, extrapolate it from the file.
 rdf_load2(File, O1):-

@@ -19,6 +19,8 @@
                                        % +Graph:atom
     rdf_name/2, % ?Graph:atom
                 % +Name:oneof([literal,uri])
+    rdf_new_graph/2, % +Graph1:atom
+                     % -Graph2:atom
     rdf_object/2, % ?Graph:graph
                   % ?O:oneof([bnode,literal,uri])
     rdf_predicate/2, % ?Graph:atom
@@ -136,6 +138,7 @@ as their lean subgraphs.
 @version 2012/01-2013/05
 */
 
+:- use_module(generics(atom_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(list_ext)).
 :- use_module(generics(meta_ext)).
@@ -222,7 +225,7 @@ rdf_graph_merge(Graphs, MergedGraph):-
   maplist(rdf_graph, Graphs),
   atom(MergedGraph),
   !,
-  
+
   % Collect the shared blank nodes.
   findall(
     Graph1/Graph2/SharedBNode,
@@ -418,6 +421,26 @@ rdf_name0(Options, Graph, Name):-
   ;
     Name = Object
   ).
+
+%! rdf_new_graph(+Graph1:atom, -Graph2:atom) is det.
+
+rdf_new_graph(Graph, Graph):-
+  \+ rdf_graph(Graph),
+  !.
+rdf_new_graph(Graph1, Graph3):-
+  split_atom_exclusive(Graph1, '_', Splits),
+  reverse(Splits, [LastSplit | RSplits]),
+  (
+    atom_number(LastSplit, OldNumber)
+  ->
+    NewNumber is OldNumber + 1,
+    atom_number(NewLastSplit, NewNumber),
+    reverse([NewLastSplit | RSplits], NewSplits)
+  ;
+    reverse(['1', LastSplit | RSplits], NewSplits)
+  ),
+  atomic_list_concat(NewSplits, '_', Graph2),
+  rdf_new_graph(Graph2, Graph3).
 
 rdf_object(G, O):-
   nonvar_det(rdf_object0(G, O)).
