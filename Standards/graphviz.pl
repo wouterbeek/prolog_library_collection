@@ -262,7 +262,7 @@ convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   gv_typecheck(oneof([dot,sfdp]), Method),
   prolog_file_type(ToExtension, ToFileType),
   prolog_file_type(ToExtension, graphviz_output),
-  
+
   % The output file is either given or created.
   (
     var(ToFile)
@@ -275,12 +275,12 @@ convert_graphviz(FromFile, Method, ToFileType, ToFile):-
   ;
     is_absolute_file_name(ToFile),
     % The given output file must match a certain file extension.
-    file_name_extension(_, ToFile, ToExtension)
+    file_name_extension(_, ToExtension, ToFile)
   ),
   % Now that we have the output file we can prevent the
   % file type / file extension translation predicates from bakctracking.
   !,
-  
+
   % Run the GraphViz conversion command in the shell.
   format(atom(OutputType), '-T~w', [ToExtension]),
   process_create(

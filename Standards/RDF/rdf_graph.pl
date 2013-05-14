@@ -27,6 +27,8 @@
                      % ?P:uri
     rdf_subject/2, % ?Graph:atom
                    % ?S:oneof([bnode,uri])
+    rdf_subjects/2, % +Graph:atom
+                    % -Subjects:ordset(uri)
     rdf_triples/2, % +Graph:atom
                    % -Triples:list(rdf_triple)
     rdf_vocabulary/2 % +Graph:atom
@@ -456,6 +458,17 @@ rdf_subject(G, S):-
   nonvar_det(rdf_subject0(G, S)).
 rdf_subject0(G, S):-
   rdf(S, _, _, G).
+
+rdf_subjects(Graph, Subjects):-
+  rdf_graph(Graph),
+  setoff(
+    Subject,
+    (
+      rdf(Subject, _Predicate, _Object, Graph),
+      \+ rdf_is_bnode(Subject)
+    ),
+    Subjects
+  ).
 
 %! rdf_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
 % Returns an unsorted list containing all the triples in a graph.

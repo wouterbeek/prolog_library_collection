@@ -34,9 +34,12 @@ and by adding ord_member/2.
 
 :- use_module(generics(meta_ext)).
 :- use_module(generics(print_ext)).
+:- use_module(library(debug)).
 :- use_module(library(ordsets)).
 
 :- dynamic(current_assoc(_Name, _Assoc)).
+
+:- debug(assoc_multi).
 
 
 
@@ -69,10 +72,17 @@ put_assoc(Key, OldAssoc, Value, NewAssoc):-
   assoc:get_assoc(Key, OldAssoc, OldOrdset),
   !,
   ord_add_element(OldOrdset, Value, NewOrdset),
-  assoc:put_assoc(Key, OldAssoc, NewOrdset, NewAssoc).
+  assoc:put_assoc(Key, OldAssoc, NewOrdset, NewAssoc),
+  length(NewOrdset, NewOrdsetLength), %DEB
+  debug(
+    assoc_multi,
+    'Added <~w,~w> to existing assoc of length ~w.',
+    [Key, Value, NewOrdsetLength]
+  ).
 % Create a new ordset.
 put_assoc(Key, OldAssoc, Value, NewAssoc):-
-  assoc:put_assoc(Key, OldAssoc, [Value], NewAssoc).
+  assoc:put_assoc(Key, OldAssoc, [Value], NewAssoc),
+  debug(assoc_multi, 'Added <~w,~w> to NEW assoc.', [Key, Value]).
 
 register_assoc(Name):-
   empty_assoc(EmptyAssoc),

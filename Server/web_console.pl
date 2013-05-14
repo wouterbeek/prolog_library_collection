@@ -7,6 +7,7 @@
     documentation_web/1, % -Markup:list
     help_web/1, % -Markup:list
     input_ui/1, % -Markup:list
+    messages_web/1, % -Markup:list
     register_module/1, % +Module:atom
     registered_module/1, % ?Module:atom
     registered_modules/1, % -Modules:list(atom)
@@ -23,7 +24,7 @@
 The Web-based console for PraSem.
 
 @author Wouter Beek
-@version 2012/10, 2013/02-2013/04
+@version 2012/10, 2013/02-2013/05
 */
 
 :- use_module(generics(list_ext)).
@@ -169,6 +170,27 @@ markup_mold(StyleName/DOM, html, StyleName, DOM):-
   !.
 markup_mold(DOM, html, wallace, DOM):-
   !.
+
+maximum_number_of_messages(100).
+
+messages_web(Markup):-
+  maximum_number_of_messages(MaximumNumberOfMessages),
+  findall(
+    [element(h1, [], [DateTime]) | DOM],
+    wallace:history(status_pane, DateTime, _DTD_Name, _StyleName, DOM),
+    DOMs
+  ),
+  reverse(DOMs, RDOMs),
+  length(RDOMs, NumberOfMessages),
+  (
+    NumberOfMessages =< MaximumNumberOfMessages
+  ->
+    DisplayedDOMs = RDOMs
+  ;
+    length(DisplayedDOMs, MaximumNumberOfMessages),
+    append(DisplayedDOMs, _, RDOMs)
+  ),
+  append(DisplayedDOMs, Markup).
 
 %! register_module(+Module:atom) is det.
 % Registers the given module for the web console.

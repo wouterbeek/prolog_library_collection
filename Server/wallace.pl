@@ -126,7 +126,7 @@ documentation(Request):-
   wallace(Request).
 
 history(_Request):-
-  % Fix the DTD and Style.
+  % Fixate the DTD and Style used.
   history(status_pane, _DateTime, DTD_Name, StyleName, _DOM),
   !,
   findall(
