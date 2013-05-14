@@ -53,6 +53,13 @@ dl:hover {
   color: white;
 }
 
+h1 {
+  display: block;
+  font-size: 175%;
+  font-weight: bold;
+  text-align: center;
+}
+
 h1:hover {
   background-color: black;
   color: white;
@@ -66,6 +73,10 @@ h2:hover {
 li:hover {
   background-color: black;
   color: white;
+}
+
+p {
+  display: block;
 }
 
 p {

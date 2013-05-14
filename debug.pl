@@ -52,11 +52,6 @@ http:location(pldoc, root(help), [priority(10)]).
 :- use_module(library(pldoc)).
 :- doc_server(2222, [edit(true)]).
 
-%:- use_module(library(www_browser)).
-%:- http_handler(help(.), documentation, []).
-%documentation(_Resource):-
-%  www_open_url('localhost:2222').
-
 % This library allows for exploiting the color and attribute facilities
 % of most modern terminals using ANSI escape sequences.
 % The Windows console (swipl-win) does not (yet) support ANSI (color)
@@ -87,3 +82,4 @@ http:location(pldoc, root(help), [priority(10)]).
 
 :- [load].
 :- load_modules_for_pldoc.
+

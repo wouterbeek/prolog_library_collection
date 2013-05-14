@@ -89,6 +89,7 @@ rdf_load2(File, O1):-
   access_file(File, read),
   option(format(Format), O1),
   option(graph(Graph), O1),
+  !,
 
   % Combine the given with the standard options.
   merge_options([register_namespaces(true), silent(true)], O1, O2),
@@ -101,8 +102,7 @@ rdf_load2(File, O1):-
     rdf_serial,
     'Graph ~w was loaded in ~w serialization from file ~w.',
     [Graph, Format, File]
-  ),
-  !.
+  ).
 % Loads multiple files and/or directories.
 rdf_load2(Files, O1):-
   is_list(Files),

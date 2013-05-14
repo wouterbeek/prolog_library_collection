@@ -20,28 +20,26 @@ Using this module automatically starts the server.
 http://semanticweb.cs.vu.nl/prasem/
 
 @author Wouter Beek
-@version 2012/05, 2012/09-2012/12, 2013/02-2013/04
+@version 2012/05, 2012/09-2012/12, 2013/02-2013/05
 */
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(logging)).
-:- use_module(html(html)).
+:- use_module(generics(os_ext)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_error)).
-:- use_module(library(http/http_files)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_server_files)).
-:- use_module(library(http/http_session)).
 :- use_module(library(http/thread_httpd)).
-:- use_module(server(error_web)).
 :- use_module(server(web_console)).
 :- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
 
 % This is used to push content for the console output and status pane.
 :- dynamic(content_queue(_Type, _DTD_Name, _StyleName, _DOM)).
+:- dynamic(history(_Type, _DataTime, _DTD_Name, _StyleName, _DOM)).
 
 % By registering these modules, their Web predicates become accessible
 % from the Web console.
@@ -68,9 +66,10 @@ http:location(js, root(js), []).
 %:- http_handler(sparql(.), sparql, [spawn(sparql_query)]).
 
 % HTTP handlers for the Wallace server.
+:- http_handler(root(.), wallace, [prefix, piority(-10)]).
 :- http_handler(root(console_output), console_output, []).
+:- http_handler(root(history), history, []).
 :- http_handler(root(status_pane), status_pane, []).
-:- http_handler(root(wallace), wallace, [prefix, priority(100)]).
 
 % HTML resources and their dependencies.
 :- html_resource(css('console_output.css'), [requires(css('wallace.css'))]).
@@ -126,12 +125,35 @@ documentation(Request):-
   % Stay on the root page.
   wallace(Request).
 
+history(_Request):-
+  % Fix the DTD and Style.
+  history(status_pane, _DateTime, DTD_Name, StyleName, _DOM),
+  !,
+  findall(
+    [element(h1, [], [DateTime]) | DOM],
+    history(status_pane, DateTime, DTD_Name, StyleName, DOM),
+    DOMs
+  ),
+  reverse(DOMs, RDOMs),
+  append(RDOMs, DOM),
+  serve_xml(
+    DTD_Name,
+    StyleName,
+    [element(html, [], [element(body, [], DOM)])]
+  ).
+history(_Request):-
+  reply_html_page([], [p('The history is empty.')]).
+
 push(Type, DOM):-
   push(Type, html, wallace, DOM).
 
 push(Type, DTD_Name, StyleName, DOM):-
-  %format(user, '[QQQ] ~w ~w ~w ~w\n', [Type, DTD_Name, StyleName, DOM]), %DEB
-  assertz(content_queue(Type, DTD_Name, StyleName, DOM)).
+  % Assert the content for AJAX retrieval.
+  assertz(content_queue(Type, DTD_Name, StyleName, DOM)),
+
+  % Also store the content in the history.
+  current_date_time(DateTime),
+  assertz(history(Type, DateTime, DTD_Name, StyleName, DOM)).
 
 status_pane(_Request):-
   retract(content_queue(status_pane, DTD_Name, Style_Name, DOM)),
@@ -188,13 +210,13 @@ wallace(Request):-
   ;
     true
   ),
-  serve_nothing(Request).
-  %reply_html_page(wallace, [], []).
+  %serve_nothing(Request).
+  reply_html_page(wallace, [], []).
 
 wallace_uri(URI):-
   default_port(Port),
   http_open:parts_uri(
-    [host(localhost), path('/wallace/'), port(Port), scheme(http)],
+    [host(localhost), path('/prasem/'), port(Port), scheme(http)],
     %[host('semanticweb.cs.vu.nl'), path('/prasem/'), scheme(http)],
     URI
   ).

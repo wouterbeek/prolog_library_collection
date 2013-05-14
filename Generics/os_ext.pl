@@ -2,8 +2,9 @@
   os_ext,
   [
 % DATE & TIME
-    current_date/1, % -Date:atom
-    current_time/1, % -Time:atom
+    current_date/1, % ?Date:atom
+    current_date_time/1, % ?DateTime:atom
+    current_time/1, % ?Time:atom
     date_directories/2, % +Dir:atom
                         % -DateDir:atom
     date_time/1, % -DateTime:term
@@ -97,6 +98,15 @@ This module contains the OS extensions for SWI-Prolog.
 current_date(Date):-
   get_time(TimeStamp),
   format_time(atom(Date), '%Y_%m_%d', TimeStamp).
+
+%! current_date_time(+DateTime:atom) is semidet.
+%! current_date_time(-DateTime:atom) is det.
+% @see Combines the result of current_date/1 and current_time/1.
+
+current_date_time(DateTime):-
+  current_date(Date),
+  current_time(Time),
+  atomic_list_concat([Date, Time], ':', DateTime).
 
 %! current_time(-Time:atom) is det.
 % Returns an atomic representation of the current time.

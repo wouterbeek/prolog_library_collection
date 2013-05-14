@@ -39,7 +39,6 @@ log_web([HTML_Table]):-
   ).
 
 prolog:debug_print_hook(_Type, 'EXCEPTION', [Exception]):-
-gtrace, %DEB
   error_web(Exception, Markup),
   push(status_pane, html, wallace, Markup),
   !.
