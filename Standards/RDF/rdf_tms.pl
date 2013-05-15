@@ -5,9 +5,10 @@
     rdf_materialize/2, % +Graphs:oneof([atom,list(atom)])
                        % -TMS:atom
     rdf_materialize_tms_test/1, % +TMS:atom
-    rdf_tms/3, % ?S
-               % ?P
-               % ?O
+    rdf_tms/3, % ?Subject:oneof([bnode,uri])
+               % ?Predicate:uri
+               % ?Object:oneof([bnode,literal,uri])
+    rdf_tms_test1/1, % -TMS:atom
     rdfs_inconsistent/1 % +Graph:atom
   ]
 ).
@@ -37,6 +38,8 @@ Uses a the Doyle TMS to keep track of RDF(S) materialization.
 :- dynamic(bnode_literal_map0(_BNode, _Literal)).
 
 
+
+%! bnode_literal_map(-BNode:bnode, +Lit:literal) is det.
 
 bnode_literal_map(BNode, Lit):-
   bnode_literal_map0(BNode, Lit),
@@ -245,18 +248,24 @@ rdf_rule(X, rdf:type, D, TMS, [Node1,Node2], [], Label):-
   rdf_node(P, rdfs:domain, D, TMS, Node1),
   rdf_node(X, P, _, TMS, Node2),
   Label = 'If <P,rdfs:domain,D> and <X,P,Y>, then <X,rdf:type,D>.'.
-/* LITERALS IN SUBJECT POSITION USING BLANK NODES!
 % [RDFS-3] Plain literals are individuals of =|rdfs:'Literal'|=.
-rdf_rule(Lit, rdf:type, rdfs:'Literal', TMS, [Node], [], Label):-
+rdf_rule(BNode, rdf:type, rdfs:'Literal', TMS, [Node], [], Label):-
   rdf_node(_, _, literal(Lit), TMS, Node),
+  % Literals in subject position require a bnode map.
+  bnode_literal_map(BNode, Lit),
   Label = 'Plain literals are individuals of rdfs:Literal.'.
-*/
 % [RDFS-2] Everything is an =|rdfs:'Resource'|=.
-rdf_rule(X, rdf:type, rdfs:'Resource', TMS, [Node], [], Label):-
+rdf_rule(Y, rdf:type, rdfs:'Resource', TMS, [Node], [], Label):-
   rdf_node(S, P, O, TMS, Node),
   (X = S ; X = P ; X = O),
-% @tbd LITERALS IN SUBJECT POSITION USING BLANK NODES!
-\+ rdf_is_bnode(X),
+  % Literals can occur in the subject position using bnodes.
+  (
+    rdf_is_literal(X)
+  ->
+    bnode_literal_map(Y, X)
+  ;
+   Y = X
+  ),
   Label = 'Everything is an rdfs:Resource.'.
 % [RDFS-1] If a resource has in instance, then it must be an
 % =|rdfs:'Class'|=.
@@ -270,14 +279,13 @@ rdf_rule(X, rdf:type, rdf:'Property', TMS, [Node], [], Label):-
   Label =
     'Terms that occur in the predicate position are instances of\c
      rdf:Property.'.
-/* LITERALS IN SUBJECT POSITION USING BLANK NODES!
 % [RDF-2] XML literals are instances of =|rdf:'XMLLiteral'|=.
 rdf_rule(BNode, rdf:type, rdf:'XMLLiteral', TMS, [Node], [], Label):-
   rdf_global_id(rdf:'XMLLiteral', Type),
   rdf_node(_, _, literal(type(Type, Lit)), TMS, Node),
+  % Literals in subject position require a bnode map.
   bnode_literal_map(BNode, Lit),
   Label = 'XML literals are instances of rdf:XMLLiteral.'.
-*/
 
 rdf_tms(S, P, O):-
   rdf(S, P, O),
@@ -415,3 +423,14 @@ test1:-
   %rdf_datatype(N, tms:has_id, int, 103, TMS),
   %tms_export:export_argument(N),
   true.
+
+%! rdf_tms_test1(-S, -P, -O) is det.
+
+rdf_tms_test1(TripleName):-
+  Graph = rdf_tms_test1,
+  rdf_assert(rdf:a, rdf:b, rdf:c, Graph),
+  rdf_materialize(Graph, TMS),
+  rdf(S, P, O, TMS),
+  \+ rdf(S, P, O, Graph),
+  rdf_triple_naming(S, P, O, TripleName).
+
