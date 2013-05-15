@@ -561,41 +561,22 @@ stream_attributes0(Stream, [Attribute | Attributes], Separator):-
   stream_attribute(Stream, Separator, Attribute),
   stream_attributes0(Stream, Attributes, Separator).
 
-%! stream_edge(+Stream:stream, +Edge:edge) is det.
+%! stream_edge(+Stream:stream, +Indent:integer, +Edge:edge) is det.
 % Writes an edge term.
 %
 % @arg Stream An output stream.
+% @arg Indent An integer indicating the indentation.
 % @arg Edge A GraphViz edge compound term.
 
-stream_edge(Stream, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
-  print_indent(Stream, 1),
+stream_edge(Stream, Indent, edge(FromVertexID, ToVertexID, EdgeAttributes)):-
+  print_indent(Stream, Indent),
   format(Stream, 'node_~w -> node_~w ', [FromVertexID, ToVertexID]),
   stream_attributes(Stream, EdgeAttributes, ', '),
-  format(Stream, ';', []),
-  nl(Stream).
-
-%! stream_graphviz(+Stream:stream, +GraphElement:compound) is det.
-% Writes a GraphViz structure to an output stream.
-%
-% @arg Stream An output stream.
-% @arg GraphElement A GraphViz graph compound term of the form
-%        =|graph(Vertices, Edges, GraphAttributes)|=.
-
-stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
-  option(label(GraphName), GraphAttributes, noname),
-  format(Stream, 'digraph ~w {', [GraphName]),
-  nl(Stream),
-  maplist(vertex_to_dom(Stream), Vertices),
-  nl(Stream),
-  maplist(stream_edge(Stream), Edges),
-  nl(Stream),
-  stream_graph_attributes(Stream, GraphAttributes),
-  format(Stream, '}', []),
-  nl(Stream),
-  flush_output(Stream).
+  formatnl(Stream, ';', []).
 
 %! stream_graph_attributes(
 %!   +Stream:stream,
+%!   +Indent:integer,
 %!   +GraphAttributes:list(nvpair)
 %! ) is det.
 % Writes the given GraphViz graph attributes.
@@ -606,23 +587,94 @@ stream_graphviz(Stream, graph(Vertices, Edges, GraphAttributes)):-
 % comma-separated lists).
 %
 % @arg Stream An output stream.
+% @arg Indent An integer indicating the indentation.
 % @arg GraphAttributes A list of name-value pairs.
 
-stream_graph_attributes(Stream, GraphAttributes):-
-  print_indent(Stream, 1),
+stream_graph_attributes(Stream, Indent, GraphAttributes):-
+  print_indent(Stream, Indent),
   stream_attributes0(Stream, GraphAttributes, '\n  '),
   nl(Stream).
 
-%! vertex_to_dom(+Stream:stream, +Vertex:vertex) is det.
+%! stream_graphviz(+Stream:stream, +GraphElement:compound) is det.
+% Writes a GraphViz structure to an output stream.
+%
+% @arg Stream An output stream.
+% @arg GraphElement A GraphViz graph compound term of the form
+%        =|graph(Vertices, Edges, GraphAttributes)|=.
+
+stream_graphviz(Stream, graph(Vertices, Ranks, Edges, GraphAttributes)):-
+  Indent = 1,
+
+  % Header
+  option(label(GraphName), GraphAttributes, noname),
+  formatnl(Stream, 'digraph ~w {', [GraphName]),
+
+  % Vertices: ranked
+  maplist(stream_rank(Stream, Indent), Ranks),
+  nl(Stream),
+
+  % Vertices: unranked
+  maplist(stream_vertex(Stream, Indent), Vertices),
+  nl(Stream),
+
+  % Edges: rank edges
+  findall(
+    RankVertexID,
+    member(
+      rank(node(RankVertexID, _RankVertexAttributes), _ContentVertices),
+      Ranks
+    ),
+    RankVertexIDs
+  ),
+  stream_rank_edges(Stream, Indent, RankVertexIDs),
+  nl(Stream),
+
+  % Edges: nonrank edges
+  maplist(stream_edge(Stream, Indent), Edges),
+  nl(Stream),
+
+  % Graph properties
+  stream_graph_attributes(Stream, Indent, GraphAttributes),
+
+  % Footer
+  formatnl(Stream, '}', []),
+  flush_output(Stream).
+
+%! stream_rank(+Stream:stream, +Indent:integer, +Rank:rank) is det.
+% @arg Indent An integer indicating the indentation.
+
+stream_rank(Stream, Indent, rank(RankVertex, ContentVertices)):-
+  print_indent(Stream, Indent),
+  formatnl(Stream, '{', []),
+  NewIndent is Indent + 1,
+  print_indent(Stream, NewIndent),
+  formatnl(Stream, 'rank=same;', []),
+  maplist(stream_vertex(Stream, NewIndent), [RankVertex | ContentVertices]),
+  print_indent(Stream, Indent),
+  formatnl(Stream, '}', []).
+
+stream_rank_edges(_Stream, _Indent, []):-
+  !.
+stream_rank_edges(_Stream, _Indent, [_RankVertexID]):-
+  !.
+stream_rank_edges(
+  Stream,
+  Indent,
+  [RankVertexID1, RankVertexID2 | RankVertexIDs]
+):-
+  stream_edge(Stream, Indent, edge(RankVertexID1, RankVertexID2, [])),
+  stream_rank_edges(Stream, Indent, [RankVertexID2 | RankVertexIDs]).
+
+%! stream_vertex(+Stream:stream, +Indent:integer, +Vertex:vertex) is det.
 % Writes a vertex term.
 %
 % @arg Stream An output stream.
+% @arg Indent An integer indicating the indentation.
 % @arg Vertex A GraphViz vertex compound term.
 
-vertex_to_dom(Stream, node(VertexID, VerticeAttributes)):-
-  print_indent(Stream, 1),
+stream_vertex(Stream, Indent, node(VertexID, VerticeAttributes)):-
+  print_indent(Stream, Indent),
   format(Stream, 'node_~w ', [VertexID]),
   stream_attributes(Stream, VerticeAttributes, ', '),
-  format(Stream, ';', []),
-  nl(Stream).
+  formatnl(Stream, ';', []).
 

@@ -22,6 +22,8 @@
                       % ?Name:atom
     file_to_atom/2, % +File:file
                     % -Atom:atom
+    file_type_alternative/2, % +FromFile:atom
+                             % ?ToFile:atom
     file_type_alternative/3, % +FromFile:atom
                              % +ToFileType:atom
                              % -ToFile:atom
@@ -245,6 +247,10 @@ file_to_atom(File, Atom):-
   open(File, read, Stream),
   stream_to_atom(Stream, Atom),
   close(Stream).
+
+file_type_alternative(File1, File2):-
+  file_name_extension(Base, _Extension1, File1),
+  file_name_extension(Base, _Extension2, File2).
 
 %! file_type_alternative(
 %!   +FromFile:atom,

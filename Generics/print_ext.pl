@@ -1,6 +1,12 @@
 :- module(
   print_ext,
   [
+    formatnl/1, % +Format
+    formatnl/2, % +Format
+                % :Arguments
+    formatnl/3, % +Output
+                % +Format
+                % :Arguments
     print_indent/2, % +Out
                     % +Indent:integer
     print_list/2, % +Out
@@ -39,6 +45,20 @@ is a list of proofs and/or premises that are written using =print_premise/3=.
 indent_size(2).
 
 
+
+formatnl(Format):-
+  format(Format),
+  current_output(Stream),
+  nl(Stream).
+
+formatnl(Format, Arguments):-
+  format(Format, Arguments),
+  current_output(Stream),
+  nl(Stream).
+
+formatnl(Out, Format, Arguments):-
+  format(Out, Format, Arguments),
+  nl(Out).
 
 %! print_indent(+Stream:stream, +Indent:integer) is det.
 % Print the given number of indents to the given stream.

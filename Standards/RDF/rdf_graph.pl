@@ -25,7 +25,7 @@
                   % ?Objects:oneof([bnode,literal,uri])
     rdf_predicate/2, % ?Graph:atom
                      % ?Predicate:uri
-    rdf_predicate2/2, % +Graph:atom
+    rdf_predicates/2, % +Graph:atom
                       % -Predicates:ordset(uri)
     rdf_subject/2, % ?Graph:atom
                    % ?Subject:oneof([bnode,uri])

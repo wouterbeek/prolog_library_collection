@@ -126,12 +126,18 @@ rdf_load2(Directory, O1):-
   % Find extensions that match the serialization.
   % Backtracking over serialization variants, file types,
   % and extensions is possible.
-  rdf_serialization_file_type(Serialization, FileType),
-  prolog_file_type(Extension, FileType),
-
-  % Extract the list of matching files.
-  format(atom(RE), '~w/*.~w', [Directory, Extension]),
-  expand_file_name(RE, Files),
+  findall(
+    File,
+    (
+      rdf_serialization_file_type(Serialization, FileType),
+      prolog_file_type(Extension, FileType),
+      % Extract the list of matching files.
+      format(atom(RE), '~w/*.~w', [Directory, Extension]),
+      expand_file_name(RE, Files),
+      member(File, Files)
+    ),
+    Files
+  ),
 
   forall(
     member(File, Files),

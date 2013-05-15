@@ -4,14 +4,13 @@
     oaei_alignment/3, % ?Graph:atom
                       % ?From:uri
                       % ?To:uri
-    oaei_check_alignment/2, % +ReferenceAlignments:list(list)
-                            % +RawAlignments:list(list)
-    oaei_file_to_alignments/3, % +File:atom
-                               % -Graph:atom
-                               % -Alignments:list(list)
+    oaei_check_alignment/2, % +ReferenceAlignments:list(pair)
+                            % +RawAlignments:list(pair)
+    oaei_file_to_alignments/2, % +File:atom
+                               % -Alignments:list(pair)
     oaei_graph/1, % ?Graph:atom
     oaei_graph_to_alignments/2, % +Graph:atom
-                                % -Alignments:list(list)
+                                % -Alignments:list(pair)
     oaei_ontologies/3, % +Graph:atom
                        % -File1:atom
                        % -File2:atom
@@ -144,8 +143,8 @@ oaei_alignment(Graph, From, To):-
   rdf(BNode, align:entity2, To, Graph).
 
 %! oaei_check_alignment(
-%!   +ReferenceAlignments:list(list),
-%!   +RawAlignments:list(list)
+%!   +ReferenceAlignments:list(pair),
+%!   +RawAlignments:list(pair)
 %! ) is det.
 % Tests the quality of a raw alignment relative to the given reference.
 
@@ -162,9 +161,9 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
   ),
   flush_output(user_output).
 
-oaei_file_to_alignments(File, Graph, Alignments):-
+oaei_file_to_alignments(File, Alignments):-
   file_name(File, _Directory, Graph, _Extension),
-  rdf_load2(File, Graph),
+  rdf_load2(File, [graph(Graph)]),
   oaei_graph_to_alignments(Graph, Alignments).
 
 %! oaei_graph
@@ -181,7 +180,7 @@ oaei_graph0(Graph):-
 oaei_graph_to_alignments(Graph, Alignments):-
   % Avoid double occurrences in an alignment graph (you never know!).
   setoff(
-    [From, To],
+    From-To,
     oaei_alignment(Graph, From, To),
     Alignments
   ).

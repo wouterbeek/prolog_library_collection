@@ -496,7 +496,7 @@ create_graph(
   Options,
   VertexElements,
   EdgeElements,
-  graph(VertexElements, EdgeElements, GraphAttributes)
+  graph(VertexElements, [], EdgeElements, GraphAttributes)
 ):-
   % Label
   graph_naming(Options, GraphLabel),
