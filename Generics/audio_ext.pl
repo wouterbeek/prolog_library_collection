@@ -173,6 +173,3 @@ microsoft_translate(From, To, Query, URI):-
 
 microsoft_app_id('0vTrcQBoNnyZ0wd3Zw3ZAPy6hDLS2O+VPfjzGlvAjqw=').
 */
-
-:- load.
-

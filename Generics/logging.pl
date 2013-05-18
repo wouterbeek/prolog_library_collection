@@ -56,7 +56,7 @@ init:-
   !.
 init:-
   % @tbd This fails on Windows because absolute_file_path/3 gives unexpected
-  %      results.
+  %      results. Maybe a bug in swipl.
   assert_home_subdirectory(log),
   project_name(Project),
   format(atom(Project0), '.~w', [Project]),
