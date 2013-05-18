@@ -55,6 +55,10 @@ init:-
   file_search_path(log, _Directory),
   !.
 init:-
+  is_windows,
+  !,
+  assert(user:file_search_path(log, project(data))).
+init:-
   % @tbd This fails on Windows because absolute_file_path/3 gives unexpected
   %      results. Maybe a bug in swipl.
   assert_home_subdirectory(log),
