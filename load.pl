@@ -10,6 +10,7 @@ load_pgc:-
   assert(user:file_search_path(datasets,     pgc('Datasets'))),
   assert(user:file_search_path(generics,     pgc('Generics'))),
   assert(user:file_search_path(graph_theory, pgc('Graph Theory'))),
+  assert(user:file_search_path(ilp,          pgc('ILP'))),
   assert(user:file_search_path(logic,        pgc('Logic'))),
   assert(user:file_search_path(math,         pgc('Math'))),
   assert(user:file_search_path(server,       pgc('Server'))),
