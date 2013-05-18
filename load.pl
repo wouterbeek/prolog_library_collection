@@ -2,7 +2,11 @@
 % This assumes that the search path =project= is already defined
 % by the parent project (PGC is a library).
 
-load:-
+load_pgc:-
+  % Do not write module loads to the standard output stream.
+  set_prolog_flag(verbose_load, silent),
+  
+  % Assert the various search paths.
   assert(user:file_search_path(datasets,     pgc('Datasets'))),
   assert(user:file_search_path(generics,     pgc('Generics'))),
   assert(user:file_search_path(graph_theory, pgc('Graph Theory'))),
@@ -23,6 +27,4 @@ load:-
   assert(user:file_search_path(tms,          pgc('TMS'))),
   assert(user:file_search_path(vocabularies, pgc('Vocabularies'))),
     assert(user:file_search_path(skos,         vocabularies('SKOS'))).
-
-:- load.
-
+:- load_pgc.
