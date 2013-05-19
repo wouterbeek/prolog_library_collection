@@ -289,11 +289,17 @@ nested_dir_name(NestedDir, Dir):-
 nested_dir_name(SubDir, OldDir, NewDir):-
   atomic(SubDir),
   !,
-  absolute_file_name(SubDir, NewDir, [file_type(directory), relative_to(OldDir)]),
+  % Note that adding the option =|file_type(directory)|= makes this clause
+  % throw an exception, because this option assumed that the directory
+  % exists.
+  absolute_file_name(SubDir, NewDir, [relative_to(OldDir)]),
   create_directory(NewDir).
 nested_dir_name(NestedDir, OldDir, NewDir):-
   NestedDir =.. [OuterDir, InnerNestedDir],
-  absolute_file_name(OuterDir, TempDir, [file_type(directory), relative_to(OldDir)]),
+  % Note that adding the option =|file_type(directory)|= makes this clause
+  % throw an exception, because this option assumed that the directory
+  % exists.
+  absolute_file_name(OuterDir, TempDir, [relative_to(OldDir)]),
   create_directory(TempDir),
   nested_dir_name(InnerNestedDir, TempDir, NewDir).
 
