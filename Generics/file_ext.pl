@@ -1,6 +1,9 @@
 :- module(
   file_ext,
   [
+    absolute_directory_name/3, % +OldDir:atom
+                               % +SubDirSpec
+                               % -NewDir:atom
     atom_to_file/2, % +Atom:atom
                     % +File:atom
     base_or_file_to_file/3, % +BaseOrFile:atom
@@ -75,6 +78,27 @@ We use the following abbreviations in this module:
 :- nodebug(file_ext).
 
 
+
+%! absolute_directory_name(+OldDir:atom, +SubDirSpec, -Dir:atom) is det.
+% Returns an absolute directory name relative to another absolute directory
+% name.
+%
+% This causes problems when it is unknown in advance whether the directory
+% exists or not:
+%  * If it exists, then the former call throws an exception.
+%  * If it does not exist, then the latter call would have thrown
+%    an exception.
+
+absolute_directory_name(OldDir, SubDirSpec, NewDir):-
+  catch(
+    absolute_file_name(SubDirSpec, NewDir, [relative_to(OldDir)]),
+    error(existence_error(file, _SubDirSpec), context(_Var, _NewDir)),
+    absolute_file_name(
+      SubDirSpec,
+      NewDir,
+      [file_type(directory), relative_to(OldDir)]
+    )
+  ).
 
 %! atom_to_file(+Atom:atom, -File:atom) is det.
 % Stores the given atom in the given file.
@@ -298,14 +322,14 @@ nested_dir_name(SubDir, OldDir, NewDir):-
   % Note that adding the option =|file_type(directory)|= makes this clause
   % throw an exception, because this option assumed that the directory
   % exists.
-  absolute_file_name(SubDir, NewDir, [relative_to(OldDir)]),
+  absolute_directory_name(OldDir, SubDir, NewDir),
   create_directory(NewDir).
 nested_dir_name(NestedDir, OldDir, NewDir):-
   NestedDir =.. [OuterDir, InnerNestedDir],
   % Note that adding the option =|file_type(directory)|= makes this clause
   % throw an exception, because this option assumed that the directory
   % exists.
-  absolute_file_name(OuterDir, TempDir, [relative_to(OldDir)]),
+  absolute_directory_name(OldDir, OuterDir, TempDir),
   create_directory(TempDir),
   nested_dir_name(InnerNestedDir, TempDir, NewDir).
 
