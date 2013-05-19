@@ -53,7 +53,7 @@ c_convert2(Atom, C_Atom):-
 
 c_convert(Atom, C_Atom):-
   atom_codes(Atom, Codes),
-  c_string(C_Codes-[], Codes-[]),
+  once(c_string(C_Codes-[], Codes-[])),
   atom_codes(C_Atom, C_Codes).
 
 %! c_string(+Options:list(nvpair), +Results:diff_list)
