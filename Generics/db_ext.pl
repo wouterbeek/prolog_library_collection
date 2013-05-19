@@ -19,7 +19,7 @@ Database extensions.
 */
 
 :- meta_predicate(db_add_novel(:)).
-
+:- meta_predicate(db_replace_novel(0,0)).
 
 
 db_add(New):-
