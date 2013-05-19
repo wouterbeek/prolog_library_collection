@@ -15,8 +15,12 @@
                                  % +Attributes:list(nvpair)
 
 % STREAMING
-    stream_graphviz/2 % +Stream:stream
-                      % +Graph:element
+    stream_graphviz/2, % +Stream:stream
+                       % +Graph:element
+
+% HASHING
+    sha_hash_atom/2 % +Atom:atom
+                    % -Hash:atom
   ]
 ).
 
@@ -71,7 +75,7 @@ Name(Value)
 representing a name-value pair.
 
 @author Wouter Beek
-@version 2011-2013/04
+@version 2011-2013/05
 */
 
 :- use_module(generics(db_ext)).
@@ -81,6 +85,7 @@ representing a name-value pair.
 :- use_module(generics(print_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(library(process)).
+:- use_module(library(sha)).
 :- use_module(standards(brewer)).
 :- use_module(standards(c)).
 :- use_module(svg(svg)).
@@ -677,4 +682,19 @@ stream_vertex(Stream, Indent, node(VertexID, VerticeAttributes)):-
   format(Stream, 'node_~w ', [VertexID]),
   stream_attributes(Stream, VerticeAttributes, ', '),
   formatnl(Stream, ';', []).
+
+
+
+% HASHING %
+
+sha_hash_atom(Atom, Hash):-
+  atom(Atom),
+  !,
+  sha_hash(Atom, HashCodes, []),
+  hash_atom(HashCodes, Hash).
+sha_hash_atom(List, Hash):-
+  is_list(List),
+  !,
+  atomic_list_concat(List, Atom),
+  sha_hash_atom(Atom, Hash).
 
