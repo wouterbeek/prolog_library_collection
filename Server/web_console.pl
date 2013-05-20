@@ -78,15 +78,17 @@ command_input -->
 % @arg Markup A list of compound terms representing (X)HTML markup.
 
 console_input -->
-  {findall(
-     Command,
-     history(_Time, Command),
-     Commands
-   ),
-   history_length(HistoryLength),
-   first(Commands, HistoryLength, History_),
-   atomic_list_concat(History_, '\n', History),
-   wallace_uri(URI)},
+  {
+    findall(
+      Command,
+      history(_Time, Command),
+      Commands
+    ),
+    history_length(HistoryLength),
+    first(Commands, HistoryLength, History_),
+    atomic_list_concat(History_, '\n', History),
+    wallace_uri(URI)
+  },
   html([
     div(id(console_input), [
       form([
@@ -142,7 +144,7 @@ help_web([element(ul, [], ModuleItems)]):-
   ).
 
 history(History, HistoryLength) -->
-  html(textarea([cols=80, name=history, rows=HistoryLength], History)).
+  html(textarea([cols=80, name=history, onclick='clickme(\'aap\')', rows=HistoryLength], History)).
 
 history_length(5).
 

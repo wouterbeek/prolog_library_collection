@@ -3,8 +3,10 @@
   [
     db_add/1, % +New
     db_add_novel/1, % +New
+    db_replace/1, % +New
     db_replace/2, % +Old
                   % -New
+    db_replace_novel/1, % +New
     db_replace_novel/2 % +Old
                        % -New
   ]
@@ -20,7 +22,9 @@ Database extensions.
 
 :- meta_predicate(db_add(:)).
 :- meta_predicate(db_add_novel(:)).
+:- meta_predicate(db_replace(:)).
 :- meta_predicate(db_replace(:,:)).
+:- meta_predicate(db_replace_novel(:)).
 :- meta_predicate(db_replace_novel(:,:)).
 
 
@@ -37,6 +41,10 @@ db_add_novel(New):-
 db_add_novel(New):-
   assert(New).
 
+db_replace(New):-
+  new_to_old(New, Old),
+  db_replace(Old, New).
+
 %! db_replace(+Old, +New) is det.
 % Replaces at most one asserted fact (if present) with another one.
 
@@ -49,9 +57,21 @@ db_replace(Old, New):-
 db_replace(_Old, New):-
   assert(New).
 
+db_replace_novel(New):-
+  new_to_old(New, Old),
+  db_replace_novel(Old, New).
+
 db_replace_novel(Old, New):-
   call(New),
   \+ call(Old),
   !.
 db_replace_novel(Old, New):-
   db_replace(Old, New).
+
+new_to_old(New, Module:Old):-
+  strip_module(New, Module, Plain),
+  Plain =.. [Predicate | NewArguments],
+  length(NewArguments, Length),
+  length(OldArguments, Length),
+  Old =.. [Predicate | OldArguments].
+

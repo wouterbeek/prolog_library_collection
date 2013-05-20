@@ -91,7 +91,7 @@ append_to_log(Category, Format, Arguments):-
   append_to_log_(Category, Message).
 
 append_to_log_(_Category, _Message):-
-  \+ current_log_stream(Stream),
+  \+ current_log_stream(_Stream),
   !.
 append_to_log_(Category, Message):-
   current_log_stream(Stream),
@@ -153,7 +153,7 @@ create_log_file(Situation, AbsoluteFile, Stream):-
 % Ends the current logging activity.
 
 end_log:-
-  \+ current_log_file(File),
+  \+ current_log_file(_File),
   !.
 end_log:-
   append_to_log(build, 'Goodnight!', []),

@@ -19,7 +19,10 @@
                        % +Graph:element
 
 % HASHING
-    sha_hash_atom/2 % +Atom:atom
+    clear_indexed_sha_hash/0,
+    indexed_sha_hash/2, % +Input:oneof([atom,list])
+                        % -Hash:atom
+    sha_hash_atom/2 % +Input:oneof([atom,list])
                     % -Hash:atom
   ]
 ).
@@ -90,6 +93,8 @@ representing a name-value pair.
 :- use_module(standards(c)).
 :- use_module(svg(svg)).
 :- use_module(standards(x11)).
+
+:- dynamic(indexed_sha_hash0(_Input, _Hash)).
 
 :- db_add_novel(user:prolog_file_type(dot,  graphviz       )).
 :- db_add_novel(user:prolog_file_type(jpeg, jpeg           )).
@@ -686,6 +691,16 @@ stream_vertex(Stream, Indent, node(VertexID, VerticeAttributes)):-
 
 
 % HASHING %
+
+clear_indexed_sha_hash:-
+  retractall(indexed_sha_hash0(_Key, _Hash)).
+
+indexed_sha_hash(Input, Hash):-
+  indexed_sha_hash0(Input, Hash),
+  !.
+indexed_sha_hash(Input, Hash):-
+  sha_hash_atom(Input, Hash),
+  assert(indexed_sha_hash0(Input, Hash)).
 
 sha_hash_atom(Atom, Hash):-
   atom(Atom),

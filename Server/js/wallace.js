@@ -1,3 +1,16 @@
+function clickme(name) {
+  //document.write(name);
+  var xhr = createXHR();
+  if(xhr) {
+    xhr.open("GET", "node?id=" + name, true);
+  }
+  xhr.send(null);
+}
+
+function continuous(name) {
+  window.setInterval(function() { updateCommand(name); }, 1000);
+}
+
 function createXHR() {
   try {
     return new XMLHttpRequest();
@@ -27,6 +40,3 @@ function updateCommand(name) {
   }
 }
 
-function continuous(name) {
-  window.setInterval(function() { updateCommand(name); }, 1000);
-}

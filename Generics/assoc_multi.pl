@@ -39,7 +39,7 @@ and by adding ord_member/2.
 
 :- dynamic(current_assoc(_Name, _Assoc)).
 
-:- debug(assoc_multi).
+:- nodebug(assoc_multi).
 
 
 
