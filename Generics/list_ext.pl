@@ -68,6 +68,8 @@
     split_list_by_size/3, % +List:list
                           % +SizeOfSublists:integer
                           % -Sublists:list(list)
+    strict_sublist/2, % ?SubList:list
+                      % +List:list
     sublist/2, % ?SubList:list
                % +List:list
 
@@ -477,3 +479,8 @@ sort(Options, List, Sorted):-
   ;
     Sorted = Sorted0
   ).
+
+strict_sublist(SubList, List):-
+  sublist(SubList, List),
+  SubList \== List.
+

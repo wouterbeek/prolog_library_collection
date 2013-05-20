@@ -18,8 +18,11 @@ Database extensions.
 @version 2013/04-2013/05
 */
 
+:- meta_predicate(db_add(:)).
 :- meta_predicate(db_add_novel(:)).
-:- meta_predicate(db_replace_novel(0,0)).
+:- meta_predicate(db_replace(:,:)).
+:- meta_predicate(db_replace_novel(:,:)).
+
 
 
 db_add(New):-
@@ -35,10 +38,15 @@ db_add_novel(New):-
   assert(New).
 
 %! db_replace(+Old, +New) is det.
-% Replaces exactly one asserted fact with another.
+% Replaces at most one asserted fact (if present) with another one.
 
+% There is something to overwrite.
 db_replace(Old, New):-
   retract(Old),
+  !,
+  assert(New).
+% There is nothing to overwrite.
+db_replace(_Old, New):-
   assert(New).
 
 db_replace_novel(Old, New):-

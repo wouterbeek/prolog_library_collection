@@ -15,8 +15,6 @@
                        % -Stream:atom
     current_log_file/1, % ?File:file
     current_log_stream/1, % ?Stream:stream
-    disable_log_mode/0,
-    enable_log_mode/0,
     end_log/0,
     send_log/1, % +File:atom
     set_current_log_file/1, % ?File:atom
@@ -45,8 +43,6 @@ Methods for logging.
 
 :- dynamic(current_log_file/1).
 :- dynamic(current_log_stream/1).
-:- dynamic(log_mode/1).
-:- db_add_novel(log_mode(false)).
 :- dynamic(situation0/1).
 
 :- db_add_novel(user:prolog_file_type(log, log)).
@@ -95,7 +91,7 @@ append_to_log(Category, Format, Arguments):-
   append_to_log_(Category, Message).
 
 append_to_log_(_Category, _Message):-
-  log_mode(false),
+  \+ current_log_stream(Stream),
   !.
 append_to_log_(Category, Message):-
   current_log_stream(Stream),
@@ -153,23 +149,11 @@ create_log_file(Situation, AbsoluteFile, Stream):-
   create_file(LogDir, FileName, log, AbsoluteFile),
   open(AbsoluteFile, write, Stream, [close_on_abort(true), type(text)]).
 
-disable_log_mode:-
-  log_mode(false),
-  !.
-disable_log_mode:-
-  db_replace(log_mode(true), log_mode(false)).
-
-enable_log_mode:-
-  log_mode(true),
-  !.
-enable_log_mode:-
-  db_replace(log_mode(false), log_mode(true)).
-
 %! end_log is det.
 % Ends the current logging activity.
 
 end_log:-
-  log_mode(false),
+  \+ current_log_file(File),
   !.
 end_log:-
   append_to_log(build, 'Goodnight!', []),
@@ -235,9 +219,6 @@ situation(no_situation).
 % Starts logging.
 % This does nothing in case log mode is turned off.
 
-start_log:-
-  log_mode(false),
-  !.
 start_log:-
   create_log_file(File, Stream),
   set_current_log_file(File),

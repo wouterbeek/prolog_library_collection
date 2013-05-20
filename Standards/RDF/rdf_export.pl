@@ -204,8 +204,8 @@ rdf_resource_naming(List, Name):-
   is_list(List),
   !,
   maplist(rdf_resource_naming, List, Names),
-  atomic_list_concat(Names, ', ', Name_),
-  format(atom(Name), '< ~w >', [Name_]).
+  atomic_list_concat(Names, ',', NamesAtom),
+  format(atom(Name), '{~w}', [NamesAtom]).
 rdf_resource_naming(literal(type(Datatype, Value)), Name):-
   rdf_global_id(DatatypeNamespace:DatatypeLocal, Datatype),
   format(atom(Name), '"~w"^^~w:~w', [Value,DatatypeNamespace,DatatypeLocal]),

@@ -11,10 +11,9 @@
 Acts on messages printed by print_message/2.
 
 @author Wouter Beek
-@version 2013/02, 2013/04
+@version 2013/02, 2013/04-2013/05
 */
 
-:- use_module(generics(file_ext)).
 :- use_module(html(html)).
 :- use_module(library(http/http_open)).
 :- use_module(server(error_web)).
@@ -24,6 +23,10 @@ Acts on messages printed by print_message/2.
 
 
 
+log_web(Markup):-
+  \+ current_log_file(_File),
+  !,
+  Markup = [element(h1, [], ['Logging is currently switched off.'])].
 log_web([HTML_Table]):-
   current_log_file(File),
   csv_read_file(File, Rows, [arity(4), functor(row)]),

@@ -1,9 +1,6 @@
 :- module(
   file_ext,
   [
-    absolute_directory_name/3, % +OldDir:atom
-                               % +SubDirSpec
-                               % -NewDir:atom
     atom_to_file/2, % +Atom:atom
                     % +File:atom
     base_or_file_to_file/3, % +BaseOrFile:atom
@@ -90,6 +87,8 @@ We use the following abbreviations in this module:
 %  * If it exists, then the former call throws an exception.
 %  * If it does not exist, then the latter call would have thrown
 %    an exception.
+%
+% @tbd This does not work. Why is it so hard to go into subdirectories?
 
 absolute_directory_name(OldDir, SubDirSpec, NewDir):-
   catch(
@@ -301,8 +300,12 @@ file_type_alternative(FromFile, ToFileType, ToFile):-
 %        is the name of the file.
 % @arg Dir The absolute path of the nested directory specification.
 
+nested_dir_name(AbsoluteDir, AbsoluteDir):-
+  atom(AbsoluteDir),
+  is_absolute_file_name(AbsoluteDir),
+  !.
 nested_dir_name(NestedDir, Dir):-
-  atomic(NestedDir),
+  atom(NestedDir),
   !,
   Spec =.. [NestedDir, '.'],
   absolute_file_name(Spec, Dir),
@@ -319,19 +322,19 @@ nested_dir_name(NestedDir, Dir):-
 % returning another atomic directory.
 
 nested_dir_name(SubDir, OldDir, NewDir):-
-  atomic(SubDir),
+  atom(SubDir),
   !,
   % Note that adding the option =|file_type(directory)|= makes this clause
   % throw an exception, because this option assumed that the directory
   % exists.
-  absolute_directory_name(OldDir, SubDir, NewDir),
+  atomic_list_concat([OldDir, '/', SubDir], NewDir),
   create_directory(NewDir).
 nested_dir_name(NestedDir, OldDir, NewDir):-
   NestedDir =.. [OuterDir, InnerNestedDir],
   % Note that adding the option =|file_type(directory)|= makes this clause
   % throw an exception, because this option assumed that the directory
   % exists.
-  absolute_directory_name(OldDir, OuterDir, TempDir),
+  atomic_list_concat([OldDir, '/', OuterDir], TempDir),
   create_directory(TempDir),
   nested_dir_name(InnerNestedDir, TempDir, NewDir).
 
