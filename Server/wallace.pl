@@ -70,7 +70,6 @@ http:location(js, root(js), []).
 :- http_handler(root(.), wallace, [prefix, piority(-10)]).
 :- http_handler(root(console_output), console_output, []).
 :- http_handler(root(history), history, []).
-:- http_handler(root(node), node, []).
 :- http_handler(root(status_pane), status_pane, []).
 
 % HTML resources and their dependencies.
@@ -145,32 +144,6 @@ history(_Request):-
   ).
 history(_Request):-
   reply_html_page([], [p('The history is empty.')]).
-
-node(Request):-
-  member(search(SearchParameters), Request),
-  if_then(
-    member(id=Id, SearchParameters),
-    node0(Id)
-  ).
-
-node0(Id1):-
-  sub_atom(Id1, 6, _Length, 0, Id2),
-  indexed_sha_hash(Key, Id2),
-  iotw_relatedness:current_assoc(Assoc),
-  assoc:get_assoc(Key, Assoc, TheseIdentityPairs),
-  iotw_relatedness:current_graph(Graph),
-  iotw_relatedness:predicates_to_pairs(Graph, Key, ThesePairs),
-  ord_subtract(ThesePairs, TheseIdentityPairs, TheseNonIdentityPairs),
-  findall(
-    DOM,
-    (
-      member(TheseNonIdentityPair, TheseNonIdentityPairs),
-      iotw_relatedness:pair_to_dom(Graph, TheseNonIdentityPair, DOM)
-    ),
-    DOMs
-  ),
-  append(DOMs, DOM),
-  push(console_output, DOM).
 
 push(Type, DOM):-
   push(Type, html, wallace, DOM).

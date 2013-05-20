@@ -182,31 +182,41 @@ html_image(Description, File, DIV):-
 %
 % @apram Options A list of name-value pairs. The following options are
 %        supported:
-%        1. =|header(boolean)|= Whether or not the first sublist should be
+%        1. =|caption(atom)|= The caption of the header.
+%        2. =|header(boolean)|= Whether or not the first sublist should be
 %           displayed as the table header row.
 % @arg Rows A 2D table of terms.
 % @arg Markup An HTML table element.
 
-list_to_table(
+list_to_table(Options, Rows1, element(table, [border=1], TableContents)):-
+  list_to_table_caption(Options, CaptionMarkup),
+  list_to_table_header(Options, Rows1, HeaderMarkup, Rows2),
+  maplist(table_row, Rows2, RowsMarkup),
+  append([CaptionMarkup, HeaderMarkup, RowsMarkup], TableContents).
+
+list_to_table_caption(Options, [element(caption, [], [Caption])]):-
+  option(caption(Caption), Options),
+  !.
+list_to_table_caption(_Options, []).
+
+%! list_to_table_header(
+%!   +Options:list(nvpair),
+%!   +AllRows:list(list),
+%!   -Markup:list,
+%!   -NonHeaderRows:list(list)
+%! ) is det.
+% Returns the header row of an HTML table, if the header option is present.
+
+list_to_table_header(
   Options,
   [Header | Rows],
-  element(table, [border=1], [MarkupHeader | MarkupRows])
+  [element(tr, [], MarkupCells)],
+  Rows
 ):-
-  option(header(true), Options, true),
+  option(header(true), Options),
   !,
-  table_header(Header, MarkupHeader),
-  maplist(table_row, Rows, MarkupRows).
-list_to_table(_Options, Rows, element(table, [border=1], MarkupRows)):-
-  maplist(table_row, Rows, MarkupRows).
-
-%! table_header(+Elements:list(term), -Markup) is det.
-% Returns the header row of an HTML table containing the given elements.
-%
-% @arg Elements A list of terms.
-% @arg Markup An HTML entity.
-
-table_header(Elements, element(tr, [], MarkupCells)):-
-  table_row0(Elements, th, MarkupCells).
+  table_row0(Header, th, MarkupCells).
+list_to_table_header(_Options, Rows, [], Rows).
 
 %! table_row(+Elements:list(term), -Markup) is det.
 % Returns the row of an HTML table containing the given elements.

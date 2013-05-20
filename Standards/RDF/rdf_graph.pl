@@ -23,6 +23,8 @@
                      % -Graph2:atom
     rdf_object/2, % ?Graph:graph
                   % ?Objects:oneof([bnode,literal,uri])
+    rdf_pairs/2, % +Resource:uri
+                 % -PredicateObjectPairs:list(pair)
     rdf_predicate/2, % ?Graph:atom
                      % ?Predicate:uri
     rdf_predicates/2, % +Graph:atom
@@ -31,10 +33,20 @@
                    % ?Subject:oneof([bnode,uri])
     rdf_subjects/2, % +Graph:atom
                     % -Subjects:ordset(uri)
-    rdf_triples/2, % +Graph:atom
+    rdf_triples/2, % +In:oneof([atom,uri])
                    % -Triples:list(rdf_triple)
-    rdf_vocabulary/2 % +Graph:atom
-                     % -Vocabulary:ordset(oneof([uri,literal]))
+    rdf_vocabulary/2, % +Graph:atom
+                      % -Vocabulary:ordset(oneof([uri,literal]))
+    select_shared_properties/5, % +X_Pairs1:ordset(list)
+                                % +Y_Pairs1:ordset(list)
+                                % -SharedPropertyPairs:ordset(list)
+                                % -X_Pairs2:ordset(list)
+                                % -Y_Pairs2:ordset(list)
+    select_shared_predicates/5 % +X_Pairs1:ordset(list)
+                               % +Y_Pairs1:ordset(list)
+                               % -SharedPredicateTuples:ordset(list)
+                               % -X_Pairs2:ordset(list)
+                               % -Y_Pairs2:ordset(list)
   ]
 ).
 
@@ -158,8 +170,10 @@ as their lean subgraphs.
 :- rdf_meta(rdf_bnode(?,r)).
 :- rdf_meta(rdf_name(?,r)).
 :- rdf_meta(rdf_object(?,r)).
+:- rdf_meta(rdf_pairs(r,-)).
 :- rdf_meta(rdf_predicate(?,r)).
 :- rdf_meta(rdf_subject(?,r)).
+:- rdf_meta(rdf_triples(r,-)).
 
 
 
@@ -451,6 +465,15 @@ rdf_object(G, O):-
 rdf_object0(G, O):-
   rdf(_, _, O, G).
 
+rdf_pairs(Resource, PredicateObjectPairs):-
+  is_uri(Resource),
+  !,
+  setoff(
+    [P, O],
+    rdf(Resource, P, O, _Graph),
+    PredicateObjectPairs
+  ).
+
 rdf_predicate(G, P):-
   nonvar_det(rdf_predicate0(G, P)).
 rdf_predicate0(G, P):-
@@ -479,14 +502,28 @@ rdf_subjects(Graph, Subjects):-
     Subjects
   ).
 
-%! rdf_triples(+Graph:atom, -Triples:list(rdf_triple)) is det.
+%! rdf_triples(+In:oneof([atom,uri]) -Triples:list(rdf_triple)) is det.
 % Returns an unsorted list containing all the triples in a graph.
 %
-% @arg Graph The atomic name of a loaded RDF graph.
+% @arg In The atomic name of a loaded RDF graph, or a URI.
 % @arg Triples A list of triple compound term.
 
 rdf_triples(Graph, Triples):-
-  findall(rdf(S, P, O), rdf(S, P, O, Graph), Triples).
+  rdf_graph(Graph),
+  !,
+  findall(
+    rdf(S, P, O),
+    rdf(S, P, O, Graph),
+    Triples
+  ).
+rdf_triples(Resource, Triples):-
+  is_uri(Resource),
+  !,
+  setoff(
+    rdf(Resource, P, O),
+    rdf(Resource, P, O, _Graph),
+    Triples
+  ).
 
 rdf_vocabulary(Graph, Vocabulary):-
   setoff(
@@ -494,3 +531,32 @@ rdf_vocabulary(Graph, Vocabulary):-
     rdf_name([literal(false)], Graph, Name),
     Vocabulary
   ).
+
+select_shared_properties(
+  X_Pairs1,
+  Y_Pairs1,
+  SharedPropertyPairs,
+  X_Pairs2,
+  Y_Pairs2
+):-
+  ord_intersection(X_Pairs1, Y_Pairs1, SharedPropertyPairs, Y_Pairs2),
+  ord_subtract(X_Pairs1, SharedPropertyPairs, X_Pairs2).
+
+select_shared_predicates(
+  X_Pairs1,
+  Y_Pairs1,
+  SharedPredicateTriples,
+  X_Pairs2,
+  Y_Pairs2
+):-
+  setoff(
+    [Predicate, X_Object, Y_Object],
+    (
+      member(Predicate-X_Object, X_Pairs1),
+      member(Predicate-Y_Object, Y_Pairs1)
+    ),
+    SharedPredicateTriples
+  ),
+  ord_subtract(X_Pairs1, SharedPredicateTriples, X_Pairs2),
+  ord_subtract(Y_Pairs1, SharedPredicateTriples, Y_Pairs2).
+
