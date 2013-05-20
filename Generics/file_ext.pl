@@ -35,6 +35,8 @@
     nested_dir_name/3, % +NestedDirs:compound
                        % +OldDir:atom
                        % -NewDir:atom
+    new_file/2, % +File1:atom
+                % -File2:atom
     path_walk_forest/3, % +Dirs:list(atom)
                         % +RE:atom
                         % -AbsoluteFileNames:list(atom)
@@ -332,6 +334,27 @@ nested_dir_name(NestedDir, OldDir, NewDir):-
   absolute_directory_name(OldDir, OuterDir, TempDir),
   create_directory(TempDir),
   nested_dir_name(InnerNestedDir, TempDir, NewDir).
+
+%! new_file(+File1:atom, -File2:atom) is det.
+
+new_file(File, File):-
+  \+ exists_file(File),
+  !.
+new_file(File1, File2):-
+  file_name_extension(Base1, Extension, File1),
+  split_atom_exclusive(Base1, '_', Splits),
+  reverse(Splits, [LastSplit | RSplits]),
+  (
+    atom_number(LastSplit, OldNumber)
+  ->
+    NewNumber is OldNumber + 1,
+    atom_number(NewLastSplit, NewNumber),
+    reverse([NewLastSplit | RSplits], NewSplits)
+  ;
+    reverse(['1', LastSplit | RSplits], NewSplits)
+  ),
+  atomic_list_concat(NewSplits, '_', Base2),
+  file_name_extension(Base2, Extension, File2).
 
 %! path_walk_forest(
 %!   +Dirs:list(atom),

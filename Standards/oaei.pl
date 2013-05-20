@@ -164,7 +164,8 @@ oaei_check_alignment(ReferenceAlignments, RawAlignments):-
 oaei_file_to_alignments(File, Alignments):-
   file_name(File, _Directory, Graph, _Extension),
   rdf_load2(File, [graph(Graph)]),
-  oaei_graph_to_alignments(Graph, Alignments).
+  oaei_graph_to_alignments(Graph, Alignments),
+  rdf_unload_graph(Graph).
 
 %! oaei_graph
 
