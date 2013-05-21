@@ -211,6 +211,10 @@ dbnl_process_title(Title, URI, Graph):-
     )
   ),
   !.
+% Non-existing URIs. Contact the DBNL about this.
+dbnl_process_title(_Title, URI, _Graph):-
+  URI == 'http://www.dbnl.org/titels/titel.php?id=_ikst001ikst0',
+  !.
 % Oops, debugging!
 dbnl_process_title(Title, URI, _Graph):-
   gtrace, %DEB
