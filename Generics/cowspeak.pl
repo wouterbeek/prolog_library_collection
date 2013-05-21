@@ -69,7 +69,7 @@ cowsay(Atoms, Cow):-
     Line,
     (
       member(Atom, Atoms),
-      split_atom_exclusive(Atom, '\n', Lines1),
+      split_atom_exclusive('\n', Atom, Lines1),
       member(Line1, Lines1),
       split_atom_length(Line1, MaxLength, Lines2),
       member(Line, Lines2)

@@ -446,7 +446,7 @@ rdf_new_graph(Graph, Graph):-
   \+ rdf_graph(Graph),
   !.
 rdf_new_graph(Graph1, Graph3):-
-  split_atom_exclusive(Graph1, '_', Splits),
+  split_atom_exclusive('_', Graph1, Splits),
   reverse(Splits, [LastSplit | RSplits]),
   (
     atom_number(LastSplit, OldNumber)

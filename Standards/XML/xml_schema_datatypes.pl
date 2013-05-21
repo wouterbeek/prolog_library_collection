@@ -71,9 +71,7 @@ A single defining aspect of a value space.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdf(rdf_build)).
 :- use_module(rdf(rdf_read)).
-:- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
 
 :- rdf_meta(xmls_convert_datatype(r,+,r,-)).
@@ -92,14 +90,14 @@ init:-
   rdf_global_id(w3c:'TR/2004/REC-xmlschema-2-20041028/', This),
   rdf_assert(This, rdf:type, w3c:'Recommendation', Graph),
   rdf_assert(This, w3c:year, literal(type(gYear, '2004')), Graph),
-  rdf_assert_literal(
+  rdf_assert(
     This,
     std:title,
-    'XML Schema Part 2: Datatypes Second Edition',
+    literal('XML Schema Part 2: Datatypes Second Edition'),
     Graph
   ),
-  rdf_assert_literal(This, w3c:author, 'Paul V. Biron', Graph),
-  rdf_assert_literal(This, w3c:author, 'Ashok Malhotra', Graph),
+  rdf_assert(This, w3c:author, literal('Paul V. Biron'), Graph),
+  rdf_assert(This, w3c:author, literal('Ashok Malhotra'), Graph),
   % Language-independent datatypes.
   rdf_assert(This, w3c:mentions, iso:'11404', Graph),
   % SQL datatypes.

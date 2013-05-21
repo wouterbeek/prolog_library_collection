@@ -29,11 +29,11 @@
                               % -UnderscoreAtom:atom
     spaces_to_underscores/2, % +Atom:atom
                              % -UnderscoreAtom:atom
-    split_atom_exclusive/3, % +Atom:atom
-                            % +Split:oneof([atom,list(atom)])
+    split_atom_exclusive/3, % +Split:oneof([atom,list(atom)])
+                            % +Atom:atom
                             % -Splits:list(atom)
-    split_atom_inclusive/3, % +Atom:atom
-                            % +Split:oneof([atom,list(atom)])
+    split_atom_inclusive/3, % +Split:oneof([atom,list(atom)])
+                            % +Atom:atom
                             % -Splits:list(atom)
     split_atom_length/3, % +Atom:atom
                          % +Length:integer
@@ -246,24 +246,25 @@ spaces_to_underscores(Atom, NewAtom):-
   atom_replace(Atom, [' '-'_'], NewAtom).
 
 %! split_atom_exclusive(
-%!   +Atom:atom,
 %!   +Split:oneof([atom,list(atom)]),
+%!   +Atom:atom,
 %!   -Splits:list(atom)
 %! ) is det.
 % Returns the given atom split up in two, according to the given split.
 % The first split does not include the split atom, making this method
 % exclusive.
 %
-% @arg Atom The original, unsplit atom.
 % @arg Split The occurrence atoms where the splittable atom will be split.
+% @arg Atom The original, unsplit atom.
 % @arg Splits The results of splitting.
+%
 % @see split_atom_inclusive/3 includes the split atom in the split results.
 
-split_atom_exclusive(Atom, Split, Splits):-
+split_atom_exclusive(Split, Atom, Splits):-
   atom(Split),
   !,
-  split_atom_exclusive(Atom, [Split], Splits).
-split_atom_exclusive(Atom, SplitList, [Split1 | Splits]):-
+  split_atom_exclusive([Split], Atom, Splits).
+split_atom_exclusive(SplitList, Atom, [Split1 | Splits]):-
   member(SplitMember, SplitList),
   sub_atom(Atom, Before, _Length, After, SplitMember),
   sub_atom(Atom, 0, Before, _After, Split1),
@@ -271,28 +272,29 @@ split_atom_exclusive(Atom, SplitList, [Split1 | Splits]):-
   Rest is Total - After,
   sub_atom(Atom, Rest, After, 0, NewAtom),
   !,
-  split_atom_exclusive(NewAtom, SplitList, Splits).
-split_atom_exclusive(Atom, _SplitList, [Atom]).
+  split_atom_exclusive(SplitList, NewAtom, Splits).
+split_atom_exclusive(_SplitList, Atom, [Atom]).
 
 %! split_atom_inclusive(
-%!   +Atom:atom,
 %!   +Split:oneof([atom,list(atom)]),
+%!   +Atom:atom,
 %!   -Splits:list(atom)
 %! ) is det.
 % Returns the given atom split up in two, according to the given split.
 % Earlier splits includes the split atom, making this method inclusive.
 %
-% @arg Atom The original, unsplit atom.
 % @arg Split The occurrence in atom where atom will be split.
+% @arg Atom The original, unsplit atom.
 % @arg Splits The results of splitting.
+%
 % @see split_atom_exclusive/3 does not include the split atom in the split
 %      results.
 
-split_atom_inclusive(Atom, Split, Splits):-
+split_atom_inclusive(Split, Atom, Splits):-
   atom(Split),
   !,
-  split_atom_inclusive(Atom, [Split], Splits).
-split_atom_inclusive(Atom, SplitList, [Split1 | Splits]):-
+  split_atom_inclusive([Split], Atom, Splits).
+split_atom_inclusive(SplitList, Atom, [Split1 | Splits]):-
   member(SplitMember, SplitList),
   atom_length(SplitMember, SplitLength),
   sub_atom(Atom, Before, _Length, After, SplitMember),
@@ -301,9 +303,9 @@ split_atom_inclusive(Atom, SplitList, [Split1 | Splits]):-
   atom_length(Atom, Total),
   Rest is Total - After,
   sub_atom(Atom, Rest, After, 0, NewAtom),
-  split_atom_inclusive(NewAtom, SplitList, Splits),
+  split_atom_inclusive(SplitList, NewAtom, Splits),
   !.
-split_atom_inclusive(Atom, _SplitList, [Atom]).
+split_atom_inclusive(_SplitList, Atom, [Atom]).
 
 split_atom_length(Atom, Length, Splits):-
   atom_codes(Atom, Codes),

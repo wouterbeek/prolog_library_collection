@@ -285,7 +285,7 @@ uri_to_subdirectory_file_fragment(URI, Directory, FileName, Fragment):-
     URI,
     uri_components(http, 'www.w3.org', URI_Path, _Search, Fragment)
   ),
-  split_atom_exclusive(URI_Path, '/', List),
+  split_atom_exclusive('/', URI_Path, List),
   nth_minus_0(0, List, FileName),
   nth_minus_0(1, List, Directory).
 

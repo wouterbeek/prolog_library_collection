@@ -53,6 +53,7 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(generics(file_ext)).
 :- use_module(generics(parse_ext)).
 :- use_module(generics(typecheck)).
+:- use_module(library(debug)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
@@ -73,6 +74,8 @@ HTML attribute parsing, used in HTML table generation.
 :- db_add_novel(user:image_file_type(jpg)).
 :- db_add_novel(user:prolog_file_type(png, png)).
 :- db_add_novel(user:image_file_type(png)).
+
+:- debug(html).
 
 
 
@@ -121,7 +124,7 @@ stream_to_html(Stream, DOM):-
       ]
     ),
     error(limit_exceeded(max_errors, Max), _),
-    debug(picarta, 'HTML could not be loaded due to ~w max errors.\n', [Max])
+    debug(html, 'HTML could not be loaded due to ~w max errors.\n', [Max])
   ).
 
 %! uri_to_html(+URI:resource, -HTML:list) is det.
@@ -135,7 +138,10 @@ stream_to_html(Stream, DOM):-
 uri_to_html(URI, DOM):-
   setup_call_cleanup(
     % First perform this setup once/1.
-    http_open(URI, Stream, []),
+    (
+      http_open(URI, Stream, []),
+      set_stream(Stream, encoding(utf8))
+    ),
     % The try to make this goal succeed.
     stream_to_html(Stream, DOM),
     % If goal succeeds, then perform this cleanup.

@@ -914,22 +914,22 @@ init:-
   rdf_global_id(w3c:'TR/2008/REC-xml-20081126/', This),
   rdf_assert(This, rdf:type, w3c:'Recommendation', Graph),
   rdf_assert(This, w3c:year, literal(type(gYear, '2008')), Graph),
-  rdf_assert_literal(
+  rdf_assert(
     This,
     w3c:title,
-    'Extensible Markup Language (XML) 1.0 (Fifth Edition)',
+    literal('Extensible Markup Language (XML) 1.0 (Fifth Edition)'),
     Graph
   ),
   rdf_assert(This, w3c:developed_by, XMLWG, Graph),
-  rdf_assert_literal(This, w3c:author, 'Tim Bray', Graph),
-  rdf_assert_literal(This, w3c:author, 'Jean Paoli', Graph),
-  rdf_assert_literal(This, w3c:author, 'C. M. Sperberg-McQueen', Graph),
-  rdf_assert_literal(This, w3c:author, 'Eve Maler', Graph),
-  rdf_assert_literal(This, w3c:author, 'François Yergeau', Graph),
+  rdf_assert(This, w3c:author, literal('Tim Bray'), Graph),
+  rdf_assert(This, w3c:author, literal('Jean Paoli'), Graph),
+  rdf_assert(This, w3c:author, literal('C. M. Sperberg-McQueen'), Graph),
+  rdf_assert(This, w3c:author, literal('Eve Maler'), Graph),
+  rdf_assert(This, w3c:author, literal('François Yergeau'), Graph),
   rdf_assert(This, w3c:supercedes, w3c:'TR/2006/REC-xml-20060816/', Graph),
   % SGML
   rdf_assert(This, w3c:mentions, iso:'8879', Graph),
-   % Characters
+  % Characters
   rdf_assert(This, w3c:requires, iso:'10646', Graph),
   rdf_assert(This, w3c:requires, std:'BCP47', Graph),
   % Language identification tags

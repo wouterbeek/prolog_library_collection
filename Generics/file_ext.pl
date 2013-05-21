@@ -303,7 +303,8 @@ file_type_alternative(FromFile, ToFileType, ToFile):-
 nested_dir_name(AbsoluteDir, AbsoluteDir):-
   atom(AbsoluteDir),
   is_absolute_file_name(AbsoluteDir),
-  !.
+  !,
+  create_directory(AbsoluteDir).
 nested_dir_name(NestedDir, Dir):-
   atom(NestedDir),
   !,
@@ -345,7 +346,7 @@ new_file(File, File):-
   !.
 new_file(File1, File2):-
   file_name_extension(Base1, Extension, File1),
-  split_atom_exclusive(Base1, '_', Splits),
+  split_atom_exclusive('_', Base1, Splits),
   reverse(Splits, [LastSplit | RSplits]),
   (
     atom_number(LastSplit, OldNumber)
