@@ -83,7 +83,6 @@ representing a name-value pair.
 
 :- use_module(generics(db_ext)).
 :- use_module(generics(exception_handling)).
-:- use_module(generics(file_ext)).
 :- use_module(generics(os_ext)).
 :- use_module(generics(print_ext)).
 :- use_module(generics(typecheck)).
@@ -103,6 +102,7 @@ representing a name-value pair.
 :- db_add_novel(user:prolog_file_type(jpg,  graphviz_output)).
 :- db_add_novel(user:prolog_file_type(pdf,  pdf            )).
 :- db_add_novel(user:prolog_file_type(pdf,  graphviz_output)).
+:- db_add_novel(user:prolog_file_type(png,  graphviz_output)).
 :- db_add_novel(user:prolog_file_type(svg,  graphviz_output)).
 :- db_add_novel(user:prolog_file_type(svg,  svg            )).
 :- db_add_novel(user:prolog_file_type(xdot, graphviz_output)).
@@ -616,7 +616,7 @@ stream_graphviz(Stream, graph(Vertices, Ranks, Edges, GraphAttributes)):-
   Indent = 1,
 
   % Header
-  option(label(GraphName), GraphAttributes, noname),
+  option(graph_name(GraphName), GraphAttributes, noname),
   formatnl(Stream, 'digraph ~w {', [GraphName]),
 
   % Vertices: ranked
