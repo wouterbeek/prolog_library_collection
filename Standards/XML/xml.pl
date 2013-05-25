@@ -5,6 +5,13 @@
                   % +StyleName:atom
                   % +DOM
                   % -XML:atom
+    dom_to_xml_file/3, % +DTD_Name:atom,
+                       % +DOM:list
+                       % +Out:oneof([atom,stream])
+    dom_to_xml_file/4, % +DTD_Name:atom,
+                       % +DOM:list
+                       % +Out:oneof([atom,stream])
+                       % +Options:list(nvpair)
     file_to_xml/2, % +File:atom
                    % -XML:dom
     stream_to_xml/2, % +Stream:stream
@@ -948,10 +955,6 @@ init:-
 %   =|file_search_path/3|=.
 
 dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
-  new_dtd(DTD_Name, DTD),
-  % Retrieve the first DTD file with the given name.
-  dtd_file(DTD_Name, DTD_File),
-  load_dtd(DTD, DTD_File),
   tmp_file_stream(text, TemporaryFile, Out),
   file_name_type(Style_Name, css, Style),
   stylesheet_pi(css(Style), PI),
@@ -959,13 +962,42 @@ dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
   % a Web page.
   % We do add the stylesheet parsing instruction, since this is allowed by
   % Firefox.
-  xml_write(Out, [PI | DOM], [dtd(DTD), header(false)]),
-  close(Out),
+  dom_to_xml_file(DTD_Name, [PI | DOM], Out, [header(false)]),
   open(TemporaryFile, read, In, [type(text)]),
   stream_to_atom(In, XML),
   close(In),
-  delete_file(TemporaryFile),
+  delete_file(TemporaryFile).
+
+%! dom_to_xml_file(
+%!   +DTD_Name:atom,
+%!   +DOM:list,
+%!   +Out:oneof([atom,stream])
+%! ) is det.
+
+dom_to_xml_file(DTD_Name, DOM, Out):-
+  dom_to_xml_file(DTD_Name, DOM, Out, []).
+
+%! dom_to_xml_file(
+%!   +DTD_Name:atom,
+%!   +DOM:list,
+%!   +Out:oneof([atom,stream]),
+%!   +Options:list(nvpair)
+%! ) is det.
+
+dom_to_xml_file(DTD_Name, DOM, Out, Options1):-
+  is_stream(Out),
+  !,
+  new_dtd(DTD_Name, DTD),
+  % Retrieve the first DTD file with the given name.
+  dtd_file(DTD_Name, DTD_File),
+  load_dtd(DTD, DTD_File),
+  merge_options([dtd(DTD)], Options1, Options2),
+  xml_write(Stream, DOM, Options2),
+  close(Stream),
   free_dtd(DTD).
+dom_to_xml_file(DTD_Name, DOM, File, Options):-
+  open(File, write, Out, []),
+  dom_to_xml_file(DTD_Name, DOM, Out, Options).
 
 %! dtd_file(+Name:atom, -File:atom) is det.
 % Returns the first DTD file with the given name or throws an

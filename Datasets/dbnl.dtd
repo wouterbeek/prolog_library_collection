@@ -1,0 +1,16 @@
+<!DOCTYPE poem
+[
+  <!ELEMENT chapter (figure,footnote,paragraph)>
+  <!ELEMENT figure (image,caption)>
+  <!ELEMENT image EMPTY>
+  <!ELEMENT caption (#PCDATA)>
+  <!ELEMENT footnote (#PCDATA)>
+  <!ELEMENT paragraph (#PCDATA,footnote,em)>
+  <!ELEMENT em (#PCDATA)>
+
+  <!ATTLIST image xlink:type (simple) "simple">
+  <!ATTLIST image xlink:href CDATA #REQUIRED>
+  <!ATTLIST footnote name CDATA #REQUIRED>
+]>
+
+
