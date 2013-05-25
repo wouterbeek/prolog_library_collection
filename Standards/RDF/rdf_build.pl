@@ -21,6 +21,10 @@
                           % +Language:atom
                           % +Literal:atom
                           % +Graph:atom
+    rdf_assert_xml_literal/4, % +Subject:oneof([bnode,uri])
+                              % +Predicate:uri
+                              % +XMLLiteral:xml
+                              % +Graph:atom
 
 % LITERAL UPDATES
     rdf_increment/3, % +Link:uri
@@ -83,6 +87,7 @@ The supported datatypes:
 :- rdf_meta(rdf_assert_datatype(r,r,+,+,+)).
 :- rdf_meta(rdf_assert_literal(r,r,+,+)).
 :- rdf_meta(rdf_assert_literal(r,r,+,+,+)).
+:- rdf_meta(rdf_assert_xml_literal(r,r,+,+)).
 % LITERAL UPDATES
 :- rdf_meta(rdf_increment(r,r,+)).
 :- rdf_meta(rdf_overwrite_datatype(r,r,+,+,+)).
@@ -98,7 +103,7 @@ The supported datatypes:
 % LISTS %
 
 %! rdf_assert_list(+List:list, -RDF_List:uri, +Graph:atom) is det.
-% Asserts the given, possibly nested list into RDFS.
+% Asserts the given, possibly nested list into RDF.
 %
 % @arg List The, possibly nested, Prolog list.
 % @arg RDF_List The URI of the node at which the RDF list starts.
@@ -196,6 +201,16 @@ rdf_assert_literal(Subject, Predicate, Literal, Graph):-
 rdf_assert_literal(Subject, Predicate, Language, Literal, Graph):-
   % Make sure that the literal is atomic.
   rdf_assert(Subject, Predicate, literal(lang(Language, Literal)), Graph).
+
+%! rdf_assert_xml_literal(
+%!   +Subject:oneof([bnode,uri]),
+%!   +Predicate:uri,
+%!   +XMLLiteral:atom,
+%!   +Graph:atom
+%! ) is det.
+
+rdf_assert_xml_literal(Subject, Predicate, XMLLiteral, Graph):-
+  rdf_assert_datatype(Subject, Predicate, rdf:'XMLLiteral', XMLLiteral, Graph).
 
 
 

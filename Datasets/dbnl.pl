@@ -18,6 +18,7 @@ URI that currently fail:
   * http://www.dbnl.org/titels/titel.php?id=daal002janp01
 
 @author Wouter Beek
+@tbd Add the link to the editor page.
 @version 2013/05
 */
 
@@ -41,6 +42,9 @@ URI that currently fail:
 
 
 % GENERICS: CONSIDER MOVING %
+
+extract_editor(Atom, EditorName):-
+  atom_concat('editie ', EditorName, Atom).
 
 %! extract_year(
 %!   +Atom:atom,
@@ -94,6 +98,16 @@ dbnl_assert_author(Graph, AbsoluteAuthorURI, AuthorName, Author):-
   rdf_assert(Author, rdf:type, dbnl:'Author', Graph),
   rdfs_assert_label(Author, AuthorName, Graph),
   rdf_assert(Author, dbnl:orignal_page, AbsoluteAuthorURI, Graph).
+
+dbnl_assert_editor(_Graph, EditorName, Editor):-
+  rdfs_label(Editor, EditorName),
+  !.
+dbnl_assert_editor(Graph, EditorName, Editor):-
+  flag(editor, EditorFlag, EditorFlag + 1),
+  format(atom(EditorID), 'editor/~w', [EditorFlag]),
+  rdf_global_id(dbnl:EditorID, Editor),
+  rdf_assert(Editor, rdf:type, dbnl:'Editor', Graph),
+  rdfs_assert_label(Editor, EditorName, Graph).
 
 %! dbnl_assert_genre(+Graph:atom, +GenreName:atom, -Genre:uri) is det.
 
@@ -252,10 +266,31 @@ dbnl_debug(URI):-
 %! dbnl_dom_to_contents(+DOM:dom, -Contents:dom) is det.
 
 dbnl_dom_to_contents(DOM, Contents):-
-  xpath(DOM, //table(@id=content), TABLE),
-  xpath(TABLE, //td(@id=text), TD),
-  xpath(TD, div(content), Contents),
-  !.
+  findall(
+    Contents,
+    (
+      xpath(DOM, //table(@id=content), TABLE),
+      xpath(TABLE, //td(@id=text), TD),
+      xpath(TD, div(content), Contents)
+    ),
+    Contentss
+  ),
+  append(Contentss, Contents).
+
+%! dbnl_dom_to_footnotes(+DOM:dom, -Footnotes:pair(atom,dom)) is det.
+
+dbnl_dom_to_footnotes(DOM, Footnotes):-
+  findall(
+    NoteName-Contents,
+    (
+      xpath(
+        DOM,
+        //div(@class=note),
+        element(div, _, [element(a, [name=NoteName | _], _) | Contents])
+      ),
+    ),
+    Footnotes
+  ).
 
 
 
@@ -297,59 +332,250 @@ dbnl_scrape(Category, Order):-
   ),
 
   uri_to_html(URI, DOM),
-  
+
   % First assert all titles.
   dbnl_scrape_titles(Graph, DOM).
 
 
 
-% DBNL: VERY SPECIFIC, COSNIDER MAKING MORE GENERIC %
+% DBNL: TEXT PAGES %
 
-%! dbnl_process_secondary_literature(
+dbnl_process_chapter(Graph, URI, BNode):-
+  uri_to_html(URI, DOM),
+gtrace,
+  dbnl_dom_to_contents(DOM, Contents),
+  dbnl_dom_to_footnotes(DOM, Footnotes),
+  dbnl_process_chapter(Graph, URI, Footnotes, BNode, Contents).
+
+dbnl_process_chapter(Graph, URI, Footnotes, BNode, Contents).
+  dbnl_process_chapter(Graph, URI, Footnotes, BNode, [], Contents).
+
+dbnl_process_chapter(_Graph, _BaseURI, _Footnotes, BNode, BNodes, []):-
+  rdf_assert_list(BNodes, RDF_List, Graph),
+  rdf_assert(BNode, dbnl:content, RDF_List, Graph),
+  !.
+% Image plus caption.
+dbnl_process_chapter(
+  Graph,
+  BaseURI,
+  Footnotes,
+  BNode1,
+  BNodes,
+  [
+    element(
+      p,
+      _,
+      [_BR1, _BR2, element(img, [src=ImageRelativeURI | _], _), _BR3]
+    ),
+    element(div, _, [Caption])
+  | Contents
+  ]
+):-
+  absolute_file_name(file(ImageRelativeURI), ImageFile, []),
+  atomic_list_concat([BaseURI, '/', ImageRelativeURI], ImageAbsoluteURI),
+  uri_to_file(ImageAbsoluteURI, ImageFile),
+  rdf_bnode(BNode2),
+  rdfs_assert_individual(BNode2, dbnl:'Image', Graph),
+  rdf_assert_datatype(BNode2, dbnl:file, file, ImageFile, Graph),
+  rdf_assert_datatype(BNode2, dbnl:caption, string, Caption, Graph),
+  rdf_assert(BNode1, dbnl:image, BNode2, Graph),
+  dbnl_process_chapter(
+    Graph,
+    BaseURI,
+    Footnotes,
+    BNode1,
+    [BNode2 | BNodes],
+    Contents
+  ).
+% Footnote.
+dbnl_process_chapter(
+  Graph,
+  BaseURI,
+  Footnotes,
+  BNode1,
+  BNodes,
+  [element(a, [href=indent | _], [NoteName]) | Contents]
+):-
+  rdf_bnode(BNode2),
+  rdfs_assert_individual(BNode2, dbnl:'Note', Graph),
+  rdfs_assert_label(BNode2, NoteName, Graph),
+  memberchk(NoteName-NoteContent),
+  rdf_assert_datatype(BNode2, dbnl:content, string, NoteContent, Graph),
+  rdf_assert(BNode1, dbnl:note, BNode2, Graph),
+  dbnl_process_chapter(
+    Graph,
+    BaseURI,
+    Footnotes,
+    BNode1,
+    [BNode2 | BNodes],
+    Contents
+  ).
+% Text.
+dbnl_process_chapter(
+  Graph,
+  BaseURI,
+  Footnotes,
+  BNode1,
+  BNodes,
+  [element(p, [class=indent], Contents) | Contents]
+):-
+  dbnl_process_chapter_text(Contents, Text),
+  rdf_bnode(BNode2),
+  
+  rdf_assert(BNode1, dbnl:text, BNode2, Graph),
+  dbnl_process_chapter(
+    Graph,
+    BaseURI,
+    Footnotes,
+    BNode1,
+    [BNode2 | BNodes],
+    Contents
+  ).
+dbnl_process_chapter(
+  Graph,
+  BaseURI,
+  Footnotes,
+  BNode,
+  BNodes,
+  [_ | Contents]
+):-
+  dbnl_process_chapter(Graph, BaseURI, Footnotes, BNode, BNodes, Contents).
+
+dbnl_process_chapter_text(Contents, Text):-
+  dbnl_process_chapter_text(Contents, [], Text).
+
+% Done!
+dbnl_process_chapter_text([], []):-
+  !.
+% A piece of plain text.
+dbnl_process_chapter_text([Text | Contents], [Text | Texts]):-
+  atom(Text),
+  !,
+  dbnl_process_chapter_text(Contents, Texts).
+% A piece of italic text.
+dbnl_process_chapter_text(
+  [element(i, [], [Text]) | Contents],
+  [element(em, [], [Text]) | Texts]
+):-
+  !,
+  dbnl_process_chapter_text(Contents, Texts).
+% A note.
+dbnl_process_chapter_text(
+  [
+    element(a, [href=RelativeURI | _], [element(span, _, [NoteName])])
+  | Contents],
+  [element(span, [class=footnote, name=NoteName], [Text]) | Texts]
+):-
+  
+  !,
+  dbnl_process_chapter_text(Contents, Texts).
+% Other elements.
+dbnl_process_chapter_text([Element | Content], [Element | Texts]):-
+  dbnl_process_chapter_text(Content, Texts).
+
+%! dbnl_process_contents_list(
 %!   +Graph:atom,
 %!   +Title:uri,
+%!   +BaseURI:uri,
+%!   +Contents:dom
+%! ) is det.
+% Processes the given DOM which represents the list of contents
+% of the given title.
+%
+% The list of contents is asserted as an RDF list consisting of blank nodes
+% for each chapter.
+
+dbnl_process_contents_list(Graph, Title, BaseURI, Contents):-
+  dbnl_process_contents_list(Graph, Title, BaseURI, [], Contents).
+
+%! dbnl_process_contents_list(
+%!   +Graph:atom,
+%!   +Title:uri,
+%!   +BaseURI:uri,
+%!   +History:list(bnode),
 %!   +Contents:dom
 %! ) is det.
 
-dbnl_process_secondary_literature(Graph, Title, Contents):-
-  Contents = [AuthorName, element(a, [href=RelativeURI], [TitleName]), Rest],
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+dbnl_process_contents_list(Graph, Title, _BaseURI, List, []):-
+  rdf_assert_list(List, RDF_List, Graph),
+  rdf_assert(Title, dbnl:contents, RDF_List, Graph),
+  !.
+dbnl_process_contents_list(
+  Graph,
+  Title,
+  BaseURI,
+  List,
+  [element(p, [], [element(a, Attributes, [Name])]) | Contents]
+):-
   rdf_bnode(BNode),
-  rdf_assert(Title, dbnl:secondary, BNode, Graph),
-  rdf_assert_datatype(BNode, dbnl:author, string, AuthorName, Graph),
-  rdf_assert_datatype(BNode, dbnl:title, string, TitleName, Graph),
+  rdfs_assert_individual(BNode, dbnl:'Chapter', Graph),
+  rdfs_assert_label(BNode, Name, Graph),
+  memberchk(href=RelativeURI, Attributes),
+  % @tbd uri_resolve/3 cannot handle this?!
+  atomic_list_concat([BaseURI, '/', RelativeURI], AbsoluteURI),
   rdf_assert(BNode, dbnl:original_page, AbsoluteURI, Graph),
-  process_rest(Graph, BNode, Rest).
+  dbnl_process_chapter(Graph, AbsoluteURI, BNode),
+  dbnl_process_contents_list(Graph, Title, BaseURI, [BNode | List], Contents).
 
-%! dbnl_process_text(+Graph:atom, +Title:atom, +URI:uri) is det.
+dbnl_process_text(_Graph, _Title, _URI, []):-
+  !.
+dbnl_process_text(
+  Graph,
+  Title,
+  URI,
+  [element(p, [class=editor], [EditorAtom]) | Contents]
+):-
+  extract_editor(EditorAtom, EditorName),
+  dbnl_assert_editor(Graph, EditorName, Editor),
+  rdf_assert(Title, dbnl:editor, Editor, Graph),
+  dbnl_process_text(Graph, Title, URI, Contents).
+dbnl_process_text(
+  Graph,
+  Title,
+  URI,
+  [element(h2, [class=inhoud], _) | Contents]
+):-
+  dbnl_process_contents_list(Graph, Title, URI, Contents).
+dbnl_process_text(Graph, Title, URI, [_ | Contents]):-
+  %gtrace,
+  dbnl_process_text(Graph, Title, URI, Contents).
+
+%! dbnl_scrape_text(+Graph:atom, +Title:atom, +URI:uri) is det.
 % Process the text that is located at the given URI.
 %
-% @tbd Could uri_resplve/3 be used instead of atom_concat/3?
+% There are three types of pages that may be accessible from the text page:
+%   1. Colon page.
+%   2. Downloads page.
+%   3. Index page.
+%
+% @tbd Could uri_resolve/3 be used instead of atom_concat/3?
 
-dbnl_process_text(Graph, Title, URI1):-
+dbnl_scrape_text(Graph, Title, URI1):-
+  dbnl_debug(URI1),
   % There are several possibilities here:
+  %   1. The URI already refers to a PHP script.
+  %   2. ...
   uri_components(
     URI1,
-    uri_components(Scheme, Authority, Path, Search, Fragment)
+    uri_components(_Scheme, _Authority, Path, _Search, _Fragment)
   ),
-  
-  % Ensure the URI ends in '_01'.
   (
-    atom_concat(_, '_01', URI1)
+    file_name_extension(_Base, php, Path)
   ->
     URI2 = URI1
   ;
-    atom_concat(_, '.php', URI1)
+    atom_concat(_, '_01', URI1)
   ->
     URI2 = URI1
   ;
     atomic_concat(URI1, '_01', URI2)
   ),
+
   uri_to_html(URI2, DOM),
-  term_to_atom(DOM, Atom),
-  db_add_novel(user:prolog_file_type(txt, text)),
-  absolute_file_name(project(temp), File, [file_type(text)]),
-  atom_to_file(Atom, File),
+  dbnl_dom_to_contents(DOM, Contents),
+
+  % Sometimes the page itself contains interesting stuff.
+  dbnl_process_text(Graph, Title, URI2, Contents),
 
 /*
   % Retrieve the colofon DOM.
@@ -365,7 +591,7 @@ dbnl_process_text(Graph, Title, URI1):-
   dbnl_process_text_index(Graph, Title, IndexURI),
 */
   !.
-dbnl_process_text(_Graph, _Title, URI):-
+dbnl_scrape_text(_Graph, _Title, URI):-
   gtrace, %DEB
   write(URI).
 
@@ -381,7 +607,13 @@ dbnl_process_text_colofon(_Graph, _Title, URI):-
   write(Contents).
 
 %! dbnl_process_text_downloads(+Graph:atom, +Title:uri, +URI:uri) is det.
-% Processed the downloads description for the given title.
+% Processed the downloads page for a given title.
+%
+% We are interested in the following information:
+%   1. ePub format files.
+%   2. PDF files of text.
+%   3. PDF files of originals.
+%   4. Original scans.
 %
 % Example of a URI pointing to original scans:
 % ==
@@ -443,10 +675,8 @@ dbnl_process_text_downloads(Graph, Title, URI):-
     rdf_assert_datatype(Title, dbnl:local_scans, file, ScansFile, Graph)
   ),
   !.
-% For debugging.
 dbnl_process_text_downloads(_Graph, _Title, URI):-
-gtrace, %DEB
-  write(URI).
+  dbnl_debug(URI).
 
 dbnl_process_text_index(_Graph, _Title, URI):-
   uri_to_html(URI, DOM),
@@ -455,7 +685,23 @@ dbnl_process_text_index(_Graph, _Title, URI):-
 
 
 
-% DBNL: PROCESS THE CONTENTS OF A PAGE DESCRIBING A TITLE %
+% DBNL: TITLE PAGES %
+
+%! dbnl_process_secondary_literature(
+%!   +Graph:atom,
+%!   +Title:uri,
+%!   +Contents:dom
+%! ) is det.
+
+dbnl_process_secondary_literature(Graph, Title, Contents):-
+  Contents = [AuthorName, element(a, [href=RelativeURI], [TitleName]), Rest],
+  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+  rdf_bnode(BNode),
+  rdf_assert(Title, dbnl:secondary, BNode, Graph),
+  rdf_assert_datatype(BNode, dbnl:author, string, AuthorName, Graph),
+  rdf_assert_datatype(BNode, dbnl:title, string, TitleName, Graph),
+  rdf_assert(BNode, dbnl:original_page, AbsoluteURI, Graph),
+  process_rest(Graph, BNode, Rest).
 
 %! dbnl_process_title_contents(+Graph:atom, +Title:uri, +Contents:dom) is det.
 
@@ -563,7 +809,7 @@ dbnl_process_title_contents(
 
   dbnl_uri_resolve(RelativeTextURI, AbsoluteTextURI),
   rdf_assert(Title, dbnl:text, AbsoluteTextURI, Graph),
-  dbnl_process_text(Graph, Title, AbsoluteTextURI),
+  dbnl_scrape_text(Graph, Title, AbsoluteTextURI),
   dbnl_process_title_contents(Graph, Title, Contents).
 % Assert the secondary text links.
 dbnl_process_title_contents(
@@ -585,10 +831,6 @@ dbnl_process_title_contents(
 dbnl_process_title_contents(_Graph, Title, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n~w\n', [Title, Contents]).
-
-
-
-% DBNL: SCRAPING TASKS %
 
 %! dbnl_scrape_picarta_link(+Graph:atom, +Title:uri, +DOM:list) is det.
 
@@ -617,6 +859,20 @@ dbnl_scrape_titles(Graph, DOM):-
   ).
 
 %! dbnl_scrape_title(+Graph:atom, +Contents:list) is det.
+% The pages with subpath title.
+%
+% URI example:
+% ==
+% http://www.dbnl.org/titels/titel.php?id=_abc002abco01
+% ==
+%
+% These pages contain the following information in which we are interested:
+%   1. Author name.
+%   2. Publication title.
+%   3. Genre.
+%   4. Subgenres.
+%   5. Available texts.
+%   6. Link to Picarta / CBK information.
 
 dbnl_scrape_title(Graph, Contents):-
   % Sometimes the authors are left out.
@@ -628,7 +884,7 @@ dbnl_scrape_title(Graph, Contents):-
   !,
   member(href=RelativeURI, LinkAttributes),
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  
+
   % Assert the title.
   dbnl_assert_title(Graph, AbsoluteURI, TitleName, Title),
 
@@ -660,7 +916,7 @@ dbnl_scrape_title(_Graph, Contents):-
 
 dbnl_scrape_title(Graph, Title, URI):-
   uri_to_html(URI, DOM),
-  
+
   if_then(
     URI = 'http://www.dbnl.org/titels/titel.php?id=_abr001abra01',
     dbnl_debug(URI)
