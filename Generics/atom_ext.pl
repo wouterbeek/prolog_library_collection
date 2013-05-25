@@ -107,6 +107,18 @@ atom_replace(Atom, Replacements, NewAtom):-
   list_replace(Codes, CodesReplacements, NewCodes),
   atom_codes(NewAtom, NewCodes).
 
+%! atom_until(
+%!   +Split:oneof([atom,list(atom)]),
+%!   +Atom:atom,
+%!   -H:atom,
+%!   -Rest:atom
+%! ) is det.
+% Returns the subatom up to the first occurrence of some split.
+
+atom_until(Split, Atom, H, Rest):-
+  split_atom_exclusive(Split, Atom, [H | _T]),
+  atom_concat(H, Rest, Atom).
+
 char_code_(Atom1-Atom2, Code1-Code2):-
   char_code(Atom1, Code1),
   char_code(Atom2, Code2).

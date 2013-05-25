@@ -31,10 +31,14 @@ This module uses the =|img|= search file name for finding images.
 :- use_module(generics(file_ext)).
 :- use_module(generics(typecheck)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(xml(xml_namespace)).
 :- use_module(xml(xml_schema_datatypes)).
 
 % Temporary namespace for the image datatype.
-:- rdf_register_prefix(prasem, 'http://www.wouterbeek.com/prasem.owl#', [keep(true)]).
+:- xml_register_namespace(prasem, 'http://www.wouterbeek.com/prasem.owl#').
+
+:- db_add_novel(user:file_search_path(file, project('Files'))).
+:- db_add_novel(user:file_search_path(img, project('Images'))).
 
 % Register the supported image file types.
 % These are shared with module HTML.
@@ -115,6 +119,14 @@ rdf_datatype(DatatypeName, LexicalValue, CanonicalValue):-
 % @arg Datatype The URI of a datatype.
 % @arg CanonicalValue
 
+rdf_datatype(file, LexicalValue, prasem:file, CanonicalValue):-
+  nonvar(CanonicalValue),
+  !,
+  absolute_file_name(file(CanonicalValue), LexicalValue, [access(read)]).
+rdf_datatype(file, LexicalValue, prasem:file, CanonicalValue):-
+  nonvar(LexicalValue),
+  !,
+  file_base_name(LexicalValue, CanonicalValue).
 rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   nonvar(CanonicalValue),
   !,
@@ -129,4 +141,3 @@ rdf_datatype(image, LexicalValue, prasem:image, CanonicalValue):-
   file_base_name(LexicalValue, CanonicalValue).
 rdf_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue):-
   xmls_datatype(DatatypeName, LexicalValue, Datatype, CanonicalValue).
-
