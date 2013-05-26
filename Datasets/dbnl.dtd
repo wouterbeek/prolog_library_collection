@@ -1,19 +1,33 @@
 <!DOCTYPE poem
 [
-  <!ELEMENT caption (#PCDATA,superscript)>
-  <!ELEMENT chapter (figure,footnote,header,paragraph)>
-  <!ELEMENT emphasis (#PCDATA)>
-  <!ELEMENT figure (image,caption)>
-  <!ELEMENT footnote (#PCDATA)>
-  <!ELEMENT header (#PCDATA)>
+  <!ELEMENT caption (%LINECONTENT;)>
+  <!ELEMENT chapter (%BLOCKCONTENT;)>
+  <!ELEMENT emphasis (%LINECONTENT;)>
+  <!ELEMENT figure (image,caption?)>
+  <!ELEMENT footnote (%LINECONTENT;)>
+  <!ELEMENT header (%LINECONTENT;)>
+  <!ELEMENT iline (%LINECONTENT;)>
+  <!ELEMENT ilines (iline)>
   <!ELEMENT image EMPTY>
-  <!ELEMENT paragraph (#PCDATA,footnote,emphasis,topic,superscript)>
-  <!ELEMENT superscript (#PCDATA)>
-  <!ELEMENT topic (#PCDATA)>
-
-  <!ATTLIST image xlink:type (simple) "simple">
-  <!ATTLIST image xlink:href CDATA #REQUIRED>
+  <!ELEMENT line (%LINECONTENT;)>
+  <!ELEMENT lines (line)>
+  <!ELEMENT page (#PCDATA)>
+  <!ELEMENT paragraph (%BLOCKCONTENT;)>
+  <!ELEMENT quote (%LINECONTENT;)>
+  <!ELEMENT subheader (%LINECONTENT;)>
+  <!ELEMENT superscript (%LINECONTENT;)>
+  <!ELEMENT topic (%LINECONTENT;)>
+  
+  <!ENTITY % BLOCKCONTENT "(#PCDATA|%BLOCKMARKUP;)">
+  <!ENTITY % BLOCKMARKUP "(figure|header|ilines|lines|paragraph|quote|subheader)">
+  <!ENTITY % LINECONTENT "(#PCDATA|%LINEMARKUP;)">
+  <!ENTITY % LINEMARKUP "(emphasis|footnote|page|superscript)">
+  
   <!ATTLIST footnote name CDATA #REQUIRED>
+  <!ATTLIST iline index CDATA #REQUIRED>
+  <!ATTLIST image
+    xlink:type (simple) "simple"
+    xlink:href CDATA #REQUIRED
+  >
+  <!ATTLIST page name CDATA #REQUIRED>
 ]>
-
-

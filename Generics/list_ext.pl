@@ -68,6 +68,9 @@
     split_list_by_size/3, % +List:list
                           % +SizeOfSublists:integer
                           % -Sublists:list(list)
+    split_list_exclusive/3, % +List:list
+                            % +Split:list
+                            % -Sublists:list(list)
     strict_sublist/2, % ?SubList:list
                       % +List:list
     sublist/2, % ?SubList:list
@@ -406,6 +409,23 @@ split_list_by_size(List, SizeOfSublists, [Sublist | Sublists]):-
 % The last sublist is not exactly of the requested size. Give back
 % what remains.
 split_list_by_size(LastSublist, _SizeOfSublists, [LastSublist]).
+
+%! split_list_exclusive(+List:list, +Split:list, -Chunks:list(list)) is det.
+
+split_list_exclusive(List, Split, Chunks):-
+  split_list_exclusive(List, Split, [], Chunks).
+
+% The final chunk.
+split_list_exclusive([], _Split, Chunk, [Chunk]):-
+  !.
+% Process a split.
+split_list_exclusive([Match | List1], [Match | Split], Chunk, [Chunk | Chunks]):-
+  append(Split, List2, List1),
+  !,
+  split_list_exclusive(List2, [Match | Split], [], Chunks).
+% Process a chunk.
+split_list_exclusive([Part | List], Split, Chunk, Chunks):-
+  split_list_exclusive(List, Split, [Part | Chunk], Chunks).
 
 %! sublist(?SubList:list, +List:list) is nondet.
 % Returns sublists of the given list.
