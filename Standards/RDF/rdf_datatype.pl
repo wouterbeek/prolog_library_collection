@@ -119,6 +119,8 @@ rdf_datatype(DatatypeName, LexicalValue, CanonicalValue):-
 % @arg Datatype The URI of a datatype.
 % @arg CanonicalValue
 
+rdf_datatype('XMLLiteral', Value, prasem:'XMLLiteral', Value):-
+  atom(Value).
 rdf_datatype(file, LexicalValue, prasem:file, CanonicalValue):-
   nonvar(CanonicalValue),
   !,

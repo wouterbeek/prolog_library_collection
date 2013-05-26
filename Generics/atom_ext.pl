@@ -6,6 +6,10 @@
     atom_replace/3, % +Atom:atom
                     % +Replacements:list(char-char)
                     % -NewAtom:atom
+    atom_until/4, % +Split:oneof([atom,list(atom)])
+                  % +Atom:atom
+                  % -SubAtom:atom
+                  % -Rest:atom
     decapitalize/2, % +Old:atom
                     % -New:atom
     escape_underscores/2, % +Old:atom

@@ -210,7 +210,7 @@ rdf_assert_literal(Subject, Predicate, Language, Literal, Graph):-
 %! ) is det.
 
 rdf_assert_xml_literal(Subject, Predicate, XMLLiteral, Graph):-
-  rdf_assert_datatype(Subject, Predicate, rdf:'XMLLiteral', XMLLiteral, Graph).
+  rdf_assert_datatype(Subject, Predicate, 'XMLLiteral', XMLLiteral, Graph).
 
 
 

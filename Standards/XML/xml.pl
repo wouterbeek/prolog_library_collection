@@ -1,6 +1,9 @@
 :- module(
   xml,
   [
+    dom_to_xml/3, % +DTD_File:atom
+                  % +DOM
+                  % -XML:atom
     dom_to_xml/4, % +DTD_File:atom
                   % +StyleName:atom
                   % +DOM
@@ -947,7 +950,22 @@ init:-
 
 
 
-%! dom_to_xml(+DTD_Name, +Style_Name, +DOM, -XML) is det.
+%! dom_to_xml(+DTD_Name:atom, +DOM:list, -XML:atom) is det.
+% @see dom_to_xml/4
+
+dom_to_xml(DTD_Name, DOM, XML):-
+  tmp_file_stream(text, TemporaryFile, Out),
+  % Set the header to false, since this XML content will be inserted inside
+  % a Web page.
+  % We do add the stylesheet parsing instruction, since this is allowed by
+  % Firefox.
+  dom_to_xml_file(DTD_Name, DOM, Out, [header(false)]),
+  open(TemporaryFile, read, In, [type(text)]),
+  stream_to_atom(In, XML),
+  close(In),
+  delete_file(TemporaryFile).
+
+%! dom_to_xml(+DTD_Name:atom, +Style_Name:atom, +DOM:list, -XML:atom) is det.
 % Translates DOM to XML, applying DTD checks and Style decoration.
 %
 % @arg DTD_Name The atomic name of a DTD file. File locations that
@@ -955,18 +973,9 @@ init:-
 %   =|file_search_path/3|=.
 
 dom_to_xml(DTD_Name, Style_Name, DOM, XML):-
-  tmp_file_stream(text, TemporaryFile, Out),
   file_name_type(Style_Name, css, Style),
   stylesheet_pi(css(Style), PI),
-  % Set the header to false, since this XML content will be inserted inside
-  % a Web page.
-  % We do add the stylesheet parsing instruction, since this is allowed by
-  % Firefox.
-  dom_to_xml_file(DTD_Name, [PI | DOM], Out, [header(false)]),
-  open(TemporaryFile, read, In, [type(text)]),
-  stream_to_atom(In, XML),
-  close(In),
-  delete_file(TemporaryFile).
+  dom_to_xml(DTD_Name, [PI | DOM], XML).
 
 %! dom_to_xml_file(
 %!   +DTD_Name:atom,
@@ -992,8 +1001,8 @@ dom_to_xml_file(DTD_Name, DOM, Out, Options1):-
   dtd_file(DTD_Name, DTD_File),
   load_dtd(DTD, DTD_File),
   merge_options([dtd(DTD)], Options1, Options2),
-  xml_write(Stream, DOM, Options2),
-  close(Stream),
+  xml_write(Out, DOM, Options2),
+  close(Out),
   free_dtd(DTD).
 dom_to_xml_file(DTD_Name, DOM, File, Options):-
   open(File, write, Out, []),

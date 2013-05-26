@@ -23,6 +23,7 @@ URI that currently fail:
 */
 
 :- use_module(generics(atom_ext)).
+:- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(uri_ext)).
 :- use_module(html(html)).
@@ -36,13 +37,18 @@ URI that currently fail:
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(skos(skos_build)).
+:- use_module(xml(xml)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
 
+:- db_add_novel(user:file_search_path(dtd, datasets(.))).
+
 
 
 % GENERICS: CONSIDER MOVING %
+
+extract_author(Author, Author).
 
 extract_editor(Atom, EditorName):-
   atom_concat('editie ', EditorName, Atom).
@@ -257,8 +263,7 @@ dbnl_uri_resolve(RelativeURI, AbsoluteURI):-
 % DBNL: DEBUG %
 
 dbnl_debug(URI):-
-  www_open_url(URI),
-  gtrace. %DEB
+  www_open_url(URI).
 
 
 
@@ -282,13 +287,11 @@ dbnl_dom_to_contents(DOM, Contents):-
 
 dbnl_dom_to_footnotes(DOM, Notes):-
   findall(
-    NoteName-Contents,
+    NoteIndex-Contents,
     (
-      xpath(
-        DOM,
-        //div(@class=note),
-        element(div, _, [element(a, [name=NoteName | _], _) | Contents])
-      )
+      xpath(DOM, //div(@class=note), DIV),
+      DIV = element(div, _, [element(a, Attributes, _) | Contents]),
+      memberchk(name=NoteIndex, Attributes)
     ),
     Notes
   ).
@@ -341,36 +344,82 @@ dbnl_scrape(Category, Order):-
 
 % DBNL: TEXT PAGES %
 
-%! dbnl_process_chapter(
-%!   +Graph:atom,
-%!   +URI:uri,
-%!   +BNode:bnode,
-%!   -DOM:list
-%! ) is det.
-% Returns the XML DOM for the given chapter link.
+dbnl_process_bibliography(Graph, Title, [element(p, [], Contents)]):-
+  rdf_bnode(BNode),
+  dbnl_process_bibliography(Graph, Title, BNode, Contents).
+dbnl_process_bibliography(
+  Graph,
+  Title,
+  _BNode,
+  [element(br, [], []), element(br, [], []) | Contents]
+):-
+  rdf_bnode(BNode),
+  dbnl_process_bibliography(Graph, Title, BNode, Contents).
+dbnl_process_bibliography(
+  Graph,
+  Title,
+  BNode,
+  [element(i, [], Title) | Contents]
+):-
+  !,
+  rdf_assert_datatype(BNode, dbnl:title, string, Title, Graph),
+  dbnl_process_bibliography(Graph, Title, BNode, Contents).
+dbnl_process_bibliography(Graph, Title, BNode, [Year1 | Contents]):-
+  extract_year(Year1, Year2),
+  rdf_assert_datatype(BNode, dbnl:year, gYear, Year2, Graph),
+  !,
+  dbnl_process_bibliography(Graph, Title, BNode, Contents).
+dbnl_process_bibliography(Graph, Title, BNode, [Author1 | Contents]):-
+  extract_author(Author1, Author2),
+  !,
+  rdf_assert_datatype(BNode, dbnl:author, string, Author2, Graph),
+  dbnl_process_bibliography(Graph, Title, BNode, Contents).
 
-dbnl_process_chapter(Graph, URI, BNode, [element(chapter, [], DOM)]):-
+%! dbnl_process_chapter(+Options:list(nvpair), +URI:uri, -DOM:list) is det.
+% Returns the XML DOM for the given chapter link.
+%
+% Options:
+%   * bnode
+%   * graph
+%   * notes
+%   * title
+%   * uri
+
+dbnl_process_chapter(
+  Options1,
+  URI,
+  [element(chapter, [xmlns:xlink=XLinkNamespace], ChapterDOM)]
+):-
+  \+ is_list(URI),
+  !,
+  xml_current_namespace(xlink, XLinkNamespace),
   uri_to_html(URI, DOM),
-gtrace,
   dbnl_dom_to_contents(DOM, Contents),
   dbnl_dom_to_footnotes(DOM, Notes),
-  dbnl_process_chapter(Graph, URI, BNode, Notes, Contents, DOM).
+  merge_options([notes(Notes), uri(URI)], Options1, Options2),
+gtrace,
+  dbnl_process_chapter(Options2, Contents, ChapterDOM).
 
-dbnl_process_chapter(_Graph, _BaseURI, _BNode, _Footnotes, [], []):-
+dbnl_process_chapter(_Options, [], []):-
   !.
-% Image plus caption.
+% Header.
 dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode1,
-  Notes,
+  Options,
+  [element(h3, [], [Text]) | Contents1],
+  [element(header, [], [Text]) | Contents2]
+):-
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% Image with caption.
+dbnl_process_chapter(
+  Options,
   [
     element(
       p,
       _,
-      [_BR1, _BR2, element(img, [src=ImageRelativeURI | _], _), _BR3]
+      [_BR1, _BR2, element(img, IMG_Attributes, []) | _]
     ),
-    element(div, _, [Caption])
+    element(div, _, Caption1)
   | Contents1
   ],
   [
@@ -379,118 +428,123 @@ dbnl_process_chapter(
       [],
       [
         element(image, [xlink:type=simple, xlink:href=ImageRelativeURI], []),
-        element(caption, [], [Caption])
+        element(caption, [], Caption2)
       ]
     )
   | Contents2
   ]
 ):-
+gtrace,
+  dbnl_process_chapter(Options, Caption1, Caption2),
+
   % Store the image locally.
+  memberchk(src=ImageRelativeURI, IMG_Attributes),
   absolute_file_name(file(ImageRelativeURI), ImageFile, []),
+  option(uri(BaseURI), Options),
   atomic_list_concat([BaseURI, '/', ImageRelativeURI], ImageAbsoluteURI),
   uri_to_file(ImageAbsoluteURI, ImageFile),
 
   % Also add the image as RDF data.
   rdf_bnode(BNode2),
+  option(graph(Graph), Options),
   rdfs_assert_individual(BNode2, dbnl:'Image', Graph),
   rdf_assert_datatype(BNode2, dbnl:file, file, ImageFile, Graph),
-  rdf_assert_datatype(BNode2, dbnl:caption, string, Caption, Graph),
+  dom_to_xml(dbnl, Caption2, XML_Caption),
+  rdf_assert_xml_literal(BNode2, dbnl:caption, XML_Caption, Graph),
+  option(bnode(BNode1), Options),
   rdf_assert(BNode1, dbnl:image, BNode2, Graph),
 
-  dbnl_process_chapter(
-    Graph,
-    BaseURI,
-    BNode1,
-    Notes,
-    Contents1,
-    Contents2
-  ).
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% Image without caption.
+dbnl_process_chapter(
+  Options,
+  [
+    element(p, _, [_BR1, _BR2, element(img, IMG_Attributes, []) | _])
+  | Contents1],
+  [
+    element(
+      figure,
+      [],
+      [element(image, [xlink:type=simple, xlink:href=ImageRelativeURI], [])]
+    )
+  | Contents2
+  ]
+):-
+  % Store the image locally.
+  memberchk(src=ImageRelativeURI, IMG_Attributes),
+  absolute_file_name(file(ImageRelativeURI), ImageFile, []),
+  option(uri(BaseURI), Options),
+  atomic_list_concat([BaseURI, '/', ImageRelativeURI], ImageAbsoluteURI),
+  uri_to_file(ImageAbsoluteURI, ImageFile),
+
+  % Also add the image as RDF data.
+  rdf_bnode(BNode2),
+  option(graph(Graph), Options),
+  rdfs_assert_individual(BNode2, dbnl:'Image', Graph),
+  rdf_assert_datatype(BNode2, dbnl:file, file, ImageFile, Graph),
+  option(bnode(BNode1), Options),
+  rdf_assert(BNode1, dbnl:image, BNode2, Graph),
+
+  dbnl_process_chapter(Options, Contents1, Contents2).
 % Footnote.
 dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode1,
-  Notes,
-  [element(a, [href=indent | _], [NoteName]) | Contents1],
-  [element(footnote, [name=NoteName], NoteContent) | Contents2]
+  Options,
+  [element(a, Attributes, [element(span, _, [NoteName])]) | Contents1],
+  [element(footnote, [name=NoteName], Note2) | Contents2]
 ):-
-  memberchk(NoteName-NoteContent, Notes),
-  dbnl_process_chapter(
-    Graph,
-    BaseURI,
-    BNode1,
-    Notes,
-    Contents1,
-    Contents2
-  ).
+  memberchk(href=NoteIndex1, Attributes),
+  strip([' ','#'], NoteIndex1, NoteIndex2),
+  option(notes(Notes), Options),
+  memberchk(NoteIndex2-Note1, Notes),
+  dbnl_process_chapter(Options, Note1, Note2),
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
 % A paragraph of text.
 dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode,
-  Notes,
-  [element(p, [class=indent], P_Contents1) | Contents1],
+  Options,
+  [element(p, _, P_Contents1) | Contents1],
   [element(paragraph, [], P_Contents2) | Contents2]
 ):-
-  dbnl_process_chapter(
-    Graph,
-    BaseURI,
-    BNode,
-    Notes,
-    P_Contents1,
-    P_Contents2
-  ),
-  dbnl_process_chapter(
-    Graph,
-    BaseURI,
-    BNode,
-    Notes,
-    Contents1,
-    Contents2
-  ).
-% A piece of plain text.
-dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode,
-  Notes,
-  [Text | Contents1],
-  [Text | Contents2]
-):-
-  atom(Text),
+  dbnl_process_chapter(Options, P_Contents1, P_Contents2),
   !,
-  dbnl_process_chapter(Graph, BaseURI, BNode, Notes, Contents1, Contents2).
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% SPAN class=topo ???
+dbnl_process_chapter(
+  Options,
+  [element(span, [class=topo], SPAN_Contents) | Contents1],
+  [element(topic, [], Topic_Contents) | Contents2]
+):-
+  dbnl_process_chapter(Options, SPAN_Contents, Topic_Contents),
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
 % A piece of italic text.
 dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode,
-  Notes,
+  Options,
   [element(i, [], I_Contents) | Contents1],
-  [element(em, [], EM_Contents) | Contents2]
+  [element(emphasis, [], Emphasis_Contents) | Contents2]
 ):-
-  dbnl_process_chapter(
-    Graph,
-    BaseURI,
-    BNode,
-    Notes,
-    I_Contents,
-    EM_Contents
-  ),
+  dbnl_process_chapter(Options, I_Contents, Emphasis_Contents),
   !,
-  dbnl_process_chapter(Graph, BaseURI, BNode, Notes, Contents1, Contents2).
-% Other elements.
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% Superscript.
 dbnl_process_chapter(
-  Graph,
-  BaseURI,
-  BNode,
-  Notes,
-  [Element | Contents1],
-  Contents2
+  Options,
+  [element(sup, [], SUP_Contents) | Contents1],
+  [element(superscript, [], Superscript_Contents) | Contents2]
 ):-
-  gtrace, %DEB
+  dbnl_process_chapter(Options, SUP_Contents, Superscript_Contents),
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% A piece of plain text.
+dbnl_process_chapter(Options, [Text | Contents1], [Text | Contents2]):-
+  atom(Text),
+  !,
+  dbnl_process_chapter(Options, Contents1, Contents2).
+% Other elements.
+dbnl_process_chapter(Options, [Element | Contents1], Contents2):-
   format(user_output, '~w\n', [Element]), %DEB
-  dbnl_process_chapter(Graph, BaseURI, BNode, Notes, Contents1, Contents2).
+  dbnl_process_chapter(Options, Contents1, Contents2).
 
 %! dbnl_process_contents_list(
 %!   +Graph:atom,
@@ -524,12 +578,13 @@ dbnl_process_contents_list(
   Title,
   BaseURI,
   List,
-  [element(p, [], [element(a, Attributes, [ChapterName])]) | Contents]
+  [element(p, [], [element(a, Attributes, [ChapterName1])]) | Contents]
 ):-
   % Create the chapter resource.
   rdf_bnode(BNode),
   rdfs_assert_individual(BNode, dbnl:'Chapter', Graph),
-  rdfs_assert_label(BNode, ChapterName, Graph),
+  strip([' '], ChapterName1, ChapterName2),
+  rdfs_assert_label(BNode, ChapterName2, Graph),
 
   % Add the URI.
   memberchk(href=RelativeURI, Attributes),
@@ -538,11 +593,24 @@ dbnl_process_contents_list(
   rdf_assert(BNode, dbnl:original_page, AbsoluteURI, Graph),
 
   % Process the chapter's contents.
-  dbnl_process_chapter(Graph, AbsoluteURI, BNode, ChapterDOM),
+  (
+    ChapterName2 == 'Bibliografie'
+  ->
+    gtrace,
+    dbnl_process_bibliography(Graph, Title, Contents)
+  ;
+    dbnl_process_chapter(
+      [bnode(BNode), graph(Graph), title(Title)],
+      AbsoluteURI,
+      ChapterDOM
+    )
+  ),
 
   % Write the contents to an XML file.
-  absolute_file_name(files(RelativeURI), XML_File, [file_type(xml)]),
-  dom_to_xml_file(dbnl, ChapterDOM, XML_File),
+  file_name_extension(Base, _Extension, RelativeURI),
+  absolute_file_name(file(Base), XML_File, [file_type(xml)]),
+  xml_current_namespace(xlink, XLinkNamespace),
+  dom_to_xml_file(dbnl, ChapterDOM, XML_File, [nsmap([xlink=XLinkNamespace])]),
   rdf_assert_datatype(BNode, dbnl:content, file, XML_File, Graph),
   dbnl_process_contents_list(
     Graph,
@@ -715,8 +783,8 @@ dbnl_process_text_downloads(_Graph, _Title, URI):-
 
 dbnl_process_text_index(_Graph, _Title, URI):-
   uri_to_html(URI, DOM),
-  dbnl_dom_to_content(DOM, Content),
-  write(Content).
+  dbnl_dom_to_contents(DOM, Contents),
+  write(Contents).
 
 
 

@@ -1,12 +1,15 @@
 <!DOCTYPE poem
 [
-  <!ELEMENT chapter (figure,footnote,paragraph)>
+  <!ELEMENT caption (#PCDATA,superscript)>
+  <!ELEMENT chapter (figure,footnote,header,paragraph)>
+  <!ELEMENT emphasis (#PCDATA)>
   <!ELEMENT figure (image,caption)>
-  <!ELEMENT image EMPTY>
-  <!ELEMENT caption (#PCDATA)>
   <!ELEMENT footnote (#PCDATA)>
-  <!ELEMENT paragraph (#PCDATA,footnote,em)>
-  <!ELEMENT em (#PCDATA)>
+  <!ELEMENT header (#PCDATA)>
+  <!ELEMENT image EMPTY>
+  <!ELEMENT paragraph (#PCDATA,footnote,emphasis,topic,superscript)>
+  <!ELEMENT superscript (#PCDATA)>
+  <!ELEMENT topic (#PCDATA)>
 
   <!ATTLIST image xlink:type (simple) "simple">
   <!ATTLIST image xlink:href CDATA #REQUIRED>
