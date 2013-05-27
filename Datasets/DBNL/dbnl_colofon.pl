@@ -28,6 +28,6 @@ Scrapes a colofon page from the DBNL.
 
 dbnl_colofon(_Graph, _Title, URI):-
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents),
+  dbnl_dom_center(DOM, Contents),
   write(Contents).
 

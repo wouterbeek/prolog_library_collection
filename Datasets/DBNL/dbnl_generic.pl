@@ -1,18 +1,27 @@
 :- module(
   dbnl_generic,
   [
+% DEBUG
+    dbnl_debug/1, % +URI:uri
+
+% DOM
+    dbnl_dom_center/2, % +Page:dom
+                       % -Center:dom
+    dbnl_dom_left/2, % +DOM:dom
+                     % -Left:dom
+    dbnl_dom_notes/2, % +Page:dom
+                      % -Notes:pair(atom,dom))
+    dbnl_dom_right/2, % +DOM:dom
+                      % -Right:dom
+
+% URI
     dbnl_authority/1, % -Authority:atom
     dbnl_base_uri/1, % -Base:uri
-    dbnl_debug/1, % +URI:uri
-    dbnl_dom_to_center/2, % +Page:dom
-                          % -Center:dom
-    dbnl_dom_to_footnotes/2, % +Page:dom
-                             % -Notes:pair(atom,dom))
     dbnl_scheme/1, % -Scheme:atom
     dbnl_uri_resolve/2, % +Relative:uri
                         % -Absolute:uri
     dbnl_uri_to_html/2 % +URI:uri
-		       % -HTML:dom
+                       % -HTML:dom
   ]
 ).
 
@@ -31,18 +40,7 @@ Generic predicates for scraping the DBNL.
 
 
 
-%! dbnl_authority(-Authority:atom) is det.
-% Returns the authority of the DBNL.
-
-dbnl_authority('www.dbnl.org').
-
-%! dbnl_base_uri(-BaseURI:uri) is det.
-% Returns the base URI for the DBNL.
-
-dbnl_base_uri(BaseURI):-
-  dbnl_scheme(Scheme),
-  dbnl_authority(Authority),
-  uri_components(BaseURI, uri_components(Scheme, Authority, '', '', '')).
+% DEBUG %
 
 dbnl_debug(URI1):-
   dbnl_uri_resolve(URI1, URI2),
@@ -56,22 +54,36 @@ dbnl_debug(URI1):-
     true
   ).
 
-%! dbnl_dom_to_center(+DOM:dom, -Contents:dom) is det.
 
-dbnl_dom_to_center(DOM, Contents):-
+
+% DOM %
+
+dbnl_dom_center(DOM, CenterDIVs):-
+  dbnl_dom_content(DOM, Content),
   findall(
-    Contents,
+    CenterDIV,
     (
-      xpath(DOM, //td(@id=text), TD),
-      xpath(TD, div(content), Contents)
+      xpath(Content, td(@id=text), Text),
+      xpath(Text, div(content), CenterDIV)
     ),
-    Contentss
+    CenterDIVss
   ),
-  append(Contentss, Contents).
+  append(CenterDIVss, CenterDIVs).
 
-%! dbnl_dom_to_footnotes(+DOM:dom, -Notes:pair(atom,dom)) is det.
+dbnl_dom_content(DOM, Content):-
+  xpath(DOM, //div(@id=dbnl), DBNL),
+  xpath(DBNL, div(@id=wrapper), Wrapper),
+  xpath(Wrapper, div(@id=scrollable), Scrollable),
+  xpath(Scrollable, table(@id=content), TableContent),
+  xpath(TableContent, tbody, TBODY),
+  xpath(TBODY, tr(self), Content).
 
-dbnl_dom_to_footnotes(DOM, Notes):-
+dbnl_dom_left(DOM, LeftDIV):-
+  dbnl_dom_content(DOM, Content),
+  xpath(Content, td(@id=left), Left),
+  xpath(Left, div(content), LeftDIV).
+
+dbnl_dom_notes(DOM, Notes):-
   findall(
     NoteIndex-Contents,
     (
@@ -81,6 +93,35 @@ dbnl_dom_to_footnotes(DOM, Notes):-
     ),
     Notes
   ).
+
+dbnl_dom_right(DOM, RightDIVs):-
+  dbnl_dom_content(DOM, Content),
+  findall(
+    RightDIV,
+    (
+      xpath(Content, //td(@id=right), Right),
+      xpath(Right, div(content), RightDIV)
+    ),
+    RightDIVss
+  ),
+  append(RightDIVss, RightDIVs).
+
+
+
+% URI %
+
+%! dbnl_authority(-Authority:atom) is det.
+% Returns the authority of the DBNL.
+
+dbnl_authority('www.dbnl.org').
+
+%! dbnl_base_uri(-BaseURI:uri) is det.
+% Returns the base URI for the DBNL.
+
+dbnl_base_uri(BaseURI):-
+  dbnl_scheme(Scheme),
+  dbnl_authority(Authority),
+  uri_components(BaseURI, uri_components(Scheme, Authority, '', '', '')).
 
 %! dbnl_scheme(-Scheme:atom) is det.
 
@@ -99,5 +140,15 @@ dbnl_uri_resolve(Relative, Absolute):-
 dbnl_uri_to_html(URI1, DOM):-
   dbnl_uri_resolve(URI1, URI2),
   dbnl_debug(URI2),
-  uri_to_html(URI2, DOM).
+  catch(
+    uri_to_html(URI2, DOM),
+    error(limit_exceeded(max_errors, Max), Context),
+    (
+      format(
+        user_output,
+        'Encountered ~w error(s) while parsing <~w>.',
+        [Max, Context, URI1]
+      )
+    )
+  ).
 

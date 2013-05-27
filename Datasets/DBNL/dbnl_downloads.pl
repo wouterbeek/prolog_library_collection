@@ -45,7 +45,7 @@ Scraping a DBNL text download page.
 
 dbnl_downloads(Graph, Title, URI):-
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents1),
+  dbnl_dom_center(DOM, Contents1),
 
   % ePUB format of the text.
   Contents1 = [_H3, _BR1, element(a, [name=epub_tekst | _], _) | Contents2],

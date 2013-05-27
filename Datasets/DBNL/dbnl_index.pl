@@ -120,12 +120,7 @@ dbnl_scrape(Category, Order):-
 %! dbnl_index(+Graph:atom, +DOM:list) is det.
 
 dbnl_index(Graph, [DOM]):-
-gtrace,
-  xpath(DOM, //div(@id=dbnl), DBNL),
-  xpath(DBNL, //div(@id=wrapper), Wrapper),
-  xpath(Wrapper, //div(@id=scrollable), Scrollable),
-  xpath(Scrollable, //table(@id=content), Content),
-  xpath(Content, //td(@id=text), Text),
+  dbnl_dom_center(DOM, Text),
   forall(
     (
       (
@@ -135,12 +130,20 @@ gtrace,
       ),
       Title = element(div, _Attributes, Contents)
     ),
-    (
-      dbnl_index_title(Graph, Contents)
-    )
+    dbnl_index_title(Graph, Contents)
   ).
 
-%! dbnl_index_title(+Graph:atom, +Contents:list) is det.
+%! dbnl_index_title(+Graph:atom, +Contents:dom) is det.
+
+% Create a new title.
+dbnl_index_title(Graph, Contents1):-
+  selectchk(element(a, LinkAttributes, [TitleName]), Contents1, Contents2),
+  memberchk(href=RelativeURI, LinkAttributes),
+  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+  dbnl_assert_title(Graph, AbsoluteURI, TitleName, Title),
+  dbnl_index_title(Graph, Title, Contents2).
+
+%! dbnl_index_title(+Graph:atom, +Title:uri, +Contents:dom) is det.
 % Scrapes a single title entry from a title index.
 %
 % URI example:
@@ -159,48 +162,36 @@ gtrace,
 % @tbd Also extract intervals from strings like '16de eeuw'.
 
 % Done!
-dbnl_index_title(_Graph, []):-
+dbnl_index_title(_Graph, _Title, []):-
   !.
-% Title.
+% Skip notes on scans.
 dbnl_index_title(
   Graph,
-  [element(a, LinkAttributes, [TitleName]) | Rest]
+  Title,
+  [element(i,[],['(alleen scans beschikbaar)']) | Contents]
 ):-
-  memberchk(href=RelativeURI, LinkAttributes),
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  dbnl_assert_title(Graph, AbsoluteURI, TitleName, _Title),
-  dbnl_index_title(Graph, Rest).
+  dbnl_index_title(Graph, Title, Contents).
 % Year.
-dbnl_index_title(Graph, [Year1 | Rest]):-
+dbnl_index_title(Graph, Title, [Year1 | Rest]):-
   % Assert the year only if it can be readily extracted.
+
+  % Sometimes a comment occurs between the title and the year.
+  % The year is always the last item in the content list.
+  dbnl_extract_year(Year1, Year2),
   (
-    (
-      % Sometimes a comment occurs between the title and the year.
-      % The year is always the last item in the content list.
-      last(Rest, TempYear),
-      extract_year(TempYear, Year)
-    )
+    Year2 = StartYear-EndYear
   ->
-    (
-      Year = StartYear-EndYear
-    ->
-      (
-        rdf_assert_datatype(Title, dbnl:start_year, gYear, StartYear, Graph),
-        rdf_assert_datatype(Title, dbnl:end_year, gYear, EndYear, Graph)
-      )
-    ;
-      rdf_assert_datatype(Title, dbnl:year, gYear, Year, Graph)
-    )
+    rdf_assert_datatype(Title, dbnl:start_year, gYear, StartYear, Graph),
+    rdf_assert_datatype(Title, dbnl:end_year, gYear, EndYear, Graph)
   ;
-    gtrace, %DEB
-    format(user_output, '~w\n', [Year1])
+    rdf_assert_datatype(Title, dbnl:year, gYear, Year2, Graph)
   ),
-  dbnl_index_title(Graph, Rest).
-%DEB
-dbnl_index_title(Graph, [Content | Rest]):-
-  gtrace, %DEB
+  dbnl_index_title(Graph, Title, Rest).
+% Debug.
+dbnl_index_title(Graph, Title, [Content | Rest]):-
+  %gtrace, %DEB
   format(user_output, '~w\n', [Content]),
-  dbnl_index_title(Graph, Rest).
+  dbnl_index_title(Graph, Title, Rest).
 
 dbnl_titles(Graph):-
   forall(

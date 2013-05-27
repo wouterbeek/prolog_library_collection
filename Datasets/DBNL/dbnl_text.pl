@@ -61,20 +61,13 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 */
 
 :- use_module(dbnl(dbnl_db)).
-:- use_module(dbnl(dbnl_colofon)).
 :- use_module(dbnl(dbnl_downloads)).
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_toc)).
-:- use_module(generics(atom_ext)).
-:- use_module(generics(uri_ext)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
-:- use_module(library(xpath)).
-:- use_module(rdf(rdf_build)).
-:- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
@@ -92,6 +85,7 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 % @tbd Could uri_resolve/3 be used instead of atom_concat/3?
 
 dbnl_text(Graph, Title, URI1):-
+(URI1 = 'http://www.dbnl.org/tekst/_nee003190801_01' -> gtrace ; true),
   % There are several possibilities here:
   %   1. The URI already refers to a PHP script.
   %   2. ...
@@ -112,7 +106,7 @@ dbnl_text(Graph, Title, URI1):-
   ),
 
   dbnl_uri_to_html(URI2, DOM),
-  dbnl_dom_to_center(DOM, Contents),
+  dbnl_dom_center(DOM, Contents),
 
   % Sometimes the page itself is a text.
   dbnl_text(Graph, Title, URI2, Contents),
@@ -148,9 +142,22 @@ dbnl_text(
   URI,
   [element(p, [class=editor], [EditorAtom]) | Contents]
 ):-
-  extract_editor(EditorAtom, EditorName),
+  !,
+  dbnl_extract_editor(EditorAtom, EditorName),
   dbnl_assert_editor(Graph, EditorName, Editor),
   rdf_assert(Title, dbnl:editor, Editor, Graph),
+  dbnl_text(Graph, Title, URI, Contents).
+% Title.
+dbnl_text(
+  Graph,
+  Title,
+  URI,
+  [element(h1, [class=title], [TitleName]) | Contents]
+):-
+  !,
+  % Note that some publications have multiple titles.
+  % For example: =|http://www.dbnl.org/titels/titel.php?id=lint011gesc00|=.
+  rdfs_assert_label(Title, TitleName, Graph),
   dbnl_text(Graph, Title, URI, Contents).
 % Table of contents.
 dbnl_text(
@@ -159,7 +166,70 @@ dbnl_text(
   URI,
   [element(h2, [class=inhoud], _) | Contents]
 ):-
+  !,
   dbnl_toc(Graph, Title, URI, Contents).
+% Author.
+dbnl_text(
+  Graph,
+  Title,
+  URI,
+  [element(_, [class=author], [AuthorName]) | Contents]
+):-
+  !,
+  % Just checking...
+  rdf(Title, dbnl:author, Author, Graph),
+  (rdfs_label(Author, AuthorName) -> true ; gtrace),
+  dbnl_text(Graph, Title, URI, Contents).
+% Skip empty author.
+dbnl_text(
+  Graph,
+  Title,
+  URI,
+  [element(_, [class=author], []) | Contents]
+):-
+  !,
+  dbnl_text(Graph, Title, URI, Contents).
+% Skip empty subordinate titles.
+dbnl_text(
+  Graph,
+  Title,
+  URI,
+  [element(h3, [class='title-subordinate'], []) | Contents]
+):-
+  !,
+  dbnl_text(Graph, Title, URI, Contents).
+% Skip empty paragraphs.
+dbnl_text(Graph, Title, URI, [element(p, _, []) | Contents]):-
+  !,
+  dbnl_text(Graph, Title, URI, Contents).
+% Skip notes on scans.
+dbnl_text(
+  Graph,
+  Title,
+  URI,
+  [
+    element(
+      h4,
+      [],
+      ['* Van dit werk zijn alleen scans beschikbaar. Voor een snelle oriëntatie is hieronder een viewer beschikbaar.']
+    )
+  | Contents
+  ]
+):-
+  !,
+  dbnl_text(Graph, Title, URI, Contents).
+% Skip linebreaks.
+dbnl_text(Graph, Title, URI, [element(br, _, _) | Contents]):-
+  !,
+  dbnl_text(Graph, Title, URI, Contents).
+% Copyright atom.
+dbnl_text(Graph, Title, URI, [Atom | Contents]):-
+gtrace,
+  dbnl_extract_copyright(Atom, Organization, Year),
+  !,
+  dbnl_assert_copyright(Graph, Organization, Year, Copyright),
+  rdf_assert(Title, dbnl:copyright, Copyright, Graph),
+  dbnl_text(Graph, Title, URI, Contents).
 % Debug.
 dbnl_text(Graph, Title, URI, [Content | Contents]):-
   gtrace, %DEB
@@ -169,6 +239,6 @@ dbnl_text(Graph, Title, URI, [Content | Contents]):-
 % @tbd What is this?
 dbnl_process_text_index(_Graph, _Title, URI):-
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents),
+  dbnl_dom_center(DOM, Contents),
   write(Contents).
 

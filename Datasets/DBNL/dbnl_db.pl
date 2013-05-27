@@ -5,12 +5,19 @@
                           % +Absolute:uri
                           % +Name:atom
                           % -Author:uri
+    dbnl_assert_copyright/4, % +Graph:atom
+                             % +Organization:oneof([atom,uri])
+                             % +Year:integer
+                             % -Copyright:bnode
     dbnl_assert_editor/3, % +Graph:atom
                           % +Name:atom
                           % -Editor:uri
     dbnl_assert_genre/3, % +Graph:atom
                          % +Name:atom
                          % -Genre:uri
+    dbnl_assert_organization/3, % +Graph:atom
+                                % +Name:atom
+                                % +Organization:uri
     dbnl_assert_subgenre/3, % +Graph:atom
                             % +Hierarchy:atom
                             % -Subgenre:uri
@@ -57,9 +64,20 @@ dbnl_assert_author(Graph, AbsoluteAuthorURI, AuthorName, Author):-
   flag(author, AuthorFlag, AuthorFlag + 1),
   format(atom(AuthorID), 'author/~w', [AuthorFlag]),
   rdf_global_id(dbnl:AuthorID, Author),
-  rdf_assert(Author, rdf:type, dbnl:'Author', Graph),
+  rdfs_assert_individual(Author, dbnl:'Author', Graph),
   rdfs_assert_label(Author, AuthorName, Graph),
   rdf_assert(Author, dbnl:orignal_page, AbsoluteAuthorURI, Graph).
+
+dbnl_assert_copyright(Graph, OrganizationName, Year, Copyright):-
+  atom(OrganizationName),
+  !,
+  dbnl_assert_organization(Graph, OrganizationName, Organization),
+  dbnl_assert_copyright(Graph, Organization, Year, Copyright).
+dbnl_assert_copyright(Graph, Organization, Year, Copyright):-
+  rdf_bnode(Copyright),
+  rdfs_assert_individual(Copyright, dbnl:'Copyright', Graph),
+  rdf_assert(Copyright, dbnl:organization, Organization, Graph),
+  rdf_assert_datatype(Copyright, dbnl:year, gYear, Year, Graph).
 
 %! dbnl_assert_editor(+Graph:atom, +EditorName:atom, -Editor:uri) is det.
 
@@ -70,7 +88,7 @@ dbnl_assert_editor(Graph, EditorName, Editor):-
   flag(editor, EditorFlag, EditorFlag + 1),
   format(atom(EditorID), 'editor/~w', [EditorFlag]),
   rdf_global_id(dbnl:EditorID, Editor),
-  rdf_assert(Editor, rdf:type, dbnl:'Editor', Graph),
+  rdfs_assert_individual(Editor, dbnl:'Editor', Graph),
   rdfs_assert_label(Editor, EditorName, Graph).
 
 %! dbnl_assert_genre(+Graph:atom, +GenreName:atom, -Genre:uri) is det.
@@ -81,7 +99,17 @@ dbnl_assert_genre(_Graph, GenreName, Genre):-
 dbnl_assert_genre(Graph, GenreName, Genre):-
   format(atom(GenreID), 'genre/~w', [GenreName]),
   rdf_global_id(dbnl:GenreID, Genre),
+  rdfs_assert_individual(Genre, dbnl:'Genre', Graph),
   rdfs_assert_label(Genre, GenreName, Graph).
+
+dbnl_assert_organization(_Graph, OrganizationName, Organization):-
+  rdfs_label(Organization, OrganizationName),
+  !.
+dbnl_assert_organization(Graph, OrganizationName, Organization):-
+  format(atom(OrganizationID), 'organization/~w', [OrganizationName]),
+  rdf_global_id(dbnl:OrganizationID, Organization),
+  rdfs_assert_individual(Organization, dbnl:'Organization', Graph),
+  rdfs_assert_label(Organization, OrganizationName, Graph).
 
 %! dbnl_assert_subgenre(
 %!   +Graph:atom,
@@ -102,15 +130,6 @@ dbnl_assert_subgenre(Graph, SubgenreString, Subgenre):-
 % The subgenre is just a simple genre.
 dbnl_assert_subgenre(Graph, SubgenreName, Subgenre):-
   dbnl_assert_genre(Graph, SubgenreName, Subgenre).
-% @tbd See whether this clause can be removed.
-dbnl_assert_subgenre(Graph, GenreName, SubgenreName):-
-gtrace,
-  maplist(
-    dbnl_assert_genre(Graph),
-    [GenreName, SubgenreName],
-    [Genre, Subgenre]
-  ),
-  rdf_assert(Subgenre, rdfs:subClassOf, Genre, Graph).
 
 %! dbnl_assert_subgenre_hierarchy(+Graph:atom, +Genres:list(uri)) is det.
 % Assert the SKOS hierarchy for the given path of genres and subgenres.
@@ -135,7 +154,7 @@ dbnl_assert_title(Graph, URI, Name, Title):-
   flag(title, TitleFlag, TitleFlag + 1),
   format(atom(TitleID), 'title/~w', [TitleFlag]),
   rdf_global_id(dbnl:TitleID, Title),
-  rdf_assert(Title, rdf:type, dbnl:'Title', Graph),
+  rdfs_assert_individual(Title, dbnl:'Title', Graph),
   rdfs_assert_label(Title, Name, Graph),
   % The original DBNL page where this title was described.
   rdf_assert(Title, dbnl:original_page, URI, Graph).

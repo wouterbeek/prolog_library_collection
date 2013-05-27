@@ -48,8 +48,8 @@ dbnl_subtext(
 ):-
   xml_current_namespace(xlink, XLinkNamespace),
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents),
-  dbnl_dom_to_footnotes(DOM, Notes),
+  dbnl_dom_center(DOM, Contents),
+  dbnl_dom_notes(DOM, Notes),
   merge_options([notes(Notes), uri(URI)], Options1, Options2),
   dbnl_markup(Options2, Contents, ChapterDOM).
 

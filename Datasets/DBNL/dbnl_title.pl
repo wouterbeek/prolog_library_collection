@@ -94,7 +94,7 @@ dbnl_title(Graph, Title, URI):-
   dbnl_uri_to_html(URI, DOM),
 
   % Process contents.
-  dbnl_dom_to_center(DOM, Contents),
+  dbnl_dom_center(DOM, Contents),
   dbnl_title0(Graph, Title, Contents),
 
   % Picarta link.
@@ -231,7 +231,6 @@ dbnl_title0(Graph, Title, [element(br, _, _) | Contents]):-
 % Skip italic text?
 dbnl_title0(Graph, Title, [element(i, Attributes, Content) | Contents]):-
   !,
-  gtrace,
   format(user_output, '~w\n~w\n', [Attributes, Content]),
   dbnl_title0(Graph, Title, Contents).
 % Atom

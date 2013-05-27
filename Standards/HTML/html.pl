@@ -107,24 +107,21 @@ file_to_html(File, HTML):-
 
 % stream_to_html(+Stream:stream, -HTML:dom) is det.
 % Retrieves the HTML DOM from the given stream.
+%
+% @throws Limit exceeded exception due to >50 errors.
+%         =|error(limit_exceeded(max_errors, Max), _)|=
 
 stream_to_html(Stream, DOM):-
   dtd(html, DTD),
-  catch(
-    load_structure(
-      stream(Stream),
-      DOM,
-      [
-        dtd(DTD),
-        dialect(sgml),
-        shorttag(false),
-        max_errors(-1),
-        space(remove),
-        syntax_errors(quiet)
-      ]
-    ),
-    error(limit_exceeded(max_errors, Max), _),
-    debug(html, 'HTML could not be loaded due to ~w max errors.\n', [Max])
+  load_structure(
+    stream(Stream),
+    DOM,
+    [
+      dtd(DTD),
+      dialect(xmlns),
+      shorttag(true),
+      space(remove)
+    ]
   ).
 
 %! uri_to_html(+URI:resource, -HTML:list) is det.

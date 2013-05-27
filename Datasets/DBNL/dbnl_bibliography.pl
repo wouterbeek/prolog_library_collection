@@ -31,7 +31,7 @@ Predicates for parsing DBNL bibliography texts.
 
 dbnl_bibliography(Options, URI):-
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents),
+  dbnl_dom_center(DOM, Contents),
   xpath_chk(Contents, //p(content), Content),
   split_list_exclusive(
     Content,
@@ -53,13 +53,13 @@ dbnl_bibliography0(Options, Chunk1):-
 /* TOO DIFFICULT FOR NOW!
 dbnl_bibliography(Graph, Title, BNode, [Year1 | Contents]):-
   atom(Year1),
-  extract_year(Year1, Year2),
+  dbnl_extract_year(Year1, Year2),
   !,
   rdf_assert_datatype(BNode, dbnl:year, gYear, Year2, Graph),
   dbnl_bibliography(Graph, Title, BNode, Contents).
 dbnl_bibliography(Graph, Title, BNode, [Author1 | Contents]):-
   atom(Author1),
-  extract_author(Author1, Author2),
+  dbnl_extract_author(Author1, Author2),
   !,
   rdf_assert_datatype(BNode, dbnl:author, string, Author2, Graph),
   dbnl_bibliography(Graph, Title, BNode, Contents).

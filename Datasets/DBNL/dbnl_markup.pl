@@ -86,7 +86,7 @@ dbnl_markup(
 ):-
   memberchk(class=pb, Attributes),
   !,
-  extract_page(PageAtom, Page),
+  dbnl_extract_page(PageAtom, Page),
   dbnl_markup(Options, Contents1, Contents2).
 % Several dedicated DIV classes related to poetry.
 dbnl_markup(
@@ -312,7 +312,11 @@ dbnl_markup(
   [element(ilines, [], IndexedLines) | Contents2]
 ):-
   !,
-  findall(TR, xpath(TBODY, tr, TR), TRs),
+  findall(
+    TR,
+    xpath(TBODY, tr, TR),
+    TRs
+  ),
   dbnl_indexed_lines(Options, TRs, IndexedLines),
   dbnl_markup(Options, Contents1, Contents2).
 % A piece of plain text.
@@ -341,8 +345,8 @@ dbnl_markup(Options, [Element | Contents1], Contents2):-
 dbnl_markup_test:-
   URI = 'http://www.dbnl.org/tekst/_aan001aanm01_01/_aan001aanm01_01_0011.php',
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_to_center(DOM, Contents),
-  dbnl_dom_to_footnotes(DOM, Notes),
+  dbnl_dom_center(DOM, Contents),
+  dbnl_dom_notes(DOM, Notes),
   rdf_bnode(BNode),
   dbnl_markup(
     [bnode(BNode), graph(test), notes(Notes), title(URI), uri(URI)],
