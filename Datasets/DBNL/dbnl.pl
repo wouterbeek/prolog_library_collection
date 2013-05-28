@@ -24,7 +24,7 @@ Digitale Bibliotheek der Nederlanden
 :- use_module(dbnl(dbnl_index)).
 :- use_module(generics(db_ext)).
 
-:- db_add_novel(user:file_search_path(dtd, datasets(.))).
+:- db_add_novel(user:file_search_path(dtd, dbnl(.))).
 
 
 

@@ -17,6 +17,7 @@ Predicates for asserting a table of contents text from the DBNL.
 
 :- use_module(dbnl(dbnl_bibliography)).
 :- use_module(dbnl(dbnl_text)).
+:- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
@@ -50,13 +51,15 @@ dbnl_toc(Graph, TOC, Subtexts, []):-
   rdf(Title, dbnl:text, TOC, Graph),
   rdf_assert(Title, dbnl:toc, RDF_List, Graph),
   !.
+% Process the contents of paragraphs.
+% I have seen paragraphs containing one and paragraphs containing two links,
+% so the case for one nested link inside a pragraph did not work.
+dbnl_toc(Graph, TOC, Subtexts, [element(p, [], Content) | Contents]):-
+  dbnl_toc(Graph, TOC, Subtexts1, Content),
+  dbnl_toc(Graph, TOC, Subtexts2, Contents),
+  append(Subtexts1, Subtexts2, Subtexts).
 % A link to a chapter.
-dbnl_toc(
-  Graph,
-  TOC,
-  Subtexts,
-  [element(p, [], [element(a, Attributes, [SubtextName])]) | Contents]
-):-
+dbnl_toc(Graph, TOC, Subtexts, [element(a, Attributes, [SubtextName]) | Contents]):-
   memberchk(href=RelativeURI, Attributes),
   rdf(TOC, dbnl:original_page, BaseURI, Graph),
   % @tbd uri_resolve/3 cannot handle this?!
@@ -74,4 +77,8 @@ dbnl_toc(
   ),
   rdf_assert(TOC, dbnl:chapter, Subtext),
   dbnl_toc(Graph, TOC, [Subtext | Subtexts], Contents).
-
+% Debug.
+dbnl_toc(Graph, TOC, Subtexts, [Content | Contents]):-
+  gtrace, %DEB
+  format(user_output, '~w\n', [Content]),
+  dbnl_toc(Graph, TOC, Subtexts, Contents).

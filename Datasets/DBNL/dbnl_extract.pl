@@ -39,6 +39,8 @@ dbnl_extract_copyright(Atom, Organization, Year):-
 
 dbnl_extract_editor(Atom, EditorName):-
   atom_concat('editie ', EditorName, Atom).
+dbnl_extract_editor(Atom, EditorName):-
+  atom_concat('hoofdredactie ', EditorName, Atom).
 
 dbnl_extract_page(Atom1, Page):-
   atom_concat('[p. ', Atom2, Atom1),

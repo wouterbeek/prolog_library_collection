@@ -93,10 +93,10 @@ dbnl_title(Graph, Title):-
 
 dbnl_title(Graph, Title, URI):-
   dbnl_uri_to_html(URI, DOM),
-
+  
   % Process contents.
-  dbnl_dom_center(DOM, Contents),
-gtrace,
+  dbnl_dom_center(DOM, Content),
+  xpath2(Content, div(content), Contents),
   dbnl_title0(Graph, Title, Contents),
 
   % Picarta link.
@@ -236,11 +236,9 @@ dbnl_title0(
 dbnl_title0(Graph, Title, [element(br, _, _) | Contents]):-
   !,
   dbnl_title0(Graph, Title, Contents).
-% Skip italic text?
-dbnl_title0(Graph, Title, [element(i, Attributes, Content) | Contents]):-
+% Skip italic text message on availability of scans.
+dbnl_title0(Graph, Title, [element(i, [], ['(alleen scans beschikbaar)']) | Contents]):-
   !,
-gtrace,
-  format(user_output, '~w\n~w\n', [Attributes, Content]),
   dbnl_title0(Graph, Title, Contents).
 % Atom
 dbnl_title0(Graph, Title, [Atom | Contents]):-

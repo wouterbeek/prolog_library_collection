@@ -14,6 +14,12 @@
     dbnl_dom_right/2, % +DOM:dom
                       % -Right:dom
 
+% ELEMENTS
+    dbnl_copyright/3, % +Graph:atom
+                      % +Text:uri
+                      % +Element
+    dbnl_logo/1, % +Element
+
 % URI
     dbnl_authority/1, % -Authority:atom
     dbnl_base_uri/1, % -Base:uri
@@ -33,24 +39,28 @@ Generic predicates for scraping the DBNL.
 @version 2013/05
 */
 
+:- use_module(dbnl(dbnl_db)).
+:- use_module(dbnl(dbnl_extract)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 :- use_module(library(www_browser)).
 :- use_module(standards(xpath_ext)).
+:- use_module(xml(xml_namespace)).
+
+:- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
 
 
 
 % DEBUG %
 
-dbnl_debug(URI1):-
-  dbnl_uri_resolve(URI1, URI2),
+dbnl_debug(URI):-
   flag(deb, ID, ID + 1),
   (
-    ID > 3
+    ID > 0
   ->
-    once(www_open_url(URI2)),
-    gtrace
+    once(www_open_url(URI))
   ;
     true
   ).
@@ -59,33 +69,26 @@ dbnl_debug(URI1):-
 
 % DOM %
 
-dbnl_dom_center(DOM, CenterDIVs):-
+dbnl_dom_center(DOM, Content):-
   findall(
-    CenterDIV,
-    (
-      dbnl_dom_content(DOM, Content),
-      xpath2(Content, //td(@id=text), Text),
-      xpath2(Text, div(content), CenterDIV)
-    ),
-    CenterDIVss
+    Content,
+    xpath2(DOM, //td(@id=text,content), Content),
+    Contents
   ),
-  append(CenterDIVss, CenterDIVs).
+  append(Contents, Content).
 
-dbnl_dom_content(DOM, Content):-
-  xpath2(DOM, //div(@id=dbnl), DBNL),
-  xpath2(DBNL, div(@id=wrapper), Wrapper),
-  xpath2(Wrapper, div(@id=scrollable), Scrollable),
-  xpath2(Scrollable, table(@id=content), TableContent),
-  xpath2(TableContent, tbody, TBODY),
-  xpath2(TBODY, tr(self), Content).
-
-dbnl_dom_left(DOM, LeftDIV):-
-  dbnl_dom_content(DOM, Content),
-  xpath2(Content, td(@id=left), Left),
-  xpath2(Left, div(content), LeftDIV).
+dbnl_dom_left(DOM, Content):-
+  findall(
+    Content,
+    (
+      xpath2(DOM, //td(@id=left), Left),
+      xpath2(Left, div(content), Content)
+    ),
+    Contents
+  ),
+  append(Contents, Content).
 
 dbnl_dom_notes(DOM, Notes):-
-gtrace,
   findall(
     NoteIndex-Contents,
     (
@@ -96,17 +99,31 @@ gtrace,
     Notes
   ).
 
-dbnl_dom_right(DOM, RightDIVs):-
+dbnl_dom_right(DOM, Content):-
   findall(
-    RightDIV,
+    Content,
     (
-      dbnl_dom_content(DOM, Content),
-      xpath2(Content, //td(@id=right), Right),
-      xpath2(Right, div(content), RightDIV)
+      xpath2(DOM, //td(@id=right), Right),
+      xpath2(Right, div(content), Content)
     ),
-    RightDIVss
+    Contents
   ),
-  append(RightDIVss, RightDIVs).
+  append(Contents, Content).
+
+
+
+% ELEMENTS %
+
+dbnl_copyright(Graph, Text, Atom):-
+  atom(Atom),
+  dbnl_extract_copyright(Atom, Organization, Year),
+  dbnl_assert_copyright(Graph, Organization, Year, Copyright),
+  rdf_assert(Text, dbnl:copyright, Copyright, Graph).
+
+dbnl_logo(element(img, Attributes, [])):-
+  memberchk(alt='DBNL vignet', Attributes),
+  memberchk(src='../dbnllogo.gif', Attributes),
+  !.
 
 
 

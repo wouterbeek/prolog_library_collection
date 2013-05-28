@@ -12,7 +12,8 @@
                              % +Organization:oneof([atom,uri])
                              % +Year:integer
                              % -Copyright:bnode
-    dbnl_assert_editor/3, % +Graph:atom
+    dbnl_assert_editor/4, % +Graph:atom
+                          % +Absolute:uri
                           % +Name:atom
                           % -Editor:uri
     dbnl_assert_genre/3, % +Graph:atom
@@ -104,17 +105,19 @@ dbnl_assert_copyright(Graph, OrganizationName, Year, Copyright):-
   dbnl_assert_organization(Graph, OrganizationName, Organization),
   dbnl_assert_copyright(Graph, Organization, Year, Copyright).
 
-%! dbnl_assert_editor(+Graph:atom, +EditorName:atom, -Editor:uri) is det.
+%! dbnl_assert_editor(+Graph:atom, +Name:atom, +URI:uri, -Editor:uri) is det.
 
-dbnl_assert_editor(_Graph, EditorName, Editor):-
+dbnl_assert_editor(Graph, EditorName, URI, Editor):-
   rdfs_label(Editor, EditorName),
+  rdf(Editor, dbnl:original_page, URI, Graph),
   !.
-dbnl_assert_editor(Graph, EditorName, Editor):-
+dbnl_assert_editor(Graph, EditorName, URI, Editor):-
   flag(editor, EditorFlag, EditorFlag + 1),
   format(atom(EditorID), 'editor/~w', [EditorFlag]),
   rdf_global_id(dbnl:EditorID, Editor),
   rdfs_assert_individual(Editor, dbnl:'Editor', Graph),
-  rdfs_assert_label(Editor, EditorName, Graph).
+  rdfs_assert_label(Editor, EditorName, Graph),
+  rdf_assert(Editor, dbnl:original_page, URI, Graph).
 
 %! dbnl_assert_genre(+Graph:atom, +GenreName:atom, -Genre:uri) is det.
 

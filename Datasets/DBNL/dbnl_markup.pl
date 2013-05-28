@@ -113,6 +113,7 @@ dbnl_markup(
     memberchk(
       Class,
       [
+        contentholder,
         line,
         'line-content',
         'line-nr',
@@ -125,7 +126,17 @@ dbnl_markup(
   dbnl_markup(Options, DIV_Contents1, DIV_Contents2),
   dbnl_markup(Options, Contents1, Contents3),
   append(DIV_Contents2, Contents3, Contents2).
-% Disregard DIV tags.
+% Letter-spaced text.
+dbnl_markup(
+  Options,
+  [element(span, [class=spatial], H1) | T1],
+  [element(letter_spacing, [], H2) | T]
+):-
+  !,
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2),
+  append(H2, T2, T).
+% Disregard some other DIV tags (by class).
 dbnl_markup(
   Options,
   [element(div, Attributes, Contents1)],
@@ -279,7 +290,15 @@ dbnl_markup(
     % Other paragraphs are included.
     dbnl_markup(Options, P_Contents1, P_Contents2),
     dbnl_markup(Options, Contents1, Contents2),
-    Contents3 = [element(paragraph, [], P_Contents2) | Contents2]
+    
+    % Do not create empty paragraphs.
+    (
+      P_Contents2 = []
+    ->
+      Contents3 = Contents2
+    ;
+      Contents3 = [element(paragraph, [], P_Contents2) | Contents2]
+    )
   ).
 % SPAN class=topo ???
 dbnl_markup(
