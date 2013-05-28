@@ -152,6 +152,10 @@ dbnl_text(_Graph, _Title, URI, _Text):-
 % Done!
 dbnl_text(_Graph, _Text, []):-
   !.
+% Skip empty headers.
+dbnl_text(Graph, Text, [element(h2, _, []) | T]):-
+  !,
+  dbnl_text(Graph, Text, T).
 % Nesting inside DIVs.
 dbnl_text(Graph, Text, [element(div, _, Content) | Contents]):-
   !,
@@ -194,6 +198,10 @@ dbnl_text(
   gtrace,
   dbnl_extract_editor(EditorAtom, EditorName),
   rdf_assert_literal(Text, dbnl:supposed_editor, EditorName, Graph),
+  dbnl_text(Graph, Text, Contents).
+% Skip interp (what is this anyway?).
+dbnl_text(Graph, Text, [element(interp, _, _) | Contents]):-
+  !,
   dbnl_text(Graph, Text, Contents).
 % Skip empty subordinate titles.
 dbnl_text(

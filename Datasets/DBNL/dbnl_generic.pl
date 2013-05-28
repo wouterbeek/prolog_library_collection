@@ -140,7 +140,7 @@ dbnl_authority('www.dbnl.org').
 dbnl_base_uri(BaseURI):-
   dbnl_scheme(Scheme),
   dbnl_authority(Authority),
-  uri_components(BaseURI, uri_components(Scheme, Authority, '', '', '')).
+  uri_components(BaseURI, uri_components(Scheme, Authority, '/', '', '')).
 
 %! dbnl_scheme(-Scheme:atom) is det.
 

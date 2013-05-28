@@ -285,10 +285,10 @@ rdf_retractall_literal(Subject, Predicate, Language, Literal, Graph):-
 % Inrements an integer stored in RDF.
 
 rdf_increment(Subject, Predicate, Graph):-
-  once(rdf_datatype(Subject, Predicate, integer, OldValue, Graph)),
+  once(rdf_datatype(Subject, Predicate, int, OldValue, Graph)),
   NewValue is OldValue + 1,
-  rdf_retractall_datatype(Link, Relation, integer, OldValue, Graph),
-  rdf_assert_datatype(Link, Relation, integer, NewValue, Graph).
+  rdf_retractall_datatype(Link, Relation, int, OldValue, Graph),
+  rdf_assert_datatype(Link, Relation, int, NewValue, Graph).
 
 %! rdf_overwrite_datatype(
 %!   +Subject:oneof([bnode,uri]),

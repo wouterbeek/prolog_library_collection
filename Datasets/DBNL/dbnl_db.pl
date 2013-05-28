@@ -19,6 +19,10 @@
     dbnl_assert_genre/3, % +Graph:atom
                          % +Name:atom
                          % -Genre:uri
+    dbnl_assert_journal/4, % +Graph:atom
+                           % +Name:atom
+                           % +URI:uri
+                           % -Journal:uri
     dbnl_assert_organization/3, % +Graph:atom
                                 % +Name:atom
                                 % +Organization:uri
@@ -77,12 +81,20 @@ dbnl_assert_author(Graph, URI, AuthorName, Author):-
   rdf(Author, dbnl:original_page, URI, Graph),
   !.
 dbnl_assert_author(Graph, URI, AuthorName, Author):-
-  flag(author, AuthorFlag, AuthorFlag + 1),
-  format(atom(AuthorID), 'author/~w', [AuthorFlag]),
-  rdf_global_id(dbnl:AuthorID, Author),
-  rdfs_assert_individual(Author, dbnl:'Author', Graph),
-  rdfs_assert_label(Author, AuthorName, Graph),
-  rdf_assert(Author, dbnl:orignal_page, URI, Graph).
+  % Some authors are journals.
+  (
+    atom_concat('[tijdschrift] ', JournalName, AuthorName)
+  ->
+    dbnl_assert_journal(Graph, JournalName, URI, Journal),
+    Author = Journal
+  ;
+    flag(author, AuthorFlag, AuthorFlag + 1),
+    format(atom(AuthorID), 'author/~w', [AuthorFlag]),
+    rdf_global_id(dbnl:AuthorID, Author),
+    rdfs_assert_individual(Author, dbnl:'Author', Graph),
+    rdfs_assert_label(Author, AuthorName, Graph),
+    rdf_assert(Author, dbnl:orignal_page, URI, Graph)
+  ).
 
 dbnl_assert_bibliography(Graph, URI, Bibliography):-
   rdf(Bibliography, dbnl:original_page, URI, Graph),
@@ -129,6 +141,17 @@ dbnl_assert_genre(Graph, GenreName, Genre):-
   rdf_global_id(dbnl:GenreID, Genre),
   rdfs_assert_individual(Genre, dbnl:'Genre', Graph),
   rdfs_assert_label(Genre, GenreName, Graph).
+
+dbnl_assert_journal(Graph, URI, _Name, Journal):-
+  rdf(Journal, dbnl:original_page, URI, Graph),
+  !.
+dbnl_assert_journal(Graph, URI, Name, Journal):-
+  flag(journal, Flag, Flag + 1),
+  format(atom(ID), 'journal/~w', [Flag]),
+  rdf_global_id(dbnl:ID, Journal),
+  rdfs_assert_individual(Journal, dbnl:'Journal', Graph),
+  rdfs_assert_label(Journal, Name, Graph),
+  rdf_assert(Journal, dbnl:orignal_page, URI, Graph).
 
 dbnl_assert_organization(_Graph, OrganizationName, Organization):-
   rdfs_label(Organization, OrganizationName),
