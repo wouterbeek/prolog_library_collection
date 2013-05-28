@@ -23,9 +23,9 @@ Predicates for transforming DBNL HTML markup into a useful XML format.
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
-:- use_module(library(xpath)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
+:- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 :- use_module(xml(xlink)).
 
@@ -45,7 +45,7 @@ dbnl_indexed_lines(
   [element(iline, [index=Index2], Content2) | IndexedContent]
 ):-
   % The index part.
-  xpath_chk(TR, td(1,content), [Index1]),
+  xpath_chk2(TR, td(1,content), [Index1]),
   (
     % A number rests the counter.
     atom_number(Index1, Index2)
@@ -69,7 +69,7 @@ dbnl_indexed_lines(
   ),
 
   % The content part.
-  xpath_chk(TR, td(2,content), Content1),
+  xpath_chk2(TR, td(2,content), Content1),
   dbnl_markup(Options, Content1, Content2),
 
   dbnl_indexed_lines(Options, TRs, IndexedContent).
@@ -135,7 +135,7 @@ dbnl_markup(
   memberchk(Class, ['line-content-container']),
   !,
   (
-    xpath(Contents1, //img, _)
+    xpath2(Contents1, //img, _)
   ->
     Contents2 = Contents3
   ;
@@ -326,7 +326,7 @@ dbnl_markup(
   !,
   findall(
     TR,
-    xpath(TBODY, tr, TR),
+    xpath2(TBODY, tr, TR),
     TRs
   ),
   dbnl_indexed_lines(Options, TRs, IndexedLines),

@@ -19,8 +19,8 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(xpath)).
 :- use_module(library(uri)).
+:- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
@@ -124,9 +124,9 @@ dbnl_index(Graph, [DOM]):-
   forall(
     (
       (
-        xpath(Text, //div(@class=even), Title)
+        xpath2(Text, //div(@class=even), Title)
       ;
-        xpath(Text, //div(@class=odd), Title)
+        xpath2(Text, //div(@class=odd), Title)
       ),
       Title = element(div, _Attributes, Contents)
     ),

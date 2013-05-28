@@ -36,8 +36,8 @@ Generic predicates for scraping the DBNL.
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(uri)).
-:- use_module(library(xpath)).
 :- use_module(library(www_browser)).
+:- use_module(standards(xpath_ext)).
 
 
 
@@ -64,32 +64,32 @@ dbnl_dom_center(DOM, CenterDIVs):-
     CenterDIV,
     (
       dbnl_dom_content(DOM, Content),
-      xpath(Content, //td(@id=text), Text),
-      xpath(Text, div(content), CenterDIV)
+      xpath2(Content, //td(@id=text), Text),
+      xpath2(Text, div(content), CenterDIV)
     ),
     CenterDIVss
   ),
   append(CenterDIVss, CenterDIVs).
 
 dbnl_dom_content(DOM, Content):-
-  xpath(DOM, //div(@id=dbnl), DBNL),
-  xpath(DBNL, div(@id=wrapper), Wrapper),
-  xpath(Wrapper, div(@id=scrollable), Scrollable),
-  xpath(Scrollable, table(@id=content), TableContent),
-  xpath(TableContent, tbody, TBODY),
-  xpath(TBODY, tr(self), Content).
+  xpath2(DOM, //div(@id=dbnl), DBNL),
+  xpath2(DBNL, div(@id=wrapper), Wrapper),
+  xpath2(Wrapper, div(@id=scrollable), Scrollable),
+  xpath2(Scrollable, table(@id=content), TableContent),
+  xpath2(TableContent, tbody, TBODY),
+  xpath2(TBODY, tr(self), Content).
 
 dbnl_dom_left(DOM, LeftDIV):-
   dbnl_dom_content(DOM, Content),
-  xpath(Content, td(@id=left), Left),
-  xpath(Left, div(content), LeftDIV).
+  xpath2(Content, td(@id=left), Left),
+  xpath2(Left, div(content), LeftDIV).
 
 dbnl_dom_notes(DOM, Notes):-
 gtrace,
   findall(
     NoteIndex-Contents,
     (
-      xpath(DOM, //div(@class=note), DIV),
+      xpath2(DOM, //div(@class=note), DIV),
       DIV = element(div, _, [element(a, Attributes, _) | Contents]),
       memberchk(name=NoteIndex, Attributes)
     ),
@@ -101,8 +101,8 @@ dbnl_dom_right(DOM, RightDIVs):-
     RightDIV,
     (
       dbnl_dom_content(DOM, Content),
-      xpath(Content, //td(@id=right), Right),
-      xpath(Right, div(content), RightDIV)
+      xpath2(Content, //td(@id=right), Right),
+      xpath2(Right, div(content), RightDIV)
     ),
     RightDIVss
   ),

@@ -34,9 +34,9 @@
     dbnl_assert_toc/3, % +Graph:atom
                        % +URI:uri
                        % -TOC:uri
-    dbnl_assert_volume/3, % +Graph:atom
-                          % +URI:uri
-                          % -Volume:uri
+    dbnl_assert_volume_collection/3, % +Graph:atom
+                                     % +URI:uri
+                                     % -VolumeCollection:uri
     dbnl_assert_year/3 % +Resource:uri
                        % ?Year:oneof(integer,pair(integer))
                        % +Graph:atom
@@ -207,15 +207,15 @@ dbnl_assert_toc(Graph, URI, TOC):-
   rdfs_assert_individual(TOC, dbnl:'TOC', Graph),
   rdf_assert(TOC, dbnl:original_page, URI, Graph).
 
-dbnl_assert_volume(Graph, URI, Volume):-
-  rdf(Volume, dbnl:original_page, URI, Graph),
+dbnl_assert_volume_collection(Graph, URI, VolumeCollection):-
+  rdf(VolumeCollection, dbnl:original_page, URI, Graph),
   !.
-dbnl_assert_volume(Graph, URI, Volume):-
-  flag(volume, VolumeID, VolumeID + 1),
-  format(atom(VolumeName), 'part/~w', [VolumeID]),
-  rdf_global_id(dbnl:VolumeName, Volume),
-  rdfs_assert_individual(Volume, dbnl:'Volume', Graph),
-  rdf_assert(Volume, dbnl:original_page, URI, Graph).
+dbnl_assert_volume_collection(Graph, URI, VolumeCollection):-
+  flag(volume_collection, VolumeCollectionID, VolumeCollectionID + 1),
+  format(atom(VolumeCollectionName), 'part/~w', [VolumeCollectionID]),
+  rdf_global_id(dbnl:VolumeCollectionName, VolumeCollection),
+  rdfs_assert_individual(VolumeCollection, dbnl:'VolumeCollection', Graph),
+  rdf_assert(VolumeCollection, dbnl:original_page, URI, Graph).
 
 dbnl_assert_year(_Resource, Year, _Graph):-
   var(Year),

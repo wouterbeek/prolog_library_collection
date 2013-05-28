@@ -65,7 +65,7 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
-:- use_module(library(xpath)).
+:- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
@@ -77,8 +77,8 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 dbnl_picarta(Graph, Title, DOM):-
   forall(
     (
-      xpath(DOM, //div(@id=meer), DIV),
-      xpath(DIV, a(@href), PicartaURI)
+      xpath2(DOM, //div(@id=meer), DIV),
+      xpath2(DIV, a(@href), PicartaURI)
     ),
     rdf_assert(Title, dbnl:picarta, PicartaURI, Graph)
   ).
@@ -96,6 +96,7 @@ dbnl_title(Graph, Title, URI):-
 
   % Process contents.
   dbnl_dom_center(DOM, Contents),
+gtrace,
   dbnl_title0(Graph, Title, Contents),
 
   % Picarta link.
@@ -133,8 +134,8 @@ dbnl_title0(
   !,
   forall(
     (
-      xpath(AuthorDOM, //a(@href), RelativeAuthorURI),
-      xpath(AuthorDOM, //a(content), [AuthorName])
+      xpath2(AuthorDOM, //a(@href), RelativeAuthorURI),
+      xpath2(AuthorDOM, //a(content), [AuthorName])
     ),
     (
       dbnl_uri_resolve(RelativeAuthorURI, AbsoluteAuthorURI),

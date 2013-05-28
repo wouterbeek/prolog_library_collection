@@ -71,8 +71,8 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 :- use_module(dbnl(dbnl_toc)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
-:- use_module(library(xpath)).
 :- use_module(rdf(rdf_build)).
+:- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
@@ -84,46 +84,45 @@ dbnl_maximum_xmlliteral_length(1000).
 dbnl_text(Graph, _Title, URI, Text):-
   rdf(Text, dbnl:original_page, URI, Graph),
   !.
-dbnl_text(Graph, Title, URI1, Text):-
-  % There are several possibilities here:
-  %   1. The URI already refers to a PHP script.
-  %   2. ...
-  uri_components(
-    URI1,
-    uri_components(_Scheme, _Authority, Path, _Search, _Fragment)
-  ),
-  (
-    file_name_extension(_Base, php, Path)
-  ->
-    URI2 = URI1
-  ;
-    atom_concat(_, '_01', URI1)
-  ->
-    URI2 = URI1
-  ;
-    atomic_concat(URI1, '_01', URI2)
-  ),
-
-  dbnl_uri_to_html(URI2, DOM),
+dbnl_text(Graph, Title, URI, Text):-
+gtrace,
+  dbnl_uri_to_html(URI, DOM),
   dbnl_dom_center(DOM, Contents),
   % Disambiguate between different kinds of texts.
   (
-    xpath(Contents, //h2(@class=inhoud), Contents)
+    % Only checking, not retrieving.
+    xpath2(Contents, //h2(@class=inhoud), _)
   ->
     % Table of contents.
-    dbnl_assert_toc(Graph, URI2, Text)
+    dbnl_assert_toc(Graph, URI, Text),
+    rdf_assert(Title, dbnl:toc, Text, Graph),
+    dbnl_text(Graph, Text, Contents)
   ;
-    xpath(Contents, //dt, DT),
-    xpath(DT, a, _A)
+    % Only checking, not retrieving.
+    xpath2(Contents, //dt, DT),
+    xpath2(DT, a, _)
   ->
     % Collection of volumes.
-    dbnl_assert_volume(Graph, URI2, Text)
+    dbnl_assert_volume_collection(Graph, URI, Text),
+    rdf_assert(Title, dbnl:volume_collection, Text, Graph),
+    dbnl_text(Graph, Text, Contents)
   ;
-    % Any other text
-    dbnl_assert_text(Graph, URI2, Text)
+    % Only checking, not retrieving.
+    xpath2(Contents, //div(@class=contentholder), _)
+  ->
+    % Actual content; DBNL markup.
+    dbnl_assert_text(Graph, URI, Text),
+    dbnl_markup(
+      [base_uri(URI), graph(Graph), text(Text)],
+      Contents,
+      XML_DOM
+    ),
+    dbnl_text_content(Graph, Text, XML_DOM)
+  ;
+    % Any other text.
+    dbnl_assert_text(Graph, URI, Text),
+    dbnl_text(Graph, Text, Contents)
   ),
-  rdf_assert(Title, dbnl:text, Text, Graph),
-  dbnl_text(Graph, Text, Contents),
   !.
 /*
   % Retrieve the colofon DOM.
@@ -181,7 +180,6 @@ dbnl_text(
   [element(_, [class=author], [AuthorName]) | Contents]
 ):-
   !,
-  % Just checking...
   rdf_assert_datatype(Text, dbnl:supposed_author, string, AuthorName, Graph),
   dbnl_text(Graph, Text, Contents).
 % Skip empty author.
@@ -195,6 +193,16 @@ dbnl_text(
   [element(h3, [class='title-subordinate'], []) | Contents]
 ):-
   !,
+  dbnl_text(Graph, Text, Contents).
+% Non-empty subordinate title.
+dbnl_text(
+  Graph,
+  Text,
+  [element(h3, [class='title-subordinate'], [Subtitle]) | Contents]
+):-
+  atom(Subtitle),
+  !,
+  rdf_assert_literal(Text, dbnl:subtitle, Subtitle, Graph),
   dbnl_text(Graph, Text, Contents).
 % Skip empty paragraphs.
 dbnl_text(Graph, Text, [element(p, _, []) | Contents]):-
@@ -236,6 +244,15 @@ dbnl_text(
   Text,
   [element(a, _Attributes, ['Bekijk het PDF bestand.']) | Contents]
 ):-
+  !,
+  dbnl_text(Graph, Text, Contents).
+% Skip PDF file media link.
+dbnl_text(Graph, Text, [element(a, Attributes, ['PDF File']) | Contents]):-
+  memberchk(class=media, Attributes),
+  !,
+  dbnl_text(Graph, Text, Contents).
+% Skip single space atomic content.
+dbnl_text(Graph, Text, ['\240\' | Contents]):-
   !,
   dbnl_text(Graph, Text, Contents).
 % Copyright atom.
@@ -281,7 +298,7 @@ dbnl_text_definition_list(
   [element(dt, [], [element(img, Attributes, [])])]
 ):-
   memberchk(alt='DBNL vignet', Attributes),
-  memberchk(src='../dbnllogi.gif', Attributes),
+  memberchk(src='../dbnllogo.gif', Attributes),
   !.
 dbnl_text_definition_list(Graph, Text, DTs):-
   maplist(dbnl_text_definition_term(Graph, Text), DTs).
