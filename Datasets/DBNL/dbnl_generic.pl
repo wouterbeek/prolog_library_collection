@@ -60,10 +60,10 @@ dbnl_debug(URI1):-
 % DOM %
 
 dbnl_dom_center(DOM, CenterDIVs):-
-  dbnl_dom_content(DOM, Content),
   findall(
     CenterDIV,
     (
+      dbnl_dom_content(DOM, Content),
       xpath(Content, //td(@id=text), Text),
       xpath(Text, div(content), CenterDIV)
     ),
@@ -97,10 +97,10 @@ gtrace,
   ).
 
 dbnl_dom_right(DOM, RightDIVs):-
-  dbnl_dom_content(DOM, Content),
   findall(
     RightDIV,
     (
+      dbnl_dom_content(DOM, Content),
       xpath(Content, //td(@id=right), Right),
       xpath(Right, div(content), RightDIV)
     ),

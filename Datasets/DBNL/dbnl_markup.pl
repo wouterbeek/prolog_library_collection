@@ -74,6 +74,16 @@ dbnl_indexed_lines(
 
   dbnl_indexed_lines(Options, TRs, IndexedContent).
 
+%! dbnl_markup(+Options:list(nvpair), +HTML:dom, -XML:dom) is det.
+% Parsed DBNL HTML as SemDBNL XML.
+%
+% @arg Options A list of name-value pairs.
+%      The following options are supported:
+%        * base_uri(uri)
+%        * graph(atom)
+%        * notes(list(pair(atom,dom)))
+%        * text(uri)
+
 % Done!
 dbnl_markup(_Options, [], []):-
   !.
@@ -180,19 +190,19 @@ dbnl_markup(
   % Store the image locally.
   memberchk(src=RelativeImageURI, IMG_Attributes),
   absolute_file_name(file(RelativeImageURI), ImageFile, []),
-  option(uri(BaseURI), Options),
+  option(base_uri(BaseURI), Options),
   uri_resolve(RelativeImageURI, BaseURI, AbsoluteImageURI),
   uri_to_file(AbsoluteImageURI, ImageFile),
 
   % Also add the image as RDF data.
-  rdf_bnode(BNode2),
+  rdf_bnode(ImageBNode),
   option(graph(Graph), Options),
-  rdfs_assert_individual(BNode2, dbnl:'Image', Graph),
-  rdf_assert_datatype(BNode2, dbnl:file, file, ImageFile, Graph),
+  rdfs_assert_individual(ImageBNode, dbnl:'Image', Graph),
+  rdf_assert_datatype(ImageBNode, dbnl:file, file, ImageFile, Graph),
   dom_to_xml(dbnl, Caption2, XML_Caption),
-  rdf_assert_xml_literal(BNode2, dbnl:caption, XML_Caption, Graph),
-  option(bnode(BNode1), Options),
-  rdf_assert(BNode1, dbnl:image, BNode2, Graph),
+  rdf_assert_xml_literal(ImageBNode, dbnl:caption, XML_Caption, Graph),
+  option(text(Text), Options),
+  rdf_assert(Text, dbnl:image, ImageBNode, Graph),
 
   dbnl_markup(Options, Contents1, Contents2).
 % Image without caption.
@@ -212,17 +222,17 @@ dbnl_markup(
   % Store the image locally.
   memberchk(src=RelativeImageURI, IMG_Attributes),
   absolute_file_name(file(RelativeImageURI), ImageFile, []),
-  option(uri(BaseURI), Options),
+  option(base_uri(BaseURI), Options),
   uri_resolve(RelativeImageURI, BaseURI, AbsoluteImageURI),
   uri_to_file(AbsoluteImageURI, ImageFile),
 
   % Also add the image as RDF data.
-  rdf_bnode(BNode2),
+  rdf_bnode(ImageBNode),
   option(graph(Graph), Options),
-  rdfs_assert_individual(BNode2, dbnl:'Image', Graph),
-  rdf_assert_datatype(BNode2, dbnl:file, file, ImageFile, Graph),
-  option(bnode(BNode1), Options),
-  rdf_assert(BNode1, dbnl:image, BNode2, Graph),
+  rdfs_assert_individual(ImageBNode, dbnl:'Image', Graph),
+  rdf_assert_datatype(ImageBNode, dbnl:file, file, ImageFile, Graph),
+  option(text(Text), Options),
+  rdf_assert(Text, dbnl:image, ImageBNode, Graph),
 
   dbnl_markup(Options, Contents1, Contents2).
 % Footnote.
@@ -343,19 +353,4 @@ dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
 dbnl_markup(Options, [Element | Contents1], Contents2):-
   format(user_output, '~w\n', [Element]), %DEB
   dbnl_markup(Options, Contents1, Contents2).
-
-dbnl_markup_test:-
-  URI = 'http://www.dbnl.org/tekst/_aan001aanm01_01/_aan001aanm01_01_0011.php',
-  dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_center(DOM, Contents),
-  dbnl_dom_notes(DOM, Notes),
-  rdf_bnode(BNode),
-  dbnl_markup(
-    [bnode(BNode), graph(test), notes(Notes), title(URI), uri(URI)],
-    Contents,
-    ResultDOM
-  ),
-  absolute_file_name(project(deb), File, [file_type(xml)]),
-  xml_current_namespace(xlink, XLinkNamespace),
-  dom_to_xml_file(dbnl, ResultDOM, File, [nsmap([xlink=XLinkNamespace])]).
 

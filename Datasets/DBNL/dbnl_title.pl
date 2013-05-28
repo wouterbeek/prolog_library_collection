@@ -96,7 +96,6 @@ dbnl_title(Graph, Title, URI):-
 
   % Process contents.
   dbnl_dom_center(DOM, Contents),
-gtrace,
   dbnl_title0(Graph, Title, Contents),
 
   % Picarta link.
