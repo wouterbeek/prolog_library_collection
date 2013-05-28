@@ -113,7 +113,7 @@ dbnl_scrape(Category, Order):-
   % First we assert all titles.
   dbnl_uri_to_html(URI, DOM),
   dbnl_index(Graph, DOM),
-
+  
   % After all titles have been asserted we start scraping them.
   dbnl_titles(Graph).
 

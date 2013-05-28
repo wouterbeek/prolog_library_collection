@@ -18,13 +18,22 @@
     dbnl_assert_organization/3, % +Graph:atom
                                 % +Name:atom
                                 % +Organization:uri
+    dbnl_assert_part/3, % +Graph:atom
+                        % +URI:uri
+                        % -Part:uri
     dbnl_assert_subgenre/3, % +Graph:atom
                             % +Hierarchy:atom
                             % -Subgenre:uri
-    dbnl_assert_title/4 % +Graph:atom
+    dbnl_assert_text/3, % +Graph:atom
                         % +Absolute:uri
-                        % +Name:atom
-                        % -Title:uri
+                        % -Text:uri
+    dbnl_assert_title/4, % +Graph:atom
+                         % +Absolute:uri
+                         % +Name:atom
+                         % -Title:uri
+    dbnl_assert_year/3 % +Resource:uri
+                       % ?Year:oneof(integer,pair(integer))
+                       % +Graph:atom
   ]
 ).
 
@@ -36,7 +45,7 @@ Database predicates for scraping the DBNL.
 @version 2013/05
 */
 
-:- use_module(generics(list_ext)).
+:- use_module(generics(typecheck)).
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -56,28 +65,28 @@ Database predicates for scraping the DBNL.
 %!   -Author:uri
 %! ) is det.
 
-dbnl_assert_author(Graph, AbsoluteAuthorURI, AuthorName, Author):-
+dbnl_assert_author(Graph, URI, AuthorName, Author):-
   rdfs_label(Author, AuthorName),
-  rdf(Author, dbnl:original_page, AbsoluteAuthorURI, Graph),
+  rdf(Author, dbnl:original_page, URI, Graph),
   !.
-dbnl_assert_author(Graph, AbsoluteAuthorURI, AuthorName, Author):-
+dbnl_assert_author(Graph, URI, AuthorName, Author):-
   flag(author, AuthorFlag, AuthorFlag + 1),
   format(atom(AuthorID), 'author/~w', [AuthorFlag]),
   rdf_global_id(dbnl:AuthorID, Author),
   rdfs_assert_individual(Author, dbnl:'Author', Graph),
   rdfs_assert_label(Author, AuthorName, Graph),
-  rdf_assert(Author, dbnl:orignal_page, AbsoluteAuthorURI, Graph).
+  rdf_assert(Author, dbnl:orignal_page, URI, Graph).
 
-dbnl_assert_copyright(Graph, OrganizationName, Year, Copyright):-
-  atom(OrganizationName),
-  !,
-  dbnl_assert_organization(Graph, OrganizationName, Organization),
-  dbnl_assert_copyright(Graph, Organization, Year, Copyright).
 dbnl_assert_copyright(Graph, Organization, Year, Copyright):-
+  is_uri(Organization),
+  !,
   rdf_bnode(Copyright),
   rdfs_assert_individual(Copyright, dbnl:'Copyright', Graph),
   rdf_assert(Copyright, dbnl:organization, Organization, Graph),
   rdf_assert_datatype(Copyright, dbnl:year, gYear, Year, Graph).
+dbnl_assert_copyright(Graph, OrganizationName, Year, Copyright):-
+  dbnl_assert_organization(Graph, OrganizationName, Organization),
+  dbnl_assert_copyright(Graph, Organization, Year, Copyright).
 
 %! dbnl_assert_editor(+Graph:atom, +EditorName:atom, -Editor:uri) is det.
 
@@ -110,6 +119,16 @@ dbnl_assert_organization(Graph, OrganizationName, Organization):-
   rdf_global_id(dbnl:OrganizationID, Organization),
   rdfs_assert_individual(Organization, dbnl:'Organization', Graph),
   rdfs_assert_label(Organization, OrganizationName, Graph).
+
+dbnl_assert_part(Graph, URI, Part):-
+  rdf(Part, dbnl:original_page, URI, Graph),
+  !.
+dbnl_assert_part(Graph, URI, Part):-
+  flag(Part, ID, ID + 1),
+  format(atom(PartID), 'part/~w', [ID]),
+  rdf_global_id(dbnl:PartID, Part),
+  rdfs_assert_individual(Part, dbnl:'Part', Graph),
+  rdf_assert(Part, dbnl:original_page, URI, Graph).
 
 %! dbnl_assert_subgenre(
 %!   +Graph:atom,
@@ -144,11 +163,24 @@ dbnl_assert_subgenre_hierarchy(Graph, [Genre1, Genre2 | Genres]):-
   skos_assert_broader(Genre1, Genre2, Graph),
   dbnl_assert_subgenre_hierarchy(Graph, [Genre2 | Genres]).
 
+%! dbnl_assert_text(+Graph:atom, +URI:uri, -Text:uri) is det.
+
+dbnl_assert_text(Graph, URI, Text):-
+  rdf(Text, dbnl:original_page, URI, Graph),
+  !.
+dbnl_assert_text(Graph, URI, Text):-
+  flag(text, ID, ID + 1),
+  format(atom(TextID), 'text/~w', [ID]),
+  rdf_global_id(dbnl:TextID, Text),
+  rdfs_assert_individual(Text, dbnl:'Text', Graph),
+  rdf_assert(Text, dbnl:original_page, URI, Graph).
+
 %! dbnl_assert_title(+Graph:atom, +URI:uri, +Name:atom, -Title:uri) is det.
 
 dbnl_assert_title(Graph, URI, Name, Title):-
   rdf(Title, dbnl:original_page, URI, Graph),
-  rdfs_label(Title, Name),
+  % Just checking...
+  (rdfs_label(Title, Name) -> true ; gtrace),
   !.
 dbnl_assert_title(Graph, URI, Name, Title):-
   flag(title, TitleFlag, TitleFlag + 1),
@@ -158,4 +190,14 @@ dbnl_assert_title(Graph, URI, Name, Title):-
   rdfs_assert_label(Title, Name, Graph),
   % The original DBNL page where this title was described.
   rdf_assert(Title, dbnl:original_page, URI, Graph).
+
+dbnl_assert_year(_Resource, Year, _Graph):-
+  var(Year),
+  !.
+dbnl_assert_year(Resource, Year1-Year2, Graph):-
+  !,
+  rdf_assert_datatype(Resource, dbnl:begin_year, gYear, Year1, Graph),
+  rdf_assert_datatype(Resource, dbnl:end_year, gYear, Year2, Graph).
+dbnl_assert_year(Resource, Year, Graph):-
+  rdf_assert_datatype(Resource, dbnl:year, gYear, Year, Graph).
 

@@ -57,9 +57,10 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 */
 
 :- use_module(dbnl(dbnl_db)).
+:- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
+:- use_module(dbnl(dbnl_primary)).
 :- use_module(dbnl(dbnl_secondary)).
-:- use_module(dbnl(dbnl_text)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(apply)).
 :- use_module(library(semweb/rdf_db)).
@@ -95,6 +96,7 @@ dbnl_title(Graph, Title, URI):-
 
   % Process contents.
   dbnl_dom_center(DOM, Contents),
+gtrace,
   dbnl_title0(Graph, Title, Contents),
 
   % Picarta link.
@@ -183,12 +185,19 @@ dbnl_title0(
     rdf_assert(Title, dbnl:subgenre, Subgenre, Graph)
   ),
   dbnl_title0(Graph, Title, Contents).
-% Assert the title.
+% Title + year.
 dbnl_title0(
   Graph,
   Title,
-  [element(span, [class='titelpagina-titel'], _TitleName) | Contents]
+  [element(span, [class='titelpagina-titel'], Content) | Contents]
 ):-
+  !,
+  Content = [TitleName1],
+  % A year may occur after the title.
+  dbnl_extract_year_end(TitleName1, Year, TitleName2),
+  dbnl_assert_year(Title, Year, Graph),
+  % Just checking...
+  (rdfs_label(Title, TitleName2) -> true ; gtrace),
   dbnl_title0(Graph, Title, Contents).
 % Assert the pimary text links.
 dbnl_title0(
@@ -196,7 +205,7 @@ dbnl_title0(
   Title,
   [
     element(h4, [], ['Beschikbare tekst in de dbnl']),
-    element(a, [href=RelativeTextURI | _], [TitleName])
+    element(a, [href=RelativeURI | _], [TitleName])
   | Contents
   ]
 ):-
@@ -204,9 +213,8 @@ dbnl_title0(
   % Just checking!
   (rdfs_label(Title, TitleName) -> true ; gtrace), %DEB
 
-  dbnl_uri_resolve(RelativeTextURI, AbsoluteTextURI),
-  rdf_assert(Title, dbnl:text, AbsoluteTextURI, Graph),
-  dbnl_text(Graph, Title, AbsoluteTextURI),
+  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+  dbnl_primary(Graph, Title, AbsoluteURI),
   dbnl_title0(Graph, Title, Contents).
 % Assert the secondary text links.
 dbnl_title0(
@@ -231,6 +239,7 @@ dbnl_title0(Graph, Title, [element(br, _, _) | Contents]):-
 % Skip italic text?
 dbnl_title0(Graph, Title, [element(i, Attributes, Content) | Contents]):-
   !,
+gtrace,
   format(user_output, '~w\n~w\n', [Attributes, Content]),
   dbnl_title0(Graph, Title, Contents).
 % Atom

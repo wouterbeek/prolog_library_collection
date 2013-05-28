@@ -33,6 +33,7 @@ Generic predicates for scraping the DBNL.
 @version 2013/05
 */
 
+:- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(uri)).
 :- use_module(library(xpath)).
@@ -46,7 +47,7 @@ dbnl_debug(URI1):-
   dbnl_uri_resolve(URI1, URI2),
   flag(deb, ID, ID + 1),
   (
-    ID > 57
+    ID > 3
   ->
     once(www_open_url(URI2)),
     gtrace
@@ -63,7 +64,7 @@ dbnl_dom_center(DOM, CenterDIVs):-
   findall(
     CenterDIV,
     (
-      xpath(Content, td(@id=text), Text),
+      xpath(Content, //td(@id=text), Text),
       xpath(Text, div(content), CenterDIV)
     ),
     CenterDIVss
@@ -84,6 +85,7 @@ dbnl_dom_left(DOM, LeftDIV):-
   xpath(Left, div(content), LeftDIV).
 
 dbnl_dom_notes(DOM, Notes):-
+gtrace,
   findall(
     NoteIndex-Contents,
     (
@@ -141,13 +143,35 @@ dbnl_uri_to_html(URI1, DOM):-
   dbnl_uri_resolve(URI1, URI2),
   dbnl_debug(URI2),
   catch(
-    uri_to_html(URI2, DOM),
-    error(limit_exceeded(max_errors, Max), Context),
+    setup_call_cleanup(
+      % First perform this setup once/1.
+      (
+        http_open(URI2, Stream, []),
+        set_stream(Stream, encoding(utf8))
+      ),
+      % The try to make this goal succeed.
+      (
+        dtd(html, DTD),
+        load_structure(
+          stream(Stream),
+          DOM,
+          [
+            dtd(DTD),
+            dialect(sgml),
+            shorttag(false),
+            space(remove)
+          ]
+        )
+      ),
+      % If goal succeeds, then perform this cleanup.
+      close(Stream)
+    ),
+    error(limit_exceeded(max_errors, Max), _Context),
     (
       format(
         user_output,
         'Encountered ~w error(s) while parsing <~w>.',
-        [Max, Context, URI1]
+        [Max, URI2]
       )
     )
   ).

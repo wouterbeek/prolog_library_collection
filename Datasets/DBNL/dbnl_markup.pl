@@ -27,8 +27,10 @@ Predicates for transforming DBNL HTML markup into a useful XML format.
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
+:- use_module(xml(xlink)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
+:- xml_register_namespace(xlink, 'http://www.w3.org/1999/xlink').
 
 
 
@@ -319,11 +321,6 @@ dbnl_markup(
   ),
   dbnl_indexed_lines(Options, TRs, IndexedLines),
   dbnl_markup(Options, Contents1, Contents2).
-% A piece of plain text.
-dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
-  atom(Text),
-  !,
-  dbnl_markup(Options, Contents1, Contents2).
 % Some stuff is simply skipped...
 dbnl_markup(Options, [element(a, Attributes, _) | Contents1], Contents2):-
   \+ member(href=_, Attributes),
@@ -335,6 +332,11 @@ dbnl_markup(Options, [element(br, _, _) | Contents1], Contents2):-
   dbnl_markup(Options, Contents1, Contents2).
 % Some stuff is simply skipped...
 dbnl_markup(Options, [element(interp, _, _) | Contents1], Contents2):-
+  !,
+  dbnl_markup(Options, Contents1, Contents2).
+% A piece of plain text.
+dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
+  atom(Text),
   !,
   dbnl_markup(Options, Contents1, Contents2).
 % Debug on elements that are not yet treated.
