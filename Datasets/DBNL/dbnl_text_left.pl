@@ -28,7 +28,7 @@ Predicates for scraping the left DIV of text pages in the DBNL.
 
 
 %! dbnl_text_left(+Graph:atom, +Text:uri, +HTML:dom) is det.
-% @tbd Parse the content of 'Met illustraties van ...'
+% @tbd Enable justification text parsing.
 
 % Done!
 dbnl_text_left(_Graph, _Text, []):-
@@ -58,12 +58,66 @@ dbnl_text_left(
     )
   | T]
 ):-
+  (
+    member(class=chosen, Attributes)
+  ->
+    true
+  ;
+    memberchk(href=_RelativeURI, Attributes)
+    %rdf(Text, dbnl:original_page, URI, Graph),
+    %dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
+    %dbnl_text(Graph, Text, AbsoluteURI, Justification),
+    %rdf_assert(Text, dbnl:justification, Justification, Graph)
+  ),
   !,
-  memberchk(href=RelativeURI, Attributes),
-  rdf(Text, dbnl:original_page, URI, Graph),
-  uri_resolve(RelativeURI, URI, AbsoluteURI),
-  dbnl_text(Graph, Text, AbsoluteURI, Justification),
-  rdf_assert(Text, dbnl:justification, Justification, Graph),
+  dbnl_text_left(Graph, Text, T).
+% Table of contents text.
+dbnl_text_left(
+  Graph,
+  Text,
+  [
+    element(
+      p,
+      [class=inhoudsopgave],
+      [element(a, Attributes, [inhoudsopgave])]
+    )
+  | T]
+):-
+  (
+    member(class=chosen, Attributes)
+  ->
+    true
+  ;
+    memberchk(href=RelativeURI, Attributes),
+    rdf(Text, dbnl:original_page, URI, Graph),
+    dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
+    dbnl_text(Graph, Text, AbsoluteURI, TOC),
+    rdf_assert(Text, dbnl:toc, TOC, Graph)
+  ),
+  !,
+  dbnl_text_left(Graph, Text, T).
+% Downloads text.
+dbnl_text_left(
+  Graph,
+  Text,
+  [element(a, Attributes, [downloads]) | T]
+):-
+  (
+    member(class=chosen, Attributes)
+  ->
+    true
+  ;
+    memberchk(href=RelativeURI, Attributes),
+    rdf(Text, dbnl:original_page, URI, Graph),
+    dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
+    dbnl_text(Graph, Text, AbsoluteURI, Downloads),
+    rdf_assert(Text, dbnl:downloads, Downloads, Graph)
+  ),
+  !,
+  dbnl_text_left(Graph, Text, T).
+% Skip search.
+dbnl_text_left(Graph, Text, [element(a, _Attributes, ['doorzoek de hele tekst']) | T]):-
+  !,
   dbnl_text_left(Graph, Text, T).
 % Parse the content of DIVs.
 dbnl_text_left(Graph, Text, [element(div, [], H) | T]):-
@@ -144,16 +198,16 @@ dbnl_text_left(
 % Journal year.
 dbnl_text_left(Graph, Text, [H1 | T]):-
   atom(H1),
-  atom_concat('Jaargang ', H3, H2),
+  atom_concat('Jaargang ', H2, H1),
   !,
   (
-    split_atom_exclusive('.', H3, [JYear1, Rest]),
+    split_atom_exclusive('.', H2, [JYear1, H3]),
     atom_number(JYear1, JYear2),
     rdf_assert_datatype(Text, dbnl:journal_year, int, JYear2, Graph)
   ;
-    Rest = H2
+    H3 = H2
   ),
-  dbnl_text_left(Graph, Text, [Rest | T]).
+  dbnl_text_left(Graph, Text, [H3 | T]).
 % Illustrations source.
 dbnl_text_left(Graph, Text, [H1 | T]):-
   atom(H1),
@@ -165,11 +219,11 @@ dbnl_text_left(Graph, Text, [H1 | T]):-
 % Publisher.
 dbnl_text_left(Graph, Text, [H1 | T]):-
   atom(H1),
-  split_atom_exclusive(',', PublisherPlaceYear, [Publisher1, PlaceYear]),
+  split_atom_exclusive(',', H1, [Publisher1, PlaceYear]),
   !,
   strip([' '], Publisher1, Publisher2),
   rdf_assert_literal(Text, dbnl:publisher, Publisher2, Graph),
-  
+
   % Publication place with or without a year at the end.
   (
     sub_atom(PlaceYear, _Before, 4, 0, Year1),

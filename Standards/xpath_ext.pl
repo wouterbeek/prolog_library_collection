@@ -3,10 +3,10 @@
   [
     xpath2/3, % +DOM:oneof([element,list(element)])
               % +Spec
-              % -Content
+              % ?Content
     xpath_chk2/3 % +DOM:oneof([element,list(element)])
                  % +Spec
-                 % -Content
+                 % ?Content
   ]
 ).
 
@@ -27,7 +27,6 @@ xpath2(DOM, Spec, Content):-
   !,
   xpath2(element(outer, [], DOM), Spec, Content).
 xpath2(DOM, Spec, Content):-
-  var(Content),
   xpath(DOM, Spec, Content).
 
 xpath_chk2(DOM, Spec, Content):-
@@ -35,6 +34,5 @@ xpath_chk2(DOM, Spec, Content):-
   !,
   xpath_chk2(element(outer, [], DOM), Spec, Content).
 xpath_chk2(DOM, Spec, Content):-
-  var(Content),
   xpath_chk(DOM, Spec, Content).
 

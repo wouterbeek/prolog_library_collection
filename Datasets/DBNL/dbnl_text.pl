@@ -65,6 +65,7 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 */
 
 :- use_module(dbnl(dbnl_db)).
+:- use_module(dbnl(dbnl_downloads)).
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_markup)).
@@ -91,6 +92,13 @@ gtrace,
   dbnl_dom_center(DOM, Contents),
   % Disambiguate between different kinds of texts.
   (
+    % Downloads
+    xpath2(Contents, //h3(content), ['Downloads'])
+  ->
+    dbnl_assert_text(Graph, URI, Text),
+    rdf_assert(Title, dbnl:downloads, Text, Graph),
+    dbnl_downloads(Graph, Text, Contents)
+  ;
     % Only checking, not retrieving.
     xpath2(Contents, //h2(@class=inhoud), _)
   ->
@@ -113,8 +121,9 @@ gtrace,
   ->
     % Actual content; DBNL markup.
     dbnl_assert_text(Graph, URI, Text),
+    dbnl_dom_notes(DOM, Notes),
     dbnl_markup(
-      [base_uri(URI), graph(Graph), text(Text)],
+      [base_uri(URI), graph(Graph), notes(Notes), text(Text)],
       Contents,
       XML_DOM
     ),
@@ -124,7 +133,9 @@ gtrace,
     dbnl_assert_text(Graph, URI, Text),
     dbnl_text(Graph, Text, Contents)
   ),
-
+  
+  rdf_assert(Text, dbnl:original_page, URI, Graph),
+  
   % Parse left DIV.
   dbnl_dom_left(DOM, Left),
   dbnl_text_left(Graph, Text, Left),
@@ -171,10 +182,11 @@ dbnl_text(Graph, TOC, [element(h2, [class=inhoud], _) | Contents]):-
 dbnl_text(
   Graph,
   Text,
-  [element(h1, [class=title], [TitleName]) | Contents]
+  [element(h1, [class=title], Title1) | Contents]
 ):-
   !,
-  rdfs_assert_label(Text, TitleName, Graph),
+  dbnl_markup_simple(Title1, Title2),
+  rdfs_assert_label(Text, Title2, Graph),
   dbnl_text(Graph, Text, Contents).
 % Assert the supposed author.
 % This is used in the left DIV to distinguish authors from editors.

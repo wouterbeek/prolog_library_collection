@@ -1,9 +1,11 @@
 :- module(
   dbnl_markup,
   [
-    dbnl_markup/3 % +Options:list(nvpair)
-                  % +HTML:dom
-                  % -XML:dom
+    dbnl_markup/3, % +Options:list(nvpair)
+                   % +HTML:dom
+                   % -XML:dom
+    dbnl_markup_simple/2 % +HTML:dom
+                         % -Atom:atom
   ]
 ).
 
@@ -87,7 +89,33 @@ dbnl_indexed_lines(
 % Done!
 dbnl_markup(_Options, [], []):-
   !.
-% A single space.
+% Letter-spaced text.
+dbnl_markup(
+  Options,
+  [element(span, [class=spatial], H1) | T1],
+  [element(letter_spacing, [], H2) | T]
+):-
+  !,
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2),
+  append(H2, T2, T).
+% Strange section separator 1.
+dbnl_markup(
+  Options,
+  [element(p, _, ['* * *']) | T1],
+  [elemen(separator, [], []) | T2]
+):-
+  !,
+  dbnl_markup(Options, T1, T2).
+% Strange section separator 2.
+dbnl_markup(
+  Options,
+  [element(p, [], ['*', element(sub, [], ['*']), '*']) | T1],
+  [element(separator, [], []) | T2]
+):-
+  !,
+  dbnl_markup(Options, T1, T2).
+% Skip single spaces.
 dbnl_markup(_Options, ['\240\'], []):-
   !.
 % A page. Nesting makes this relatively difficult.
@@ -126,16 +154,6 @@ dbnl_markup(
   dbnl_markup(Options, DIV_Contents1, DIV_Contents2),
   dbnl_markup(Options, Contents1, Contents3),
   append(DIV_Contents2, Contents3, Contents2).
-% Letter-spaced text.
-dbnl_markup(
-  Options,
-  [element(span, [class=spatial], H1) | T1],
-  [element(letter_spacing, [], H2) | T]
-):-
-  !,
-  dbnl_markup(Options, H1, H2),
-  dbnl_markup(Options, T1, T2),
-  append(H2, T2, T).
 % Disregard some other DIV tags (by class).
 dbnl_markup(
   Options,
@@ -270,9 +288,9 @@ dbnl_markup(
   (
     % 1. Skip paragraphs with no content.
     P_Contents1 = [Atom],
-    strip([' '], Atom, '')
+    (strip([' '], Atom, '') ; Atom == '\240\')
   ->
-    Contents3 = Contents2
+    dbnl_markup(Options, Contents1, Contents3)
   ;
     % 2. Skip paragraphs that only contain figures.
     forall(
@@ -290,7 +308,7 @@ dbnl_markup(
     % Other paragraphs are included.
     dbnl_markup(Options, P_Contents1, P_Contents2),
     dbnl_markup(Options, Contents1, Contents2),
-    
+
     % Do not create empty paragraphs.
     (
       P_Contents2 = []
@@ -299,7 +317,8 @@ dbnl_markup(
     ;
       Contents3 = [element(paragraph, [], P_Contents2) | Contents2]
     )
-  ).
+  ),
+  !.
 % SPAN class=topo ???
 dbnl_markup(
   Options,
@@ -372,4 +391,18 @@ dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
 dbnl_markup(Options, [Element | Contents1], Contents2):-
   format(user_output, '~w\n', [Element]), %DEB
   dbnl_markup(Options, Contents1, Contents2).
+
+dbnl_markup_simple(HTML, Atom):-
+  dbnl_markup_simple0(HTML, Atoms),
+  atomic_list_concat(Atoms, ' ', Atom).
+
+dbnl_markup_simple0([], []):-
+  !.
+dbnl_markup_simple0([element(br, _, []) | T1], T2):-
+  !,
+  dbnl_markup_simple0(T1, T2).
+dbnl_markup_simple0([H | T1], [H | T2]):-
+  atom(H),
+  !,
+  dbnl_markup_simple0(T1, T2).
 

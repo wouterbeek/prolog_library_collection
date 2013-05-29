@@ -26,6 +26,9 @@
     dbnl_scheme/1, % -Scheme:atom
     dbnl_uri_resolve/2, % +Relative:uri
                         % -Absolute:uri
+    dbnl_uri_resolve/3, % +Relative:uri
+                        % +Base:uri
+                        % -Absolute:uri
     dbnl_uri_to_html/2 % +URI:uri
                        % -HTML:dom
   ]
@@ -41,6 +44,7 @@ Generic predicates for scraping the DBNL.
 
 :- use_module(dbnl(dbnl_db)).
 :- use_module(dbnl(dbnl_extract)).
+:- use_module(generics(atom_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
@@ -155,6 +159,19 @@ dbnl_uri_resolve(Absolute, Absolute):-
 dbnl_uri_resolve(Relative, Absolute):-
   dbnl_base_uri(Base),
   uri_resolve(Relative, Base, Absolute).
+
+dbnl_uri_resolve(Relative, Base, Absolute):-
+  uri_resolve(Relative, Base, Absolute),
+  catch(
+    http_open(Absolute, _Stream, []),
+    error(existence_error(url, _URL), _Context),
+    fail
+  ),
+  !.
+dbnl_uri_resolve(Relative, Base1, Absolute):-
+  \+ last_char(Base1, '/'),
+  atom_concat(Base1, '/', Base2),
+  dbnl_uri_resolve(Relative, Base2, Absolute).
 
 dbnl_uri_to_html(URI1, DOM):-
   dbnl_uri_resolve(URI1, URI2),
