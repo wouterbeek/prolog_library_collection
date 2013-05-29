@@ -43,6 +43,9 @@ Scraping a DBNL text download page.
 %   common=1
 % ==
 
+% Done!
+dbnl_downloads(_Graph, _Text, []):-
+  !.
 % Parse nested DIVs.
 dbnl_downloads(Graph, Text, [element(div, _, DIV_T) | T]):-
   !,
@@ -89,11 +92,11 @@ dbnl_downloads(
 ):-
   !,
   dbnl_uri_resolve(PDFTextRelativeURI, PDFTextAbsoluteURI),
-  rdf_assert(Title, dbnl:remote_pdftext, PDFTextAbsoluteURI, Graph),
+  rdf_assert(Text, dbnl:remote_pdftext, PDFTextAbsoluteURI, Graph),
   uri_query(PDFTextAbsoluteURI, filename, PDFTextFileName),
   absolute_file_name(file(PDFTextFileName), PDFTextFile, []),
   uri_to_file(PDFTextAbsoluteURI, PDFTextFile),
-  rdf_assert_datatype(Title, dbnl:local_pdftext, file, PDFTextFile, Graph),
+  rdf_assert_datatype(Text, dbnl:local_pdftext, file, PDFTextFile, Graph),
   dbnl_downloads(Graph, Text, T).
 % Skip empty PDFs of the originals.
 dbnl_downloads(
@@ -117,11 +120,11 @@ dbnl_downloads(
 ):-
   !,
   dbnl_uri_resolve(ScansRelativeURI, ScansAbsoluteURI),
-  rdf_assert(Title, dbnl:remote_scans, ScansAbsoluteURI, Graph),
+  rdf_assert(Text, dbnl:remote_scans, ScansAbsoluteURI, Graph),
   uri_query(ScansAbsoluteURI, filename, FileName),
   absolute_file_name(file(FileName), ScansFile, []),
   uri_to_file(ScansAbsoluteURI, ScansFile),
-  rdf_assert_datatype(Title, dbnl:local_scans, file, ScansFile, Graph),
+  rdf_assert_datatype(Text, dbnl:local_scans, file, ScansFile, Graph),
   dbnl_downloads(Graph, Text, T).
 % Scans of originals.
 dbnl_downloads(
@@ -131,11 +134,11 @@ dbnl_downloads(
 ):-
   !,
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  rdf_assert(Title, dbnl:remote_original, AbsoluteURI, Graph),
+  rdf_assert(Text, dbnl:remote_original, AbsoluteURI, Graph),
   uri_query(AbsoluteURI, filename, FileName),
   absolute_file_name(file(FileName), ScansFile, []),
   uri_to_file(AbsoluteURI, ScansFile),
-  rdf_assert_datatype(Title, dbnl:local_original, file, ScansFile, Graph),
+  rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph),
   dbnl_downloads(Graph, Text, T).
 % Debug.
 dbnl_downloads(Graph, Text, [H | T]):-

@@ -89,16 +89,24 @@ dbnl_indexed_lines(
 % Done!
 dbnl_markup(_Options, [], []):-
   !.
+% Small-caps text.
+dbnl_markup(
+  Options,
+  [element(span, [class='small-caps'], H1) | T1],
+  [element(small_caps, [], H2) | T2]
+):-
+  !,
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2).
 % Letter-spaced text.
 dbnl_markup(
   Options,
   [element(span, [class=spatial], H1) | T1],
-  [element(letter_spacing, [], H2) | T]
+  [element(letter_spacing, [], H2) | T2]
 ):-
   !,
   dbnl_markup(Options, H1, H2),
-  dbnl_markup(Options, T1, T2),
-  append(H2, T2, T).
+  dbnl_markup(Options, T1, T2).
 % Strange section separator 1.
 dbnl_markup(
   Options,

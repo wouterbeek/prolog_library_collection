@@ -139,6 +139,10 @@ gtrace,
   % Parse left DIV.
   dbnl_dom_left(DOM, Left),
   dbnl_text_left(Graph, Text, Left),
+  
+  % Parse right DIV.
+  dbnl_dom_left(DOM, Right),
+  dbnl_text_right(Graph, Text, Right),
   !.
 /*
   % Retrieve the colofon DOM.
@@ -344,4 +348,21 @@ dbnl_text_definition_term(
     TitleName2
   ),
   rdf_assert_xml_literal(Subtext, dbnl:title, TitleName2, Graph).
+
+% Done!
+dbnl_text_right(_Graph, _Text, []):-
+  !.
+% Image of the titlepage.
+dbnl_text_right(Graph, Text, [element(a, _, [element(img, IMGs, [])]) | T]):-
+  memberchk(alt=titelpagina, IMGs),
+  !,
+  memberchk(src=RelativeURI, IMGs),
+  rdf(Text, dbnl:original_page, BaseURI, Graph),
+  dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
+  
+  absolute_file_name(file(RelativeURI), File, []),
+  uri_to_file(AbsoluteURI, File),
+  rdf_assert_datatype(Text, dbnl:titlepage_image, image, File, Graph),
+  
+  dbnl_text_right(Graph, Text, T).
 
