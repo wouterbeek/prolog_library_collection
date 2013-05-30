@@ -10,11 +10,11 @@
                            % -Editor:atom
     dbnl_extract_page/2, % +Atom:atom
                          % -Page:integer
-    dbnl_extract_year/2, % +Atom:atom
-                         % -Year:oneof([integer,pair(integer)])
-    dbnl_extract_year_end/3 % +Atom1:atom
-                            % -Year:oneof([integer,pair(integer)])
-                            % -Atom2:atom
+    handwritten//1, % -Handwritten:boolean
+    decimal_digit//1, % -Digit:code
+    decimal_integer//1, % -Integer:integer
+    print_number//1, % -Number:integer
+    year//1 % -PointOrInterval:oneof([integer,pair(integer)])
   ]
 ).
 
@@ -27,7 +27,6 @@ Predicates for extracting information from atoms in DBNL.
 */
 
 :- use_module(generics(atom_ext)).
-:- use_module(library(apply)).
 
 
 
@@ -47,42 +46,76 @@ dbnl_extract_page(Atom1, Page):-
   atom_concat(Atom3, ']', Atom2),
   atom_number(Atom3, Page).
 
-%! dbnl_extract_year(+Atom:atom, -Year:oneof(integer,pair(integer))) is det.
 
-dbnl_extract_year(Atom, StartYear-EndYear):-
-  split_atom_exclusive('-', Atom, [StartYearAtom, EndYearAtom]),
-  maplist(dbnl_extract_year, [StartYearAtom, EndYearAtom], [StartYear, EndYear]).
-dbnl_extract_year(Atom, Year):-
-  sub_atom(Atom, _Before, 4, _After, Temp),
-  atom_number(Temp, Year).
-dbnl_extract_year(Atom, Year):-
-  sub_atom(Atom, 0, 4, _After, Temp),
-  atom_number(Temp, Year).
 
-% Skip years that are 'z.j.'.
-% @tbd What does this mean?
-dbnl_extract_year_end(Atom1, _Year, Atom2):-
-  sub_atom(Atom1, _Before, 4, 1, '(z.j.)'),
-  !,
-  sub_atom(Atom1, 0, _Length1, 7, Atom2).
-% Year.
-dbnl_extract_year_end(Atom1, Year, Atom2):-
-  sub_atom(Atom1, _Before1, 1, 0, ')'),
-  sub_atom(Atom1, _Before2, 4, 1, YearAtom),
-  sub_atom(Atom1, _Before3, 1, 5, '('),
-  !,
-  atom_number(YearAtom, Year),
-  sub_atom(Atom1, 0, _Length, 7, Atom2).
-% Year interval.
-dbnl_extract_year_end(Atom1, Year1-Year2, Atom2):-
-  sub_atom(Atom1, _Before1, 1, 0, ')'),
-  sub_atom(Atom1, _Before2, 4, 1, YearAtom1),
-  sub_atom(Atom1, _Before3, 1, 5, '-'),
-  sub_atom(Atom1, _Before4, 4, 6, YearAtom2),
-  !,
-  atom_number(YearAtom1, Year1),
-  atom_number(YearAtom2, Year2),
-  sub_atom(Atom1, 0, _Length, 12, Atom2).
-% No year detected.
-dbnl_extract_year_end(Atom, _Year, Atom).
+% DCG %
 
+%! decimal_digit(-Digit:code)//
+%
+% @author Jan Wielemaker
+
+decimal_digit(D) -->
+  [D],
+  {code_type(D, digit)}.
+
+decimal_digits([D|T]) -->
+  decimal_digit(D),
+  !,
+  decimal_digits(T).
+decimal_digits([]) -->
+  [].
+
+%! decimal_integer(-Number:integer)//
+%
+% @author Jan Wielemaker
+
+decimal_integer(I) -->
+  decimal_digit(D0),
+  decimal_digits(D),
+  {number_codes(I, [D0|D])}.
+
+handwritten(true) --> ['(handschrift)'].
+handwritten(fail) --> [].
+
+print_number(Print) -->
+  ['('],
+  print_number(Print),
+  [')'].
+print_number(Print) -->
+  decimal_integer(Print).
+
+% Skip spaces.
+year(PointOrInterval) -->
+  [' '],
+  year(PointOrInterval).
+% Do not consider uncertainty modifiers.
+year(PointOrInterval) -->
+  ['ca.'],
+  year(PointOrInterval).
+% Between round brackets.
+year(PointOrInterval) -->
+  ['('],
+  year(PointOrInterval),
+  [')'].
+year(PointOrInterval) -->
+  year_point_or_interval(PointOrInterval).
+
+% A pair of years.
+year_interval(Point1-Point2) -->
+  year_point(Point1),
+  ['-'],
+  year_point(Point2).
+
+% A single year.
+year_point(Year) -->
+  {between(1, 4, Length)},
+  {length(Digits, Length)},
+  decimal_digits(Digits),
+  {number_codes(Year, Digits)}.
+% Context-dependent indicator. Not processed yet.
+year_point(_) --> ['z.j.'].
+
+year_point_or_interval(Point) -->
+  year_point(Point).
+year_point_or_interval(Interval) -->
+  year_interval(Interval).

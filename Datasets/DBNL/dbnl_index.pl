@@ -18,6 +18,7 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
 :- use_module(standards(xpath_ext)).
@@ -121,6 +122,7 @@ dbnl_scrape(Category, Order):-
 
 dbnl_index(Graph, DOM):-
   dbnl_dom_center(DOM, Text),
+gtrace,
   forall(
     (
       (
@@ -133,69 +135,57 @@ dbnl_index(Graph, DOM):-
     dbnl_index_title(Graph, Contents)
   ).
 
+dbnl_index_author(Graph, Title, Author1):-
+  strip([' ',','], Author1, Author2),
+  rdf_assert_literal(Title, dbnl:author, Author2, Graph).
+
 %! dbnl_index_title(+Graph:atom, +Contents:dom) is det.
 
 % Create a new title.
-dbnl_index_title(Graph, Contents1):-
-  selectchk(element(a, LinkAttributes, [TitleName]), Contents1, Contents2),
-  memberchk(href=RelativeURI, LinkAttributes),
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  dbnl_assert_title(Graph, AbsoluteURI, TitleName, Title),
-  dbnl_index_title(Graph, Title, Contents2).
-
-%! dbnl_index_title(+Graph:atom, +Title:uri, +Contents:dom) is det.
-% Scrapes a single title entry from a title index.
-%
-% URI example:
-% ==
-% http://www.dbnl.org/titels/titel.php?id=_abc002abco01
-% ==
-%
-% These pages contain the following information in which we are interested:
-%   1. Author name.
-%   2. Publication title.
-%   3. Genre.
-%   4. Subgenres.
-%   5. Available texts.
-%   6. Link to Picarta / CBK information.
-%
-% @tbd Also extract intervals from strings like '16de eeuw'.
-
-% Done!
-dbnl_index_title(_Graph, _Title, []):-
-  !.
-% Skip notes on scans.
 dbnl_index_title(
   Graph,
-  Title,
-  [element(i,[],['(alleen scans beschikbaar)']) | Contents]
+  [Author, element(a, Attributes, [TitleName]) | Contents]
 ):-
-  dbnl_index_title(Graph, Title, Contents).
-% Year.
-dbnl_index_title(Graph, Title, [Year1 | Rest]):-
-  % Assert the year only if it can be readily extracted.
-
-  % Sometimes a comment occurs between the title and the year.
-  % The year is always the last item in the content list.
-  dbnl_extract_year(Year1, Year2),
-  (
-    Year2 = StartYear-EndYear
-  ->
-    rdf_assert_datatype(Title, dbnl:start_year, gYear, StartYear, Graph),
-    rdf_assert_datatype(Title, dbnl:end_year, gYear, EndYear, Graph)
+  memberchk(href=RelativeURI, Attributes),
+  
+  % Skip the note on scans, if it is present.
+  once((
+    Contents = [element(i,[],['(alleen scans beschikbaar)']), YearEtc | _]
   ;
-    rdf_assert_datatype(Title, dbnl:year, gYear, Year2, Graph)
+    Contents = [YearEtc | _]
+  )),
+
+  % Create the title resource.
+  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+  dbnl_assert_title(Graph, AbsoluteURI, TitleName, Title),
+  rdf_assert(Title, dbnl:original_page, AbsoluteURI, Graph),
+  rdfs_assert_label(Title, TitleName, Graph),
+
+  % Author.
+  dbnl_index_author(Graph, Title, Author),
+  
+  % Year
+  atom_codes(YearEtc, C1),
+  year(PointOrInterval, C1, C2),
+  (
+    PointOrInterval == Point1-Point2
+  ->
+    rdf_assert_datatype(Title, dbnl:start_year, gYear, Point1, Graph),
+    rdf_assert_datatype(Title, dbnl:end_year, gYear, Point2, Graph)
+  ;
+    rdf_assert_datatype(Title, dbnl:year, gYear, PointOrInterval, Graph)
   ),
-  dbnl_index_title(Graph, Title, Rest).
-% Debug.
-dbnl_index_title(Graph, Title, [Content | Rest]):-
-  %gtrace, %DEB
-  format(user_output, '~w\n', [Content]),
-  dbnl_index_title(Graph, Title, Rest).
+
+  % Handwritten.
+  handwritten(Handwritten, C2, C3),
+  rdf_assert_datatype(Title, dbnl:handwritten, boolean, Handwritten, Graph),
+
+  % Print
+  print(Print, C3, _C4),
+  rdf_assert_datatype(Title, dbnl:print, int, Print, Graph).
 
 dbnl_titles(Graph):-
   forall(
     rdfs_individual_of(Title, dbnl:'Title'),
     dbnl_title(Graph, Title)
   ).
-
