@@ -1,9 +1,8 @@
 :- module(
-  dcg_ext,
+  dcg_generic,
   [
-    conjunct//1, % ?Lang:atom
+    conj//1, % ?Lang:atom
     language//1, % ?Lang:atom
-    part_word//1, % ?Lang:atom
     uncertainty//1 % ?Lang:atom
   ]
 ).
@@ -21,22 +20,11 @@ Generic DCG clauses.
 
 
 
-conjunct(en) --> "and".
-conjunct(nl) --> "en".
+conj(en) --> "and".
+conj(nl) --> "en".
+conj(_Lang) --> comma.
 
-conjunct(nl) -->
-  blank,
-  atom(en),
-  blank.
-conjunct(_Lang) -->
-  comma,
-  blank.
-
-language(nl) -->
-  atom('Latijn').
-
-part_word(nl) -->
-  atom(deel).
+language(nl) --> "Latijn".
 
 % Three dots uncertainty representation.
 uncertainty(_Lang) -->

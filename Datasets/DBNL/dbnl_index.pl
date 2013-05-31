@@ -18,6 +18,7 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
+:- use_module(dcg(dcg_print)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -146,8 +147,6 @@ dbnl_index_title(
   Graph,
   [Author1, element(a, Attributes, [TitleName]) | Contents]
 ):-
-flag(tests, ID, ID + 1),
-(ID >= 5000 -> gtrace ; true),
   memberchk(href=RelativeURI, Attributes),
 
   % Create the title resource.
@@ -165,6 +164,8 @@ flag(tests, ID, ID + 1),
   ),
 
   % Skip the note on scans, if it is present.
+flag(tests, ID, ID + 1),
+(ID >= 5000 -> gtrace ; true),
   (
     (
       Contents = [element(i,[],['(alleen scans beschikbaar)']), YearEtc1 | _]
@@ -174,7 +175,40 @@ flag(tests, ID, ID + 1),
   ->
     strip_atom([' ',','], YearEtc1, YearEtc2),
     atom_codes(YearEtc2, YearEtc3),
-    phrase(dbnl_index_year_etc(Graph, Title), YearEtc3)
+    phrase(
+      dbnl_index_year_etc(Year, Handwritten, Lang, Print, Changes),
+      YearEtc3
+    ),
+    % Assert: Year.
+    dbnl_assert_year(Graph, Title, Year),
+    % Assert: Handwritten.
+    if_then(
+      nonvar(Handwritten),
+      rdf_assert_datatype(
+        Title,
+        dbnl:handwritten,
+        boolean,
+        Handwritten,
+        Graph
+      )
+    ),
+    % Assert: Language.
+    if_then(
+      nonvar(Lang),
+      rdf_assert_literal(Title, dbnl:language, Lang, Graph)
+    ),
+    % Assert: Print.
+    if_then(
+      (
+        Print \== fail,
+        nonvar(Print)
+      ),
+      rdf_assert_datatype(Title, dbnl:print, int, Print, Graph)
+    ),
+    if_then(
+      nonvar(Changes),
+      rdf_assert_datatype(Title, dbnl:changed, boolean, Changes, Graph)
+    )
   ;
     Contents = []
   ).
@@ -183,52 +217,15 @@ dbnl_index_title(_Graph, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n', [Contents]).
 
-dbnl_index_year_etc(Graph, Title) -->
-{gtrace},
+dbnl_index_year_etc(Year, Handwritten, Lang, Print, Changes) -->
   % Parse: Year.
   dbnl_year(Lang, Year),
 
   % Parse: Handwritten.
-  blanks,
-  handwritten(Lang, Handwritten),
+  (blank, handwritten(Lang, Handwritten) ; ""),
 
   % Parse: Print & language.
-  blanks,
-  print_number(Lang, Print, Changes),
-
-  % Assert: Year.
-  {dbnl_assert_year(Graph, Title, Year)},
-
-  % Assert: Handwritten.
-  {if_then(
-    Handwritten,
-    rdf_assert_datatype(
-      Title,
-      dbnl:handwritten,
-      boolean,
-      Handwritten,
-      Graph
-    )
-  )},
-
-  % Assert: Language.
-  {if_then(
-    nonvar(Lang),
-    rdf_assert_literal(Title, dbnl:language, Lang, Graph)
-  )},
-
-  % Assert: Print.
-  {if_then(
-    (
-      Print \== fail,
-      nonvar(Print)
-    ),
-    rdf_assert_datatype(Title, dbnl:print, int, Print, Graph)
-  )},
-  {if_then(
-    nonvar(Changes),
-    rdf_assert_datatype(Title, dbnl:changed, boolean, Changes, Graph)
-  )}.
+  (blank, publication_print(Lang, Print, Changes) ; "").
 
 dbnl_titles(Graph):-
   forall(

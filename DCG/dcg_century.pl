@@ -17,6 +17,7 @@ DCGs for parsing/generating century information.
 */
 
 :- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_generic)).
 :- use_module(dcg(dcg_ordinal)).
 :- use_module(library(dcg/basics)).
 
@@ -26,7 +27,8 @@ DCGs for parsing/generating century information.
 % Parses a century as an integer.
 
 century(Lang, Century) -->
-  (century_adjective(Lang) ; ""),
+  (uncertainty(Lang), blank ; ""),
+  (century_adjective(Lang), blank ; ""),
   ordinal(Lang, Century),
   blank,
   century_noun(Lang).
@@ -42,10 +44,12 @@ century_interval(Lang, Interval) -->
   century_interval0(Lang, Interval).
 % A pair of centuries, pick the first year of the former century
 % and last year of the latter century to delimit the interval.
-century_interval(Lang, Year11-Year22) -->
-  century_interval0(Lang, Year11-_Year12),
+century_interval(Lang, Year1-Year2) -->
+  ordinal(Lang, Century1),
   century_separator,
-  century_interval0(Lang, _Year21-Year22).
+  century_interval0(Lang, Century2),
+  {Year1 is Century1 * 100},
+  {Year2 is Century2 * 100 + 99}.
 
 century_interval0(Lang, Year1-Year2) -->
   century(Lang, Century),

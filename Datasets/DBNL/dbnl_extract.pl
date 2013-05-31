@@ -14,11 +14,8 @@
 % DCG
     dbnl_year//2, % ?Language:atom
                   % -Year:oneof([integer,pair(integer)])
-    handwritten//2, % ?Language:atom
-                    % ?Handwritten:boolean
-    print_number//3 % ?Language:atom
-                    % ?Number:integer
-                    % ?Changed:boolean
+    handwritten//2 % ?Language:atom
+                   % ?Handwritten:boolean
   ]
 ).
 
@@ -78,42 +75,15 @@ dbnl_extract_page(Atom1, Page):-
 
 % DCG %
 
-commercial_edition(Lang) -->
-  opening_round_bracket,
-  commercial_edition(Lang),
-  closing_round_bracket.
-commercial_edition(nl) -->
-  atom(handelseditie).
-
-facsimile(_Lang) -->
-  [].
-facsimile(nl) -->
-  atom(facsimile),
-  blank.
-
-handwritten(nl, true) -->
-  atom('(handschrift)').
-handwritten(_Lang, fail) -->
-  [].
-
-skip -->
-  [].
-skip -->
-  comma,
-  skip.
-skip -->
-  blank,
-  skip.
+handwritten(nl, true) --> "(handschrift)".
 
 
 
 % YEARS %
 
-% Between round brackets.
 dbnl_year(Lang, Year) -->
-  opening_round_bracket,
-  dbnl_year(Lang, Year),
-  closing_round_bracket.
+  year(Lang, Year),
+  (blank, uncertainty(Lang) ; "").
 % Hacked year interval.
 dbnl_year(Lang, Year1-Year2) -->
   year_interval(Lang, Year1-Year2),
@@ -125,9 +95,6 @@ dbnl_year(Lang, Year1-Year2) -->
     {atom_length(Atom, 4)},
     uncertainty(Lang)
   ).
-% Plain year point.
-dbnl_year(Lang, Year) -->
-  year_point(Lang, Year).
 % Context-dependent indicator. Not resolved and asserted yet.
 dbnl_year(Lang, _Year) -->
   "z.j.",

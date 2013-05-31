@@ -1,7 +1,9 @@
 :- module(
   dcg_print,
   [
-    
+    publication_print//3 % ?Lang:atom
+                         % ?Number:integer
+                         % ?Changes:boolean
   ]
 ).
 
@@ -14,54 +16,149 @@ DCGs for the print of a publication.
 */
 
 :- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_generic)).
 :- use_module(dcg(dcg_ordinal)).
+:- use_module(dcg(dcg_year)).
 :- use_module(logic(boolean_logic)).
 :- use_module(library(dcg/basics)).
 
 
 
-% Can occur between spaces.
-print_number(Lang, Print, Changes) -->
+adj(Lang, Print, _B) -->
+  ordinal(Lang, Print).
+adj(Lang, _Print, B) -->
+  adj0(Lang, B).
+% Example: "naar het Latijn herziene".
+adj(Lang, Print, B) -->
+  pp(Lang, Print, B1),
+  blank,
+  adj0(Lang, B2),
+  {boolean_or(B1, B2, B)}.
+
+adj0(nl, true) --> "bewerkte".
+adj0(nl, true) --> "bijgewerkte".
+% @tbd This could be relevant to assert as well.
+adj0(nl, fail) --> "fotomechanische".
+adj0(nl, _) --> "geheel".
+% @tbd This is a relevant aspect that should be asserted!
+adj0(nl, fail) --> "goedkoope".
+% Abbreviation of 'gewijzigde'.
+adj0(nl, true) --> "gew.".
+adj0(nl, true) --> "gewijzigde".
+% Abbreviation of 'herziene'.
+adj0(nl, true) --> "herz.".
+adj0(nl, true) --> "herziene".
+adj0(nl, _) --> "ingrijpend".
+% Meaningless adjective.
+adj0(nl, fail) --> "nieuwe".
+% Abbreviation for 'omgewerkte'?
+adj0(nl, true) --> "omgew.".
+adj0(nl, true) --> "omgewerkte".
+adj0(nl, fail) --> "onveranderde".
+% Strange word.
+adj0(nl, fail) --> "veelveranderde".
+% Abbreviated version of 'verbeterde'.
+adj0(nl, true) --> "verb.".
+adj0(nl, true) --> "verbeterde".
+% Abbreviation for 'vermeerderde'.
+adj0(nl, fail) --> "verm.".
+adj0(nl, fail) --> "vermeerderde".
+% Probably a typo.
+adj0(nl, fail) --> "vermeerde".
+% Meaningless adjective.
+adj0(nl, fail) --> "volledige".
+
+adjs(_Lang, _Print, _Boolean) --> "".
+% Consecutive adjectives.
+adjs(Lang, Print, B) -->
+  adj(Lang, Print, B1), blank,
+  adjs(Lang, Print, B2),
+  {boolean_or(B1, B2, B)}.
+% Conjunction of adjectives.
+adjs(Lang, Print, B) -->
+  adj(Lang, Print, B1), blanks,
+  conj(Lang), blank,
+  adjs(Lang, Print, B2),
+  {boolean_or(B1, B2, B)}.
+
+commercial_edition(Lang) -->
   opening_round_bracket,
-  print_number(Lang, Print, Changes),
+  commercial_edition(Lang),
   closing_round_bracket.
-print_number(Lang, Print, Changes) -->
-  facsimile(Lang),
-  integer(Print),
-  ordinal(Lang, Ordinal),
-  skip,
-  print_changes(Lang, Changes).
-% Information for different volumes are given.
-% @tbd This information is now skipped.
-print_number(Lang, Print, Changes) -->
-  print_number_volumes(Lang, Print, Changes).
+commercial_edition(nl) --> "handelseditie".
+
+det(en) --> "the".
+det(nl) --> "het".
+
+facsimile(nl) --> "facsimile".
+
+n(de) --> "Auflage".
+n(nl) --> "druk".
+n(nl) --> "herdruk".
+n(nl) --> "uitgave".
+n(Lang) --> language(Lang).
+n(Lang) --> year(Lang, _Year).
+
+np(Lang, Print, B) -->
+  (det(Lang), blank ; ""),
+  adjs(Lang, Print, B1), blanks,
+  n(Lang),
+  (
+    blank, pp(Lang, Print, B2),
+    {boolean_or(B1, B2, B)}
+  ;
+    "",
+    {B = B1}
+  ).
+
+pp(Lang, Print, B) -->
+  pre(Lang), blank,
+  np(Lang, Print, B).
+
+pre(nl) --> "naar".
+pre(nl) --> "van".
+
+publication_print(Lang, Print, Changes) -->
+  s(Lang, Print, Changes).
+
+s(Lang, Print, Changes) -->
+  opening_round_bracket,
+  s(Lang, Print, Changes),
+  (uncertainty(Lang) ; ""),
+  (blank, commercial_edition(Lang) ; ""),
+  closing_round_bracket.
+s(Lang, Print, Changes) -->
+  (facsimile(Lang), blank ; ""),
+  np(Lang, Print, Changes).
+% Information for different volumes is sometimes given.
+% @tbd This information is currently skipped.
+s(Lang, Print, Changes) -->
+  volumes(Lang, Print, Changes).
 % No number-of-print, only a conjunction of adjectives.
-print_number(Lang, fail, Changes) -->
-  print_changes(Lang, Changes).
+s(Lang, Print, Changes) -->
+  np(Lang, Print, Changes).
 % No number-of-print informat occurs.
-print_number(_Lang, fail, fail) -->
-  [].
+s(_Lang, fail, fail) --> "".
 
-print_number_volume(Lang, Print, Changes) -->
-  part_word(Lang),
-  blank,
+volume(Lang, Print, Changes) -->
+  volume_noun(Lang), blank,
   integer(_Volume),
-  colon,
-  blank,
-  print_number(Lang, Print, Changes).
+  colon, blank,
+  s(Lang, Print, Changes).
 
-%! print_number_volumes(Lang, Print, Changes)//
+volume_noun(en) --> "volume".
+volume_noun(nl) --> "deel".
+
+%! volumes(Lang, Print, Changes)//
 % @tbd The print number and change boolean are only returned if
 %      they are the same for all volumes.
 
-print_number_volumes(Lang, Print, Changes) -->
-  print_number_volume(Lang, Print, Changes).
-print_number_volumes(Lang, Print, Changes) -->
-  print_number_volume(Lang, Print1, Changes1),
-  blank,
-  forward_slash,
-  blank,
-  print_number_volume(Lang, Print2, Changes2),
+volumes(Lang, Print, Changes) -->
+  volume(Lang, Print, Changes).
+volumes(Lang, Print, Changes) -->
+  volume(Lang, Print1, Changes1), blank,
+  forward_slash, blank,
+  volume(Lang, Print2, Changes2),
   {if_then_else(
     Print1 == Print2,
     Print = Print1,
@@ -72,116 +169,4 @@ print_number_volumes(Lang, Print, Changes) -->
     Changes = Changes1,
     Changes = _
   )}.
-
-% Indicators that a print contains changes w.r.t. a previous print.
-print_changes(Lang, Boolean) -->
-  print_changes_conj(Lang, Boolean),
-  blank,
-  print_word(Lang),
-  uncertainty(Lang).
-print_changes(Lang, Boolean) -->
-  print_changes_conj(Lang, Boolean),
-  blank,
-  print_word(Lang),
-  blank,
-  commercial_edition(Lang).
-print_changes(Lang, Boolean) -->
-  print_changes_conj(Lang, Boolean),
-  blank,
-  print_word(Lang),
-  blank,
-  atom(van),
-  blank,
-  print_word(Lang),
-  blank,
-  year(Lang, _Year).
-
-print_changes_adj(Lang, Boolean) -->
-  print_changes_adj0(Lang, Boolean).
-% Consecutive adjectives.
-print_changes_adj(Lang, Boolean) -->
-  print_changes_adj0(Lang, Boolean),
-  blank,
-  print_changes_adj(Lang, Boolean).
-% Language preposition.
-print_changes_adj(Lang, Boolean) -->
-  {Lang = nl},
-  atom('naar het'),
-  blank,
-  language(Lang),
-  blank,
-  print_changes_adj0(Lang, Boolean).
-
-print_changes_adj0(nl, true) -->
-  atom(bewerkte).
-print_changes_adj0(nl, true) -->
-  atom(bijgewerkte).
-% @tbd This could be relevant to assert as well.
-print_changes_adj0(nl, fail) -->
-  atom(fotomechanische).
-print_changes_adj0(nl, _) -->
-  atom(geheel).
-% @tbd This is a relevant aspect that should be asserted!
-print_changes_adj0(nl, fail) -->
-  atom(goedkoope).
-% Abbreviation of 'gewijzigde'.
-print_changes_adj0(nl, true) -->
-  atom('gew.').
-print_changes_adj0(nl, true) -->
-  atom(gewijzigde).
-% Abbreviation of 'herziene'.
-print_changes_adj0(nl, true) -->
-  atom('herz.').
-print_changes_adj0(nl, true) -->
-  atom(herziene).
-print_changes_adj0(nl, _) -->
-  atom(ingrijpend).
-% Meaningless adjective.
-print_changes_adj0(nl, fail) -->
-  atom(nieuwe).
-% Abbreviation for 'omgewerkte'?
-print_changes_adj0(nl, true) -->
-  atom('omgew.').
-print_changes_adj0(nl, true) -->
-  atom(omgewerkte).
-print_changes_adj0(nl, fail) -->
-  atom(onveranderde).
-% Strange word.
-print_changes_adj0(nl, fail) -->
-  atom(veelveranderde).
-% Abbreviated version of 'verbeterde'.
-print_changes_adj0(nl, true) -->
-  atom('verb.').
-print_changes_adj0(nl, true) -->
-  atom(verbeterde).
-% Abbreviation for 'vermeerderde'.
-print_changes_adj0(nl, fail) -->
-  atom('verm.').
-print_changes_adj0(nl, fail) -->
-  atom(vermeerderde).
-% Probably a typo.
-print_changes_adj0(nl, fail) -->
-  atom(vermeerde).
-% Meaningless adjective.
-print_changes_adj0(nl, fail) -->
-  atom(volledige).
-
-print_changes_conj(_Lang, _Boolean) -->
-  [].
-print_changes_conj(Lang, Boolean) -->
-  print_changes_adj(Lang, Boolean).
-print_changes_conj(Lang, Boolean) -->
-  print_changes_adj(Lang, Boolean1),
-  conjunct(Lang),
-  print_changes_conj(Lang, Boolean2),
-  {boolean_or(Boolean1, Boolean2, Boolean)}.
-
-print_word(de) -->
-  atom('Auflage').
-print_word(nl) -->
-  atom(druk).
-print_word(nl) -->
-  atom(herdruk).
-print_word(nl) -->
-  atom(uitgave).
 

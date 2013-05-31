@@ -25,11 +25,10 @@ DCGs for parsing/generating year information.
 
 
 
-after_word(en) --> "after".
-after_word(nl) --> "na".
-
-before_word(en) --> "before".
-before_word(nl) --> "voor".
+pre(en) --> "after".
+pre(en) --> "before".
+pre(nl) --> "na".
+pre(nl) --> "voor".
 
 question_marks(1) -->
   question_mark.
@@ -38,10 +37,18 @@ question_marks(N) -->
   question_marks(M),
   {N is M + 1}.
 
+% Between round brackets.
+year(Lang, Year) -->
+  opening_round_bracket,
+  year(Lang, Year),
+  closing_round_bracket.
 year(Lang, Year) -->
   year_point(Lang, Year).
 year(Lang, Interval) -->
   year_interval(Lang, Interval).
+year(Lang, Year) -->
+  pre(Lang), blank,
+  year(Lang, Year).
 
 %! year_interval(?Lang:atom, ?Interval:pair(integer))//
 % A year interval, i.e. an interval delimited by a first and a last year.
@@ -54,6 +61,14 @@ year_interval(Lang, Year1-Year2) -->
   year_point(Lang, Year1),
   year_separator,
   year_point(Lang, Year2).
+year_interval(Lang, Year11-Year2) -->
+  year_uncertainty(Year11-_Year12),
+  year_separator,
+  year_point(Lang, Year2).
+year_interval(Lang, Year1-Year22) -->
+  year_point(Lang, Year1),
+  year_separator,
+  year_uncertainty(_Year21-Year22).
 year_interval(Lang, Interval) -->
   century_interval(Lang, Interval).
 year_interval(_Lang, Interval) -->
@@ -61,8 +76,8 @@ year_interval(_Lang, Interval) -->
 % Example: 'tussen 1608 en 1618' means '1608-1618'.
 year_interval(Lang, Year1-Year2) -->
   year_interval_preposition(Lang),
-  year_point(Lang, Year1),
-  conjunct(Lang),
+  year_point(Lang, Year1), blanks,
+  conj(Lang),
   year_point(Lang, Year2).
 % Example: 'tussen 1530/1545' means '1530-1545'.
 year_interval(Lang, Interval) -->
@@ -81,15 +96,12 @@ year_point(Lang, Year) -->
   year_separator,
   uncertainty(Lang).
 year_point(Lang, Year) -->
-  after_word(Lang),
-  year_point(Lang, Year).
-year_point(Lang, Year) -->
-  before_word(Lang),
-  year_point(Lang, Year).
-year_point(Lang, Year) -->
   uncertainty(Lang),
   blanks,
   year_point(Lang, Year).
+year_point(_Lang, Year) -->
+  integer(Year),
+  year_separator.
 
 year_separator -->
   blank,
