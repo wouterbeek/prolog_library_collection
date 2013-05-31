@@ -38,16 +38,19 @@ century_adjective(nl) --> "eind".
 % Parses a century as an interval delimited by years.
 
 % A single century, pick the first and last year to delimit the interval.
-century_interval(Lang, Year1-Year2) -->
-  century(Lang, Century),
-  {Year1 is Century * 100},
-  {Year2 is Year1 + 99}.
+century_interval(Lang, Interval) -->
+  century_interval0(Lang, Interval).
 % A pair of centuries, pick the first year of the former century
 % and last year of the latter century to delimit the interval.
 century_interval(Lang, Year11-Year22) -->
-  century_interval(Lang, Year11-_Year12),
+  century_interval0(Lang, Year11-_Year12),
   century_separator,
-  century_interval(Lang, _Year21-Year22).
+  century_interval0(Lang, _Year21-Year22).
+
+century_interval0(Lang, Year1-Year2) -->
+  century(Lang, Century),
+  {Year1 is Century * 100},
+  {Year2 is Year1 + 99}.
 
 century_noun(nl) --> "eeuw".
 

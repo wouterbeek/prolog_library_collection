@@ -173,7 +173,8 @@ flag(tests, ID, ID + 1),
     )
   ->
     strip_atom([' ',','], YearEtc1, YearEtc2),
-    dbnl_index_year_etc(Graph, Title, YearEtc2)
+    atom_codes(YearEtc2, YearEtc3),
+    phrase(dbnl_index_year_etc(Graph, Title), YearEtc3)
   ;
     Contents = []
   ).
@@ -182,27 +183,24 @@ dbnl_index_title(_Graph, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n', [Contents]).
 
-dbnl_index_year_etc(Graph, Title, Atom):-
+dbnl_index_year_etc(Graph, Title) -->
+{gtrace},
   % Parse: Year.
-  atom_codes(Atom, C1),
-  dbnl_year(Lang, Year, C1, C2),
+  dbnl_year(Lang, Year),
 
   % Parse: Handwritten.
-  blanks(C2, C3),
-  handwritten(Lang, Handwritten, C3, C4),
+  blanks,
+  handwritten(Lang, Handwritten),
 
   % Parse: Print & language.
-  blanks(C4, C5),
-  print_number(Lang, Print, Changes, C5, []),
-
-  % End of parsing.
-  !,
+  blanks,
+  print_number(Lang, Print, Changes),
 
   % Assert: Year.
-  dbnl_assert_year(Graph, Title, Year),
+  {dbnl_assert_year(Graph, Title, Year)},
 
   % Assert: Handwritten.
-  if_then(
+  {if_then(
     Handwritten,
     rdf_assert_datatype(
       Title,
@@ -211,26 +209,26 @@ dbnl_index_year_etc(Graph, Title, Atom):-
       Handwritten,
       Graph
     )
-  ),
-  
+  )},
+
   % Assert: Language.
-  if_then(
+  {if_then(
     nonvar(Lang),
     rdf_assert_literal(Title, dbnl:language, Lang, Graph)
-  ),
-  
+  )},
+
   % Assert: Print.
-  if_then(
+  {if_then(
     (
       Print \== fail,
       nonvar(Print)
     ),
     rdf_assert_datatype(Title, dbnl:print, int, Print, Graph)
-  ),
-  if_then(
+  )},
+  {if_then(
     nonvar(Changes),
     rdf_assert_datatype(Title, dbnl:changed, boolean, Changes, Graph)
-  ).
+  )}.
 
 dbnl_titles(Graph):-
   forall(

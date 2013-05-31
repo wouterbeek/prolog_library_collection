@@ -3,9 +3,10 @@
   [
     year//2, % ?Lang:atom
              % ?Year:oneof([integer,pair(integer)])
-    year_interval//2, % ?Lang:atom
-                      % ?Interval:pair(integer)
-    year_uncertainty//1 % ?Interval:pair(integer)
+    year_point//2, % ?Lang:atom
+                   % ?Year:integer
+    year_interval//2 % ?Lang:atom
+                     % ?Interval:pair(integer)
   ]
 ).
 
@@ -49,10 +50,10 @@ year(Lang, Interval) -->
 % For example =|1917-19??|= means =|1917-1999|=,
 % whereas =|19??-1917|= means =|1900-1917|=.
 
-year_interval(_Lang, Year1-Year2) -->
-  year_min(Lang, Year1),
+year_interval(Lang, Year1-Year2) -->
+  year_point(Lang, Year1),
   year_separator,
-  year_max(Lang, Year2).
+  year_point(Lang, Year2).
 year_interval(Lang, Interval) -->
   century_interval(Lang, Interval).
 year_interval(_Lang, Interval) -->
@@ -60,9 +61,9 @@ year_interval(_Lang, Interval) -->
 % Example: 'tussen 1608 en 1618' means '1608-1618'.
 year_interval(Lang, Year1-Year2) -->
   year_interval_preposition(Lang),
-  year_min(Lang, Year1),
+  year_point(Lang, Year1),
   conjunct(Lang),
-  year_max(Lang, Year2).
+  year_point(Lang, Year2).
 % Example: 'tussen 1530/1545' means '1530-1545'.
 year_interval(Lang, Interval) -->
   year_interval_preposition(Lang),
@@ -71,27 +72,23 @@ year_interval(Lang, Interval) -->
 year_interval_preposition(en) --> "between".
 year_interval_preposition(nl) --> "tussen".
 
-year_max(Lang, Year) --> year(Lang, Year).
-year_max(_Lang, Year2) --> year_uncertainty(_Year1-Year2).
-year_max(Lang, Year2) --> year_interval(Lang, _Year1-Year2).
-
-year_min(Lang, Year) --> year(Lang, Year).
-year_min(_Lang, Year1) --> year_uncertainty(Year1-_Year2).
-year_min(Lang, Year1) --> year_interval(Lang, Year1-_Year2).
-
 year_point(_Lang, Year) -->
   integer(Year).
 % Uncertainty w.r.t. the end of an interval.
 % Open interval interpreted as a single year.
 year_point(Lang, Year) -->
-  year(Lang, Year),
+  integer(Year),
   year_separator,
   uncertainty(Lang).
 year_point(Lang, Year) -->
-  after(Lang),
+  after_word(Lang),
   year_point(Lang, Year).
 year_point(Lang, Year) -->
-  before(Lang),
+  before_word(Lang),
+  year_point(Lang, Year).
+year_point(Lang, Year) -->
+  uncertainty(Lang),
+  blanks,
   year_point(Lang, Year).
 
 year_separator -->

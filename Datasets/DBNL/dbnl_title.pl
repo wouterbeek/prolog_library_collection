@@ -63,6 +63,7 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(dbnl(dbnl_secondary)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(standards(xpath_ext)).
@@ -194,7 +195,7 @@ dbnl_title0(
   !,
   % A year may occur after the title.
   atom_codes(Atom, Codes),
-  title_year(Title, Year, Codes, []),
+  phrase(title_year(Title, Year), Codes),
   dbnl_assert_year(Graph, Title, Year),
 
   % Just checking...
@@ -250,4 +251,9 @@ dbnl_title0(Graph, Title, [Atom | Contents]):-
 dbnl_title0(_Graph, Title, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n~w\n', [Title, Contents]).
+
+title_year(Title2, Year) -->
+  string(Title1),
+  dbnl_year(_Lang, Year),
+  {atom_codes(Title2, Title1)}.
 

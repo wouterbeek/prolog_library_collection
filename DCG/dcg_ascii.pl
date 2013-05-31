@@ -53,7 +53,6 @@
     end_of_text//0,
     end_of_transmission//0,
     end_of_transmission_block//0,
-    end_of_word//0,
     equals_sign//0,
     escape//0,
     exclamation_mark//0,
@@ -340,10 +339,6 @@ end_of_text --> [3].
 end_of_transmission --> [4].
 
 end_of_transmission_block --> [23].
-
-end_of_word --> end_of_line.
-end_of_word --> punctuation.
-end_of_word --> white.
 
 equals_sign --> [61].
 

@@ -3,7 +3,6 @@
   [
     conjunct//1, % ?Lang:atom
     language//1, % ?Lang:atom
-    number_counter//1, % ?Lang:atom
     part_word//1, % ?Lang:atom
     uncertainty//1 % ?Lang:atom
   ]
@@ -35,13 +34,6 @@ conjunct(_Lang) -->
 
 language(nl) -->
   atom('Latijn').
-
-number_counter(de) -->
-  dot.
-number_counter(nl) -->
-  atom(de).
-number_counter(nl) -->
-  atom(ste).
 
 part_word(nl) -->
   atom(deel).

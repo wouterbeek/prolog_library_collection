@@ -2,7 +2,7 @@
   dcg_ordinal,
   [
     ordinal//2 % ?Lang:atom
-               % ?Century:integer
+               % ?Ordinal:integer
   ]
 ).
 
@@ -19,11 +19,11 @@ DCGs for ordinal numbers.
 
 
 
-%! ordinal(?Lang:atom, ?Century:integer)//
+%! ordinal(?Lang:atom, ?Ordinal:integer)//
 % @tbd Exclude certain combinations: 1de, 2ste,
 
-ordinal(Lang, Century) -->
-  integer(Century),
+ordinal(Lang, Ordinal) -->
+  integer(Ordinal),
   ordinal_noun(Lang).
 
 ordinal_noun(de) --> dot.
