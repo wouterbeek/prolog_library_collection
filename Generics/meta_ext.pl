@@ -18,6 +18,8 @@
               % +Default
     unless/2, % :Unless
               % :Do
+    xor/2, % :X
+           % :Y
 
 % DETERMINISM
     call_semidet/1, % :Goal
@@ -128,6 +130,7 @@ Extensions to the SWI-Prolog meta predicates.
 :- meta_predicate(setoff_alt(+,0,-)).
 :- meta_predicate(unless(0,0)).
 :- meta_predicate(user_interaction(+,:,+,+)).
+:- meta_predicate(xor(0,0)).
 
 :- dynamic(memo_/1).
 :- dynamic(tmp/1).
@@ -196,6 +199,13 @@ unless(Unless, Do):-
   ;
     call(Do)
   ).
+
+xor(X, _Y):-
+  call(X),
+  !.
+xor(_X, Y):-
+  call(Y),
+  !.
 
 
 

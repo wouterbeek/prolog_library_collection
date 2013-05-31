@@ -10,6 +10,8 @@
     ampersand/3,
     any/3,
     apostrophe/3,
+    ascii_decimal_digit/3,
+    ascii_digit/3,
     asterisk/3,
     at_sign/3,
     b/3,
@@ -45,8 +47,6 @@
     device_control_2/3,
     device_control_3/3,
     device_control_4/3,
-    decimal_digit/3,
-    digit/3,
     dollar_sign/3,
     dot/3,
     double_quote/3,
@@ -218,7 +218,7 @@ acknowledgement(O1, R1-R0, C1-C0):-
 alphanumeric(O1, R1-R0, C1-C0):-
   letter(O1, R1-R0, C1-C0).
 alphanumeric(O1, R1-R0, C1-C0):-
-  digit(O1, R1-R0, C1-C0).
+  ascii_digit(O1, R1-R0, C1-C0).
 
 ampersand(_O1, [38 | R0]-R0, [38 | C0]-C0).
 
@@ -244,6 +244,20 @@ apostrophe(O1, [38, 97, 112, 111, 115, 59 | R0]-R0, [39 | C0]-C0):-
   option(lang(xml), O1),
   !.
 apostrophe(_O1, [39 | R0]-R0, [39 | C0]-C0).
+
+ascii_decimal_digit(O1, R1-R0, C1-C0):-
+  octal_digit(O1, R1-R0, C1-C0).
+ascii_decimal_digit(O1, R1-R0, C1-C0):-
+  eight(O1, R1-R0, C1-C0).
+ascii_decimal_digit(O1, R1-R0, C1-C0):-
+  nine(O1, R1-R0, C1-C0).
+
+ascii_digit(O1, R1-R0, C1-C0):-
+  ascii_decimal_digit(O1, R1-R0, C1-C0).
+ascii_digit(O1, R1-R0, C1-C0):-
+  hexadecimal_digit(O1, R1-R0, C1-C0).
+ascii_digit(O1, R1-R0, C1-C0):-
+  octal_digit(O1, R1-R0, C1-C0).
 
 asterisk(_O1, [42 | R0]-R0, [42 | C0]-C0).
 
@@ -413,20 +427,6 @@ device_control_3(_O1, [19 | R0]-R0, [19 | C0]-C0).
 
 device_control_4(_O1, [20 | R0]-R0, [20 | C0]-C0).
 
-decimal_digit(O1, R1-R0, C1-C0):-
-  octal_digit(O1, R1-R0, C1-C0).
-decimal_digit(O1, R1-R0, C1-C0):-
-  eight(O1, R1-R0, C1-C0).
-decimal_digit(O1, R1-R0, C1-C0):-
-  nine(O1, R1-R0, C1-C0).
-
-digit(O1, R1-R0, C1-C0):-
-  decimal_digit(O1, R1-R0, C1-C0).
-digit(O1, R1-R0, C1-C0):-
-  hexadecimal_digit(O1, R1-R0, C1-C0).
-digit(O1, R1-R0, C1-C0):-
-  octal_digit(O1, R1-R0, C1-C0).
-
 dollar_sign(_O1, [36 | R0]-R0, [36 | C0]-C0).
 
 dot(_O1, [46 | R0]-R0, [46 | C0]-C0).
@@ -532,7 +532,7 @@ h_lowercase(_O1, [104 | R0]-R0, [104 | C0]-C0).
 h_uppercase(_O1, [72 | R0]-R0, [72 | C0]-C0).
 
 hexadecimal_digit(O1, R1-R0, C1-C0):-
-  decimal_digit(O1, R1-R0, C1-C0).
+  ascii_decimal_digit(O1, R1-R0, C1-C0).
 hexadecimal_digit(O1, R1-R0, C1-C0):-
   a(O1, R1-R0, C1-C0).
 hexadecimal_digit(O1, R1-R0, C1-C0):-

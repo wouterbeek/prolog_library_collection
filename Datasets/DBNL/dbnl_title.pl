@@ -93,7 +93,7 @@ dbnl_title(Graph, Title):-
 
 dbnl_title(Graph, Title, URI):-
   dbnl_uri_to_html(URI, DOM),
-  
+
   % Process contents.
   dbnl_dom_center(DOM, Content),
   xpath2(Content, div(content), Contents),
@@ -189,15 +189,16 @@ dbnl_title0(
 dbnl_title0(
   Graph,
   Title,
-  [element(span, [class='titelpagina-titel'], Content) | Contents]
+  [element(span, [class='titelpagina-titel'], [Atom]) | Contents]
 ):-
   !,
-  Content = [TitleName1],
   % A year may occur after the title.
-  dbnl_extract_year_end(TitleName1, Year, TitleName2),
-  dbnl_assert_year(Title, Year, Graph),
+  atom_codes(Atom, Codes),
+  title_year(Title, Year, Codes, []),
+  dbnl_assert_year(Graph, Title, Year),
+
   % Just checking...
-  (rdfs_label(Title, TitleName2) -> true ; gtrace),
+  (rdfs_label(Title, Title) -> true ; gtrace),
   dbnl_title0(Graph, Title, Contents).
 % Assert the pimary text links.
 dbnl_title0(

@@ -135,7 +135,7 @@ dbnl_text_left(
   [AuthorAtom, element(a, Attributes, [AuthorName]) | T]
 ):-
   atom(AuthorAtom),
-  strip([' ',':'], AuthorAtom, 'auteur'),
+  strip_atom([' ',':'], AuthorAtom, 'auteur'),
   !,
   memberchk(href=RelativeURI, Attributes),
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
@@ -160,7 +160,7 @@ dbnl_text_left(
   [IllustratorAtom, element(a, Attributes, [IllustratorName]) | T]
 ):-
   atom(IllustratorAtom),
-  strip([' ',':'], IllustratorAtom, 'illustrator'),
+  strip_atom([' ',':'], IllustratorAtom, 'illustrator'),
   !,
   memberchk(href=RelativeURI, Attributes),
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
@@ -176,7 +176,7 @@ dbnl_text_left(
   atom(H1),
   atom_concat('bron:', AuthorName2, AuthorName1),
   !,
-  strip([' ',','], AuthorName2, AuthorName3),
+  strip_atom([' ',','], AuthorName2, AuthorName3),
 
   % Just checking... author name.
   (
@@ -193,7 +193,7 @@ dbnl_text_left(
   ;
     gtrace %DEB
   ),
-  strip([' ','.'], H1, H2),
+  strip_atom([' ','.'], H1, H2),
   dbnl_text_left(Graph, Text, [H2 | T]).
 % Journal year.
 dbnl_text_left(Graph, Text, [H1 | T]):-
@@ -211,7 +211,7 @@ dbnl_text_left(Graph, Text, [H1 | T]):-
 % Illustrations source.
 dbnl_text_left(Graph, Text, [H1 | T]):-
   atom(H1),
-  strip([' ','.'], H1, H2),
+  strip_atom([' ','.'], H1, H2),
   atom_concat('Met illustraties van ', H3, H2),
   !,
   rdf_assert_literal(Text, dbnl:illustrations_source, H3, Graph),
@@ -221,7 +221,7 @@ dbnl_text_left(Graph, Text, [H1 | T]):-
   atom(H1),
   split_atom_exclusive(',', H1, [Publisher1, PlaceYear]),
   !,
-  strip([' '], Publisher1, Publisher2),
+  strip_atom([' '], Publisher1, Publisher2),
   rdf_assert_literal(Text, dbnl:publisher, Publisher2, Graph),
 
   % Publication place with or without a year at the end.
@@ -234,7 +234,7 @@ dbnl_text_left(Graph, Text, [H1 | T]):-
   ;
     Place1 = PlaceYear
   ),
-  strip([' '], Place1, Place2),
+  strip_atom([' '], Place1, Place2),
   rdf_assert_literal(Text, dbnl:publisher_place, Place2, Graph),
 
   dbnl_text_left(Graph, Text, T).

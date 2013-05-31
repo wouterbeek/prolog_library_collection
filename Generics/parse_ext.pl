@@ -198,7 +198,7 @@ exponent(O1, R1-R0, C1-C0):-
   merge_options([q(1)], O1, O2),
   parse_re(O2, exponent_sign, R1-R2, C1-C2),
   merge_options([q('+')], O1, O3),
-  parse_re(O3, digit, R2-R0, C2-C0).
+  parse_re(O3, ascii_digit, R2-R0, C2-C0).
 
 integer(Integer, C1-C0):-
   nonvar(Integer),

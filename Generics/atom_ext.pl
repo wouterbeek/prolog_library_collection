@@ -42,15 +42,12 @@
     split_atom_length/3, % +Atom:atom
                          % +Length:integer
                          % -Splits:list(atom)
-    split_codes/3, % +Codes:list(integer)
-                   % +Split:list(integer)
-                   % -Results:list(list(integer))
     split_length/3, % +Codes:list(integer)
                     % +Length:integer
                     % -Results:list(list(integer))
-    strip/3, % +RemovableChars:oneof([char,list(char)])
-             % +Unstripped:oneof([atom,list(char)])
-             % -Stripped:oneof([atom,list(char)])
+    strip_atom/3, % +RemovableChars:oneof([char,list(char)])
+                  % +Unstripped:oneof([atom,list(char)])
+                  % -Stripped:oneof([atom,list(char)])
     strip_begin/3, % +RemovableChars:oneof([char,list(char)])
                    % +Unstripped:oneof([atom,list(char)])
                    % -Stripped:oneof([atom,list(char)])
@@ -78,6 +75,7 @@ scheme.
 @version 2011/08-2013/05
 */
 
+:- use_module(generics(codes_ext)).
 :- use_module(generics(list_ext)).
 :- use_module(math(math_ext)).
 
@@ -335,17 +333,6 @@ split_atom_length(Atom, Length, Splits):-
     Splits
   ).
 
-split_codes(Codes, Split, Results):-
-  \+ is_list(Split),
-  !,
-  split_codes(Codes, [Split], Results).
-split_codes(Codes, Split, [Result | Results]):-
-  append(Result, Temp, Codes),
-  append(Split, NewCodes, Temp),
-  !,
-  split_codes(NewCodes, Split, Results).
-split_codes(Result, _Split, [Result]).
-
 %! split_length(
 %!   +Codes:list(integer),
 %!   +Length:integer,
@@ -361,21 +348,21 @@ split_length(Codes, Length, [SubCodes | Results]):-
   append(SubCodes, Rest, Codes),
   split_length(Rest, Length, Results).
 
-%! strip(+RemovableChar:char, +Unstripped:atom, -Stripped:atom) is det.
+%! strip_atom(+RemovableChar:char, +Unstripped:atom, -Stripped:atom) is det.
 % Strips the given atom's front and back for the given character.
 
-strip(RemovableChar, Unstripped, Stripped):-
+strip_atom(RemovableChar, Unstripped, Stripped):-
   atom(RemovableChar),
   !,
-  strip([RemovableChar], Unstripped, Stripped).
-strip(RemovableChars, Unstripped, Stripped):-
+  strip_atom([RemovableChar], Unstripped, Stripped).
+strip_atom(RemovableChars, Unstripped, Stripped):-
   is_list(RemovableChars),
   atom(Unstripped),
   !,
   atom_chars(Unstripped, UnstrippedChars),
-  strip(RemovableChars, UnstrippedChars, StrippedChars),
+  strip_atom(RemovableChars, UnstrippedChars, StrippedChars),
   atom_chars(Stripped, StrippedChars).
-strip(RemovableChars, UnstrippedChars1, StrippedChars):-
+strip_atom(RemovableChars, UnstrippedChars1, StrippedChars):-
   is_list(RemovableChars),
   is_list(UnstrippedChars1),
   !,

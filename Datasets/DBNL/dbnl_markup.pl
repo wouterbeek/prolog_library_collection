@@ -280,7 +280,7 @@ dbnl_markup(
 ):-
   !,
   memberchk(href=NoteIndex1, Attributes),
-  strip([' ','#'], NoteIndex1, NoteIndex2),
+  strip_atom([' ','#'], NoteIndex1, NoteIndex2),
   option(notes(Notes), Options),
   memberchk(NoteIndex2-Note1, Notes),
   dbnl_markup(Options, Note1, Note2),
@@ -296,7 +296,7 @@ dbnl_markup(
   (
     % 1. Skip paragraphs with no content.
     P_Contents1 = [Atom],
-    (strip([' '], Atom, '') ; Atom == '\240\')
+    (strip_atom([' '], Atom, '') ; Atom == '\240\')
   ->
     dbnl_markup(Options, Contents1, Contents3)
   ;

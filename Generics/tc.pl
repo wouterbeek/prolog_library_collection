@@ -14,7 +14,7 @@
 :- use_module(generics(atom_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(meta_ext)).
-:- use_module(standards(ascii)).
+%:- use_module(standards(ascii)).
 
 :- dynamic(doc(_Doc)).
 :- dynamic(word0(_Word, _Sum, _Docs)).

@@ -18,6 +18,7 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
@@ -122,7 +123,6 @@ dbnl_scrape(Category, Order):-
 
 dbnl_index(Graph, DOM):-
   dbnl_dom_center(DOM, Text),
-gtrace,
   forall(
     (
       (
@@ -135,25 +135,20 @@ gtrace,
     dbnl_index_title(Graph, Contents)
   ).
 
-dbnl_index_author(Graph, Title, Author1):-
-  strip([' ',','], Author1, Author2),
-  rdf_assert_literal(Title, dbnl:author, Author2, Graph).
-
 %! dbnl_index_title(+Graph:atom, +Contents:dom) is det.
 
+% Some title have no author.
+dbnl_index_title(Graph, [element(a, Attributes, [TitleName]) | Contents]):-
+  !,
+  dbnl_index_title(Graph, [anoniem, element(a, Attributes, [TitleName]) | Contents]).
 % Create a new title.
 dbnl_index_title(
   Graph,
-  [Author, element(a, Attributes, [TitleName]) | Contents]
+  [Author1, element(a, Attributes, [TitleName]) | Contents]
 ):-
+flag(tests, ID, ID + 1),
+(ID >= 5000 -> gtrace ; true),
   memberchk(href=RelativeURI, Attributes),
-  
-  % Skip the note on scans, if it is present.
-  once((
-    Contents = [element(i,[],['(alleen scans beschikbaar)']), YearEtc | _]
-  ;
-    Contents = [YearEtc | _]
-  )),
 
   % Create the title resource.
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
@@ -162,30 +157,84 @@ dbnl_index_title(
   rdfs_assert_label(Title, TitleName, Graph),
 
   % Author.
-  dbnl_index_author(Graph, Title, Author),
-  
-  % Year
-  atom_codes(YearEtc, C1),
-  year(PointOrInterval, C1, C2),
-  (
-    PointOrInterval == Point1-Point2
-  ->
-    rdf_assert_datatype(Title, dbnl:start_year, gYear, Point1, Graph),
-    rdf_assert_datatype(Title, dbnl:end_year, gYear, Point2, Graph)
-  ;
-    rdf_assert_datatype(Title, dbnl:year, gYear, PointOrInterval, Graph)
+  strip_atom([' ',','], Author1, Author2),
+  split_atom_exclusive(' en ', Author2, Authors),
+  forall(
+    member(Author, Authors),
+    rdf_assert_literal(Title, dbnl:author, Author, Graph)
   ),
 
-  % Handwritten.
-  handwritten(Handwritten, C2, C3),
-  rdf_assert_datatype(Title, dbnl:handwritten, boolean, Handwritten, Graph),
+  % Skip the note on scans, if it is present.
+  (
+    (
+      Contents = [element(i,[],['(alleen scans beschikbaar)']), YearEtc1 | _]
+    ;
+      Contents = [YearEtc1 | _]
+    )
+  ->
+    strip_atom([' ',','], YearEtc1, YearEtc2),
+    dbnl_index_year_etc(Graph, Title, YearEtc2)
+  ;
+    Contents = []
+  ).
+% Debug
+dbnl_index_title(_Graph, Contents):-
+  gtrace, %DEB
+  format(user_output, '~w\n', [Contents]).
 
-  % Print
-  print(Print, C3, _C4),
-  rdf_assert_datatype(Title, dbnl:print, int, Print, Graph).
+dbnl_index_year_etc(Graph, Title, Atom):-
+  % Parse: Year.
+  atom_codes(Atom, C1),
+  dbnl_year(Lang, Year, C1, C2),
+
+  % Parse: Handwritten.
+  blanks(C2, C3),
+  handwritten(Lang, Handwritten, C3, C4),
+
+  % Parse: Print & language.
+  blanks(C4, C5),
+  print_number(Lang, Print, Changes, C5, []),
+
+  % End of parsing.
+  !,
+
+  % Assert: Year.
+  dbnl_assert_year(Graph, Title, Year),
+
+  % Assert: Handwritten.
+  if_then(
+    Handwritten,
+    rdf_assert_datatype(
+      Title,
+      dbnl:handwritten,
+      boolean,
+      Handwritten,
+      Graph
+    )
+  ),
+  
+  % Assert: Language.
+  if_then(
+    nonvar(Lang),
+    rdf_assert_literal(Title, dbnl:language, Lang, Graph)
+  ),
+  
+  % Assert: Print.
+  if_then(
+    (
+      Print \== fail,
+      nonvar(Print)
+    ),
+    rdf_assert_datatype(Title, dbnl:print, int, Print, Graph)
+  ),
+  if_then(
+    nonvar(Changes),
+    rdf_assert_datatype(Title, dbnl:changed, boolean, Changes, Graph)
+  ).
 
 dbnl_titles(Graph):-
   forall(
     rdfs_individual_of(Title, dbnl:'Title'),
     dbnl_title(Graph, Title)
   ).
+

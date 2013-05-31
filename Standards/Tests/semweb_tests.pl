@@ -152,7 +152,7 @@ run_test(Test):-
   % If available, print the description to the screen.
   (
     rdf_literal(Test, test:description, Description1, _Graph),
-    strip([' ','\n','\t'], Description1, Description2)
+    strip_atom([' ','\n','\t'], Description1, Description2)
   ->
     format(user_output, 'Test description: ~w\n', [Description2])
   ;

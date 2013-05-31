@@ -42,9 +42,9 @@
     dbnl_assert_volume_collection/3, % +Graph:atom
                                      % +URI:uri
                                      % -VolumeCollection:uri
-    dbnl_assert_year/3 % +Resource:uri
+    dbnl_assert_year/3 % +Graph:atom
+                       % +Resource:uri
                        % ?Year:oneof(integer,pair(integer))
-                       % +Graph:atom
   ]
 ).
 
@@ -174,7 +174,7 @@ dbnl_assert_organization(Graph, OrganizationName, Organization):-
 dbnl_assert_subgenre(Graph, SubgenreString, Subgenre):-
   split_atom_exclusive('/', SubgenreString, TempGenreNames),
   !,
-  maplist(strip([' ']), TempGenreNames, GenreNames),
+  maplist(strip_atom([' ']), TempGenreNames, GenreNames),
   maplist(dbnl_assert_genre(Graph), GenreNames, Genres),
   dbnl_assert_subgenre_hierarchy(Graph, Genres),
   last(Genres, Subgenre).
@@ -243,13 +243,13 @@ dbnl_assert_volume_collection(Graph, URI, VolumeCollection):-
   rdfs_assert_individual(VolumeCollection, dbnl:'VolumeCollection', Graph),
   rdf_assert(VolumeCollection, dbnl:original_page, URI, Graph).
 
-dbnl_assert_year(_Resource, Year, _Graph):-
+dbnl_assert_year(_Graph, _Resource, Year):-
   var(Year),
   !.
-dbnl_assert_year(Resource, Year1-Year2, Graph):-
+dbnl_assert_year(Graph, Resource, Year1-Year2):-
   !,
   rdf_assert_datatype(Resource, dbnl:begin_year, gYear, Year1, Graph),
   rdf_assert_datatype(Resource, dbnl:end_year, gYear, Year2, Graph).
-dbnl_assert_year(Resource, Year, Graph):-
+dbnl_assert_year(Graph, Resource, Year):-
   rdf_assert_datatype(Resource, dbnl:year, gYear, Year, Graph).
 

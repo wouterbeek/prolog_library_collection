@@ -228,7 +228,7 @@ rdf_strip_string(Subject, Predicate, Graph):-
     [Subject, Predicate, UnstrippedString, Graph],
     (
       rdf_datatype(Subject, Predicate, string, UnstrippedString, Graph),
-      strip([' '], UnstrippedString, StrippedString),
+      strip_atom([' '], UnstrippedString, StrippedString),
       UnstrippedString \= StrippedString
     ),
     Tuples

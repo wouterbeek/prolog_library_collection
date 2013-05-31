@@ -162,6 +162,8 @@ xmls_datatype0(boolean, 0, xsd:boolean, false).
 xmls_datatype0(boolean, 1, xsd:boolean, true).
 xmls_datatype0(boolean, false, xsd:boolean, false).
 xmls_datatype0(boolean, true, xsd:boolean, true).
+% Prolog mnemonic for false.
+xmls_datatype0(boolean, fail, xsd:boolean, false).
 % Date
 xmls_datatype0(date, Date, xsd:date, Atom):-
   (
