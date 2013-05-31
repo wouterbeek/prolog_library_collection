@@ -29,6 +29,7 @@ pre(en) --> "after".
 pre(en) --> "before".
 pre(nl) --> "na".
 pre(nl) --> "voor".
+pre(nl) --> "vóór".
 
 question_marks(1) -->
   question_mark.
@@ -37,11 +38,14 @@ question_marks(N) -->
   question_marks(M),
   {N is M + 1}.
 
+xs(1) --> x.
+xs(N) --> x, xs(M), {N is M + 1}.
+
 % Between round brackets.
 year(Lang, Year) -->
-  opening_round_bracket,
+  opening_bracket,
   year(Lang, Year),
-  closing_round_bracket.
+  closing_bracket.
 year(Lang, Year) -->
   year_point(Lang, Year).
 year(Lang, Interval) -->
@@ -75,14 +79,18 @@ year_interval(_Lang, Interval) -->
   year_uncertainty(Interval).
 % Example: 'tussen 1608 en 1618' means '1608-1618'.
 year_interval(Lang, Year1-Year2) -->
-  year_interval_preposition(Lang),
+  year_interval_preposition(Lang), blank,
   year_point(Lang, Year1), blanks,
-  conj(Lang),
+  conj(Lang), blank,
   year_point(Lang, Year2).
 % Example: 'tussen 1530/1545' means '1530-1545'.
 year_interval(Lang, Interval) -->
-  year_interval_preposition(Lang),
+  year_interval_preposition(Lang), blanks,
   year_interval(Lang, Interval).
+year_interval(Lang, Year1-Year2) -->
+  year_point(Lang, Year1), blank,
+  disj(Lang), blank,
+  year_point(Lang, Year2).
 
 year_interval_preposition(en) --> "between".
 year_interval_preposition(nl) --> "tussen".
@@ -115,7 +123,7 @@ year_separator --> hyphen_minus.
 year_uncertainty(Year1-Year2) -->
   digits(Ds),
   {Ds \== []},
-  question_marks(N),
+  (question_marks(N) ; xs(N)),
   {number_codes(X, Ds)},
   {Multiplier is 10**N},
   {Year1 is X * Multiplier},

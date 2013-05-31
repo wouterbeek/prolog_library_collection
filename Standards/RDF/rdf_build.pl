@@ -256,7 +256,7 @@ rdf_retractall_datatype(Subject, Predicate, DatatypeName, LexicalValue, Graph):-
 %      a specific name.
 
 rdf_retractall_literal(Subject, Predicate, Literal, Graph):-
-  rdf_retractall_literal(Subject, Predicate, literal(Literal), Graph).
+  rdf_retractall(Subject, Predicate, literal(Literal), Graph).
 
 %! rdf_retractall_literal(
 %!   ?Subject:oneof([bnode,uri]),
@@ -327,3 +327,4 @@ rdf_overwrite_datatype(Subject, Predicate, Datatype, NewValue, Graph):-
     )
   ),
   !.
+

@@ -179,20 +179,27 @@ dbnl_markup(
     Contents2 = [element(line, [], Contents3)]
   ),
   dbnl_markup(Options, Contents1, Contents3).
-% Header.
+% Headers.
+dbnl_markup(
+  Options,
+  [element(h2, _, C11) | C21],
+  [element(chapter, [], C12) | C22]
+):-
+  !,
+  dbnl_markup(Options, C11, C12),
+  dbnl_markup(Options, C21, C22).
 dbnl_markup(
   Options,
   [element(h3, _, H3_Contents) | Contents1],
-  [element(header, [], SubheaderContents) | Contents2]
+  [element(section, [], SubheaderContents) | Contents2]
 ):-
   !,
   dbnl_markup(Options, H3_Contents, SubheaderContents),
   dbnl_markup(Options, Contents1, Contents2).
-% Subheader.
 dbnl_markup(
   Options,
   [element(h4, _, H4_Contents) | Contents1],
-  [element(subheader, [], SubheaderContents) | Contents2]
+  [element(subsection, [], SubheaderContents) | Contents2]
 ):-
   !,
   dbnl_markup(Options, H4_Contents, SubheaderContents),

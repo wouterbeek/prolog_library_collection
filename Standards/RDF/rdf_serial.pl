@@ -16,6 +16,7 @@
 
 % RDF SAVE
     rdf_save2/0,
+    rdf_save2/1, % +Graph:atom
     rdf_save2/2 % ?File:atom
                 % +Options:list(nvpair)
   ]
@@ -173,8 +174,16 @@ rdf_load2(File, O1):-
 rdf_save2:-
   forall(
     rdf_graph(Graph),
-    rdf_save2(_File, [graph(Graph)])
+    rdf_save2(Graph)
   ).
+
+rdf_save2(Graph):-
+  absolute_file_name(
+    project(Graph),
+    File,
+    [access(write), file_type(turtle)]
+  ),
+  rdf_save2(File, [format(turtle), graph(Graph)]).
 
 rdf_save2(File, O1):-
   access_file(File, write),

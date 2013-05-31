@@ -12,6 +12,9 @@
                          % -Page:integer
 
 % DCG
+    dbnl_publication_print//3, % ?Lang:atom
+                               % ?Number:integer
+                               % ?Changes:boolean
     dbnl_year//2, % ?Language:atom
                   % -Year:oneof([integer,pair(integer)])
     handwritten//2 % ?Language:atom
@@ -47,11 +50,12 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 @version 2013/05
 */
 
-:- use_module(generics(atom_ext)).
-:- use_module(generics(meta_ext)).
+:- use_module(dbnl(dbnl_db)).
 :- use_module(dcg(dcg_ascii)).
 :- use_module(dcg(dcg_generic)).
+:- use_module(dcg(dcg_print)).
 :- use_module(dcg(dcg_year)).
+:- use_module(generics(atom_ext)).
 
 
 
@@ -75,17 +79,28 @@ dbnl_extract_page(Atom1, Page):-
 
 % DCG %
 
+dbnl_publication_print(Lang, Number, Changes) -->
+  publication_print(Lang, Number, Changes).
+dbnl_publication_print(nl, _Number, _Changes) -->
+  "(volksuitgave, 1ste vijfduizendtal)".
+dbnl_publication_print(nl, _Number, _Changes) -->
+  "(20ste-30ste duizendtal)".
+
 handwritten(nl, true) --> "(handschrift)".
 
 
 
 % YEARS %
 
-dbnl_year(Lang, Year) -->
+dbnl_year(Graph, Title) -->
+  dbnl_year0(_Lang, Year),
+  {dbnl_assert_year(Graph, Title, Year)}.
+
+dbnl_year0(Lang, Year) -->
   year(Lang, Year),
-  (blank, uncertainty(Lang) ; "").
+  (blanks, uncertainty(Lang) ; "").
 % Hacked year interval.
-dbnl_year(Lang, Year1-Year2) -->
+dbnl_year0(Lang, Year1-Year2) -->
   year_interval(Lang, Year1-Year2),
   % This is an arbitrary disambiguation criterion for problem 1 (see header).
   (
@@ -96,7 +111,24 @@ dbnl_year(Lang, Year1-Year2) -->
     uncertainty(Lang)
   ).
 % Context-dependent indicator. Not resolved and asserted yet.
-dbnl_year(Lang, _Year) -->
+dbnl_year0(Lang, _Year) -->
   "z.j.",
   (blanks, uncertainty(Lang) ; "").
+dbnl_year0(_Lang, _Year) -->
+  question_mark.
+dbnl_year0(_Lang, Year1-Year2) -->
+  year(Lang, Year1), comma, blank,
+  year(Lang, Year2),
+  opening_square_bracket, integer(_), closing_square_bracket.
+dbnl_year0(Lang, Year1-Year2) -->
+  integer(Year1), blanks, conj(Lang), blanks, integer(Year2).
+dbnl_year0(Lang, Year1-Year3) -->
+  integer(Year1), hyphen_minus, integer(_Year2),
+  blanks, conj(Lang), blanks,
+  integer(Year3).
+% @tbd Not yet parsed. What is the implication of status 'written' for the
+%      print information?
+dbnl_year0(nl, 1919) --> "ná aug. 1919 geschreven".
+dbnl_year0(nl, 1928) --> "? [1928] (?)".
+dbnl_year0(nl, 1626) --> "1626, herdr. 1638".
 

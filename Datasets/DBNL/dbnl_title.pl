@@ -60,7 +60,10 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_primary)).
-:- use_module(dbnl(dbnl_secondary)).
+:- use_module(dbnl(dbnl_secondary_summary)).
+:- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_generic)).
+:- use_module(dcg(dcg_volume)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
@@ -195,12 +198,24 @@ dbnl_title0(
   !,
   % A year may occur after the title.
   atom_codes(Atom, Codes),
-  phrase(title_year(Title, Year), Codes),
-  dbnl_assert_year(Graph, Title, Year),
+  phrase(dbnl_title_year(Graph, Title), Codes),
 
-  % Just checking...
-  (rdfs_label(Title, Title) -> true ; gtrace),
   dbnl_title0(Graph, Title, Contents).
+% Summary
+dbnl_title0(
+  Graph,
+  Title,
+  [
+    element(h4, [], ['Algemene informatie/samenvatting(en)']),
+    element(dl, [], DTs)
+  | C1]
+):-
+  forall(
+    member(element(dt, [], C2), DTs),
+    dbnl_summary(Graph, Title, C2)
+  ),
+  !,
+  dbnl_title0(Graph, Title, C1).
 % Assert the pimary text links.
 dbnl_title0(
   Graph,
@@ -225,15 +240,14 @@ dbnl_title0(
   [
     element(h4, [], ['Secundaire literatuur in de dbnl']),
     element(dl, [], DTs)
-  | Contents
-  ]
+  | C1]
 ):-
   forall(
-    member(element(dt, [], Contents), DTs),
-    dbnl_secondary(Graph, Title, Contents)
+    member(element(dt, [], C2), DTs),
+    dbnl_secondary(Graph, Title, C2)
   ),
   !,
-  dbnl_title0(Graph, Title, Contents).
+  dbnl_title0(Graph, Title, C2).
 % Skip linebreaks.
 dbnl_title0(Graph, Title, [element(br, _, _) | Contents]):-
   !,
@@ -252,8 +266,23 @@ dbnl_title0(_Graph, Title, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n~w\n', [Title, Contents]).
 
-title_year(Title2, Year) -->
-  string(Title1),
-  dbnl_year(_Lang, Year),
-  {atom_codes(Title2, Title1)}.
+dbnl_title(End, _Graph, Title) -->
+  % Title.
+  string_until(End, TitleName1),
+  {atom_codes(TitleName2, TitleName1)},
+  {(rdfs_label(Title, TitleName2) -> true ; gtrace)}.
+
+dbnl_title_year(Graph, Title) -->
+{gtrace},
+  dbnl_title(" (", Graph, Title), blank,
+  dbnl_year(Graph, Title).
+dbnl_title_year(Graph, Title) -->
+{gtrace},
+  dbnl_title(".", Graph, Title), dot, blank,
+  (dbnl_volume(Graph, Title), blank ; ""),
+  dbnl_year(Graph, Title).
+
+dbnl_volume(Graph, Title) -->
+  volume(_Lang, Volume), blank,
+  {rdf_assert_datatype(Title, dbnl:volume, int, Volume, Graph)}.
 
