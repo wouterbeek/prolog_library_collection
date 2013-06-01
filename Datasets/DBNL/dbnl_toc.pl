@@ -60,11 +60,18 @@ dbnl_toc(_Graph, _TOC, [], []):-
 % I have seen paragraphs containing one and paragraphs containing two links,
 % so the case for one nested link inside a pragraph did not work.
 dbnl_toc(Graph, TOC, Subtexts, [element(p, [], Content) | Contents]):-
+gtrace,
   dbnl_toc(Graph, TOC, Subtexts1, Content),
   dbnl_toc(Graph, TOC, Subtexts2, Contents),
   append(Subtexts1, Subtexts2, Subtexts).
 % A link to a chapter.
-dbnl_toc(Graph, TOC, [Subtext | Subtexts], [element(a, Attributes, [SubtextName]) | Contents]):-
+dbnl_toc(
+  Graph,
+  TOC,
+  [Subtext | Subtexts],
+  [element(a, Attributes, [SubtextName]) | Contents]
+):-
+gtrace,
   memberchk(href=RelativeURI, Attributes),
   rdf(TOC, dbnl:original_page, BaseURI, Graph),
   % @tbd uri_resolve/3 cannot handle this?!

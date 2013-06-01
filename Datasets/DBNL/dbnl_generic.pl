@@ -84,6 +84,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(dbnl(dbnl_db)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_copyright)).
 :- use_module(dcg(dcg_dict)).
 :- use_module(dcg(dcg_generic)).
 :- use_module(dcg(dcg_page)).

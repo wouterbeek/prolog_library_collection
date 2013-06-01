@@ -365,20 +365,3 @@ toc_title(journal, Title) -->
   blank,
   string(Title).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

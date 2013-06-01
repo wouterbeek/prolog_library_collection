@@ -107,7 +107,7 @@ dbnl_assert_bibliography(Graph, URI, Bibliography):-
   rdf_assert(Bibliography, dbnl:original_page, URI).
 
 dbnl_assert_copyright(Graph, Holders1, Year, Copyright):-
-  maplist(dbnl_assert_organization(Graph, Holders1, Holders2)),
+  maplist(dbnl_assert_organization(Graph), Holders1, Holders2),
   rdf_bnode(Copyright),
   rdfs_assert_individual(Copyright, dbnl:'Copyright', Graph),
   forall(

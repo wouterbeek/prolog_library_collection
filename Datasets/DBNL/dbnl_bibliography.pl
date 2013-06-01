@@ -40,13 +40,13 @@ dbnl_bibliography(Graph, URI, Bibliography):-
         [element(br, _, []), element(br, _, [])],
         Entries
       ),
-      maplist(dbnl_bibliography(Graph, Bibliography), Entries)
+      maplist(dbnl_bibliography0(Graph, Bibliography), Entries)
     )
   ).
 
-%! dbnl_bibliography(+Graph:atom, +Bibliography:uri, +HTML:dom):-
+%! dbnl_bibliography0(+Graph:atom, +Bibliography:uri, +HTML:dom) is det.
 
-dbnl_bibliography(Graph, Bibliography, HTML):-
+dbnl_bibliography0(Graph, Bibliography, HTML):-
   dbnl_markup([graph(Graph), text(Bibliography)], HTML, XML),
   dbnl_text_content(Graph, Bibliography, XML).
 

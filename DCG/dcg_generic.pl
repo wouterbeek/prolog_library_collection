@@ -28,7 +28,7 @@
 Generic DCG clauses.
 
 @author Wouter Beek
-@version 2013/05
+@version 2013/05-2013/06
 */
 
 :- use_module(dcg(dcg_ascii)).
@@ -56,6 +56,7 @@ conj(nl) --> "en".
 conj(_Lang) --> comma.
 
 dcg_debug(L, []):-
+  gtrace, %DEB
   format(user_output, '~w\n', [L]).
 
 dcg_peek(X), [X] -->

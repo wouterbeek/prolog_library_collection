@@ -22,15 +22,20 @@ DCGs for parsing copyright information.
 
 
 copyright(Holders, Year) -->
-  (copyright ; ""), blank,
-  year(Year), blank,
-  holders(Holders),
+{gtrace},
+  (copyright, blank ; ""),
+  year(_Lang, Year), blank,
+  holders(Holders).
 
-holders([H]) --> last_holder(H).
 holders([H|T]) --> middle_holder(H), holders(T).
+% Note that the last holders must occur after the
+% the middle holders!
+holders([H]) --> last_holder(H).
 
-middle_holder(H) --> dcg_atom_until(" /", H), blank, forward_slash, blank.
-middle_holder(H) --> dcg_atom_until(" &", H), blank, ampersand, blank.
+middle_holder(H) -->
+  dcg_atom_until((" /" ; " &"), H),
+  blank, (forward_slash ; ampersand), blank.
+%middle_holder(H) --> dcg_atom_until(, H), blank, ampersand, blank.
 
 last_holder(H) --> dcg_atom_all(H).
 

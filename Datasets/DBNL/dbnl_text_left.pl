@@ -206,7 +206,6 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Copyright.
 dbnl_text_left(Graph, Text) -->
-{gtrace},
   dbnl_copyright(Graph, Text),
   !,
   dbnl_text_left(Graph, Text).
