@@ -106,16 +106,15 @@ dbnl_assert_bibliography(Graph, URI, Bibliography):-
   rdfs_assert_individual(Bibliography, dbnl:'Bibliography', Graph),
   rdf_assert(Bibliography, dbnl:original_page, URI).
 
-dbnl_assert_copyright(Graph, Organization, Year, Copyright):-
-  is_uri(Organization),
-  !,
+dbnl_assert_copyright(Graph, Holders1, Year, Copyright):-
+  maplist(dbnl_assert_organization(Graph, Holders1, Holders2)),
   rdf_bnode(Copyright),
   rdfs_assert_individual(Copyright, dbnl:'Copyright', Graph),
-  rdf_assert(Copyright, dbnl:organization, Organization, Graph),
+  forall(
+    member(Holder, Holders2),
+    rdf_assert(Copyright, dbnl:organization, Holder, Graph)
+  ),
   rdf_assert_datatype(Copyright, dbnl:year, gYear, Year, Graph).
-dbnl_assert_copyright(Graph, OrganizationName, Year, Copyright):-
-  dbnl_assert_organization(Graph, OrganizationName, Organization),
-  dbnl_assert_copyright(Graph, Organization, Year, Copyright).
 
 %! dbnl_assert_editor(+Graph:atom, +Name:atom, +URI:uri, -Editor:uri) is det.
 

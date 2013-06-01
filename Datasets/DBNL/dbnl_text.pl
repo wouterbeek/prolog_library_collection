@@ -343,9 +343,6 @@ dbnl_text_definition_term(Graph, VolumeCollection) -->
     rdf_assert_xml_literal(Subtext, dbnl:title, TitleName2, Graph)
   }.
 
-% Done!
-dbnl_text_right(_Graph, _Text) -->
-  !.
 % Image of the titlepage.
 dbnl_text_right(Graph, Text) -->
   [element(a, _, [element(img, Attrs, [])])],
@@ -360,9 +357,28 @@ dbnl_text_right(Graph, Text) -->
     rdf_assert_datatype(Text, dbnl:titlepage_image, image, File, Graph)
   },
   dbnl_text_right(Graph, Text).
+% Done!
+dbnl_text_right(_Graph, _Text) --> [].
 
 toc_title(journal, Title) -->
   "Jaargangen van het tijdschrift",
   blank,
   string(Title).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

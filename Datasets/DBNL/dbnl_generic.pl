@@ -175,20 +175,19 @@ dbnl_copyright(Graph, Text) -->
   [element(div, [class=copyright|_], [element(a, _, ['©']), Atom])],
   !,
   {
-    split_atom_exclusive(' ', Atom, [Year, Organization]),
-    dbnl_copyright0(Graph, Text, Year, Organization)
+    dcg_phrase(copyright(Holders, Year), Atom),
+    dbnl_copyright0(Graph, Text, Holders, Year)
   }.
 dbnl_copyright(Graph, Text) -->
   [Atom],
   {
     atom(Atom),
-    split_atom_exclusive(' ', Atom, ['©', Year, Organization]),
-    dbnl_copyright0(Graph, Text, Year, Organization)
+    dcg_phrase(copyright(Holders, Year), Atom),
+    dbnl_copyright0(Graph, Text, Holders, Year)
   }.
 
-dbnl_copyright0(Graph, Text, Year1, Organization):-
-  atom_number(Year1, Year2),
-  dbnl_assert_copyright(Graph, Organization, Year2, Copyright),
+dbnl_copyright0(Graph, Text, Holders, Year):-
+  dbnl_assert_copyright(Graph, Holders, Year, Copyright),
   rdf_assert(Text, dbnl:copyright, Copyright, Graph).
 
 dbnl_editor(EditorName) -->
@@ -196,11 +195,6 @@ dbnl_editor(EditorName) -->
   blank,
   string(Codes),
   {atom_codes(Codes, EditorName)}.
-
-dbnl_page(Atom, Type2, Page):-
-  dcg_phrase(page(_Lang, Type1, Page), Atom),
-  if_then(Type1 == roman, Type2 = prepage),
-  if_then(Type1 == arabic, Type2 = page).
 
 dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
@@ -234,8 +228,12 @@ dbnl_journal(Graph, Text) -->
 
 dbnl_logo -->
   [element(img, Attrs, [])],
-  {memberchk(alt='DBNL vignet', Attrs)},
-  {memberchk(src='../dbnllogo.gif', Attrs)}.
+  {memberchk(alt='DBNL vignet', Attrs)}.
+
+dbnl_page(Atom, Type2, Page):-
+  dcg_phrase(page(_Lang, Type1, Page), Atom),
+  if_then(Type1 == roman, Type2 = prepage),
+  if_then(Type1 == arabic, Type2 = page).
 
 dbnl_publication_print(Lang, Number, Changes) -->
   publication_print(Lang, Number, Changes).
@@ -394,9 +392,14 @@ journal(Lang, Title, Volume) -->
   (pre(Lang), colon, blank ; ""),
 
   (
+    % Volume information after the comma.
     dcg_atom_until(comma, Title), comma, blank
   ;
+    % Volume information after the dot.
     dcg_atom_until(dot, Title), dot, blank
+  ;
+    % No volume information.
+    dcg_string_all(_)
   ),
   % With or without a volume.
   (volume(Lang, Volume) ; "").

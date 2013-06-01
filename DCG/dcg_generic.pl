@@ -2,9 +2,9 @@
   dcg_generic,
   [
     conj//1, % ?Lang:atom
+    dcg_atom_all//1, % -Atom:atom
     dcg_atom_until//2, % :End:dcg
                        % -Atom:atom
-    dcg_atom_all//1, % -Atom:atom
     dcg_debug//0,
     dcg_peek//1, % -X:code
     dcg_phrase/2, % :DCGBody:dcg

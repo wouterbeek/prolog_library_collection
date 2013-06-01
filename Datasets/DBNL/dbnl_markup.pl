@@ -128,10 +128,18 @@ dbnl_markup(_Options, ['\240\'], []):-
 % A page. Nesting makes this relatively difficult.
 dbnl_markup(
   Options,
-  [element(div, Attributes, [PageAtom]) | Contents1],
+  [element(div, Attributes, PageContent) | Contents1],
   [element(PageElement, [name=Page], []) | Contents2]
 ):-
   memberchk(class=pb, Attributes),
+  !,
+  (
+    PageContent = [PageAtom]
+  ;
+    % Sometimes a link to the original page is given.
+    PageContent = [PageAtom, element(a, A_Attrs, _)],
+    memberchk(target=origineel, A_Attrs)
+  ),
   !,
   dbnl_page(PageAtom, PageElement, Page),
   dbnl_markup(Options, Contents1, Contents2).

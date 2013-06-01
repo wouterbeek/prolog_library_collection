@@ -72,7 +72,7 @@ dbnl_downloads(Graph, Text) -->
 % Skip empty ePUB format.
 dbnl_downloads(Graph, Text) -->
   [
-    element(a, [name=epub_tekst | _], _),
+    element(a, [name=epub_tekst|_], _),
     element(p, [], ['Geen e-book van tekstbestand gevonden.'])
   ],
   !,
@@ -80,7 +80,7 @@ dbnl_downloads(Graph, Text) -->
 % Skip empty PDFs of the text.
 dbnl_downloads(Graph, Text) -->
   [
-    element(a, [name=pdf_tekst | _], _),
+    element(a, [name=pdf_tekst|_], _),
     element(p, [], ['Geen pdf van tekstbestand gevonden.'])
   ],
   !,
@@ -88,8 +88,8 @@ dbnl_downloads(Graph, Text) -->
 % PDFs of the text.
 dbnl_downloads(Graph, Text) -->
   [
-    element(a, [name=pdf_tekst | _], _),
-    element(p, [], [element(a, [href=PDFTextRelativeURI], _)])
+    element(a, [name=pdf_tekst|_], _),
+    element(p, [], [element(a, [href=PDFTextRelativeURI|_], _)|_])
   ],
   !,
   {
@@ -105,7 +105,7 @@ dbnl_downloads(Graph, Text) -->
 % Skip empty PDFs of the originals.
 dbnl_downloads(Graph, Text) -->
   [
-    element(a, [name=pdf_orig | _], _),
+    element(a, [name=pdf_orig|_], _),
     element(p, [], ['Geen pdf van originelen gevonden'])
   ],
   !,
@@ -113,8 +113,8 @@ dbnl_downloads(Graph, Text) -->
 % PDFs of the originals.
 dbnl_downloads(Graph, Text) -->
   [
-    element(a, [name=pdf_orig | _], _),
-    element(p, [], [element(a, [href=ScansRelativeURI], _)])
+    element(a, [name=pdf_orig|_], _),
+    element(p, [], [element(a, [href=ScansRelativeURI], _)|_])
   ],
   !,
   {
@@ -129,7 +129,7 @@ dbnl_downloads(Graph, Text) -->
   dbnl_downloads(Graph, Text).
 % Scans of originals.
 dbnl_downloads(Graph, Text) -->
-  [element(a, [name=orig | _], _)],
+  [element(a, [name=orig|_], _)],
   !,
   dbnl_downloads_originals(Graph, Text),
   dbnl_downloads(Graph, Text).

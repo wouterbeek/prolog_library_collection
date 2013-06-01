@@ -228,9 +228,11 @@ dbnl_title0(Graph, Title) -->
   [Atom],
   atom(Atom),
   !,
+{gtrace},
   dbnl_title0(Graph, Title).
 % Unrecognized content.
 dbnl_title0(_Graph, _Title) -->
+{gtrace},
   dcg_debug.
 
 dbnl_title(End, Graph, Title) -->

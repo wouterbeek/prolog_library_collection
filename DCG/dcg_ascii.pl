@@ -29,6 +29,7 @@
     colon//0,
     comma//0,
     control//0,
+    copyright//0,
     curly_bracket//0,
     d//0,
     d_lowercase//0,
@@ -184,7 +185,12 @@
 
 DCG rules that encode the ASCII standard.
 
+There are several different variations of the 8-bit ASCII table.
+The table below is according to ISO 8859-1, also called ISO Latin-1.
+Codes 129-159 contain the Microsoft® Windows Latin-1 extended characters.
+
 @author Wouter Beek
+@compat http://www.ascii-code.com/
 @version 2013/01-2013/02, 2013/05
 */
 
@@ -280,6 +286,8 @@ control --> substitute.
 control --> synchronous_idle.
 control --> tab.
 control --> unit_separator.
+
+copyright --> [169].
 
 curly_bracket --> closing_curly_bracket.
 curly_bracket --> opening_curly_bracket.
