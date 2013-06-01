@@ -14,7 +14,14 @@
 
 Scraping a DBNL text download page.
 
+There are two typoes of download page:
+  * dbnl_downloads/3, identified by:
+    =|xpath2(Contents, //h3(content), ['Downloads'])|=
+  * dbnl_scans/3, identified by:
+    =|xpath2(Contents, //div(@class='pb-scan'), _)|=
+
 @author Wouter Beek
+@tbd Also scrape individual pages in dbnl_scans/3.
 @version 2013/05
 */
 
@@ -96,6 +103,7 @@ dbnl_downloads(
   !,
   dbnl_uri_resolve(PDFTextRelativeURI, PDFTextAbsoluteURI),
   rdf_assert(Text, dbnl:remote_pdftext, PDFTextAbsoluteURI, Graph),
+  % Base the file name on a query item.
   uri_query(PDFTextAbsoluteURI, filename, PDFTextFileName),
   absolute_file_name(file(PDFTextFileName), PDFTextFile, []),
   uri_to_file(PDFTextAbsoluteURI, PDFTextFile),
@@ -124,6 +132,7 @@ dbnl_downloads(
   !,
   dbnl_uri_resolve(ScansRelativeURI, ScansAbsoluteURI),
   rdf_assert(Text, dbnl:remote_scans, ScansAbsoluteURI, Graph),
+  % Base the file name on a query item.
   uri_query(ScansAbsoluteURI, filename, FileName),
   absolute_file_name(file(FileName), ScansFile, []),
   uri_to_file(ScansAbsoluteURI, ScansFile),
@@ -138,6 +147,7 @@ dbnl_downloads(
   !,
   dbnl_uri_resolve(RelativeURI, AbsoluteURI),
   rdf_assert(Text, dbnl:remote_original, AbsoluteURI, Graph),
+  % Base the file name on a query item.
   uri_query(AbsoluteURI, filename, FileName),
   absolute_file_name(file(FileName), ScansFile, []),
   uri_to_file(AbsoluteURI, ScansFile),
@@ -152,7 +162,7 @@ dbnl_downloads(Graph, Text, [H | T]):-
 dbnl_scans(Graph, Text, Contents):-
   forall(
     (
-      xpath2(Contents, a(self), A),
+      xpath2(Contents, //a(self), A),
       A = element(a, Attrs, [Atom]),
       (Atom = 'Bekijk het PDF bestand.' ; Atom = 'Bekijk het OCR resultaat.')
     ),
@@ -160,7 +170,10 @@ dbnl_scans(Graph, Text, Contents):-
       memberchk(href=RelativeURI, Attrs),
       dbnl_uri_resolve(RelativeURI, AbsoluteURI),
       rdf_assert(Text, dbnl:remote_original, AbsoluteURI, Graph),
-      uri_to_file(AbsoluteURI, FileName),
+      % Base the file name on the URI.
+      uri_to_file_name(AbsoluteURI, FileName),
+      % The extension is already present in the file name,
+      % as determined by the URI.
       absolute_file_name(file(FileName), ScansFile, []),
       uri_to_file(AbsoluteURI, ScansFile),
       rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph)

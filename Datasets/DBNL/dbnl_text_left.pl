@@ -158,6 +158,11 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Source.
 dbnl_text_left(Graph, Text) -->
+  [Atom],
+  {atom_codes(Atom, Codes),
+   phrase(dbnl_source(Graph, Text), Codes)},
+  dbnl_text_left(Graph, Text).
+dbnl_text_left(Graph, Text) -->
   [AuthorName1, element(i, [], [PublicationName])],
   {
     atom_concat('bron:', AuthorName2, AuthorName1),
@@ -183,10 +188,12 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Journal year.
 dbnl_text_left(Graph, Text) -->
-  [H1],
+  [X],
   {
-    atom(H1),
-    atom_concat('Jaargang ', H2, H1),
+    atom(X),
+    atom_codes(X, Y),
+    phrase(dbnl_source(Graph, Text), Y),
+    atom_concat('Jaargang ', H2, _),
     !,
     (
       split_atom_exclusive('.', H2, [JYear1, H3]),

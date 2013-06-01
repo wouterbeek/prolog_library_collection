@@ -236,19 +236,17 @@ dbnl_title0(_Graph, _Title) -->
 
 dbnl_title(End, Graph, Title) -->
   % Title.
-  string_until(End, TitleCodes),
+  dcg_string_until(End, TitleCodes),
   {
     atom_codes(TitleAtom, TitleCodes),
     rdfs_assert_label(Title, TitleAtom, Graph)
   }.
 
 dbnl_title_year(Graph, Title) -->
-{gtrace},
   dbnl_title(".", Graph, Title), dot, blank,
   (dbnl_volume(Graph, Title), blank ; ""),
   dbnl_year(Graph, Title).
 dbnl_title_year(Graph, Title) -->
-{gtrace},
   dbnl_title(" (", Graph, Title), blank,
   dbnl_year(Graph, Title).
 

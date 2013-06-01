@@ -97,8 +97,6 @@ dbnl_ordering_translate(genre,                   genre).
 
 dbnl_scrape(Category, Order):-
   Graph = dbnl,
-  flag(deb, _OldID, 0),
-
   % Process predicate parameters.
   dbnl_category(Category, CategorySearchTerm),
   dbnl_ordering(Order, OrderSearchTerm),
@@ -121,7 +119,8 @@ dbnl_scrape(Category, Order):-
   % After all titles have been asserted we start scraping them.
   dbnl_titles(Graph).
 
-%! dbnl_index(+Graph:atom, +DOM:list) is det.
+%! dbnl_index(+Graph:atom, +Index:dom) is det.
+% Asserts all titles that occur in the given index DOM.
 
 dbnl_index(Graph, DOM):-
   dbnl_dom_center(DOM, Text),
@@ -139,10 +138,13 @@ dbnl_index(Graph, DOM):-
 
 %! dbnl_index_title(+Graph:atom, +Contents:dom) is det.
 
-% Some title have no author.
+% Some title have no author, we add the author name 'anoniem'.
 dbnl_index_title(Graph, [element(a, Attributes, [TitleName]) | Contents]):-
   !,
-  dbnl_index_title(Graph, [anoniem, element(a, Attributes, [TitleName]) | Contents]).
+  dbnl_index_title(
+    Graph,
+    [anoniem, element(a, Attributes, [TitleName]) | Contents]
+  ).
 % Create a new title.
 dbnl_index_title(
   Graph,
@@ -219,6 +221,7 @@ dbnl_index_title(_Graph, Contents):-
   gtrace, %DEB
   format(user_output, '~w\n', [Contents]).
 
+% Use DCGs from module DBNL_GENERIC.
 dbnl_index_year_etc(Graph, Title, Handwritten, Lang, Print, Changes) -->
   % Parse: Year.
   dbnl_year(Graph, Title), (comma ; semi_colon ; ""),

@@ -31,16 +31,22 @@ Predicates for parsing DBNL bibliography texts.
 dbnl_bibliography(Graph, URI, Bibliography):-
   dbnl_assert_bibliography(Graph, URI, Bibliography),
   dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_center(DOM, Contents1),
-  xpath_chk2(Contents1, //p(content), Contents2),
-  split_list_exclusive(
-    Contents2,
-    [element(br, _, []), element(br, _, [])],
-    Chunks
-  ),
-  maplist(dbnl_bibliography0(Graph, Bibliography), Chunks).
+  dbnl_dom_center(DOM, Content),
+  forall(
+    xpath_chk2(Content, //p(content), Paragraph),
+    (
+      split_list_exclusive(
+        Paragraph,
+        [element(br, _, []), element(br, _, [])],
+        Entries
+      ),
+      maplist(dbnl_bibliography(Graph, Bibliography), Entries)
+    )
+  ).
 
-dbnl_bibliography0(Graph, Bibliography):-
-  dbnl_markup([graph(Graph), text(Bibliography)], XML_DOM),
-  dbnl_text_content(Graph, Bibliography, XML_DOM).
+%! dbnl_bibliography(+Graph:atom, +Bibliography:uri, +HTML:dom):-
+
+dbnl_bibliography(Graph, Bibliography, HTML):-
+  dbnl_markup([graph(Graph), text(Bibliography)], HTML, XML),
+  dbnl_text_content(Graph, Bibliography, XML).
 

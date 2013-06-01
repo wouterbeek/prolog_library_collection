@@ -61,7 +61,7 @@ dbnl_secondary_summary(Graph, Title, Type) -->
 
 dbnl_journal(Lang, Name) -->
   pre(Lang), colon, blank,
-  string_until(",", Codes),
+  dcg_string_until(",", Codes),
   {atom_codes(Name, Codes)}.
 
 dbnl_secondary_summary0(Graph, Title) -->

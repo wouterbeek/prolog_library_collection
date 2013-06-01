@@ -29,6 +29,8 @@
     dbnl_publication_print//3, % ?Lang:atom
                                % ?Number:integer
                                % ?Changes:boolean
+    dbnl_source//2, % +Graph:atom
+                    % +Text:uri
     dbnl_year//2, % ?Language:atom
                   % -Year:oneof([integer,pair(integer)])
 
@@ -184,7 +186,7 @@ dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
   (colon, blank ; ""),
   (
-    string_until(",", GenreCodes), comma, blank
+    dcg_string_until(",", GenreCodes), comma, blank
   ;
     dcg_all(GenreCodes), {GenreCodes \== []}
   ),
@@ -209,6 +211,24 @@ dbnl_publication_print(nl, _Number, _Changes) -->
   "(volksuitgave, 1ste vijfduizendtal)".
 dbnl_publication_print(nl, _Number, _Changes) -->
   "(20ste-30ste duizendtal)".
+
+dbnl_source(Graph, Text) -->
+  "bron", colon, blank,
+  dcg_atom_until(", ", Author), comma, blank,
+  {rdf_assert_literal(Text, dbnl:author, Author, Graph)},
+  dcg_atom_until(". ", Title), dot, blank,
+  {rdf_assert_literal(Text, dbnl:title, Title, Graph)},
+  dcg_atom_until(", ", Publisher), comma, blank,
+  {rdf_assert_literal(Text, dbnl:publisher, Publisher, Graph)},
+  dcg_separated_list(forward_slash, Cities1), blank,
+  year(_Lang, _Year), blank,
+  !,
+  {maplist(atom_codes, Cities2, Cities1),
+   forall(
+     member(City, Cities2),
+     rdf_assert_literal(Text, dbnl:city, City, Graph)
+   ),gtrace},
+  dcg_all.
 
 dbnl_year(Graph, Text) -->
   dbnl_year0(_Lang, Year),

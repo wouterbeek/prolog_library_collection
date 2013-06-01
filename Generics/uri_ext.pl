@@ -1,6 +1,8 @@
 :- module(
   uri_ext,
   [
+    uri_to_file_name/2, % +URI:uri
+                        % -File:atom
     uri_to_file/2, % +URI:uri
                    % +File:atom
     uri_query/3 % +URI:uri
@@ -20,6 +22,16 @@
 :- use_module(library(uri)).
 
 
+
+%! uri_to_file_name(+URI:uri, -FileName:atom) is det.
+% Returns a file name based on the given URI.
+
+uri_to_file_name(URI, FileName):-
+  uri_components(
+    URI,
+    uri_components(_Scheme, _Auhtority, Path, _Search, _Fragment)
+  ),
+  file_base_name(Path, FileName).
 
 %% uri_to_file(+URI:uri, +File:atom) is det.
 % Stores the contents retrieved from the given URI to the given file.

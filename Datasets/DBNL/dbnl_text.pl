@@ -61,6 +61,7 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 ==
 
 @author Wouter Beek
+@tbd Parse colofon pages that are linked to from within the left DIV.
 @version 2013/05
 */
 
@@ -69,6 +70,7 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_markup)).
 :- use_module(dbnl(dbnl_text_left)).
+:- use_module(dbnl(dbnl_toc)).
 :- use_module(dcg(dcg_generic)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
@@ -87,7 +89,6 @@ dbnl_text(Graph, _Title, URI, Text):-
   !.
 dbnl_text(Graph, Title, URI, Text):-
   dbnl_uri_to_html(URI, DOM),
-gtrace,
   dbnl_dom_center(DOM, Contents),
   % Disambiguate between different kinds of texts.
   (
@@ -96,6 +97,7 @@ gtrace,
   ->
     dbnl_assert_text(Graph, URI, Text),
     rdf_assert(Title, dbnl:downloads, Text, Graph),
+gtrace,
     dbnl_downloads(Graph, Text, Contents)
   ;
     % Scans, also for download.
@@ -103,6 +105,7 @@ gtrace,
   ->
     dbnl_assert_text(Graph, URI, Text),
     rdf_assert(Title, dbnl:downloads, Text, Graph),
+gtrace,
     dbnl_scans(Graph, Text, Contents)
   ;
     % Only checking, not retrieving.
@@ -111,6 +114,7 @@ gtrace,
     % Table of contents.
     dbnl_assert_toc(Graph, URI, Text),
     rdf_assert(Title, dbnl:toc, Text, Graph),
+gtrace,
     phrase(dbnl_text0(Graph, Text), Contents)
   ;
     % Only checking, not retrieving.
@@ -120,6 +124,7 @@ gtrace,
     % Collection of volumes.
     dbnl_assert_volume_collection(Graph, URI, Text),
     rdf_assert(Title, dbnl:volume_collection, Text, Graph),
+gtrace,
     phrase(dbnl_text0(Graph, Text), Contents)
   ;
     % Only checking, not retrieving.
@@ -128,6 +133,7 @@ gtrace,
     % Actual content; DBNL markup.
     dbnl_assert_text(Graph, URI, Text),
     dbnl_dom_notes(DOM, Notes),
+gtrace,
     dbnl_markup(
       [base_uri(URI), graph(Graph), notes(Notes), text(Text)],
       Contents,
@@ -137,6 +143,7 @@ gtrace,
   ;
     % Any other text.
     dbnl_assert_text(Graph, URI, Text),
+gtrace,
     phrase(dbnl_text0(Graph, Text), Contents)
   ),
 
@@ -183,15 +190,12 @@ dbnl_text0(Graph, Text) -->
   {phrase(dbnl_text0(Graph, Text), Content)},
   dbnl_text0(Graph, Text).
 % Table of contents.
-dbnl_text0(Graph, TOC) -->
-  [element(h2, [class=inhoud], TOC_Title)],
+dbnl_text0(Graph, TOC, [element(h2, [class=inhoud], TOC_Title) | Contents], []):-
   !,
-  {
-    phrase(toc_title(Type, Name), TOC_Title),
-    write(Type),
-    write(Name)
-  },
-  dbnl_toc(Graph, TOC).
+  phrase(dbnl_toc_title(Type, Name), TOC_Title),
+  write(Type),
+  write(Name),
+  dbnl_toc(Graph, TOC, Contents).
 % Title.
 % Note that the same title may already have been asserted
 % for the TITLE resource, but not yet for this TEXT resource.
@@ -246,13 +250,14 @@ dbnl_text0(Graph, Text) -->
   dbnl_text0(Graph, Text).
 % Skip notes on scans.
 dbnl_text0(Graph, Text) -->
-  [
-    element(
-      h4,
-      [],
-      ['* Van dit werk zijn alleen scans beschikbaar. Voor een snelle oriëntatie is hieronder een viewer beschikbaar.']
-    )
-  ],
+  [element(h4, [], [Atom])],
+  {memberchk(
+    Atom,
+    [
+      '* Van dit werk zijn alleen scans beschikbaar. Voor een snelle oriëntatie is hieronder een viewer beschikbaar.',
+      '* Bij deze tekst wordt ook de mogelijkheid geboden om de originele pagina\'s te bekijken via de knop ‘origineel’ naast het paginanummer.'
+    ]
+  )},
   !,
   dbnl_text0(Graph, Text).
 % Skip linebreaks.
@@ -293,6 +298,7 @@ dbnl_text0(Graph, Text) -->
 dbnl_text0(Graph, Text) -->
   [Atom],
   {
+    atom(Atom),
     atom_codes(Atom, Codes),
     phrase(dbnl_copyright(Graph, Text), Codes)
   },
