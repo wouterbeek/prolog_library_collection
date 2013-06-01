@@ -17,7 +17,6 @@ Predicates for transforming DBNL HTML markup into a useful XML format.
 @version 2013/05
 */
 
-:- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(generics(atom_ext)).
 :- use_module(generics(uri_ext)).
@@ -370,6 +369,15 @@ dbnl_markup(
   !,
   dbnl_markup(Options, SUP_Contents, Superscript_Contents),
   dbnl_markup(Options, Contents1, Contents2).
+% Strong.
+dbnl_markup(
+  Options,
+  [element(b, [], C1) | T1],
+  [element(strong, [], C2) | T2]
+):-
+  !,
+  dbnl_markup(Options, C1, C2),
+  dbnl_markup(Options, T1, T2).
 % Table.
 dbnl_markup(
   Options,

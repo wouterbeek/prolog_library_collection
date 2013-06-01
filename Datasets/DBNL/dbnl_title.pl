@@ -57,7 +57,7 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 */
 
 :- use_module(dbnl(dbnl_db)).
-:- use_module(dbnl(dbnl_extract)).
+:- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_primary)).
 :- use_module(dbnl(dbnl_secondary_summary)).
@@ -101,7 +101,7 @@ dbnl_title(Graph, Title, URI):-
   % Process contents.
   dbnl_dom_center(DOM, Content),
   xpath2(Content, div(content), Contents),
-  dbnl_title0(Graph, Title, Contents),
+  phrase(dbnl_title0(Graph, Title), Contents),
 
   % Picarta link.
   dbnl_picarta(Graph, Title, DOM),
@@ -122,21 +122,16 @@ dbnl_title(_Graph, _Title, URI):-
 
 %! dbnl_title0(+Graph:atom, +Title:uri, +Contents:dom) is det.
 
-% Done!
-dbnl_title0(_Graph, _Title, []):-
-  !.
 % Skip notes.
-dbnl_title0(Graph, Title, [element(p, [class=note], _) | Contents]):-
+dbnl_title0(Graph, Title) -->
+  [element(p, [class=note], _)],
   !,
-  dbnl_title0(Graph, Title, Contents).
+  dbnl_title0(Graph, Title).
 % Author.
-dbnl_title0(
-  Graph,
-  Title,
-  [element(span, [class='titelpagina-auteur'], AuthorDOM) | Contents]
-):-
+dbnl_title0(Graph, Title) -->
+  [element(span, [class='titelpagina-auteur'], AuthorDOM)],
   !,
-  forall(
+  {forall(
     (
       xpath2(AuthorDOM, //a(@href), RelativeAuthorURI),
       xpath2(AuthorDOM, //a(content), [AuthorName])
@@ -146,35 +141,31 @@ dbnl_title0(
       dbnl_assert_author(Graph, AbsoluteAuthorURI, AuthorName, Author),
       rdf_assert(Title, dbnl:author, Author, Graph)
     )
-  ),
-  dbnl_title0(Graph, Title, Contents).
+  )},
+  dbnl_title0(Graph, Title).
 % Genres.
-dbnl_title0(
-  Graph,
-  Title,
-  [element(span, [class='titelpagina-genres'], [_B, GenresAtom1]) | Contents]
-):-
+dbnl_title0(Graph, Title) -->
+  [element(span, [class='titelpagina-genres'], [_B, GenresAtom1])],
   !,
-  sub_atom(GenresAtom1, 2, _, 0, GenresAtom2),
-  split_atom_exclusive(', ', GenresAtom2, GenreNames),
-  maplist(dbnl_assert_genre(Graph), GenreNames, Genres),
-  forall(
-    member(Genre, Genres),
-    rdf_assert(Title, dbnl:genre, Genre, Graph)
-  ),
-  dbnl_title0(Graph, Title, Contents).
+  {
+    sub_atom(GenresAtom1, 2, _, 0, GenresAtom2),
+    split_atom_exclusive(', ', GenresAtom2, GenreNames),
+    maplist(dbnl_assert_genre(Graph), GenreNames, Genres),
+    forall(
+      member(Genre, Genres),
+      rdf_assert(Title, dbnl:genre, Genre, Graph)
+    )
+% DO NOT WORK?!
+%    atom_codes(GenresAtom, GenresCodes),
+%    phrase(dbnl_genres(Graph, Title), GenresCodes)
+  },
+  dbnl_title0(Graph, Title).
 % Subgenres.
-dbnl_title0(
-  Graph,
-  Title,
-  [
-    element(span, [class='titelpagina-subgenres'], [_B, SubgenresAtom1])
-  | Contents
-  ]
-):-
+dbnl_title0(Graph, Title) -->
+  [element(span, [class='titelpagina-subgenres'], [_B, SubgenresAtom1])],
   !,
   % In some cases there are no subgenres.
-  atom_length(SubgenresAtom1, Length),
+  {atom_length(SubgenresAtom1, Length),
   (
     Length =< 2
   ->
@@ -187,102 +178,81 @@ dbnl_title0(
   forall(
     member(Subgenre, Subgenres),
     rdf_assert(Title, dbnl:subgenre, Subgenre, Graph)
-  ),
-  dbnl_title0(Graph, Title, Contents).
+  )},
+  dbnl_title0(Graph, Title).
 % Title + year.
-dbnl_title0(
-  Graph,
-  Title,
-  [element(span, [class='titelpagina-titel'], [Atom]) | Contents]
-):-
+dbnl_title0(Graph, Title) -->
+  [element(span, [class='titelpagina-titel'], [Atom])],
   !,
   % A year may occur after the title.
-  atom_codes(Atom, Codes),
-  phrase(dbnl_title_year(Graph, Title), Codes),
-
-  dbnl_title0(Graph, Title, Contents).
+  {atom_codes(Atom, Codes),
+  phrase(dbnl_title_year(Graph, Title), Codes)},
+  dbnl_title0(Graph, Title).
 % Summary
-dbnl_title0(
-  Graph,
-  Title,
-  [
-    element(h4, [], ['Algemene informatie/samenvatting(en)']),
-    element(dl, [], DTs)
-  | C1]
-):-
-  forall(
-    member(element(dt, [], C2), DTs),
-    dbnl_summary(Graph, Title, C2)
-  ),
+dbnl_title0(Graph, Title) -->
+  [element(h4, [], ['Algemene informatie/samenvatting(en)'])],
   !,
-  dbnl_title0(Graph, Title, C1).
+  dbnl_summary(Graph, Title),
+  dbnl_title0(Graph, Title).
 % Assert the pimary text links.
-dbnl_title0(
-  Graph,
-  Title,
+dbnl_title0(Graph, Title) -->
   [
     element(h4, [], ['Beschikbare tekst in de dbnl']),
     element(a, [href=RelativeURI | _], [TitleName])
-  | Contents
-  ]
-):-
+  ],
   !,
   % Just checking!
-  (rdfs_label(Title, TitleName) -> true ; gtrace), %DEB
-
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  dbnl_primary(Graph, Title, AbsoluteURI),
-  dbnl_title0(Graph, Title, Contents).
+  {
+    (rdfs_label(Title, TitleName) -> true ; gtrace), %DEB
+    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+    dbnl_primary(Graph, Title, AbsoluteURI)
+  },
+  dbnl_title0(Graph, Title).
 % Assert the secondary text links.
-dbnl_title0(
-  Graph,
-  Title,
-  [
-    element(h4, [], ['Secundaire literatuur in de dbnl']),
-    element(dl, [], DTs)
-  | C1]
-):-
-  forall(
-    member(element(dt, [], C2), DTs),
-    dbnl_secondary(Graph, Title, C2)
-  ),
+dbnl_title0(Graph, Title) -->
+  [element(h4, [], ['Secundaire literatuur in de dbnl'])],
   !,
-  dbnl_title0(Graph, Title, C2).
+  dbnl_summary(Graph, Title),
+  dbnl_title0(Graph, Title).
 % Skip linebreaks.
-dbnl_title0(Graph, Title, [element(br, _, _) | Contents]):-
+dbnl_title0(Graph, Title) -->
+  [element(br, _, _)],
   !,
-  dbnl_title0(Graph, Title, Contents).
+  dbnl_title0(Graph, Title).
 % Skip italic text message on availability of scans.
-dbnl_title0(Graph, Title, [element(i, [], ['(alleen scans beschikbaar)']) | Contents]):-
+dbnl_title0(Graph, Title) -->
+  [element(i, [], ['(alleen scans beschikbaar)'])],
   !,
-  dbnl_title0(Graph, Title, Contents).
+  dbnl_title0(Graph, Title).
 % Atom
-dbnl_title0(Graph, Title, [Atom | Contents]):-
+dbnl_title0(Graph, Title) -->
+  [Atom],
   atom(Atom),
   !,
-  dbnl_title0(Graph, Title, Contents).
+  dbnl_title0(Graph, Title).
 % Unrecognized content.
-dbnl_title0(_Graph, Title, Contents):-
-  gtrace, %DEB
-  format(user_output, '~w\n~w\n', [Title, Contents]).
+dbnl_title0(_Graph, _Title) -->
+  dcg_debug.
 
-dbnl_title(End, _Graph, Title) -->
+dbnl_title(End, Graph, Title) -->
   % Title.
-  string_until(End, TitleName1),
-  {atom_codes(TitleName2, TitleName1)},
-  {(rdfs_label(Title, TitleName2) -> true ; gtrace)}.
+  string_until(End, TitleCodes),
+  {
+    atom_codes(TitleAtom, TitleCodes),
+    rdfs_assert_label(Title, TitleAtom, Graph)
+  }.
 
-dbnl_title_year(Graph, Title) -->
-{gtrace},
-  dbnl_title(" (", Graph, Title), blank,
-  dbnl_year(Graph, Title).
 dbnl_title_year(Graph, Title) -->
 {gtrace},
   dbnl_title(".", Graph, Title), dot, blank,
   (dbnl_volume(Graph, Title), blank ; ""),
   dbnl_year(Graph, Title).
+dbnl_title_year(Graph, Title) -->
+{gtrace},
+  dbnl_title(" (", Graph, Title), blank,
+  dbnl_year(Graph, Title).
 
 dbnl_volume(Graph, Title) -->
-  volume(_Lang, Volume), blank,
+  volume(_Lang, Volume),
   {rdf_assert_datatype(Title, dbnl:volume, int, Volume, Graph)}.
 

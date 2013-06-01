@@ -1,6 +1,8 @@
 :- module(
   dbnl_toc,
   [
+    dbnl_toc//2, % +Graph:atom
+                 % +TOC_URI:uri
     dbnl_toc/3 % +Graph:atom
                % +TOC_URI:uri
                % +Contents:dom
@@ -30,6 +32,9 @@ Predicates for asserting a table of contents text from the DBNL.
 
 
 
+dbnl_toc(Graph, TOC, C, []):-
+  dbnl_toc(Graph, TOC, C).
+
 %! dbnl_toc(+Graph:atom, +TOC:uri, +Contents:dom) is det.
 % Processes the given DOM which represents the list of contents
 % of the given title.
@@ -38,29 +43,29 @@ Predicates for asserting a table of contents text from the DBNL.
 % for each chapter.
 
 dbnl_toc(Graph, TOC, Contents):-
-  dbnl_toc(Graph, TOC, Subtexts, Contents),
+  dbnl_toc0(Graph, TOC, Subtexts, Contents),
   rdf_assert_list(Subtexts, RDF_List, Graph),
   rdf(Title, dbnl:text, TOC, Graph),
   rdf_assert(Title, dbnl:toc, RDF_List, Graph).
 
-%! dbnl_toc(
+%! dbnl_toc0(
 %!   +Graph:atom,
 %!   +TOC:uri,
 %!   +History:list(bnode),
 %!   +Contents:dom
 %! ) is det.
 
-dbnl_toc(_Graph, _TOC, [], []):-
+dbnl_toc0(_Graph, _TOC, [], []):-
   !.
 % Process the contents of paragraphs.
 % I have seen paragraphs containing one and paragraphs containing two links,
 % so the case for one nested link inside a pragraph did not work.
-dbnl_toc(Graph, TOC, Subtexts, [element(p, [], Content) | Contents]):-
-  dbnl_toc(Graph, TOC, Subtexts1, Content),
-  dbnl_toc(Graph, TOC, Subtexts2, Contents),
+dbnl_toc0(Graph, TOC, Subtexts, [element(p, [], Content) | Contents]):-
+  dbnl_toc0(Graph, TOC, Subtexts1, Content),
+  dbnl_toc0(Graph, TOC, Subtexts2, Contents),
   append(Subtexts1, Subtexts2, Subtexts).
 % A link to a chapter.
-dbnl_toc(Graph, TOC, [Subtext | Subtexts], [element(a, Attributes, [SubtextName]) | Contents]):-
+dbnl_toc0(Graph, TOC, [Subtext | Subtexts], [element(a, Attributes, [SubtextName]) | Contents]):-
   memberchk(href=RelativeURI, Attributes),
   rdf(TOC, dbnl:original_page, BaseURI, Graph),
   % @tbd uri_resolve/3 cannot handle this?!
@@ -76,9 +81,9 @@ dbnl_toc(Graph, TOC, [Subtext | Subtexts], [element(a, Attributes, [SubtextName]
   ),
   rdfs_assert_label(Subtext, SubtextName, Graph),
   rdf_assert(TOC, dbnl:chapter, Subtext),
-  dbnl_toc(Graph, TOC, Subtexts, Contents).
+  dbnl_toc0(Graph, TOC, Subtexts, Contents).
 % Debug.
-dbnl_toc(Graph, TOC, Subtexts, [Content | Contents]):-
+dbnl_toc0(Graph, TOC, Subtexts, [Content | Contents]):-
   gtrace, %DEB
   format(user_output, '~w\n', [Content]),
-  dbnl_toc(Graph, TOC, Subtexts, Contents).
+  dbnl_toc0(Graph, TOC, Subtexts, Contents).

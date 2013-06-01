@@ -2,6 +2,9 @@
   dcg_generic,
   [
     conj//1, % ?Lang:atom
+    dcg_all//0,
+    dcg_all//1, % -L:list(code)
+    dcg_debug//0,
     disj//1, % ?Lang:atom
     language//1, % ?Lang:atom
     string_until//2, % +End:list(code)
@@ -27,6 +30,13 @@ Generic DCG clauses.
 conj(en) --> "and".
 conj(nl) --> "en".
 conj(_Lang) --> comma.
+
+dcg_all(L, L).
+
+dcg_all(L, L, L).
+
+dcg_debug(L, []):-
+  format(user_output, '~w\n', [L]).
 
 disj(nl) --> "of".
 

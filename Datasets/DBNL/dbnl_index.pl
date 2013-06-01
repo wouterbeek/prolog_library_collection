@@ -15,7 +15,7 @@ Scrapes a DBNL index of titles.
 */
 
 :- use_module(dbnl(dbnl_db)).
-:- use_module(dbnl(dbnl_extract)).
+:- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
 :- use_module(dcg(dcg_ascii)).
@@ -149,6 +149,7 @@ dbnl_index_title(
   [Author1, element(a, Attributes, [TitleName]) | Contents]
 ):-
   flag(number_of_texts, ID, ID + 1), %DEB
+  (ID >= 15000 -> gtrace ; true), %DEB
   memberchk(href=RelativeURI, Attributes),
 
   % Create the title resource.
@@ -223,7 +224,7 @@ dbnl_index_year_etc(Graph, Title, Handwritten, Lang, Print, Changes) -->
   dbnl_year(Graph, Title), (comma ; semi_colon ; ""),
   
   % Parse: Handwritten.
-  (blank, handwritten(Lang, Handwritten) ; ""),
+  (blank, dbnl_handwritten(Lang, Handwritten) ; ""),
 
   % Parse: Print & language.
   (blank, dbnl_publication_print(Lang, Print, Changes) ; "").

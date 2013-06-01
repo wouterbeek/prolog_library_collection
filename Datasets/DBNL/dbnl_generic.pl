@@ -14,11 +14,23 @@
     dbnl_dom_right/2, % +DOM:dom
                       % -Right:dom
 
-% ELEMENTS
-    dbnl_copyright/3, % +Graph:atom
-                      % +Text:uri
-                      % +Element
-    dbnl_logo/1, % +Element
+% DCG
+    dbnl_author//1, % -AuthorName:atom
+    dbnl_copyright//2, % +Graph:atom
+                       % +Text:uri
+    dbnl_editor//1, % -EditorName:atom
+    dbnl_extract_page/2, % +Atom:atom
+                         % -Page:integer
+    dbnl_genres//2, % +Graph:atom
+                    % +Text:uri
+    dbnl_handwritten//2, % ?Language:atom
+                         % ?Handwritten:boolean
+    dbnl_logo//0,
+    dbnl_publication_print//3, % ?Lang:atom
+                               % ?Number:integer
+                               % ?Changes:boolean
+    dbnl_year//2, % ?Language:atom
+                  % -Year:oneof([integer,pair(integer)])
 
 % URI
     dbnl_authority/1, % -Authority:atom
@@ -38,12 +50,38 @@
 
 Generic predicates for scraping the DBNL.
 
+Predicates for extracting information from atoms in DBNL.
+
+---+ Parsing problems
+
+---++ Problem 1
+
+The use of the question mark for expressing the uncertainty of publication
+years cannot be disambiguated. The following two examples show this.
+
+==
+Mentor, Raadgever voor de Nederlandsche jeugd., 1867-1873?
+Volkszangdag, 1922-19??
+==
+
+In the former the question mark should be interpreted as expressing
+uncertainty of an *expressed* digit (the 3 in this case). What is meant
+is the interval 1870-1879 (not 1870-18799).
+
+In the latter the question mark should be interpreted as expressing
+uncertainty of an *unexpressed* digit. What is means is the interval
+1922-1999.
+
 @author Wouter Beek
 @version 2013/05
 */
 
 :- use_module(dbnl(dbnl_db)).
-:- use_module(dbnl(dbnl_extract)).
+:- use_module(dbnl(dbnl_generic)).
+:- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_generic)).
+:- use_module(dcg(dcg_print)).
+:- use_module(dcg(dcg_year)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
@@ -97,8 +135,8 @@ dbnl_dom_notes(DOM, Notes):-
     NoteIndex-Contents,
     (
       xpath2(DOM, //div(@class=note), DIV),
-      DIV = element(div, _, [element(a, Attributes, _) | Contents]),
-      memberchk(name=NoteIndex, Attributes)
+      DIV = element(div, _, [element(a, Attrs, _) | Contents]),
+      memberchk(name=NoteIndex, Attrs)
     ),
     Notes
   ).
@@ -116,18 +154,101 @@ dbnl_dom_right(DOM, Content):-
 
 
 
-% ELEMENTS %
+% DCGS %
 
-dbnl_copyright(Graph, Text, Atom):-
-  atom(Atom),
-  dbnl_extract_copyright(Atom, Organization, Year),
-  dbnl_assert_copyright(Graph, Organization, Year, Copyright),
-  rdf_assert(Text, dbnl:copyright, Copyright, Graph).
+dbnl_author(AuthorName) -->
+  string(Codes),
+  {atom_codes(AuthorName, Codes)}.
 
-dbnl_logo(element(img, Attributes, [])):-
-  memberchk(alt='DBNL vignet', Attributes),
-  memberchk(src='../dbnllogo.gif', Attributes),
+dbnl_copyright(Graph, Text) -->
+  [Atom],
+  {
+    split_atom_exclusive(' ', Atom, ['©', Year1, Organization]),
+    atom_number(Year1, Year),
+    dbnl_assert_copyright(Graph, Organization, Year, Copyright),
+    rdf_assert(Text, dbnl:copyright, Copyright, Graph)
+  }.
+
+dbnl_editor(EditorName) -->
+  ("editie" ; "hoofdredactie"),
+  blank,
+  string(Codes),
+  {atom_codes(Codes, EditorName)}.
+
+dbnl_extract_page(Atom1, Page):-
+  atom_concat('[p. ', Atom2, Atom1),
+  atom_concat(Atom3, ']', Atom2),
+  atom_number(Atom3, Page).
+
+dbnl_genres(_Graph, _Text) --> [].
+dbnl_genres(Graph, Text) -->
+  (colon, blank ; ""),
+  (
+    string_until(",", GenreCodes), comma, blank
+  ;
+    dcg_all(GenreCodes), {GenreCodes \== []}
+  ),
+  {
+    atom_codes(GenreAtom, GenreCodes),
+    dbnl_assert_genre(Graph, GenreAtom, Genre),
+    rdf_assert(Text, dbnl:genre, Genre, Graph)
+  },
+  dbnl_genres(Graph, Text).
+
+dbnl_handwritten(nl, true) --> "(handschrift)".
+
+dbnl_logo -->
+  [element(img, Attrs, [])],
+  {memberchk(alt='DBNL vignet', Attrs)},
+  {memberchk(src='../dbnllogo.gif', Attrs)},
   !.
+
+dbnl_publication_print(Lang, Number, Changes) -->
+  publication_print(Lang, Number, Changes).
+dbnl_publication_print(nl, _Number, _Changes) -->
+  "(volksuitgave, 1ste vijfduizendtal)".
+dbnl_publication_print(nl, _Number, _Changes) -->
+  "(20ste-30ste duizendtal)".
+
+dbnl_year(Graph, Text) -->
+  dbnl_year0(_Lang, Year),
+  {dbnl_assert_year(Graph, Text, Year)}.
+
+dbnl_year0(Lang, Year) -->
+  year(Lang, Year),
+  (blanks, uncertainty(Lang) ; "").
+% Hacked year interval.
+dbnl_year0(Lang, Year1-Year2) -->
+  year_interval(Lang, Year1-Year2),
+  % This is an arbitrary disambiguation criterion for problem 1 (see header).
+  (
+    ""
+  ;
+    {atom_number(Atom, Year2)},
+    {atom_length(Atom, 4)},
+    uncertainty(Lang)
+  ).
+% Context-dependent indicator. Not resolved and asserted yet.
+dbnl_year0(Lang, _Year) -->
+  "z.j.",
+  (blanks, uncertainty(Lang) ; "").
+dbnl_year0(_Lang, _Year) -->
+  question_mark.
+dbnl_year0(_Lang, Year1-Year2) -->
+  year(Lang, Year1), comma, blank,
+  year(Lang, Year2),
+  opening_square_bracket, integer(_), closing_square_bracket.
+dbnl_year0(Lang, Year1-Year2) -->
+  integer(Year1), blanks, conj(Lang), blanks, integer(Year2).
+dbnl_year0(Lang, Year1-Year3) -->
+  integer(Year1), hyphen_minus, integer(_Year2),
+  blanks, conj(Lang), blanks,
+  integer(Year3).
+% @tbd Not yet parsed. What is the implication of status 'written' for the
+%      print information?
+dbnl_year0(nl, 1919) --> "ná aug. 1919 geschreven".
+dbnl_year0(nl, 1928) --> "? [1928] (?)".
+dbnl_year0(nl, 1626) --> "1626, herdr. 1638".
 
 
 
@@ -192,8 +313,10 @@ dbnl_uri_to_html(URI1, DOM):-
           [
             dtd(DTD),
             dialect(sgml),
+            max_errors(-1),
             shorttag(false),
-            space(remove)
+            space(remove),
+            syntax_errors(quiet)
           ]
         )
       ),

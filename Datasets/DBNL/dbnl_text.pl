@@ -66,11 +66,10 @@ http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
 
 :- use_module(dbnl(dbnl_db)).
 :- use_module(dbnl(dbnl_downloads)).
-:- use_module(dbnl(dbnl_extract)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_markup)).
 :- use_module(dbnl(dbnl_text_left)).
-:- use_module(dbnl(dbnl_toc)).
+:- use_module(dcg(dcg_generic)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 :- use_module(rdf(rdf_build)).
@@ -99,13 +98,20 @@ gtrace,
     rdf_assert(Title, dbnl:downloads, Text, Graph),
     dbnl_downloads(Graph, Text, Contents)
   ;
+    % Scans, also for download.
+    xpath2(Contents, //div(@class='pb-scan'), _)
+  ->
+    dbnl_assert_text(Graph, URI, Text),
+    rdf_assert(Title, dbnl:downloads, Text, Graph),
+    dbnl_scans(Graph, Text, Contents)
+  ;
     % Only checking, not retrieving.
     xpath2(Contents, //h2(@class=inhoud), _)
   ->
     % Table of contents.
     dbnl_assert_toc(Graph, URI, Text),
     rdf_assert(Title, dbnl:toc, Text, Graph),
-    dbnl_text(Graph, Text, Contents)
+    phrase(dbnl_text0(Graph, Text), Contents)
   ;
     % Only checking, not retrieving.
     xpath2(Contents, //dt, DT),
@@ -114,7 +120,7 @@ gtrace,
     % Collection of volumes.
     dbnl_assert_volume_collection(Graph, URI, Text),
     rdf_assert(Title, dbnl:volume_collection, Text, Graph),
-    dbnl_text(Graph, Text, Contents)
+    phrase(dbnl_text0(Graph, Text), Contents)
   ;
     % Only checking, not retrieving.
     xpath2(Contents, //div(@class=contentholder), _)
@@ -131,18 +137,18 @@ gtrace,
   ;
     % Any other text.
     dbnl_assert_text(Graph, URI, Text),
-    dbnl_text(Graph, Text, Contents)
+    phrase(dbnl_text0(Graph, Text), Contents)
   ),
-  
+
   rdf_assert(Text, dbnl:original_page, URI, Graph),
-  
+
   % Parse left DIV.
   dbnl_dom_left(DOM, Left),
-  dbnl_text_left(Graph, Text, Left),
-  
+  phrase(dbnl_text_left(Graph, Text), Left),
+
   % Parse right DIV.
   dbnl_dom_left(DOM, Right),
-  dbnl_text_right(Graph, Text, Right),
+  phrase(dbnl_text_right(Graph, Text), Right),
   !.
 /*
   % Retrieve the colofon DOM.
@@ -164,140 +170,137 @@ dbnl_text(_Graph, _Title, URI, _Text):-
   gtrace, %DEB
   write(URI).
 
-% Done!
-dbnl_text(_Graph, _Text, []):-
-  !.
+dbnl_text0(_Graph, _Text) --> [].
 % Skip empty headers.
-dbnl_text(Graph, Text, [element(h2, _, []) | T]):-
+dbnl_text0(Graph, Text) -->
+  [element(h2, _, [])],
   !,
-  dbnl_text(Graph, Text, T).
+  dbnl_text0(Graph, Text).
 % Nesting inside DIVs.
-dbnl_text(Graph, Text, [element(div, _, Content) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(div, _, Content)],
   !,
-  dbnl_text(Graph, Text, Content),
-  dbnl_text(Graph, Text, Contents).
+  {phrase(dbnl_text0(Graph, Text), Content)},
+  dbnl_text0(Graph, Text).
 % Table of contents.
-dbnl_text(Graph, TOC, [element(h2, [class=inhoud], _) | Contents]):-
+dbnl_text0(Graph, TOC) -->
+  [element(h2, [class=inhoud], TOC_Title)],
   !,
-  dbnl_toc(Graph, TOC, Contents).
+  {
+    phrase(toc_title(Type, Name), TOC_Title),
+    write(Type),
+    write(Name)
+  },
+  dbnl_toc(Graph, TOC).
 % Title.
 % Note that the same title may already have been asserted
 % for the TITLE resource, but not yet for this TEXT resource.
-dbnl_text(
-  Graph,
-  Text,
-  [element(h1, [class=title], Title1) | Contents]
-):-
+dbnl_text0(Graph, Text) -->
+  [element(h1, [class=title], Title1)],
   !,
-  dbnl_markup_simple(Title1, Title2),
-  rdfs_assert_label(Text, Title2, Graph),
-  dbnl_text(Graph, Text, Contents).
+  {
+    dbnl_markup_simple(Title1, Title2),
+    rdfs_assert_label(Text, Title2, Graph)
+  },
+  dbnl_text0(Graph, Text).
 % Assert the supposed author.
 % This is used in the left DIV to distinguish authors from editors.
-dbnl_text(
-  Graph,
-  Text,
-  [element(_, [class=author], [AuthorAtom]) | Contents]
-):-
+dbnl_text0(Graph, Text) -->
+  [element(_, [class=author], [Author1])],
   !,
-  dbnl_extract_author(AuthorAtom, AuthorName),
-  rdf_assert(Text, dbnl:supposed_author, AuthorName, Graph),
-  dbnl_text(Graph, Text, Contents).
+  {atom_codes(Author1, Author2),
+  phrase(dbnl_author(AuthorName), Author2),
+  rdf_assert(Text, dbnl:supposed_author, AuthorName, Graph)},
+  dbnl_text0(Graph, Text).
 % Assert the supposed editor.
 % This is used in the left DIV to distinguish authors from editors.
-dbnl_text(
-  Graph,
-  Text,
-  [element(p, [class=editor], [EditorAtom]) | Contents]
-):-
+dbnl_text0(Graph, Text) -->
+  [element(p, [class=editor], [Editor])],
   !,
-  gtrace,
-  dbnl_extract_editor(EditorAtom, EditorName),
-  rdf_assert_literal(Text, dbnl:supposed_editor, EditorName, Graph),
-  dbnl_text(Graph, Text, Contents).
+  {gtrace,
+  atom_codes(Editor, Codes),
+  phrase(dbnl_editor(EditorName), Codes),
+  rdf_assert_literal(Text, dbnl:supposed_editor, EditorName, Graph)},
+  dbnl_text0(Graph, Text).
 % Skip interp (what is this anyway?).
-dbnl_text(Graph, Text, [element(interp, _, _) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(interp, _, _)],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Skip empty subordinate titles.
-dbnl_text(
-  Graph,
-  Text,
-  [element(h3, [class='title-subordinate'], []) | Contents]
-):-
+dbnl_text0(Graph, Text) -->
+  [element(h3, [class='title-subordinate'], [])],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Non-empty subordinate title.
-dbnl_text(
-  Graph,
-  Text,
-  [element(h3, [class='title-subordinate'], [Subtitle]) | Contents]
-):-
-  atom(Subtitle),
+dbnl_text0(Graph, Text) -->
+  [element(h3, [class='title-subordinate'], [Subtitle])],
+  {atom(Subtitle)},
   !,
-  rdf_assert_literal(Text, dbnl:subtitle, Subtitle, Graph),
-  dbnl_text(Graph, Text, Contents).
+  {rdf_assert_literal(Text, dbnl:subtitle, Subtitle, Graph)},
+  dbnl_text0(Graph, Text).
 % Skip empty paragraphs.
-dbnl_text(Graph, Text, [element(p, _, []) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(p, _, [])],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Skip notes on scans.
-dbnl_text(
-  Graph,
-  Text,
+dbnl_text0(Graph, Text) -->
   [
     element(
       h4,
       [],
       ['* Van dit werk zijn alleen scans beschikbaar. Voor een snelle oriëntatie is hieronder een viewer beschikbaar.']
     )
-  | Contents
-  ]
-):-
+  ],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Skip linebreaks.
-dbnl_text(Graph, Text, [element(br, _, _) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(br, _, _)],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Parse the contents of paragraphs.
-dbnl_text(Graph, Text, [element(p, [], Content) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(p, [], C)],
   !,
-  dbnl_text(Graph, Text, Content),
-  dbnl_text(Graph, Text, Contents).
+  {phrase(dbnl_text0(Graph, Text), C)},
+  dbnl_text0(Graph, Text).
 % Parse definition lists.
-dbnl_text(Graph, Text, [element(dl, [], DTs) | Contents]):-
+dbnl_text0(Graph, Text) -->
+  [element(dl, [], DTs)],
   !,
-  dbnl_text_definition_list(Graph, Text, DTs),
-  dbnl_text(Graph, Text, Contents).
+  {phrase(dbnl_text_definition_list(Graph, Text), DTs)},
+  dbnl_text0(Graph, Text).
 % Skip links to the PDF files, since we will take these very same files
 % from the 'downloads' page.
-dbnl_text(
-  Graph,
-  Text,
-  [element(a, _Attributes, ['Bekijk het PDF bestand.']) | Contents]
-):-
+dbnl_text0(Graph, Text) -->
+  [element(a, _Attributes, ['Bekijk het PDF bestand.'])],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Skip PDF file media link.
-dbnl_text(Graph, Text, [element(a, Attributes, ['PDF File']) | Contents]):-
-  memberchk(class=media, Attributes),
+dbnl_text0(Graph, Text) -->
+  [element(a, Attrs, ['PDF File'])],
   !,
-  dbnl_text(Graph, Text, Contents).
+  {memberchk(class=media, Attrs)},
+  dbnl_text0(Graph, Text).
 % Skip single space atomic content.
-dbnl_text(Graph, Text, ['\240\' | Contents]):-
+dbnl_text0(Graph, Text) -->
+  ['\240\'],
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Copyright atom.
-dbnl_text(Graph, Text, [Atom | Contents]):-
-  dbnl_copyright(Graph, Text, Atom),
+dbnl_text0(Graph, Text) -->
+  [Atom],
+  {
+    atom_codes(Atom, Codes),
+    phrase(dbnl_copyright(Graph, Text), Codes)
+  },
   !,
-  dbnl_text(Graph, Text, Contents).
+  dbnl_text0(Graph, Text).
 % Debug.
-dbnl_text(Graph, Text, [Content | Contents]):-
-  gtrace, %DEB
-  format(user_output, '~w\n', [Content]),
-  dbnl_text(Graph, Text, Contents).
+dbnl_text0(_Graph, _Text) -->
+  dcg_debug.
 
 %! dbnl_text_content(+Graph:atom, +Text:uri, +XML:dom) is det.
 % Associates XML content with a text resource.
@@ -322,47 +325,56 @@ dbnl_text_content(Graph, Text, XML_DOM):-
   ).
 
 % Skip DBNL logo.
-dbnl_text_definition_list(_Graph, _Text, [element(dt, [], [Element])]):-
-  dbnl_logo(Element),
-  !.
-dbnl_text_definition_list(Graph, Text, DTs):-
-  maplist(dbnl_text_definition_term(Graph, Text), DTs).
+dbnl_text_definition_list(_Graph, _Text) --> [].
+dbnl_text_definition_list(_Graph, _Text) -->
+  [element(dt, [], [Element])],
+  !,
+  {phrase(dbnl_logo, Element)}.
+dbnl_text_definition_list(Graph, Text) -->
+  dbnl_text_definition_term(Graph, Text),
+  dbnl_text_definition_list(Graph, Text).
 
 % Skip empty definition term.
-dbnl_text_definition_term(_Graph, _Text, element(dt, [], [])):-
+dbnl_text_definition_term(_Graph, _Text) -->
+  [element(dt, [], [])],
   !.
 % A work that consits of multiple parts.
-dbnl_text_definition_term(
-  Graph,
-  VolumeCollection,
-  element(dt, [], [element(a, Attributes, TitleName1), _BR1, _BR2])
-):-
-  memberchk(href=RelativeURI, Attributes),
+dbnl_text_definition_term(Graph, VolumeCollection) -->
+  [element(dt, [], [element(a, Attrs, TitleName1), _BR1, _BR2])],
   !,
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  dbnl_text(Graph, VolumeCollection, AbsoluteURI, Subtext),
-  rdf_assert(VolumeCollection, dbnl:volume, Subtext, Graph),
-  dbnl_markup(
-    [base_uri(AbsoluteURI), graph(Graph), text(VolumeCollection)],
-    TitleName1,
-    TitleName2
-  ),
-  rdf_assert_xml_literal(Subtext, dbnl:title, TitleName2, Graph).
+  {
+    memberchk(href=RelativeURI, Attrs),
+    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+    dbnl_text(Graph, VolumeCollection, AbsoluteURI, Subtext),
+    rdf_assert(VolumeCollection, dbnl:volume, Subtext, Graph),
+    dbnl_markup(
+      [base_uri(AbsoluteURI), graph(Graph), text(VolumeCollection)],
+      TitleName1,
+      TitleName2
+    ),
+    rdf_assert_xml_literal(Subtext, dbnl:title, TitleName2, Graph)
+  }.
 
 % Done!
-dbnl_text_right(_Graph, _Text, []):-
+dbnl_text_right(_Graph, _Text) -->
   !.
 % Image of the titlepage.
-dbnl_text_right(Graph, Text, [element(a, _, [element(img, IMGs, [])]) | T]):-
-  memberchk(alt=titelpagina, IMGs),
+dbnl_text_right(Graph, Text) -->
+  [element(a, _, [element(img, Attrs, [])])],
   !,
-  memberchk(src=RelativeURI, IMGs),
-  rdf(Text, dbnl:original_page, BaseURI, Graph),
-  dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
-  
-  absolute_file_name(file(RelativeURI), File, []),
-  uri_to_file(AbsoluteURI, File),
-  rdf_assert_datatype(Text, dbnl:titlepage_image, image, File, Graph),
-  
-  dbnl_text_right(Graph, Text, T).
+  {
+    memberchk(alt=titelpagina, Attrs),
+    memberchk(src=RelativeURI, Attrs),
+    rdf(Text, dbnl:original_page, BaseURI, Graph),
+    dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
+    absolute_file_name(file(RelativeURI), File, []),
+    uri_to_file(AbsoluteURI, File),
+    rdf_assert_datatype(Text, dbnl:titlepage_image, image, File, Graph)
+  },
+  dbnl_text_right(Graph, Text).
+
+toc_title(journal, Title) -->
+  "Jaargangen van het tijdschrift",
+  blank,
+  string(Title).
 

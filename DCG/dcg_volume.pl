@@ -14,18 +14,24 @@ DCGs for volume information (for publications).
 @version 2013/05
 */
 
+:- use_module(dcg(dcg_year)).
 :- use_module(library(dcg/basics)).
 
 
 
 volume(Lang, Volume) -->
-  volume_noun(Lang), blank,
+  volume_noun(Lang, number), blank,
   integer(Volume).
+volume(Lang, Volume) -->
+  volume_noun(Lang, year), blank,
+  (integer(Volume) ; year(Lang, Volume)).
 
-volume_noun(en) --> "volume".
-volume_noun(en) --> "Volume".
-volume_noun(nl) --> "Deel".
-volume_noun(nl) --> "deel".
-volume_noun(nl) --> "volume".
-volume_noun(nl) --> "Volume".
+volume_noun(en, number) --> "Volume".
+volume_noun(en, number) --> "volume".
+volume_noun(nl, number) --> "Deel".
+volume_noun(nl, number) --> "deel".
+volume_noun(nl, number) --> "Volume".
+volume_noun(nl, number) --> "volume".
+volume_noun(nl, year) --> "Jaargang".
+volume_noun(nl, year) --> "jaargang".
 

@@ -1,9 +1,12 @@
 :- module(
   dbnl_downloads,
   [
-    dbnl_downloads/3 % +Graph:atom
-                     % +Text:uri
-                     % +Contents:dom
+    dbnl_downloads/3, % +Graph:atom
+                      % +Text:uri
+                      % +Contents:dom
+    dbnl_scans/3 % +Graph:atom
+                 % +Text:uri
+                 % +Contents:dom
   ]
 ).
 
@@ -145,4 +148,22 @@ dbnl_downloads(Graph, Text, [H | T]):-
   gtrace, %DEB
   format(user_output, '~w\n', [H]),
   dbnl_downloads(Graph, Text, T).
+
+dbnl_scans(Graph, Text, Contents):-
+  forall(
+    (
+      xpath2(Contents, a(self), A),
+      A = element(a, Attrs, [Atom]),
+      (Atom = 'Bekijk het PDF bestand.' ; Atom = 'Bekijk het OCR resultaat.')
+    ),
+    (
+      memberchk(href=RelativeURI, Attrs),
+      dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+      rdf_assert(Text, dbnl:remote_original, AbsoluteURI, Graph),
+      uri_to_file(AbsoluteURI, FileName),
+      absolute_file_name(file(FileName), ScansFile, []),
+      uri_to_file(AbsoluteURI, ScansFile),
+      rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph)
+    )
+  ).
 

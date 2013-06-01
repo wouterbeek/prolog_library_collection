@@ -1,12 +1,10 @@
 :- module(
   dbnl_secondary_summary,
   [
-    dbnl_secondary/3, % +Graph:atom
-                      % +Title:uri
-                      % +Contents:dom
-    dbnl_summary/3 % +Graph:atom
-                   % +Title:uri
-                   % +Contents:dom
+    dbnl_secondary//2, % +Graph:atom
+                       % +Title:uri
+    dbnl_summary//2 % +Graph:atom
+                    % +Title:uri
   ]
 ).
 
@@ -20,7 +18,7 @@ as they occur in DBNL title pages.
 */
 
 :- use_module(dbnl(dbnl_db)).
-:- use_module(dbnl(dbnl_extract)).
+:- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_text)).
 :- use_module(dcg(dcg_ascii)).
@@ -33,8 +31,8 @@ as they occur in DBNL title pages.
 
 
 
-dbnl_secondary(Graph, Title, Contents):-
-  dbnl_secondary_summary(Graph, Title, secondary, Contents).
+dbnl_secondary(Graph, Title) -->
+  dbnl_secondary_summary(Graph, Title, secondary).
 
 %! dbnl_secondary_summary(
 %!   +Graph:atom,
@@ -43,25 +41,23 @@ dbnl_secondary(Graph, Title, Contents):-
 %!   +Contents:dom
 %! ) is det.
 
-dbnl_secondary_summary(
-  Graph,
-  Title,
-  Type,
-  [
-    AuthorName,
-    element(a, [href=RelativeURI], [TitleName]),
-    Atom
-  ]
-):-
-  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-  dbnl_text(Graph, Title, AbsoluteURI, Text),
-  rdf_global_id(dbnl:Type, Predicate),
-  rdf_assert(Title, Predicate, Text, Graph),
-  rdf_assert_datatype(Text, dbnl:author, string, AuthorName, Graph),
-  rdf_assert_datatype(Text, dbnl:title, string, TitleName, Graph),
-  rdf_assert(Text, dbnl:original_page, AbsoluteURI, Graph),
-  atom_codes(Atom, Codes),
-  phrase(dbnl_secondary_summary0(Graph, Title), Codes).
+dbnl_secondary_summary(Graph, Title, Type) -->
+  [element(dt, [], C)],
+  {phrase(dbnl_secondary_summary(Graph, Title, Type), C)}.
+dbnl_secondary_summary(Graph, Title, Type) -->
+  [AuthorName, element(a, Attrs, [TitleName]), Atom],
+  {
+    memberchk(href=RelativeURI, Attrs),
+    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+    dbnl_text(Graph, Title, AbsoluteURI, Text),
+    rdf_global_id(dbnl:Type, Predicate),
+    rdf_assert(Title, Predicate, Text, Graph),
+    rdf_assert_datatype(Text, dbnl:author, string, AuthorName, Graph),
+    rdf_assert_datatype(Text, dbnl:title, string, TitleName, Graph),
+    rdf_assert(Text, dbnl:original_page, AbsoluteURI, Graph),
+    atom_codes(Atom, Codes),
+    phrase(dbnl_secondary_summary0(Graph, Title), Codes)
+  }.
 
 dbnl_journal(Lang, Name) -->
   pre(Lang), colon, blank,
@@ -77,8 +73,8 @@ dbnl_secondary_summary0(_Graph, _Title, R, []):-
   gtrace, %DEB
   format(user_output, '~w\n', [R]).
 
-dbnl_summary(Graph, Title, Contents):-
-  dbnl_secondary_summary(Graph, Title, summary, Contents).
+dbnl_summary(Graph, Title) -->
+  dbnl_secondary_summary(Graph, Title, summary).
 
 pre(nl) --> "In".
 pre(nl) --> "in".

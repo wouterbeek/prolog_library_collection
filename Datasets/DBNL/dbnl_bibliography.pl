@@ -40,22 +40,7 @@ dbnl_bibliography(Graph, URI, Bibliography):-
   ),
   maplist(dbnl_bibliography0(Graph, Bibliography), Chunks).
 
-dbnl_bibliography0(Graph, Bibliography, HTML_DOM):-
-  dbnl_markup([graph(Graph), text(Bibliography)], HTML_DOM, XML_DOM),
+dbnl_bibliography0(Graph, Bibliography):-
+  dbnl_markup([graph(Graph), text(Bibliography)], XML_DOM),
   dbnl_text_content(Graph, Bibliography, XML_DOM).
-
-/* TOO DIFFICULT FOR NOW!
-dbnl_bibliography(Graph, Title, BNode, [Year1 | Contents]):-
-  atom(Year1),
-  dbnl_extract_year(Year1, Year2),
-  !,
-  rdf_assert_datatype(BNode, dbnl:year, gYear, Year2, Graph),
-  dbnl_bibliography(Graph, Title, BNode, Contents).
-dbnl_bibliography(Graph, Title, BNode, [Author1 | Contents]):-
-  atom(Author1),
-  dbnl_extract_author(Author1, Author2),
-  !,
-  rdf_assert_datatype(BNode, dbnl:author, string, Author2, Graph),
-  dbnl_bibliography(Graph, Title, BNode, Contents).
-*/
 
