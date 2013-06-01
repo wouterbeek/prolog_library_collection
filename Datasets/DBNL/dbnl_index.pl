@@ -19,6 +19,7 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
 :- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_generic)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -175,10 +176,9 @@ dbnl_index_title(
     )
   ->
     strip_atom([' ',','], YearEtc1, YearEtc2),
-    atom_codes(YearEtc2, YearEtc3),
-    phrase(
+    dcg_phrase(
       dbnl_index_year_etc(Graph, Title, Handwritten, Lang, Print, Changes),
-      YearEtc3
+      YearEtc2
     ),
     % Assert: Handwritten.
     if_then(

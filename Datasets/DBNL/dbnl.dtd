@@ -13,6 +13,7 @@
   <!ELEMENT lines (line)>
   <!ELEMENT page (#PCDATA)>
   <!ELEMENT paragraph (%BLOCKCONTENT;)>
+  <!ELEMENT prepage (#PCDATA)>
   <!ELEMENT quote (%LINECONTENT;)>
   <!ELEMENT subheader (%LINECONTENT;)>
   <!ELEMENT superscript (%LINECONTENT;)>
@@ -21,7 +22,7 @@
   <!ENTITY % BLOCKCONTENT "(#PCDATA|%BLOCKMARKUP;)">
   <!ENTITY % BLOCKMARKUP "(figure|header|ilines|lines|paragraph|quote|subheader)">
   <!ENTITY % LINECONTENT "(#PCDATA|%LINEMARKUP;)">
-  <!ENTITY % LINEMARKUP "(emphasis|footnote|page|superscript)">
+  <!ENTITY % LINEMARKUP "(emphasis|footnote|page|prepage|superscript)">
   
   <!ATTLIST footnote name CDATA #REQUIRED>
   <!ATTLIST iline index CDATA #REQUIRED>
@@ -30,4 +31,5 @@
     xlink:href CDATA #REQUIRED
   >
   <!ATTLIST page name CDATA #REQUIRED>
+  <!ATTLIST prepage name CDATA #REQUIRED>
 ]>

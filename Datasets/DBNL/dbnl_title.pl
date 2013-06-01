@@ -158,9 +158,6 @@ dbnl_title0(Graph, Title) -->
       member(Genre, Genres),
       rdf_assert(Title, dbnl:genre, Genre, Graph)
     )
-% DO NOT WORK?!
-%    atom_codes(GenresAtom, GenresCodes),
-%    phrase(dbnl_genres(Graph, Title), GenresCodes)
   },
   dbnl_title0(Graph, Title).
 % Subgenres.
@@ -188,8 +185,7 @@ dbnl_title0(Graph, Title) -->
   [element(span, [class='titelpagina-titel'], [Atom])],
   !,
   % A year may occur after the title.
-  {atom_codes(Atom, Codes),
-  phrase(dbnl_title_year(Graph, Title), Codes)},
+  {dcg_phrase(dbnl_title_year(Graph, Title), Atom)},
   dbnl_title0(Graph, Title).
 % Summary
 dbnl_title0(Graph, Title) -->
@@ -247,7 +243,7 @@ dbnl_title_year(Graph, Title) -->
   (dbnl_volume(Graph, Title), blank ; ""),
   dbnl_year(Graph, Title).
 dbnl_title_year(Graph, Title) -->
-  dbnl_title((blank, opening_bracket), Graph, Title), blank,
+  dbnl_title((space, opening_bracket), Graph, Title), blank,
   dbnl_year(Graph, Title).
 
 dbnl_volume(Graph, Title) -->

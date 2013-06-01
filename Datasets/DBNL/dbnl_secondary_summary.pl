@@ -37,15 +37,17 @@ dbnl_secondary(Graph, Title) -->
 %! dbnl_secondary_summary(
 %!   +Graph:atom,
 %!   +Title:uri,
-%!   +Type:oneof([secondary,summary]),
-%!   +Contents:dom
-%! ) is det.
+%!   +Type:oneof([secondary,summary])
+%! )// is det.
 
 dbnl_secondary_summary(Graph, Title, Type) -->
   [element(dt, [], C)],
-  {phrase(dbnl_secondary_summary(Graph, Title, Type), C)}.
+  !,
+  {phrase(dbnl_secondary_summary(Graph, Title, Type), C)},
+  dbnl_secondary_summary(Graph, Title, Type).
 dbnl_secondary_summary(Graph, Title, Type) -->
   [AuthorName, element(a, Attrs, [TitleName]), Atom],
+  !,
   {
     memberchk(href=RelativeURI, Attrs),
     dbnl_uri_resolve(RelativeURI, AbsoluteURI),
@@ -55,18 +57,19 @@ dbnl_secondary_summary(Graph, Title, Type) -->
     rdf_assert_datatype(Text, dbnl:author, string, AuthorName, Graph),
     rdf_assert_datatype(Text, dbnl:title, string, TitleName, Graph),
     rdf_assert(Text, dbnl:original_page, AbsoluteURI, Graph),
-    atom_codes(Atom, Codes),
-    phrase(dbnl_secondary_summary0(Graph, Title), Codes)
-  }.
+    dcg_phrase(dbnl_secondary_summary0(Graph, Title), Atom)
+  },
+  dbnl_secondary_summary(Graph, Title, Type).
+dbnl_secondary_summary(_Graph, _Title, _Type) --> [].
 
 dbnl_secondary_summary0(Graph, Title) -->
   dbnl_journal(Lang, JournalName), comma, blank,
   {rdf_assert_literal(Title, dbnl:venue, JournalName, Graph)},
   dbnl_year(Lang, Year),
   {dbnl_assert_year(Graph, Title, Year)}.
-dbnl_secondary_summary0(_Graph, _Title, R, []):-
-  gtrace, %DEB
-  format(user_output, '~w\n', [R]).
+% Debug.
+dbnl_secondary_summary0(_Graph, _Title) -->
+  dcg_debug.
 
 dbnl_summary(Graph, Title) -->
   dbnl_secondary_summary(Graph, Title, summary).

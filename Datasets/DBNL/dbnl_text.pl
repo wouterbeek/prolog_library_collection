@@ -98,7 +98,7 @@ dbnl_text(Graph, Title, URI, Text):-
     dbnl_assert_text(Graph, URI, Text),
     rdf_assert(Title, dbnl:downloads, Text, Graph),
 gtrace,
-    dbnl_downloads(Graph, Text, Contents)
+    phrase(dbnl_downloads(Graph, Text), Contents, [])
   ;
     % Scans, also for download.
     xpath2(Contents, //div(@class='pb-scan'), _)
@@ -115,7 +115,7 @@ gtrace,
     dbnl_assert_toc(Graph, URI, Text),
     rdf_assert(Title, dbnl:toc, Text, Graph),
 gtrace,
-    phrase(dbnl_text0(Graph, Text), Contents)
+    phrase(dbnl_text0(Graph, Text), Contents, [])
   ;
     % Only checking, not retrieving.
     xpath2(Contents, //dt, DT),
@@ -125,7 +125,7 @@ gtrace,
     dbnl_assert_volume_collection(Graph, URI, Text),
     rdf_assert(Title, dbnl:volume_collection, Text, Graph),
 gtrace,
-    phrase(dbnl_text0(Graph, Text), Contents)
+    phrase(dbnl_text0(Graph, Text), Contents, [])
   ;
     % Only checking, not retrieving.
     xpath2(Contents, //div(@class=contentholder), _)
@@ -144,34 +144,19 @@ gtrace,
     % Any other text.
     dbnl_assert_text(Graph, URI, Text),
 gtrace,
-    phrase(dbnl_text0(Graph, Text), Contents)
+    phrase(dbnl_text0(Graph, Text), Contents, [])
   ),
 
   rdf_assert(Text, dbnl:original_page, URI, Graph),
 
   % Parse left DIV.
   dbnl_dom_left(DOM, Left),
-  phrase(dbnl_text_left(Graph, Text), Left),
+  phrase(dbnl_text_left(Graph, Text), Left, []),
 
   % Parse right DIV.
-  dbnl_dom_left(DOM, Right),
+  dbnl_dom_right(DOM, Right),
   phrase(dbnl_text_right(Graph, Text), Right),
   !.
-/*
-  % Retrieve the colofon DOM.
-  atom_concat(URI2, '/colofon.php', ColofonURI),
-  dbnl_colofon(Graph, Title, ColofonURI),
-  % Retrieve the downloads DOM.
-  atom_concat(URI2, '/downloads.php', DownloadsURI),
-  dbnl_downloads(Graph, Title, DownloadsURI),
-  % Retrieve the index DOM.
-  atom_concat(URI2, '/index.php', IndexURI),
-  dbnl_process_text_index(Graph, Title, IndexURI),
-dbnl_process_text_index(_Graph, _Title, URI):-
-  dbnl_uri_to_html(URI, DOM),
-  dbnl_dom_center(DOM, Contents),
-  write(Contents).
-*/
 % Debug.
 dbnl_text(_Graph, _Title, URI, _Text):-
   gtrace, %DEB
@@ -190,9 +175,9 @@ dbnl_text0(Graph, Text) -->
   {phrase(dbnl_text0(Graph, Text), Content)},
   dbnl_text0(Graph, Text).
 % Table of contents.
-dbnl_text0(Graph, TOC, [element(h2, [class=inhoud], TOC_Title) | Contents], []):-
+dbnl_text0(Graph, TOC, [element(h2, [class=inhoud], [TOC_Title]) | Contents], []):-
   !,
-  phrase(dbnl_toc_title(Type, Name), TOC_Title),
+  dcg_phrase(dbnl_toc_title(Type, Name), TOC_Title),
   write(Type),
   write(Name),
   dbnl_toc(Graph, TOC, Contents).
@@ -210,21 +195,22 @@ dbnl_text0(Graph, Text) -->
 % Assert the supposed author.
 % This is used in the left DIV to distinguish authors from editors.
 dbnl_text0(Graph, Text) -->
-  [element(_, [class=author], [Author1])],
+  [element(_, [class=author], [Author])],
   !,
-  {atom_codes(Author1, Author2),
-  phrase(dbnl_author(AuthorName), Author2),
-  rdf_assert(Text, dbnl:supposed_author, AuthorName, Graph)},
+  {
+    dcg_phrase(dbnl_author(AuthorName), Author),
+    rdf_assert(Text, dbnl:supposed_author, AuthorName, Graph)
+  },
   dbnl_text0(Graph, Text).
 % Assert the supposed editor.
 % This is used in the left DIV to distinguish authors from editors.
 dbnl_text0(Graph, Text) -->
   [element(p, [class=editor], [Editor])],
   !,
-  {gtrace,
-  atom_codes(Editor, Codes),
-  phrase(dbnl_editor(EditorName), Codes),
-  rdf_assert_literal(Text, dbnl:supposed_editor, EditorName, Graph)},
+  {
+    dcg_phrase(dbnl_editor(EditorName), Editor),
+    rdf_assert_literal(Text, dbnl:supposed_editor, EditorName, Graph)
+  },
   dbnl_text0(Graph, Text).
 % Skip interp (what is this anyway?).
 dbnl_text0(Graph, Text) -->
@@ -297,11 +283,7 @@ dbnl_text0(Graph, Text) -->
 % Copyright atom.
 dbnl_text0(Graph, Text) -->
   [Atom],
-  {
-    atom(Atom),
-    atom_codes(Atom, Codes),
-    phrase(dbnl_copyright(Graph, Text), Codes)
-  },
+  {dcg_phrase(dbnl_copyright(Graph, Text), Atom)},
   !,
   dbnl_text0(Graph, Text).
 % Debug.

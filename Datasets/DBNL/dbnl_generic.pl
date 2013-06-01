@@ -19,8 +19,9 @@
     dbnl_copyright//2, % +Graph:atom
                        % +Text:uri
     dbnl_editor//1, % -EditorName:atom
-    dbnl_extract_page/2, % +Atom:atom
-                         % -Page:integer
+    dbnl_page/3, % +Atom:atom
+                 % -Type:oneof([page,prepage])
+                 % -Page:integer
     dbnl_genres//2, % +Graph:atom
                     % +Text:uri
     dbnl_handwritten//2, % ?Language:atom
@@ -85,6 +86,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(dcg(dcg_ascii)).
 :- use_module(dcg(dcg_dict)).
 :- use_module(dcg(dcg_generic)).
+:- use_module(dcg(dcg_page)).
 :- use_module(dcg(dcg_print)).
 :- use_module(dcg(dcg_volume)).
 :- use_module(dcg(dcg_year)).
@@ -170,13 +172,24 @@ dbnl_author(AuthorName) -->
   dcg_atom_all(AuthorName).
 
 dbnl_copyright(Graph, Text) -->
+  [element(div, [class=copyright|_], [element(a, _, ['©']), Atom])],
+  !,
+  {
+    split_atom_exclusive(' ', Atom, [Year, Organization]),
+    dbnl_copyright0(Graph, Text, Year, Organization)
+  }.
+dbnl_copyright(Graph, Text) -->
   [Atom],
   {
-    split_atom_exclusive(' ', Atom, ['©', Year1, Organization]),
-    atom_number(Year1, Year),
-    dbnl_assert_copyright(Graph, Organization, Year, Copyright),
-    rdf_assert(Text, dbnl:copyright, Copyright, Graph)
+    atom(Atom),
+    split_atom_exclusive(' ', Atom, ['©', Year, Organization]),
+    dbnl_copyright0(Graph, Text, Year, Organization)
   }.
+
+dbnl_copyright0(Graph, Text, Year1, Organization):-
+  atom_number(Year1, Year2),
+  dbnl_assert_copyright(Graph, Organization, Year2, Copyright),
+  rdf_assert(Text, dbnl:copyright, Copyright, Graph).
 
 dbnl_editor(EditorName) -->
   ("editie" ; "hoofdredactie"),
@@ -184,10 +197,10 @@ dbnl_editor(EditorName) -->
   string(Codes),
   {atom_codes(Codes, EditorName)}.
 
-dbnl_extract_page(Atom1, Page):-
-  atom_concat('[p. ', Atom2, Atom1),
-  atom_concat(Atom3, ']', Atom2),
-  atom_number(Atom3, Page).
+dbnl_page(Atom, Type2, Page):-
+  dcg_phrase(page(_Lang, Type1, Page), Atom),
+  if_then(Type1 == roman, Type2 = prepage),
+  if_then(Type1 == arabic, Type2 = page).
 
 dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
@@ -219,23 +232,10 @@ dbnl_journal(Graph, Text) -->
     )
   }.
 
-journal(Lang, Title, Volume) -->
-  % Example: "In: ...".
-  (pre(Lang), colon, blank ; ""),
-  
-  (
-    dcg_atom_until(comma, Title), comma, blank
-  ;
-    dcg_atom_until(dot, Title), dot, blank
-  ),
-  % With or without a volume.
-  (volume(Lang, Volume) ; "").
-
 dbnl_logo -->
   [element(img, Attrs, [])],
   {memberchk(alt='DBNL vignet', Attrs)},
-  {memberchk(src='../dbnllogo.gif', Attrs)},
-  !.
+  {memberchk(src='../dbnllogo.gif', Attrs)}.
 
 dbnl_publication_print(Lang, Number, Changes) -->
   publication_print(Lang, Number, Changes).
@@ -388,4 +388,16 @@ dbnl_uri_to_html(URI1, DOM):-
       )
     )
   ).
+
+journal(Lang, Title, Volume) -->
+  % Example: "In: ...".
+  (pre(Lang), colon, blank ; ""),
+
+  (
+    dcg_atom_until(comma, Title), comma, blank
+  ;
+    dcg_atom_until(dot, Title), dot, blank
+  ),
+  % With or without a volume.
+  (volume(Lang, Volume) ; "").
 

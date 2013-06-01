@@ -129,11 +129,11 @@ dbnl_markup(_Options, ['\240\'], []):-
 dbnl_markup(
   Options,
   [element(div, Attributes, [PageAtom]) | Contents1],
-  [element(page, [name=Page], []) | Contents2]
+  [element(PageElement, [name=Page], []) | Contents2]
 ):-
   memberchk(class=pb, Attributes),
   !,
-  dbnl_extract_page(PageAtom, Page),
+  dbnl_page(PageAtom, PageElement, Page),
   dbnl_markup(Options, Contents1, Contents2).
 % Several dedicated DIV classes related to poetry.
 dbnl_markup(

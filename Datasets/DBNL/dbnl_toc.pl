@@ -23,6 +23,7 @@ Predicates for asserting a table of contents text from the DBNL.
 :- use_module(library(dcg/basics)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(rdf(rdf_build)).
 :- use_module(rdfs(rdfs_build)).
 :- use_module(xml(xml_namespace)).
@@ -43,7 +44,7 @@ Predicates for asserting a table of contents text from the DBNL.
 dbnl_toc(Graph, TOC, Contents):-
   dbnl_toc(Graph, TOC, Subtexts, Contents),
   rdf_assert_list(Subtexts, RDF_List, Graph),
-  rdf(Title, dbnl:text, TOC, Graph),
+  rdf_has(Title, dbnl:text, TOC),
   rdf_assert(Title, dbnl:toc, RDF_List, Graph).
 
 %! dbnl_toc(

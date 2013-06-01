@@ -20,7 +20,6 @@ Predicates for scraping the left DIV of text pages in the DBNL.
 :- use_module(dcg(dcg_generic)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
@@ -49,15 +48,15 @@ dbnl_text_left(Graph, Text) -->
     element(
       p,
       [class=verantwoording],
-      [element(a, Attributes, [verantwoording])]
+      [element(a, Attrs, [verantwoording])]
     )
   ],
   {(
-    member(class=chosen, Attributes)
+    member(class=chosen, Attrs)
   ->
     true
   ;
-    memberchk(href=_RelativeURI, Attributes)
+    memberchk(href=_RelativeURI, Attrs)
     %rdf(Text, dbnl:original_page, URI, Graph),
     %dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
     %dbnl_text(Graph, Text, AbsoluteURI, Justification),
@@ -71,15 +70,15 @@ dbnl_text_left(Graph, Text) -->
     element(
       p,
       [class=inhoudsopgave],
-      [element(a, Attributes, [inhoudsopgave])]
+      [element(a, Attrs, [inhoudsopgave])]
     )
   ],
   {(
-    member(class=chosen, Attributes)
+    member(class=chosen, Attrs)
   ->
     true
   ;
-    memberchk(href=RelativeURI, Attributes),
+    memberchk(href=RelativeURI, Attrs),
     rdf(Text, dbnl:original_page, URI, Graph),
     dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
     dbnl_text(Graph, Text, AbsoluteURI, TOC),
@@ -89,13 +88,13 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Downloads text.
 dbnl_text_left(Graph, Text) -->
-  [element(a, Attributes, [downloads])],
+  [element(a, Attrs, [downloads])],
   {(
-    member(class=chosen, Attributes)
+    member(class=chosen, Attrs)
   ->
     true
   ;
-    memberchk(href=RelativeURI, Attributes),
+    memberchk(href=RelativeURI, Attrs),
     rdf(Text, dbnl:original_page, URI, Graph),
     dbnl_uri_resolve(RelativeURI, URI, AbsoluteURI),
     dbnl_text(Graph, Text, AbsoluteURI, Downloads),
@@ -119,14 +118,12 @@ dbnl_text_left(Graph, Text) -->
   [element(br, _, [])],
   !,
   dbnl_text_left(Graph, Text).
-% Author.
+% Author / editor.
 dbnl_text_left(Graph, Text) -->
-  [AuthorAtom, element(a, Attributes, [AuthorName])],
+  [Prefix, element(a, Attrs, [AuthorName])],
   {
-    atom(AuthorAtom),
-    strip_atom([' ',':'], AuthorAtom, 'auteur'),
-    !,
-    memberchk(href=RelativeURI, Attributes),
+    memberchk(Prefix, ['auteur:','editeur:']),
+    memberchk(href=RelativeURI, Attrs),
     dbnl_uri_resolve(RelativeURI, AbsoluteURI),
     (
       rdf_retractall(Text, dbnl:supposed_author, AuthorName, Graph)
@@ -145,12 +142,12 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Illustrator.
 dbnl_text_left(Graph, Text) -->
-  [IllustratorAtom, element(a, Attributes, [IllustratorName])],
+  [IllustratorAtom, element(a, Attrs, [IllustratorName])],
   {
     atom(IllustratorAtom),
     strip_atom([' ',':'], IllustratorAtom, 'illustrator'),
     !,
-    memberchk(href=RelativeURI, Attributes),
+    memberchk(href=RelativeURI, Attrs),
     dbnl_uri_resolve(RelativeURI, AbsoluteURI),
     dbnl_assert_author(Graph, AbsoluteURI, IllustratorName, Illustrator),
     rdf_assert(Text, dbnl:illustrator, Illustrator, Graph)
@@ -158,45 +155,18 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Source.
 dbnl_text_left(Graph, Text) -->
-  ['bron:', element(i, [], [Journal1]), Year1],
+  ['bron:', element(i, [], [Journal]), Year],
   {
-    atom_codes(Journal1, Journal2),
-    phrase(dbnl_journal(Graph, Text), Journal2),
-    atom_codes(Year1, Year2),
-    phrase(dbnl_year(Graph, Text), Year2)
-  },
-  dbnl_text_left(Graph, Text).
-dbnl_text_left(Graph, Text) -->
-  [AuthorName1, element(i, [], [PublicationName])],
-  {
-    atom_concat('bron:', AuthorName2, AuthorName1),
-    !,
-    strip_atom([' ',','], AuthorName2, AuthorName3),
-
-    % Just checking... author name.
-    (
-      % No author name always works.
-      AuthorName3 = ''
-    ->
-      true
-    ;
-      rdf(Text, dbnl:author, Author, Graph),
-      rdfs_label(Author, AuthorName3),
-      rdfs_label(Text, PublicationName)
-    ->
-      true
-    ;
-      gtrace %DEB
-    )
+    dcg_phrase(dbnl_journal(Graph, Text), Journal),
+    dcg_phrase(dbnl_year(Graph, Text), Year)
   },
   dbnl_text_left(Graph, Text).
 % Journal year.
 dbnl_text_left(Graph, Text) -->
-  [X],
+  [Atom],
   {
-    atom(X),
-    atom_codes(X, Y),
-    phrase(dbnl_source(Graph, Text), Y)
+    atom(Atom),
+    dcg_phrase(dbnl_source(Graph, Text), Atom)
   },
   dbnl_text_left(Graph, Text).
 % Illustrations source.
@@ -236,7 +206,13 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Copyright.
 dbnl_text_left(Graph, Text) -->
+{gtrace},
   dbnl_copyright(Graph, Text),
+  !,
+  dbnl_text_left(Graph, Text).
+% Logo
+dbnl_text_left(Graph, Text) -->
+  dbnl_logo,
   !,
   dbnl_text_left(Graph, Text).
 % Debug.
