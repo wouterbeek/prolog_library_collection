@@ -25,6 +25,8 @@
                     % +Text:uri
     dbnl_handwritten//2, % ?Language:atom
                          % ?Handwritten:boolean
+    dbnl_journal//2, % +Graph:atom
+                     % +Text:uri
     dbnl_logo//0,
     dbnl_publication_print//3, % ?Lang:atom
                                % ?Number:integer
@@ -81,8 +83,10 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(dbnl(dbnl_db)).
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dcg(dcg_ascii)).
+:- use_module(dcg(dcg_dict)).
 :- use_module(dcg(dcg_generic)).
 :- use_module(dcg(dcg_print)).
+:- use_module(dcg(dcg_volume)).
 :- use_module(dcg(dcg_year)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(http/http_open)).
@@ -158,9 +162,12 @@ dbnl_dom_right(DOM, Content):-
 
 % DCGS %
 
+% Ended by a separator.
 dbnl_author(AuthorName) -->
-  string(Codes),
-  {atom_codes(AuthorName, Codes)}.
+  dcg_atom_until(comma, AuthorName).
+% The entiry input.
+dbnl_author(AuthorName) -->
+  dcg_atom_all(AuthorName).
 
 dbnl_copyright(Graph, Text) -->
   [Atom],
@@ -186,18 +193,43 @@ dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
   (colon, blank ; ""),
   (
-    dcg_string_until(",", GenreCodes), comma, blank
+    dcg_atom_until(comma, GenreAtom), comma, blank
   ;
-    dcg_all(GenreCodes), {GenreCodes \== []}
+    dcg_atom_all(GenreAtom), {GenreAtom \== ''}
   ),
   {
-    atom_codes(GenreAtom, GenreCodes),
     dbnl_assert_genre(Graph, GenreAtom, Genre),
     rdf_assert(Text, dbnl:genre, Genre, Graph)
   },
   dbnl_genres(Graph, Text).
 
 dbnl_handwritten(nl, true) --> "(handschrift)".
+
+dbnl_journal(Graph, Text) -->
+  journal(Lang, Title, Volume),
+  {
+    if_then_else(
+      var(Lang),
+      rdf_assert_literal(Text, dbnl:journal, Title, Graph),
+      rdf_assert_literal(Text, dbnl:journal, Lang, Title, Graph)
+    ),
+    unless(
+      var(Volume),
+      rdf_assert_datatype(Text, dbnl:volume, int, Volume, Graph)
+    )
+  }.
+
+journal(Lang, Title, Volume) -->
+  % Example: "In: ...".
+  (pre(Lang), colon, blank ; ""),
+  
+  (
+    dcg_atom_until(comma, Title), comma, blank
+  ;
+    dcg_atom_until(dot, Title), dot, blank
+  ),
+  % With or without a volume.
+  (volume(Lang, Volume) ; "").
 
 dbnl_logo -->
   [element(img, Attrs, [])],
@@ -214,23 +246,27 @@ dbnl_publication_print(nl, _Number, _Changes) -->
 
 dbnl_source(Graph, Text) -->
   "bron", colon, blank,
-  dcg_atom_until(", ", Author), comma, blank,
-  {rdf_assert_literal(Text, dbnl:author, Author, Graph)},
-  dcg_atom_until(". ", Title), dot, blank,
-  {rdf_assert_literal(Text, dbnl:title, Title, Graph)},
-  dcg_atom_until(", ", Publisher), comma, blank,
-  {rdf_assert_literal(Text, dbnl:publisher, Publisher, Graph)},
+  dbnl_author(Author), comma, blank,
+  % Book title. Publisher. Cities.
+  dcg_atom_until(dot, Title), dot, blank,
+  dcg_atom_until(comma, Publisher), comma, blank,
   dcg_separated_list(forward_slash, Cities1), blank,
-  year(_Lang, _Year), blank,
+  year(_Lang2, _Year), blank,
   !,
-  {maplist(atom_codes, Cities2, Cities1),
-   forall(
-     member(City, Cities2),
-     rdf_assert_literal(Text, dbnl:city, City, Graph)
-   ),gtrace},
-  dcg_all.
+  {
+    rdf_assert_literal(Text, dbnl:author, Author, Graph),
+    rdf_assert_literal(Text, dbnl:title, Title, Graph),
+    rdf_assert_literal(Text, dbnl:publisher, Publisher, Graph),
+    maplist(atom_codes, Cities2, Cities1),
+    forall(
+      member(City, Cities2),
+      rdf_assert_literal(Text, dbnl:city, City, Graph)
+    )
+  },
+  dcg_string_all(_).
 
 dbnl_year(Graph, Text) -->
+  (dot, blank ; ""),
   dbnl_year0(_Lang, Year),
   {dbnl_assert_year(Graph, Text, Year)}.
 

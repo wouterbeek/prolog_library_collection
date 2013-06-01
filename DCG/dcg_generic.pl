@@ -2,15 +2,15 @@
   dcg_generic,
   [
     conj//1, % ?Lang:atom
-    dcg_atom_until//2, % +End:list(code)
+    dcg_atom_until//2, % +End:dcg
                        % -Atom:atom
-    dcg_all//0,
-    dcg_all//1, % -L:list(code)
+    dcg_atom_all//1, % -Atom:atom
     dcg_debug//0,
     dcg_peek//1, % -X:code
     dcg_separated_list//2, % +Separator:dcg
-                           % -List:list
-    dcg_string_until//2, % +End:list(code)
+                           % -Codess:list(list(codes))
+    dcg_string_all//1, % -Codes:list(code)
+    dcg_string_until//2, % +End:dcg
                          % -Codes:list(code)
     disj//1, % ?Lang:atom
     language//1, % ?Lang:atom
@@ -30,7 +30,9 @@ Generic DCG clauses.
 :- reexport(library(dcg/basics)).
 :- reexport(library(lists)).
 
+:- meta_predicate(dcg_atom_until(//,-,+,-)).
 :- meta_predicate(dcg_separated_list(//,-,+,-)).
+:- meta_predicate(dcg_string_until(//,-,+,-)).
 
 
 
@@ -38,15 +40,13 @@ dcg_atom_until(End, Atom) -->
   dcg_string_until(End, Codes),
   {atom_codes(Atom, Codes)}.
 
+dcg_atom_all(Atom) -->
+  dcg_string_all(Codes),
+  {atom_codes(Atom, Codes)}.
+
 conj(en) --> "and".
 conj(nl) --> "en".
 conj(_Lang) --> comma.
-
-dcg_all --> [].
-dcg_all --> [_], dcg_all.
-
-dcg_all([]) --> [].
-dcg_all([H|T]) --> [H], dcg_all(T).
 
 dcg_debug(L, []):-
   format(user_output, '~w\n', [L]).
@@ -56,7 +56,8 @@ dcg_peek(X), [X] -->
 
 dcg_separated_list(Separator, [H|T]) -->
   string(H),
-  blank, Separator, blank,
+  % Allow symmetric spaces.
+  (Separator ; blank, Separator, blank),
   !,
   dcg_separated_list(Separator, T).
 dcg_separated_list(_Separator, [H]) -->
@@ -66,11 +67,15 @@ disj(nl) --> "of".
 
 language(nl) --> "Latijn".
 
-dcg_string_until([H|End], [], [H|L], [H|L]):-
-  append(End, _, L),
+dcg_string_all([]) --> [].
+dcg_string_all([H|T]) --> [H], dcg_string_all(T).
+
+dcg_string_until(End, []), End -->
+  End,
   !.
-dcg_string_until(End, [H|T], [H|L], R):-
-  dcg_string_until(End, T, L, R).
+dcg_string_until(End, [H|T]) -->
+  [H],
+  dcg_string_until(End, T).
 
 % Three dots uncertainty representation.
 uncertainty(_Lang) --> "...".

@@ -19,7 +19,6 @@ Scrapes a DBNL index of titles.
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_title)).
 :- use_module(dcg(dcg_ascii)).
-:- use_module(dcg(dcg_print)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -115,7 +114,7 @@ dbnl_scrape(Category, Order):-
   % First we assert all titles.
   dbnl_uri_to_html(URI, DOM),
   dbnl_index(Graph, DOM),
-  
+
   % After all titles have been asserted we start scraping them.
   dbnl_titles(Graph).
 
@@ -225,7 +224,7 @@ dbnl_index_title(_Graph, Contents):-
 dbnl_index_year_etc(Graph, Title, Handwritten, Lang, Print, Changes) -->
   % Parse: Year.
   dbnl_year(Graph, Title), (comma ; semi_colon ; ""),
-  
+
   % Parse: Handwritten.
   (blank, dbnl_handwritten(Lang, Handwritten) ; ""),
 

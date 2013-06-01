@@ -72,6 +72,8 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
+:- meta_predicate(dbnl_title(//,+,+,+,-)).
+
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
 
 
@@ -101,6 +103,7 @@ dbnl_title(Graph, Title, URI):-
   % Process contents.
   dbnl_dom_center(DOM, Content),
   xpath2(Content, div(content), Contents),
+gtrace,
   phrase(dbnl_title0(Graph, Title), Contents),
 
   % Picarta link.
@@ -236,18 +239,15 @@ dbnl_title0(_Graph, _Title) -->
 
 dbnl_title(End, Graph, Title) -->
   % Title.
-  dcg_string_until(End, TitleCodes),
-  {
-    atom_codes(TitleAtom, TitleCodes),
-    rdfs_assert_label(Title, TitleAtom, Graph)
-  }.
+  dcg_atom_until(End, TitleAtom),
+  {rdfs_assert_label(Title, TitleAtom, Graph)}.
 
 dbnl_title_year(Graph, Title) -->
-  dbnl_title(".", Graph, Title), dot, blank,
+  dbnl_title(dot, Graph, Title), dot, blank,
   (dbnl_volume(Graph, Title), blank ; ""),
   dbnl_year(Graph, Title).
 dbnl_title_year(Graph, Title) -->
-  dbnl_title(" (", Graph, Title), blank,
+  dbnl_title((blank, opening_bracket), Graph, Title), blank,
   dbnl_year(Graph, Title).
 
 dbnl_volume(Graph, Title) -->

@@ -59,11 +59,6 @@ dbnl_secondary_summary(Graph, Title, Type) -->
     phrase(dbnl_secondary_summary0(Graph, Title), Codes)
   }.
 
-dbnl_journal(Lang, Name) -->
-  pre(Lang), colon, blank,
-  dcg_string_until(",", Codes),
-  {atom_codes(Name, Codes)}.
-
 dbnl_secondary_summary0(Graph, Title) -->
   dbnl_journal(Lang, JournalName), comma, blank,
   {rdf_assert_literal(Title, dbnl:venue, JournalName, Graph)},
@@ -75,7 +70,4 @@ dbnl_secondary_summary0(_Graph, _Title, R, []):-
 
 dbnl_summary(Graph, Title) -->
   dbnl_secondary_summary(Graph, Title, summary).
-
-pre(nl) --> "In".
-pre(nl) --> "in".
 

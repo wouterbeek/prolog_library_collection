@@ -158,9 +158,13 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Source.
 dbnl_text_left(Graph, Text) -->
-  [Atom],
-  {atom_codes(Atom, Codes),
-   phrase(dbnl_source(Graph, Text), Codes)},
+  ['bron:', element(i, [], [Journal1]), Year1],
+  {
+    atom_codes(Journal1, Journal2),
+    phrase(dbnl_journal(Graph, Text), Journal2),
+    atom_codes(Year1, Year2),
+    phrase(dbnl_year(Graph, Text), Year2)
+  },
   dbnl_text_left(Graph, Text).
 dbnl_text_left(Graph, Text) -->
   [AuthorName1, element(i, [], [PublicationName])],
@@ -192,16 +196,7 @@ dbnl_text_left(Graph, Text) -->
   {
     atom(X),
     atom_codes(X, Y),
-    phrase(dbnl_source(Graph, Text), Y),
-    atom_concat('Jaargang ', H2, _),
-    !,
-    (
-      split_atom_exclusive('.', H2, [JYear1, H3]),
-      atom_number(JYear1, JYear2),
-      rdf_assert_datatype(Text, dbnl:journal_year, int, JYear2, Graph)
-    ;
-      H3 = H2
-    )
+    phrase(dbnl_source(Graph, Text), Y)
   },
   dbnl_text_left(Graph, Text).
 % Illustrations source.
