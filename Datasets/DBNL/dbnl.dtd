@@ -9,10 +9,12 @@
   <!ELEMENT iline (%LINECONTENT;)>
   <!ELEMENT ilines (iline)>
   <!ELEMENT image EMPTY>
+  <!ELEMENT intertextual_link EMPTY>
   <!ELEMENT line (%LINECONTENT;)>
   <!ELEMENT lines (line)>
   <!ELEMENT page (#PCDATA)>
   <!ELEMENT paragraph (%BLOCKCONTENT;)>
+  <!ELEMENT poemheader (%LINECONTENT;)>
   <!ELEMENT prepage (#PCDATA)>
   <!ELEMENT quote (%LINECONTENT;)>
   <!ELEMENT subheader (%LINECONTENT;)>
@@ -20,9 +22,9 @@
   <!ELEMENT topic (%LINECONTENT;)>
   
   <!ENTITY % BLOCKCONTENT "(#PCDATA|%BLOCKMARKUP;)">
-  <!ENTITY % BLOCKMARKUP "(figure|header|ilines|lines|paragraph|quote|subheader)">
+  <!ENTITY % BLOCKMARKUP "(figure|header|ilines|lines|paragraph|poemheader|quote|subheader)">
   <!ENTITY % LINECONTENT "(#PCDATA|%LINEMARKUP;)">
-  <!ENTITY % LINEMARKUP "(emphasis|footnote|page|prepage|superscript)">
+  <!ENTITY % LINEMARKUP "(emphasis|intertextual_link|footnote|page|prepage|superscript)">
   
   <!ATTLIST footnote name CDATA #REQUIRED>
   <!ATTLIST iline index CDATA #REQUIRED>
@@ -30,6 +32,8 @@
     xlink:type (simple) "simple"
     xlink:href CDATA #REQUIRED
   >
+  <!ATTLIST intertextual_link href CDATA #REQUIRED>
   <!ATTLIST page name CDATA #REQUIRED>
   <!ATTLIST prepage name CDATA #REQUIRED>
 ]>
+

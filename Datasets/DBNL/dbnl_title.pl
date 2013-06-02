@@ -61,14 +61,11 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(dbnl(dbnl_generic)).
 :- use_module(dbnl(dbnl_primary)).
 :- use_module(dbnl(dbnl_secondary_summary)).
-:- use_module(dcg(dcg_ascii)).
 :- use_module(dcg(dcg_generic)).
-:- use_module(dcg(dcg_volume)).
 :- use_module(generics(atom_ext)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
@@ -101,7 +98,6 @@ dbnl_title(Graph, Title, URI):-
   % Process contents.
   dbnl_dom_center(DOM, Content),
   xpath2(Content, div(content), Contents),
-gtrace,
   phrase(dbnl_title0(Graph, Title), Contents),
 
   % Picarta link.
@@ -196,17 +192,18 @@ dbnl_title0(Graph, Title) -->
   !,
   dbnl_summary(Graph, Title),
   dbnl_title0(Graph, Title).
-% Assert the pimary text links.
+% Primary text links.
 dbnl_title0(Graph, Title) -->
   [element(h4, [], ['Beschikbare tekst in de dbnl'])],
   !,
   % Due to determinism issues we cannot use dcg_plus//1 here.
-  dcg_start(dbnl_primary_text_link(Graph, Title)),
+  dcg_star(dbnl_primary_text_link(Graph, Title)),
   dbnl_title0(Graph, Title).
-% Assert the secondary text links.
+% Secondary text links.
 dbnl_title0(Graph, Title) -->
   [element(h4, [], ['Secundaire literatuur in de dbnl'])],
   !,
+{gtrace},
   dbnl_summary(Graph, Title),
   dbnl_title0(Graph, Title).
 % Skip linebreaks.
@@ -226,17 +223,20 @@ dbnl_title0(Graph, Title) -->
   !,
 {gtrace},
   dbnl_title0(Graph, Title).
+dbnl_title0(_Graph, _Title) --> [], !.
 % Unrecognized content.
 dbnl_title0(_Graph, _Title) -->
   dcg_debug.
 
 dbnl_primary_text_link(Graph, Title) -->
   dcg_element(a, [href=RelativeURI], [TitleAtom]),
-  dcg_element(i, _, _),
+  % Sometimes a 'scans only' message occurs in italic. We skip this.
+  (dcg_element(i, _, _) ; ""),
   [YearAtom],
   !,
   {
     % A year may occur after the title.
+    %gtrace,
     dcg_phrase(dbnl_title(Graph, Title), TitleAtom),
     dcg_phrase(dbnl_year(Graph, Title), YearAtom),
     dbnl_uri_resolve(RelativeURI, AbsoluteURI),

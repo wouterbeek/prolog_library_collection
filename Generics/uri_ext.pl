@@ -17,6 +17,7 @@
 @version 2013/05
 */
 
+:- use_module(generics(cowspeak)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(uri)).
@@ -54,7 +55,9 @@ uri_to_file(URI, File):-
       close(Out),
       close(In)
     )
-  ).
+  ),
+  format(atom(Text), 'A new text was downloaded.', [File]),
+  cowspeak(Text).
 
 %! uri_query(+URI:uri, +Name:atom, -Value:atom) is det.
 

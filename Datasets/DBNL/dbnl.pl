@@ -33,11 +33,11 @@ Digitale Bibliotheek der Nederlanden
 
 
 dbnl_assert_schema(Graph):-
-  rdfs_assert_subproperty(dbnl:downloads, dbnl:text, Graph),
-  rdfs_assert_subproperty(dbnl:downloads, dbnl:toc, Graph),
-  rdfs_assert_subproperty(dbnl:downloads, dbnl:volume_collection, Graph).
+  rdfs_assert_subproperty(dbnl:downloads,         dbnl:text, Graph),
+  rdfs_assert_subproperty(dbnl:toc,               dbnl:text, Graph),
+  rdfs_assert_subproperty(dbnl:volume_collection, dbnl:text, Graph).
 
 dbnl_scrape:-
-  dbnl_scrape('Alle titels', 'alfabetisch op auteur'),
-  dbnl_assert_schema(dbnl).
+  dbnl_assert_schema(dbnl),
+  dbnl_scrape('Alle titels', 'alfabetisch op auteur').
 

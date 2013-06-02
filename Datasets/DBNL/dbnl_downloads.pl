@@ -55,88 +55,88 @@ There are two typoes of download page:
 
 % Parse nested DIVs.
 dbnl_downloads(Graph, Text) -->
-  [element(div, _, DIV_T)],
+  dcg_element(div, [], DIV_T),
   !,
   {phrase(dbnl_downloads(Graph, Text), DIV_T)},
   dbnl_downloads(Graph, Text).
 % Skip subheaders.
 dbnl_downloads(Graph, Text) -->
-  [element(h3, _, _)],
+  dcg_element(h3, [], _),
   !,
   dbnl_downloads(Graph, Text).
 % Skip line breaks.
 dbnl_downloads(Graph, Text) -->
-  [element(br, _, _)],
+  dcg_element(br, [], _),
   !,
   dbnl_downloads(Graph, Text).
-% Skip empty ePUB format.
+% Process links. There are four categories.
 dbnl_downloads(Graph, Text) -->
-  [
-    element(a, [name=epub_tekst|_], _),
-    element(p, [], ['Geen e-book van tekstbestand gevonden.'])
-  ],
+  dcg_element(a, [name=Name1], _),
   !,
-  dbnl_downloads(Graph, Text).
-% Skip empty PDFs of the text.
-dbnl_downloads(Graph, Text) -->
-  [
-    element(a, [name=pdf_tekst|_], _),
-    element(p, [], ['Geen pdf van tekstbestand gevonden.'])
-  ],
-  !,
-  dbnl_downloads(Graph, Text).
-% PDFs of the text.
-dbnl_downloads(Graph, Text) -->
-  [
-    element(a, [name=pdf_tekst|_], _),
-    element(p, [], [element(a, [href=PDFTextRelativeURI|_], _)|_])
-  ],
-  !,
-  {
-    dbnl_uri_resolve(PDFTextRelativeURI, PDFTextAbsoluteURI),
-    rdf_assert(Text, dbnl:remote_pdftext, PDFTextAbsoluteURI, Graph),
-    % Base the file name on a query item.
-    uri_query(PDFTextAbsoluteURI, filename, PDFTextFileName),
-    absolute_file_name(file(PDFTextFileName), PDFTextFile, []),
-    uri_to_file(PDFTextAbsoluteURI, PDFTextFile),
-    rdf_assert_datatype(Text, dbnl:local_pdftext, file, PDFTextFile, Graph)
-  },
-  dbnl_downloads(Graph, Text).
-% Skip empty PDFs of the originals.
-dbnl_downloads(Graph, Text) -->
-  [
-    element(a, [name=pdf_orig|_], _),
-    element(p, [], ['Geen pdf van originelen gevonden'])
-  ],
-  !,
-  dbnl_downloads(Graph, Text).
-% PDFs of the originals.
-dbnl_downloads(Graph, Text) -->
-  [
-    element(a, [name=pdf_orig|_], _),
-    element(p, [], [element(a, [href=ScansRelativeURI], _)|_])
-  ],
-  !,
-  {
-    dbnl_uri_resolve(ScansRelativeURI, ScansAbsoluteURI),
-    rdf_assert(Text, dbnl:remote_scans, ScansAbsoluteURI, Graph),
-    % Base the file name on a query item.
-    uri_query(ScansAbsoluteURI, filename, FileName),
-    absolute_file_name(file(FileName), ScansFile, []),
-    uri_to_file(ScansAbsoluteURI, ScansFile),
-    rdf_assert_datatype(Text, dbnl:local_scans, file, ScansFile, Graph)
-  },
-  dbnl_downloads(Graph, Text).
-% Scans of originals.
-dbnl_downloads(Graph, Text) -->
-  dcg_element(a, [name=orig], _),
-  !,
-  dcg_star(dbnl_downloads_original(Graph, Text)),
+  {dbnl_downloads_translate(Name1, Name2)},
+  dbnl_downloads_link(Graph, Text, Name2),
   dbnl_downloads(Graph, Text).
 dbnl_downloads(_Graph, _Text) --> [], !.
 % Debug.
 dbnl_downloads(_Graph, _Text) -->
   dcg_debug.
+
+% Zero links. Only a message saying nothing is here.
+dbnl_downloads_link(Graph, Text, Name) -->
+  dcg_element(p, [], [Atom]),
+  {atom(Atom)},
+  !,
+  dbnl_downloads_link(Graph, Text, Name).
+% A paragraph with DOM content.
+dbnl_downloads_link(Graph, Text, Name) -->
+  dcg_element(p, [], Content),
+  !,
+  {phrase(dbnl_downloads_link(Graph, Text, Name), Content)},
+  dbnl_downloads_link(Graph, Text, Name).
+% A download link. This is scraped.
+dbnl_downloads_link(Graph, Text, Name) -->
+  dcg_element(a, [href=RelativeURI], [download]),
+  ['-'],
+  dcg_element(a, [href=_RelativeURI], [bekijk]),
+  [_FileSizeAtom],
+  !,
+  {dbnl_downloads_link0(Graph, Text, RelativeURI, Name)},
+  dbnl_downloads_link(Graph, Text, Name).
+% Consecutive download links may occur, interspersed by linebreaks.
+dbnl_downloads_link(Graph, Text, Name) -->
+  [_Atom],
+  dcg_element(a, [href=RelativeURI], _),
+  dcg_element(br, [], _),
+  !,
+  {dbnl_downloads_link0(Graph, Text, RelativeURI, Name)},
+  dbnl_downloads_link(Graph, Text, Name).
+dbnl_downloads_link(_Graph, _Text, _Name) --> [].
+
+dbnl_downloads_link0(Graph, Text, RelativeURI, Name):-
+  dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+
+  % Remote link.
+  atomic_list_concat([remote,Name], '_', RemoteName),
+  rdf_global_id(dbnl:RemoteName, RemotePredicate),
+  rdf_assert(Text, RemotePredicate, AbsoluteURI, Graph),
+
+  % Local link.
+  % Base the file name on a query item.
+  uri_query(AbsoluteURI, filename, FileName),
+  absolute_file_name(file(FileName), File, []),
+  uri_to_file(AbsoluteURI, File),
+  atomic_list_concat([local,Name], '_', LocalName),
+  rdf_global_id(dbnl:LocalName, LocalPredicate),
+  rdf_assert_datatype(Text, LocalPredicate, file, File, Graph).
+
+dbnl_downloads_translate(epub_tekst, epub    ).
+dbnl_downloads_translate(orig,       original).
+dbnl_downloads_translate(pdf_orig,   scan    ).
+dbnl_downloads_translate(pdf_tekst,  pdf     ).
+
+
+
+% SCANS %
 
 dbnl_scans(Graph, Text, Contents):-
   forall(
@@ -158,18 +158,4 @@ dbnl_scans(Graph, Text, Contents):-
       rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph)
     )
   ).
-
-dbnl_downloads_original(Graph, Text) -->
-  [_Atom, element(a, Attrs, _), _BR],
-  !,
-  {
-    memberchk(href=RelativeURI, Attrs),
-    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-    rdf_assert(Text, dbnl:remote_original, AbsoluteURI, Graph),
-    % Base the file name on a query item.
-    uri_query(AbsoluteURI, filename, FileName),
-    absolute_file_name(file(FileName), ScansFile, []),
-    uri_to_file(AbsoluteURI, ScansFile),
-    rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph)
-  }.
 

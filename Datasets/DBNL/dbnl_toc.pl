@@ -40,12 +40,20 @@ Predicates for asserting a table of contents text from the DBNL.
 %
 % The list of contents is asserted as an RDF list consisting of blank nodes
 % for each chapter.
+%
+% @tbd Not all TOC lists are currently related to their title!
 
 dbnl_toc(Graph, TOC, Contents):-
   dbnl_toc(Graph, TOC, Subtexts, Contents),
   rdf_assert_list(Subtexts, RDF_List, Graph),
-  rdf_has(Title, dbnl:text, TOC),
-  rdf_assert(Title, dbnl:toc, RDF_List, Graph).
+  (
+    rdf_has(Title, dbnl:text, TOC),
+    rdfs_individual_of(Title, dbnl:'Title')
+  ->
+    rdf_assert(Title, dbnl:toc_list, RDF_List, Graph)
+  ;
+    true
+  ).
 
 %! dbnl_toc(
 %!   +Graph:atom,
@@ -60,7 +68,6 @@ dbnl_toc(_Graph, _TOC, [], []):-
 % I have seen paragraphs containing one and paragraphs containing two links,
 % so the case for one nested link inside a pragraph did not work.
 dbnl_toc(Graph, TOC, Subtexts, [element(p, [], Content) | Contents]):-
-gtrace,
   dbnl_toc(Graph, TOC, Subtexts1, Content),
   dbnl_toc(Graph, TOC, Subtexts2, Contents),
   append(Subtexts1, Subtexts2, Subtexts).
@@ -71,10 +78,8 @@ dbnl_toc(
   [Subtext | Subtexts],
   [element(a, Attributes, [SubtextName]) | Contents]
 ):-
-gtrace,
   memberchk(href=RelativeURI, Attributes),
   rdf(TOC, dbnl:original_page, BaseURI, Graph),
-  % @tbd uri_resolve/3 cannot handle this?!
   dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
 
   % Process the chapter's contents.

@@ -8,27 +8,33 @@
     dcg_string_all//1, % -Codes:list(code)
     dcg_string_until//2, % :End:dcg
                          % -Codes:list(code)
+
 % DEBUG %
     dcg_debug//0,
+
 % DOM %
     dcg_element//3, % ?Name:atom
                     % ?Attrs:list(nvpair)
                     % ?Content:dom
+
 % LIST %
     dcg_separated_list//2, % :Separator:dcg
                            % -Codess:list(list(codes))
+
 % OTHERS %
     conj//1, % ?Lang:atom
     dcg_peek//1, % -X:code
     disj//1, % ?Lang:atom
     language//1, % ?Lang:atom
     uncertainty//1, % ?Lang:atom
+
 % PHRASE EXTENSION %
     dcg_phrase/2, % :DCGBody:dcg
                   % ?In:list(code)
     dcg_phrase/3, % :DCGBody:dcg
                   % ?In:list(code)
                   % ?Out:list(code)
+
 % RE %
     dcg_plus//1, % +DCGBody:dcg
     dcg_star//1 % +DCGBody:dcg
@@ -44,6 +50,7 @@ Generic DCG clauses.
 */
 
 :- use_module(dcg(dcg_ascii)).
+:- use_module(generics(cowspeak)).
 :- use_module(html(html)).
 :- use_module(library(lists)).
 
@@ -65,6 +72,9 @@ Generic DCG clauses.
 
 % ALL/UNTIL %
 
+%! dcg_atom_until(+End:oneof([dcg,list(dcg)]), -Atom:atom)// is det.
+% @see dcg_string_until//2
+
 dcg_atom_until(End, Atom) -->
   dcg_string_until(End, Codes),
   {atom_codes(Atom, Codes)}.
@@ -75,6 +85,17 @@ dcg_atom_all(Atom) -->
 
 dcg_string_all([]) --> [].
 dcg_string_all([H|T]) --> [H], dcg_string_all(T).
+
+%! dcg_string_until(+End:dcg, -String:list(code))// is det.
+% Returns the codes that occur before =End= can be consumed.
+%
+% =End= is not an arbitrary DCG body, since disjunction does not play out
+% well (note that =End= occurs before and fater the =|-->|=).
+%
+% We enforce determinism after the first occurrence of =End= is consumed.
+%
+% @tbd There are problems with list elements: meta_predicate/1 cannot
+%      identity the modules for DCGs in this case.
 
 dcg_string_until(End, []), End -->
   End,
@@ -88,8 +109,13 @@ dcg_string_until(End, [H|T]) -->
 % DEBUG %
 
 dcg_debug(L, []):-
-  gtrace, %DEB
-  format(user_output, '~w\n', [L]).
+  format(
+    atom(Text),
+    'Wouter, Wouter, Wouter. I have the feeling that something is wrong here.\n~w\n',
+    [L]
+  ),
+  thread_create(cowspeak(Text), _ID, []),
+  gtrace. %DEB
 
 
 
@@ -176,6 +202,7 @@ dcg_plus(DCGBody) -->
   DCGBody.
 
 dcg_star(DCGBody) -->
-  dcg_plus(DCGBody).
+  DCGBody,
+  dcg_star(DCGBody).
 dcg_star(_DCGBody) --> [].
 

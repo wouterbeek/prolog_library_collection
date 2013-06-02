@@ -37,8 +37,7 @@ in combination with the open source speech synthesizer eSpeak.
 
 cowsay(Text):-
   cowsay(Text, Cow),
-  format(user_output, '~w', [Cow]),
-  speech(Text).
+  format(user_output, '~w', [Cow]).
 
 %! cowsay(+Text:oneof([atom,list(atom)]), -Cow:atom) is det.
 % Turns the given text into a cowified message, displaying the given
@@ -108,7 +107,7 @@ cowsay(Atoms, Cow):-
       '   - (oo)______\n',
       '     (__)      )/|/\n',
       '       ||----w||\n',
-      '      ||       ||'
+      '      ||       ||\n'
     ],
     Cow
   ).
@@ -130,7 +129,7 @@ cowspeak(Text):-
   cowsay(Text),
   speech(Text).
 
-max_line(76).
+max_line(50).
 
 %! speech(+Text:oneof([atom,list(atom)])) is det.
 % Turns the given text into speech and plays this speech shound.

@@ -208,10 +208,8 @@ dbnl_assert_text(Graph, URI, Text):-
 
 %! dbnl_assert_title(+Graph:atom, +URI:uri, +Name:atom, -Title:uri) is det.
 
-dbnl_assert_title(Graph, URI, Name, Title):-
+dbnl_assert_title(Graph, URI, _Name, Title):-
   rdf(Title, dbnl:original_page, URI, Graph),
-  % Just checking...
-  (rdfs_label(Title, Name) -> true ; gtrace),
   !.
 dbnl_assert_title(Graph, URI, Name, Title):-
   flag(title, TitleFlag, TitleFlag + 1),

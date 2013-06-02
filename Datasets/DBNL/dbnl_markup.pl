@@ -239,22 +239,14 @@ dbnl_markup(
   !,
   dbnl_markup(Options, Caption1, Caption2),
 
-  % Store the image locally.
+  % Store the image.
   memberchk(src=RelativeImageURI, IMG_Attributes),
-  absolute_file_name(file(RelativeImageURI), ImageFile, []),
   option(base_uri(BaseURI), Options),
-  uri_resolve(RelativeImageURI, BaseURI, AbsoluteImageURI),
-  uri_to_file(AbsoluteImageURI, ImageFile),
-
-  % Also add the image as RDF data.
-  rdf_bnode(ImageBNode),
   option(graph(Graph), Options),
-  rdfs_assert_individual(ImageBNode, dbnl:'Image', Graph),
-  rdf_assert_datatype(ImageBNode, dbnl:file, file, ImageFile, Graph),
-  dom_to_xml(dbnl, Caption2, XML_Caption),
-  rdf_assert_xml_literal(ImageBNode, dbnl:caption, XML_Caption, Graph),
   option(text(Text), Options),
-  rdf_assert(Text, dbnl:image, ImageBNode, Graph),
+  uri_resolve(RelativeImageURI, BaseURI, AbsoluteImageURI),
+  dbnl_save_image(Graph, AbsoluteImageURI, Caption2, BNode),
+  rdf_assert(Text, dbnl:image, BNode, Graph),
 
   dbnl_markup(Options, Contents1, Contents2).
 % Image without caption.
@@ -273,18 +265,12 @@ dbnl_markup(
   !,
   % Store the image locally.
   memberchk(src=RelativeImageURI, IMG_Attributes),
-  absolute_file_name(file(RelativeImageURI), ImageFile, []),
   option(base_uri(BaseURI), Options),
   uri_resolve(RelativeImageURI, BaseURI, AbsoluteImageURI),
-  uri_to_file(AbsoluteImageURI, ImageFile),
-
-  % Also add the image as RDF data.
-  rdf_bnode(ImageBNode),
   option(graph(Graph), Options),
-  rdfs_assert_individual(ImageBNode, dbnl:'Image', Graph),
-  rdf_assert_datatype(ImageBNode, dbnl:file, file, ImageFile, Graph),
   option(text(Text), Options),
-  rdf_assert(Text, dbnl:image, ImageBNode, Graph),
+  dbnl_save_image(Graph, AbsoluteImageURI, BNode),
+  rdf_assert(Text, dbnl:image, BNode, Graph),
 
   dbnl_markup(Options, Contents1, Contents2).
 % Footnote.
@@ -351,6 +337,15 @@ dbnl_markup(
   !,
   dbnl_markup(Options, SPAN_Contents, Topic_Contents),
   dbnl_markup(Options, Contents1, Contents2).
+% SPAN class=rhet? Seems to be a subheader.
+dbnl_markup(
+  Options,
+  [element(span, [class=rhet], H1) | T1],
+  [element(subheader, [], H2) | T2]
+):-
+  !,
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2).
 % A blockquote.
 dbnl_markup(
   Options,
@@ -414,6 +409,28 @@ dbnl_markup(Options, [element(br, _, _) | Contents1], Contents2):-
 dbnl_markup(Options, [element(interp, _, _) | Contents1], Contents2):-
   !,
   dbnl_markup(Options, Contents1, Contents2).
+% Poems have special subheader. We keep them special for now.
+dbnl_markup(
+  Options,
+  [element(div, [class='poem-head'], H1) | T1],
+  [element(poemheader, [], H2) | T2]
+):-
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2).
+% An intertextual link.
+% We let this point to the online/original URI, since this will be
+% stored in the meta-data of the scraped page at some point.
+dbnl_markup(
+  Options,
+  [element(a, Attrs, H1) | T1],
+  [element(intertextual_link, [href=AbsoluteURI], H2) | T2]
+):-
+  memberchk(href=RelativeURI, Attrs),
+  !,
+  memberchk(base_uri(BaseURI), Options),
+  dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
+  dbnl_markup(Options, H1, H2),
+  dbnl_markup(Options, T1, T2).
 % A piece of plain text.
 dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
   atom(Text),
@@ -421,8 +438,13 @@ dbnl_markup(Options, [Text | Contents1], [Text | Contents2]):-
   dbnl_markup(Options, Contents1, Contents2).
 % Debug on elements that are not yet treated.
 dbnl_markup(Options, [Element | Contents1], Contents2):-
+  dbnl_debug, %DEB
   format(user_output, '~w\n', [Element]), %DEB
   dbnl_markup(Options, Contents1, Contents2).
+
+
+
+%! dbnl_markup_simple(+HTML:dom, -Atom:atom) is det.
 
 dbnl_markup_simple(HTML, Atom):-
   dbnl_markup_simple0(HTML, Atoms),

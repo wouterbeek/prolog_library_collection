@@ -2,7 +2,9 @@
   dbnl_generic,
   [
 % DEBUG
+    dbnl_debug/0,
     dbnl_debug/1, % +URI:uri
+    dbnl_set_current_uri/1, % +URI:uri
 
 % DOM
     dbnl_dom_center/2, % +Page:dom
@@ -31,8 +33,8 @@
     dbnl_publication_print//3, % ?Lang:atom
                                % ?Number:integer
                                % ?Changes:boolean
-    dbnl_source//2, % +Graph:atom
-                    % +Text:uri
+%    dbnl_source//2, % +Graph:atom
+%                    % +Text:uri
     dbnl_title//2, % +Graph:atom
                    % +Text:uri
     dbnl_volume//2, % +Graph:atom
@@ -43,6 +45,13 @@
 % URI
     dbnl_authority/1, % -Authority:atom
     dbnl_base_uri/1, % -Base:uri
+    dbnl_save_image/3, % +Graph:atom
+                       % +ImageURI:uri
+                       % -Image:bnode
+    dbnl_save_image/4, % +Graph:atom
+                       % +ImageURI:uri
+                       % +Caption:dom
+                       % -Image:bnode
     dbnl_scheme/1, % -Scheme:atom
     dbnl_uri_resolve/2, % +Relative:uri
                         % -Absolute:uri
@@ -81,7 +90,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 1922-1999.
 
 @author Wouter Beek
-@version 2013/05
+@version 2013/05-2013/06
 */
 
 :- use_module(dbnl(dbnl_db)).
@@ -95,6 +104,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(dcg(dcg_volume)).
 :- use_module(dcg(dcg_year)).
 :- use_module(generics(atom_ext)).
+:- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
@@ -104,11 +114,17 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
+:- dynamic(dbnl_current_uri(_URI)).
+
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
 
 
 
 % DEBUG %
+
+dbnl_debug:-
+  dbnl_current_uri(URI),
+  dbnl_debug(URI).
 
 dbnl_debug(URI):-
   flag(deb, ID, ID + 1),
@@ -118,7 +134,12 @@ dbnl_debug(URI):-
     once(www_open_url(URI))
   ;
     true
-  ).
+  ),
+  gtrace.
+
+dbnl_set_current_uri(URI):-
+  flag(number_of_uris, ID, ID + 1),
+  db_replace_novel(dbnl_current_uri(URI)).
 
 
 
@@ -198,8 +219,7 @@ dbnl_copyright0(Graph, Text, Holders, Year):-
 dbnl_editor(EditorName) -->
   ("editie" ; "hoofdredactie"),
   blank,
-  string(Codes),
-  {atom_codes(Codes, EditorName)}.
+  dcg_atom_all(EditorName).
 
 dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
@@ -247,8 +267,11 @@ dbnl_publication_print(nl, _Number, _Changes) -->
 dbnl_publication_print(nl, _Number, _Changes) -->
   "(20ste-30ste duizendtal)".
 
+/* THIS IS VERY DIFFICULT
 dbnl_source(Graph, Text) -->
   "bron", colon, blank,
+  dcg_atom_all(Source),
+  !,
   dbnl_author(Author), comma, blank,
   % Book title. Publisher. Cities.
   dcg_atom_until(dot, Title), dot, blank,
@@ -267,14 +290,24 @@ dbnl_source(Graph, Text) -->
     )
   },
   dcg_string_all(_).
+*/
 
 dbnl_title(Graph, Text) -->
-  dcg_atom_until(((dot, blank) ; (space, opening_bracket)), TitleName),
-  % @tbd What cannot space//0 be blank//0 here? Interesting!
-  ((dot, blank) ; (space, opening_bracket)),
+  % Notice that cannot give the DCG body
+  % =|((dot, blank) ; (space, opening_bracket))|= to dcg_atom_until//2.
+  (
+    dcg_atom_until((dot, space), TitleName),
+    dot, space
+  ;
+    dcg_atom_until((space, opening_bracket), TitleName),
+    space
+  ),
   % Volume is optional. There are cases in which it is not
   % followed by a blank.
   (dbnl_volume(Graph, Text), blanks ; ""),
+  {rdfs_assert_label(Text, TitleName, Graph)}.
+dbnl_title(Graph, Text) -->
+  dcg_atom_all(TitleName),
   {rdfs_assert_label(Text, TitleName, Graph)}.
 
 dbnl_volume(Graph, Text) -->
@@ -339,6 +372,25 @@ dbnl_base_uri(BaseURI):-
   dbnl_authority(Authority),
   uri_components(BaseURI, uri_components(Scheme, Authority, '/', '', '')).
 
+dbnl_save_image(Graph, ImageURI, BNode):-
+  dbnl_save_image(Graph, ImageURI, [], BNode).
+
+dbnl_save_image(Graph, ImageURI, Caption, BNode):-
+  uri_to_file_name(ImageURI, ImageFileName),
+  absolute_file_name(file(ImageFileName), ImageFile, []),
+  uri_to_file(ImageURI, ImageFile),
+  rdf_bnode(BNode),
+  rdfs_assert_individual(BNode, dbnl:'Image', Graph),
+  rdf_assert_datatype(BNode, dbnl:file, file, ImageFile, Graph),
+  (
+    Caption \== []
+  ->
+    dom_to_xml(dbnl, Caption, XML_Caption),
+    rdf_assert_xml_literal(BNode, dbnl:caption, XML_Caption, Graph)
+  ;
+    true
+  ).
+
 %! dbnl_scheme(-Scheme:atom) is det.
 
 dbnl_scheme(http).
@@ -363,17 +415,28 @@ dbnl_uri_resolve(Relative, Base, Absolute):-
   !.
 dbnl_uri_resolve(Relative, Base1, Absolute):-
   \+ last_char(Base1, '/'),
-  atom_concat(Base1, '/', Base2),
+  (atom_concat(Base1, '/', Base2) ; atom_concat(Base1, '_01/', Base2)),
   dbnl_uri_resolve(Relative, Base2, Absolute).
+dbnl_uri_resolve(Relative, Base1, Absolute):-
+  last_char(Base1, '/'),
+  atom_concat(Base2, '/', Base1),
+  atom_concat(Base2, '_01/', Base3),
+  dbnl_uri_resolve(Relative, Base3, Absolute).
+dbnl_uri_resolve(Relative, Base, Absolute):-
+  gtrace, %DEB
+  format(user_output, '~w\n~w\n~w\n', [Relative, Base, Absolute]).
 
 dbnl_uri_to_html(URI1, DOM):-
   dbnl_uri_resolve(URI1, URI2),
-  dbnl_debug(URI2),
+  http_open_until_it_works(URI2, DOM).
+
+http_open_until_it_works(URI, DOM):-
+  dbnl_set_current_uri(URI), %DEB
   catch(
     setup_call_cleanup(
       % First perform this setup once/1.
       (
-        http_open(URI2, Stream, []),
+        http_open(URI, Stream, []),
         set_stream(Stream, encoding(utf8))
       ),
       % The try to make this goal succeed.
@@ -395,15 +458,39 @@ dbnl_uri_to_html(URI1, DOM):-
       % If goal succeeds, then perform this cleanup.
       close(Stream)
     ),
-    error(limit_exceeded(max_errors, Max), _Context),
-    (
-      format(
-        user_output,
-        'Encountered ~w error(s) while parsing <~w>.',
-        [Max, URI2]
-      )
-    )
+    Exception,
+    process_exception(Exception, URI, DOM)
   ).
+
+process_exception(
+  error(limit_exceeded(max_errors, Max), Context),
+  _URI,
+  _DOM
+):-
+  !,
+  format(
+    atom(Text),
+    'Encountered ~w error(s) while parsing HTML.\n[~w]\n',
+    [Max, Context]
+  ),
+  cowspeak(Text).
+process_exception(error(existence_error(url, URI), Context), _URI, _DOM):-
+  !,
+  format(
+    atom(Text),
+    'Resource <~w> does not seem to exist.\n[~w]\n',
+    [URI, Context]
+  ),
+  cowspeak(Text).
+process_exception(error(socket_error('Try Again'), _Context), URI, DOM):-
+  !,
+  format(atom(Text), 'Try again!\n<~w>', [URI]),
+  cowspeak(Text),
+  sleep(5),
+  http_open_until_it_works(URI, DOM).
+process_exception(Exception, _URI, _DOM):-
+  gtrace, %DEB
+  format(user_output, '~w\n', [Exception]).
 
 journal(Lang, Title, Volume) -->
   % Example: "In: ...".

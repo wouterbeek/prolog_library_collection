@@ -29,8 +29,6 @@ Predicates for scraping the left DIV of text pages in the DBNL.
 %! dbnl_text_left(+Graph:atom, +Text:uri)// is det.
 % @tbd Enable justification text parsing.
 
-% Done!
-dbnl_text_left(_Graph, _Text) --> [].
 % Skip title.
 dbnl_text_left(Graph, Text) -->
   [element(h3, [], [element(a, _, [element(h3, [], _)])])],
@@ -140,6 +138,11 @@ dbnl_text_left(Graph, Text) -->
     )
   },
   dbnl_text_left(Graph, Text).
+% Empty author.
+dbnl_text_left(Graph, Text) -->
+  ['auteur:'],
+  !,
+  dbnl_text_left(Graph, Text).
 % Illustrator.
 dbnl_text_left(Graph, Text) -->
   [IllustratorAtom, element(a, Attrs, [IllustratorName])],
@@ -155,18 +158,25 @@ dbnl_text_left(Graph, Text) -->
   dbnl_text_left(Graph, Text).
 % Source.
 dbnl_text_left(Graph, Text) -->
-  ['bron:', element(i, [], [Journal]), Year],
+  ['bron:', element(i, [], [JournalBook]), YearPublisherCity],
   {
-    dcg_phrase(dbnl_journal(Graph, Text), Journal),
-    dcg_phrase(dbnl_year(Graph, Text), Year)
+    atom(JournalBook),
+    atom(YearPublisherCity),
+    !,
+    % TOO DIFFICULT TO FULLY PROCESS!
+    %dcg_phrase(dbnl_journal(Graph, Text), Journal),
+    %dcg_phrase(dbnl_year(Graph, Text), Year),
+    rdf_assert_literal(Text, dbnl:journal_book, JournalBook, Graph),
+    rdf_assert_literal(Text, dbnl:year_publisher_city, YearPublisherCity, Graph)
   },
   dbnl_text_left(Graph, Text).
-% Journal year.
+% Publication source (in book, in journal, publisher, city ,year).
 dbnl_text_left(Graph, Text) -->
   [Atom],
   {
     atom(Atom),
-    dcg_phrase(dbnl_source(Graph, Text), Atom)
+    atom_concat('bron: ', Source, Atom),
+    rdf_assert_literal(Text, dbnl:source, Source, Graph)
   },
   dbnl_text_left(Graph, Text).
 % Illustrations source.
@@ -209,11 +219,25 @@ dbnl_text_left(Graph, Text) -->
   dbnl_copyright(Graph, Text),
   !,
   dbnl_text_left(Graph, Text).
-% Logo
+% Logo of DBNL.
 dbnl_text_left(Graph, Text) -->
   dbnl_logo,
   !,
   dbnl_text_left(Graph, Text).
+% Logo of Rotterdam library.
+dbnl_text_left(Graph, Text) -->
+  [_, element(a, _, [element(img, Attrs, [])])],
+  !,
+  {
+    memberchk(id='funder-logo', Attrs),
+    memberchk(src=RelativeURI, Attrs),
+    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+    dbnl_save_image(Graph, AbsoluteURI, BNode),
+    rdf_assert(Text, dbnl:funder, BNode, Graph)
+  },
+  dbnl_text_left(Graph, Text).
+% Done!
+dbnl_text_left(_Graph, _Text) --> [], !.
 % Debug.
 dbnl_text_left(_Graph, _Text) -->
   dcg_debug.

@@ -22,7 +22,6 @@ DCGs for parsing copyright information.
 
 
 copyright(Holders, Year) -->
-{gtrace},
   (copyright, blank ; ""),
   year(_Lang, Year), blank,
   holders(Holders).

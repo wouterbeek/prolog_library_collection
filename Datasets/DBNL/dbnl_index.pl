@@ -232,8 +232,14 @@ dbnl_index_year_etc(Graph, Title, Handwritten, Lang, Print, Changes) -->
   (blank, dbnl_publication_print(Lang, Print, Changes) ; "").
 
 dbnl_titles(Graph):-
-  forall(
+  % Always in the same order...
+  setoff(
+    Title,
     rdfs_individual_of(Title, dbnl:'Title'),
+    Titles
+  ),
+  forall(
+    member(Title, Titles),
     dbnl_title(Graph, Title)
   ).
 

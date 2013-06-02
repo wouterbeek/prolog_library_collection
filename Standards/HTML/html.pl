@@ -59,7 +59,6 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
-:- use_module(library(option)).
 
 % Assert DTD file locations.
 :- db_add_novel(user:file_search_path(dtd, html(.))).
@@ -273,7 +272,7 @@ attribute(border, pixels, [table]).
 % =|Name(Value)|= or =|Name=Value|=.
 
 html_attribute(Attributes, Attribute):-
-  option(Attribute, Attributes).
+  memberchk(Attribute, Attributes).
 
 %! html_char(+Options:list(nvpair), ?Results)//
 % Returns the HTML atom representing the character given.

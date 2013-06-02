@@ -88,6 +88,29 @@ dbnl_text(Graph, _Title, URI, Text):-
   rdf(Text, dbnl:original_page, URI, Graph),
   !.
 dbnl_text(Graph, Title, URI, Text):-
+(
+  memberchk(
+    URI,
+    [
+      'http://www.dbnl.org/tekst/mund003burg01_01/',
+
+      'http://www.dbnl.org/tekst/_abe003abeb01_01/_abe003abeb01_01_0001.php',
+      'http://www.dbnl.org/tekst/_alb002190401_01/',
+      'http://www.dbnl.org/tekst/_alg009186101_01/',
+      'http://www.dbnl.org/tekst/_eli001elia01_01/index.php',
+      'http://www.dbnl.org/tekst/_kin006kind01_01/',
+      'http://www.dbnl.org/tekst/_kin009kind01_01/_kin009kind01_01_0001.php',
+      'http://www.dbnl.org/tekst/_tro001fams01_01/_tro001fams01_01_0007.php',
+      'http://www.dbnl.org/tekst/geze002fbau01_01/downloads.php',
+      'http://www.dbnl.org/titels/titel.php?id=_kin006kind01',
+      'aap'
+    ]
+  )
+->
+  gtrace
+;
+  true
+),
   dbnl_uri_to_html(URI, DOM),
   dbnl_dom_center(DOM, Contents),
   % Disambiguate between different kinds of texts.
@@ -97,7 +120,7 @@ dbnl_text(Graph, Title, URI, Text):-
   ->
     dbnl_assert_text(Graph, URI, Text),
     rdf_assert(Title, dbnl:downloads, Text, Graph),
-gtrace,
+%gtrace,
     phrase(dbnl_downloads(Graph, Text), Contents, [])
   ;
     % Scans, also for download.
@@ -105,7 +128,7 @@ gtrace,
   ->
     dbnl_assert_text(Graph, URI, Text),
     rdf_assert(Title, dbnl:downloads, Text, Graph),
-gtrace,
+%gtrace,
     dbnl_scans(Graph, Text, Contents)
   ;
     % Only checking, not retrieving.
@@ -114,7 +137,7 @@ gtrace,
     % Table of contents.
     dbnl_assert_toc(Graph, URI, Text),
     rdf_assert(Title, dbnl:toc, Text, Graph),
-gtrace,
+%dbnl_debug(URI),
     phrase(dbnl_text0(Graph, Text), Contents, [])
   ;
     % Only checking, not retrieving.
@@ -124,7 +147,7 @@ gtrace,
     % Collection of volumes.
     dbnl_assert_volume_collection(Graph, URI, Text),
     rdf_assert(Title, dbnl:volume_collection, Text, Graph),
-gtrace,
+%gtrace,
     phrase(dbnl_text0(Graph, Text), Contents, [])
   ;
     % Only checking, not retrieving.
@@ -133,7 +156,6 @@ gtrace,
     % Actual content; DBNL markup.
     dbnl_assert_text(Graph, URI, Text),
     dbnl_dom_notes(DOM, Notes),
-gtrace,
     dbnl_markup(
       [base_uri(URI), graph(Graph), notes(Notes), text(Text)],
       Contents,
@@ -143,7 +165,6 @@ gtrace,
   ;
     % Any other text.
     dbnl_assert_text(Graph, URI, Text),
-gtrace,
     phrase(dbnl_text0(Graph, Text), Contents, [])
   ),
 
@@ -151,6 +172,18 @@ gtrace,
 
   % Parse left DIV.
   dbnl_dom_left(DOM, Left),
+(
+  memberchk(
+    URI,
+    [
+      'aap'
+    ]
+  )
+->
+  gtrace
+;
+  true
+),
   phrase(dbnl_text_left(Graph, Text), Left, []),
 
   % Parse right DIV.
@@ -175,7 +208,11 @@ dbnl_text0(Graph, Text) -->
   {phrase(dbnl_text0(Graph, Text), Content)},
   dbnl_text0(Graph, Text).
 % Table of contents.
-dbnl_text0(Graph, TOC, [element(h2, [class=inhoud], [TOC_Title]) | Contents], []):-
+dbnl_text0(
+  Graph,
+  TOC,
+  [element(h2, [class=inhoud], [TOC_Title]) | Contents], []
+):-
   !,
   dcg_phrase(dbnl_toc_title(Type, Name), TOC_Title),
   write(Type),
@@ -261,6 +298,7 @@ dbnl_text0(Graph, Text) -->
 dbnl_text0(Graph, Text) -->
   [element(dl, [], DTs)],
   !,
+{gtrace},
   {phrase(dbnl_text_definition_list(Graph, Text), DTs)},
   dbnl_text0(Graph, Text).
 % Skip links to the PDF files, since we will take these very same files
@@ -343,13 +381,21 @@ dbnl_text_definition_term(Graph, VolumeCollection) -->
     rdf_assert_xml_literal(Subtext, dbnl:title, TitleName2, Graph)
   }.
 
-% Image of the titlepage.
+% Parse the contents of links.
 dbnl_text_right(Graph, Text) -->
-  [element(a, _, [element(img, Attrs, [])])],
+  dcg_element(a, [], Content),
+  !,
+  {phrase(dbnl_text_right(Graph, Text), Content)}.
+% Skip notes. These are retrieved for the center DIV.
+dbnl_text_right(Graph, Text) -->
+  dcg_element(div, [class='noten-blok'], _),
+  !,
+  dbnl_text_right(Graph, Text).
+% Store the image of the titlepage.
+dbnl_text_right(Graph, Text) -->
+  dcg_element(img, [alt=titelpagina,src=RelativeURI], _),
   !,
   {
-    memberchk(alt=titelpagina, Attrs),
-    memberchk(src=RelativeURI, Attrs),
     rdf(Text, dbnl:original_page, BaseURI, Graph),
     dbnl_uri_resolve(RelativeURI, BaseURI, AbsoluteURI),
     absolute_file_name(file(RelativeURI), File, []),
