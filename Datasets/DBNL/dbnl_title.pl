@@ -72,8 +72,6 @@ http://www.dbnl.org/titels/titel.php?id=ferr002atma01
 :- use_module(standards(xpath_ext)).
 :- use_module(xml(xml_namespace)).
 
-:- meta_predicate(dbnl_title(//,+,+,+,-)).
-
 :- xml_register_namespace(dbnl, 'http://www.dbnl.org/').
 
 
@@ -185,7 +183,12 @@ dbnl_title0(Graph, Title) -->
   [element(span, [class='titelpagina-titel'], [Atom])],
   !,
   % A year may occur after the title.
-  {dcg_phrase(dbnl_title_year(Graph, Title), Atom)},
+  {
+    dcg_phrase(
+      (dbnl_title(Graph, Title), (dbnl_year(Graph, Title) ; "")),
+      Atom
+    )
+  },
   dbnl_title0(Graph, Title).
 % Summary
 dbnl_title0(Graph, Title) -->
@@ -195,17 +198,10 @@ dbnl_title0(Graph, Title) -->
   dbnl_title0(Graph, Title).
 % Assert the pimary text links.
 dbnl_title0(Graph, Title) -->
-  [
-    element(h4, [], ['Beschikbare tekst in de dbnl']),
-    element(a, [href=RelativeURI | _], [TitleName])
-  ],
+  [element(h4, [], ['Beschikbare tekst in de dbnl'])],
   !,
-  % Just checking!
-  {
-    (rdfs_label(Title, TitleName) -> true ; gtrace), %DEB
-    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
-    dbnl_primary(Graph, Title, AbsoluteURI)
-  },
+  % Due to determinism issues we cannot use dcg_plus//1 here.
+  dcg_start(dbnl_primary_text_link(Graph, Title)),
   dbnl_title0(Graph, Title).
 % Assert the secondary text links.
 dbnl_title0(Graph, Title) -->
@@ -234,20 +230,16 @@ dbnl_title0(Graph, Title) -->
 dbnl_title0(_Graph, _Title) -->
   dcg_debug.
 
-dbnl_title(End, Graph, Title) -->
-  % Title.
-  dcg_atom_until(End, TitleAtom),
-  {rdfs_assert_label(Title, TitleAtom, Graph)}.
-
-dbnl_title_year(Graph, Title) -->
-  dbnl_title(dot, Graph, Title), dot, blank,
-  (dbnl_volume(Graph, Title), blank ; ""),
-  dbnl_year(Graph, Title).
-dbnl_title_year(Graph, Title) -->
-  dbnl_title((space, opening_bracket), Graph, Title), blank,
-  dbnl_year(Graph, Title).
-
-dbnl_volume(Graph, Title) -->
-  volume(_Lang, Volume),
-  {rdf_assert_datatype(Title, dbnl:volume, int, Volume, Graph)}.
+dbnl_primary_text_link(Graph, Title) -->
+  dcg_element(a, [href=RelativeURI], [TitleAtom]),
+  dcg_element(i, _, _),
+  [YearAtom],
+  !,
+  {
+    % A year may occur after the title.
+    dcg_phrase(dbnl_title(Graph, Title), TitleAtom),
+    dcg_phrase(dbnl_year(Graph, Title), YearAtom),
+    dbnl_uri_resolve(RelativeURI, AbsoluteURI),
+    dbnl_primary(Graph, Title, AbsoluteURI)
+  }.
 

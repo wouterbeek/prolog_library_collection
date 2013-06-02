@@ -129,9 +129,9 @@ dbnl_downloads(Graph, Text) -->
   dbnl_downloads(Graph, Text).
 % Scans of originals.
 dbnl_downloads(Graph, Text) -->
-  [element(a, [name=orig|_], _)],
+  dcg_element(a, [name=orig], _),
   !,
-  dbnl_downloads_originals(Graph, Text),
+  dcg_star(dbnl_downloads_original(Graph, Text)),
   dbnl_downloads(Graph, Text).
 dbnl_downloads(_Graph, _Text) --> [], !.
 % Debug.
@@ -172,9 +172,4 @@ dbnl_downloads_original(Graph, Text) -->
     uri_to_file(AbsoluteURI, ScansFile),
     rdf_assert_datatype(Text, dbnl:local_original, file, ScansFile, Graph)
   }.
-
-dbnl_downloads_originals(Graph, Text) -->
-  dbnl_downloads_original(Graph, Text),
-  dbnl_downloads_originals(Graph, Text).
-dbnl_downloads_originals(_Graph, _Text) --> [].
 

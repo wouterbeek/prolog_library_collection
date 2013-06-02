@@ -19,6 +19,8 @@
                      % -Markup:element
 
 % PARSING
+    html_attribute/2, % +Attributes:list(nvpair)
+                      % +Attribute:nvpair
     html_char//2, % +Options:list(nvpair)
                   % ?Results
     html_convert/2, % +Atom:atom
@@ -57,6 +59,7 @@ HTML attribute parsing, used in HTML table generation.
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_path)).
+:- use_module(library(option)).
 
 % Assert DTD file locations.
 :- db_add_novel(user:file_search_path(dtd, html(.))).
@@ -252,10 +255,25 @@ table_row0(
 
 % PARSING %
 
-% This attributes specifies the width (in pixels only) of the frame around a
+% This attribute specifies the width (in pixels only) of the frame around a
 % table (see the Note below for more information about this attribute).
 % @tbd Deprecated, use CSS2 instead.
 attribute(border, pixels, [table]).
+
+%! html_attribute(+Attributes:list(nvpair), +Attribute:nvpair) is nondet.
+% Succeeds (semidet) or instantiates (nondet) the given attribute within
+% the given attributes list.
+%
+% This predicate is typically used to extract the value belonging to a
+% certain attribute name from a given set of attribute-value pairs that
+% occurs in a DOM element/3 term.
+%
+% This predicate uses the swipl options library.
+% In accordance with this, =Attribute= can be either of the form
+% =|Name(Value)|= or =|Name=Value|=.
+
+html_attribute(Attributes, Attribute):-
+  option(Attribute, Attributes).
 
 %! html_char(+Options:list(nvpair), ?Results)//
 % Returns the HTML atom representing the character given.

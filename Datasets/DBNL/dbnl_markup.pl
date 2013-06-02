@@ -18,6 +18,7 @@ Predicates for transforming DBNL HTML markup into a useful XML format.
 */
 
 :- use_module(dbnl(dbnl_generic)).
+:- use_module(dcg(dcg_generic)).
 :- use_module(generics(atom_ext)).
 :- use_module(generics(uri_ext)).
 :- use_module(library(lists)).
@@ -141,7 +142,7 @@ dbnl_markup(
     memberchk(target=origineel, A_Attrs)
   ),
   !,
-  dbnl_page(PageAtom, PageElement, Page),
+  dcg_phrase(dbnl_page(PageElement, Page), PageAtom),
   dbnl_markup(Options, Contents1, Contents2).
 % Several dedicated DIV classes related to poetry.
 dbnl_markup(

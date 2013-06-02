@@ -19,9 +19,6 @@
     dbnl_copyright//2, % +Graph:atom
                        % +Text:uri
     dbnl_editor//1, % -EditorName:atom
-    dbnl_page/3, % +Atom:atom
-                 % -Type:oneof([page,prepage])
-                 % -Page:integer
     dbnl_genres//2, % +Graph:atom
                     % +Text:uri
     dbnl_handwritten//2, % ?Language:atom
@@ -29,10 +26,16 @@
     dbnl_journal//2, % +Graph:atom
                      % +Text:uri
     dbnl_logo//0,
+    dbnl_page//2, % -Type:oneof([page,prepage])
+                  % -Page:integer
     dbnl_publication_print//3, % ?Lang:atom
                                % ?Number:integer
                                % ?Changes:boolean
     dbnl_source//2, % +Graph:atom
+                    % +Text:uri
+    dbnl_title//2, % +Graph:atom
+                   % +Text:uri
+    dbnl_volume//2, % +Graph:atom
                     % +Text:uri
     dbnl_year//2, % ?Language:atom
                   % -Year:oneof([integer,pair(integer)])
@@ -92,6 +95,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(dcg(dcg_volume)).
 :- use_module(dcg(dcg_year)).
 :- use_module(generics(atom_ext)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
@@ -231,10 +235,10 @@ dbnl_logo -->
   [element(img, Attrs, [])],
   {memberchk(alt='DBNL vignet', Attrs)}.
 
-dbnl_page(Atom, Type2, Page):-
-  dcg_phrase(page(_Lang, Type1, Page), Atom),
-  if_then(Type1 == roman, Type2 = prepage),
-  if_then(Type1 == arabic, Type2 = page).
+dbnl_page(Type2, Page) -->
+  page(_Lang, Type1, Page),
+  {if_then(Type1 == roman, Type2 = prepage)},
+  {if_then(Type1 == arabic, Type2 = page)}.
 
 dbnl_publication_print(Lang, Number, Changes) -->
   publication_print(Lang, Number, Changes).
@@ -263,6 +267,19 @@ dbnl_source(Graph, Text) -->
     )
   },
   dcg_string_all(_).
+
+dbnl_title(Graph, Text) -->
+  dcg_atom_until(((dot, blank) ; (space, opening_bracket)), TitleName),
+  % @tbd What cannot space//0 be blank//0 here? Interesting!
+  ((dot, blank) ; (space, opening_bracket)),
+  % Volume is optional. There are cases in which it is not
+  % followed by a blank.
+  (dbnl_volume(Graph, Text), blanks ; ""),
+  {rdfs_assert_label(Text, TitleName, Graph)}.
+
+dbnl_volume(Graph, Text) -->
+  volume(_Lang, Volume),
+  {rdf_assert_datatype(Text, dbnl:volume, int, Volume, Graph)}.
 
 dbnl_year(Graph, Text) -->
   (dot, blank ; ""),
