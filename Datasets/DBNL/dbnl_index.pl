@@ -151,7 +151,7 @@ dbnl_index_title(
   [Author1, element(a, Attributes, [TitleName]) | Contents]
 ):-
   flag(number_of_texts, ID, ID + 1), %DEB
-  (ID >= 15000 -> gtrace ; true), %DEB
+  (ID >= 5000 -> gtrace ; true), %DEB
   memberchk(href=RelativeURI, Attributes),
 
   % Create the title resource.

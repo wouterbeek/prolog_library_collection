@@ -31,6 +31,7 @@ http://semanticweb.cs.vu.nl/prasem/
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_server_files)).
 :- use_module(library(http/thread_httpd)).
+:- use_module(server(swote)).
 :- use_module(server(web_console)).
 :- use_module(sparql(sparql_web)).
 :- use_module(standards(http)).
@@ -42,6 +43,7 @@ http://semanticweb.cs.vu.nl/prasem/
 
 % By registering these modules, their Web predicates become accessible
 % from the Web console.
+:- register_module(swote).
 :- register_module(web_message).
 
 :- multifile(http:location/3).

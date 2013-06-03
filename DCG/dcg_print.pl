@@ -18,6 +18,33 @@ DCGs for the print of a publication.
   * "ongewijzigde herdruk van de 2de, herziene druk"
   * "15de, met zorg herziene druk"
   * "1ste druk voor Meulenhoff"
+  * "niet in druk verschenen"
+  * "facsimile van uitgave 1767"
+
+---+ Grammar
+
+ADJ --> ORD.
+ADJ --> dict
+ADJ --> PP, ADJ
+
+ADJS --> ADJ, ADJS
+ADJS --> ADJS,CONJ,ADJS.
+
+NP --> DET, ADJS, N.
+NP --> ADJS, N.
+NP --> NP, PP.
+
+PP --> PRE, NP.
+
+S --> '(', S, ')'.
+S --> facsimile, NP, PP.
+S --> facsimile, NP.
+S --> NP, NP.
+S --> VOLTOOID_DEELWOORD, PP.
+S --> VOLUMES.
+S --> NP.
+S --> ''.
+S --> [niet, in, druk, verschenen].
 
 @author Wouter Beek
 @version 2013/05
@@ -98,7 +125,7 @@ adjs(Lang, Print, B) -->
   {boolean_or(B1, B2, B)}.
 % Conjunction of adjectives.
 adjs(Lang, Print, B) -->
-  adj(Lang, Print, B1), blanks,
+  adjs(Lang, Print, B1), blanks,
   conj(Lang), blank,
   adjs(Lang, Print, B2),
   {boolean_or(B1, B2, B)}.
@@ -120,6 +147,7 @@ n(Lang) --> name(Lang).
 
 n0(de) --> "Auflage".
 n0(nl) --> "druk".
+n0(nl) --> "facsimile".
 n0(nl) --> "herdruk".
 n0(nl) --> "oplaag".
 n0(nl) --> "Pockets".
@@ -184,7 +212,8 @@ s(Lang, Print, Changes) -->
 s(Lang, Print, Changes) -->
   np(Lang, Print, Changes).
 % No number-of-print informat occurs.
-s(_Lang, fail, fail) --> "".
+s(_Lang, _, _) --> "".
+s(nl, _, _) --> "niet in druk verschenen".
 
 special_modifier(Lang) -->
   opening_round_bracket,
