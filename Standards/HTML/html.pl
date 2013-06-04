@@ -48,9 +48,10 @@ HTML atom conversion, using HTML characters.
 HTML attribute parsing, used in HTML table generation.
 
 @author Wouter Beek
-@version 2012/09-2013/04
+@version 2012/09-2013/06
 */
 
+:- use_module(generics(cowspeak)).
 :- use_module(generics(db_ext)).
 :- use_module(generics(file_ext)).
 :- use_module(generics(parse_ext)).
@@ -76,6 +77,8 @@ HTML attribute parsing, used in HTML table generation.
 :- db_add_novel(user:image_file_type(jpg)).
 :- db_add_novel(user:prolog_file_type(png, png)).
 :- db_add_novel(user:image_file_type(png)).
+
+:- meta_predicate(process_exception(+,0)).
 
 :- debug(html).
 
@@ -107,6 +110,33 @@ file_to_html(File, HTML):-
   open(File, read, Stream),
   stream_to_html(Stream, HTML).
 
+%! process_exception(+Exception, :Goal) is det.
+% Processes an exception thrown by load_structure/3
+
+process_exception(error(limit_exceeded(max_errors, Max), Context), _Goal):-
+  !,
+  cowspeak(
+    'Encountered ~w error(s) while parsing HTML.\nContext:\t~w\n',
+    [Max, Context]
+  ).
+process_exception(error(existence_error(url, URI), Context), _Goal):-
+  !,
+  cowspeak('Resource <~w> does not seem to exist.\n[~w]\n', [URI, Context]).
+process_exception(error(socket_error('Try Again'), _Context), Goal):-
+  !,
+  cowspeak('[SOCKET ERROR] Try again!\n', []),
+  call(Goal).
+process_exception(
+  error(io_error(read, _Stream), context(_Predicate, Reason)),
+  Goal
+):-
+  !,
+  cowspeak('[IO-EXCEPTION] ~w\n', [Reason]),
+  call(Goal).
+process_exception(Exception, _Goal):-
+  gtrace, %DEB
+  format(user_output, '~w\n', [Exception]).
+
 % stream_to_html(+Stream:stream, -HTML:dom) is det.
 % Retrieves the HTML DOM from the given stream.
 %
@@ -115,20 +145,26 @@ file_to_html(File, HTML):-
 
 stream_to_html(Stream, DOM):-
   dtd(html, DTD),
-  load_structure(
-    stream(Stream),
-    DOM,
-    [
-      dtd(DTD),
-      dialect(xmlns),
-      shorttag(true),
-      space(remove)
-    ]
+  catch(
+    load_structure(
+      stream(Stream),
+      DOM,
+      [
+        dtd(DTD),
+        dialect(xmlns),
+        max_errors(-1),
+        shorttag(true),
+        space(remove),
+        syntax_errors(quiet)
+      ]
+    ),
+    Exception,
+    process_exception(Exception, stream_to_html(Stream, DOM))
   ).
 
 %! uri_to_html(+URI:resource, -HTML:list) is det.
-% Returns the HTML Document Object Model (DOM) for the website with the given
-% URI.
+% Returns the HTML Document Object Model (DOM)
+% for the website with the given URI.
 %
 % @arg URI
 % @arg HTML
@@ -138,7 +174,11 @@ uri_to_html(URI, DOM):-
   setup_call_cleanup(
     % First perform this setup once/1.
     (
-      http_open(URI, Stream, []),
+      catch(
+        http_open(URI, Stream, []),
+        Exception,
+        process_exception(Exception, http_open(URI, Stream, []))
+      ),
       set_stream(Stream, encoding(utf8))
     ),
     % The try to make this goal succeed.

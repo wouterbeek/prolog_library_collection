@@ -156,7 +156,7 @@ contains(O, Ps, C1-_C0):-
   call(P, O, _R, C1-_C2),
   !.
 contains(O, Ps, C1-C0):-
-  call(any, O, _R, C1-C2),
+  call(ascii_any, O, _R, C1-C2),
   !,
   contains(O, Ps, C2- C0).
 

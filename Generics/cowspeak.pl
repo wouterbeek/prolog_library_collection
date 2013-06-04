@@ -7,6 +7,8 @@
     cowsay_web/2, % +Text:atom
                   % -Markup:list
     cowspeak/1, % +Text:oneof([atom,list(atom)])
+    cowspeak/2, % +Format:oneof([atom,list(code),string])
+                % :Arguments:list
     speech/1 % +Text:oneof([atom,list(atom)])
   ]
 ).
@@ -21,7 +23,7 @@ in combination with the open source speech synthesizer eSpeak.
 @author Wouter Beek
 @see http://en.wikipedia.org/wiki/Cowsay pointers to cowsay resources.
 @see http://espeak.sourceforge.net/ home of eSpeak.
-@version 2012/09-2012/10, 2013/05
+@version 2012/09-2012/10, 2013/05-2013/06
 */
 
 :- use_module(generics(atom_ext)).
@@ -128,6 +130,15 @@ cowsay_web(
 cowspeak(Text):-
   cowsay(Text),
   speech(Text).
+
+%! cowspeak(+Format:oneof([atom,list(code),string]), :Arguments:list) is det.
+% Allows a text with filled-in arguments to be send to the cow.
+%
+% @see The arguments are processed by format/3.
+
+cowspeak(Format, Arguments):-
+  format(atom(Text), Format, Arguments),
+  cowspeak(Text).
 
 max_line(50).
 

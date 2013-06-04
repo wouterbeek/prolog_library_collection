@@ -59,10 +59,12 @@ uri_to_file(URI, File):-
   format(atom(Text), 'A new text was downloaded.', [File]),
   cowspeak(Text).
 
-%! uri_query(+URI:uri, +Name:atom, -Value:atom) is det.
+%! uri_query(+URI:uri, +Name:atom, -Value:atom) is semidet.
+% Returns the value for the query item with the given name, if present.
 
 uri_query(URI, Name, Value):-
   uri_components(URI, Components),
   uri_data(search, Components, QueryString),
   uri_query_components(QueryString, QueryPairs),
   member(Name=Value, QueryPairs).
+

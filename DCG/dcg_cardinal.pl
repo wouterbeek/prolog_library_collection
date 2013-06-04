@@ -32,6 +32,7 @@ DCGs for cardinal numbers.
 
 
 
+
 binary_digit --> zero.
 binary_digit --> one.
 
