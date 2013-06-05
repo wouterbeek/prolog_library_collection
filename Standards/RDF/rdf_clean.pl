@@ -29,9 +29,15 @@
                         % ?Predicate:uri
                         % ?Graph:atom
                         % +Split:atom
-    rdf_strip_string/3 % ?Subject:onef([bnode,uri])
-                       % ?Predicate:uri
-                       % ?Graph:atom
+    rdf_strip_string/3, % ?Subject:oneof([bnode,uri])
+                        % ?Predicate:uri
+                        % ?Graph:atom
+    rdf_year/6 % ?Subject:oneof([bnode,uri])
+               % ?Predicate:uri
+               % ?Graph:atom
+               % +IntervalP1:uri
+               % +IntervalP2:uri
+               % +PointP:uri
   ]
 ).
 
@@ -43,6 +49,7 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 @version 2013/03-2013/04
 */
 
+:- use_module(dcg(dcg_generic)).
 :- use_module(generics(atom_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(typecheck)).
@@ -58,6 +65,7 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 :- rdf_meta(rdf_expand_namespace(r,r,r,?)).
 :- rdf_meta(rdf_split_string(r,r,?,+)).
 :- rdf_meta(rdf_strip_string(r,r,?)).
+:- rdf_meta(rdf_year(r,r,?,r,r,r)).
 
 
 
@@ -242,3 +250,32 @@ rdf_strip_string(Subject, Predicate, Graph):-
 :- rdf_meta(rdf_overwrite_datatype0(?,r,r,?,?)).
 rdf_overwrite_datatype0(Datatype, Subject, Predicate, Value, Graph):-
   rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph).
+
+rdf_year(S, P, G, IntervalP1, IntervalP2, PointP):-
+  findall(
+    [S, P, Lit, G],
+    (
+      rdf_literal(S, P, Lit, G),
+      phrase(year(_Lang, Year), Lit)
+    ),
+    Tuples
+  ),
+  user_interaction(
+    'RDF-DATATYPE-GYEAR',
+    rdf_overwrite_year0(IntervalP1, IntervalP2, PointP),
+    ['Subject', 'Predicate', 'Literal', 'Graph'],
+    Tuples
+  ).
+:- rdf_meta(rdf_overwrite_year0(r,r,r,r,r,+,+)).
+rdf_overwrite_year0(IntervalP1, IntervalP2, PointP, S, P, Lit, G):-
+  rdf_retractall_literal(S, P, Lit, G),
+  dcg_phrase(year(_Lang, Year), Lit),
+  (
+    Year = Year1-Year2
+  ->
+    rdf_assert_datatype(S, IntervalP1, gYear, Year1, G),
+    rdf_assert_datatype(S, IntervalP2, gYear, Year2, G)
+  ;
+    rdf_assert_datatype(S, PointP, gYear, Year, G)
+  ).
+

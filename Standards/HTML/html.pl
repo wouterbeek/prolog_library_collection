@@ -181,9 +181,7 @@ uri_to_html(URI, DOM):-
       ),
       set_stream(Stream, encoding(utf8))
     ),
-    % The try to make this goal succeed.
     stream_to_html(Stream, DOM),
-    % If goal succeeds, then perform this cleanup.
     close(Stream)
   ).
 

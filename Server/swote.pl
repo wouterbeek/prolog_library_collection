@@ -16,22 +16,26 @@ Semantic Web Note Taking Application.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 
-
-
 % HTTP handler for the index.
 :- http_handler(root(swote), swote, [prefix]).
 
 
 
-email_field(DOM):-
+object_field(DOM):-
   DOM = [
-    element(label, [], ['Email:']),
+    element(label, [], ['Object:']),
     element(input, [type=text], [])
   ].
 
-name_field(DOM):-
+predicate_field(DOM):-
   DOM = [
-    element(label, [], ['Full name:']),
+    element(label, [], ['Predicate:']),
+    element(input, [type=text], [])
+  ].
+
+subject_field(DOM):-
+  DOM = [
+    element(label, [], ['Subject:']),
     element(input, [type=text], [])
   ].
 
@@ -41,9 +45,19 @@ swote(_Request):-
 
 swote_web(DOM):-
   DOM = [element(form, [], FormContent)],
-  name_field(NameField),
-  email_field(EmailField),
-  append([NameField,EmailField], FormContent).
+  subject_field(SubjectField),
+  predicate_field(PredicateField),
+  object_field(ObjectField),
+  append(
+    [
+      SubjectField,
+      element(br, [], []),
+      PredicateField,
+      element(br, [], []),
+      ObjectField
+    ],
+    FormContent
+  ).
 
 user:body(swote, Body) -->
   html(body([h1('SWOTE') | Body])).

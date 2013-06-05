@@ -106,6 +106,7 @@ uncertainty of an *unexpressed* digit. What is means is the interval
 :- use_module(generics(atom_ext)).
 :- use_module(generics(db_ext)).
 :- use_module(generics(meta_ext)).
+:- use_module(html(html)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_db)).
@@ -428,69 +429,7 @@ dbnl_uri_resolve(Relative, Base, Absolute):-
 
 dbnl_uri_to_html(URI1, DOM):-
   dbnl_uri_resolve(URI1, URI2),
-  http_open_until_it_works(URI2, DOM).
-
-http_open_until_it_works(URI, DOM):-
-  dbnl_set_current_uri(URI), %DEB
-  catch(
-    setup_call_cleanup(
-      % First perform this setup once/1.
-      (
-        http_open(URI, Stream, []),
-        set_stream(Stream, encoding(utf8))
-      ),
-      % The try to make this goal succeed.
-      (
-        dtd(html, DTD),
-        load_structure(
-          stream(Stream),
-          DOM,
-          [
-            dtd(DTD),
-            dialect(sgml),
-            max_errors(-1),
-            shorttag(false),
-            space(remove),
-            syntax_errors(quiet)
-          ]
-        )
-      ),
-      % If goal succeeds, then perform this cleanup.
-      close(Stream)
-    ),
-    Exception,
-    process_exception(Exception, URI, DOM)
-  ).
-
-process_exception(
-  error(limit_exceeded(max_errors, Max), Context),
-  _URI,
-  _DOM
-):-
-  !,
-  format(
-    atom(Text),
-    'Encountered ~w error(s) while parsing HTML.\n[~w]\n',
-    [Max, Context]
-  ),
-  cowspeak(Text).
-process_exception(error(existence_error(url, URI), Context), _URI, _DOM):-
-  !,
-  format(
-    atom(Text),
-    'Resource <~w> does not seem to exist.\n[~w]\n',
-    [URI, Context]
-  ),
-  cowspeak(Text).
-process_exception(error(socket_error('Try Again'), _Context), URI, DOM):-
-  !,
-  format(atom(Text), 'Try again!\n<~w>', [URI]),
-  cowspeak(Text),
-  sleep(5),
-  http_open_until_it_works(URI, DOM).
-process_exception(Exception, _URI, _DOM):-
-  gtrace, %DEB
-  format(user_output, '~w\n', [Exception]).
+  uri_to_html(URI2, DOM).
 
 journal(Lang, Title, Volume) -->
   % Example: "In: ...".

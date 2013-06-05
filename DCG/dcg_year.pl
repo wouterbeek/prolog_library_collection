@@ -38,8 +38,12 @@ question_marks(N) -->
   question_marks(M),
   {N is M + 1}.
 
-xs(1) --> x.
-xs(N) --> x, xs(M), {N is M + 1}.
+xs(1) -->
+  x.
+xs(N) -->
+  x,
+  xs(M),
+  {N is M + 1}.
 
 % Between round brackets.
 year(Lang, Year) -->

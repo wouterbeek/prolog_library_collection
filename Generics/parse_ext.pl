@@ -183,7 +183,7 @@ discard_until(Match, C1-C0):-
 discard_until(Codes, C1-C0):-
   append(Codes, C0, C1),
   !.
-discard_until(Codes, [_ | C1]-C0):-
+discard_until(Codes, [_|C1]-C0):-
   discard_until(Codes, C1-C0).
 
 epoch('BC', C1-C0):-
