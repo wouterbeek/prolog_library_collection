@@ -57,7 +57,10 @@ cowsay(Text):-
 % @arg Text Either an atomic text message or a list of atomic lines
 %        constituting a message.
 % @arg Cow An atomic representing of both the cow and the text message.
+%
 % @tbd Split lines by words (in whitespace). Add this to module ATOM_EXT.
+% @tbd When tabs are used in cowspeak/2 the width of the speech balloon
+%      cannot be reliable ascertained right now.
 
 cowsay(Atom, Cow):-
   atomic(Atom),
@@ -89,7 +92,7 @@ cowsay(Atoms, Cow):-
     (
       member(Line, Lines),
       atom_length(Line, Length),
-      NumberOfSpaces is MaxLength - Length,
+      NumberOfSpaces is LongestLength - Length,
       repeating_atom(' ', NumberOfSpaces, Spaces),
       atomic_list_concat(['| ', Line, Spaces, ' |'], NewLine)
     ),
@@ -160,5 +163,5 @@ speech(_):-
   debug(
     cowspeak,
     'The cow\'s speech cannot be played on the current OS.',
-    []
+    [detached(true)]
   ).
