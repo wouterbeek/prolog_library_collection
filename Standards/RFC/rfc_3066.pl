@@ -32,12 +32,12 @@ language_tag0(O1, Tag, C1-C0):-
     % Length-2 codes must be ISO 639-1.
     Length == 2
   ->
-    iso_639_1_language(Tag, _URI1)
+    iso_639_1(Tag, _URI1)
   ;
     % Length-3 codes must be ISO 639-2.
     Length == 3
   ->
-    iso_639_2_language(Tag, _URI2)
+    iso_639_2(Tag, _URI2)
   ;
     true
   ).

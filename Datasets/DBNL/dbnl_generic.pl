@@ -290,7 +290,7 @@ dbnl_source(Graph, Text) -->
       rdf_assert_literal(Text, dbnl:city, City, Graph)
     )
   },
-  dcg_string_all(_).
+  dcg_codes_all(_).
 */
 
 dbnl_title(Graph, Text) -->
@@ -443,7 +443,7 @@ journal(Lang, Title, Volume) -->
     dcg_atom_until(dot, Title), dot, blank
   ;
     % No volume information.
-    dcg_string_all(_)
+    dcg_codes_all(_)
   ),
   % With or without a volume.
   (volume(Lang, Volume) ; "").

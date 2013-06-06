@@ -1,21 +1,6 @@
 :- module(
   rdf_clean,
   [
-    rdf_clean/4, % ?Subject:oneof([bnode,uri])
-                 % ?Predicate:uri
-                 % ?Object:oneof([bnode,literal,uri])
-                 % ?Graph1:atom
-    rdf_clean_datatype/5, % ?Subject:oneof([bnode,uri])
-                          % ?Predicate:uri
-                          % ?Datatype:atom
-                          % ?Value
-                          % ?Graph1:atom
-    rdf_convert_datatype/6, % +Subject:oneof([bnode,uri])
-                            % +Predicate:uri
-                            % +FromDatatype:atom
-                            % +FromValue
-                            % +ToDatatype:atom
-                            % +Graph:atom
     rdf_duplicate/5, % ?Subject:oneof([bnode,uri])
                      % ?Predicate:uri
                      % ?Object:oneof([bnode,literal,uri])
@@ -25,19 +10,37 @@
                             % ?Predicate:oneof([atom,uri])
                             % ?Object:oneof([atom,bnode,literal,uri])
                             % ?Graph:atom
-    rdf_split_string/4, % ?Subject:onef([bnode,uri])
-                        % ?Predicate:uri
-                        % ?Graph:atom
-                        % +Split:atom
-    rdf_strip_string/3, % ?Subject:oneof([bnode,uri])
-                        % ?Predicate:uri
-                        % ?Graph:atom
-    rdf_year/6 % ?Subject:oneof([bnode,uri])
-               % ?Predicate:uri
-               % ?Graph:atom
-               % +IntervalP1:uri
-               % +IntervalP2:uri
-               % +PointP:uri
+% DATATYPES %
+    rdf_convert_datatype/6, % +Subject:oneof([bnode,uri])
+                            % +Predicate:uri
+                            % +FromDatatype:atom
+                            % +FromValue
+                            % +ToDatatype:atom
+                            % +Graph:atom
+% LITERALS %
+    rdf_split_literal/4, % ?Subject:onef([bnode,uri])
+                         % ?Predicate:uri
+                         % ?Graph:atom
+                         % +Split:atom
+    rdf_strip_literal/3, % ?Subject:oneof([bnode,uri])
+                         % ?Predicate:uri
+                         % ?Graph:atom
+% REMOVAL %
+    rdf_remove/4, % ?Subject:oneof([bnode,uri])
+                  % ?Predicate:uri
+                  % ?Object:oneof([bnode,literal,uri])
+                  % ?Graph:atom
+    rdf_remove_datatype/5, % ?Subject:oneof([bnode,uri])
+                           % ?Predicate:uri
+                           % ?Datatype:atom
+                           % ?Value
+                           % ?Graph:atom
+% REPLACEMENT %
+    rdf_replace_namespace_predicate/5 % ?Subject:oneof([bnode,uri])
+                                      % ?Predicate:uri
+                                      % ?Object:oneof([bnode,literal,uri])
+                                      % ?Graph:atom
+                                      % +NewNamespace:atom
   ]
 ).
 
@@ -46,10 +49,9 @@
 Predicates that allow RDF graphs to be cleaned in a controlled way.
 
 @author Wouter Beek
-@version 2013/03-2013/04
+@version 2013/03-2013/04, 2013/06
 */
 
-:- use_module(dcg(dcg_generic)).
 :- use_module(generics(atom_ext)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(typecheck)).
@@ -58,75 +60,20 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 :- use_module(rdf(rdf_datatype)).
 :- use_module(rdf(rdf_read)).
 
-:- rdf_meta(rdf_clean(r,r,r,?)).
-:- rdf_meta(rdf_clean_datatype(r,r,r,?,?)).
-:- rdf_meta(rdf_convert_datatype(r,r,+,+,+,+)).
 :- rdf_meta(rdf_duplicate(r,r,r,?,?)).
 :- rdf_meta(rdf_expand_namespace(r,r,r,?)).
-:- rdf_meta(rdf_split_string(r,r,?,+)).
-:- rdf_meta(rdf_strip_string(r,r,?)).
-:- rdf_meta(rdf_year(r,r,?,r,r,r)).
+% DATATYPES %
+:- rdf_meta(rdf_convert_datatype(r,r,+,+,+,+)).
+% LITERALS %
+:- rdf_meta(rdf_split_literal(r,r,?,+)).
+:- rdf_meta(rdf_strip_literal(r,r,?)).
+% REMOVAL %
+:- rdf_meta(rdf_remove(r,r,r,?)).
+:- rdf_meta(rdf_remove_datatype(r,r,r,?,?)).
+% REPLACEMENT %
+:- rdf_meta(rdf_replace_namespace_predicate(r,r,r,+,+)).
 
 
-
-%! rdf_clean(
-%!   ?Subject:oneof([bnode,uri]),
-%!   ?Predicate:uri,
-%!   ?Object:oneof([bnode,literal,uri]),
-%!   ?Graph:atom
-%! ) is det.
-% Clean RDF triples with explicit user-consent.
-
-rdf_clean(Subject, Predicate, Object, Graph):-
-  findall(
-    [Subject, Predicate, Object, Graph],
-    rdf(Subject, Predicate, Object, Graph),
-    Tuples
-  ),
-  user_interaction(
-    'REMOVE-RDF-TRIPLE',
-    rdf_retractall,
-    ['Subject', 'Predicate', 'Object', 'Graph'],
-    Tuples
-  ).
-
-%! rdf_clean_datatype(
-%!   ?Subject:oneof([bnode,uri]),
-%!   ?Predicate:uri,
-%!   ?Datatype:atom,
-%!   ?Value,
-%!   ?Graph:atom
-%! ) is det.
-% Clean RDF datatype triples with explicit user-consent.
-
-rdf_clean_datatype(Subject, Predicate, Datatype, Value, Graph):-
-  findall(
-    [Subject, Predicate, Datatype, Value, Graph],
-    rdf_datatype(Subject, Predicate, Datatype, Value, Graph),
-    Tuples
-  ),
-  user_interaction(
-    'REMOVE-RDF-DATATYPE-TRIPLE',
-    rdf_retractall_datatype,
-    ['Subject', 'Predicate', 'Datatype', 'Value', 'Graph'],
-    Tuples
-  ).
-
-rdf_convert_datatype(
-  Subject,
-  Predicate,
-  FromDatatype,
-  FromValue,
-  ToDatatype,
-  Graph
-):-
-  forall(
-    rdf_datatype(Subject, Predicate, FromDatatype, FromValue, Graph),
-    (
-      rdf_convert_datatype(FromDatatype, FromValue, ToDatatype, ToValue),
-      rdf_assert_datatype(Subject, Predicate, ToDatatype, ToValue, Graph)
-    )
-  ).
 
 %! rdf_duplicate(
 %!   ?Subject:oneof([bnode,uri]),
@@ -153,6 +100,7 @@ rdf_expand_namespace(
 % Datatypes in typed literals are treaded in a special way.
 rdf_expand_namespace(literal(type(Atom, Value)), literal(type(URI, Value))):-
   rdf_expand_namespace(Atom, URI).
+% No namespace.
 rdf_expand_namespace(literal(Literal), literal(Literal)):-
   !.
 % Already a URI.
@@ -164,20 +112,31 @@ rdf_expand_namespace(Atom, URI):-
   split_atom_exclusive(':', Atom, [Namespace, LocalName]),
   rdf_global_id(Namespace:LocalName, URI).
 
-rdf_expand_namespace(Subject1, Predicate1, Object1, Graph):-
+%! rdf_expand_namespace(
+%!   ?S1:oneof([bnode,uri]),
+%!   ?P:uri,
+%!   ?O:oneof([bnode,literal,uri]),
+%!   ?G:atom
+%! ) is det.
+% Expands namespaces that currently occur as atoms.
+%
+% This was used for several RDF files from the OAEI where the datatypes
+% of typed literals would sometimes be 'xsd:float' instea of 'xsd':'float'.
+
+rdf_expand_namespace(S1, P1, O1, G):-
   findall(
-    [Subject1, Predicate1, Object1, Graph],
+    [S1, P1, O1, G],
     (
-      rdf(Subject1, Predicate1, Object1, Graph),
+      rdf(S1, P1, O1, G),
       (
-        rdf_expand_namespace(Subject1, Subject2),
-        Subject1 \== Subject2
+        rdf_expand_namespace(S1, S2),
+        S1 \== S2
       ;
-        rdf_expand_namespace(Predicate1, Predicate2),
-        Predicate1 \== Predicate2
+        rdf_expand_namespace(P1, P2),
+        P1 \== P2
       ;
-        rdf_expand_namespace(Object1, Object2),
-        Object1 \== Object2
+        rdf_expand_namespace(O1, O2),
+        O1 \== O2
       )
     ),
     Tuples
@@ -198,7 +157,31 @@ rdf_expand_namespace0(Subject1, Predicate1, Object1, Graph):-
   rdf_retractall(Subject1, Predicate1, Object1, Graph),
   rdf_assert(Subject2, Predicate2, Object2, Graph).
 
-rdf_split_string(Subject, Predicate, Graph, Split):-
+
+
+% DATATYPES %
+
+rdf_convert_datatype(
+  Subject,
+  Predicate,
+  FromDatatype,
+  FromValue,
+  ToDatatype,
+  Graph
+):-
+  forall(
+    rdf_datatype(Subject, Predicate, FromDatatype, FromValue, Graph),
+    (
+      rdf_convert_datatype(FromDatatype, FromValue, ToDatatype, ToValue),
+      rdf_assert_datatype(Subject, Predicate, ToDatatype, ToValue, Graph)
+    )
+  ).
+
+
+
+% LITERALS %
+
+rdf_split_literal(Subject, Predicate, Graph, Split):-
   findall(
     [Subject, Predicate, String, Graph],
     (
@@ -224,14 +207,14 @@ rdf_split_string0(Split, Subject, Predicate, OldString, Graph):-
   ),
   rdf_retractall_datatype(Subject, Predicate, string, OldString, Graph).
 
-%! rdf_strip_string(
+%! rdf_strip_literal(
 %!   ?Subject:oneof([bnode,uri]),
 %!   ?Predicate:uri,
 %!   ?Graph:atom
 %! ) is det.
 % Strip RDF string datatypes.
 
-rdf_strip_string(Subject, Predicate, Graph):-
+rdf_strip_literal(Subject, Predicate, Graph):-
   findall(
     [Subject, Predicate, UnstrippedString, Graph],
     (
@@ -251,31 +234,77 @@ rdf_strip_string(Subject, Predicate, Graph):-
 rdf_overwrite_datatype0(Datatype, Subject, Predicate, Value, Graph):-
   rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph).
 
-rdf_year(S, P, G, IntervalP1, IntervalP2, PointP):-
+
+
+% REMOVAL %
+
+%! rdf_remove(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Object:oneof([bnode,literal,uri]),
+%!   ?Graph:atom
+%! ) is det.
+% Clean RDF triples with explicit user-consent.
+
+rdf_remove(Subject, Predicate, Object, Graph):-
   findall(
-    [S, P, Lit, G],
+    [Subject, Predicate, Object, Graph],
+    rdf(Subject, Predicate, Object, Graph),
+    Tuples
+  ),
+  user_interaction(
+    'REMOVE-RDF-TRIPLE',
+    rdf_retractall,
+    ['Subject', 'Predicate', 'Object', 'Graph'],
+    Tuples
+  ).
+
+%! rdf_remove_datatype(
+%!   ?Subject:oneof([bnode,uri]),
+%!   ?Predicate:uri,
+%!   ?Datatype:atom,
+%!   ?Value,
+%!   ?Graph:atom
+%! ) is det.
+% Clean RDF datatype triples with explicit user-consent.
+
+rdf_remove_datatype(Subject, Predicate, Datatype, Value, Graph):-
+  findall(
+    [Subject, Predicate, Datatype, Value, Graph],
+    rdf_datatype(Subject, Predicate, Datatype, Value, Graph),
+    Tuples
+  ),
+  user_interaction(
+    'REMOVE-RDF-DATATYPE-TRIPLE',
+    rdf_retractall_datatype,
+    ['Subject', 'Predicate', 'Datatype', 'Value', 'Graph'],
+    Tuples
+  ).
+
+
+
+% REPLACEMENT %
+
+rdf_replace_namespace_predicate(S, P, O, G, NewNamespace):-
+  findall(
+    [S, P, O, G],
     (
-      rdf_literal(S, P, Lit, G),
-      phrase(year(_Lang, Year), Lit)
+      rdf(S, P, O, G),
+      rdf_global_id(OldNamespace:_LocalName, P),
+      OldNamespace \== NewNamespace
     ),
     Tuples
   ),
   user_interaction(
-    'RDF-DATATYPE-GYEAR',
-    rdf_overwrite_year0(IntervalP1, IntervalP2, PointP),
-    ['Subject', 'Predicate', 'Literal', 'Graph'],
+    'RDF-REPLACE-NAMESPACE-PREDICATE',
+    rdf_replace_namespace_predicate0(S, P, O, G, NewNamespace),
+    ['Subject', 'Predicate', 'Object', 'Graph'],
     Tuples
   ).
-:- rdf_meta(rdf_overwrite_year0(r,r,r,r,r,+,+)).
-rdf_overwrite_year0(IntervalP1, IntervalP2, PointP, S, P, Lit, G):-
-  rdf_retractall_literal(S, P, Lit, G),
-  dcg_phrase(year(_Lang, Year), Lit),
-  (
-    Year = Year1-Year2
-  ->
-    rdf_assert_datatype(S, IntervalP1, gYear, Year1, G),
-    rdf_assert_datatype(S, IntervalP2, gYear, Year2, G)
-  ;
-    rdf_assert_datatype(S, PointP, gYear, Year, G)
-  ).
+:- rdf_meta(rdf_replace_namespace_predicate0(r,r,r,+,+)).
+rdf_replace_namespace_predicate0(S, OldP, O, G, NewNamespace):-
+  rdf_retractall(S, OldP, O, G),
+  rdf_global_id(_OldNamespace:LocalName, OldP),
+  rdf_global_id(NewNamespace:LocalName, NewP),
+  rdf_assert(S, NewP, O, G).
 

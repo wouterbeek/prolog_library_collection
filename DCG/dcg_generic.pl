@@ -1,13 +1,20 @@
 :- module(
   dcg_generic,
   [
+% AGGREGATES %
+    dcg_word//1, % -Word:atom
+
 % ALL/UNTIL %
     dcg_atom_all//1, % -Atom:atom
     dcg_atom_until//2, % :End:dcg
                        % -Atom:atom
-    dcg_string_all//1, % -Codes:list(code)
-    dcg_string_until//2, % :End:dcg
-                         % -Codes:list(code)
+    dcg_atom_without//2, % :End:dcg
+                         % -Atom:atom
+    dcg_codes_all//1, % -Codes:list(code)
+    dcg_codes_until//2, % :End:dcg
+                        % -Codes:list(code)
+    dcg_codes_without//2, % :End:dcg
+                          % -Codes:list(code)
 
 % DEBUG %
     dcg_debug//0,
@@ -58,7 +65,9 @@ Generic DCG clauses.
 
 % ALL/UNTIL %
 :- meta_predicate(dcg_atom_until(//,-,+,-)).
-:- meta_predicate(dcg_string_until(//,-,+,-)).
+:- meta_predicate(dcg_atom_without(//,-,+,-)).
+:- meta_predicate(dcg_codes_until(//,-,+,-)).
+:- meta_predicate(dcg_codes_without(//,-,+,-)).
 % LIST %
 :- meta_predicate(dcg_separated_list(//,-,+,-)).
 % PHRASE EXTENSIONS %
@@ -70,23 +79,52 @@ Generic DCG clauses.
 
 
 
+% AGGREGATES %
+
+dcg_word(Word) -->
+  dcg_atom_until(space, Word).
+
+
+
 % ALL/UNTIL %
 
-%! dcg_atom_until(+End:oneof([dcg,list(dcg)]), -Atom:atom)// is det.
-% @see dcg_string_until//2
+dcg_atom_all(Atom) -->
+  {var(Atom)},
+  dcg_codes_all(Codes),
+  {atom_codes(Atom, Codes)}.
+dcg_atom_all(Atom) -->
+  {nonvar(Atom)},
+  {atom_codes(Atom, Codes)},
+  dcg_codes_all(Codes).
+
+%! dcg_atom_until(+End:dcg, -Atom:atom)// is det.
+% @see dcg_codes_until//2
 
 dcg_atom_until(End, Atom) -->
-  dcg_string_until(End, Codes),
+  {var(Atom)},
+  dcg_codes_until(End, Codes),
   {atom_codes(Atom, Codes)}.
+dcg_atom_until(End, Atom) -->
+  {nonvar(Atom)},
+  {atom_codes(Atom, Codes)},
+  dcg_codes_until(End, Codes).
 
-dcg_atom_all(Atom) -->
-  dcg_string_all(Codes),
+dcg_atom_without(End, Atom) -->
+  {var(Atom)},
+  dcg_codes_without(End, Codes),
   {atom_codes(Atom, Codes)}.
+dcg_atom_without(End, Atom) -->
+  {nonvar(Atom)},
+  {atom_codes(Atom, Codes)},
+  dcg_codes_without(End, Codes).
 
-dcg_string_all([]) --> [].
-dcg_string_all([H|T]) --> [H], dcg_string_all(T).
+dcg_codes_all([]) -->
+  [].
+dcg_codes_all([H|T]) -->
+  [H],
+  dcg_codes_all(T).
 
-%! dcg_string_until(+End:dcg, -String:list(code))// is det.
+%! dcg_codes_until(+End:dcg, -Codes:list(code))// is det.
 % Returns the codes that occur before =End= can be consumed.
 %
 % =End= is not an arbitrary DCG body, since disjunction does not play out
@@ -97,12 +135,21 @@ dcg_string_all([H|T]) --> [H], dcg_string_all(T).
 % @tbd There are problems with list elements: meta_predicate/1 cannot
 %      identity the modules for DCGs in this case.
 
-dcg_string_until(End, []), End -->
+dcg_codes_until(End, []), End -->
   End,
   !.
-dcg_string_until(End, [H|T]) -->
+dcg_codes_until(End, [H|T]) -->
   [H],
-  dcg_string_until(End, T).
+  dcg_codes_until(End, T).
+
+%! dcg_codes_without(+End:dcg, -Codes:list(code))// is det.
+
+dcg_codes_without(End, []) -->
+  End,
+  !.
+dcg_codes_without(End, [H|T]) -->
+  [H],
+  dcg_codes_without(End, T).
 
 
 

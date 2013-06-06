@@ -45,7 +45,6 @@ Reification for RDF. Both reading and writing.
 */
 
 :- use_module(library(semweb/rdf_db)).
-:- use_module(rdfs(rdfs_build)).
 
 :- rdf_meta(rdf_object(r,r,?)).
 :- rdf_meta(rdf_predicate(r,r,?)).

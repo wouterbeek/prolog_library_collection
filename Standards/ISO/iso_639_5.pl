@@ -1,8 +1,9 @@
 :- module(
   iso_639_5,
   [
-    iso_639_5_language_family/2 % ?ISO:atom
-                                % ?Lexvo:uri
+    iso_639_5/3 % ?ISO:atom
+                % ?Name:atom
+                % ?Lexvo:uri
   ]
 ).
 
@@ -13,134 +14,129 @@ The ISO 639-5 standard for language codes with Lexvo Semantic Web URIs.
 WWW: [http://www.loc.gov/standards/iso639-5/]
 
 @author Wouter Beek
-@version 2013/01
+@version 2013/01, 2013/06
 */
 
+:- use_module(library(semweb/rdf_db)).
+:- use_module(xml(xml_namespace)).
+
+:- xml_register_namespace(iso_639_5, 'http://lexvo.org/id/iso639-5/').
+
+:- rdf_meta(iso_639_5(?,?,r)).
 
 
-%! iso_639_5_language_family(?ISO:atom, ?Lexvo:uri) is nondet.
 
-iso_639_5_language_family(ISO, Lexvo):-
-  maplist(var, [ISO, Lexvo]),
-  !,
-  language_family0(ISO, _Name, Lexvo).
-% All mappings are unique.
-iso_639_5_language_family(ISO, Lexvo):-
-  language_family0(ISO, _Name, Lexvo),
-  !.
-
-language_family0(aav, 'Austro-Asiatic', 'http://lexvo.org/id/iso639-5/aav').
-language_family0(afa, 'Afro-Asiatic', 'http://lexvo.org/id/iso639-5/afa').
-language_family0(alg, 'Algonquian', 'http://lexvo.org/id/iso639-5/alg').
-language_family0(alv, 'Atlantic-Congo', 'http://lexvo.org/id/iso639-5/alv').
-language_family0(apa, 'Apache', 'http://lexvo.org/id/iso639-5/apa').
-language_family0(aqa, 'Alacalufan', 'http://lexvo.org/id/iso639-5/aqa').
-language_family0(aql, 'Algic', 'http://lexvo.org/id/iso639-5/aql').
-language_family0(art, 'Artificial', 'http://lexvo.org/id/iso639-5/art').
-language_family0(ath, 'Athapascan', 'http://lexvo.org/id/iso639-5/ath').
-language_family0(auf, 'Arauan', 'http://lexvo.org/id/iso639-5/auf').
-language_family0(aus, 'Australian', 'http://lexvo.org/id/iso639-5/aus').
-language_family0(awd, 'Arawakan', 'http://lexvo.org/id/iso639-5/awd').
-language_family0(azc, 'Uto-Aztecan', 'http://lexvo.org/id/iso639-5/azc').
-language_family0(bad, 'Banda', 'http://lexvo.org/id/iso639-5/bad').
-language_family0(bai, 'Bamileke', 'http://lexvo.org/id/iso639-5/bai').
-language_family0(bat, 'Baltic', 'http://lexvo.org/id/iso639-5/bat').
-language_family0(ber, 'Berber', 'http://lexvo.org/id/iso639-5/ber').
-language_family0(bnt, 'Bantu', 'http://lexvo.org/id/iso639-5/bnt').
-language_family0(btk, 'Batak', 'http://lexvo.org/id/iso639-5/btk').
-language_family0(cai, 'Central American Indian', 'http://lexvo.org/id/iso639-5/cai').
-language_family0(cau, 'Caucasian', 'http://lexvo.org/id/iso639-5/cau').
-language_family0(cba, 'Chibchan', 'http://lexvo.org/id/iso639-5/cba').
-language_family0(ccn, 'North Caucasian', 'http://lexvo.org/id/iso639-5/ccn').
-language_family0(ccs, 'South Caucasian', 'http://lexvo.org/id/iso639-5/ccs').
-language_family0(cdc, 'Chadic', 'http://lexvo.org/id/iso639-5/cdc').
-language_family0(cdd, 'Caddoan', 'http://lexvo.org/id/iso639-5/cdd').
-language_family0(cel, 'Celtic', 'http://lexvo.org/id/iso639-5/cel').
-language_family0(cmc, 'Chamic', 'http://lexvo.org/id/iso639-5/cmc').
-language_family0(cpe, 'Creoles and pidgins, English‑based', 'http://lexvo.org/id/iso639-5/cpe').
-language_family0(cpf, 'Creoles and pidgins, French‑based', 'http://lexvo.org/id/iso639-5/cpf').
-language_family0(cpp, 'Creoles and pidgins, Portuguese-based', 'http://lexvo.org/id/iso639-5/cpp').
-language_family0(crp, 'Creoles and pidgins', 'http://lexvo.org/id/iso639-5/crp').
-language_family0(csu, 'Central Sudanic', 'http://lexvo.org/id/iso639-5/csu').
-language_family0(cus, 'Cushitic', 'http://lexvo.org/id/iso639-5/cus').
-language_family0(day, 'Land Dayak', 'http://lexvo.org/id/iso639-5/day').
-language_family0(dmn, 'Mande', 'http://lexvo.org/id/iso639-5/dmn').
-language_family0(dra, 'Dravidian', 'http://lexvo.org/id/iso639-5/dra').
-language_family0(egx, 'Egyptian', 'http://lexvo.org/id/iso639-5/egx').
-language_family0(esx, 'Eskimo-Aleut', 'http://lexvo.org/id/iso639-5/esx').
-language_family0(euq, 'Basque', 'http://lexvo.org/id/iso639-5/euq').
-language_family0(fiu, 'Finno-Ugrian', 'http://lexvo.org/id/iso639-5/fiu').
-language_family0(fox, 'Formosan', 'http://lexvo.org/id/iso639-5/fox').
-language_family0(gem, 'Germanic', 'http://lexvo.org/id/iso639-5/gem').
-language_family0(gme, 'East Germanic', 'http://lexvo.org/id/iso639-5/gme').
-language_family0(gmq, 'North Germanic', 'http://lexvo.org/id/iso639-5/gmq').
-language_family0(gmw, 'West Germanic', 'http://lexvo.org/id/iso639-5/gmw').
-language_family0(grk, 'Greek', 'http://lexvo.org/id/iso639-5/grk').
-language_family0(hmx, 'Hmong-Mien', 'http://lexvo.org/id/iso639-5/hmx').
-language_family0(hok, 'Hokan languages', 'http://lexvo.org/id/iso639-5/hok').
-language_family0(hyx, 'Armenian', 'http://lexvo.org/id/iso639-5/hyx').
-language_family0(iir, 'Indo-Iranian', 'http://lexvo.org/id/iso639-5/iir').
-language_family0(ijo, 'Ijo', 'http://lexvo.org/id/iso639-5/ijo').
-language_family0(inc, 'Indic', 'http://lexvo.org/id/iso639-5/inc').
-language_family0(ine, 'Indo-European', 'http://lexvo.org/id/iso639-5/ine').
-language_family0(ira, 'Iranian', 'http://lexvo.org/id/iso639-5/ira').
-language_family0(iro, 'Iroquoian', 'http://lexvo.org/id/iso639-5/iro').
-language_family0(itc, 'Italic', 'http://lexvo.org/id/iso639-5/itc').
-language_family0(jpx, 'Japanese', 'http://lexvo.org/id/iso639-5/jpx').
-language_family0(kar, 'Karen', 'http://lexvo.org/id/iso639-5/kar').
-language_family0(kdo, 'Kordofanian', 'http://lexvo.org/id/iso639-5/kdo').
-language_family0(khi, 'Khoisan', 'http://lexvo.org/id/iso639-5/khi').
-language_family0(kro, 'Kru', 'http://lexvo.org/id/iso639-5/kro').
-language_family0(map, 'Austronesian', 'http://lexvo.org/id/iso639-5/map').
-language_family0(mkh, 'Mon-Khmer', 'http://lexvo.org/id/iso639-5/mkh').
-language_family0(mno, 'Manobo', 'http://lexvo.org/id/iso639-5/mno').
-language_family0(mun, 'Munda', 'http://lexvo.org/id/iso639-5/mun').
-language_family0(myn, 'Mayan', 'http://lexvo.org/id/iso639-5/myn').
-language_family0(nah, 'Nahuatl', 'http://lexvo.org/id/iso639-5/nah').
-language_family0(nai, 'North American Indian', 'http://lexvo.org/id/iso639-5/nai').
-language_family0(ngf, 'Trans-New Guinea', 'http://lexvo.org/id/iso639-5/ngf').
-language_family0(nic, 'Niger-Kordofanian', 'http://lexvo.org/id/iso639-5/nic').
-language_family0(nub, 'Nubian', 'http://lexvo.org/id/iso639-5/nub').
-language_family0(omq, 'Oto-Manguean', 'http://lexvo.org/id/iso639-5/omq').
-language_family0(omv, 'Omotic', 'http://lexvo.org/id/iso639-5/omv').
-language_family0(oto, 'Otomian', 'http://lexvo.org/id/iso639-5/oto').
-language_family0(paa, 'Papuan', 'http://lexvo.org/id/iso639-5/paa').
-language_family0(phi, 'Philippine', 'http://lexvo.org/id/iso639-5/phi').
-language_family0(plf, 'Central Malayo-Polynesian', 'http://lexvo.org/id/iso639-5/plf').
-language_family0(poz, 'Malayo-Polynesian', 'http://lexvo.org/id/iso639-5/poz').
-language_family0(pqe, 'Eastern Malayo-Polynesian', 'http://lexvo.org/id/iso639-5/pqe').
-language_family0(pqw, 'Western Malayo-Polynesian', 'http://lexvo.org/id/iso639-5/pqw').
-language_family0(pra, 'Prakrit', 'http://lexvo.org/id/iso639-5/pra').
-language_family0(qwe, 'Quechuan', 'http://lexvo.org/id/iso639-5/qwe').
-language_family0(roa, 'Romance', 'http://lexvo.org/id/iso639-5/roa').
-language_family0(sai, 'South American Indian', 'http://lexvo.org/id/iso639-5/sai').
-language_family0(sal, 'Salishan', 'http://lexvo.org/id/iso639-5/sal').
-language_family0(sdv, 'Eastern Sudanic', 'http://lexvo.org/id/iso639-5/sdv').
-language_family0(sem, 'Semitic', 'http://lexvo.org/id/iso639-5/sem').
-language_family0(sgn, 'sign', 'http://lexvo.org/id/iso639-5/sgn').
-language_family0(sio, 'Siouan', 'http://lexvo.org/id/iso639-5/sio').
-language_family0(sit, 'Sino-Tibetan', 'http://lexvo.org/id/iso639-5/sit').
-language_family0(sla, 'Slavic', 'http://lexvo.org/id/iso639-5/sla').
-language_family0(smi, 'Sami', 'http://lexvo.org/id/iso639-5/smi').
-language_family0(son, 'Songhai', 'http://lexvo.org/id/iso639-5/son').
-language_family0(sqj, 'Albanian', 'http://lexvo.org/id/iso639-5/sqj').
-language_family0(ssa, 'Nilo-Saharan', 'http://lexvo.org/id/iso639-5/ssa').
-language_family0(syd, 'Samoyedic', 'http://lexvo.org/id/iso639-5/syd').
-language_family0(tai, 'Tai', 'http://lexvo.org/id/iso639-5/tai').
-language_family0(tbq, 'Tibeto-Burman', 'http://lexvo.org/id/iso639-5/tbq').
-language_family0(trk, 'Turkic', 'http://lexvo.org/id/iso639-5/trk').
-language_family0(tup, 'Tupi', 'http://lexvo.org/id/iso639-5/tup').
-language_family0(tut, 'Altaic', 'http://lexvo.org/id/iso639-5/tut').
-language_family0(tuw, 'Tungus', 'http://lexvo.org/id/iso639-5/tuw').
-language_family0(urj, 'Uralic', 'http://lexvo.org/id/iso639-5/urj').
-language_family0(wak, 'Wakashan', 'http://lexvo.org/id/iso639-5/wak').
-language_family0(wen, 'Sorbian', 'http://lexvo.org/id/iso639-5/wen').
-language_family0(xgn, 'Mongolian', 'http://lexvo.org/id/iso639-5/xgn').
-language_family0(xnd, 'Na-Dene', 'http://lexvo.org/id/iso639-5/xnd').
-language_family0(ypk, 'Yupik', 'http://lexvo.org/id/iso639-5/ypk').
-language_family0(zhx, 'Chinese', 'http://lexvo.org/id/iso639-5/zhx').
-language_family0(zle, 'East Slavic', 'http://lexvo.org/id/iso639-5/zle').
-language_family0(zls, 'South Slavic', 'http://lexvo.org/id/iso639-5/zls').
-language_family0(zlw, 'West Slavic', 'http://lexvo.org/id/iso639-5/zlw').
-language_family0(znd, 'Zande', 'http://lexvo.org/id/iso639-5/znd').
+iso_639_5(afa, 'Afro-Asiatic', iso_639_5:afa).
+iso_639_5(alg, 'Algonquian', iso_639_5:alg).
+iso_639_5(alv, 'Atlantic-Congo', iso_639_5:alv).
+iso_639_5(apa, 'Apache', iso_639_5:apa).
+iso_639_5(aqa, 'Alacalufan', iso_639_5:aqa).
+iso_639_5(aql, 'Algic', iso_639_5:aql).
+iso_639_5(art, 'Artificial', iso_639_5:art).
+iso_639_5(ath, 'Athapascan', iso_639_5:ath).
+iso_639_5(auf, 'Arauan', iso_639_5:auf).
+iso_639_5(aus, 'Australian', iso_639_5:aus).
+iso_639_5(awd, 'Arawakan', iso_639_5:awd).
+iso_639_5(azc, 'Uto-Aztecan', iso_639_5:azc).
+iso_639_5(bad, 'Banda', iso_639_5:bad).
+iso_639_5(bai, 'Bamileke', iso_639_5:bai).
+iso_639_5(bat, 'Baltic', iso_639_5:bat).
+iso_639_5(ber, 'Berber', iso_639_5:ber).
+iso_639_5(bnt, 'Bantu', iso_639_5:bnt).
+iso_639_5(btk, 'Batak', iso_639_5:btk).
+iso_639_5(cai, 'Central American Indian', iso_639_5:cai).
+iso_639_5(cau, 'Caucasian', iso_639_5:cau).
+iso_639_5(cba, 'Chibchan', iso_639_5:cba).
+iso_639_5(ccn, 'North Caucasian', iso_639_5:ccn).
+iso_639_5(ccs, 'South Caucasian', iso_639_5:ccs).
+iso_639_5(cdc, 'Chadic', iso_639_5:cdc).
+iso_639_5(cdd, 'Caddoan', iso_639_5:cdd).
+iso_639_5(cel, 'Celtic', iso_639_5:cel).
+iso_639_5(cmc, 'Chamic', iso_639_5:cmc).
+iso_639_5(cpe, 'Creoles and pidgins, English‑based', iso_639_5:cpe).
+iso_639_5(cpf, 'Creoles and pidgins, French‑based', iso_639_5:cpf).
+iso_639_5(cpp, 'Creoles and pidgins, Portuguese-based', iso_639_5:cpp).
+iso_639_5(crp, 'Creoles and pidgins', iso_639_5:crp).
+iso_639_5(csu, 'Central Sudanic', iso_639_5:csu).
+iso_639_5(cus, 'Cushitic', iso_639_5:cus).
+iso_639_5(day, 'Land Dayak', iso_639_5:day).
+iso_639_5(dmn, 'Mande', iso_639_5:dmn).
+iso_639_5(dra, 'Dravidian', iso_639_5:dra).
+iso_639_5(egx, 'Egyptian', iso_639_5:egx).
+iso_639_5(esx, 'Eskimo-Aleut', iso_639_5:esx).
+iso_639_5(euq, 'Basque', iso_639_5:euq).
+iso_639_5(fiu, 'Finno-Ugrian', iso_639_5:fiu).
+iso_639_5(fox, 'Formosan', iso_639_5:fox).
+iso_639_5(gem, 'Germanic', iso_639_5:gem).
+iso_639_5(gme, 'East Germanic', iso_639_5:gme).
+iso_639_5(gmq, 'North Germanic', iso_639_5:gmq).
+iso_639_5(gmw, 'West Germanic', iso_639_5:gmw).
+iso_639_5(grk, 'Greek', iso_639_5:grk).
+iso_639_5(hmx, 'Hmong-Mien', iso_639_5:hmx).
+iso_639_5(hok, 'Hokan languages', iso_639_5:hok).
+iso_639_5(hyx, 'Armenian', iso_639_5:hyx).
+iso_639_5(iir, 'Indo-Iranian', iso_639_5:iir).
+iso_639_5(ijo, 'Ijo', iso_639_5:ijo).
+iso_639_5(inc, 'Indic', iso_639_5:inc).
+iso_639_5(ine, 'Indo-European', iso_639_5:ine).
+iso_639_5(ira, 'Iranian', iso_639_5:ira).
+iso_639_5(iro, 'Iroquoian', iso_639_5:iro).
+iso_639_5(itc, 'Italic', iso_639_5:itc).
+iso_639_5(jpx, 'Japanese', iso_639_5:jpx).
+iso_639_5(kar, 'Karen', iso_639_5:kar).
+iso_639_5(kdo, 'Kordofanian', iso_639_5:kdo).
+iso_639_5(khi, 'Khoisan', iso_639_5:khi).
+iso_639_5(kro, 'Kru', iso_639_5:kro).
+iso_639_5(map, 'Austronesian', iso_639_5:map).
+iso_639_5(mkh, 'Mon-Khmer', iso_639_5:mkh).
+iso_639_5(mno, 'Manobo', iso_639_5:mno).
+iso_639_5(mun, 'Munda', iso_639_5:mun).
+iso_639_5(myn, 'Mayan', iso_639_5:myn).
+iso_639_5(nah, 'Nahuatl', iso_639_5:nah).
+iso_639_5(nai, 'North American Indian', iso_639_5:nai).
+iso_639_5(ngf, 'Trans-New Guinea', iso_639_5:ngf).
+iso_639_5(nic, 'Niger-Kordofanian', iso_639_5:nic).
+iso_639_5(nub, 'Nubian', iso_639_5:nub).
+iso_639_5(omq, 'Oto-Manguean', iso_639_5:omq).
+iso_639_5(omv, 'Omotic', iso_639_5:omv).
+iso_639_5(oto, 'Otomian', iso_639_5:oto).
+iso_639_5(paa, 'Papuan', iso_639_5:paa).
+iso_639_5(phi, 'Philippine', iso_639_5:phi).
+iso_639_5(plf, 'Central Malayo-Polynesian', iso_639_5:plf).
+iso_639_5(poz, 'Malayo-Polynesian', iso_639_5:poz).
+iso_639_5(pqe, 'Eastern Malayo-Polynesian', iso_639_5:pqe).
+iso_639_5(pqw, 'Western Malayo-Polynesian', iso_639_5:pqw).
+iso_639_5(pra, 'Prakrit', iso_639_5:pra).
+iso_639_5(qwe, 'Quechuan', iso_639_5:qwe).
+iso_639_5(roa, 'Romance', iso_639_5:roa).
+iso_639_5(sai, 'South American Indian', iso_639_5:sai).
+iso_639_5(sal, 'Salishan', iso_639_5:sal).
+iso_639_5(sdv, 'Eastern Sudanic', iso_639_5:sdv).
+iso_639_5(sem, 'Semitic', iso_639_5:sem).
+iso_639_5(sgn, 'sign', iso_639_5:sgn).
+iso_639_5(sio, 'Siouan', iso_639_5:sio).
+iso_639_5(sit, 'Sino-Tibetan', iso_639_5:sit).
+iso_639_5(sla, 'Slavic', iso_639_5:sla).
+iso_639_5(smi, 'Sami', iso_639_5:smi).
+iso_639_5(son, 'Songhai', iso_639_5:son).
+iso_639_5(sqj, 'Albanian', iso_639_5:sqj).
+iso_639_5(ssa, 'Nilo-Saharan', iso_639_5:ssa).
+iso_639_5(syd, 'Samoyedic', iso_639_5:syd).
+iso_639_5(tai, 'Tai', iso_639_5:tai).
+iso_639_5(tbq, 'Tibeto-Burman', iso_639_5:tbq).
+iso_639_5(trk, 'Turkic', iso_639_5:trk).
+iso_639_5(tup, 'Tupi', iso_639_5:tup).
+iso_639_5(tut, 'Altaic', iso_639_5:tut).
+iso_639_5(tuw, 'Tungus', iso_639_5:tuw).
+iso_639_5(urj, 'Uralic', iso_639_5:urj).
+iso_639_5(wak, 'Wakashan', iso_639_5:wak).
+iso_639_5(wen, 'Sorbian', iso_639_5:wen).
+iso_639_5(xgn, 'Mongolian', iso_639_5:xgn).
+iso_639_5(xnd, 'Na-Dene', iso_639_5:xnd).
+iso_639_5(ypk, 'Yupik', iso_639_5:ypk).
+iso_639_5(zhx, 'Chinese', iso_639_5:zhx).
+iso_639_5(zle, 'East Slavic', iso_639_5:zle).
+iso_639_5(zls, 'South Slavic', iso_639_5:zls).
+iso_639_5(zlw, 'West Slavic', iso_639_5:zlw).
+iso_639_5(znd, 'Zande', iso_639_5:znd).
 
