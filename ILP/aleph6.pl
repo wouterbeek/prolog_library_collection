@@ -143,7 +143,7 @@ depth_bound_call(Goal, Limit):-
 
 % ILP %
 
-%% ilp(+Base:atom) is det.
+%! ilp(+Base:atom) is det.
 % Runs ILP on the files with the given name but in =det= and in =nondet= mode.
 % The default stream for logging is used.
 %
@@ -154,13 +154,13 @@ ilp(Base):-
   ilp(Base, Stream),
   close_log_stream(Stream).
 
-%% ilp(+Base:atom, +Stream:stream) is det.
+%! ilp(+Base:atom, +Stream:stream) is det.
 % @see ilp/3.
 
 ilp(Base, Stream):-
   ilp(Base, Stream, both).
 
-%% ilp(+Base:atom, +Stream:stream, +Mode:atom) is det.
+%! ilp(+Base:atom, +Stream:stream, +Mode:atom) is det.
 % Runs the ILP algorithm.
 %
 % @param Base The base name of the input files.
@@ -188,7 +188,7 @@ ilp(Base, Stream, Mode):-
   ),
   reset(Base).
 
-%% ilp_file(+File:atom) is det.
+%! ilp_file(+File:atom) is det.
 % Perform ILP for the given input file.
 %
 % @param File The atomic name of a file.
@@ -207,8 +207,8 @@ ilp_file(File):-
   ),
   ilp(Base).
 
-%% ilp_mode(+Mode:atom) is semidet.
-%% ilp_mode(-Mode:atom) is nondet.
+%! ilp_mode(+Mode:atom) is semidet.
+%! ilp_mode(-Mode:atom) is nondet.
 % The modes in which ILP can run:
 %     1. =both= first runs in =det= mode and then runs in =nondet= mode.
 %        Intended for debug purposes.
@@ -223,7 +223,7 @@ ilp_mode(nondet).
 
 % CONSTRUCT BOTTOM
 
-%% get_atoms(+Predicates, +Depth, +MaxDepth, +Last, -LastLit)
+%! get_atoms(+Predicates, +Depth, +MaxDepth, +Last, -LastLit)
 % Layered generation of ground atoms to add to bottom clause.
 %
 % @param Predicates A list of Predicate/Arity entries obtained from the
@@ -6707,7 +6707,7 @@ add_inferred_modes([Mode|Modes],Flag):-
 
 % STOCHASTIC SEARCH
 
-%% sample_clauses(+N,-Clauses)
+%! sample_clauses(+N,-Clauses)
 %  return sample of at most N legal clauses from hypothesis space
 %  If a bottom clause exists then
 %    Each clause is drawn randomly. The length of the clause is
@@ -9157,7 +9157,7 @@ get_start_label(Evalfn,[1,0,2,Val]):-
   evalfn(Evalfn,[1,0,2],Val).
 
 
-%% read_all(+Base:atom) is det.
+%! read_all(+Base:atom) is det.
 % Read ILP files with the given name. Background knowledge and
 % examples all have the same base name.
 %
@@ -9166,7 +9166,7 @@ get_start_label(Evalfn,[1,0,2,Val]):-
 read_all(Base):-
   read_all(Base, Base, Base).
 
-%% read_all(+BackgroundBase:atom, +ExamplesBase:atom) is det.
+%! read_all(+BackgroundBase:atom, +ExamplesBase:atom) is det.
 % Read ILP files with the given name. The examples files have
 % the same base name.
 %
@@ -9176,11 +9176,11 @@ read_all(Base):-
 read_all(BackgroundBase, ExamplesBase):-
   read_all(BackgroundBase, ExamplesBase, ExamplesBase).
 
-%% read_all(
-%%   +BackgroundBase:atom,
-%%   +PositiveExamplesBase:atom,
-%%   +NegativeExamplesBase:atom
-%% ) is det.
+%! read_all(
+%!   +BackgroundBase:atom,
+%!   +PositiveExamplesBase:atom,
+%!   +NegativeExamplesBase:atom
+%! ) is det.
 % Read ILP files with the given names.
 %
 % @param BackgroundBase An atomic base name.
@@ -9203,7 +9203,7 @@ read_all(BackgroundBase, PositiveExamplesBase, NegativeExamplesBase):-
   check_abducibles,
   !.
 
-%% read_background(+BackgroundBase:atom) is det.
+%! read_background(+BackgroundBase:atom) is det.
 % Reads background knowledge from the background file with the
 % given base name.
 %
@@ -9225,10 +9225,10 @@ read_background(BackgroundBase):-
   style_check(+singleton),
   broadcast(background(loaded)).
 
-%% read_examples(
-%%   +PositiveExamplesBase:atom,
-%%   +NegativeExamplesBase:atom
-%% ) is det.
+%! read_examples(
+%!   +PositiveExamplesBase:atom,
+%!   +NegativeExamplesBase:atom
+%! ) is det.
 % Reads examples from files that have the given base names.
 %
 % @param PositiveExamplesBase The atomic base name of a positive
@@ -9272,11 +9272,11 @@ read_negative_examples(NegativeExamplesBase):-
   read_examples_files(neg, [NegativeExamplesBase], [NegativeExamplesFile]),
   set(train_neg, NegativeExamplesFile).
 
-%% read_examples_files(
-%%   +Type:atom,
-%%   +ExamplesBases:list(atom),
-%%   -ExamplesFiles:list(atom)
-%% ) is det.
+%! read_examples_files(
+%!   +Type:atom,
+%!   +ExamplesBases:list(atom),
+%!   -ExamplesFiles:list(atom)
+%! ) is det.
 % Reads examples from the given bases and returns their absolute files.
 % The exampels are loaded as being of the given type.
 %
@@ -9302,7 +9302,7 @@ read_examples_files(Type, ExamplesBases, ExamplesFiles):-
   asserta('$aleph_global'(atoms_left, atoms_left(Type, Ex))),
   asserta('$aleph_global'(last_example, last_example(Type, N))).
 
-%% read_examples_from_file(Type, ExamplesBase, ExamplesFile) is det.
+%! read_examples_from_file(Type, ExamplesBase, ExamplesFile) is det.
 % Reads the examples file with the given base name that is of the given type.
 %
 % @param Type The atomic type of examples file. This is either
@@ -10071,7 +10071,7 @@ reset:-
   set_default(_),
   !.
 
-%% reset(+Base:atom) is det.
+%! reset(+Base:atom) is det.
 % Reset that also unloads the background knowledge from the last
 % background knowledge file.
 

@@ -11,7 +11,7 @@
 
 /** <module> I/O extensions
 
-Predicates that extend the swipl builtin I/O predicates.
+Predicates that extend the swipl builtin I/O predicates operating on streams.
 
 @author Wouter Beek
 @version 2013/01
@@ -20,8 +20,8 @@ Predicates that extend the swipl builtin I/O predicates.
 
 
 %! peek_atom(+Stream:stream, +Atom:atom) is semidet.
-% Succeeds if the given atom can be peeked at in the given stream, i.e. without
-% chaining the stream pointer.
+% Succeeds if the given atom can be peeked at in the given stream,
+% i.e. without changing the stream pointer.
 
 peek_atom(Stream, Atom):-
   atom_codes(Atom, Codes),
@@ -60,3 +60,4 @@ peek_length0(Stream, Length, [Code | Codes]):-
   get_code(Stream, Code),
   NewLength is Length - 1,
   peek_length0(Stream, NewLength, Codes).
+

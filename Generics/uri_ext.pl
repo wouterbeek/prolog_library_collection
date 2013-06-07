@@ -34,7 +34,7 @@ uri_to_file_name(URI, FileName):-
   ),
   file_base_name(Path, FileName).
 
-%% uri_to_file(+URI:uri, +File:atom) is det.
+%! uri_to_file(+URI:uri, +File:atom) is det.
 % Stores the contents retrieved from the given URI to the given file.
 
 % Debug: Do not download a file that is already present.

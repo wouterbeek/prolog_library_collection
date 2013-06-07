@@ -193,10 +193,10 @@ dbnl_dom_right(DOM, Content):-
 
 % Ended by a separator.
 dbnl_author(AuthorName) -->
-  dcg_atom_until(comma, AuthorName).
+  dcg_until_atom(comma, AuthorName).
 % The entiry input.
 dbnl_author(AuthorName) -->
-  dcg_atom_all(AuthorName).
+  dcg_all_atom(AuthorName).
 
 dbnl_copyright(Graph, Text) -->
   [element(div, [class=copyright|_], [element(a, _, ['©']), Atom])],
@@ -220,15 +220,15 @@ dbnl_copyright0(Graph, Text, Holders, Year):-
 dbnl_editor(EditorName) -->
   ("editie" ; "hoofdredactie"),
   blank,
-  dcg_atom_all(EditorName).
+  dcg_all_atom(EditorName).
 
 dbnl_genres(_Graph, _Text) --> [].
 dbnl_genres(Graph, Text) -->
   (colon, blank ; ""),
   (
-    dcg_atom_until(comma, GenreAtom), comma, blank
+    dcg_until_atom(comma, GenreAtom), comma, blank
   ;
-    dcg_atom_all(GenreAtom), {GenreAtom \== ''}
+    dcg_all_atom(GenreAtom), {GenreAtom \== ''}
   ),
   {
     dbnl_assert_genre(Graph, GenreAtom, Genre),
@@ -271,12 +271,12 @@ dbnl_publication_print(nl, _Number, _Changes) -->
 /* THIS IS VERY DIFFICULT
 dbnl_source(Graph, Text) -->
   "bron", colon, blank,
-  dcg_atom_all(Source),
+  dcg_all_atom(Source),
   !,
   dbnl_author(Author), comma, blank,
   % Book title. Publisher. Cities.
-  dcg_atom_until(dot, Title), dot, blank,
-  dcg_atom_until(comma, Publisher), comma, blank,
+  dcg_until_atom(dot, Title), dot, blank,
+  dcg_until_atom(comma, Publisher), comma, blank,
   dcg_separated_list(forward_slash, Cities1), blank,
   year(_Lang2, _Year), blank,
   !,
@@ -290,17 +290,17 @@ dbnl_source(Graph, Text) -->
       rdf_assert_literal(Text, dbnl:city, City, Graph)
     )
   },
-  dcg_codes_all(_).
+  dcg_all(_).
 */
 
 dbnl_title(Graph, Text) -->
   % Notice that cannot give the DCG body
-  % =|((dot, blank) ; (space, opening_bracket))|= to dcg_atom_until//2.
+  % =|((dot, blank) ; (space, opening_bracket))|= to dcg_until_atom//2.
   (
-    dcg_atom_until((dot, space), TitleName),
+    dcg_until_atom((dot, space), TitleName),
     dot, space
   ;
-    dcg_atom_until((space, opening_bracket), TitleName),
+    dcg_until_atom((space, opening_bracket), TitleName),
     space
   ),
   % Volume is optional. There are cases in which it is not
@@ -308,7 +308,7 @@ dbnl_title(Graph, Text) -->
   (dbnl_volume(Graph, Text), blanks ; ""),
   {rdfs_assert_label(Text, TitleName, Graph)}.
 dbnl_title(Graph, Text) -->
-  dcg_atom_all(TitleName),
+  dcg_all_atom(TitleName),
   {rdfs_assert_label(Text, TitleName, Graph)}.
 
 dbnl_volume(Graph, Text) -->
@@ -437,13 +437,13 @@ journal(Lang, Title, Volume) -->
 
   (
     % Volume information after the comma.
-    dcg_atom_until(comma, Title), comma, blank
+    dcg_until_atom(comma, Title), comma, blank
   ;
     % Volume information after the dot.
-    dcg_atom_until(dot, Title), dot, blank
+    dcg_until_atom(dot, Title), dot, blank
   ;
     % No volume information.
-    dcg_codes_all(_)
+    dcg_all(_)
   ),
   % With or without a volume.
   (volume(Lang, Volume) ; "").
