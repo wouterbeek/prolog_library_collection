@@ -37,7 +37,8 @@
 
 % PEEK %
     dcg_peek//1, % ?X:code
-    dcg_peek_atom//1, % +Atom:atom
+    dcg_peek_atom//1, % -Atom:atom
+    dcg_peek_char//1, % ?Char:char
     dcg_peek_length//2, % ?Length:integer
                         % ?Codes:list(code)
 
@@ -260,6 +261,17 @@ dcg_peek(X), [X] -->
 dcg_peek_atom(Atom), Codes -->
   {atom_codes(Atom, Codes)},
   Codes.
+
+%! dcg_peek_char(?Char) is semidet.
+
+dcg_peek_char(Char), [Code] -->
+  {nonvar(Char)},
+  {char_code(Char, Code)},
+  [Code].
+dcg_peek_char(Char), [Code] -->
+  {var(Char)},
+  [Code],
+  {char_code(Char, Code)}.
 
 %! dcg_peek_length(?Length:integer, ?Peek:list(code)) is nondet.
 

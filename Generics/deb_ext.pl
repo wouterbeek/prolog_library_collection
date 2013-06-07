@@ -1,6 +1,8 @@
 :- module(
   deb_ext,
   [
+    rdf_class_status/1, % +Class:uri
+    rdf_graph_status/1, % +Graph:atom
     test/2, % +Goal:term
             % +Stream
     test/3 % +Goal:term
@@ -17,13 +19,32 @@ Methods that are used while developing and inspecting code.
 
 @author Wouter Beek
 @tbd Test this module.
-@version 2011/11-2012/07, 2012/09
+@version 2011/11-2012/07, 2012/09, 2013/06
 */
+
+:- use_module(generics(cowspeak)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 
 :- meta_predicate(test(0,+)).
 :- meta_predicate(test(0,+,+)).
 
+:- rdf_meta(rdf_class_status(r)).
 
+
+
+rdf_graph_status(Graph):-
+  rdf_statistics(triples_by_graph(Graph, NumberOfTriples)),
+  cowspeak('Triples: ~w\n', [NumberOfTriples]).
+
+rdf_class_status(Class):-
+  findall(
+    Individual,
+    rdfs_individual_of(Individual, Class),
+    Individuals
+  ),
+  length(Individuals, NumberOfIndividuals),
+  cowspeak('Individuals: ~w\n', [NumberOfIndividuals]).
 
 %! test(:Goal, +Stream) is det.
 % Runs the given goal as a test.
@@ -63,3 +84,4 @@ test(Goal, TestName, Stream):-
     [TestName, Status, DeltaTime]
   ),
   flush_output(Stream).
+
