@@ -106,7 +106,8 @@ using the following triples:
 % CLASS HIERARCHY %
 
 rdfs_assert_class(Class, Graph):-
-  rdfs_assert_individual(Class, rdfs:'Class', Graph),
+  % Materialization
+  %rdfs_assert_individual(Class, rdfs:'Class', Graph),
   rdfs_assert_subclass(Class, rdfs:'Resource', Graph).
 
 %! rdfs_assert_individual(+Individual:uri, +Class:class, +Graph:graph) is det.
@@ -120,7 +121,8 @@ rdfs_assert_individual(Individual, Class, Graph):-
   rdf_assert(Individual, rdf:type, Class, Graph).
 
 rdfs_assert_property_class(PropertyClass, Graph):-
-  rdfs_assert_individual(PropertyClass, rdfs:'Class', Graph),
+  % Materialization
+  %rdfs_assert_individual(PropertyClass, rdfs:'Class', Graph),
   rdfs_assert_subclass(PropertyClass, rdf:'Property', Graph).
 
 rdfs_assert_subclass(Class, SuperClass, Graph):-
@@ -186,5 +188,7 @@ rdfs_assert_property(Property, Graph):-
 % @arg Graph The atomic name of an RDF graph.
 
 rdfs_assert_subproperty(Property, SuperProperty, Graph):-
+  % Materialization
+  %rdf_assert(Property, rdf:type, rdf:'Property', Graph),
   rdf_assert(Property, rdfs:subPropertyOf, SuperProperty, Graph).
 

@@ -30,17 +30,11 @@
                   % ?Predicate:uri
                   % ?Object:oneof([bnode,literal,uri])
                   % ?Graph:atom
-    rdf_remove_datatype/5, % ?Subject:oneof([bnode,uri])
-                           % ?Predicate:uri
-                           % ?Datatype:atom
-                           % ?Value
-                           % ?Graph:atom
-% REPLACEMENT %
-    rdf_replace_namespace_predicate/5 % ?Subject:oneof([bnode,uri])
-                                      % ?Predicate:uri
-                                      % ?Object:oneof([bnode,literal,uri])
-                                      % ?Graph:atom
-                                      % +NewNamespace:atom
+    rdf_remove_datatype/5 % ?Subject:oneof([bnode,uri])
+                          % ?Predicate:uri
+                          % ?Datatype:atom
+                          % ?Value
+                          % ?Graph:atom
   ]
 ).
 
@@ -70,8 +64,6 @@ Predicates that allow RDF graphs to be cleaned in a controlled way.
 % REMOVAL %
 :- rdf_meta(rdf_remove(r,r,r,?)).
 :- rdf_meta(rdf_remove_datatype(r,r,r,?,?)).
-% REPLACEMENT %
-:- rdf_meta(rdf_replace_namespace_predicate(r,r,r,+,+)).
 
 
 
@@ -183,10 +175,10 @@ rdf_convert_datatype(
 
 rdf_split_literal(Subject, Predicate, Graph, Split):-
   findall(
-    [Subject, Predicate, String, Graph],
+    [Subject, Predicate, Literal, Graph],
     (
-      rdf_datatype(Subject, Predicate, string, String, Graph),
-      split_atom_exclusive(Split, String, Splits),
+      rdf_literal(Subject, Predicate, Literal, Graph),
+      split_atom_exclusive(Split, Literal, Splits),
       length(Splits, Length),
       Length > 1
     ),
@@ -195,17 +187,17 @@ rdf_split_literal(Subject, Predicate, Graph, Split):-
   user_interaction(
     'SPLIT-RDF-DATATYPE-STRING',
     rdf_split_string0(Split),
-    ['Subject', 'Predicate', 'String', 'Graph'],
+    ['Subject', 'Predicate', 'Literal', 'Graph'],
     Tuples
   ).
 :- rdf_meta(rdf_split_string0(+,r,r,+,+)).
-rdf_split_string0(Split, Subject, Predicate, OldString, Graph):-
-  split_atom_exclusive(Split, OldString, NewStrings),
+rdf_split_string0(Split, Subject, Predicate, OldLiteral, Graph):-
+  split_atom_exclusive(Split, OldLiteral, NewLiterals),
   forall(
-    member(NewString, NewStrings),
-    rdf_assert_datatype(Subject, Predicate, string, NewString, Graph)
+    member(NewLiteral, NewLiterals),
+    rdf_assert_literal(Subject, Predicate, NewLiteral, Graph)
   ),
-  rdf_retractall_datatype(Subject, Predicate, string, OldString, Graph).
+  rdf_retractall_literal(Subject, Predicate, OldLiteral, Graph).
 
 %! rdf_strip_literal(
 %!   ?Subject:oneof([bnode,uri]),
@@ -216,23 +208,25 @@ rdf_split_string0(Split, Subject, Predicate, OldString, Graph):-
 
 rdf_strip_literal(Subject, Predicate, Graph):-
   findall(
-    [Subject, Predicate, UnstrippedString, Graph],
+    [Subject, Predicate, Literal1, Graph],
     (
-      rdf_datatype(Subject, Predicate, string, UnstrippedString, Graph),
-      strip_atom([' '], UnstrippedString, StrippedString),
-      UnstrippedString \= StrippedString
+      rdf_datatype(Subject, Predicate, Literal1, Graph),
+      strip_atom([' '], Literal1, Literal2),
+      Literal1 \= Literal2
     ),
     Tuples
   ),
   user_interaction(
     'STRIP-RDF-DATATYPE-STRING',
-    rdf_overwrite_datatype0(string),
-    ['Subject', 'Predicate', 'UnstrippedString', 'Graph'],
+    rdf_strip_literal0(string),
+    ['Subject', 'Predicate', 'Literal', 'Graph'],
     Tuples
   ).
-:- rdf_meta(rdf_overwrite_datatype0(?,r,r,?,?)).
-rdf_overwrite_datatype0(Datatype, Subject, Predicate, Value, Graph):-
-  rdf_overwrite_datatype(Subject, Predicate, Datatype, Value, Graph).
+:- rdf_meta(rdf_strip_literal0(r,r,+,+)).
+rdf_strip_literal0(Subject, Predicate, OldLiteral, Graph):-
+  strip_atom([' '], OldLiteral, NewLiteral),
+  rdf_assert_literal(Subject, Predicate, NewLiteral, Graph),
+  rdf_retractall_literal(Subject, Predicate, OldLiteral, Graph).
 
 
 
@@ -280,31 +274,4 @@ rdf_remove_datatype(Subject, Predicate, Datatype, Value, Graph):-
     ['Subject', 'Predicate', 'Datatype', 'Value', 'Graph'],
     Tuples
   ).
-
-
-
-% REPLACEMENT %
-
-rdf_replace_namespace_predicate(S, P, O, G, NewNamespace):-
-  findall(
-    [S, P, O, G],
-    (
-      rdf(S, P, O, G),
-      rdf_global_id(OldNamespace:_LocalName, P),
-      OldNamespace \== NewNamespace
-    ),
-    Tuples
-  ),
-  user_interaction(
-    'RDF-REPLACE-NAMESPACE-PREDICATE',
-    rdf_replace_namespace_predicate0(S, P, O, G, NewNamespace),
-    ['Subject', 'Predicate', 'Object', 'Graph'],
-    Tuples
-  ).
-:- rdf_meta(rdf_replace_namespace_predicate0(r,r,r,+,+)).
-rdf_replace_namespace_predicate0(S, OldP, O, G, NewNamespace):-
-  rdf_retractall(S, OldP, O, G),
-  rdf_global_id(_OldNamespace:LocalName, OldP),
-  rdf_global_id(NewNamespace:LocalName, NewP),
-  rdf_assert(S, NewP, O, G).
 

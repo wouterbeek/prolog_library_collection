@@ -33,10 +33,6 @@ Methods that are used while developing and inspecting code.
 
 
 
-rdf_graph_status(Graph):-
-  rdf_statistics(triples_by_graph(Graph, NumberOfTriples)),
-  cowspeak('Triples: ~w\n', [NumberOfTriples]).
-
 rdf_class_status(Class):-
   findall(
     Individual,
@@ -45,6 +41,10 @@ rdf_class_status(Class):-
   ),
   length(Individuals, NumberOfIndividuals),
   cowspeak('Individuals: ~w\n', [NumberOfIndividuals]).
+
+rdf_graph_status(Graph):-
+  rdf_statistics(triples_by_graph(Graph, NumberOfTriples)),
+  cowspeak('Triples: ~w\n', [NumberOfTriples]).
 
 %! test(:Goal, +Stream) is det.
 % Runs the given goal as a test.
