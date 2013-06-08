@@ -44,10 +44,10 @@
 
 % PHRASE EXTENSION %
     dcg_phrase/2, % :DCGBody:dcg
-                  % ?In:list(code)
+                  % ?In
     dcg_phrase/3, % :DCGBody:dcg
-                  % ?In:list(code)
-                  % ?Out:list(code)
+                  % ?In
+                  % ?Out
 
 % RE %
     dcg_plus//1, % +DCGBody:dcg

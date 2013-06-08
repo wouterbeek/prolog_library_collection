@@ -90,6 +90,7 @@ list_script(Goal, TodoItems, DoneItems, DoneStream):-
   \+ member(Item, DoneItems),
   call(Goal, Item),
   format(DoneStream, '~w\n', [Item]),
+  flush_output(DoneStream),
   % Enumerate by failure.
   fail.
 list_script(_Goal, _TodoItems, _DoneItems, _DoneStream).
