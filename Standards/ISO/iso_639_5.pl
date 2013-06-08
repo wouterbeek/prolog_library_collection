@@ -17,7 +17,7 @@ WWW: [http://www.loc.gov/standards/iso639-5/]
 @version 2013/01, 2013/06
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db)). % Used for the rdf_meta/1 directive.
 :- use_module(xml(xml_namespace)).
 
 :- xml_register_namespace(iso_639_5, 'http://lexvo.org/id/iso639-5/').

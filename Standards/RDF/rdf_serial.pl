@@ -27,7 +27,7 @@
 Helper predicates for loading/saving RDF graphs.
 
 @author Wouter Beek
-@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/05
+@version 2012/01, 2012/03, 2012/09, 2012/11, 2013/01-2013/06
 */
 
 :- use_module(generics(db_ext)).
@@ -44,9 +44,12 @@ Helper predicates for loading/saving RDF graphs.
 :- use_module(xml(xml)).
 :- use_module(xml(xml_namespace)).
 
-:- db_add_novel(user:prolog_file_type(nt, n_triples)).
+:- db_add_novel(user:prolog_file_type(nt,  n_triples)).
+:- db_add_novel(user:prolog_file_type(nt,  rdf)).
+:- db_add_novel(user:prolog_file_type(rdf, rdfxml)).
 :- db_add_novel(user:prolog_file_type(rdf, rdf)).
 :- db_add_novel(user:prolog_file_type(ttl, turtle)).
+:- db_add_novel(user:prolog_file_type(ttl, rdf)).
 
 :- debug(rdf_serial).
 
@@ -271,8 +274,8 @@ rdf_serialization('Turtle',    'http://www.w3.org/ns/formats/Turtle'   ).
 
 rdf_serialization_file_type('N-Triples', n_triples).
 rdf_serialization_file_type('N3'       , n3       ).
-rdf_serialization_file_type('RDF/XML'  , owl      ).
-rdf_serialization_file_type('RDF/XML'  , rdf      ).
+rdf_serialization_file_type('RDF/XML'  , owlxml   ).
+rdf_serialization_file_type('RDF/XML'  , rdfxml   ).
 rdf_serialization_file_type('RDFa'     , rdfa     ).
 rdf_serialization_file_type('Turtle'   , turtle   ).
 

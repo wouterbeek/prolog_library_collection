@@ -210,7 +210,7 @@ rdf_strip_literal(Subject, Predicate, Graph):-
   findall(
     [Subject, Predicate, Literal1, Graph],
     (
-      rdf_datatype(Subject, Predicate, Literal1, Graph),
+      rdf_literal(Subject, Predicate, Literal1, Graph),
       strip_atom([' '], Literal1, Literal2),
       Literal1 \= Literal2
     ),
@@ -218,7 +218,7 @@ rdf_strip_literal(Subject, Predicate, Graph):-
   ),
   user_interaction(
     'STRIP-RDF-DATATYPE-STRING',
-    rdf_strip_literal0(string),
+    rdf_strip_literal0,
     ['Subject', 'Predicate', 'Literal', 'Graph'],
     Tuples
   ).

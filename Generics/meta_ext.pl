@@ -639,7 +639,7 @@ user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
     (
       nth0(J, Headers, Header),
       nth0(J, Tuple, Element),
-      format(atom(HeaderedElement), '~w: ~w', [Header, Element])
+      format(atom(HeaderedElement), '~w: <~w>', [Header, Element])
     ),
     HeaderedElements
   ),

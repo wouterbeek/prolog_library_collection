@@ -1,10 +1,10 @@
 :- module(
   geonames,
   [
-    query/4 % +Service:atom
-            % +Format:atom
-            % +Query:atom
-            % +Results:atom
+    query_geonames/4 % +Service:atom
+                     % +Format:atom
+                     % +Query:atom
+                     % +Results:atom
   ]
 ).
 
@@ -13,7 +13,7 @@
 GeoNames predicates.
 
 @author Wouter Beek
-@version 2013/01
+@version 2013/01, 2013/06
 */
 
 :- use_module(generics(file_ext)).
@@ -49,7 +49,7 @@ parse_attributes(AttributeNames, Attributes):-
 
 % QUERY EXECUTION %
 
-query(Service, Format, Attributes, Result):-
+query_geonames(Service, Format, Attributes, Result):-
   % Check whether the service with the given name exists.
   service(Service, Formats, AttributeNames),
 
