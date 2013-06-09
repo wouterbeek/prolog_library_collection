@@ -122,7 +122,7 @@ http_open_wrapper(URI, _Stream, _Options, 5):-
   !.
 http_open_wrapper(URI, Stream, Options, Attempts):-
   catch(
-    http_open_wrapper(URI, Stream, Options),
+    http_open(URI, Stream, Options),
     Exception,
     (
       NewAttempts is Attempts + 1,
