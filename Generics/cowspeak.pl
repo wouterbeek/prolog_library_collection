@@ -27,6 +27,7 @@ in combination with the open source speech synthesizer eSpeak.
 */
 
 :- use_module(generics(atom_ext)).
+:- use_module(generics(os_ext)).
 :- use_module(library(debug)).
 :- use_module(library(process)).
 
@@ -99,7 +100,7 @@ cowsay(Atoms, Cow):-
     NewLines
   ),
   atomic_list_concat(NewLines, '\n', NewText),
-  format(atom(Bubble), '/-~w-\\\n~w\n\\-~w-/\n', [Dashes, NewText, Dashes]),
+  format(atom(Bubble), '\n/-~w-\\\n~w\n\\-~w-/\n', [Dashes, NewText, Dashes]),
 
   % Draw the cow!
   atomic_list_concat(
@@ -157,7 +158,7 @@ speech(Lines):-
   maplist(speech, Lines).
 speech(Line):-
   atomic(Line),
-  process_create(path(espeak), [Line], []),
+  text_to_speech(Line),
   !.
 speech(_):-
   debug(
@@ -165,3 +166,4 @@ speech(_):-
     'The cow\'s speech cannot be played on the current OS.',
     [detached(true)]
   ).
+

@@ -110,22 +110,53 @@ file_to_html(File, HTML):-
   open(File, read, Stream),
   stream_to_html(Stream, HTML).
 
+http_open_wrapper(URI, Stream, Options):-
+  http_open_wrapper(URI, Stream, Options, 0).
+
+% The maximum number of HTTP attempts.
+http_open_wrapper(URI, _Stream, _Options, 5):-
+  cowspeak(
+    'The maximum number of HTTP attempts was reached for <~w>.',
+    [URI]
+  ),
+  !.
+http_open_wrapper(URI, Stream, Options, Attempts):-
+  catch(
+    http_open_wrapper(URI, Stream, Options),
+    Exception,
+    (
+      NewAttempts is Attempts + 1,
+      process_exception(
+        Exception,
+       http_open_wrapper(URI, Stream, Options, NewAttempts)
+      )
+    )
+  ).
+
 %! process_exception(+Exception, :Goal) is det.
 % Processes an exception thrown by load_structure/3
 
-process_exception(error(limit_exceeded(max_errors, Max), Context), _Goal):-
+% Retry after a while upon exceeding a limit.
+process_exception(error(limit_exceeded(max_errors, Max), Context), Goal):-
   !,
   cowspeak(
     'Encountered ~w error(s) while parsing HTML.\nContext:\t~w\n',
     [Max, Context]
-  ).
-process_exception(error(existence_error(url, URI), Context), _Goal):-
+  ),
+  sleep(10),
+  call(Goal).
+% Retry after a while upon existence error.
+process_exception(error(existence_error(url, URI), Context), Goal):-
   !,
-  cowspeak('Resource <~w> does not seem to exist.\n[~w]\n', [URI, Context]).
+  cowspeak('Resource <~w> does not seem to exist.\n[~w]\n', [URI, Context]),
+  sleep(10),
+  call(Goal).
+% Retry upon socket error.
 process_exception(error(socket_error('Try Again'), _Context), Goal):-
   !,
   cowspeak('[SOCKET ERROR] Try again!\n', []),
   call(Goal).
+% Retry upon I/O error.
 process_exception(
   error(io_error(read, _Stream), context(_Predicate, Reason)),
   Goal
@@ -144,6 +175,15 @@ process_exception(Exception, _Goal):-
 %         =|error(limit_exceeded(max_errors, Max), _)|=
 
 stream_to_html(Stream, DOM):-
+  stream_to_html(Stream, DOM, 0).
+
+stream_to_html(_Stream, _DOM, 5):-
+  cowspeak(
+    'The maximum number of attempts was reached for load_structure/3 \c
+     in stream_to_html/3.'
+  ),
+  !.
+stream_to_html(Stream, DOM, Attempts):-
   dtd(html, DTD),
   catch(
     load_structure(
@@ -159,7 +199,10 @@ stream_to_html(Stream, DOM):-
       ]
     ),
     Exception,
-    process_exception(Exception, stream_to_html(Stream, DOM))
+    (
+      NewAttempts is Attempts + 1,
+      process_exception(Exception, stream_to_html(Stream, DOM, NewAttempts))
+    )
   ).
 
 %! uri_to_html(+URI:resource, -HTML:list) is det.
@@ -175,7 +218,7 @@ uri_to_html(URI, DOM):-
     % First perform this setup once/1.
     (
       catch(
-        http_open(URI, Stream, []),
+        http_open_wrapper(URI, Stream, []),
         Exception,
         process_exception(Exception, http_open(URI, Stream, []))
       ),

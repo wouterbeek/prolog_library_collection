@@ -38,6 +38,7 @@
 % OPENING FILES
     open_dot/1, % +File:file
     open_pdf/1, % +File:file
+    text_to_speech/1, % +Text:atom
 
 % SCRIPTS
     run_script/1, % +Script:atom
@@ -218,7 +219,7 @@ delete_files(Dir, FileType):-
   % Make sure that the given file type is registered.
   once(prolog_file_type(_Ext, FileType)),
   !,
-  
+
   % Recurse over the given file type, since it may be associated with multiple
   % extensions.
   findall(
@@ -231,7 +232,7 @@ delete_files(Dir, FileType):-
     ),
     Files
   ),
-  
+
   % Delete all files.
   % This may throw permission exceptions.
   maplist(delete_file, Files).
@@ -362,7 +363,10 @@ mac_y_pixel(YPixel, MacYPixel):-
   MacYPixel is YPixel + 21.
 
 %! set_os_flag is det.
-% Distinguish between unices and MacOSX.
+% Distinguish between Unix and MacOSX.
+%
+% @author Inspired by Jochem Liem, who set this flag for the first time
+%         in the context of the DynaLearn project.
 % @see Since this is no [[current_prolog_flag/2]] for Mac OS-X yet.
 
 set_os_flag:-
@@ -379,6 +383,9 @@ set_os_flag.
 % Opens the given DOT file.
 %
 % @arg BaseOrFile The atomic name of a DOT file.
+%
+% @tbd Add support for Windows.
+% @tbd Test support on Mac OS-X.
 
 open_dot(BaseOrFile):-
   base_or_file_to_file(BaseOrFile, dot, File),
@@ -396,6 +403,9 @@ open_dot_unix(File):-
 
 %! open_pdf(+BaseOrFile:atom) is det.
 % Opens the given PDF file.
+%
+% @tbd Add support for Windows.
+% @tbd Test support on Mac OS-X.
 
 open_pdf(BaseOrFile):-
   base_or_file_to_file(BaseOrFile, pdf, File),
@@ -426,6 +436,26 @@ open_pdf_unix(File):-
 
 :- if(is_windows).
 open_pdf_windows(_File).
+:- endif.
+
+%! text_to_speech(+Text:atom) is det.
+% Creates a process for a program that can turn text into speech.
+%
+% This is currently implemented for Unix systems with espeak in the PATH.
+%
+% @tbd Add support for Windows.
+% @tbd Test support on Mac OS-X.
+
+text_to_speech(Text):-
+  os_dependent_call(text_to_speech(Text)).
+
+:- if(is_unix).
+text_to_speech_unix(Text):-
+  process_create(path(espeak), [Text], [detached(true)]).
+:- endif.
+
+:- if(is_windows).
+text_to_speech_windows(_Text).
 :- endif.
 
 
