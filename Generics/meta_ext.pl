@@ -604,32 +604,24 @@ sort_with_duplicates(>, H1, H2, [H2, H1]).
 % has been identified for removal by =Goal=, but a user is required to
 % assent to each removal action.
 %
+% Receiving input from the user does not work in threads!
+%
 % @arg Action An atomic description of the action that is performed by
-%               the goal.
+%             the goal.
 % @arg Goal An arbitrary Prolog goal that takes the number of elements
-%             in each tuple as the number of arguments.
+%           in each tuple as the number of arguments.
 % @arg Headers A list of atoms describing the entries in each tuple.
-%                The number of headers and the number of elements in each
-%                tuple are assumed to be the same.
+%              The number of headers and the number of elements in each
+%              tuple are assumed to be the same.
 % @arg Tuples A list of tuples. These are the element lists for which goal
-%               is executed after user-confirmation.
+%             is executed after user-confirmation.
 
 user_interaction(Action, Goal, Headers, Tuples):-
-  % Argument checking.
-  atom(Action),
-  % The number of headers is the number of elements in a tuple.
-  length(Headers, TuplesLength),
-  % All tuples have the same number of elements.
-  forall(
-    member(Tuple, Tuples),
-    length(Tuple, TuplesLength)
-  ),
-
   length(Tuples, NumberOfTuples),
   user_interaction(Action, Goal, 1, NumberOfTuples, Headers, Tuples).
 
-user_interaction(_Action, _Goal, _Index, _Length, _Headers, []):-
-  format(user_output, '\n-----\nDONE!\n-----\n', []),
+user_interaction(Action, _Goal, _Index, _Length, _Headers, []):-
+  format(user_output, '\n-----\nDONE! <~w>\n-----\n', [Action]),
   !.
 user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
   % Display a question.
@@ -651,6 +643,7 @@ user_interaction(Action, Goal, Index, Length, Headers, Tuples):-
   ),
 
   % Receive answer.
+  % This does not work in a thread!
   get_single_char(UserCode),
   char_code(UserAtom, UserCode),
 

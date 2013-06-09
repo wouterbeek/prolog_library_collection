@@ -183,7 +183,8 @@ dcg_without(End, [H|T]) -->
 dcg_debug(L, []):-
   format(
     atom(Text),
-    'Wouter, Wouter, Wouter. I have the feeling that something is wrong here.\n~w\n',
+    'Wouter, I have the feeling that something is wrong here.\n\c
+     Unable to phrase <~w>\n',
     [L]
   ),
   thread_create(cowspeak(Text), _ID, []),

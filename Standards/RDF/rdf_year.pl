@@ -48,7 +48,7 @@ rdf_clean_year(S, P, G, IntervalP1, IntervalP2, PointP):-
     [S, P, Lit, G],
     (
       rdf_literal(S, P, Lit, G),
-      phrase(year(_Lang, _Year), Lit)
+      once(dcg_phrase(year(_Lang, _Year), Lit))
     ),
     Tuples
   ),
