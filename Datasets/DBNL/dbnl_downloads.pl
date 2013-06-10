@@ -45,13 +45,13 @@ There are two typoes of download page:
 %   4. Original scans.
 %
 % Example of a URI pointing to original scans:
-% ==
+% ~~~{.txt}
 % http://www.dbnl.org/tekst/saveas.php?
 %   filename=_12m00112me01_01.pdf&
 %   dir=/arch/_12m00112me01_01/pag&
 %   type=pdf&
 %   common=1
-% ==
+% ~~~
 
 % Parse nested DIVs.
 dbnl_downloads(Graph, Text) -->

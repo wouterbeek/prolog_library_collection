@@ -10,7 +10,7 @@ Support for the XML Linking Language.
 
 Create and describe links between resources from within XML documents.
 
----+
+#
 
   * Link
     An explicit relationship between (portions of) resources.
@@ -35,11 +35,11 @@ Create and describe links between resources from within XML documents.
   * Extended link
     A link that associates an arbitrary number of resources.
 
----+ Simple link
+# Simple link
 
-==
+~~~{.dtd}
 <ELEMENT xlink:type="simple" xlink:href="URI">CONTENT</ELEMENT>
-==
+~~~
 
 @author Wouter Beek
 @version 2013/05

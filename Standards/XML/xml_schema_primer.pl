@@ -49,7 +49,7 @@ A =xsd:complexType= with =xsd:simpleContent= (only character data; no
 subelements), with =xsd:extension= with attribute =base=.
 
 Example:
-==
+~~~{.xml}
 <xsd:complexType name="SOME-COMPLEX-TYPE">
   <xsd:simpleContent>
     <xsd:extension base="xsd:decimal">
@@ -57,7 +57,7 @@ Example:
     </xsd:extension>
   </xsd:simpleContent>
 </xsd:complexType>
-==
+~~~
 
 
 ## Complex types with mixed content
@@ -67,14 +67,13 @@ Content that consits of both subelements and character data.
 Use attribute =mixed= with value =true= on element =xsd:complexType=.
 
 Example:
-==
+~~~{.xml}
 <xsd:complexType mixed="true" name="SOME-COMPLEX-TYPE">
   <xsd:sequence>
     <xsd:element name="SOME-ELEMENT">
   </xsd:sequence>
 </xsd:complexType>
-==
-
+~~~
 
 ## Complex types with empty content
 
@@ -82,7 +81,7 @@ Element =xsd:complexContent= can only containt elements, but we define no
 elements in it. We can add attributes by restricting an existing datatype.
 
 The following pattern:
-==
+~~~{.xml}
 <xsd:complexType name="SOME-COMPLEX-TYPE">
   <xsd:complexContent>
     <xsd:restriction base="xsd:anyType">
@@ -90,13 +89,13 @@ The following pattern:
     <xsd:restriction>
   </xsd:complexContent>
 </xsd:complexType>
-==
+~~~
 can be abbreviated as follows:
-==
+~~~{.xml}
 <xsd:complexType name="SOME-COMPLEX-TYPE">
   <xsd:attribute name="SOME-ATTRIBUTE" type="SOME-SIMPLE-DATATYPE">
 </xsd:complexType>
-==
+~~~
 
 
 
@@ -196,7 +195,7 @@ Multiple occurrences of element =xsd:enumeration= with attribute =value=.
 Booleans cannot be faceted by enumeration.
 
 Examples of defined atomic types:
-==
+~~~{.xml}
 <xsd:simpleType name="myInteger">
   <xsd:restriction base="xsd:integer">
     <xsd:minInclusive value="10000"/>
@@ -218,7 +217,7 @@ Examples of defined atomic types:
     <!-- and so on ... -->
   </xsd:restriction>
 </xsd:simpleType>
-==
+~~~
 
 
 ## List types
@@ -242,7 +241,7 @@ If strings contains whitespace, then the number of items in a list of
 strings may exceed the number of strings that were put in that list.
 
 Examples of defined list types:
-==
+~~~{.xml}
 <xsd:simpleType name="USStateList">
   <xsd:list itemType="USState"/>
 </xsd:simpleType>
@@ -252,7 +251,7 @@ Examples of defined list types:
     <xsd:length value="6"/>
   </xsd:restriction>
 </xsd:simpleType>
-==
+~~~
 
 
 ## Union types
@@ -265,13 +264,11 @@ Applicable facets:
   * =pattern=
 
 Example of a defined union type:
-==
+~~~{.xml}
 <xsd:simpleType name="zipUnion">
   <xsd:union memberTypes="USState listOfMyIntType"/>
 </xsd:simpleType>
-==
-
-
+~~~
 
 # Anonymous types
 
@@ -279,7 +276,7 @@ A defined type that is references once can be defined anonymously,
 i.e. as a sirect subelement of an element.
 
 Expample of 2 anonymou types:
-==
+~~~{.xml}
 <xsd:complexType name="Items">
   <xsd:sequence>
     <xsd:element name="item" minOccurs="0" maxOccurs="unbounded">
@@ -302,9 +299,7 @@ Expample of 2 anonymou types:
     </xsd:element>
   </xsd:sequence>
 </xsd:complexType>
-==
-
-
+~~~
 
 # ur-type
 
@@ -338,7 +333,7 @@ The value of =id= can be refered to by attribute =ref= of element
 =xsd:group= inside a complex type specification.
 
 Examples:
-==
+~~~{.xml}
 <xsd:complexType name="PurchaseOrderType">
   <xsd:sequence>
     <xsd:choice>
@@ -357,8 +352,7 @@ Examples:
     <xsd:element name="billTo" type="USAddress"/>
   </xsd:sequence>
 </xsd:group>
-==
-
+~~~
 
 ## 'All' group
 
@@ -370,7 +364,7 @@ The subelements must be individual elements / cannot themselves be groups.
 Subelements cannot occur more than once (restrictions on the legal values of
 =[max|min]Occurs=).
 
-==
+~~~{.xml}
 <xsd:complexType name="PurchaseOrderType">
   <xsd:all>
     <xsd:element name="shipTo" type="USAddress"/>
@@ -380,8 +374,7 @@ Subelements cannot occur more than once (restrictions on the legal values of
   </xsd:all>
   <xsd:attribute name="orderDate" type="xsd:date"/>
 </xsd:complexType>
-==
-
+~~~
 
 ## Attribute groups
 
@@ -391,8 +384,6 @@ Named attribute groups can be defined using the =id= attribute.
 The =ref= attribute in =xsd:attributeGroup= elements can reference these.
 
 Attribute groups must occur at the end of complex type definitions.
-
-
 
 # Nil mechanism
 
@@ -405,15 +396,13 @@ element =xsd:element= to true.
 Nil values are used by setting the =xsi:nil= attribute to true.
 
 Example:
-==
+~~~{.xml}
 <xsd:element name="SOME-ELEMENT" type="SOME-TYPE" nillable="true"/>
 
 <SOME-ELEMENT xsi:nil="true"></SOME-ELEMENT>
-==
+~~~
 
 Nil values can only be defined for element values (not attribute values).
-
-
 
 @author Wouter Beek
 @see http://www.w3.org/TR/2004/REC-xmlschema-0-20041028/

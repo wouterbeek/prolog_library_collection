@@ -7,9 +7,9 @@ via the Internet (URLs).
 
 # General URL form
 
-==
+~~~{.txt}
 <url> = <scheme>:<scheme-specific-part>
-==
+~~~
 
 The former part is the name of the scheme used.
 
@@ -51,9 +51,9 @@ URL schemes that involve the direct use of an IP-based protocol to a
 specified host on the Internet use a common syntax for the scheme-specific
 data (=|[]|= means optional part):
 
-==
+~~~{.txt}
 <scheme-specific-part> = //[<user>[:<password>]@]<host>[:<port>][/<url-path>]
-==
+~~~
 
 ## Host
 
@@ -72,9 +72,9 @@ Default password: the Internet e-mail address of the end user. [???]
 Default port: 21.
 Default user: anonymous.
 
-==
+~~~{.txt}
 <url-path> = <cwd1>/<cwd2>/.../<cwdN>/<name>[;type=<typecode>]
-==
+~~~
 
 CWD (Change Working Directory) commands <cwdi>
 
@@ -91,21 +91,21 @@ CWD (Change Working Directory) commands <cwdi>
 
 ### Examples
 
-==
+~~~{.txt}
 ftp://myname@host.dom/%2Fetc/motd
 "CWD /etc", "RETR motd"
-==
+~~~
 
-==
+~~~{.txt}
 ftp://myname@host.dom//etc/motd
 "CWD ", "CWD etc", "RETR motd"
-==
+~~~
 
 ## HTTP
 
-==
+~~~{.txt}
 <url> = http://<host>[:<port>]/[<path>][?][<searchpart>]
-==
+~~~
 
   * Default port: 80.
   * No user name, no password.
@@ -118,9 +118,9 @@ ftp://myname@host.dom//etc/motd
 
 ## GOPHER
 
-==
+~~~{.txt}
 <url> = gopher://<host>[:<port>]/[<gopher-path>]
-==
+~~~
 
 =|<gopher-path>|= is one of:
   * =|<gophertype>[<selector>]|=
@@ -140,9 +140,9 @@ ftp://myname@host.dom//etc/motd
 
 ## MAILTO
 
-==
+~~~{.txt}
 <url> = mailto:<rfc822-addr-spec>
-==
+~~~
 
 "Unlike many URLs, the mailto scheme does not represent a data object
 to be accessed directly; there is no sense in which it designates an object.
@@ -150,18 +150,18 @@ It has a different use than the message/external-body type in MIME." [???]
 
 ## NEWS
 
-==
+~~~{.txt}
 <url> = news:<newsgroup-name>
 <url> = news:<message-id>
-==
+~~~
 
   * =|<newsgroup-name> is a period-delimited hierarchical name.
   * =|<newsgroup-name> = *|= refers to all available news groups.
   * =@= is a reserved character in =|<newsgroup-name>|= and =|<message-id>|=.
 
-==
+~~~{.txt}
 <message-id> = <unique>@<full_domain_name>
-==
+~~~
 
 "The news URLs are unusual in that by themselves, they do not contain
 sufficient information to locate a single resource, but, rather, are
@@ -169,9 +169,9 @@ location-independent." [???]
 
 ## NNTP
 
-==
+~~~{.txt}
 <url> = nntp://<host>[:<port>]/<newsgroup-name>/<article-number>
-==
+~~~
 
   * Default port: 119.
 
@@ -179,9 +179,9 @@ location-independent." [???]
 
 Designates a service, not a data object.
 
-==
+~~~{.txt}
 <url> = telnet://[<user>[:<password>]]@<host>[:<port>]/
-==
+~~~
 
   * If =|<port>|= is omitted, then the last '/' may be omitted.
   * Default port: 23.
@@ -189,19 +189,19 @@ Designates a service, not a data object.
 ## WAIS
 
 Designate a WAIS database:
-==
+~~~{.txt}
 <url> = wais://<host>[:<port>]/<database>
-==
+~~~
 
 Designates a particular search:
-==
+~~~{.txt}
 <url> = wais://<host>[:<port>]/<database>?<search>
-==
+~~~
 
 Designates a particular document:
-==
+~~~{.txt}
 <url> = wais://<host>[:<port>]/<database>/<wtype>/<wpath>
-==
+~~~
 
   * Default port: 210.
 
@@ -210,9 +210,9 @@ Designates a particular document:
 Designate files accessible on a particular host computer, i.e. _not_
 universally accessible files.
 
-==
+~~~{.txt}
 <url> = file://[<host>/]<path>
-==
+~~~
 
   * =|<host>|= is a fully qualified domain name or =localhost=.
   * Default host: =localhost=.
@@ -221,9 +221,9 @@ universally accessible files.
 
 ## PROSPERO
 
-==
+~~~{.txt}
 <url> = prospero://<host>[:<port>]/<hsoname>;<field>=<value>
-==
+~~~
 
   * Default port: 1525.
 
@@ -259,7 +259,7 @@ for accessing resources and the syntax for representing locations.
 
 # BNF
 
-==
+~~~{.txt}
 ; The generic form of a URL is:
 genericurl     = scheme ":" schemepart
 
@@ -373,7 +373,7 @@ unreserved     = alpha | digit | safe | extra
 uchar          = unreserved | escape
 xchar          = unreserved | reserved | escape
 digits         = 1*digit
-==
+~~~
 
 # URLs in context
 

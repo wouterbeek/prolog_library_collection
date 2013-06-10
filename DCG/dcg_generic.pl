@@ -68,6 +68,7 @@ Generic DCG clauses.
 :- use_module(html(html)).
 :- use_module(library(lists)).
 
+:- use_module(library(dcg/basics)).
 :- reexport(library(dcg/basics)).
 
 % ALL/UNTIL %

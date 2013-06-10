@@ -43,12 +43,12 @@ identify identical namespace, but do resolve to the same resource.
 
 ### Declaration
 
-==
+~~~{.txt}
 [1] NSAttName       ::= PrefixedAttName | DefaultAttName
 [2] PrefixedAttName ::= 'xmlns:' NCName  [NSC: Reserved Prefixes and Namespace Names]
 [3] DefaultAttName  ::= 'xmlns'
 [4] NCName          ::= Name - (Char* ':' Char*)  [An XML Name, minus the ":"]
-==
+~~~
 
 ## Local name
 

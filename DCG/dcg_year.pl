@@ -1,12 +1,8 @@
 :- module(
   dcg_year,
   [
-    year//2, % ?Lang:atom
-             % ?Year:oneof([integer,pair(integer)])
-    year_point//2, % ?Lang:atom
-                   % ?Year:integer
-    year_interval//2 % ?Lang:atom
-                     % ?Interval:pair(integer)
+    year//2 % ?Lang:atom
+            % ?Year:oneof([integer,pair(integer)])
   ]
 ).
 
@@ -14,8 +10,63 @@
 
 DCGs for parsing/generating year information.
 
+# Preposition intervals
+
+Intervals indicated by prepositions are currently not handled at all.
+
+Some examples include:
+  * "before 1907"
+  * "after the 17th century"
+  * "in the midst of 1780"
+
+The problem is that open intervals like [1] do not normally
+have the same meaning as [2] but have a meaning that is
+(i) context dependent and (ii) fuzzy. I will treat these separately.
+
+~~~{.html}
+[1] before 1808
+~~~
+
+~~~{.html}
+[2] from the Big Bang until 1808
+~~~
+
+## Context dependency of preposition intervals
+
+The meaning of preposition intervals is (at least in some cases)
+context dependent.
+
+For instance, the interval that occurs in the meaning of [3]
+is allowed to be bigger than the interval that occurs in the meaning of [4],
+where the latter is at least bounded by Einstein's birth year.
+
+~~~{.html}
+[3] The first dinosaurs walked the earth before 300 million years B.C.
+~~~
+
+~~~{.html}
+[4] Einstein came up with the idea of general relativity before 1937
+~~~
+
+## Fuzzyness of preposition intervals
+
+The meaning of preposition intervals is (at least in some cases) fuzzy.
+
+For instance, the book mentioned in [5] is (based on the meaning of [5]
+solely) more likely to be published in 1924 than in 1901, even though both
+are physically possible (given the birth and death years of James Joyce).
+
+~~~{.html}
+[5] James Joyce's Ulyssus was published before 1925.
+~~~
+
+(Whether the fuzzyness in cases as [5] is due to semantics or pragmatics
+is immaterial to me, since both should be formalized proper.)
+
 @author Wouter Beek
-@version 2013/05
+@tbd Intervals indicated by prepositions are not handled at all
+     (the preposition is simply skipped). See the note above.
+@version 2013/05-2013/06
 */
 
 :- use_module(dcg(dcg_ascii)).
@@ -45,15 +96,20 @@ xs(N) -->
   xs(M),
   {N is M + 1}.
 
-% Between round brackets.
+%! year(?Languag:atom, Year:oneof([integer,pair(integer)]))// is nondet.
+
+% 1. Years sometime occur between round brackets.
 year(Lang, Year) -->
   opening_bracket,
   year(Lang, Year),
   closing_bracket.
+% 2. A single year.
 year(Lang, Year) -->
   year_point(Lang, Year).
+% 3. Two years, indicating a start year and an end year.
 year(Lang, Interval) -->
   year_interval(Lang, Interval).
+% 4. An interval indicated by a preposition.
 year(Lang, Year) -->
   pre(Lang), blank,
   year(Lang, Year).

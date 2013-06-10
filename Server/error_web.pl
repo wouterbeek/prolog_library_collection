@@ -17,12 +17,12 @@ Web front-end for reporting on the various errors that might occur.
 
 # Exception format
 
-==
+~~~{.pl}
 error(
   ErrorType(ErrorSubtype, ErrorTerm),
   context(Predicates, ContextMessage)
 )
-==
+~~~
 
 @author Wouter Beek
 @version 2012/12, 2013/02

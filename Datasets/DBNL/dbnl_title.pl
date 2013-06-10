@@ -10,18 +10,18 @@
 
 Predicates for scraping a DBNL title page.
 
----+ Workflow
+# Workflow
 
 Links to primary texts are passert to dbnl_text/3.
 
----+ Content
+# Content
 
----++ Left
+## Left
 
   * beschikbare_titels:list(uri)
   * dbnl_logo:file
 
----++ Center
+## Center
 
   * author:atom
   * beschikbare_tekst_in_de_dbnl
@@ -44,13 +44,13 @@ Links to primary texts are passert to dbnl_text/3.
   * title:atom
   * year:atom
 
----++ Right
+## Right
 
----+ URI
+# URI
 
-==
+~~~{.txt}
 http://www.dbnl.org/titels/titel.php?id=ferr002atma01
-==
+~~~
 
 @author Wouter Beek
 @version 2013/05

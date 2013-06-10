@@ -48,9 +48,9 @@
 
 We use function definitions as in Bourbaki1957:
 
-==
+~~~{.pl}
 bourbaki(X, Y, F)
-==
+~~~
 
 Where =X= is the domain, =Y= is the codomain, and =G= is the graph.
 

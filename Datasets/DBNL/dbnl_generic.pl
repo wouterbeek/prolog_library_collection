@@ -69,17 +69,17 @@ Generic predicates for scraping the DBNL.
 
 Predicates for extracting information from atoms in DBNL.
 
----+ Parsing problems
+# Parsing problems
 
----++ Problem 1
+## Problem 1
 
 The use of the question mark for expressing the uncertainty of publication
 years cannot be disambiguated. The following two examples show this.
 
-==
+~~~{.txt}
 Mentor, Raadgever voor de Nederlandsche jeugd., 1867-1873?
 Volkszangdag, 1922-19??
-==
+~~~
 
 In the former the question mark should be interpreted as expressing
 uncertainty of an *expressed* digit (the 3 in this case). What is meant
@@ -325,7 +325,7 @@ dbnl_year0(Lang, Year) -->
   (blanks, uncertainty(Lang) ; "").
 % Hacked year interval.
 dbnl_year0(Lang, Year1-Year2) -->
-  year_interval(Lang, Year1-Year2),
+  dcg_year:year_interval(Lang, Year1-Year2),
   % This is an arbitrary disambiguation criterion for problem 1 (see header).
   (
     ""

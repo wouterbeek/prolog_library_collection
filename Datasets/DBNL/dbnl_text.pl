@@ -15,9 +15,9 @@
 
 Process DBNL text markup.
 
----+ Content
+# Content
 
----++ Left
+## Left
 
   * author:uri
   * dbnl_logo:file
@@ -37,7 +37,7 @@ Process DBNL text markup.
   * title:atom
   * verantwoording:uri
 
----++ Center
+## Center
 
   * bibliography:list(atom)
     BIBLIOGRAPHY
@@ -48,17 +48,17 @@ Process DBNL text markup.
     PAGE
   * title:atom
 
----++ Right
+## Right
 
   * image:file
   * notes:list(atom,dom)
 
----+ URI
+# URI
 
-==
+~~~{.txt}
 http://www.dbnl.org/tekst/ferr002atma01_01/
 http://www.dbnl.org/tekst/ferr002atma01_01/ferr002atma01_01_0006.php
-==
+~~~
 
 @author Wouter Beek
 @tbd Parse colofon pages that are linked to from within the left DIV.

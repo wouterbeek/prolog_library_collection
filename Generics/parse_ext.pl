@@ -46,28 +46,36 @@ We need REs, because they allow easy quantification using the _Wilcards_
 of quantification as well, this muddies their compositionality considerably.
 
 Suppose we have the following DCG:
-==
+
+~~~{.pl}
 white --> end_of_line.
 white --> form_feed.
 white --> space.
 white --> tab.
-==
+~~~
+
 And suppose we construe a new DCG to perform some domain-dependent parsing:
-==
+
+~~~{.pl}
 some_parse --> white, some_other_parse.
 some_parse --> some_other_parse.
-==
+~~~
+
 This is less nice than:
-==
+
+~~~{.pl}
 some_parse --> re([q('?')], white), some_other_parse.
-==
+~~~
+
 And what to think of the following:
-==
+
+~~~{.pl}
 some_parse -->
   re([q('?')], white),
   some_other_parse,
   re([q('?')], white).
-==
+~~~
+
 You need _2^N_ DCG clauses, where _N_ is the number of =|?|= Wilcards used in
 a single RE.
 
@@ -84,11 +92,13 @@ either the production rule =letter= (i.e., case-insensitive) or the production
 rules =letter_lowercase= and =letter_uppercase= (i.e., case-sensitive).
 This shows another advantage of using DCGs: for every set of production rules
 of the form
-==
+
+~~~{.pl}
 r_0 --> r_1.
 ...
 r_0 --> r_n.
-==
+~~~
+
 we can define subcategory dependence/independence by choosing either =r_0= or
 a subset of \{ r_1, \ldots, r_n \}.
 
@@ -135,14 +145,14 @@ parse_char(P, C1-C0):-
 % @arg C A difference list of codes.
 %
 % The nondet case can generate alternative parses, e.g.:
-% ==
+% ~~~{.txt}
 % ?- char(a, X, [Y]-[]).
 % X = a,
 % Y = 97 ;
 % X = 'A',
 % Y = 65 ;
 % false.
-% ==
+% ~~~
 
 parse_char(P, R, C1-C0):-
   parse_re([case(sensitive), out(char), q(1)], P, R, C1-C0).

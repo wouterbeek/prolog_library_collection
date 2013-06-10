@@ -20,7 +20,7 @@ A graph G can be visualized in 1 through $\cardinality{V(G)}$ dimensions.
 
 # Algorithm
 
-==
+~~~{.txt}
 For all vertices V:
   For all dimensions I:
     For all vertices W \neq V:
@@ -28,7 +28,7 @@ For all vertices V:
       The differneces of attraction and repulsion are subtracted and the
       resulting numbers are summated.
     Update dimension I for vertex V based on the netto force.
-==
+~~~
 
 The attraction between V and W is 2 \log{d(V,W)} for adjacent vertices,
 otherwise 0.
@@ -44,15 +44,15 @@ d(V,W) is the Cartesian distance between V and W.
 
 # Example: simple grid
 
-==
+~~~{.pl}
 spring_embedding([1-[2,4],2-[1,3,5],3-[2,4,6,8],4-[1,3,7],5-[2,6],6-[2,3,9],7-[4,8],8-[3,7,9],9-[6,8]], 100)
-==
+~~~
 
 # Example
 
-==
+~~~{.pl}
 spring_embedding([1-[9],2-[9],3-[9],4-[9],5-[10],6-[10],7-[10],8-[10],9-[1,2,3,4,10],10-[5,6,7,8,9]], 100)
-==
+~~~
 
 @author Wouter Beek
 @version 2012/10, 2013/01

@@ -53,7 +53,7 @@ on the =|rdf:first|= and of the =|rdf:rest|= predicates.
 
 # rdfs:subClassOf
 
-==
+~~~{.pl}
 rdfs_subclass(X, Y, G):-
   rdfs_subclass0(X, Y, G),
   % We add the restriction that both resources are classes.
@@ -64,11 +64,11 @@ rdfs_subclass0(X, X, _G).
 rdfs_subclass0(X, Y, G):-
   rdf(X, rdfs:subClassOf, Z, _SameOrOtherG),
   rdfs_subclass0(Z, Y, G).
-==
+~~~
 
 # rdfs:subPropertyOf
 
-==
+~~~{.pl}
 rdfs_subproperty(X, Y, G):-
   rdfs_subproperty0(X, Y, G),
   % We add the restriction that both resources are properties.
@@ -79,11 +79,11 @@ rdfs_subproperty0(X, X, _G).
 rdfs_subproperty0(X, Y, G):-
   rdf(X, rdfs:subPropertyOf, Z, G),
   rdfs_subproperty0(Z, Y, G).
-==
+~~~
 
 # rdf:type
 
-==
+~~~{.pl}
 %! rdfs_individual(?Individual:uri, ?Class:uri, ?Graph:atom) is nondet.
 % Individual and class pairs.
 %
@@ -106,7 +106,7 @@ rdfs_individual(X, Y, G):-
   rdfs_subclass_of(Z, Y),
   rdf(X, rdf:type, Z, G),
   \+ (rdf_global_id(rdfs:'Class', X), rdf_global_id(rdfs:'Class', Y)).
-==
+~~~
 
 @author Wouter Beek
 @author Sander Latour

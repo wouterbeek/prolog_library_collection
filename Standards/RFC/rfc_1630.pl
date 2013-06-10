@@ -118,30 +118,30 @@ Before comparison, URIs must be brought to the same encoding level.
 
 Identical; %2D encodes a hyphen character.
 
-==
+~~~{.txt}
 http://info.cern.ch/albert/bertram/marie-claude
 http://info.cern.ch/albert/bertram/marie%2Dclaude
-==
+~~~
 
 ## II
 
 Not identical, as in the second case the encoded slash does not
 have hierarchical significance.
 
-==
+~~~{.txt}
 http://info.cern.ch/albert/bertram/marie-claude
 http://info.cern.ch/albert/bertram%2Fmarie-claude
-==
+~~~
 
 ## III
 
 Illegal, as all % characters imply encodings, and there is no
 decoding defined for "%*"  or "%as" in this recommendation.
 
-==
+~~~{.txt}
 fxqn:/us/va/reston/cnri/ietf/24/asdf%*.fred
 news:12345667123%asdghfh@info.cern.ch
-==
+~~~
 
 # Partial (relative) form
 
@@ -180,20 +180,20 @@ path."
 
 In the context of URIs
 
-==
+~~~{.txt}
 magic://a/b/c//d/e/f
 magic://a/b/c//d/e/
-==
+~~~
 
 the partial URIs would expand as follows:
 
-==
+~~~{.txt}
 g      magic://a/b/c//d/e/g
 /g     magic://a/g
 //g    magic://g
 ../g   magic://a/b/c//d/g
 g:h    g:h
-==
+~~~
 
 # Fragment-id
 
@@ -248,7 +248,7 @@ which can be extracted as an object in its own right."
 
 ## URI
 
-==
+~~~{.txt}
 fragmentaddress uri [ # fragmentid ]
 uri             scheme : path [ ? search ]
 scheme          ialpha
@@ -275,11 +275,11 @@ hex             digit | a | b | c | d | e | f | A | B | C |
 national        { | } | vline | [ | ] | \ | ^ | ~
 punctuation     < | >
 void
-==
+~~~
 
 ## URL
 
-==
+~~~{.txt}
   prefixedurl            u r l : url
   url                    httpaddress | ftpaddress | newsaddress |
                          nntpaddress | prosperoaddress | telnetaddress
@@ -357,7 +357,7 @@ void
   alphanum               alpha | digit
   alphanums              alphanum [ alphanums ]
   void
-==
+~~~
 
 @author Wouter Beek
 @compat RFC 1630

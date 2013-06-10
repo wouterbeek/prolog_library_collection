@@ -22,7 +22,7 @@ Querying DBpedia using SPARQL.
 
 First query for a resource:
 
-==
+~~~{.sparql}
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX umbel: <http://umbel.org/umbel/rc/>
@@ -34,18 +34,18 @@ WHERE {
 }
 LIMIT 1
 OFFSET 0
-==
+~~~
 
 Then retrieve all known facts about the result:
 
-==
+~~~{.sparql}
 PREFIX dbpedia: <http://dbpedia.org/resource/>
 SELECT ?p ?o
 WHERE
 {
   dbpedia.org:Raymond_Queneau ?p ?o .
 }
-==
+~~~
 
 # tmp
 

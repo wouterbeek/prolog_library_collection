@@ -11,7 +11,7 @@
 
 DCGs for the print of a publication.
 
----+ Sentences
+# Sentences
 
   * "naar het Latijn herziene druk"
   * "fotomechanische herdruk van uitgave 1870"
@@ -21,7 +21,7 @@ DCGs for the print of a publication.
   * "niet in druk verschenen"
   * "facsimile van uitgave 1767"
 
----+ Grammar
+# Grammar
 
 ADJ --> ORD.
 ADJ --> dict

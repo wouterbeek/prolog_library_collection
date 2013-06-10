@@ -41,9 +41,9 @@ This module uses the following non-standard datatypes.
 
 A compound term of the form
 
-==
+~~~{.pl}
 edge(FromVertexID, ToVertexID, EdgeAttributes)
-==
+~~~
 
 representing a GraphViz edge.
 
@@ -51,9 +51,9 @@ representing a GraphViz edge.
 
 A compound term of the form
 
-==
+~~~{.pl}
 graph(Vertices, Edges, GraphAttributes)
-==
+~~~
 
 representing a GraphViz graph.
 
@@ -61,9 +61,9 @@ representing a GraphViz graph.
 
 A compound term of the form
 
-==
+~~~{.pl}
 vertex(VertexID, VerticeAttributes)
-==
+~~~
 
 representing a GraphViz vertex.
 
@@ -71,9 +71,9 @@ representing a GraphViz vertex.
 
 A compound term of the form
 
-==
+~~~{.pl}
 Name(Value)
-==
+~~~
 
 representing a name-value pair.
 

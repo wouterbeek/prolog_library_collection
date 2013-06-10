@@ -287,20 +287,22 @@ language(
 % SVG
 %
 % The markup:
-% ==
+%
+% ~~~{.xml}
 % <svg width="12cm" height="12cm" version="1.1" xmlns="http://www.w3.org/2000/svg">
 %   <circle cx="6cm" cy="6cm" r="5cm" fill="white" stroke="black" stroke-width="1"/>
 %   <circle cx="6cm" cy="1cm" r="1mm" fill="white" stroke="black" stroke-width="1"/>
 % </svg>
-% ==
+% ~~~
 %
 % The term:
-% ==
+%
+% ~~~{.pl}
 % [element(svg,[width=12cm,height=12cm,version=1.1,xmlns=http://www.w3.org/2000/svg],[
 %     element(circle,[cx=6cm,cy=6cm,r=5cm,fill=white,stroke=black,stroke-width=1],[]),
 %     element(circle,[cx=6cm,cy=1cm,r=1mm,fill=white,stroke=black,stroke-width=1],[])
 % ])]
-% ==
+% ~~~
 
 is_xml_based(svg, _Version).
 
@@ -371,22 +373,22 @@ root_element(
 % XHTML
 %
 % The markup:
-% ==
+% ~~~{.xml}
 % <html xmlns="http://www.w3.org/1999/xhtml">
-% <head>
-% <title>Test</title>
-% </head>
-% <body>Test</body>
+%   <head>
+%     <title>Test</title>
+%   </head>
+%   <body>Test</body>
 % </html>
-% ==
+% ~~~
 %
 % The term:
-% ==
+% ~~~{.pl}
 % [element(html,[xmlns=http://www.w3.org/1999/xhtml],[
 %     element(head,[],[element(title,[],['Test'])]),
 %     element(body,[],['Test'])
 % ])]
-% ==
+% ~~~
 
 is_xml_based(xhtml, _Version).
 

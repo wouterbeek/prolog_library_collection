@@ -9,7 +9,7 @@
 
 Digitale Bibliotheek der Nederlanden
 
----+ URI that currently fail
+# URI that currently fail
 
   * =|http://www.dbnl.org/titels/titel.php?id=alph002jidn01|=
   * =|http://www.dbnl.org/titels/titel.php?id=bild002meng02|=

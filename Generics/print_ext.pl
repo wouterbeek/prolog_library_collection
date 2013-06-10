@@ -25,9 +25,9 @@ Predicates for printing stuff.
 
 A datatype of the form
 
-==
+~~~{.pl}
 proof(Conclusion, Premises)
-==
+~~~
 
 where =Conclusion= is written using =print_conclusion/3= and =Premises=
 is a list of proofs and/or premises that are written using =print_premise/3=.

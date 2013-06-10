@@ -22,9 +22,9 @@ independent of their location and access scheme.
 
 # Generic-RL syntax
 
-==
+~~~{.txt}
 <url> = <scheme>://[<net_loc>][/<path>][;<params>][?<query>][#<fragment>]
-==
+~~~
 
   * =|<scheme>|=
     Scheme name.
@@ -46,7 +46,7 @@ This is _not_ the same as the RFC 1738 BNF! For instance, this allows
 login information to be part of an HTTP-scheme URL! This BNF is only used
 for _parsing_ purposes.
 
-==
+~~~{.txt}
 URL         = ( absoluteURL | relativeURL ) [ "#" fragment ]
 absoluteURL = generic-RL | ( scheme ":" *( uchar | reserved ) )
 generic-RL  = scheme ":" relativeURL
@@ -89,7 +89,7 @@ extra       = "!" | "*" | "'" | "(" | ")" | ","
 national    = "{" | "}" | "|" | "\" | "^" | "~" | "[" | "]" | "`"
 reserved    = ";" | "/" | "?" | ":" | "@" | "&" | "="
 punctuation = "<" | ">" | "#" | "%" | <">
-==
+~~~
 
 ### Error in RFC 1738
 
@@ -163,9 +163,10 @@ Ordered by presedence (higher to lower):
 Part of the media type specification.
 
 Messages can specify the base URL in their header; recommended format:
-==
+
+~~~{.txt}
 base-header  = "Base" ":" "<URL:" absoluteURL ">"
-==
+~~~
 
   * =Base= is case-insensitive.
   * Whitespace inside the angle brackets is ignored.
@@ -239,12 +240,14 @@ Notes:
 # Examples
 
 Base URL:
-==
+
+~~~{.txt}
 <URL:http://a/b/c/d;p?q#f>
-==
+~~~
 
 Relative URLs and their absolute URLs:
-==
+
+~~~{.txt}
 g:h     = <URL:g:h>
 g       = <URL:http://a/b/c/g>
 ./g     = <URL:http://a/b/c/g>
@@ -269,47 +272,48 @@ g;x?y#s = <URL:http://a/b/c/g;x?y#s>
 ../..   = <URL:http://a/>
 ../../  = <URL:http://a/>
 ../../g = <URL:http://a/g>
-==
+~~~
 
 The empty relative URL:
-==
 
+~~~{.txt}
 [~SWIPL] <>      = <URL:http://a/b/c/d;p?q#f>
-==
+~~~
 
 More relative path ".." segments than there are hierarchical levels in the
 base URL's path.
 
-==
+~~~{.txt}
 [~SWIPL] ../../../g    = <URL:http://a/../g>
 [~SWIPL] ../../../../g = <URL:http://a/../../g>
-==
+~~~
 
 "." and ".." can occur as part of complete components of a relative path:
-==
+~~~{.txt}
 [~SWIPL] /./g          = <URL:http://a/./g>
 [~SWIPL] /../g         = <URL:http://a/../g>
 g.            = <URL:http://a/b/c/g.>
 .g            = <URL:http://a/b/c/.g>
 g..           = <URL:http://a/b/c/g..>
 ..g           = <URL:http://a/b/c/..g>
-==
+~~~
 
 Unnecessary or nonsensical uses of the "." and ".." complete path segments:
-==
+
+~~~{.txt}
 ./../g        = <URL:http://a/b/g>
 ./g/.         = <URL:http://a/b/c/g/>
 g/./h         = <URL:http://a/b/c/g/h>
 g/../h        = <URL:http://a/b/c/h>
-==
+~~~
 
 Some older parsers allow the scheme name to be present in a relative URL if
 it is the same as the base URL scheme:
 
-==
+~~~{.txt}
 [~SWIPL] http:g        = <URL:http:g>
 [~SWIPL] http:         = <URL:http:>
-==
+~~~
 
 # References
 

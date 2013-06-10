@@ -39,13 +39,13 @@ Predicates for formulating and executing SPARQL queries.
 
 ## Sample query
 
-==
+~~~{.sparql}
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT *
 WHERE { ?s rdf:type rdfs:Class }
 LIMIT 10
-==
+~~~
 
 # Warnings
 
@@ -53,13 +53,13 @@ When the results from a SPARQL endpoint are in XML/RDF without
 proper end tags, then the following warnings will be given by
 the XML parser:
 
-==
+~~~{.txt}
 Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "uri"
 Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "binding"
 Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "result"
 Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "results"
 Warning: [Thread t03] SGML2PL(xmlns): []:216: Inserted omitted end-tag for "sparql"
-==
+~~~
 
 @author Wouter Beek
 @version 2012/12-2013/01, 2013/03-2013/05

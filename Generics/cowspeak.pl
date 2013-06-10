@@ -47,13 +47,13 @@ cowsay(Text):-
 % text in the cow's speech bubble.
 %
 % Meet the cow:
-% ==
+% ~~~{.txt}
 %    ^__^
 %    (oo)|_____
 %    (__)|     )/|/
 %      ||----w |
 %     ||       ||
-% ==
+% ~~~
 %
 % @arg Text Either an atomic text message or a list of atomic lines
 %        constituting a message.

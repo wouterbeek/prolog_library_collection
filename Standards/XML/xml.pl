@@ -84,9 +84,10 @@ Markup Language).
     XML documents.
 
 XML document grammar rule:
-==
+
+~~~{.txt}
 document ::= prolog element Misc*
-==
+~~~
 
 
 
@@ -100,9 +101,9 @@ to be included in an XML document.
 
 Refer to specific characters in the ISO/IEC 10646 character set.
 
-==
+~~~{.txt}
 CharRef ::= '&#' [0-9]+ ';'	| '&#x' [0-9a-fA-F]+ ';'
-==
+~~~
 
 Must match the production for =Char=.
 
@@ -135,14 +136,15 @@ _|external subject|_ or in an (internal or external) _|parameter entity|_.
 ### Attribute-list declaration
 
 Attribute declaration:
-==
+
+~~~{.txt}
 AttlistDecl ::= '<!ATTLIST' S Name AttDef* S? '>'
 AttDef      ::= S Name S AttType S DefaultDecl
-==
+~~~
 
----++++ Attribute type
+##++ Attribute type
 
-==
+~~~{.txt}
 AttType       ::= StringType | TokenizedType | EnumeratedType
 StringType    ::= 'CDATA'
 TokenizedType ::= 'ID'       |   // An XML name that is unique in the
@@ -157,37 +159,38 @@ TokenizedType ::= 'ID'       |   // An XML name that is unique in the
                   'NMTOKEN'  |   // Like a name, but with no extra
                                  // restrictions on the first letter.
                   'NMTOKENS'     // Separated by whitespace.
-==
+~~~
 
 Example of ID and IDREF attribute types:
-==
+
+~~~{.dtd}
 <!ATTLIST employee social_security_number ID    #REQUIRED>
 <!ATTLIST project  project_id             ID    #REQUIRED>
 <!ATTLIST team_member person              IDREF #REQUIRED>
 <!ATTLIST assignment  project_id          IDREF #REQUIRED>
-==
+~~~
 
-
----++++ Enumerated attribute types
+##++ Enumerated attribute types
 
 Enumerated attribute types:
-==
+
+~~~{.txt}
 EnumeratedType ::= NotationType | Enumeration
 NotationType   ::= 'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
 Enumeration    ::= '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
-==
+~~~
 
 Example of attribute type NOTATION:
-==
+
+~~~{.dtd}
 <!NOTATION gif  SYSTEM "image/gif">
 <!NOTATION tiff SYSTEM "image/tiff">
 <!NOTATION jpeg SYSTEM "image/jpeg">
 <!NOTATION png  SYSTEM "image/png">
 <!ATTLIST  image type NOTATION (gif | tiff | jpeg | png) #REQUIRED>
-==
+~~~
 
-
----++++ Attribute default values
+##++ Attribute default values
 
 Attribute defaults:
   * =#FIXED=
@@ -200,12 +203,14 @@ Attribute defaults:
     Requried without default.
 
 Grammar:
-==
+
+~~~{.txt}
 DefaultDecl ::= '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
-==
+~~~
 
 Examples:
-==
+
+~~~{.dtd}
 <!ATTLIST termdef
           id      ID      #REQUIRED
           name    CDATA   #IMPLIED>
@@ -213,8 +218,7 @@ Examples:
           type    (bullets|ordered|glossary)  "ordered">
 <!ATTLIST form
           method  CDATA   #FIXED "POST">
-==
-
+~~~
 
 ### Element type declaration
 
@@ -223,37 +227,36 @@ values.
 
 An element must not be declared more than once.
 
-==
+~~~{.txt}
 elementdecl ::= '<!ELEMENT' S Name S contentspec S? '>'
 contentspec ::= 'EMPTY' | 'ANY' | Mixed | children
-==
+~~~
 
 Examples:
-==
+
+~~~{.dtd}
 <!ELEMENT br EMPTY>
 <!ELEMENT p (#PCDATA|emph)* >
 <!ELEMENT %name.para; %content.para; >
 <!ELEMENT container ANY>
-==
+~~~
 
----++++ Element content
+##++ Element content
 
 An element has *|element content|* if its content must only contain child
 elements and no character data. The constrain on the element's content is
 then a *|content model|*.
 
 Examples:
-==
+~~~{.dtd}
 <!ELEMENT spec (front, body, back?)>
 <!ELEMENT div1 (head, (p | list | note)*, div2*)>
 <!ELEMENT dictionary-body (%div.mix; | %dict.mix;)*>
-==
-
+~~~
 
 ### Entity declaration
 
 ### Notation declaration
-
 
 ## XML declaration
 
@@ -268,25 +271,23 @@ Signals whether there are external declarations.
 Nota that _|external entities|_ are not considered in the
 standalone declaration.
 
-
 ### Mixed content
 
 An element has *|mixed content|* if it may contain character data
 and child elements. _|In this case the order and the number of occurrences
 of child elements cannot be constrained.|_
 
-==
+~~~{.txt}
 Mixed ::= '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' |
           '(' S? '#PCDATA' S? ')'
-==
+~~~
 
 Examples:
-==
+~~~{.dtd}
 <!ELEMENT p (#PCDATA|a|ul|b|i|em)*>
 <!ELEMENT p (#PCDATA | %font; | %phrase; | %special; | %form;)* >
 <!ELEMENT b (#PCDATA)>
-==
-
+~~~
 
 ## Processing instructions
 
@@ -309,33 +310,34 @@ The actual data used in an XML document.
 *|Parsed entities|* contain text data that becomes part of the XML document
 after processing.
 
----++++ Text
+##++ Text
 
 *Text* is any sequence of characters.
 
----+++++ End-of-line handling
+##+++ End-of-line handling
 
 Normalize all line endings
 (i.e. occurrences and/or combinations of #xD (carriage return) and #xA)
 to #xA / line feeds.
 
----+++++ Character
+##+++ Character
 
 A *character* is an atomic unit of text specified by ISO/IEC 10646.
 
-==
+~~~{.txt}
 Char ::= #x9 |   // Horizontal tab
          #xA |   // Line feed
          #xD |   // Carriage return
          [#x20-#xD7FF] |      // Unicode characters, excluding the
          [#xE000-#xFFFD] |    // surrogate blocks #xFFFE and
          [#x10000-#x10FFFF]   // #xFFFF.
-==
+~~~
 
 Avoid comapatibility characters [Unicode, section 2.3].
 Avoid the following characters (control characters,
 permanently undefined Unicode characters):
-==
+
+~~~{.txt}
 [#x7F-#x84], [#x86-#x9F], [#xFDD0-#xFDEF],
 [#x1FFFE-#x1FFFF], [#x2FFFE-#x2FFFF], [#x3FFFE-#x3FFFF],
 [#x4FFFE-#x4FFFF], [#x5FFFE-#x5FFFF], [#x6FFFE-#x6FFFF],
@@ -343,9 +345,9 @@ permanently undefined Unicode characters):
 [#xAFFFE-#xAFFFF], [#xBFFFE-#xBFFFF], [#xCFFFE-#xCFFFF],
 [#xDFFFE-#xDFFFF], [#xEFFFE-#xEFFFF], [#xFFFFE-#xFFFFF],
 [#x10FFFE-#x10FFFF].
-==
+~~~
 
----+++++ CDATA
+##+++ CDATA
 
 *CDATA* may occur anywhere _|character data|_ may occur.
 In CDATA the less than sign and ampersand need not be escaped.
@@ -357,20 +359,20 @@ Delimiters:
   * Start tag: <![CDATA[
   * End tag: ]]>
 
-==
+~~~{.txt}
 CDSect  ::= CDStart CData CDEnd
 CDStart ::= '<![CDATA['
 CData   ::= (Char* - (Char* ']]>' Char*))
 CDEnd   ::= ']]>'
-==
+~~~
 
----+++++ Character data
+##+++ Character data
 
 _Text_ that is not _markup_ is *|character data|*.
 
-==
+~~~{.txt}
 CharData ::= [^<&]* - ([^<&]* ']]>' [^<&]*)
-==
+~~~
 
 Ampersand and left angle bracket must not occur except when used in markup
 delimiters. Otherwise, use numeric character references or strings =&amp;=,
@@ -382,15 +384,15 @@ CDATA section. Use numberic character reference or string =&gt;=.
 Attribute values can contain single and double quotes, using =&apos;= and
 =&quot;=.
 
----+++++ Comments
+##+++ Comments
 
-==
+~~~{.txt}
 Comment ::= '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
-==
+~~~
 
 Compatibility: Double hyphen must not occur in comments.
 
----+++++ Literal data
+##+++ Literal data
 
 *|Literal data|* is any quoted string not containing the quotation mark that
 is used as the delimiter for that string.
@@ -403,7 +405,7 @@ Used for:
   * Values of attributes.
   * External identifiers. [???]
 
-==
+~~~{.txt}
 EntityValue   ::= '"' ([^%&"] | PEReference | Reference)* '"' |
                   "'" ([^%&'] | PEReference | Reference)* "'"
 AttValue      ::= '"' ([^<&"] | Reference)* '"' |
@@ -411,9 +413,9 @@ AttValue      ::= '"' ([^<&"] | Reference)* '"' |
 SystemLiteral ::= ('"' [^"]* '"') | ("'" [^']* "'")
 PubidLiteral  ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
 PubidChar     ::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-==
+~~~
 
----+++++ Markup
+##+++ Markup
 
 The following _text_ is *markup*:
   * Start-tags
@@ -429,7 +431,7 @@ The following _text_ is *markup*:
   * Text declarations
   * White space that is at the top level of the document entity.
 
----+++++ Name
+##+++ Name
 
 ## Names
 
@@ -444,7 +446,7 @@ Reserved names:
 
 Avoid the use of colon in names except for namespace purposes.
 
-==
+~~~{.txt}
 NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] |
                   [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] |
                   [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] |
@@ -456,16 +458,16 @@ Name          ::= NameStartChar (NameChar)*
 Names         ::= Name (#x20 Name)*
 Nmtoken       ::= (NameChar)+
 Nmtokens      ::= Nmtoken (#x20 Nmtoken)*
-==
+~~~
 
----+++++ PI, Processing Instruction
+##+++ PI, Processing Instruction
 
 Instructions for applications (specified by =PITarget=).
 
-==
+~~~{.txt}
 PI        ::= '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
 PITarget  ::= Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
-==
+~~~
 
 Target names =xml= and =XML= are reserved.
 
@@ -474,15 +476,16 @@ certain characters, e.g. slashes. A workaround is to define a NOTATION which
 can identify a short XML name with more complicated content.
 
 Example:
-==
+
+~~~{.dtd}
 <!NOTATION tex SYSTEM "/usr/local/bin/tex">
-==
+~~~
 
 
 
 
 
----++++ Attribute
+##++ Attribute
 
 Attribute value normalization algorithm:
   1. All line breaks are normalized to #xA.
@@ -499,7 +502,7 @@ Attribute value normalization algorithm:
   1. If the attribute type is not CDATA, then discard leading and trailing
      spaces, and replace sequences of spaces by a single space character.
 
----++++ Element
+##++ Element
 
 The boundaries of non-empty elements are delimited by start- and end-tags.
 
@@ -507,7 +510,7 @@ The boundaries of non-empty elements are delimited by start- and end-tags.
 
 An element type may have associated attribute specifications.
 
-==
+~~~{.txt}
 element      ::= EmptyElemTag | STag content ETag
 
 // Empty element tag.
@@ -521,16 +524,16 @@ ETag         ::= '</' Name S? '>'
 
 // Attributes
 Attribute    ::= Name Eq AttValue
-==
+~~~
 
----+++++ Element content
+##+++ Element content
 
-==
+~~~{.txt}
 children ::= (choice | seq) ('?' | '*' | '+')?
 cp       ::= (Name | choice | seq) ('?' | '*' | '+')?
 choice   ::= '(' S? cp ( S? '|' S? cp )+ S? ')'
 seq      ::= '(' S? cp ( S? ',' S? cp )* S? ')'
-==
+~~~
 
 ### Unparsed entities
 
@@ -544,22 +547,18 @@ An entity in which no separate physical storage exists.
 The content is provided in its declaration.
 
 Example:
-==
-<! ENTITY Publisher1 "McGrawHill Publishing Company.">
-==
+~~~{.dtd}
+<!ENTITY Publisher1 "McGrawHill Publishing Company.">
+~~~
 
 ### External entities
 
 Refers to a storage unit.
 
 Example:
-==
+~~~{.dtd}
 <ENTITY FirstImg SYSTEM "www.books.com/images/book1.gif" NDATA GIF>
-==
-
-
-
-
+~~~
 
 ## Conditional sections
 
@@ -567,32 +566,35 @@ Portions of the Document Type Declaration external subset or of external
 parameter entities that are included/excluded from the logical
 structure of the DTD.
 
-==
+~~~{.txt}
 conditionalSect    ::= includeSect | ignoreSect
 includeSect        ::= '<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'
 ignoreSect         ::= '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
 ignoreSectContents ::= Ignore ('<![' ignoreSectContents ']]>' Ignore)*
 Ignore             ::= Char* - (Char* ('<![' | ']]>') Char*)
-==
+~~~
 
 Parameter entities can be redefined in the itnernal DTD subset of a document.
 
 Example parameter entity:
-==
+
+~~~{.dtd}
 <!ENTITY % notes_allowed "INCLUDE">
-==
+~~~
 
 Example parameter entity reference:
-==
+
+~~~{.dtd}
 <![%notes_allowed;[
   <!ELEMENT production_note (#PCDATA)>
 ]]>
-==
+~~~
 
 This allows declarations to be turned on/off from outside of a DTD document.
 
 Another example:
-==
+
+~~~{.dtd}
 <!ENTITY % draft 'INCLUDE' >
 <!ENTITY % final 'IGNORE' >
 
@@ -602,7 +604,7 @@ Another example:
 <![%final;[
 <!ELEMENT book (title, body, supplements?)>
 ]]>
-==
+~~~
 
 ## Entity
 
@@ -626,13 +628,13 @@ General and parameter entities:
 
 ### Entity declaration
 
-==
+~~~{.txt}
 EntityDecl ::= GEDecl | PEDecl
 GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
 PEDecl     ::= '<!ENTITY' S '%' S Name S PEDef S? '>'
 EntityDef  ::= EntityValue | (ExternalID NDataDecl?)
 PEDef      ::= EntityValue | ExternalID
-==
+~~~
 
 In case the same name is used multiple times, all but the first encountered
 entity is dicarded.
@@ -648,32 +650,32 @@ Parameter-entity references use percent and semicolon delimiters.
 General entity declarations must precede any reference to it.
 
 Example:
-==
+~~~{.dtd}
 <!ENTITY super "supercalifragilisticexpialidocious">
-==
+~~~
 
 Entity references can only refer to parsed entities.
 
 Grammar:
-==
+~~~{.txt}
 Reference   ::= EntityRef | CharRef
 EntityRef   ::= '&' Name ';'
 PEReference ::= '%' Name ';'
-==
+~~~
 
 ### External entity reference
 
 Grammar:
-==
+~~~{.txt}
 ExternalID ::= 'SYSTEM' S SystemLiteral |
                'PUBLIC' S PubidLiteral S SystemLiteral
 NDataDecl  ::= S 'NDATA' S Name
-==
+~~~
 
 Example:
-==
+~~~{.dtd}
 <!ENTITY footer SYSTEM "http://www.oreilly.com/boilerplate/footer.xml">
-==
+~~~
 
 The external file starts with a *|text declaration|*.
 This is like an XML declaration, but with required encoding declaration,
@@ -684,19 +686,19 @@ optional version information, and absent standalone declaration.
 Non-XML formatted content stored in external files.
 
 Example:
-==
+~~~{.dtd}
 <!ENTITY turing_getting_off_bus
          SYSTEM "http://www.turing.org.uk/turing/pi1/bus.jpg"
          NDATA jpeg>
-==
+~~~
 
 The =NDATA= declaration specifies the data type. These are defined in the
 DTD using a NOTATION declaration.
 
 Example:
-==
+~~~{.dtd}
 <!NOTATION jpeg SYSTEM "image/jpeg">
-==
+~~~
 
 Since entity references can only refer to parsed entities, external unparsed
 entities cannot be included in an XML document by using an entitiy reference.
@@ -704,12 +706,12 @@ Instead, an element with an ENTITY type attribute whose value is the name
 of the unparsed external entity must be defined.
 
 Example:
-==
+~~~{.dtd}
 <!ELEMENT image EMPTY>
 <!ATTLIST image source ENTITY #REQUIRED>
 
 <image source="turing_getting_off_bus"/>
-==
+~~~
 
 ### Internal entity
 
@@ -718,9 +720,9 @@ An entity with an =EntityValue=.
 An internal entity is a parsed entity.
 
 Example:
-==
+~~~{.dtd}
 <!ENTITY Pub-Status "This is a pre-release of the specification.">
-==
+~~~
 
 ## Entity reference
 
@@ -744,11 +746,11 @@ and the empty string.
 
 Example of a collection of French poems for English students, with glosses
 and notes in English:
-==
+~~~{.dtd}
 <!ATTLIST poem   xml:lang CDATA 'fr'>
 <!ATTLIST gloss  xml:lang CDATA 'en'>
 <!ATTLIST note   xml:lang CDATA 'en'>
-==
+~~~
 
 ## Parameter entity
 
@@ -758,15 +760,15 @@ Multiple elements may (partially) share the same attributes.
 at multiple locations.
 
 Example of a parameter entity specification:
-==
+~~~{.dtd}
 <!ENTITY % residential_content "address, footage, rooms, baths">
-==
+~~~
 
 Example of parameter entity references, using a parameter entity:
-==
+~~~{.dtd}
 <!ELEMENT apartment (%residential_content;, %rental_content;)>
 <!ELEMENT sublet    (%residential_content;, %rental_content;)>
-==
+~~~
 
 Parameter entities can be redefined in the internal DTD subset of a document.
 
@@ -776,10 +778,10 @@ Parameter entity references to external parameter entities cause the contents
 of external DTDs to be inserted.
 
 Example:
-==
+~~~{.dtd}
 <!ENTITY % names SYSTEM "names.dtd">
 %names;
-==
+~~~
 
 ## PCDATA
 
@@ -795,14 +797,14 @@ the document complies with the constraints in the DTD.
 The Document Type Declaration that identifies a DTD, Document Type Definition,
 must appear before the first element in the XML document.
 
-==
+~~~{.txt}
 prolog      ::= XMLDecl? Misc* (doctypedecl Misc*)?
 XMLDecl     ::= '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
 VersionInfo ::= S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
 Eq          ::= S? '=' S?
 VersionNum  ::= '1.' [0-9]+
 Misc        ::= Comment | PI | S
-==
+~~~
 
 A DTD consists of *|markup declarations|*:
   * Element type declarations
@@ -813,19 +815,19 @@ A DTD consists of *|markup declarations|*:
 
 MIME media type: =|application/xml-dtd|=
 
-==
+~~~{.txt}
 doctypedecl ::= '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'
 DeclSep     ::= PEReference | S
 intSubset   ::= (markupdecl | DeclSep)*
 markupdecl  ::= elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment
-==
+~~~
 
 Example:
-==
+~~~{.dtd}
 <!DOCTYPE person SYSTEM "http://www.cafeconleche.org/dtds/person.dtd">
 <!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN"
               "http://my.netscape.com/publish/formats/rss-0.91.dtd">
-==
+~~~
 
 * =Name= must match the element type of the root element.
 
@@ -836,18 +838,18 @@ that will be included in the XML document.
 
 ## External subset
 
-==
+~~~{.txt}
 extSubset     ::= TextDecl? extSubsetDecl
 extSubsetDecl ::= ( markupdecl | conditionalSect | DeclSep)*
-==
+~~~
 
 *|External markup declaration|*:
 A markup declaration occurring in an external subset or
 in a parameter entity. [???]
 
-==
+~~~{.txt}
 SDDecl ::= S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
-==
+~~~
 
 # Text
 
@@ -855,11 +857,11 @@ SDDecl ::= S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'
 
 # White space
 
-==
+~~~{.txt}
 S ::= (#x20 | #x9 | #xD | #xA)+   // Any consecutive number of spaces,
                                   // carriage returns, line feeds, and
                                   // horizontal tabs.
-==
+~~~
 
 ## White space preservation
 
@@ -870,10 +872,10 @@ The attribute must be declared by being given an enumerated type with at
 least one of the values =default= and =preserve=.
 
 Examples:
-==
+~~~{.dtd}
 <!ATTLIST poem  xml:space (default|preserve) 'preserve'>
 <!ATTLIST pre xml:space (preserve) #FIXED 'preserve'>
-==
+~~~
 
 @author Wouter Beek
 @compat XML 1.0 (Fifth Edition)
