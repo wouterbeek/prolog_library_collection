@@ -23,7 +23,7 @@
   ]
 ).
 
-/** <module> ALEPH5
+/** <module> ALEPH6
 A Learning Engine for Proposing Hypotheses.
 
 This is the source for Aleph written and maintained
@@ -50,10 +50,10 @@ www.comlab.ox.ac.uk/oucl/research/areas/machlearn/Aleph/index.html
 @author Ashwin Srinivasan (ashwin@comlab.ox.ac.uk),
 @author Wouter Beek (me@wouterbeek.com)
 @version 6
-@version 2012/06-2012/08, 2013/03
+@version 2012/06-2012/08, 2013/03, 2013/06
 */
 
-:- use_module(generic(logging)).
+:- use_module(generics(logging)).
 :- use_module(library(broadcast)).
 :- use_module(library(time)).
 
@@ -3842,8 +3842,15 @@ redundant(Lit,Lits,[Head|Body]):-
   aleph_subsumes(Lits,Rest1).
 
 aleph_subsumes(Lits,Lits1):-
-  \+(\+((numbervars(Lits,0,_),numbervars(Lits1,0,_),aleph_subset1(Lits,Lits1)))).
-
+  \+(
+    \+(
+      (
+        numbervars(Lits,0,_),
+        numbervars(Lits1,0,_),
+        aleph_subset1(Lits,Lits1)
+      )
+    )
+  ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % S A T  /  R E D U C E
@@ -9211,7 +9218,7 @@ read_all(BackgroundBase, PositiveExamplesBase, NegativeExamplesBase):-
 
 read_background(BackgroundBase):-
   absolute_file_name(
-    data_ilp(BackgroundBase),
+    data(BackgroundBase),
     BackgroundFile,
     [file_type(background_knowledge)]
   ),
@@ -9311,7 +9318,7 @@ read_examples_files(Type, ExamplesBases, ExamplesFiles):-
 % @arg ExamplesFile The atomic absolute examples file name.
 
 read_examples_from_file(Type, ExamplesBase, ExamplesFile):-
-  absolute_file_name(data_ilp(ExamplesBase), ExamplesFile, [file_type(Type)]),
+  absolute_file_name(data(ExamplesBase), ExamplesFile, [file_type(Type)]),
   (
     aleph_open(ExamplesFile, read, Stream)
   ->
@@ -10076,7 +10083,7 @@ reset:-
 % background knowledge file.
 
 reset(Base):-
-  absolute_file_name(data_ilp(Base), File, [file_type(background_knowledge)]),
+  absolute_file_name(data(Base), File, [file_type(background_knowledge)]),
   unload_file(File),
   % Then reset the rest.
   reset.
