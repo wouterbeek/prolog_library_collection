@@ -9220,7 +9220,7 @@ read_background(BackgroundBase):-
   absolute_file_name(
     data(BackgroundBase),
     BackgroundFile,
-    [file_type(background_knowledge)]
+    [access(read), file_type(background_knowledge)]
   ),
   % The background file is allowed to include multiple occurrences of
   % singleton variables (of the form
