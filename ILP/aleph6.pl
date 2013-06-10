@@ -53,6 +53,9 @@ please contact Ashwin Srinivasan first.
 :- use_module(generics(logging)).
 :- use_module(generics(meta_ext)).
 :- use_module(library(broadcast)).
+:- use_module(library(dialect/hprolog), [memberchk_eq/2]).
+:- use_module(library(lists)).
+:- use_module(library(settings)).
 :- use_module(library(time)).
 
 % This must come before this predicate is defined dynamic.
@@ -113,6 +116,206 @@ please contact Ashwin Srinivasan first.
 :- multifile refine/2.
 :- multifile cost/3.
 :- multifile prove/2.
+
+
+
+% SETTINGS: EVALUATION %
+
+:- setting(condition, boolean, false, 'Condition SLP').
+
+:- setting(evalfn, oneof([accuracy,auto_m,compression,coverage,entropy,gini,laplace,mestimate,mse,pbayes,posonly,sd,user,wracc]), coverage, 'Evaluation Function').
+
+:- setting(gsamplesize, positive_integer, 100, 'Size of random sample').
+
+:- setting(lazy_negs, boolean, false, 'Lazy theorem proving on negative examples').
+
+:- setting(lazy_on_contradiction, boolean, false, 'Lazy theorem proving on contradictions').
+
+:- setting(lazy_on_cost, boolean, false, 'Lazy theorem proving on cost').
+
+% @tbd The default value was chosen arbitrarily.
+:- setting(m, between(0.0,10000000000.0), 0.0, 'M-estimate').
+
+:- setting(minacc, between(0.0,1.0), 0.0, 'Minimum clause accuracy').
+
+:- setting(minpos, nonneg, 1, 'Minimum pos covered by a clause').
+
+:- setting(minposfrac, between(0.0,1.0), 0.0, 'Minimum proportion of positives covered by a clause').
+
+:- setting(minscore, float, -10000000000.0, 'Minimum utility of an acceptable clause').
+
+:- setting(noise, nonneg, 0, 'Maximum negatives covered').
+
+% SETTINGS: MISCELLANEOUS %
+
+:- setting(cache_clauselength, positive_integer, 3, 'Maximum Length of Cached Clauses').
+
+:- setting(caching, boolean, false, 'Cache Clauses in Search').
+
+:- setting(check_good, boolean, false, 'Check good clauses for duplicates').
+
+:- setting(check_redundant, boolean, false, 'Check for Redundant Literals').
+
+:- setting(depth, positive_integer, 10, 'Theorem Proving Depth').
+
+:- setting(good, boolean, false, 'Store good clauses').
+
+:- setting(goodfile, atom, '', 'File of good clauses').
+
+:- setting(max_features, positive_integer, 10000000000, 'Maximum number of features to be constructed').
+
+:- setting(optimise_clauses, boolean, false, 'Perform query Optimisation').
+
+:- setting(portray_examples, boolean, false, 'Pretty print examples').
+
+:- setting(portray_hypothesis, boolean, false, 'Pretty print hypotheses').
+
+:- setting(portray_literals, boolean, false, 'Pretty print literals').
+
+:- setting(portray_search, boolean, false, 'Pretty print search').
+
+:- setting(print, positive_integer, 4, 'Literals printed per line').
+
+:- setting(prior, any, '', 'Prior class distribution').
+
+:- setting(proof_strategy, oneof([restricted_sld,sld,user]), restricted_sld, 'Current proof strategy').
+
+:- setting(prooftime, between(0.0,10000000000.0), 10000000000.0, 'Theorem proving time').
+
+% @tbd File name.
+:- setting(test_neg, atom, '', 'Negative examples for testing theory').
+
+% @tbd File name.
+:- setting(test_pos, atom, '', 'Positive examples for testing theory').
+
+:- setting(threads, positive_integer, 1, 'Number of threads').
+
+% @tbd File name.
+:- setting(train_neg, atom, '', 'Negative examples for training').
+
+% @tbd File name.
+:- setting(train_pos, atom, '', 'Positive examples for training').
+
+% @tbd File name.
+:- setting(recordfile, atom, '', 'Log filename').
+
+:- setting(record, boolean, false, 'Log to file').
+
+% @tbd File name.
+:- setting(rulefile, atom, '', 'Rule file').
+
+:- setting(skolemvars, positive_integer, 10000, 'Counter for non-ground examples').
+
+:- setting(stage, oneof([command,reduction,saturation]), command, 'Aleph processing mode').
+
+:- setting(updateback, boolean, true, 'Update background knowledge with clauses found on search').
+
+:- setting(verbosity, nonneg, 1, 'Level of verbosity').
+
+:- setting(version, nonneg, 5, 'Aleph version').
+
+:- setting(typeoverlap, between(0.0,1.0), 0.95, 'Type overlap for induce_modes').
+
+% SETTING: SATURATION %
+
+:- setting(check_useless, boolean, false, 'Remove I/O unconnected Literals').
+
+:- setting(construct_bottom, oneof([false,reduction,saturation]), saturation, 'Build a bottom clause').
+
+:- setting(i, positive_integer, 2, 'Bound layers of new variables').
+
+:- setting(nreduce_bottom, boolean, false, 'Negative examples based reduction of bottom clause').
+
+:- setting(permute_bottom, boolean, false, 'Randomly permute order of negative literals in the bottom clause').
+
+:- setting(splitvars, boolean, false, 'Split variable co-refencing').
+
+:- setting(store_bottom, boolean, false, 'Store bottom').
+
+% SETTINGS: SEARCH: SEARCH SPACE %
+
+:- setting(best, any, '', 'Label to beat').
+
+:- setting(clauselength, positive_integer, 4, 'Maximum Clause Length').
+
+% @tbd The default value was chosen arbitrarily.
+:- setting(clauses, positive_integer, 10000000000, 'Maximum Clauses per Theory').
+
+:- setting(explore, boolean, false, 'Exhaustive Search of all alternatives').
+
+:- setting(language, positive_integer, 10000000000, 'Maximum occurrence of any predicate symbol in a clause').
+
+:- setting(lookahead, positive_integer, 1, 'Lookahead for automatic refinement operator').
+
+:- setting(max_abducibles, positive_integer, 2, 'Maximum number of atoms in an abductive explanation').
+
+:- setting(newvars, nonneg, 10000000000, 'Existential variables in a clause').
+
+:- setting(nodes, positive_integer, 5000, 'Nodes to be explored in the search').
+
+:- setting(openlist, positive_integer, 10000000000, 'Beam width in a greedy search').
+
+% SETTINGS: SEARCH: SEARCH STRATEGY %
+
+:- setting(abduce, boolean, false, 'Abduce Atoms and Generalise').
+
+:- setting(clauselength_distribution, any, '', 'Probablity Distribution over Clauses').
+
+:- setting(interactive, boolean, false, 'Interactive theory construction').
+
+:- setting(moves, nonneg, 5, 'Number of moves in a randomised local search').
+
+% @tbd The defualt value was arbitrarily chosen.
+:- setting(refineop, oneof([auto,false,scs,user]), false, 'Current refinement operator').
+
+:- setting(refine, oneof([auto,false,scs,user]), false, 'Nature of customised refinement operator').
+
+:- setting(resample, positive_integer, 1, 'Number of times to resample an example').
+
+:- setting(rls_type, oneof([anneal,gsat,rrr,wsat]), gsat, 'Type of randomised local search').
+
+:- setting(samplesize, nonneg, 0, 'Size of sample').
+
+% @tbd The default value was arbitrarily chosen.
+:- setting(scs_percentile, between(0.0,100.0), 0.0, 'Percentile of good clauses for SCS search').
+
+% @tbd The default value was arbitrarily chosen.
+:- setting(scs_prob, between(0.0,1.0), 0.0, 'Probability of getting a good clause in SCS search').
+
+% @tbd The default value was arbitrarily chosen.
+:- setting(scs_sample, positive_integer, 100, 'Sample size in SCS search').
+
+:- setting(search, oneof([ar,bf,df,false,heuristic,ibs,ic,id,ils,rls,scs]), bf, 'Search Strategy').
+
+:- setting(searchstrat, oneof([ar,bf,df,heuristic,ibs,ic,id,ils,rls,scs]), bf, 'Current Search Strategy').
+
+:- setting(searchtime, between(0.0,10000000000.0), 10000000000.0, 'Search time in seconds').
+
+:- setting(subsample, boolean, false, 'Subsample for evaluating a clause').
+
+:- setting(subsamplesize, positive_integer, 10000000000, 'Size of subsample for evaluating a clause').
+
+% @tbd The default value was chosen arbitrarily.
+:- setting(temperature, between(0.0,10000000000.0), 0.0, 'Temperature for randomised search annealing').
+
+:- setting(tries, positive_integer, 10, 'Number of restarts for a randomised search').
+
+:- setting(uniform_sample, boolean, false, 'Distribution to draw clauses from randomly').
+
+:- setting(walk, between(0.0,1.0), 0.0, 'Random walk probability for Walksat').
+
+% SETTINGS: TREE %
+
+:- setting(classes, any, '', 'Class labels').
+
+:- setting(confidence, between(0.0,1.0), 0.95, 'Confidence for Rule Pruning').
+
+:- setting(mingain, between(0.000001,10000000000.0), 0.05, 'Minimum expected gain').
+
+:- setting(prune_tree, boolean, false, 'Tree pruning').
+
+% @tbd The default value has been chosen arbitrarily.
+:- setting(tree_type, oneof([class_probability,classification,model,regression]), classification, 'Type of tree to construct').
 
 
 
@@ -599,7 +802,7 @@ get_predicates([],_,[]).
 get_predicates([Lit|Lits],Vars,[Lit|T]):-
   '$aleph_sat_litinfo'(Lit,_,Atom,I,_,[]),
   get_vars(Atom,I,IVars),
-  aleph_subset1(IVars,Vars), !,
+  subset(IVars,Vars), !,
   get_predicates(Lits,Vars,T).
 get_predicates([_|Lits],Vars,T):-
   get_predicates(Lits,Vars,T).
@@ -650,7 +853,10 @@ neg_reduce([Head|Body],Neg,Last,DepthTime,Noise):-
   neg_reduce(Body,Clause,TV,2,Neg,DepthTime,Noise,NewLast),
   NewLast \= Last, !,
   NewLast1 is NewLast - 1,
-  aleph_remove_n(NewLast1,[Head|Body],Prefix,[LastLit|Rest]),
+
+  length(Prefix, NewLast1),
+  append(Prefix, [LastLit|Rest], [Head|Body]),
+
   mark_lits(Rest),
   insert_lastlit(LastLit,Prefix,Lits1),
   neg_reduce(Lits1,Neg,NewLast,DepthTime,Noise).
@@ -674,7 +880,7 @@ insert_lastlit(LastLit,Lits,Lits1):-
 find_last_ancestor([],_,Last,_,Last):- !.
 find_last_ancestor([Lit|Lits],L,_,LitNum,Last):-
   '$aleph_sat_litinfo'(Lit,_,_,_,_,D),
-  aleph_member1(L,D), !,
+  memberchk(L,D), !,
   NextLit is LitNum + 1,
   find_last_ancestor(Lits,L,LitNum,NextLit,Last).
 find_last_ancestor([_|Lits],L,Last0,LitNum,Last):-
@@ -987,7 +1193,7 @@ add_equivalences([Var|Vars],Depth,[Var/E|Rest]):-
 
 get_repeats([],L,L).
 get_repeats([Var|Vars],Ref1,L):-
-  aleph_member1(Var,Vars), !,
+  memberchk(Var,Vars), !,
   update(Ref1,Var,Ref2),
   get_repeats(Vars,Ref2,L).
 get_repeats([_|Vars],Ref,L):-
@@ -1451,7 +1657,7 @@ get_ivars1(K,LitNum,IVars):-
 check_parents([],_,[],[]).
 check_parents([LitNum|Lits],OutputVars,[LitNum|DLits],Rest):-
   get_ivars1(false,LitNum,IVars),
-  aleph_subset1(IVars,OutputVars), !,
+  subset(IVars,OutputVars), !,
   check_parents(Lits,OutputVars,DLits,Rest).
 check_parents([LitNum|Lits],OutputVars,DLits,[LitNum|Rest]):-
   check_parents(Lits,OutputVars,DLits,Rest), !.
@@ -1521,10 +1727,10 @@ get_sibgain(S,LVars,LitNum,Node,LastSib,Last,Best,Path,C,TV,L,Min,Pos,Neg,OVars,
 get_sibpncover(Lazy,NodeNum,Desc,Pos,Neg,Sib,PC,NC):-
   '$aleph_search_node'(NodeNum,Sib,_,_,Pos1,Neg1,_,_),
   '$aleph_sat_litinfo'(Sib,_,Atom,_,_,_),
-  \+(aleph_member1(Sib,Desc)),
+  \+(memberchk(Sib,Desc)),
   functor(Atom,Name,Arity),
   (
-    aleph_member1(Name/Arity,Lazy)
+    memberchk(Name/Arity,Lazy)
   ->
     PC = Pos, NC = Neg
   ;
@@ -1830,7 +2036,7 @@ abandon_branch(S,C):-
         (Verbosity >= 1 -> p_message(pruned); true).
 
 clause_ok(false,V1,V2):-
-        aleph_subset1(V1,V2).
+        subset(V1,V2).
 
 % check to see if a clause is acceptable
 %   unacceptable if it fails noise, minacc, or minpos settings
@@ -2579,7 +2785,7 @@ rls_nextbest(gsat,_,NodeRef,Label):-
   findall(N-L,'$aleph_search_gain'(K1,K2,N,L),Choices),
   length(Choices,Last),
   get_random(Last,N),
-  aleph_remove_nth(N,Choices,NodeRef-Label,_),
+  nth0(N,Choices,NodeRef-Label,_),
   retractall('$aleph_search_gain'(_,_,_,_)).
 rls_nextbest(wsat,PStats,NodeRef,Label):-
   setting(walk,WProb),
@@ -2594,7 +2800,7 @@ rls_nextbest(wsat,PStats,NodeRef,Label):-
   potentially_good(AllNodes,PStats,Choices),
         length(Choices,Last),
         get_random(Last,N),
-        aleph_remove_nth(N,Choices,NodeRef-Label,_),
+        nth0(N,Choices,NodeRef-Label,_),
   retractall('$aleph_search_gain'(_,_,_,_)).
 rls_nextbest(anneal,[P,N|_],NodeRef,Label):-
   setting(temperature,Temp),
@@ -2603,7 +2809,7 @@ rls_nextbest(anneal,[P,N|_],NodeRef,Label):-
   findall(N-L,'$aleph_search_gain'(_,_,N,L),AllNodes),
   length(AllNodes,Last),
   get_random(Last,S),
-  aleph_remove_nth(S,AllNodes,NodeRef-Label,_),
+  nth0(S,AllNodes,NodeRef-Label,_),
   Label = [P1,N1|_],
   Gain is (P1 - N1) - (P - N),
   ((P = 1); (Gain >= 0);(aleph_random(R), R < exp(Gain/Temp))).
@@ -2792,7 +2998,7 @@ prove_cached(S,_,_,I1,_,_,Max,I1,C1):-
 
 collect_example_cache(Intervals/Left):-
   retract('$aleph_local'(example_cache,[Last|Rest])),
-  aleph_reverse([Last|Rest],IList),
+  reverse([Last | Rest], IList),
   list_to_intervals1(IList,Intervals),
   Next is Last + 1,
   '$aleph_global'(size,size(neg,LastN)),
@@ -3479,7 +3685,7 @@ ask_best_split(Splits,Gain,Left,Right):-
     Left = [],
     Right = [];
     SplitNum is integer(Answer),
-    aleph_remove_nth(SplitNum,Splits,MCR-[Left,Right],_),
+    nth0(SplitNum,Splits,MCR-[Left,Right],_),
     Gain is -1*MCR
   ),
   !.
@@ -3839,7 +4045,7 @@ aleph_subsumes(Lits,Lits1):-
       (
         numbervars(Lits,0,_),
         numbervars(Lits1,0,_),
-        aleph_subset1(Lits,Lits1)
+        subset(Lits,Lits1)
       )
     )
   ).
@@ -4431,7 +4637,7 @@ estimate_error(L/P1,U/P2,P,N,E,R):-
 
 zap_rest(Lits):-
   retract('$aleph_sat_litinfo'(LitNum,Depth,Atom,I,O,D)),
-  (aleph_member1(LitNum,Lits) ->
+  (memberchk(LitNum,Lits) ->
     intersect1(Lits,D,D1,_),
     asserta('$aleph_sat_litinfo'(LitNum,Depth,Atom,I,O,D1));
     true),
@@ -5559,13 +5765,13 @@ lazy_evaluate([LitNum|LitNums],LazyPreds,Path,PosCover,NegCover,Lits):-
     BottomExists = true,
     '$aleph_sat_litinfo'(LitNum,Depth,Atom,I,O,D),
     functor(Atom,Name,Arity),
-    aleph_member1(Name/Arity,LazyPreds), !,
+    memberchk(Name/Arity,LazyPreds), !,
     get_pclause([LitNum|Path],[],(Lit:-(Goals)),_,_,_);
     BottomExists = false,
     Atom = LitNum,
     Depth = 0,
     functor(Atom,Name,Arity),
-    aleph_member1(Name/Arity,LazyPreds), !,
+    memberchk(Name/Arity,LazyPreds), !,
     split_args(LitNum,_,I,O,C),
     D = [],
     list_to_clause([LitNum|Path],(Lit:-(Goals)))),
@@ -6315,7 +6521,7 @@ bvar_types([Lit|Lits],VTSoFar,BVarTypes):-
 
 consistent_vartypes([],_).
 consistent_vartypes([Var/Type|VarTypes],VTSoFar):-
-  aleph_member2(Var/Type,VTSoFar),
+  memberchk_eq(Var/Type,VTSoFar),
   consistent_vartypes(VarTypes,VTSoFar).
 
 inconsistent_vartypes([Var/Type|_],VTSoFar):-
@@ -6338,7 +6544,7 @@ aleph_get_lit(Lit,[H|Lits]):-
   functor(H,Name,Arity),
   aleph_get_lit(Lit,Name/Arity),
   '$aleph_link_vars'(Lit,[H|Lits]),
-  \+(aleph_member2(Lit,[H|Lits])).
+  \+(memberchk_eq(Lit,[H|Lits])).
 
 aleph_get_lit(Lit,Target):-
   '$aleph_determination'(Target,Lit).
@@ -6680,7 +6886,7 @@ infer_equalities(EqModes):-
 infer_negations([],[]).
 infer_negations([mode(_,Pred)|Modes],NegModes):-
   Pred =.. [_|Args],
-  aleph_member1(-_,Args), !,
+  memberchk(-_,Args), !,
   infer_negations(Modes,NegModes).
 infer_negations([mode(_,Pred)|Modes],[mode(1,not(Pred))|NegModes]):-
   infer_negations(Modes,NegModes).
@@ -7181,7 +7387,7 @@ clause_status([],_,_,S,S):-
 clause_status([Lit|Lits],Key,LitsSoFar,S,S1):-
   get_ovars(LitsSoFar,Key,[],OVars),
   get_ivars([Lit],Key,[],IVars),
-  aleph_subset1(IVars,OVars),
+  subset(IVars,OVars),
   !,
   append(LitsSoFar, [Lit], Lits1),
   clause_status(Lits,Key,Lits1,S,S1).
@@ -7554,30 +7760,6 @@ aleph_delete(H,[H|T],T).
 aleph_delete(H,[H1|T],[H1|T1]):-
   aleph_delete(H,T,T1).
 
-aleph_delete1(H,[H|T],T):- !.
-aleph_delete1(H,[H1|T],[H1|T1]):-
-  aleph_delete1(H,T,T1).
-
-aleph_delete0(_,[],[]).
-aleph_delete0(H,[H|T],T):- !.
-aleph_delete0(H,[H1|T],[H1|T1]):-
-  aleph_delete0(H,T,T1).
-
-% aleph_remove_nth(+N,+List1,-Elem,-List2)
-%  remove the nth elem from a List
-aleph_remove_nth(1,[H|T],H,T):- !.
-aleph_remove_nth(N,[H|T],X,[H|T1]):-
-        N1 is N - 1,
-        aleph_remove_nth(N1,T,X,T1).
-
-% aleph_remove_n(+N,+List1,-List2,-List3)
-%  remove the n elems from List1 into List2. List3 is the rest of List1
-aleph_remove_n(0,L,[],L):- !.
-aleph_remove_n(_,[],[],[]):- !.
-aleph_remove_n(N,[H|T],[H|T1],L):-
-  N1 is N - 1,
-  aleph_remove_n(N1,T,T1,L).
-
 % aleph_rpermute(+List1,-List2)
 %  randomly permute the elements of List1 into List2
 aleph_rpermute(List1,List2):-
@@ -7587,7 +7769,7 @@ aleph_rpermute(List1,List2):-
 aleph_rpermute([],0,[]):- !.
 aleph_rpermute(L1,N1,[X|Rest]):-
   get_random(N1,R),
-  aleph_remove_nth(R,L1,X,L2),
+  nth0(R,L1,X,L2),
   N2 is N1 - 1,
   aleph_rpermute(L2,N2,Rest).
 
@@ -7665,24 +7847,11 @@ tparg([Place|Places],Term,Arg):-
         arg(Place,Term,Term1),
         tparg(Places,Term1,Arg).
 
-aleph_member1(H,[H|_]):- !.
-aleph_member1(H,[_|T]):-
-  aleph_member1(H,T).
-
-aleph_member2(X,[Y|_]):- X == Y, !.
-aleph_member2(X,[_|T]):-
-  aleph_member2(X,T).
-
 aleph_member3(A,A-B):- A =< B.
 aleph_member3(X,A-B):-
   A < B,
   A1 is A + 1,
   aleph_member3(X,A1-B).
-
-aleph_reverse(L1, L2):- revzap(L1, [], L2).
-
-revzap([X|L], L2, L3):- revzap(L, [X|L2], L3).
-revzap([], L, L).
 
 goals_to_clause((Head,Body),(Head:-Body)):- !.
 goals_to_clause(Head,Head).
@@ -7722,7 +7891,6 @@ nlits((_,Lits),N):-
   nlits(Lits,N1),
   N is N1 + 1.
 nlits(_,1).
-
 
 list_to_clause([Goal],(Goal:-true)):- !.
 list_to_clause([Head|Goals],(Head:-Body)):-
@@ -7842,28 +8010,18 @@ flatten_args(Arg,Atom,FAtom,TV,TV1):-
 intersect1(Elems,[],[],Elems):- !.
 intersect1([],_,[],[]):- !.
 intersect1([Elem|Elems],S2,[Elem|Intersect],ElemsLeft):-
-  aleph_member1(Elem,S2), !,
+  memberchk(Elem,S2), !,
   intersect1(Elems,S2,Intersect,ElemsLeft).
 intersect1([Elem|Elems],S2,Intersect,[Elem|ElemsLeft]):-
   intersect1(Elems,S2,Intersect,ElemsLeft).
 
-aleph_subset1([],_).
-aleph_subset1([Elem|Elems],S):-
-  aleph_member1(Elem,S), !,
-  aleph_subset1(Elems,S).
-
-aleph_subset2([X|Rest],[X|S]):-
-  aleph_subset2(Rest,S).
-aleph_subset2(S,[_|S1]):-
-  aleph_subset2(S,S1).
-aleph_subset2([],[]).
-
 % two sets are equal
 
 equal_set([],[]).
-equal_set([H|T],S):-
-  aleph_delete1(H,S,S1),
-  equal_set(T,S1), !.
+equal_set([H|T], S):-
+  select(H, S, S1),
+  equal_set(T, S1),
+  !.
 
 uniq_insert(_,X,[],[X]).
 uniq_insert(descending,H,[H1|T],[H,H1|T]):-
@@ -7907,7 +8065,7 @@ update([H1|T],H,[H1|T1]):-
 
 % checks if 2 sets intersect
 intersects(S1,S2):-
-  member(Elem,S1), aleph_member1(Elem,S2), !.
+  member(Elem,S1), memberchk(Elem,S2), !.
 
 % checks if bitsets represented as lists of intervals intersect
 intervals_intersects([L1-L2|_],I):-
@@ -8856,7 +9014,7 @@ random_select(X,L,Left):-
         length(L,N),
         N > 0,
         get_random(N,I),
-        aleph_remove_nth(I,L,X,Left).
+        nth0(I,L,X,Left).
 
 % random_nselect(+Num,+List1,-List2)
 %       randomly remove Num elements from List1 to give List2
@@ -8917,8 +9075,8 @@ chi_square(DF,Prob,ChisqVal):-
   ProbLeft is 1.0 - Prob,
   Index is integer(ProbLeft*NTrials),
   (Index > NTrials ->
-    aleph_remove_nth(NTrials,Z,Val,_);
-    aleph_remove_nth(Index,Z,Val,_)),
+    nth0(NTrials,Z,Val,_);
+    nth0(Index,Z,Val,_)),
   ChisqVal is DF*(Val^3).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -9099,7 +9257,7 @@ evalfn(pbayes,[P,N|_],Val):-
                 Acc is P/(P+N),
                 setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
-    aleph_member1(Prior-pos,NPriorD),
+    memberchk(Prior-pos,NPriorD),
                 (0 is Prior-Acc ->
                     Val=Prior;
                 K is (Acc*(1 - Acc)) / ((Prior-Acc)^2 ),
@@ -9112,7 +9270,7 @@ evalfn(auto_m,[P,N|_],Val):-
                 Cover is P + N,
                 setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
-    aleph_member1(Prior-pos,NPriorD),
+    memberchk(Prior-pos,NPriorD),
                 K is sqrt(Cover),
                 Val is (P + K*Prior) / (Cover+K)), !.
 evalfn(mestimate,[P,N|_],Val):-
@@ -9120,7 +9278,7 @@ evalfn(mestimate,[P,N|_],Val):-
                 Cover is P + N,
                 setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
-    aleph_member1(Prior-pos,NPriorD),
+    memberchk(Prior-pos,NPriorD),
                 (setting(m,M) -> K = M; K is sqrt(Cover)),
                 Val is (P + K*Prior) / (Cover+K)), !.
 evalfn(_,_,X):- X is -1e10.
@@ -9500,15 +9658,17 @@ setting(Variable,Value):-
   nonvar(Variable),
   '$aleph_global'(Variable,set(Variable,Value1)), !,
   Value = Value1.
-setting(Variable,Value):-
-  default_setting(Variable,Value).
+setting(Setting, DefaultValue):-
+  setting_property(Setting, default(DefaultValue)).
 
-noset(Variable):-
-  nonvar(Variable),
-        retract('$aleph_global'(Variable,set(Variable,Value))), !,
-  rm_special_consideration(Variable,Value),
-  set_default(Variable).
-noset(_).
+noset(Setting):-
+  nonvar(Setting),
+  retract('$aleph_global'(Setting,set(Setting,Value))),
+	!,
+  rm_special_consideration(Setting,Value),
+  restore_setting(Setting).
+% Always succeeds.
+noset(_Setting).
 
 determinations(Pred1,Pred2):-
         '$aleph_global'(determination,determination(Pred1,Pred2)).
@@ -9654,7 +9814,7 @@ show(Stream, theory):-
   p_message(Stream, theory),
   nl(Stream),
   '$aleph_global'(rules,rules(L)),
-  aleph_reverse(L,L1),
+  reverse(L, L1),
   member(ClauseNum,L1),
   '$aleph_global'(theory,theory(ClauseNum,_,_,_,_)),
   eval_rule(Stream, ClauseNum, _),
@@ -9816,7 +9976,7 @@ settings(Stream):-
 examples(Type,List):-
   setting(portray_literals,Pretty),
   example(Num,Type,Atom),
-  aleph_member1(Num,List),
+  memberchk(Num,List),
   aleph_portray(Atom,Pretty),
   current_stream(Stream),
   format(Stream, '.\n', []),
@@ -9851,7 +10011,7 @@ write_rules(File):-
   aleph_open(File,write,Stream),
   set_output(Stream),
   '$aleph_global'(rules,rules(L)),
-  aleph_reverse(L,L1),
+  reverse(L, L1),
   write_rule(L1),
   flush_output(Stream),
   set_output(user_output).
@@ -10052,7 +10212,10 @@ reset:-
   aleph_abolish('$aleph_global'/2),
   aleph_abolish(example/3),
   assert(example(0,uspec,false)),
-  set_default(_),
+	forall(
+		current_setting(Setting),
+    restore_setting(Setting)
+	),
   !.
 
 %! reset(+Base:atom) is det.
@@ -10197,12 +10360,6 @@ sumsq([X|T],S):-
 
 % auxilliary definitions  for some of the above
 
-set_default(A):-
-  default_setting(A,B),
-  set(A,B),
-  fail.
-set_default(_).
-
 check_legal(int(L)-int(U),X):-
   !,
   number(L,IL),
@@ -10219,7 +10376,7 @@ check_legal(float(L)-float(U),X):-
   FX =< FU.
 check_legal([H|T],X):-
   !,
-  aleph_member1(X,[H|T]).
+  memberchk(X,[H|T]).
 check_legal(read(filename),X):-
   X \= '?',
   !,
@@ -10284,11 +10441,14 @@ special_consideration(minscore,_):-
 special_consideration(_,_).
 
 rm_special_consideration(portray_literals,_):-
-  set_default(print), !.
+  restore_setting(print),
+  !.
 rm_special_consideration(refine,_):-
-  set_default(refineop), !.
+  restore_setting(refineop),
+  !.
 rm_special_consideration(record,_):-
-  noset(recordfile_stream), !.
+  noset(recordfile_stream),
+  !.
 rm_special_consideration(recordfile_stream,_):-
   (setting(recordfile_stream,S) -> close(S); true), !.
 rm_special_consideration(good,_):-
@@ -10296,7 +10456,6 @@ rm_special_consideration(good,_):-
 rm_special_consideration(goodfile_stream,_):-
   (setting(goodfile_stream,S) -> close(S); true), !.
 rm_special_consideration(_,_).
-
 
 get_hyp((Head:-Body)):-
   '$aleph_search'(pclause,pclause(Head,Body)), !.
