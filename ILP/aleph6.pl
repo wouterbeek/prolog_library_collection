@@ -18,8 +18,7 @@
                 % +PositiveExamplesBase:atom
                 % +NegativeExamplesBase:atom
     sat/1, % +Example:number
-    set_current_stream/1, % +Stream
-    start_aleph/0
+    set_current_stream/1 % +Stream
   ]
 ).
 
@@ -44,16 +43,15 @@ Aleph is freely available for academic purposes.
 If you intend to use it for commercial purposes then
 please contact Ashwin Srinivasan first.
 
-A simple on-line manual is available on the Web at
-www.comlab.ox.ac.uk/oucl/research/areas/machlearn/Aleph/index.html
-
 @author Ashwin Srinivasan (ashwin@comlab.ox.ac.uk),
 @author Wouter Beek (me@wouterbeek.com)
-@version 6
+@see www.comlab.ox.ac.uk/oucl/research/areas/machlearn/Aleph/index.html
 @version 2012/06-2012/08, 2013/03, 2013/06
 */
 
+:- use_module(generics(db_ext)).
 :- use_module(generics(logging)).
+:- use_module(generics(meta_ext)).
 :- use_module(library(broadcast)).
 :- use_module(library(time)).
 
@@ -64,32 +62,9 @@ www.comlab.ox.ac.uk/oucl/research/areas/machlearn/Aleph/index.html
 :- dynamic(example/3).
 :- dynamic(false/0).
 
-
-
-
-% ALEPH
-
-load:-
-  assert_file_types.
-
-assert_file_types:-
-  assert(user:prolog_file_type(b, background_knowledge)),
-  assert(user:prolog_file_type(f, pos)),
-  assert(user:prolog_file_type(n, neg)).
-
-aleph_version(6).
-
-aleph_version_date('June 2012').
-
-aleph_manual('http://www.comlab.ox.ac.uk/oucl/groups/machlearn/Aleph/index.html').
-
-aleph_random(X):-
-  I = 1000000,
-  X is float(random(I-1)) / float(I).
-
-depth_bound_call(Goal, Limit):-
-  call_with_depth_limit(Goal, Limit, Result),
-  Result \= depth_limit_exceeded.
+:- db_add_novel(user:prolog_file_type(b, background_knowledge)).
+:- db_add_novel(user:prolog_file_type(f, pos)).
+:- db_add_novel(user:prolog_file_type(n, neg)).
 
 :- op(500,fy,#).
 :- op(500,fy,*).
@@ -141,6 +116,18 @@ depth_bound_call(Goal, Limit):-
 
 
 
+% ALEPH
+
+aleph_random(X):-
+  I = 1000000,
+  X is float(random(I-1)) / float(I).
+
+depth_bound_call(Goal, Limit):-
+  call_with_depth_limit(Goal, Limit, Result),
+  Result \= depth_limit_exceeded.
+
+
+
 % ILP %
 
 %! ilp(+Base:atom) is det.
@@ -158,7 +145,7 @@ ilp(Base):-
 % @see ilp/3.
 
 ilp(Base, Stream):-
-  ilp(Base, Stream, both).
+  ilp(Base, Stream, det).
 
 %! ilp(+Base:atom, +Stream:stream, +Mode:atom) is det.
 % Runs the ILP algorithm.
@@ -170,7 +157,12 @@ ilp(Base, Stream):-
 
 ilp(Base, Stream, Mode):-
   set_current_stream(Stream),
-  start_aleph,
+  % The default stream is the swipl terminal.
+  unless(
+    current_stream(_SomeStream),
+    asserta(current_stream(user_output))
+  ),
+  reset,
   read_all(Base),
   (
     Mode == det
@@ -224,7 +216,7 @@ ilp_mode(nondet).
 % CONSTRUCT BOTTOM
 
 %! get_atoms(+Predicates, +Depth, +MaxDepth, +Last, -LastLit)
-% Layered generation of ground atoms to add to bottom clause.
+% Layered generation of ground atoms to add to the bottom clause.
 %
 % @arg Predicates A list of Predicate/Arity entries obtained from the
 %        determinations.
@@ -9504,18 +9496,6 @@ bottom_key(N,T,Key,Flag):-
     Key = false,
     Flag = false).
 
-set(Variable,Value):-
-  check_setting(Variable,Value),
-  (Value = 1e10 -> V is 1e10;
-    (Value = +1e10 -> V is 1e10;
-      (Value = -1e10 -> V is -1e10; V = Value)
-    )
-  ),
-  retractall('$aleph_global'(Variable,set(Variable,_))),
-  assertz('$aleph_global'(Variable,set(Variable,V))),
-  broadcast(set(Variable,V)),
-  special_consideration(Variable,Value).
-
 setting(Variable,Value):-
   nonvar(Variable),
   '$aleph_global'(Variable,set(Variable,Value1)), !,
@@ -9529,9 +9509,6 @@ noset(Variable):-
   rm_special_consideration(Variable,Value),
   set_default(Variable).
 noset(_).
-
-man(M):-
-  aleph_manual(M).
 
 determinations(Pred1,Pred2):-
         '$aleph_global'(determination,determination(Pred1,Pred2)).
@@ -10226,21 +10203,6 @@ set_default(A):-
   fail.
 set_default(_).
 
-default_setting(A,B):-
-  set_def(A,_,_,_,B,_),
-  B \= ''.
-
-% special case for threads as only SWI supports it
-check_setting(threads,B):-
-  set_def(threads,_,_,Dom,_,_),
-  check_legal(Dom,B),
-  !.
-check_setting(A,B):-
-  set_def(A,_,_,Dom,_,_), !,
-  (check_legal(Dom,B) -> true;
-    err_message(set(A,B))).
-check_setting(_,_).
-
 check_legal(int(L)-int(U),X):-
   !,
   number(L,IL),
@@ -10270,358 +10232,6 @@ number(-1e10,MInf):-
   MInf is -1e10, !.
 number(X,Y):-
   Y is X, !.
-
-setting_definition(A,B,C,D,E,F1):-
-  set_def(A,B,C,D,E,F),
-  (F = noshow -> F1 = dontshow; F = F1).
-
-% set_def(Parameter,Class,TextDescr,Type,Default,Flag)
-set_def(abduce, search-search_strategy,
-  'Abduce Atoms and Generalise',
-  [true, false], false,
-  show).
-set_def(best, search-search_space,
-  'Label to beat',
-  prolog_term,'',
-  show).
-set_def(cache_clauselength, miscellaneous,
-  'Maximum Length of Cached Clauses',
-  int(1)-int(+1e10), 3,
-  show).
-set_def(caching, miscellaneous,
-  'Cache Clauses in Search',
-  [true, false], false,
-  show).
-set_def(check_redundant, miscellaneous,
-  'Check for Redundant Literals',
-  [true, false], false,
-  show).
-set_def(check_good, miscellaneous,
-  'Check good clauses for duplicates',
-  [true, false], false,
-  show).
-set_def(check_useless, saturation,
-  'Remove I/O unconnected Literals',
-  [true, false], false,
-  show).
-set_def(classes, tree,
-  'Class labels',
-  prolog_term,'',
-  show).
-set_def(clauselength_distribution, search-search_strategy,
-  'Probablity Distribution over Clauses',
-  prolog_term,'',
-  show).
-set_def(clauselength, search-search_space,
-  'Maximum Clause Length',
-  int(1)-int(+1e10), 4,
-  show).
-set_def(clauses, search-search_space,
-  'Maximum Clauses per Theory',
-  int(1)-int(+1e10),'',
-  show).
-set_def(condition, evaluation,
-  'Condition SLP',
-  [true, false], false,
-  show).
-set_def(confidence, tree,
-  'Confidence for Rule Pruning',
-  float(0.0)-float(1.0), 0.95,
-  show).
-set_def(construct_bottom, saturation,
-  'Build a bottom clause',
-  [saturation, reduction, false], saturation,
-  show).
-set_def(depth, miscellaneous,
-  'Theorem Proving Depth',
-  int(1)-int(+1e10), 10,
-  show).
-set_def(evalfn, evaluation,
-  'Evaluation Function',
-  [coverage, compression, posonly, pbayes, accuracy, laplace,
-  auto_m, mestimate, mse, entropy, gini, sd, wracc, user], coverage,
-  show).
-set_def(explore, search-search_space,
-  'Exhaustive Search of all alternatives',
-  [true, false], false,
-  show).
-set_def(good, miscellaneous,
-  'Store good clauses',
-  [true, false], false,
-  show).
-set_def(goodfile, miscellaneous,
-  'File of good clauses',
-  write(filename),'',
-  show).
-set_def(gsamplesize, evaluation,
-  'Size of random sample',
-  int(1)-int(+1e10), 100,
-  show).
-set_def(i, saturation,
-  'bound layers of new variables',
-  int(1)-int(+1e10), 2,
-  show).
-set_def(interactive, search-search_strategy,
-  'Interactive theory construction',
-  [true, false], false,
-  show).
-set_def(language, search-search_space,
-  'Maximum occurrence of any predicate symbol in a clause',
-  int(1)-int(+1e10), +1e10,
-  show).
-set_def(lazy_negs, evaluation,
-  'Lazy theorem proving on negative examples',
-  [true, false], false,
-  show).
-set_def(lazy_on_contradiction, evaluation,
-  'Lazy theorem proving on contradictions',
-  [true, false], false,
-  show).
-set_def(lazy_on_cost, evaluation,
-  'Lazy theorem proving on cost',
-  [true, false], false,
-  show).
-set_def(lookahead, search-search_space,
-  'Lookahead for automatic refinement operator',
-  int(1)-int(+1e10), 1,
-  show).
-set_def(m, evaluation,
-  'M-estimate',
-  float(0.0)-float(+1e10),'',
-  show).
-set_def(max_abducibles, search-search_space,
-  'Maximum number of atoms in an abductive explanation',
-  int(1)-int(+1e10), 2,
-  show).
-set_def(max_features, miscellaneous,
-  'Maximum number of features to be constructed',
-  int(1)-int(+1e10), +1e10,
-  show).
-set_def(minacc, evaluation,
-  'Minimum clause accuracy',
-  float(0.0)-float(1.0), 0.0,
-  show).
-set_def(mingain, tree,
-  'Minimum expected gain',
-  float(0.000001)-float(+1e10), 0.05,
-  show).
-set_def(minpos, evaluation,
-  'Minimum pos covered by a clause',
-  int(0)-int(+1e10), 1,
-  show).
-set_def(minposfrac, evaluation,
-  'Minimum proportion of positives covered by a clause',
-  float(0.0)-float(1.0), 0,
-  show).
-set_def(minscore, evaluation,
-  'Minimum utility of an acceptable clause',
-  float(-1e10)-float(+1e10), -1e10,
-  show).
-set_def(moves, search-search_strategy,
-  'Number of moves in a randomised local search',
-  int(0)-int(+1e10), 5,
-  show).
-set_def(newvars, search-search_space,
-  'Existential variables in a clause',
-  int(0)-int(+1e10), +1e10,
-  show).
-set_def(nodes, search-search_space,
-  'Nodes to be explored in the search',
-  int(1)-int(+1e10), 5000,
-  show).
-set_def(noise, evaluation,
-  'Maximum negatives covered',
-  int(0)-int(+1e10), 0,
-  show).
-set_def(nreduce_bottom, saturation,
-  'Negative examples based reduction of bottom clause',
-  [true, false], false,
-  show).
-set_def(openlist, search-search_space,
-  'Beam width in a greedy search',
-  int(1)-int(+1e10), +1e10,
-  show).
-set_def(optimise_clauses, miscellaneous,
-  'Perform query Optimisation',
-  [true, false], false,
-  show).
-set_def(permute_bottom, saturation,
-  'Randomly permute order of negative literals in the bottom clause',
-  [true, false], false,
-  show).
-set_def(portray_examples, miscellaneous,
-  'Pretty print examples',
-  [true, false], false,
-  show).
-set_def(portray_hypothesis, miscellaneous,
-  'Pretty print hypotheses',
-  [true, false], false,
-  show).
-set_def(portray_literals, miscellaneous,
-  'Pretty print literals',
-  [true, false], false,
-  show).
-set_def(portray_search, miscellaneous,
-  'Pretty print search',
-  [true, false], false,
-  show).
-set_def(print, miscellaneous,
-  'Literals printed per line',
-  int(1)-int(+1e10), 4,
-  show).
-set_def(prior, miscellaneous,
-  'Prior class distribution',
-  prolog_term,'',
-  show-ro).
-set_def(proof_strategy, miscellaneous,
-  'Current proof strategy',
-  [restricted_sld, sld, user], restricted_sld,
-  show).
-set_def(prooftime, miscellaneous,
-  'Theorem proving time',
-  float(0.0)-float(+1e10), +1e10,
-  show).
-set_def(prune_tree, tree,
-  'Tree pruning',
-  [true, false], false,
-  show).
-set_def(recordfile, miscellaneous,
-  'Log filename',
-  write(filename),'',
-  show).
-set_def(record, miscellaneous,
-  'Log to file',
-  [true, false], false,
-  show).
-set_def(refineop, search-search_strategy,
-  'Current refinement operator',
-  [user, auto, scs, false],'',
-  show-ro).
-set_def(refine, search-search_strategy,
-  'Nature of customised refinement operator',
-  [user, auto, scs, false], false,
-  show).
-set_def(resample, search-search_strategy,
-  'Number of times to resample an example',
-  int(1)-int(+1e10), 1,
-  show).
-set_def(rls_type, search-search_strategy,
-  'Type of randomised local search',
-  [gsat, wsat, rrr, anneal], gsat,
-  show).
-set_def(rulefile, miscellaneous,
-  'Rule file',
-  write(filename),'',
-  show).
-set_def(samplesize, search-search_strategy,
-  'Size of sample',
-  int(0)-int(+1e10), 0,
-  show).
-set_def(scs_percentile, search-search_strategy,
-  'Percentile of good clauses for SCS search',
-  float(0.0)-float(100.0),'',
-  show).
-set_def(scs_prob, search-search_strategy,
-  'Probability of getting a good clause in SCS search',
-  float(0.0)-float(1.0),'',
-  show).
-set_def(scs_sample, search-search_strategy,
-  'Sample size in SCS search',
-  int(1)-int(+1e10), '',
-  show).
-set_def(search, search-search_strategy,
-  'Search Strategy',
-  [bf, df, heuristic, ibs, ils, rls, scs, id, ic, ar, false], bf,
-  show).
-set_def(searchstrat, search-search_strategy,
-  'Current Search Strategy',
-  [bf, df, heuristic, ibs, ils, rls, scs, id, ic, ar], bf,
-  show-ro).
-set_def(searchtime, search-search_strategy,
-  'Search time in seconds',
-  float(0.0)-float(+1e10), +1e10,
-  show).
-set_def(skolemvars, miscellaneous,
-  'Counter for non-ground examples',
-  int(1)-int(+1e10), 10000,
-  show).
-set_def(splitvars, saturation,
-  'Split variable co-refencing',
-  [true, false], false,
-  show).
-set_def(stage, miscellaneous,
-  'Aleph processing mode',
-  [saturation, reduction, command], command,
-  show-ro).
-set_def(store_bottom, saturation,
-  'Store bottom',
-  [true, false], false,
-  show).
-set_def(subsample, search-search_strategy,
-  'Subsample for evaluating a clause',
-  [true,false], false,
-  show).
-set_def(subsamplesize, search-search_strategy,
-  'Size of subsample for evaluating a clause',
-  int(1)-int(+1e10), +1e10,
-  show).
-set_def(temperature, search-search_strategy,
-  'Temperature for randomised search annealing',
-  float(0.0)-float(+1e10), '',
-  show).
-set_def(test_neg, miscellaneous,
-  'Negative examples for testing theory',
-  read(filename),'',
-  show).
-set_def(test_pos, miscellaneous,
-  'Positive examples for testing theory',
-  read(filename),'',
-  show).
-set_def(threads, miscellaneous,
-  'Number of threads',
-  int(1)-int(+1e10), 1,
-        show).
-set_def(train_neg, miscellaneous,
-  'Negative examples for training',
-  read(filename),'',
-  show).
-set_def(train_pos, miscellaneous,
-  'Positive examples for training',
-  read(filename),'',
-  show).
-set_def(tree_type, tree,
-  'Type of tree to construct',
-  [classification, class_probability, regression, model], '',
-  show).
-set_def(tries, search-search_strategy,
-  'Number of restarts for a randomised search',
-  int(1)-int(+1e10), 10,
-  show).
-set_def(typeoverlap, miscellaneous,
-  'Type overlap for induce_modes',
-  float(0.0)-float(1.0), 0.95,
-  show).
-set_def(uniform_sample, search-search_strategy,
-  'Distribution to draw clauses from randomly',
-  [true, false], false,
-  show).
-set_def(updateback, miscellaneous,
-  'Update background knowledge with clauses found on search',
-  [true, false], true,
-  noshow).
-set_def(verbosity, miscellaneous,
-  'Level of verbosity',
-  int(0)-int(+1e10), 1,
-  show).
-set_def(version, miscellaneous,
-  'Aleph version',
-  int(0)-int(+1e10), 5,
-  show-ro).
-set_def(walk, search-search_strategy,
-  'Random walk probability for Walksat',
-  float(0.0)-float(1.0), '',
-  show).
-
 
 % the following needed for compatibility with P-Progol
 special_consideration(search,ida):-
@@ -10848,23 +10458,4 @@ write_profile_data(Stream, [D-P|SLP]):-
 set_current_stream(Stream):-
   retractall(current_stream(_Stream)),
   asserta(current_stream(Stream)).
-
-make_sure_there_is_a_current_stream:-
-  current_stream(_Stream),
-  !.
-make_sure_there_is_a_current_stream:-
-  % The default stream is the swipl terminal.
-  asserta(current_stream(user_output)).
-
-start_aleph:-
-  make_sure_there_is_a_current_stream,
-  current_stream(Stream),
-  aleph_version(Version),
-  aleph_version_date(Date),
-  aleph_manual(Manual),
-  format(Stream, 'Aleph~w (~w) ~w\n', [Version, Date, Manual]),
-  set(version, Version),
-  reset.
-
-:- load.
 
