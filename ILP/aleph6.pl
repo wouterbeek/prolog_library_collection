@@ -265,10 +265,11 @@ please contact Ashwin Srinivasan first.
 
 :- setting(moves, nonneg, 5, 'Number of moves in a randomised local search').
 
-% @tbd The defualt value was arbitrarily chosen.
-:- setting(refineop, oneof([auto,false,scs,user]), false, 'Current refinement operator').
-
+% @tbd Are =refine= and =refineop= the same setting?
 :- setting(refine, oneof([auto,false,scs,user]), false, 'Nature of customised refinement operator').
+
+% @tbd The default value was arbitrarily chosen.
+:- setting(refineop, oneof([auto,false,rls,scs,user]), false, 'Current refinement operator').
 
 :- setting(resample, positive_integer, 1, 'Number of times to resample an example').
 
@@ -316,6 +317,10 @@ please contact Ashwin Srinivasan first.
 
 % @tbd The default value has been chosen arbitrarily.
 :- setting(tree_type, oneof([class_probability,classification,model,regression]), classification, 'Type of tree to construct').
+
+% UNKNOWN %
+
+:- setting(maxcover, boolean, false, 'Unknown').
 
 
 
