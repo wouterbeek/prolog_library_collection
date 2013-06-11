@@ -181,12 +181,13 @@ dcg_without(End, [H|T]) -->
 
 % DEBUG %
 
-dcg_debug(L, []):-
+dcg_debug(Codes, []):-
+  atom_codes(Atom, Codes),
   format(
     atom(Text),
     'Wouter, I have the feeling that something is wrong here.\n\c
      Unable to phrase <~w>\n',
-    [L]
+    [Atom]
   ),
   thread_create(cowspeak(Text), _ID, []),
   gtrace. %DEB
