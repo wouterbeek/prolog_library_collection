@@ -490,7 +490,7 @@ flatten(Depth,MaxDepth,Last,Last1):-
   retractall('$aleph_local'(flatten_num,_)),
   asserta('$aleph_local'(flatten_num,Last)),
   '$aleph_sat_atom'(_,_), !,
-  (setting(permute_bottom,Permute) -> true; Permute = false),
+  (aleph5_setting(permute_bottom,Permute) -> true; Permute = false),
   flatten_atoms(Permute,Depth,MaxDepth,Last1).
 flatten(_,_,_,Last):-
   retract('$aleph_local'(flatten_num,Last)), !.
@@ -673,7 +673,7 @@ add_new_lit(Depth,FAtom,Mode,OldLast,Negated,NewLast):-
 % modify the literal database: check if performing lazy evaluation
 % of bottom clause, and update input and output terms in literal
 add_lit(Last,Negated,FAtom,I,O,_,_,Last):-
-  setting(construct_bottom,CBot),
+  aleph5_setting(construct_bottom,CBot),
   (CBot = false ; CBot = reduction),
   (Negated = true -> Lit = not(FAtom); Lit = FAtom),
   '$aleph_sat_litinfo'(_,0,Lit,I,O,_), !.
@@ -855,13 +855,13 @@ get_predecessors([Var|Vars],PSoFar,P):-
 % process continues until there is no change in the length of a clause
 % within an iteration. The algorithm is O(n^2).
 rm_nreduce(Last,N):-
-  setting(nreduce_bottom,true), !,
+  aleph5_setting(nreduce_bottom,true), !,
   get_litnums(1,Last,BottomLits),
         '$aleph_global'(atoms,atoms(neg,Neg)),
-  setting(depth,Depth),
-  setting(prooftime,Time),
-  setting(proof_strategy,Proof),
-  setting(noise,Noise),
+  aleph5_setting(depth,Depth),
+  aleph5_setting(prooftime,Time),
+  aleph5_setting(proof_strategy,Proof),
+  aleph5_setting(noise,Noise),
   neg_reduce(BottomLits,Neg,Last,Depth/Time/Proof,Noise),
   get_marked(1,Last,Lits),
   length(Lits,N),
@@ -996,7 +996,7 @@ rm_commutative(_,0).
 % or produce outputs that are not used by any literal
 % controlled by setting flag check_useless
 rm_uselesslits(_,0):-
-  setting(check_useless,false), !.
+  aleph5_setting(check_useless,false), !.
 rm_uselesslits(Last,N):-
   '$aleph_sat'(hovars,OVars),
   OVars \= [], !,
@@ -1012,7 +1012,7 @@ rm_uselesslits(_,0).
 % call user-defined predicate redundant/2 to remove redundant
 % literals from bottom clause. Redundancy checking only done on request
 rm_redundant(_,0):-
-  setting(check_redundant,false), !.
+  aleph5_setting(check_redundant,false), !.
 rm_redundant(Last,N):-
   mark_redundant_lits(1,Last),
   get_marked(1,Last,Lits),
@@ -1178,7 +1178,7 @@ legal_term(upper,Depth,Type,Term):-
 % VARIABLE SPLITTING
 
 split_vars(Depth,FAtom,I,O,C,SplitAtom,IVars,OVars,Equivs):-
-  setting(splitvars,true), !,
+  aleph5_setting(splitvars,true), !,
   get_args(FAtom,I,[],IVarList),
   get_args(FAtom,O,[],OVarList),
   get_var_equivs(Depth,IVarList,OVarList,IVars,OVars0,Equivs0),
@@ -1459,56 +1459,56 @@ next_node(NodeRef):-
 
 get_search_settings(S):-
   functor(S,set,47),
-  setting(nodes,MaxNodes), arg(1,S,MaxNodes),
-  setting(explore,Explore), arg(2,S,Explore),
-  setting(refineop,RefineOp), arg(3,S,RefineOp),
-  setting(searchstrat,SearchStrat), setting(evalfn,EvalFn),
+  aleph5_setting(nodes,MaxNodes), arg(1,S,MaxNodes),
+  aleph5_setting(explore,Explore), arg(2,S,Explore),
+  aleph5_setting(refineop,RefineOp), arg(3,S,RefineOp),
+  aleph5_setting(searchstrat,SearchStrat), aleph5_setting(evalfn,EvalFn),
   arg(4,S,SearchStrat/EvalFn),
-  (setting(greedy,Greedy)-> arg(5,S,Greedy); arg(5,S,false)),
-  setting(verbosity,Verbose), arg(6,S,Verbose),
-  setting(clauselength,CLength), arg(7,S,CLength),
-  setting(caching,Cache), arg(8,S,Cache),
-  (setting(prune_defs,Prune)-> arg(9,S,Prune); arg(9,S,false)),
-  setting(lazy_on_cost,LCost), arg(10,S,LCost),
-  setting(lazy_on_contradiction,LContra), arg(11,S,LContra),
-  setting(lazy_negs,LNegs), arg(12,S,LNegs),
-  setting(minpos,MinPos), arg(13,S,MinPos),
-  setting(depth,Depth), arg(14,S,Depth),
-  setting(cache_clauselength,CCLim), arg(15,S,CCLim),
+  (aleph5_setting(greedy,Greedy)-> arg(5,S,Greedy); arg(5,S,false)),
+  aleph5_setting(verbosity,Verbose), arg(6,S,Verbose),
+  aleph5_setting(clauselength,CLength), arg(7,S,CLength),
+  aleph5_setting(caching,Cache), arg(8,S,Cache),
+  (aleph5_setting(prune_defs,Prune)-> arg(9,S,Prune); arg(9,S,false)),
+  aleph5_setting(lazy_on_cost,LCost), arg(10,S,LCost),
+  aleph5_setting(lazy_on_contradiction,LContra), arg(11,S,LContra),
+  aleph5_setting(lazy_negs,LNegs), arg(12,S,LNegs),
+  aleph5_setting(minpos,MinPos), arg(13,S,MinPos),
+  aleph5_setting(depth,Depth), arg(14,S,Depth),
+  aleph5_setting(cache_clauselength,CCLim), arg(15,S,CCLim),
   ('$aleph_global'(size,size(pos,PSize))-> arg(16,S,PSize); arg(16,S,0)),
-  setting(noise,Noise), arg(17,S,Noise),
-  setting(minacc,MinAcc), arg(18,S,MinAcc),
-  setting(minscore,MinScore), arg(19,S,MinScore),
+  aleph5_setting(noise,Noise), arg(17,S,Noise),
+  aleph5_setting(minacc,MinAcc), arg(18,S,MinAcc),
+  aleph5_setting(minscore,MinScore), arg(19,S,MinScore),
   ('$aleph_global'(size,size(rand,RSize))-> arg(20,S,RSize); arg(20,S,0)),
-  setting(mingain,MinGain), arg(21,S,MinGain),
-  setting(search,Search), arg(22,S,Search),
+  aleph5_setting(mingain,MinGain), arg(21,S,MinGain),
+  aleph5_setting(search,Search), arg(22,S,Search),
   findall(PN/PA,'$aleph_global'(lazy_evaluate,lazy_evaluate(PN/PA)),LazyPreds),
   arg(23,S,LazyPreds),
   ('$aleph_global'(size,size(neg,NSize))-> arg(24,S,NSize); arg(24,S,0)),
-  setting(openlist,OSize), arg(25,S,OSize),
-  setting(check_redundant,RCheck), arg(26,S,RCheck),
+  aleph5_setting(openlist,OSize), arg(25,S,OSize),
+  aleph5_setting(check_redundant,RCheck), arg(26,S,RCheck),
   ('$aleph_sat'(eq,Eq) -> arg(27,S,Eq); arg(27,S,false)),
   ('$aleph_sat'(hovars,HOVars) -> arg(28,S,HOVars); arg(28,S,HOVars)),
-  setting(prooftime,PTime), arg(29,S,PTime),
-  setting(construct_bottom,CBott), arg(30,S,CBott),
+  aleph5_setting(prooftime,PTime), arg(29,S,PTime),
+  aleph5_setting(construct_bottom,CBott), arg(30,S,CBott),
   (get_ovars1(false,1,HIVars) ->  arg(31,S,HIVars); arg(31,S,[])),
-  setting(language,Lang), arg(32,S,Lang),
-  setting(splitvars,Split), arg(33,S,Split),
-  setting(proof_strategy,Proof), arg(34,S,Proof),
-  setting(portray_search,VSearch), arg(35,S,VSearch),
-  setting(searchtime,Time), arg(36,S,Time),
-  setting(optimise_clauses,Optim), arg(37,S,Optim),
-  setting(newvars,NewV), arg(38,S,NewV),
-  (setting(rls_type,RlsType) -> arg(39,S,RlsType);arg(39,S,false)),
-  setting(minposfrac,MinPosFrac), arg(40,S,MinPosFrac),
-  (setting(recursion,Recursion) -> true; Recursion = false),
+  aleph5_setting(language,Lang), arg(32,S,Lang),
+  aleph5_setting(splitvars,Split), arg(33,S,Split),
+  aleph5_setting(proof_strategy,Proof), arg(34,S,Proof),
+  aleph5_setting(portray_search,VSearch), arg(35,S,VSearch),
+  aleph5_setting(searchtime,Time), arg(36,S,Time),
+  aleph5_setting(optimise_clauses,Optim), arg(37,S,Optim),
+  aleph5_setting(newvars,NewV), arg(38,S,NewV),
+  (aleph5_setting(rls_type,RlsType) -> arg(39,S,RlsType);arg(39,S,false)),
+  aleph5_setting(minposfrac,MinPosFrac), arg(40,S,MinPosFrac),
+  (aleph5_setting(recursion,Recursion) -> true; Recursion = false),
   arg(41,S,swi),
-  setting(interactive,Interactive), arg(42,S,Interactive),
-  setting(lookahead,LookAhead), arg(43,S,LookAhead),
-  (setting(construct_features,Features)-> arg(44,S,Features); arg(44,S,false)),
-  setting(max_features,FMax), arg(45,S,FMax),
-  setting(subsample,SS), arg(46,S,SS),
-  setting(subsamplesize,SSize), arg(47,S,SSize).
+  aleph5_setting(interactive,Interactive), arg(42,S,Interactive),
+  aleph5_setting(lookahead,LookAhead), arg(43,S,LookAhead),
+  (aleph5_setting(construct_features,Features)-> arg(44,S,Features); arg(44,S,false)),
+  aleph5_setting(max_features,FMax), arg(45,S,FMax),
+  aleph5_setting(subsample,SS), arg(46,S,SS),
+  aleph5_setting(subsamplesize,SSize), arg(47,S,SSize).
 
 % stop search from proceeding if certain
 % conditions are reached. These are:
@@ -2067,17 +2067,17 @@ clause_ok(_,Label):-
   extract_pos(Label,P),
   extract_neg(Label,N),
   Acc is P/(P+N),
-  setting(noise,Noise),
-  setting(minacc,MinAcc),
-  setting(minpos,MinPos),
+  aleph5_setting(noise,Noise),
+  aleph5_setting(minacc,MinAcc),
+  aleph5_setting(minpos,MinPos),
   (N > Noise; Acc < MinAcc; P < MinPos), !, fail.
 clause_ok(Clause,_):-
   prune(Clause), !, fail.
 clause_ok(Clause,_):-
-  setting(language,Lang),
+  aleph5_setting(language,Lang),
   \+ lang_ok(Clause,Lang), !, fail.
 clause_ok(Clause,_):-
-  setting(newvars,NewVars),
+  aleph5_setting(newvars,NewVars),
   \+ newvars_ok(Clause,NewVars), !, fail.
 clause_ok(_,_).
 
@@ -2291,7 +2291,7 @@ match_mode(Loc,CLit):-
 match_mode(_,_).
 
 flatten_matched_atoms(Loc):-
-        setting(i,IVal),
+        aleph5_setting(i,IVal),
         (retract('$aleph_sat'(botsize,BSize))-> true;  BSize = 0),
         (retract('$aleph_sat'(lastlit,Last))-> true ; Last = 0),
         (Loc = head ->
@@ -2654,14 +2654,14 @@ update_best(S,Clause,_,_,Label/Node,Label1/Node1,Label/Node):-
         record_clause(good,Label1,Clause,Node1).
 
 update_good(Label,Clause):-
-  setting(good,true), !,
+  aleph5_setting(good,true), !,
   Label = [_,_,L|_],
-  setting(check_good,Flag),
+  aleph5_setting(check_good,Flag),
   update_good(Flag,L,Label,Clause).
 update_good(_,_).
 
 update_good(_,_,_,_):-
-  setting(goodfile,_), !.
+  aleph5_setting(goodfile,_), !.
 update_good(true,L,Label,Clause):-
   '$aleph_good'(L,Label,Clause), !.
 update_good(_,L,Label,Clause):-
@@ -2771,11 +2771,11 @@ get_nextbest(S,NodeRef):-
 % within randomised local search
 select_nextbest(rls,NodeRef):-
   retractall('$aleph_search'(nextnode,_)),
-        setting(rls_type,Type),
+        aleph5_setting(rls_type,Type),
         (retract('$aleph_search'(rls_parentstats,stats(PStats,_,_))) -> true; true),
         (rls_nextbest(Type,PStats,NodeRef,Label) ->
                 asserta('$aleph_search'(rls_parentstats,stats(Label,[],[]))),
-                setting(rls_type,RlsType),
+                aleph5_setting(rls_type,RlsType),
                 (RlsType = rrr ->
                       true;
                       assertz('$aleph_search'(nextnode,NodeRef)));
@@ -2808,7 +2808,7 @@ rls_nextbest(gsat,_,NodeRef,Label):-
   nth0(N,Choices,NodeRef-Label,_),
   retractall('$aleph_search_gain'(_,_,_,_)).
 rls_nextbest(wsat,PStats,NodeRef,Label):-
-  setting(walk,WProb),
+  aleph5_setting(walk,WProb),
   aleph_random(P),
   P >= WProb, !,
   rls_nextbest(gsat,PStats,NodeRef,Label).
@@ -2823,7 +2823,7 @@ rls_nextbest(wsat,PStats,NodeRef,Label):-
         nth0(N,Choices,NodeRef-Label,_),
   retractall('$aleph_search_gain'(_,_,_,_)).
 rls_nextbest(anneal,[P,N|_],NodeRef,Label):-
-  setting(temperature,Temp),
+  aleph5_setting(temperature,Temp),
         retract('$aleph_search'(openlist,_)),
   asserta('$aleph_search'(openlist,[])),
   findall(N-L,'$aleph_search_gain'(_,_,N,L),AllNodes),
@@ -3241,12 +3241,16 @@ update_cache(_,_,_).
 add_prune_cache(false):-
   !.
 add_prune_cache(Entry):-
-  ('$aleph_global'(caching,set(caching,true))->
+  (
+    setting(caching, true)
+  ->
     functor(Entry,_,Arity),
     A1 is Arity - 2,
     arg(A1,Entry,Clause),
-    asserta('$aleph_search_prunecache'(Clause));
-    true).
+    asserta('$aleph_search_prunecache'(Clause))
+  ;
+    true
+  ).
 
 get_cache_entry(Max,Clause,Entry):-
         skolemize(Clause,Head,Body,0,_),
@@ -3290,7 +3294,7 @@ aleph_hash_term([L0],Entry):-
 % TREES
 
 construct_tree(Type):-
-  setting(searchtime,Time),
+  aleph5_setting(searchtime,Time),
   Inf is 1e10,
         Time =\= Inf,
         SearchTime is integer(Time),
@@ -3313,7 +3317,7 @@ find_tree(Type):-
   get_start_distribution(Type,Distribution),
   asserta('$aleph_search'(tree_startdistribution,d(Type,Distribution))),
   '$aleph_global'(atoms_left,atoms_left(pos,Pos)),
-  setting(dependent,Argno),
+  aleph5_setting(dependent,Argno),
   p_message('constructing tree'),
   stopwatch(StartClock),
   get_search_settings(S),
@@ -3331,17 +3335,17 @@ find_tree(Type):-
 
 get_start_distribution(regression,0-[0,0]):- !.
 get_start_distribution(model,0-[0,0]):-
-  setting(evalfn,mse), !.
+  aleph5_setting(evalfn,mse), !.
 get_start_distribution(model,0-Distribution):-
-  setting(evalfn,accuracy), !,
-  (setting(classes,Classes) -> true;
+  aleph5_setting(evalfn,accuracy), !,
+  (aleph5_setting(classes,Classes) -> true;
     !,
     p_message('missing setting for classes'),
     fail),
   initialise_distribution(Classes,Distribution), !.
 get_start_distribution(Tree,0-Distribution):-
   (Tree = classification; Tree = class_probability),
-  (setting(classes,Classes) -> true;
+  (aleph5_setting(classes,Classes) -> true;
     !,
     p_message('missing setting for classes'),
     fail),
@@ -3369,7 +3373,7 @@ find_tree1([_|LeavesLeft],S,Type,Predict):-
   find_tree1(LeavesLeft,S,Type,Predict).
 
 prune_rules(S,Tree,Predict):-
-  setting(prune_tree,true),
+  aleph5_setting(prune_tree,true),
   prune_rules1(Tree,S,Predict), !.
 prune_rules(_,_,_).
 
@@ -3411,7 +3415,7 @@ prune_rule(Tree,S,PredictArg,[Clause,_,N],Examples,[PrunedClause,E1,NCov],NewEx)
 
 % estimate error using binomial distribution as done in C4.5
 estimate_error(classification,Incorrect,Total,Error):-
-  setting(confidence,Conf),
+  aleph5_setting(confidence,Conf),
   estimate_error(1.0/0.0,0.0/1.0,Conf,Total,Incorrect,Error).
 
 % estimate upper bound on sample std deviation by
@@ -3420,7 +3424,7 @@ estimate_error(classification,Incorrect,Total,Error):-
 % variance is (n-1)s^2/X^2(alpha/2) =< var =< (n-1)s^2/X^2(1-alpha/2)
 estimate_error(regression,Sd,1,Sd):- !.
 estimate_error(regression,Sd,N,Upper):-
-  (setting(confidence,Conf) -> true; Conf = 0.95),
+  (aleph5_setting(confidence,Conf) -> true; Conf = 0.95),
   Alpha is 1.0 - Conf,
   DF is N - 1,
   Prob is 1 - Alpha/2,
@@ -3428,7 +3432,7 @@ estimate_error(regression,Sd,N,Upper):-
   Upper is Sd*sqrt((N-1)/ChiSq).
 
 bound_error(classification,Error,Total,Lower,Upper):-
-  (setting(confidence,Alpha) -> true; Alpha = 0.95),
+  (aleph5_setting(confidence,Alpha) -> true; Alpha = 0.95),
   approx_z(Alpha,Z),
   Lower is Error - Z*sqrt(Error*(1-Error)/Total),
   Upper is Error + Z*sqrt(Error*(1-Error)/Total).
@@ -3491,7 +3495,7 @@ add_tree(_,_,_).
 add_prediction(Tree,Clause,PredictArg,Examples,Clause1):-
   split_clause(Clause,Head,_),
   (Tree = model ->
-    setting(evalfn,Evalfn),
+    aleph5_setting(evalfn,Evalfn),
     add_model(Evalfn,Clause,PredictArg,Examples,Clause1,_,_);
     node_stats(Tree,Examples,PredictArg,Distribution),
     leaf_prediction(Tree,Distribution,Prediction,Error),
@@ -3841,7 +3845,7 @@ gen_leaf(0):-
 % examine list of clauses to be specialised
 % generate an exception theory for each clause that covers negative examples
 gcws:-
-  setting(evalfn,EvalFn),
+  aleph5_setting(evalfn,EvalFn),
   repeat,
   retract('$aleph_search'(sphyp,hypothesis([P,N,L|T],Clause,PCover,NCover))),
   (PCover = _/_ -> label_create(pos,Clause,Label1),
@@ -4082,7 +4086,7 @@ sat(Example):-
   sat(uspec,Num), !.
 
 sat(Type,Num):-
-        setting(construct_bottom,false), !,
+        aleph5_setting(construct_bottom,false), !,
         sat_prelims,
   example(Num,Type,Example),
   broadcast(start(sat(Num))),
@@ -4092,7 +4096,7 @@ sat(Type,Num):-
   asserta('$aleph_sat'(hovars,[])),
   broadcast(end(sat(Num, 0, 0.0))).
 sat(Type,Num):-
-  setting(construct_bottom,reduction), !,
+  aleph5_setting(construct_bottom,reduction), !,
   sat_prelims,
   example(Num,Type,Example),
   broadcast(start(sat(Num))),
@@ -4114,7 +4118,7 @@ sat(Type,Num):-
   integrate_args(unknown,Example,Output),
   stopwatch(StartClock),
   assertz('$aleph_sat_atom'(Example,mode(Mode,Output,Input,Constants))),
-  '$aleph_global'(i,set(i,Ival)),
+  setting(i, Ival),
   flatten(0,Ival,0,Last1),
   '$aleph_sat_litinfo'(1,_,Atom,_,_,_),
   get_vars(Atom,Output,HeadOVars),
@@ -4150,7 +4154,7 @@ sat(_,_):-
   noset(stage).
 
 reduce:-
-  setting(search,Search),
+  aleph5_setting(search,Search),
   catch(reduce(Search),abort,reinstate_values), !.
 
 % no search: add bottom clause as hypothesis
@@ -4169,7 +4173,7 @@ reduce(ibs):-
   set(explore,true),
   asserta('$aleph_search'(ibs_rval,1.0)),
   asserta('$aleph_search'(ibs_nodes,0)),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   get_start_label(Evalfn,Label),
   ('$aleph_sat'(example,example(Num,Type)) ->
     example(Num,Type,Example),
@@ -4179,7 +4183,7 @@ reduce(ibs):-
         [],[])))),
   stopwatch(Start),
   repeat,
-  setting(openlist,OldOpen),
+  aleph5_setting(openlist,OldOpen),
   p1_message('ibs beam width'), p_message(OldOpen),
   find_clause(bf),
   '$aleph_search'(current,current(_,Nodes0,[PC,NC|_]/_)),
@@ -4218,11 +4222,11 @@ reduce(id):-
   retractall('$aleph_search'(id_nodes,_)),
   retractall('$aleph_search'(id_selected,_)),
   store_values([caching,clauselength]),
-  setting(clauselength,MaxCLen),
+  aleph5_setting(clauselength,MaxCLen),
   set(clauselength,1),
   set(caching,true),
   asserta('$aleph_search'(id_nodes,0)),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   get_start_label(Evalfn,Label),
   ('$aleph_sat'(example,example(Num,Type)) ->
     example(Num,Type,Example),
@@ -4232,7 +4236,7 @@ reduce(id):-
         [],[])))),
   stopwatch(Start),
   repeat,
-  setting(clauselength,OldCLen),
+  aleph5_setting(clauselength,OldCLen),
   p1_message('id clauselength setting'), p_message(OldCLen),
   find_clause(df),
   '$aleph_search'(current,current(_,Nodes0,_)),
@@ -4272,7 +4276,7 @@ reduce(ils):-
   set(language,1),
   set(caching,true),
   asserta('$aleph_search'(ils_nodes,0)),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   get_start_label(Evalfn,Label),
   ('$aleph_sat'(example,example(Num,Type)) ->
     example(Num,Type,Example),
@@ -4282,7 +4286,7 @@ reduce(ils):-
         [],[])))),
   stopwatch(Start),
   repeat,
-  setting(language,OldLang),
+  aleph5_setting(language,OldLang),
   p1_message('ils language setting'), p_message(OldLang),
   find_clause(bf),
   '$aleph_search'(current,current(_,Nodes0,_)),
@@ -4328,14 +4332,14 @@ reduce(ils):-
 %  a walk probability of 0 is equivalent to doing standard GSAT
 reduce(rls):-
   !,
-  setting(tries,MaxTries),
+  aleph5_setting(tries,MaxTries),
   MaxTries >= 1,
   store_values([caching,refine,refineop]),
   set(searchstrat,heuristic),
   set(caching,true),
-  setting(refine,Refine),
+  aleph5_setting(refine,Refine),
   (Refine \= false  -> true; set(refineop,rls)),
-  setting(threads,Threads),
+  aleph5_setting(threads,Threads),
   rls_search(Threads, MaxTries, Time, Nodes, selected(BestLabel,
           RBest,PCover,NCover)),
   add_hyp(BestLabel,RBest,PCover,NCover),
@@ -4343,7 +4347,7 @@ reduce(rls):-
   p1_message('rls search time'), p_message(Time),
   p_message('rls best result'),
   pp_dclause(RBest),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   show_stats(Evalfn,BestLabel),
   record_search_stats(RBest,Nodes,Time),
   noset(best),
@@ -4355,25 +4359,25 @@ reduce(scs):-
   store_values([tries,moves,rls_type,clauselength_distribution]),
   stopwatch(Start),
   (
-    setting(scs_sample,SampleSize)
+    aleph5_setting(scs_sample,SampleSize)
   ->
     true
   ;
-    setting(scs_percentile,K),
+    aleph5_setting(scs_percentile,K),
     K > 0.0,
-    setting(scs_prob,P),
+    aleph5_setting(scs_prob,P),
     P < 1.0,
     SampleSize is integer(log(1-P)/log(1-K/100) + 1)
   ),
   (
-    setting(scs_type,informed)
+    aleph5_setting(scs_type,informed)
   ->
     (
-      setting(clauselength_distribution,D)
+      aleph5_setting(clauselength_distribution,D)
     ->
       true
     ;
-      setting(clauselength,CL),
+      aleph5_setting(clauselength,CL),
       estimate_clauselength_distribution(CL,100,K,D),
       p1_message('using clauselength distribution'),
       p_message(D),
@@ -4394,7 +4398,7 @@ reduce(scs):-
   p1_message('scs search time'), p_message(Time),
   p_message('scs best result'),
   pp_dclause(RBest),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   show_stats(Evalfn,BestLabel),
   record_search_stats(RBest,Nodes,Time),
   p1_message('scs search time'), p_message(Time),
@@ -4406,7 +4410,7 @@ reduce(scs):-
 reduce(ar):-
   !,
   clear_cache,
-  (setting(pos_fraction,PFrac) -> true;
+  (aleph5_setting(pos_fraction,PFrac) -> true;
     p_message('value required for pos_fraction parameter'),
     fail),
         '$aleph_global'(atoms_left,atoms_left(pos,Pos)),
@@ -4432,13 +4436,13 @@ reduce(ar):-
 reduce(ic):-
   !,
   store_values([minpos,minscore,evalfn,explore,refineop]),
-  setting(refineop,RefineOp),
+  aleph5_setting(refineop,RefineOp),
   (RefineOp = false -> set(refineop,auto); true),
   set(minpos,0),
   set(searchstrat,bf),
   set(evalfn,coverage),
   set(explore,true),
-  setting(noise,N),
+  aleph5_setting(noise,N),
   MinScore is -N,
   set(minscore,MinScore),
   find_clause(bf),
@@ -4483,7 +4487,7 @@ find_clause(Search):-
   ->
     BestSoFar = Label1/ClauseNum;
     (
-      '$aleph_global'(best,set(best,Label2))
+      setting(best, Label2)
     ->
       BestSoFar = Label2/0
     ;
@@ -4534,7 +4538,7 @@ find_clause(_):-
   p_message('best clause'),
   pp_dclause(RClause),
   (
-    setting(evalfn,Evalfn)
+    aleph5_setting(evalfn,Evalfn)
   ->
     true
   ;
@@ -4551,7 +4555,7 @@ find_theory(rls):-
   retractall('$aleph_search'(rls_nodes,_)),
   retractall('$aleph_search'(rls_parentstats,_)),
   retractall('$aleph_search'(rls_selected,_)),
-  setting(tries,MaxTries),
+  aleph5_setting(tries,MaxTries),
   MaxTries >= 1,
   store_values([caching,store_bottom]),
   set(caching,false),
@@ -4560,7 +4564,7 @@ find_theory(rls):-
         '$aleph_global'(atoms,atoms(neg,NegSet)),
         interval_count(PosSet,P0),
         interval_count(NegSet,N0),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
         complete_label(Evalfn,[0-[0,0,[],false]],[P0,N0,1],Label),
   asserta('$aleph_search'(rls_selected,selected(Label,[0-[0,0,[],false]],
             PosSet,NegSet))),
@@ -4591,7 +4595,7 @@ find_theory(rls):-
     retract('$aleph_search'(rls_selected,selected([_,_,_,F1|_],_,_,_))),
     asserta('$aleph_search'(rls_selected,selected([P,N,L,F|T],RCl,PCov,NCov))),
     set(best,[P,N,L,F|T])),
-  setting(best,BestSoFar),
+  aleph5_setting(best,BestSoFar),
   (R1 > MaxTries;discontinue_search(S,BestSoFar/_,Nodes2)),
   !,
   stopwatch(Stop),
@@ -4679,10 +4683,10 @@ reduce_prelims(L,P,N):-
     L = 0, asserta('$aleph_sat'(lastlit,L))),
   ('$aleph_sat'(botsize,B) -> true;
     B = 0, asserta('$aleph_sat'(botsize,B))),
-        (('$aleph_global'(lazy_evaluate,lazy_evaluate(_));setting(greedy,true))->
+        (('$aleph_global'(lazy_evaluate,lazy_evaluate(_));aleph5_setting(greedy,true))->
                 '$aleph_global'(atoms_left,atoms_left(pos,P));
                 '$aleph_global'(atoms,atoms(pos,P))),
-  setting(evalfn,E),
+  aleph5_setting(evalfn,E),
   (E = posonly -> NType = rand; NType = neg),
   '$aleph_global'(atoms_left,atoms_left(NType,N)),
   asserta('$aleph_search'(nextnode,none)).
@@ -4700,7 +4704,7 @@ rls_search(1, MaxTries, Time, Nodes, Selected):-
   retractall('$aleph_search'(rls_nodes,_)),
   retractall('$aleph_search'(rls_selected,_)),
   asserta('$aleph_search'(rls_restart,1)),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   get_start_label(Evalfn,Label),
   set(best,Label),
   get_search_settings(S),
@@ -4729,7 +4733,7 @@ rls_search(1, MaxTries, Time, Nodes, Selected):-
               PCov,NCov))),
      set(best,Best)
    ),
-   setting(best,BestSoFar),
+   aleph5_setting(best,BestSoFar),
    retract('$aleph_search'(rls_nodes,Nodes1)),
    Nodes2 is Nodes0 + Nodes1,
    asserta('$aleph_search'(rls_nodes,Nodes2)),
@@ -4744,7 +4748,7 @@ rls_search(N, MaxTries, Time, Nodes, Selected):-
   retractall('$aleph_search'(rls_restart,_)),
   retractall('$aleph_search'(rls_nodes,_)),
   retractall('$aleph_search'(rls_selected,_)),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   get_start_label(Evalfn,Label),
   set(best,Label),
   get_search_settings(S),
@@ -4855,7 +4859,7 @@ collect(rls_restart,done(CPU, Nodes, selected(Best,RCl,PCov,NCov)),[T0,S], [T1,S
     asserta('$aleph_search'(rls_selected, selected(Best, RCl, PCov, NCov))),
     set(best, Best)
   ),
-  setting(best, BestSoFar),
+  aleph5_setting(best, BestSoFar),
   retract('$aleph_search'(rls_nodes,Nodes1)),
   Nodes2 is Nodes + Nodes1,
   asserta('$aleph_search'(rls_nodes,Nodes2)),
@@ -4874,7 +4878,7 @@ collect(rls_restart,done(CPU, Nodes, selected(Best,RCl,PCov,NCov)),[T0,S], [T1,S
 % induce_clauses/0: the basic theory construction predicate
 % constructs theories 1 clause at a time
 induce_clauses:-
-  setting(interactive, true),
+  aleph5_setting(interactive, true),
   !,
   induce_incremental.
 induce_clauses:-
@@ -4892,8 +4896,8 @@ induce:-
   PosSet \= [],
   store(portray_search),
   set(portray_search,false),
-  setting(samplesize, S),
-  setting(abduce, Abduce),
+  aleph5_setting(samplesize, S),
+  aleph5_setting(abduce, Abduce),
   record_settings,
   stopwatch(StartClock),
   repeat,
@@ -4903,7 +4907,7 @@ induce:-
     '$aleph_global'(besthyp,besthyp([-1e10,0,1,-1e10],0,(false),[],[]))
   ),
   get_besthyp(Abduce),
-  (setting(gcws,true) -> sphyp, addgcws; addhyp),
+  (aleph5_setting(gcws,true) -> sphyp, addgcws; addhyp),
   show_atoms_left,
   record_atoms_left,
   '$aleph_global'(atoms_left,atoms_left(pos,[])),
@@ -4959,7 +4963,7 @@ induce_max1(Finish):-
   S =< Finish,
   !,
   (
-    setting(resample, Resample)
+    aleph5_setting(resample, Resample)
   ->
     true
   ;
@@ -4986,8 +4990,8 @@ induce_cover:-
   PosSet \= [],
   store(portray_search),
   set(portray_search,false),
-  setting(samplesize,S),
-  setting(abduce,Abduce),
+  aleph5_setting(samplesize,S),
+  aleph5_setting(abduce,Abduce),
   record_settings,
   stopwatch(StartClock),
   repeat,
@@ -5074,7 +5078,7 @@ induce_incremental:-
 % currently only with search = rls; and evalfn = accuracy
 
 induce_theory:-
-  setting(search,Search),
+  aleph5_setting(search,Search),
   induce_theory(Search).
 
 % induce entire theories from batch data
@@ -5161,13 +5165,13 @@ induce_features:-
   set(construct_features,true),
   set(lazy_on_contradiction,true),
   (
-    setting(feature_construction, exhaustive)
+    aleph5_setting(feature_construction, exhaustive)
   ->
     set(explore, true)
   ;
     true
   ),
-  setting(max_features,FMax),
+  aleph5_setting(max_features,FMax),
   record_settings,
   stopwatch(StartClock),
   '$aleph_global'(atoms_left,atoms_left(pos,AtomsLeft)),
@@ -5234,10 +5238,10 @@ induce_features.
 % Currently no pruning is performed for model trees.
 induce_tree:-
   clean_up,
-  setting(tree_type,Type),
+  aleph5_setting(tree_type,Type),
   store_values([refine]),
   set(refine,auto),
-  setting(mingain,MinGain),
+  aleph5_setting(mingain,MinGain),
   (MinGain =< 0.0 ->
     err_message('inappropriate setting for mingain'),
     fail;
@@ -5305,10 +5309,10 @@ get_besthyp(_):-
   retract('$aleph_global'(besthyp,besthyp(L,Num,H,PC,NC))),
   H \= false, !,
   (
-    setting(samplesize,S),
+    aleph5_setting(samplesize,S),
     S > 1
   ->
-    setting(nodes,Nodes),
+    aleph5_setting(nodes,Nodes),
     show_clause(sample,L,H,Nodes),
     record_clause(sample,L,H,Nodes)
   ;
@@ -5346,8 +5350,8 @@ update_besthyp(_).
 % generate a new feature from a good clause
 gen_features:-
   aleph_abolish('$aleph_feature'/2),
-  (setting(dependent,PredictArg) -> true; PredictArg is 0),
-        (setting(minscore,FMin) -> true; FMin = -1e10),
+  (aleph5_setting(dependent,PredictArg) -> true; PredictArg is 0),
+        (aleph5_setting(minscore,FMin) -> true; FMin = -1e10),
   '$aleph_good'(_,Label,Clause),
   Label = [_,_,_,F|_],
   F >= FMin,
@@ -5360,11 +5364,11 @@ gen_features:-
   gen_feature((Template:-Body),Label,Class),
   fail.
 gen_features:-
-  (setting(dependent,PredictArg) -> true; PredictArg is 0),
-  setting(good,true),
-  setting(goodfile,File),
+  (aleph5_setting(dependent,PredictArg) -> true; PredictArg is 0),
+  aleph5_setting(good,true),
+  aleph5_setting(goodfile,File),
   aleph_open(File,read,Stream),
-        (setting(minscore,FMin) -> true; FMin = -1e10),
+        (aleph5_setting(minscore,FMin) -> true; FMin = -1e10),
   repeat,
   read(Stream,Fact),
   (Fact = '$aleph_good'(_,Label,Clause) ->
@@ -5526,14 +5530,14 @@ show_options(Stream, hypothesis_selection):-
   format(Stream, '\t\t\t\t\t\t\t\t-> ctrl-D or "none." to end\n\n', []).
 
 get_performance(_Stream):-
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   (Evalfn = sd; Evalfn = mse), !.
 get_performance(Stream):-
-  (setting(train_pos,PFile) ->
+  (aleph5_setting(train_pos,PFile) ->
     test(PFile,noshow,Tp,TotPos),
     Fn is TotPos - Tp;
     TotPos = 0, Tp = 0, Fn = 0),
-  (setting(train_neg,NFile) ->
+  (aleph5_setting(train_neg,NFile) ->
     test(NFile,noshow,Fp,TotNeg),
     Tn is TotNeg - Fp;
     TotNeg = 0, Tn = 0, Fp = 0),
@@ -5544,11 +5548,11 @@ get_performance(Stream):-
   p_message(Stream, [Tp,Fp,Fn,Tn]),
   fail.
 get_performance(Stream):-
-  (setting(test_pos,PFile) ->
+  (aleph5_setting(test_pos,PFile) ->
     test(PFile,noshow,Tp,TotPos),
     Fn is TotPos - Tp;
     TotPos = 0, Tp = 0, Fn = 0),
-  (setting(test_neg,NFile) ->
+  (aleph5_setting(test_neg,NFile) ->
     test(NFile,noshow,Fp,TotNeg),
     Tn is TotNeg - Fp;
     TotNeg = 0, Tn = 0, Fp = 0),
@@ -5632,7 +5636,7 @@ abgen(Fact,AbGen):-
   Minf is -1e10,
   asserta('$aleph_search'(abgenhyp,
         hypothesis([Minf,0,1,Minf],[false],[],[]))),
-  setting(max_abducibles,Max),
+  aleph5_setting(max_abducibles,Max),
   abgen(Fact,Max,AbGen),
   '$aleph_global'(hypothesis,hypothesis(Label,_,PCover,NCover)),
   Label = [_,_,L,Gain|_],
@@ -5973,7 +5977,7 @@ lazy_index_prove1(_,_,_,_,_).
 % implemented as described by Muggleton, ILP-96
 
 condition_target:-
-  '$aleph_global'(condition,set(condition,true)),
+  setting(condition, true),
   add_generator,
   '$aleph_global'(modeh,modeh(_,Pred)),
   functor(Pred,Name,Arity),
@@ -5987,10 +5991,8 @@ condition_target:-
   condition(SPred),
   fail.
 condition_target:-
-  \+('$aleph_global'(condition,set(condition,true))),
+  setting(condition, false),
   add_generator, !.
-condition_target.
-
 
 add_generator:-
   '$aleph_global'(modeh,modeh(_,Pred)),
@@ -6162,7 +6164,6 @@ rselect_clause(X,[P/_|T],C):-
   X1 is X - P,
   rselect_clause(X1,T,C).
 
-
 find_count(Clause,N):-
   copy_term(Clause,Clause1),
   '$aleph_global'(slp_count,Clause1,N), !.
@@ -6176,7 +6177,8 @@ inc_count(Clause):-
   asserta('$aleph_global'(slp_count,Clause,2)).
 
 find_posgain(PCover,P):-
-  '$aleph_global'(greedy,set(greedy,true)), !,
+  setting(greedy, true),
+  !,
   interval_count(PCover,P).
 find_posgain(PCover,P):-
   '$aleph_global'(atoms_left,atoms_left(pos,PLeft)),
@@ -6188,8 +6190,8 @@ find_posgain(PCover,P):-
 % SEARCH I/O
 
 record_clause(good,Label,Clause,_):-
-  setting(good,true),
-  setting(goodfile_stream,GoodfileStream), !,
+  aleph5_setting(good,true),
+  aleph5_setting(goodfile_stream,GoodfileStream), !,
   set_output(GoodfileStream),
   Label = [_,_,L|_],
   aleph_writeq('$aleph_good'(L,Label,Clause)),
@@ -6199,7 +6201,7 @@ record_clause(good,Label,Clause,_):-
   set_output(user_output).
 record_clause(Flag,Label,Clause,Nodes):-
   Flag \= good,
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   show_clause(Flag,Label,Clause,Nodes),
   flush_output(Stream),
@@ -6207,7 +6209,7 @@ record_clause(Flag,Label,Clause,Nodes):-
 record_clause(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
         set_output(Stream),
         show_theory(Label,Clauses,Nodes,Flag),
   flush_output(Stream),
@@ -6215,7 +6217,7 @@ record_theory(Flag,Label,Clauses,Nodes):-
 record_theory(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
         set_output(Stream),
         show_theory(Label,Clauses,Nodes,Flag),
   flush_output(Stream),
@@ -6223,7 +6225,7 @@ record_theory(Flag,Label,Clauses,Nodes):-
 record_theory(_,_,_,_).
 
 record_sat_example(N):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   p1_message('sat'), p_message(N),
   flush_output(Stream),
@@ -6231,7 +6233,7 @@ record_sat_example(N):-
 record_sat_example(_).
 
 record_search_stats(Clause,Nodes,Time):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   p1_message('clauses constructed'), p_message(Nodes),
   p1_message('search time'), p_message(Time),
@@ -6243,7 +6245,7 @@ record_search_stats(Clause,Nodes,Time):-
 record_search_stats(_,_,_).
 
 record_tsearch_stats(Theory,Nodes,Time):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   p1_message('theories constructed'), p_message(Nodes),
   p1_message('search time'), p_message(Time),
@@ -6254,12 +6256,12 @@ record_tsearch_stats(Theory,Nodes,Time):-
 record_tsearch_stats(_,_,_).
 
 record_theory(Time):-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   show(theory),
   stream_message('[time taken] ~w seconds\n', [Time]),
   (
-    '$aleph_global'(maxcover,set(maxcover,true))
+    setting(maxcover, true)
   ->
     show(aleph,theory/5), nl(Stream),
     show(aleph,max_set/4), nl(Stream),
@@ -6272,7 +6274,7 @@ record_theory(Time):-
 record_theory(_).
 
 record_features(Time):-
-  setting(recordfile_stream,Stream),
+  aleph5_setting(recordfile_stream,Stream),
   !,
   set_output(Stream),
   show(features),
@@ -6282,7 +6284,7 @@ record_features(Time):-
 record_features(_).
 
 record_settings:-
-  setting(recordfile_stream,Stream),
+  aleph5_setting(recordfile_stream,Stream),
   !,
   set_output(Stream),
   (
@@ -6316,7 +6318,7 @@ show_clause(Flag,Label,Clause,Nodes):-
   ),
   pp_dclause(Clause),
   (
-    setting(evalfn,Evalfn)
+    aleph5_setting(evalfn,Evalfn)
   ->
     true
   ;
@@ -6335,7 +6337,7 @@ show_theory(Flag,Label,Clauses,Nodes):-
                 (Flag=sample-> p_message('selected from sample');
                         p_message('found theory'))),
         pp_dclauses(Clauses),
-        (setting(evalfn,Evalfn)-> true; Evalfn = accuracy),
+        (aleph5_setting(evalfn,Evalfn)-> true; Evalfn = accuracy),
         show_stats(Evalfn,Label),
         p1_message('theory label'), p_message(Label),
         p1_message('theories constructed'), p_message(Nodes),
@@ -6350,7 +6352,7 @@ update_search_stats(N,T):-
   asserta('$aleph_global'(search_stats,search_stats(N1,T1))).
 
 record_total_stats:-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   show_total_stats,
   flush_output(Stream),
@@ -6358,7 +6360,7 @@ record_total_stats:-
 record_total_stats.
 
 record_atoms_left:-
-  setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream,Stream), !,
   set_output(Stream),
   show_atoms_left,
   flush_output(Stream),
@@ -6398,7 +6400,7 @@ show_stats(Evalfn,[P,N,_,F|_]):-
 % built-in refinement operator
 
 gen_auto_refine:-
-  (setting(autorefine,true) -> true;
+  (aleph5_setting(autorefine,true) -> true;
     set(autorefine,true),
     process_modes,
     process_determs),
@@ -6594,7 +6596,7 @@ auto_refine(false,Head):-
 auto_refine((H:-B),(H1:-B1)):-
         !,
         goals_to_list((H,B),LitList),
-        setting(clauselength,L),
+        aleph5_setting(clauselength,L),
         length(LitList,ClauseLength),
         ClauseLength < L,
         aleph_get_lit(Lit,LitList),
@@ -6602,10 +6604,10 @@ auto_refine((H:-B),(H1:-B1)):-
         list_to_goals(LitList1,(H1,B1)),
   \+(prune((H1:-B1))),
   \+(tautology((H1:-B1))),
-  (setting(language,Lang) ->
+  (aleph5_setting(language,Lang) ->
     lang_ok(Lang,H1,B1);
     true),
-  (setting(newvars,NewVars) ->
+  (aleph5_setting(newvars,NewVars) ->
     newvars_ok(NewVars,H1,B1);
     true).
 auto_refine(Head,Clause):-
@@ -6624,21 +6626,21 @@ auto_refine(L,Clause1,Clause2):-
 auto_extend((H:-B),Lit,(H1:-B1)):-
   !,
   goals_to_list((H,B),LitList),
-  setting(clauselength,L),
+  aleph5_setting(clauselength,L),
   length(LitList,ClauseLength),
   ClauseLength < L,
   aleph_get_lit(Lit,LitList),
   append(LitList, [Lit], LitList1),
   list_to_goals(LitList1,(H1,B1)),
   (
-    setting(language,Lang)
+    aleph5_setting(language,Lang)
   ->
     lang_ok(Lang,H1,B1)
   ;
     true
   ),
   (
-    setting(newvars,NewVars)
+    aleph5_setting(newvars,NewVars)
   ->
     newvars_ok(NewVars,H1,B1)
   ;
@@ -6704,12 +6706,12 @@ search_modes:-
   get_type_equivalences(Types,Equiv1),
   merge_equivalence_classes(Equiv1,Equiv),
   store_type_equivalences(Equiv),
-  setting(typeoverlap,Thresh),
+  aleph5_setting(typeoverlap,Thresh),
   infer_modes(TypedPreds,Thresh,Types,Modes),
   infer_equalities(EqModes),
   Modes = [_|BodyModes],
   infer_negations(BodyModes,NegModes),
-  (setting(updateback,Update) -> true; Update = true),
+  (aleph5_setting(updateback,Update) -> true; Update = true),
   p_message('found modes'),
   add_inferred_modes(Modes,Update),
   add_inferred_modes(EqModes,Update),
@@ -6957,14 +6959,14 @@ add_inferred_modes([Mode|Modes],Flag):-
 %  Clauses is in ascending order of clause length.
 
 sample_clauses(N,Clauses):-
-  setting(construct_bottom,Bottom),
+  aleph5_setting(construct_bottom,Bottom),
   sample_nclauses(Bottom,N,Clauses).
 
 sample_nclauses(false,N,Clauses):-
   !,
   gen_auto_refine,
-  (setting(clauselength_distribution,D) -> true;
-    setting(clauselength,CL),
+  (aleph5_setting(clauselength_distribution,D) -> true;
+    aleph5_setting(clauselength,CL),
     Uniform is 1.0/CL,
     distrib(1-CL,Uniform,D)),
   sample_nclauses_using_modes(N,D,CList),
@@ -6973,8 +6975,8 @@ sample_nclauses(false,N,Clauses):-
 sample_nclauses(_,N,Clauses):-
   retractall('$aleph_sat'(random,rselect(_))),
   ('$aleph_sat'(example,example(_,_)) -> true; rsat),
-  setting(clauselength,CL),
-  (setting(clauselength_distribution,Universe) ->
+  aleph5_setting(clauselength,CL),
+  (aleph5_setting(clauselength_distribution,Universe) ->
     Sample is N;
     estimate_numbers(CL,1,400,Universe),
     (N > Universe -> Sample is Universe; Sample is N)),
@@ -7000,10 +7002,10 @@ legal_clause_using_modes(N,D,L-[0,0,[],Clause]):-
   sample_clause_using_modes(D,L,Clause),
   \+(prune(Clause)),
   split_clause(Clause,Head,Body),
-  (setting(language,Lang) ->
+  (aleph5_setting(language,Lang) ->
           lang_ok(Lang,Head,Body);
     true),
-  (setting(newvars,NewVars) ->
+  (aleph5_setting(newvars,NewVars) ->
     newvars_ok(NewVars,Head,Body);
     true),
   !.
@@ -7075,7 +7077,7 @@ estimate_clauselength_distribution(L,T,K,D):-
   '$aleph_sat'(example,example(Type,Example)),
   '$aleph_sat'(random,clauselength_distribution(Type,Example,L,T,K,D)), !.
 estimate_clauselength_distribution(L,T,K,D):-
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   estimate_clauselength_scores(L,T,Evalfn,[],S),
   select_good_clauses(S,K,Good),
   estimate_frequency(L,Good,Freq),
@@ -7140,7 +7142,7 @@ count_frequency([Entry|T],X,N):-
 %  bounded by bot
 estimate_numbers(Total):-
   ('$aleph_sat'(example,example(_,_)) -> true; rsat),
-  setting(clauselength,CL),
+  aleph5_setting(clauselength,CL),
   estimate_numbers(CL,1,400,Total).
 
 % estimate_numbers(+L,+Trials,+Sample,-T)
@@ -7312,10 +7314,10 @@ randclause_wo_repl(N,L,C,S,C1):-
   % numbervars(C1,0,_),  % if accounting for variable renamings
   \+(prune(C)),
   split_clause(C,Head,Body),
-  (setting(language,Lang) ->
+  (aleph5_setting(language,Lang) ->
     lang_ok(Lang,Head,Body);
     true),
-  (setting(newvars,NewVars) ->
+  (aleph5_setting(newvars,NewVars) ->
     newvars_ok(NewVars,Head,Body);
     true),
   \+('$aleph_sat'(random,rselect(C1))), !,
@@ -7496,7 +7498,7 @@ rls_refine(clauses,_-[_,_,_,false],Clause):-
   sample_clauses(1,[Clause]),
   \+(old_move(clauses,Clause)).
 rls_refine(clauses,Clause1,Clause2):-
-  setting(moves,Max),
+  aleph5_setting(moves,Max),
   MaxMoves is Max,
   once(retract('$aleph_search'(rls_move,M))),
   M =< MaxMoves,
@@ -7512,7 +7514,7 @@ rls_refine(theories,[_-[_,_,_,false]],Theory):-
   once(theory_move(add_clause,[],Theory)),
   \+(old_move(theories,Theory)).
 rls_refine(theories,Theory1,Theory2):-
-  setting(moves,MaxMoves),
+  aleph5_setting(moves,MaxMoves),
   once(retract('$aleph_search'(rls_move,M))),
   M =< MaxMoves,
   p1_message('move'), p_message(M),
@@ -7548,7 +7550,7 @@ clause_move(delete_lit,C1,C2):-
   C2 = L1-[E,T,Lits1,Clause1].
 clause_move(add_lit,C1,C2):-
   C1 = L-[E,T,Lits,Clause],
-  setting(clauselength,CL),
+  aleph5_setting(clauselength,CL),
   L < CL,
   (Lits = [] ->
     auto_refine(Clause,Clause1),
@@ -7581,7 +7583,7 @@ theory_move(delete_clause,T1,T2):-
   aleph_delete(_,T1,T2),
   T2 \= [].
 theory_move(add_clause,T1,T2):-
-  setting(clauses,Max),
+  aleph5_setting(clauses,Max),
   length(T1,L),
   L < Max,
   sample_clauses(1,[Clause]),
@@ -7596,7 +7598,7 @@ theory_move(add_lit,T1,T2):-
   append(T, [Clause1], T2).
 
 old_move(clauses,N-[_,_,L,C]):-
-  (setting(cache_clauselength,N1) -> true; N1 = 3),
+  (aleph5_setting(cache_clauselength,N1) -> true; N1 = 3),
   N =< N1,
   (L = [] ->
     clause_to_list(C,C1),
@@ -7673,7 +7675,7 @@ pp_dclause(Stream, (H:-B),Pretty):-
     format(Stream, ':-', [])
   ),
   nl(Stream),
-  '$aleph_global'(print,set(print,N)),
+  setting(print, N),
   print_lits(Stream, Body,Pretty,1,N).
 pp_dclause(Stream, (Lit),Pretty):-
   copy_term(Lit,Lit1),
@@ -7709,7 +7711,7 @@ pp_dlist(Stream, Clause,Pretty):-
       format(Stream, ':-', [])
     ),
     nl(Stream),
-    '$aleph_global'(print,set(print,N)),
+    setting(print, N),
     print_litlist(Stream, Body1,Pretty,1,N)
   ).
 
@@ -8438,7 +8440,7 @@ clean_up_hypothesis:-
         retractall('$aleph_global'(hypothesis,hypothesis(_,_,_,_))).
 
 depth_bound_call(G):-
-  '$aleph_global'(depth,set(depth,D)),
+  setting(depth, D),
   call_with_depth_bound(G,D).
 
 call_with_depth_bound((H:-B),D):-
@@ -8514,7 +8516,7 @@ record_example(nocheck,Type,Example,N1):-
   N1 is N + 1,
   asserta('$aleph_global'(size,size(Type,N1))),
   (Type \= neg ->
-    setting(skolemvars,Sk1),
+    aleph5_setting(skolemvars,Sk1),
     skolemize(Example,Fact,Body,Sk1,SkolemVars),
     record_skolemized(Type,N1,SkolemVars,Fact,Body),
     (Sk1 = SkolemVars -> true;
@@ -8543,7 +8545,7 @@ check_posonly:-
   '$aleph_global'(size,size(rand,N)),
   N > 0, !.
 check_posonly:-
-  setting(evalfn,posonly),
+  aleph5_setting(evalfn,posonly),
   \+('$aleph_global'(modeh,modeh(_,_))),
   p1_message('error'),
   p_message('missing modeh declaration in posonly mode'), !,
@@ -8552,8 +8554,8 @@ check_posonly:-
   retractall('$aleph_global'(slp_count,_,_)),
   retractall('$aleph_local'(slp_sample,_)),
   retractall('$aleph_local'(slp_samplenum,_)),
-  setting(evalfn,posonly),
-  setting(gsamplesize,S),
+  aleph5_setting(evalfn,posonly),
+  aleph5_setting(gsamplesize,S),
   condition_target,
   '$aleph_global'(targetpred,targetpred(Name/Arity)),
   gsample(Name/Arity,S), !.
@@ -8565,13 +8567,13 @@ check_prune_defs:-
 check_prune_defs.
 
 check_auto_refine:-
-  (setting(construct_bottom,reduction);setting(construct_bottom,false)),
-  \+(setting(autorefine,true)), !,
-  (setting(refine,user) -> true; set(refine,auto)).
+  (aleph5_setting(construct_bottom,reduction);aleph5_setting(construct_bottom,false)),
+  \+(aleph5_setting(autorefine,true)), !,
+  (aleph5_setting(refine,user) -> true; set(refine,auto)).
 check_auto_refine.
 
 check_user_search:-
-  setting(evalfn,user),
+  aleph5_setting(evalfn,user),
   \+(cost_cover_required),
   set(lazy_on_cost,true), !.
 check_user_search.
@@ -8634,7 +8636,7 @@ record_abclause(Name/Arity):-
 record_recursive_sat_call(Name/Arity):-
         functor(Head,Name,Arity),
   Clause = (Head:-
-      '$aleph_global'(stage,set(stage,saturation)),
+      setting(stage, saturation),
       '$aleph_sat'(example,example(Num,Type)),
       example(Num1,Type,Head),
       Num1 \= Num, !),  % to prevent tautologies
@@ -8788,7 +8790,7 @@ gen_nlitnum(-1):-
 gen_featurenum(Feature1):-
         '$aleph_feature'(last_feature,Feature0), !,
         Feature1 is Feature0 + 1,
-  setting(max_features,FMax),
+  aleph5_setting(max_features,FMax),
   Feature1 =< FMax,
         retract('$aleph_feature'(last_feature,Feature0)),
         asserta('$aleph_feature'(last_feature,Feature1)).
@@ -8807,14 +8809,14 @@ update_theory(ClauseIndex):-
   index_clause(Hypothesis,ClauseIndex,Clause),
         ('$aleph_global'(example_selected,example_selected(_,Seed))-> true;
                 PCover = [Seed-_|_]),
-  (setting(lazy_on_cost,true) ->
+  (aleph5_setting(lazy_on_cost,true) ->
           nlits(Clause,L),
     label_create(Clause,Label),
           extract_pos(Label,PCover),
           extract_neg(Label,NCover),
           interval_count(PCover,PC),
           interval_count(NCover,NC),
-    setting(evalfn,Evalfn),
+    aleph5_setting(evalfn,Evalfn),
     complete_label(Evalfn,Clause,[PC,NC,L],NewLabel),
           assertz('$aleph_global'(theory,theory(ClauseIndex,
           NewLabel/Seed,Clause,
@@ -8826,15 +8828,15 @@ update_theory(ClauseIndex):-
 
 add_clause_to_background(ClauseIndex):-
         '$aleph_global'(theory,theory(ClauseIndex,Label/_,Clause,_,_)),
-  (setting(minpos,PMin) -> true; PMin = 1),
+  (aleph5_setting(minpos,PMin) -> true; PMin = 1),
   Label = [PC,_,_,F|_],
   PC >= PMin,
-  setting(minscore,MinScore),
+  aleph5_setting(minscore,MinScore),
   F >= MinScore, !,
         (retract('$aleph_global'(rules,rules(Rules)))->
                 asserta('$aleph_global'(rules,rules([ClauseIndex|Rules])));
                 asserta('$aleph_global'(rules,rules([ClauseIndex])))),
-  (setting(updateback,Update) -> true; Update = true),
+  (aleph5_setting(updateback,Update) -> true; Update = true),
         (Update = true -> assertz(Clause); true),  !.
 add_clause_to_background(_).
 
@@ -8843,7 +8845,7 @@ rm_seeds:-
   update_theory(ClauseIndex), !,
   '$aleph_global'(theory,theory(ClauseIndex,_,_,PCover,NCover)),
   rm_seeds(pos,PCover),
-  (setting(evalfn,posonly) -> rm_seeds(rand,NCover); true),
+  (aleph5_setting(evalfn,posonly) -> rm_seeds(rand,NCover); true),
   '$aleph_global'(atoms_left,atoms_left(pos,PLeft)),
   interval_count(PLeft,PL),
   p1_message('atoms left'), p_message(PL),
@@ -8851,8 +8853,8 @@ rm_seeds:-
 rm_seeds.
 
 rm_seeds(pos,PCover):-
-  setting(construct_features,true),
-  setting(feature_construction,exhaustive), !,
+  aleph5_setting(construct_features,true),
+  aleph5_setting(feature_construction,exhaustive), !,
         retract('$aleph_global'(atoms_left,atoms_left(pos,OldIntervals))),
         ('$aleph_global'(example_selected,example_selected(_,Seed))-> true;
                 PCover = [Seed-_|_]),
@@ -8879,7 +8881,7 @@ update_coverset(Type,_):-
 
 % revise coversets of previous atoms
 worse_coversets(_,_,_,[]):-
-  \+('$aleph_global'(maxcover,set(maxcover,true))),
+  setting(maxcover, false),
   !.
 worse_coversets([],_,_,[]).
 worse_coversets([Interval|Intervals],Type,Gain,Worse):-
@@ -8931,7 +8933,7 @@ gen_sample(Type,0):-
   '$aleph_global'(atoms_left,atoms_left(Type,[ExampleNum-_|_])),
   retractall('$aleph_global'(example_selected,example_selected(_,_))),
   p1_message('select example'), p_message(ExampleNum),
-  (setting(resample,Resample) -> true; Resample = 1),
+  (aleph5_setting(resample,Resample) -> true; Resample = 1),
   gen_sample(Resample,Type,ExampleNum).
 gen_sample(Type,SampleSize):-
   '$aleph_global'(atoms_left,atoms_left(Type,Intervals)),
@@ -8939,7 +8941,7 @@ gen_sample(Type,SampleSize):-
   N is min(AtomsLeft,SampleSize),
   assertz('$aleph_local'(sample_num,0)),
   retractall('$aleph_global'(example_selected,example_selected(_,_))),
-  (setting(resample,Resample) -> true; Resample = 1),
+  (aleph5_setting(resample,Resample) -> true; Resample = 1),
   repeat,
   '$aleph_local'(sample_num,S1),
   S is S1 + 1,
@@ -9106,7 +9108,7 @@ chi_square(DF,Prob,ChisqVal):-
 label_create(Clause,Label):-
         '$aleph_global'(last_example,last_example(pos,Last1)),
   Type1 = pos,
-  (setting(evalfn,posonly) ->
+  (aleph5_setting(evalfn,posonly) ->
           '$aleph_global'(last_example,last_example(rand,Last2)),
     Type2 = rand;
           '$aleph_global'(last_example,last_example(neg,Last2)),
@@ -9121,9 +9123,9 @@ label_create(Clause,Type1,Set1,Type2,Set2,Label):-
         split_clause(Clause,Head,Body),
   nlits((Head,Body),Length),
         assertz('$aleph_search'(pclause,pclause(Head,Body))),
-  setting(depth,Depth),
-  setting(prooftime,Time),
-  setting(proof_strategy,Proof),
+  aleph5_setting(depth,Depth),
+  aleph5_setting(prooftime,Time),
+  aleph5_setting(proof_strategy,Proof),
         prove(Depth/Time/Proof,Type1,(Head:-Body),Set1,Cover1,_),
         prove(Depth/Time/Proof,Type2,(Head:-Body),Set2,Cover2,_),
   retractall('$aleph_search'(pclause,_)),
@@ -9132,9 +9134,9 @@ label_create(Clause,Type1,Set1,Type2,Set2,Label):-
 label_create(Clause,Type,Set,Label):-
         split_clause(Clause,Head,Body),
         assertz('$aleph_search'(pclause,pclause(Head,Body))),
-  setting(depth,Depth),
-  setting(prooftime,Time),
-  setting(proof_strategy,Proof),
+  aleph5_setting(depth,Depth),
+  aleph5_setting(prooftime,Time),
+  aleph5_setting(proof_strategy,Proof),
         prove(Depth/Time/Proof,Type,(Head:-Body),Set,Cover,_),
   retractall('$aleph_search'(pclause,_)),
   (Type = pos ->
@@ -9196,7 +9198,7 @@ eval_rule(Stream, ClauseNum, Label):-
   extract_count(neg,Label,NC),
   format(atom(RuleTag), 'Rule ~w', [ClauseNum]),
   (
-    setting(evalfn,posonly)
+    aleph5_setting(evalfn,posonly)
   ->
     format(atom(CoverTag), 'Pos cover = ~w Rand cover = ~w',[PC, NC])
   ;
@@ -9205,7 +9207,7 @@ eval_rule(Stream, ClauseNum, Label):-
   p1_message(Stream, RuleTag),
   p_message(Stream, CoverTag),
   pp_dclause(Stream, Clause),
-  setting(verbosity,V),
+  aleph5_setting(verbosity,V),
   (
     V >= 2
   ->
@@ -9221,7 +9223,7 @@ eval_rule(_Stream, _, _).
 
 
 evalfn(Label,Val):-
-  (setting(evalfn,Eval)->true;Eval=coverage),
+  (aleph5_setting(evalfn,Eval)->true;Eval=coverage),
   evalfn(Eval,Label,Val).
 
 evalfn_name(compression,'compression').
@@ -9275,7 +9277,7 @@ evalfn(accuracy,[P,N|_],Val):-
 evalfn(pbayes,[P,N|_],Val):-
         (P = -1e10 -> Val is 0.5;
                 Acc is P/(P+N),
-                setting(prior,PriorD),
+                aleph5_setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
     memberchk(Prior-pos,NPriorD),
                 (0 is Prior-Acc ->
@@ -9288,7 +9290,7 @@ evalfn(posonly,[P,0,L|_],Val):-
 evalfn(auto_m,[P,N|_],Val):-
         (P = -1e10 -> Val is 0.5;
                 Cover is P + N,
-                setting(prior,PriorD),
+                aleph5_setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
     memberchk(Prior-pos,NPriorD),
                 K is sqrt(Cover),
@@ -9296,10 +9298,10 @@ evalfn(auto_m,[P,N|_],Val):-
 evalfn(mestimate,[P,N|_],Val):-
         (P = -1e10 -> Val is 0.5;
                 Cover is P + N,
-                setting(prior,PriorD),
+                aleph5_setting(prior,PriorD),
     normalise_distribution(PriorD,NPriorD),
     memberchk(Prior-pos,NPriorD),
-                (setting(m,M) -> K = M; K is sqrt(Cover)),
+                (aleph5_setting(m,M) -> K = M; K is sqrt(Cover)),
                 Val is (P + K*Prior) / (Cover+K)), !.
 evalfn(_,_,X):- X is -1e10.
 
@@ -9324,7 +9326,7 @@ extract_neg([_,N|_],N).
 extract_length([_,_,L|_],L).
 
 get_start_label(_,[0,0,0,F]):-
-  (setting(interactive,true); setting(search,ic)), !,
+  (aleph5_setting(interactive,true); aleph5_setting(search,ic)), !,
   F is -1e10.
 get_start_label(user,[1,0,2,F]):- !, F is -1e10.
 get_start_label(entropy,[1,0,2,-0.5]):- !.
@@ -9420,7 +9422,7 @@ read_examples(PositiveExamplesBase, NegativeExamplesBase):-
   '$aleph_global'(size,size(neg,N)),
   set_lazy_recalls,
   (
-    setting(prior, _)
+    aleph5_setting(prior, _)
   ->
     true
   ;
@@ -9433,7 +9435,7 @@ read_examples(PositiveExamplesBase, NegativeExamplesBase):-
 
 % The files with positive training examples have been set internally.
 read_positive_examples(_PositiveExamplesBase):-
-  setting(train_pos, PositiveExamplesFiles),
+  aleph5_setting(train_pos, PositiveExamplesFiles),
   !,
   read_examples_files(pos, PositiveExamplesFiles, _Dummy1).
 read_positive_examples(PositiveExamplesBase):-
@@ -9442,7 +9444,7 @@ read_positive_examples(PositiveExamplesBase):-
 
 % The files with negative training examples have been set internally.
 read_negative_examples(_NegativeExamplesBase):-
-  setting(train_neg, NegativeExamplesFiles),
+  aleph5_setting(train_neg, NegativeExamplesFiles),
   !,
   read_examples_files(neg, NegativeExamplesFiles, _Dummy2).
 read_negative_examples(NegativeExamplesBase):-
@@ -9539,24 +9541,31 @@ store(searchstate):-
     asserta('$aleph_global'(save,
         save(searchstate,size(neg,NSize))));
     true),
-  ('$aleph_global'(noise,set(noise,Noise)) ->
-    asserta('$aleph_global'(save,
-        save(searchstate,set(noise,Noise))));
-    true),
-  ('$aleph_global'(minacc,set(minacc,MinAcc)) ->
-    asserta('$aleph_global'(save,
-        save(searchstate,set(minacc,MinAcc))));
-    true).
+  (
+    setting(noise, Noise)
+  ->
+    asserta('$aleph_global'(save, save(searchstate,set(noise,Noise))))
+  ;
+    true
+  ),
+  (
+    setting(minacc, MinAcc)
+  ->
+    asserta('$aleph_global'(save, save(searchstate,set(minacc,MinAcc))))
+  ;
+    true
+  ).
 
-% store current bottom clause
+% Store the current bottom clause.
 store(bottom):-
   !,
   ('$aleph_global'(store_bottom,set(store_bottom,true)) ->
     store_bottom;
     true).
-
+% Store the current value of a setting.
 store(Parameter):-
-  ('$aleph_global'(Parameter,set(Parameter,Value)) -> true; Value = unknown),
+  nonvar(Parameter),
+  setting(Parameter, Value),
   retractall('$aleph_global'(save,save(Parameter,_))),
   asserta('$aleph_global'(save,save(Parameter,Value))).
 
@@ -9647,11 +9656,11 @@ reinstate_values:-
 reinstate_values.
 
 reinstate_file_streams:-
-  setting(recordfile,File),
+  aleph5_setting(recordfile,File),
   set(recordfile,File),
   fail.
 reinstate_file_streams:-
-  setting(goodfile,File),
+  aleph5_setting(goodfile,File),
   set(goodfile,File),
   fail.
 reinstate_file_streams.
@@ -9665,7 +9674,7 @@ bottom_key(N,T,Key,Flag):-
   ((var(N),var(T)) ->
     '$aleph_sat'(example,example(N,T));
     true),
-  (setting(store_bottom,true) ->
+  (aleph5_setting(store_bottom,true) ->
     ('$aleph_sat'(stored,stored(N,T,Key)) ->
       Flag = false;
       format(atom(Key), '~w_~w', [T, N]),
@@ -9674,21 +9683,20 @@ bottom_key(N,T,Key,Flag):-
     Key = false,
     Flag = false).
 
-setting(Variable,Value):-
-  nonvar(Variable),
-  '$aleph_global'(Variable,set(Variable,Value1)), !,
+aleph5_setting(Setting, Value):-
+  nonvar(Setting),
+  setting(Setting, Value1),
+  !,
   Value = Value1.
-setting(Setting, DefaultValue):-
+aleph5_setting(Setting, DefaultValue):-
   setting_property(Setting, default(DefaultValue)).
 
 noset(Setting):-
   nonvar(Setting),
-  retract('$aleph_global'(Setting,set(Setting,Value))),
-	!,
-  rm_special_consideration(Setting,Value),
+  setting(Setting, OldValue),
+  !,
+  rm_special_consideration(Setting, OldValue),
   restore_setting(Setting).
-% Always succeeds.
-noset(_Setting).
 
 determinations(Pred1,Pred2):-
         '$aleph_global'(determination,determination(Pred1,Pred2)).
@@ -9794,7 +9802,10 @@ show(Stream, settings):-
   p_message(Stream, settings),
   findall(
     P-V,
-    '$aleph_global'(P,set(P,V)),
+    (
+      current_setting(P),
+      setting(P, V)
+    ),
     L
   ),
   sort(L,L1),
@@ -9824,7 +9835,7 @@ show(Stream, sizes):-
 show(Stream, bottom):-
   nl(Stream),
   p_message(Stream, 'bottom clause'),
-  setting(verbosity,V),
+  aleph5_setting(verbosity,V),
   V > 0,
   '$aleph_sat'(lastlit,Last),
   get_clause(1,Last,[],FlatClause),
@@ -9887,24 +9898,24 @@ show(Stream, abgen):-
   pp_dclause(C),
   fail.
 show(_Stream, hypothesis):-
-  setting(portray_hypothesis,Pretty),
+  aleph5_setting(portray_hypothesis,Pretty),
   aleph_portray(hypothesis,Pretty),
   fail.
 show(_Stream, search):-
-  setting(portray_search,Pretty),
+  aleph5_setting(portray_search,Pretty),
   aleph_portray(search,Pretty).
 show(Stream, good):-
-  setting(good,true),
+  aleph5_setting(good,true),
   nl(Stream),
   p_message(Stream, 'good clauses'),
   (
-    setting(minscore,FMin)
+    aleph5_setting(minscore,FMin)
   ->
     true
   ;
     FMin is -1e10
   ),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   '$aleph_good'(_,Label,Clause),
   Label = [_,_,_,F|_],
   F >= FMin,
@@ -9912,11 +9923,11 @@ show(Stream, good):-
   show_stats(Evalfn,Label),
   fail.
 show(Stream, good):-
-  setting(good,true),
-  setting(goodfile,File),
+  aleph5_setting(good,true),
+  aleph5_setting(goodfile,File),
   aleph_open(File,read,ReadStream),
-  (setting(minscore,FMin) -> true; FMin is -1e10),
-  setting(evalfn,Evalfn),
+  (aleph5_setting(minscore,FMin) -> true; FMin is -1e10),
+  aleph5_setting(evalfn,Evalfn),
   repeat,
   read(ReadStream,Fact),
   (
@@ -9932,7 +9943,7 @@ show(Stream, good):-
     !
   ).
 show(Stream, features):-
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   (
     '$aleph_feature'(feature,_)
   ->
@@ -9946,10 +9957,10 @@ show(Stream, features):-
   pp_dclause(Stream, feature(Id,(Head:-Body))),
   fail.
 show(Stream, constraints):-
-  setting(good,true),
+  aleph5_setting(good,true),
   nl(Stream),
   p_message(Stream, constraints),
-  setting(noise,N),
+  aleph5_setting(noise,N),
   FMin is -N,
   '$aleph_good'(_,Label,Clause),
   split_clause(Clause,false,_),
@@ -9971,16 +9982,16 @@ show(Stream, Name/Arity):-
   pp_dclause(Stream, (Pred:-Body)),
   fail.
 show(_Stream, train_pos):-
-  setting(portray_examples,Pretty),
+  aleph5_setting(portray_examples,Pretty),
   aleph_portray(train_pos,Pretty).
 show(_Stream, train_neg):-
-  setting(portray_examples,Pretty),
+  aleph5_setting(portray_examples,Pretty),
   aleph_portray(train_neg,Pretty).
 show(_Stream, test_pos):-
-  setting(portray_examples,Pretty),
+  aleph5_setting(portray_examples,Pretty),
   aleph_portray(test_pos,Pretty).
 show(_Stream, test_neg):-
-  setting(portray_examples,Pretty),
+  aleph5_setting(portray_examples,Pretty),
   aleph_portray(test_neg,Pretty).
 show(_Stream, _Category).
 
@@ -9994,7 +10005,7 @@ settings(Stream):-
 % examples(?Type,?List)
 % show all examples numbers in List of Type
 examples(Type,List):-
-  setting(portray_literals,Pretty),
+  aleph5_setting(portray_literals,Pretty),
   example(Num,Type,Atom),
   memberchk(Num,List),
   aleph_portray(Atom,Pretty),
@@ -10018,12 +10029,12 @@ posleft(PList):-
 
 % write_rules/0 due to Mark Reid
 write_rules:-
-  setting(rulefile,File),
+  aleph5_setting(rulefile,File),
   write_rules(File), !.
 write_rules.
 
 write_features:-
-  setting(featurefile,File),
+  aleph5_setting(featurefile,File),
   write_features(File), !.
 write_features.
 
@@ -10110,7 +10121,7 @@ add_bottom:-
     '$aleph_sat'(example,example(Num,Type)),
     example(Num,Type,Example),
     retract('$aleph_global'(hypothesis,hypothesis(_,_,_,_))),
-    setting(evalfn,Evalfn),
+    aleph5_setting(evalfn,Evalfn),
     complete_label(Evalfn,Example,[1,0,1],Label1),
     asserta('$aleph_global'(hypothesis,hypothesis(Label1,(Example:-true),[Num-Num],[])))).
 
@@ -10171,7 +10182,7 @@ coversn:-
 %   within a greedy search
 covers(P):-
   get_hyp(Hypothesis),
-  (setting(greedy,true) ->
+  (aleph5_setting(greedy,true) ->
     '$aleph_global'(atoms,atoms_left(pos,Pos));
     '$aleph_global'(atoms,atoms(pos,Pos))),
   label_create(Hypothesis,pos,Pos,Label),
@@ -10185,7 +10196,7 @@ covers(P):-
 %   within a greedy search
 coversn(N):-
   get_hyp(Hypothesis),
-  (setting(greedy,true) ->
+  (aleph5_setting(greedy,true) ->
     '$aleph_global'(atoms_left,atoms_left(neg,Neg));
     '$aleph_global'(atoms_left,atoms(neg,Neg))),
   label_create(Hypothesis,neg,Neg,Label),
@@ -10198,7 +10209,7 @@ coversn(N):-
 %   as in covers/1, but returns list of examples covered and their count
 covers(PList,P):-
   get_hyp(Hypothesis),
-  (setting(greedy,true) ->
+  (aleph5_setting(greedy,true) ->
     '$aleph_global'(atoms,atoms_left(pos,Pos));
     '$aleph_global'(atoms,atoms(pos,Pos))),
   label_create(Hypothesis,pos,Pos,Label),
@@ -10212,7 +10223,7 @@ covers(PList,P):-
 %   as in coversn/1, but returns list of examples covered and their count
 coversn(NList,N):-
   get_hyp(Hypothesis),
-  (setting(greedy,true) ->
+  (aleph5_setting(greedy,true) ->
     '$aleph_global'(atoms_left,atoms_left(neg,Neg));
     '$aleph_global'(atoms_left,atoms(neg,Neg))),
   label_create(Hypothesis,neg,Neg,Label),
@@ -10284,7 +10295,7 @@ test_files([File|Files],Flag):-
 
 test_file('?',_):- !.
 test_file(File,Flag):-
-  setting(portray_examples,Pretty),
+  aleph5_setting(portray_examples,Pretty),
   aleph_open(File,read,Stream), !,
   repeat,
   read(Stream,Example),
@@ -10430,7 +10441,7 @@ special_consideration(portray_literals,true):-
 
 special_consideration(record,true):-
   noset(recordfile_stream),
-  (setting(recordfile,F) ->
+  (aleph5_setting(recordfile,F) ->
     aleph_open(F,append,Stream),
     set(recordfile_stream,Stream);
     true), !.
@@ -10438,13 +10449,13 @@ special_consideration(record,false):-
   noset(recordfile_stream), !.
 special_consideration(recordfile,File):-
   noset(recordfile_stream),
-  (setting(record,true) ->
+  (aleph5_setting(record,true) ->
     aleph_open(File,append,Stream),
     set(recordfile_stream,Stream);
     true), !.
 special_consideration(good,true):-
   noset(goodfile_stream),
-  (setting(goodfile,F) ->
+  (aleph5_setting(goodfile,F) ->
     aleph_open(F,append,Stream),
     set(goodfile_stream,Stream);
     true), !.
@@ -10452,7 +10463,7 @@ special_consideration(good,false):-
   noset(goodfile_stream), !.
 special_consideration(goodfile,File):-
   noset(goodfile_stream),
-  (setting(good,true) ->
+  (aleph5_setting(good,true) ->
     aleph_open(File,append,Stream),
     set(goodfile_stream,Stream);
     true), !.
@@ -10470,11 +10481,11 @@ rm_special_consideration(record,_):-
   noset(recordfile_stream),
   !.
 rm_special_consideration(recordfile_stream,_):-
-  (setting(recordfile_stream,S) -> close(S); true), !.
+  (aleph5_setting(recordfile_stream,S) -> close(S); true), !.
 rm_special_consideration(good,_):-
   noset(goodfile_stream), !.
 rm_special_consideration(goodfile_stream,_):-
-  (setting(goodfile_stream,S) -> close(S); true), !.
+  (aleph5_setting(goodfile_stream,S) -> close(S); true), !.
 rm_special_consideration(_,_).
 
 get_hyp((Head:-Body)):-
@@ -10491,7 +10502,7 @@ add_hyp(Clause):-
         retractall('$aleph_global'(hypothesis,hypothesis(_,_,_,_))),
         extract_pos(Label,P),
         extract_neg(Label,N),
-  setting(evalfn,Evalfn),
+  aleph5_setting(evalfn,Evalfn),
   complete_label(Evalfn,Clause,[PCount,NCount,L],Label1),
         asserta('$aleph_global'(hypothesis,hypothesis(Label1,Clause,P,N))).
 
@@ -10506,7 +10517,7 @@ add_theory(Label,Theory,PCover,NCover):-
         fail.
 add_theory(_,_,PCover,NCover):-
   rm_seeds(pos,PCover),
-  (setting(evalfn,posonly) -> rm_seeds(rand,NCover); true),
+  (aleph5_setting(evalfn,posonly) -> rm_seeds(rand,NCover); true),
   '$aleph_global'(atoms_left,atoms_left(pos,PLeft)),
   interval_count(PLeft,PL),
   p1_message('atoms left'), p_message(PL), !.
@@ -10563,28 +10574,28 @@ aleph_portray(train_pos,true):-
   aleph_portray(train_pos), !.
 aleph_portray(train_pos,_):-
   !,
-  setting(train_pos,File),
+  aleph5_setting(train_pos,File),
   show_file(File).
 
 aleph_portray(train_neg,true):-
   aleph_portray(train_neg), !.
 aleph_portray(train_neg,_):-
   !,
-  setting(train_neg,File),
+  aleph5_setting(train_neg,File),
   show_file(File).
 
 aleph_portray(test_pos,true):-
   aleph_portray(test_pos), !.
 aleph_portray(test_pos,_):-
   !,
-  setting(test_pos,File),
+  aleph5_setting(test_pos,File),
   show_file(File).
 
 aleph_portray(test_neg,true):-
   aleph_portray(test_neg), !.
 aleph_portray(test_neg,_):-
   !,
-  setting(test_neg,File),
+  aleph5_setting(test_neg,File),
   show_file(File).
 
 aleph_portray(Lit,true):-
