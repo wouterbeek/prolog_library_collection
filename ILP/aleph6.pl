@@ -60,6 +60,7 @@ please contact Ashwin Srinivasan first.
 */
 
 :- use_module(generics(db_ext)).
+:- use_module(generics(listing_ext)).
 :- use_module(generics(logging)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(os_ext)).
@@ -167,6 +168,8 @@ please contact Ashwin Srinivasan first.
 
 :- setting(depth, positive_integer, 10, 'Theorem Proving Depth').
 
+:- setting(feature_file, any, '', 'File for writing features to.').
+
 :- setting(good, boolean, false, 'Store good clauses').
 
 :- setting(goodfile, atom, '', 'File of good clauses').
@@ -214,7 +217,7 @@ please contact Ashwin Srinivasan first.
 :- setting(record_stream, any, '', 'Unknown').
 
 % @tbd File name.
-:- setting(rulefile, atom, '', 'Rule file').
+:- setting(rule_file, atom, '', 'Rule file').
 
 :- setting(skolemvars, positive_integer, 10000, 'Counter for non-ground examples').
 
@@ -7714,14 +7717,6 @@ pp_dclause(Stream, Clause):-
     pp_dclause(Stream, Clause, false)
   ).
 
-% pretty print a set of definite clauses
-pp_dclauses(Stream, Theory):-
-  member(_-[_,_,_,Clause],Theory),
-  pp_dclause(Stream, Clause),
-  fail.
-pp_dclauses(Stream, _):-
-  nl(Stream).
-
 pp_dclause(Stream, (H:-true),Pretty):-
   !,
   pp_dclause(Stream, H,Pretty).
@@ -7745,6 +7740,14 @@ pp_dclause(Stream, (Lit),Pretty):-
   numbervars(Lit1,0,_),
   aleph_portray(Lit1,Pretty),
   format(Stream, '.\n', []).
+
+% pretty print a set of definite clauses
+pp_dclauses(Stream, Theory):-
+  forall(
+    member(_-[_, _, _, Clause], Theory),
+    pp_dclause(Stream, Clause)
+  ),
+  nl(Stream).
 
 % pretty print a definite clause list: head of list is + literal
 pp_dlist(_Stream, []):- !.
@@ -10106,41 +10109,51 @@ posleft(PList):-
   '$aleph_global'(atoms_left,atoms_left(pos,PosLeft)),
   intervals_to_list(PosLeft,PList).
 
-% write_rules/0 due to Mark Reid
-write_rules:-
-  aleph5_setting(rulefile,File),
-  write_rules(File), !.
-write_rules.
+%! write_features is det.
+% @throws existence_error
 
 write_features:-
-  aleph5_setting(featurefile,File),
-  write_features(File), !.
-write_features.
-
-write_rules(File):-
+  aleph5_setting(feature_file, File),
+  File == '',
+  !,
+  throw(error(existence_error(file, File), context(write_features/0, _))).
+write_features:-
+  aleph5_setting(feature_file, File),
+  access_file(File, write),
   open(File, write, Stream),
-  set_output(Stream),
-  '$aleph_global'(rules,rules(L)),
-  reverse(L, L1),
-  write_rule(L1),
+  listing(Stream, '$aleph_feature'/2),
   flush_output(Stream),
-  set_output(user_output).
+  close(Stream).
 
-write_rule(Rules):-
-  member(RuleId,Rules),
-  '$aleph_global'(theory,theory(RuleId,_,Rule,_,_)),
-  pp_dclause(Rule),
-  fail.
-write_rule(_).
+%! write_rules is det.
+% @author Based on a version written by Mark Reid.
+% @throws existence_error
 
-write_features(File):-
-  open(File, write, Stream),
-  set_output(Stream),
-  listing('$aleph_feature'/2),
-  close(Stream),
-  set_output(user_output).
-write_features(_).
+write_rules:-
+  aleph5_setting(rule_file, File),
+  File == '',
+  !,
+  throw(error(existence_error(file, File), context(write_rules/0, _))).
+write_rules:-
+  % Open stream.
+  aleph5_setting(rule_file, File),
+  access_file(File, write),
+  open(File, write, Stream, []),
 
+  % Write rules.
+  '$aleph_global'(rules, rules(Rules1)),
+  reverse(Rules1, Rules2),
+  forall(
+    member(RuleId, Rules2),
+    (
+      '$aleph_global'(theory, theory(RuleId, _, Rule, _, _)),
+      pp_dclause(Stream, Rule)
+    )
+  ),
+
+  % Close stream.
+  flush_output(Stream),
+  close(Stream).
 
 best_hypothesis(Head1,Body1,[P,N,L]):-
   '$aleph_search'(selected,selected([P,N,L|_],Clause,_,_)),
