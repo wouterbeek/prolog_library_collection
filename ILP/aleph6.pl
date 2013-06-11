@@ -4502,7 +4502,8 @@ find_clause(Search):-
   ->
     BestSoFar = Label1/ClauseNum;
     (
-      setting(best, Label2)
+      setting(best, Label2),
+      Label2 \== ''
     ->
       BestSoFar = Label2/0
     ;
@@ -4610,7 +4611,8 @@ find_theory(rls):-
     retract('$aleph_search'(rls_selected,selected([_,_,_,F1|_],_,_,_))),
     asserta('$aleph_search'(rls_selected,selected([P,N,L,F|T],RCl,PCov,NCov))),
     aleph5_set_setting(best,[P,N,L,F|T])),
-  aleph5_setting(best,BestSoFar),
+  aleph5_setting(best, BestSoFar),
+  BestSoFar \== '',
   (R1 > MaxTries;discontinue_search(S,BestSoFar/_,Nodes2)),
   !,
   stopwatch(Stop),
@@ -4748,7 +4750,8 @@ rls_search(1, MaxTries, Time, Nodes, Selected):-
               PCov,NCov))),
      aleph5_set_setting(best,Best)
    ),
-   aleph5_setting(best,BestSoFar),
+   aleph5_setting(best, BestSoFar),
+   BestSoFar \== '',
    retract('$aleph_search'(rls_nodes,Nodes1)),
    Nodes2 is Nodes0 + Nodes1,
    asserta('$aleph_search'(rls_nodes,Nodes2)),
@@ -4875,6 +4878,7 @@ collect(rls_restart,done(CPU, Nodes, selected(Best,RCl,PCov,NCov)),[T0,S], [T1,S
     aleph5_set_setting(best, Best)
   ),
   aleph5_setting(best, BestSoFar),
+  BestSoFar \== '',
   retract('$aleph_search'(rls_nodes,Nodes1)),
   Nodes2 is Nodes + Nodes1,
   asserta('$aleph_search'(rls_nodes,Nodes2)),
