@@ -14,7 +14,9 @@
     read_all/3, % +BackgroundBase:atom
                 % +PositiveExamplesBase:atom
                 % +NegativeExamplesBase:atom
-    sat/1 % +Example:number
+    sat/1, % +Example:number
+    write_features/0,
+    write_rules/0
   ]
 ).
 
@@ -74,6 +76,7 @@ please contact Ashwin Srinivasan first.
 
 :- dynamic(example/3).
 :- dynamic(false/0).
+:- dynamic(aleph_portray/1).
 
 :- db_add_novel(user:prolog_file_type(b, background_knowledge)).
 :- db_add_novel(user:prolog_file_type(f, pos)).
@@ -382,6 +385,7 @@ ilp(Base):-
 %           gives all results (slow) or only the top result (fast).
 
 ilp(Base, Mode):-
+  reset(Base),
   reset,
 
   % Start recording.
@@ -407,9 +411,7 @@ ilp(Base, Mode):-
   ),
 
   % Stop recording.
-  aleph5_set_setting(record, false),
-
-  reset(Base).
+  aleph5_set_setting(record, false).
 
 %! ilp_file(+File:atom) is det.
 % Perform ILP for the given input file.
@@ -3969,8 +3971,8 @@ create_copy(X,Y,OldT,NewT,Ab,Num,Last):-
   Example =.. [_|Args],
   NewExample =.. [Ab|Args],
   Num1 is Num + 1,
-  aleph_writeq(example(Num1,NewT,NewExample)),
   setting(record_stream, Stream),
+  aleph_writeq(Stream, example(Num1,NewT,NewExample)),
   format(Stream, '.\n', []),
   X1 is X + 1,
   create_copy(X1,Y,OldT,NewT,Ab,Num1,Last).
@@ -6242,8 +6244,8 @@ record_clause(good,Label,Clause,_):-
   aleph5_setting(goodfile_stream,GoodfileStream), !,
   set_output(GoodfileStream),
   Label = [_,_,L|_],
-  aleph_writeq('$aleph_good'(L,Label,Clause)),
   setting(record_stream, Stream),
+  aleph_writeq(Stream, '$aleph_good'(L,Label,Clause)),
   format(Stream, '.\n', []),
   flush_output(GoodfileStream),
   set_output(user_output).
@@ -7724,7 +7726,7 @@ pp_dclause(Stream, (H:-B),Pretty):-
   !,
   copy_term((H:-B),(Head:-Body)),
   numbervars((Head:-Body),0,_),
-  aleph_portray(Head,Pretty),
+  aleph_portray(Stream, Head, Pretty),
   (
     Pretty = true
   ->
@@ -7735,10 +7737,10 @@ pp_dclause(Stream, (H:-B),Pretty):-
   nl(Stream),
   setting(print, N),
   print_lits(Stream, Body,Pretty,1,N).
-pp_dclause(Stream, (Lit),Pretty):-
+pp_dclause(Stream, (Lit), Pretty):-
   copy_term(Lit,Lit1),
   numbervars(Lit1,0,_),
-  aleph_portray(Lit1,Pretty),
+  aleph_portray(Stream, Lit1, Pretty),
   format(Stream, '.\n', []).
 
 % pretty print a set of definite clauses
@@ -7763,7 +7765,7 @@ pp_dlist(Stream, Clause):-
 pp_dlist(Stream, Clause,Pretty):-
   copy_term(Clause,[Head1|Body1]),
   numbervars([Head1|Body1],0,_),
-  aleph_portray(Head1,Pretty),
+  aleph_portray(Stream, Head1, Pretty),
   (
     Body1 = []
   ->
@@ -7801,7 +7803,8 @@ print_lits(Stream, (Lit),Pretty,LitNum,_):-
 
 print_lit(Stream, Lit,Pretty,LitNum,LastLit,Sep,NextLit):-
   (LitNum = 1 -> tab(Stream, 3);true),
-  aleph_portray(Lit,Pretty), format(Stream, '~w', Sep),
+  aleph_portray(Stream, Lit, Pretty),
+  format(Stream, '~w', Sep),
   (LitNum=LastLit-> nl(Stream),NextLit=1; NextLit is LitNum + 1).
 
 p1_message(Mess):-
@@ -7810,10 +7813,6 @@ p1_message(Mess):-
 
 p1_message(Stream, Message):-
   format(Stream, '[~w]', [Message]).
-
-p_message(Mess):-
-  setting(record_stream, Stream),
-  p_message(Stream, Mess).
 
 p_message(Stream, Message):-
   format(Stream, '[~w]\n', [Message]).
@@ -9979,13 +9978,13 @@ show(Stream, abgen):-
   member(C,AbGen),
   pp_dclause(C),
   fail.
-show(_Stream, hypothesis):-
-  aleph5_setting(portray_hypothesis,Pretty),
-  aleph_portray(hypothesis,Pretty),
+show(Stream, hypothesis):-
+  aleph5_setting(portray_hypothesis, Pretty),
+  aleph_portray(Stream, hypothesis, Pretty),
   fail.
-show(_Stream, search):-
+show(Stream, search):-
   aleph5_setting(portray_search,Pretty),
-  aleph_portray(search,Pretty).
+  aleph_portray(Stream, search,Pretty).
 show(Stream, good):-
   aleph5_setting(good,true),
   nl(Stream),
@@ -10063,18 +10062,18 @@ show(Stream, Name/Arity):-
   \+(in(Body,'$aleph_search'(pclause,pclause(_,_)))),
   pp_dclause(Stream, (Pred:-Body)),
   fail.
-show(_Stream, train_pos):-
+show(Stream, train_pos):-
   aleph5_setting(portray_examples,Pretty),
-  aleph_portray(train_pos,Pretty).
-show(_Stream, train_neg):-
+  aleph_portray(Stream, train_pos,Pretty).
+show(Stream, train_neg):-
   aleph5_setting(portray_examples,Pretty),
-  aleph_portray(train_neg,Pretty).
-show(_Stream, test_pos):-
+  aleph_portray(Stream, train_neg,Pretty).
+show(Stream, test_pos):-
   aleph5_setting(portray_examples,Pretty),
-  aleph_portray(test_pos,Pretty).
-show(_Stream, test_neg):-
+  aleph_portray(Stream, test_pos,Pretty).
+show(Stream, test_neg):-
   aleph5_setting(portray_examples,Pretty),
-  aleph_portray(test_neg,Pretty).
+  aleph_portray(Stream, test_neg,Pretty).
 show(_Stream, _Category).
 
 settings:-
@@ -10090,8 +10089,8 @@ examples(Type,List):-
   aleph5_setting(portray_literals,Pretty),
   example(Num,Type,Atom),
   memberchk(Num,List),
-  aleph_portray(Atom,Pretty),
   setting(record_stream, Stream),
+  aleph_portray(Stream, Atom,Pretty),
   format(Stream, '.\n', []),
   fail.
 examples(_,_).
@@ -10138,7 +10137,7 @@ write_rules:-
   % Open stream.
   aleph5_setting(rule_file, File),
   access_file(File, write),
-  open(File, write, Stream, []),
+  open(File, write, Stream),
 
   % Write rules.
   '$aleph_global'(rules, rules(Rules1)),
@@ -10399,13 +10398,13 @@ test_file(File,Flag):-
     (once(depth_bound_call(Example)) ->
       (Flag = show ->
         p1_message(covered),
-        aleph_portray(Example,Pretty),
-        nl;
+        aleph_portray(Stream, Example,Pretty),
+        nl(Stream);
         true);
       (Flag = show ->
         p1_message('not covered'),
-        aleph_portray(Example,Pretty),
-        nl;
+        aleph_portray(Stream, Example, Pretty),
+        nl(Stream);
         true),
       fail),
     retract('$aleph_local'(covered,N0)),
@@ -10699,61 +10698,68 @@ show_global(Key,Pred):-
   '$aleph_global'(Key,Pred),
   copy_term(Pred,Pred1),
   numbervars(Pred1,0,_),
-  aleph_writeq(Pred1),
   setting(record_stream, Stream),
+  aleph_writeq(Stream, Pred1),
   format(Stream, '.\n', []),
   fail.
 show_global(_,_).
 
-aleph_portray(hypothesis,true):-
-  aleph_portray(hypothesis), !.
-aleph_portray(hypothesis,false):-
-  p_message('hypothesis'),
-  hypothesis(Head,Body,_),
-  pp_dclause((Head:-Body)), !.
-aleph_portray(_,hypothesis):-  !.
+%! aleph_portray(+Stream:stream, +Literal:atom, +Pretty:boolean) is det.
 
-aleph_portray(search,true):-
-  aleph_portray(search), !.
-aleph_portray(search,_):- !.
-
-aleph_portray(train_pos,true):-
-  aleph_portray(train_pos), !.
-aleph_portray(train_pos,_):-
+aleph_portray(Stream, hypothesis, true):-
+  aleph_portray(Stream, hypothesis),
+  !.
+aleph_portray(Stream, hypothesis, false):-
+  p_message(Stream, 'hypothesis'),
+  hypothesis(Head, Body, _),
+  pp_dclause(Stream, (Head:-Body)),
+  !.
+aleph_portray(Stream, search, true):-
+  aleph_portray(Stream, search),
+  !.
+aleph_portray(_Stream, search, false):-
+  !.
+aleph_portray(Stream, train_pos, true):-
+  aleph_portray(Stream, train_pos),
+  !.
+aleph_portray(_Stream, train_pos, false):-
   !,
-  aleph5_setting(train_pos,File),
+  % @tbd Multiple training files.
+  aleph5_setting(train_pos, File),
   show_file(File).
-
-aleph_portray(train_neg,true):-
-  aleph_portray(train_neg), !.
-aleph_portray(train_neg,_):-
+aleph_portray(Stream, train_neg, true):-
+  aleph_portray(Stream, train_neg),
+  !.
+aleph_portray(_Stream, train_neg, false):-
   !,
-  aleph5_setting(train_neg,File),
+  % @tbd Multiple training files.
+  aleph5_setting(train_neg, File),
   show_file(File).
-
-aleph_portray(test_pos,true):-
-  aleph_portray(test_pos), !.
-aleph_portray(test_pos,_):-
+aleph_portray(Stream, test_pos, true):-
+  aleph_portray(Stream, test_pos),
+  !.
+aleph_portray(_Stream, test_pos, false):-
   !,
+  % @tbd Multiple test files.
   aleph5_setting(test_pos, File),
   File \== '',
   show_file(File).
-
-aleph_portray(test_neg,true):-
-  aleph_portray(test_neg), !.
-aleph_portray(test_neg,_):-
+aleph_portray(Stream, test_neg, true):-
+  aleph_portray(Stream, test_neg),
+  !.
+aleph_portray(_Stream, test_neg, false):-
   !,
+  % @tbd Multiple test files.
   aleph5_setting(test_neg, File),
   File \== '',
   show_file(File).
+aleph_portray(Stream, Lit, true):-
+  aleph_portray(Stream, Lit),
+  !.
+aleph_portray(Stream, Lit, false):-
+  aleph_writeq(Stream, Lit).
 
-aleph_portray(Lit,true):-
-  aleph_portray(Lit), !.
-aleph_portray(Lit,_):-
-  aleph_writeq(Lit).
-
-aleph_writeq(Lit):-
-  setting(record_stream, Stream),
+aleph_writeq(Stream, Lit):-
   write_term(Stream, Lit, [numbervars(true), quoted(true)]).
 
 show_file(File):-
@@ -10800,4 +10806,8 @@ write_profile_data(Stream, [D-P|SLP]):-
 aleph5_set_setting(Name, Value):-
   set_setting(Name, Value),
   special_consideration(Name, Value).
+
+p_message(Mess):-
+  setting(record_stream, Stream),
+  p_message(Stream, Mess).
 
