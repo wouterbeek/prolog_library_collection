@@ -43,6 +43,20 @@ Aleph is freely available for academic purposes.
 If you intend to use it for commercial purposes then
 please contact Ashwin Srinivasan first.
 
+---+ Changes from Aleph5
+
+  * Use =|library(settings)|= to cover the many settings that Aleph uses.
+    This makes the settings module-aware and module-specific.
+    This is more modular than using global variables.
+    This introduces type checking of setting values (using the types
+    recognized by must_be/2). This replaces the less advanced
+    type checking operation.
+  * Fixed several settings that had default values that were
+    inconsitent with their domain restriction.
+  * Many list operations that were performed by custom predicates now
+    use predicates from =|library(lists)|=.
+    These are better documented and may provide a performance improvement.
+
 @author Ashwin Srinivasan (ashwin@comlab.ox.ac.uk),
 @author Wouter Beek (me@wouterbeek.com)
 @see www.comlab.ox.ac.uk/oucl/research/areas/machlearn/Aleph/index.html
