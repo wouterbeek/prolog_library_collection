@@ -337,7 +337,20 @@ please contact Ashwin Srinivasan first.
 
 :- setting(autorefine, boolean, false, 'Unknown').
 
+:- setting(construct_features, boolean, false, 'Unknown').
+
+:- setting(gcws, boolean, false, 'Unknown').
+
+:- setting(greedy, boolean, false, 'Unknown').
+
 :- setting(maxcover, boolean, false, 'Unknown').
+
+:- setting(prune_defs, boolean, false, 'Unknown').
+
+% @tbd Add must_be/2 support for streams?
+:- setting(recordfile_stream, any, '', 'Unknown').
+
+:- setting(recursion, boolean, false, 'Unknown').
 
 
 
@@ -4909,7 +4922,14 @@ induce:-
     '$aleph_global'(besthyp,besthyp([-1e10,0,1,-1e10],0,(false),[],[]))
   ),
   get_besthyp(Abduce),
-  (aleph5_setting(gcws,true) -> sphyp, addgcws; addhyp),
+  (
+    aleph5_setting(gcws, true)
+  ->
+    sphyp,
+    addgcws
+  ;
+    addhyp
+  ),
   show_atoms_left,
   record_atoms_left,
   '$aleph_global'(atoms_left,atoms_left(pos,[])),
@@ -5928,23 +5948,47 @@ find_mode(modeb,Name/Arity,Mode):-
   functor(Mode,Name,Arity),
   '$aleph_global'(modeb,modeb(_,Mode)).
 
-% copy_modeterms(+Mode,+Lit,+Arity)
-%   copy all term structures in a mode template
-copy_modeterms(_,_,0):- !.
-copy_modeterms(Mode,Lit,Arg):-
-        arg(Arg,Mode,Term),
-  nonvar(Term),
-        functor(Term,Name,Arity),
-        \+((Name = '+'; Name = '-'; Name = '#')), !,
-        functor(NewTerm,Name,Arity),
-        arg(Arg,Lit,NewTerm),
-        copy_modeterms(Term,NewTerm,Arity),
-        Arg0 is Arg - 1,
-        copy_modeterms(Mode,Lit,Arg0).
-copy_modeterms(Mode,Lit,Arg):-
-        Arg0 is Arg - 1,
-        copy_modeterms(Mode,Lit,Arg0).
+%! copy_modeterms(+Mode, +Lit, +Arity)
+% Copy all term structures in a mode template.
+%
+% Example of a mode template:
+% ~~~{.pl}
+% father(+person,+person)
+% ~~~
+%
+% Example of a literal:
+% ~~~{.pl}
+% father(_G406,_G407)
+% ~~~
+%
+% The arity for the above example is _2_.
 
+copy_modeterms(_Mode, _Lit, 0):-
+  !.
+copy_modeterms(Mode, Lit, Arg):-
+  % Take one of the mode arguments, this is a modetype.
+  arg(Arg, Mode, Term),
+  nonvar(Term),
+  % Take the prefix of the simple modetype.
+  functor(Term, Name, Arity),
+  \+(
+    (
+      Name = '+'
+    ;
+      Name = '-'
+    ;
+      Name = '#'
+    )
+  ),
+  !,
+  functor(NewTerm,Name,Arity),
+  arg(Arg,Lit,NewTerm),
+  copy_modeterms(Term,NewTerm,Arity),
+  Arg0 is Arg - 1,
+  copy_modeterms(Mode,Lit,Arg0).
+copy_modeterms(Mode,Lit,Arg):-
+  Arg0 is Arg - 1,
+  copy_modeterms(Mode,Lit,Arg0).
 
 % theorem-prover for lazy evaluation of literals
 lazy_prove(Type,Lit,Clause,Intervals):-
@@ -6204,7 +6248,9 @@ record_clause(good,Label,Clause,_):-
   set_output(user_output).
 record_clause(Flag,Label,Clause,Nodes):-
   Flag \= good,
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   show_clause(Flag,Label,Clause,Nodes),
   flush_output(Stream),
@@ -6212,23 +6258,29 @@ record_clause(Flag,Label,Clause,Nodes):-
 record_clause(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  aleph5_setting(recordfile_stream,Stream), !,
-        set_output(Stream),
-        show_theory(Label,Clauses,Nodes,Flag),
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
+  set_output(Stream),
+  show_theory(Label,Clauses,Nodes,Flag),
   flush_output(Stream),
         set_output(user_output).
 record_theory(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  aleph5_setting(recordfile_stream,Stream), !,
-        set_output(Stream),
-        show_theory(Label,Clauses,Nodes,Flag),
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
+  set_output(Stream),
+  show_theory(Label,Clauses,Nodes,Flag),
   flush_output(Stream),
-        set_output(user_output).
+  set_output(user_output).
 record_theory(_,_,_,_).
 
 record_sat_example(N):-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   p1_message('sat'), p_message(N),
   flush_output(Stream),
@@ -6236,7 +6288,9 @@ record_sat_example(N):-
 record_sat_example(_).
 
 record_search_stats(Clause,Nodes,Time):-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   p1_message('clauses constructed'), p_message(Nodes),
   p1_message('search time'), p_message(Time),
@@ -6248,7 +6302,9 @@ record_search_stats(Clause,Nodes,Time):-
 record_search_stats(_,_,_).
 
 record_tsearch_stats(Theory,Nodes,Time):-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   p1_message('theories constructed'), p_message(Nodes),
   p1_message('search time'), p_message(Time),
@@ -6259,7 +6315,9 @@ record_tsearch_stats(Theory,Nodes,Time):-
 record_tsearch_stats(_,_,_).
 
 record_theory(Time):-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   show(theory),
   stream_message('[time taken] ~w seconds\n', [Time]),
@@ -6277,7 +6335,8 @@ record_theory(Time):-
 record_theory(_).
 
 record_features(Time):-
-  aleph5_setting(recordfile_stream,Stream),
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
   !,
   set_output(Stream),
   show(features),
@@ -6287,7 +6346,8 @@ record_features(Time):-
 record_features(_).
 
 record_settings:-
-  aleph5_setting(recordfile_stream,Stream),
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
   !,
   set_output(Stream),
   (
@@ -6355,7 +6415,9 @@ update_search_stats(N,T):-
   asserta('$aleph_global'(search_stats,search_stats(N1,T1))).
 
 record_total_stats:-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   show_total_stats,
   flush_output(Stream),
@@ -6363,7 +6425,9 @@ record_total_stats:-
 record_total_stats.
 
 record_atoms_left:-
-  aleph5_setting(recordfile_stream,Stream), !,
+  aleph5_setting(recordfile_stream, Stream),
+  is_stream(Stream),
+  !,
   set_output(Stream),
   show_atoms_left,
   flush_output(Stream),
@@ -8539,7 +8603,7 @@ check_recursive_calls:-
   '$aleph_global'(targetpred,targetpred(Name/Arity)),
   '$aleph_global'(determination,determination(Name/Arity,Name/Arity)),
   record_recursive_sat_call(Name/Arity),
-  aleph5_set_setting(recursion,true),
+  aleph5_set_setting(recursion, true),
   fail.
 check_recursive_calls.
 
@@ -8565,7 +8629,7 @@ check_posonly.
 
 check_prune_defs:-
   clause(prune(_),_), !,
-  aleph5_set_setting(prune_defs,true).
+  aleph5_set_setting(prune_defs, true).
 check_prune_defs.
 
 check_auto_refine:-
@@ -9445,6 +9509,7 @@ read_examples(PositiveExamplesBase, NegativeExamplesBase):-
 % The files with positive training examples have been set internally.
 read_positive_examples(_PositiveExamplesBase):-
   aleph5_setting(train_pos, PositiveExamplesFiles),
+  PositiveExamplesFiles \== '',
   !,
   read_examples_files(pos, PositiveExamplesFiles, _Dummy1).
 read_positive_examples(PositiveExamplesBase):-
@@ -9454,6 +9519,7 @@ read_positive_examples(PositiveExamplesBase):-
 % The files with negative training examples have been set internally.
 read_negative_examples(_NegativeExamplesBase):-
   aleph5_setting(train_neg, NegativeExamplesFiles),
+  NegativeExamplesFiles \== '',
   !,
   read_examples_files(neg, NegativeExamplesFiles, _Dummy2).
 read_negative_examples(NegativeExamplesBase):-
@@ -9499,7 +9565,7 @@ read_examples_files(Type, ExamplesBases, ExamplesFiles):-
 % @arg ExamplesFile The atomic absolute examples file name.
 
 read_examples_from_file(Type, ExamplesBase, ExamplesFile):-
-  absolute_file_name(data(ExamplesBase), ExamplesFile, [file_type(Type)]),
+  absolute_file_name(data(ExamplesBase), ExamplesFile, [access(read), file_type(Type)]),
   (
     aleph_open(ExamplesFile, read, Stream)
   ->
@@ -9664,16 +9730,16 @@ reinstate_values:-
   !.
 reinstate_values.
 
+% @tbd ?
 reinstate_file_streams:-
-  aleph5_setting(recordfile,File),
-  aleph5_set_setting(recordfile,File),
+  aleph5_setting(recordfile, File),
+  aleph5_set_setting(recordfile, File),
   fail.
 reinstate_file_streams:-
-  aleph5_setting(goodfile,File),
-  aleph5_set_setting(goodfile,File),
+  aleph5_setting(goodfile, File),
+  aleph5_set_setting(goodfile, File),
   fail.
 reinstate_file_streams.
-
 
 % bottom_key(?N,?T,-Key,-Flag)
 %  returns key that indexes bottom clause info for example N of type T
@@ -9692,6 +9758,18 @@ bottom_key(N,T,Key,Flag):-
     Key = false,
     Flag = false).
 
+% @tbd Support for streams.
+%aleph5_setting(Setting, Value):-
+%  setting_property(Setting, type(stream)),
+%  !,
+%  setting(Setting, Value),
+%  is_stream(Value).
+% @tbd Support for files.
+%aleph5_setting(Setting, Value):-
+%  setting_property(Setting, type(file)),
+%  !,
+%  setting(Setting, Value),
+%  exists_file(Value).
 aleph5_setting(Setting, Value):-
   nonvar(Setting),
   setting(Setting, Value1),
@@ -10450,18 +10528,29 @@ special_consideration(portray_literals,true):-
 
 special_consideration(record,true):-
   aleph5_restore_setting(recordfile_stream),
-  (aleph5_setting(recordfile,F) ->
-    aleph_open(F,append,Stream),
-    aleph5_set_setting(recordfile_stream,Stream);
-    true), !.
+  (
+    aleph5_setting(recordfile, File),
+    exists_file(File)
+  ->
+    aleph_open(File, append, Stream),
+    aleph5_set_setting(recordfile_stream, Stream)
+  ;
+    true
+  ),
+  !.
 special_consideration(record,false):-
   aleph5_restore_setting(recordfile_stream), !.
-special_consideration(recordfile,File):-
+special_consideration(recordfile, File):-
   aleph5_restore_setting(recordfile_stream),
-  (aleph5_setting(record,true) ->
-    aleph_open(File,append,Stream),
-    aleph5_set_setting(recordfile_stream,Stream);
-    true), !.
+  (
+    aleph5_setting(record, true)
+  ->
+    aleph_open(File, append, Stream),
+    aleph5_set_setting(recordfile_stream,Stream)
+  ;
+    true
+  ),
+  !.
 special_consideration(good,true):-
   aleph5_restore_setting(goodfile_stream),
   (aleph5_setting(goodfile,F) ->
@@ -10490,7 +10579,15 @@ rm_special_consideration(record,_):-
   aleph5_restore_setting(recordfile_stream),
   !.
 rm_special_consideration(recordfile_stream,_):-
-  (aleph5_setting(recordfile_stream,S) -> close(S); true), !.
+  (
+    aleph5_setting(recordfile_stream, Stream),
+    is_stream(Stream)
+  ->
+    close(Stream)
+  ;
+    true
+  ),
+  !.
 rm_special_consideration(good,_):-
   aleph5_restore_setting(goodfile_stream), !.
 rm_special_consideration(goodfile_stream,_):-
