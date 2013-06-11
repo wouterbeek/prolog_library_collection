@@ -211,10 +211,13 @@ please contact Ashwin Srinivasan first.
 % @tbd File name.
 :- setting(train_pos, atom, '', 'Positive examples for training').
 
+:- setting(record, boolean, false, 'Log to file').
+
 % @tbd File name.
 :- setting(recordfile, atom, '', 'Log filename').
 
-:- setting(record, boolean, false, 'Log to file').
+% @tbd Add must_be/2 support for streams?
+:- setting(recordfile_stream, any, '', 'Unknown').
 
 % @tbd File name.
 :- setting(rulefile, atom, '', 'Rule file').
@@ -347,9 +350,6 @@ please contact Ashwin Srinivasan first.
 
 :- setting(prune_defs, boolean, false, 'Unknown').
 
-% @tbd Add must_be/2 support for streams?
-:- setting(recordfile_stream, any, '', 'Unknown').
-
 :- setting(recursion, boolean, false, 'Unknown').
 
 
@@ -376,8 +376,7 @@ depth_bound_call(Goal, Limit):-
 
 ilp(Base):-
   current_log_stream(Stream),
-  ilp(Base, Stream),
-  close_log_stream(Stream).
+  ilp(Base, Stream).
 
 %! ilp(+Base:atom, +Stream:stream) is det.
 % @see ilp/3.
@@ -3954,7 +3953,7 @@ gen_ab_examples(Ab/_,PCover,NCover):-
 % copy stored in File
 create_examples(File,Ab,OldT,OldE,NewT,[Next-Last]):-
   '$aleph_global'(last_example,last_example(NewT,OldLast)),
-  aleph_open(File,write,Stream),
+  open(File, write, Stream),
   set_output(Stream),
   create_copy(OldE,OldT,NewT,Ab,OldLast,Last),
   close(Stream),
@@ -5393,8 +5392,8 @@ gen_features:-
   (aleph5_setting(dependent,PredictArg) -> true; PredictArg is 0),
   aleph5_setting(good,true),
   aleph5_setting(goodfile,File),
-  aleph_open(File,read,Stream),
-        (aleph5_setting(minscore,FMin) -> true; FMin = -1e10),
+  open(File, read, Stream),
+  (aleph5_setting(minscore,FMin) -> true; FMin = -1e10),
   repeat,
   read(Stream,Fact),
   (Fact = '$aleph_good'(_,Label,Clause) ->
@@ -8434,9 +8433,6 @@ aleph_abolish(Name/Arity):-
     retractall(Pred);
     abolish(Name/Arity)).
 
-aleph_open(File, Mode, Stream):-
-  catch(open(File, Mode, Stream, [type(text)]), _Error, fail).
-
 clean_up:-
   clean_up_init,
   clean_up_sat,
@@ -9571,7 +9567,7 @@ read_examples_files(Type, ExamplesBases, ExamplesFiles):-
 read_examples_from_file(Type, ExamplesBase, ExamplesFile):-
   absolute_file_name(data(ExamplesBase), ExamplesFile, [access(read), file_type(Type)]),
   (
-    aleph_open(ExamplesFile, read, Stream)
+    open(ExamplesFile, read, Stream)
   ->
     stream_message('Consulting ~w from ~w.\n', [Type, ExamplesFile])
   ;
@@ -10016,7 +10012,7 @@ show(Stream, good):-
 show(Stream, good):-
   aleph5_setting(good,true),
   aleph5_setting(goodfile,File),
-  aleph_open(File,read,ReadStream),
+  open(File, read, ReadStream),
   (aleph5_setting(minscore,FMin) -> true; FMin is -1e10),
   aleph5_setting(evalfn,Evalfn),
   repeat,
@@ -10130,7 +10126,7 @@ write_features:-
 write_features.
 
 write_rules(File):-
-  aleph_open(File,write,Stream),
+  open(File, write, Stream),
   set_output(Stream),
   '$aleph_global'(rules,rules(L)),
   reverse(L, L1),
@@ -10146,7 +10142,7 @@ write_rule(Rules):-
 write_rule(_).
 
 write_features(File):-
-  aleph_open(File,write,Stream),
+  open(File, write, Stream),
   set_output(Stream),
   listing('$aleph_feature'/2),
   close(Stream),
@@ -10387,7 +10383,8 @@ test_files([File|Files],Flag):-
 test_file('?',_):- !.
 test_file(File,Flag):-
   aleph5_setting(portray_examples,Pretty),
-  aleph_open(File,read,Stream), !,
+  open(File, read, Stream),
+  !,
   repeat,
   read(Stream,Example),
   (Example = end_of_file -> close(Stream);
@@ -10512,66 +10509,101 @@ number(-1e10,MInf):-
 number(X,Y):-
   Y is X, !.
 
-% the following needed for compatibility with P-Progol
-special_consideration(search,ida):-
-  aleph5_set_setting(search,bf), aleph5_set_setting(evalfn,coverage), !.
-special_consideration(search,compression):-
-  aleph5_set_setting(search,heuristic), aleph5_set_setting(evalfn,compression), !.
-special_consideration(search,posonly):-
-  aleph5_set_setting(search,heuristic), aleph5_set_setting(evalfn,posonly), !.
-special_consideration(search,user):-
-  aleph5_set_setting(search,heuristic), aleph5_set_setting(evalfn,user), !.
+%! special_consideration(+Setting:atom, +Value) is det.
+% Special settings in case specific options are changed.
 
-special_consideration(refine,Refine):-
-  aleph5_set_setting(refineop,Refine), !.
-special_consideration(refineop,auto):-
-  gen_auto_refine, !.
-
-special_consideration(portray_literals,true):-
-  aleph5_set_setting(print,1), !.
-
-special_consideration(record,true):-
+% Special actions upon changing setting =refine=.
+% The refine operator must follow the refine option.
+special_consideration(refine, Refine):-
+  aleph5_set_setting(refineop, Refine),
+  !.
+special_consideration(refineop, auto):-
+  gen_auto_refine,
+  !.
+% Special actions upon changing setting =search=.
+special_consideration(search, ida):-
+  aleph5_set_setting(search, bf),
+  aleph5_set_setting(evalfn, coverage),
+  !.
+special_consideration(search, compression):-
+  aleph5_set_setting(search, heuristic),
+  aleph5_set_setting(evalfn, compression),
+  !.
+special_consideration(search, posonly):-
+  aleph5_set_setting(search, heuristic),
+  aleph5_set_setting(evalfn, posonly),
+  !.
+special_consideration(search, user):-
+  aleph5_set_setting(search, heuristic),
+  aleph5_set_setting(evalfn,user),
+  !.
+% Special actions upon changing setting =protray_literals=.
+special_consideration(portray_literals, true):-
+  aleph5_set_setting(print, 1),
+  !.
+% Special actions upon changing setting =record=.
+special_consideration(record, true):-
   aleph5_restore_setting(recordfile_stream),
   (
     aleph5_setting(recordfile, File),
     exists_file(File)
   ->
-    aleph_open(File, append, Stream),
+    open(File, append, Stream),
     aleph5_set_setting(recordfile_stream, Stream)
   ;
     true
   ),
   !.
-special_consideration(record,false):-
-  aleph5_restore_setting(recordfile_stream), !.
+special_consideration(record, false):-
+  setting(recordfile_stream, Stream),
+  if_then(
+    is_stream(Stream),
+    (
+      flush(Stream),
+      close(Stream)
+    )
+  ),
+  aleph5_restore_setting(recordfile_stream),
+  !.
 special_consideration(recordfile, File):-
   aleph5_restore_setting(recordfile_stream),
-  (
-    aleph5_setting(record, true)
-  ->
-    aleph_open(File, append, Stream),
-    aleph5_set_setting(recordfile_stream,Stream)
-  ;
-    true
+  if_then(
+    aleph5_setting(record, true),
+    (
+      open(File, append, Stream),
+      aleph5_set_setting(recordfile_stream, Stream)
+    )
   ),
   !.
-special_consideration(good,true):-
+% Special actions upon changing setting =good=.
+special_consideration(good, false):-
   aleph5_restore_setting(goodfile_stream),
-  (aleph5_setting(goodfile,F) ->
-    aleph_open(F,append,Stream),
-    aleph5_set_setting(goodfile_stream,Stream);
-    true), !.
-special_consideration(good,false):-
-  aleph5_restore_setting(goodfile_stream), !.
-special_consideration(goodfile,File):-
+  !.
+special_consideration(good, true):-
   aleph5_restore_setting(goodfile_stream),
-  (aleph5_setting(good,true) ->
-    aleph_open(File,append,Stream),
-    aleph5_set_setting(goodfile_stream,Stream);
-    true), !.
-special_consideration(minscore,_):-
-  aleph_abolish('$aleph_feature'/2), !.
-special_consideration(_,_).
+  if_then(
+    aleph5_setting(goodfile, File),
+    (
+      open(File, append, Stream),
+      aleph5_set_setting(goodfile_stream, Stream)
+    )
+  ),
+  !.
+% Special actions upon changing setting =goodfile=.
+special_consideration(goodfile, File):-
+  aleph5_restore_setting(goodfile_stream),
+  if_then(
+    aleph5_setting(good, true),
+    (
+      open(File, append, Stream),
+      aleph5_set_setting(goodfile_stream, Stream)
+    )
+  ),
+  !.
+special_consideration(minscore, _):-
+  aleph_abolish('$aleph_feature'/2),
+  !.
+special_consideration(_Setting, _Value).
 
 rm_special_consideration(portray_literals,_):-
   restore_setting(print),
@@ -10718,7 +10750,7 @@ aleph_writeq(Lit):-
   write_term(Stream, Lit, [numbervars(true), quoted(true)]).
 
 show_file(File):-
-  aleph_open(File,read,ReadStream),
+  open(File, read, ReadStream),
   repeat,
   read(Stream,Clause),
   (
