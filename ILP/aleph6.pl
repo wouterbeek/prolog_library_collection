@@ -335,6 +335,8 @@ please contact Ashwin Srinivasan first.
 
 % UNKNOWN %
 
+:- setting(autorefine, boolean, false, 'Unknown').
+
 :- setting(maxcover, boolean, false, 'Unknown').
 
 
@@ -6401,13 +6403,12 @@ show_stats(Evalfn,[P,N,_,F|_]):-
 % built-in refinement operator
 
 gen_auto_refine:-
-  (aleph5_setting(autorefine,true) -> true;
-    aleph5_set_setting(autorefine,true),
-    process_modes,
-    process_determs),
+  aleph5_setting(autorefine, true),
   !.
-gen_auto_refine.
-
+gen_auto_refine:-
+  aleph5_set_setting(autorefine, true),
+  process_modes,
+  process_determs.
 
 process_modes:-
   once(aleph_abolish('$aleph_link_vars'/2)),
@@ -8568,9 +8569,16 @@ check_prune_defs:-
 check_prune_defs.
 
 check_auto_refine:-
-  (aleph5_setting(construct_bottom,reduction);aleph5_setting(construct_bottom,false)),
-  \+(aleph5_setting(autorefine,true)), !,
-  (aleph5_setting(refine,user) -> true; aleph5_set_setting(refine,auto)).
+  (
+    aleph5_setting(construct_bottom, reduction)
+  ;
+    aleph5_setting(construct_bottom, false)
+  ),
+  aleph5_setting(autorefine, false),
+  unless(
+    aleph5_setting(refine, user),
+    aleph5_set_setting(refine, auto)
+  ).
 check_auto_refine.
 
 check_user_search:-
@@ -10656,6 +10664,6 @@ set_current_stream(Stream):-
 aleph5_set_setting(Name,Value):-
   set_setting(Name, Value),
   % @tbd This broadcast is never listened to.
-  broadcast(set(Name, V)),
+  broadcast(set(Name, Value)),
   special_consideration(Name, Value).
 
