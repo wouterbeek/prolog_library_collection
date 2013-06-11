@@ -52,6 +52,7 @@ please contact Ashwin Srinivasan first.
 :- use_module(generics(db_ext)).
 :- use_module(generics(logging)).
 :- use_module(generics(meta_ext)).
+:- use_module(generics(os_ext)).
 :- use_module(library(broadcast)).
 :- use_module(library(dialect/hprolog), [memberchk_eq/2]).
 :- use_module(library(lists)).
@@ -6271,7 +6272,7 @@ record_settings:-
   !,
   set_output(Stream),
   (
-    '$aleph_global'(os,set(os,unix))
+    is_unix
   ->
     execute(date),
     execute(hostname)
