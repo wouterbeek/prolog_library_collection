@@ -3,9 +3,6 @@
   [
     ilp/1, % +Base:atom
     ilp/2, % +Base:atom
-           % +Stream:stream
-    ilp/3, % +Base:atom
-           % +Stream:stream
            % +Mode:atom
     ilp_file/1, % +File:atom
     ilp_mode/1, % ?Mode:atom
@@ -17,8 +14,7 @@
     read_all/3, % +BackgroundBase:atom
                 % +PositiveExamplesBase:atom
                 % +NegativeExamplesBase:atom
-    sat/1, % +Example:number
-    set_current_stream/1 % +Stream
+    sat/1 % +Example:number
   ]
 ).
 
@@ -67,7 +63,6 @@ please contact Ashwin Srinivasan first.
 :- use_module(generics(logging)).
 :- use_module(generics(meta_ext)).
 :- use_module(generics(os_ext)).
-:- use_module(library(broadcast)).
 :- use_module(library(dialect/hprolog), [memberchk_eq/2]).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
@@ -76,7 +71,6 @@ please contact Ashwin Srinivasan first.
 % This must come before this predicate is defined dynamic.
 :- redefine_system_predicate(false).
 
-:- dynamic(current_stream/1).
 :- dynamic(example/3).
 :- dynamic(false/0).
 
@@ -214,10 +208,10 @@ please contact Ashwin Srinivasan first.
 :- setting(record, boolean, false, 'Log to file').
 
 % @tbd File name.
-:- setting(recordfile, atom, '', 'Log filename').
+:- setting(record_file, atom, '', 'Log filename').
 
 % @tbd Add must_be/2 support for streams?
-:- setting(recordfile_stream, any, '', 'Unknown').
+:- setting(record_stream, any, '', 'Unknown').
 
 % @tbd File name.
 :- setting(rulefile, atom, '', 'Rule file').
@@ -375,32 +369,25 @@ depth_bound_call(Goal, Limit):-
 % @see ilp/3.
 
 ilp(Base):-
-  current_log_stream(Stream),
-  ilp(Base, Stream).
+  ilp(Base, det).
 
-%! ilp(+Base:atom, +Stream:stream) is det.
-% @see ilp/3.
-
-ilp(Base, Stream):-
-  ilp(Base, Stream, det).
-
-%! ilp(+Base:atom, +Stream:stream, +Mode:atom) is det.
+%! ilp(+Base:atom, +Mode:atom) is det.
 % Runs the ILP algorithm.
 %
 % @arg Base The base name of the input files.
-% @arg Stream The stream to which the results are written.
 % @arg Mode Either 'det', 'nondet' and 'both'. Whether the algorithm
-%        gives all results (slow) or only the top result (fast).
+%           gives all results (slow) or only the top result (fast).
 
-ilp(Base, Stream, Mode):-
-  set_current_stream(Stream),
-  % The default stream is the swipl terminal.
-  unless(
-    current_stream(_SomeStream),
-    asserta(current_stream(user_output))
-  ),
+ilp(Base, Mode):-
   reset,
+
+  % Start recording.
+  current_log_file(File),
+  aleph5_set_setting(record_file, File),
+  aleph5_set_setting(record, true),
+
   read_all(Base),
+
   (
     Mode == det
   ->
@@ -415,6 +402,10 @@ ilp(Base, Stream, Mode):-
     induce,
     induce_max
   ),
+
+  % Stop recording.
+  aleph5_set_setting(record, false),
+
   reset(Base).
 
 %! ilp_file(+File:atom) is det.
@@ -2116,7 +2107,7 @@ split_ok(_,Clause,Lit):-
   copy_term(Clause/Lit,Clause1/Lit1),
   lit_redun(Lit1,Clause1), !,
   p_message('redundant literal'),
-  current_stream(Stream),
+  setting(record_stream, Stream),
   nl(Stream),
   fail.
 split_ok(_,_,_).
@@ -3659,7 +3650,7 @@ get_best_subtree(S,_,_,[Clause|_],_,Gain,Left,Right):-
 get_best_subtree(false,_,Gain,Left,Right):-
   retract('$aleph_search'(tree_gain,tree_gain(Gain,Left,Right))), !.
 get_best_subtree(true,Clause,Gain,Left,Right):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '\nExtending path: \n---------------\n', []),
   pp_dclause(Stream, Clause),
   findall(
@@ -3675,7 +3666,7 @@ get_best_subtree(true,Clause,Gain,Left,Right):-
   retractall('$aleph_search'(tree_gain,_)).
 
 get_best_split(Clause,Splits,Gain,Left,Right):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   show_split_list(Stream,Clause,Splits),
   ask_best_split(Splits,Gain,Left,Right).
 
@@ -3713,7 +3704,7 @@ show_split_list(
 
 ask_best_split(Splits,Gain,Left,Right):-
   repeat,
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '\t\t\t\t-> Select Split Number (or "none.")\n', []),
   read(Answer),
   (
@@ -3976,7 +3967,7 @@ create_copy(X,Y,OldT,NewT,Ab,Num,Last):-
   NewExample =.. [Ab|Args],
   Num1 is Num + 1,
   aleph_writeq(example(Num1,NewT,NewExample)),
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '.\n', []),
   X1 is X + 1,
   create_copy(X1,Y,OldT,NewT,Ab,Num1,Last).
@@ -4103,28 +4094,23 @@ sat(Type,Num):-
         aleph5_setting(construct_bottom,false), !,
         sat_prelims,
   example(Num,Type,Example),
-  broadcast(start(sat(Num))),
   p1_message('sat'), p_message(Num), p_message(Example),
   record_sat_example(Num),
   asserta('$aleph_sat'(example,example(Num,Type))),
-  asserta('$aleph_sat'(hovars,[])),
-  broadcast(end(sat(Num, 0, 0.0))).
+  asserta('$aleph_sat'(hovars,[])).
 sat(Type,Num):-
   aleph5_setting(construct_bottom,reduction), !,
   sat_prelims,
   example(Num,Type,Example),
-  broadcast(start(sat(Num))),
   p1_message('sat'), p_message(Num), p_message(Example),
   record_sat_example(Num),
   asserta('$aleph_sat'(example,example(Num,Type))),
   integrate_head_lit(HeadOVars),
-  asserta('$aleph_sat'(hovars,HeadOVars)),
-  broadcast(end(sat(Num, 0, 0.0))).
+  asserta('$aleph_sat'(hovars,HeadOVars)).
 sat(Type,Num):-
   aleph5_set_setting(stage,saturation),
   sat_prelims,
   example(Num,Type,Example),
-  broadcast(start(sat(Num))),
   p1_message('sat'), p_message(Num), p_message(Example),
   record_sat_example(Num),
   asserta('$aleph_sat'(example,example(Num,Type))),
@@ -4161,7 +4147,6 @@ sat(Type,Num):-
   show(bottom),
   p1_message('literals'), p_message(TotalLiterals),
   p1_message('saturation time'), p_message(Time),
-  broadcast(end(sat(Num, TotalLiterals, Time))),
   store(bottom),
   aleph5_restore_setting(stage).
 sat(_,_):-
@@ -5083,7 +5068,7 @@ induce_incremental:-
     asserta('$aleph_global'(example_selected, example_selected(pos,N))),
     once(sat(N)),
     once(reduce),
-    current_stream(Stream),
+    setting(record_stream, Stream),
     once(process_hypothesis(Stream)),
     fail
   ),
@@ -5424,7 +5409,7 @@ has_class(Argno,Head,Body,Class):-
   ground(Class), !.
 
 ask_example(E):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   ('$aleph_global'(example_selected,example_selected(pos,N)) ->
     example(N,pos,E1);
     E1 = none),
@@ -5517,13 +5502,13 @@ process_hypothesis(_Stream, AlephCommand):-
   AlephCommand.
 
 show_options(Stream, example_selection):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '\n\t\t\t\tOptions:\n', []),
   format(Stream, '\t\t\t\t\t\t\t\t-> "ok." to accept default example\n', []),
   format(Stream, '\t\t\t\t\t\t\t\t-> Enter an example\n', []),
   format(Stream, '\t\t\t\t\t\t\t\t-> ctrl-D or "none." to end\n\n', []).
 show_options(Stream, hypothesis_selection):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '\n\t\t\t\tOptions:\n', []),
   format(Stream, '\t\t\t\t\t\t\t\t-> "ok." to accept clause\n', []),
   format(
@@ -5573,14 +5558,24 @@ get_performance(Stream):-
   p_message(Stream, [Tp,Fp,Fn,Tn]),
   fail.
 get_performance(Stream):-
-  (aleph5_setting(test_pos,PFile) ->
+  (
+    aleph5_setting(test_pos, PFile),
+    PFile \== ''
+  ->
     test(PFile,noshow,Tp,TotPos),
-    Fn is TotPos - Tp;
-    TotPos = 0, Tp = 0, Fn = 0),
-  (aleph5_setting(test_neg,NFile) ->
+    Fn is TotPos - Tp
+  ;
+    TotPos = 0, Tp = 0, Fn = 0
+  ),
+  (
+    aleph5_setting(test_neg, NFile),
+    NFile \== ''
+  ->
     test(NFile,noshow,Fp,TotNeg),
-    Tn is TotNeg - Fp;
-    TotNeg = 0, Tn = 0, Fp = 0),
+    Tn is TotNeg - Fp
+  ;
+    TotNeg = 0, Tn = 0, Fp = 0
+  ),
   TotPos + TotNeg > 0,
   p_message(Stream, 'Test set performance'),
   write_cmatrix(Stream, [Tp,Fp,Fn,Tn]),
@@ -6245,13 +6240,13 @@ record_clause(good,Label,Clause,_):-
   set_output(GoodfileStream),
   Label = [_,_,L|_],
   aleph_writeq('$aleph_good'(L,Label,Clause)),
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '.\n', []),
   flush_output(GoodfileStream),
   set_output(user_output).
 record_clause(Flag,Label,Clause,Nodes):-
   Flag \= good,
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6261,7 +6256,7 @@ record_clause(Flag,Label,Clause,Nodes):-
 record_clause(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6271,7 +6266,7 @@ record_theory(Flag,Label,Clauses,Nodes):-
 record_theory(_,_,_,_).
 
 record_theory(Flag,Label,Clauses,Nodes):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6281,7 +6276,7 @@ record_theory(Flag,Label,Clauses,Nodes):-
 record_theory(_,_,_,_).
 
 record_sat_example(N):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6291,7 +6286,7 @@ record_sat_example(N):-
 record_sat_example(_).
 
 record_search_stats(Clause,Nodes,Time):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6305,7 +6300,7 @@ record_search_stats(Clause,Nodes,Time):-
 record_search_stats(_,_,_).
 
 record_tsearch_stats(Theory,Nodes,Time):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6318,7 +6313,7 @@ record_tsearch_stats(Theory,Nodes,Time):-
 record_tsearch_stats(_,_,_).
 
 record_theory(Time):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6338,7 +6333,7 @@ record_theory(Time):-
 record_theory(_).
 
 record_features(Time):-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6349,7 +6344,7 @@ record_features(Time):-
 record_features(_).
 
 record_settings:-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6367,7 +6362,6 @@ record_settings:-
 record_settings.
 
 show_clause(Flag,Label,Clause,Nodes):-
-  broadcast(clause(Flag,Label,Clause,Nodes)),
   p_message('-------------------------------------'),
   (
     Flag=good
@@ -6418,7 +6412,7 @@ update_search_stats(N,T):-
   asserta('$aleph_global'(search_stats,search_stats(N1,T1))).
 
 record_total_stats:-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -6428,7 +6422,7 @@ record_total_stats:-
 record_total_stats.
 
 record_atoms_left:-
-  aleph5_setting(recordfile_stream, Stream),
+  aleph5_setting(record_stream, Stream),
   is_stream(Stream),
   !,
   set_output(Stream),
@@ -7708,7 +7702,7 @@ strip_true(Clause,Clause).
 
 % pretty print a definite clause
 pp_dclause(Clause):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   pp_dclause(Stream, Clause).
 
 pp_dclause(Stream, Clause):-
@@ -7808,25 +7802,26 @@ print_lit(Stream, Lit,Pretty,LitNum,LastLit,Sep,NextLit):-
   (LitNum=LastLit-> nl(Stream),NextLit=1; NextLit is LitNum + 1).
 
 p1_message(Mess):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   p1_message(Stream, Mess).
 
 p1_message(Stream, Message):-
   format(Stream, '[~w]', [Message]).
 
 p_message(Mess):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   p_message(Stream, Mess).
 
 p_message(Stream, Message):-
   format(Stream, '[~w]\n', [Message]).
 
 stream_message(Format, Arguments):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
+  is_stream(Stream),
   format(Stream, Format, Arguments).
 
 err_message(Mess):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   err_message(Stream, Mess).
 
 err_message(Stream, Mess):-
@@ -9443,7 +9438,6 @@ read_all(BackgroundBase, ExamplesBase):-
 
 read_all(BackgroundBase, PositiveExamplesBase, NegativeExamplesBase):-
   clean_up,
-  reset,
   read_background(BackgroundBase),
   read_examples(PositiveExamplesBase, NegativeExamplesBase),
   record_targetpred,
@@ -9474,8 +9468,7 @@ read_background(BackgroundBase):-
   % the background knowledge file.
   style_check(-singleton),
   consult(BackgroundFile),
-  style_check(+singleton),
-  broadcast(background(loaded)).
+  style_check(+singleton).
 
 %! read_examples(
 %!   +PositiveExamplesBase:atom,
@@ -9503,8 +9496,7 @@ read_examples(PositiveExamplesBase, NegativeExamplesBase):-
     aleph5_set_setting(prior, Prior)
   ),
   reset_counts,
-  asserta('$aleph_global'(last_clause, last_clause(0))),
-  broadcast(examples(loaded)).
+  asserta('$aleph_global'(last_clause, last_clause(0))).
 
 % The files with positive training examples have been set internally.
 read_positive_examples(_PositiveExamplesBase):-
@@ -9732,8 +9724,8 @@ reinstate_values.
 
 % @tbd ?
 reinstate_file_streams:-
-  aleph5_setting(recordfile, File),
-  aleph5_set_setting(recordfile, File),
+  aleph5_setting(record_file, File),
+  aleph5_set_setting(record_file, File),
   fail.
 reinstate_file_streams:-
   aleph5_setting(goodfile, File),
@@ -9881,7 +9873,7 @@ gen_feature(Feature,Label,Class):-
   assertz('$aleph_feature'(feature,feature(Id,Label,Class,Template,Body))).
 
 show(Category):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   show(Stream, Category).
 
 show(Stream, settings):-
@@ -10083,7 +10075,7 @@ show(_Stream, test_neg):-
 show(_Stream, _Category).
 
 settings:-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   settings(Stream).
 
 settings(Stream):-
@@ -10096,7 +10088,7 @@ examples(Type,List):-
   example(Num,Type,Atom),
   memberchk(Num,List),
   aleph_portray(Atom,Pretty),
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '.\n', []),
   fail.
 examples(_,_).
@@ -10330,10 +10322,10 @@ reset:-
   aleph_abolish('$aleph_global'/2),
   aleph_abolish(example/3),
   assert(example(0,uspec,false)),
-	forall(
-		current_setting(Setting),
+  forall(
+    current_setting(Setting),
     restore_setting(Setting)
-	),
+  ),
   !.
 
 %! reset(+Base:atom) is det.
@@ -10543,35 +10535,35 @@ special_consideration(portray_literals, true):-
   !.
 % Special actions upon changing setting =record=.
 special_consideration(record, true):-
-  aleph5_restore_setting(recordfile_stream),
+  aleph5_restore_setting(record_stream),
   (
-    aleph5_setting(recordfile, File),
+    aleph5_setting(record_file, File),
     exists_file(File)
   ->
     open(File, append, Stream),
-    aleph5_set_setting(recordfile_stream, Stream)
+    aleph5_set_setting(record_stream, Stream)
   ;
     true
   ),
   !.
 special_consideration(record, false):-
-  setting(recordfile_stream, Stream),
+  setting(record_stream, Stream),
   if_then(
     is_stream(Stream),
     (
-      flush(Stream),
+      flush_output(Stream),
       close(Stream)
     )
   ),
-  aleph5_restore_setting(recordfile_stream),
+  aleph5_restore_setting(record_stream),
   !.
-special_consideration(recordfile, File):-
-  aleph5_restore_setting(recordfile_stream),
+special_consideration(record_file, File):-
+  aleph5_restore_setting(record_stream),
   if_then(
     aleph5_setting(record, true),
     (
       open(File, append, Stream),
-      aleph5_set_setting(recordfile_stream, Stream)
+      aleph5_set_setting(record_stream, Stream)
     )
   ),
   !.
@@ -10612,11 +10604,11 @@ rm_special_consideration(refine,_):-
   restore_setting(refineop),
   !.
 rm_special_consideration(record,_):-
-  aleph5_restore_setting(recordfile_stream),
+  aleph5_restore_setting(record_stream),
   !.
-rm_special_consideration(recordfile_stream,_):-
+rm_special_consideration(record_stream,_):-
   (
-    aleph5_setting(recordfile_stream, Stream),
+    aleph5_setting(record_stream, Stream),
     is_stream(Stream)
   ->
     close(Stream)
@@ -10695,7 +10687,7 @@ show_global(Key,Pred):-
   copy_term(Pred,Pred1),
   numbervars(Pred1,0,_),
   aleph_writeq(Pred1),
-  current_stream(Stream),
+  setting(record_stream, Stream),
   format(Stream, '.\n', []),
   fail.
 show_global(_,_).
@@ -10730,14 +10722,16 @@ aleph_portray(test_pos,true):-
   aleph_portray(test_pos), !.
 aleph_portray(test_pos,_):-
   !,
-  aleph5_setting(test_pos,File),
+  aleph5_setting(test_pos, File),
+  File \== '',
   show_file(File).
 
 aleph_portray(test_neg,true):-
   aleph_portray(test_neg), !.
 aleph_portray(test_neg,_):-
   !,
-  aleph5_setting(test_neg,File),
+  aleph5_setting(test_neg, File),
+  File \== '',
   show_file(File).
 
 aleph_portray(Lit,true):-
@@ -10746,7 +10740,7 @@ aleph_portray(Lit,_):-
   aleph_writeq(Lit).
 
 aleph_writeq(Lit):-
-  current_stream(Stream),
+  setting(record_stream, Stream),
   write_term(Stream, Lit, [numbervars(true), quoted(true)]).
 
 show_file(File):-
@@ -10778,7 +10772,7 @@ list_profile:-
   % sort them
   sort(LP,SLP),
   % and output (note the most often called predicates will come last
-  current_stream(Stream),
+  setting(record_stream, Stream),
   write_profile_data(Stream, SLP).
 
 write_profile_data(_Stream, []).
@@ -10787,16 +10781,10 @@ write_profile_data(Stream, [D-P|SLP]):-
   format(Stream, '~w: ~w\n', [P,D]),
   write_profile_data(Stream, SLP).
 
-set_current_stream(Stream):-
-  retractall(current_stream(_Stream)),
-  asserta(current_stream(Stream)).
-
 %! aleph5_set_setting(+Name:atom, +Value) is semidet.
 % Sets the new value for the setting with the given name.
 
-aleph5_set_setting(Name,Value):-
+aleph5_set_setting(Name, Value):-
   set_setting(Name, Value),
-  % @tbd This broadcast is never listened to.
-  broadcast(set(Name, Value)),
   special_consideration(Name, Value).
 
