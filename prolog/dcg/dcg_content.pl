@@ -1,6 +1,7 @@
 :- module(
   dcg_content,
   [
+    dcg_void//0,
     indent//0,
     indent//1, % +Indent:nonneg
     nl//0,
@@ -30,6 +31,10 @@ DCG rules for parsing/generating often-occuring content.
 ).
 
 
+
+
+
+dcg_void --> "".
 
 
 
