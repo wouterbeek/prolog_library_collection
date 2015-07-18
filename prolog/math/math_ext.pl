@@ -110,7 +110,7 @@ X = -6.
 :- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
-:- use_module(library(math/math_ext)).
+:- use_module(library(math/rational_ext)).
 :- use_module(library(typecheck)).
 
 
