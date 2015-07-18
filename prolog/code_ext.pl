@@ -17,5 +17,3 @@
 
 put_codes(Codes):-
   maplist(put_code, Codes).
-put_codes(Out, Codes):-
-  with_output_to(Out, maplist(put_code, Codes)).

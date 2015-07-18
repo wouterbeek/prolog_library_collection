@@ -63,7 +63,7 @@ verbose_call(Msg, Goal_0):-
     call_start(Msg),
     Goal_0,
     E,
-    (   E == true
+    (   E == exit
     ->  call_success(Msg)
     ;   call_failure(Msg, E)
     )
