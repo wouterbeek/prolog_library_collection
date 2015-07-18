@@ -1,6 +1,7 @@
 :- ensure_loaded(debug).
 
 :- use_module(library(char_ext)).
+:- use_module(library(code_ext)).
 %/dcg
     :- use_module(library(dcg/dcg_abnf)).
     :- use_module(library(dcg/dcg_abnf_common)).
