@@ -49,6 +49,7 @@
     zero_width_non_joiner//1 % ?Code:code
   ]
 ).
+:- reexport(library(dcg/dcg_ascii)).
 
 /** <module> DCG Unicode
 
@@ -57,10 +58,6 @@ DCG rules that encode characters from the UNICODE standard.
 @author Wouter Beek
 @version 2015/07
 */
-
-:- use_module(library(dcg/dcg_ascii)).
-
-
 
 
 

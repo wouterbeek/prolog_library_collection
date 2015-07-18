@@ -6,4 +6,4 @@ name('Prolog_Library_Collection').
 packager('Wouter Beek', 'me@wouterbeek.com').
 requires(lambda).
 title('Prolog_Library_Collection').
-version('0.0.5').
+version('0.0.6').
