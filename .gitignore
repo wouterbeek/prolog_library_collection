@@ -1,0 +1,9 @@
+*~
+data/
+*#
+*.aux
+*.log
+*.old
+*.pdf
+*.db
+*.#*
