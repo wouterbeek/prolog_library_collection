@@ -41,8 +41,8 @@
     punctuation//1, % ?Code:code
     undertie//0,
     undertie//1, % ?Code:code
-    white//0,
-    white//1, % ?Code:code
+    u_white//0,
+    u_white//1, % ?Code:code
     zero_width_joiner//0,
     zero_width_joiner//1, % ?Code:code
     zero_width_non_joiner//0,
@@ -209,16 +209,16 @@ punctuation(Code) -->
 undertie --> undertie(_).
 undertie(8255) --> [8255].
 
-%! white// .
-%! white(?Code:code)// .
+%! u_white// .
+%! u_white(?Code:code)// .
 % @compat http://en.wikipedia.org/wiki/Whitespace_character
 % @tbd Enter the rest of the table.
 
-white --> white(_).
-white(Code) --> ascii_white(Code).
-white(Code) --> next_line(Code).
-white(Code) --> nonbreaking_space(Code).
-white(Code) --> orgham_space_mark(Code).
+u_white --> u_white(_).
+u_white(Code) --> ascii_white(Code).
+u_white(Code) --> next_line(Code).
+u_white(Code) --> nonbreaking_space(Code).
+u_white(Code) --> orgham_space_mark(Code).
 % ...
 
 %! zero_width_joiner// .

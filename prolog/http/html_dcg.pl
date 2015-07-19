@@ -16,23 +16,20 @@
   ]
 ).
 
-/** <module> HTML: DCG
+/** <module> HTML DCG
 
 DCG grammar for HTML snippets.
 
 @author Wouter Beek
-@version 2013/09, 2014/11
+@version 2015/07
 */
 
 :- use_module(library(dcg/basics)).
 
 :- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_quoted)).
-:- use_module(library(dcg/dcg_unicode),
-  [alpha_numeric//1,punctuation//1,white//1]
-).
+:- use_module(library(dcg/dcg_unicode)).
 
 :- meta_predicate(html_element(+,+,//,?,?)).
 
@@ -116,7 +113,7 @@ html_element(Name, Attrs, Content) -->
 %   - Less-than
 %   - Quotation mark
 
-html_graphic(Code) --> white(Code).
+html_graphic(Code) --> u_white(Code).
 html_graphic(Code) --> alpha_numeric(Code).
 html_graphic(Code) --> html_punctuation(Code).
 
