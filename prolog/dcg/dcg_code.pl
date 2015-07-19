@@ -11,6 +11,7 @@
     between_code_radix//3, % +RadixLow:compound
                            % +RadixHigh:compound
                            % -Code:code
+    code//1, % ?Code:code
     code_ci//1, % ?Code:code
     code_lower//1, % ?Code:code
     code_radix//1, % ?RadixCode:compound
@@ -62,6 +63,14 @@ between_code_radix(Low1, High1, C) -->
     radconv(High1, dec(High2))
   },
   between_code_radix(dec(Low2), dec(High2), C).
+
+
+
+%! code(?Code:code)// .
+% Useful in meta-predicates.
+
+code(C) -->
+  [C].
 
 
 

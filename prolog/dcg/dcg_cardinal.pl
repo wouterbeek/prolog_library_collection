@@ -80,6 +80,7 @@ other bases (2, 8, 16).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(math/radconv)).
+:- use_module(library(math/radix)).
 :- use_module(library(typecheck)).
 
 

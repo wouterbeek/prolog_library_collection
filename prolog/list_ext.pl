@@ -148,12 +148,11 @@ Extensions to the set of list predicates in SWI-Prolog.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(closure)).
 :- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(random)).
 :- use_module(library(typecheck)).
-
-:- use_module(plc(generics/closure)).
 
 
 
