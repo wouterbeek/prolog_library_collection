@@ -20,6 +20,9 @@
     clpfd_between/3, % ?Low:integer
                      % ?High:integer
                      % ?Integer:integer
+    clpfd_copysign/3, % ?Absolute:nonneg
+                      % ?Sign:integer
+                      % ?Integer:integer
     combinations/3, % +NumberOfObjects:integer
                     % +CombinationLength:integer
                     % -NumberOfCombinations:integer

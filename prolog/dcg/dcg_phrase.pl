@@ -24,6 +24,7 @@ Extensions to phrase/[2,3] for atom and string arguments.
 @version 2015/07
 */
 
+:- use_module(library(code_ext)).
 :- use_module(library(error)).
 
 :- meta_predicate(atom_phrase(//,?)).

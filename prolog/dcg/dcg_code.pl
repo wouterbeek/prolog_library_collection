@@ -29,6 +29,7 @@ DCG support for entering character codes.
 @version 2015/07
 */
 
+:- use_module(library(code_ext)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(math/radconv)).
 
