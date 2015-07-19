@@ -34,6 +34,8 @@ Extensions to phrase/[2,3] for atom and string arguments.
 
 
 
+
+
 %! atom_phrase(:Dcg_0, ?Atom:atom)// is nondet.
 % @throws instantiation_error
 % @throws type_error
