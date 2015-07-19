@@ -5,12 +5,16 @@
 %/dcg
     :- use_module(library(dcg/dcg_abnf)).
     :- use_module(library(dcg/dcg_abnf_common)).
+    :- use_module(library(dcg/dcg_abnf_rules)).
+    :- use_module(library(dcg/dcg_arrow)).
     :- use_module(library(dcg/dcg_ascii)).
     :- use_module(library(dcg/dcg_bracketed)).
     :- use_module(library(dcg/dcg_call)).
+    :- use_module(library(dcg/dcg_code)).
     :- use_module(library(dcg/dcg_content)).
     :- use_module(library(dcg/dcg_phrase)).
     :- use_module(library(dcg/dcg_quoted)).
+    :- use_module(library(dcg/dcg_strip)).
     :- use_module(library(dcg/dcg_unicode)).
     :- use_module(library(dcg/dcg_word)).
 :- use_module(library(deb_ext)).
