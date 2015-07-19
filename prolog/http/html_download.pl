@@ -25,5 +25,5 @@
 html_download(Uri, Dom):-
   http_get(
     Uri,
-    \Status^Read^load_html(Read, Dom, Status, [dialect(html5),max_errors(-1)])
+    \_^Read^load_html(Read, Dom, [dialect(html5),max_errors(-1)])
   ).

@@ -58,8 +58,8 @@ between_code_radix(dec(Low), dec(High), C) --> !,
   between_code(Low, High, C).
 between_code_radix(Low1, High1, C) -->
   {
-    radix(Low1, dec(Low2)),
-    radix(High1, dec(High2))
+    radconv(Low1, dec(Low2)),
+    radconv(High1, dec(High2))
   },
   between_code_radix(dec(Low2), dec(High2), C).
 

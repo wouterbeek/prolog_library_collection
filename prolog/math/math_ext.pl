@@ -17,6 +17,9 @@
                             % -BinomialCoefficient:integer
     circumfence/2, % +Radius:float
                    % -Circumfence:float
+    clpfd_between/3, % ?Low:integer
+                     % ?High:integer
+                     % ?Integer:integer
     combinations/3, % +NumberOfObjects:integer
                     % +CombinationLength:integer
                     % -NumberOfCombinations:integer
@@ -107,11 +110,14 @@ X = -6.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(clpfd)).
 :- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(typecheck)).
+
+:- multifile(clpfd:run_propagator/2).
 
 
 
@@ -197,48 +203,11 @@ average(L, Average):-
 % Like ISO between/3, but allowing either `Low` or `High`
 % to be uninstantiated.
 %
-% We allow `Low` to be instantiated to `minf` and `High` to be
-% instantiated to `inf`.
-% In these cases, their values are replaced by fresh variables.
+% In line with CLP(FD), `Low` can be `inf` and `High` can be `sup`.
 
-betwixt(Low, High, Value):-
-  betwixt_bound(low, Low, Low0),
-  betwixt_bound(high, High, High0),
-  betwixt0(Low0, High0, Value).
-
-% Behavior of ISO between/3.
-betwixt0(Low, High, Value):-
-  nonvar(Low),
-  nonvar(High), !,
-  between(Low, High, Value).
-% The higher bound is missing.
-betwixt0(Low, High, Value):-
-  nonvar(Low), !,
-  betwixt_low(Low, Low, High, Value).
-% The lower bound is missing.
-betwixt0(Low, High, Value):-
-  nonvar(High), !,
-  betwixt_high(Low, High, High, Value).
-% Instantiation error: at least one bound must be present.
-betwixt0(_, _, _):-
-  instantiation_error(_).
-
-betwixt_bound(high, inf, _):- !.
-betwixt_bound(low, minf, _):- !.
-betwixt_bound(_, High, High):-
-  var(High), !.
-betwixt_bound(_, High, High):-
-  must_be(integer, High).
-
-betwixt_high(_, Value, _, Value).
-betwixt_high(Low, Between1, High, Value):-
-  succ(Between2, Between1),
-  betwixt_high(Low, Between2, High, Value).
-
-betwixt_low(_, Value, _, Value).
-betwixt_low(Low, Between1, High, Value):-
-  succ(Between1, Between2),
-  betwixt_low(Low, Between2, High, Value).
+betwixt(Low, High, N):-
+  clpfd_between(Low, High, N),
+  label([N]).
 
 
 
@@ -279,6 +248,45 @@ binomial_coefficient(M, N, BC):-
 
 circumfence(Rad, Circ):-
   Circ is Rad * pi * 2.
+
+
+
+%! clpfd_between(?Low:integer, ?High:integer, ?Integer:integer) is det.
+
+clpfd_between(Low, High, N):-
+  Low #=< N,
+  N #=< High.
+
+
+
+%! clpfd_copysign(?Absolute:nonneg, Sign:integer, ?Integer:integer) .
+
+clpfd_copysign(Abs, Sg, N):-
+  clpfd:make_propagator(clpfd_copysign(Abs, Sg, N), Prop),
+  clpfd:init_propagator(Abs, Prop),
+  clpfd:init_propagator(Sg, Prop),
+  clpfd:init_propagator(N, Prop),
+  clpfd:trigger_once(Prop).
+
+% If we do not include the `var/1` cases then the following will
+% run out of global stack: `?- phrase(signed_integer(1.1), Cs)`.
+% Since 1.1 is not an integer clpfd_copysign/3 should not succeed here.
+% Otherwise, integer//1 will be called with `N` uninstantiated,
+% which starts generating all integers.
+clpfd:run_propagator(clpfd_copysign(Abs, Sg, N), MState):-
+  (   integer(N)
+  ->  clpfd:kill(MState),
+      Abs is abs(N),
+      Sg is sign(N)
+  ;   integer(Abs),
+      integer(Sg)
+  ->  clpfd:kill(MState),
+      N is copysign(Abs, Sg)
+  ;   var(N)
+  ->  true
+  ;   var(Abs),
+      var(Sg)
+  ).
 
 
 
