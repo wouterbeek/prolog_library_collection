@@ -1,6 +1,9 @@
 :- module(
   dcg_content,
   [
+    dcg_cp//0,
+    dcg_done//0,
+    dcg_rest//1, % -Rest:list(code)
     dcg_void//0,
     indent//0,
     indent//1, % +Indent:nonneg
@@ -33,6 +36,26 @@ DCG rules for parsing/generating often-occuring content.
 
 
 
+
+%! dcg_cp// .
+
+dcg_cp(X, X).
+
+
+
+%! dcg_done// .
+
+dcg_done(_, _).
+
+
+
+%! dcg_rest(-Rest:list(code))// is det.
+
+dcg_rest(X, X, []).
+
+
+
+%! dcg_void// .
 
 dcg_void --> "".
 
