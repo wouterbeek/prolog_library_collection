@@ -1,12 +1,19 @@
-:- module(uuid, [uuid_no_hyphen/1]).
+:- module(
+  uuid_ext,
+  [
+    uuid_no_hyphen/1 % -Uuid:atom
+  ]
+).
 
-/** <module> UUID
+/** <module> UUID extensions
 
 @author Wouter Beek
 @version 2015/07
 */
 
 :- use_module(library(uuid)).
+
+
 
 
 
