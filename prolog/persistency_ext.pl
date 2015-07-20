@@ -1,8 +1,6 @@
 :- module(
   persistency_ext,
   [
-    attach_persistent_db/2, % +Module:atom
-                            % +File:atom
     init_persistent_db/2 % +File:atom
                          % :Goal_1
   ]
@@ -26,26 +24,17 @@ Extensions to functionality in library(persistency).
 
 
 
-%! attach_persistent_db(+Module:atom, +File:atom) is det.
-% Safe attachement of a persistent database dump.
-% This first make sure the given file exists.
-
-attach_persistent_db(Mod, File):-
-  exists_file(File), !,
-  Mod:db_attach(File, []).
-attach_persistent_db(Mod, File):-
-  touch(File),
-  attach_persistent_db(Mod, File).
-
-
-
-%! init_persistent_db(+File:atom, :Goal) is det.
+%! init_persistent_db(+File:atom, :Goal_1) is det.
 % Generic initialization of persistent databases.
 %
 % `Goal` is the update goal that is set by a specific persistent database.
 % It takes the persistency file's age as an argument.
 
-init_persistent_db(File, Module:Goal):-
-  attach_persistent_db(Module, File),
+init_persistent_db(File, Mod:Goal_1):-
+  (   exists_file(File)
+  ->  true
+  ;   touch(File)
+  ),
+  db_attach(File, []),
   file_age(File, Age),
-  call(Module:Goal, Age).
+  call(Mod:Goal_1, Age).
