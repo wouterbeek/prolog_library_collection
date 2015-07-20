@@ -24,6 +24,9 @@
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 
+:- predicate_options(load_xml0/4, 2, [
+     pass_to(load_xml/3, 3)
+   ]).
 :- predicate_options(xml_dom_to_atom/3, 3, [
      style(+atom),
      pass_to(xml_write/3, 3)
@@ -52,7 +55,7 @@ atom_to_xml_dom(A, Dom):-
 % Wrapper around stylesheet_pi/3 using MIME `text/css`.
 
 stylesheet_pi(Spec, Pi):-
-  stylesheet_pi('text/css', File, Pi).
+  stylesheet_pi('text/css', Spec, Pi).
 
 %! stylesheet_pi(+Mine:atom, +Spec:compound, -Pi:compound) is det.
 
@@ -107,4 +110,7 @@ xml_dom_to_atom(Dom, A, Opts1):-
 % for the website with the given URI.
 
 xml_download(Uri, Dom):-
-  http_get(Uri, \Status^Read^load_xml(Read, Dom, Status, [])).
+  http_get(Uri, load_xml0(Dom, [])).
+
+load_xml0(Dom, Opts, _, Read):-
+  load_xml(Read, Dom, Opts).

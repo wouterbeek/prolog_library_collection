@@ -3,7 +3,7 @@
   [
     atom_to_html_dom/2, % +Atom:atom
                         % -Dom:compound
-    html_insert_dom/1 % +Dom:compound
+    html_insert_dom//1 % +Dom:compound
   ]
 ).
 
