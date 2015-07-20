@@ -39,7 +39,6 @@
   :- use_module(library(math/positional)).
   :- use_module(library(math/radconv)).
   :- use_module(library(math/rational_ext)).
-:- use_module(library(persistency_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).

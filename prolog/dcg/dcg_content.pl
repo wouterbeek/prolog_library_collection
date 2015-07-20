@@ -7,6 +7,8 @@
     dcg_void//0,
     indent//0,
     indent//1, % +Indent:nonneg
+    indent//2, % +Indent:nonneg
+               % :Dcg_0
     nl//0,
     pl_term//1 % +Term
   ]
@@ -24,6 +26,8 @@ DCG rules for parsing/generating often-occuring content.
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(pl/pl_term)).
 :- use_module(library(settings)).
+
+:- meta_predicate(indent(+,//,?,?)).
 
 % The number of spaces that go into one indent.
 :- setting(
@@ -75,6 +79,13 @@ indent(I) -->
     NSpaces is I * Size
   },
   '#'(NSpaces, space, []), !.
+
+
+%! indent(+Indent:nonneg, :Dcg_0)// is det.
+
+indent(I, Dcg_0) -->
+  indent(I),
+  Dcg_0.
 
 
 
