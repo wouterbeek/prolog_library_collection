@@ -1,8 +1,14 @@
 :- module(
   xml_dom,
   [
-    atom_to_xml_dom/2 % +Atom:atom
-                      % -Dom:compound
+    atom_to_xml_dom/2, % +Atom:atom
+                       % -Dom:list(compound)
+    xml_dom_to_atom/2, % +Dom, -Atom
+    xml_dom_to_atom/3, % +Dom:list(compound)
+                       % -Atom:atom
+                       % +Options:list(compound)
+    xml_download/2 % +Uri:atom
+                   % -Dom:list(compound)
   ]
 ).
 
@@ -12,8 +18,16 @@
 @version 2015/07
 */
 
+:- use_module(library(http/http_path)).
 :- use_module(library(memfile)).
+:- use_module(library(option)).
 :- use_module(library(sgml)).
+:- use_module(library(sgml_write)).
+
+:- predicate_options(xml_dom_to_atom/3, 3, [
+     style(+atom),
+     pass_to(xml_write/3, 3)
+   ]).
 
 
 
@@ -31,3 +45,66 @@ atom_to_xml_dom(A, Dom):-
     ),
     free_memory_file(Handle)
   ).
+
+
+
+%! stylesheet_pi(+Spec:compound, -Pi:compound) is det.
+% Wrapper around stylesheet_pi/3 using MIME `text/css`.
+
+stylesheet_pi(Spec, Pi):-
+  stylesheet_pi('text/css', File, Pi).
+
+%! stylesheet_pi(+Mine:atom, +Spec:compound, -Pi:compound) is det.
+
+stylesheet_pi(Mime, Spec, pi(Pi)):-
+  http_absolute_location(Spec, Loc, []),
+  format(atom(Pi), 'xml-stylesheet type="~w" href="~w"', [Mime,Loc]).
+
+
+
+%! xml_dom_to_atom(+Dom:list(compound), -Xml:atom) is det.
+% Wrapper around xml_dom_to_atom/3.
+
+xml_dom_to_atom(Dom, A):-
+  xml_dom_to_atom(Dom, A, []).
+
+
+%! xml_dom_to_atom(
+%!   +Dom:list(compound),
+%!   -Xml:atom,
+%!   +Options:list(compound)
+%! ) is det.
+% The following options are supported:
+%   * `dtd(+Doctype:atom)`
+%     The atomic name of the DTD that should be used for the XML DOM.
+%     The DTD is first searched for in the cache of DTD objects.
+%     If the given doctype has no associated DTD in the cache,
+%     it searches for a file using the file search path =dtd=.
+%   * `style(+StyleName:atom)`
+%     The atomic name of a style file on the =css= search path.
+
+xml_dom_to_atom(Dom, A, Opts1):-
+  % Add style to XML DOM.
+  (   select_option(style(Base), Opts1, Opts2)
+  ->  file_name_extension(Base, css, LocalName),
+      stylesheet_pi(css(LocalName), Pi),
+      Dom0 = [Pi|Dom]
+  ;   Dom0 = Dom,
+      Opts2 = Opts1
+  ),
+
+  % Set the header to false, since this XML content will be inserted inside
+  % a Web page.
+  % We do add the stylesheet parsing instruction, as this is allowed
+  % in -- at least -- Firefox.
+  merge_options([header(false)], Opts2, Opts3),
+  with_output_to(atom(A), xml_write(Dom0, Opts3)).
+
+
+
+%! xml_download(+Uri:uri, -Dom:list(compound)) is det.
+% Returns the HTML Document Object Model (DOM)
+% for the website with the given URI.
+
+xml_download(Uri, Dom):-
+  http_get(Uri, \Status^Read^load_xml(Read, Dom, Status, [])).
