@@ -19,6 +19,7 @@
 */
 
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_request)).
 :- use_module(library(memfile)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).

@@ -6,6 +6,7 @@
     chars/1, % @Term
     code/1, % @Term
     codes/1, % @Term
+    is_uri/1, % @Term
     negative_float/1, % @Term
     negative_integer/1, % @Term
     nonneg/1, % @Term
@@ -71,6 +72,7 @@ Predicates used for parsing and checking value-type conformance.
 */
 
 :- use_module(library(error)).
+:- use_module(library(uri)).
 
 :- multifile(error:has_type/2).
 
@@ -128,6 +130,15 @@ code(Term):-
 codes(Term):-
   error:has_type(codes, Term).
 
+
+
+%! is_uri(@Term) is semidet.
+
+is_uri(Uri):-
+  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
+  ground(Scheme),
+  ground(Authority).
+  
 
 
 %! negative_float(@Term) is semidet.
