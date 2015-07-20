@@ -150,7 +150,6 @@ Extensions to the set of list predicates in SWI-Prolog.
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
-:- use_module(library(lambda)).
 :- use_module(library(random)).
 :- use_module(library(typecheck)).
 
@@ -188,11 +187,10 @@ append_intersperse([H|T1], S, [H,S|T2]):-
 % @see The transitive closure of directly_before/3.
 
 before(Before, After, List):-
-  closure0(
-    \Before^After^directly_before(Before, After, List),
-    Before,
-    After
-  ).
+  closure0(directly_before0(List), Before, After).
+
+directly_before0(List, Before, After):-
+  directly_before(Before, After, List).
 
 
 
