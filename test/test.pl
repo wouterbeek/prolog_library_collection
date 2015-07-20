@@ -1,5 +1,6 @@
 :- ensure_loaded(debug).
 
+:- use_module(library(atom_ext)).
 :- use_module(library(char_ext)).
 :- use_module(library(closure)).
 :- use_module(library(code_ext)).
