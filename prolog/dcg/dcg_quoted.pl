@@ -50,4 +50,4 @@ quoted(Quote_0, Dcg_0) -->
 %   - `single_quote//0`
 
 quoted(Length, Quote_0, Dcg_0) -->
-  dcg_between('#'(Length, Quote_0, []), Dcg_0).
+  dcg_between(dcg_once('#'(Length, Quote_0, [])), Dcg_0).
