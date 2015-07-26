@@ -62,7 +62,6 @@ Predicates used for parsing and checking value-type conformance.
 | term                 | Yes              |                     |
 | text                 |                  |                     |
 | uri                  | Yes              |                     |
-| iri                  | Yes              |                     |
 | var                  |                  |                     |
 
 ---
@@ -92,6 +91,9 @@ error:has_type(between_float(L,U), X):-
 error:has_type(or(Types), Term):-
   member(Type, Types),
   error:has_type(Type, Term), !.
+% URI
+error:has_type(uri, T):-
+    is_uri(T).
 % term
 error:has_type(term, _).
 

@@ -25,7 +25,7 @@
   ]
 ).
 
-/** <module> HTTP request
+/** <module> HTTP requests
 
 Higher-level HTTP requests build on top of library(http/http_open),
 posing an alternative to library(http/http_client).
