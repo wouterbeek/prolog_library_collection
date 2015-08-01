@@ -46,12 +46,7 @@ Support for using external programs with SWI-Prolog.
 % Succeeds if the given program can be run from PATH.
 
 exists_program(Program):-
-  catch(
-    handle_process(Program, [], [detached(false),process(Pid)]),
-    _,
-    fail
-  ),
-  process_kill(Pid).
+  catch(handle_process(Program, [], []), _, fail).
 
 
 %! find_program_by_file_type(+FileType:atom, -Program:atom) is nondet.

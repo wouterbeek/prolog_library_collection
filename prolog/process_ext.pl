@@ -81,34 +81,50 @@ is_meta(output_goal).
 %
 % @tbd Output and error is separate threads.
 
-handle_process(Process, Args, Options1):-
-  meta_options(is_meta, Options1, Options2),
-  (   select_option(detached(true), Options2, Options3)
+handle_process(Process, Args, Opts1):-
+  meta_options(is_meta, Opts1, Opts2),
+  (   select_option(detached(true), Opts2, Opts3)
   ->  thread_create(
-        handle_process_inner(Process, Args, Options3),
+        handle_process_inner(Process, Args, Opts3),
         _,
         [detached(true)]
       )
-  ;   handle_process_inner(Process, Args, Options2)
+  ;   handle_process_inner(Process, Args, Opts2)
   ).
 
-handle_process_inner(Process, Args, Options1):-
-  option(program(Program), Options1, Process),
-  include(process_create_option, Options1, Options2),
-  merge_options(
-    Options2,
-    [process(Pid),stderr(pipe(ErrorStream)),stdout(pipe(OutputStream))],
-    Options3
+handle_process_inner(Process, Args, Opts1):-
+  % By default the program name is the process name.
+  option(program(Program), Opts1, Process),
+  
+  % Make sure the PID can be returned as an option, if given.
+  (   select_option(process(Pid), Opts1, Opts2)
+  ->  true
+  ;   Opts2 = Opts1
   ),
+  
+  % Filter out those options that can be processed by process_create/3.
+  include(process_create_option, Opts2, Opts3),
+  
+  % Make sure that the options for the PID, standard error
+  % and standard output are always handled to process_create/3.
+  merge_options(
+    Opts3,
+    [process(Pid),stderr(pipe(ErrorStream)),stdout(pipe(OutputStream))],
+    Opts4
+  ),
+  
+  % Allow process to be either an absolute file or a file
+  % relative to path.
   (   is_absolute_file_name(Process)
   ->  Exec = Process
   ;   Exec = path(Process)
   ),
+  
   setup_call_cleanup(
-    process_create(Exec, Args, Options3),
+    process_create(Exec, Args, Opts4),
     (
       % Process the goal supplied for the error stream.
-      (   option(error_goal(ErrorGoal), Options1, print_error)
+      (   option(error_goal(ErrorGoal), Opts2, print_error)
       ->  thread_create(
             call(ErrorGoal, ErrorStream),
             ErrorThreadId,
@@ -119,7 +135,7 @@ handle_process_inner(Process, Args, Options1):-
       ),
 
       % Process the goal supplied for the output stream.
-      (   option(output_goal(OutputGoal), Options1)
+      (   option(output_goal(OutputGoal), Opts2)
       ->  call(OutputGoal, OutputStream)
       ;   true
       ),
@@ -129,7 +145,7 @@ handle_process_inner(Process, Args, Options1):-
         process_wait(Pid, exit(PidStatus))
       )),
       process_status(Program, PidStatus),
-      (   option(status(PidStatus0), Options1)
+      (   option(status(PidStatus0), Opts2)
       ->  PidStatus0 = PidStatus
       ;   true
       )
