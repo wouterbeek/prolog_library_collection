@@ -39,6 +39,7 @@
   :- use_module(library(json/json_ext)).
 :- use_module(library(list_ext)).
 %/math
+  :- use_module(library(math/dimension)).
   :- use_module(library(math/math_ext)).
   :- use_module(library(math/positional)).
   :- use_module(library(math/radconv)).
