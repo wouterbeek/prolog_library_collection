@@ -34,6 +34,8 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(list_ext)).
+%/json
+  :- use_module(library(json/json_ext)).
 %/math
   :- use_module(library(math/math_ext)).
   :- use_module(library(math/positional)).
