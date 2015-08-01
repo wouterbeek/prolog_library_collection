@@ -27,26 +27,20 @@ Tools that ease debugging SWI-Prolog programs.
 
 
 
-
-
 msg_emphasis(X):-
   ansi_format([italic], '~a', [X]).
-
 
 
 msg_normal(X):-
   ansi_format([], '~a', [X]).
 
 
-
 msg_notification(X):-
   ansi_format([bold,fg(yellow)], '~a', [X]).
 
 
-
 msg_success(X):-
   ansi_format([bold,fg(green)], '~a', [X]).
-
 
 
 %! verbose_call(:Goal_0) is det.
@@ -54,7 +48,6 @@ msg_success(X):-
 verbose_call(Goal_0):-
   term_to_atom(Goal_0, Msg),
   verbose_call(Msg, Goal_0).
-
 
 %! verbose_call(+Message:atom, :Goal_0) is det.
 
@@ -89,7 +82,6 @@ call_success(Msg):-
   msg_emphasis(Msg),
   msg_normal('.'),
   nl.
-
 
 
 msg_warning(X):-

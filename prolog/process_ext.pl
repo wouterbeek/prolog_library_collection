@@ -1,27 +1,32 @@
 :- module(
   process_ext,
   [
-    handle_process/3 % +Process:atom
-                     % +Arguments:list
-                     % +Options:list(nvpair)
+    handle_process/3, % +Process:atom
+                      % +Arguments:list
+                      % +Options:list(compound)
+    renice/2 % +Pid:positive_integer
+             % +Nice:between(-20,19)
   ]
 ).
 
+:- reexport(library(process)).
+
 /** <module> Process extensions
 
+Additional support for starting processes from within SWI-Prolog:
+  * Automatically kill all running processes upon halt.
+  * Process output and error streams in parallel by using threads.
+
 @author Wouter Beek
-@version 2015/01, 2015/03-2015/04
+@version 2015/08
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(library(option)).
-:- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(thread)).
-
-% Processes are registered so that they can be killed.
-:- dynamic(current_process/1).
 
 %! thread_id(
 %!   ?Pid:nonneg,
@@ -31,17 +36,16 @@
 :- dynamic(thread_id/3).
 
 :- predicate_options(handle_process/3, 3, [
-  detached(+boolean),
-  pass_to(handle_process_inner/3, 3)
-]).
+     detached(+boolean),
+     pass_to(handle_process_inner/3, 3)
+   ]).
 :- predicate_options(handle_process_inner/3, 3, [
-  error_goal(+callable),
-  nice(+between(-20,20)),
-  output_goal(+callable),
-  program(+atom),
-  status(-nonneg),
-  pass_to(process_create/3, 3)
-]).
+     error_goal(+callable),
+     output_goal(+callable),
+     program(+atom),
+     status(-nonneg),
+     pass_to(process_create/3, 3)
+   ]).
 
 :- meta_predicate(handle_process(+,+,:)).
 
@@ -49,8 +53,6 @@ is_meta(error_goal).
 is_meta(output_goal).
 
 :- at_halt(kill_processes).
-
-
 
 
 
@@ -69,8 +71,6 @@ is_meta(output_goal).
 %     Default is `false`.
 %   * error_goal(:Goal)
 %     Call this goal on the error stream.
-%   * nice(+between(-20,20))
-%     Default is 0.
 %   * output_goal(:Goal)
 %     Call this goal on the output stream.
 %   * program(+Program:atom)
@@ -107,15 +107,6 @@ handle_process_inner(Process, Args, Options1):-
   setup_call_cleanup(
     process_create(Exec, Args, Options3),
     (
-      (   option(nice(Nice), Options1),
-          Nice =\= 0
-      ->  handle_process(renice, [10,Pid], [nice(0)])
-      ;   true
-      ),
-
-      % Register the PID so it can be killed upon Prolog halt.
-      assert(current_process(Pid)),
-
       % Process the goal supplied for the error stream.
       (   option(error_goal(ErrorGoal), Options1, print_error)
       ->  thread_create(
@@ -135,8 +126,7 @@ handle_process_inner(Process, Args, Options1):-
 
       % Process the status code.
       with_mutex(process_ext, (
-        process_wait(Pid, exit(PidStatus)),
-        retract(current_process(Pid))
+        process_wait(Pid, exit(PidStatus))
       )),
       process_status(Program, PidStatus),
       (   option(status(PidStatus0), Options1)
@@ -202,18 +192,6 @@ thread_status(Pid, StreamType, exception(Exception)):- !,
 thread_status(Pid, StreamType, exited(Term)):-
   print_message(warning, thread_status(Pid,StreamType,exited,Term)).
 
-:- multifile(prolog:message//1).
-
-prolog:message(process_status(Program,StatusCode)) -->
-  ['Program ~w returned status code ~w.'-[Program,StatusCode]].
-prolog:message(thread_status(Pid,StreamType,fail)) -->
-  ['The ~a stream of process ~d failed.'-[StreamType,Pid]].
-prolog:message(thread_status(Pid,StreamType,exception,Term)) -->
-  ['The ~a stream of process ~d threw exception ~w '-[StreamType,Pid,Term]].
-prolog:message(thread_status(Pid,StreamType,exited,Term)) -->
-  ['The ~a stream of process ~d exited with ~w '-[StreamType,Pid,Term]].
-
-
 
 %! kill_processes is det.
 % Kills all running processes by PID.
@@ -224,9 +202,33 @@ kill_processes:-
   with_mutex(process_ext, (
     aggregate_all(
       set(Pid),
-      current_process(Pid),
+      process_id(Pid),
       Pids
     ),
     concurrent_maplist(process_kill, Pids)
   )).
 
+
+%! renice(+Pid:positive_integer, +Nice:between(-20,19)) is det.
+
+renice(Pid, _):-
+  \+ process_id(Pid), !,
+  existence_error(process, Pid).
+renice(Pid, N):-
+  must_be(between(-20,19), N),
+  handle_process(renice, [10,Pid], [nice(0)]).
+
+
+
+% MESSAGES %
+
+:- multifile(prolog:message//1).
+
+prolog:message(process_status(Program,StatusCode)) -->
+  ['Program ~w returned status code ~w.'-[Program,StatusCode]].
+prolog:message(thread_status(Pid,StreamType,fail)) -->
+  ['The ~a stream of process ~d failed.'-[StreamType,Pid]].
+prolog:message(thread_status(Pid,StreamType,exception,Term)) -->
+  ['The ~a stream of process ~d threw exception ~w '-[StreamType,Pid,Term]].
+prolog:message(thread_status(Pid,StreamType,exited,Term)) -->
+  ['The ~a stream of process ~d exited with ~w '-[StreamType,Pid,Term]].
