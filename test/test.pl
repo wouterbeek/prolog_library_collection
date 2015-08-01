@@ -29,7 +29,6 @@
   :- use_module(library(html/html_dcg)).
   :- use_module(library(html/html_dom)).
   :- use_module(library(html/html_download)).
-  :- use_module(library(html/html_table)).
 %/http
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
@@ -47,3 +46,5 @@
 :- use_module(library(typeconv)).
 %/xml
   :- use_module(library(xml/xml_dom)).
+%/xpath
+:- use_module(library(xpath/xpath_table)).
