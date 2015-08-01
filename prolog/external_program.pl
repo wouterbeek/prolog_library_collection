@@ -20,7 +20,6 @@ Support for using external programs with SWI-Prolog.
 :- use_module(library(ansi_ext)).
 :- use_module(library(apply)).
 :- use_module(library(option)).
-:- use_module(library(print_ext)).
 :- use_module(library(process_ext)).
 :- use_module(library(readutil)).
 
@@ -48,8 +47,8 @@ Support for using external programs with SWI-Prolog.
 
 exists_program(Program):-
   catch(
-    handle_process(Program, [], [detached(true),process(Pid)]),
-    error(existence_error(_, _), _),
+    handle_process(Program, [], [detached(false),process(Pid)]),
+    _,
     fail
   ),
   process_kill(Pid).
@@ -109,6 +108,7 @@ list_external_programs0(Ps, Content, Type):-
   ),
   ansi_format_listln([
     Type,
+    ' ',
     msg([bold],Content),
     ' is ',
     msg([bold,fg(Color)],SupportText),
@@ -129,7 +129,6 @@ module_uses_program0(M, P):-
 
 write_program_support0(P):-
   exists_program(P), !,
-  tab,
   ansi_format_listln([
     'Program ',
     msg([bold],P),
@@ -138,7 +137,6 @@ write_program_support0(P):-
     '.'
   ]).
 write_program_support0(P):-
-  tab,
   ansi_format_listln([
     'Program ',
     msg([bold],P),
