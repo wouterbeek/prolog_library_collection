@@ -1,9 +1,8 @@
 :- module(
   dcg_generics,
   [
-    dcg_sep_list//2, % :Separator
-                     % ?Codess:list(list(code))
-    parsing//0
+    dcg_sep_list//2 % :Separator
+                    % ?Codess:list(list(code))
   ]
 ).
 
@@ -25,11 +24,3 @@ dcg_sep_item(Sep, []) -->
 dcg_sep_item(Sep, [H|T]) -->
   [H],
   dcg_sep_item(Sep, T).
-
-
-
-%! parsing// is semidet.
-% Succeeds if the DCG is in parse mode.
-
-parsing(H, H):-
-   nonvar(H).

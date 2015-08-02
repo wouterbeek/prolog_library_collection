@@ -10,6 +10,7 @@
     indent//2, % +Indent:nonneg
                % :Dcg_0
     nl//0,
+    parsing//0,
     pl_term//1 % +Term
   ]
 ).
