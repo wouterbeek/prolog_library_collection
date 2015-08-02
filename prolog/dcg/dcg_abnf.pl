@@ -938,10 +938,3 @@ call_dcg_sep(C, Dcg, Sep, Args, true) -->
   fail.
 % Everything else succeeds.
 'm*n_typecheck'(_, _).
-
-
-
-%! parsing// is semidet.
-
-parsing(H, H):-
-   nonvar(H).
