@@ -32,6 +32,7 @@
   :- use_module(library(html/html_dom)).
   :- use_module(library(html/html_download)).
 %/http
+  :- use_module(library(http/http_receive)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
