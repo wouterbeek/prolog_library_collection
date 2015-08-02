@@ -38,6 +38,8 @@
 :- use_module(library(image_ext)).
 %/json
   :- use_module(library(json/json_ext)).
+%/langtag
+  :- use_module(library(langtag/langtag_match)).
 :- use_module(library(list_ext)).
 %/math
   :- use_module(library(math/dimension)).
