@@ -186,9 +186,10 @@ capitalize_atom(A1, A2):-
 %! codes_atom(+Codes:list(nonneg), +Atom:atom) is semidet.
 %! codes_atom(+Codes:list(nonneg), -Atom:atom) is det.
 %! codes_atom(-Codes:list(nonneg), +Atom:atom) is det.
+% Variant of atom_codes/2.
 
-codes_atom(Codes, Atom):-
-  atom_codes(Atom, Codes).
+codes_atom(Cs, A):-
+  atom_codes(A, Cs).
 
 
 

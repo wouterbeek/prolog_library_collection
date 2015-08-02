@@ -49,6 +49,7 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
 :- use_module(library(process_ext)).
+:- use_module(library(string_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).

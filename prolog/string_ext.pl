@@ -9,7 +9,7 @@
   ]
 ).
 
-/** <module> String: Extensions
+/** <module> String extensions
 
 Additional support for native strings in SWI-Prolog.
 
@@ -21,7 +21,7 @@ Non-native string representations in Prolog:
 ---
 
 @author Wouter Beek
-@version 2014/08, 2014/11
+@version 2015/08
 */
 
 :- use_module(library(apply)).
@@ -31,10 +31,10 @@ Non-native string representations in Prolog:
 %! codes_string(+Codes:list(nonneg), +String:string) is semidet.
 %! codes_string(+Codes:list(nonneg), -String:string) is det.
 %! codes_string(-Codes:list(nonneg), +String:string) is det.
+% Variant of the built-in string_codes/2.
 
-codes_string(Codes, Atom):-
-  atom_codes(Atom, Codes).
-
+codes_string(Cs, S):-
+  string_codes(S, Cs).
 
 
 %! string_list_concat(
@@ -53,12 +53,12 @@ codes_string(Codes, Atom):-
 %!   +String:string
 %! ) is det.
 
-string_list_concat(Strings, Separator, String):-
-  var(String), !,
-  maplist(atom_string, [Separator0|Atoms], [Separator|Strings]),
-  atomic_list_concat(Atoms, Separator0, Atom),
-  atom_string(Atom, String).
-string_list_concat(Strings, Separator, String):-
-  maplist(atom_string, [Separator0,Atom], [Separator,String]),
-  atomic_list_concat(Atoms, Separator0, Atom),
-  maplist(atom_string, Atoms, Strings).
+string_list_concat(Ss, Sep, S):-
+  var(S), !,
+  maplist(atom_string, [Sep0|As], [Sep|Ss]),
+  atomic_list_concat(As, Sep0, A),
+  atom_string(A, S).
+string_list_concat(Ss, Sep, S):-
+  maplist(atom_string, [Sep0,A], [Sep,S]),
+  atomic_list_concat(As, Sep0, A),
+  maplist(atom_string, As, Ss).
