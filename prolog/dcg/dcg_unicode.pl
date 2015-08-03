@@ -50,6 +50,7 @@
   ]
 ).
 :- reexport(library(dcg/dcg_ascii)).
+:- reexport(library(dcg/dcg_logic)).
 
 /** <module> DCG Unicode
 
@@ -84,6 +85,7 @@ bracket(Type, Code) --> opening_bracket(Type, Code).
 
 %! character_tie// .
 %! character_tie(?Code:code)// .
+% ⁀
 
 character_tie --> character_tie(_).
 character_tie(8256) --> [8256].
@@ -149,12 +151,14 @@ line_terminator(Code) --> paragraph_separator(Code).
 
 %! middle_dot// .
 %! middle_dot(?Code:code)// .
+% ·
 
 middle_dot --> middle_dot(_).
 middle_dot(183) --> [183].
 
 %! models// .
 %! models(?Code:code)// .
+% ⊧
 
 models --> models(_).
 models(8871) --> [8871].
@@ -185,6 +189,7 @@ opening_bracket(langular, 12296) --> [12296].
 
 %! orgham_space_mark// .
 %! orgham_space_mark(?Code:code)// .
+%  
 
 orgham_space_mark --> orgham_space_mark(_).
 orgham_space_mark(5760) --> [5760].
@@ -205,6 +210,7 @@ punctuation(Code) -->
 
 %! undertie// .
 %! undertie(?Code:code)// .
+% ‿
 
 undertie --> undertie(_).
 undertie(8255) --> [8255].
