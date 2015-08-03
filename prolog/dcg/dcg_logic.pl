@@ -8,7 +8,9 @@
     provable//0,
     provable//1, % -Code:code
     set_membership//0,
-    set_membership//1 % -Code:code
+    set_membership//1, % -Code:code
+    subclass//0,
+    subclass//1 % -Code:code
   ]
 ).
 
@@ -53,3 +55,11 @@ provable(8866) --> [8866].
 
 set_membership --> set_membership(_).
 set_membership(8714) --> [8714].
+
+
+%! subclass// .
+%! subclass(?Code:code)// .
+% ⊆
+
+subclass --> subclass(_).
+subclass(8838) --> [8838].
