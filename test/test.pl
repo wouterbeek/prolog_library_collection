@@ -16,6 +16,7 @@
   :- use_module(library(dcg/dcg_cardinal)).
   :- use_module(library(dcg/dcg_char)).
   :- use_module(library(dcg/dcg_code)).
+  :- use_module(library(dcg/dcg_collection)).
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_logic)).
   :- use_module(library(dcg/dcg_peek)).
