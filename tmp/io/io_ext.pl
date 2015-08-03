@@ -15,8 +15,6 @@
                           % +File:atom
     write_codes_to_file/2, % +Codes:list(code)
                            % +File:atom
-    write_stream_to_file/2, % +Stream:stream
-                            % +File:atom
     write_term_to_stream/2 % +Term:term
                            % -Stream:stream
   ]
@@ -114,17 +112,6 @@ write_codes_to_file(Codes, File):-
     open(File, write, Stream, [encoding(utf8),type(text)]),
     put_codes(Stream, Codes),
     close(Stream)
-  ).
-
-
-
-%! write_stream_to_file(+Stream:stream, +File:atom) is det.
-
-write_stream_to_file(In, File):-
-  setup_call_cleanup(
-    open(File, write, Out, [type(binary)]),
-    copy_stream_data(In, Out),
-    close(Out)
   ).
 
 

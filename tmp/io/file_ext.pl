@@ -41,8 +41,6 @@
                            % ?Ext:atom
     hidden_file_name/2, % +Path:atom
                         % ?HiddenPath:atom
-    is_fresh_file/2, % +File:atom
-                     % +FreshnessLifetime:between(0.0,inf)
     local_file_component/3, % ?Local:atom
                             % ?Field:oneof([base,extension])
                             % ?Component:atom
@@ -423,22 +421,6 @@ hidden_file_name(Path, HiddenPath):-
   file_components(Path, Dir, Base, Ext),
   atomic_concat('.', Base, HiddenBase),
   file_components(HiddenPath, Dir, HiddenBase, Ext).
-
-
-
-%! is_fresh_file(+File:atom, +FreshnessLifetime:between(0.0,inf)) is semidet.
-
-is_fresh_file(File, FreshnessLifetime):-
-  file_age(File, Age),
-  is_fresh_age(Age, FreshnessLifetime).
-
-
-
-%! is_stale_file(+File:atom, +FreshnessLifetime:between(0.0,inf)) is semidet.
-
-is_stale_file(File, FreshnessLifetime):-
-  file_age(File, Age),
-  is_stale_age(Age, FreshnessLifetime).
 
 
 

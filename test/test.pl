@@ -28,7 +28,6 @@
 :- use_module(library(deb_ext)).
 :- use_module(library(default)).
 :- use_module(library(external_program)).
-:- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 %/html
   :- use_module(library(html/html_dcg)).
@@ -39,6 +38,9 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
+%/io
+  :- use_module(library(io/dir_ext)).
+  :- use_module(library(io/file_ext)).
 %/json
   :- use_module(library(json/json_ext)).
 %/langtag

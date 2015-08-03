@@ -14,9 +14,6 @@
                         % -AbsoluteDir:atom
     delete_directory/2, % +Dir:atom
                         % +Options:list(nvpair)
-    directory_files/3, % +Dir:atom
-                       % -AbsFiles:list(atom)
-                       % +Options:list(nvpair)
     directory_subdirectories/2, % ?Dir:atom
                                 % ?Subdirs:list(atom)
     link_directory_contents/2, % +FromDir:atom
@@ -178,92 +175,6 @@ delete_directory(File, _):-
 
 
 
-%! directory_files(
-%!   +Dir:atom,
-%!   -AbsoluteFiles:list(atom),
-%!   +Options:list(nvpair)
-%! ) is det.
-% Variant of directory_files/2 that returns absolute file names
-% instead of relative ones and excludes non-file entries.
-%
-% The following options are supported:
-%   * `file_types(+FileTypes:list(atom))`
-%     A list of atomic file types that are used as a filter.
-%     Default: no file type filter.
-%   * `include_directories(+IncludeDirectories:boolean)`
-%     Whether (sub)directories are included or not.
-%     Default: `false`.
-%   * `include_self(+IncludeSelf:boolean)`
-%     Whether or not the enclosing directory is included.
-%     Default: `false`.
-%   * `order(+Order:oneof([lexicographic,none]))`
-%     The order in which the files are returned.
-%     Lexicographic order uses ordsets.
-%     Default: `none`.
-%   * `recursive(+Recursive:boolean)`
-%     Whether subdirectories are searched recursively.
-%     Default: `true`.
-
-directory_files(Dir, Files4, Options1):-
-  meta_options(is_meta, Options1, Options2),
-
-  % Note that the list of files is *not* ordered!
-  directory_files(Dir, New1),
-
-  % Remove `.` and `..`.
-  exclude(nonfile_entry, New1, New2),
-
-  % Make the file names absolute.
-  maplist(directory_file_path(Dir), New2, New3),
-
-  partition(exists_directory, New3, NewDirectories, NewFiles1),
-
-  % Filter based on a list of file types, if given.
-  (   option(file_types(FileTypes), Options2)
-  ->  include(
-        \File^(
-          file_component(File, file_type, FileType),
-          memberchk(FileType, FileTypes)
-        ),
-        NewFiles1,
-        NewFiles2
-      )
-  ;   NewFiles2 = NewFiles1
-  ),
-
-  % Make sure the `include_self` option is excluded from
-  % the processing of subdirectories.
-  select_option(include_self(IncludeSelf), Options2, Options3, false),
-
-  % Include directories and files from deeper recursion levels.
-  (   option(recursive(true), Options3)
-  ->  maplist(
-        \NewDir^NewFiles^directory_files(NewDir, NewFiles, Options3),
-        NewDirectories,
-        NewFiless
-      ),
-      append([NewFiles2|NewFiless], Files1)
-  ;   Files1 = NewFiles2
-  ),
-
-  % Include directories from this recursion level.
-  (   option(include_directories(true), Options3)
-  ->  append(Files1, NewDirectories, Files2)
-  ;   Files2 = Files1
-  ),
-
-  % Include the parent directory.
-  (   IncludeSelf == true
-  ->  Files3 = [Dir|Files2]
-  ;   Files3 = Files2
-  ),
-
-  % Apply requested ordering.
-  option(order(Order), Options3, =),
-  call(Order, Files3, Files4).
-
-
-
 %! directory_subdirectories(+Dir:atom, +Subdirs:list(atom)) is semidet.
 %! directory_subdirectories(+Dir:atom, -Subdirs:list(atom)) is det.
 %! directory_subdirectories(-Dir:atom, +Subdirs:list(atom)) is det.
@@ -313,15 +224,3 @@ run_in_working_directory(Goal, Dir1):-
   working_directory(Dir1, Dir2),
   call(Goal),
   working_directory(Dir2, Dir1).
-
-
-
-
-
-% HELPERS
-
-%! nonfile_entry(+Entry:atom) is semidet.
-
-nonfile_entry('.').
-nonfile_entry('..').
-
