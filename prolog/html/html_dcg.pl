@@ -21,7 +21,7 @@
 DCG grammar for HTML snippets.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(dcg/basics)).
@@ -30,6 +30,7 @@ DCG grammar for HTML snippets.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_quoted)).
 :- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dcg/dcg_word)).
 
 :- meta_predicate(html_element(+,+,//,?,?)).
 
@@ -136,7 +137,7 @@ html_punctuation(Code) -->
 % This includes spaces.
 
 html_string(String) -->
-  '*'(html_graphic, String, [convert1(codes_atom)]).
+  dcg_atom('*'(html_graphic, String, []), String).
 
 
 
