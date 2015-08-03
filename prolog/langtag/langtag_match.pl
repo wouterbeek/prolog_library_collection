@@ -36,14 +36,12 @@ Applications, protocols, and specifications are not required to validate
 
 @author Wouter Beek
 @compat RFC 4647
-@version 2014/11, 2015/03
+@version 2015/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(lists)).
-
-:- use_module(plc(generics/list_ext)).
+:- use_module(library(list_ext)).
 
 
 

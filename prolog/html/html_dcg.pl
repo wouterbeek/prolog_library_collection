@@ -10,7 +10,7 @@
                      % +Attributes:list(pair)
                      % :Content
     html_entity//1, % +Name:atom
-    html_graphic//1, % ?Code:nonneg
+    html_graphic//1, % ?Code:code
     html_string//1, % ?String:atom
     html_style//1 % ?NVPair:pair(atom)
   ]
@@ -135,9 +135,15 @@ html_punctuation(Code) -->
 %! html_string(?String:atom)// .
 % An **HTML string** is a sequence of printable or graphic HTML characters.
 % This includes spaces.
+%
+% @tbd The following does not succeed on parsing//0:
+%      dcg_atom('*'(html_graphic, []), String).
 
 html_string(String) -->
-  dcg_atom('*'(html_graphic, String, []), String).
+  dcg_atom(html_string0, String).
+
+html_string0([H|T]) --> html_graphic(H), !, html_string0(T).
+html_string0([]) --> [].
 
 
 
