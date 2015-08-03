@@ -1,6 +1,8 @@
 :- module(
   deb_ext,
   [
+    if_debug/2, % +Flag:atom
+                % :Goal
     msg_emphasis/1, % +Message:atom
     msg_normal/1, % +Message:atom
     msg_notification/1, % +Message:atom
@@ -12,19 +14,33 @@
   ]
 ).
 
+:- reexport(library(debug)).
+
 /** <module> Debug extensions
 
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(ansi_term)).
 
+:- meta_predicate(if_debug(+,0)).
 :- meta_predicate(verbose_call(0)).
 :- meta_predicate(verbose_call(+,0)).
 
+
+
+%! if_debug(+Flag:atom, :Goal) .
+% Calls the given goal only if the given flag is an active debugging topic.
+%
+% @see library(debug)
+
+if_debug(Flag, _Goal):-
+  \+ debugging(Flag), !.
+if_debug(_Flag, Goal):-
+  call(Goal).
 
 
 msg_emphasis(X):-

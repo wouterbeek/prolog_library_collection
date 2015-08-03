@@ -17,8 +17,6 @@
                                 % +Args2:list
                                 % +Args3:list
     fail_mode/1, % +FailMode:compound
-    if_debug/2, % +Flag:atom
-                % :Goal
     number_of_open_files/1, % -N:nonneg
     test/1, % :Goal
     test/2, % :Goal
@@ -48,7 +46,6 @@ Methods that are used while developing and inspecting code.
 :- meta_predicate(concurrent_maplist_debug(+,1,+)).
 :- meta_predicate(concurrent_maplist_debug(+,2,+,+)).
 :- meta_predicate(concurrent_maplist_debug(+,3,+,+,+)).
-:- meta_predicate(if_debug(+,0)).
 :- meta_predicate(test(0)).
 :- meta_predicate(test(0,+)).
 :- meta_predicate(test(0,+,+)).
@@ -114,18 +111,6 @@ fail_mode(fail):- !,
   fail.
 fail_mode(ignore):-
   true.
-
-
-
-%! if_debug(+Flag:atom, :Goal) .
-% Calls the given goal only if the given flag is an active debugging topic.
-%
-% @see library(debug)
-
-if_debug(Flag, _Goal):-
-  \+ debugging(Flag), !.
-if_debug(_Flag, Goal):-
-  call(Goal).
 
 
 
