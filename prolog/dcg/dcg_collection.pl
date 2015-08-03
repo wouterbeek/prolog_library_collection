@@ -56,12 +56,19 @@ For convenience's sake, the following collection instances are supported:
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 
+<<<<<<< HEAD
 :- meta_predicate(bracketed_collection(+,2,//,3,+,?,?)).
+=======
+>>>>>>> 42ea547c5b816243bb3f310ef010f37bbbfcd845
 :- meta_predicate(collection(//,//,2,//,3,+,?,?)).
 :- meta_predicate(collection_items(//,//,2,//,3,+,?,?)).
 :- meta_predicate(list(3,+,?,?)).
 :- meta_predicate(nvpair(3,+,+,?,?)).
+<<<<<<< HEAD
 :- meta_predicate(pair(3,+,?,?)).
+=======
+:- meta_predicate(pair(+,3,+,?,?)).
+>>>>>>> 42ea547c5b816243bb3f310ef010f37bbbfcd845
 :- meta_predicate(pair(3,+,+,?,?)).
 :- meta_predicate(set(3,+,?,?)).
 :- meta_predicate(triple(3,+,+,+,?,?)).
