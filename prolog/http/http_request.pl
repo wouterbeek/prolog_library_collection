@@ -34,6 +34,7 @@ posing an alternative to library(http/http_client).
 @version 2015/07
 */
 
+:- use_module(library(http/http_json)). % JSON support.
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(option)).
@@ -59,6 +60,8 @@ posing an alternative to library(http/http_client).
      pass_to(http_open/3, 3)
    ]).
 
+cert_verify(_, _, _, _, _).
+
 
 
 
@@ -80,7 +83,15 @@ http_get(Uri, Success_2, Opts):-
 %! http_get(+Uri:atom, :Success_2, :Error_2, +Options:list(compound)) is det.
 
 http_get(Uri, Success_2, Error_2, Opts0):-
-  merge_options([method(get),status_code(Status)], Opts0, Opts),
+  merge_options(
+    [
+      cert_verify_hook(cert_verify),
+      method(get),
+      status_code(Status)
+    ],
+    Opts0,
+    Opts
+  ),
   setup_call_cleanup(
     http_open(Uri, Read, Opts),
     http_stream(Status, Success_2, Error_2, Read),
@@ -115,7 +126,16 @@ http_post(Uri, Data, Success_2, Opts):-
 %! ) is det.
 
 http_post(Uri, Data, Success_2, Error_2, Opts0):-
-  merge_options([method(post),post(Data),status_code(Status)], Opts0, Opts),
+  merge_options(
+    [
+      cert_verify_hook(cert_verify),
+      method(post),
+      post(Data),
+      status_code(Status)
+    ],
+    Opts0,
+    Opts
+  ),
   setup_call_cleanup(
     http_open(Uri, Read, Opts),
     http_stream(Status, Success_2, Error_2, Read),
