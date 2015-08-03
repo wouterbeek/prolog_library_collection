@@ -1,20 +1,20 @@
 :- module(
-  hash,
+  hash_ext,
   [
     md5/2 % @Term
           % -Hash:atom
   ]
 ).
 
-/** <module> Hash
+/** <module> Hash extensions
 
-Support for hash functions.
+Extended support for using hashes.
 
 @author Wouter Beek
-@version 2015/05
+@version 2015/08
 */
 
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_db)).
 
 
 

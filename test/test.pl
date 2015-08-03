@@ -28,6 +28,7 @@
 :- use_module(library(default)).
 :- use_module(library(external_program)).
 :- use_module(library(file_ext)).
+:- use_module(library(hash_ext)).
 %/html
   :- use_module(library(html/html_dcg)).
   :- use_module(library(html/html_dom)).
