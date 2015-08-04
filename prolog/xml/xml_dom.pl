@@ -4,11 +4,9 @@
     atom_to_xml_dom/2, % +Atom:atom
                        % -Dom:list(compound)
     xml_dom_to_atom/2, % +Dom, -Atom
-    xml_dom_to_atom/3, % +Dom:list(compound)
-                       % -Atom:atom
-                       % +Options:list(compound)
-    xml_download/2 % +Uri:atom
-                   % -Dom:list(compound)
+    xml_dom_to_atom/3 % +Dom:list(compound)
+                      % -Atom:atom
+                      % +Options:list(compound)
   ]
 ).
 
@@ -103,15 +101,3 @@ xml_dom_to_atom(Dom, A, Opts1):-
   % in -- at least -- Firefox.
   merge_options([header(false)], Opts2, Opts3),
   with_output_to(atom(A), xml_write(Dom0, Opts3)).
-
-
-
-%! xml_download(+Uri:uri, -Dom:list(compound)) is det.
-% Returns the HTML Document Object Model (DOM)
-% for the website with the given URI.
-
-xml_download(Uri, Dom):-
-  http_get(Uri, load_xml0(Dom, [])).
-
-load_xml0(Dom, Opts, _, Read):-
-  load_xml(Read, Dom, Opts).

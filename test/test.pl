@@ -32,8 +32,8 @@
 %/html
   :- use_module(library(html/html_dcg)).
   :- use_module(library(html/html_dom)).
-  :- use_module(library(html/html_download)).
 %/http
+  :- use_module(library(http/http_download)).
   :- use_module(library(http/http_receive)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
@@ -41,8 +41,6 @@
 %/io
   :- use_module(library(io/dir_ext)).
   :- use_module(library(io/file_ext)).
-%/json
-  :- use_module(library(json/json_ext)).
 %/langtag
   :- use_module(library(langtag/langtag_match)).
 :- use_module(library(list_ext)).
@@ -62,6 +60,8 @@
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
+%/uri
+  :- use_module(library(uri/uri_file_name)).
 :- use_module(library(uuid_ext)).
 %/xml
   :- use_module(library(xml/xml_dom)).
