@@ -1,6 +1,9 @@
 :- module(
   atom_ext,
   [
+    atom_ending_in/3, % +Atom:atom
+                      % +Suffix:atom
+                      % -NewAtom:atom
     atom_splits/3, % +Splits:list(atom)
                    % +Atom:atom
                    % -Subatoms:list(atom)
@@ -91,7 +94,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2018/08
 */
 
 :- use_module(library(apply)).
@@ -100,6 +103,20 @@ Titlecase atoms can be created using upcase_atom/2.
 :- use_module(library(typecheck)).
 
 
+
+
+
+%! atom_ending_in(+Atom:atom, +Suffix:atom, -NewAtom:atom) is det.
+% Succeeds if NewAtom is the same as Atom and has given Suffix.
+% If Atom already ends in Suffix then NewAtom == Atom.
+%
+% This can for instance be used to ensure that an atom
+% ends with a forward slash in the process of building file paths.
+
+atom_ending_in(A, Suffix, A):-
+  atom_concat(_, Suffix, A), !.
+atom_ending_in(A0, Suffix, A):-
+  atom_concat(A0, Suffix, A).
 
 
 
