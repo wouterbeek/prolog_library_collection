@@ -1,6 +1,8 @@
 :- module(
   http_download,
   [
+    file_download/2, % +Uri:atom
+                     % ?File:atom
     file_download/3, % +Uri:atom
                      % ?File:atom
                      % +Options:list(compound)
@@ -40,6 +42,11 @@ Support for downloading files and datastructures over HTTP(S).
 
 
 
+
+%! file_download(+Uri:atom, ?File:atom) is det.
+
+file_download(Uri, File):-
+  file_download(Uri, File, []).
 
 %! file_download(+Uri:atom, ?File:atom, +Options:list(compound)) is det.
 % Downloads the contents stored at the given URI to either

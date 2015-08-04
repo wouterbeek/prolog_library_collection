@@ -160,5 +160,5 @@ resolve_double_dots([H|T1], [H|T2]):-
 %! nonfile_entry(+Entry:atom) is semidet.
 %! nonfile_entry(-Entry:atom) is multi.
 
-nonfile_entry('.').
+nonfile_entry(.).
 nonfile_entry('..').

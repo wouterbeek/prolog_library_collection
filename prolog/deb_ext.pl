@@ -171,14 +171,14 @@ call_failure(Msg, E):-
 call_start(Msg):-
   msg_normal('Starting process '),
   msg_emphasis(Msg),
-  msg_normal('.'),
+  msg_normal(.),
   nl.
 
 call_success(Msg):-
   msg_success('[SUCCESS]'),
   msg_normal(' Ending process '),
   msg_emphasis(Msg),
-  msg_normal('.'),
+  msg_normal(.),
   nl.
 
 

@@ -66,7 +66,7 @@ nested_uri_file_name(ParentDir0, Uri, File):-
   uri_components(Uri, uri_components(Scheme,Authority,Path,_,_)),
 
   % Make sure the path ends in a non-directory file.
-  (   sub_atom(Path, _, 1, 0, '/')
+  (   sub_atom(Path, _, 1, 0, /)
   ->  PathDir = Path,
       Base = dir_dummy
   ;   file_directory_name(Path, PathDir),

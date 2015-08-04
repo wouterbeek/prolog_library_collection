@@ -411,7 +411,7 @@ fractional_integer(N, Frac):-
 fractional_integer(Number, Frac):-
   atom_number(NumberAtom, Number),
   % We assume that there is at most one occurrence of `.`.
-  sub_atom(NumberAtom, IndexOfDot, 1, _, '.'), !,
+  sub_atom(NumberAtom, IndexOfDot, 1, _, .), !,
   succ(IndexOfDot, Skip),
   sub_atom(NumberAtom, Skip, _, 0, FracAtom),
   atom_number(FracAtom, Frac).
