@@ -22,13 +22,15 @@ Support for downloading files and datastructures over HTTP(S).
 ---
 
 @author Wouter Beek
+@tbd We cannot use library(lambda) because this copies the goal term,
+     not returning the DOM argument.
 @version 2015/07-2015/08
 */
 
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
-:- use_module(library(lambda)).
+%:- use_module(library(lambda)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
@@ -91,7 +93,7 @@ file_download(Uri, File0, Opts):-
   file_name_extension(File, ThreadName, TmpFile),
 
   % The actual downloading part.
-  http_get(Uri, \_Status^Read^write_stream_to_file(Read, TmpFile), Opts),
+  http_get(Uri, write_stream_to_file0(TmpFile), Opts),
 
   % Give the file its original name.
   rename_file(TmpFile, File).
@@ -100,6 +102,7 @@ file_download(Uri, File0, Opts):-
 file_download(Uri, File, Opts):-
   nested_uri_file_name(Uri, File),
   file_download(Uri, File, Opts).
+write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
 
 
 
@@ -107,14 +110,16 @@ file_download(Uri, File, Opts):-
 
 html_download(Uri, Dom):-
   Opts = [dialect(html5),max_errors(-1)],
-  http_get(Uri, \_Status^Read^load_html(Read, Dom, Opts)).
+  http_get(Uri, load_html0(Dom, Opts)).
+load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
 
 
 
 %! json_download(+Uri:atom, -Json:dict) is det.
 
 json_download(Uri, Json):-
-  http_get(Uri, \_Status^Read^json_read_dict(Read, Json)).
+  http_get(Uri, json_read_dict0(Json)).
+json_read_dict0(Json, _, Read):- json_read_dict(Read, Json).
 
 
 
@@ -123,4 +128,5 @@ json_download(Uri, Json):-
 % for the website with the given URI.
 
 xml_download(Uri, Dom):-
-  http_get(Uri, \_Status^Read^load_xml(Read, Dom, [])).
+  http_get(Uri, load_xml(Dom)).
+load_xml0(Dom, _, Read):- load_xml(Read, Dom, []).
