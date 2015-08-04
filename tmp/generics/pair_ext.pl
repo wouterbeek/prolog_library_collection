@@ -413,7 +413,7 @@ store_pairs_to_file(Pairs, File):-
       member(From-To, Pairs),
       (
         writeq(Stream, pair(From,To)),
-        write(Stream, '.'),
+        write(Stream, .),
         nl(Stream)
       )
     ),

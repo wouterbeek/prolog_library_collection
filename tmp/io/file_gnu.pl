@@ -85,5 +85,5 @@ prolog:message(split_file(BigFile,OutputDir)) -->
     BigFile,
     ' was split into smaller files in directory ',
     OutputDir,
-    '.'
+    .
   ].

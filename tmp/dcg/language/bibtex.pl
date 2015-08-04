@@ -252,5 +252,5 @@ prolog:message(missing_bibtex_key(Class,Key)) -->
     Key,
     ' is not allowed to be missing for BibTeX entry type ',
     Class,
-    '.'
+    .
   ].

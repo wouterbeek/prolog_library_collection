@@ -416,7 +416,7 @@ file_kind_extension(FileType, Ext):-
 
 hidden_file_name(Path, HiddenPath):-
   file_components(Path, Dir, Base, Ext),
-  atomic_concat('.', Base, HiddenBase),
+  atomic_concat(., Base, HiddenBase),
   file_components(HiddenPath, Dir, HiddenBase, Ext).
 
 
@@ -448,7 +448,7 @@ local_file_component0(Local, extension, Ext):-
 
 local_file_components(Local, Base, Ext):-
   nonvar(Local), !,
-  (   atomic_list_concat([Base,Ext], '.', Local)
+  (   atomic_list_concat([Base,Ext], ., Local)
   ->  true
   ;   Base = Local,
       Ext = ''
@@ -457,7 +457,7 @@ local_file_components(Local, Base, Ext):-
   maplist(nonvar, [Base,Ext]), !,
   (   Ext == ''
   ->  Local = Base
-  ;   atomic_list_concat([Base,Ext], '.', Local)
+  ;   atomic_list_concat([Base,Ext], ., Local)
   ).
 local_file_components(_, _, _):-
   instantiation_error(_).

@@ -50,4 +50,4 @@ compiled_file(PlFile, QlfFile):-
 :- multifile(prolog:message//1).
 
 prolog:message(cannot_write_qlf(PlFile)) -->
-  ['Cannot write to QLF, loading from ',PlFile,'.'].
+  ['Cannot write to QLF, loading from ',PlFile,.].
