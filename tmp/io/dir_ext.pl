@@ -42,8 +42,6 @@ Extensions for handling directories.
 :- meta_predicate(directory_files(+,-,:)).
 :- meta_predicate(run_in_working_directory(0,+)).
 
-is_meta(order).
-
 :- predicate_options(copy_directory/3, 3, [
      pass_to(delete_directory/2, 2)
    ]).
@@ -163,36 +161,6 @@ delete_directory(Dir, _):-
 % Files.
 delete_directory(File, _):-
   delete_file(File).
-
-
-
-%! directory_subdirectories(+Dir:atom, +Subdirs:list(atom)) is semidet.
-%! directory_subdirectories(+Dir:atom, -Subdirs:list(atom)) is det.
-%! directory_subdirectories(-Dir:atom, +Subdirs:list(atom)) is det.
-% Relates a directory name to its subdirectory names.
-%
-% Occurrences of `..` in Dir are resolved.
-%
-% For absolute directory names the first subdirectory name is the empty atom.
-
-directory_subdirectories(Dir, Subdirs):-
-  nonvar(Dir), !,
-  atomic_list_concat(Subdirs0, /, Dir),
-  resolve_double_dots(Subdirs0, Subdirs).
-directory_subdirectories(Dir, Subdirs0):-
-  nonvar(Subdirs0), !,
-  resolve_double_dots(Subdirs0, Subdirs),
-  atomic_list_concat(Subdirs, /, Dir).
-directory_subdirectories(_, _):-
-  instantiation_error(_).
-
-%! resolve_double_dots(+Subdirs:list(atom), -ResoledSubdirs:list(atom)) is det.
-
-resolve_double_dots([], []).
-resolve_double_dots([_,'..'|T1], T2):-
-  resolve_double_dots(T1, T2).
-resolve_double_dots([H|T1], [H|T2]):-
-  resolve_double_dots(T1, T2).
 
 
 

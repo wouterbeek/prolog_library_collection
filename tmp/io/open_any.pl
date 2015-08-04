@@ -237,7 +237,7 @@ open_input(uri_components(UriComponents), In, Metadata, Close, Options1):-
   % Otherwise, a proper URL has to be opened.
   uri_components(Uri, UriComponents),
   (   Scheme == file
-  ->  uri_file_name(Uri, File),
+  ->  nested_uri_file_name(Uri, File),
       open_input(file(File), In, Metadata, Close, Options1)
   ;   http_scheme(Scheme),
       Headers1 = [

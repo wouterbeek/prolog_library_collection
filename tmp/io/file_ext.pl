@@ -53,9 +53,6 @@
                      % -Path2:atom
     prefix_path/2, % ?PrefixPath:atom
                    % +Path:atom
-    relative_file_path/3, % ?Path:atom
-                          % ?RelativeTo:atom
-                          % ?RelativePath:atom
     root_prefix/1, % ?Prefix:atom
     younger_file/2 % +Path1:atom
                    % +Path2:atom
@@ -518,39 +515,6 @@ prefix_path(PrefixPath, Path):-
   directory_subdirectories(Path, Components),
   prefix(PrefixComponents, Components).
 
-
-%! relative_file_path(
-%!   +Path:atom,
-%!   +RelativeTo:atom,
-%!   -RelativePath:atom
-%! ) is det.
-%! relative_file_path(
-%!   -Path:atom,
-%!   +RelativeTo:atom,
-%!   +RelativePath:atom
-%! ) is det.
-% Relates one relative path to two absolute paths.
-%
-% Resolves potential occurrences of `..` in any of the arguments.
-%
-% @see relative_file_name/3 in library [[filesex]]
-%      only supports instantiation `(+,+,-)`.
-
-relative_file_path(Path, RelativeTo, RelativePath):-
-  maplist(ground, [Path,RelativeTo]), !,
-  relative_file_name(Path, RelativeTo, RelativePath).
-relative_file_path(Path, RelativeTo, RelativePath0):-
-  maplist(ground, [RelativeTo,RelativePath0]), !,
-  file_directory_name(RelativeTo, RelativeToDir),
-  start_with_slash(RelativePath0, RelativePath),
-  atomic_concat(RelativeToDir, RelativePath, Path).
-relative_file_path(_, _, _):-
-  instantiation_error(_).
-
-start_with_slash(Atom, Atom):-
-  sub_atom(Atom, 0, 1, _, /), !.
-start_with_slash(Atom0, Atom):-
-  atomic_concat(/, Atom0, Atom).
 
 
 %! root_prefix(+Prefix:atom) is semidet.

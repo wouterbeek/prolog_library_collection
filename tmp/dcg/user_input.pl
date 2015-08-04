@@ -42,7 +42,7 @@ Handles user input and sequences in which user input is needed continuously
 :- use_module(plc(dcg/dcg_meta)).
 :- use_module(plc(dcg/dcg_unicode)).
 :- use_module(plc(generics/string_ext)).
-:- use_module(plc(io/file_ext)).
+:- use_module(plc(os/file_ext)).
 
 :- meta_predicate(user_input(+,3,+)).
 :- meta_predicate(user_interaction(+,+,:,+,+)).
@@ -89,7 +89,7 @@ input_file_path_name(Msg, Prefix, Path):-
   ;   !
   ),
 
-  relative_file_path(Path, Prefix, Postfix).
+  relative_file_name(Path, Prefix, Postfix).
 
 
 

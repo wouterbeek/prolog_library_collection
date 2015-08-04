@@ -39,7 +39,7 @@ Extensions for handling directory files in SWI-Prolog.
 %! current_directory(-Directory:atom) is det.
 
 current_directory(Dir):-
-  absolute_file_name(., Dir, [file_type(directory)]),
+  absolute_file_name(., Dir, [file_type(directory)]).
 
 
 
@@ -66,8 +66,6 @@ current_directory(Dir):-
 %     Default is `true`.
 
 directory_files(Dir, Files3, Opts1):-
-  meta_options(is_meta, Opts1, Opts2),
-
   % Note that the list of files is *not* ordered!
   directory_files(Dir, New1),
 
@@ -80,7 +78,7 @@ directory_files(Dir, Files3, Opts1):-
   partition(exists_directory, New3, NewDirs, NewFiles1),
 
   % Filter based on a list of file types, if given.
-  (   option(file_types(FileTypes), Opts2)
+  (   option(file_types(FileTypes), Opts1)
   ->  include(
         \File^(
           file_name_extension(_, Ext, File),
@@ -95,12 +93,12 @@ directory_files(Dir, Files3, Opts1):-
 
   % Make sure the `include_self` option is excluded from
   % the processing of subdirectories.
-  select_option(include_self(IncludeSelf), Opts2, Opts3, false),
+  select_option(include_self(IncludeSelf), Opts1, Opts2, false),
 
   % Include directories and files from deeper recursion levels.
-  (   option(recursive(true), Opts3)
+  (   option(recursive(true), Opts2)
   ->  maplist(
-        \NewDir^NewFiles^directory_files(NewDir, NewFiles, Opts3),
+        \NewDir^NewFiles^directory_files(NewDir, NewFiles, Opts2),
         NewDirs,
         NewFiless
       ),
@@ -109,7 +107,7 @@ directory_files(Dir, Files3, Opts1):-
   ),
 
   % Include directories from this recursion level.
-  (   option(include_directories(true), Opts3)
+  (   option(include_directories(true), Opts2)
   ->  append(Files1, NewDirs, Files2)
   ;   Files2 = Files1
   ),
@@ -119,6 +117,39 @@ directory_files(Dir, Files3, Opts1):-
   ->  Files3 = [Dir|Files2]
   ;   Files3 = Files2
   ).
+
+
+
+%! directory_subdirectories(+Dir:atom, +Subdirs:list(atom)) is semidet.
+%! directory_subdirectories(+Dir:atom, -Subdirs:list(atom)) is det.
+%! directory_subdirectories(-Dir:atom, +Subdirs:list(atom)) is det.
+% Relates a directory name to its subdirectory names.
+%
+% Occurrences of `..` in Dir are resolved.
+%
+% For absolute directory names the first subdirectory name is the empty atom.
+
+directory_subdirectories(Dir, Subdirs):-
+  nonvar(Dir), !,
+  atomic_list_concat(Subdirs0, /, Dir),
+  resolve_double_dots(Subdirs0, Subdirs).
+directory_subdirectories(Dir, Subdirs0):-
+  nonvar(Subdirs0), !,
+  resolve_double_dots(Subdirs0, Subdirs),
+  atomic_list_concat(Subdirs, /, Dir).
+directory_subdirectories(_, _):-
+  instantiation_error(_).
+
+%! resolve_double_dots(
+%!   +Subdirs:list(atom),
+%!   -ResoledSubdirs:list(atom)
+%! ) is det.
+
+resolve_double_dots([], []).
+resolve_double_dots([_,'..'|T1], T2):-
+  resolve_double_dots(T1, T2).
+resolve_double_dots([H|T1], [H|T2]):-
+  resolve_double_dots(T1, T2).
 
 
 

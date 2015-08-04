@@ -22,7 +22,7 @@ Grammar snippets for files.
 :- use_module(plc(dcg/dcg_atom)).
 :- use_module(plc(dcg/dcg_meta)).
 :- use_module(plc(generics/atom_ext)). % Meta-option.
-:- use_module(plc(io/file_ext)).
+:- use_module(plc(os/file_ext)).
 :- use_module(plc(os/os_ext)).
 
 
@@ -51,7 +51,7 @@ file_path(Path) -->
   '*'(path_segment, Segments, [separator(directory_separator)]),
   {
     atomic_list_concat(Segments, /, RelPath),
-    relative_file_path(Path, '~', RelPath)
+    relative_file_name(Path, '~', RelPath)
   }.
 % Absolute directory.
 file_path(Path) -->

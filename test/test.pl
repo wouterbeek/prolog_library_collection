@@ -38,9 +38,6 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
-%/io
-  :- use_module(library(io/dir_ext)).
-  :- use_module(library(io/file_ext)).
 %/langtag
   :- use_module(library(langtag/langtag_match)).
 :- use_module(library(list_ext)).
@@ -51,6 +48,9 @@
   :- use_module(library(math/radconv)).
   :- use_module(library(math/rational_ext)).
 :- use_module(library(option_ext)).
+%/os
+  :- use_module(library(os/dir_ext)).
+  :- use_module(library(os/file_ext)).
 %/pl
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).

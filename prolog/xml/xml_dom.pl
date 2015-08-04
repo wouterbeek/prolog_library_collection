@@ -23,9 +23,6 @@
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 
-:- predicate_options(load_xml0/4, 2, [
-     pass_to(load_xml/3, 3)
-   ]).
 :- predicate_options(xml_dom_to_atom/3, 3, [
      style(+atom),
      pass_to(xml_write/3, 3)

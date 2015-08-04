@@ -22,6 +22,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 @version 2015/07-2015/08
 */
 
+:- use_module(library(apply)).
 :- use_module(library(process)).
 
 

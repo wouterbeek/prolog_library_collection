@@ -27,8 +27,8 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
-:- use_module(library(gui_tracer)),
-:- use_module(library(os/dir_ext)),
+:- use_module(library(gui_tracer)).
+:- use_module(library(os/dir_ext)).
 :- use_module(library(pldoc)).
 :- use_module(library(portray_text)).
 

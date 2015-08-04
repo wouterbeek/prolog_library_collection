@@ -1,10 +1,10 @@
 :- module(
   uri_file_name,
   [
-    uri_file_name/2, % +Uri, -File
-    uri_file_name/3 % +ParentDirectory:atom
-                    % +Uri:atom
-                    % -File:atom
+    nested_uri_file_name/2, % +Uri, -File
+    nested_uri_file_name/3 % +ParentDirectory:atom
+                           % +Uri:atom
+                           % -File:atom
   ]
 ).
 
@@ -22,22 +22,23 @@ to relate them to the URI they were downloaded from.
 
 :- use_module(library(atom_ext)).
 :- use_module(library(os/dir_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(uri)).
 
 
 
 
 
-%! uri_nested_file(+Uri:atom, -File:atom) is det.
-% Wrapper around uri_nested_file/3
+%! nested_uri_file_name(+Uri:atom, -File:atom) is det.
+% Wrapper around nested_uri_file_name/3
 % that uses the current directory as the parent directory.
 
-uri_nested_file(Uri, File):-
+nested_uri_file_name(Uri, File):-
   current_directory(Dir),
-  uri_nested_file(Dir, Uri, File).
+  nested_uri_file_name(Dir, Uri, File).
 
 
-%! uri_nested_file(+ParentDirectory:atom, +Uri:atom, -File:atom) is det.
+%! nested_uri_file_name(+ParentDirectory:atom, +Uri:atom, -File:atom) is det.
 % Succeeds if File is the name of a nested path denoting a regular file,
 % where the name is based on the original URI.
 %
@@ -61,7 +62,7 @@ uri_nested_file(Uri, File):-
 %      We therefore store directory-like URI paths in a file called
 %      `dir_dummy`.
 
-uri_nested_file(ParentDir, Uri, File):-
+nested_uri_file_name(ParentDir0, Uri, File):-
   uri_components(Uri, uri_components(Scheme,Authority,Path,_,_)),
 
   % Make sure the path ends in a non-directory file.
@@ -79,12 +80,15 @@ uri_nested_file(ParentDir, Uri, File):-
   directory_subdirectories(UriDir, [Scheme,Authority|PathDirs]),
 
   % Resolve the parent directory input to an absolute file name.
-  absolute_file_name(ParentDir0, ParentDir, [file_type(directory)]),
-  exists_directory(ParentDir),
+  absolute_file_name(
+    ParentDir0,
+    ParentDir,
+    [access(write),file_type(directory)]
+  ),
   atom_ending_in(ParentDir, /, ParentDirSlash),
 
   % The URL path is now created relative to the parent directory.
-  relative_file_path(Dir, ParentDirSlash, UriDir),
+  relative_file_name(Dir, ParentDirSlash, UriDir),
 
   % Make sure the directory exists.
   make_directory_path(Dir),

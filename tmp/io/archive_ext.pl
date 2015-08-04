@@ -116,7 +116,7 @@ archive_extract0(Archive, Filters, Dir):-
   ->  setup_call_cleanup(
         archive_open_entry(Archive, Read),
         (
-          relative_file_path(File, Dir, RelativeFile),
+          relative_file_name(File, Dir, RelativeFile),
           % Directory files are re-created.
           % Non-directory files are copied from stream.
           (   entry_property(RelativeFile, filetype(directory))
