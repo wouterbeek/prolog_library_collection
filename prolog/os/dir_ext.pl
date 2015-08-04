@@ -1,11 +1,15 @@
 :- module(
   dir_ext,
   [
-    directory_files/3 % +Directory:atom
-                      % -AbsoluteFiles:list(atom)
-                      % +Options:list(compound)
+    current_directory/1, % ?Directory:atom
+    directory_files/3, % +Directory:atom
+                       % -AbsoluteFiles:list(atom)
+                       % +Options:list(compound)
+    directory_subdirectories/2 % ?Directory:atom
+                               % ?Subdirectories:list(atom)
   ]
 ).
+:- reexport(library(filesex)).
 
 /** <module> Directory extensions
 
@@ -16,12 +20,26 @@ Extensions for handling directory files in SWI-Prolog.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(filesex)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 
+:- predicate_options(directory_files/3, 3, [
+     file_types(+list(atom)),
+     include_directories(+boolean),
+     include_self(+boolean),
+     recursive(+boolean)
+   ]).
 
+
+
+
+
+%! current_directory(+Directory:atom) is semidet.
+%! current_directory(-Directory:atom) is det.
+
+current_directory(Dir):-
+  absolute_file_name(., Dir, [file_type(directory)]),
 
 
 
@@ -43,15 +61,11 @@ Extensions for handling directory files in SWI-Prolog.
 %   * include_self(+IncludeSelf:boolean)
 %     Whether or not the enclosing directory is included.
 %     Default is `false`.
-%   * order(+Order:oneof([lexicographic,none]))
-%     The order in which the files are returned.
-%     Lexicographic order uses ordsets.
-%     Default is `none`.
 %   * recursive(+Recursive:boolean)
 %     Whether subdirectories are searched recursively.
 %     Default is `true`.
 
-directory_files(Dir, Files4, Opts1):-
+directory_files(Dir, Files3, Opts1):-
   meta_options(is_meta, Opts1, Opts2),
 
   % Note that the list of files is *not* ordered!
@@ -104,11 +118,7 @@ directory_files(Dir, Files4, Opts1):-
   (   IncludeSelf == true
   ->  Files3 = [Dir|Files2]
   ;   Files3 = Files2
-  ),
-
-  % Apply requested ordering.
-  option(order(Order), Opts3, =),
-  call(Order, Files3, Files4).
+  ).
 
 
 

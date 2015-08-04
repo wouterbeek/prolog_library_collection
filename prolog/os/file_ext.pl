@@ -12,6 +12,7 @@
                            % +File:atom
   ]
 ).
+:- reexport(library(filesex)).
 
 /** <module> File extensions
 

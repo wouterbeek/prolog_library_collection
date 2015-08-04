@@ -14,8 +14,6 @@
                         % -AbsoluteDir:atom
     delete_directory/2, % +Dir:atom
                         % +Options:list(nvpair)
-    directory_subdirectories/2, % ?Dir:atom
-                                % ?Subdirs:list(atom)
     link_directory_contents/2, % +FromDir:atom
                                % +ToDir:atom
     run_in_working_directory/2 % :Call
@@ -51,13 +49,6 @@ is_meta(order).
    ]).
 :- predicate_options(delete_directory/2, 2, [
      include_self(+boolean)
-   ]).
-:- predicate_options(directory_files/3, 3, [
-     file_types(+list(atom)),
-     include_directories(+boolean),
-     include_self(+boolean),
-     order(+oneof([lexicographic])),
-     recursive(+boolean)
    ]).
 
 
