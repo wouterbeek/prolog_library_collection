@@ -13,13 +13,12 @@
 Persistent store for user+password registrations for services.
 
 @author Wouter Beek
-@version 2014/08, 2015/05
+@version 2015/08
 */
 
 :- use_module(library(error)).
-:- use_module(library(persistency)). % Declarations.
-
-:- use_module(plc(generics/persistent_db_ext)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(persistency)).
 
 %! service(?Service:term, ?Term:term) is nondet.
 
@@ -50,23 +49,15 @@ register_service(Service, Term):-
 %! service_db_file(-File:atom) is det.
 
 service_db_file(File):-
-  absolute_file_name(
-    project('service.db'),
-    File,
-    [access(write),file_type(database)]
-  ).
-
+  absolute_file_name(service, File, [access(write),file_type(database)]).
 
 
 %! service_db_init is det.
 
 service_db_init:-
   service_db_file(File),
-  init_persistent_db(File, service_db_update).
-
-
-
-%! service_db_update(+Age:nonneg) is det.
-
-service_db_update(_).
-
+  (   exists_file(File)
+  ->  true
+  ;   touch(File)
+  ),
+  db_attach(File, []).
