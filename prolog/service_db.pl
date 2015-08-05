@@ -49,7 +49,7 @@ register_service(Service, Term):-
 %! service_db_file(-File:atom) is det.
 
 service_db_file(File):-
-  absolute_file_name(service, File, [access(write),file_type(database)]).
+  absolute_file_name('service.db', File, [access(write)]).
 
 
 %! service_db_init is det.
