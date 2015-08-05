@@ -101,7 +101,7 @@ start_server(Opts1):-
 
 % Loop the sequence of server port numbers.
 start_server(Port, Goal_0, Opts):-
-  is_of_type(between(1000, 9999), Port), !,
+  \+ is_of_type(between(1000, 9999), Port), !,
   start_server(1000, Goal_0, Opts).
 % A server is already running at the given port.
 start_server(Port, _, Opts):-
