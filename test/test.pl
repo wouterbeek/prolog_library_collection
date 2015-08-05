@@ -5,6 +5,7 @@
 :- use_module(library(char_ext)).
 :- use_module(library(closure)).
 :- use_module(library(code_ext)).
+:- use_module(library(date_ext)).
   %/dcg
   :- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_abnf_common)).

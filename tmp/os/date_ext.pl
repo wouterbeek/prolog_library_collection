@@ -3,7 +3,6 @@
   [
     date_time_dict/2, % ?DateTime:compound
                       % ?Dict:dict
-    get_date/1, % -Date:compound
     hash_date/1, % -Hash:atom
     iso8601_date/2, % +Date:compound
                     % -Representation:atom
@@ -48,14 +47,6 @@ date_time_dict(
     year:Y
   }
 ).
-
-
-
-%! get_date(-Date:compound) is det.
-
-get_date(Date):-
-  get_time(Timestamp),
-  stamp_date_time(Timestamp, Date, local).
 
 
 
