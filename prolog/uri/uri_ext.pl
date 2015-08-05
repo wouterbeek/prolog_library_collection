@@ -1,9 +1,9 @@
 :- module(
   uri_ext,
   [
-    uri_component/3, % +Uri:uri
-                     % +Field:atom
-                     % ?Data:atom
+    uri_component/3 % +Uri:uri
+                    % +Field:atom
+                    % ?Data:atom
   ]
 ).
 :- reexport(library(uri)).
