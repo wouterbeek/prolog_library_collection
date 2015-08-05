@@ -53,6 +53,7 @@
   %/os
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/file_ext)).
+:- use_module(library(pair_ext)).
   %/pl
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
