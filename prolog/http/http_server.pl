@@ -23,10 +23,11 @@ Use the following settings while developing on localhost:
 ---
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(error)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_log)).
 :- use_module(library(http/http_session)). % Session support.
