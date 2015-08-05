@@ -33,6 +33,7 @@
   %/html
   :- use_module(library(html/html_dcg)).
   :- use_module(library(html/html_dom)).
+  :- use_module(library(html/html_resource)).
   :- use_module(library(html/html_symbol)).
   %/http
   :- use_module(library(http/http_download)).
