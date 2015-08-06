@@ -45,11 +45,13 @@ Applications, protocols, and specifications are not required to validate
 
 
 
+
+
 %! basic_filtering(+LangRange:list(atom), +LangTag:list(atom)) is semidet.
 % Compares basic language ranges to language tags.
 %
 % Succeeds if the given lists share a case-insensitive prefix,
-%  while also treating the `*` sign as a wildcard.
+% while also treating the `*` sign as a wildcard.
 %
 % @compat RFC 4647
 
@@ -59,6 +61,7 @@ basic_filtering([H1|T1], [H2|T2]):-
   basic_filtering(T1, T2).
 
 
+
 %! extended_filtering(
 %!   +ExtendedRange:list(atom),
 %!   +LangTag:list(atom)
@@ -66,14 +69,14 @@ basic_filtering([H1|T1], [H2|T2]):-
 % Compares extended language ranges to language tags.
 %
 % Subtags not specified, including those at the end of the language range,
-%  are treated as if assigned the wildcard value `*`.
+% are treated as if assigned the wildcard value `*`.
 % Much like basic filtering, extended filtering selects content with
-%  arbitrarily long tags that share the same initial subtags as the language
-%  range.
+% arbitrarily long tags that share the same initial subtags as the language
+% range.
 % In addition, extended filtering selects language tags that contain any
-%  intermediate subtags not specified in the language range.
+% intermediate subtags not specified in the language range.
 %
-% # Example
+% ### Example
 %
 % `de-*-DE` or `de-DE` matches all of the following tags:
 %
@@ -131,6 +134,7 @@ extended_filtering_tail(L1, [_|T2]):-
   extended_filtering_tail(L1, T2).
 
 
+
 %! extended_to_basic(
 %!   +ExtendedLangRange:list(atom)
 %!   -BasicLangRange:list(atom)
@@ -142,6 +146,7 @@ extended_filtering_tail(L1, [_|T2]):-
 extended_to_basic(['*'|_], ['*']):- !.
 extended_to_basic(Extended, Basic):-
   exclude(=('*'), Extended, Basic).
+
 
 
 %! langprefs_to_langtag(
@@ -161,6 +166,7 @@ langprefs_to_langtag(LangPrefs, LangTagPrefix):-
   ).
 
 
+
 %! lookup(+LangRange:list(atom), +LangTag:list(atom))
 % In contrast to filtering, each language range represents the most specific
 % tag that is an acceptable match.
@@ -172,6 +178,8 @@ lookup(L1a, L2):-
 
 
 
+
+
 % HELPERS %
 
 %! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
@@ -180,5 +188,5 @@ lookup(L1a, L2):-
 
 subtag_match('*', _):- !.
 subtag_match(X1, X2):-
-  to_lower(X1, X),
-  to_lower(X2, X).
+  downcase_atom(X1, X),
+  downcase_atom(X2, X).
