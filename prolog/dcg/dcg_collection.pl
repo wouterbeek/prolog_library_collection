@@ -175,8 +175,8 @@ tuple(Writer, L) -->
 
 bracketed_collection(Type, Ord, Sep, Writer, L) -->
   collection(
-    opening_bracket(Type),
-    closing_bracket(Type),
+    opening_bracket(Type, _),
+    closing_bracket(Type, _),
     Ord,
     Sep,
     Writer,

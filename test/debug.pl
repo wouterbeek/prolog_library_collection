@@ -7,7 +7,7 @@ pack_ensure_removed(Pack):-
 pack_ensure_removed(_).
 
 test:-
-  pack_ensure_removed(plc),
+  pack_ensure_removed('Prolog_Library_Collection'),
   source_file(test, ThisFile),
   file_directory_name(ThisFile, ThisDirectory),
   assert(user:file_search_path(plcTest, ThisDirectory)),

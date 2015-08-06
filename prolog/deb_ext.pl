@@ -45,6 +45,7 @@ Tools that ease debugging SWI-Prolog programs.
   [max_depth(100),portrayed(true),spacing(next_argument)]
 ).
 
+:- portray_text(true).
 :- set_portray_text(ellipsis, 1000).
 
 :- dynamic(user:debug_mode).
