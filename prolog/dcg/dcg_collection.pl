@@ -93,10 +93,10 @@ collection(Begin, End, Sep, Writer, L) -->
   ).
 
 collection_items(_, _, _, _, []) --> !, [].
-collection_items(_, _, _, _, [H]) --> !,
-  pl_term(H).
+collection_items(_, _, _, Writer, [H]) --> !,
+  dcg_call(Writer, H).
 collection_items(Begin, End, Sep, Writer, [H|T]) -->
-  pl_term(H),
+  dcg_call(Writer, H),
   Sep,
   collection_items(Begin, End, Sep, Writer, T).
 
