@@ -5,7 +5,8 @@
                         % -Width:float
                         % -Height:float
     image_file_extension/1, % ?FileExtension:atom
-    is_image_file/1 % +File:atom
+    is_image_file/1, % @Term
+    is_image_uri/1 % @Term
   ]
 ).
 
@@ -43,6 +44,8 @@ user:module_uses(image_ext, program(identify)).
 
 
 
+
+
 %! image_dimensions(+File:atom, -Width:float, -Height:float) is det.
 % Requires ImageMagick.
 
@@ -66,6 +69,7 @@ image_dimensions(File, Width, Height) -->
   dcg_done.
 
 
+
 %! image_file_extension(+ImageFileExtension) is semidet.
 %! image_file_extension(-ImageFileExtension) is nondet.
 
@@ -79,6 +83,7 @@ image_file_extension0(Ext):-
   user:prolog_file_type(Ext, image).
 
 
+
 %! is_image_file(+File:atom) is semidet.
 % Determines whether a file stores an image or not based on
 % its file name extension.
@@ -86,3 +91,13 @@ image_file_extension0(Ext):-
 is_image_file(File):-
   file_name_extension(_, Ext, File),
   image_file_extension(Ext).
+
+
+
+%! is_image_uri(+Uri:atom) is semidet.
+% Succeeds if the given Uri is commonly understood to denote an image file.
+
+is_image_uri(Uri):-
+  is_uri(Uri),
+  uri_component(Uri, path, Path),
+  image_file(Path).
