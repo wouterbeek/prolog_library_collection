@@ -22,6 +22,8 @@ Support for image files.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(process_ext)).
 :- use_module(library(readutil)).
+:- use_module(library(typecheck)).
+:- use_module(library(uri)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
