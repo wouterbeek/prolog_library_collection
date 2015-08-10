@@ -50,19 +50,15 @@ For convenience's sake, the following collection instances are supported:
 */
 
 :- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(default)).
-:- use_module(library(option)).
-:- use_module(library(ordsets)).
 
-:- meta_predicate(bracketed_collection(+,2,//,3,+,?,?)).
+:- meta_predicate(bracketed_collection(+,//,3,+,?,?)).
 :- meta_predicate(collection(//,//,//,3,+,?,?)).
 :- meta_predicate(collection_items(//,//,//,3,+,?,?)).
 :- meta_predicate(list(3,+,?,?)).
 :- meta_predicate(pair(3,+,?,?)).
 :- meta_predicate(pair(3,+,+,?,?)).
-:- meta_predicate(quadruple(3,+,+,+,+?,?)).
+:- meta_predicate(quadruple(3,+,+,+,+,?,?)).
 :- meta_predicate(set(3,+,?,?)).
 :- meta_predicate(triple(3,+,+,+,?,?)).
 :- meta_predicate(tuple(3,+,?,?)).

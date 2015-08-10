@@ -100,4 +100,4 @@ is_image_file(File):-
 is_image_uri(Uri):-
   is_uri(Uri),
   uri_component(Uri, path, Path),
-  image_file(Path).
+  is_image_file(Path).
