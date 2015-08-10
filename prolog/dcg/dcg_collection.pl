@@ -50,6 +50,7 @@ For convenience's sake, the following collection instances are supported:
 */
 
 :- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_unicode)).
 
 :- meta_predicate(bracketed_collection(+,//,3,+,?,?)).
@@ -90,14 +91,12 @@ collection(Begin, End, Sep, Writer, L) -->
     collection_items(Begin, End, Sep, Writer, L),
     End
   ).
-collection(_, _, _, Writer, X) -->
-  dcg_call_cp(Writer, X).
 
 collection_items(_, _, _, _, []) --> !, [].
-collection_items(Begin, End, Sep, Writer, [H]) --> !,
-  collection(Begin, End, Sep, Writer, H).
+collection_items(_, _, _, _, [H]) --> !,
+  pl_term(H).
 collection_items(Begin, End, Sep, Writer, [H|T]) -->
-  collection(Begin, End, Sep, Writer, H),
+  pl_term(H),
   Sep,
   collection_items(Begin, End, Sep, Writer, T).
 
