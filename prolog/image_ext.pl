@@ -23,7 +23,7 @@ Support for image files.
 :- use_module(library(process_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(typecheck)).
-:- use_module(library(uri)).
+:- use_module(library(uri/uri_ext)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
@@ -60,7 +60,7 @@ image_dimensions(File, Width, Height):-
 
 %! image_dimensions0(+File:atom, -Width:float, -Height:float)// is det.
 
-image_dimensions(File, Width, Height) -->
+image_dimensions0(File, Width, Height) -->
   atom(File),
   " ",
   atom(_FileType),
