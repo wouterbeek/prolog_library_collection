@@ -22,12 +22,14 @@
   :- use_module(library(dcg/dcg_logic)).
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
+  :- use_module(library(dcg/dcg_pl_term)).
   :- use_module(library(dcg/dcg_quoted)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
 :- use_module(library(deb_ext)).
 :- use_module(library(default)).
+:- use_module(library(dict_ext)).
 :- use_module(library(external_program)).
 :- use_module(library(hash_ext)).
   %/html

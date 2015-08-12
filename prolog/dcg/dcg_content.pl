@@ -10,8 +10,7 @@
     indent//2, % +Indent:nonneg
                % :Dcg_0
     nl//0,
-    parsing//0,
-    pl_term//1 % +Term
+    parsing//0
   ]
 ).
 
@@ -20,12 +19,11 @@
 DCG rules for parsing/generating often-occuring content.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(pl/pl_term)).
 :- use_module(library(settings)).
 
 :- meta_predicate(indent(+,//,?,?)).
@@ -40,9 +38,12 @@ DCG rules for parsing/generating often-occuring content.
 
 
 
+
+
 %! dcg_cp// .
 
 dcg_cp(X, X).
+
 
 
 %! dcg_done// .
@@ -50,9 +51,11 @@ dcg_cp(X, X).
 dcg_done(_, _).
 
 
+
 %! dcg_rest(-Rest:list(code))// is det.
 
 dcg_rest(X, X, []).
+
 
 
 %! dcg_void// .
@@ -60,10 +63,12 @@ dcg_rest(X, X, []).
 dcg_void --> "".
 
 
+
 %! indent// is det.
 
 indent -->
   indent(1).
+
 
 %! indent(+Indent:nonneg)// is det.
 
@@ -74,11 +79,13 @@ indent(I) -->
   },
   '#'(NSpaces, space, []), !.
 
+
 %! indent(+Indent:nonneg, :Dcg_0)// is det.
 
 indent(I, Dcg_0) -->
   indent(I),
   Dcg_0.
+
 
 
 %! nl// is det.
@@ -87,14 +94,8 @@ nl -->
   "\n".
 
 
+
 %! parsing// is semidet.
 
 parsing(H, H):-
    nonvar(H).
-
-
-%! pl_term(+Term)// is det.
-
-pl_term(T) -->
-  {with_output_to(codes(Cs), write_canonical_blobs(T))},
-  Cs.
