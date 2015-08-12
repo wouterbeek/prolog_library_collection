@@ -51,6 +51,7 @@
   :- use_module(library(math/positional)).
   :- use_module(library(math/radconv)).
   :- use_module(library(math/rational_ext)).
+:- use_module(library(memoization)).
 :- use_module(library(option_ext)).
   %/os
   :- use_module(library(os/dir_ext)).

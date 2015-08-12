@@ -18,6 +18,7 @@ DCG rules for printing SWI-Prolog 7 terms.
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(pl/pl_term)).
