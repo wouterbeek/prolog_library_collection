@@ -7,8 +7,6 @@
                          % -Atom:atom
     read_file_to_codes/2, % +File:atom
                           % -Codes:list(code)
-    read_stream_to_atom/2, % +Stream:stream
-                           % -Atom:atom
     read_stream_to_file/2, % +Stream:stream
                            % +File:atom
     write_atom_to_file/2, % +Atom:atom
@@ -67,15 +65,6 @@ read_file_to_codes(File, Codes):-
     read_stream_to_codes(Stream, Codes),
     close(Stream)
   ).
-
-
-
-%! read_stream_to_atom(+Stream:stream, -Content:atom) is det.
-% Stores the contents of an atom stream to an atom.
-
-read_stream_to_atom(Stream, Atom):-
-  read_stream_to_codes(Stream, Codes),
-  atom_codes(Atom, Codes).
 
 
 

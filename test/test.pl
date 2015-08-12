@@ -67,8 +67,10 @@
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
   %/uri
+  :- use_module(library(uri/uri_char)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
+  :- use_module(library(uri/uri_query_encoding)).
 :- use_module(library(uuid_ext)).
   %/xml
   :- use_module(library(xml/xml_dom)).
