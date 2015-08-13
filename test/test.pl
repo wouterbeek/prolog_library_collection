@@ -12,6 +12,7 @@
   :- use_module(library(dcg/dcg_abnf_rules)).
   :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
+  :- use_module(library(dcg/dcg_atom)).
   :- use_module(library(dcg/dcg_bracketed)).
   :- use_module(library(dcg/dcg_call)).
   :- use_module(library(dcg/dcg_cardinal)).

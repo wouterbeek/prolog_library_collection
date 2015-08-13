@@ -16,19 +16,16 @@
 Grammar rules for processing atoms.
 
 @author Wouter Beek
-@version 2014-2015
+@version 2015/08
 */
 
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/basics)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_code)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/dcg_unicode),
-  [letter_lowercase//1,letter_uppercase//1]
-).
-:- use_module(plc(generics/atom_ext)).
+:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dcg/dcg_word)).
 
 
 
@@ -40,42 +37,42 @@ atom_capitalize, [Upper] -->
   [Lower],
   {code_type(Upper, to_upper(Lower))}, !,
   dcg_cp.
-atom_capitalize --> "".
+atom_capitalize --> [].
 
 
 
 %! atom_ci(?Atom:atom)// .
 
-atom_ci(Atom) -->
-  dcg_atom('*'(code_ci, []), Atom).
+atom_ci(A) -->
+  dcg_atom('*'(code_ci, []), A).
 
 
 
 %! atom_ellipsis(+Atom:atom, +Ellipsis:positive_integer)// .
 
-atom_ellipsis(Atom1, Ellipsis) -->
-  {atom_truncate(Atom1, Ellipsis, Atom2)},
-  atom(Atom2).
+atom_ellipsis(A, Ellipsis) -->
+  {atom_truncate(A, Ellipsis, A0)},
+  atom(A0).
 
 
 
 %! atom_lower(?Atom:atom)// .
 
-atom_lower(Atom) -->
-  dcg_atom('*'(code_lower, []), Atom).
+atom_lower(A) -->
+  dcg_atom('*'(code_lower, []), A).
 
 
 
 %! atom_title(?Atom:atom) // .
 
-atom_title(Atom) -->
-  {var(Atom)}, !,
+atom_title(A) -->
+  {var(A)}, !,
   letter_uppercase(H),
   '*'(letter_lowercase, T, []),
-  {atom_codes(Atom, [H|T])}.
+  {atom_codes(A, [H|T])}.
 atom_title('') --> "".
-atom_title(Atom) -->
-  {atom_codes(Atom, [H|T])},
+atom_title(A) -->
+  {atom_codes(A, [H|T])},
   letter_uppercase(H),
   '*'(letter_lowercase, T, []).
 
@@ -83,5 +80,5 @@ atom_title(Atom) -->
 
 %! atom_upper(?Atom:atom)// .
 
-atom_upper(Atom) -->
-  dcg_atom('*'(code_lower, []), Atom).
+atom_upper(A) -->
+  dcg_atom('*'(code_lower, []), A).
