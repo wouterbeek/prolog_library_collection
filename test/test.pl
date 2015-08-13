@@ -33,6 +33,7 @@
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(external_program)).
+:- use_module(library(flag_ext)).
 :- use_module(library(hash_ext)).
   %/html
   :- use_module(library(html/html_dcg)).
