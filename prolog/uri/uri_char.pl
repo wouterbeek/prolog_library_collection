@@ -21,6 +21,7 @@ Grammar for URI characters.
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_abnf_rules)).
+:- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(math/positional)).
 
