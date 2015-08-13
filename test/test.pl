@@ -21,6 +21,7 @@
   :- use_module(library(dcg/dcg_collection)).
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_logic)).
+  :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
   :- use_module(library(dcg/dcg_pl_term)).
