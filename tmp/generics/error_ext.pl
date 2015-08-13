@@ -29,7 +29,6 @@
                         % +Type
                         % +Term
     representation_error/1, % +Reason
-    syntax_error/1, % +Culprit
     type_error/2 % +Type
                  % +Term
   ]
