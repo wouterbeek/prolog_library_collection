@@ -102,7 +102,7 @@ file_download(Uri, File0, Opts):-
 file_download(Uri, File, Opts):-
   nested_uri_file_name(Uri, File),
   file_download(Uri, File, Opts).
-write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
+write_stream_to_file0(File, _, _, Read):- write_stream_to_file(Read, File).
 
 
 
@@ -111,7 +111,7 @@ write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
 html_download(Uri, Dom):-
   Opts = [dialect(html5),max_errors(-1)],
   http_get(Uri, load_html0(Dom, Opts)).
-load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
+load_html0(Dom, Opts, _, _, Read):- load_html(Read, Dom, Opts).
 
 
 
@@ -119,7 +119,7 @@ load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
 
 json_download(Uri, Json):-
   http_get(Uri, json_read_dict0(Json)).
-json_read_dict0(Json, _, Read):- json_read_dict(Read, Json).
+json_read_dict0(Json, _, _, Read):- json_read_dict(Read, Json).
 
 
 
@@ -128,5 +128,5 @@ json_read_dict0(Json, _, Read):- json_read_dict(Read, Json).
 % for the website with the given URI.
 
 xml_download(Uri, Dom):-
-  http_get(Uri, load_xml(Dom)).
-load_xml0(Dom, _, Read):- load_xml(Read, Dom, []).
+  http_get(Uri, load_xml0(Dom)).
+load_xml0(Dom, _, _, Read):- load_xml(Read, Dom, []).
