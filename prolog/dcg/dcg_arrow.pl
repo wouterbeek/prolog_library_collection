@@ -12,62 +12,13 @@
 
 /** <module> Writing ASCII arrow
 
-The following generates all sequences of at most 2 arrows
-surrounded by triple quotes, *with uninstantiated variables shared*
-between successive calls.
-The output shows that the single and double quote characters
-do not occur in the same string.
-
-```prolog
-?- phrase('*n'(2, quoted(3, double_quote, arrow(right, 8)), [copy_term(false)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
-false.
-```
-
-The following generates all sequences of at most 2 arrows
-surrounded by triple quotes, *without sharing variables*
-between successive calls.
-The output shows that the single and double quote characters
-do not occur in the same string.
-
-```prolog
-?- phrase('*n'(2, quoted(3, double_quote, arrow(right, 8)), [copy_term(true)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = """"------->"""'''------->'''",
-Atom = '"""------->"""\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''"""------->"""",
-Atom = '\'\'\'------->\'\'\'"""------->"""' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
-false.
-```
-
----
-
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
+:- use_module(library(dcg/dcg_call)).
 
 :- meta_predicate(transition(//,//,?,?)).
 
@@ -104,6 +55,8 @@ false.
 % ```
 
 arrow(Head, Length) -->
+  % With instantiated arrow head the rest of the code is easier.
+  {arrow_head(Head)},
   arrow_left_head(Head),
   arrow_horizontal_line(Head, Length),
   arrow_right_head(Head).
@@ -114,7 +67,7 @@ arrow(Head, Length) -->
 
 horizontal_line -->
   {tty_size(_, ScreenWidth)},
-  horizontal_line(ScreenWidth).
+  dcg_once(horizontal_line(ScreenWidth)).
 
 %! horizontal_line(?Length:nonneg)// .
 % @throws domain_error if length is not an integer.
@@ -137,6 +90,14 @@ transition(From, To) -->
 
 
 % HELPERS %
+
+%! arrow_head(+Head:oneof([both,left,right])) is semidet.
+%! arrow_head(-Head:oneof([both,left,right])) is multi.
+
+arrow_head(both).
+arrow_head(left).
+arrow_head(right).
+
 
 %! arrow_head_dir(
 %!   ?Head:oneof([both,left,right]),
@@ -168,14 +129,10 @@ arrow_horizontal_line(Head, L1) -->
   }.
 
 
-%! arrow_left_head(?Head:oneof([both,left,right]))// .
+%! arrow_left_head(+Head:oneof([both,left,right]))// is nondet.
 
-arrow_left_head(Head) -->
-  {arrow_head(Head, left)},
-  "<".
-arrow_left_head(Head) -->
-  {arrow_head(Head, right)},
-  "".
+arrow_left_head(right) --> !, "".
+arrow_left_head(_) --> "<".
 
 
 arrow_length_correction_left(Head, L1, L2):-
@@ -190,11 +147,7 @@ arrow_length_correction_right(Head, L1, L2):-
 arrow_length_correction_right(_, L, L).
 
 
-%! arrow_right_head(?Head:oneof([both,left,right]))// .
+%! arrow_right_head(+Head:oneof([both,left,right]))// is nondet.
 
-arrow_right_head(Head) -->
-  {arrow_head(Head, right)},
-  ">".
-arrow_right_head(Head) -->
-  {arrow_head(Head, left)},
-  "".
+arrow_right_head(left) --> !, "".
+arrow_right_head(_) --> ">".
