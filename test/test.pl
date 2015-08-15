@@ -32,7 +32,6 @@
 :- use_module(library(deb_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
-:- use_module(library(external_program)).
 :- use_module(library(flag_ext)).
 :- use_module(library(hash_ext)).
   %/html
@@ -58,6 +57,8 @@
 :- use_module(library(option_ext)).
   %/os
   :- use_module(library(os/dir_ext)).
+  :- use_module(library(os/external_program)).
+  :- use_module(library(os/os_ext)).
   :- use_module(library(os/file_ext)).
 :- use_module(library(pair_ext)).
   %/pl
