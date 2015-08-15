@@ -3,10 +3,11 @@ available in the [SWI-Prolog](www.swi-prolog.org) standard libraries.
 
 
 
-`/dcg`
-======
+`/dcg` Definite Clause Grammars
+===============================
 
 In directory `dcg` you will find a collection of Definite Clause Grammar (DCG) modules:
+
   - [`dcg_abnf`](https://github.com/wouterbeek/Prolog_Library_Collection#dcg_abnf):
     Bauckus-Naur Form (BNF) constructs in DCGs.
   - [`dcg_arrow`](https://github.com/wouterbeek/Prolog_Library_Collection#dcg_arrow):
@@ -26,15 +27,21 @@ In directory `dcg` you will find a collection of Definite Clause Grammar (DCG) m
     or *hard word wrap* at character boundaries.
   - `emoticons` DCG rules for emoticons, contributed by Anne Ogborn :-)
 
+In the code examples we expect that code lists are portrayed in the Prolog top level.
+An easy way of setting this is by loading the following module:
 
+```prolog
+:- [library(deb_ext)].
+```
 
-`/dcg/dcg_abnf.pl`: Bauckus-Naur Form (BNF) constructs in DCGs
-==============================================================
+---
+
+`/dcg/dcg_abnf.pl`: Advanced Bauckus-Naur Form (BNF)
+====================================================
 
 While DCGs are nice, the use of Backus Naur Form-notation (BNF) sometimes results in simpler code.
 
-A simple example
-----------------
+#### A simple example
 
 While DCGs are nice, the use of Backus Naur Form-notation (BNF) sometimes results in simpler code.
 For example, the following DCG:
@@ -50,7 +57,7 @@ letters([H|T]) -->
 letters([]) --> "".
 ```
 
-... can be written as follows by using the Kleene star (`*`):
+This can be written as follows by using the Kleene star (`*`):
 
 ```prolog
 word(Word) -->
@@ -80,8 +87,7 @@ This list can contain any of the following options:
 | `separator(+callable)` | If `Dcg` is processed more than once, the separator DCG rule is processed in between any two productions of `Dcg`. |
 
 
-Example using option `count` and `separator`
---------------------------------------------
+#### Example using option `count` and `separator`
 
 In the following example we state that a sentence consists of one or more words that are separated by whitespace.
 We also want to keep track of the number of words:
@@ -101,7 +107,7 @@ words(N1, [H|T]) -->
 words(0, []) --> "".
 ```
 
-.. using library `dcg_abnf` we write this as follows:
+Using library `dcg_abnf` we write this as follows:
 
 ```prolog
 sentence(N, Words) -->
@@ -109,12 +115,13 @@ sentence(N, Words) -->
 ```
 
 
-Example solutions with option `count`
--------------------------------------
+#### Example solutions with option `count`
 
 The predicates defined in this module allow the number of DCG productions to be returned through the `count` option:
 
 ```prolog
+?- [library(dcg/dcg_abnf)].
+?- [library(dcg/dcg_arrow)].
 ?- phrase('*'(arrow(Head, Length), [count(Count),copy_term(true)]), `<--->`).
 Count = 1 ;   % `<--->`
 Count = 2 ;   % `<---` and `>`
@@ -124,7 +131,7 @@ Count = 2 ;   % `<` and `--->`
 false.
 ```
 
-### Uninstantiated variables: shared or not?
+#### Uninstantiated variables: shared or not?
 
 The DCG rules defined in this module allow the DCG goal to be either copied or not using the `copy_term` option.
 
@@ -136,122 +143,83 @@ The following generates all sequences of at most 2 arrows surrounded by triple q
 The output shows that the single and double quote characters do not occur in the same string.
 
 ```prolog
-?- phrase('*n'(2, quoted(3, double_quote, arrow(right, 8)), [copy_term(false)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
+?- [library(dcg/dcg_abnf)].
+?- [library(dcg/dcg_arrow)].
+?- phrase('*n'(2, quoted(3, Quote, arrow(right, 8)), [copy_term(false)]), X).
+X = "" ;
+Quote = double_quote,
+X = """"------->"""" ;
+Quote = double_quote,
+X = """"------->""""""------->"""" ;
+Quote = single_quote,
+X = "'''------->'''" ;
+Quote = single_quote,
+X = "'''------->''''''------->'''" ;
 false.
 ```
 
-The following generates all sequences of at most 2 arrows
-surrounded by triple quotes, without sharing variables
-between successive calls of `Dcg`.
-The output shows that the single and double quote characters
-do not occur in the same string.
+The following generates all sequences of at most 2 arrows surrounded by triple quotes, without sharing variables between successive calls of `Dcg`.
+The output shows that the two arrows are now allowed to usiong different quotation characters (single and double):
 
 ```prolog
-?- phrase('*n'(2, quoted(3, double_quote, arrow(right, 8)), [copy_term(true)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = """"------->"""'''------->'''",
-Atom = '"""------->"""\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''"""------->"""",
-Atom = '\'\'\'------->\'\'\'"""------->"""' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
+?- [library(dcg/dcg_abnf)].
+?- [library(dcg/dcg_arrow)].
+?- phrase('*n'(2, quoted(3, Quote, arrow(right, 8)), [copy_term(true)]), X).
+X = "" ;
+X = """"------->"""" ;
+X = """"------->""""""------->"""" ;
+X = """"------->"""'''------->'''" ;
+X = "'''------->'''" ;
+X = "'''------->'''"""------->"""" ;
+X = "'''------->''''''------->'''" ;
 false.
 ```
 
-word(Word) -->
-  '*'(letter, Word ,[convert1(codes_atom)]).
-```
+---
 
+`dcg_arrow`: ASCII arrows and horizontal lines
+==============================================
 
+This library consists of the following two DCGs:
 
+  * `arrow(?Head:oneof([both,left,right]), ?Length:nonneg)//`
+  * `horizontal_line(?Length:nonneg)//`
 
-`dcg_arrow`: Simple ASCII arrows and horizontal lines
-=====================================================
-
-`arrow(?Head:oneof([both,left,right]), ?Length:nonneg)//`
-
-The following generates all sequences of at most 2 arrows surrounded by triple quotes, *with uninstantiated variables shared* between successive calls.
-The output shows that the single and double quote characters do not occur in the same string.
+For example the string `<--->` can be parsed as a sequence of two ASCII arrows in four ways:
 
 ```prolog
-?- phrase('*n'(2, quoted(triple_quote(_), arrow(right, 8)), [copy_term(false)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
+?- [library(dcg/dcg_arrow)].
+?- phrase((arrow(Head1, Length1), arrow(Head2, Length2)), `<--->`).
+Head1 = left,   % <--- and >
+Length1 = 4,
+Head2 = right,
+Length2 = 1 ;
+Head1 = left,   % <-- and ->
+Length1 = 3,
+Head2 = right,
+Length2 = 2 ;
+Head1 = left,   % <- and -->
+Length1 = 2,
+Head2 = right,
+Length2 = 3 ;
+Head1 = left,   % < and --->
+Length1 = 1,
+Head2 = right,
+Length2 = 4 ;
 false.
 ```
 
-The following generates all sequences of at most 2 arrows
-surrounded by triple quotes, *without sharing variables*
-between successive calls.
-The output shows that the single and double quote characters
-do not occur in the same string.
+---
 
-```prolog
-?- phrase('*n'(2, quoted(triple_quote(_), arrow(right, 8)), [copy_term(true)]), Codes),
-   atom_codes(Atom, Codes).
-Codes = [],
-Atom = '' ;
-Codes = """"------->"""",
-Atom = '"""------->"""' ;
-Codes = """"------->""""""------->"""",
-Atom = '"""------->""""""------->"""' ;
-Codes = """"------->"""'''------->'''",
-Atom = '"""------->"""\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''",
-Atom = '\'\'\'------->\'\'\'' ;
-Codes = "'''------->'''"""------->"""",
-Atom = '\'\'\'------->\'\'\'"""------->"""' ;
-Codes = "'''------->''''''------->'''",
-Atom = '\'\'\'------->\'\'\'\'\'\'------->\'\'\'' ;
-false.
-```
+`/dcg/dcg_ascii`: ASCII characters
+==================================
 
+Provides support for all individual [ASCII characters](http://en.wikipedia.org/wiki/ASCII) by name.
+Meaningful groups of ASCII characters are defined as well: brackets, lowercase letters, control characters, hexadecimal digits, whites, etc.
 
+Every character and characer group comes with a variant DCG that has the decimal character code as additional argument.
 
-`dcg_ascii`
-===========
-
-Provides support for all individual
-[ASCII characters](http://en.wikipedia.org/wiki/ASCII)
-by name.
-On top of that defined meaningful groups of ASCII characters,
-e.g., brackets, lowercase letters, control characters,
-hexadecimal digits, whites.
-
-Every character and characer group comes with a variant DCG
-that has the decimal character code as additional argument.
-
-As an example, we can define the fragment of a URI (per RFC 3986)
-without having to look up the numeric ASCII codes
-(also better documented this way!):
+As an example, we can define the fragment of a URI (per RFC 3986) without having to look up the numeric ASCII codes (resulting in code that is better documented):
 
 ```prolog
 fragment(Fragment) -->
@@ -263,19 +231,12 @@ fragment_code(Code) --> forward_slash(Code).
 fragment_code(Code) --> question_mark(Code).
 ```
 
-This is especially useful for characers that are non-graphic
-or that look similar to other characers on some displays
-(e.g., carriage return and line-feed).
+This is especially useful for characers that are non-graphic or that look similar to other characers on some displays (e.g., carriage return and line-feed).
 
-Numeric characters (i.e., `0-9A-Za-z`) also have a variant DCG
-with a weight argument representing the decimal value of the character.
+Numeric characters (i.e., `0-9A-Za-z`) also have a variant DCG with a weight argument representing the decimal value of the character.
 
-Bracket characters and bracket character groups have a variant
-with an additional `Type` argument which is either `angular`, `curly`,
-`round`, or `square`.
-A handy special case for this occurs with content that is
-(consistently) surrounded by some bracket type,
-possibly returning the bracket type to the calling context:
+Bracket characters and bracket character groups have a variant with an additional `Type` argument which is either `angular`, `curly`, `round` or `square`.
+A handy special case for this occurs with content that is (consistently) surrounded by some bracket type, possibly returning the bracket type to the calling context:
 
 ```prolog
 bracketed_content(Type, Dcg) -->
@@ -284,8 +245,7 @@ bracketed_content(Type, Dcg) -->
   closing_bracket(Type, _).
 ```
 
-The above can e.g. be use to parse
-[Markdown URL notation](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links):
+The above can e.g. be use to parse [Markdown URL notation](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links):
 
 ```prolog
 markdown_url(Label, Url) -->
@@ -293,46 +253,147 @@ markdown_url(Label, Url) -->
   bracketed_content(round, Url).
 ```
 
+---
+
+`/dcg/dcg_bracketed`: Surrounding brackets
+==========================================
+
+The following DCG rules can be used to put brackets around arbitrary content:
+
+  * `bracketed(:Content)//`
+  * `bracketed(+Type:oneof([angular,curly,langular,round,square]), :Content)//`
+  Surround content by brackets of the given type.
 
 
-`dcg_cadinal`
--------------
+```prolog
+?- [library(dcg/dcg_bracketed)].
+?- phrase(bracketed(Type, `monkey`), Cs).
+Type = angular,
+Cs = "<monkey>" ;
+Type = curly,
+Cs = "{monkey}" ;
+Type = round,
+Cs = "(monkey)" ;
+Type = square,
+Cs = "[monkey]" ;
+Type = langular,
+Cs = [12296, 109, 111, 110, 107, 101, 121, 12297].
+```
+---
+
+`/dcg/dcg_cadinal`: Cardinal numbers
+====================================
 
 The following DCG rules process integers between a lower and an unpper bound:
 
-  - `between(+Low:integer, +High:integer[, ?Value:integer])`
-    Processes integers between the given lower and higher bounds.
-  - `between_digit(+Low:hex, +High:hex[, ?Value:hex])`
-    Processes digits between the given lower and higher bounds.
+  - `between(+Low:integer, +High:integer)`
+  - `between(+Low:integer, +High:integer, ?Value:integer)`
+    Process integers between the given lower and higher bounds.
+  - `between_digit(+Low:hex, +High:hex, ?Value:hex)`
+    Process digits between the given lower and higher bounds.
     `hex` is defined as `or([between(0,9),oneof([a,b,c,d,e,f])])`.
   - `between_radix(+Low:compound, +High:compound[, ?Value:compound])`
-    The values are either integers (in decimal base) or compound terms
-    (`bin/1`, `oct/1`, `dec/1`, `hex/1`)
-    representing numbers in different bases
-    (binary, octal, hexadecimal).
+    Radix values are compound terms of the following forms: `bin/1`, `oct/1`, `dec/1`, `hex/1`.
     ```prolog
+    ?- [library(dcg/dcg_cardinal)].
     ?- phrase(between_radix(bin(1001), hex(f), oct(X)), Codes).
     X = 11,
-    Codes = [57] ;
+    Codes = "9" ;
     X = 12,
-    Codes = [49, 48] ;
+    Codes = "10" ;
     X = 13,
-    Codes = [49, 49] ;
+    Codes = "11" ;
     X = 14,
-    Codes = [49, 50] ;
+    Codes = "12" ;
     X = 15,
-    Codes = [49, 51] ;
+    Codes = "13" ;
     X = 16,
-    Codes = [49, 52] ;
+    Codes = "14" ;
     X = 17,
-    Codes = [49, 53].
+    Codes = "15".
     ```
 
---
+---
 
-Authors:
+`/dcg/dcg_code`: Codes
+======================
 
-  - [Wouter Beek](http://www.wouterbeek.com)
-  - [Anne Ogborn](https://github.com/Anniepoo)
+This module provides the following DCGs for processing character codes:
 
-Developed during: 2013-2014
+  * `between_code(+Low:code, +High:code)//`
+  * `between_code(+Low:code, +High:code, ?Code:code)//`
+  * `between_code_radix(+Low:compound, +High:compound)//`
+  * `between_code_radix(+Low:compound, +High:compound, ?Code:code)//`
+  Radix values are compound terms of the following forms: `bin/1`, `oct/1`, `dec/1`, `hex/1`.
+  * `code(?Code:code)//`
+  The same as `[Code]`.
+  * `code_ci(?Code:code)//`
+  Case-insensitive version of `code//1`.
+  * `code_lower(?Code:code)//`
+
+#### Simple generation example
+
+Generate the upper- and lowercase variants of a given letter.
+
+```prolog
+?- phrase(code_ci(oct(142)), [X]), string_codes(S, [X]).
+X = 66,
+S = "B" ;
+X = 98,
+S = "b".
+```
+
+#### Simple parsing example
+
+Parse a letter in its lower- and uppercase variants.
+
+```prolog
+?- phrase(code_ci(hex(X)), `b`).
+X = 66 ;
+X = 98.
+```
+
+#### Real-world example
+
+It often occurs that keywords or other reserved words in a grammar are allowed to appear in any case variant.
+The following generate all case-variants of the string `http`:
+
+```prolog
+?- [library(dcg/dcg_abnf)].
+?- [library(dcg/dcg_code)].
+?- phrase('*'(code_ci, `http`, []), X).
+X = "HTTP" ;
+X = "HTTp" ;
+X = "HTtP" ;
+X = "HTtp" ;
+X = "HtTP" ;
+X = "HtTp" ;
+X = "HttP" ;
+X = "Http" ;
+X = "hTTP" ;
+X = "hTTp" ;
+X = "hTtP" ;
+X = "hTtp" ;
+X = "htTP" ;
+X = "htTp" ;
+X = "httP" ;
+X = "http" ;
+false.
+```
+
+`/dcg/dcg_quoted`: Quoting
+==========================
+
+The following DCG rules allow arbitrary content to be quoted:
+
+  * `quoted(:Content)//`
+  Quote content using single occurrences of double quotes.
+  * `quoted(:Quote, :Content)//`
+  Quote content using single occurrences of an arbitrary quote.
+  * `quoted(?Length:positive_integer, :Quote, :Content)//`
+  Quote content using given number of occurrences of an arbitrary quote.
+  If no quote is given then `double_quote//0` and `single_quote//0` (in that order) are used.
+
+---
+
+This library was developed by [Wouter Beek](http://www.wouterbeek.com) in 2013-2015.

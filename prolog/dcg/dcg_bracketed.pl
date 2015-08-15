@@ -11,21 +11,6 @@
 
 Support for bracketed expressions in DCG.
 
-```prolog
-?- use_module(library(dcg/dcg_bracketed)).
-?- phrase(bracketed(Type, `monkey`), Cs).
-Type = angular,
-Cs = "<monkey>" ;
-Type = curly,
-Cs = "{monkey}" ;
-Type = round,
-Cs = "(monkey)" ;
-Type = square,
-Cs = "[monkey]" ;
-Type = langular,
-Cs = [12296, 109, 111, 110, 107, 101, 121, 12297].
----
-
 @author Wouter Beek
 @version 2015/07
 */

@@ -46,6 +46,7 @@ Tools that ease debugging SWI-Prolog programs.
 ).
 
 :- portray_text(true).
+:- set_portray_text(min_length, 0).
 :- set_portray_text(ellipsis, 1000).
 
 :- dynamic(user:debug_mode).
