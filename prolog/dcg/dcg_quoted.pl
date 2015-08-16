@@ -33,8 +33,8 @@ Support for quoting in DCGs.
 %! quoted(:Dcg_0)// .
 % Wrapper around quoted//2 using double quotes.
 
-quoted(Dcg) -->
-  quoted(_, Dcg).
+quoted(Dcg_0) -->
+  quoted(double_quote, Dcg_0).
 
 
 %! quoted(:Quote_0, :Dcg_0)// .
