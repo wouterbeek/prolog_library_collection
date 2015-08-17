@@ -19,9 +19,8 @@ Support for using external programs with SWI-Prolog.
 :- use_module(library(aggregate)).
 :- use_module(library(ansi_ext)).
 :- use_module(library(apply)).
-:- use_module(library(option)).
-:- use_module(library(process_ext)).
-:- use_module(library(readutil)).
+:- use_module(library(error)).
+:- use_module(library(os/os_ext)).
 
 %! file_type_program(?FileType:atom, ?Program:atom) is nondet.
 % Registration pointing out that files of type FileType
@@ -42,11 +41,18 @@ Support for using external programs with SWI-Prolog.
 
 
 
+
+
 %! exists_program(+Program:atom) is semidet.
 % Succeeds if the given program can be run from PATH.
 
 exists_program(Program):-
-  catch(handle_process(Program, [], []), _, fail).
+  var(Program), !,
+  instantiation_error(Program).
+exists_program(Program):-
+  os_path(Prefix),
+  atomic_list_concat([Prefix,Program], /, Exe),
+  access_file(Exe, execute), !.
 
 
 %! find_program_by_file_type(+FileType:atom, -Program:atom) is nondet.
@@ -56,6 +62,7 @@ exists_program(Program):-
 find_program_by_file_type(FileType, Program):-
   user:file_type_program(FileType, Program),
   exists_program(Program), !.
+
 
 
 %! list_external_programs is det.

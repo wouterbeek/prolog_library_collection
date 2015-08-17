@@ -4,7 +4,7 @@
     quoted//1, % :Dcg_0
     quoted//2, % :Quote_0
                % :Dcg_0
-    quoted//3 % ?Length:positive_number
+    quoted//3 % ?Length:positive_integer
               % :Quote_0
               % :Dcg_0
   ]
@@ -15,7 +15,7 @@
 Support for quoting in DCGs.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(dcg/dcg_abnf)).
@@ -33,8 +33,8 @@ Support for quoting in DCGs.
 %! quoted(:Dcg_0)// .
 % Wrapper around quoted//2 using double quotes.
 
-quoted(Dcg) -->
-  quoted(double_quote, Dcg).
+quoted(Dcg_0) -->
+  quoted(double_quote, Dcg_0).
 
 
 %! quoted(:Quote_0, :Dcg_0)// .
@@ -50,4 +50,9 @@ quoted(Quote_0, Dcg_0) -->
 %   - `single_quote//0`
 
 quoted(Length, Quote_0, Dcg_0) -->
+  {quote(Quote_0)},
   dcg_between(dcg_once('#'(Length, Quote_0, [])), Dcg_0).
+
+quote(_:Dcg_0):- (var(Dcg_0) -> quote_goal(Dcg_0) ; true).
+quote_goal(double_quote).
+quote_goal(single_quote).

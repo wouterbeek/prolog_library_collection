@@ -23,6 +23,7 @@
     thousands_integer//1 % +Integer:integer
   ]
 ).
+:- reexport(library(dcg/basics)).
 
 /** <module> Processing cardinal numbers in DCGs
 
@@ -31,51 +32,14 @@ Library `dcg/basics` comes with the following rules for cardinals:
   - `integer//1`
   - `number//1`
 
-Sometimes we want to process integers between a given lower and upper bound:
-
-  - between//[2,3]
-    Processes integers between the given lower and higher bounds.
-  - between_digit//[2,3]
-    Processes digits between the given lower and higher bounds.
-    `hex` is defined as `or([between(0,9),oneof([a,b,c,d,e,f])])`.
-  - between_radix//[2,3]
-    The values are either integers (in decimal base) or compound terms
-    (`bin/1`, `oct/1`, `dec/1`, `hex/1`)
-    representing numbers in different bases
-    (binary, octal, hexadecimal).
-
-### Example:
-
-```prolog
-?- phrase(between_radix(bin(1001), hex(f), oct(X)), Codes).
-X = 11,
-Codes = [57] ;
-X = 12,
-Codes = [49, 48] ;
-X = 13,
-Codes = [49, 49] ;
-X = 14,
-Codes = [49, 50] ;
-X = 15,
-Codes = [49, 51] ;
-X = 16,
-Codes = [49, 52] ;
-X = 17,
-Codes = [49, 53].
-```
-
-Besides integers (base 10) we sometimes want to write digits and numbers in
-other bases (2, 8, 16).
-
 ---
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(error)).
 :- use_module(library(plunit)).
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(math/math_ext)).

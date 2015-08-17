@@ -2,15 +2,17 @@
   dcg_logic,
   [
     entails//0,
-    entails//1, % -Code:code
+    entails//1, % ?Code:code
     equivalence//0,
-    equivalence//1, % -Code:code
+    equivalence//1, % ?Code:code
+    falsum//0,
+    falsum//1, % ?Code:code
     provable//0,
-    provable//1, % -Code:code
+    provable//1, % ?Code:code
     set_membership//0,
-    set_membership//1, % -Code:code
+    set_membership//1, % ?Code:code
     subclass//0,
-    subclass//1 % -Code:code
+    subclass//1 % ?Code:code
   ]
 ).
 
@@ -38,6 +40,15 @@ entails(8658) --> [8658].
 
 equivalence --> equivalence(_).
 equivalence(8801) --> [8801].
+
+
+
+%! falsum// .
+%! falsum(?Code:code)// .
+% ⊥
+
+falsum --> falsum(_).
+falsum(8869) --> [8869].
 
 
 
