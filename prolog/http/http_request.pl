@@ -39,6 +39,7 @@ posing an alternative to library(http/http_client).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(option)).
+:- use_module(library(zlib)).
 
 :- meta_predicate(http_get(+,3)).
 :- meta_predicate(http_get(+,3,+)).
@@ -87,7 +88,7 @@ http_get(Uri, Success_3, Opts):-
 
 %! http_get(+Uri:atom, :Success_3, :Error_3, +Options:list(compound)) is det.
 
-http_get(Uri, Success_3, Error_3, Opts0):-
+http_get(Uri, Success_3, Error_3, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
@@ -95,15 +96,15 @@ http_get(Uri, Success_3, Error_3, Opts0):-
       method(get),
       status_code(Status)
     ],
-    Opts0,
-    Opts
+    Opts1,
+    Opts2
   ),
   setup_call_cleanup(
-    http_open(Uri, Read, Opts),
-    (   option(gzip(true), Opts)
-    ->  merge_options([close_parent(false)], Opts, Opts0),
+    http_open(Uri, Read, Opts2),
+    (   option(gzip(true), Opts2)
+    ->  merge_options([close_parent(false)], Opts2, Opts3),
         setup_call_cleanup(
-          zopen(Read, Read0, Opts0),
+          zopen(Read, Read0, Opts3),
           http_stream(Status, Headers, Success_3, Error_3, Read0),
           close(Read0)
         )
@@ -139,7 +140,7 @@ http_post(Uri, Data, Success_3, Opts):-
 %!   +Options:list(compound)
 %! ) is det.
 
-http_post(Uri, Data, Success_3, Error_3, Opts0):-
+http_post(Uri, Data, Success_3, Error_3, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
@@ -148,12 +149,20 @@ http_post(Uri, Data, Success_3, Error_3, Opts0):-
       post(Data),
       status_code(Status)
     ],
-    Opts0,
-    Opts
+    Opts1,
+    Opts2
   ),
   setup_call_cleanup(
-    http_open(Uri, Read, Opts),
-    http_stream(Status, Headers, Success_3, Error_3, Read),
+    http_open(Uri, Read, Opts2),
+    (   option(gzip(true), Opts2)
+    ->  merge_options([close_parent(false)], Opts2, Opts3),
+        setup_call_cleanup(
+          zopen(Read, Read0, Opts3),
+          http_stream(Status, Headers, Success_3, Error_3, Read0),
+          close(Read0)
+        )
+    ;   http_stream(Status, Headers, Success_3, Error_3, Read)
+    ),
     close(Read)
   ).
 
