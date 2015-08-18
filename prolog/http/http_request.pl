@@ -52,13 +52,17 @@ posing an alternative to library(http/http_client).
      pass_to(http_get/4, 4)
    ]).
 :- predicate_options(http_get/4, 4, [
-     pass_to(http_open/3, 3)
+     gzip(+boolean),
+     pass_to(http_open/3, 3),
+     pass_to(zopen/3, 3)
    ]).
 :- predicate_options(http_post/4, 4, [
      pass_to(http_post/5, 5)
    ]).
 :- predicate_options(http_post/5, 5, [
-     pass_to(http_open/3, 3)
+     gzip(+boolean),
+     pass_to(http_open/3, 3),
+     pass_to(zopen/3, 3)
    ]).
 
 cert_verify(_, _, _, _, _).
@@ -96,7 +100,15 @@ http_get(Uri, Success_3, Error_3, Opts0):-
   ),
   setup_call_cleanup(
     http_open(Uri, Read, Opts),
-    http_stream(Status, Headers, Success_3, Error_3, Read),
+    (   option(gzip(true), Opts)
+    ->  merge_options([close_parent(false)], Opts, Opts0),
+        setup_call_cleanup(
+          zopen(Read, Read0, Opts0),
+          http_stream(Status, Headers, Success_3, Error_3, Read0),
+          close(Read0)
+        )
+    ;   http_stream(Status, Headers, Success_3, Error_3, Read)
+    ),
     close(Read)
   ).
 
@@ -173,9 +185,9 @@ http_stream(Status, Headers, _, Error_3, Read):-
 %!   +Read:stream
 %! ) is det.
 
-http_error_default(Status, Headers, Read):-
+http_error_default(Status, Headers, Read):-gtrace,
   format(user_error, '[STATUS ~D] ', [Status]),
-  maplist(print_header(user_error), Headers), 
+  maplist(print_header(user_error), Headers),
   copy_stream_data(Read, user_error),
   format(user_error, '\n', []).
 
