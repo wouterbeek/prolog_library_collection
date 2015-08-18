@@ -67,7 +67,7 @@ For example, escaping spaces and grave accent (e.g. in URIs):
 :- use_module(plc(dcg/dcg_replace)).
 % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT to `%60`).
 atom_phrase(
-  '*'(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
+  *(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
   AtomIn,
   AtomOut
 )

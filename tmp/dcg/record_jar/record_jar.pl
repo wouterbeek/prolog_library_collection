@@ -110,7 +110,7 @@ continuation -->
 encodingSig(Encoding) -->
   "%%encoding",
   'field-sep',
-  dcg_atom('*'(encodingSig_char, []), Encoding),
+  dcg_atom(*(encodingSig_char, []), Encoding),
   'CRLF', !.
 
 encodingSig_char(Code) --> 'ALPHA'(Code).
@@ -161,7 +161,7 @@ field(Name=Body) -->
 % @see Information on grapheme clusters, UAX29.
 
 'field-body'(Sentence) -->
-  '*'('field-body0', Words, []),
+  *('field-body0', Words, []),
   {atomic_list_concat(Words, ' ', Sentence)}.
 
 'field-body0'(Word) -->
@@ -240,7 +240,7 @@ field(Name=Body) -->
   (   separator
   ;   ""
   ),
-  '*'(record, Records, []).
+  *(record, Records, []).
 
 
 
@@ -273,7 +273,7 @@ separator -->
   (   'blank-line'
   ;   ""
   ),
-  '*'(separator0, []).
+  *(separator0, []).
 
 separator0 -->
   "%%",

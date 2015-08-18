@@ -41,7 +41,7 @@
 % ```
 
 c_convert -->
-  '*'(dcg_replace, [`\b`,`\n`,`\t`], [bell,line_feed,horizontal_tab], []).
+  *(dcg_replace, [`\b`,`\n`,`\t`], [bell,line_feed,horizontal_tab], []).
 
 
 

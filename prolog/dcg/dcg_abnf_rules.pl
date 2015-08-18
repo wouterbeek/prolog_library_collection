@@ -484,7 +484,7 @@
 % @compat RFC 5234
 
 'LWSP' -->
-  '*'('LWSP0', []).
+  *('LWSP0', []).
 'LWSP0' -->
   'LWSP'.
 'LWSP0' -->

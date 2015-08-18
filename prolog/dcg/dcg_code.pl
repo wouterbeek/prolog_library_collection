@@ -104,7 +104,7 @@ code(C) -->
 % Generate all case-variants of a given string.
 %
 % ```prolog
-% ?- phrase('*'(code_ci, "http", []), Codes).
+% ?- phrase(*(code_ci, "http", []), Codes).
 % Codes = "http" ;
 % Codes = "httP" ;
 % Codes = "htTp" ;

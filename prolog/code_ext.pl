@@ -25,7 +25,7 @@ Predicates for handling codes.
 
 Replacements in list of codes can be made using:
 ```prolog
-phrase('*'(dcg_replace, [FromDCG|FromDCGs], [ToDCG|ToDCGs], []), In, Out)
+phrase(*(dcg_replace, [FromDCG|FromDCGs], [ToDCG|ToDCGs], []), In, Out)
 ```
 
 # Split

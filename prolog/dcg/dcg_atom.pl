@@ -44,7 +44,7 @@ atom_capitalize --> [].
 %! atom_ci(?Atom:atom)// .
 
 atom_ci(A) -->
-  dcg_atom('*'(code_ci, []), A).
+  dcg_atom(*(code_ci, []), A).
 
 
 
@@ -59,7 +59,7 @@ atom_ellipsis(A, Ellipsis) -->
 %! atom_lower(?Atom:atom)// .
 
 atom_lower(A) -->
-  dcg_atom('*'(code_lower, []), A).
+  dcg_atom(*(code_lower, []), A).
 
 
 
@@ -68,17 +68,17 @@ atom_lower(A) -->
 atom_title(A) -->
   {var(A)}, !,
   letter_uppercase(H),
-  '*'(letter_lowercase, T, []),
+  *(letter_lowercase, T, []),
   {atom_codes(A, [H|T])}.
 atom_title('') --> "".
 atom_title(A) -->
   {atom_codes(A, [H|T])},
   letter_uppercase(H),
-  '*'(letter_lowercase, T, []).
+  *(letter_lowercase, T, []).
 
 
 
 %! atom_upper(?Atom:atom)// .
 
 atom_upper(A) -->
-  dcg_atom('*'(code_lower, []), A).
+  dcg_atom(*(code_lower, []), A).

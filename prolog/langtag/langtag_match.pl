@@ -112,7 +112,7 @@ extended_filtering([H1|T1], [H2|T2]):-
 extended_filtering_tail([], _):- !.
 % [3a] If the subtag currently being examined in the range is the wildcard
 %      `*`, move to the next subtag in the range and continue with the loop.
-extended_filtering_tail(['*'|T1], [_|T2]):- !,
+extended_filtering_tail([*|T1], [_|T2]):- !,
   extended_filtering_tail(T1, T2).
 % [3b] Else, if there are no more subtags in the language tag's list,
 %      the match fails.
@@ -143,9 +143,9 @@ extended_filtering_tail(L1, [_|T2]):-
 %
 % @compat RFC 4647
 
-extended_to_basic(['*'|_], ['*']):- !.
+extended_to_basic([*|_], [*]):- !.
 extended_to_basic(Extended, Basic):-
-  exclude(=('*'), Extended, Basic).
+  exclude(=(*), Extended, Basic).
 
 
 
@@ -186,7 +186,7 @@ lookup(L1a, L2):-
 % Two subtags match if either they are the same when compared
 % case-insensitively or the language range's subtag is the wildcard `*`
 
-subtag_match('*', _):- !.
+subtag_match(*, _):- !.
 subtag_match(X1, X2):-
   downcase_atom(X1, X),
   downcase_atom(X2, X).

@@ -30,12 +30,12 @@
 :- meta_predicate('#'(?,5,?,?,?,:,?,?)).
 :- meta_predicate('#'(?,6,?,?,?,?,:,?,?)).
 :- meta_predicate('#'(?,7,?,?,?,?,?,:,?,?)).
-:- meta_predicate('*'(//,:,?,?)).
-:- meta_predicate('*'(3,?,:,?,?)).
-:- meta_predicate('*'(4,?,?,:,?,?)).
-:- meta_predicate('*'(5,?,?,?,:,?,?)).
-:- meta_predicate('*'(6,?,?,?,?,:,?,?)).
-:- meta_predicate('*'(7,?,?,?,?,?,:,?,?)).
+:- meta_predicate(*(//,:,?,?)).
+:- meta_predicate(*(3,?,:,?,?)).
+:- meta_predicate(*(4,?,?,:,?,?)).
+:- meta_predicate(*(5,?,?,?,:,?,?)).
+:- meta_predicate(*(6,?,?,?,?,:,?,?)).
+:- meta_predicate(*(7,?,?,?,?,?,:,?,?)).
 :- meta_predicate('*n'(?,//,:,?,?)).
 :- meta_predicate('*n'(?,3,?,:,?,?)).
 :- meta_predicate('*n'(?,4,?,?,:,?,?)).
@@ -216,32 +216,32 @@ is_meta(separator).
 
 
 
-%! '*'(:Dcg, :Options:list(nvpair))// .
-%! '*'(:Dcg, ?Args1:list, :Options:list(nvpair))// .
-%! '*'(:Dcg, ?Args1:list, ?Args3:list, :Options:list(nvpair))// .
-%! '*'(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, :Options:list(nvpair))// .
-%! '*'(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, ?Args4:list, :Options:list(nvpair))// .
-%! '*'(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(nvpair))// .
+%! *(:Dcg, :Options:list(nvpair))// .
+%! *(:Dcg, ?Args1:list, :Options:list(nvpair))// .
+%! *(:Dcg, ?Args1:list, ?Args3:list, :Options:list(nvpair))// .
+%! *(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, :Options:list(nvpair))// .
+%! *(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, ?Args4:list, :Options:list(nvpair))// .
+%! *(:Dcg, ?Args1:list, ?Args3:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(nvpair))// .
 % Implements the Regular Expression operator `*` in a nondeterministic way.
 %
 % @see Wrapper around 'm*n'//[3-8] with `M = 0` and `N` uninstantiated.
 
-'*'(Dcg, Opts) -->
+*(Dcg, Opts) -->
   'm*n'(_, _, Dcg, Opts).
 
-'*'(Dcg, L1, Opts) -->
+*(Dcg, L1, Opts) -->
   'm*n'(_, _, Dcg, L1, Opts).
 
-'*'(Dcg, L1, L2, Opts) -->
+*(Dcg, L1, L2, Opts) -->
   'm*n'(_, _, Dcg, L1, L2, Opts).
 
-'*'(Dcg, L1, L2, L3, Opts) -->
+*(Dcg, L1, L2, L3, Opts) -->
   'm*n'(_, _, Dcg, L1, L2, L3, Opts).
 
-'*'(Dcg, L1, L2, L3, L4, Opts) -->
+*(Dcg, L1, L2, L3, L4, Opts) -->
   'm*n'(_, _, Dcg, L1, L2, L3, L4, Opts).
 
-'*'(Dcg, L1, L2, L3, L4, L5, Opts) -->
+*(Dcg, L1, L2, L3, L4, L5, Opts) -->
   'm*n'(_, _, Dcg, L1, L2, L3, L4, L5, Opts).
 
 

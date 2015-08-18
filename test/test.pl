@@ -1,5 +1,3 @@
-:- ensure_loaded(debug).
-
 :- use_module(library(ansi_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(char_ext)).

@@ -106,7 +106,7 @@ dcg_table(Caption, Cell, Rows, Options1) -->
   horizontal_line(60),
   nl,
   dcg_table_header(HasHeaderRow, IsIndexed, Cell, Rows, DataRows),
-  '*'(
+  *(
     dcg_table_data_row(HasHeaderColumn, IsIndexed, HighlightedRow, Cell),
     DataRows,
     [copy_term(true)]
@@ -178,13 +178,13 @@ dcg_table_data_row(
     dcg_table_cell(header, Cell, HeaderCell),
     dcg_between(
       dcg_cell_border,
-      '*'(dcg_table_cell(data, Cell), DataRow0, [copy_term(true)])
+      *(dcg_table_cell(data, Cell), DataRow0, [copy_term(true)])
     )
   ;
     dcg_table_index_cell(HasHeaderColumn, IsIndexed, Cell, RowNumber),
     dcg_between(
       dcg_cell_border,
-      '*'(dcg_table_cell(data, Cell), DataRow, [copy_term(true)])
+      *(dcg_table_cell(data, Cell), DataRow, [copy_term(true)])
     )
   ),
   nl.
@@ -221,7 +221,7 @@ dcg_table_header(false, _, _, DataRows, DataRows) --> "".
 dcg_table_header_row(Cell, HeaderRow) -->
   dcg_between(
     dcg_cell_border,
-    '*'(dcg_table_cell(header, Cell), HeaderRow, [copy_term(true)])
+    *(dcg_table_cell(header, Cell), HeaderRow, [copy_term(true)])
   ),
   nl,
   horizontal_line(60),

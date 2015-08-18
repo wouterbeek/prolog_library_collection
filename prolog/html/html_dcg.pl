@@ -90,14 +90,14 @@ html_element(Name, Attrs) -->
   "<",
   atom(Name),
   " ",
-  '*'(html_attribute, Attrs, [separator(space)]),
+  *(html_attribute, Attrs, [separator(space)]),
   "/>".
 
 html_element(Name, Attrs, Content) -->
   "<",
   atom(Name),
   " ",
-  '*'(html_attribute, Attrs, [separator(space)]),
+  *(html_attribute, Attrs, [separator(space)]),
   ">",
   phrase(Content),
   "</",
@@ -137,7 +137,7 @@ html_punctuation(Code) -->
 % This includes spaces.
 %
 % @tbd The following does not succeed on parsing//0:
-%      dcg_atom('*'(html_graphic, []), String).
+%      dcg_atom(*(html_graphic, []), String).
 
 html_string(String) -->
   dcg_atom(html_string0, String).

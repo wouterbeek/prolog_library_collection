@@ -48,7 +48,7 @@ Grammar snippets for files.
 % Relative directory with respect to the home directory (Unix only).
 file_path(Path) -->
   "~/", !,
-  '*'(path_segment, Segments, [separator(directory_separator)]),
+  *(path_segment, Segments, [separator(directory_separator)]),
   {
     atomic_list_concat(Segments, /, RelPath),
     relative_file_name(Path, '~', RelPath)
@@ -56,7 +56,7 @@ file_path(Path) -->
 % Absolute directory.
 file_path(Path) -->
   root_prefix,
-  '*'(path_segment, Segments, [separator(directory_separator)]),
+  *(path_segment, Segments, [separator(directory_separator)]),
   {atomic_list_concat([''|Segments], /, Path)}.
 
 
@@ -95,7 +95,7 @@ directory_char(Code) --> underscore(Code).
 %! path_segment(-Segment:atom)// .
 
 path_segment(Segment) -->
-  dcg_atom('*'(directory_char, []), Segment).
+  dcg_atom(*(directory_char, []), Segment).
 
 
 

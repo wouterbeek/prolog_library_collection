@@ -25,7 +25,7 @@
 
 
 strip(Dcg_0), Cs -->
-  '*'(Dcg_0, []),
+  *(Dcg_0, []),
   string(Cs),
   '+'(Dcg_0, []),
   eos, !.
@@ -35,7 +35,7 @@ strip(_), Cs -->
 
 
 strip_left(Dcg_0), Cs -->
-  '*'(Dcg_0, []),
+  *(Dcg_0, []),
   string(Cs),
   eos, !.
 

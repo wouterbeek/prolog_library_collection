@@ -641,7 +641,7 @@ resulting in better readable code as well:
 
 ```prolog
 fragment(Frag) -->
-  '*'(fragment_code, Cs, []),
+  *(fragment_code, Cs, []),
   {atom_codes(Frag, Cs)}.
 
 fragment_code(C) --> pchar(C).

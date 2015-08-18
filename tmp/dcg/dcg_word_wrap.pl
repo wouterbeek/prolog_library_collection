@@ -140,7 +140,7 @@ dcg_word_wrap_hard(Padding, _, Remaining, _),
 
 % Process another character. Notice that there are several options here.
 dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
-    '*'(code, Word2, []),
+    *(code, Word2, []),
     Postfix
 -->
   % The behavior of word wrapping depends on properties of
@@ -161,7 +161,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
         Postfix = Separator,
         NewRemaining = WrapMargin
       },
-      '*'(code, Word2, [])
+      *(code, Word2, [])
   ;   % Case 2: What a nice accident! The word happens to fit exactly
       % into the remaining positions of the current line.
       % Place the word, and insert the split dirrectly after the word.
@@ -173,7 +173,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
         Postfix = Separator,
         NewRemaining = WrapMargin
       },
-      '*'(code, Word1, []),
+      *(code, Word1, []),
       whites
   ;   % Case 3: The word is too long to fit on the current line,
       % but it would fit on a new line.
@@ -194,7 +194,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
       %  there will be at least one character position left after it.
       % Place the word, and consume it.
       {Word2 = Word1},
-      '*'(code, Word1, []),
+      *(code, Word1, []),
 
       % Whether a space should be inserted after the word, depends on
       %  whether a whitespace character appears in the processed string.
@@ -217,7 +217,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
 
   % No regrets.
   % Actually, this does not prevent Prolog from backtracking
-  % on `'*'(code, Codes, [])` in the head!
+  % on `*(code, Codes, [])` in the head!
   % The calling context must enforce determinism.
   !,
   dcg_word_wrap_soft(Padding, Separator, NewRemaining, WrapMargin).

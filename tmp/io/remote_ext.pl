@@ -40,7 +40,7 @@ Support for files residing on remote machines.
 
 clear_remote_directory(remote_file(User,Machine,Dir)):-
   atomic_list_concat([User,Machine], '@', UserMachine),
-  append_directories(Dir, '*', Regex),
+  append_directories(Dir, *, Regex),
   atomic_list_concat([ssh,UserMachine,rm,Regex], ' ', Command),
   handle_process(sh, ['-c',Command], [program(Command)]).
 
