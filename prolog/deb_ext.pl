@@ -1,6 +1,10 @@
 :- module(
   deb_ext,
   [
+    call_collect_messages/1, % :Goal_0
+    call_collect_messages/3, % :Goal_0
+                             % -Status:compound
+                             % -Messages:list(compound)
     debug_all_files/0,
     if_debug/2, % +Flag:atom
                 % :Goal
@@ -12,7 +16,7 @@
     start_pldoc_server/0,
     verbose_call/1, % :Goal_0
     verbose_call/2 % +Message:atom
-                    % :Goal_0
+                   % :Goal_0
   ]
 ).
 :- reexport(library(debug)).
@@ -27,11 +31,16 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
+:- use_module(library(check_installation)). % Private predicates.
+:- use_module(library(debug)).
 :- use_module(library(gui_tracer)).
+:- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(pldoc)).
 :- use_module(library(portray_text)).
 
+:- meta_predicate(call_collect_messages(0)).
+:- meta_predicate(call_collect_messages(0,-,-)).
 :- meta_predicate(if_debug(+,0)).
 :- meta_predicate(verbose_call(0)).
 :- meta_predicate(verbose_call(+,0)).
@@ -65,6 +74,43 @@ init_debug_mode:-
   ).
 
 
+
+
+
+%! call_collect_messages(:Goal_0) is det.
+
+call_collect_messages(Goal_0):-
+  call_collect_messages(Goal_0, Status, Messages),
+  process_warnings(Messages),
+  process_status(Status).
+
+process_status(true):- !.
+process_status(fail):- !,
+  fail.
+process_status(Exception):-
+  print_message(warning, Exception).
+
+process_warnings(Messages):-
+  debugging(deb_ext), !,
+  forall(
+    member(Warning, Messages),
+    debug(deb_ext, '[WARNING] ~a', [Warning])
+  ).
+process_warnings(Messages):-
+  length(Messages, N),
+  (   N =:= 0
+  ->  true
+  ;   print_message(warnings, number_of_warnings(N))
+  ).
+
+%! call_collect_messages(
+%!   :Goal_0,
+%!   -Status:compound,
+%!   -Messages:list(compound)
+%! ) is det.
+
+call_collect_messages(Goal_0, Status, Messages):-
+  check_installation:run_collect_messages(Goal_0, Status, Messages).
 
 
 
@@ -194,3 +240,6 @@ call_success(Msg):-
 
 prolog:message(loading_module(File)) -->
   ['[M] ',File].
+
+prolog:message(number_of_warnings(N)) -->
+  ['~D warnings'-[N]].
