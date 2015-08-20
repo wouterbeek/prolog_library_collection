@@ -1,14 +1,14 @@
 :- module(
   dcg_abnf,
   [
-    '#'//3, '#'//4, '#'//5, '#'//6, '#'//7, '#'//8,
-    '*'//2, '*'//3, '*'//4, '*'//5, '*'//6, '*'//7,
-    '*n'//3, '*n'//4, '*n'//5, '*n'//6, '*n'//7, '*n'//8,
-    '+'//2, '+'//3, '+'//4, '+'//5, '+'//6, '+'//7,
-    '+n'//3, '+n'//4, '+n'//5, '+n'//6, '+n'//7, '+n'//8,
-    '?'//2, '?'//3, '?'//4, '?'//5, '?'//6, '?'//7,
-    'm*'//3, 'm*'//4, 'm*'//5, 'm*'//6, 'm*'//7, 'm*'//8,
-    'm*n'//4, 'm*n'//5, 'm*n'//6, 'm*n'//7, 'm*n'//8, 'm*n'//9
+    '#'//2, '#'//3, '#'//4, '#'//5, '#'//6, '#'//7, '#'//8,
+    '*'//1, '*'//2, '*'//3, '*'//4, '*'//5, '*'//6, '*'//7,
+    '*n'//2, '*n'//3, '*n'//4, '*n'//5, '*n'//6, '*n'//7, '*n'//8,
+    '+'//1, '+'//2, '+'//3, '+'//4, '+'//5, '+'//6, '+'//7,
+    '+n'//2, '+n'//3, '+n'//4, '+n'//5, '+n'//6, '+n'//7, '+n'//8,
+    '?'//1, '?'//2, '?'//3, '?'//4, '?'//5, '?'//6, '?'//7,
+    'm*'//2, 'm*'//3, 'm*'//4, 'm*'//5, 'm*'//6, 'm*'//7, 'm*'//8,
+    'm*n'//3, 'm*n'//4, 'm*n'//5, 'm*n'//6, 'm*n'//7, 'm*n'//8, 'm*n'//9
   ]
 ).
 
@@ -24,36 +24,42 @@
 :- use_module(library(error)).
 :- use_module(library(option)).
 
+:- meta_predicate(#(?,//,?,?)).
 :- meta_predicate(#(?,//,:,?,?)).
 :- meta_predicate(#(?,3,?,:,?,?)).
 :- meta_predicate(#(?,4,?,?,:,?,?)).
 :- meta_predicate(#(?,5,?,?,?,:,?,?)).
 :- meta_predicate(#(?,6,?,?,?,?,:,?,?)).
 :- meta_predicate(#(?,7,?,?,?,?,?,:,?,?)).
+:- meta_predicate(*(//,?,?)).
 :- meta_predicate(*(//,:,?,?)).
 :- meta_predicate(*(3,?,:,?,?)).
 :- meta_predicate(*(4,?,?,:,?,?)).
 :- meta_predicate(*(5,?,?,?,:,?,?)).
 :- meta_predicate(*(6,?,?,?,?,:,?,?)).
 :- meta_predicate(*(7,?,?,?,?,?,:,?,?)).
+:- meta_predicate('*n'(?,//,?,?)).
 :- meta_predicate('*n'(?,//,:,?,?)).
 :- meta_predicate('*n'(?,3,?,:,?,?)).
 :- meta_predicate('*n'(?,4,?,?,:,?,?)).
 :- meta_predicate('*n'(?,5,?,?,?,:,?,?)).
 :- meta_predicate('*n'(?,6,?,?,?,?,:,?,?)).
 :- meta_predicate('*n'(?,7,?,?,?,?,?,:,?,?)).
+:- meta_predicate(+(//,?,?)).
 :- meta_predicate(+(//,:,?,?)).
 :- meta_predicate(+(3,?,:,?,?)).
 :- meta_predicate(+(4,?,?,:,?,?)).
 :- meta_predicate(+(5,?,?,?,:,?,?)).
 :- meta_predicate(+(6,?,?,?,?,:,?,?)).
 :- meta_predicate(+(7,?,?,?,?,?,:,?,?)).
+:- meta_predicate('+n'(?,//,?,?)).
 :- meta_predicate('+n'(?,//,:,?,?)).
 :- meta_predicate('+n'(?,3,?,:,?,?)).
 :- meta_predicate('+n'(?,4,?,?,:,?,?)).
 :- meta_predicate('+n'(?,5,?,?,?,:,?,?)).
 :- meta_predicate('+n'(?,6,?,?,?,?,:,?,?)).
 :- meta_predicate('+n'(?,7,?,?,?,?,?,:,?,?)).
+:- meta_predicate(?(//,?,?)).
 :- meta_predicate(?(//,+,?,?)).
 :- meta_predicate(?(3,?,+,?,?)).
 :- meta_predicate(?(4,?,?,+,?,?)).
@@ -66,6 +72,7 @@
 :- meta_predicate(call_dcg_sep(+,5,//,+,+,?,?)).
 :- meta_predicate(call_dcg_sep(+,6,//,+,+,?,?)).
 :- meta_predicate(call_dcg_sep(+,7,//,+,+,?,?)).
+:- meta_predicate('m*'(?,//,?,?)).
 :- meta_predicate('m*'(?,//,:,?,?)).
 :- meta_predicate('m*'(?,3,?,:,?,?)).
 :- meta_predicate('m*'(?,4,?,?,:,?,?)).
@@ -179,6 +186,7 @@ is_meta(separator).
 
 
 
+%! #(?N:nonneg, :Dcg_0)// .
 %! #(?N:nonneg, :Dcg_0, :Options:list(compound))// .
 %! #(?N:nonneg, :Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! #(?N:nonneg, :Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -198,6 +206,9 @@ is_meta(separator).
 % This is why the module prefix `Mod` is explicitly carried over here.
 %
 % @see Wrappers around 'm*n'//[3-8] using `M =:= N`.
+
+#(N, Dcg_0) -->
+  'm*n'(N, N, Dcg_0).
 
 #(N, Dcg_0, Mod:Opts0) -->
   {merge_options([count(N)], Opts0, Opts)},
@@ -225,6 +236,7 @@ is_meta(separator).
 
 
 
+%! *(:Dcg_0)// .
 %! *(:Dcg_0, :Options:list(compound))// .
 %! *(:Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! *(:Dcg_2, ?Args1:list, ?Args3:list, :Options:list(compound))// .
@@ -234,6 +246,9 @@ is_meta(separator).
 % Implements the Regular Expression operator `*` in a nondeterministic way.
 %
 % @see Wrapper around 'm*n'//[3-8] with `M = 0` and `N` uninstantiated.
+
+*(Dcg_0) -->
+  'm*n'(_, _, Dcg_0).
 
 *(Dcg_0, Opts) -->
   'm*n'(_, _, Dcg_0, Opts).
@@ -255,6 +270,7 @@ is_meta(separator).
 
 
 
+%! '*n'(?N:nonneg, :Dcg_0)// .
 %! '*n'(?N:nonneg, :Dcg_0, :Options:list(compound))// .
 %! '*n'(?N:nonneg, :Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! '*n'(?N:nonneg, :Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -262,6 +278,9 @@ is_meta(separator).
 %! '*n'(?N:nonneg, :Dcg_4, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, :Options:list(compound))// .
 %! '*n'(?N:nonneg, :Dcg_5, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(compound))// .
 % @see Wrappers around 'm*n'//[3-8] with `M = 0` and given `N`.
+
+'*n'(N, Dcg_0) -->
+  'm*n'(_, N, Dcg_0).
 
 '*n'(N, Dcg_0, Opts) -->
   'm*n'(_, N, Dcg_0, Opts).
@@ -283,6 +302,7 @@ is_meta(separator).
 
 
 
+%! +(:Dcg_0)// .
 %! +(:Dcg_0, +Options:list(compound))// .
 %! +(:Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! +(:Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -290,6 +310,9 @@ is_meta(separator).
 %! +(:Dcg_4, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, :Options:list(compound))// .
 %! +(:Dcg_5, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(compound))// .
 % @see Wrappers around 'm*n'//[3-8] with `M = 1` and unbound `N`.
+
++(Dcg_0) -->
+  'm*n'(1, _, Dcg_0).
 
 +(Dcg_0, Opts) -->
   'm*n'(1, _, Dcg_0, Opts).
@@ -311,6 +334,7 @@ is_meta(separator).
 
 
 
+%! '+n'(?N:nonneg, :Dcg_0)// .
 %! '+n'(?N:nonneg, :Dcg_0, +Options:list(compound))// .
 %! '+n'(?N:nonneg, :Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! '+n'(?N:nonneg, :Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -318,6 +342,9 @@ is_meta(separator).
 %! '+n'(?N:nonneg, :Dcg_4, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, :Options:list(compound))// .
 %! '+n'(?N:nonneg, :Dcg_5, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(compound))// .
 % @see Wrappers around 'm*n'//[3-8] with `M = 1` and given `N`.
+
+'+n'(N, Dcg_0) -->
+  'm*n'(1, N, Dcg_0).
 
 '+n'(N, Dcg_0, Opts) -->
   'm*n'(1, N, Dcg_0, Opts).
@@ -339,6 +366,7 @@ is_meta(separator).
 
 
 
+%! ?(:Dcg_0)// .
 %! ?(:Dcg_0, +Options:list(compound))// .
 %! ?(:Dcg_1, ?Args1:list, +Options:list(compound))// .
 %! ?(:Dcg_2, ?Args1:list, ?Args2:list, +Options:list(compound))// .
@@ -356,6 +384,9 @@ is_meta(separator).
 %    - empty5(+term)
 %
 % @see Wrapper around 'm*n'//[3-8] with `M = 0` and `N = 1`.
+
+?(Dcg_0) -->
+  'm*n'(0, 1, Dcg_0).
 
 ?(Dcg_0, Opts) -->
   'm*n'(0, 1, Dcg_0, Opts).
@@ -403,6 +434,7 @@ is_meta(separator).
 
 
 
+%! 'm*'(?M:nonneg, :Dcg_0)// .
 %! 'm*'(?M:nonneg, :Dcg_0, :Options:list(compound))// .
 %! 'm*'(?M:nonneg, :Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! 'm*'(?M:nonneg, :Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -410,6 +442,9 @@ is_meta(separator).
 %! 'm*'(?M:nonneg, :Dcg_4, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, :Options:list(compound))// .
 %! 'm*'(?M:nonneg, :Dcg_5, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, ?Args5:list, :Options:list(compound))// .
 % @see Wrapper around 'm*n'//[3-8] with given `M` and unbounded `N`.
+
+'m*'(M, Dcg_0) -->
+  'm*n'(M, _, Dcg_0).
 
 'm*'(M, Dcg_0, Opts) -->
   'm*n'(M, _, Dcg_0, Opts).
@@ -431,6 +466,7 @@ is_meta(separator).
 
 
 
+%! 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_0)// .
 %! 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_0, :Options:list(compound))// .
 %! 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_1, ?Args1:list, :Options:list(compound))// .
 %! 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_2, ?Args1:list, ?Args2:list, :Options:list(compound))// .
@@ -449,7 +485,7 @@ is_meta(separator).
 % and failing silently when `N < M`.
 %
 % The following options are supported:
-%   * convert(+compound)
+%   * convert(+pair(between(1,5),oneof([atom,codes,string])))
 %   * copy_term(+boolean)
 %     Whether variables are shared between multiple calls of `Dcg`
 %     (`false`, default) or not (`true`).
@@ -462,6 +498,9 @@ is_meta(separator).
 %         Augmented Backus-Naur Form in RFC 2616 (HTTP 1.1).
 % @throws type_error when `M` or N` is not an integer.
 % @throws domain_error when `M` or `N` is a negative integer.
+
+'m*n'(M, N, Dcg_0) -->
+  'm*n'(M, N, Dcg_0, []).
 
 'm*n'(M, N, Dcg_0, Opts0) -->
   {
