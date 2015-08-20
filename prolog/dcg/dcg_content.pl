@@ -1,18 +1,22 @@
 :- module(
   dcg_content,
   [
+    '...'//0,
     dcg_cp//0,
     dcg_done//0,
     dcg_rest//1, % -Rest:list(code)
     dcg_void//0,
+    eol//0,
     indent//0,
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
                % :Dcg_0
     nl//0,
-    parsing//0
+    parsing//0,
+    skip_line//0
   ]
 ).
+:- reexport(library(dcg/basics)).
 
 /** <module> DCG content
 
@@ -40,6 +44,13 @@ DCG rules for parsing/generating often-occuring content.
 
 
 
+%! ...// .
+
+... --> "".
+... --> [_], ... .
+
+
+
 %! dcg_cp// .
 
 dcg_cp(X, X).
@@ -61,6 +72,13 @@ dcg_rest(X, X, []).
 %! dcg_void// .
 
 dcg_void --> "".
+
+
+
+%! eol// .
+
+eol --> nl.
+eol --> "\r".
 
 
 
@@ -90,8 +108,7 @@ indent(I, Dcg_0) -->
 
 %! nl// is det.
 
-nl -->
-  "\n".
+nl --> "\n".
 
 
 
@@ -99,3 +116,10 @@ nl -->
 
 parsing(H, H):-
    nonvar(H).
+
+
+
+%! skip_line// .
+
+skip_line --> eol, !.
+skip_line --> [_], skip_line.
