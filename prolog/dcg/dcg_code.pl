@@ -125,6 +125,8 @@ code(C) -->
 % Cs = "http" ;
 % false.
 % ```
+%
+% The latter comes close to using atom_ci//1.
 
 code_ci(C) -->
   {var(C)}, !,
@@ -138,17 +140,17 @@ code_ci(C) -->
 
 %! code_lower(+Code:nonneg)// is det.
 %! code_lower(-Code:nonneg)// is nondet.
-% Parses lower-case letters and returns their lower- and upper-case
-% character code (in no particular order).
+% Parses letters and returns their lower-case character code.
 %
 % ```prolog
+% ?- phrase(code_lower(X), `A`).
+% X = 97.
 % ?- phrase(code_lower(X), `a`).
-% X = 65 ;
 % X = 97.
 % ```
 %
 % Generates the lower-case letter that is identical to the given
-% lower-case letter or that is the lower-case version of the given
+% lower-case letter or that is the lower-case variant of the given
 % upper-case letter.
 %
 % ```prolog
@@ -160,8 +162,11 @@ code_ci(C) -->
 
 code_lower(C) -->
   {var(C)}, !,
-  letter_lowercase(C0),
-  {code_ci(C0, C)}.
+  (   letter_lowercase(C)
+  ->  ""
+  ;   letter_uppercase(C0)
+  ->  {to_lower(C0, C)}
+  ).
 code_lower(C) -->
   {to_lower(C, C0)},
   letter_lowercase(C0).
@@ -197,7 +202,8 @@ code_radix(RadixCode, C) -->
 %
 % ```prolog
 % ?- phrase(code_upper(X), `A`).
-% X = 97 ;
+% X = 65 ;
+% ?- phrase(code_upper(X), `a`).
 % X = 65.
 % ```
 %
@@ -214,8 +220,11 @@ code_radix(RadixCode, C) -->
 
 code_upper(C) -->
   {var(C)}, !,
-  letter_uppercase(C0),
-  {code_ci(C0, C)}.
+  (   letter_uppercase(C)
+  ->  ""
+  ;   letter_lowercase(C0)
+  ->  {to_upper(C0, C)}
+  ).
 code_upper(C) -->
   {to_upper(C, C0)},
   letter_uppercase(C0).

@@ -101,4 +101,4 @@ atom_title(A) -->
 %! atom_upper(?Atom:atom)// .
 
 atom_upper(A) -->
-  *(code_lower, A, [convert(1-atom)]).
+  *(code_upper, A, [convert(1-atom)]).
