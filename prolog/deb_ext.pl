@@ -46,13 +46,13 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(verbose_call(+,0)).
 
 :- set_prolog_flag(
-  answer_write_options,
-  [max_depth(100),portrayed(true),spacing(next_argument)]
-).
+     answer_write_options,
+     [max_depth(100),portrayed(true),spacing(next_argument)]
+   ).
 :- set_prolog_flag(
-  debugger_write_options,
-  [max_depth(100),portrayed(true),spacing(next_argument)]
-).
+     debugger_write_options,
+     [max_depth(100),portrayed(true),spacing(next_argument)]
+   ).
 
 :- portray_text(true).
 :- set_portray_text(min_length, 0).

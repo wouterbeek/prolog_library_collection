@@ -37,11 +37,31 @@ atom_capitalize, [Upper] -->
   [Lower],
   {code_type(Upper, to_upper(Lower))}, !,
   dcg_cp.
-atom_capitalize --> [].
+atom_capitalize --> "".
 
 
 
 %! atom_ci(?Atom:atom)// .
+% ```prolog
+% ?- phrase(atom_ci(http), Cs).
+% Cs = "HTTP" ;
+% Cs = "HTTp" ;
+% Cs = "HTtP" ;
+% Cs = "HTtp" ;
+% Cs = "HtTP" ;
+% Cs = "HtTp" ;
+% Cs = "HttP" ;
+% Cs = "Http" ;
+% Cs = "hTTP" ;
+% Cs = "hTTp" ;
+% Cs = "hTtP" ;
+% Cs = "hTtp" ;
+% Cs = "htTP" ;
+% Cs = "htTp" ;
+% Cs = "httP" ;
+% Cs = "http" ;
+% false.
+% ```
 
 atom_ci(A) -->
   dcg_atom(*(code_ci, []), A).

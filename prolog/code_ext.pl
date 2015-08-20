@@ -49,8 +49,8 @@ phrase(dcg_sep_list(:SeparatorDCG,-Sublists:list(list(code))), Codes)
 
 
 %! code_ci(+Code:nonneg, -CiCode:nonneg) is nondet.
-% Returns case-insensitive variants of the given code,
-%  including the code itself.
+% Returns case-insensitive variants of the given code.
+% This includes the code itself.
 
 % Lowercase is a case-insensitive variant of uppercase.
 code_ci(Upper, Lower):-

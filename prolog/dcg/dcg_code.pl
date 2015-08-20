@@ -26,7 +26,7 @@
 DCG support for entering character codes.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(code_ext)).
@@ -78,49 +78,51 @@ code(C) -->
 %! code_ci(+Code:nonneg)// is multi.
 %! code_ci(-Code:nonneg)// is nondet.
 % Writes case-insensitive variants of the given code.
-%
-% ### Examples
-%
-% Generate the upper- and lowercase variants of a given letter.
+% Generates the upper- and lowercase variants of a given letter
+% (in no particular order).
 %
 % ```prolog
-% ?- phrase(code_ci(oct(142)), [X]), string_codes(S, [X]).
-% X = 66,
-% S = "B" ;
-% X = 98,
-% S = "b".
+% ?- phrase(code_ci(66), Cs).
+% Cs = "b" ;
+% Cs = "B".
+% ?- phrase(code_ci(98), Cs).
+% Cs = "B" ;
+% Cs = "b".
+%
 % ```
 %
-% Parse a letter in its lower- and uppercase variants.
+% Parses letters returning the chracter codes of their
+% lower- and upper-case variants (in no particular order).
 %
 % ```prolog
-% ?- string_codes("b", Codes), phrase(code_ci(hex(X)), Codes).
-% Codes = [98],
-% X = '42' ;
-% Codes = [98],
-% X = '62'.
+% ?- phrase(code_ci(X), `b`).
+% X = 66 ;
+% X = 98.
+% ?- phrase(code_ci(X), `B`).
+% X = 98 ;
+% X = 66.
 % ```
 %
-% Generate all case-variants of a given string.
+% This can be used to process all case-variants of a given string.
 %
 % ```prolog
-% ?- phrase(*(code_ci, "http", []), Codes).
-% Codes = "http" ;
-% Codes = "httP" ;
-% Codes = "htTp" ;
-% Codes = "htTP" ;
-% Codes = "hTtp" ;
-% Codes = "hTtP" ;
-% Codes = "hTTp" ;
-% Codes = "hTTP" ;
-% Codes = "Http" ;
-% Codes = "HttP" ;
-% Codes = "HtTp" ;
-% Codes = "HtTP" ;
-% Codes = "HTtp" ;
-% Codes = "HTtP" ;
-% Codes = "HTTp" ;
-% Codes = "HTTP" ;
+% ?- phrase(*(code_ci, `http`, []), Cs).
+% Cs = "HTTP" ;
+% Cs = "HTTp" ;
+% Cs = "HTtP" ;
+% Cs = "HTtp" ;
+% Cs = "HtTP" ;
+% Cs = "HtTp" ;
+% Cs = "HttP" ;
+% Cs = "Http" ;
+% Cs = "hTTP" ;
+% Cs = "hTTp" ;
+% Cs = "hTtP" ;
+% Cs = "hTtp" ;
+% Cs = "htTP" ;
+% Cs = "htTp" ;
+% Cs = "httP" ;
+% Cs = "http" ;
 % false.
 % ```
 
@@ -136,6 +138,25 @@ code_ci(C) -->
 
 %! code_lower(+Code:nonneg)// is det.
 %! code_lower(-Code:nonneg)// is nondet.
+% Parses lower-case letters and returns their lower- and upper-case
+% character code (in no particular order).
+%
+% ```prolog
+% ?- phrase(code_lower(X), `a`).
+% X = 65 ;
+% X = 97.
+% ```
+%
+% Generates the lower-case letter that is identical to the given
+% lower-case letter or that is the lower-case version of the given
+% upper-case letter.
+%
+% ```prolog
+% ?- phrase(code_lower(65), Cs).
+% Cs = "a".
+% ?- phrase(code_lower(97), Cs).
+% Cs = "a".
+% ```
 
 code_lower(C) -->
   {var(C)}, !,
@@ -171,6 +192,25 @@ code_radix(RadixCode, C) -->
 
 %! code_upper(+Code:nonneg)// is det.
 %! code_upper(-Code:nonneg)// is nondet.
+% Parses upper-case letters and returns their lower- and upper-case
+% character code (in that order).
+%
+% ```prolog
+% ?- phrase(code_upper(X), `A`).
+% X = 97 ;
+% X = 65.
+% ```
+%
+% Generates the upper-case letter that is identical to the given
+% upper-case letter or that is the upper-case version of the given
+% lower-case letter.
+%
+% ```prolog
+% ?- phrase(code_upper(65), Cs).
+% Cs = "A".
+% ?- phrase(code_upper(97), Cs).
+% Cs = "A".
+% ```
 
 code_upper(C) -->
   {var(C)}, !,
