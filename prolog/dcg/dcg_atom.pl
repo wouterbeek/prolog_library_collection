@@ -64,7 +64,7 @@ atom_capitalize --> "".
 % ```
 
 atom_ci(A) -->
-  dcg_atom(*(code_ci, []), A).
+  *(code_ci, A, [convert(1-atom)]).
 
 
 
@@ -79,7 +79,7 @@ atom_ellipsis(A, Ellipsis) -->
 %! atom_lower(?Atom:atom)// .
 
 atom_lower(A) -->
-  dcg_atom(*(code_lower, []), A).
+  *(code_lower, A, [convert(1-atom)]).
 
 
 
@@ -101,4 +101,4 @@ atom_title(A) -->
 %! atom_upper(?Atom:atom)// .
 
 atom_upper(A) -->
-  dcg_atom(*(code_lower, []), A).
+  *(code_lower, A, [convert(1-atom)]).
