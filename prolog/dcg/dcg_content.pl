@@ -12,8 +12,10 @@
     indent//2, % +Indent:nonneg
                % :Dcg_0
     nl//0,
+    nonblank//0,
     parsing//0,
-    skip_line//0
+    skip_line//0,
+    string_without//1 % +EndCodes
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -77,7 +79,7 @@ dcg_void --> "".
 
 %! eol// .
 
-eol --> nl.
+eol --> "\n".
 eol --> "\r".
 
 
@@ -112,6 +114,13 @@ nl --> "\n".
 
 
 
+%! nonblank// .
+% Wrapper around nonblank//1 from library(dcg/basics).
+
+nonblank --> nonblank(_).
+
+
+
 %! parsing// is semidet.
 
 parsing(H, H):-
@@ -123,3 +132,9 @@ parsing(H, H):-
 
 skip_line --> eol, !.
 skip_line --> [_], skip_line.
+
+
+
+%! string_without(+EndCodes:list(code))// .
+
+string_without(Ends) --> string_without(Ends, _).
