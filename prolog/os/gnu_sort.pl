@@ -11,23 +11,21 @@
 Support for calling GNU sort from within Prolog.
 
 @author Wouter Beek
-@version 2015/01
+@version 2015/08
 */
 
 :- use_module(library(error)).
 :- use_module(library(option)).
-
-:- use_module(plc(os/cli_ext)).
-:- use_module(plc(process/process_ext)).
+:- use_module(library(process_ext)).
 
 :- predicate_options(gnu_sort/2, 2, [
-  buffer_size(+nonneg),
-  duplicates(+boolean),
-  output(+atom),
-  parallel(+positive_integer),
-  temporary_directory(+atom),
-  utf8(+boolean)
-]).
+     buffer_size(+nonneg),
+     duplicates(+boolean),
+     output(+atom),
+     parallel(+positive_integer),
+     temporary_directory(+atom),
+     utf8(+boolean)
+   ]).
 
 
 
@@ -44,12 +42,12 @@ gnu_sort(File, _):-
 gnu_sort(File, _):-
   \+ access_file(File, read), !,
   permission_error(read, file, File).
-gnu_sort(File, Options):-
-  (   option(utf8(true), Options)
+gnu_sort(File, Opts):-
+  (   option(utf8(true), Opts)
   ->  Env = []
   ;   Env = ['LC_ALL'='C']
   ),
-  gnu_sort_args(Options, Args),
+  gnu_sort_args(Opts, Args),
   handle_process(sort, [file(File)|Args], [env(Env),program('GNU sort')]).
 
 gnu_sort_args([], []).
@@ -69,3 +67,14 @@ gnu_sort_args([temporary_directory(Dir)|T1], [Arg|T2]):- !,
   gnu_sort_args(T1, T2).
 gnu_sort_args([_|T1], L2):-
   gnu_sort_args(T1, L2).
+
+
+
+
+
+% HELPERS %
+
+%! cli_long_flag(+Flag:atom, +Value, -Argument:atom) is det.
+
+cli_long_flag(Flag, Value, Argument):-
+  format(atom(Argument), '--~w=~w', [Flag,Value]).

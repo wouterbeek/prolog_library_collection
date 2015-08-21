@@ -1,8 +1,6 @@
 :- module(
   file_gnu,
   [
-    file_lines/2, % +File:atom
-                  % -NumberOfLines:nonneg
     gnu_mv/2, % +From:atom
               % +To:atom
     split_into_smaller_files/3, % +BigFile:atom
@@ -28,21 +26,6 @@ Interface to GNU tools for file-processing.
 :- use_module(plc(process/process_ext)).
 
 
-
-
-
-%! file_lines(+File:atom, -NumberOfLines:nonneg) is det.
-
-file_lines(File, NumberOfLines):-
-  handle_process(
-    wc,
-    ['-l',file(File)],
-    [output_goal(parse_wc_output(NumberOfLines))]
-  ).
-
-parse_wc_output(NumberOfLines, Out):-
-  read_stream_to_codes(Out, Codes),
-  phrase(integer(NumberOfLines), Codes, _).
 
 
 

@@ -5,8 +5,6 @@
                                  % +Number:integer
                                  % -Abs:atom
                                  % +Options:list(nvpair)
-    buffer_size_file/2, % +File:atom
-                        % -BufferSize:nonneg
     common_prefix_path/3, % +Path1:atom
                           % +Path2:atom
                           % ?CommonPrefixPath:atom
@@ -170,17 +168,6 @@ absolute_file_name_number(Spec, Number, Abs, Options):-
   format(atom(Atom), '_~d', [Number]),
   spec_atomic_concat(Spec, Atom, NumberedSpec),
   absolute_file_name(NumberedSpec, Abs, Options).
-
-
-
-%! buffer_size_file(+File:atom, -BufferSize:nonneg) is det.
-
-buffer_size_file(File, BufferSize):-
-  size_file(File, FileSize),
-  (   FileSize =:= 0
-  ->  BufferSize = 1024
-  ;   BufferSize is round(FileSize * log(FileSize))
-  ).
 
 
 
