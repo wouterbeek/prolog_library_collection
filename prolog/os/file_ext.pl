@@ -7,6 +7,8 @@
                      % +FreshnessLifetime:between(0.0,inf)
     is_stale_file/2, % +File:atom
                      % +FreshnessLifetime:between(0.0,inf)
+    thread_file/2, % +File:atom
+                   % -ThreadFile:atom
     touch/1, % +File:atom
     write_stream_to_file/2 % +Write:stream
                            % +File:atom
@@ -72,6 +74,16 @@ is_stale_age(Age, FreshnessLifetime):-
 is_stale_file(File, FreshnessLifetime):-
   file_age(File, Age),
   is_stale_age(Age, FreshnessLifetime).
+
+
+
+%! thread_file(+File:atom, -ThreadFile:atom) is det.
+% Returns a thread-specific file name based on the given file name.
+
+thread_file(File, ThreadFile):-
+  thread_self(Id),
+  atomic_list_concat([tmp,Id], '_', ThreadName),
+  file_name_extension(File, ThreadName, ThreadFile).
 
 
 

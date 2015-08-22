@@ -30,7 +30,6 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
-%:- use_module(library(lambda)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
@@ -88,9 +87,7 @@ file_download(Uri, File0, Opts):-
   % Multiple threads could be downloading the same file,
   % so we cannot download to the file's systematic name.
   % Instead we save to a thread-specific name.
-  thread_self(Id),
-  atomic_list_concat([tmp,Id], '_', ThreadName),
-  file_name_extension(File, ThreadName, TmpFile),
+  thread_file(File, TmpFile),
 
   % The actual downloading part.
   http_get(Uri, write_stream_to_file0(TmpFile), Opts),
