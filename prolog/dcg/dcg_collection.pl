@@ -55,6 +55,7 @@ For convenience's sake, the following collection instances are supported:
 
 :- meta_predicate(bracketed_collection(+,//,3,+,?,?)).
 :- meta_predicate(collection(//,//,//,3,+,?,?)).
+:- meta_predicate(collection_item(3,+,?,?)).
 :- meta_predicate(collection_items(//,//,//,3,+,?,?)).
 :- meta_predicate(list(3,+,?,?)).
 :- meta_predicate(pair(3,+,?,?)).
@@ -94,11 +95,17 @@ collection(Begin, End, Sep, Writer, L) -->
 
 collection_items(_, _, _, _, []) --> !, [].
 collection_items(_, _, _, Writer, [H]) --> !,
-  dcg_call(Writer, H).
+  collection_item(Writer, H).
 collection_items(Begin, End, Sep, Writer, [H|T]) -->
-  dcg_call(Writer, H),
+  collection_item(Writer, H),
   Sep,
   collection_items(Begin, End, Sep, Writer, T).
+
+collection_item(Writer, L) -->
+  {is_list(L)}, !,
+  list(Writer, L).
+collection_item(Writer, X) -->
+  dcg_call(Writer, X).
 
 
 
