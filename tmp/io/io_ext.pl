@@ -3,10 +3,6 @@
   [
     copy_stream_line/2, % +From:stream
                         % +To:stream
-    read_file_to_atom/2, % +File:atom
-                         % -Atom:atom
-    read_file_to_codes/2, % +File:atom
-                          % -Codes:list(code)
     read_stream_to_file/2, % +Stream:stream
                            % +File:atom
     write_atom_to_file/2, % +Atom:atom
@@ -45,30 +41,6 @@ copy_stream_line(From, To):-
 
 
 
-%! read_file_to_atom(+File:file, -Atom:atom) is det.
-% Turns the given file's contents into a string.
-
-read_file_to_atom(File, Atom):-
-  setup_call_cleanup(
-    open(File, read, Stream, [encoding(utf8),type(text)]),
-    read_stream_to_atom(Stream, Atom),
-    close(Stream)
-  ).
-
-
-
-%! read_file_to_codes(+File:atom, -Codes:list(code)) is det.
-
-read_file_to_codes(File, Codes):-
-  setup_call_cleanup(
-    open(File, read, Stream, [encoding(utf8),type(text)]),
-    read_stream_to_codes(Stream, Codes),
-    close(Stream)
-  ).
-
-
-
-%! read_stream_to_file(+Stream:stream, +File:atom) is det.
 % Stores an atomic stream to the given file.
 
 read_stream_to_file(Read, File):-
