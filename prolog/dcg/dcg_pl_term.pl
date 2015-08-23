@@ -87,29 +87,16 @@ dict_entry(Key-Val, I1) -->
   ": ",
   % Newline and additional indentation
   % before non-empty dictionary or non-empty list value.
-  ({    (   is_empty_dict(Val)
-        ;   is_empty_list(Val)
-        )}
-    ->  {I2 = 0}
-    ;   {I2 is I1 + 1},
-        nl
+  (   {(   is_dict(Val),
+          \+ dict_pairs(Val, _, [])
+      ;   is_list(Val),
+          Val \== []
+      )}
+  ->  {I2 is I1 + 1},
+      nl
+  ;   {I2 = 0}
   ),
   pl_term(Val, I2).
-
-
-%! is_empty_dict(@Term) is semidet.
-
-is_empty_dict(T):-
-  is_dict(T),
-  dict_pairs(T, _, L),
-  L == [].
-
-
-%! is_empty_list(@Term) is semidet.
-
-is_empty_list(T):-
-  is_list(T),
-  T == [].
 
 
 %! list_entry(@Term, +Indent:nonneg)// is det.
