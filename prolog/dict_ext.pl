@@ -7,7 +7,9 @@
     merge_dict/3, % +Dict1:dict
                   % +Dict2:dict
                   % -Dict:dict
-    print_dict/1 % +Dict:dict
+    print_dict/1, % +Dict:dict
+    print_dict/2 % +Dict:dict
+                 % +Indent:nonneg
   ]
 ).
 
@@ -18,6 +20,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl_term)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
@@ -54,7 +57,12 @@ merge_dict(D1, D2, D):-
 
 
 %! print_dict(Dict:dict) is det.
+% Wrapper around print_dict/2 with no indentation.
 
-print_dict(Dict):-
-  phrase(pl_term(Dict), Cs),
-  format('~s', [Cs]).
+print_dict(D):-
+  print_dict(D, 0).
+
+%! print_dict(Dict:dict, +Indent:nonneg) is det.
+
+print_dict(D, I):-
+  dcg_with_output_to(user_output, pl_term(D, I)).
