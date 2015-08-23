@@ -74,6 +74,8 @@ alpha_numeric(Code) -->
   [Code],
   {code_type(Code, alnum)}.
 
+
+
 %! bracket// .
 %! bracket(?Code:code)// .
 %! bracket(?Type:oneof([angular,curly,langular,round,square]), ?Code:code)// .
@@ -83,12 +85,16 @@ bracket(Code) --> bracket(_, Code).
 bracket(Type, Code) --> closing_bracket(Type, Code).
 bracket(Type, Code) --> opening_bracket(Type, Code).
 
+
+
 %! character_tie// .
 %! character_tie(?Code:code)// .
 % ⁀
 
 character_tie --> character_tie(_).
 character_tie(8256) --> [8256].
+
+
 
 %! closing_bracket// .
 %! closing_bracket(?Code:code)// .
@@ -102,6 +108,8 @@ closing_bracket(Code) --> closing_bracket(_, Code).
 closing_bracket(Type, Code) --> ascii_closing_bracket(Type, Code).
 closing_bracket(langular, 12297) --> [12297].
 
+
+
 %! graphic// .
 %! graphic(?Code:code)// .
 
@@ -109,6 +117,8 @@ graphic --> graphic(_).
 graphic(Code) -->
   [Code],
   {code_type(Code, graph)}.
+
+
 
 %! letter// .
 %! letter(?Code:code)// .
@@ -118,6 +128,8 @@ letter(Code) -->
   [Code],
   {code_type(Code, alpha)}.
 
+
+
 %! letter_lowercase// .
 %! letter_lowercase(?Code:code)// .
 
@@ -125,6 +137,8 @@ letter_lowercase --> letter_lowercase(_).
 letter_lowercase(Code) -->
   [Code],
   {code_type(Code, lower)}.
+
+
 
 %! letter_uppercase// .
 %! letter_uppercase(?Code:code)// .
@@ -134,11 +148,15 @@ letter_uppercase(Code) -->
   [Code],
   {code_type(Code, upper)}.
 
+
+
 %! line_separator// .
 %! line_separator(?Code:code)// .
 
 line_separator --> line_separator(_).
 line_separator(8232) --> [8232].
+
+
 
 %! line_terminator// .
 %! line_terminator(?Code:code)// .
@@ -149,12 +167,16 @@ line_terminator(Code) --> next_line(Code).
 line_terminator(Code) --> line_separator(Code).
 line_terminator(Code) --> paragraph_separator(Code).
 
+
+
 %! middle_dot// .
 %! middle_dot(?Code:code)// .
 % ·
 
 middle_dot --> middle_dot(_).
 middle_dot(183) --> [183].
+
+
 
 %! models// .
 %! models(?Code:code)// .
@@ -163,17 +185,23 @@ middle_dot(183) --> [183].
 models --> models(_).
 models(8871) --> [8871].
 
+
+
 %! next_line// .
 %! next_line(?Code:code)// .
 
 next_line --> next_line(_).
 next_line(133) --> [133].
 
+
+
 %! nonbreaking_space// .
 %! nonbreaking_space(?Code:code)// .
 
 nonbreaking_space --> nonbreaking_space(_).
 nonbreaking_space(160) --> [160].
+
+
 
 %! opening_bracket// .
 %! opening_bracket(?Code:code)// .
@@ -187,6 +215,8 @@ opening_bracket(Code) --> opening_bracket(_, Code).
 opening_bracket(Type, Code) --> ascii_opening_bracket(Type, Code).
 opening_bracket(langular, 12296) --> [12296].
 
+
+
 %! orgham_space_mark// .
 %! orgham_space_mark(?Code:code)// .
 %  
@@ -194,11 +224,15 @@ opening_bracket(langular, 12296) --> [12296].
 orgham_space_mark --> orgham_space_mark(_).
 orgham_space_mark(5760) --> [5760].
 
+
+
 %! paragraph_separator// .
 %! paragraph_separator(?Code:code)// .
 
 paragraph_separator --> paragraph_separator(_).
 paragraph_separator(8233) --> [8233].
+
+
 
 %! punctuation// .
 %! punctuation(?Code:code)// .
@@ -208,12 +242,16 @@ punctuation(Code) -->
   [Code],
   {code_type(Code, punct)}.
 
+
+
 %! undertie// .
 %! undertie(?Code:code)// .
 % ‿
 
 undertie --> undertie(_).
 undertie(8255) --> [8255].
+
+
 
 %! u_white// .
 %! u_white(?Code:code)// .
@@ -227,11 +265,15 @@ u_white(Code) --> nonbreaking_space(Code).
 u_white(Code) --> orgham_space_mark(Code).
 % ...
 
+
+
 %! zero_width_joiner// .
 %! zero_width_joiner(?Code:code)// .
 
 zero_width_joiner --> zero_width_joiner(_).
 zero_width_joiner(8203) --> [8203].
+
+
 
 %! zero_width_non_joiner// .
 %! zero_width_non_joiner(?Code:code)// .
