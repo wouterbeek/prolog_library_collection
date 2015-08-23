@@ -50,6 +50,7 @@ is_fresh_age(Age, FreshnessLifetime):-
   Age =< FreshnessLifetime.
 
 
+
 %! is_fresh_file(+File:atom, +FreshnessLifetime:between(0.0,inf)) is semidet.
 
 is_fresh_file(File, FreshnessLifetime):-
