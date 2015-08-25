@@ -1,9 +1,9 @@
 :- module(
   dcg_word,
   [
-    dcg_atom//2, % :Dcg
+    dcg_atom//2, % :Dcg_1
                  % ?Atom:atom
-    dcg_string//2 % :Dcg
+    dcg_string//2 % :Dcg_1
                   % ?String:string
   ]
 ).
@@ -11,13 +11,13 @@
 /** <module> DCG word
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 :- use_module(library(dcg/dcg_call)).
 
 :- meta_predicate(dcg_atom(3,?,?,?)).
-:- meta_predicate(dcg_string(//,?,?,?)).
+:- meta_predicate(dcg_string(3,?,?,?)).
 
 
 
