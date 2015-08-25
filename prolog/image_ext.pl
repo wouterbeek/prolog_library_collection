@@ -52,7 +52,7 @@ user:module_uses(image_ext, program(identify)).
 % Requires ImageMagick.
 
 image_dimensions(File, Width, Height):-
-  handle_process(
+  run_process(
     identify,
     [file(File)],
     [output_goal(phrase_from_stream(image_dimensions0(File, Width, Height)))]

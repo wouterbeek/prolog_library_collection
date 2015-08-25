@@ -1,29 +1,23 @@
 :- module(
   dcg_file,
   [
-    file_path//1, % -Dir:atom
-    local_file_name//1, % % -Local:atom
-    root_prefix//0
+    file_path//1 % -Path:atom
   ]
 ).
 
-/** <module> DCG: File
+/** <module> DCG file
 
 Grammar snippets for files.
 
 @author Wouter Beek
-@version 2014/11-2014/12
+@version 2015/08
 */
 
 :- use_module(library(dcg/basics)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_atom)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(generics/atom_ext)). % Meta-option.
-:- use_module(plc(os/file_ext)).
-:- use_module(plc(os/os_ext)).
+:- use_module(library(dcg/dcg_ascii)).
+:- use_module(library(dcg/dcg_word)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(os/os_ext)).
 
 
 
@@ -48,7 +42,7 @@ Grammar snippets for files.
 % Relative directory with respect to the home directory (Unix only).
 file_path(Path) -->
   "~/", !,
-  *(path_segment, Segments, [separator(directory_separator)]),
+  path_segment*(Segments),
   {
     atomic_list_concat(Segments, /, RelPath),
     relative_file_name(Path, '~', RelPath)
@@ -56,7 +50,7 @@ file_path(Path) -->
 % Absolute directory.
 file_path(Path) -->
   root_prefix,
-  *(path_segment, Segments, [separator(directory_separator)]),
+  path_segment*(Segments),
   {atomic_list_concat([''|Segments], /, Path)}.
 
 
@@ -78,33 +72,47 @@ root_prefix -->
 
 
 
-% HELPERS
+% HELPERS %
 
 %! directory_char(?Code:nonneg)// .
 % Character that are allowed to occur in a file path.
 
-directory_char(Code) --> ascii_letter(Code).
-directory_char(Code) --> decimal_digit(Code).
-directory_char(Code) --> dot(Code).
-directory_char(Code) --> minus_sign(Code).
-directory_char(Code) --> plus_sign(Code).
-directory_char(Code) --> underscore(Code).
+directory_char(C) --> ascii_letter(C).
+directory_char(C) --> decimal_digit(C).
+directory_char(C) --> dot(C).
+directory_char(C) --> minus_sign(C).
+directory_char(C) --> plus_sign(C).
+directory_char(C) --> underscore(C).
 
 
 
-%! path_segment(-Segment:atom)// .
+%! path_segment*(-Segments:list(atom))// .
 
-path_segment(Segment) -->
-  dcg_atom(*(directory_char, []), Segment).
+path_segment*([H|T]) -->
+  dcg_atom(path_segment, H), !,
+  (   directory_separator
+  ->  path_segment*(T)
+  ;   {T = []}
+  ).
+path_segment*([]) --> "".
+
+
+
+%! path_segment(-Segment:list(code))// .
+
+path_segment([H|T]) -->
+  directory_char(H), !,
+  path_segment(T).
+path_segment([]) --> "".
 
 
 
 %! directory_separator// .
 
-:- if(is_unix).
+:- if(os(unix)).
 directory_separator --> "/".
 :- endif.
-:- if(is_windows).
+:- if(os(windows)).
 directory_separator --> "\\".
 :- endif.
 
@@ -112,6 +120,5 @@ directory_separator --> "\\".
 
 %! local_file_char(?Code:nonneg)// .
 
-local_file_char(Code) --> ascii_alpha_numeric(Code).
-local_file_char(Code) --> dot(Code).
-
+local_file_char(C) --> ascii_alpha_numeric(C).
+local_file_char(C) --> dot(C).

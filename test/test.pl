@@ -19,6 +19,7 @@
   :- use_module(library(dcg/dcg_collection)).
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_debug)).
+  :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_logic)).
   :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
