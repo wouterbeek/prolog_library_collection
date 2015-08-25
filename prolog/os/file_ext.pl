@@ -10,6 +10,7 @@
     thread_file/2, % +File:atom
                    % -ThreadFile:atom
     touch/1, % +File:atom
+    root_prefix/1, % ?Prefix:atom
     write_stream_to_file/2 % +Write:stream
                            % +File:atom
   ]
@@ -25,6 +26,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(os/os_ext)).
 :- use_module(library(process)).
 
 
@@ -75,6 +77,18 @@ is_stale_age(Age, FreshnessLifetime):-
 is_stale_file(File, FreshnessLifetime):-
   file_age(File, Age),
   is_stale_age(Age, FreshnessLifetime).
+
+
+
+%! root_prefix(+Prefix:atom) is semidet.
+%! root_prefix(-Prefix:atom) is multi.
+
+:- if(os(unix)).
+root_prefix(/).
+:- endif.
+:- if(os(windows)).
+root_prefix('C:\\').
+:- endif.
 
 
 

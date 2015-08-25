@@ -51,7 +51,6 @@
                      % -Path2:atom
     prefix_path/2, % ?PrefixPath:atom
                    % +Path:atom
-    root_prefix/1, % ?Prefix:atom
     younger_file/2 % +Path1:atom
                    % +Path2:atom
   ]
@@ -501,18 +500,6 @@ prefix_path(PrefixPath, Path):-
   directory_subdirectories(PrefixPath, PrefixComponents),
   directory_subdirectories(Path, Components),
   prefix(PrefixComponents, Components).
-
-
-
-%! root_prefix(+Prefix:atom) is semidet.
-%! root_prefix(-Prefix:atom) is multi.
-
-:- if(is_unix).
-root_prefix(/).
-:- endif.
-:- if(is_windows).
-root_prefix('C:\\').
-:- endif.
 
 
 
