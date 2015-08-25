@@ -48,7 +48,7 @@ gnu_sort(File, Opts):-
   ;   Env = ['LC_ALL'='C']
   ),
   gnu_sort_args(Opts, Args),
-  handle_process(sort, [file(File)|Args], [env(Env),program('GNU sort')]).
+  run_process(sort, [file(File)|Args], [env(Env),program('GNU sort')]).
 
 gnu_sort_args([], []).
 gnu_sort_args([buffer_size(Size)|T1], [Arg|T2]):- !,

@@ -27,5 +27,5 @@ Prolog API to GNU word count.
 % @tbd Use phrase_from_stream/2.
 
 file_lines(File, N):-
-  handle_process(wc, ['-l',file(File)], [output_goal(parse_wc(N))]).
+  run_process(wc, ['-l',file(File)], [output_goal(parse_wc(N))]).
 parse_wc(N, Read):- read_input_to_codes(Read, Cs), phrase((integer(N), dcg_done), Cs).

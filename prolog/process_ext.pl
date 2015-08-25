@@ -1,11 +1,14 @@
 :- module(
   process_ext,
   [
-    handle_process/3, % +Process:atom
-                      % +Arguments:list
-                      % +Options:list(compound)
-    renice/2 % +Pid:positive_integer
-             % +Nice:between(-20,19)
+    renice/2, % +Pid:positive_integer
+              % +Nice:between(-20,19)
+    run_jar/3, % +Jar:atom
+               % +Arguments:list
+               % +Options:list(compound)
+    run_process/3 % +Process:atom
+                  % +Arguments:list
+                  % +Options:list(compound)
   ]
 ).
 
@@ -33,13 +36,17 @@ Additional support for starting processes from within SWI-Prolog:
 %!   ?StreamType:oneof([error,output]),
 %!   ?ThreadId:atom
 %! ) is nondet.
+
 :- dynamic(thread_id/3).
 
-:- predicate_options(handle_process/3, 3, [
-     detached(+boolean),
-     pass_to(handle_process_inner/3, 3)
+:- predicate_options(run_jar/3, 3, [
+     pass_to(handle_process/3, 3)
    ]).
-:- predicate_options(handle_process_inner/3, 3, [
+:- predicate_options(run_process/3, 3, [
+     detached(+boolean),
+     pass_to(run_process_inner/3, 3)
+   ]).
+:- predicate_options(run_process_inner/3, 3, [
      error_goal(+callable),
      output_goal(+callable),
      program(+atom),
@@ -47,7 +54,8 @@ Additional support for starting processes from within SWI-Prolog:
      pass_to(process_create/3, 3)
    ]).
 
-:- meta_predicate(handle_process(+,+,:)).
+:- meta_predicate(run_jar(+,+,:)).
+:- meta_predicate(run_process(+,+,:)).
 
 is_meta(error_goal).
 is_meta(output_goal).
@@ -56,7 +64,9 @@ is_meta(output_goal).
 
 
 
-%! handle_process(
+
+
+%! run_process(
 %!   +Process:atom,
 %!   +Arguments:list,
 %!   +Options:list(nvpair)
@@ -81,18 +91,18 @@ is_meta(output_goal).
 %
 % @tbd Output and error is separate threads.
 
-handle_process(Process, Args, Opts1):-
+run_process(Process, Args, Opts1):-
   meta_options(is_meta, Opts1, Opts2),
   (   select_option(detached(true), Opts2, Opts3)
   ->  thread_create(
-        handle_process_inner(Process, Args, Opts3),
+        run_process_inner(Process, Args, Opts3),
         _,
         [detached(true)]
       )
-  ;   handle_process_inner(Process, Args, Opts2)
+  ;   run_process_inner(Process, Args, Opts2)
   ).
 
-handle_process_inner(Process, Args, Opts1):-
+run_process_inner(Process, Args, Opts1):-
   % By default the program name is the process name.
   option(program(Program), Opts1, Process),
   
@@ -209,6 +219,7 @@ thread_status(Pid, StreamType, exited(Term)):-
   print_message(warning, thread_status(Pid,StreamType,exited,Term)).
 
 
+
 %! kill_processes is det.
 % Kills all running processes by PID.
 
@@ -225,6 +236,7 @@ kill_processes:-
   )).
 
 
+
 %! renice(+Pid:positive_integer, +Nice:between(-20,19)) is det.
 
 renice(Pid, _):-
@@ -232,7 +244,26 @@ renice(Pid, _):-
   existence_error(process, Pid).
 renice(Pid, N):-
   must_be(between(-20,19), N),
-  handle_process(renice, [10,Pid], [nice(0)]).
+  run_process(renice, [10,Pid], [nice(0)]).
+
+
+
+%! run_jar(+Jar:atom, +Argumentss:list, +Options:list(compound)) is det.
+% Runs the given JAR file with the given commandline arguments.
+%
+% Options are passed to run_process/3.
+
+run_jar(Jar, Args, Opts1):-
+  meta_options(is_meta, Opts1, Opts2),
+
+  % Set the program option.
+  file_base_name(Jar, JarName),
+  format(atom(Program), 'Java/JAR ~a', [JarName]),
+  merge_options([program(Program)], Opts2, Opts3),
+
+  run_process(java, ['-jar',file(Jar)|Args], Opts3).
+
+
 
 
 
