@@ -181,7 +181,7 @@ atom_truncate(A, Max, A):-
 atom_truncate(A1, Max, A3):-
   TruncatedL is Max - 3,
   sub_atom(A1, 0, TruncatedL, _, A2),
-  atom_concat(A2, '...', A3).
+  atom_concat(A2, ..., A3).
 
 
 

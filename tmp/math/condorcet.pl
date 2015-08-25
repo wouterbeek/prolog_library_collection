@@ -171,7 +171,7 @@ margins_score(X, Y, MarginsScore, DB):-
 % the current output stream.
 
 write_condorcet_matrix:-
-  format('...'),
+  format(...),
   forall(
     contestant(Runner),
     format('\t%w', [Runner])

@@ -60,7 +60,7 @@ replace_in_file(F1, FromDcg, ToDcg, F2):-
 %! replace_in_file(+Output:stream, :FromDcg, :ToDcg)// is det.
 
 replace_in_file(Out, FromDcg, ToDcg) -->
-  '...'(Line1),
+  ...(Line1),
   end_of_replace_line, !,
   {
     % Replace line

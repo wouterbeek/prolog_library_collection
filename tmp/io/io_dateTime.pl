@@ -129,7 +129,7 @@ date_or_time -->
   integer(_),
   "_",
   integer(_),
-  '...'.
+  ....
 
 
 

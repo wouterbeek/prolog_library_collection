@@ -2,6 +2,7 @@
   dcg_content,
   [
     '...'//0,
+    '...'//1, % -Codes:list(code)
     dcg_cp//0,
     dcg_done//0,
     dcg_rest//1, % -Rest:list(code)
@@ -48,8 +49,13 @@ DCG rules for parsing/generating often-occuring content.
 
 %! ...// .
 
-... --> "".
-... --> [_], ... .
+... -->
+  ...(_).
+
+%! ...(-Codes:list(code))// .
+
+...([]) --> "".
+...([H|T]) --> [H], ...(T).
 
 
 

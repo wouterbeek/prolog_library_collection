@@ -81,7 +81,7 @@ value(Value) -->
   value(Value, 0).
 value(Value) -->
   "\"", !,
-  '...'(Codes),
+  ...(Codes),
   "\"",
   {atom_codes(Value, Codes)}.
 value(Value) -->
@@ -124,7 +124,7 @@ char(C) --> underscore(C).
 skip --> white, !, skip.
 skip --> "".
 
-comment --> "%", '...', eol.
+comment --> "%", ..., eol.
 
 eol --> "\r\n".
 eol --> "\n".
