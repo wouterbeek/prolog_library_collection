@@ -2,7 +2,7 @@
   uri_ext,
   [
     uri_add_query/3, % +From:or([compound,uri])
-                     % +New:or([atom,list(compound),list(or([atom,list(compound)]))])
+                     % +New:or([atom,compound,list(compound),list(or([atom,list(compound)]))])
                      % -To:uri
     uri_component/3 % +Uri:uri
                     % +Field:atom
@@ -35,7 +35,7 @@ Additional predicates for handling URIs.
 
 %! uri_add_query(
 %!   +From:or([compound,uri]),
-%!   +New:or([atom,list(compound),list(or([atom,list(compound)]))]),
+%!   +New:or([atom,compound,list(compound),list(or([atom,list(compound)]))]),
 %!   -To:uri
 %! ) is det.
 % The query component of a URI is not interpreted as key-value pairs
