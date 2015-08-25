@@ -41,8 +41,6 @@ os(unix):-
   current_prolog_flag(unix, true), !.
 os(windows):-
   current_prolog_flag(windows, true), !.
-os(X):-
-  type_error(os, X).
 
 
 

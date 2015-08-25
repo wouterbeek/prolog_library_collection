@@ -1,9 +1,6 @@
 :- module(
   os_ext,
   [
-    is_apple/0,
-    is_unix/0,
-    is_windows/0,
     mac_y_pixel/2, % +YPixel:number
                    % -MacYPixel:number
     os_dependent_call/1 % :Goal
@@ -25,23 +22,6 @@ Operating System interactions.
 
 
 
-%! is_apple is semidet.
-% Succeeds if the running OS is owned by Apple, i.e. Mac OS-X.
-
-is_apple:-
-  current_prolog_flag(apple, true).
-
-%! is_unix is semidet.
-% Succeeds if the running OS is Unix.
-
-is_unix:-
-  current_prolog_flag(unix, true).
-
-%! is_windows is semidet.
-% Succeeds if the running OS is Windows.
-
-is_windows:-
-  current_prolog_flag(windows, true).
 
 
 %! mac_y_pixel(+YPixel:integer, -MacYPixel:integer) is det.
@@ -88,4 +68,3 @@ os_dependent_call(Goal):-
 supported_os(apple).
 supported_os(unix).
 supported_os(windows).
-
