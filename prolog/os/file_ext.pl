@@ -1,6 +1,12 @@
 :- module(
   file_ext,
   [
+    create_file/1, % +File:atom
+    create_file_directory/1, % +File:atom
+    dateTime_file/2, % +Directory, -File
+    dateTime_file/3, % +Directory:atom
+                     % ?Extension:atom
+                     % -File:atom
     file_age/2, % +File:atom
                 % -Age:float
     is_fresh_file/2, % +File:atom
@@ -26,10 +32,57 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(os/dir_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/os_ext)).
 :- use_module(library(process)).
 
 
+
+
+
+%! create_file(+File:atom) is det.
+% @throws type_error
+
+create_file(File):-
+  exists_file(File), !.
+create_file(File):-
+  is_absolute_file_name(File), !,
+  touch(File).
+create_file(File):-
+  type_error(absolute_file_name, File).
+
+
+
+%! create_file_directory(+Path:atom) is det.
+% Ensures that the directory structure for the given file exists.
+
+create_file_directory(Path):-
+  (exists_directory(Path) -> Dir = Path ; directory_file_path(Dir, _, Path)),
+  create_directory(Dir).
+
+
+
+%! dateTime_file(+Directory:compound, -File:atom) is det.
+
+dateTime_file(Dir, File):-
+  dateTime_file(Dir, _, File).
+
+%! dateTime_file(+Directory:compound, ?Extension:atom, -File:atom) is det.
+
+dateTime_file(Spec, Ext, Path):-
+  date_directory(Spec, Dir),
+  get_time(TimeStamp),
+  format_time(atom(Hour), '%H', TimeStamp),
+  format_time(atom(Minute), '%M', TimeStamp),
+  format_time(atom(Second), '%S', TimeStamp),
+  format(atom(Base), '~a_~a_~a', [Hour,Minute,Second]),
+  (   var(Ext)
+  ->  Local = Base
+  ;   file_name_extension(Base, Ext, Local)
+  ),
+  directory_file_path(Dir, Local, Path),
+  create_file(Path).
 
 
 
@@ -103,10 +156,9 @@ thread_file(File, ThreadFile):-
 
 
 %! touch(+File:atom) is det.
-% @tbd Windows support.
 
 touch(File):-
-  process_create(path(touch), [file(File)], []).
+  setup_call_cleanup(open(File, write, Write), true, close(Write)).
 
 
 
