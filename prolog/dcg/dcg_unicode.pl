@@ -31,6 +31,8 @@
     models//1, % ?Code:code
     next_line//0,
     next_line//1, % ?Code:code
+    nonbreaking_space//0,
+    nonbreaking_space//1, % ?Code:code
     opening_bracket//0,
     opening_bracket//1, % ?Code:code
     opening_bracket//2, % ?Type:oneof([angular,curly,langular,round,square])
@@ -57,7 +59,7 @@
 DCG rules that encode characters from the UNICODE standard.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07-2015/08
 */
 
 
