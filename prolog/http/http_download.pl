@@ -100,7 +100,7 @@ file_download(Iri, File0, Opts):-
 file_download(Iri, File, Opts):-
   nested_uri_file_name(Iri, File),
   file_download(Iri, File, Opts).
-write_stream_to_file0(File, _, _, Read):- write_stream_to_file(Read, File).
+write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
 
 
 
@@ -115,7 +115,7 @@ html_download(Iri, Dom):-
 html_download(Iri, Dom, Opts0):-
   merge_options([dialect(html5),max_errors(-1),space(default)], Opts0, Opts),
   http_get(Iri, load_html0(Dom, Opts)).
-load_html0(Dom, Opts, _, _, Read):- load_html(Read, Dom, Opts).
+load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
 
 
 
@@ -123,7 +123,7 @@ load_html0(Dom, Opts, _, _, Read):- load_html(Read, Dom, Opts).
 
 json_download(Iri, Json):-
   http_get(Iri, json_read_dict0(Json)).
-json_read_dict0(Json, _, _, Read):- json_read_dict(Read, Json).
+json_read_dict0(Json, _, Read):- json_read_dict(Read, Json).
 
 
 
@@ -133,4 +133,4 @@ json_read_dict0(Json, _, _, Read):- json_read_dict(Read, Json).
 
 xml_download(Iri, Dom):-
   http_get(Iri, load_xml0(Dom)).
-load_xml0(Dom, _, _, Read):- load_xml(Read, Dom, []).
+load_xml0(Dom, _, Read):- load_xml(Read, Dom, []).

@@ -2,25 +2,25 @@
   http_request,
   [
     http_get/2, % +Iri:iri
-                % :Success_3
+                % :Success_2
     http_get/3, % +Iri:iri
-                % :Success_3
+                % :Success_2
                 % +Options:list(compound)
     http_get/4, % +Iri:iri
-                % :Success_3
-                % :Error_3
+                % :Success_2
+                % :Error_2
                 % +Options:list(compound)
     http_post/3, % +Iri:iri
                  % +Data:compound
-                 % :Success_3
+                 % :Success_2
     http_post/4, % +Iri:iri
                  % +Data:compound
-                 % :Success_3
+                 % :Success_2
                  % +Options:list(compound)
     http_post/5 % +Iri:iri
                 % +Data:compound
-                % :Success_3
-                % :Error_3
+                % :Success_2
+                % :Error_2
                 % +Options:list(compound)
   ]
 ).
@@ -41,13 +41,13 @@ posing an alternative to library(http/http_client).
 :- use_module(library(option)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(http_get(+,3)).
-:- meta_predicate(http_get(+,3,+)).
-:- meta_predicate(http_get(+,3,3,+)).
-:- meta_predicate(http_post(+,+,3)).
-:- meta_predicate(http_post(+,+,3,+)).
-:- meta_predicate(http_post(+,+,3,3,+)).
-:- meta_predicate(http_stream(+,+,3,3,+)).
+:- meta_predicate(http_get(+,2)).
+:- meta_predicate(http_get(+,2,+)).
+:- meta_predicate(http_get(+,2,2,+)).
+:- meta_predicate(http_post(+,+,2)).
+:- meta_predicate(http_post(+,+,2,+)).
+:- meta_predicate(http_post(+,+,2,2,+)).
+:- meta_predicate(http_stream(+,2,2,+)).
 
 :- predicate_options(http_get/3, 3, [
      pass_to(http_get/4, 4)
@@ -72,79 +72,85 @@ cert_verify(_, _, _, _, _).
 
 
 
-%! http_get(+Iri:iri, :Success_3) is det.
+%! http_get(+Iri:iri, :Success_2) is det.
 % Wrapper around http_get/3
 
-http_get(Iri, Success_3):-
-  http_get(Iri, Success_3, []).
+http_get(Iri, Success_2):-
+  http_get(Iri, Success_2, []).
 
 
-%! http_get(+Iri:iri, :Success_3, +Options:list(compound)) is det.
+%! http_get(+Iri:iri, :Success_2, +Options:list(compound)) is det.
 % Wrapper around http_get/4.
 
-http_get(Iri, Success_3, Opts):-
-  http_get(Iri, Success_3, http_error_default(Iri), Opts).
+http_get(Iri, Success_2, Opts):-
+  http_get(Iri, Success_2, http_error_default, Opts).
 
 
-%! http_get(+Iri:iri, :Success_3, :Error_3, +Options:list(compound)) is det.
+%! http_get(+Iri:iri, :Success_2, :Error_2, +Options:list(compound)) is det.
 
-http_get(Iri, Success_3, Error_3, Opts1):-
+http_get(Iri, Success_2, Error_2, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
-      headers(Headers),
+      headers(ResHs),
       method(get),
       status_code(Status)
     ],
     Opts1,
     Opts2
   ),
+  extract_request_headers(Opts2, ReqHs),
   setup_call_cleanup(
     http_open(Iri, Read, Opts2),
-    (   option(gzip(true), Opts2)
-    ->  merge_options([close_parent(false)], Opts2, Opts3),
-        setup_call_cleanup(
-          zopen(Read, Read0, Opts3),
-          http_stream(Status, Headers, Success_3, Error_3, Read0),
-          close(Read0)
-        )
-    ;   http_stream(Status, Headers, Success_3, Error_3, Read)
+    (
+      dict_pairs(Req, headers, ReqHs),
+      dict_pairs(Res, headers, ResHs),
+      M = http{iri:Iri,request:Req,response:Res,status:Status},
+      (   option(gzip(true), Opts2)
+      ->  merge_options([close_parent(false)], Opts2, Opts3),
+          setup_call_cleanup(
+            zopen(Read, Read0, Opts3),
+            http_stream(M, Success_2, Error_2, Read0),
+            close(Read0)
+          )
+      ;   http_stream(M, Success_2, Error_2, Read)
+      )
     ),
     close(Read)
   ).
 
 
 
-%! http_post(+Iri:iri, +Data:compound, :Success_3) is det.
+%! http_post(+Iri:iri, +Data:compound, :Success_2) is det.
 
-http_post(Iri, Data, Success_3):-
-  http_post(Iri, Data, Success_3, []).
-
-
-%! http_post(
-%!   +Iri:iri,
-%!   +Data:compound,
-%!   :Success_3,
-%!   +Options:list(compound)
-%! ) is det.
-
-http_post(Iri, Data, Success_3, Opts):-
-  http_post(Iri, Data, Success_3, http_error_default(Iri), Opts).
+http_post(Iri, Data, Success_2):-
+  http_post(Iri, Data, Success_2, []).
 
 
 %! http_post(
 %!   +Iri:iri,
 %!   +Data:compound,
-%!   :Success_3,
-%!   :Error_3,
+%!   :Success_2,
 %!   +Options:list(compound)
 %! ) is det.
 
-http_post(Iri, Data, Success_3, Error_3, Opts1):-
+http_post(Iri, Data, Success_2, Opts):-
+  http_post(Iri, Data, Success_2, http_error_default, Opts).
+
+
+%! http_post(
+%!   +Iri:iri,
+%!   +Data:compound,
+%!   :Success_2,
+%!   :Error_2,
+%!   +Options:list(compound)
+%! ) is det.
+
+http_post(Iri, Data, Success_2, Error_2, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
-      headers(Headers),
+      headers(ResHs),
       method(post),
       post(Data),
       status_code(Status)
@@ -152,16 +158,32 @@ http_post(Iri, Data, Success_3, Error_3, Opts1):-
     Opts1,
     Opts2
   ),
+  extract_request_headers(Opts2, ReqHs),
   setup_call_cleanup(
     http_open(Iri, Read, Opts2),
-    (   option(gzip(true), Opts2)
-    ->  merge_options([close_parent(false)], Opts2, Opts3),
-        setup_call_cleanup(
-          zopen(Read, Read0, Opts3),
-          http_stream(Status, Headers, Success_3, Error_3, Read0),
-          close(Read0)
-        )
-    ;   http_stream(Status, Headers, Success_3, Error_3, Read)
+    (
+      (   (Data = codes(Cs) ; Data = codes(_,Cs))
+      ->  (   length(Cs, L),
+              L =< 1000
+          ->  Prefix0 = Cs
+          ;   length(Prefix0, 1000),
+              append(Prefix0, _, Cs)
+          )
+      ;   Prefix0 = []
+      ),
+      atom_codes(Prefix, Prefix0),
+      dict_pairs(Req, headers, ReqHs),
+      dict_pairs(Res, headers, ResHs),
+      M = http{data:Prefix,iri:Iri,request:Req,response:Res,status:Status},
+      (   option(gzip(true), Opts2)
+      ->  merge_options([close_parent(false)], Opts2, Opts3),
+          setup_call_cleanup(
+            zopen(Read, Read0, Opts3),
+            http_stream(M, Success_2, Error_2, Read0),
+            close(Read0)
+          )
+      ;   http_stream(M, Success_2, Error_2, Read)
+      )
     ),
     close(Read)
   ).
@@ -172,38 +194,47 @@ http_post(Iri, Data, Success_3, Error_3, Opts1):-
 
 % HELPERS %
 
-%! http_stream(
-%!   +Status:between(100,599),
-%!   +Headers:list(compound),
-%!   :Success_3,
-%!   :Error_3,
-%!   +Read:stream
+%! extract_request_headers(
+%!   +Options:list(compound),
+%!   -RequestHeaders:list(pair)
 %! ) is det.
 
-http_stream(Status, Headers, Success_3, _, Read):-
-  between(200, 299, Status), !,
-  call(Success_3, Status, Headers, Read).
-http_stream(Status, Headers, _, Error_3, Read):-
-  call(Error_3, Status, Headers, Read).
+extract_request_headers([], []):- !.
+extract_request_headers([request_header(K=V)|T1], [K-V|T2]):- !,
+  extract_request_headers(T1, T2).
+extract_request_headers([_|T1], T2):-
+  extract_request_headers(T1, T2).
 
 
 
-%! http_error_default(
-%!   +Iri:iri,
-%!   +Status:between(100,599),
-%!   +Headers:list(compound),
-%!   +Read:stream
-%! ) is det.
+%! http_stream(+Metadata:dict, :Success_2, :Error_2, +Read:stream) is det.
 
-http_error_default(Iri, Status, Headers, Read):-
-  format(user_error, '[STATUS ~D] ~a~n', [Status,Iri]),
-  maplist(print_header(user_error), Headers),
+http_stream(M, Success_2, _, Read):-
+  between(200, 299, M.status), !,
+  call(Success_2, M, Read).
+http_stream(M, _, Error_2, Read):-
+  call(Error_2, M, Read).
+
+
+
+%! http_error_default(+Metadata:dict, +Read:stream) is det.
+
+http_error_default(M, Read):-
+  format(user_error, 'REQUEST: ~a~n', [M.iri]),
+  dict_pairs(M.request, headers, ReqHs),
+  maplist(print_header(user_error), ReqHs),
+  (dict_key(data, M, Data) -> format(user_error, '~a~n', [Data]) ; true),
+  nl(user_error),
+
+  format(user_error, 'RESPONSE: ~D~n', [M.status]),
+  dict_pairs(M.response, headers, ResHs),
+  maplist(print_header(user_error), ResHs),
   copy_stream_data(Read, user_error),
   nl(user_error).
 
 
 
-%! print_header(+Write:stream, +Header:compound) is det.
+%! print_header(+Write:stream, +Header:pair) is det.
 
 print_header(Write, N-V):-
   format(Write, '~w=~w~n', [N,V]).
