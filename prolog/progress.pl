@@ -7,15 +7,16 @@
   ]
 ).
 
-/** <module> Progress
+/** <module> Progress indicators
 
 Tools for tracking the progress of (parallelized) batch processing.
 
 @author Wouter Beek
-@version 2015/02
+@tbd Reimplement with DCGs.
+@version 2015/08
 */
 
-:- use_module(plc(generics/atom_ext)).
+:- use_module(library(atom_ext)).
 
 
 
@@ -29,9 +30,9 @@ Tools for tracking the progress of (parallelized) batch processing.
 % @arg End An integer, representing the last value to be processed.
 % @arg ProgressBar The atomic representation of a progress bar.
 
-progress_bar(End, End, ProgressBar2):- !,
-  progress_bar0(End, End, ProgressBar1),
-  format(atom(ProgressBar2), '~w [done]', [ProgressBar1]).
+progress_bar(End, End, ProgressBar):- !,
+  progress_bar0(End, End, ProgressBar0),
+  format(atom(ProgressBar), '~w [done]', [ProgressBar0]).
 progress_bar(Current, End, ProgressBar):-
   progress_bar0(Current, End, ProgressBar).
 

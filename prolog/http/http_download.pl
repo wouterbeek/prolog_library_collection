@@ -1,13 +1,14 @@
 :- module(
   http_download,
   [
-    file_download/2, % +Iri:iri
-                     % ?File:atom
+    file_download/2, % +Iri, ?File
     file_download/3, % +Iri:iri
                      % ?File:atom
                      % +Options:list(compound)
-    html_download/2, % +Iri:iri
+    html_download/2, % +Iri, -Dom
+    html_download/3, % +Iri:iri
                      % -Dom:list(compound)
+                     % +Options:list(compound)
     json_download/2, % +Iri:iri
                      % -Json:dict
     xml_download/2 % +Iri:iri
@@ -104,9 +105,15 @@ write_stream_to_file0(File, _, _, Read):- write_stream_to_file(Read, File).
 
 
 %! html_download(+Iri:atom, -Dom:list(compound)) is det.
+% Wrapper around html_download/3 with default options.
 
 html_download(Iri, Dom):-
-  Opts = [dialect(html5),max_errors(-1),space(default)],
+  html_download(Iri, Dom, []).
+
+%! html_download(+Iri:atom, -Dom:list(compound), +Options:list(compound)) is det.
+
+html_download(Iri, Dom, Opts0):-
+  merge_options([dialect(html5),max_errors(-1),space(default)], Opts0, Opts),
   http_get(Iri, load_html0(Dom, Opts)).
 load_html0(Dom, Opts, _, _, Read):- load_html(Read, Dom, Opts).
 

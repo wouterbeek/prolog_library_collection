@@ -47,6 +47,7 @@
   %/langtag
   :- use_module(library(langtag/langtag_match)).
 :- use_module(library(list_ext)).
+:- use_module(library(list_script)).
   %/math
   :- use_module(library(math/dimension)).
   :- use_module(library(math/math_ext)).
@@ -65,6 +66,7 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
 :- use_module(library(process_ext)).
+:- use_module(library(progress)).
 :- use_module(library(string_ext)).
   %/svg
   :- use_module(library(svg/svg_dom)).

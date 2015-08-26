@@ -86,7 +86,7 @@ directory_char(C) --> underscore(C).
 
 
 
-%! path_segment*(-Segments:list(atom))// .
+%! 'path_segment*'(-Segments:list(atom))// .
 
 path_segment*([H|T]) -->
   dcg_atom(path_segment, H), !,
