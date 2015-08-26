@@ -1,23 +1,23 @@
 :- module(
   http_request,
   [
-    http_get/2, % +Uri:atom
+    http_get/2, % +Iri:iri
                 % :Success_3
-    http_get/3, % +Uri:atom
+    http_get/3, % +Iri:iri
                 % :Success_3
                 % +Options:list(compound)
-    http_get/4, % +Uri:atom
+    http_get/4, % +Iri:iri
                 % :Success_3
                 % :Error_3
                 % +Options:list(compound)
-    http_post/3, % +Uri:atom
+    http_post/3, % +Iri:iri
                  % +Data:compound
                  % :Success_3
-    http_post/4, % +Uri:atom
+    http_post/4, % +Iri:iri
                  % +Data:compound
                  % :Success_3
                  % +Options:list(compound)
-    http_post/5 % +Uri:atom
+    http_post/5 % +Iri:iri
                 % +Data:compound
                 % :Success_3
                 % :Error_3
@@ -72,23 +72,23 @@ cert_verify(_, _, _, _, _).
 
 
 
-%! http_get(+Uri:atom, :Success_3) is det.
+%! http_get(+Iri:iri, :Success_3) is det.
 % Wrapper around http_get/3
 
-http_get(Uri, Success_3):-
-  http_get(Uri, Success_3, []).
+http_get(Iri, Success_3):-
+  http_get(Iri, Success_3, []).
 
 
-%! http_get(+Uri:atom, :Success_3, +Options:list(compound)) is det.
+%! http_get(+Iri:iri, :Success_3, +Options:list(compound)) is det.
 % Wrapper around http_get/4.
 
-http_get(Uri, Success_3, Opts):-
-  http_get(Uri, Success_3, http_error_default, Opts).
+http_get(Iri, Success_3, Opts):-
+  http_get(Iri, Success_3, http_error_default(Iri), Opts).
 
 
-%! http_get(+Uri:atom, :Success_3, :Error_3, +Options:list(compound)) is det.
+%! http_get(+Iri:iri, :Success_3, :Error_3, +Options:list(compound)) is det.
 
-http_get(Uri, Success_3, Error_3, Opts1):-
+http_get(Iri, Success_3, Error_3, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
@@ -100,7 +100,7 @@ http_get(Uri, Success_3, Error_3, Opts1):-
     Opts2
   ),
   setup_call_cleanup(
-    http_open(Uri, Read, Opts2),
+    http_open(Iri, Read, Opts2),
     (   option(gzip(true), Opts2)
     ->  merge_options([close_parent(false)], Opts2, Opts3),
         setup_call_cleanup(
@@ -115,32 +115,32 @@ http_get(Uri, Success_3, Error_3, Opts1):-
 
 
 
-%! http_post(+Uri:atom, +Data:compound, :Success_3) is det.
+%! http_post(+Iri:iri, +Data:compound, :Success_3) is det.
 
-http_post(Uri, Data, Success_3):-
-  http_post(Uri, Data, Success_3, []).
+http_post(Iri, Data, Success_3):-
+  http_post(Iri, Data, Success_3, []).
 
 
 %! http_post(
-%!   +Uri:atom,
+%!   +Iri:iri,
 %!   +Data:compound,
 %!   :Success_3,
 %!   +Options:list(compound)
 %! ) is det.
 
-http_post(Uri, Data, Success_3, Opts):-
-  http_post(Uri, Data, Success_3, http_error_default, Opts).
+http_post(Iri, Data, Success_3, Opts):-
+  http_post(Iri, Data, Success_3, http_error_default(Iri), Opts).
 
 
 %! http_post(
-%!   +Uri:atom,
+%!   +Iri:iri,
 %!   +Data:compound,
 %!   :Success_3,
 %!   :Error_3,
 %!   +Options:list(compound)
 %! ) is det.
 
-http_post(Uri, Data, Success_3, Error_3, Opts1):-
+http_post(Iri, Data, Success_3, Error_3, Opts1):-
   merge_options(
     [
       cert_verify_hook(cert_verify),
@@ -153,7 +153,7 @@ http_post(Uri, Data, Success_3, Error_3, Opts1):-
     Opts2
   ),
   setup_call_cleanup(
-    http_open(Uri, Read, Opts2),
+    http_open(Iri, Read, Opts2),
     (   option(gzip(true), Opts2)
     ->  merge_options([close_parent(false)], Opts2, Opts3),
         setup_call_cleanup(
@@ -189,20 +189,21 @@ http_stream(Status, Headers, _, Error_3, Read):-
 
 
 %! http_error_default(
+%!   +Iri:iri,
 %!   +Status:between(100,599),
 %!   +Headers:list(compound),
 %!   +Read:stream
 %! ) is det.
 
-http_error_default(Status, Headers, Read):-gtrace,
-  format(user_error, '[STATUS ~D] ', [Status]),
+http_error_default(Iri, Status, Headers, Read):-
+  format(user_error, '[STATUS ~D] ~a~n', [Status,Iri]),
   maplist(print_header(user_error), Headers),
   copy_stream_data(Read, user_error),
-  format(user_error, '\n', []).
+  nl(user_error).
 
 
 
 %! print_header(+Write:stream, +Header:compound) is det.
 
-print_header(Write, header(N,V)):-
-  format(Write, '~w=~w\n', [N,V]).
+print_header(Write, N-V):-
+  format(Write, '~w=~w~n', [N,V]).
