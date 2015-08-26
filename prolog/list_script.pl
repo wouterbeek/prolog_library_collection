@@ -22,6 +22,7 @@ Also keeps track of items that could not be processed.
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_pl_term)).
 :- use_module(library(lists)).
+:- use_module(library(progress)).
 
 :- predicate_options(list_script/3, 3, [
      message(+atom),
@@ -122,10 +123,8 @@ counter(counter(M,N)) -->
 enumerate_item(X) -->
   "  - ", pl_term(X).
 
-enumerate_items([]) --> [].
-enumerate_items([H|T]) -->
-  enumerate_item(H),
-  enumerate_items(T).
+'enumerate_item*'([H|T]) --> enumerate_item(H), 'enumerate_item*'(T).
+'enumerate_item*'([]) --> "".
 
 item_done(Counter, Msg) -->
   item_processed(done, Counter, Msg).
@@ -134,11 +133,7 @@ item_not_done(Counter, Msg) -->
   item_processed(not_done, Counter, Msg).
 
 item_processed(Mode, Counter, Msg) -->
-  mode(Mode),
-  " ",
-  counter(Counter),
-  " ",
-  message(Msg).
+  mode(Mode), " ", counter(Counter), " ", message(Msg).
 
 items_done([], _) --> !, [].
 items_done(L, N) -->
@@ -147,12 +142,10 @@ items_done(L, N) -->
 items_not_done([], _) --> !, [].
 items_not_done(L, N) -->
   items_processed(not_done, L, N),
-  enumerate_items(L).
+  'enumerate_item*'(L).
 
 items_processed(Mode, L, N) -->
-  mode(Mode),
-  " ",
-  progress_bar(L, N).
+  mode(Mode), " ", progress_bar(L, N).
 
 message(Msg) -->
   atom(Msg).
