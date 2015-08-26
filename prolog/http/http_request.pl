@@ -223,7 +223,7 @@ http_error_default(M, Read):-
   format(user_error, 'REQUEST: ~a~n', [M.iri]),
   dict_pairs(M.request, headers, ReqHs),
   maplist(print_header(user_error), ReqHs),
-  (dict_key(data, M, Data) -> format(user_error, '~a~n', [Data]) ; true),
+  (get_dict(data, M, Data) -> format(user_error, '~a~n', [Data]) ; true),
   nl(user_error),
 
   format(user_error, 'RESPONSE: ~D~n', [M.status]),
