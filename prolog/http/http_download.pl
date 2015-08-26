@@ -1,16 +1,16 @@
 :- module(
   http_download,
   [
-    file_download/2, % +Uri:atom
+    file_download/2, % +Iri:iri
                      % ?File:atom
-    file_download/3, % +Uri:atom
+    file_download/3, % +Iri:iri
                      % ?File:atom
                      % +Options:list(compound)
-    html_download/2, % +Uri:atom
+    html_download/2, % +Iri:iri
                      % -Dom:list(compound)
-    json_download/2, % +Uri:atom
+    json_download/2, % +Iri:iri
                      % -Json:dict
-    xml_download/2 % +Uri:atom
+    xml_download/2 % +Iri:iri
                    % -Dom:list(compound)
   ]
 ).
@@ -44,12 +44,12 @@ Support for downloading files and datastructures over HTTP(S).
 
 
 
-%! file_download(+Uri:atom, ?File:atom) is det.
+%! file_download(+Iri:atom, ?File:atom) is det.
 
-file_download(Uri, File):-
-  file_download(Uri, File, []).
+file_download(Iri, File):-
+  file_download(Iri, File, []).
 
-%! file_download(+Uri:atom, ?File:atom, +Options:list(compound)) is det.
+%! file_download(+Iri:atom, ?File:atom, +Options:list(compound)) is det.
 % Downloads the contents stored at the given URI to either
 % the a File with either a given file name or
 % a file name that is created based on the URI.
@@ -61,24 +61,24 @@ file_download(Uri, File):-
 %     Default is `inf`.
 %   * Other options are passed to http_get/3.
 %
-% @throws type_error if Uri is not an absolute URI.
+% @throws type_error if Iri is not an absolute URI.
 
 % The file was already downloaded in the past.
-file_download(Uri, File, Opts):-
+file_download(Iri, File, Opts):-
   nonvar(File),
   exists_file(File), !,
   (   option(freshness_lifetime(FL), Opts, inf),
       is_fresh_file(File, FL)
   ->  access_file(File, read)
   ;   delete_file(File),
-      file_download(Uri, File, Opts)
+      file_download(Iri, File, Opts)
   ).
-% Throw an exception if Uri is not an absolute URI.
-file_download(Uri, _, _):-
-  \+ uri_is_global(Uri), !,
-  type_error(absolute_uri, Uri).
+% Throw an exception if Iri is not an absolute URI.
+file_download(Iri, _, _):-
+  \+ uri_is_global(Iri), !,
+  type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Uri, File0, Opts):-
+file_download(Iri, File0, Opts):-
   nonvar(File0), !,
   absolute_file_name(File0, File, [access(write)]),
   file_directory_name(File, Dir),
@@ -90,40 +90,40 @@ file_download(Uri, File0, Opts):-
   thread_file(File, TmpFile),
 
   % The actual downloading part.
-  http_get(Uri, write_stream_to_file0(TmpFile), Opts),
+  http_get(Iri, write_stream_to_file0(TmpFile), Opts),
 
   % Give the file its original name.
   rename_file(TmpFile, File).
 % No file name is given.
-% Create a file name based on the given URI.
-file_download(Uri, File, Opts):-
-  nested_uri_file_name(Uri, File),
-  file_download(Uri, File, Opts).
+% Create a file name based on the given IRI.
+file_download(Iri, File, Opts):-
+  nested_uri_file_name(Iri, File),
+  file_download(Iri, File, Opts).
 write_stream_to_file0(File, _, _, Read):- write_stream_to_file(Read, File).
 
 
 
-%! html_download(+Uri:atom, -Dom:list(compound)) is det.
+%! html_download(+Iri:atom, -Dom:list(compound)) is det.
 
-html_download(Uri, Dom):-
-  Opts = [dialect(html5),max_errors(-1)],
-  http_get(Uri, load_html0(Dom, Opts)).
+html_download(Iri, Dom):-
+  Opts = [dialect(html5),max_errors(-1),space(default)],
+  http_get(Iri, load_html0(Dom, Opts)).
 load_html0(Dom, Opts, _, _, Read):- load_html(Read, Dom, Opts).
 
 
 
-%! json_download(+Uri:atom, -Json:dict) is det.
+%! json_download(+Iri:atom, -Json:dict) is det.
 
-json_download(Uri, Json):-
-  http_get(Uri, json_read_dict0(Json)).
+json_download(Iri, Json):-
+  http_get(Iri, json_read_dict0(Json)).
 json_read_dict0(Json, _, _, Read):- json_read_dict(Read, Json).
 
 
 
-%! xml_download(+Uri:atom, -Dom:list(compound)) is det.
+%! xml_download(+Iri:atom, -Dom:list(compound)) is det.
 % Returns the HTML Document Object Model (DOM)
-% for the website with the given URI.
+% for the website with the given IRI.
 
-xml_download(Uri, Dom):-
-  http_get(Uri, load_xml0(Dom)).
+xml_download(Iri, Dom):-
+  http_get(Iri, load_xml0(Dom)).
 load_xml0(Dom, _, _, Read):- load_xml(Read, Dom, []).

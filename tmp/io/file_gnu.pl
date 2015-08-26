@@ -3,14 +3,13 @@
   [
     gnu_mv/2, % +From:atom
               % +To:atom
-    split_into_smaller_files/3, % +BigFile:atom
-                                % +OutputDir:atom
-                                % +Prefix:atom
-    touch_file/1 % +File:atom
+    split_into_smaller_files/3 % +BigFile:atom
+                               % +OutputDir:atom
+                               % +Prefix:atom
   ]
 ).
 
-/** <module> File: GNU tools
+/** <module> GNU tools for file
 
 Interface to GNU tools for file-processing.
 
@@ -48,13 +47,6 @@ split_into_smaller_files(BigFile, OutputDir, Prefix):-
     [cwd(OutputDir),program(split)]
   ),
   print_message(informational, split_file(BigFile,OutputDir)).
-
-
-
-%! touch_file(+File:atom) is det.
-
-touch_file(File):-
-  handle_process(touch, [file(File)], []).
 
 
 

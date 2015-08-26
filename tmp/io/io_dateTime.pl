@@ -1,13 +1,6 @@
 :- module(
   io_dateTime,
   [
-    date_directory/2, % +DirectorySpec:compound
-                      % -Directory:atom
-    dateTime_file/2, % +DirectorySpec:compound
-                     % -File:atom
-    dateTime_file/3, % +DirectorySpec:compound
-                     % ?Extension:atom
-                     % -File:atom
     latest_dateTime_file/2, % +DirectorySpec:compound
                             % -File:atom
     latest_dateTime_file/3, % +DirectorySpec:compound
@@ -20,64 +13,16 @@
 
 /** <module> I/O date
 
-Predicates for
-
 @author Wouter Beek
-@version 2015/04
+@version 2015/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(filesex)).
-:- use_module(library(lists), except([delete/3,subset/2])).
-
-:- use_module(plc(dcg/dcg_content)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_ext)).
+:- use_module(library(lists)).
 
 
-
-
-
-%! date_directory(+Spec:compound, -Directory:atom) is det.
-% Create and return the current date subdirectory of the given absolute
-% directory name.
-%
-% Example: from `/tmp` to `/tmp/2013/05/10`
-
-date_directory(Spec, Dir):-
-  get_time(TimeStamp),
-  format_time(atom(Day), '%d', TimeStamp),
-  format_time(atom(Month), '%m', TimeStamp),
-  format_time(atom(Year), '%Y', TimeStamp),
-  absolute_file_name(Spec, PrefixDir, [access(write),file_type(directory)]),
-  directory_subdirectories(PostfixDir, [Year,Month,Day]),
-  append_directories(PrefixDir, PostfixDir, Dir),
-  create_directory(Dir).
-
-
-
-%! dateTime_file(+DirectorySpec:compound, -File:atom) is det.
-
-dateTime_file(DirSpec, Path):-
-  dateTime_file(DirSpec, _, Path).
-
-%! dateTime_file(+DirectorySpec:compound, ?Extension:atom, -File:atom) is det.
-
-dateTime_file(DirSpec, Ext, Path):-
-  date_directory(DirSpec, Dir),
-  get_time(TimeStamp),
-  format_time(atom(Hour), '%H', TimeStamp),
-  format_time(atom(Minute), '%M', TimeStamp),
-  format_time(atom(Second), '%S', TimeStamp),
-  format(atom(Base), '~a_~a_~a', [Hour,Minute,Second]),
-  (   var(Ext)
-  ->  LocalName = Base
-  ;   file_name_extension(Base, Ext, LocalName)
-  ),
-  directory_file_path(Dir, LocalName, Path),
-  create_file(Path).
 
 
 

@@ -2,7 +2,7 @@
   radconv,
   [
     radconv/2 % +From:compound
-                % ?To:compound
+              % ?To:compound
   ]
 ).
 

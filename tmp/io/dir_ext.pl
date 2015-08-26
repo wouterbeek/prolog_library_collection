@@ -1,17 +1,8 @@
 :- module(dir_ext,
   [
-    append_directories/3, % +Dir1:atom
-                          % +Dir2:atom
-                          % -Dir3:atom
     copy_directory/3, % +FromDir:atom
                       % +ToDir:atom
                       % +Options:list(nvpair)
-    create_directory/1, % +Directory:atom
-    create_directory/2, % +CurrentSpec:compound
-                        % +Subdirs:list(atom)
-    create_directory/3, % +CurrentSpec:compound
-                        % +Subdirs:list(atom)
-                        % -AbsoluteDir:atom
     delete_directory/2, % +Dir:atom
                         % +Options:list(nvpair)
     link_directory_contents/2, % +FromDir:atom
@@ -53,83 +44,11 @@ Extensions for handling directories.
 
 
 
-%! append_directories(+Dir1:atom, +Dir2:atom, -Dir3:atom) is det.
-% Returns the directory name obtained by concatenating
-% the given directory names.
-%
-% Does *not* ensure that any of the directories exist.
-
-append_directories(Dir1, Dir2, Dir3):-
-  directory_subdirectories(Dir1, Subdirs1),
-  directory_subdirectories(Dir2, Subdirs2),
-  append(Subdirs1, Subdirs2, Subdirs3),
-  directory_subdirectories(Dir3, Subdirs3).
-
-
-
 %! copy_directory(+FromDir:atom, +ToDir:atom, +Options:list(nvpair)) is det.
 
 copy_directory(FromDir, ToDir, Options):-
   delete_directory(ToDir, Options),
   copy_directory(FromDir, ToDir).
-
-
-
-%! create_directory(+Abs:atom) is det.
-% Creates a directory with the given absolute file path.
-%
-% This predicate does not support argument `Spec` argument
-% since absolute_file_name/3 does not work
-% with path names that denote non-existing directories.
-%
-% @see http://www.swi-prolog.org/pldoc/doc_for?object=absolute_file_name/3
-
-% Current directory: nothing to create.
-create_directory(.):- !.
-% Not an absolute path.
-create_directory(Abs):-
-  \+ is_absolute_file_name(Abs), !,
-  domain_error(absolute_path, Abs).
-% Directory already exists.
-create_directory(Abs):-
-  exists_directory(Abs), !.
-% Create directory.
-create_directory(Abs):-
-  directory_subdirectories(Abs, Subdirs),
-  % Recursively assert all subpaths.
-  % The root node is indicated by the empty atom.
-  create_directory0('', Subdirs, _).
-
-%! create_directory(+CurrentSpec:compound, +Subdirs:list(atom)) is det.
-
-create_directory(CurrentSpec, Subdirs):-
-  create_directory(CurrentSpec, Subdirs, _).
-
-%! create_directory(
-%!   +CurrentSpec:compound,
-%!   +Subdirs:list(atom),
-%!   -AbsoluteDir:atom
-%! ) is det.
-% Creates a nested directory based on:
-%   - a current directory
-%   - a list of consecutive subdirectories
-
-create_directory(CurrentSpec, Subdirs, Abs):-
-  absolute_file_name(
-    CurrentSpec,
-    CurrentDir,
-    [access(write),file_type(directory)]
-  ),
-  create_directory0(CurrentDir, Subdirs, Abs).
-
-create_directory0(Abs, [], Abs):- !.
-create_directory0(Current, [Sub|Subs], Abs):-
-  directory_file_path(Current, Sub, Dir),
-  xor(
-    exists_directory(Dir),
-    make_directory(Dir)
-  ),
-  create_directory0(Dir, Subs, Abs).
 
 
 

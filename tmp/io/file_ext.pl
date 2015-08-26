@@ -8,12 +8,10 @@
     common_prefix_path/3, % +Path1:atom
                           % +Path2:atom
                           % ?CommonPrefixPath:atom
-    create_file/1, % +File:atom
     create_file/4, % +Spec:term
                    % +Name:atom
                    % +Type:atom
                    % -File:atom
-    create_file_directory/1, % +File:atom
     create_file_link/2, % +File:atom
                         % +Dir:atom
     file_age/2, % +File:atom
@@ -190,18 +188,6 @@ common_prefix_path(Path1, Path2, CommonPrefixPath):-
 
 
 
-%! create_file(+Abs:atom) is det.
-
-create_file(Abs):-
-  exists_file(Abs), !.
-create_file(Abs):-
-  is_absolute_file_name(Abs), !,
-  touch_file(Abs).
-create_file(Abs):-
-  type_error(absolute_file_name, Abs).
-
-
-
 %! create_file(+Spec:compound, +Base:atom, +FileKind:atom, -Abs:atom) is det.
 % Creates a file with:
 %   - the given directory
@@ -234,15 +220,6 @@ create_file(Spec, Base, FileKind, Path):-
   directory_file_path(Dir, Local, Path),
 
   create_file(Path).
-
-
-
-%! create_file_directory(+Path:atom) is det.
-% Ensures that the directory structure for the given file exists.
-
-create_file_directory(Path):-
-  file_components(Path, Dir, _, _),
-  create_directory(Dir).
 
 
 
