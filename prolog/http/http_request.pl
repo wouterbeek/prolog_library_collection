@@ -1,6 +1,8 @@
 :- module(
   http_request,
   [
+    http_error_default/2, % +Metadata:dict
+                          % +Read:stream
     http_get/2, % +Iri:iri
                 % :Success_2
     http_get/3, % +Iri:iri
