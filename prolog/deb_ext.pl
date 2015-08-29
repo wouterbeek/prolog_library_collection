@@ -13,7 +13,7 @@
     msg_notification/1, % +Message:atom
     msg_success/1, % +Message:atom
     msg_warning/1, % +Message:atom
-    start_pldoc_server/0,
+    /*start_pldoc_server/0,*/
     verbose_call/1, % :Goal_0
     verbose_call/2 % +Message:atom
                    % :Goal_0
@@ -36,7 +36,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(gui_tracer)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
-:- use_module(library(pldoc)).
+%:- use_module(library(pldoc)).
 :- use_module(library(portray_text)).
 
 :- meta_predicate(call_collect_messages(0)).
@@ -181,13 +181,13 @@ msg_warning(X):-
   ansi_format([bold,fg(red)], '~a', [X]).
 
 
-
+/*
 %! start_pldoc_server is det.
 % The plDoc server should be started *before* documented modules are loaded.
 
 start_pldoc_server:-
   doc_server(9999).
-
+*/
 
 
 %! verbose_call(:Goal_0) is det.
