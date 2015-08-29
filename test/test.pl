@@ -32,6 +32,7 @@
 :- use_module(library(deb_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
+:- use_module(library(dlist)).
 :- use_module(library(flag_ext)).
 :- use_module(library(hash_ext)).
   %/html
