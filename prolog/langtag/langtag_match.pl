@@ -1,8 +1,8 @@
 :- module(
   langtag_match,
   [
-    basic_filtering/2, % +LangRange:list(atom)
-                       % +LangTag:list(atom)
+    basic_filtering/2, % +LangRange:atom
+                       % +LangTag:atom
     extended_filtering/2, % +LangRange:list(atom)
                           % +LangTag:list(atom)
     extended_to_basic/2, % +ExtendedLangRange:list(atom)
@@ -47,7 +47,7 @@ Applications, protocols, and specifications are not required to validate
 
 
 
-%! basic_filtering(+LangRange:list(atom), +LangTag:list(atom)) is semidet.
+%! basic_filtering(+LangRange:atom, +LangTag:atom) is semidet.
 % Compares basic language ranges to language tags.
 %
 % Succeeds if the given lists share a case-insensitive prefix,
@@ -55,10 +55,15 @@ Applications, protocols, and specifications are not required to validate
 %
 % @compat RFC 4647
 
-basic_filtering([], _).
-basic_filtering([H1|T1], [H2|T2]):-
+basic_filtering(X, Y):-
+  atomic_list_concat(Xs, -, X),
+  atomic_list_concat(Ys, -, Y),
+  basic_filtering0(Xs, Ys).
+
+basic_filtering0([], _).
+basic_filtering0([H1|T1], [H2|T2]):-
   subtag_match(H1, H2),
-  basic_filtering(T1, T2).
+  basic_filtering0(T1, T2).
 
 
 
