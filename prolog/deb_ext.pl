@@ -62,7 +62,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- multifile(user:debug_mode).
 
 % Avoid errors when using gtrace/0 in threads.
-:- guitracer.
+%:- guitracer.
 
 :- initialization(init_debug_mode).
 
