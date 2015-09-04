@@ -68,10 +68,7 @@ Tools that ease debugging SWI-Prolog programs.
 
 init_debug_mode:-
   % Set the debug mode flag.
-  (   user:debug_mode
-  ->  true
-  ;   assert(user:debug_mode)
-  ).
+  (user:debug_mode -> true ; assert(user:debug_mode)).
 
 
 
@@ -152,7 +149,7 @@ do_not_load0(dcg_unicode).
 
 if_debug(Flag, _Goal):-
   \+ debugging(Flag), !.
-if_debug(_Flag, Goal):-
+if_debug(_, Goal):-
   call(Goal).
 
 
