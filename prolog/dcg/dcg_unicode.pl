@@ -13,6 +13,12 @@
     closing_bracket//1, % ?Code:code
     closing_bracket//2, % ?Type:oneof([angular,curly,langular,round,square])
                         % ?Code:code
+    entails//0,
+    entails//1, % ?Code:code
+    equivalence//0,
+    equivalence//1, % ?Code:code
+    falsum//0,
+    falsum//1, % ?Code:code
     graphic//0,
     graphic//1, % ?Code:code
     letter//0,
@@ -39,8 +45,14 @@
                         % ?Code:code
     orgham_space_mark//0,
     orgham_space_mark//1, % ?Code:code
+    provable//0,
+    provable//1, % ?Code:code
     punctuation//0,
     punctuation//1, % ?Code:code
+    set_membership//0,
+    set_membership//1, % ?Code:code
+    subclass//0,
+    subclass//1 % ?Code:code
     undertie//0,
     undertie//1, % ?Code:code
     u_white//0,
@@ -52,15 +64,16 @@
   ]
 ).
 :- reexport(library(dcg/dcg_ascii)).
-:- reexport(library(dcg/dcg_logic)).
 
 /** <module> DCG Unicode
 
 DCG rules that encode characters from the UNICODE standard.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
+
+
 
 
 
@@ -72,9 +85,9 @@ DCG rules that encode characters from the UNICODE standard.
 % @see http://www.swi-prolog.org/pldoc/doc_for?object=char_type/2
 
 alpha_numeric --> alpha_numeric(_).
-alpha_numeric(Code) -->
-  [Code],
-  {code_type(Code, alnum)}.
+alpha_numeric(C) -->
+  [C],
+  {code_type(C, alnum)}.
 
 
 
@@ -83,9 +96,9 @@ alpha_numeric(Code) -->
 %! bracket(?Type:oneof([angular,curly,langular,round,square]), ?Code:code)// .
 
 bracket --> bracket(_).
-bracket(Code) --> bracket(_, Code).
-bracket(Type, Code) --> closing_bracket(Type, Code).
-bracket(Type, Code) --> opening_bracket(Type, Code).
+bracket(C) --> bracket(_, C).
+bracket(Type, C) --> closing_bracket(Type, C).
+bracket(Type, C) --> opening_bracket(Type, C).
 
 
 
@@ -106,9 +119,35 @@ character_tie(8256) --> [8256].
 %! )// .
 
 closing_bracket --> closing_bracket(_).
-closing_bracket(Code) --> closing_bracket(_, Code).
-closing_bracket(Type, Code) --> ascii_closing_bracket(Type, Code).
+closing_bracket(C) --> closing_bracket(_, C).
+closing_bracket(Type, C) --> ascii_closing_bracket(Type, C).
 closing_bracket(langular, 12297) --> [12297].
+
+
+
+%! entails// .
+%! entails(?Code:code)// .
+% ⊨
+
+entails --> entails(_).
+entails(8658) --> [8658].
+
+
+%! equivalence// .
+%! equivalence(?Code:code)// .
+% ≡
+
+equivalence --> equivalence(_).
+equivalence(8801) --> [8801].
+
+
+
+%! falsum// .
+%! falsum(?Code:code)// .
+% ⊥
+
+falsum --> falsum(_).
+falsum(8869) --> [8869].
 
 
 
@@ -116,9 +155,9 @@ closing_bracket(langular, 12297) --> [12297].
 %! graphic(?Code:code)// .
 
 graphic --> graphic(_).
-graphic(Code) -->
-  [Code],
-  {code_type(Code, graph)}.
+graphic(C) -->
+  [C],
+  {code_type(C, graph)}.
 
 
 
@@ -126,9 +165,9 @@ graphic(Code) -->
 %! letter(?Code:code)// .
 
 letter --> letter(_).
-letter(Code) -->
-  [Code],
-  {code_type(Code, alpha)}.
+letter(C) -->
+  [C],
+  {code_type(C, alpha)}.
 
 
 
@@ -136,9 +175,9 @@ letter(Code) -->
 %! letter_lowercase(?Code:code)// .
 
 letter_lowercase --> letter_lowercase(_).
-letter_lowercase(Code) -->
-  [Code],
-  {code_type(Code, lower)}.
+letter_lowercase(C) -->
+  [C],
+  {code_type(C, lower)}.
 
 
 
@@ -146,9 +185,9 @@ letter_lowercase(Code) -->
 %! letter_uppercase(?Code:code)// .
 
 letter_uppercase --> letter_uppercase(_).
-letter_uppercase(Code) -->
-  [Code],
-  {code_type(Code, upper)}.
+letter_uppercase(C) -->
+  [C],
+  {code_type(C, upper)}.
 
 
 
@@ -164,10 +203,10 @@ line_separator(8232) --> [8232].
 %! line_terminator(?Code:code)// .
 
 line_terminator --> line_terminator(_).
-line_terminator(Code) --> ascii_line_terminator(Code).
-line_terminator(Code) --> next_line(Code).
-line_terminator(Code) --> line_separator(Code).
-line_terminator(Code) --> paragraph_separator(Code).
+line_terminator(C) --> ascii_line_terminator(C).
+line_terminator(C) --> next_line(C).
+line_terminator(C) --> line_separator(C).
+line_terminator(C) --> paragraph_separator(C).
 
 
 
@@ -213,8 +252,8 @@ nonbreaking_space(160) --> [160].
 %! )// .
 
 opening_bracket --> opening_bracket(_).
-opening_bracket(Code) --> opening_bracket(_, Code).
-opening_bracket(Type, Code) --> ascii_opening_bracket(Type, Code).
+opening_bracket(C) --> opening_bracket(_, C).
+opening_bracket(Type, C) --> ascii_opening_bracket(Type, C).
 opening_bracket(langular, 12296) --> [12296].
 
 
@@ -236,13 +275,39 @@ paragraph_separator(8233) --> [8233].
 
 
 
+%! provable// .
+%! provable(?Code:code)// .
+% ⊢
+
+provable --> provable(_).
+provable(8866) --> [8866].
+
+
 %! punctuation// .
 %! punctuation(?Code:code)// .
 
 punctuation --> punctuation(_).
-punctuation(Code) -->
-  [Code],
-  {code_type(Code, punct)}.
+punctuation(C) -->
+  [C],
+  {code_type(C, punct)}.
+
+
+
+%! set_membership// .
+%! set_membership(?Code:code)// .
+% ∊
+
+set_membership --> set_membership(_).
+set_membership(8714) --> [8714].
+
+
+
+%! subclass// .
+%! subclass(?Code:code)// .
+% ⊆
+
+subclass --> subclass(_).
+subclass(8838) --> [8838].
 
 
 
@@ -261,10 +326,10 @@ undertie(8255) --> [8255].
 % @tbd Enter the rest of the table.
 
 u_white --> u_white(_).
-u_white(Code) --> ascii_white(Code).
-u_white(Code) --> next_line(Code).
-u_white(Code) --> nonbreaking_space(Code).
-u_white(Code) --> orgham_space_mark(Code).
+u_white(C) --> ascii_white(C).
+u_white(C) --> next_line(C).
+u_white(C) --> nonbreaking_space(C).
+u_white(C) --> orgham_space_mark(C).
 % ...
 
 
