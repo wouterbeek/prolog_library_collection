@@ -52,7 +52,7 @@
     set_membership//0,
     set_membership//1, % ?Code:code
     subclass//0,
-    subclass//1 % ?Code:code
+    subclass//1, % ?Code:code
     undertie//0,
     undertie//1, % ?Code:code
     u_white//0,
