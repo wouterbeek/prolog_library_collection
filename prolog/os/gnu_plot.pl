@@ -2,8 +2,8 @@
   gnu_plot,
   [
     gnu_plot/3 % +ScriptSpec:compound
-               % +Arguments:list(nvpair)
-               % +Options:list(nvpair)
+               % +Arguments:list(compound)
+               % +Options:list(compound)
   ]
 ).
 
@@ -21,18 +21,16 @@ $ gnuplot -e "input_file='data/2015/04/01/16_33_29.csv';output_dir='data/';" su_
 ---
 
 @author Wouter Beek
-@version 2015/04
+@version 2015/04, 2015/09
 */
 
 :- use_module(library(dcg/basics)).
-
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_quote)).
-:- use_module(plc(process/process_ext)).
+:- use_module(library(dcg/dcg_word)).
+:- use_module(library(process_ext)).
 
 :- predicate_options(gnu_plot/3, 3, [
-  pass_to(handle_process/3, 3)
-]).
+     pass_to(handle_process/3, 3)
+   ]).
 
 
 
@@ -40,19 +38,15 @@ $ gnuplot -e "input_file='data/2015/04/01/16_33_29.csv';output_dir='data/';" su_
 
 %! gnu_plot(
 %!   +ScriptSpec:compound,
-%!   +Arguments:list(nvpair),
-%!   +Options:list(nvpair)
+%!   +Arguments:list(compound),
+%!   +Options:list(compound)
 %! ) is det.
 
-gnu_plot(ScriptSpec, Args, Options):-
+gnu_plot(ScriptSpec, Args, Opts):-
   absolute_file_name(ScriptSpec, Script, [access(execute),extensions([plt])]),
-  relative_file(Script, RelScript),
+  relative_file0(Script, RelScript),
   atom_phrase(gnu_plot_args(Args), Arg),
-  handle_process(
-    gnuplot,
-    ['-e',Arg,file(RelScript)],
-    Options
-  ).
+  run_process(gnuplot, ['-e',Arg,file(RelScript)], Opts).
 
 gnu_plot_args([]) --> "".
 gnu_plot_args([K=V|T]) -->
@@ -71,7 +65,6 @@ gnu_plot_value(file(File)) --> !,
 gnu_plot_value(V) -->
   atom(V).
 
-relative_file(File, RelFile):-
+relative_file0(File, RelFile):-
   absolute_file_name(., Dir, [access(read),file_type(directory)]),
   relative_file_name(File, Dir, RelFile).
-
