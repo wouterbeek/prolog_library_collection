@@ -25,7 +25,7 @@ $ gnuplot -e "input_file='data/2015/04/01/16_33_29.csv';output_dir='data/';" su_
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(process_ext)).
 
 :- predicate_options(gnu_plot/3, 3, [
@@ -45,8 +45,8 @@ $ gnuplot -e "input_file='data/2015/04/01/16_33_29.csv';output_dir='data/';" su_
 gnu_plot(ScriptSpec, Args, Opts):-
   absolute_file_name(ScriptSpec, Script, [access(execute),extensions([plt])]),
   relative_file0(Script, RelScript),
-  atom_phrase(gnu_plot_args(Args), Arg),
-  run_process(gnuplot, ['-e',Arg,file(RelScript)], Opts).
+  atom_phrase(gnu_plot_args(Args), Args0),
+  run_process(gnuplot, ['-e',Args0,file(RelScript)], Opts).
 
 gnu_plot_args([]) --> "".
 gnu_plot_args([K=V|T]) -->
@@ -60,7 +60,7 @@ gnu_plot_arg(K, V) -->
   "\';".
 
 gnu_plot_value(file(File)) --> !,
-  {relative_file(File, RelFile)},
+  {relative_file0(File, RelFile)},
   atom(RelFile).
 gnu_plot_value(V) -->
   atom(V).

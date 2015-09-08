@@ -59,8 +59,11 @@
   %/os
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).
-  :- use_module(library(os/os_ext)).
   :- use_module(library(os/file_ext)).
+  :- use_module(library(os/gnu_plot)).
+  :- use_module(library(os/gnu_sort)).
+  :- use_module(library(os/gnu_wc)).
+  :- use_module(library(os/os_ext)).
 :- use_module(library(pair_ext)).
   %/pl
   :- use_module(library(pl/pl_term)).
