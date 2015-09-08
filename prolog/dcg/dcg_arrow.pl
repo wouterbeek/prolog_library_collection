@@ -1,6 +1,7 @@
 :- module(
   dcg_arrow,
   [
+    arrow//1, % ?Length:nonneg
     arrow//2, % ?Head:oneof([both,left,right])
               % ?Length:nonneg
     horizontal_line//0,
@@ -13,7 +14,7 @@
 /** <module> Writing ASCII arrow
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(dcg/dcg_abnf)).
@@ -25,6 +26,11 @@
 
 
 
+
+%! arrow(?Head:oneof([both,left,right]), ?Length:nonneg)// .
+
+arrow(N) -->
+  arrow(both, N).
 
 %! arrow(?Head:oneof([both,left,right]), ?Length:nonneg)// .
 % A simple ASCII arrow with a left head, a right head,
