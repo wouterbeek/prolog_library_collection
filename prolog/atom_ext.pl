@@ -166,10 +166,13 @@ atom_to_term(Atom, Term):-
 %      For values smaller than or equal to 5 the original atom is returned.
 %      With value `inf` the original atom is always returned.
 % @arg TruncatedAtom The truncated atom.
+%
+% @throws type_error
 
 % The maximum allowed length is too short to be used with truncation.
 atom_truncate(A, inf, A):- !.
 atom_truncate(A, Max, A):-
+  must_be(positive_integer, Max),
   Max =< 5, !.
 % The atom does not have to be truncated, it is not that long.
 atom_truncate(A, Max, A):-
