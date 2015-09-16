@@ -34,6 +34,8 @@
     split_atom_length/3, % +Atom:atom
                          % +Length:integer
                          % -Subatoms:list(atom)
+    strip_atom/2, % +In:atom
+                  % -Out:atom
     strip_atom/3, % +Strips:list(atom)
                   % +In:atom
                   % -Out:atom
@@ -94,7 +96,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2018/08
+@version 2015/07-2018/09
 */
 
 :- use_module(library(apply)).
@@ -328,6 +330,11 @@ split_atom_length(A1, L, [H|T]):-
 split_atom_length(A, _, [A]).
 
 
+
+%! strip_atom(+In:atom, -Out:atom) is det.
+
+strip_atom(A1, A2):-
+  strip_atom([' ','\n','\t'], A1, A2).
 
 %! strip_atom(+Strips:list(atom), +In:atom, -Out:atom) is det.
 %! strip_atom_begin(+Strips:list(atom), +In:atom, -Out:atom) is det.
