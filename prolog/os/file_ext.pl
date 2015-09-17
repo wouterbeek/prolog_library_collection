@@ -71,7 +71,7 @@ create_file(File):-
 
 create_file_directory(Path):-
   (exists_directory(Path) -> Dir = Path ; directory_file_path(Dir, _, Path)),
-  create_directory(Dir).
+  make_directory_path(Dir).
 
 
 

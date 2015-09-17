@@ -29,24 +29,18 @@ Extensions to SWI-Prolog's library archive.
 
 @author Wouter Beek
 @tbd Remove dependency of plTree.
-@version 2014/04, 2014/06-2014/08, 2014/10, 2015/02
+@version 2014/04, 2014/06-2014/08, 2014/10, 2015/02, 2015/09
 */
 
 :- use_module(library(archive)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
+:- use_module(library(hash_ext)).
 :- use_module(library(http/http_open)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(zlib)).
-
-:- use_module(plc(generics/db_ext)).
-:- use_module(plc(generics/meta_ext)).
-:- use_module(plc(generics/typecheck)).
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_ext)).
-:- use_module(plc(io/io_ext)).
 
 :- thread_local(entry_property/2).
 
@@ -57,7 +51,7 @@ Extensions to SWI-Prolog's library archive.
 :- meta_predicate(archive_goal0(+,2,+)).
 :- meta_predicate(archive_goal0(+,3,+,+)).
 
-:- db_add_novel(user:prolog_file_type(gz, gzip)).
+
 
 
 
@@ -289,21 +283,19 @@ archive_info(Source):-
 
 archive_info0(Archive, Indent1):-
   repeat,
-  (
-    archive_next_header(Archive, EntryName),
-    \+ is_leaf_entry(Archive, EntryName)
-  ->
-    print_message(information, archive_entry(Indent1,Archive,EntryName)),
-    succ(Indent1, Indent2),
-    % Recurse archive entries.
-    setup_call_cleanup(
-      archive_open_entry(Archive, Stream),
-      archive_goal0(Stream, archive_info0, Indent2),
-      close(Stream)
-    ),
-    fail
-  ; !,
-    true
+  (   archive_next_header(Archive, EntryName),
+      \+ is_leaf_entry(Archive, EntryName)
+  ->  print_message(information, archive_entry(Indent1,Archive,EntryName)),
+      succ(Indent1, Indent2),
+      % Recurse archive entries.
+      setup_call_cleanup(
+	archive_open_entry(Archive, Stream),
+	archive_goal0(Stream, archive_info0, Indent2),
+	close(Stream)
+      ),
+      fail
+  ;   !,
+      true
   ).
 
 
@@ -327,12 +319,9 @@ archive_nth0_entry(Index1, Archive, EntryName, Read):-
 
 archive_named_entry(EntryName, Archive, Read):-
   archive_next_header(Archive, EntryName0),
-  (
-    EntryName0 == EntryName
-  ->
-    archive_open_entry(Archive, Read)
-  ;
-    archive_named_entry(EntryName, Archive, Read)
+  (   EntryName0 == EntryName
+  ->  archive_open_entry(Archive, Read)
+  ;   archive_named_entry(EntryName, Archive, Read)
   ).
 
 
@@ -369,10 +358,11 @@ is_uri(Uri):-
 source_directory_name(File, Dir):-
   is_absolute_file_name(File), !,
   file_directory_name(File, Dir).
-source_directory_name(Url, Dir):-
-  is_uri(Url), !,
-  rdf_atom_md5(Url, 1, Md5),
-  create_directory(data, [Md5], Dir).
+source_directory_name(Iri, Dir):-
+  is_uri(Iri), !,
+  md5(Iri, Md5),
+  absolute_file_name(Md5, Dir),
+  make_directory_path(Dir).
 
 
 
@@ -407,4 +397,3 @@ indent(I1) -->
   ['  '],
   {succ(I2, I1)},
   indent(I2).
-

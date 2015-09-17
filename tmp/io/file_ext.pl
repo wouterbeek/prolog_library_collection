@@ -208,7 +208,7 @@ create_file(Spec, Base, FileKind, Path):-
   absolute_file_name(Spec, Dir, [access(write),file_type(directory)]),
 
   % Make sure that the directory exists.
-  create_directory(Dir),
+  make_directory_path(Dir),
 
   % Create the local file name by appending the file base name
   % and the file extension.
