@@ -25,9 +25,10 @@ Support for downloading files and datastructures over HTTP(S).
 @author Wouter Beek
 @tbd We cannot use library(lambda) because this copies the goal term,
      not returning the DOM argument.
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
+:- use_module(library(atom_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
@@ -112,10 +113,27 @@ html_download(Iri, Dom):-
 
 %! html_download(+Iri:atom, -Dom:list(compound), +Options:list(compound)) is det.
 
-html_download(Iri, Dom, Opts0):-
-  merge_options([dialect(html5),max_errors(-1),space(default)], Opts0, Opts),
-  http_get(Iri, load_html0(Dom, Opts)).
+html_download(Iri, Dom, Opts):-
+  http_get(Iri, load_html0(Dom0, Opts)),
+  dom_clean(Dom0, Dom).
 load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
+
+%! dom_clean(+Dom1:list(compound), -Dom2:list(compound)) is det.
+% Clean the given DOM tree in the following two ways:
+%   1. Strip all blanks from the beginning and end of all strings.
+%   2. Remove all strings that are empty under (1) from the DOM tree.
+
+dom_clean([], []):- !.
+dom_clean([H1|T1], L2):-
+  atom(H1), !,
+  % Strip all blanks from strings that appear in the DOM.
+  strip_atom(H1, H2),
+  % Remove empty strings from the DOM.
+  (H2 == '' -> L2 = T2 ; L2 = [H2|T2]),
+  dom_clean(T1, T2).
+dom_clean([element(N,As,Contents1)|T1], [element(N,As,Contents2)|T2]):-
+  dom_clean(Contents1, Contents2),
+  dom_clean(T1, T2).
 
 
 
