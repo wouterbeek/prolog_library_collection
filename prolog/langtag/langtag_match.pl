@@ -1,16 +1,10 @@
 :- module(
   langtag_match,
   [
-    basic_filtering/2, % +LangRange:atom
-                       % +LangTag:atom
-    extended_filtering/2, % +LangRange:list(atom)
-                          % +LangTag:list(atom)
-    extended_to_basic/2, % +ExtendedLangRange:list(atom)
-                         % -BasicLangRange:list(atom)
-    langprefs_to_langtag/2, % +LanguagePreferences:list(list(atom))
-                            % -LanguageTag:list(atom)
-    lookup/2 % +LangRange:list(atom)
-             % +LangTag:list(atom)
+    basic_filtering/2, % +LanguagePriorityList:list(atom)
+                       % +LanguageTag:atom
+    extended_filtering/2 % +LanguagePriorityList:list(atom)
+                         % +LanguageTag:atom
   ]
 ).
 
@@ -28,15 +22,15 @@ Algorithms for matching language ranges against language tags.
 # Semantics
 
 Applications, protocols, and specifications are not required to validate
- or understand any of the semantics of the language tags or ranges or of
- the subtags in them, nor do they require access to the IANA Language Subtag
- Registry.
+or understand any of the semantics of the language tags or ranges or of
+the subtags in them, nor do they require access to the IANA Language Subtag
+Registry.
 
 ---
 
 @author Wouter Beek
 @compat RFC 4647
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(apply)).
@@ -47,18 +41,28 @@ Applications, protocols, and specifications are not required to validate
 
 
 
-%! basic_filtering(+LangRange:atom, +LangTag:atom) is semidet.
-% Compares basic language ranges to language tags.
-%
-% Succeeds if the given lists share a case-insensitive prefix,
+%! basic_filtering(
+%!   +LanguagePriorityList:list(atom),
+%!   +LanguageTag:atom
+%! ) is semidet.
+% Succeeds if the LanguagePriorityList matches the LanguageTag according to
+% the basic filtering algorithm described in RFC 4647,
+% i.e., if the former is a case-insensitive prefix of the latter,
 % while also treating the `*` sign as a wildcard.
+%
+% @arg LanguagePriorityList A list of atoms that parse according to
+%      'language-range'//1.
+% @arg LanguageTag ...
 %
 % @compat RFC 4647
 
-basic_filtering(X, Y):-
-  atomic_list_concat(Xs, -, X),
-  atomic_list_concat(Ys, -, Y),
-  basic_filtering0(Xs, Ys).
+% Allow language priority lists of length 1 to be specified as atoms.
+basic_filtering(Ranges, Tag):-
+  % NONDET
+  member(Range, Ranges),
+  atomic_list_concat(Subtags1, -, Range),
+  atomic_list_concat(Subtags2, -, Tag),
+  basic_filtering0(Subtags1, Subtags2), !.
 
 basic_filtering0([], _).
 basic_filtering0([H1|T1], [H2|T2]):-
@@ -68,8 +72,8 @@ basic_filtering0([H1|T1], [H2|T2]):-
 
 
 %! extended_filtering(
-%!   +ExtendedRange:list(atom),
-%!   +LangTag:list(atom)
+%!   +LanguagePriorityList:list(atom),
+%!   +LanguageTag:atom
 %! ) is semidet.
 % Compares extended language ranges to language tags.
 %
@@ -141,8 +145,8 @@ extended_filtering_tail(L1, [_|T2]):-
 
 
 %! extended_to_basic(
-%!   +ExtendedLangRange:list(atom)
-%!   -BasicLangRange:list(atom)
+%!   +ExtendedLanguageRange:list(atom)
+%!   -BasicLanguageRange:list(atom)
 %! ) is det.
 % Maps extended language ranges to basic language ranges.
 %
@@ -154,25 +158,7 @@ extended_to_basic(Extended, Basic):-
 
 
 
-%! langprefs_to_langtag(
-%!   +LanguagePreferences:list(list(atom)),
-%!   -LanguageTag:list(atom)
-%! ) is nondet.
-
-langprefs_to_langtag(LangPrefs, LangTagPrefix):-
-  (   var(LangPrefs)
-  ->  instantiation_error(LangPrefs)
-  ;   is_list(LangPrefs)
-  ->  member(LangTag, LangPrefs),
-      sublist(LangTagPrefix, LangTag),
-      prefix(LangTagPrefix, LangTag),
-      LangTagPrefix \== []
-  ;   type_error(list(atom), LangPrefs)
-  ).
-
-
-
-%! lookup(+LangRange:list(atom), +LangTag:list(atom))
+%! lookup(+LanguageRange:list(atom), +LanguageTag:list(atom))
 % In contrast to filtering, each language range represents the most specific
 % tag that is an acceptable match.
 
