@@ -5,6 +5,8 @@
     delete_counter/1, % +Name:compound
     delete_counter/2, % +Name:compound
                       % -Count:integer
+    get_counter/2, % +Name:compound
+                   % -Count:integer
     increment_counter/1, % +Name:compound
     increment_counter/2, % +Name:compound
                          % -Count:integer
@@ -52,6 +54,12 @@ delete_counter(N, C):-
   )).
 
 
+
+get_counter(N, C):-
+  counter(N, C).
+
+
+
 increment_counter(N):-
   increment_counter(N, 1, _).
 
@@ -60,8 +68,10 @@ increment_counter(N, X):-
 
 increment_counter(N, Diff, X):-
   with_mutex(count_ext, (
-    retract(counter(N,X)),
-    Y is X + Diff,
+    (   retract(counter(N,X))
+    ->  Y is X + Diff
+    ;   Y = 0
+    ),
     assert(counter(N,Y))
   )).
 
