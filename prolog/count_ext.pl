@@ -70,7 +70,7 @@ increment_counter(N, Diff, X):-
   with_mutex(count_ext, (
     (   retract(counter(N,X))
     ->  Y is X + Diff
-    ;   Y = 0
+    ;   Y = 1
     ),
     assert(counter(N,Y))
   )).
