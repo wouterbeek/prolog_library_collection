@@ -645,8 +645,8 @@ convert(Opts, I1, [H1|T1], [H2|T2]):-
   (   Type == atom
   ->  atom_codes(H1, H2)
   ;   Type == atom_lower
-  ->  atom_codes(H1, H0),
-      downcase_atom(H0, H2)
+  ->  atom_codes(H0, H2),
+      downcase_atom(H0, H1)
   ;   Type == codes
   ->  H2 = H1
   ;   Type == string
