@@ -178,7 +178,7 @@
    ]).
 
 :- predicate_options(convert/3, 1, [
-     convert(+pair(between(1,5),oneof([atom,codes,string])))
+     convert(+pair(between(1,5),oneof([atom,atom_lower,codes,string])))
    ]).
 
 is_meta(separator).
@@ -486,7 +486,7 @@ is_meta(separator).
 % and failing silently when `N < M`.
 %
 % The following options are supported:
-%   * convert(+pair(between(1,5),oneof([atom,codes,string])))
+%   * convert(+pair(between(1,5),oneof([atom,atom_lower,codes,string])))
 %   * copy_term(+boolean)
 %     Whether variables are shared between multiple calls of `Dcg`
 %     (`false`, default) or not (`true`).
@@ -641,9 +641,12 @@ convert(Opts, L1, L2):-
 convert(_, _, [], []):- !.
 convert(Opts, I1, [H1|T1], [H2|T2]):-
   option(convert(I1-Type), Opts), !,
-  must_be(oneof([atom,codes,string]), Type),
+  must_be(oneof([atom,atom_lower,codes,string]), Type),
   (   Type == atom
   ->  atom_codes(H1, H2)
+  ;   Type == atom_lower
+  ->  atom_codes(H1, H0),
+      downcase_atom(H0, H2)
   ;   Type == codes
   ->  H2 = H1
   ;   Type == string
