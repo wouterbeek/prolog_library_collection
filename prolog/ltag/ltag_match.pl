@@ -1,5 +1,5 @@
 :- module(
-  langtag_match,
+  ltag_match,
   [
     basic_filtering/2, % +LanguagePriorityList:list(atom)
                        % +LanguageTag:atom
@@ -8,7 +8,7 @@
   ]
 ).
 
-/** <module> Language tag matching
+/** <module> Language tag: Matching
 
 Algorithms for matching language ranges against language tags.
 

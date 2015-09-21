@@ -46,8 +46,11 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
-%/langtag
-  :- use_module(library(langtag/langtag_match)).
+%/ltag
+  :- use_module(library(ltag/ltag)).
+  :- use_module(library(ltag/ltag_generics)).
+  :- use_module(library(ltag/ltag_match)).
+  :- use_module(library(ltag/ltag_range)).
 :- use_module(library(list_ext)).
 :- use_module(library(list_script)).
 %/math
