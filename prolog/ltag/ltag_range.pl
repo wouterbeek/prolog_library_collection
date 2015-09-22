@@ -1,7 +1,6 @@
 :- module(
   ltag_range,
   [
-    alphanum//1, % ?Code:code
     'extended-language-range'//1, % -ExtendedLanguageRange:atom
     'language-range'//1 % -LanguageRange:atom
   ]
@@ -36,13 +35,13 @@ Grammar for parsing BCP 47 language ranges.
 % ```
 
 'extended-language-range'(ELRange) -->
-  ("*" --> H = * ; 'primary-subtag'(H)),
+  ("*" -> {H = *} ; 'primary-subtag'(H)),
   'extended-language-range_tail'(T),
-  {atomic_list_concat([H|T], -, ELRange).
+  {atomic_list_concat([H|T], -, ELRange)}.
 
 'extended-language-range_tail'([H|T]) -->
   "-", !,
-  ("*" --> H = * ; subtag(H)),
+  ("*" -> {H = *} ; subtag(H)),
   'extended-language-range_tail'(T).
 'extended-language-range_tail'([]) --> "".
 
