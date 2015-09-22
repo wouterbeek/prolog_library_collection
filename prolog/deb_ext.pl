@@ -26,17 +26,15 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/09
 */
 
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
 :- use_module(library(check_installation)). % Private predicates.
 :- use_module(library(debug)).
-:- use_module(library(gui_tracer)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
-%:- use_module(library(pldoc)).
 :- use_module(library(portray_text)).
 
 :- meta_predicate(call_collect_messages(0)).
@@ -45,24 +43,8 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(verbose_call(0)).
 :- meta_predicate(verbose_call(+,0)).
 
-%:- set_prolog_flag(
-%     answer_write_options,
-%     [max_depth(100),portrayed(true),spacing(next_argument)]
-%   ).
-%:- set_prolog_flag(
-%     debugger_write_options,
-%     [max_depth(100),portrayed(true),spacing(next_argument)]
-%   ).
-
-%:- portray_text(true).
-%:- set_portray_text(min_length, 0).
-%:- set_portray_text(ellipsis, 1000).
-
 :- dynamic(user:debug_mode).
 :- multifile(user:debug_mode).
-
-% Avoid errors when using gtrace/0 in threads.
-%:- guitracer.
 
 :- initialization(init_debug_mode).
 
@@ -176,15 +158,6 @@ msg_success(X):-
 
 msg_warning(X):-
   ansi_format([bold,fg(red)], '~a', [X]).
-
-
-/*
-%! start_pldoc_server is det.
-% The plDoc server should be started *before* documented modules are loaded.
-
-start_pldoc_server:-
-  doc_server(9999).
-*/
 
 
 %! verbose_call(:Goal_0) is det.
