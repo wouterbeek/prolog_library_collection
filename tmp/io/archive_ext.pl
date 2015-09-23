@@ -13,13 +13,10 @@
                     % :Goal
                     % +Arguments:list
     archive_info/1, % +Source
-    archive_nth0_entry/4, % +Index:nonneg
-                          % +Archive:blob
-                          % -EntryName:atom
-                          % -Read:blob
-    archive_named_entry/3 % +EntryName:atom
-                          % +Archive:blob
-                          % -Read:blob
+    archive_nth0_entry/4 % +Index:nonneg
+                         % +Archive:blob
+                         % -EntryName:atom
+                         % -Read:blob
   ]
 ).
 
@@ -315,14 +312,6 @@ archive_nth0_entry(Index1, Archive, EntryName, Read):-
   archive_nth0_entry(Index2, Archive, EntryName, Read).
 
 
-%! archive_named_entry(+EntryName:atom, +Archive:blob, -Read:blob) is det.
-
-archive_named_entry(EntryName, Archive, Read):-
-  archive_next_header(Archive, EntryName0),
-  (   EntryName0 == EntryName
-  ->  archive_open_entry(Archive, Read)
-  ;   archive_named_entry(EntryName, Archive, Read)
-  ).
 
 
 

@@ -63,9 +63,11 @@
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
 %/nlp
+  :- use_module(library(nlp/dict)).
   :- use_module(library(nlp/nlp)).
 :- use_module(library(option_ext)).
 %/os
+  :- use_module(library(os/archive_ext)).
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).
   :- use_module(library(os/file_ext)).
