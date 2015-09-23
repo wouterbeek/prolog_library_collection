@@ -1,6 +1,8 @@
 :- module(
   dict_ext,
   [
+    clean_dict/2, % +Dict:dict
+                  % -CleanDict
     dict_tag/3, % +Dict1:dict
                 % +Tag:atom
                 % ?Dict2:dict
@@ -16,7 +18,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08-2015/09
 */
 
 :- use_module(library(apply)).
@@ -27,6 +29,23 @@
 :- use_module(library(pairs)).
 
 
+
+
+
+%! clean_dict(+Dict:dict, -CleanDict:dict) is det.
+
+clean_dict(D1, D2):-
+  clean_dict0(D1, D2).
+
+clean_dict0(D1, D2):-
+  is_dict(D1), !,
+  dict_pairs(D1, Tag, L1),
+  maplist(clean_dict0, L1, L2),
+  dict_pairs(D2, Tag, L2).
+clean_dict0(S, A):-
+  string(S), !,
+  atom_string(A, S).
+clean_dict0(X, X).
 
 
 
