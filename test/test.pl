@@ -46,6 +46,7 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
+:- use_module(library(json_ext)).
 %/ltag
   :- use_module(library(ltag/ltag)).
   :- use_module(library(ltag/ltag_generics)).
