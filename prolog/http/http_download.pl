@@ -32,6 +32,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
+:- use_module(library(json_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
@@ -141,7 +142,9 @@ dom_clean([element(N,As,Contents1)|T1], [element(N,As,Contents2)|T2]):-
 
 json_download(Iri, Json):-
   http_get(Iri, json_read_dict0(Json)).
-json_read_dict0(Json, _, Read):- json_read_dict(Read, Json).
+json_read_dict0(Json, _, Read):-
+  json_read_dict(Read, Json0),
+  clean_json(Json0, Json).
 
 
 
