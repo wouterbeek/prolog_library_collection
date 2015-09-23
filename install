@@ -1,0 +1,218 @@
+#!/usr/bin/env swipl
+
+:- module(install, []).
+
+/** <module> Install
+
+Let's do this!
+
+@author Wouter Beek
+@version 2015/09/23
+*/
+
+:- use_module(library(filesex)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(optparse)).
+:- use_module(library(prolog_pack)).
+:- use_module(library(uri)).
+
+:- dynamic(author/2).
+:- dynamic(download/1).
+:- dynamic(home/1).
+:- dynamic(maintainer/2).
+:- dynamic(name/1).
+:- dynamic(packager/2).
+:- dynamic(requires/1).
+:- dynamic(title/1).
+:- dynamic(version/1).
+
+:- initialization(install).
+
+
+
+
+
+%! install is det.
+
+install:-
+  OptSpec = [
+    [ % Github
+      default(true),
+      help('Whether Github should be used to install requirements.'),
+      longflags([git,github]),
+      opt(github),
+      type(boolean)
+    ],
+    [ % Help
+      default(false),
+      help('Display help about the install command.'),
+      longflags([help]),
+      opt(help),
+      shortflags([h]),
+      type(boolean)
+    ],
+    [ % Pack
+      default(true),
+      help('Whether the Prolog Pack system is used for installing requirements.'),
+      longflags([pack]),
+      opt(pack),
+      type(boolean)
+    ],
+    [ % Parent
+      default(false),
+      help('Whether existing installations in the parent directory should be taken into account.'),
+      longflags([parent]),
+      opt(parent),
+      type(boolean)
+    ]
+  ],
+  opt_arguments(OptSpec, Opts, _),
+
+  % Process help
+  (option(help(true), Opts) -> show_help(OptSpec) ; install(Opts)).
+
+
+%! install(+Options:list(compound)) is det.
+
+install(Opts):-
+  source_file(install, File),
+  file_directory_name(File, AppDir),
+  install(AppDir, AppDir, Opts),
+  clean_meta,
+  halt.
+
+
+%! install(
+%!   +ApplicationDirectory:atom,
+%!   +LibraryDirectory:atom,
+%!   +Options:list(compound)
+%! ) is det.
+
+install(AppDir, LibDir, Opts):-
+  % The pack information is taken from the library directory.
+  % This allows application requirements to be installed recursively.
+  directory_file_path(LibDir, 'pack.pl', Info),
+  access_file(Info, read),
+  load_meta(Info),
+
+  % Set this library's search path.
+  name(Name),
+  assert(user:file_search_path(Name, LibDir)),
+
+  % Pull in the required libraries.
+  forall(requires(LibName), install_required(AppDir, LibName, Opts)), !.
+install(_, _, _):-
+  msg_warning('Installation failed.').
+
+
+%! install_required(
+%!   +ApplicationDirectory:atom,
+%!   +LibName:atom,
+%!   +Options:list(compound)
+%! ) is det.
+
+% Developer's delight: library already available from parent directory.
+install_required(AppDir, LibName, Opts):-
+  option(parent(true), Opts),
+
+  file_directory_name(AppDir, ParentDir),
+  append_directories(ParentDir, LibName, LibDir),
+  exists_directory(LibDir), !,
+
+  % Print message.
+  atomic_list_concat(['Library ',LibName,' already installed.'], Msg),
+  msg_success(Msg).
+% Install through the Prolog Pack system.
+install_required(_, LibName, Opts):-
+  option(pack(true), Opts),
+
+  prolog_pack:query_pack_server(search(LibName), Result,[]),
+  Result = true([pack(LibName,_,_,_,_)]), !,
+  pack_install(LibName).
+% Install through Github.
+install_required(AppDir, LibName, Opts):-
+  option(github(true), Opts),
+
+  % Remove the old version of the library.
+  append_directories(AppDir, LibName, LibDir),
+  (exists_directory(LibDir) -> delete_directory_and_contents(LibDir) ; true),
+
+  % Git clone the new version of the library.
+  atomic_list_concat(['',wouterbeek,LibName], /, Path),
+  uri_components(Iri, uri_components(https,'github.com',Path,_,_)),
+  prolog_pack:run_process(path(git), [clone,Iri,LibDir], []),
+
+  % Print message.
+  atomic_list_concat(['Library ',LibName,' was installed.'], Msg),
+  msg_success(Msg),
+  
+  % Recurse
+  install(AppDir, LibDir, Opts), !.
+% Oops!
+install_required(_, LibName, _):-
+  atomic_list_concat(
+    ['Installation of library ',LibName,' failed.'],
+    Msg
+  ),
+  msg_warning(Msg).
+
+
+
+
+
+% HELPERS %
+
+%! append_directories(+Dir1:atom, +Dir2:atom, -Dir3:atom) is det.
+
+append_directories(Dir1, Dir2, Dir3):-
+  atomic_list_concat(Subdirs1, /, Dir1),
+  atomic_list_concat(Subdirs2, /, Dir2),
+  append(Subdirs1, Subdirs2, Subdirs3),
+  atomic_list_concat(Subdirs3, /, Dir3).
+
+
+
+%! clean_meta is det.
+
+clean_meta:-
+  retractall(author/2),
+  retractall(download/1),
+  retractall(home/1),
+  retractall(maintainer/2),
+  retractall(name/1),
+  retractall(packager/2),
+  retractall(requires/1),
+  retractall(title/1),
+  retractall(version/1).
+
+
+
+%! show_help(+OptionSpecification:list(compound)) is det.
+
+show_help(OptSpec):-
+  opt_help(OptSpec, Help),
+  format(user_output, '~a\n', [Help]),
+  halt.
+
+
+
+%! load_meta(+File:atom) is det.
+
+load_meta(File):-
+  clean_meta,
+  ensure_loaded(File).
+
+
+
+%! msg_success(+Message:atom) is det.
+
+msg_success(X):-
+    ansi_format([bold,fg(green)], '~a~n', [X]).
+
+
+
+%! msg_warning(+Message:atom) is det.
+
+msg_warning(X):-
+    ansi_format([bold,fg(red)], '~a~n', [X]).
