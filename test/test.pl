@@ -43,6 +43,7 @@
 %/http
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_receive)).
+  :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
@@ -79,6 +80,8 @@
 :- use_module(library(process_ext)).
 :- use_module(library(progress)).
 :- use_module(library(string_ext)).
+%/rest
+  :- use_module(library(rest/rest_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).
