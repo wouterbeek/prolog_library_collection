@@ -1,6 +1,8 @@
 :- module(
   cli_ext,
   [
+    check_input/2, % +Mode:oneof([read,write])
+                   % +Input:atom
     check_path/2, % +Mode:oneof([read,write])
                   % +Path:atom
     long_flag/3, % +Flag:atom
@@ -18,8 +20,18 @@
 
 :- use_module(library(error)).
 :- use_module(library(optparse)).
+:- use_module(library(typecheck)).
 
 
+
+
+
+%! check_input(+Mode:oneof([read,write]), +Path:atom) is det.
+
+check_input(read, Iri):-
+  is_uri(Iri), !.
+check_input(Mode, Path):-
+  check_path(Mode, Path).
 
 
 
