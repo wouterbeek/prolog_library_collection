@@ -4,9 +4,11 @@
     atom_to_xml_dom/2, % +Atom:atom
                        % -Dom:list(compound)
     xml_dom_to_atom/2, % +Dom, -Atom
-    xml_dom_to_atom/3 % +Dom:list(compound)
-                      % -Atom:atom
-                      % +Options:list(compound)
+    xml_dom_to_atom/3, % +Dom:list(compound)
+                       % -Atom:atom
+                       % +Options:list(compound)
+    xml_serve_dom/2 % +Dom:list(compound)
+                    % +Options:list(compound)
   ]
 ).
 
@@ -98,3 +100,25 @@ xml_dom_to_atom(Dom, A, Opts1):-
   % in -- at least -- Firefox.
   merge_options([header(false)], Opts2, Opts3),
   with_output_to(atom(A), xml_write(Dom0, Opts3)).
+
+
+
+%! xml_serve_dom(+Dom:list(compound), +Options:list(compound)) is det.
+% Serves the given XML DOM.
+%
+% The following options are supported:
+%   * `dtd(+Doctype:atom)`
+%     The atomic name of the DTD that should be used for the XML DOM.
+%     The DTD is first searched for in the cache of DTD objects.
+%     If the given doctype has no associated DTD in the cache,
+%     it searches for a file using the file search path =dtd=.
+%   * `style(+StyleName:atom)`
+%     The atomic name of a style file on the =css= search path.
+
+xml_serve_dom(Dom, Options):-
+  xml_dom_to_atom(Dom, A, Options),
+  % The User Agent needs to know the content type and encoding.
+  % If the UTF-8 encoding is not given here explicitly,
+  % Prolog throws an IO exception on `format(XML)`.
+  format('Content-type: application/xml; charset=utf-8~n~n'),
+  format(A).
