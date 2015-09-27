@@ -37,6 +37,7 @@ posing an alternative to library(http/http_client).
 */
 
 :- use_module(library(apply)).
+:- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_json)). % JSON support.
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.

@@ -42,4 +42,4 @@ make_parser(Read, Parser, state(Pos)):-
 
 clean_parser(Read, Parser, state(Pos)):-
   free_sgml_parser(Parser),
-  set_stream_position(Read, Position).
+  set_stream_position(Read, Pos).

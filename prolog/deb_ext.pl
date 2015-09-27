@@ -9,11 +9,11 @@
     if_debug/2, % +Flag:atom
                 % :Goal
     msg_emphasis/1, % +Message:atom
+    msg_error/1, % +Error:compound
     msg_normal/1, % +Message:atom
     msg_notification/1, % +Message:atom
     msg_success/1, % +Message:atom
     msg_warning/1, % +Message:atom
-    /*start_pldoc_server/0,*/
     verbose_call/1, % :Goal_0
     verbose_call/2 % +Message:atom
                    % :Goal_0
@@ -32,6 +32,9 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
 :- use_module(library(check_installation)). % Private predicates.
+:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
@@ -141,6 +144,14 @@ msg_emphasis(X):-
 
 
 
+%! msg_error(+Error:compound) is det.
+% Prints an error message to standard output.
+
+msg_error(E):-
+  atom_phrase(msg_error(E), A),
+  msg_warning(A).
+
+
 msg_normal(X):-
   ansi_format([], '~a', [X]).
 
@@ -205,6 +216,22 @@ call_success(Msg):-
 
 
 % MESSAGES %
+
+%! msg_error(+Error:compound)// is det.
+
+msg_error(exception(E)) --> !,
+  msg_error(E).
+msg_error(error(permission_error(url,Url),context(_,status(Code,Label)))) -->
+  "No permission to download from URL ",
+  url(Url),
+  ". Received HTTP status code ",
+  integer(Code),
+  " ",
+  bracketed(atom(Label)),
+  ".".
+
+url(Url) -->
+  bracketed(langular, atom(Url)).
 
 :- multifile(prolog:message//1).
 
