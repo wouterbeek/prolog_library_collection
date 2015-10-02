@@ -12,8 +12,12 @@
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
                % :Dcg_0
+    iri//1, % +Iri:atom
     nl//0,
     nonblank//0,
+    nvpair//1, % +Pair:pair(atom)
+    nvpair//2, % :Name_2
+               % :Value_2
     parsing//0,
     skip_line//0,
     string_without//1 % +EndCodes
@@ -26,22 +30,24 @@
 DCG rules for parsing/generating often-occuring content.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/10
 */
 
 :- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(settings)).
 
 :- meta_predicate(indent(+,//,?,?)).
+:- meta_predicate(nvpair(//,//,?,?)).
 
 % The number of spaces that go into one indent.
 :- setting(
-  indent_size,
-  integer,
-  2,
-  'The number of spaces that go into one indent.'
-).
+     indent_size,
+     integer,
+     2,
+     'The number of spaces that go into one indent.'
+   ).
 
 
 
@@ -114,6 +120,13 @@ indent(I, Dcg_0) -->
 
 
 
+%! iri(+Iri:atom)// is det.
+
+iri(Iri) -->
+  bracketed(langular, atom(Iri)).
+
+
+
 %! nl// is det.
 
 nl --> "\n".
@@ -124,6 +137,21 @@ nl --> "\n".
 % Wrapper around nonblank//1 from library(dcg/basics).
 
 nonblank --> nonblank(_).
+
+
+
+%! nvpair(+Pair:pair(atom))// is det.
+
+nvpair(N-V) -->
+  nvpair(atom(N), atom(V)).
+
+
+%! nvpair(:Name_2, :Value_2)// is det.
+
+nvpair(N, V) -->
+  N,
+  ": ",
+  V.
 
 
 
