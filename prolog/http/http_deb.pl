@@ -28,8 +28,8 @@ http_status_code(Code) -->
   "HTTP status code ",
   integer(Code),
   " ",
-  {http_header:status_number_fact(Fact, Code)},
-  bracketed(http_header:status_comment(Fact)),
+  {http_status_label(Code, Label)},
+  bracketed(atom(Label)),
   ".".
 
 
@@ -38,4 +38,4 @@ http_status_code(Code) -->
 
 http_status_label(Code, Label):-
    http_header:status_number_fact(Fact, Code),
-   atom_phrase(http_status_code(Fact), Label).
+   atom_phrase(http_header:status_comment(Fact), Label).

@@ -34,6 +34,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(check_installation)). % Private predicates.
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
 :- use_module(library(http/http_deb)).
@@ -225,11 +226,11 @@ msg_error(exception(E)) --> !,
 msg_error(error(socket_error(Msg),_)) --> !,
   "Socket error: ",
   atom(Msg).
-msg_error(error(permission_error(url,Url),context(_,status(Code,Label)))) --> !,
-  "No permission to download from URL ",
-  url(Url),
+msg_error(error(permission_error(url,Iri),context(_,status(Code,_)))) --> !,
+  "No permission to download from IRI ",
+  iri(Iri),
   ". ",
-  http_status_code(Code, Label).
+  http_status_code(Code).
 
 :- multifile(prolog:message//1).
 
