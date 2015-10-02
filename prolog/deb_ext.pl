@@ -26,7 +26,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(ansi_term)).
@@ -36,6 +36,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
+:- use_module(library(http/http_deb)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
@@ -221,17 +222,14 @@ call_success(Msg):-
 
 msg_error(exception(E)) --> !,
   msg_error(E).
-msg_error(error(permission_error(url,Url),context(_,status(Code,Label)))) -->
+msg_error(error(socket_error(Msg),_)) --> !,
+  "Socket error: ",
+  atom(Msg).
+msg_error(error(permission_error(url,Url),context(_,status(Code,Label)))) --> !,
   "No permission to download from URL ",
   url(Url),
-  ". Received HTTP status code ",
-  integer(Code),
-  " ",
-  bracketed(atom(Label)),
-  ".".
-
-url(Url) -->
-  bracketed(langular, atom(Url)).
+  ". ",
+  http_status_code(Code, Label).
 
 :- multifile(prolog:message//1).
 
