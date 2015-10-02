@@ -6,8 +6,8 @@
                              % -Status:compound
                              % -Messages:list(compound)
     debug_all_files/0,
-    if_debug/2, % +Flag:atom
-                % :Goal
+    if_debug/2, % +Flag:compound
+                % :Goal_0
     msg_emphasis/1, % +Message:atom
     msg_error/1, % +Error:compound
     msg_normal/1, % +Message:atom
@@ -129,15 +129,15 @@ do_not_load0(dcg_unicode).
 
 
 
-%! if_debug(+Flag:atom, :Goal) .
+%! if_debug(+Flag:compound, :Goal_0) is det.
 % Calls the given goal only if the given flag is an active debugging topic.
 %
 % @see library(debug)
 
-if_debug(Flag, _Goal):-
+if_debug(Flag, _):-
   \+ debugging(Flag), !.
-if_debug(_, Goal):-
-  call(Goal).
+if_debug(_, Goal_0):-
+  call(Goal_0).
 
 
 
