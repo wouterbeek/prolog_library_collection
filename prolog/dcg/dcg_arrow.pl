@@ -14,7 +14,7 @@
 /** <module> Writing ASCII arrow
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(dcg/dcg_abnf)).
@@ -72,7 +72,13 @@ arrow(Head, Length) -->
 %! horizontal_line// .
 
 horizontal_line -->
-  {tty_size(_, ScreenWidth)},
+  {
+    catch(
+      tty_size(_, ScreenWidth),
+      E,
+      (format(user_error, '~q~n', [E]), ScreenWidth = 80)
+    )
+  },
   dcg_once(horizontal_line(ScreenWidth)).
 
 %! horizontal_line(?Length:nonneg)// .
