@@ -27,6 +27,8 @@ Let's do this!
 :- dynamic(title/1).
 :- dynamic(version/1).
 
+:- set_prolog_flag(verbose, silent).
+
 :- initialization(install).
 
 
@@ -113,7 +115,7 @@ install(_, _, _):-
 %! ) is det.
 
 % Developer's delight: library already available from parent directory.
-install_required(AppDir, LibName, Opts):-
+install_required(AppDir, LibName, Opts):-gtrace,
   option(parent(true), Opts),
 
   file_directory_name(AppDir, ParentDir),
@@ -128,7 +130,9 @@ install_required(_, LibName, Opts):-
   option(pack(true), Opts),
 
   prolog_pack:query_pack_server(search(LibName), Result,[]),
-  Result = true([pack(LibName,_,_,_,_)]), !,
+  Result = true(Matches),
+  memberchk(pack(LibName,_,_,_,_), Matches), !,
+
   pack_install(LibName, [interactive(false),silent(true),upgrade(true)]).
 % Install through Github.
 install_required(AppDir, LibName, Opts):-
@@ -146,7 +150,7 @@ install_required(AppDir, LibName, Opts):-
   % Print message.
   atomic_list_concat(['Library ',LibName,' was installed.'], Msg),
   msg_success(Msg),
-  
+
   % Recurse
   install(AppDir, LibDir, Opts), !.
 % Oops!
