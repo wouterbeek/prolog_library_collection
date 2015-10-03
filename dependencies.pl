@@ -1,13 +1,13 @@
 #!/usr/bin/env swipl
 
-:- module(install, []).
+:- module(dependencies, []).
 
-/** <module> Install
+/** <module> Install dependencies
 
 Let's do this!
 
 @author Wouter Beek
-@version 2015/09/23
+@version 2015/09/23, 2015/10/03
 */
 
 :- use_module(library(filesex)).
@@ -129,7 +129,7 @@ install_required(_, LibName, Opts):-
 
   prolog_pack:query_pack_server(search(LibName), Result,[]),
   Result = true([pack(LibName,_,_,_,_)]), !,
-  pack_install(LibName).
+  pack_install(LibName, [interactive(false),silent(true),upgrade(true)]).
 % Install through Github.
 install_required(AppDir, LibName, Opts):-
   option(github(true), Opts),
