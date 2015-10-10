@@ -30,7 +30,7 @@
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
-:- use_module(library(deb_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(dlist)).
@@ -81,6 +81,7 @@
 :- use_module(library(print_ext)).
 :- use_module(library(process_ext)).
 :- use_module(library(progress)).
+:- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 %/rest
   :- use_module(library(rest/rest_ext)).
