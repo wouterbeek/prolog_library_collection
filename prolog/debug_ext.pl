@@ -6,8 +6,21 @@
                              % -Status:compound
                              % -Messages:list(compound)
     debug_all_files/0,
+    debug_concurrent_maplist/3, % +Flag:compound
+                                % :Goal_1
+                                % +Arguments1:list
+    debug_concurrent_maplist/4, % +Flag:compound
+                                % :Goal_2
+                                % +Arguments1:list
+                                % +Arguments2:list
+    debug_concurrent_maplist/5, % +Flag:compound
+                                % :Goal_3
+                                % +Arguments1:list
+                                % +Arguments2:list
+                                % +Arguments3:list
     if_debug/2, % ?Flag:compound
                 % :Goal_0
+    number_of_open_files/1, % -N:nonneg
     msg_emphasis/1, % +Format:string
     msg_emphasis/2, % +Format:string
                     % +Arguments:list
@@ -46,6 +59,7 @@ Tools that ease debugging SWI-Prolog programs.
 @version 2015/07-2015/10
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
 :- use_module(library(check_installation)). % Private predicates.
@@ -59,9 +73,13 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
+:- use_module(library(thread)).
 
 :- meta_predicate(call_collect_messages(0)).
 :- meta_predicate(call_collect_messages(0,-,-)).
+:- meta_predicate(debug_concurrent_maplist(+,1,+)).
+:- meta_predicate(debug_concurrent_maplist(+,2,+,+)).
+:- meta_predicate(debug_concurrent_maplist(+,3,+,+,+)).
 :- meta_predicate(if_debug(?,0)).
 :- meta_predicate(verbose(0)).
 :- meta_predicate(verbose(?,0)).
@@ -99,6 +117,7 @@ process_warnings(Messages):-
   ->  true
   ;   print_message(warnings, number_of_warnings(N))
   ).
+
 
 %! call_collect_messages(
 %!   :Goal_0,
@@ -142,6 +161,45 @@ do_not_load0(dcg_unicode).
 
 
 
+%! debug_concurrent_maplist(+Flag:compound, :Goal_1, +Arguments1:list) is det.
+
+debug_concurrent_maplist(Flag, Goal_1, Args1):-
+  debugging(Flag), !,
+  maplist(Goal_1, Args1).
+debug_concurrent_maplist(_, Goal_1, Args1):-
+  concurrent_maplist(Goal_1, Args1).
+
+
+%! debug_concurrent_maplist(
+%!   +Flag:compound,
+%!   :Goal_2,
+%!   +Arguments1:list,
+%!   +Arguments2:list
+%! ) is det.
+
+debug_concurrent_maplist(Flag, Goal_2, Args1, Args2):-
+  debugging(Flag), !,
+  maplist(Goal_2, Args1, Args2).
+debug_concurrent_maplist(_, Goal_2, Args1, Args2):-
+  concurrent_maplist(Goal_2, Args1, Args2).
+
+
+%! debug_concurrent_maplist(
+%!   +Flag:compound,
+%!   :Goal_3,
+%!   +Arguments1:list,
+%!   +Arguments2:list,
+%!   +Arguments3:list
+%! ) is det.
+
+debug_concurrent_maplist(Flag, Goal_3, Args1, Args2, Args3):-
+  debugging(Flag), !,
+  maplist(Goal_3, Args1, Args2, Args3).
+debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
+  concurrent_maplist(Goal_3, Args1, Args2, Args3).
+
+
+
 %! if_debug(?Flag:compound, :Goal_0) is det.
 % Calls the given goal only if the given flag is an active debugging topic.
 % Succeeds if Flag is uninstantiated.
@@ -163,6 +221,7 @@ if_debug(_, Goal_0):-
 msg_emphasis(Format):-
   msg_emphasis(Format, []).
 
+
 %! msg_emphasis(+Format:string, +Arguments:list) is det.
 % Prints an emphasized message, using ANSI properties.
 
@@ -179,11 +238,13 @@ msg_error(E):-
   msg_warning(A).
 
 
+
 %! msg_normal(+Format:string) is det.
 % Wrapper around msg_normal/2 with no arguments.
 
 msg_normal(Format):-
   msg_normal(Format, []).
+
 
 %! msg_normal(+Format:string, +Arguments:list) is det.
 % Prints a normal messages, using no ANSI properties.
@@ -199,6 +260,7 @@ msg_normal(Format, Args):-
 msg_notification(Format):-
   msg_notification(Format, []).
 
+
 %! msg_notification(+Format:string, +Arguments:list) is det.
 % Prints a notification message, using ANSI properties.
 
@@ -212,6 +274,7 @@ msg_notification(Format, Args):-
 
 msg_success(Format):-
   msg_success(Format, []).
+
 
 %! msg_success(+Format:string, +Arguments:list) is det.
 % Prints a success message, using ANSI properties.
@@ -227,11 +290,23 @@ msg_success(Format, Args):-
 msg_warning(Format):-
   msg_warning(Format, []).
 
+
 %! msg_warning(+Format:string, +Arguments:list) is det.
 % Prints a warnings message, using ANSI properties.
 
 msg_warning(Format, Args):-
   ansi_format([bold,fg(red)], Format, Args).
+
+
+
+%! number_of_open_files(-N:nonneg) is det.
+
+number_of_open_files(N):-
+  aggregate_all(
+    count,
+    stream_property(_, output),
+    N
+  ).
 
 
 
@@ -241,6 +316,7 @@ msg_warning(Format, Args):-
 verbose(Goal_0):-
   verbose(_, Goal_0).
 
+
 %! verbose(?Frag:compound, :Goal_0) is det.
 % Wrapper around verbose/3.
 
@@ -248,11 +324,13 @@ verbose(Flag, Goal_0):-
   term_string(Goal_0, Format),
   verbose(Flag, Goal_0, Format).
 
+
 %! verbose(+Flag:compound, :Goal_0, +Format:string) is det.
 % Wrapper around verbose/4.
 
 verbose(Flag, Goal_0, Format):-
   verbose(Flag, Goal_0, Format, []).
+
 
 %! verbose(?Flag:compound, :Goal_0, +Format:string, +Arguments:list) is det.
 % Verbose call of Goal_0.
@@ -262,17 +340,20 @@ verbose(Flag, Goal_0, Format):-
 % Otherwise, i.e., if Flag is uninstantiated, all messages are displayed.
 
 verbose(Flag, Goal_0, Format, Args):-
+  get_time(Start),
   defval(debug_ext, Flag),
-  if_debug(Flag, ansi_format([], Format, Args)),
+  if_debug(Flag, msg_normal(Format, Args)),
   (   catch(Goal_0, Error, true)
   ->  if_debug(Flag,
         (   var(Error)
-        ->  msg_success("~`.t success~72|")
+        ->  get_time(End),
+	    Delta is End - Start,
+            msg_success("~`.t success (~2f)~72|~n", [Delta])
         ;   message_to_string(Error, String),
-            msg_warning("~`.t ERROR: ~w~72|", [String])
+            msg_warning("~`.t ERROR: ~w~72|~n", [String])
         )
       )
-  ;   if_debug(Flag, msg_warning("~`.t ERROR: (failed)~72|"))
+  ;   if_debug(Flag, msg_warning("~`.t ERROR: (failed)~72|~n"))
   ).
 
 
