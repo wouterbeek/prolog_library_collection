@@ -90,11 +90,6 @@
                % ?Rest:list
     postfix/2, % ?Part:list
                % ?Whole:list
-    random_sublist/2, % -Sublist:list
-                      % +List:list
-    random_sublist/3, % -Sublist:list
-                      % +Length:nonneg
-                      % +List:list
     remove_sublists/2, % +Lists1:list(list)
                        % -Lists2:list(list)
     repeating_list/3, % ?X
@@ -144,13 +139,12 @@
 Extensions to the set of list predicates in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/10
 */
 
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
-:- use_module(library(random)).
 :- use_module(library(typecheck)).
 
 
@@ -585,30 +579,6 @@ nth1chk(I, L, E, R):-
 
 postfix(Part, Whole):-
   append(_, Part, Whole).
-
-
-
-%! random_sublist(-Sublist:list, +List:list) is det.
-% Returns a sublist of the given list that is (1) of random length
-% and that (2) contains randomly selected elements.
-%
-% @tbd Shorter lists are more probable than longer lists,
-%      because there are more sublists of larger length,
-%      but each length is as probable to occur.
-
-random_sublist(Sublist, List):-
-  length(List, ListLength),
-  random_between(0, ListLength, SublistLength),
-  random_sublist(Sublist, SublistLength, List).
-
-
-%! random_sublist(-Sublist:list, +Length:nonneg, +List:list) is det.
-
-random_sublist([], 0, _).
-random_sublist([H|Sublist], SublistLength1, List1):-
-  random_select(H, List1, List2),
-  SublistLength2 is SublistLength1 - 1,
-  random_sublist(Sublist, SublistLength2, List2).
 
 
 
