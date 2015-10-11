@@ -85,6 +85,9 @@
 :- use_module(library(string_ext)).
 %/rest
   :- use_module(library(rest/rest_ext)).
+%/set
+  :- use_module(library(set/set_ext)).
+  :- use_module(library(set/set_ext_experimental)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).
