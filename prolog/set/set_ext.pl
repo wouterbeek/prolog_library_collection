@@ -40,7 +40,7 @@ Extra set functions for use in SWI-Prolog.
 */
 
 :- use_module(library(error)).
-:- use_module(library(lists)).
+:- use_module(library(list_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
 

@@ -3,8 +3,6 @@
   [
     inverse_pair/2, % ?Pair:pair
                     % ?Inverse:pair
-    json_pair/2, % ?Pair:pair
-                 % ?Dict:dict
     list_pair/2, % ?List:list
                  % ?Pair:pair
     merge_pairs_by_key/2, % +Pairs:list(pair)
@@ -153,15 +151,6 @@ cardinality_to_number_of_pairs(Cardinality, NumberOfPairs, Options):-
   ->  NumberOfPairs is NumberOfSymmetricAndTransitivePairs + Cardinality
   ;   NumberOfPairs = NumberOfSymmetricAndTransitivePairs
   ).
-
-
-
-%! json_pair(+Pair:pair, +Dict:dict) is semidet.
-%! json_pair(+Pair:pair, -Dict:dict) is det.
-%! json_pair(-Pair:pair, +Dict:dict) is det.
-
-json_pair(Pair, Dict):-
-  dict_pairs(Dict, json, [Pair]).
 
 
 
@@ -416,7 +405,7 @@ subpairs([_|T1], L2, L3):-
 
 
 %! term_to_pair(@Term, -Pair:pair) is det.
-% Retrusn the pair notation `First-Second` if the given term
+% Returns the pair notation `First-Second` if the given term
 % can be interpreted as a pair.
 %
 % The following pair notations are recognized:
