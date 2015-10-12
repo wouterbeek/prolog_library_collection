@@ -15,11 +15,12 @@
 Support for image files.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_content)).
+:- use_module(library(debug)).
 :- use_module(library(process_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(typecheck)).
@@ -69,7 +70,7 @@ image_dimensions0(File, Width, Height, Read):-
 image_dimensions0(File, Width, Height) -->
   atom(File),
   " ",
-  atom(_FileType),
+  ...,
   " ",
   integer(Width),
   "x",
