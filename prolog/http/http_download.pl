@@ -81,9 +81,8 @@ file_download(Iri, _, _):-
   \+ uri_is_global(Iri), !,
   type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Iri, File0, Opts):-
-  nonvar(File0), !,
-  absolute_file_name(File0, File, [access(write)]),
+file_download(Iri, File, Opts):-
+  nonvar(File), !,
   file_directory_name(File, Dir),
   make_directory_path(Dir),
 
