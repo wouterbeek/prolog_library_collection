@@ -1,7 +1,7 @@
 :- module(
   dcg_word_wrap,
   [
-    dcg_word_wrap//1 % +Options:list(nvpair)
+    dcg_word_wrap//1 % +Options:list(compound)
   ]
 ).
 
@@ -25,7 +25,7 @@ There are various uses of wrapping text:
       since HTML does not display newlines.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/10
 */
 
 :- use_module(library(dcg/basics)).
@@ -57,7 +57,7 @@ is_meta(separator).
 
 
 
-%! dcg_word_wrap(+Options:list(nvpair))// is det.
+%! dcg_word_wrap(+Options:list(compound))// is det.
 % The following options are supported:
 %   1. `padding(+boolean)`
 %      Whether padding occurs at the right hand side of the last line
@@ -74,14 +74,14 @@ is_meta(separator).
 %      Hard wrod wrapping inserts newlines after characters.
 %      Mode `none` does not insert any newlines.
 
-dcg_word_wrap(Options1) -->
+dcg_word_wrap(Opts1) -->
   {
-    meta_options(is_meta, Options1, Options2),
-    select_option(word_wrap(WordWrap), Options2, Options3, word),
-    option(padding(Padding), Options3, false),
-    option(separator(Separator), Options3, line_feed),
+    meta_options(is_meta, Opts1, Opts2),
+    select_option(word_wrap(WordWrap), Opts2, Opts3, word),
+    option(padding(Padding), Opts3, false),
+    option(separator(Separator), Opts3, line_feed),
     setting(wrap_margin, DefaultWrapMargin),
-    option(wrap_margin(WrapMargin), Options3, DefaultWrapMargin)
+    option(wrap_margin(WrapMargin), Opts3, DefaultWrapMargin)
   },
   (   {WordWrap == hard}
   ->  dcg_word_wrap_hard(Padding, Separator, WrapMargin, WrapMargin)
@@ -101,10 +101,10 @@ dcg_word_wrap(Options1) -->
 %!   +WrapMargin:nonneg
 %! )// is det.
 % Emits the parsed codes list with interspersed separators using
-%  hard word wrapping.
+% hard word wrapping.
 %
 % Hard word wrapping ends a line after the given number of characters
-%  has been parsed, or once there are no more characters left.
+% has been parsed, or once there are no more characters left.
 
 % The wrap margin has been reached, so it is time for a separator.
 % Reset the character count and start parsing the next line.
@@ -240,7 +240,7 @@ dcg_word_wrap_soft(Padding, _, Remaining, _),
 
 
 
-% HELPERS
+% HELPERS %
 
 apply_padding(false, _) --> "".
 apply_padding(true, Remaining) --> '#'(Remaining, space, []).

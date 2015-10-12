@@ -5,9 +5,7 @@
                 % ?Absolute:number
     average/2, % +Numbers:list(number)
                % -Average:number
-    betwixt/3, % +Low:integer
-               % +High:integer
-               % ?Value:integer
+    betwixt/3, % +Low, +High, ?Value
     betwixt/4, % +Low:integer
                % +High:integer
                % +Interval:integer
@@ -50,14 +48,12 @@
     normalized_number/3, % +Decimal:compound
                          % -NormalizedDecimal:compound
                          % -Exponent:nonneg
-    number_length/2, % +Number:number
-                     % -Length:integer
+    number_length/2, % +Number, -Length
     number_length/3, % +Number:number
                      % +Radix:integer
                      % -Length:integer
     odd/1, % +Integer:integer
-    permutations/2, % +NumberOfObjects:integer
-                    % -NumberOfPermutations:integer
+    permutations/2, % +NumberOfObjects, -NumberOfPermutations
     permutations/3, % +NumbersOfObjects:list(integer)
                     % +PermutationLength:integer
                     % -NumberOfPermutations:integer
