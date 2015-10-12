@@ -30,6 +30,7 @@
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
+  :- use_module(library(dcg/dcg_word_wrap)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).

@@ -34,7 +34,7 @@ There are various uses of wrapping text:
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_peek)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(lists)).
+:- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(settings)).
 
