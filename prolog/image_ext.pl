@@ -55,8 +55,14 @@ image_dimensions(File, Width, Height):-
   run_process(
     identify,
     [file(File)],
-    [output_goal(phrase_from_stream(image_dimensions0(File, Width, Height)))]
+    [output_goal(image_dimensions0(File, Width, Height))]
   ).
+
+%! image_dimensions0(+File:atom, -Width:float, -Height:float, +Read:stream)
+
+image_dimensions0(File, Width, Height, Read):-
+  read_stream_to_codes(Read, Cs),
+  phrase(image_dimensions0(File, Width, Height), Cs).
 
 %! image_dimensions0(+File:atom, -Width:float, -Height:float)// is det.
 
