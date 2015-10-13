@@ -3,21 +3,13 @@
   [
     create_file/1, % +File:atom
     create_file_directory/1, % +File:atom
-    dateTime_file/2, % +Directory, -File
-    dateTime_file/3, % +Directory:atom
-                     % ?Extension:atom
-                     % -File:atom
+
     file_age/2, % +File:atom
                 % -Age:float
     is_fresh_file/2, % +File:atom
                      % +FreshnessLifetime:between(0.0,inf)
     is_stale_file/2, % +File:atom
                      % +FreshnessLifetime:between(0.0,inf)
-    latest_dateTime_file/2, % +DirectorySpec:compound
-                            % -File:atom
-    latest_dateTime_file/3, % +DirectorySpec:compound
-                            % ?Extension:atom
-                            % -File:atom
     latest_file/2, % +Files:list(atom)
                    % -LatestFile:atom
     thread_file/2, % +File:atom
@@ -75,29 +67,6 @@ create_file_directory(Path):-
 
 
 
-%! dateTime_file(+Directory:compound, -File:atom) is det.
-
-dateTime_file(Dir, File):-
-  dateTime_file(Dir, _, File).
-
-%! dateTime_file(+Directory:compound, ?Extension:atom, -File:atom) is det.
-
-dateTime_file(Spec, Ext, Path):-
-  date_directory(Spec, Dir),
-  get_time(TimeStamp),
-  format_time(atom(Hour), '%H', TimeStamp),
-  format_time(atom(Minute), '%M', TimeStamp),
-  format_time(atom(Second), '%S', TimeStamp),
-  format(atom(Base), '~a_~a_~a', [Hour,Minute,Second]),
-  (   var(Ext)
-  ->  Local = Base
-  ;   file_name_extension(Base, Ext, Local)
-  ),
-  directory_file_path(Dir, Local, Path),
-  create_file(Path).
-
-
-
 %! file_age(+File:atom, -Age:float) is det.
 
 file_age(File, Age):-
@@ -145,63 +114,17 @@ is_stale_file(File, FreshnessLifetime):-
 
 
 
-%! latest_dateTime_file(+DrectorySpec:compound, -File:atom) is det.
-
-latest_dateTime_file(DirSpec, Latest):-
-  latest_dateTime_file(DirSpec, _, Latest).
-
-%! latest_dateTime_file(
-%!   +DirectorySpec:compound,
-%!   ?Extension:atom,
-%!   -File:atom
-%! ) is det.
-
-latest_dateTime_file(DirSpec, Ext, Latest):-
-  absolute_file_name(DirSpec, Dir, [access(read),file_type(directory)]),
-
-  % Year
-  directory_files(Dir, Years0),
-  include(atom_phrase(integer(_)), Years0, Years),
-  max_member(Year, Years),
-  directory_file_path(Dir, Year, YearDir),
-
-  % Month
-  directory_files(YearDir, Months0),
-  include(atom_phrase(integer(_)), Months0, Months),
-  max_member(Month, Months),
-  directory_file_path(YearDir, Month, MonthDir),
-
-  % Day
-  directory_files(MonthDir, Days0),
-  include(atom_phrase(integer(_)), Days0, Days),
-  max_member(Day, Days),
-  directory_file_path(MonthDir, Day, DayDir),
-
-  % Time
-  directory_files(DayDir, DayFiles0),
-  include(atom_phrase(date_or_time), DayFiles0, DayFiles),
-  max_member(LatestBase, DayFiles),
-  (   var(Ext)
-  ->  LatestFile = LatestBase
-  ;   file_name_extension(LatestBase, Ext, LatestFile)
-  ),
-  directory_file_path(DayDir, LatestFile, Latest).
-
-date_or_time --> integer(_), "_", integer(_), "_", integer(_), ... .
-
-
-
 %! latest_file(+Files:list(atom), -Latest:atom) is det.
 % Returns the most recently created or altered file from within a list of
 % files.
 
 latest_file([H|T], Latest):-
-  dateTime_file(H, Time),
+  time_file(H, Time),
   latest_file(T, Time-H, Latest).
 
 latest_file([], _-Latest, Latest).
 latest_file([H|T], Time1-File1, Latest):-
-  dateTime_file(H, NewTime),
+  time_file(H, NewTime),
   (   NewTime > Time1
   ->  Time2 = NewTime,
       File2 = H

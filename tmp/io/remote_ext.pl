@@ -24,13 +24,11 @@ Support for files residing on remote machines.
 */
 
 :- use_module(library(filesex)).
-
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(process/process_ext)).
+:- use_module(library(os/process_ext)).
 
 :- predicate_options(remote_open/4, 4, [
-  pass_to(open/4, 4)
-]).
+     pass_to(open/4, 4)
+   ]).
 
 
 

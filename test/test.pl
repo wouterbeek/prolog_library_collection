@@ -69,6 +69,7 @@
 :- use_module(library(option_ext)).
 %/os
   :- use_module(library(os/archive_ext)).
+  :- use_module(library(os/datetime_file)).
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).
   :- use_module(library(os/file_ext)).
@@ -76,11 +77,13 @@
   :- use_module(library(os/gnu_sort)).
   :- use_module(library(os/gnu_wc)).
   :- use_module(library(os/os_ext)).
+  :- use_module(library(os/pdf)).
+  :- use_module(library(os/process_ext)).
+  :- use_module(library(os/tts)).
 :- use_module(library(pair_ext)).
 %/pl
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
-:- use_module(library(process_ext)).
 :- use_module(library(progress)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).

@@ -7,9 +7,6 @@
                  % ?Pair:pair
     merge_pairs_by_key/2, % +Pairs:list(pair)
                           % -Merged:list(pair)
-    number_of_equivalence_pairs/3, % +EquivalenceSets:list(ordset)
-                                   % -NumberOfPairs:nonneg
-                                   % +Options:list(nvpair)
     pair/3, % ?Pair:pair
             % ?Element1
             % ?Element2
@@ -76,12 +73,6 @@ Support predicates for working with pairs.
 
 :- op(555, xfx, ~).
 
-:- predicate_options(number_of_equivalence_pairs/3, 3, [
-     pass_to(cardinality_to_number_of_pairs/3, 3)
-   ]).
-:- predicate_options(cardinality_to_number_of_pairs/3, 3, [
-     reflexive(+boolean)
-   ]).
 :- predicate_options(sets_to_pairs/3, 3, [
      reflexive(+boolean),
      symmetric(+boolean)
@@ -119,38 +110,6 @@ same_key(K, [K-V|L1], VMerge2, L2):- !,
 same_key(K, [_|L1], VMerge, L2):- !,
   same_key(K, L1, VMerge, L2).
 same_key(_, L, [], L).
-
-
-
-%! number_of_equivalence_pairs(
-%!   +EquivalenceSets:list(ordset),
-%!   -NumberOfPairs:nonneg,
-%!   +Options:list(nvpair)
-%! ) is det.
-% Returns the number of equivalence pairs that are encoded in
-% the given collection of equivalence sets.
-%
-% The following options are supported:
-%   * `reflexive(+boolean)`
-%     Whether to count reflexive cases. Default: `true`.
-
-number_of_equivalence_pairs(EqSets, NumberOfPairs, Options):-
-  aggregate_all(
-    sum(NumberOfPairs),
-    (
-      member(EqSet, EqSets),
-      length(EqSet, Cardinality),
-      cardinality_to_number_of_pairs(Cardinality, NumberOfPairs, Options)
-    ),
-    NumberOfPairs
-  ).
-
-cardinality_to_number_of_pairs(Cardinality, NumberOfPairs, Options):-
-  NumberOfSymmetricAndTransitivePairs is Cardinality * (Cardinality - 1),
-  (   option(reflexive(true), Options, true)
-  ->  NumberOfPairs is NumberOfSymmetricAndTransitivePairs + Cardinality
-  ;   NumberOfPairs = NumberOfSymmetricAndTransitivePairs
-  ).
 
 
 

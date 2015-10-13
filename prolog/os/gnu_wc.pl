@@ -11,13 +11,12 @@
 Prolog API to GNU word count.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(io_ext)).
-:- use_module(library(process_ext)).
-%:- use_module(library(pure_input)).
+:- use_module(library(os/process_ext)).
 
 
 
@@ -28,4 +27,7 @@ Prolog API to GNU word count.
 
 file_lines(File, N):-
   run_process(wc, ['-l',file(File)], [output_goal(parse_wc(N))]).
-parse_wc(N, Read):- read_input_to_codes(Read, Cs), phrase((integer(N), dcg_done), Cs).
+
+parse_wc(N, Read):-
+  read_input_to_codes(Read, Cs),
+  phrase((integer(N), dcg_done), Cs).

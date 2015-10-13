@@ -17,22 +17,20 @@ Predicates for handling LaTeX files.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(os/process_ext)).
 
-:- use_module(plc(generics/db_ext)).
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_ext)).
-:- use_module(plc(prolog/pl_control)).
-:- use_module(plc(process/process_ext)).
+:- dynamic(user:prolog_file_type/2).
+:- multifile(user:prolog_file_type/2).
 
-:- db_add_novel(user:prolog_file_type(aux, aux      )).
-:- db_add_novel(user:prolog_file_type(aux, latex_out)).
-:- db_add_novel(user:prolog_file_type(bib, bibtex   )).
-:- db_add_novel(user:prolog_file_type(log, log      )).
-:- db_add_novel(user:prolog_file_type(log, latex_out)).
-:- db_add_novel(user:prolog_file_type(pdf, pdf      )).
-:- db_add_novel(user:prolog_file_type(pdf, latex_out)).
-:- db_add_novel(user:prolog_file_type(tex, tex      )).
-:- db_add_novel(user:prolog_file_type(tex, latex_in )).
+user:prolog_file_type(aux, aux      ).
+user:prolog_file_type(aux, latex_out).
+user:prolog_file_type(bib, bibtex   ).
+user:prolog_file_type(log, log      ).
+user:prolog_file_type(log, latex_out).
+user:prolog_file_type(pdf, pdf      ).
+user:prolog_file_type(pdf, latex_out).
+user:prolog_file_type(tex, tex      ).
+user:prolog_file_type(tex, latex_in ).
 
 
 

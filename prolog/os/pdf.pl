@@ -7,18 +7,18 @@
 
 /** <module> PDF
 
-Support for PDF files.
+Support for opening PDF files.
 
 @author Wouter Beek
-@version 2014/05, 2014/07, 2015/03
+@version 2015/10
 */
 
-:- use_module(plc(os/os_ext)).
-:- use_module(plc(process/process_ext)).
-:- use_module(plc(process/program_db)).
+:- use_module(library(os/external_program)).
+:- use_module(library(os/process_ext)).
 
 :- dynamic(user:file_type_program/2).
 :- multifile(user:file_type_program/2).
+
 user:file_type_program(pdf, evince).
 user:file_type_program(pdf, xpdf).
 
@@ -31,4 +31,4 @@ user:file_type_program(pdf, xpdf).
 
 open_pdf(File):-
   once(find_program_by_file_type(pdf, Program)),
-  handle_process(Program, [File], [program(Program)]).
+  run_process(Program, [File], [program(Program)]).

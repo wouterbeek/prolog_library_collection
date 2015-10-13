@@ -21,12 +21,12 @@ $ gnuplot -e "input_file='data/2015/04/01/16_33_29.csv';output_dir='data/';" su_
 ---
 
 @author Wouter Beek
-@version 2015/04, 2015/09
+@version 2015/04, 2015/09-2015/10
 */
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(process_ext)).
+:- use_module(library(os/process_ext)).
 
 :- predicate_options(gnu_plot/3, 3, [
      pass_to(handle_process/3, 3)

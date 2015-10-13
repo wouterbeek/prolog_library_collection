@@ -11,13 +11,13 @@
 Support for calling GNU sort from within Prolog.
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(cli_ext)).
 :- use_module(library(error)).
 :- use_module(library(option)).
-:- use_module(library(process_ext)).
+:- use_module(library(os/process_ext)).
 
 :- predicate_options(gnu_sort/2, 2, [
      buffer_size(+nonneg),

@@ -21,7 +21,7 @@ Support for image files.
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(debug)).
-:- use_module(library(process_ext)).
+:- use_module(library(os/process_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).

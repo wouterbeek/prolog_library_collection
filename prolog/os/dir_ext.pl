@@ -5,8 +5,6 @@
                           % +Dir2:atom
                           % -Dir3:atom
     current_directory/1, % ?Directory:atom
-    date_directory/2, % +Spec
-                      % -Directory:atom
     directory_files/3, % +Directory:atom
                        % -AbsoluteFiles:list(atom)
                        % +Options:list(compound)
@@ -59,24 +57,6 @@ append_directories(Dir1, Dir2, Dir3):-
 
 current_directory(Dir):-
   absolute_file_name(., Dir, [file_type(directory)]).
-
-
-
-%! date_directory(+Spec:compound, -Directory:atom) is det.
-% Create and return the current date subdirectory of the given absolute
-% directory name.
-%
-% Example: from `/tmp` to `/tmp/2013/05/10`
-
-date_directory(Spec, Dir):-
-  get_time(TimeStamp),
-  format_time(atom(Day), '%d', TimeStamp),
-  format_time(atom(Month), '%m', TimeStamp),
-  format_time(atom(Year), '%Y', TimeStamp),
-  absolute_file_name(Spec, PrefixDir, [access(write),file_type(directory)]),
-  directory_subdirectories(PostfixDir, [Year,Month,Day]),
-  append_directories(PrefixDir, PostfixDir, Dir),
-  make_directory_path(Dir).
 
 
 

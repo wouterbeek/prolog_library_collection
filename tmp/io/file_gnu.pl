@@ -19,10 +19,8 @@ Interface to GNU tools for file-processing.
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(process)).
+:- use_module(library(os/process_ext)).
 :- use_module(library(pure_input)).
-
-:- use_module(plc(process/process_ext)).
 
 
 
