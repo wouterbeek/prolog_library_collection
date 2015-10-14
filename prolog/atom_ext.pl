@@ -42,11 +42,9 @@
     strip_atom_begin/3, % +Strips:list(atom)
                         % +In:atom
                         % -Out:atom
-    strip_atom_end/3, % +Strips:list(atom)
-                      % +In:atom
-                      % -Out:atom
-    to_atom/2 % +Input:or([atom,list(code),number,string])
-              % -Atom:atom
+    strip_atom_end/3 % +Strips:list(atom)
+                     % +In:atom
+                     % -Out:atom
   ]
 ).
 
@@ -96,7 +94,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2018/09
+@version 2015/07-2018/10
 */
 
 :- use_module(library(apply)).
@@ -362,35 +360,3 @@ strip_atom_end(Strips, A1, A3):-
   atom_concat(A2, Strip, A1), !,
   strip_atom_end(Strips, A2, A3).
 strip_atom_end(_, A, A).
-
-
-
-%! to_atom(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   -Atom:atom
-%! ) is det.
-% Notice that the empty codes list and the empty character list
-% both map onto the empty atom.
-
-% Atom.
-to_atom(Atom, Atom):-
-  atom(Atom), !.
-% Empty list.
-to_atom([], '').
-% Non-empty list of characters.
-to_atom(Chars, Atom):-
-  maplist(is_char, Chars), !,
-  atom_chars(Atom, Chars).
-% Non-empty list of codes.
-to_atom(Codes, Atom):-
-  maplist(code, Codes), !,
-  atom_codes(Atom, Codes).
-% Number.
-to_atom(Number, Atom):-
-  number(Number), !,
-  atom_number(Atom, Number).
-% String.
-to_atom(String, Atom):-
-  string(String), !,
-  atom_string(Atom, String).
-
