@@ -1,8 +1,10 @@
 :- module(
   dict_ext,
   [
-    clean_dict/2, % +Dict:dict
-                  % -CleanDict
+    atomize_dict/2, % +Dict:dict
+                    % -AtomizedDict:dict
+    create_grouped_sorted_dict/2, % +Options:list(compound)
+                                  % -GroupedSortedDict:dict
     dict_tag/3, % +Dict1:dict
                 % +Tag:atom
                 % ?Dict2:dict
@@ -14,11 +16,12 @@
                  % +Indent:nonneg
   ]
 ).
+:- reexport(library(dicts)).
 
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/10
 */
 
 :- use_module(library(apply)).
@@ -32,20 +35,32 @@
 
 
 
-%! clean_dict(+Dict:dict, -CleanDict:dict) is det.
+%! atomize_dict(+Dict:dict, -AtomizedDict:dict) is det.
 
-clean_dict(D1, D2):-
-  clean_dict0(D1, D2).
+atomize_dict(D1, D2):-
+  atomize_dict0(D1, D2).
 
-clean_dict0(D1, D2):-
+atomize_dict0(D1, D2):-
   is_dict(D1), !,
   dict_pairs(D1, Tag, L1),
-  maplist(clean_dict0, L1, L2),
+  maplist(atomize_dict0, L1, L2),
   dict_pairs(D2, Tag, L2).
-clean_dict0(S, A):-
+atomize_dict0(S, A):-
   string(S), !,
   atom_string(A, S).
-clean_dict0(X, X).
+atomize_dict0(X, X).
+
+
+
+%! create_grouped_sorted_dict(
+%!   +Options:list(compound),
+%!   -GroupedSortedDict:dict
+%! ) is det.
+
+create_grouped_sorted_dict(Opts, Tag, D):-
+  sort(Opts, SOpts),
+  group_pairs_by_key(SOpts, GSOpts),
+  dict_pairs(D, Tag, GSOpts).
 
 
 
