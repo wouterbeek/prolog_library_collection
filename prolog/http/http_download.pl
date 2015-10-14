@@ -25,14 +25,13 @@ Support for downloading files and datastructures over HTTP(S).
 @author Wouter Beek
 @tbd We cannot use library(lambda) because this copies the goal term,
      not returning the DOM argument.
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(atom_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
-:- use_module(library(json_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
@@ -142,8 +141,7 @@ dom_clean([element(N,As,Contents1)|T1], [element(N,As,Contents2)|T2]):-
 json_download(Iri, Json):-
   http_get(Iri, json_read_dict0(Json)).
 json_read_dict0(Json, _, Read):-
-  json_read_dict(Read, Json0),
-  clean_json(Json0, Json).
+  json_read_dict(Read, Json).
 
 
 
