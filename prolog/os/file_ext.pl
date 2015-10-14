@@ -6,8 +6,12 @@
 
     file_age/2, % +File:atom
                 % -Age:float
+    is_fresh_age/2, % +Age:between(0.0,inf)
+                    % +FreshnessLifetime:between(0.0,inf)
     is_fresh_file/2, % +File:atom
                      % +FreshnessLifetime:between(0.0,inf)
+    is_stale_age/2, % +Age:between(0.0,inf)
+                    % +FreshnessLifetime:between(0.0,inf)
     is_stale_file/2, % +File:atom
                      % +FreshnessLifetime:between(0.0,inf)
     latest_file/2, % +Files:list(atom)
@@ -27,7 +31,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/09
+@version 2015/07-2015/10
 */
 
 :- use_module(library(apply)).
