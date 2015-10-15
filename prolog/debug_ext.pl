@@ -5,6 +5,7 @@
     call_collect_messages/3, % :Goal_0
                              % -Status:compound
                              % -Messages:list(compound)
+    call_print_error/1, % :Goal_0
     debug_all_files/0,
     debug_concurrent_maplist/3, % +Flag:compound
                                 % :Goal_1
@@ -77,6 +78,7 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- meta_predicate(call_collect_messages(0)).
 :- meta_predicate(call_collect_messages(0,-,-)).
+:- meta_predicate(call_print_error(0)).
 :- meta_predicate(debug_concurrent_maplist(+,1,+)).
 :- meta_predicate(debug_concurrent_maplist(+,2,+,+)).
 :- meta_predicate(debug_concurrent_maplist(+,3,+,+,+)).
@@ -127,6 +129,13 @@ process_warnings(Messages):-
 
 call_collect_messages(Goal_0, Status, Messages):-
   check_installation:run_collect_messages(Goal_0, Status, Messages).
+
+
+
+%! call_print_error(:Goal_0) is det.
+
+call_print_error(Goal_0):-
+  catch(Goal_0, E, msg_error(E)).
 
 
 
@@ -234,8 +243,8 @@ msg_emphasis(Format, Args):-
 % Prints an error compound term using a grammar for errors.
 
 msg_error(E):-
-  atom_phrase(msg_error(E), A),
-  msg_warning(A).
+  string_phrase(msg_error(E), S),
+  msg_warning(S).
 
 
 
@@ -366,6 +375,12 @@ verbose(Flag, Goal_0, Format, Args):-
 
 msg_error(exception(E)) --> !,
   msg_error(E).
+msg_error(error(existence_error(procedure,Pred),context(CallingContext,_))) --> !,
+  "Predicate ",
+  predicate(Pred),
+  " does not exist within calling context ",
+  predicate(CallingContext),
+  ".".
 msg_error(error(socket_error(Msg),_)) --> !,
   "Socket error: ",
   atom(Msg).
@@ -374,6 +389,16 @@ msg_error(error(permission_error(url,Iri),context(_,status(Code,_)))) --> !,
   iri(Iri),
   ". ",
   http_status_code(Code).
+msg_error(E) -->
+  {gtrace}, %DEB
+  msg_error(E).
+
+predicate(Mod:PredLet/Arity) -->
+  atom(Mod),
+  ":",
+  atom(PredLet),
+  "/",
+  integer(Arity).
 
 :- multifile(prolog:message//1).
 
