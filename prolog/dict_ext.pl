@@ -3,7 +3,8 @@
   [
     atomize_dict/2, % +Dict:dict
                     % -AtomizedDict:dict
-    create_grouped_sorted_dict/2, % +Options:list(compound)
+    create_grouped_sorted_dict/3, % +Options:list(compound)
+                                  % +Tag:atom
                                   % -GroupedSortedDict:dict
     dict_tag/3, % +Dict1:dict
                 % +Tag:atom
