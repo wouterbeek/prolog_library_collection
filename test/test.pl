@@ -23,6 +23,7 @@
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_debug)).
   :- use_module(library(dcg/dcg_file)).
+  :- use_module(library(dcg/dcg_msg)).
   :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
@@ -64,9 +65,10 @@
   :- use_module(library(math/radconv)).
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
+:- use_module(library(msg_ext)).
 %/nlp
-  :- use_module(library(nlp/dict)).
-  :- use_module(library(nlp/nlp)).
+  :- use_module(library(nlp/nlp_dictionary)).
+  :- use_module(library(nlp/nlp_grammar)).
 :- use_module(library(option_ext)).
 %/os
   :- use_module(library(os/archive_ext)).

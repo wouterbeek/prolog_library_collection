@@ -28,4 +28,4 @@ DCG-based debug tools.
 
 dcg_debug(Topic, Dcg_0):-
   string_phrase(Dcg_0, S),
-  debug(Topic, '~s', [S]).
+  debug(Topic, "~s", [S]).

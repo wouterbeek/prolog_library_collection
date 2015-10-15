@@ -1,17 +1,17 @@
 :- module(
-  nlp,
+  nlp_grammar,
   [
     plural//2 % +Count:integer
               % +Singular:atom
   ]
 ).
 
-/** <module> Natural Language Processing extensions
+/** <module> Natural Language: Grammar
 
 Simple NLP predicates for often occurring cases.
 
 @author Wouter Beek
-@version 2015/09
+@version 2015/09-2015/10
 */
 
 :- use_module(library(dcg/basics)).

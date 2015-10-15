@@ -1,8 +1,9 @@
 :- module(
   pair_ext,
   [
-    'group_pairs_by_key@'/2 % +Pairs:list(pair)
-                            % -GroupedPairs:list(pair)
+    group_pairs_by_key/3 % :Comparator_2
+                         % +Pairs:list(pair)
+                         % -GroupedPairs:list(pair)
   ]
 ).
 :- reexport(library(pairs)).
@@ -17,6 +18,9 @@ Additional support for dealing with pairs.
 
 :- use_module(library(error)).
 
+:- meta_predicate(group_pairs_by_key(2,+,-)).
+:- meta_predicate(same_key(2,+,+,-,-)).
+
 :- multifile(error:has_type/2).
 error:has_type(pair, _-_).
 error:has_type(pair(Type), X-Y):-
@@ -28,15 +32,18 @@ error:has_type(pair(Type1,Type2), X-Y):-
 
 
 
-%! 'group_pairs_by_key@'(+Pairs:list(pair), -GroupedPairs:list(pair))
-% is det.
+%! group_pairs_by_key(
+%!   :Comparator_2,
+%!   +Pairs:list(pair),
+%!   -GroupedPairs:list(pair)
+%! ) is det.
 
-'group_pairs_by_key@'([], []).
-'group_pairs_by_key@'([M-N|T0], [M-[N|TN]|T]):-
-  'same_key@'(M, T0, TN, T1),
-  'group_pairs_by_key@'(T1, T).
+group_pairs_by_key(_, [], []):- !.
+group_pairs_by_key(Comp, [M-N|T0], [M-[N|TN]|T]):-
+  same_key(Comp, M, T0, TN, T1),
+  group_pairs_by_key(Comp, T1, T).
 
-'same_key@'(M0, [M-N|T0], [N|TN], T):-
-  M0 =@= M, !,
-  'same_key@'(M, T0, TN, T).
-'same_key@'(_, L, [], L).
+same_key(Comp, M0, [M-N|T0], [N|TN], T):-
+  call(Comp, M0, M), !,
+  same_key(Comp, M, T0, TN, T).
+same_key(_, _, L, [], L).

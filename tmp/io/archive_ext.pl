@@ -12,7 +12,6 @@
     archive_goal/3, % +Source
                     % :Goal
                     % +Arguments:list
-    archive_info/1, % +Source
     archive_nth0_entry/4 % +Index:nonneg
                          % +Archive:blob
                          % -EntryName:atom
@@ -126,174 +125,6 @@ archive_extract0(Archive, Filters, Dir):-
 
 
 
-%! archive_goal(+Source:atom, :Goal) is det.
-%! archive_goal(+Source:atom, :Goal, ?Argument1) is det.
-%! archive_goal(+Source:atom, :Goal, ?Argument1, ?Argument2) is det.
-% `Source` is either an absolute file name or a URL.
-%
-% @throws type_error When `Source` is neither an absolute file name nor a URL.
-% @throws instantiation_error When File is a variable.
-
-archive_goal(Read, Goal):-
-  is_stream(Read), !,
-  archive_goal0(Read, Goal).
-archive_goal(File, Goal):-
-  is_absolute_file_name(File), !,
-  setup_call_cleanup(
-    open(File, read, Read),
-    archive_goal0(Read, Goal),
-    close(Read)
-  ).
-archive_goal(Url, Goal):-
-  is_uri(Url), !,
-  setup_call_cleanup(
-    http_open(Url, Read, []),
-    archive_goal0(Read, Goal),
-    close(Read)
-  ).
-archive_goal(Source, _):-
-  type_error(file_or_url, Source).
-
-archive_goal(Read, Goal, Arg1):-
-  is_stream(Read), !,
-  archive_goal0(Read, Goal, Arg1).
-archive_goal(File, Goal, Arg1):-
-  is_absolute_file_name(File), !,
-  setup_call_cleanup(
-    open(File, read, Read),
-    archive_goal0(Read, Goal, Arg1),
-    close(Read)
-  ).
-archive_goal(Url, Goal, Arg1):-
-  is_uri(Url), !,
-  setup_call_cleanup(
-    http_open(Url, Read, []),
-    archive_goal0(Read, Goal, Arg1),
-    close(Read)
-  ).
-archive_goal(Source, _, _):-
-  type_error(file_or_url, Source).
-
-archive_goal(Read, Goal, Arg1, Arg2):-
-  is_stream(Read), !,
-  archive_goal0(Read, Goal, Arg1, Arg2).
-archive_goal(File, Goal, Arg1, Arg2):-
-  is_absolute_file_name(File), !,
-  setup_call_cleanup(
-    open(File, read, Read),
-    archive_goal0(Read, Goal, Arg1, Arg2),
-    close(Read)
-  ).
-archive_goal(Url, Goal, Arg1, Arg2):-
-  is_uri(Url), !,
-  setup_call_cleanup(
-    http_open(Url, Read, []),
-    archive_goal0(Read, Goal, Arg1, Arg2),
-    close(Read)
-  ).
-archive_goal(Source, _, _, _):-
-  type_error(file_or_url, Source).
-
-
-archive_goal0(Source, Goal):-
-  setup_call_cleanup(
-    archive_open(
-      Source,
-      Archive,
-      [close_parent(false),filter(all),format(all),format(raw)]
-    ),
-    call(Goal, Archive),
-    archive_close(Archive)
-  ).
-
-archive_goal0(Source, Goal, Arg1):-
-  setup_call_cleanup(
-    archive_open(
-      Source,
-      Archive,
-      [close_parent(false),filter(all),format(all),format(raw)]
-    ),
-    call(Goal, Archive, Arg1),
-    archive_close(Archive)
-  ).
-
-archive_goal0(Source, Goal, Arg1, Arg2):-
-  setup_call_cleanup(
-    archive_open(
-      Source,
-      Archive,
-      [close_parent(false),filter(all),format(all),format(raw)]
-    ),
-    call(Goal, Archive, Arg1, Arg2),
-    archive_close(Archive)
-  ).
-
-
-%! archive_info(+Source) is det.
-% Writes archive information for the given file or URL to current input.
-%
-% ### Example
-%
-% ```prolog
-% ?- absolute_file_name(data('abcde.tar.gz'), File, [access(read)]),
-%    archive_info(File).
-% ab.tar.gz
-%   filetype(file)
-%   mtime(1402126051.0)
-%   size(128)
-%   format(posix ustar format)
-%   a.txt
-%     filetype(file)
-%     mtime(1402126033.0)
-%     size(2)
-%     format(posix ustar format)
-%   b.txt
-%     filetype(file)
-%     mtime(1402126038.0)
-%     size(2)
-%     format(posix ustar format)
-% cd.tar.gz
-%   filetype(file)
-%   mtime(1402126098.0)
-%   size(128)
-%   format(posix ustar format)
-%   d.txt
-%     filetype(file)
-%     mtime(1402126074.0)
-%     size(2)
-%     format(posix ustar format)
-%   c.txt
-%     filetype(file)
-%     mtime(1402126067.0)
-%     size(2)
-%     format(posix ustar format)
-% e.txt
-%   filetype(file)
-%   mtime(1402126131.0)
-%   size(2)
-%   format(posix ustar format)
-% File = '.../data/abcde.tar.gz'.
-% ```
-
-archive_info(Source):-
-  archive_goal(Source, archive_info0, 0).
-
-archive_info0(Archive, Indent1):-
-  repeat,
-  (   archive_next_header(Archive, EntryName),
-      \+ is_leaf_entry(Archive, EntryName)
-  ->  print_message(information, archive_entry(Indent1,Archive,EntryName)),
-      succ(Indent1, Indent2),
-      % Recurse archive entries.
-      setup_call_cleanup(
-	archive_open_entry(Archive, Stream),
-	archive_goal0(Stream, archive_info0, Indent2),
-	close(Stream)
-      ),
-      fail
-  ;   !,
-      true
-  ).
 
 
 %! archive_nth0_entry(
@@ -322,22 +153,6 @@ archive_filters(Archive, Filters):-
 archive_filters(_, []).
 
 
-is_leaf_entry(Archive, EntryName):-
-  archive_header_property(Archive, format(EntryFormat)),
-  EntryName == data,
-  EntryFormat == raw.
-
-
-%! is_uri(@Term) is semidet.
-
-is_uri(Uri):-
-  text(Uri),
-  uri_components(Uri, UriComponents),
-  uri_data(scheme, UriComponents, Scheme),
-  nonvar(Scheme),
-  memberchk(Scheme, [ftp,http,https]).
-
-
 
 %! source_directory_name(+Source:atom, -Directory:atom) is det.
 % Returns the directory for the given source.
@@ -348,41 +163,7 @@ source_directory_name(File, Dir):-
   is_absolute_file_name(File), !,
   file_directory_name(File, Dir).
 source_directory_name(Iri, Dir):-
-  is_uri(Iri), !,
+  is_iri(Iri), !,
   md5(Iri, Md5),
   absolute_file_name(Md5, Dir),
   make_directory_path(Dir).
-
-
-
-% MESSAGES %
-
-:- multifile(prolog:message//1).
-
-prolog:message(archive_entry(Indent1,Archive,EntryName)) -->
-  archive_header(Indent1, EntryName),
-  {
-    findall(
-      Property,
-      archive_header_property(Archive, Property),
-      Properties
-    ),
-    succ(Indent1, Indent2)
-  },
-  archive_properties(Indent2, Properties).
-
-archive_header(Indent, EntryName) -->
-  indent(Indent),
-  [EntryName,nl].
-
-archive_properties(_, []) --> !, [].
-archive_properties(Indent, [H|T]) -->
-  indent(Indent),
-  ['~w'-[H],nl],
-  archive_properties(Indent, T).
-
-indent(0) --> !, [].
-indent(I1) -->
-  ['  '],
-  {succ(I2, I1)},
-  indent(I2).
