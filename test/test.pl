@@ -1,4 +1,5 @@
 :- use_module(library(ansi_ext)).
+:- use_module(library(assoc_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(char_ext)).
 :- use_module(library(cli_ext)).
