@@ -7,9 +7,6 @@
                  % ?Pair:pair
     merge_pairs_by_key/2, % +Pairs:list(pair)
                           % -Merged:list(pair)
-    pair/3, % ?Pair:pair
-            % ?Element1
-            % ?Element2
     pair_element/2, % ?Pair:pair
                     % ?Element
     pair_first/2, % +Pair:pair
@@ -24,7 +21,6 @@
                                   % -Values:list
     read_pairs_from_file/2, % +File:atom
                             % -Pairs:ordset(pair(atom))
-    reflexive_pair/1, % ?Pair:pair
     remove_pairs/3, % +Original:ordset(pair)
                     % +Remove:ordset
                     % -Result:ordset(pair)
@@ -109,14 +105,6 @@ same_key(_, L, [], L).
 
 
 
-%! pair(+Pair:pair, +X, +Y) is semidet.
-%! pair(+Pair:pair, -X, -Y) is det.
-%! pair(-Pair:pair, +X, +Y) is det.
-
-pair(X-Y, X, Y).
-
-
-
 %! pair_element(+Pair:pair, +Element) is semidet.
 %! pair_element(+Pair:pair, -Element) is multi.
 
@@ -183,8 +171,7 @@ read_pairs_from_file(File, Pairs):-
 %!   +Original:ordset(pair),
 %!   +RemoveKeys:ordset,
 %!   -Result:ordset(pair)
-
-3.%! ) is det.
+%! ) is det.
 % Assumes that the Original and Remove pairs are ordered in the same way.
 
 remove_pairs(L1, RemoveKeys, L2):-

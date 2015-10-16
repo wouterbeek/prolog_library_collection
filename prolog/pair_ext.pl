@@ -5,6 +5,9 @@
                           % +Pairs:list(pair)
                           % -GroupedPairs:list(pair)
     is_reflexive_pair/1, % +Pair:pair)
+    pair/3, % ?Pair:pair
+            % ?Element1
+            % ?Element2
     pairs_to_set/2 % +Pairs:list(pair)
                    % -Set:ordset
   ]
@@ -60,6 +63,14 @@ same_key(_, _, L, [], L).
 
 is_reflexive_pair(Pair):-
   pair(Pair, X, X).
+
+
+
+%! pair(+Pair:pair, +X, +Y) is semidet.
+%! pair(+Pair:pair, -X, -Y) is det.
+%! pair(-Pair:pair, +X, +Y) is det.
+
+pair(X-Y, X, Y).
 
 
 
