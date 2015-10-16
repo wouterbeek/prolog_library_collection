@@ -20,7 +20,8 @@
                % :Value_2
     parsing//0,
     skip_line//0,
-    string_without//1 % +EndCodes
+    string//0,
+    string_without//1 % +EndCodes:list(code)
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -54,14 +55,17 @@ DCG rules for parsing/generating often-occuring content.
 
 
 %! ...// .
+% Wrapper around ...//1 that does not return the processed codes.
 
 ... -->
   ...(_).
 
-%! ...(-Codes:list(code))// .
 
-...([]) --> "".
-...([H|T]) --> [H], ...(T).
+%! ...(-Codes:list(code))// .
+% Wrapper around string//1.
+
+...(Cs) -->
+  string(Cs).
 
 
 
@@ -129,7 +133,8 @@ iri(Iri) -->
 
 %! nl// is det.
 
-nl --> "\n".
+nl -->
+  "\n".
 
 
 
@@ -169,6 +174,16 @@ skip_line --> [_], skip_line.
 
 
 
-%! string_without(+EndCodes:list(code))// .
+%! string// .
+% Wrapper around string//1.
 
-string_without(Ends) --> string_without(Ends, _).
+string -->
+  string(_).
+
+
+
+%! string_without(+EndCodes:list(code))// .
+% Wrapper around string_without//2.
+
+string_without(End) -->
+  string_without(End, _).
