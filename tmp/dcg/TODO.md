@@ -1,6 +1,7 @@
 # TODO
 
-There are still several issues with DCGs that I have not solved yet.
+There are several issues with DCGs that I have not solved yet.
+
 
 ## Preferred generation
 
@@ -29,6 +30,7 @@ Current 'solution':
 ;   'OWS'
 ),
 ```
+
 
 ## Disjunction
 

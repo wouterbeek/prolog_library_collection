@@ -22,10 +22,6 @@
                                  % -Values:list
     pairs_to_descending_values/2, % +Pairs:list(pair)
                                   % -Values:list
-    pairs_to_set/2, % +Pairs:list(pair)
-                    % -Members:list
-    pairs_to_sets/2, % +Pairs:list(pair(iri))
-                     % -Sets:list(ordset(iri))
     read_pairs_from_file/2, % +File:atom
                             % -Pairs:ordset(pair(atom))
     reflexive_pair/1, % ?Pair:pair
@@ -168,77 +164,6 @@ pairs_to_descending_values(Pairs1, Values):-
 
 
 
-%! pairs_to_set(+Pairs:list(pair), -Set:ordset) is det.
-% Returns the set of elements that occur in the given pairs.
-%
-% ### Example
-%
-% The following pairs:
-% ```
-% <a,b>
-% <a,c>
-% <d,e>
-% ```
-% result in the following set:
-% ```
-% {a,b,c,d,e}
-% ```
-
-pairs_to_set(Pairs, Members):-
-  pairs_keys_values(Pairs, Keys1, Values1),
-  maplist(sort, [Keys1,Values1], [Keys2,Values2]),
-  ord_union(Keys2, Values2, Members).
-
-
-
-%! pairs_to_sets(+Pairs:list(pair), -Sets:ordset(ordset)) is det.
-% Returns the sets of elements that occur in the given pairs,
-% when closed under transitivity.
-%
-% ### Example
-%
-% The following pairs:
-% ```
-% <a,b>
-% <a,c>
-% <d,e>
-% ```
-% result in the following sets:
-% ```
-% {{a,b,c},{d,e}}
-% ```
-
-pairs_to_sets(Pairs, Sets):-
-  pairs_to_sets(Pairs, [], Sets).
-
-pairs_to_sets([], AllSets, AllSets).
-% Connect two sets.
-pairs_to_sets([From-To|Pairs], Sets1, AllSets):-
-  select(OldSet1, Sets1, Sets2),
-  member(From, OldSet1),
-  select(OldSet2, Sets2, Sets3),
-  member(To, OldSet2), !,
-  ord_union(OldSet1, OldSet2, NewSet),
-  ord_add_element(Sets3, NewSet, Sets4),
-  pairs_to_sets(Pairs, Sets4, AllSets).
-% Add to an existing set.
-pairs_to_sets([From-To|Pairs], Sets1, AllSets):-
-  select(OldSet, Sets1, Sets2),
-  (   member(From, OldSet)
-  ->  ord_add_element(OldSet, To, NewSet)
-  ;   member(To, OldSet)
-  ->  ord_add_element(OldSet, From, NewSet)
-  ), !,
-  ord_add_element(Sets2, NewSet, Sets3),
-  pairs_to_sets(Pairs, Sets3, AllSets).
-% New set.
-pairs_to_sets([From-To|Pairs], Sets1, AllSets):-
-  list_to_ord_set([From,To], NewSet),
-  ord_add_element(Sets1, NewSet, Sets2),
-  pairs_to_sets(Pairs, Sets2, AllSets).
-
-
-
 %! read_pairs_from_file(+File:atom, -Pairs:ordset(pair(atom))) is det.
 
 read_pairs_from_file(File, Pairs):-
@@ -254,17 +179,12 @@ read_pairs_from_file(File, Pairs):-
 
 
 
-%! reflexive_pair(?Pair:pair) is semidet.
-
-reflexive_pair(X-X).
-
-
-
 %! remove_pairs(
 %!   +Original:ordset(pair),
 %!   +RemoveKeys:ordset,
 %!   -Result:ordset(pair)
-%! ) is det.
+
+3.%! ) is det.
 % Assumes that the Original and Remove pairs are ordered in the same way.
 
 remove_pairs(L1, RemoveKeys, L2):-

@@ -23,12 +23,14 @@
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_debug)).
   :- use_module(library(dcg/dcg_file)).
+  :- use_module(library(dcg/dcg_list)).
   :- use_module(library(dcg/dcg_msg)).
   :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
   :- use_module(library(dcg/dcg_pl_term)).
   :- use_module(library(dcg/dcg_quoted)).
+  :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
@@ -68,6 +70,7 @@
 :- use_module(library(msg_ext)).
 %/nlp
   :- use_module(library(nlp/nlp_dictionary)).
+  :- use_module(library(nlp/nlp_emoticon)).
   :- use_module(library(nlp/nlp_grammar)).
 :- use_module(library(option_ext)).
 %/os
@@ -93,6 +96,7 @@
 %/rest
   :- use_module(library(rest/rest_ext)).
 %/set
+  :- use_module(library(set/equiv)).
   :- use_module(library(set/set_ext)).
   :- use_module(library(set/set_ext_experimental)).
 %/svg

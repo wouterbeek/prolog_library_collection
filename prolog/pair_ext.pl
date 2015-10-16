@@ -1,9 +1,12 @@
 :- module(
   pair_ext,
   [
-    group_pairs_by_key/3 % :Comparator_2
-                         % +Pairs:list(pair)
-                         % -GroupedPairs:list(pair)
+    group_pairs_by_key/3, % :Comparator_2
+                          % +Pairs:list(pair)
+                          % -GroupedPairs:list(pair)
+    is_reflexive_pair/1, % +Pair:pair)
+    pairs_to_set/2 % +Pairs:list(pair)
+                   % -Set:ordset
   ]
 ).
 :- reexport(library(pairs)).
@@ -13,10 +16,13 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(ordsets)).
+:- use_module(library(pairs)).
 
 :- meta_predicate(group_pairs_by_key(2,+,-)).
 :- meta_predicate(same_key(2,+,+,-,-)).
@@ -47,3 +53,30 @@ same_key(Comp, M0, [M-N|T0], [N|TN], T):-
   call(Comp, M0, M), !,
   same_key(Comp, M, T0, TN, T).
 same_key(_, _, L, [], L).
+
+
+
+%! is_reflexive_pair(+Pair:pair) is semidet.
+
+is_reflexive_pair(Pair):-
+  pair(Pair, X, X).
+
+
+
+%! pairs_to_set(+Pairs:list(pair), -Set:ordset) is det.
+% Returns the set of elements that occur in the given pairs.
+%
+% ### Example
+%
+% The following pairs:
+%   * 〈a,b〉
+%   * 〈a,c〉
+%   * 〈d,e〉
+% 
+% result in the following set:
+%   * {a,b,c,d,e}
+
+pairs_to_set(Pairs, Set):-
+  pairs_keys_values(Pairs, Keys, Vals),
+  maplist(list_to_ord_set, [Keys,Vals], [SKeys,SVals]),
+  ord_union(SKeys, SVals, Set).
