@@ -1,7 +1,7 @@
 :- module(
-  emoticons,
+  nlp_emoticon,
   [
-    emote//1 % -Meaning:string
+    emoticon//1 % -Meaning:string
   ]
 ).
 
@@ -26,21 +26,21 @@ Japanese (^_^) style emoticons not covered.
 
 
 
-%! emote(-Meaning:string)// .
+%! emoticon(-Meaning:string)// .
 
-emote("Annie is her usual happy self") --> "8cD".
-emote(M) -->
+emoticon("Annie is her usual happy self") --> "8cD".
+emoticon(M) -->
   "-C:^{",
   part(mouth, Say),
   {string_concat("The General, ", Say, M)}.
-emote(M) -->
+emoticon(M) -->
   hat(M1),
   eyebrows(M2),
   eyes(M3),
   nose(M4),
   mouth(M5),
   {string_list_concat([M1,M2,M3,M4,M5], " ", M)}.
-emote("darned if I know, half the time they confuse me too") --> ... .
+emoticon("darned if I know, half the time they confuse me too") --> ... .
 
 
 
