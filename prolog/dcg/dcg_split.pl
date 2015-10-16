@@ -1,7 +1,7 @@
 :- module(
   dcg_split,
   [
-    dcg_split//2 % :Separator
+    dcg_split//2 % :Separator_2
                  % -Substring:list(code)
   ]
 ).
@@ -14,13 +14,17 @@
 
 
 
-%! dcg_sep_list(:Separator, -Substring:list(code))// is nondet.
+%! dcg_sep_list(:Separator_2, -Substring:list(code))// is nondet.
 % Succeeds when the code lists in Codess are processed
 % and each is interspersed with Separators.
 
-dcg_split(:Sep, Cs) -->
-  ...(Cs0), Sep, !,
-  (dcg_done, Cs = Cs0 ; dcg_split(Sep, Cs)).
+dcg_split(Sep_2, Cs) -->
+  ...(Cs0),
+  Sep_2, !,
+  (   dcg_done,
+      {Cs = Cs0}
+  ;   dcg_split(Sep_2, Cs)
+  ).
 dcg_split(_, Cs) -->
   ...(Cs),
   eos.

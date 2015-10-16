@@ -17,6 +17,7 @@ Print numbered and unnumbered lists using DCGs.
 @version 2015/10
 */
 
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_pl_term)).
 :- use_module(library(option)).
@@ -58,13 +59,14 @@ dcg_list(Writer_1, L, Opts) -->
 dcg_list(_, _, _, _, []) --> !, [].
 dcg_list(Writer_1, I, Style, M, [H|T]) -->
   indent(I),
-  (   {Style == enumerate}
-  ->  integer(M),
-      ". "
-  ;   "* "
-  ),
   dcg_list_item_prefix(Style, M),
-  dcg_call_cp(Writer_1, H).
+  dcg_call_cp(Writer_1, H),
   nl,
   {succ(M, N)},
   dcg_list(Writer_1, I, Style, N, T).
+
+dcg_list_item_prefix(enumerate, M) --> !,
+  integer(M),
+  ". ".
+dcg_list_item_prefix(itemize, _) -->
+  "* ".

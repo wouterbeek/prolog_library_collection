@@ -216,7 +216,7 @@ tuple(Writer_1, L) -->
 %!   +Elements:list
 %! )// is det.
 
-bracketed_collection(Type, Sep, Writer, L) -->
+bracketed_collection(Type, Sep_0, Writer_1, L) -->
   collection(
     opening_bracket(Type, _),
     closing_bracket(Type, _),

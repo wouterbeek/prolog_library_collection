@@ -29,7 +29,7 @@ Support for natural language dictionaries.
 :- use_module(library(readutil)).
 :- use_module(library(uri)).
 
-:- persistent(word(language:atom,index:nonneg,word:atom,something:atom)).
+:- persistent(word(language:string,index:nonneg,word:string,something:string)).
 
 cert_verify(_, _, _, _, _):- !.
 
@@ -43,8 +43,8 @@ cert_verify(_, _, _, _, _):- !.
 
 nlp_random_word(Lang, Word, Something):-
   aggregate_all(count, word(Lang, _, Word, _), NumberOfWords),
-  random_between(1, NumberOfWords, I),
-  word(Lang, I, Word, Something).
+  random_between(1, NumberOfWords, M),
+  word(Lang, M, Word, Something).
 
 
 
@@ -59,50 +59,22 @@ nlp_word(Lang, Word, Something):-
 
 % INITIALIZATION %
 
-%! dict_assert_stream(+Language:string, +Read:stream) is det.
+%! dict_assert(+Language:string, +Read:stream) is det.
 
-dict_assert_stream(Lang, Read):-
-  setup_call_cleanup(
-    archive_open(Read, Archive, []),
-    dict_assert_archive(Lang, Archive),
-    archive_close(Archive)
-  ).
+dict_assert(Lang, Read):-
+  dict_assert(Lang, 0, Read).
 
-
-
-%! dict_assert_archive(+Language:string, +Archive:archive) is det.
-
-dict_assert_archive(Lang, Archive):-
-  flag(dict(Lang), _, 1),
-
-  % Construct the entry path that is to be extracted from the archive.
-  file_name_extension(Lang, dic, Local),
-  atomic_list_concat([dictionaries,Local], /, Entry),
-  archive_named_entry(Archive, Entry, Read),
-
-  % @tbd Is this the number of lines?
-  read_line_to_codes(Read, Cs),
-  number_codes(N, Cs),
-  writeln(N),
-
-  % Assert the dictionary words.
-  dict_assert_words(Lang, Read).
-
-
-
-%! dict_assert_words(+Language:string, +Read:stream) is det.
-
-dict_assert_words(_, Read):-
+dict_assert(_, _, Read):-
   at_end_of_stream(Read), !.
-dict_assert_words(Lang, Read):-
+dict_assert(Lang, M, Read):-
   read_line_to_codes(Read, Cs),
 
   % Parse and assert a single entry in the dictionary.
   phrase(word_entry(Word, Something), Cs),
-  flag(dictionary(Lang), I, I + 1),
-  assert_word(Lang, I, Word, Something),
+  succ(M, N),
+  assert_word(Lang, N, Word, Something),
 
-  dict_assert_words(Lang, Read).
+  dict_assert(Lang, N, Read).
 
 
 
@@ -110,11 +82,13 @@ dict_assert_words(Lang, Read):-
 
 dict_download(Lang):-
   dict_iri(Lang, Iri),
-  setup_call_cleanup(
-    http_open(Iri, Read, [cert_verify_hook(cert_verify)]),
-    dict_assert_stream(Lang, Read),
-    close(Read)
-  ).
+
+  % Construct the entry path that is to be extracted from the archive.
+  file_name_extension(Lang, dic, Local),
+  atomic_list_concat([dictionaries,Local], /, Entry),
+
+  % Assert the words that appear in the dictionary.
+  call_archive_entry(Iri, Entry, dict_assert(Lang)).
 
 
 
@@ -126,9 +100,14 @@ dict_file(Lang, File):-
 
 
 %! dict_init is det.
+% Initialize the dictionary for each supported language.
 
 dict_init:-
-  forall(dict_iri(Lang, _), dict_init(Lang)).
+  forall(dict_lang(Lang), dict_init(Lang)).
+
+
+%! dict_init(+Language:string) is det.
+% Initialize the dictionary for the given Language.
 
 dict_init(Lang):-
   dict_file(Lang, File),
@@ -136,6 +115,36 @@ dict_init(Lang):-
   db_attach(File, []),
   file_age(File, Age),
   dict_update(Lang, Age).
+
+
+
+%! dict_iri(?Language:string, -Iri:atom) is nondet.
+
+dict_iri("en-US", Iri):-
+  atomic_list_concat(
+    [
+      '',
+      firefox,
+      downloads,
+      file,
+      '199368',
+      'united_states_english_spellchecker-7.0-fx+sm+tb.xpi'
+    ],
+    /,
+    Path
+  ),
+  uri_components(
+    Iri,
+    uri_components(https,'addons.mozilla.org',Path,'src=dp-btn-primary',_)
+  ).
+
+
+
+%! dict_lang(+Language:string) is semidet.
+%! dict_lang(-Language:string) is multi.
+
+dict_lang(Lang):-
+  dict_iri(Lang, _).
 
 
 
@@ -149,22 +158,6 @@ dict_update(Lang, Age):-
 dict_update(Lang, _):-
   retractall_word(Lang, _, _, _),
   dict_download(Lang).
-
-
-
-%! dict_iri(?Language:string, ?Iri:atom) is nondet.
-
-dict_iri("en-US", Iri):-
-  uri_components(
-    Iri,
-    uri_components(
-      https,
-      'addons.mozilla.org',
-      '/firefox/downloads/file/199368/united_states_english_spellchecker-7.0-fx+sm+tb.xpi',
-      'src=dp-btn-primary',
-      _
-    )
-  ).
 
 
 

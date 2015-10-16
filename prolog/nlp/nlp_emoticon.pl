@@ -31,8 +31,8 @@ Japanese (^_^) style emoticons not covered.
 emoticon("Annie is her usual happy self") --> "8cD".
 emoticon(M) -->
   "-C:^{",
-  part(mouth, Say),
-  {string_concat("The General, ", Say, M)}.
+  mouth(M1),
+  {string_concat("The General, ", M1, M)}.
 emoticon(M) -->
   hat(M1),
   eyebrows(M2),
@@ -88,8 +88,8 @@ mouth("trying not to laugh, or smile") --> "]".
 mouth("closed mouth look") --> "|".
 mouth("discomfort, pain") --> "S".
 mouth("tongue hanging out (delicious, distaste, or concentration)") --> "d".
-mouth("Very happy - or default") --> "D", 
-mouth("Vampire fangs") --> "F", 
+mouth("Very happy - or default") --> "D".
+mouth("Vampire fangs") --> "F".
 mouth("variant mouth") --> "7".
 mouth("puckered mouth - pain, good grief, or ouch") --> "X".
 mouth("sticking out lower lip") --> "C".
