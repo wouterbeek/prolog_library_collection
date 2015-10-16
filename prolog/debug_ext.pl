@@ -19,19 +19,18 @@
                                 % +Arguments1:list
                                 % +Arguments2:list
                                 % +Arguments3:list
+    debug_verbose/2, % +Flag:compound
+                     % :Goal_0
+    debug_verbose/3, % +Flag:compound
+                     % :Goal_0
+                     % +Format:string
+    debug_verbose/4, % +Flag:compound
+                     % :Goal_0
+                     % +Format:string
+                     % +Arguments:list
     if_debug/2, % ?Flag:compound
                 % :Goal_0
-    number_of_open_files/1, % -N:nonneg
-    verbose/1, % :Goal_0
-    verbose/2, % ?Flag:compound
-               % :Goal_0
-    verbose/3, % ?Flag:compound
-               % :Goal_0
-               % +Format:string
-    verbose/4 % ?Flag:compound
-              % :Goal_0
-              % +Format:string
-              % +Arguments:list
+    number_of_open_files/1 % -N:nonneg
   ]
 ).
 :- reexport(library(debug)).
@@ -65,11 +64,10 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(debug_concurrent_maplist(+,1,+)).
 :- meta_predicate(debug_concurrent_maplist(+,2,+,+)).
 :- meta_predicate(debug_concurrent_maplist(+,3,+,+,+)).
+:- meta_predicate(debug_verbose(?,0)).
+:- meta_predicate(debug_verbose(?,0,+)).
+:- meta_predicate(debug_verbose(?,0,+,+)).
 :- meta_predicate(if_debug(?,0)).
-:- meta_predicate(verbose(0)).
-:- meta_predicate(verbose(?,0)).
-:- meta_predicate(verbose(?,0,+)).
-:- meta_predicate(verbose(?,0,+,+)).
 
 :- debug(debug_ext).
 
@@ -192,6 +190,30 @@ debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
 
 
 
+%! debug_verbose(+Flag:compound, :Goal_0) is det.
+
+debug_verbose(Flag, Goal_0):-
+  if_debug(Flag, verbose(Goal_0)).
+
+
+%! debug_verbose(+Flag:compound, :Goal_0, +Fragment:string) is det.
+
+debug_verbose(Flag, Goal_0, Fragment):-
+  if_debug(Flag, verbose(Goal_0, Fragment)).
+
+
+%! debug_verbose(
+%!   +Flag:compound,
+%!   :Goal_0,
+%!   +Fragment:string,
+%!   +Arguments:list
+%! ) is det.
+
+debug_verbose(Flag, Goal_0, Fragment, Args):-
+  if_debug(Flag, verbose(Goal_0, Fragment, Args)).
+
+
+
 %! if_debug(?Flag:compound, :Goal_0) is det.
 % Calls the given goal only if the given flag is an active debugging topic.
 % Succeeds if Flag is uninstantiated.
@@ -214,54 +236,6 @@ number_of_open_files(N):-
     count,
     stream_property(_, output),
     N
-  ).
-
-
-
-%! verbose(:Goal_0) is det.
-% Wrapper around verbose/2.
-
-verbose(Goal_0):-
-  verbose(_, Goal_0).
-
-
-%! verbose(?Frag:compound, :Goal_0) is det.
-% Wrapper around verbose/3.
-
-verbose(Flag, Goal_0):-
-  term_string(Goal_0, Format),
-  verbose(Flag, Goal_0, Format).
-
-
-%! verbose(+Flag:compound, :Goal_0, +Format:string) is det.
-% Wrapper around verbose/4.
-
-verbose(Flag, Goal_0, Format):-
-  verbose(Flag, Goal_0, Format, []).
-
-
-%! verbose(?Flag:compound, :Goal_0, +Format:string, +Arguments:list) is det.
-% Verbose call of Goal_0.
-%
-% If Flag is instantiated then messages are only displayed if the
-% flag is a currently active debug flag.
-% Otherwise, i.e., if Flag is uninstantiated, all messages are displayed.
-
-verbose(Flag, Goal_0, Format, Args):-
-  get_time(Start),
-  defval(debug_ext, Flag),
-  if_debug(Flag, msg_normal(Format, Args)),
-  (   catch(Goal_0, Error, true)
-  ->  if_debug(Flag,
-        (   var(Error)
-        ->  get_time(End),
-	    Delta is End - Start,
-            msg_success("~`.t success (~2f)~72|~n", [Delta])
-        ;   message_to_string(Error, String),
-            msg_warning("~`.t ERROR: ~w~72|~n", [String])
-        )
-      )
-  ;   if_debug(Flag, msg_warning("~`.t ERROR: (failed)~72|~n"))
   ).
 
 

@@ -15,8 +15,14 @@
     msg_success/2, % +Format:string
                    % +Arguments:list
     msg_warning/1, % +Format:string
-    msg_warning/2 % +Format:string
-                  % +Arguments:list
+    msg_warning/2, % +Format:string
+                   % +Arguments:list
+    verbose/1, % :Goal_0
+    verbose/2, % :Goal_0
+               % +Format:string
+    verbose/3 % :Goal_0
+              % +Format:string
+              % +Arguments:list
   ]
 ).
 
@@ -32,7 +38,12 @@ Prints messages for the user.
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(debug_ext)).
 :- use_module(library(http/http_deb)).
+
+:- meta_predicate(verbose(0)).
+:- meta_predicate(verbose(0,+)).
+:- meta_predicate(verbose(0,+,+)).
 
 
 
@@ -119,6 +130,44 @@ msg_warning(Format):-
 
 msg_warning(Format, Args):-
   ansi_format([bold,fg(red)], Format, Args).
+
+
+
+%! verbose(:Goal_0) is det.
+% Wrapper around verbose/2.
+
+verbose(Goal_0):-
+  term_string(Goal_0, Format),
+  verbose(Goal_0, Format).
+
+
+%! verbose(:Goal_0, +Format:string) is det.
+% Wrapper around verbose/3.
+
+verbose(Goal_0, Format):-
+  verbose(Goal_0, Format, []).
+
+
+%! verbose(:Goal_0, +Format:string, +Arguments:list) is det.
+% Verbose call of Goal_0.
+%
+% If Flag is instantiated then messages are only displayed if the
+% flag is a currently active debug flag.
+% Otherwise, i.e., if Flag is uninstantiated, all messages are displayed.
+
+verbose(Goal_0, Format, Args):-
+  get_time(Start),
+  msg_normal(Format, Args),
+  (   catch(Goal_0, Error, true)
+  ->  (   var(Error)
+      ->  get_time(End),
+          Delta is End - Start,
+          msg_success("~`.t success (~2f)~72|~n", [Delta])
+      ;   message_to_string(Error, String),
+          msg_warning("~`.t ERROR: ~w~72|~n", [String])
+      )
+  ;   msg_warning("~`.t ERROR: (failed)~72|~n")
+  ).
 
 
 
