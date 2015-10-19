@@ -59,22 +59,22 @@ nlp_word(Lang, Word, Something):-
 
 % INITIALIZATION %
 
-%! dict_assert(+Language:string, +Read:stream) is det.
+%! dict_assert(+Language:string, +Metadata:dict, +Read:stream) is det.
 
-dict_assert(Lang, Read):-
-  dict_assert(Lang, 0, Read).
+dict_assert(Lang, _, Read):-
+  dict_assert0(Lang, 0, Read).
 
-dict_assert(_, _, Read):-
+dict_assert0(_, _, Read):-
   at_end_of_stream(Read), !.
-dict_assert(Lang, M, Read):-
+dict_assert0(Lang, N1, Read):-
   read_line_to_codes(Read, Cs),
 
   % Parse and assert a single entry in the dictionary.
   phrase(word_entry(Word, Something), Cs),
-  succ(M, N),
-  assert_word(Lang, N, Word, Something),
+  succ(N1, N2),
+  assert_word(Lang, N2, Word, Something),
 
-  dict_assert(Lang, N, Read).
+  dict_assert0(Lang, N2, Read).
 
 
 
