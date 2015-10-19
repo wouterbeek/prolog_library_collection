@@ -12,9 +12,9 @@
     direct_subset/2, % ?Subset:ordset
                      % +Set:ordset
     emptyset/1, % ?Set:ordset
-    equinumerous/2, % +Set1:ordset
-                    % +Set2:ordset
-    minimal_set/2, % +MinimalSet:ordset
+    are_equinumerous/2, % +Set1:ordset
+                        % +Set2:ordset
+    minimal_set/2, % ?MinimalSet:ordset
                    % +Sets:ordset(ordset)
     partition/2, % +Set:ordset
                  % -Partition:ordset(ordset)
@@ -102,19 +102,19 @@ emptyset([]).
 
 
 
-%! equinumerous(+Set1:ordset, +Set2:ordset) is semidet.
+%! are_equinumerous(+Set1:ordset, +Set2:ordset) is semidet.
 % Succeeds if the given sets are *equinumerous*, i.e.,
 % if they have the same cardinality.
 %
 % @throws type_error if one of the arguments is not an ordered set.
 
-equinumerous(Set1, _):-
+are_equinumerous(Set1, _):-
   \+ is_ordset(Set1), !,
   type_error(ordset, Set1).
-equinumerous(_, Set2):-
+are_equinumerous(_, Set2):-
   \+ is_ordset(Set2), !,
   type_error(ordset, Set2).
-equinumerous(Set1, Set2):-
+are_equinumerous(Set1, Set2):-
   same_length(Set1, Set2).
 
 

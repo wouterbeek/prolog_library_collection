@@ -24,12 +24,6 @@
     remove_pairs/3, % +Original:ordset(pair)
                     % +Remove:ordset
                     % -Result:ordset(pair)
-    set_to_pairs/3, % +Set:ordset
-                    % :Comparator
-                    % -Pairs:ordset(pair)
-    sets_to_pairs/3, % +Sets:list(ordset)
-                     % -Pairs:ordset(pair)
-                     % +Options:list(nvpair)
     store_pairs_to_file/2, % +Pairs:list(pair(atom))
                            % +File:atom
     subpairs/3, % +Pairs:ordset(pair)
@@ -50,25 +44,13 @@ Support predicates for working with pairs.
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(plunit)).
 
-:- use_module(plc(generics/list_ext)).
-
 % Used for loading pairs from file.
 :- dynamic(pair/2).
-
-:- meta_predicate(set_to_pairs(+,2,-)).
-:- meta_predicate(sets_to_pairs(+,2,+,-)).
-
-:- op(555, xfx, ~).
-
-:- predicate_options(sets_to_pairs/3, 3, [
-     reflexive(+boolean),
-     symmetric(+boolean)
-   ]).
 
 
 
@@ -182,61 +164,6 @@ remove_pairs(L1, RemoveKeys, L2):-
 
 
 
-%! set_to_pairs(
-%!   +Set:ordset,
-%!   :Comparator,
-%!   -Pairs:ordset(pair)
-%! ) is det.
-% Returns the pairs that are represented by the given set.
-%
-% The following values are useful for the comparator:
-%
-% | *Comparator* | *Reflexive* | *Symmetic* |
-% | `~`          | true        | true       |
-% | `\=`         | false       | true       |
-% | `@<`         | false       | false      |
-
-set_to_pairs(Set, Comparator, Pairs):-
-  aggregate_all(
-    set(From-To),
-    (
-      member(From, To, Set),
-      % No reflexive cases.
-      call(Comparator, From, To)
-    ),
-    Pairs
-  ).
-
-
-
-%! sets_to_pairs(
-%!   +Sets:list(ordset),
-%!   -Pairs:ordset(pair),
-%!   +Options:list(nvpair)
-%! ) is det.
-%
-% The following options are supported:
-%   * `reflexive(+boolean)`
-%     Whether or not to return reflexive cases.
-%     Default: `true`.
-%   * `symmetric(+boolean)`
-%     Whether or not to return symmetric pairs.
-%     Default: `true`.
-
-sets_to_pairs(Sets, Pairs, Options):-
-  option(reflexive(Reflexive), Options),
-  option(symmetric(Symmetric), Options),
-  comparator(Reflexive, Symmetric, Comparator),
-  sets_to_pairs(Sets, Comparator, [], Pairs).
-
-sets_to_pairs([], _, AllPairs, AllPairs).
-sets_to_pairs([Set|Sets], Comparator, Pairs1, AllPairs):-
-  set_to_pairs(Set, Comparator, Pairs2),
-  ord_union(Pairs1, Pairs2, Pairs3),
-  sets_to_pairs(Sets, Pairs3, AllPairs).
-
-
-
 %! store_pairs_to_file(+Pairs:list(pair(atom)), +File:atom) is det.
 
 store_pairs_to_file(Pairs, File):-
@@ -285,44 +212,3 @@ term_to_pair(X=Y, X-Y):- !.
 term_to_pair([X,Y], X-Y):- !.
 term_to_pair(Compound, X-Y):-
   Compound =.. [X,Y].
-
-
-
-
-
-% HELPERS
-
-%! comparator(+Reflexive:boolean, +Symmetric:boolean, :Comparator) is det.
-
-comparator(true,  true,  ~ ):- !.
-comparator(false, true,  \=):- !.
-comparator(false, false, @<):- !.
-
-
-
-
-
-% UNIT TESTS
-
-:- begin_tests(pair_ext).
-
-% Base case.
-pairs_to_ord_sets_example([], []).
-% No multisets.
-pairs_to_ord_sets_example([a-b,a-b], [[a,b]]).
-% Reflexive case.
-pairs_to_ord_sets_example([a-a], [[a]]).
-% Symmetric case.
-pairs_to_ord_sets_example([a-b,b-a], [[a,b]]).
-% Separate sets.
-pairs_to_ord_sets_example([a-b,c-d], [[a,b],[c,d]]).
-% Merging sets.
-pairs_to_ord_sets_example([a-b,c-d,d-b], [[a,b,c,d]]).
-
-test(
-  pairs_to_sets,
-  [forall(pairs_to_ord_sets_example(Pairs,Sets)),true]
-):-
-  pairs_to_sets(Pairs, Sets).
-
-:- end_tests(pair_ext).
