@@ -4,6 +4,10 @@
     uri_add_query/3, % +From:or([compound,uri])
                      % +New:or([atom,compound,list(compound),list(or([atom,list(compound)]))])
                      % -To:uri
+    uri_change_component/4, % +Iri1:atom
+                            % +Field:oneof([authority,fragment,path,query,scheme])
+                            % +Value:atom
+                            % -Iri2:atom
     uri_component/3 % +Uri:uri
                     % +Field:atom
                     % ?Data:atom
@@ -16,7 +20,7 @@
 Additional predicates for handling URIs.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(aggregate)).
@@ -57,6 +61,26 @@ uri_add_query(Uri1, Opts, Uri2):-
   ).
 uri_add_query(Uri1, Opt, Uri2):-
   uri_add_query(Uri1, [Opt], Uri2).
+
+
+
+%! uri_change_component(
+%!   +Iri1:atom,
+%!   +Field:oneof([authority,fragment,path,query,scheme]),
+%!   +Value:atom,
+%!   -Iri2:atom
+%! ) is det.
+
+uri_change_component(Iri1, N, V, Iri2):-
+  uri_components(Iri1, Comps1),
+  uri_change_component0(N, Comps1, V, Comps2),
+  uri_components(Iri2, Comps2).
+
+uri_change_component0(authority, uri_components(S,_,P,Q,F), A, uri_components(S,A,P,Q,F)).
+uri_change_component0(fragment,  uri_components(S,A,P,Q,_), F, uri_components(S,A,P,Q,F)).
+uri_change_component0(path,      uri_components(S,A,_,Q,F), P, uri_components(S,A,P,Q,F)).
+uri_change_component0(query,     uri_components(S,A,P,_,F), Q, uri_components(S,A,P,Q,F)).
+uri_change_component0(scheme,    uri_components(_,A,P,Q,F), S, uri_components(S,A,P,Q,F)).
 
 
 
