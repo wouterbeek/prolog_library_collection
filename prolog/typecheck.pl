@@ -6,7 +6,9 @@
     chars/1, % @Term
     code/1, % @Term
     codes/1, % @Term
-    is_uri/1, % @Term
+    is_file_iri/1, % @Term
+    is_http_iri/1, % @Term
+    is_iri/1, % @Term
     negative_float/1, % @Term
     negative_integer/1, % @Term
     nonneg/1, % @Term
@@ -63,13 +65,13 @@ Predicates used for parsing and checking value-type conformance.
 | symbol               |                  |                     |
 | term                 | Yes              |                     |
 | text                 |                  |                     |
-| uri                  | Yes              |                     |
+| iri                  | Yes              |                     |
 | var                  |                  |                     |
 
 ---
 
 @author Wouter Beek
-@version 2015/07, 2015/09
+@version 2015/07, 2015/09-2015/10
 */
 
 :- use_module(library(error)).
@@ -97,9 +99,9 @@ error:has_type(nonpos, T):-
 error:has_type(or(Types), T):-
   member(Type, Types),
   error:has_type(Type, T), !.
-% URI
-error:has_type(uri, T):-
-    is_uri(T).
+% IRI
+error:has_type(iri, T):-
+    is_iri(T).
 % term
 error:has_type(term, _).
 
@@ -140,12 +142,26 @@ codes(T):-
 
 
 
-%! is_uri(@Term) is semidet.
+%! is_file_iri(@Term) is semidet.
 
-is_uri(Uri):-
-  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
-  ground(Scheme),
-  ground(Authority).
+is_file_iri(Iri):-
+  uri_file_name(Iri, _).
+
+
+
+%! is_http_iri(@Term) is semidet.
+
+is_http_iri(Iri):-
+  is_iri(Iri),
+  uri_components(Iri, uri_components(Scheme,_,_,_,_)),
+  memberchk(Scheme, [http,https]).
+
+
+
+%! is_iri(@Term) is semidet.
+
+is_iri(Iri):-
+  uri_is_global(Iri).
   
 
 

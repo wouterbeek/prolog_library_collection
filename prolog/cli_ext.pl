@@ -15,7 +15,7 @@
 /** <module> Command-line interface extensions
 
 @author Wouter Beek
-@version 2015/09
+@version 2015/09-2015/10
 */
 
 :- use_module(library(error)).
@@ -29,7 +29,7 @@
 %! check_input(+Mode:oneof([read,write]), +Path:atom) is det.
 
 check_input(read, Iri):-
-  is_uri(Iri), !.
+  is_iri(Iri), !.
 check_input(Mode, Path):-
   check_path(Mode, Path).
 

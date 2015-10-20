@@ -6,7 +6,7 @@
                         % -Height:float
     image_file_extension/1, % ?FileExtension:atom
     is_image_file/1, % @Term
-    is_image_uri/1 % @Term
+    is_image_iri/1 % @Term
   ]
 ).
 
@@ -103,10 +103,10 @@ is_image_file(File):-
 
 
 
-%! is_image_uri(+Uri:atom) is semidet.
+%! is_image_iri(+Uri:atom) is semidet.
 % Succeeds if the given Uri is commonly understood to denote an image file.
 
-is_image_uri(Uri):-
-  is_uri(Uri),
-  uri_component(Uri, path, Path),
+is_image_iri(Iri):-
+  is_iri(Iri),
+  uri_component(Iri, path, Path),
   is_image_file(Path).
