@@ -88,7 +88,7 @@ dict_download(Lang):-
   atomic_list_concat([dictionaries,Local], /, Entry),
 
   % Assert the words that appear in the dictionary.
-  call_archive_entry(Iri, Entry, dict_assert(Lang)).
+  call_on_archive(Iri, dict_assert(Lang), [archive_entry(Entry)]).
 
 
 

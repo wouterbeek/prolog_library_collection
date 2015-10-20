@@ -21,7 +21,7 @@ Predicates that extend the swipl builtin I/O predicates operating on streams.
 @version 2015/08, 2015/10
 */
 
-:- use_module(library(open_any2)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(readutil)).
 
 :- predicate_options(print_input/2, 2, [

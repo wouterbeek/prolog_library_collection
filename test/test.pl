@@ -54,13 +54,13 @@
   :- use_module(library(http/http_server)).
 :- use_module(library(image_ext)).
 :- use_module(library(json_ext)).
+:- use_module(library(list_ext)).
+:- use_module(library(list_script)).
 %/ltag
   :- use_module(library(ltag/ltag)).
   :- use_module(library(ltag/ltag_generics)).
   :- use_module(library(ltag/ltag_match)).
   :- use_module(library(ltag/ltag_range)).
-:- use_module(library(list_ext)).
-:- use_module(library(list_script)).
 %/math
   :- use_module(library(math/dimension)).
   :- use_module(library(math/math_ext)).
@@ -76,6 +76,7 @@
 :- use_module(library(option_ext)).
 %/os
   :- use_module(library(os/archive_ext)).
+  :- use_module(library(os/call_on_stream)).
   :- use_module(library(os/datetime_file)).
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).
@@ -83,6 +84,8 @@
   :- use_module(library(os/gnu_plot)).
   :- use_module(library(os/gnu_sort)).
   :- use_module(library(os/gnu_wc)).
+  :- use_module(library(os/io_ext)).
+  :- use_module(library(os/open_any2)).
   :- use_module(library(os/os_ext)).
   :- use_module(library(os/pdf)).
   :- use_module(library(os/process_ext)).
@@ -92,14 +95,16 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
 :- use_module(library(progress)).
-:- use_module(library(stream_ext)).
-:- use_module(library(string_ext)).
-%/rest
-  :- use_module(library(rest/rest_ext)).
 %/set
   :- use_module(library(set/equiv)).
   :- use_module(library(set/set_ext)).
   :- use_module(library(set/set_ext_experimental)).
+%/sgml
+  :- use_module(library(sgml/sgml_ext)).
+:- use_module(library(stream_ext)).
+:- use_module(library(string_ext)).
+%/rest
+  :- use_module(library(rest/rest_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).

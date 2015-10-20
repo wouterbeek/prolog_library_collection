@@ -15,7 +15,7 @@ Prolog API to GNU word count.
 */
 
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(io_ext)).
+:- use_module(library(os/io_ext)).
 :- use_module(library(os/process_ext)).
 
 
