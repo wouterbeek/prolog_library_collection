@@ -5,10 +5,12 @@
     archive_info/2, % +In
                     % +Options:list(compound)
     call_archive/2, % +In
-                    % :Goal_1
+                    % :Goal_2
     call_archive/3, % +In
-                    % :Goal_1
+                    % :Goal_2
                     % +Options:list(compound)
+    call_archive_entry/2, % +In
+                          % :Goal_2
     call_archive_entry/3, % +In
                           % :Goal_2
                           % +Options:list(compound)
@@ -28,13 +30,14 @@
 
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
-:- use_module(library(iostream)).
+:- use_module(library(open_any2)).
 
-:- meta_predicate(call_archive(+,1)).
-:- meta_predicate(call_archive(+,1,+)).
+:- meta_predicate(call_archive(+,2)).
+:- meta_predicate(call_archive(+,2,+)).
+:- meta_predicate(call_archive_entry(+,2)).
 :- meta_predicate(call_archive_entry(+,2,+)).
 :- meta_predicate(call_archive_entry(+,+,2,+)).
-:- meta_predicate(call_archive_entry0(+,2,+,+)).
+:- meta_predicate(call_archive_entry0(+,2,+,+,+)).
 
 :- predicate_options(archive_info/2, 2, [
      indent(+nonneg),
@@ -49,9 +52,9 @@
    ]).
 :- predicate_options(call_archive_entry/4, 4, [
      pass_to(call_archive/3, 3),
-     pass_to(call_archive_entry0/4, 3)
+     pass_to(call_archive_entry0/5, 3)
    ]).
-:- predicate_options(call_archive_entry0/4, 3, [
+:- predicate_options(call_archive_entry0/5, 3, [
      pass_to(archive_data_stream/3, 3)
    ]).
 
@@ -120,33 +123,42 @@ archive_info(In, Opts):-
   option(indent(I), Opts, 0),
   call_archive_entry(In, archive_info0(I), Opts).
 
-archive_info0(I, M, Read):-
+archive_info0(I, M, _):-
   print_dict(M, I).
 
 
 
-%! call_archive(+In, :Goal_1) is det.
+%! call_archive(+In, :Goal_2) is det.
 % Wrapper around call_archive/3 with default options.
 
-call_archive(In, Goal_1):-
-  call_archive(In, Goal_1, []).
+call_archive(In, Goal_2):-
+  call_archive(In, Goal_2, []).
 
 
-%! call_archive(+In, :Goal_1, +Options:list(compound)) is det.
+%! call_archive(+In, :Goal_2, +Options:list(compound)) is det.
 
-call_archive(In, Goal_1, Opts):-
+call_archive(In, Goal_2, Opts):-
+  % Archive options that cannot be overridden.
   merge_options([close_parent(false)], Opts, ArchOpts0),
+  % Archive options that can be overridden.
   merge_options(ArchOpts0, [filter(all),format(all),format(raw)], ArchOpts),
   setup_call_cleanup(
-    open_any(In, read, Read, Close, Opts),
+    open_any2(In, read, Read, Close_0, [metadata(OpenM)|Opts]),
     setup_call_cleanup(
       archive_open(Read, Arch, ArchOpts),
-      call(Goal_1, Arch),
+      call(Goal_2, OpenM, Arch),
       archive_close(Arch)
     ),
-    close_any(Close)
+    close_any2(Close_0)
   ).
 
+
+
+%! call_archive_entry(+In, :Goal_2) is nondet.
+% Wrapper around call_archive_entry/3 with default options.
+
+call_archive_entry(In, Goal_2):-
+  call_archive_entry(In, Goal_2, []).
 
 
 %! call_archive_entry(+In, :Goal_2, +Options:list(compound)) is nondet.
@@ -166,20 +178,14 @@ call_archive_entry(In, Goal_2, Opts):-
 call_archive_entry(In, Entry, Goal_2, Opts):-
   call_archive(In, call_archive_entry0(Entry, Goal_2, Opts), Opts).
 
-call_archive_entry0(Entry, Goal_2, Opts, Arch):-
-  option(meta_data(M), Opts, _),
-  archive_data_stream(Arch, Read, Opts),
-  (M = [M1|_], M1.name = Entry -> call(Goal_2, M, Read) ; close(Read), fail).
-
-
-
-
-
-% HELPERS %
-
-%! is_leaf_entry(+Archive:archive, +Entry:atom) is semidet.
-
-is_leaf_entry(Arch, Entry):-
-  archive_header_property(Arch, format(Format)),
-  Entry == data,
-  Format == raw.
+call_archive_entry0(Entry, Goal_2, Opts, MArch1, Arch):-
+  merge_options([meta_data(MEntry)], Opts, Opts0),
+  archive_data_stream(Arch, Read, Opts0),
+  (   MEntry = [MEntry1|_],
+      MEntry1.name = Entry
+  ->  put_dict(entry, MArch1, MEntry, MArch2),
+      gtrace,
+      call(Goal_2, MArch2, Read)
+  ;   close(Read),
+      fail
+  ).
