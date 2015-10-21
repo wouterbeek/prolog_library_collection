@@ -27,7 +27,6 @@
     decimal_parts/3, % ?Decimal:compound
                      % ?Integer:integer
                      % ?Fraction:compound
-    div_zero/3,
     euclidean_distance/3, % +Coordinate1:coordinate
                           % +Coordinate2:coordinate
                           % -EuclideanDistance:float
@@ -36,8 +35,14 @@
                  % -F:integer
     fibonacci/2, % ?Index:integer
                  % ?Fibonacci:integer
+    float_div_zero/3, % ?X
+                      % ?Y
+                      % ?Z
     fractional_integer/2, % +Number:or([float,integer,rational])
                           % -Fractional:integer
+    int_div_zero/3, % ?X
+                    % ?Y
+                    % ?Z
     log/3, % +Base:integer
            % +X:float
            % +Y:float
@@ -101,7 +106,7 @@ X = -6.
 ---
 
 @Author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/10
 */
 
 :- use_module(library(apply)).
@@ -336,14 +341,6 @@ decimal_parts(N, I, Frac):-
 
 
 
-div_zero(X, 0, 0):-
-  integer(X), !.
-div_zero(X, 0.0, 0.0):-
-  float(X), !.
-div_zero(X, Y, Z):-
-  Z is X / Y.
-
-
 %! euclidean_distance(
 %!   +Coordinate1:coordinate,
 %!   +Coordinate2:coordinate,
@@ -393,6 +390,23 @@ fibonacci(N, F):-
 
 
 
+%! float_div_zero(?X, ?Y, ?Z) is nondet.
+
+float_div_zero(_, Y, Z):-
+  Y =:= 0.0, !,
+  Z = 0.0.
+float_div_zero(X, Y, Z):-
+  maplist(number, [X,Y]), !,
+  Z is X / Y.
+float_div_zero(X, Y, Z):-
+  maplist(number, [X,Z]), !,
+  Y is X / Z.
+float_div_zero(X, Y, Z):-
+  maplist(number, [Y,Z]), !,
+  X is Y * Z.
+
+
+
 %! fractional_integer(
 %!   +Number:or([float,integer,rational]),
 %!   -Fractional:integer
@@ -412,6 +426,15 @@ fractional_integer(Number, Frac):-
   sub_atom(NumberAtom, Skip, _, 0, FracAtom),
   atom_number(FracAtom, Frac).
 fractional_integer(_, 0).
+
+
+
+%! int_div_zero(?X, ?Y, ?Z) is nondet.
+
+int_div_zero(_, 0, 0):- !.
+int_div_zero(X, Y, Z):-
+  Z #= X // Y.
+
 
 
 %! log(+Base:integer, +X:integer, -Y:double) is det.
