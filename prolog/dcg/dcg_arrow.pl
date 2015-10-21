@@ -27,7 +27,7 @@
 
 
 
-%! arrow(?Head:oneof([both,left,right]), ?Length:nonneg)// .
+%! arrow(?Length:nonneg)// .
 
 arrow(N) -->
   arrow(both, N).
