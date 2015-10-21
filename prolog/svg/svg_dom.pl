@@ -2,14 +2,14 @@
   svg_dom,
   [
     svg_dom/2 % +File:atom
-              % -Dom:compound
+              % -Dom:list(compound)
   ]
 ).
 
 /** <module> SVG DOM
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/10
 */
 
 :- use_module(library(sgml)).
@@ -18,7 +18,7 @@
 
 
 
-%! svg_dom(+File:atom, Dom:compound) is det.
+%! svg_dom(+File:atom, -Dom:list(compound)) is det.
 
 svg_dom(File, Dom):-
   setup_call_cleanup(
