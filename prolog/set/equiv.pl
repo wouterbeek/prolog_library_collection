@@ -94,11 +94,11 @@ equiv_pairs_set(L, Eqs):-
   equiv_pairs_partition(L, [[Eqs]]).
 equiv_pairs_set(L, Eqs):-
   ground(Eqs), !,
-  aggregate_all(X-Y, member(X, Y, Eqs), L).
+  aggregate_all(set(X-Y), member(X, Y, Eqs), L).
 equiv_pairs_set(L, Eqs):-
   instantiation_error(equiv_pairs_set(L, Eqs)).
-  
-  
+
+
 
 
 
