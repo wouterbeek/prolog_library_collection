@@ -77,7 +77,7 @@ open_any2(In, Mode, Stream, Close_0):-
 open_any2(In0, Mode, Stream, Close_0, Opts1):-
   input_type(In0, In, Type),
   ignore(option(metadata(M), Opts1)),
-  open_any_options(In, Opts1, Opts2),
+  open_any_options(Type, Opts1, Opts2),
   open_any(In, Mode, Stream0, Close_0, Opts2),
 
   % Compression.
@@ -166,7 +166,7 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
   ->  base_iri(In, BaseIri),
       option(final_url(FinalIri), Opts),
       option(headers(Headers), Opts),
-      option(status_codes(StatusCode), Opts),
+      option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
       create_grouped_sorted_dict(Headers, http_headers, MHeaders),
       MHttp = metadata{
