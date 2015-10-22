@@ -69,8 +69,6 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(debug_verbose(?,0,+,+)).
 :- meta_predicate(if_debug(?,0)).
 
-:- debug(debug_ext).
-
 
 
 
@@ -78,28 +76,22 @@ Tools that ease debugging SWI-Prolog programs.
 %! call_collect_messages(:Goal_0) is det.
 
 call_collect_messages(Goal_0):-
-  call_collect_messages(Goal_0, Status, Messages),
-  process_warnings(Messages),
+  call_collect_messages(Goal_0, Status, Es),
+  process_warnings(Es),
   process_status(Status).
 
 process_status(true):- !.
 process_status(fail):- !,
   fail.
-process_status(Exception):-
-  print_message(warning, Exception).
+process_status(E):-
+  print_error(E).
 
-process_warnings(Messages):-
-  debugging(debug_ext), !,
-  forall(
-    member(Warning, Messages),
-    debug(debug_ext, "[WARNING] ~a", [Warning])
-  ).
-process_warnings(Messages):-
-  length(Messages, N),
-  (   N =:= 0
-  ->  true
-  ;   print_message(warnings, number_of_warnings(N))
-  ).
+process_warnings([]):- !.
+process_warnings(Es):-
+  maplist(print_error, Es).
+%process_warnings(Es):-
+%  length(Es, N),
+%  (N =:= 0 -> true ; print_message(warnings, number_of_warnings(N))).
 
 
 %! call_collect_messages(
@@ -237,6 +229,17 @@ number_of_open_files(N):-
     stream_property(_, output),
     N
   ).
+
+
+
+
+
+%! print_error(+Error:compound) is det.
+
+print_error(exception(E)):- !,
+  print_error(E).
+print_error(E):-
+  print_message(error, E).
 
 
 
