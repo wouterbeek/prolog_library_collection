@@ -11,7 +11,9 @@
     indent//0,
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
-               % :Dcg_0
+               % :Dcg_2
+    indent_nl//2, % +Indent:nonneg
+                  % :Dcg_2
     iri//1, % +Iri:atom
     nl//0,
     nonblank//0,
@@ -40,6 +42,7 @@ DCG rules for parsing/generating often-occuring content.
 :- use_module(library(settings)).
 
 :- meta_predicate(indent(+,//,?,?)).
+:- meta_predicate(indent_nl(+,//,?,?)).
 :- meta_predicate(nvpair(//,//,?,?)).
 
 % The number of spaces that go into one indent.
@@ -116,11 +119,20 @@ indent(I) -->
   '#'(NSpaces, space, []), !.
 
 
-%! indent(+Indent:nonneg, :Dcg_0)// is det.
+%! indent(+Indent:nonneg, :Dcg_2)// is det.
 
-indent(I, Dcg_0) -->
+indent(I, Dcg_2) -->
   indent(I),
-  Dcg_0.
+  Dcg_2.
+
+
+
+%! indent_nl(+Indent:nonneg, :Dcg_2)// is det.
+
+indent_nl(I, Dcg_2) -->
+  indent(I),
+  Dcg_2,
+  nl.
 
 
 
