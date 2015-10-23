@@ -16,11 +16,10 @@
 Grammar rules for processing atoms.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_content)).
