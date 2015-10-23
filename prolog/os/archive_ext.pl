@@ -143,7 +143,7 @@ call_on_archive_entry0(Entry, Goal_2, Opts1, M1, Arch):-
   archive_data_stream(Arch, Read, Opts2),
   (   MEntry = [MEntry1|_],
       MEntry1.name = Entry
-  ->  put_dict(entry, M1, MEntry, M2),
+  ->  put_dict(archive_entry, M1, MEntry, M2),
       call(Goal_2, M2, Read)
   ;   close(Read),
       fail
