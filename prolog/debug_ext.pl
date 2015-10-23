@@ -5,7 +5,6 @@
     call_collect_messages/3, % :Goal_0
                              % -Status:compound
                              % -Messages:list(compound)
-    call_print_error/1, % :Goal_0
     debug_all_files/0,
     debug_concurrent_maplist/3, % +Flag:compound
                                 % :Goal_1
@@ -30,7 +29,8 @@
                      % +Arguments:list
     if_debug/2, % ?Flag:compound
                 % :Goal_0
-    number_of_open_files/1 % -N:nonneg
+    number_of_open_files/1, % -N:nonneg
+    print_error/1 % +Error:compound
   ]
 ).
 :- reexport(library(debug)).
@@ -60,7 +60,6 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- meta_predicate(call_collect_messages(0)).
 :- meta_predicate(call_collect_messages(0,-,-)).
-:- meta_predicate(call_print_error(0)).
 :- meta_predicate(debug_concurrent_maplist(+,1,+)).
 :- meta_predicate(debug_concurrent_maplist(+,2,+,+)).
 :- meta_predicate(debug_concurrent_maplist(+,3,+,+,+)).
@@ -102,13 +101,6 @@ process_warnings(Es):-
 
 call_collect_messages(Goal_0, Status, Messages):-
   check_installation:run_collect_messages(Goal_0, Status, Messages).
-
-
-
-%! call_print_error(:Goal_0) is det.
-
-call_print_error(Goal_0):-
-  catch(Goal_0, E, msg_error(E)).
 
 
 
