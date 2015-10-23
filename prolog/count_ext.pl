@@ -5,6 +5,7 @@
     delete_counter/1, % +Name:compound
     delete_counter/2, % +Name:compound
                       % -Count:integer
+    exists_counter/1, % +Name:compound
     get_counter/2, % +Name:compound
                    % -Count:integer
     increment_counter/1, % +Name:compound
@@ -22,7 +23,7 @@
 /** <module> Counter extension
 
 @author Wouter Beek
-@version 2015/09
+@version 2015/09-2015/10
 */
 
 :- use_module(library(error)).
@@ -52,6 +53,11 @@ delete_counter(N, C):-
   with_mutex(count_ext, (
     (retract(counter(N,C)) -> true ; existence_error(counter, N))
   )).
+
+
+
+exists_counter(N):-
+  counter(N, _).
 
 
 
