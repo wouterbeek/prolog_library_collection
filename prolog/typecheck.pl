@@ -161,6 +161,7 @@ is_http_iri(Iri):-
 %! is_iri(@Term) is semidet.
 
 is_iri(Iri):-
+  atom(Iri),
   uri_is_global(Iri).
   
 
