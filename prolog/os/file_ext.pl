@@ -31,6 +31,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
+@license MIT license
 @version 2015/07-2015/10
 */
 
@@ -43,6 +44,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(os/dir_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/os_ext)).
+:- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
 
 
@@ -154,10 +156,10 @@ root_prefix('C:\\').
 %! thread_file(+File:atom, -ThreadFile:atom) is det.
 % Returns a thread-specific file name based on the given file name.
 
-thread_file(File, ThreadFile):-
-  thread_self(Id),
-  atomic_list_concat([tmp,Id], '_', ThreadName),
-  file_name_extension(File, ThreadName, ThreadFile).
+thread_file(Base, File):-
+  thread_name(Thread),
+  atomic_list_concat([tmp,Thread], ., Ext),
+  file_name_extension(Base, Ext, File).
 
 
 

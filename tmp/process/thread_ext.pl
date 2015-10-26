@@ -5,8 +5,6 @@
                      % :Consequent
                      % +DebugTopic:atom
                      % +DebugMessage:atom
-    print_thread/1, % +Alias:atom
-    print_threads/0,
     thread_create/1, % :Goal
 % RUN ON SUBLISTS INFRASTRUCTURE
     intermittent_thread/5, % :Goal
@@ -102,23 +100,6 @@ forall_thread_end(Topic, Msg):-
   thread_property(Id, status(Status)),
   (Status == true -> Alarm = '' ; Alarm = '[!!!ALARM!!!]'),
   debug(Topic, '~w~w exited with status ~w.', [Alarm,Msg,Status]).
-
-print_thread(Alias):-
-  thread_property(Id, alias(Alias)),
-  thread_property(Id, status(Status)),
-  write(Alias),tab(1),
-  write(Status),nl.
-
-print_threads:-
-  % Print the threads in the alphabetical order of their alias.
-  aggregate_all(
-    set(Alias),
-    thread_property(_, alias(Alias)),
-    Aliases
-  ),
-  write('Alias'),tab(1),
-  write('Status'),nl,
-  maplist(print_thread, Aliases), !.
 
 thread_create(Goal):-
   thread_create(Goal, _, []).
