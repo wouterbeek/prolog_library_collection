@@ -2,6 +2,8 @@
   count_ext,
   [
     create_counter/1, % +Name:compound
+    create_thread_counter/2, % +Suggestion:atom
+                             % -Name:compound
     delete_counter/1, % +Name:compound
     delete_counter/2, % +Name:compound
                       % -Count:integer
@@ -23,10 +25,12 @@
 /** <module> Counter extension
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@license MIT license
+i@version 2015/09-2015/10
 */
 
 :- use_module(library(error)).
+:- use_module(library(os/thread_ext)).
 
 %! counter(?Name:compound, Count:integer) is nondet.
 
@@ -46,8 +50,16 @@ create_counter(N):-
 
 
 
+create_thread_counter(N1, N):-
+  thread_name(N2),
+  N =.. [N1,N2],
+  create_counter(N).
+
+
+
 delete_counter(N):-
   delete_counter(N, _).
+
 
 delete_counter(N, C):-
   with_mutex(count_ext, (
@@ -68,6 +80,7 @@ get_counter(N, C):-
 
 increment_counter(N):-
   increment_counter(N, 1, _).
+
 
 increment_counter(N, X):-
   increment_counter(N, 1, X).
