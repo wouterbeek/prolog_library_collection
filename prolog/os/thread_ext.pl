@@ -60,10 +60,10 @@ thread(I, Name) -->
   },
   indent_nl(I, nvpair(atom(Name),atom(Status))).
 
-threads_items(I, [H|T]) -->
+thread_items(I, [H|T]) -->
   thread(I, H), !,
-  threads_items(I, T).
-threads_items(_, []) --> [].
+  thread_items(I, T).
+thread_items(_, []) --> [].
 
 threads(I1, L) -->
   {succ(I1, I2)},
