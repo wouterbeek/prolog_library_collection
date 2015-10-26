@@ -21,6 +21,9 @@
     nvpair//2, % :Name_2
                % :Value_2
     parsing//0,
+    section//3, % +Indent:nonneg
+                % +Message:string
+                % :Dcg_2
     skip_line//0,
     string//0,
     string_without//1 % +EndCodes:list(code)
@@ -44,6 +47,7 @@ DCG rules for parsing/generating often-occuring content.
 :- meta_predicate(indent(+,//,?,?)).
 :- meta_predicate(indent_nl(+,//,?,?)).
 :- meta_predicate(nvpair(//,//,?,?)).
+:- meta_predicate(section(+,+,//,?,?)).
 
 % The number of spaces that go into one indent.
 :- setting(
@@ -176,6 +180,14 @@ nvpair(N, V) -->
 
 parsing(H, H):-
    nonvar(H).
+
+
+
+%! section(+Indent:nonneg, +Message:string, :Dcg_2)// is det.
+
+section(I, Msg, Dcg_2) -->
+  indent_nl(I, atom(Msg)),
+  Dcg_2.
 
 
 
