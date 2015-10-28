@@ -12,6 +12,7 @@
                        % +Head:term
                        % +Body:or([list(term),term])
     db_add_if_new/1, % :New
+    db_replace/1, % :New:ground
     db_replace/2, % :New:ground
                   % +Pattern:list(oneof([e,r]))
     db_replace_all/2, % :Old
@@ -43,6 +44,7 @@ For this we use db_replace/2 with the indicators `keep` and `replace`.
 :- use_module(library(error)).
 
 :- meta_predicate(db_add_if_new(0)).
+:- meta_predicate(db_replace(0)).
 :- meta_predicate(db_replace(0,+)).
 :- meta_predicate(db_replace_all(0,0)).
 :- meta_predicate(db_replace_some(0,0)).
@@ -99,6 +101,18 @@ db_add_if_new(Mod:New):-
   Mod:New, !.
 db_add_if_new(Mod:New):-
   Mod:assert(New).
+
+
+
+%! db_replace(:New) is det.
+
+db_replace(Mod:Fact):-
+  Fact =.. [Pred|Args],
+  length(Args, N),
+  length(Args0, N),
+  Fact0 =.. [Pred|Args0],
+  retractall(Mod:Fact0),
+  assert(Mod:Fact).
 
 
 
