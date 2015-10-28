@@ -8,6 +8,7 @@
 :- use_module(library(count_ext)).
 :- use_module(library(csv_ext)).
 :- use_module(library(date_ext)).
+:- use_module(library(db_ext)).
 %/dcg
   :- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_abnf_common)).
