@@ -8,6 +8,10 @@
     pair/3, % ?Pair:pair
             % ?Element1
             % ?Element2
+    pair_first/2, % +Pair:pair
+                  % ?First
+    pair_second/2, % +Pair:pair
+                   % ?Second
     pairs_to_set/2 % +Pairs:list(pair)
                    % -Set:ordset
   ]
@@ -71,6 +75,20 @@ is_reflexive_pair(Pair):-
 %! pair(-Pair:pair, +X, +Y) is det.
 
 pair(X-Y, X, Y).
+
+
+
+%! pair_first(+Pair:pair, +First) is semidet.
+%! pair_first(+Pair:pair, -First) is det.
+
+pair_first(X-_, X).
+
+
+
+%! pair_second(+Pair:pair, +Second) is semidet.
+%! pair_second(+Pair:pair, -Second) is det.
+
+pair_second(_-X, X).
 
 
 
