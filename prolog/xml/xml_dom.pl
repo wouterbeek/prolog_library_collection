@@ -3,6 +3,7 @@
   [
     atom_to_xml_dom/2, % +Atom:atom
                        % -Dom:list(compound)
+    xml_dom_as_atom//1, % +Dom:list(compound)
     xml_dom_to_atom/2, % +Dom, -Atom
     xml_dom_to_atom/3, % +Dom:list(compound)
                        % -Atom:atom
@@ -15,6 +16,7 @@
 /** <module> XML DOM
 
 @author Wouter Beek
+@license MIT license
 @version 2015/07, 2015/10
 */
 
@@ -64,6 +66,17 @@ stylesheet_pi(Mime, Spec, pi(Pi)):-
 
 
 
+%! xml_dom_as_atom(+Dom:list(compound))// is det.
+% Includes the given DOM inside the generated HTML page.
+%
+% DOM is either a list or compound term or an atom.
+
+xml_dom_as_atom(Dom) -->
+  {xml_dom_to_atom(Dom, A)},
+  html(\[A]).
+
+
+
 %! xml_dom_to_atom(+Dom:list(compound), -Xml:atom) is det.
 % Wrapper around xml_dom_to_atom/3.
 
@@ -77,12 +90,12 @@ xml_dom_to_atom(Dom, A):-
 %!   +Options:list(compound)
 %! ) is det.
 % The following options are supported:
-%   * `dtd(+Doctype:atom)`
+%   * dtd(+atom)
 %     The atomic name of the DTD that should be used for the XML DOM.
 %     The DTD is first searched for in the cache of DTD objects.
 %     If the given doctype has no associated DTD in the cache,
 %     it searches for a file using the file search path =dtd=.
-%   * `style(+StyleName:atom)`
+%   * style(+atom)
 %     The atomic name of a style file on the =css= search path.
 
 xml_dom_to_atom(Dom, A, Opts1):-
