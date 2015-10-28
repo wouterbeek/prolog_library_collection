@@ -1,14 +1,10 @@
 :- module(
   pair_ext,
   [
-    inverse_pair/2, % ?Pair:pair
-                    % ?Inverse:pair
     list_pair/2, % ?List:list
                  % ?Pair:pair
     merge_pairs_by_key/2, % +Pairs:list(pair)
                           % -Merged:list(pair)
-    pair_element/2, % ?Pair:pair
-                    % ?Element
     pair_first/2, % +Pair:pair
                   % ?First
     pair_list/2, % ?Pair:pair
@@ -56,13 +52,6 @@ Support predicates for working with pairs.
 
 
 
-%! inverse_pair(+Pair:pair, -Inverse:pair) is det.
-%! inverse_pair(-Pair:pair, +Inverse:pair) is det.
-
-inverse_pair(X-Y, Y-X).
-
-
-
 %! list_pair(+List:list, +Pair:pair) is semidet.
 %! list_pair(+List:list, -Pair:pair) is det.
 %! list_pair(-List:list, +Pair:pair) is det.
@@ -84,14 +73,6 @@ same_key(K, [K-V|L1], VMerge2, L2):- !,
 same_key(K, [_|L1], VMerge, L2):- !,
   same_key(K, L1, VMerge, L2).
 same_key(_, L, [], L).
-
-
-
-%! pair_element(+Pair:pair, +Element) is semidet.
-%! pair_element(+Pair:pair, -Element) is multi.
-
-pair_element(X-_, X).
-pair_element(_-Y, Y).
 
 
 

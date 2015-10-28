@@ -4,10 +4,14 @@
     group_pairs_by_key/3, % :Comparator_2
                           % +Pairs:list(pair)
                           % -GroupedPairs:list(pair)
+    inverse_pair/2, % ?Pair:pair
+                    % ?Inverse:pair
     is_reflexive_pair/1, % +Pair:pair)
     pair/3, % ?Pair:pair
             % ?Element1
             % ?Element2
+    pair_element/2, % ?Pair:pair
+                    % ?Element
     pairs_to_set/2 % +Pairs:list(pair)
                    % -Set:ordset
   ]
@@ -59,6 +63,13 @@ same_key(_, _, L, [], L).
 
 
 
+%! inverse_pair(+Pair:pair, -Inverse:pair) is det.
+%! inverse_pair(-Pair:pair, +Inverse:pair) is det.
+
+inverse_pair(X-Y, Y-X).
+
+
+
 %! is_reflexive_pair(+Pair:pair) is semidet.
 
 is_reflexive_pair(Pair):-
@@ -71,6 +82,16 @@ is_reflexive_pair(Pair):-
 %! pair(-Pair:pair, +X, +Y) is det.
 
 pair(X-Y, X, Y).
+
+
+
+%! pair_element(+Pair:pair, +Element) is semidet.
+%! pair_element(+Pair:pair, -Element) is multi.
+% Succeeds if Element occurs in Pair.
+
+pair_element(X-_, X).
+pair_element(X-Y, Y):-
+  X \== Y.
 
 
 
