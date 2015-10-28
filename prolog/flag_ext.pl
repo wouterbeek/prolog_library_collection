@@ -1,6 +1,11 @@
 :- module(
   flag_ext,
   [
+    enable_switch/1, % +Switch:compound
+    disable_switch/1, % +Switch:compound
+    switch/1, % ?Switch:compound
+    switch/2, % +Switch:compound
+              % ?Status:boolean
     tmp_set_prolog_flag/3 % +Flag:atom
                           % +Value
                           % :Goal_0
@@ -12,12 +17,44 @@
 Extensions for setting Prolog flags.
 
 @author Wouter Beek
-@version 2015/08
+@tbd Support global and local switches.
+@version 2015/08, 2015/10
 */
+
+:- use_module(library(db_ext)).
 
 :- meta_predicate(tmp_set_prolog_flag(+,+,0)).
 
+%! switch(+Switch:compound, +Status:boolean) is semidet.
+%! switch(+Switch:compound, -Status:boolean) is det.
+%! switch(-Switch:compound, +Status:boolean) is nondet.
+%! switch(-Switch:compound, -Status:boolean) is nondet.
 
+:- thread_local(switch/2).
+
+
+
+
+
+%! enable_swistch(+Switch:compound) is det.
+
+enable_switch(Switch):-
+  db_replace(switch(Switch,true)).
+
+
+
+%! disable_swistch(+Switch:compound) is det.
+
+disable_switch(Switch):-
+  db_replace(switch(Switch,false)).
+
+
+
+%! switch(+Switch:compound) is semidet.
+%! switch(-Switch:compound) is nondet.
+
+switch(Switch):-
+  switch(Switch, true).
 
 
 
