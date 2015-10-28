@@ -19,16 +19,14 @@
 @version 2015/10
 */
 
-:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
 :- use_module(library(graph/s/s_test)).
 :- use_module(library(lambda)).
-:- use_module(library(list_ext)).
-:- use_module(library(ordsets)).
 :- use_module(library(pair_ext)).
 :- use_module(library(plunit)).
+:- use_module(library(set/relation)).
 
 
 
@@ -56,7 +54,7 @@ equiv_class(EqRel, X, EqClass):-
     % Since an equivalence relation is symmetric,
     % we do not need to use e.g. adjacent/3 here.
     \X^Y^relation_pair(EqRel, X-Y),
-    [X],
+    X,
     EqClass
   ).
 

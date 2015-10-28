@@ -27,14 +27,19 @@ Support for properties of relations.
 @version 2015/10
 */
 
-:- use_module(library(aggregate)).
 :- use_module(library(closure)).
-:- use_module(library(graph/s/s_edge)).
+:- use_module(library(chr)).
+:- use_module(library(flag_ext)).
 :- use_module(library(graph/s/s_graph)).
-:- use_module(library(graph/s/s_test)).
 :- use_module(library(lambda)).
-:- use_module(library(lists)).
-:- use_module(library(pair_ext)).
+
+:- chr_constraint(leq/2).
+
+antisymmetry @ leq(X,Y), leq(Y,X)  <=> switch(antisymm) | X = Y    .
+idempotence  @ leq(X,Y) \ leq(X,Y) <=>                    true     .
+reflexivity  @ leq(X,X)            <=> switch(refl)     | true     .
+symmetry     @ leq(X,Y)            ==> switch(symm)     | leq(Y,X) .
+transitivity @ leq(X,Y), leq(Y,Z)  ==> switch(trans)    | leq(X,Z) .
 
 :- meta_predicate(relational_closure(+,2,-)).
 
@@ -75,8 +80,12 @@ is_transitive(Rel):-
 %! reflexive_closure(+Relation:ugraph, -ReflexiveRelation:ugraph) is det.
 
 reflexive_closure(Rel, ReflRel):-
-  relational_closure(
-    Rel,
+  maplist(enable_switch, [refl]),
+  maplist(disable_switch, [antisymm,symm,trans]),
+  relation_compound(Rel, _, Pairs),
+  maplist(translate_term0, Pairs, Es),
+  call(rel, Es),
+  relation_closure(
     \Pairs^Result^(
       member(Pair, Pairs),
       (   Result = Pair
@@ -84,8 +93,11 @@ reflexive_closure(Rel, ReflRel):-
           Result = X-X
       )
     ),
+    Rel,
     ReflRel
   ).
+
+translate_term0(X-Y, leq(X,Y)).
 
 
 
@@ -110,14 +122,16 @@ relation_pair(Rel, Pair):-
 %! symmetric_closure(+Relation:ugraph, -SymmetryRelation:ugraph) is det.
 
 symmetric_closure(Rel, SymmRel):-
-  relational_closure(
-    Rel,
+  relation_components(Rel, _, Pairs),
+  maplist(call, Pairs),
+  relation_closure(
     \Pairs^Result^(
       member(Pair, Pairs),
       (   Result = Pair
       ;   inverse_pair(Pair, Result)
       )
     ),
+    Rel,
     SymmRel
   ).
 
@@ -128,35 +142,13 @@ symmetric_closure(Rel, SymmRel):-
 % using relational_closure/3:
 
 transitive_closure(Rel, TransRel):-
-  relational_closure(
-    Rel,
+  relation_closure(
     \Pairs^Result^(
         member(Result, Pairs)
     ;   member(X-Y, Pairs),
         member(Y-Z, Pairs),
         Result = X-Z
     ),
+    Rel,
     TransRel
   ).
-
-
-
-
-
-% HELPERS %
-
-%! relational_closure(
-%!   +Relation:ugraph,
-%!   :Goal,
-%!   -ClosedRelation:ugraph
-%! ) is det.
-% Allows the calculation of the closure of a relation directly.
-% Internally, the closure is calculated for the extension of the relation,
-% i.e., its edge pairs.
-%
-% The mode is the same as for `Goal`.
-
-relational_closure(Rel, Goal_2, ClosedRel):-
-  relation_components(Rel, Set, Pairs),
-  closure(Goal_2, Pairs, ClosedPairs),
-  relation_components(ClosedRel, Set, ClosedPairs).
