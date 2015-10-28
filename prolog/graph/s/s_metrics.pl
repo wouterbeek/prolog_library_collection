@@ -93,7 +93,7 @@ test(
   s_degree_sequence(G, DegreeSeq).
 
 s_degree_sequence_test(G, [4,3,2,2,1], true):-
-  s_test_graph(various(1), G).
+  s_graph_test(various(1), G).
 s_degree_sequence_test(G, DegreeSeq2, fail):-
   s_degree_sequence_test(G, DegreeSeq1, true),
   permutation(DegreeSeq2, DegreeSeq1),
@@ -110,7 +110,11 @@ s_degree_sequence_test(G, DegreeSeq2, fail):-
 % This fails silently for non-regular graphs (which do not have a degree).
 
 s_graph_degree(G, Degree):-
-  forall(s_vertex(G, V), s_vertex_degree(G, V, Degree)).
+  (   s_vertex(G, V1),
+      s_vertex_degree(G, V1, Degree)
+  ->  forall(s_vertex(G, V), s_vertex_degree(G, V, Degree))
+  ;   Degree = 0
+  ).
 
 
 
@@ -155,10 +159,9 @@ test(
   s_graph_test(GName, G),
   s_maximum_degree(G, MaxDegree).
 
-s_maximum_degree_test(G, 4, true):-
-  s_graph_test(equiv(1), G).
-s_maximum_degree_test(G, Degree2, fail):-
-  s_maximum_degree_test(G, Degree1, true),
+s_maximum_degree_test(equiv(1), 3, true).
+s_maximum_degree_test(GName, Degree2, fail):-
+  s_maximum_degree_test(GName, Degree1, true),
   between(0, Degree1, Degree2),
   Degree1 =\= Degree2.
 
@@ -178,7 +181,7 @@ test(
   's_minimum_degree(+,+) is semidet. TRUE',
   [forall(s_minimum_degree_test(GName,MinDegree,true))]
 ):-
-  s_test_graph(GName, G),
+  s_graph_test(GName, G),
   s_minimum_degree(G, MinDegree).
 
 s_minimum_degree_test(various(2), 1, true).

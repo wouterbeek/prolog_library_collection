@@ -152,18 +152,20 @@ s_cyclic_graph(G):-
 
 %! s_cyclic_graph(+Graph:ugraph, +Order:nonneg) is semidet.
 %! s_cyclic_graph(+Graph:ugraph, -Order:nonneg) is semidet.
+% A *cyclic* graph is a graph for which every vertex has the same degree.
+% The number of vertices is called the order of the cyclic graph.
 
 s_cyclic_graph(G, Order):-
   s_degree_sequence(G, [H|T]),
-  inflist(H, T),
-  length([H|T], Order).
+  repeating_list(H, Order, [H|T]).
 
 :- begin_tests('s_cyclic_graph/2').
 
 test(
   's_cyclic_graph(+,-) is semidet. TRUE',
-  [forall(s_cyclic_graph_test(G,Order,true))]
+  [forall(s_cyclic_graph_test(GName,Order,true))]
 ):-
+  s_graph_test(GName, G),
   s_cyclic_graph(G, Order).
 
 s_cyclic_graph_test(cycle(3), 3, true).
@@ -345,12 +347,14 @@ s_line_graph(G, LineG):-
   ).
 
 
+
 %! s_regular_graph(+Graph:ugraph) is semidet.
 % A *regular* graph is a graph with a (single) degree,
 % i.e., every vertex has the same degree.
 
 s_regular_graph(G):-
   s_regular_graph(G, _).
+
 
 %! s_regular_graph(+Graph:ugraph, -K:nonneg) is semidet.
 % Returns the degree of the given graph, if it is regular.

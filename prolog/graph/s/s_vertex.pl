@@ -139,7 +139,7 @@ test(
   's_dominating_vertex(+,-) is nondet. TRUE',
   [all(V == [3])]
 ):-
-  s_graph_test("1_5", G),
+  s_graph_test(various(1), G),
   s_dominating_vertex(G, V).
 
 s_dominating_vertex_test(various(1), 3, true).
@@ -230,14 +230,14 @@ test(
   's_vertex_degree(+,+,-) is det. TRUE',
   [all(V-Degree == [1-1,2-3,3-4,4-2,5-2])]
 ):-
-  s_graph_test(equiv(1), G),
+  s_graph_test(various(1), G),
   s_vertex_degree(G, V, Degree).
 
 s_vertex_degree_test(G, V, Degree, true):-
-  s_test_graph(various(1), G),
+  s_graph_test(various(1), G),
   member(V-Degree, [1-1,2-3,3-4,4-2,5-2]).
 s_vertex_degree_test(G, V, Degree, fail):-
-  s_test_graph(various(1), G),
+  s_graph_test(various(1), G),
   member(V-Degree, [1-0,2-1,3-12,4-3,5-4]).
 
 :- end_tests('s_vertex_degree/3').
