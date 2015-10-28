@@ -41,6 +41,19 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(dlist)).
 :- use_module(library(flag_ext)).
+%/graph
+  :- use_module(library(graph/betweenness)).
+  :- use_module(library(graph/graph_closure)).
+  :- use_module(library(graph/graph_traverse)).
+  :- use_module(library(graph/graph_walk)).
+  :- use_module(library(graph/l/l_graph)).
+  :- use_module(library(graph/s/s_edge)).
+  :- use_module(library(graph/s/s_graph)).
+  :- use_module(library(graph/s/s_metrics)).
+  :- use_module(library(graph/s/s_subgraph)).
+  :- use_module(library(graph/s/s_test)).
+  :- use_module(library(graph/s/s_type)).
+  :- use_module(library(graph/s/s_vertex)).
 :- use_module(library(hash_ext)).
 %/html
   :- use_module(library(html/html_dcg)).

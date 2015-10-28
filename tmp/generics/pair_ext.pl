@@ -9,12 +9,8 @@
                           % -Merged:list(pair)
     pair_element/2, % ?Pair:pair
                     % ?Element
-    pair_first/2, % +Pair:pair
-                  % ?First
     pair_list/2, % ?Pair:pair
                  % ?List:list
-    pair_second/2, % +Pair:pair
-                   % ?Second
     pairs_to_ascending_values/2, % +Pairs:list(pair)
                                  % -Values:list
     pairs_to_descending_values/2, % +Pairs:list(pair)
@@ -95,25 +91,11 @@ pair_element(_-Y, Y).
 
 
 
-%! pair_first(+Pair:pair, +First) is semidet.
-%! pair_first(+Pair:pair, -First) is det.
-
-pair_first(X-_, X).
-
-
-
 %! pair_list(+Pair:pair, +List:list) is semidet.
 %! pair_list(+Pair:pair, -List:list) is det.
 %! pair_list(-Pair:pair, +List:list) is det.
 
 pair_list(X-Y, [X,Y]).
-
-
-
-%! pair_second(+Pair:pair, +Second) is semidet.
-%! pair_second(+Pair:pair, -Second) is det.
-
-pair_second(X-_, X).
 
 
 
