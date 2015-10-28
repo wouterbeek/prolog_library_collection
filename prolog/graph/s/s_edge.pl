@@ -76,10 +76,10 @@ test(
   's_adjacent_edge(+,+,-) is nondet. TRUE',
   [forall(s_adjacent_edge_test(GName,Es,true))]
 ):-
-  s_test(GName, G),
+  s_test_graph(GName, G),
   aggregate_all(set(E), s_adjacent_edge(G, 1-2, E), Es).
 
-s_adjacent_edge_test("p3", [2-1,2-3,3-2], true).
+s_adjacent_edge_test(path(3), [2-1,2-3,3-2], true).
 
 :- end_tests('s_adjacent_edge/3').
 

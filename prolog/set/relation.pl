@@ -29,9 +29,9 @@ Support for properties of relations.
 
 :- use_module(library(aggregate)).
 :- use_module(library(closure)).
-:- use_module(library(graph/graph_test)).
 :- use_module(library(graph/s/s_edge)).
 :- use_module(library(graph/s/s_graph)).
+:- use_module(library(graph/s/s_test)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).

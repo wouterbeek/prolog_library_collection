@@ -166,8 +166,8 @@ test(
 ):-
   s_cyclic_graph(G, Order).
 
-s_cyclic_graph_test([1-[2,3],2-[1,3],3-[1,2]], 3, true).
-s_cyclic_graph_test([1-[2,3,4],2-[1,3,4],3-[1,2,4],4-[1,2,3]], 4, true).
+s_cyclic_graph_test(cycle(3), 3, true).
+s_cyclic_graph_test(cycle(1), 4, true).
 
 :- end_tests('s_cyclic_graph/2').
 
@@ -362,17 +362,15 @@ s_regular_graph(G, K):-
 
 test(
   's_regular_graph(+) is semidet. TRUE',
-  [forall(s_regular_graph_test(G,true))]
+  [forall(s_graph_test(regular(_),G))]
 ):-
   s_regular_graph(G).
 
 test(
   's_regular_graph(+) is semidet. FAIL',
-  [forall(s_regular_graph_test(G,fail))]
+  [fail,forall(s_graph_test(nonregular(_),G))]
 ):-
   s_regular_graph(G).
-
-s_regular_graph_test([1-[3],2-[3,5],3-[1,2,4,5],4-[2,3,5],5-[2,3,4]], fail).
 
 :- end_tests('s_regular_graph/1').
 

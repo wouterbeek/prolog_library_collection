@@ -98,10 +98,10 @@ test(
   % We know the exact order in which the results should be returned.
   [forall(s_adjacent_vertices_test(GName,VPairs,true))]
 ):-
-  s_test(GName, G),
+  s_graph_test(GName, G),
   findall(V-W, s_adjacent_vertices(G, V, W), VPairs).
 
-s_adjacent_vertices_test(1_5, [1-3,2-3,2-4,2-5,3-4,3-5], true).
+s_adjacent_vertices_test(various(1), [1-3,2-3,2-4,2-5,3-4,3-5], true).
 
 :- end_tests('s_adjacent_vertices/3').
 
@@ -133,16 +133,16 @@ test(
   's_dominating_vertex(+,+) is semidet. TRUE',
   [forall(s_dominating_vertex_test(GName,V, true))]
 ):-
-  s_test(GName, G),
+  s_graph_test(GName, G),
   s_dominating_vertex(G, V).
 test(
   's_dominating_vertex(+,-) is nondet. TRUE',
   [all(V == [3])]
 ):-
-  s_test("1_5", G),
+  s_graph_test("1_5", G),
   s_dominating_vertex(G, V).
 
-s_dominating_vertex_test(1_5, 3, true).
+s_dominating_vertex_test(various(1), 3, true).
 
 :- end_tests('s_dominating_vertex/2').
 
@@ -212,10 +212,7 @@ s_vertex_degree(G, V, Degree):-
   length(Ws, Degree0),
   
   % Correct for reflexive edges, which are counted twice.
-  (   memberchk(V, Ws)
-  ->  Degree is Degree0 + 1
-  ;   Degree = Degree0
-  ).
+  (memberchk(V, Ws) -> Degree is Degree0 + 1 ; Degree = Degree0).
 
 :- begin_tests('s_vertex_degree/3').
 
@@ -229,19 +226,18 @@ test(
   [fail,forall(s_vertex_degree_test(G,V,Degree,fail))]
 ):-
   s_vertex_degree(G, V, Degree).
-
-s_vertex_degree_test(G, V, Degree, true):-
-  s_test("1_5", G),
-  member(V-Degree, [1-1,2-3,3-4,4-2,5-2]).
-s_vertex_degree_test(G, V, Degree, fail):-
-  s_test("1_5", G),
-  member(V-Degree, [1-0,2-1,3-12,4-3,5-4]).
-
 test(
   's_vertex_degree(+,+,-) is det. TRUE',
   [all(V-Degree == [1-1,2-3,3-4,4-2,5-2])]
 ):-
-  s_test(equiv(1), G),
+  s_graph_test(equiv(1), G),
   s_vertex_degree(G, V, Degree).
+
+s_vertex_degree_test(G, V, Degree, true):-
+  s_test_graph(various(1), G),
+  member(V-Degree, [1-1,2-3,3-4,4-2,5-2]).
+s_vertex_degree_test(G, V, Degree, fail):-
+  s_test_graph(various(1), G),
+  member(V-Degree, [1-0,2-1,3-12,4-3,5-4]).
 
 :- end_tests('s_vertex_degree/3').

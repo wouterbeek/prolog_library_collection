@@ -111,6 +111,30 @@ in_base(X, Base):-
   X in 0..Max.
 
 
+:- begin_tests('positional/3').
+
+test(
+  'positional(+,+,+) is semidet. TRUE',
+  [forall(positional_test(N,Base,L))]
+):-
+  positional(N, Base, L).
+test(
+  'positional(+,+,-) is multi. TRUE',
+  [forall(positional_test(N,Base,L)),nondet]
+):-
+  positional(N, Base, L0), L0 = L.
+test(
+  'positional(-,+,+) is multi. TRUE',
+  [forall(positional_test(N, Base, L)),nondet]
+):-
+  positional(N0, Base, L), N0 = N.
+
+positional_test(1226, 10, [1,2,2,6]).
+positional_test(120, 60, [2,0]).
+
+:- end_tests('positional/3').
+
+
 
 %! positional_fraction(+Digits:list(between(0,9)), -Fraction:rational) is det.
 %! positional_fraction(-Digits:list(between(0,9)), +Fraction:rational) is det.
@@ -131,23 +155,3 @@ positional_fraction(Ws, F):-
   positional(I, Ws).
 positional_fraction(_, _):-
   instantiation_error(_).
-
-
-
-
-
-% TESTS %
-
-:- begin_tests(positional).
-
-test('positional(+,+,+)', [forall(positional_test(N, Base, L))]):-
-  positional(N, Base, L).
-test('positional(+,+,-)', [forall(positional_test(N, Base, L)),nondet]):-
-  positional(N, Base, L0), L0 = L.
-test('positional(-,+,+)', [forall(positional_test(N, Base, L)),nondet]):-
-  positional(N0, Base, L), N0 = N.
-
-positional_test(1226, 10, [1,2,2,6]).
-positional_test(120, 60, [2,0]).
-
-:- end_tests(positional).

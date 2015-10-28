@@ -76,14 +76,9 @@ replace_graph_components(Vs, Es):-
 
 s_degree_sequence(G, DegreeSeq):-
   s_vertices(G, Vs),
-  maplist(
-    \V^Degree^s_vertex_degree(G, V, Degree),
-    Vs,
-    VDegrees
-  ),
+  maplist(\V^Degree^s_vertex_degree(G, V, Degree), Vs, VDegrees),
   sort(0, @>=, VDegrees, DegreeSeq).
 
-/*
 :- begin_tests('s_degree_sequence/2').
 
 test(
@@ -91,7 +86,6 @@ test(
   [forall(s_degree_sequence_test(G,DegreeSeq,true))]
 ):-
   s_degree_sequence(G, DegreeSeq).
-
 test(
   's_degree_sequence(+,+) is semidet. FALSE',
   [fail,forall(s_degree_sequence_test(G,DegreeSeq,fail))]
@@ -99,14 +93,13 @@ test(
   s_degree_sequence(G, DegreeSeq).
 
 s_degree_sequence_test(G, [4,3,2,2,1], true):-
-  s_test("1_5", G).
+  s_test_graph(various(1), G).
 s_degree_sequence_test(G, DegreeSeq2, fail):-
   s_degree_sequence_test(G, DegreeSeq1, true),
   permutation(DegreeSeq2, DegreeSeq1),
   DegreeSeq1 \= DegreeSeq2.
 
 :- end_tests('s_degree_sequence/2').
-*/
 
 
 
@@ -117,10 +110,7 @@ s_degree_sequence_test(G, DegreeSeq2, fail):-
 % This fails silently for non-regular graphs (which do not have a degree).
 
 s_graph_degree(G, Degree):-
-  forall(
-    s_vertex(G, V),
-    s_vertex_degree(G, V, Degree)
-  ).
+  forall(s_vertex(G, V), s_vertex_degree(G, V, Degree)).
 
 
 
@@ -148,22 +138,25 @@ s_graph_size(G, Size):-
 %! s_maximum_degree(+Graph:ugraph, -MaxDegree:nonneg) is det.
 
 s_maximum_degree(G, MaxDegree):-
-  aggregate_all(
-    max(Degree),
-    s_vertex_degree(G, _, Degree),
-    MaxDegree
-  ).
+  aggregate_all(max(Degree), s_vertex_degree(G, _, Degree), MaxDegree).
 
 :- begin_tests('s_maximum_degree/2').
 
 test(
-  's_maximum_degree(+,+) is semidet. TRUE',
-  [forall(s_maximum_degree_test(G,MaxDegree,true))]
+  's_maximum_degree(+,+) is semidet. FALSE',
+  [fail,forall(s_maximum_degree_test(GName,MaxDegree,false))]
 ):-
+  s_graph_test(GName, G),
+  s_maximum_degree(G, MaxDegree).
+test(
+  's_maximum_degree(+,+) is semidet. TRUE',
+  [forall(s_maximum_degree_test(GName,MaxDegree,true))]
+):-
+  s_graph_test(GName, G),
   s_maximum_degree(G, MaxDegree).
 
 s_maximum_degree_test(G, 4, true):-
-  s_test(equiv(1), G).
+  s_graph_test(equiv(1), G).
 s_maximum_degree_test(G, Degree2, fail):-
   s_maximum_degree_test(G, Degree1, true),
   between(0, Degree1, Degree2),
@@ -177,20 +170,17 @@ s_maximum_degree_test(G, Degree2, fail):-
 %! s_minimum_degree(+Graph:ugraph, -MinDegree:nonneg) is det.
 
 s_minimum_degree(G, MinDegree):-
-  aggregate_all(
-    min(Degree),
-    s_vertex_degree(G, _, Degree),
-    MinDegree
-  ).
+  aggregate_all(min(Degree), s_vertex_degree(G, _, Degree), MinDegree).
 
 :- begin_tests('s_minimum_degree/2').
 
 test(
   's_minimum_degree(+,+) is semidet. TRUE',
-  [forall(s_minimum_degree_test(G,MinDegree,true))]
+  [forall(s_minimum_degree_test(GName,MinDegree,true))]
 ):-
+  s_test_graph(GName, G),
   s_minimum_degree(G, MinDegree).
 
-s_minimum_degree_test([1-[3],2-[3,5],3-[1,2,4,5],4-[2,3,5],5-[2,3,4]], 1, true).
+s_minimum_degree_test(various(2), 1, true).
 
 :- end_tests('s_minimum_degree/2').

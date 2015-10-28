@@ -1,6 +1,7 @@
 :- module(
   nlp_dictionary,
   [
+    nlp_dict_init/0,
     nlp_random_word/3, % +Language:string
                        % -Word:string
                        % -Something:string
@@ -33,8 +34,6 @@ Support for natural language dictionaries.
 
 cert_verify(_, _, _, _, _):- !.
 
-:- initialization(dict_init).
-
 
 
 
@@ -59,14 +58,14 @@ nlp_word(Lang, Word, Something):-
 
 % INITIALIZATION %
 
-%! dict_assert(+Language:string, +Metadata:dict, +Read:stream) is det.
+%! nlp_dict_assert(+Language:string, +Metadata:dict, +Read:stream) is det.
 
-dict_assert(Lang, _, Read):-
-  dict_assert0(Lang, 0, Read).
+nlp_dict_assert(Lang, _, Read):-
+  nlp_dict_assert0(Lang, 0, Read).
 
-dict_assert0(_, _, Read):-
+nlp_dict_assert0(_, _, Read):-
   at_end_of_stream(Read), !.
-dict_assert0(Lang, N1, Read):-
+nlp_dict_assert0(Lang, N1, Read):-
   read_line_to_codes(Read, Cs),
 
   % Parse and assert a single entry in the dictionary.
@@ -74,53 +73,53 @@ dict_assert0(Lang, N1, Read):-
   succ(N1, N2),
   assert_word(Lang, N2, Word, Something),
 
-  dict_assert0(Lang, N2, Read).
+  nlp_dict_assert0(Lang, N2, Read).
 
 
 
-%! dict_download(+Language:string) is det.
+%! nlp_dict_download(+Language:string) is det.
 
-dict_download(Lang):-
-  dict_iri(Lang, Iri),
+nlp_dict_download(Lang):-
+  nlp_dict_iri(Lang, Iri),
 
   % Construct the entry path that is to be extracted from the archive.
   file_name_extension(Lang, dic, Local),
   atomic_list_concat([dictionaries,Local], /, Entry),
 
   % Assert the words that appear in the dictionary.
-  call_on_archive(Iri, dict_assert(Lang), [archive_entry(Entry)]).
+  call_on_archive(Iri, nlp_dict_assert(Lang), [archive_entry(Entry)]).
 
 
 
-%! dict_file(+Language:string, -File:atom) is det.
+%! nlp_dict_file(+Language:string, -File:atom) is det.
 
-dict_file(Lang, File):-
+nlp_dict_file(Lang, File):-
   absolute_file_name(Lang, File, [access(write),extensions([dic])]).
 
 
 
-%! dict_init is det.
+%! nlp_dict_init is det.
 % Initialize the dictionary for each supported language.
 
-dict_init:-
-  forall(dict_lang(Lang), dict_init(Lang)).
+nlp_dict_init:-
+  forall(nlp_dict_lang(Lang), nlp_dict_init(Lang)).
 
 
-%! dict_init(+Language:string) is det.
+%! nlp_dict_init(+Language:string) is det.
 % Initialize the dictionary for the given Language.
 
-dict_init(Lang):-
-  dict_file(Lang, File),
+nlp_dict_init(Lang):-
+  nlp_dict_file(Lang, File),
   (exists_file(File) -> true ; touch(File)),
   db_attach(File, []),
   file_age(File, Age),
-  dict_update(Lang, Age).
+  nlp_dict_update(Lang, Age).
 
 
 
-%! dict_iri(?Language:string, -Iri:atom) is nondet.
+%! nlp_dict_iri(?Language:string, -Iri:atom) is nondet.
 
-dict_iri("en-US", Iri):-
+nlp_dict_iri("en-US", Iri):-
   atomic_list_concat(
     [
       '',
@@ -140,24 +139,24 @@ dict_iri("en-US", Iri):-
 
 
 
-%! dict_lang(+Language:string) is semidet.
-%! dict_lang(-Language:string) is multi.
+%! nlp_dict_lang(+Language:string) is semidet.
+%! nlp_dict_lang(-Language:string) is multi.
 
-dict_lang(Lang):-
-  dict_iri(Lang, _).
+nlp_dict_lang(Lang):-
+  nlp_dict_iri(Lang, _).
 
 
 
-%! dict_update(+Language:string, +Age:float) is det.
+%! nlp_dict_update(+Language:string, +Age:float) is det.
 
 % The persistent store is still fresh.
-dict_update(Lang, Age):-
+nlp_dict_update(Lang, Age):-
   once(word(Lang, _, _, _)),
   Age < 8640000, !.
 % The persistent store has become stale, so refresh it.
-dict_update(Lang, _):-
+nlp_dict_update(Lang, _):-
   retractall_word(Lang, _, _, _),
-  dict_download(Lang).
+  nlp_dict_download(Lang).
 
 
 

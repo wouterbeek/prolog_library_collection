@@ -7,9 +7,9 @@
     equiv_partition/2, % +EquivalenceRelation:ugraph
                        % -Partition:ordset(ordset)
     is_equiv/1, % +Relation:ugraph
-    quotient_set/3, % +EquivalenceRelation:ugraph
-                    % +Set:ordset
-                    % -QuotientSet:ordset(ordset)
+    quotient_set/3 % +EquivalenceRelation:ugraph
+                   % +Set:ordset
+                   % -QuotientSet:ordset(ordset)
   ]
 ).
 
@@ -66,7 +66,7 @@ test(
   'equiv_class(+,+,-) is det. TRUE',
   [forall(equiv_class_test(GName,X,EqClass))]
 ):-
-  s_graph_test(GName, EqRel)
+  s_graph_test(GName, EqRel),
   equiv_class(EqRel, X, EqClass).
 
 equiv_class_test(equiv(1), 1, [1,2,3,4]).
@@ -140,16 +140,12 @@ test(
   equiv_partition(Pairs, Sets).
 
 % Base case.
-equiv_partition_test([], []).
-% No multisets.
-equiv_partition_test([a-[a,b],b-[a,b]], [[a,b]]).
-% Reflexive case.
-equiv_partition_test([a-[a]], [[a]]).
-% Symmetric case.
-equiv_partition_test([a-[a,b]], [[a,b]]).
-% Separate sets.
-equiv_partition_test([a-[a,b],b-[a,b],c-[c,d],d-[c-d]], [[a,b],[c,d]]).
-% Merging sets.
-equiv_partition_test([a-[a,b,c,d],b-[a,b,c,d],c-[a,b,c,d],d-[a,b,c,d]], [[a,b,c,d]]).
+equiv_partition_test(equiv(1), [[1,2,3,4]]).
+equiv_partition_test(equiv(2), [[]]).
+equiv_partition_test(equiv(3), [[a,b]]).
+equiv_partition_test(equiv(4), [[a]]).
+equiv_partition_test(equiv(5), [[a,b]]).
+equiv_partition_test(equiv(6), [[a,b],[c,d]]).
+equiv_partition_test(equiv(7), [[a,b,c,d]]).
 
 :- end_tests(equiv).

@@ -20,6 +20,7 @@
 @version 2015/07, 2015/10
 */
 
+:- use_module(library(http/html_write)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_request)).
 :- use_module(library(lists)).

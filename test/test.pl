@@ -111,6 +111,7 @@
 :- use_module(library(progress)).
 %/set
   :- use_module(library(set/equiv)).
+  :- use_module(library(set/relation)).
   :- use_module(library(set/set_ext)).
   :- use_module(library(set/set_ext_experimental)).
 %/sgml
