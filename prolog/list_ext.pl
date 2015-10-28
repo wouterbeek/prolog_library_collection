@@ -600,10 +600,17 @@ remove_sublists(Ls, Ls).
 
 
 
-%! repeating_list(?X, ?N:nonneg, ?L:list) is nondet.
-% True when L is a list with N repeats of X
+%! repeating_list(+X, +N:nonneg, +L:list) is semidet.
+%! repeating_list(+X, +N:nonneg, -L:list) is det.
+%! repeating_list(+X, -N:nonneg, +L:list) is semidet.
+%! repeating_list(-X, +N:nonneg, +L:list) is semidet.
+%! repeating_list(+X, -N:nonneg, -L:list) is multi.
+%! repeating_list(-X, +N:nonneg, -L:list) is det.
+%! repeating_list(-X, -N:nonneg, +L:list) is det.
+%! repeating_list(-X, -N:nonneg, -L:list) is multi.
+% Succeeds for lists L that repeat term X exactly N times.
 
-repeating_list(X, N, L) :-
+repeating_list(X, N, L):-
   length(L, N),
   maplist(=(X), L).
 
