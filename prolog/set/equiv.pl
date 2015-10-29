@@ -76,8 +76,8 @@ equiv_class_test(equiv(1), 4, [1,2,3,4]).
 
 
 
-%! equiv_partition(+EquivalenceRelation:ugraph, -Partition:ordset(ordset)) is det.
-%! equiv_partition(-EquivalenceRelation:ugraph, +Partition:ordset(ordset)) is det.
+%! equiv_partition(+EquivRelation:ugraph, -Partition:ordset(ordset)) is det.
+%! equiv_partition(-EquivRelation:ugraph, +Partition:ordset(ordset)) is det.
 
 equiv_partition(EqRel, Part):-
   nonvar(EqRel), !,

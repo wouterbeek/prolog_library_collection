@@ -47,14 +47,16 @@
   :- use_module(library(graph/graph_closure)).
   :- use_module(library(graph/graph_traverse)).
   :- use_module(library(graph/graph_walk)).
-  :- use_module(library(graph/l/l_graph)).
-  :- use_module(library(graph/s/s_edge)).
-  :- use_module(library(graph/s/s_graph)).
-  :- use_module(library(graph/s/s_metrics)).
-  :- use_module(library(graph/s/s_subgraph)).
-  :- use_module(library(graph/s/s_test)).
-  :- use_module(library(graph/s/s_type)).
-  :- use_module(library(graph/s/s_vertex)).
+  % /l
+    :- use_module(library(graph/l/l_graph)).
+  % /s
+    :- use_module(library(graph/s/s_edge)).
+    :- use_module(library(graph/s/s_graph)).
+    :- use_module(library(graph/s/s_metrics)).
+    :- use_module(library(graph/s/s_subgraph)).
+    :- use_module(library(graph/s/s_test)).
+    :- use_module(library(graph/s/s_type)).
+    :- use_module(library(graph/s/s_vertex)).
 :- use_module(library(hash_ext)).
 %/html
   :- use_module(library(html/html_dcg)).
@@ -109,17 +111,22 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
 :- use_module(library(progress)).
+%/rest
+  :- use_module(library(rest/rest_ext)).
 %/set
   :- use_module(library(set/equiv)).
+  :- use_module(library(set/ordset_closure)).
+  :- use_module(library(set/reflexive_closure)).
   :- use_module(library(set/relation)).
+  :- use_module(library(set/relation_closure)).
   :- use_module(library(set/set_ext)).
   :- use_module(library(set/set_ext_experimental)).
+  :- use_module(library(set/symmetric_closure)).
+  :- use_module(library(set/transitive_closure)).
 %/sgml
   :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
-%/rest
-  :- use_module(library(rest/rest_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
 :- use_module(library(typecheck)).

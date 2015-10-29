@@ -1,35 +1,17 @@
 :- module(
-  transitive__closure,
+  transitive_closure,
   [
     transitive_closure/2 % +Set:ordset(pair)
                          % -Closure:ordset(pair)
   ]
 ).
 
-:- use_module(library(aggregate)).
-:- use_module(library(apply)).
-:- use_module(library(debug)).
-:- use_module(library(chr_ext)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(set/ordset_closure)).
 
 :- chr_constraint(leq/2).
 
-:- debug(transitive_closure).
-
-%antisymmetry @ leq(X,Y), leq(Y,X)  <=> X = Y    .
-idempotence  @ leq(X,Y) \ leq(X,Y) <=> true     .
-%reflexivity  @ leq(X,X)            <=> true     .
-%symmetry     @ leq(X,Y)            ==> leq(Y,X) .
 transitivity @ leq(X,Y), leq(Y,Z)  ==> leq(X,Z) .
+idempotence  @ leq(X,Y) \ leq(X,Y) <=> true     .
 
-transitive_closure(S1a, S2a):-
-  maplist(pair_term, S1a, S1b),
-  chr_closure(S1b, S2b, symmetric, symmetric_closure, leq),
-  maplist(pair_term, S2a, S2b).
-
-pair_term(X-Y, leq(X,Y)).
-
-leq(leq(X,Y)) -->
-  pl_term(X),
-  " ≤ ",
-  pl_term(Y).
+transitive_closure(S1, S2):-
+  ordset_closure(S1, S2, transitive_closure).
