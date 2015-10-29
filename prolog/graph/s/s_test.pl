@@ -53,7 +53,7 @@ s_graph_test0(equiv(2), []).
 s_graph_test0(equiv(3), [a-[a,b],b-[a,b]]).
 s_graph_test0(equiv(4), [a-[a]]).
 s_graph_test0(equiv(5), [a-[a,b]]).
-s_graph_test0(equiv(6), [a-[a,b],b-[a,b],c-[c,d],d-[c-d]]).
+s_graph_test0(equiv(6), [a-[a,b],b-[a,b],c-[c,d],d-[c,d]]).
 s_graph_test0(equiv(7), [a-[a,b,c,d],b-[a,b,c,d],c-[a,b,c,d],d-[a,b,c,d]]).
 
 % Regular / non-regular.
