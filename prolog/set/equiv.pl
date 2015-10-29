@@ -50,7 +50,7 @@
 %      This is an ordered set.
 
 equiv_class(EqRel, X, EqClass):-
-  closure(
+  closure0_set(
     % Since an equivalence relation is symmetric,
     % we do not need to use e.g. adjacent/3 here.
     \X^Y^relation_pair(EqRel, X-Y),
