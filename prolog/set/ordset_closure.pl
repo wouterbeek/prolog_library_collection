@@ -8,7 +8,7 @@
 ).
 :- reexport(library(chr_ext)).
 
-/** <module> Set closure
+/** <module> Ordered set closure
 
 Every module `Mod` is a debug flag `set_closure(Mod)` as well.
 

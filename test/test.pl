@@ -41,6 +41,10 @@
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(dlist)).
+%/fca
+  :- use_module(library(fca/bordat)).
+  :- use_module(library(fca/fca_concept)).
+  :- use_module(library(fca/fca_context)).
 :- use_module(library(flag_ext)).
 %/graph
   :- use_module(library(graph/betweenness)).
@@ -116,6 +120,7 @@
 %/set
   :- use_module(library(set/equiv)).
   :- use_module(library(set/ordset_closure)).
+  :- use_module(library(set/poset)).
   :- use_module(library(set/reflexive_closure)).
   :- use_module(library(set/relation)).
   :- use_module(library(set/relation_closure)).
