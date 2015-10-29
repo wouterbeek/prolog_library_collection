@@ -80,11 +80,28 @@ equiv_class_test(equiv(1), 4, [1,2,3,4]).
 %! equiv_partition(-EquivRelation:ugraph, +Partition:ordset(ordset)) is det.
 
 equiv_partition(EqRel, Part):-
-  nonvar(EqRel), !,
-  maplist(pair_second, EqRel, Part0),
-  sort(Part0, Part).
-equiv_partition(EqRel, Eqs):-
-  instantiation_error(equiv_pairs_partition(EqRel, Eqs)).
+  relation_components(EqRel, S, _),
+  quotient_set(EqRel, S, Part).
+
+:- begin_tests('equiv_partition/2').
+
+test(
+  'equiv_partition(+,-) is det. TRUE',
+  [forall(equiv_partition_test(GName,Part))]
+):-
+  s_graph_test(GName, G),
+  equiv_partition(G, Part).
+
+% Base case.
+equiv_partition_test(equiv(1), [[1,2,3,4]]).
+equiv_partition_test(equiv(2), []).
+equiv_partition_test(equiv(3), [[a,b]]).
+equiv_partition_test(equiv(4), [[a]]).
+equiv_partition_test(equiv(5), [[a,b]]).
+equiv_partition_test(equiv(6), [[a,b],[c,d]]).
+equiv_partition_test(equiv(7), [[a,b,c,d]]).
+
+:- end_tests('equiv_partition/2').
 
 
 
@@ -122,28 +139,3 @@ is_equiv(Rel):-
 quotient_set(EqRel, Set, QSet):-
   maplist(equiv_class(EqRel), Set, EqClasses),
   sort(EqClasses, QSet).
-
-
-
-
-
-% UNIT TESTS %
-
-:- begin_tests(equiv).
-
-test(
-  equiv_partition,
-  [forall(equiv_partition_test(Pairs,Sets)),true]
-):-
-  equiv_partition(Pairs, Sets).
-
-% Base case.
-equiv_partition_test(equiv(1), [[1,2,3,4]]).
-equiv_partition_test(equiv(2), [[]]).
-equiv_partition_test(equiv(3), [[a,b]]).
-equiv_partition_test(equiv(4), [[a]]).
-equiv_partition_test(equiv(5), [[a,b]]).
-equiv_partition_test(equiv(6), [[a,b],[c,d]]).
-equiv_partition_test(equiv(7), [[a,b,c,d]]).
-
-:- end_tests(equiv).
