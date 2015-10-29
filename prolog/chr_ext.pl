@@ -49,7 +49,7 @@ chr_closure(S1, S2, Mod):-
 
 chr_closure(S1, S2, Mod, Topic, Dcg_3):-
   maplist(call_on_module(Mod), S1),
-  aggregate(
+  aggregate_all(
     set(Fact),
     (
       Mod:find_chr_constraint(Fact),
