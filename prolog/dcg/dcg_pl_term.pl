@@ -108,5 +108,5 @@ list_entry(Term, I) -->
 %! nondict(@Term)// is det.
 
 nondict(T) -->
-  {with_output_to(codes(Cs), write_canonical_blobs(T))},
+  {with_output_to(codes(Cs), write_term(T))},
   Cs.

@@ -1,11 +1,17 @@
-:- module(pl_term, [write_canonical_blobs/1]).
+:- module(
+  pl_term,
+  [
+    write_fact/1, % @Term
+    write_term/1 % @Term
+  ]
+).
 
 /** <module> Prolog term
 
 Additional support for handling Prolog terms.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/10
 */
 
 :- use_module(library(apply)).
@@ -14,11 +20,20 @@ Additional support for handling Prolog terms.
 
 
 
-%! write_canonical_blobs(@Term) is det.
+%! write_fact(+Fact:compound) is det.
+
+write_fact(Term):-
+  write_term(Term),
+  write(.),
+  nl.
+
+
+
+%! write_term(@Term) is det.
 % Alternative to write_canonical/[1,2] that lives up to the promise that
 % "terms written with this predicate can always be read back".
 
-write_canonical_blobs(Term):-
+write_term(Term):-
   replace_blobs(Term, AtomBlobs),
   write_term(AtomBlobs, [quoted(true)]).
 
