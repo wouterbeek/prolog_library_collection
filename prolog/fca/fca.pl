@@ -35,9 +35,6 @@ and Goal_2 is the relation between Os and As (in that order).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(graph/s/s_graph)).
-:- use_module(library(lambda)).
-:- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(plunit)).
 
