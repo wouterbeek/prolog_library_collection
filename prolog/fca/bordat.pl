@@ -54,7 +54,7 @@ fca_hasse(context(Os,As,I), Vs1, Vs, Es1, Es, Parents, [SubAs|SubAss]):-
   % Preserve concepts [concept(ParentOs,ParentAs)|Children3].
   append(Vs1, [concept(ParentOs,ParentAs)|Children3], Vs2),
   % Preserve edges between concept(ParentOs,ParentAs) and Children3.
-  maplist(pair(concept(ParentOs,ParentAs)), Children3, NewEs),
+  maplist(edge0(concept(ParentOs,ParentAs)), Children3, NewEs),
   append(Es1, NewEs, Es2),
   fca_hasse(
     context(Os,As,I),
@@ -67,6 +67,8 @@ fca_hasse(context(Os,As,I), Vs1, Vs, Es1, Es, Parents, [SubAs|SubAss]):-
   ).
 fca_hasse(Context, Vs0, Vs, Es0, Es, Parents, [_|PowAs]):-
   fca_hasse(Context, Vs0, Vs, Es0, Es, Parents, PowAs).
+
+edge0(X, Y, X-Y).
 
 
 fca_children(context(Os,As,I), SubAs, Children):-
