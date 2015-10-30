@@ -21,6 +21,11 @@
 
 /** <module> Formal Concept Analysis: Context
 
+A context is a tuple 〈Os,As,I〉 such that
+Os is the set of objects,
+As is the set of attributes,
+and I is the relation between Os and As.
+
 @author Wouter Beek
 @version 2015/10
 */
@@ -38,11 +43,6 @@
 %! fca_i(?ContextName, ?Object, ?Attribute) is nondet.
 
 :- dynamic(fca_i/3).
-
-fca_i(ContextName, O, A):-
-  rdf_graph(ContextName), !,
-  rdf(O, P, O, ContextName),
-  A = popair(P,O).
 
 %! context_object(?ContextName:atom, ?Object) is nondet.
 
