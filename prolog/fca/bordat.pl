@@ -15,10 +15,11 @@ Bordat's algorithm for calculating FCA lattices.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(fca/fca_concept)).
+:- use_module(library(fca/fca)).
 :- use_module(library(graph/s/s_graph)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(set/set_ext)).
 
 
@@ -58,7 +59,9 @@ generate_hasse(context(Os,As,I), Vs1, Vs, Es1, Es, Parents, [SubAs|SubAss]):-
   generate_hasse(
     context(Os,As,I),
     Vs2,
+    Vs,
     Es2,
+    Es,
     [concept(ParentOs,ParentAs)|Parents],
     SubAss
   ).

@@ -1,10 +1,10 @@
 :- module(
-  fca_concept,
+  fca,
   [
-    a2o/3, % +ContextName:atom
-           % +Attributes:list
+    a2o/3, % +Context:compound
+           % +Attributes:ordset
            % -Objects:ordset
-    concept/3, % +ContextName:atom
+    concept/3, % +Context:atom
                % +PartialConcept:compound
                % -Concept:compound
     concept_attributes/2, % +Concept:compound
@@ -13,15 +13,20 @@
                            % ?Cardinality:nonneg
     concept_objects/2, % +Concept:compound
                        % -Objects:ordset
-    is_concept/2, % +ContextName:atom
+    is_concept/2, % +Context:compound
                   % +Concept:compound
-    o2a/3 % +ContextName:atom
-          % +Objects:list
+    o2a/3 % +Context:compound
+          % +Objects:ordset
           % -Attributes:ordset
   ]
 ).
 
-/** <module> Formal Concept Analysis: Concept
+/** <module> Formal Concept Analysis
+
+A context is a tuple 〈Os,As,Goal_2〉 such that
+Os is the set of objects,
+As is the set of attributes,
+and Goal_2 is the relation between Os and As (in that order).
 
 @author Wouter Beek
 @version 2015/10
@@ -30,7 +35,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(fca/fca_context)).
+:- use_module(library(graph/s/s_graph)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
@@ -40,30 +45,32 @@
 
 
 
-%! a2o(+ContextName:atom, +Attributes:list, -Objects:ordset) is det.
+%! a2o(+Context:compound, +Attributes:ordset, -Objects:ordset) is det.
 % Map from attributes to objects exhibiting those attributes.
-%
-% @throws existence_error in case no context with given name exists.
 
-a2o(ContextName, _, _):-
-  \+ exists_context(ContextName), !,
-  existence_error(context, ContextName).
-a2o(ContextName, [A1|As], Os):-
+a2o(Context, [A1|As], Os):-
   aggregate_all(
     set(O),
     (
       % An object exhibiting the first attribute.
-      fca_i(ContextName, O, A1),
+      o2a0(Context, O, A1),
       % An object exhibiting to all other attributes.
-      maplist(fca_i(ContextName, O), As)
+      maplist(o2a0(Context, O), As)
     ),
     Os
   ).
 
 
 
+%! a2o0(+Context:compound, ?Attribute, ?Object) is nondet.
+
+a2o0(context(_,_,Goal_2), A, O):-
+  call(Goal_2, O, A).
+
+
+
 %! concept(
-%!   +ContextName:atom,
+%!   +Context:compound,
 %!   +PartialConcept:compound,
 %!   -Concept:compound
 %! ) is semidet.
@@ -74,14 +81,14 @@ a2o(ContextName, [A1|As], Os):-
 %
 % @throws instantiation_error
 
-concept(ContextName, concept(PartialOs,_), concept(Os,As)):-
+concept(Context, concept(PartialOs,_), concept(Os,As)):-
   nonvar(PartialOs), !,
-  o2a(ContextName, PartialOs, As),
-  a2o(ContextName, As, Os).
-concept(ContextName, concept(_,PartialAs), concept(Os,As)):-
+  o2a(Context, PartialOs, As),
+  a2o(Context, As, Os).
+concept(Context, concept(_,PartialAs), concept(Os,As)):-
   nonvar(PartialAs), !,
-  a2o(ContextName, PartialAs, Os),
-  o2a(ContextName, Os, As).
+  a2o(Context, PartialAs, Os),
+  o2a(Context, Os, As).
 concept(_, PartialConcept, _):-
   instantiation_error(PartialConcept).
 
@@ -124,29 +131,25 @@ concept_components(concept(Os,As), Os, As).
 
 
 
-%! is_concept(+ContextName:atom, +Concept:compound) is semidet.
+%! is_concept(+Context:compound, +Concept:compound) is semidet.
 
-is_concept(ContextName, Concept):-
+is_concept(Context, Concept):-
   concept_components(Concept, Os, As),
-  o2a(ContextName, Os, As),
-  a2o(ContextName, As, Os).
+  o2a(Context, Os, As),
+  a2o(Context, As, Os).
 
 
 
-%! o2a(+ContextName:atom, +Objects:list, -Attributes:ordset) is det.
-% @throws existence_error
+%! o2a(+Context:compound, +Objects:list, -Attributes:ordset) is det.
 
-o2a(ContextName, _, _):-
-  \+ exists_context(ContextName), !,
-  existence_error(context, ContextName).
-o2a(ContextName, [O1|Os], As):-
+o2a(Context, [O1|Os], As):-
   aggregate_all(
     set(A),
     (
       % An attribute that is exhibited by the first object.
-      fca_i(ContextName, O1, A),
+      a2o0(Context, A, O1),
       % The same attribute is exhibited by the other objects as well.
-      maplist(\O^fca_i(ContextName, O, A), Os)
+      maplist(a2o0(Context, A), Os)
     ),
     As
   ).
@@ -155,20 +158,27 @@ o2a(ContextName, [O1|Os], As):-
 
 test(
   'o2a(+,+,-) is det. TRUE',
-  [forall(o2a_test(ContextName,Os,As,true))]
+  [forall(o2a_test(Context,Os,As,true))]
 ):-
-  o2a(ContextName, Os, As).
+  o2a(Context, Os, As).
 test(
   'o2a(+,+,-) is det. FALSE',
-  [fail,forall(o2a_test(ContextName,Os,As,true))]
+  [fail,forall(o2a_test(Context,Os,As,true))]
 ):-
-  aggregate_all(set(A), context_attribute(ContextName, A), AllAs),
+  aggregate_all(set(A), context_attribute(Context, A), AllAs),
   ord_subset(CounterExample, AllAs),
   CounterExample \== As,
-  o2a(ContextName, Os, CounterExample).
+  o2a(Context, Os, CounterExample).
 
 o2a_test(tab(1), [x2], [y1,y3,y4], true).
 o2a_test(tab(1), [x2,x3], [y3,y4], true).
 o2a_test(tab(1), [x1,x4,x5], [], true).
 
 :- end_tests('o2a/3').
+
+
+
+%! o2a0(+Context:compound, ?Object, ?Attribute) is nondet.
+
+o2a0(context(_,_,Goal_2), O, A):-
+  call(Goal_2, O, A).
