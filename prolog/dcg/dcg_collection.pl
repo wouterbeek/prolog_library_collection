@@ -60,7 +60,7 @@ For convenience's sake, the following collection instances are predefined:
 
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
 
 :- meta_predicate(bracketed_collection(+,//,3,+,?,?)).
