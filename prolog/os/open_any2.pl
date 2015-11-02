@@ -121,7 +121,11 @@ base_iri(File, BaseIri):-
 
 
 
-%! input_type(+Input0, -Input, -Type:oneof([file_iri,http_iri,stream,string])) is det.
+%! input_type(
+%!   +Input0,
+%!   -Input,
+%!   -Type:oneof([file_iri,http_iri,stream,string])
+%! ) is det.
 
 input_type(stream(Stream), Stream, stream):- !.
 input_type(string(S), S, string):- !.
