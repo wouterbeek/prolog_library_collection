@@ -154,7 +154,7 @@ verbose(Goal_0, Format, Args):-
   ->  (   var(Error)
       ->  get_time(End),
           Delta is End - Start,
-          msg_success("~`.t success (~2f)~72|~n", [Delta])
+          msg_success("~`.t success (~2f sec.)~72|~n", [Delta])
       ;   message_to_string(Error, String),
           msg_warning("~`.t ERROR: ~w~72|~n", [String])
       )
