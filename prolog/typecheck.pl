@@ -103,9 +103,6 @@ error:has_type(nonpos, T):-
 error:has_type(or(Types), T):-
   member(Type, Types),
   error:has_type(Type, T), !.
-% IRI
-error:has_type(iri, T):-
-    is_iri(T).
 % term
 error:has_type(term, _).
 
@@ -166,7 +163,7 @@ is_http_iri(Iri):-
 
 is_iri(T):-
   error:has_type(iri, T).
-  
+
 
 
 %! negative_float(@Term) is semidet.
