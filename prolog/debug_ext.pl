@@ -32,7 +32,8 @@
     if_debug/2, % ?Flag:compound
                 % :Goal_0
     number_of_open_files/1, % -N:nonneg
-    print_error/1 % +Error:compound
+    print_error/1, % +Error:compound
+    tmon/0
   ]
 ).
 :- reexport(library(debug)).
@@ -58,6 +59,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(msg_ext)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
+:- use_module(library(swi_ide)).
 :- use_module(library(thread)).
 
 :- meta_predicate(call_collect_messages(0)).
@@ -243,6 +245,11 @@ print_error(exception(E)):- !,
   print_error(E).
 print_error(E):-
   print_message(error, E).
+
+
+
+tmon:-
+  prolog_ide(thread_monitor).
 
 
 
