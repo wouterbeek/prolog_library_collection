@@ -11,6 +11,7 @@
     show_help/1 % +OptionSpecification:list(compound)
   ]
 ).
+:- reexport(library(optparse)).
 
 /** <module> Command-line interface extensions
 
@@ -19,7 +20,6 @@
 */
 
 :- use_module(library(error)).
-:- use_module(library(optparse)).
 :- use_module(library(typecheck)).
 
 
