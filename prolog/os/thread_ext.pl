@@ -1,6 +1,7 @@
 :- module(
   thread_ext,
   [
+    default_number_of_threads/1, % ?NumberOfThreads:positive_integer
     print_thread/0,
     print_thread/1, % +Name:atom
     print_threads/0,
@@ -20,6 +21,14 @@
 :- use_module(library(dcg/dcg_phrase)).
 
 
+
+
+
+%! default_number_of_threads(+NumberOfThreads:positive_integer) is semidet.
+%! default_number_of_threads(-NumberOfThreads:positive_integer) is det.
+
+default_number_of_threads(N):-
+  current_prolog_flag(cpu_count, N).
 
 
 

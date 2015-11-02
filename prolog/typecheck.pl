@@ -79,10 +79,10 @@ Predicates used for parsing and checking value-type conformance.
 
 :- multifile(error:has_type/2).
 
-% char/0
+% Character
 error:has_type(char, T):-
   is_char(T).
-% code/0
+% Code
 error:has_type(code, T):-
   once(code_type(T, _)).
 % between_float/2, extension of between/2 for floats
@@ -91,6 +91,10 @@ error:has_type(between_float(L,U), X):-
   number(X),
   (number(L) -> X >= L ; true),
   (number(U) -> X =< L ; true).
+% IRI
+error:has_type(iri, T):-
+  atom(T),
+  uri_is_global(T).
 % nonpos/1
 error:has_type(nonpos, T):-
   integer(T),
@@ -99,9 +103,6 @@ error:has_type(nonpos, T):-
 error:has_type(or(Types), T):-
   member(Type, Types),
   error:has_type(Type, T), !.
-% IRI
-error:has_type(iri, T):-
-    is_iri(T).
 % term
 error:has_type(term, _).
 
@@ -160,10 +161,9 @@ is_http_iri(Iri):-
 
 %! is_iri(@Term) is semidet.
 
-is_iri(Iri):-
-  atom(Iri),
-  uri_is_global(Iri).
-  
+is_iri(T):-
+  error:has_type(iri, T).
+
 
 
 %! negative_float(@Term) is semidet.

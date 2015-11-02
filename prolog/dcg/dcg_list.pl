@@ -19,7 +19,7 @@ Print numbered and unnumbered lists using DCGs.
 
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(option)).
 
 :- meta_predicate(dcg_list(3,+,+,?,?)).

@@ -17,7 +17,7 @@ Every module `Mod` is a debug flag `set_closure(Mod)` as well.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 
 %! ordset_closure(
 %!   +Set:ordset(pair),

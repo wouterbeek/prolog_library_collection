@@ -169,10 +169,10 @@ nvpair(N-V) -->
 
 %! nvpair(:Name_2, :Value_2)// is det.
 
-nvpair(N, V) -->
-  N,
+nvpair(N_2, V_2) -->
+  N_2,
   ": ",
-  V.
+  V_2.
 
 
 

@@ -27,10 +27,13 @@
                      % :Goal_0
                      % +Format:string
                      % +Arguments:list
+    debug_with_output_to/2, % ?Flag:compound
+                            % :Goal_0
     if_debug/2, % ?Flag:compound
                 % :Goal_0
     number_of_open_files/1, % -N:nonneg
-    print_error/1 % +Error:compound
+    print_error/1, % +Error:compound
+    tmon/0
   ]
 ).
 :- reexport(library(debug)).
@@ -56,6 +59,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(msg_ext)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
+:- use_module(library(swi_ide)).
 :- use_module(library(thread)).
 
 :- meta_predicate(call_collect_messages(0)).
@@ -66,6 +70,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(debug_verbose(?,0)).
 :- meta_predicate(debug_verbose(?,0,+)).
 :- meta_predicate(debug_verbose(?,0,+,+)).
+:- meta_predicate(debug_with_output_to(?,0)).
 :- meta_predicate(if_debug(?,0)).
 
 
@@ -177,13 +182,13 @@ debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
 %! debug_verbose(+Flag:compound, :Goal_0) is det.
 
 debug_verbose(Flag, Goal_0):-
-  if_debug(Flag, verbose(Goal_0)).
+  debug_with_output_to(Flag, verbose(Goal_0)).
 
 
 %! debug_verbose(+Flag:compound, :Goal_0, +Fragment:string) is det.
 
 debug_verbose(Flag, Goal_0, Fragment):-
-  if_debug(Flag, verbose(Goal_0, Fragment)).
+  debug_with_output_to(Flag, verbose(Goal_0, Fragment)).
 
 
 %! debug_verbose(
@@ -194,7 +199,15 @@ debug_verbose(Flag, Goal_0, Fragment):-
 %! ) is det.
 
 debug_verbose(Flag, Goal_0, Fragment, Args):-
-  if_debug(Flag, verbose(Goal_0, Fragment, Args)).
+  debug_with_output_to(Flag, verbose(Goal_0, Fragment, Args)).
+
+
+
+%! debug_with_output_to(?Flag:compound, :Goal_0) is det.
+
+debug_with_output_to(Flag, Goal_0):-
+  with_output_to(atom(A), Goal_0),
+  debug(Flag, '~a', [A]).
 
 
 
@@ -232,6 +245,11 @@ print_error(exception(E)):- !,
   print_error(E).
 print_error(E):-
   print_message(error, E).
+
+
+
+tmon:-
+  prolog_ide(thread_monitor).
 
 
 

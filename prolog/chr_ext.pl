@@ -23,7 +23,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_debug)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 
 :- meta_predicate(chr_closure(+,-,+,+,3)).
 :- meta_predicate(chr_debug(+,3,+)).

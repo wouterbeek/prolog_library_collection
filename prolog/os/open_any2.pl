@@ -31,11 +31,10 @@ to open_any/5.
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(option)).
 :- use_module(library(iostream)).
+:- use_module(library(ssl)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
-
-http_open:ssl_verify(_SSL, _ProblemCert, _AllCerts, _FirstCert, _Error).
 
 :- predicate_options(open_any2/5, 5, [
      metadata(-dict),
@@ -201,7 +200,13 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
 %! ) is det.
 
 open_any_options(http_iri, Opts1, Opts2):- !,
-  HttpOpts = [final_url(_),headers(_),status_code(_),version(_)],
+  HttpOpts = [
+    cert_verify_hook(cert_accept_any),
+    final_url(_),
+    headers(_),
+    status_code(_),
+    version(_)
+  ],
   merge_options(Opts1, HttpOpts, Opts2).
 open_any_options(_, Opts, Opts).
 

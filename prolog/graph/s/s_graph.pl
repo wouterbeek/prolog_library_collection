@@ -71,7 +71,7 @@ This mostly consists of the graph library that is included in SWI-Prolog
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_arrow)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module(library(ordsets)).

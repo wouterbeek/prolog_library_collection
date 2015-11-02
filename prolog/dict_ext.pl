@@ -27,7 +27,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).

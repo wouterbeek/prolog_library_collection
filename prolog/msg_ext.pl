@@ -4,7 +4,6 @@
     msg_emphasis/1, % +Format:string
     msg_emphasis/2, % +Format:string
                     % +Arguments:list
-    msg_error/1, % +Error:compound
     msg_normal/1, % +Format:string
     msg_normal/2, % +Format:string
                   % +Arguments:list
@@ -45,6 +44,8 @@ Prints messages for the user.
 :- meta_predicate(verbose(0,+)).
 :- meta_predicate(verbose(0,+,+)).
 
+:- multifile(user:message_hook/3).
+
 
 
 
@@ -61,15 +62,6 @@ msg_emphasis(Format):-
 
 msg_emphasis(Format, Args):-
   ansi_format([italic], Format, Args).
-
-
-
-%! msg_error(+Error:compound) is det.
-% Prints an error compound term using a grammar for errors.
-
-msg_error(E):-
-  string_phrase(msg_error(E), S),
-  msg_warning(S).
 
 
 
@@ -162,44 +154,9 @@ verbose(Goal_0, Format, Args):-
   ->  (   var(Error)
       ->  get_time(End),
           Delta is End - Start,
-          msg_success("~`.t success (~2f)~72|~n", [Delta])
+          msg_success("~`.t success (~2f sec.)~72|~n", [Delta])
       ;   message_to_string(Error, String),
           msg_warning("~`.t ERROR: ~w~72|~n", [String])
       )
   ;   msg_warning("~`.t ERROR: (failed)~72|~n")
   ).
-
-
-
-
-
-% MESSAGES %
-
-%! msg_error(+Error:compound)// is det.
-
-msg_error(exception(E)) --> !,
-  msg_error(E).
-msg_error(error(existence_error(procedure,Pred),context(CallingContext,_))) --> !,
-  "Predicate ",
-  predicate(Pred),
-  " does not exist within calling context ",
-  predicate(CallingContext),
-  ".".
-msg_error(error(socket_error(Msg),_)) --> !,
-  "Socket error: ",
-  atom(Msg).
-msg_error(error(permission_error(url,Iri),context(_,status(Code,_)))) --> !,
-  "No permission to download from IRI ",
-  iri(Iri),
-  ". ",
-  http_status_code(Code).
-msg_error(E) -->
-  {gtrace}, %DEB
-  msg_error(E).
-
-predicate(Mod:PredLet/Arity) -->
-  atom(Mod),
-  ":",
-  atom(PredLet),
-  "/",
-  integer(Arity).

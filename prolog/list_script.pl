@@ -14,13 +14,13 @@ on a per-item basis.
 Also keeps track of items that could not be processed.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_debug)).
 :- use_module(library(dcg/dcg_cardinal)).
-:- use_module(library(dcg/dcg_pl_term)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lists)).
 :- use_module(library(progress)).
 
