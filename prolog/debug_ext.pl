@@ -182,13 +182,13 @@ debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
 %! debug_verbose(+Flag:compound, :Goal_0) is det.
 
 debug_verbose(Flag, Goal_0):-
-  debug_with_output_to(Flag, verbose(Goal_0)).
+  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0)).
 
 
 %! debug_verbose(+Flag:compound, :Goal_0, +Fragment:string) is det.
 
 debug_verbose(Flag, Goal_0, Fragment):-
-  debug_with_output_to(Flag, verbose(Goal_0, Fragment)).
+  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0, Fragment)).
 
 
 %! debug_verbose(
@@ -199,7 +199,7 @@ debug_verbose(Flag, Goal_0, Fragment):-
 %! ) is det.
 
 debug_verbose(Flag, Goal_0, Fragment, Args):-
-  debug_with_output_to(Flag, verbose(Goal_0, Fragment, Args)).
+  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0, Fragment, Args)).
 
 
 

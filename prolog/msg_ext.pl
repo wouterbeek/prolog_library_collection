@@ -43,6 +43,9 @@ Prints messages for the user.
 :- meta_predicate(verbose(0)).
 :- meta_predicate(verbose(0,+)).
 :- meta_predicate(verbose(0,+,+)).
+:- meta_predicate(verbose0(0)).
+:- meta_predicate(verbose0(0,+)).
+:- meta_predicate(verbose0(0,+,+)).
 
 :- multifile(user:message_hook/3).
 
@@ -129,15 +132,16 @@ msg_warning(Format, Args):-
 % Wrapper around verbose/2.
 
 verbose(Goal_0):-
-  term_string(Goal_0, Format),
-  verbose(Goal_0, Format).
+  verbose0(Goal_0),
+  nl.
 
 
 %! verbose(:Goal_0, +Format:string) is det.
 % Wrapper around verbose/3.
 
 verbose(Goal_0, Format):-
-  verbose(Goal_0, Format, []).
+  verbose0(Goal_0, Format),
+  nl.
 
 
 %! verbose(:Goal_0, +Format:string, +Arguments:list) is det.
@@ -148,15 +152,29 @@ verbose(Goal_0, Format):-
 % Otherwise, i.e., if Flag is uninstantiated, all messages are displayed.
 
 verbose(Goal_0, Format, Args):-
+  verbose0(Goal_0, Format, Args),
+  nl.
+
+
+verbose0(Goal_0):-
+  term_string(Goal_0, Format),
+  verbose0(Goal_0, Format).
+
+
+verbose0(Goal_0, Format):-
+  verbose0(Goal_0, Format, []).
+
+
+verbose0(Goal_0, Format, Args):-
   get_time(Start),
   msg_normal(Format, Args),
   (   catch(Goal_0, Error, true)
   ->  (   var(Error)
       ->  get_time(End),
           Delta is End - Start,
-          msg_success("~`.t success (~2f sec.)~72|~n", [Delta])
+          msg_success("~`.t success (~2f sec.)~72|", [Delta])
       ;   message_to_string(Error, String),
-          msg_warning("~`.t ERROR: ~w~72|~n", [String])
+          msg_warning("~`.t ERROR: ~w~72|", [String])
       )
-  ;   msg_warning("~`.t ERROR: (failed)~72|~n")
+  ;   msg_warning("~`.t ERROR: (failed)~72|")
   ).
