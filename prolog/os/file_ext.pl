@@ -158,8 +158,7 @@ root_prefix('C:\\').
 
 thread_file(Base, File):-
   thread_name(Thread),
-  atomic_list_concat([tmp,Thread], ., Ext),
-  file_name_extension(Base, Ext, File).
+  file_name_extension(Base, Thread, File).
 
 
 
