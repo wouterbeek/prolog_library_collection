@@ -25,11 +25,12 @@ to open_any/5.
 @version 2015/10
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).
 :- use_module(library(http/http_deb)).
 :- use_module(library(http/http_ssl_plugin)).
-:- use_module(library(option)).
+:- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(ssl)).
 :- use_module(library(typecheck)).
@@ -168,10 +169,11 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
   ;   Type == http_iri
   ->  base_iri(In, BaseIri),
       option(final_url(FinalIri), Opts),
-      option(headers(Headers), Opts),
+      option(headers(Headers1), Opts),
       option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
-      create_grouped_sorted_dict(Headers, http_headers, MHeaders),
+      maplist(option_pair, Headers1, Headers2),
+      create_grouped_sorted_dict(Headers2, http_headers, MHeaders),
       MHttp = metadata{
                 final_iri: FinalIri,
                 headers: MHeaders,
