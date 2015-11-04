@@ -42,7 +42,6 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(dlist)).
 %/fca
-  :- use_module(library(fca/bordat)).
   :- use_module(library(fca/fca)).
 :- use_module(library(flag_ext)).
 %/graph

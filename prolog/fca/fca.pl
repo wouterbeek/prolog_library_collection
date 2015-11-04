@@ -2,25 +2,33 @@
   fca,
   [
     a2o/3, % +Context:compound
-           % +Attributes:ordset
-           % -Objects:ordset
+           % +Attribute
+           % -Object
+    as2os/3, % +Context:compound
+             % +Attributes:ordset
+             % -Objects:ordset
+    concept_cardinality/2, % +Concept:compound
+                           % ?Cardinality:nonneg
     concept_closure/3, % +Context:atom
                        % +PartialConcept:compound
                        % -Concept:compound
     concept_components/3, % ?Concept:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
-    concept_cardinality/2, % +Concept:compound
-                           % ?Cardinality:nonneg
     context_components/4, % ?Context:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
                           % :Goal_2
+    fca_lattice/2, % +Context:compound
+                   % -Lattice:ugraph
     is_concept/2, % +Context:compound
                   % +Concept:compound
-    o2a/3 % +Context:compound
-          % +Objects:ordset
-          % -Attributes:ordset
+    o2a/3, % +Context:compound
+           % +Object
+           % -Attribute
+    os2as/3 % +Context:compound
+            % +Objects:ordset
+            % -Attributes:ordset
   ]
 ).
 
@@ -38,8 +46,11 @@ and Goal_2 is the relation between Os and As (in that order).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(graph/s/s_graph)).
+:- use_module(library(list_ext)).
 :- use_module(library(ordsets)).
-:- use_module(library(plunit)).
+:- use_module(library(set/intersection)).
+:- use_module(library(set/set_ext)).
 
 
 
@@ -59,14 +70,18 @@ as2os(context(Os,_,_), [], Os):- !.
 as2os(Context, [A1|As], Os):-
   aggregate_all(
     set(O),
-    (
-      % An object exhibiting the first attribute.
-      a2o(Context, A1, O),
-      % An object exhibiting to all other attributes.
-      maplist(o2a(Context, O), As)
-    ),
+    (a2o(Context, A1, O), maplist(o2a(Context, O), As)),
     Os
   ).
+
+
+
+%! concept_cardinality(+Concept:compound, +Cardinality:nonneg) is semidet.
+%! concept_cardinality(+Concept:compound, -Cardinality:nonneg) is det.
+% The **cardinality** of a concept is the number of attributes of that concept.
+
+concept_cardinality(concept(_,As), Card):-
+  length(As, Card).
 
 
 
@@ -95,15 +110,6 @@ concept(_, C0, _):-
 
 
 
-%! concept_cardinality(+Concept:compound, +Cardinality:nonneg) is semidet.
-%! concept_cardinality(+Concept:compound, -Cardinality:nonneg) is det.
-% The **cardinality** of a concept is the number of attributes of that concept.
-
-concept_cardinality(concept(_,As), Card):-
-  length(As, Card).
-
-
-
 %! concept_components(
 %!   +Concept:compound,
 %!   -Objects:ordset,
@@ -115,14 +121,53 @@ concept_cardinality(concept(_,As), Card):-
 %!   +Attributes:ordset
 %! ) is det.
 
-concept_attributes(concept(Os,As), Os, As).
+concept_components(concept(Os,As), Os, As).
+
+
+
+%! context_components(
+%!   +Context:compound,
+%!   -Objects:ordset,
+%!   -Attributes:ordset,
+%!   :Goal_2
+%! ) is det.
+%! context_components(
+%!   -Context:compound,
+%!   +Objects:ordset,
+%!   +Attributes:ordset,
+%!   :Goal_2
+%! ) is det.
+
+context_components(context(Os,As,Goal_2), Os, As, Goal_2).
+
+
+
+%! fca_lattice(+Context:compound, -Lattice:ugraph) is det.
+
+fca_lattice(Context, Lattice):-
+  context_components(Context, _, As, _),
+  maplist(singleton, As, Ass0),
+  maplist(as2os(Context), Ass0, Oss0),
+  intersections(Oss0, Oss),
+  maplist(os2as(Context), Oss, Ass),
+  maplist(concept_components, Cs, Oss, Ass),
+  aggregate_all(
+    set(C1-C2),
+    (
+      member(C1, C2, Cs),
+      maplist(concept_components, [C1,C2], [OsC1,OsC2], _),
+      ord_subset(OsC1, OsC2)
+    ),
+    Es
+  ),
+  s_graph_components(Lattice, Cs, Es).
 
 
 
 %! is_concept(+Context:compound, +Concept:compound) is semidet.
 
 is_concept(Context, C):-
-  concept_closure(C, C).
+  concept_closure(Context, C, C).
 
 
 
@@ -135,43 +180,10 @@ o2a(context(_,_,Goal_2), O, A):-
 
 %! os2as(+Context:compound, +Objects:ordset, -Attributes:ordset) is det.
 
+os2as(context(_,As,_), [], As):- !.
 os2as(Context, [O1|Os], As):-
   aggregate_all(
     set(A),
-    (
-      % An attribute that is exhibited by the first object.
-      o2a(Context, O1, A),
-      % The same attribute is exhibited by the other objects as well.
-      maplist(a2o(Context, A), Os)
-    ),
+    (o2a(Context, O1, A), maplist(a2o(Context, A), Os)),
     As
   ).
-
-:- begin_tests('o2a/3').
-
-test(
-  'o2a(+,+,-) is det. TRUE',
-  [forall(o2a_test(Context,Os,As,true))]
-):-
-  o2a(Context, Os, As).
-test(
-  'o2a(+,+,-) is det. FALSE',
-  [fail,forall(o2a_test(Context,Os,As,true))]
-):-
-  aggregate_all(set(A), context_attribute(Context, A), AllAs),
-  ord_subset(CounterExample, AllAs),
-  CounterExample \== As,
-  o2a(Context, Os, CounterExample).
-
-o2a_test(tab(1), [x2], [y1,y3,y4], true).
-o2a_test(tab(1), [x2,x3], [y3,y4], true).
-o2a_test(tab(1), [x1,x4,x5], [], true).
-
-:- end_tests('o2a/3').
-
-
-
-%! o2a0(+Context:compound, ?Object, ?Attribute) is nondet.
-
-o2a0(context(_,_,Goal_2), O, A):-
-  call(Goal_2, O, A).

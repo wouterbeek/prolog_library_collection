@@ -3,9 +3,11 @@
   [
     renice/2, % +Pid:positive_integer
               % +Nice:between(-20,19)
+    run_jar/2, % +Jar, +Arguments
     run_jar/3, % +Jar:atom
                % +Arguments:list
                % +Options:list(compound)
+    run_process/2, % +Process, +Arguments
     run_process/3 % +Process:atom
                   % +Arguments:list
                   % +Options:list(compound)
@@ -21,7 +23,7 @@ Additional support for starting processes from within SWI-Prolog:
   * Process output and error streams in parallel by using threads.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/10
 */
 
 :- use_module(library(aggregate)).
@@ -64,6 +66,48 @@ is_meta(output_goal).
 
 
 
+
+
+%! renice(+Pid:positive_integer, +Nice:between(-20,19)) is det.
+
+renice(Pid, _):-
+  \+ process_id(Pid), !,
+  existence_error(process, Pid).
+renice(Pid, N):-
+  must_be(between(-20,19), N),
+  run_process(renice, [10,Pid], [nice(0)]).
+
+
+
+%! run_jar(+Jar:atom, +Argumentss:list) is det.
+% Wrapper around run_jar/3 with default options.
+
+run_jar(Jar, Args):-
+  run_jar(Jar, Args, []).
+
+
+%! run_jar(+Jar:atom, +Argumentss:list, +Options:list(compound)) is det.
+% Runs the given JAR file with the given commandline arguments.
+%
+% Options are passed to run_process/3.
+
+run_jar(Jar, Args, Opts1):-
+  meta_options(is_meta, Opts1, Opts2),
+
+  % Set the program option.
+  file_base_name(Jar, JarName),
+  format(atom(Program), 'Java/JAR ~a', [JarName]),
+  merge_options([program(Program)], Opts2, Opts3),
+
+  run_process(java, ['-jar',file(Jar)|Args], Opts3).
+
+
+
+%! run_process(+Process:atom, +Arguments:list) is det.
+% Wrapper around run_process/3 with default options.
+
+run_process(Process, Args):-
+  run_process(Process, Args, []).
 
 
 %! run_process(
@@ -234,34 +278,6 @@ kill_processes:-
     ),
     concurrent_maplist(process_kill, Pids)
   )).
-
-
-
-%! renice(+Pid:positive_integer, +Nice:between(-20,19)) is det.
-
-renice(Pid, _):-
-  \+ process_id(Pid), !,
-  existence_error(process, Pid).
-renice(Pid, N):-
-  must_be(between(-20,19), N),
-  run_process(renice, [10,Pid], [nice(0)]).
-
-
-
-%! run_jar(+Jar:atom, +Argumentss:list, +Options:list(compound)) is det.
-% Runs the given JAR file with the given commandline arguments.
-%
-% Options are passed to run_process/3.
-
-run_jar(Jar, Args, Opts1):-
-  meta_options(is_meta, Opts1, Opts2),
-
-  % Set the program option.
-  file_base_name(Jar, JarName),
-  format(atom(Program), 'Java/JAR ~a', [JarName]),
-  merge_options([program(Program)], Opts2, Opts3),
-
-  run_process(java, ['-jar',file(Jar)|Args], Opts3).
 
 
 

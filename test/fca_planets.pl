@@ -1,22 +1,25 @@
-:- module(fca_test, [fca_test/0]).
+:- module(fca_planets, [planets_fca/0]).
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(fca/fca2)).
+:- use_module(library(fca/fca)).
 :- use_module(library(graph/build_export_graph)).
 :- use_module(library(gv/gv_file)).
+:- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 
-fca_test:-
-  fca_test(planets, Context),
-  fca_hasse(Context, Hasse),
-  build_export_graph(Hasse, ExportG, [vertex_label(concept_label)]),
+:- initialization(list_external_programs).
+
+planets_fca:-
+  planets_context(Context),
+  fca_lattice(Context, Lattice),
+  build_export_graph(Lattice, ExportG, [vertex_label(concept_label)]),
   gv_export(ExportG, File, []),
   open_pdf(File).
 
-fca_test(planets, context(Os,As,fca_test:planet_property)):-
+planets_context(context(Os,As,fca_planets:planet_property)):-
   aggregate_all(set(O), planet_property(O, _), Os),
   aggregate_all(set(A), planet_property(_, A), As).
 

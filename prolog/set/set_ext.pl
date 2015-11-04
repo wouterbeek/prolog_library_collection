@@ -20,6 +20,8 @@
                  % -Partition:ordset(ordset)
     powerset/2, % +Set:ordset
                 % -Powerset:ordset(ordset)
+    singleton/2, % ?Element
+                 % ?Singleton:ordset
     strict_subset/2, % ?Subset:ordset
                      % +Superset:ordset
     strict_superset/2, % +Superset:ordset
@@ -159,6 +161,13 @@ powerset(Set, Powerset):-
   ),
   keysort(Pairs1, Pairs2),
   pairs_values(Pairs2, Powerset).
+
+
+
+%! singleton(+Element, -Singleton:ordset) is det.
+%! singleton(-Element, +Singleton:ordset) is det.
+
+singleton(X, [X]).
 
 
 
