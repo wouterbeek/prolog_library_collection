@@ -2,11 +2,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_collection)).
-:- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(fca/fca)).
-:- use_module(library(graph/build_export_graph)).
-:- use_module(library(gv/gv_file)).
+:- use_module(library(fca/fca_export)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 
@@ -14,9 +10,7 @@
 
 planets_fca:-
   planets_context(Context),
-  fca_lattice(Context, Lattice),
-  build_export_graph(Lattice, ExportG, [vertex_label(concept_label)]),
-  gv_export(ExportG, File, []),
+  fca_export(Context, File, [concept_label(fca_export:fca_label_objects)]),
   open_pdf(File).
 
 planets_context(context(Os,As,fca_planets:planet_property)):-
@@ -50,7 +44,3 @@ planet_property('Neptune', moon(yes)).
 planet_property('Pluto',   size(small)).
 planet_property('Pluto',   distance_from_sun(far)).
 planet_property('Pluto',   moon(yes)).
-
-concept_label(Concept, Lbl):- string_phrase(dcg_concept(Concept), Lbl).
-
-dcg_concept(concept(Os,As)) --> pair(set(Os), set(As)).
