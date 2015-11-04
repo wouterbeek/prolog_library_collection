@@ -54,14 +54,15 @@ atomize_dict0(X, X).
 
 
 %! create_grouped_sorted_dict(
-%!   +Options:list(compound),
+%!   +Pairs:list(pair),
+%!   ?Tag:atom,
 %!   -GroupedSortedDict:dict
 %! ) is det.
 
-create_grouped_sorted_dict(Opts, Tag, D):-
-  sort(Opts, SOpts),
-  group_pairs_by_key(SOpts, GSOpts),
-  dict_pairs(D, Tag, GSOpts).
+create_grouped_sorted_dict(Pairs, Tag, D):-
+  sort(Pairs, SortedPairs),
+  group_pairs_by_key(SortedPairs, GroupedPairs),
+  dict_pairs(D, Tag, GroupedPairs).
 
 
 
