@@ -1,7 +1,6 @@
 :- module(fca_planets, [planets_fca/0]).
 
 :- use_module(library(aggregate)).
-:- use_module(library(apply)).
 :- use_module(library(fca/fca_export)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
