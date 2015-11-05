@@ -126,6 +126,15 @@
     split_list_exclusive/3, % +List:list
                             % +Split:list
                             % -Sublists:list(list)
+    split_member/4, % +List:list
+                    % -Before:list
+                    % ?Element
+                    % -After:list
+    split_nth0_member/5, % +List:list
+                         % -Before:list
+                         % ?Index:nonneg
+                         % ?Element
+                         % -After:list
     strict_sublist/2, % ?SubList:list
                       % +List:list
     sublist/2 % ?SubList:list
@@ -139,7 +148,7 @@
 Extensions to the set of list predicates in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
@@ -789,6 +798,32 @@ split_list_exclusive([Part | List], Split, Chunk, Chunks):-
 
 
 
+%! split_member(+List:list, -Before:list, ?Element, -After:list) is nondet.
+
+split_member([H|T], [], H, T).
+split_member([H|T], [H|T1], X, L2):-
+  split_member(T, T1, X, L2).
+
+
+
+%! split_nth0_member(
+%!   +List:list,
+%!   -Before:list,
+%!   ?Index:nonneg,
+%!   ?Element,
+%!   -After:list
+%! ) is nondet.
+
+split_nth0_member(L, L1, N, X, L2):-
+  split_nth0_member(L, L1, 0, N, X, L2).
+
+split_nth0_member([H|T], [], N, N, H, T).
+split_nth0_member([H|T], [H|T1], M1, N, X, L2):-
+  succ(M1, M2),
+  split_nth0_member(T, T1, M2, N, X, L2).
+
+
+
 %! strict_sublist(?SubList:list, +List:list) is nondet.
 
 strict_sublist(SubList, List):-
@@ -806,4 +841,3 @@ sublist(SubT, [_|T]):-
   sublist(SubT, T).
 sublist([H|SubT], [H|T]):-
   sublist(SubT, T).
-

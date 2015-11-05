@@ -116,7 +116,9 @@
 %/rest
   :- use_module(library(rest/rest_ext)).
 %/set
+  :- use_module(library(set/direct_subset)).
   :- use_module(library(set/equiv)).
+  :- use_module(library(set/intersection)).
   :- use_module(library(set/ordset_closure)).
   :- use_module(library(set/poset)).
   :- use_module(library(set/reflexive_closure)).

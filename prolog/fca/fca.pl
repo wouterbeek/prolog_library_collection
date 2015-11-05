@@ -15,10 +15,17 @@
     concept_components/3, % ?Concept:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
+    concepts/2, % +Context:compound
+                % -Concepts:list(compound)
     context_components/4, % ?Context:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
                           % :Goal_2
+    direct_subconcept/3, % +Concepts:list(compound)
+                         % ?Concept1:compound
+                         % ?Concept2:compound
+    fca_hasse/2, % +Context:compound
+                 % -Hasse:ugraph
     fca_lattice/2, % +Context:compound
                    % -Lattice:ugraph
     is_concept/2, % +Context:compound
@@ -26,9 +33,13 @@
     o2a/3, % +Context:compound
            % +Object
            % -Attribute
-    os2as/3 % +Context:compound
-            % +Objects:ordset
-            % -Attributes:ordset
+    os2as/3, % +Context:compound
+             % +Objects:ordset
+             % -Attributes:ordset
+    sort_concepts/2, % +Concepts:list(compound)
+                     % -Sorted:list(compound)
+    strict_subconcept/2 % +Concept1:compound
+                        % +Concept2:compound
   ]
 ).
 
@@ -40,7 +51,7 @@ As is the set of attributes,
 and Goal_2 is the relation between Os and As (in that order).
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10-2015/11
 */
 
 :- use_module(library(aggregate)).
@@ -49,6 +60,7 @@ and Goal_2 is the relation between Os and As (in that order).
 :- use_module(library(graph/s/s_graph)).
 :- use_module(library(list_ext)).
 :- use_module(library(ordsets)).
+:- use_module(library(pairs)).
 :- use_module(library(set/intersection)).
 :- use_module(library(set/set_ext)).
 
@@ -125,6 +137,18 @@ concept_components(concept(Os,As), Os, As).
 
 
 
+%! concepts(+Context:compound, -Concepts:list(compound)) is det.
+
+concepts(Context, Cs):-
+  context_components(Context, _, As, _),
+  maplist(singleton, As, Ass0),
+  maplist(as2os(Context), Ass0, Oss0),
+  intersections(Oss0, Oss),
+  maplist(os2as(Context), Oss, Ass),
+  maplist(concept_components, Cs, Oss, Ass).
+
+
+
 %! context_components(
 %!   +Context:compound,
 %!   -Objects:ordset,
@@ -142,15 +166,36 @@ context_components(context(Os,As,Goal_2), Os, As, Goal_2).
 
 
 
+%! direct_subconcept(
+%!   +Concepts:list(compound),
+%!   ?Concept1:compound,
+%!   ?Concept2:compound
+%! ) is nondet.
+
+direct_subconcept(Cs, A, B):-
+  sort_concepts(Cs, SortedCs),
+  % NONDET
+  split_member(SortedCs, _, A, AfterA),
+  % NONDET
+  split_member(AfterA, BetweenAB, B, _),
+  strict_subconcept(A, B),
+  \+ (member(C, BetweenAB), strict_subconcept(A, C), strict_subconcept(C, B)).
+
+
+
+%! fca_hasse(+Context:compound, -Hasse:ugraph) is det.
+
+fca_hasse(Context, Hasse):-
+  concepts(Context, Cs),
+  aggregate_all(set(C1-C2), direct_subconcept(Cs, C1, C2), Es),
+  s_graph_components(Hasse, Cs, Es).
+
+
+
 %! fca_lattice(+Context:compound, -Lattice:ugraph) is det.
 
 fca_lattice(Context, Lattice):-
-  context_components(Context, _, As, _),
-  maplist(singleton, As, Ass0),
-  maplist(as2os(Context), Ass0, Oss0),
-  intersections(Oss0, Oss),
-  maplist(os2as(Context), Oss, Ass),
-  maplist(concept_components, Cs, Oss, Ass),
+  concepts(Context, Cs),
   aggregate_all(
     set(C1-C2),
     (
@@ -187,3 +232,21 @@ os2as(Context, [O1|Os], As):-
     (o2a(Context, O1, A), maplist(a2o(Context, A), Os)),
     As
   ).
+
+
+
+%! sort_concepts(+Concepts:list(compound), -Sorted:list(compound)) is det.
+
+sort_concepts(Cs, SortedCs):-
+  maplist(concept_cardinality, Cs, Cards),
+  pairs_keys_values(Pairs, Cards, Cs),
+  keysort(Pairs, SortedPairs),
+  pairs_values(SortedPairs, SortedCs).
+
+
+
+%! strict_subconcept(+Concept1:compound, +Concept2:compound) is semidet.
+
+strict_subconcept(C, D):-
+  maplist(concept_components, [C,D], _, [CAs,DAs]),
+  strict_subset(CAs, DAs).
