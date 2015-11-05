@@ -140,12 +140,12 @@ concept_components(concept(Os,As), Os, As).
 %! concepts(+Context:compound, -Concepts:list(compound)) is det.
 
 concepts(Context, Cs):-
-  context_components(Context, _, As, _),
+  context_components(Context, Os, As, _),
   maplist(singleton, As, Ass0),
   maplist(as2os(Context), Ass0, Oss0),
   intersections(Oss0, Oss),
-  maplist(os2as(Context), Oss, Ass),
-  maplist(concept_components, Cs, Oss, Ass).
+  maplist(os2as(Context), [Os|Oss], Ass),
+  maplist(concept_components, Cs, [Os|Oss], Ass).
 
 
 
