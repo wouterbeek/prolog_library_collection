@@ -9,12 +9,26 @@
 
 planets_fca:-
   planets_context(Context),
-  fca_export(Context, File, [concept_label(fca_export:fca_label_objects)]),
+  fca_export(
+    Context,
+    File,
+    [concept_label(objects),object_label(planet_abbr)]
+  ),
   open_pdf(File).
 
 planets_context(context(Os,As,fca_planets:planet_property)):-
   aggregate_all(set(O), planet_property(O, _), Os),
   aggregate_all(set(A), planet_property(_, A), As).
+
+planet_abbr('Earth')   --> "E".
+planet_abbr('Jupiter') --> "J".
+planet_abbr('Mars')    --> "Ma".
+planet_abbr('Mercury') --> "Me".
+planet_abbr('Neptune') --> "N".
+planet_abbr('Pluto')   --> "P".
+planet_abbr('Saturn')  --> "S".
+planet_abbr('Uranus')  --> "U".
+planet_abbr('Venus')   --> "V".
 
 planet_property('Mercury', size(small)).
 planet_property('Mercury', distance_from_sun(near)).
