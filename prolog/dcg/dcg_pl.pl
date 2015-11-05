@@ -64,11 +64,19 @@ pl_predicate(Mod:PredLet/Arity) -->
 %! pl_stream_position(+Position:compound)// is det.
 
 pl_stream_position(stream(_,Row,Col,_)) -->
-  "[Row: ",
-  thousands_integer(Row),
-  ", Col: ",
-  thousands_integer(Col),
+  "[",
+  row(Row),
+  ", ",
+  column(Col),
   "]".
+
+row(N) -->
+  "Row: ",
+  thousands_integer(N).
+
+column(N) -->
+  "Col: ",
+  thousands_integer(N).
 
 
 

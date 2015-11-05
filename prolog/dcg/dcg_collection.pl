@@ -76,14 +76,14 @@ list(Writer_1, L) -->
 %! pair(:X_0, :Y_0)// is det.
 
 pair(X_0, Y_0) -->
-  "〈", X_0, Y_0, "〉".
+  "〈", X_0, ",", Y_0, "〉".
 
 
 
 %! quadruple(:X_0, :Y_0, :Z_0, :Q_0)// is det.
 
 quadruple(X_0, Y_0, Z_0, Q_0) -->
-  "〈", X_0, Y_0, Z_0, Q_0, "〉".
+  "〈", X_0, ",", Y_0, ",", Z_0, ",", Q_0, "〉".
 
 
 
@@ -105,7 +105,7 @@ set(Writer_1, L) -->
 % Wrapper around triple//4 using the default writer.
 
 triple(X_0, Y_0, Z_0) -->
-  "〈", X_0, Y_0, Z_0, "〉".
+  "〈", X_0, ",", Y_0, ",", Z_0, "〉".
 
 
 
@@ -134,7 +134,7 @@ collection0(Writer_1, L) -->
   collection0(Writer_1, comma, L).
 
 
-%! collection0(:Writer_1, :Separator_0, +Elements:list)// is det.
+%! Collection0(:Writer_1, :Separator_0, +Elements:list)// is det.
 
 collection0(_, _, []) --> !, "".
 collection0(Writer_1, _, [H]) --> !,

@@ -1,34 +1,80 @@
-:- module(fca_planets, [planets_fca/0]).
+:- module(
+  fca_planets,
+  [
+    fca_planets/0
+  ]
+).
+
+/** FCA Planets Example
+
+@author Wouter Beek
+@version 2015/11
+*/
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(fca/fca_export)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 
 :- initialization(list_external_programs).
 
-planets_fca:-
+
+
+
+
+%! fca_planets is det.
+
+fca_planets:-
   planets_context(Context),
   fca_export(
     Context,
     File,
-    [concept_label(objects),object_label(planet_abbr)]
+    [
+      attribute_label(planet_a_abbr),
+      concept_label(both),
+      graph_label("FCA for planets"),
+      object_label(planet_o_abbr)
+    ]
   ),
   open_pdf(File).
+
+
+
+%! planets_concet(-Context:compound) is det.
 
 planets_context(context(Os,As,fca_planets:planet_property)):-
   aggregate_all(set(O), planet_property(O, _), Os),
   aggregate_all(set(A), planet_property(_, A), As).
 
-planet_abbr('Earth')   --> "E".
-planet_abbr('Jupiter') --> "J".
-planet_abbr('Mars')    --> "Ma".
-planet_abbr('Mercury') --> "Me".
-planet_abbr('Neptune') --> "N".
-planet_abbr('Pluto')   --> "P".
-planet_abbr('Saturn')  --> "S".
-planet_abbr('Uranus')  --> "U".
-planet_abbr('Venus')   --> "V".
+
+
+%! planet_a_abbr(+Attribute:compound)// is det.
+
+planet_a_abbr(T) -->
+  {
+    T =.. L,
+    maplist(atom_codes, L, [[X|_],[Y|_]])
+  },
+  [X,Y].
+
+
+
+%! planet_o_abbr(+Object:atom)// is det.
+
+planet_o_abbr('Earth')   --> "E".
+planet_o_abbr('Jupiter') --> "J".
+planet_o_abbr('Mars')    --> "Ma".
+planet_o_abbr('Mercury') --> "Me".
+planet_o_abbr('Neptune') --> "N".
+planet_o_abbr('Pluto')   --> "P".
+planet_o_abbr('Saturn')  --> "S".
+planet_o_abbr('Uranus')  --> "U".
+planet_o_abbr('Venus')   --> "V".
+
+
+
+%! planet_property(?Object:atom, ?Attribute:compound) is nondet.
 
 planet_property('Mercury', size(small)).
 planet_property('Mercury', distance_from_sun(near)).
