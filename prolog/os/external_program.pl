@@ -29,7 +29,7 @@ Support for using external programs with SWI-Prolog.
 :- dynamic(user:file_type_program/2).
 :- multifile(user:file_type_program/2).
 
-%! module_uses(?Module:atom, ?Resource:compound) is nondet.
+%! user:module_uses(?Module:atom, ?Resource:compound) is nondet.
 % Registration pointing out that Module uses Resource.
 %
 % Resource can be one of the following:
@@ -75,7 +75,7 @@ find_program_by_file_type(FileType, Program):-
 list_external_programs:-
   aggregate_all(
     set(module(M)),
-    module_uses(M, _),
+    user:module_uses(M, _),
     Filters
   ),
   maplist(list_external_programs, Filters).
