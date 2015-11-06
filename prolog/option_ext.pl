@@ -4,6 +4,8 @@
     if_option/3, % +Option:compound
                  % +Options:list(compound)
                  % :Goal_0
+    merge_options/2, % +Optionss:list(list(compound))
+                     % -Options:list(compound)
     option_pair/2 % ?Option:compound
                   % ?Pair:pair
   ]
@@ -13,7 +15,7 @@
 /** <module> Option extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
 :- meta_predicate(if_option(+,+,0)).
@@ -28,6 +30,20 @@ if_option(Opt, Opts, Goal_0):-
   option(Opt, Opts), !,
   Goal_0.
 if_option(_, _, _).
+
+
+
+%! merge_options(
+%!   +Optionss:list(list(compound)),
+%!   -Options:list(compound)
+%! ) is det.
+% Generalization of merge_options/3.
+
+merge_options([H1,H2|T], L):- !,
+  merge_options(H1, H2, H3),
+  merge_options([H3|T], L).
+merge_options([L], L):- !.
+merge_options([], []).
 
 
 

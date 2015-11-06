@@ -47,9 +47,11 @@ Support for downloading files and datastructures over HTTP(S).
 
 
 %! file_download(+Iri:atom, ?File:atom) is det.
+% Wrapper around file_download/3 with default options.
 
 file_download(Iri, File):-
   file_download(Iri, File, []).
+
 
 %! file_download(+Iri:atom, ?File:atom, +Options:list(compound)) is det.
 % Downloads the contents stored at the given URI to either

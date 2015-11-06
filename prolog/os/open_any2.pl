@@ -2,11 +2,8 @@
   open_any2,
   [
     close_any2/1, % :Close_0
-    open_any2/4, % +Input
-                 % +Mode:oneof([append,read,write])
-                 % -Stream:stream
-                 % :Close_0
-    open_any2/5, % +Input
+    open_any2/4, % +Source, +Mode, -Stream, :Close_0
+    open_any2/5, % +Source
                  % +Mode:oneof([append,read,write])
                  % -Stream:stream
                  % :Close_0
@@ -22,7 +19,7 @@ Wrapper around library(iostream) that adds a metadata option
 to open_any/5.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
@@ -47,6 +44,7 @@ to open_any/5.
 
 
 %! close_any2(:Close_0) is det.
+% Synonym of close_any/1 for consistency.
 
 close_any2(Close_0):-
   close_any(Close_0).
@@ -54,37 +52,39 @@ close_any2(Close_0):-
 
 
 %! open_any2(
-%!   +Input,
+%!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   -Close_0,
-%!   +Options:list(compound)
+%!   -Close_0
 %! ) is det.
 % Wrapper around open_any2/5 with default options.
 
-open_any2(In, Mode, Stream, Close_0):-
-  open_any2(In, Mode, Stream, Close_0, []).
+open_any2(Source, Mode, Stream, Close_0):-
+  open_any2(Source, Mode, Stream, Close_0, []).
 
 
 %! open_any2(
-%!   +Input,
+%!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
 %!   -Close_0,
 %!   +Options:list(compound)
 %! ) is det.
 
-open_any2(In0, Mode, Stream, Close_0, Opts1):-
-  input_type(In0, In, Type),
+open_any2(Source0, Mode, Stream, Close_0, Opts1):-
+  source_type(Source0, Source, Type),
   ignore(option(metadata(M), Opts1)),
   open_any_options(Type, Opts1, Opts2),
-  open_any(In, Mode, Stream0, Close_0, Opts2),
+  open_any(Source, Mode, Stream0, Close_0, Opts2),
 
   % Compression.
   (   option(compress(Comp), Opts1),
-      write_mode(Mode),
-      must_be(oneof([deflate,gzip]), Comp)
-  ->  zopen(Stream0, Stream, [format(Comp)])
+      (   write_mode(Mode)
+      ->  must_be(oneof([deflate,gzip]), Comp),
+          ZOpts = [format(Comp)]
+      ;   ZOpts = []
+      ),
+      zopen(Stream0, Stream, ZOpts)
   ;   Stream = Stream0
   ),
 
@@ -94,11 +94,11 @@ open_any2(In0, Mode, Stream, Close_0, Opts1):-
       http_status_label(StatusCode, Label),
       throw(
         error(
-          permission_error(url,In),
+          permission_error(url,Source),
           context(_,status(StatusCode,Label))
         )
       )
-  ;   open_any_metadata(In, Mode, Type, Comp, Opts2, M)
+  ;   open_any_metadata(Source, Mode, Type, Comp, Opts2, M)
   ).
 
 
@@ -107,7 +107,7 @@ open_any2(In0, Mode, Stream, Close_0, Opts1):-
 
 % HELPERS %
 
-%! base_iri(+Input, -BaseIri:atom) is det.
+%! base_iri(+Source, -BaseIri:atom) is det.
 
 % The IRI that is read from, sans the fragment component.
 base_iri(Iri, BaseIri):-
@@ -119,25 +119,6 @@ base_iri(Iri, BaseIri):-
 base_iri(File, BaseIri):-
   uri_file_name(Iri, File),
   base_iri(Iri, BaseIri).
-
-
-
-%! input_type(
-%!   +Input0,
-%!   -Input,
-%!   -Type:oneof([file_iri,http_iri,stream,string])
-%! ) is det.
-
-input_type(stream(Stream), Stream, stream):- !.
-input_type(string(S), S, string):- !.
-input_type(Stream, Stream, stream):-
-  is_stream(Stream), !.
-input_type(Iri, Iri, file_iri):-
-  is_file_iri(Iri), !.
-input_type(Iri, Iri, http_iri):-
-  is_iri(Iri), !.
-input_type(File, Iri, file_iri):-
-  uri_file_name(Iri, File).
 
 
 
@@ -153,7 +134,7 @@ is_http_error(Opts):-
 
 
 %! open_any_metadata(
-%!   +Input,
+%!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   +Type:oneof([file_iri,http_iri,stream,string]),
 %!   +Compress:oneof([deflate,gzip]),
@@ -161,13 +142,13 @@ is_http_error(Opts):-
 %!   -Metadata:dict
 %! ) is det.
 
-open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
+open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
   % File-type specific.
   (   Type == file_iri
-  ->  base_iri(In, BaseIri),
-      M1 = metadata{base_iri: BaseIri, input_type: file_iri}
+  ->  base_iri(Source, BaseIri),
+      M1 = metadata{base_iri: BaseIri, source_type: file_iri}
   ;   Type == http_iri
-  ->  base_iri(In, BaseIri),
+  ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
       option(headers(Headers1), Opts),
       option(status_code(StatusCode), Opts),
@@ -180,7 +161,7 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
                 status_code: StatusCode,
                 version: Version
               },
-      M1 = metadata{base_iri: BaseIri, http: MHttp, input_type: http_iri}
+      M1 = metadata{base_iri: BaseIri, http: MHttp, source_type: http_iri}
   ;   M1 = metadata{}
   ),
 
@@ -194,8 +175,8 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
   ;   M3 = M2
   ),
 
-  % Input type.
-  put_dict(input_type, M3, Type, M4).
+  % Source type.
+  put_dict(source_type, M3, Type, M4).
 
 
 
@@ -205,16 +186,18 @@ open_any_metadata(In, Mode, Type, Comp, Opts, M4):- !,
 %!   -OpenOptions:list(compound)
 %! ) is det.
 
-open_any_options(http_iri, Opts1, Opts2):- !,
-  HttpOpts = [
+open_any_options(http_iri, Opts1, Opts3):- !,
+  Opts2 = [
     cert_verify_hook(cert_accept_any),
     final_url(_),
     headers(_),
     status_code(_),
     version(_)
   ],
-  merge_options(Opts1, HttpOpts, Opts2).
+  merge_options(Opts1, Opts2, Opts3).
 open_any_options(_, Opts, Opts).
+
+
 
 
 
@@ -222,6 +205,25 @@ open_any_options(_, Opts, Opts).
 %! read_mode(-Mode:atom) is multi.
 
 read_mode(read).
+
+
+
+%! source_type(
+%!   +Source0,
+%!   -Source,
+%!   -Type:oneof([file_iri,http_iri,stream,string])
+%! ) is det.
+
+source_type(stream(Stream), Stream, stream):- !.
+source_type(string(S), S, string):- !.
+source_type(Stream, Stream, stream):-
+  is_stream(Stream), !.
+source_type(Iri, Iri, file_iri):-
+  is_file_iri(Iri), !.
+source_type(Iri, Iri, http_iri):-
+  is_iri(Iri), !.
+source_type(File, Iri, file_iri):-
+  uri_file_name(Iri, File).
 
 
 
