@@ -25,7 +25,7 @@ Support for downloading files and datastructures over HTTP(S).
 @author Wouter Beek
 @tbd We cannot use library(lambda) because this copies the goal term,
      not returning the DOM argument.
-@version 2015/07-2015/10
+@version 2015/07-2015/11
 */
 
 :- use_module(library(atom_ext)).
@@ -102,7 +102,9 @@ file_download(Iri, File, Opts):-
 file_download(Iri, File, Opts):-
   nested_uri_file_name(Iri, File),
   file_download(Iri, File, Opts).
-write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
+
+write_stream_to_file0(File, _, Read):-
+  write_stream_to_file(Read, File).
 
 
 
@@ -112,12 +114,16 @@ write_stream_to_file0(File, _, Read):- write_stream_to_file(Read, File).
 html_download(Iri, Dom):-
   html_download(Iri, Dom, []).
 
+
 %! html_download(+Iri:atom, -Dom:list(compound), +Options:list(compound)) is det.
 
 html_download(Iri, Dom, Opts):-
   http_get(Iri, load_html0(Dom0, Opts)),
   dom_clean(Dom0, Dom).
-load_html0(Dom, Opts, _, Read):- load_html(Read, Dom, Opts).
+
+load_html0(Dom, Opts, _, Read):-
+  load_html(Read, Dom, Opts).
+
 
 %! dom_clean(+Dom1:list(compound), -Dom2:list(compound)) is det.
 % Clean the given DOM tree in the following two ways:

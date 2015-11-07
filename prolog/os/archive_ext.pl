@@ -119,6 +119,9 @@ archive_info(In, Opts):-
 call_on_archive(In, Goal_2):-
   call_on_archive(In, Goal_2, []).
 
+
+%! call_on_archive(+In, :Goal_2, +Options:list(compound)) is det.
+
 call_on_archive(In, Goal_2, Opts):-
   option(archive_entry(Entry), Opts, _),
   call_on_archive0(In, call_on_archive_entry0(Entry, Goal_2, Opts), Opts).

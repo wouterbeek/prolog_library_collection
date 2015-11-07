@@ -25,7 +25,7 @@ to open_any/5.
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).
-:- use_module(library(http/http_deb)).
+:- use_module(library(http/http_info)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
@@ -89,13 +89,13 @@ open_any2(Source0, Mode, Stream, Close_0, Opts1):-
   ),
 
   % HTTP error.
-  (   is_http_error(Opts2)
-  ->  memberchk(status_code(StatusCode), Opts2),
-      http_status_label(StatusCode, Label),
+  (   is_http_error0(Opts2)
+  ->  memberchk(status_code(Status), Opts2),
+      http_status_label(Status, Label),
       throw(
         error(
           permission_error(url,Source),
-          context(_,status(StatusCode,Label))
+          context(_,status(Status,Label))
         )
       )
   ;   open_any_metadata(Source, Mode, Type, Comp, Opts2, M)
@@ -122,14 +122,14 @@ base_iri(File, BaseIri):-
 
 
 
-%! is_http_error(+Options:list(compound)) is semidet.
+%! is_http_error0(+Options:list(compound)) is semidet.
 % Succeeds if Options contains an HTTP status code
 % that describes an error condition.
 
-is_http_error(Opts):-
-  option(status_code(StatusCode), Opts),
-  ground(StatusCode),
-  between(400, 599, StatusCode).
+is_http_error0(Opts):-
+  option(status_code(Status), Opts),
+  ground(Status),
+  is_http_error(Status).
 
 
 

@@ -1,9 +1,10 @@
 :- module(
-  http_deb,
+  http_info,
   [
     http_status_code//1, % +Code:between(100,599)
-    http_status_label/2 % +Code:between(100,599)
-                        % -Label:atom
+    http_status_label/2, % +Code:between(100,599)
+                         % -Label:atom
+    is_http_error/1 % +Status:positive_integer
   ]
 ).
 
@@ -39,3 +40,10 @@ http_status_code(Code) -->
 http_status_label(Code, Label):-
    http_header:status_number_fact(Fact, Code),
    atom_phrase(http_header:status_comment(Fact), Label).
+
+
+
+%! is_http_error(+Status:positive_integer) is semidet.
+
+is_http_error(Status):-
+  between(400, 599, Status).
