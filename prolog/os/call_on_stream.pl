@@ -5,11 +5,6 @@
     append_to_stream/3, % +Source
                         % :Goal_2
                         % +Options:list(compound)
-    call_on_stream/3, % +Source, +Mode, :Goal_2
-    call_on_stream/4, % +Source
-                      % +Mode:oneof([append,read,write])
-                      % :Goal_2
-                      % +Options:list(compound)
     read_from_stream/2, % +Source, :Goal_2
     read_from_stream/3, % +Source
                         % :Goal_2
@@ -33,27 +28,26 @@ Apply an arbitrary goal to a given read/write/append stream.
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/open_any2)).
 
+:- meta_predicate(append_or_write_to_stream(+,+,2,+)).
 :- meta_predicate(append_to_stream(+,2)).
 :- meta_predicate(append_to_stream(+,2,+)).
-:- meta_predicate(call_on_stream(+,+,2)).
-:- meta_predicate(call_on_stream(+,+,2,+)).
 :- meta_predicate(read_from_stream(+,2)).
 :- meta_predicate(read_from_stream(+,2,+)).
 :- meta_predicate(write_to_stream(+,2)).
 :- meta_predicate(write_to_stream(+,2,+)).
 
 :- predicate_options(append_to_stream/3, 3, [
-     pass_to(call_on_stream/4, 4)
+     pass_to(append_or_write_to_stream/4, 4)
    ]).
-:- predicate_options(call_on_stream/4, 4, [
-     pass_to(call_on_archive/3, 3),
+:- predicate_options(append_or_write_to_stream/4, 4, [
      pass_to(open_any2/5)
    ]).
 :- predicate_options(read_from_stream/3, 3, [
-     pass_to(call_on_stream/4, 4)
+     pass_to(call_on_archive/3, 3),
+     pass_to(open_any2/5)
    ]).
 :- predicate_options(write_to_stream/3, 3, [
-     pass_to(call_on_stream/4, 4)
+     pass_to(append_or_write_to_stream/4, 4)
    ]).
 
 
@@ -68,38 +62,10 @@ append_to_stream(Source, Goal_2):-
 
 
 %! append_to_stream(+Source, :Goal_2, +Options:list(compound)) is det.
-% Wrapper around call_on_stream/4 with append mode.
+% Calls Goal_2 on a metadata dictionary and an append stream (in that order).
 
 append_to_stream(Source, Goal_2, Opts):-
-  call_on_stream(Source, append, Goal_2, Opts).
-
-
-
-%! call_in_stream(+Source, +Mode:oneof([append,read,write]), :Goal_2) is det.
-% Wrapper around call_on_stream/4 with default options.
-
-call_on_stream(In, Mode, Goal_2):-
-  call_on_stream(In, Mode, Goal_2, []).
-
-
-%! call_in_stream(
-%!   +Source,
-%!   +Mode:oneof([append,read,write]),
-%!   :Goal_2,
-%!   +Options:list(compound)
-%! ) is det.
-
-call_on_stream(In, Mode, Goal_2, Opts):-
-  read_mode(Mode), !,
-  call_on_archive(In, Goal_2, Opts).
-call_on_stream(In, Mode, Goal_2, Opts0):-
-  write_mode(Mode), !,
-  merge_options([metadata(M)], Opts0, Opts),
-  setup_call_cleanup(
-    open_any2(In, Mode, Write, Close_0, Opts),
-    call(Goal_2, M, Write),
-    close_any2(Close_0)
-  ).
+  append_or_write_to_stream(Source, append, Goal_2, Opts).
 
 
 
@@ -114,7 +80,7 @@ read_from_stream(Source, Goal_2):-
 % Wrapper around call_on_stream/4 with read mode.
 
 read_from_stream(Source, Goal_2, Opts):-
-  call_on_stream(Source, read, Goal_2, Opts).
+  call_on_archive(Source, Goal_2, Opts).
 
 
 
@@ -129,4 +95,26 @@ write_to_stream(Source, Goal_2):-
 % Wrapper around write_on_stream/4 with write mode.
 
 write_to_stream(Source, Goal_2, Opts):-
-  call_on_stream(Source, write, Goal_2, Opts).
+  append_or_write_to_stream(Source, write, Goal_2, Opts).
+
+
+
+
+
+% HELPERS %
+
+%! append_or_write_to_stream(
+%!   +Source,
+%!   +Mode:oneof([append,write]),
+%!   :Goal_2,
+%!   +Options:list(compound)
+%! ) is det.
+% Append and write mode share a lot of functionality.
+
+append_or_write_to_stream(Source, Mode, Goal_2, Opts1):-
+  merge_options([metadata(M)], Opts1, Opts2),
+  setup_call_cleanup(
+    open_any2(Source, Mode, Write, Close_0, Opts2),
+    call(Goal_2, M, Write),
+    close_any2(Close_0)
+  ).
