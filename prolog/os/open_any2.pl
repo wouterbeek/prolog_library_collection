@@ -24,12 +24,13 @@ to open_any/5.
 
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_cookie)).
+:- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_info)).
-:- use_module(library(http/http_ssl_plugin)).
+:- use_module(library(http/http_open)). % HTTP support.
+:- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
-:- use_module(library(ssl)).
+:- use_module(library(ssl)). % SSL support.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
