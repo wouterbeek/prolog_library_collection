@@ -1,16 +1,16 @@
 :- module(
   positional,
   [
-    clpfd_positional/2, % ?Integer:nonneg
-                        % ?Digits:list(between(0,9))
-    clpfd_positional/3, % ?Integer:nonneg
+    clpfd_positional/2, % ?Digits:list(between(0,9))
+                        % ?Integer:nonneg
+    clpfd_positional/3, % ?Digits:list(between(0,9))
                         % ?Base:nonneg
-                        % ?Digits:list(between(0,9))
-    positional/2, % ?Number:nonneg
-                  % ?Digits:list(between(0,9))
-    positional/3, % ?Number:nonneg
+                        % ?Integer:nonneg
+    positional/2, % ?Digits:list(between(0,9))
+                  % ?Number:nonneg
+    positional/3, % ?Digits:list(between(0,9))
                   % ?Base:nonneg
-                  % ?Digits:list(between(0,9))
+                  % ?Number:nonneg
     positional_fraction/2 % ?Digits:list(between(0,9))
                           % ?Fraction:between(0.0,1.0)
   ]
@@ -21,7 +21,7 @@
 Support for positional number notation.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/11
 */
 
 :- use_module(library(aggregate)).
@@ -36,9 +36,9 @@ Support for positional number notation.
 
 
 
-%! clpfd_positional(+Integer:nonneg, +Digits:list(between(0,9))) is semidet.
-%! clpfd_positional(+Integer:nonneg, -Digits:list(between(0,9))) is det.
-%! clpfd_positional(-Integer:nonneg, +Digits:list(between(0,9))) is det.
+%! clpfd_positional(+Digits:list(between(0,9)), +Integer:nonneg) is semidet.
+%! clpfd_positional(+Digits:list(between(0,9)), -Integer:nonneg) is det.
+%! clpfd_positional(-Digits:list(between(0,9)), +Integer:nonneg) is det.
 % ### Example
 %
 % ```prolog
@@ -47,27 +47,27 @@ Support for positional number notation.
 %   '#'(4, 'DIGIT', [Y1,Y2,Y3,Y4], []).
 % ```
 
-clpfd_positional(N, Ds):-
-  clpfd_positional(N, 10, Ds).
+clpfd_positional(Ds, N):-
+  clpfd_positional(Ds, 10, N).
 
 
-%! clpfd_positional(+Integer:nonneg, +Base:nonneg, +Digits:list(between(0,9))) is semidet.
-%! clpfd_positional(+Integer:nonneg, +Base:nonneg, -Digits:list(between(0,9))) is det.
-%! clpfd_positional(-Integer:nonneg, +Base:nonneg, +Digits:list(between(0,9))) is det.
+%! clpfd_positional(+Digits:list(between(0,9)), +Base:nonneg, +Integer:nonneg) is semidet.
+%! clpfd_positional(+Digits:list(between(0,9)), +Base:nonneg, -Integer:nonneg) is det.
+%! clpfd_positional(-Digits:list(between(0,9)), +Base:nonneg, +Integer:nonneg) is det.
 
-clpfd_positional(N, Base, Ds):-
-  clpfd:make_propagator(clpfd_positional(N, Base, Ds), Prop),
+clpfd_positional(Ds, Base, N):-
+  clpfd:make_propagator(clpfd_positional(Ds, Base, N), Prop),
   clpfd:init_propagator(N, Prop),
   clpfd:init_propagator(Base, Prop),
   maplist(flip_init_propagator(Prop), Ds),
   clpfd:trigger_once(Prop).
 
-clpfd:run_propagator(clpfd_positional(N, Base, Ds), MState):-
+clpfd:run_propagator(clpfd_positional(Ds, Base, N), MState):-
   (   (   maplist(error:has_type(nonneg), [N,Base])
       ;   maplist(error:has_type(between(0, 9)), Ds)
       )
   ->  clpfd:kill(MState),
-      positional(N, Base, Ds)
+      positional(Ds, Base, N)
   ;   \+ ground([N|Ds])
   ).
 
@@ -76,21 +76,21 @@ flip_init_propagator(Prop, Arg):-
 
 
 
-%% positional(+N:nonneg, +Digits:list(between(0,9))) is semidet.
-%% positional(+N:nonneg, -Digits:list(between(0,9))) is det.
-%% positional(-N:nonneg, +Digits:list(between(0,9))) is det.
+%! positional(+Digits:list(between(0,9)), +N:nonneg) is semidet.
+%! positional(+Digits:list(between(0,9)), -N:nonneg) .
+%! positional(-Digits:list(between(0,9)), +N:nonneg) .
 
-positional(N, Ds):-
-  positional(N, 10, Ds).
+positional(Ds, N):-
+  positional(Ds, 10, N).
 
 
-%! positional(+N:nonneg, +Base:nonneg, +Digits:list(between(0,9))) is semidet.
-%! positional(+N:nonneg, +Base:nonneg, -Digits:list(between(0,9))) is multi.
-%! positional(-N:nonneg, +Base:nonneg, +Digits:list(between(0,9))) is multi.
+%! positional(+Digits:list(between(0,9)), +Base:nonneg, +N:nonneg) is semidet.
+%! positional(+Digits:list(between(0,9)), +Base:nonneg, -N:nonneg) .
+%! positional(-Digits:list(between(0,9)), +Base:nonneg, +N:nonneg) .
 % @see http://stackoverflow.com/questions/4192063/reversible-binary-to-number-predicate/28442760#28442760
 % @throws instantiation_error
 
-positional(N, Base, Ds):-
+positional(Ds, Base, N):-
   (   nonvar(N),
       nonvar(Base)
   ;   nonvar(Ds)
@@ -115,22 +115,22 @@ in_base(X, Base):-
 
 test(
   'positional(+,+,+) is semidet. TRUE',
-  [forall(positional_test(N,Base,L))]
+  [forall(positional_test(L,Base,N))]
 ):-
-  positional(N, Base, L).
+  positional(L, Base, N).
 test(
   'positional(+,+,-) is multi. TRUE',
-  [forall(positional_test(N,Base,L)),nondet]
+  [forall(positional_test(L,Base,N)),nondet]
 ):-
-  positional(N, Base, L0), L0 = L.
+  positional(L0, Base, N), L0 = L.
 test(
   'positional(-,+,+) is multi. TRUE',
-  [forall(positional_test(N, Base, L)),nondet]
+  [forall(positional_test(L, Base, N)),nondet]
 ):-
-  positional(N0, Base, L), N0 = N.
+  positional(L, Base, N0), N0 = N.
 
-positional_test(1226, 10, [1,2,2,6]).
-positional_test(120, 60, [2,0]).
+positional_test([1,2,2,6], 10, 1226).
+positional_test([2,0], 60, 120).
 
 :- end_tests('positional/3').
 

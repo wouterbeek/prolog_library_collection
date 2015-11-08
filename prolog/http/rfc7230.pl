@@ -2,7 +2,7 @@
   rfc7230,
   [
     'BWS'//0,
-    'Connecton'//1, % ?Options:list
+    'Connection'//1, % ?Options:list
     'Content-Length'//1, % ?ContentLength:nonneg
     'HTTP-message'//3, % ?StartLine
                        % ?HeaderFields:list(compound)
@@ -33,7 +33,7 @@
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc5234)).
+:- use_module(library(dcg/rfc2234)).
 
 
 
@@ -48,7 +48,7 @@
 
 
 
-%! 'Connecton'(?Options:list)// .
+%! 'Connection'(?Options:list)// .
 % ```abnf
 % Connection = *( "," OWS )
 %              connection-option

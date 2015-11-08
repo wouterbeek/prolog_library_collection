@@ -30,7 +30,6 @@ which does not exist.  'Language-Tag'//1 does exist.
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc5234)).
 
 
 

@@ -22,6 +22,7 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(default)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(math/positional)).
 :- use_module(library(option)).
 
@@ -179,9 +180,18 @@
    ]).
 
 :- predicate_options(convert/3, 1, [
-     convert(+pair(between(1,5),oneof([atom,atom_lower,codes,positional,string])))
+     convert1(+callable),
+     convert2(+callable),
+     convert3(+callable),
+     convert4(+callable),
+     convert5(+callable)
    ]).
 
+is_meta(convert1).
+is_meta(convert2).
+is_meta(convert3).
+is_meta(convert4).
+is_meta(convert5).
 is_meta(separator).
 
 
@@ -487,7 +497,11 @@ is_meta(separator).
 % and failing silently when `N < M`.
 %
 % The following options are supported:
-%   * convert(+pair(between(1,5),oneof([atom,atom_lower,codes,positional,string])))
+%   * convert1(+callable)
+%   * convert2(+callable)
+%   * convert3(+callable)
+%   * convert4(+callable)
+%   * convert5(+callable)
 %   * copy_term(+boolean)
 %     Whether variables are shared between multiple calls of `Dcg`
 %     (`false`, default) or not (`true`).
@@ -529,8 +543,8 @@ is_meta(separator).
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_1, Sep_0, L1_, CP),
-      {convert(Opts, [L1], [L1_])}
-  ;   {convert(Opts, [L1], [L1_])},
+      {convert(Opts, [L1_], [L1])}
+  ;   {convert(Opts, [L1_], [L1])},
       'm*n_generate'(M, N, 0, C, Dcg_1, Sep_0, L1_, CP)
   ),
   {(  option(count(C0), Opts)
@@ -547,8 +561,8 @@ is_meta(separator).
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_2, Sep_0, L1_, L2_, CP),
-      {convert(Opts, [L1,L2], [L1_,L2_])}
-  ;   {convert(Opts, [L1,L2], [L1_,L2_])},
+      {convert(Opts, [L1_,L2_], [L1,L2])}
+  ;   {convert(Opts, [L1_,L2_], [L1,L2])},
       'm*n_generate'(M, N, 0, C, Dcg_2, Sep_0, L1_, L2_, CP)
   ),
   {(  option(count(C0), Opts)
@@ -565,8 +579,8 @@ is_meta(separator).
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_3, Sep_0, L1_, L2_, L3_, CP),
-      {convert(Opts, [L1,L2,L3], [L1_,L2_,L3_])}
-  ;   {convert(Opts, [L1,L2,L3], [L1_,L2_,L3_])},
+      {convert(Opts, [L1_,L2_,L3_], [L1,L2,L3])}
+  ;   {convert(Opts, [L1_,L2_,L3_], [L1,L2,L3])},
       'm*n_generate'(M, N, 0, C, Dcg_3, Sep_0, L1_, L2_, L3_, CP)
   ),
   {(  option(count(C0), Opts)
@@ -583,8 +597,8 @@ is_meta(separator).
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_4, Sep_0, L1_, L2_, L3_, L4_, CP),
-      {convert(Opts, [L1,L2,L3,L4], [L1_,L2_,L3_,L4_])}
-  ;   {convert(Opts, [L1,L2,L3,L4], [L1_,L2_,L3_,L4_])},
+      {convert(Opts, [L1_,L2_,L3_,L4_], [L1,L2,L3,L4])}
+  ;   {convert(Opts, [L1_,L2_,L3_,L4_], [L1,L2,L3,L4])},
       'm*n_generate'(M, N, 0, C, Dcg_4, Sep_0, L1_, L2_, L3_, L4_, CP)
   ),
   {(  option(count(C0), Opts)
@@ -601,8 +615,8 @@ is_meta(separator).
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_5, Sep_0, L1_, L2_, L3_, L4_, L5_, CP),
-      {convert(Opts, [L1,L2,L3,L4,L5], [L1_,L2_,L3_,L4_,L5_])}
-  ;   {convert(Opts, [L1,L2,L3,L4,L5], [L1_,L2_,L3_,L4_,L5_])},
+      {convert(Opts, [L1_,L2_,L3_,L4_,L5_], [L1,L2,L3,L4,L5])}
+  ;   {convert(Opts, [L1_,L2_,L3_,L4_,L5_], [L1,L2,L3,L4,L5])},
       'm*n_generate'(M, N, 0, C, Dcg_5, Sep_0, L1_, L2_, L3_, L4_, L5_, CP)
   ),
   {(  option(count(C0), Opts)
@@ -639,27 +653,28 @@ call_dcg_sep(C, Dcg_n, Sep_0, Args, true) -->
 convert(Opts, L1, L2):-
   convert(Opts, 1, L1, L2).
 
-convert(_, _, [], []):- !.
-convert(Opts, I1, [H1|T1], [H2|T2]):-
-  option(convert(I1-Type), Opts), !,
-  must_be(oneof([atom,atom_lower,codes,positional,string]), Type),
-  (   Type == atom
-  ->  atom_codes(H1, H2)
-  ;   Type == atom_lower
-  ->  atom_codes(H0, H2),
-      downcase_atom(H0, H1)
-  ;   Type == codes
-  ->  H2 = H1
-  ;   Type == positional
-  ->  positional(H1, H2)
-  ;   Type == string
-  ->  string_codes(H1, H2)
-  ),
-  I2 is I1 + 1,
+convert(Opts, I1, [H1|T1], [H2|T2]):- !,
+  convert_arg(Opts, I1, H1, H2),
+  succ(I1, I2),
   convert(Opts, I2, T1, T2).
-convert(Opts, I1, [H|T1], [H|T2]):-
-  I2 is I1 + 1,
-  convert(Opts, I2, T1, T2).
+convert(_, _, [], []).
+
+convert_arg(Opts, 1, X, Y):-
+  option(convert1(Goal_2), Opts), !,
+  call(Goal_2, X, Y).
+convert_arg(Opts, 2, X, Y):-
+  option(convert2(Goal_2), Opts), !,
+  call(Goal_2, X, Y).
+convert_arg(Opts, 3, X, Y):-
+  option(convert3(Goal_2), Opts), !,
+  call(Goal_2, X, Y).
+convert_arg(Opts, 4, X, Y):-
+  option(convert4(Goal_2), Opts), !,
+  call(Goal_2, X, Y).
+convert_arg(Opts, 5, X, Y):-
+  option(convert5(Goal_2), Opts), !,
+  call(Goal_2, X, Y).
+convert_arg(_, _, X, X).
 
 
 

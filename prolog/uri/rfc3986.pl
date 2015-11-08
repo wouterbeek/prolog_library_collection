@@ -5,15 +5,14 @@
   ]
 ).
 
-/** <module> RFC 3986: URIs?
+/** <module> RFC 3986: ???
 
 @author Wouter Beek
-@compat RFC 3986
-@version 2015/11
+@versio 2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/rfc5234)).
+:- use_module(library(dcg/rfc2234)).
 
 
 

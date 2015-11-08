@@ -16,7 +16,6 @@
 */
 
 :- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/rfc5234)).
 
 
 

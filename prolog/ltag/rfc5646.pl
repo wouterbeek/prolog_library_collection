@@ -35,7 +35,6 @@
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc5234)).
 :- use_module(library(lists)).
 
 

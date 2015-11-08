@@ -18,7 +18,6 @@ DCGs for characters that occur in the Record Jar representation format.
 
 :- use_module(plc(dcg/dcg_abnf)).
 :- use_module(plc(dcg/dcg_code)).
-:- use_module(plc(dcg/rfc5234)).
 :- use_module(plc(math/positional)).
 
 
@@ -63,7 +62,7 @@ DCGs for characters that occur in the Record Jar representation format.
 % ```
 
 'ESCAPE'(C) --> "\\", backslash_escape(C).
-'ESCAPE'(C) --> "&#x", {clpfd_positional(C, Hexs)}, 'm*n'(2, 6, 'HEXDIG', Hexs, []).
+'ESCAPE'(C) --> "&#x", {clpfd_positional(Hexs, C)}, 'm*n'(2, 6, 'HEXDIG', Hexs, []).
 backslash_escape(0'\) --> "\\".
 backslash_escape(0'&) --> "&".
 backslash_escape(0'r) --> "r".

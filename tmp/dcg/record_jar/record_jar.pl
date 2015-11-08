@@ -22,7 +22,7 @@ variable repertoire of fields in a text format.
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/record_jar/record_jar_char)).
-:- use_module(library(dcg/rfc5234)).
+:- use_module(library(dcg/rfc2234)).
 
 
 

@@ -1,7 +1,6 @@
 :- module(
   rfc4646,
   [
-    alphanum//1, % ?Code:code
     extension//1, % ?Extension:list(string)
     extlang//1, % ?Extension:list(string)
     grandfathered//1, % ?LanguageTag:list(string)
@@ -13,6 +12,12 @@
     script//1, % ?Script:string
     singleton//1, % ?Code:code
     variant//1 % ?Variant:string
+  ]
+).
+:- reexport(
+  library(uri/rfc2396_code),
+  [
+    alphanum//1 % ?Code:code
   ]
 ).
 
@@ -35,19 +40,17 @@ The comment for singleton//1 swaps upper and lowercase letters.
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc5234)).
 
 
 
 
 
 %! alphanum(?Code:code)// .
+% RFC 3986 (URI) defines this in a different but compatible way.
+%
 % ```abnf
 % alphanum = (ALPHA / DIGIT)   ; letters and numbers
 % ```
-
-alphanum(C) --> 'ALPHA'(C).
-alphanum(C) --> 'DIGIT'(C).
 
 
 

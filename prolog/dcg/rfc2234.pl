@@ -1,42 +1,40 @@
 :- module(
   rfc2234,
   [
-    'ALPHA'//0,
-    'ALPHA'//1, % ?Code:code
-    'BIT'//0,
     'BIT'//1, % ?Weight:between(0,1)
     'BIT'//2, % ?Weight:between(0,1)
               % ?Code:code
-    'CHAR'//0,
     'CHAR'//1, % ?Code:code
     'CR'//0,
     'CR'//1, % ?Code:code
     'CRLF'//0,
     'CTL'//0,
     'CTL'//1, % ?Code:code
-    'DIGIT'//0,
-    'DIGIT'//1, % ?Weight:between(0,9)
-    'DIGIT'//2, % ?Weight:between(0,9)
-                % ?Code:code
     'DQUOTE'//0,
     'DQUOTE'//1, % ?Code:code
-    'HEXDIG'//0,
     'HEXDIG'//1, % ?Weight:between(0,15)
     'HEXDIG'//2, % ?Weight:between(0,15)
-                % ?Code:code
+                 % ?Code:code
     'HTAB'//0,
     'HTAB'//1, % ?Code:code
     'LF'//0,
     'LF'//1, % ?Code:code
     'LWSP'//0,
-    'OCTET'//0,
     'OCTET'//1, % ?Code:code
     'SP'//0,
     'SP'//1, % ?Code:code
-    'VCHAR'//0,
     'VCHAR'//1, % ?Code:code
     'WSP'//0,
     'WSP'//1 % ?Code:code
+  ]
+).
+:- reexport(
+  library(url/rfc1738_code),
+  [
+    alpha//1 as 'ALPHA', % ?Code:code
+    digit//1 as 'DIGIT', % ?Weight:between(0,9)
+    digit//2 as 'DIGIT' % ?Weight:between(0,9)
+                        % ?Code:code
   ]
 ).
 
@@ -48,31 +46,22 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_code)).
 
 
 
 
 
-%! 'ALPHA'// .
 %! 'ALPHA'(?Code:code)// .
-% Alphabetic character, i.e. belonging to
-% the range of ASCII letters, `A-Z / a-z`.
-%
-% Hexadecimal character range: `%x41-5A` through `%x61-7A`.
+% RFC 1738 (URL) defines this is a different but compatbile way
+% under the name alpha//1.
 %
 % ```abnf
 % ALPHA = %x41-5A / %x61-7A   ; A-Z / a-z
 % ```
 
-'ALPHA' --> 'ALPHA'(_).
-'ALPHA'(C) --> ascii_letter(C).
 
 
-
-%! 'BIT'// .
 %! 'BIT'(?Weight:between(0,1))// .
 %! 'BIT'(?Weight:between(0,1), ?Code:code)// .
 % A binary digit, i.e. `0` or `1`.
@@ -81,14 +70,12 @@
 % BIT = "0" / "1"
 % ```
 
-'BIT' --> 'BIT'(_).
 'BIT'(W) --> 'BIT'(W, _).
 'BIT'(0, 0'0) --> "0".
 'BIT'(1, 0'1) --> "1".
 
 
 
-%! 'CHAR'// .
 %! 'CHAR'(?Code:code)// .
 % Any 7-bit US-ASCII character, excluding the NULL character.
 %
@@ -98,7 +85,6 @@
 % CHAR = %x01-7F   ; any 7-bit US-ASCII character, excluding NUL
 % ```
 
-'CHAR' --> 'CHAR'(_).
 'CHAR'(C) --> between_code_radix(hex('01'), hex('7F'), C).
 
 
@@ -143,29 +129,14 @@
 
 
 
-%! 'DIGIT'// .
 %! 'DIGIT'(?Weight:between(0,9))// .
 %! 'DIGIT'(?Weight:between(0,9), ?Code:code)// .
-% Decimal digit.
-%
-% # Syntax
+% RFC 1738 (URL) defines this in a different but compatible way
+% under the name digit//[1,2].
 %
 % ```abnf
 % DIGIT = %x30-39   ; 0-9
 % ```
-
-'DIGIT' --> 'DIGIT'(_).
-'DIGIT'(W) --> 'DIGIT'(W, _).
-'DIGIT'(0, 0'0) --> "0".
-'DIGIT'(1, 0'1) --> "1".
-'DIGIT'(2, 0'2) --> "2".
-'DIGIT'(3, 0'3) --> "3".
-'DIGIT'(4, 0'4) --> "4".
-'DIGIT'(5, 0'5) --> "5".
-'DIGIT'(6, 0'6) --> "6".
-'DIGIT'(7, 0'7) --> "7".
-'DIGIT'(8, 0'8) --> "8".
-'DIGIT'(9, 0'9) --> "9".
 
 
 
@@ -182,16 +153,17 @@
 
 
 
-%! 'HEXDIG'// .
 %! 'HEXDIG'(?Weight:between(0,15))// .
 %! 'HEXDIG'(?Weight:between(0,15), ?Code:code)// .
 % Uppercase-only notation for hexadecimal digits.
+%
+% RFC 1738 (URL) defines a similar grammar rule that include
+% lower-case letters as well under the name hex//2.
 %
 % ```abnf
 % HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
 % ```
 
-'HEXDIG' --> 'HEXDIG'(_).
 'HEXDIG'(W) --> 'HEXDIG'(W, _).
 'HEXDIG'(W, C) --> 'DIGIT'(W, C).
 'HEXDIG'(10, 0'A) --> "A".
@@ -237,13 +209,6 @@
 % ```abnf
 % LWSP = *(WSP / CRLF WSP)   ; linear white space (past newline)
 % ```
-%
-% # Note added in RFC 5234
-%
-% Use of this linear-white-space rule permits lines containing only white
-% space that are no longer legal in  mail headers and have caused
-% interoperability problems in other contexts.  Do not use when defining mail
-% headers and use with caution in other contexts.
 
 'LWSP' --> 'WSP', !, 'LWSP'.
 'LWSP' --> 'CRLF', !, 'WSP', 'LWSP'.
@@ -251,7 +216,6 @@
 
 
 
-%! 'OCTET'// .
 %! 'OCTET'(?Code:code)// .
 % An octect, i.e. 8 bits of data.
 %
@@ -261,7 +225,6 @@
 % OCTET = %x00-FF   ; 8 bits of data
 % ```
 
-'OCTET' --> 'OCTET'(_).
 'OCTET'(C) --> between_code_radix(hex('00'), hex('FF'), C).
 
 
@@ -281,7 +244,6 @@
 
 
 
-%! 'VCHAR'// .
 %! 'VCHAR'(?Code:code)// .
 % Visible characters.
 %
@@ -289,8 +251,7 @@
 % VCHAR = %x21-7E   ; visible (printing) characters
 % ```
 
-'VCHAR' --> 'VCHAR'(_).
-'VCHAR'(C) --> ascii_graphic(C).
+'VCHAR'(C) --> between_code_radix(hex('21'), hex('7E'), C).
 
 
 
