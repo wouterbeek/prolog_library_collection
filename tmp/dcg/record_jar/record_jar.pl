@@ -1,6 +1,7 @@
 :- module(
   record_jar,
   [
+    'blank-line'//0,
     'record-jar'//2 % ?Encoding:atom
                     % ?Records:list(list(nvpair(atom,list(atom))))
   ]
@@ -9,50 +10,19 @@
 /** <module> Record Jar
 
 Support for the `record-jar` format for storing multiple records with a
- variable repertoire of fields in a text format.
-
-## Syntax
-
-```abnf
-record-jar   = [encodingSig] [separator] *record
-record       = 1*field separator
-field        = ( field-name field-sep field-body CRLF )
-field-name   = 1*character
-field-sep    = *SP ":" *SP
-field-body   = *(continuation 1*character)
-continuation = ["\"] [[*SP CRLF] 1*SP]
-separator    = [blank-line] *("%%" [comment] CRLF)
-comment      = SP *69(character)
-character    = SP / ASCCHAR / UNICHAR / ESCAPE
-encodingSig  = "%%encoding" field-sep
-                *(ALPHA / DIGIT / "-" / "_") CRLF
-blank-line   = WSP CRLF
-
-; ASCII characters except %x26 (&) and %x5C (\)
-ASCCHAR      = %x21-25 / %x27-5B / %x5D-7E
-; Unicode characters
-UNICHAR      = %x80-10FFFF
-ESCAPE       = "\" ("\" / "&" / "r" / "n" / "t" )
-            / "&#x" 2*6HEXDIG ";"
-```
-
----
+variable repertoire of fields in a text format.
 
 @author Wouter Beek
 @see Originally described in *The Art of Unix Programming*.
 @see Latest description was found at
      http://tools.ietf.org/html/draft-phillips-record-jar-02
-@version 2013/07, 2014/05-2014/06, 2014/10-2014/11, 2015/02
+@version 2015/11
 */
 
 :- use_module(library(apply)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_abnf_rules)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/record_jar/record_jar_char)).
-:- use_module(plc(generics/atom_ext)). % Meta-option.
+:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/record_jar/record_jar_char)).
+:- use_module(library(dcg/rfc5234)).
 
 
 
@@ -63,9 +33,7 @@ ESCAPE       = "\" ("\" / "&" / "r" / "n" / "t" )
 % blank-line = WSP CRLF
 % ```
 
-'blank-line' -->
-  'WSP',
-  'CRLF', !.
+'blank-line' --> 'WSP', 'CRLF'.
 
 
 
@@ -75,11 +43,9 @@ ESCAPE       = "\" ("\" / "&" / "r" / "n" / "t" )
 % ```
 %
 % Notice that the horizontal tab is not allowed in comments,
-%  possibly to control the maximum width of comment lines.
+% possibly to control the maximum width of comment lines.
 
-comment -->
-  'SP',
-  '*n'(69, 'character@record-jar', []).
+comment --> 'SP', '*n'(69, character, []).
 
 
 
@@ -88,39 +54,29 @@ comment -->
 % continuation = ["\"] [[*SP CRLF] 1*SP]
 % ```
 
-continuation -->
-  (   "\\"
-  ;   ""
-  ),
-  (   (   '*SP',
-          'CRLF'
-      ;   ""
-      ),
-      '+SP'
-  ;   ""
-  ).
+continuation --> ("\\" ; ""), ((*('SP', []), 'CRLF' ; ""), +('SP', []) ; "").
 
 
 
-%! encodingSig(?Encoding:atom)// .
+%! encodingSig(?Encoding:string)// .
 % ```abnf
 % encodingSig = "%%encoding" field-sep *(ALPHA / DIGIT / "-" / "_") CRLF
 % ```
 
-encodingSig(Encoding) -->
+encodingSig(Enc) -->
   "%%encoding",
   'field-sep',
-  dcg_atom(*(encodingSig_char, []), Encoding),
-  'CRLF', !.
+  dcg_string(encodingSig_codes, Enc),
+  'CRLF'.
+encodingSig_codes([H|T]) --> 'ALPHA'(H), !, encodingSig_codes(T).
+encodingSig_codes([H|T]) --> 'DIGIT'(_, H), !, encodingSig_codes(T).
+encodingSig_codes([0'-|T]) --> "-", !, encodingSig_codes(T)
+encodingSig_codes([0'_|T]) --> "_", !, encodingSig_codes(T)
+encodingSig_codes([]) --> "".
 
-encodingSig_char(Code) --> 'ALPHA'(Code).
-encodingSig_char(Code) --> 'DIGIT'(_, Code).
-encodingSig_char(Code) --> hyphen(Code).
-encodingSig_char(Code) --> underscore(Code).
 
 
-
-%! field(?Field:nvpair(atom,list(atom)))// .
+%! field(?Field:nvpair(string,list(string)))// .
 % ```abnf
 % field = ( field-name field-sep field-body CRLF )
 % ```
@@ -129,11 +85,11 @@ field(Name=Body) -->
   'field-name'(Name),
   'field-sep',
   'field-body'(Body),
-  'CRLF', !.
+  'CRLF'.
 
 
 
-%! 'field-body'(?Body:list(atom))// .
+%! 'field-body'(?Body:list(string))// .
 % The field-body contains the data value. Logically, the field-body
 % consists of a single line of text using any combination of characters
 % from the Universal Character Set followed by a `CRLF` (newline).
@@ -160,17 +116,15 @@ field(Name=Body) -->
 %      of the file's semantics).
 % @see Information on grapheme clusters, UAX29.
 
-'field-body'(Sentence) -->
-  *('field-body0', Words, []),
-  {atomic_list_concat(Words, ' ', Sentence)}.
-
-'field-body0'(Word) -->
-  continuation,
-  dcg_atom('+'('character@record-jar', []), Word).
+'field-body'([H|T]) -->
+  continuation, !,
+  *(character, H, [convert(1-string)]),
+  'field-body'(T).
+'field-body'([]) --> "".
 
 
 
-%! 'field-name'(?Name:atom)// .
+%! 'field-name'(?Name:string)// .
 % The field-name is an identifer. Field-names consist of a sequence of
 % Unicode characters. Whitespace characters and colon (=:=, =%x3A=) are
 % not permitted in a field-name.
@@ -196,11 +150,10 @@ field(Name=Body) -->
 % We therefore introduce the extra DCG rule 'field-name-character'//1.
 
 'field-name'(Name) -->
-  dcg_atom('+'('field-name-character', []), Name).
-
-'field-name-character'(_) --> 'SP', !, {fail}.
-'field-name-character'(_) --> ":", !, {fail}.
-'field-name-character'(Code) --> 'character@record-jar'(Code).
+  +(character0, Name, [convert(1-string)]).
+character0(_) --> 'SP', !, {fail}.
+character0(_) --> ":", !, {fail}.
+character0(C) --> character(C).
 
 
 
@@ -214,32 +167,25 @@ field(Name=Body) -->
 % field-sep = *SP ":" *SP
 % ```
 
-'field-sep' -->
-  '*SP',
-  ":",
-  '*SP'.
+'field-sep' --> *('SP'), ":", *('SP').
 
 
 
 %! 'record-jar'(
-%!   ?Encoding:atom,
-%!   ?Records:list(list(nvpair(atom,list(atom))))
+%!   ?Encoding:string,
+%!   ?Records:list(list(nvpair(string,list(string))))
 %! )// .
 % ```abnf
 % record-jar = [encodingSig] [separator] *record
 % ```
 
-'record-jar'(Encoding, Records) -->
+'record-jar'(Enc, Records) -->
   {flag(record_jar, _, 0)},
-  (   encodingSig(Encoding)
-  ;   {Encoding = 'UTF-8'}
-  ),
+  (encodingSig(Enc) ; {Enc = "UTF-8"}),
   % The disjunction with the empty string is not needed here,
   % since the production of the separator can process
   % the empty string as well.
-  (   separator
-  ;   ""
-  ),
+  ?(separator),
   *(record, Records, []).
 
 
@@ -252,15 +198,7 @@ field(Name=Body) -->
 record(Fields) -->
   '+'(field, Fields, []),
   separator,
-  {
-    flag(record_jar, X, X + 1),
-    maplist(print_field(X), Fields)
-  }.
-
-print_field(X, Name=Value):-
-  format(user_output, '[~D] ~a=~w\n', [X,Name,Value]).
-  % @tbd Does not show in console!
-  %%%%debug(record_jar, '[~D] ~a=~w', [X,Name,Body]).
+  {debug(record_jar, "~a=~w~n", [Name,Value])}.
 
 
 
@@ -269,30 +207,5 @@ print_field(X, Name=Value):-
 % separator = [blank-line] *("%%" [comment] CRLF)
 % ```
 
-separator -->
-  (   'blank-line'
-  ;   ""
-  ),
-  *(separator0, []).
-
-separator0 -->
-  "%%",
-  (   comment
-  ;   ""
-  ),
-  'CRLF', !.
-
-
-
-
-
-% HELPERS %
-
-'+SP' -->
-  'SP',
-  '*SP'.
-
-'*SP' --> "".
-'*SP' -->
-  'SP',
-  '*SP'.
+separator --> ?('blank-line'), *(separator0).
+separator0 --> "%%", ?(comment), 'CRLF'.

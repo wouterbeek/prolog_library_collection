@@ -12,7 +12,6 @@
 %/dcg
   :- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_abnf_common)).
-  :- use_module(library(dcg/dcg_abnf_rules)).
   :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
@@ -37,6 +36,9 @@
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).
+  :- use_module(library(dcg/rfc2234)).
+  :- use_module(library(dcg/rfc4234)).
+  :- use_module(library(dcg/rfc5234)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
@@ -66,19 +68,26 @@
   :- use_module(library(html/html_resource)).
 %/http
   :- use_module(library(http/http_download)).
+  :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).
   :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
+  :- use_module(library(http/rfc2616)).
+  :- use_module(library(http/rfc5987)).
+  :- use_module(library(http/rfc6266)).
+  :- use_module(library(http/rfc7230)).
 :- use_module(library(image_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(list_script)).
 %/ltag
-  :- use_module(library(ltag/ltag)).
-  :- use_module(library(ltag/ltag_generics)).
   :- use_module(library(ltag/ltag_match)).
-  :- use_module(library(ltag/ltag_range)).
+  :- use_module(library(ltag/rfc1766)).
+  :- use_module(library(ltag/rfc3066)).
+  :- use_module(library(ltag/rfc4646)).
+  :- use_module(library(ltag/rfc4647)).
+  :- use_module(library(ltag/rfc5646)).
 %/math
   :- use_module(library(math/dimension)).
   :- use_module(library(math/math_ext)).
@@ -137,6 +146,7 @@
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
 %/uri
+  :- use_module(library(uri/rfc3986)).
   :- use_module(library(uri/uri_char)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
