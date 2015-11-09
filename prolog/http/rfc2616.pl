@@ -30,7 +30,7 @@
 
 
 
-%! comment//0 .
+%! comment// .
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```

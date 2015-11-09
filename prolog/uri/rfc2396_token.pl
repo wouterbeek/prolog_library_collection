@@ -19,9 +19,12 @@
 /** <module> RFC 2396: Tokens
 
 @author Wouter Beek
+@compat RFC 2396
+@deprecated
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(uri/rfc2396_code)).
 

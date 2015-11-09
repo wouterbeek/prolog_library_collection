@@ -1,6 +1,9 @@
 :- module(
   rfc2616_token,
   [
+    comment//1, % ?Comment:string
+    product//1, % ?Product:dict
+    'product-version'//1, % ?ProductVersion:string
     'quoted-string'//1, % ?String:string
     token//1, % ?Token:string
     value//1 % ?Value:string
@@ -21,6 +24,42 @@
 :- use_module(library(string_ext)).
 
 
+
+
+
+%! comment(?Comment:string)// .
+% ```abnf
+% comment = "(" *( ctext | quoted-pair | comment ) ")"
+% ```
+
+comment(S) --> dcg_string(comment_codes1, S).
+comment_codes1(L) --> "(", comment_codes2(L), ")".
+comment_codes2([H|T]) --> ctext(H), !, comment_codes2(T).
+comment_codes2([H|T]) --> 'quoted-pair'(H), !, comment_codes2(T).
+comment_codes2(L) --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
+comment_codes2([]) --> "".
+
+
+
+%! product(?Product:dict)// .
+% ```abnf
+% product = token ["/" product-version]
+% ```
+
+product(D) -->
+  token(S1),
+  (   "/", 'product-version'(S2), {D = product{name: S1, version: S2}}
+  ;   {D = product{name: S1}}
+  ).
+
+
+
+%! 'prduct-version'(?ProductVersion:string)// .
+% ```abnf
+% 'product-version' = token
+% ```
+
+'product-version'(S) --> token(S).
 
 
 

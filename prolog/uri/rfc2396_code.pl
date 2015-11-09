@@ -17,6 +17,7 @@
   [
     alpha//1, % ?Code:code
     alphadigit//1 as alphanum, % ?Code:code
+    digit//1, % ?Weight:between(0,9)
     digit//2, % ?Weight:between(0,9)
               % ?Code:code
     escape//1 as escaped, % ?Code:code

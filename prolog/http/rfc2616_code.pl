@@ -88,21 +88,21 @@
 
 
 
-%! ctext(?Code:code)// .
-% ```abnf
-% ctext = <any TEXT excluding "(" and ")">
-% ```
-
-ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
-
-
-
 %! 'CR'// .
 % RFC 2234 (ABNF) defines this is in a different but compatible way.
 %
 % ```abnf
 % CR = <US-ASCII CR, carriage return (13)>
 % ```
+
+
+
+%! ctext(?Code:code)// .
+% ```abnf
+% ctext = <any TEXT excluding "(" and ")">
+% ```
+
+ctext(C) --> 'TEXT'(C), {C \== 0'(, C \== 0')}.
 
 
 

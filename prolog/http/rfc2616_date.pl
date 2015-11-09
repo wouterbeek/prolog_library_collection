@@ -45,10 +45,10 @@
 % ```
 
 'asctime-date'(dateTime(_,Mo,D,H,Mi,S,Off)) -->
-  wkday(WKD), 'SP',
+  wkday(_WKD), 'SP',
   date3(D, Mo), 'SP',
   time(H, Mi, S), 'SP',
-  'DIGIT'(4, Off).
+  '#DIGIT'(4, Off).
 
 
 
@@ -58,11 +58,11 @@
 % ```
 
 date1(D, Mo, Y) -->
-  'DIGIT'(2, D),
+  '#DIGIT'(2, D),
   'SP',
   month(Mo),
   'SP',
-  'DIGIT'(4, Y).
+  '#DIGIT'(4, Y).
 
 
 
@@ -72,9 +72,9 @@ date1(D, Mo, Y) -->
 % ```
 
 date2(D, Mo, Y) -->
-  'DIGIT'(2, D), "-",
+  '#DIGIT'(2, D), "-",
   month(Mo), "-",
-  'DIGIT'(2, Y).
+  '#DIGIT'(2, Y).
 
 
 
@@ -86,7 +86,7 @@ date2(D, Mo, Y) -->
 date3(D, Mo) -->
   month(Mo),
   'SP',
-  ('DIGIT'(2, D) ; ('SP', 'DIGIT'(1, D))).
+  ('#DIGIT'(2, D) ; ('SP', '#DIGIT'(1, D))).
 
 
 
@@ -137,8 +137,8 @@ month(12) --> "Dec".
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
 % ```
 
-'rfc850-date'(dateTime(Y,Mo,D,H,Mi,S,Off)) -->
-  weekday(WKD), ",", 'SP',
+'rfc850-date'(dateTime(Y,Mo,D,H,Mi,S,_Off)) -->
+  weekday(_WKD), ",", 'SP',
   date2(D, Mo, Y), 'SP',
   time(H, Mi, S), 'SP',
   "GMT".
@@ -150,8 +150,8 @@ month(12) --> "Dec".
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"
 % ```
 
-'rfc1123-date'(dateTime(Y,Mo,D,H,Mi,S,Off)) -->
-  wkday(WKD), ",", 'SP',
+'rfc1123-date'(dateTime(Y,Mo,D,H,Mi,S,_Off)) -->
+  wkday(_WKD), ",", 'SP',
   date1(D, Mo, Y), 'SP',
   time(H, Mi, S), 'SP',
   "GMT".
@@ -164,9 +164,9 @@ month(12) --> "Dec".
 % ```
 
 time(H, Mi, S) -->
-  'DIGIT'(2, H), ":",
-  'DIGIT'(2, Mi), ":",
-  'DIGIT'(2, S).
+  '#DIGIT'(2, H), ":",
+  '#DIGIT'(2, Mi), ":",
+  '#DIGIT'(2, S).
 
 
 
@@ -205,6 +205,5 @@ weekday(7) --> "Sunday".
 
 % HELPERS %
 
-'DIGIT'(M, N) -->
-  #(M, 'DIGIT', L, []),
-  {clpfd_positional(L, N)}.
+'#DIGIT'(M, N) -->
+  #(M, 'DIGIT', N, [convert1(positional)]).

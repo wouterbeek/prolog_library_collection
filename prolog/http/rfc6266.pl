@@ -1,7 +1,6 @@
 :- module(
   rfc6266,
   [
-    'Content-Disposition'//1, % ?ContentDisposition:compound
     'content-disposition'//2 % ?Type:string
                              % ?Parameters:list(pair)
   ]
@@ -23,16 +22,14 @@
 
 
 
+%! 'content-disposition'(?ContentDisposition:compound)// .
 %! 'content-disposition'(?Type:string, ?Parameters:list(pair(string)))// .
 % ```abnf
 % content-disposition = "Content-Disposition" ":"
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(Type, Params) -->
-  "Content-Disposition", ":", 'LWS',
-  'Content-Disposition'('Content-Disposition'(Type, Params)).
-'Content-Disposition'('Content-Disposition'(Type,Params)) -->
+'content-disposition'(Type, Params) -->{gtrace},
   'disposition-type'(Type),
   *(disposition_param, Params, []).
 disposition_param(Param) --> ";", 'disposition-parm'(Param).

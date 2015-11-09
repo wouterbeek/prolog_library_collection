@@ -27,8 +27,8 @@ to open_any/5.
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_info)).
 :- use_module(library(http/http_open)). % HTTP support.
-:- use_module(library(http/http_receive)).
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
+:- use_module(library(http/rfc2616_header)).
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(ssl)). % SSL support.
