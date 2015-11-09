@@ -13,9 +13,6 @@
 :- reexport(
   library(url/rfc1738_code),
   [
-    hex//1 as 'HEX', % ?Weight:between(0,15)
-    hex//2 as 'HEX', % ?Weight:between(0,15)
-                     % ?Code:code
     lowalpha//1 as 'LOALPHA', % ?Code:code
     hialpha//1 as 'UPALPHA' % ?Code:code
   ]
@@ -25,14 +22,15 @@
   [
     'ALPHA'//1, % ?Code:code
     'CR'//0,
+    'CRLF'//0,
     'CTL'//0,
     'CTL'//1, % ?Code:code
     'DIGIT'//1, % ?Weight:nonneg
     'DIGIT'//2, % ?Weight:nonneg
                 % ?Code:code
     'DQUOTE'//0 as '"',
-    'HEX'//1 as hex, % ?Weight:nonneg
-    'HEX'//2 as hex, % ?Weight:nonneg
+    'HEXDIG'//1 as 'HEX', % ?Weight:nonneg
+    'HEXDIG'//2 as 'HEX', % ?Weight:nonneg
                      % ?Code:code
     'HTAB'//0 as 'HT',
     'HTAB'//1 as 'HT', % ?Code:code
@@ -52,6 +50,7 @@
 */
 
 :- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_code)).
 
 
 

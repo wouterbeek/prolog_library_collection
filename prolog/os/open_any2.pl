@@ -27,6 +27,7 @@ to open_any/5.
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_info)).
 :- use_module(library(http/http_open)). % HTTP support.
+:- use_module(library(http/http_receive)).
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
@@ -154,7 +155,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
       option(headers(Headers1), Opts),
       option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
-      maplist(option_pair, Headers1, Headers2),
+      maplist(http_parsed_header_pair, Headers1, Headers2),
       create_grouped_sorted_dict(Headers2, http_headers, MHeaders),
       MHttp = metadata{
                 final_iri: FinalIri,

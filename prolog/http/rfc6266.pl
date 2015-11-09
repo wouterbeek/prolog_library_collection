@@ -1,6 +1,7 @@
 :- module(
   rfc6266,
   [
+    'Content-Disposition'//1, % ?ContentDisposition:compound
     'content-disposition'//2 % ?Type:string
                              % ?Parameters:list(pair)
   ]
@@ -13,7 +14,9 @@
 @version 2015/11
 */
 
-:- use_module(library(http/rfc2616)).
+:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(http/rfc2616_code)).
+:- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc5987)).
 
 
@@ -27,18 +30,16 @@
 % ```
 
 'content-disposition'(Type, Params) -->
-  "Content-Disposition:",
+  "Content-Disposition", ":", 'LWS',
+  'Content-Disposition'('Content-Disposition'(Type, Params)).
+'Content-Disposition'('Content-Disposition'(Type,Params)) -->
   'disposition-type'(Type),
-  disposition_parameters(Params).
-disposition_parameters([H|T]) -->
-  ";", !,
-  'disposition-parm'(H),
-  disposition_parameters(T).
-disposition_parameters([]) --> "".
+  *(disposition_param, Params, []).
+disposition_param(Param) --> ";", 'disposition-parm'(Param).
 
 
 
-%! 'disp-ext-parm// .
+%! 'disp-ext-parm(?Parameter:pair(string))// .
 % ```abnf
 % disp-ext-parm = token "=" value
 %               | ext-token "=" ext-value
@@ -84,6 +85,7 @@ disposition_parameters([]) --> "".
 % ```abnf
 % ext-token = <the characters in token, followed by "*">
 % ```
+
 'ext-token'(Val) --> token(Val0), "*", {string_concat(Val0, "*", Val)}.
 
 

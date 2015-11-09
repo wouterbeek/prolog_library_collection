@@ -15,7 +15,7 @@
 
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(uri/uri_char)).
+:- use_module(library(uri/uri_code)).
 
 
 

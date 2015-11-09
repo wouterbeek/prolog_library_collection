@@ -1,5 +1,5 @@
 :- module(
-  uri_char,
+  uri_code,
   [
     'gen-delims'//1, % ?Code:code
     pchar//2, % ?Iri:boolean
@@ -24,7 +24,7 @@ Grammar for URI characters.
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dcg/rfc2234)).
 :- use_module(library(uri/rfc3986)).
 
 

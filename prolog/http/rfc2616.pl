@@ -6,11 +6,8 @@
                  % ?Port:nonneg
                  % ?Path:list(string)
                  % ?Query:string
-    'HTTP-Version'//2, % ?Major:nonneg
-                       % ?Minor:nonneg
-    'quoted-string'//1, % ?String:string
-    token//1, % ?Token:string
-    value//1 % ?Value:string
+    'HTTP-Version'//2 % ?Major:nonneg
+                      % ?Minor:nonneg
   ]
 ).
 
@@ -78,35 +75,3 @@ http_URL(Host, Port, Path, Query) -->
   +('DIGIT', X, [convert(1-positional)]),
   ".",
   +('DIGIT', Y, [convert(1-positional)]).
-
-
-
-%! 'quoted-string'(?String:string)// .
-% ```abnf
-% quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
-% ```
-
-'quoted-string'(S) --> "\"", dcg_string(quoted_string, S), "\"".
-quoted_string([H|T]) --> qdtext(H), !, quoted_string(T).
-quoted_string([H|T]) --> 'quoted-pair'(H), !, quoted_string(T).
-quoted_string([]) --> "".
-
-
-
-%! token(?Token:string)// .
-% ```abnf
-% token = 1*<any CHAR except CTLs or separators>
-% ```
-
-token(S) --> dcg_string(token_char, S).
-token_char(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
-
-
-
-%! value(?Value:string)// .
-% ```abnf
-% value = token | quoted-string
-% ```
-
-value(S) --> token(S).
-value(S) --> 'quoted-string'(S).

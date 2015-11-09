@@ -1,18 +1,36 @@
 :- module(
   rfc5987,
   [
-    'ext-value'//3
+    'ext-value'//3 % ?Charset:string
+                   % ?Language:list(string)
+                   % ?Value:string
   ]
 ).
 
-/** <module> RFC 5987
+/** <module> RFC 5987: Character Set and Language Encoding for
+             Hypertext Transfer Protocol (HTTP) Header Field Parameters
 
 @author Wouter Beek
+@compat RFC 5987
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(ltag/rfc5646), ['Language-Tag'//1]).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'DIGIT'//1, % ?Weight:between(0,9)
+     'DIGIT'//2, % ?Weight:between(0,9)
+                 % ?Code:code
+     'HEXDIG'//1, % ?Weight:between(0,9)
+     'HEXDIG'//2, % ?Weight:between(0,9)
+                  % ?Code:code
+     'LWSP'//0
+   ]).
+:- use_module(library(ltag/rfc5646), [
+     'Language-Tag'//1
+   ]).
+:- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986)).
 
 
@@ -55,19 +73,19 @@ charset(Charset) --> 'mime-charset'(Charset).
 
 
 
-%! 'ext-value'(?Charset:string, ?Language:list(string), ?List:list)// .
+%! 'ext-value'(?Charset:string, ?Language:list(string), ?Value:string)// .
 % ```abnf
 % ext-value = charset  "'" [ language ] "'" value-chars
 %           ; like RFC 2231's <extended-initial-value>
 %           ; (see [RFC2231], Section 7)
 % ```
 
-'ext-value'(Charset, Language, L) -->
+'ext-value'(Charset, Language, Value) -->
   charset(Charset),
   "'",
   (language(Language) ; ""),
   "'",
-  'value-chars'(L).
+  'value-chars'(Value).
 
 
 %! language(?LanguageTag:list(string))// .
@@ -81,8 +99,7 @@ language(L) --> 'Language-Tag'(L).
 % mime-charset  = 1*mime-charsetc
 % ```
 
-'mime-charset'(S) --> dcg_string(mime_charset, S).
-mime_charset([H1,H2|T]) --> 'mime-charsetc'(H1), mime_charset([H2|T]).
+'mime-charset'(S) --> +('mime-charsetc', S, [convert1(codes_string)]).
 
 
 
@@ -115,7 +132,7 @@ mime_charset([H1,H2|T]) --> 'mime-charsetc'(H1), mime_charset([H2|T]).
 
 
 
-%! 'value-chars'// .
+%! 'value-chars'(?Value:string)// .
 % ```abnf
 % value-chars   = *( pct-encoded / attr-char )
 % ```

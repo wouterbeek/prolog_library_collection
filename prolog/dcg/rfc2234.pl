@@ -6,8 +6,10 @@
               % ?Code:code
     'CHAR'//1, % ?Code:code
     'CR'//0,
+    'CR'//1, % ?Code:code
     'CRLF'//0,
     'CTL'//0,
+    'CTL'//1, % ?Code:Code
     'DQUOTE'//0,
     'HEXDIG'//1, % ?Weight:between(0,15)
     'HEXDIG'//2, % ?Weight:between(0,15)
@@ -15,9 +17,11 @@
     'HTAB'//0,
     'HTAB'//1, % ?Code:code
     'LF'//0,
+    'LF'//1, % ?Code:code
     'LWSP'//0,
     'OCTET'//1, % ?Code:code
     'SP'//0,
+    'SP'//1, % ?Code:code
     'VCHAR'//1, % ?Code:code
     'WSP'//0
   ]
