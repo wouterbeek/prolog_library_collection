@@ -149,7 +149,7 @@ hostport(Host, Port) -->
 
 net_path(Auth, Path) -->
   "//",
-  authortity(Auth),
+  authority(Auth),
   (abs_path(Path) ; {Path = []}).
 
 

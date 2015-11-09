@@ -44,9 +44,9 @@
 % asctime-date = wkday SP date3 SP time SP 4DIGIT
 % ```
 
-'asctime-date'(dateTime(Y,Mo,D,H,Mi,S,Off)) -->
+'asctime-date'(dateTime(_,Mo,D,H,Mi,S,Off)) -->
   wkday(WKD), 'SP',
-  date3(D, Mo, Y), 'SP',
+  date3(D, Mo), 'SP',
   time(H, Mi, S), 'SP',
   'DIGIT'(4, Off).
 
@@ -57,10 +57,10 @@
 % date1 = 2DIGIT SP month SP 4DIGIT
 % ```
 
-date1(D, M, Y) -->
+date1(D, Mo, Y) -->
   'DIGIT'(2, D),
   'SP',
-  month(M),
+  month(Mo),
   'SP',
   'DIGIT'(4, Y).
 
@@ -71,9 +71,9 @@ date1(D, M, Y) -->
 % date2 = 2DIGIT "-" month "-" 2DIGIT
 % ```
 
-date2(D, M, Y) -->
+date2(D, Mo, Y) -->
   'DIGIT'(2, D), "-",
-  month(M), "-",
+  month(Mo), "-",
   'DIGIT'(2, Y).
 
 
@@ -83,8 +83,8 @@ date2(D, M, Y) -->
 % date3 = month SP ( 2DIGIT | ( SP 1DIGIT ))
 % ```
 
-date3(D, M) -->
-  month(M),
+date3(D, Mo) -->
+  month(Mo),
   'SP',
   ('DIGIT'(2, D) ; ('SP', 'DIGIT'(1, D))).
 

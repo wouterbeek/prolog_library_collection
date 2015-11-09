@@ -1,8 +1,10 @@
 :- module(
   rfc1738_ftp,
   [
-    ftpurl//4, % ?User
-               % ?Password
+    ftpurl//6, % ?User:string
+               % ?Password:string
+               % ?Host:or([list(nonneg),list(string)])
+               % ?Port:nonneg
                % ?Path:list(string)
                % ?Type:string
     fpath//1, % ?Path:list(string)
@@ -27,14 +29,21 @@
 
 
 
-%! ftpurl(?User, ?Password, ?Path:list(string), ?Type:string)// .
+%! ftpurl(
+%!   ?User:string,
+%!   ?Password:string,
+%!   ?Host:or([list(nonneg),list(string)]),
+%!   ?Port:nonneg,
+%!   ?Path:list(string),
+%!   ?Type:string
+%! )// .
 % ```abnf
 % ftpurl = "ftp://" login [ "/" fpath [ ";type=" ftptype ]]
 % ```
 
-ftpurl(User, Password, Path, Type) -->
+ftpurl(User, Password, Host, Port, Path, Type) -->
   "ftp://",
-  login(User, Password),
+  login(User, Password, Host, Port),
   ("/", fpath(Path), (";type=", ftptype(Type) ; "") ; "").
 
 

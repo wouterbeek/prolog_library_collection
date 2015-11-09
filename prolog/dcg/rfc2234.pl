@@ -6,26 +6,20 @@
               % ?Code:code
     'CHAR'//1, % ?Code:code
     'CR'//0,
-    'CR'//1, % ?Code:code
     'CRLF'//0,
     'CTL'//0,
-    'CTL'//1, % ?Code:code
     'DQUOTE'//0,
-    'DQUOTE'//1, % ?Code:code
     'HEXDIG'//1, % ?Weight:between(0,15)
     'HEXDIG'//2, % ?Weight:between(0,15)
                  % ?Code:code
     'HTAB'//0,
     'HTAB'//1, % ?Code:code
     'LF'//0,
-    'LF'//1, % ?Code:code
     'LWSP'//0,
     'OCTET'//1, % ?Code:code
     'SP'//0,
-    'SP'//1, % ?Code:code
     'VCHAR'//1, % ?Code:code
-    'WSP'//0,
-    'WSP'//1 % ?Code:code
+    'WSP'//0
   ]
 ).
 :- reexport(
@@ -103,13 +97,15 @@
 
 
 %! 'CRLF'// .
+%! 'CRLF'(?Codes:list(code))// .
 % Internet standard newline.
 %
 % ```abnf
 % CRLF = CR LF   ; Internet standard newline
 % ```
 
-'CRLF' --> 'CR', 'LF'.
+'CRLF' --> 'CRLF'(_).
+'CRLF'([X,Y]) --> 'CR'(X), 'LF'(Y).
 
 
 
@@ -204,15 +200,17 @@
 
 
 %! 'LWSP'// .
+%! 'LWSP'(?Codes:list(code))// .
 % Linear white space.
 %
 % ```abnf
 % LWSP = *(WSP / CRLF WSP)   ; linear white space (past newline)
 % ```
 
-'LWSP' --> 'WSP', !, 'LWSP'.
-'LWSP' --> 'CRLF', !, 'WSP', 'LWSP'.
-'LWSP' --> "".
+'LWSP' --> 'LWSP'(_).
+'LWSP'([H|T]) --> 'WSP'(H), !, 'LWSP'(T).
+'LWSP'([X,Y,Z|T]) --> 'CRLF'([X,Y]), !, 'WSP'(Z), 'LWSP'(T).
+'LWSP'([]) --> "".
 
 
 

@@ -137,7 +137,8 @@ schemepart(User, Password, Host, Port, Path) -->
 % ```
 
 url(http(Host, Port, Path, Search)) --> httpurl(Host, Port, Path, Search).
-url(ftp(User,Password,Path,Type)) --> ftpurl(User, Password, Path, Type).
+url(ftp(User,Password,Host,Port,Path,Type)) -->
+  ftpurl(User, Password, Host, Port, Path, Type).
 %url(S) --> newsurl(S).
 %url(S) --> nntpurl(S).
 %url(S) --> telneturl(S).
@@ -147,9 +148,9 @@ url(gopher(Host,Port,Type,Selector,Search,String)) -->
 %url(S) --> mailtourl(S).
 url(file(Host,Path)) --> fileurl(Host, Path).
 %url(S) --> prosperourl(S).
-url(other(Scheme,SchemeSpecificPart) --> otherurl(Scheme, SchemeSpecificPart).
+url(other(Scheme,SchemeSpecificPart)) --> otherurl(Scheme, SchemeSpecificPart).
 url(other(Scheme,User,Password,Host,Port,Path)) -->
-  otherurl(Scheme, User, Password, Host, Port, Path)).
+  otherurl(Scheme, User, Password, Host, Port, Path).
 
 
 

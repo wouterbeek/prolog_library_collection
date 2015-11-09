@@ -23,6 +23,8 @@ but that occur often enough to legitimate a dedicated and more efficient
 implementation.
 
 @author Wouter Beek
+@tbd Can this be superseded by grammar rules from
+     implemented standards/specifications?
 @version 2015
 */
 

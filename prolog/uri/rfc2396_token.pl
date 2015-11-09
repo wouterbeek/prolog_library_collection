@@ -78,7 +78,7 @@ fragment_codes([]) --> "".
 % ```
 
 opaque_part(S) --> dcg_string(opaque_part_codes1, S).
-opaque_part_codes1([H|T]) --> uric_no_slas(H), !, opaque_part_codes2(T).
+opaque_part_codes1([H|T]) --> uric_no_slash(H), !, opaque_part_codes2(T).
 opaque_part_codes2([H|T]) --> uric(H), !, opaque_part_codes2(T).
 opaque_part_codes2([]) --> "".
 

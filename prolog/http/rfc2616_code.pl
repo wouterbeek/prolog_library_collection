@@ -13,7 +13,9 @@
 :- reexport(
   library(url/rfc1738_code),
   [
-    hex//1 as 'HEX', % ?Code:code
+    hex//1 as 'HEX', % ?Weight:between(0,15)
+    hex//2 as 'HEX', % ?Weight:between(0,15)
+                     % ?Code:code
     lowalpha//1 as 'LOALPHA', % ?Code:code
     hialpha//1 as 'UPALPHA' % ?Code:code
   ]
@@ -22,18 +24,21 @@
   library(dcg/rfc2234),
   [
     'ALPHA'//1, % ?Code:code
-    'CR'//1, % ?Code:code
+    'CR'//0,
+    'CTL'//0,
     'CTL'//1, % ?Code:code
     'DIGIT'//1, % ?Weight:nonneg
     'DIGIT'//2, % ?Weight:nonneg
                 % ?Code:code
     'DQUOTE'//0 as '"',
-    'DQUOTE'//1 as '"', % ?Code:code
-    'HEX'//2 as hex % ?Weight:nonneg
-                    % ?Code:code
-    'HTAB'//1 as 'HT' % ?Code:code
-    'LF'//1, % ?Code:code
+    'HEX'//1 as hex, % ?Weight:nonneg
+    'HEX'//2 as hex, % ?Weight:nonneg
+                     % ?Code:code
+    'HTAB'//0 as 'HT',
+    'HTAB'//1 as 'HT', % ?Code:code
+    'LF'//0,
     'OCTET'//1, % ?Code:code
+    'SP'//0,
     'SP'//1 % ?Code:code
   ]
 ).
@@ -52,7 +57,7 @@
 
 
 
-%! '"'(?Code:code)// .
+%! '"'// .
 % Double quote.
 %
 % RFC 2234 (ABNF) defines this in a different but compatible way
@@ -93,7 +98,7 @@ ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
 
 
 
-%! 'CR'(?Code:code)// .
+%! 'CR'// .
 % RFC 2234 (ABNF) defines this is in a different but compatible way.
 %
 % ```abnf
@@ -102,7 +107,7 @@ ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
 
 
 
-%! 'CTL'(?Code:code)// .
+%! 'CTL'// .
 % RFC 2234 (ABNF) defines this in an alternative but compatible way.
 %
 % ```abnf
@@ -121,6 +126,7 @@ ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
 
 
 
+%! 'HEX'(?Weight:between(0,15))// .
 %! 'HEX'(?Weight:between(0,15), ?Code:code)// .
 % Hexadecimal digit.
 %
@@ -135,7 +141,7 @@ ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
 
 
 
-%! 'HT'(?Code:code)// .
+%! 'HT'// .
 % RFC 2234 (ABNF) defines this in a different by compatible way
 % under the name 'HTAB'//[0,1].
 %
@@ -144,7 +150,8 @@ ctext(C) --> 'TEXT'(C), {C \= 0'(, C \= 0')}.
 % ```
 
 
-%! 'LF'(?Code:code)// .
+
+%! 'LF'// .
 % Line feed.
 %
 % RFC 2234 (ABNF) defines this in an alternative but compatible way.
@@ -205,7 +212,7 @@ qdtext(C) --> 'TEXT'(C), {\+ char_code('"', C)}.
 
 
 
-%! 'SP'(?Code:code)// .
+%! 'SP'// .
 % RFC 2234 (ABNF) defines this in an alternative but compatible way.
 %
 % ```abnf

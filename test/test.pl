@@ -2,6 +2,7 @@
 :- use_module(library(assoc_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(char_ext)).
+:- use_module(library(chr_ext)).
 :- use_module(library(cli_ext)).
 :- use_module(library(closure)).
 :- use_module(library(code_ext)).
@@ -72,9 +73,13 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/rfc2616)).
+  :- use_module(library(http/rfc2616_code)).
+  :- use_module(library(http/rfc2616_date)).
   :- use_module(library(http/rfc5987)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc7230)).
+  :- use_module(library(http/rfc7230_code)).
+  :- use_module(library(http/rfc7230_token)).
 :- use_module(library(image_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
@@ -91,6 +96,7 @@
   :- use_module(library(math/math_ext)).
   :- use_module(library(math/positional)).
   :- use_module(library(math/radconv)).
+  :- use_module(library(math/radix)).
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
 :- use_module(library(msg_ext)).
@@ -114,6 +120,7 @@
   :- use_module(library(os/os_ext)).
   :- use_module(library(os/pdf)).
   :- use_module(library(os/process_ext)).
+  :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
 :- use_module(library(pair_ext)).
 %/pl
@@ -122,6 +129,7 @@
 :- use_module(library(progress)).
 %/rest
   :- use_module(library(rest/rest_ext)).
+:- use_module(library(service_db)).
 %/set
   :- use_module(library(set/direct_subset)).
   :- use_module(library(set/equiv)).
@@ -144,11 +152,23 @@
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
 %/uri
+  :- use_module(library(uri/rfc2396)).
+  :- use_module(library(uri/rfc2396_code)).
+  :- use_module(library(uri/rfc2396_token)).
   :- use_module(library(uri/rfc3986)).
   :- use_module(library(uri/uri_char)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
   :- use_module(library(uri/uri_query_encoding)).
+%/url
+  :- use_module(library(url/rfc1738)).
+  :- use_module(library(url/rfc1738_code)).
+  :- use_module(library(url/rfc1738_component)).
+  :- use_module(library(url/rfc1738_file)).
+  :- use_module(library(url/rfc1738_ftp)).
+  :- use_module(library(url/rfc1738_gopher)).
+  :- use_module(library(url/rfc1738_helpers)).
+  :- use_module(library(url/rfc1738_http)).
 :- use_module(library(uuid_ext)).
 %/xml
   :- use_module(library(xml/xml_dom)).
