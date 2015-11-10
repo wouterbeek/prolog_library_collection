@@ -31,6 +31,7 @@ to open_any/5.
 :- use_module(library(http/rfc2616_header)).
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
+:- use_module(library(lists)).
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -71,7 +72,7 @@ open_any2(Source, Mode, Stream, Close_0):-
 %!   -Stream:stream,
 %!   -Close_0,
 %!   +Options:list(compound)
-%! ) is det.
+%! ) is nondet.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts1):-
   source_type(Source0, Source, Type),
@@ -214,7 +215,7 @@ read_mode(read).
 %!   +Source0,
 %!   -Source,
 %!   -Type:oneof([file_iri,http_iri,stream,string])
-%! ) is det.
+%! ) is nondet.
 
 source_type(stream(Stream), Stream, stream):- !.
 source_type(string(S), S, string):- !.
@@ -225,8 +226,13 @@ source_type(Iri, Iri, file_iri):-
 source_type(Iri, Iri, http_iri):-
   is_iri(Iri), !.
 source_type(File, Iri, file_iri):-
+  is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-
+source_type(Pattern, Iri, Type):-
+  expand_file_name(Pattern, Files),
+  % NONDET
+  member(File, Files),
+  source_type(File, Iri, Type).
 
 
 %! write_mode(+Mode:atom) is semidet.

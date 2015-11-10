@@ -121,6 +121,7 @@ call_on_archive(In, Goal_2):-
 
 
 %! call_on_archive(+In, :Goal_2, +Options:list(compound)) is det.
+% Goal_2 called on a metadata dictionary and a read stream (in that order).
 
 call_on_archive(In, Goal_2, Opts):-
   option(archive_entry(Entry), Opts, _),

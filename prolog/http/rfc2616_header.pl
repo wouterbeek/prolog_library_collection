@@ -73,10 +73,12 @@ http_restore_header_name(N0, N):-
 
 
 http_parse_header_value(N0, V0, V):-
+  atom(V0), !,
   atom_concat(N0, '0', N),
   Dcg_0 =.. [N,V],
-  gtrace,
   atom_phrase(Dcg_0, V0).
+% @tbd Some header values are already parsed by http_open/3.
+http_parse_header_value(_, V, V).
 
 
 
