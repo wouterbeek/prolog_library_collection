@@ -9,6 +9,7 @@
     dict_tag/3, % +Dict1:dict
                 % +Tag:atom
                 % ?Dict2:dict
+    is_empty_dict/1, % @Term
     merge_dict/3, % +Dict1:dict
                   % +Dict2:dict
                   % -Dict:dict
@@ -22,14 +23,14 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/10
+@version 2015/08-2015/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lambda)).
-:- use_module(library(lists)).
+:- use_module(library(list_ext)).
 :- use_module(library(pairs)).
 
 
@@ -73,6 +74,15 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 dict_tag(Dict1, Tag, Dict2):-
   dict_pairs(Dict1, _, Ps),
   dict_pairs(Dict2, Tag, Ps).
+
+
+
+%! is_empty_dict(@Term) is semidet.
+
+is_empty_dict(D):-
+  is_dict(D),
+  dict_pairs(D, _, L),
+  empty_list(L).
 
 
 

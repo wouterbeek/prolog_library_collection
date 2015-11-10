@@ -15,12 +15,11 @@
 Predicate for manipulating parse trees.
 
 @author Wouter Beek
-@version 2013/05-2013/09, 2013/11-2013/12, 2014/06
+@version 2013/05-2013/09, 2013/11-2013/12, 2014/06, 2015/11
 */
 
 :- use_module(library(apply)).
-
-:- use_module(plc(dcg/dcg_meta)).
+:- use_module(library(list_ext)).
 
 :- meta_predicate(dcg_atom_codes_pt(4,-,?,?,?)).
 
@@ -56,6 +55,3 @@ parse_tree(P, SubTs1, T):-
   include(nonvar, SubTs1, SubTs2),
   exclude(empty_list, SubTs2, SubTs3),
   T =.. [P|SubTs3].
-
-empty_list([]).
-

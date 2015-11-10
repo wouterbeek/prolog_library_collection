@@ -29,6 +29,7 @@
                    % +Element
                    % -List1:list
                    % -List2:list
+    empty_list/1, % ?List:list
     first/2, % +List:list
              % ?First
     first/3, % +List:list
@@ -38,6 +39,7 @@
                        % +List:list
     inflist/2, % +Element
                % -List
+    is_singleton_list/1, % @Term
     length_cut/4, % +L:list
                   % +Cut:nonneg
                   % -L1:list
@@ -296,6 +298,13 @@ element_cut([OtherElement | L], Element, [OtherElement | L1], L2):-
 
 
 
+%! empty_list(+Term) is semidet.
+%! empty_list(-List:list) is det.
+
+empty_list([]).
+
+
+
 %! first(+List:list, ?Element:term) is semidet.
 % Succeeds if the given element is the head of the given list.
 % Fails if the list has no head.
@@ -394,6 +403,14 @@ inflist(X, L):-
     L = [X|T],
     inflist(X, T)
   )).
+
+
+
+%! is_singleton_list(@Term) is semidet.
+
+is_singleton_list(T):-
+  is_list(T),
+  T = [_].
 
 
 

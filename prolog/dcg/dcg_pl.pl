@@ -27,6 +27,8 @@ DCG rules for printing SWI-Prolog 7 terms.
 :- use_module(library(dcg/dcg_collection)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dict_ext)).
+:- use_module(library(list_ext)).
 :- use_module(library(pl/pl_term)).
 
 :- meta_predicate(pl_pair(//,//,?,?)).
@@ -91,32 +93,40 @@ pl_term(Term) -->
 %! pl_term(@Term, +Indent:nonneg)// is det.
 
 % 1. Dictionary.
-pl_term(Dict, I1) -->
-  {is_dict(Dict), dict_pairs(Dict, _, Pairs)}, !,
-  % The empty dictionary does not use lusious spacing.
-  (   {Pairs == []}
-  ->  indent(I1, bracketed(curly, dcg_void))
-  ;   indent(I1, opening_curly_bracket),
-      nl,
+pl_term(D, I1) -->
+  {is_dict(D)}, !,
+  {dict_pairs(D, _, L)},
+  % An empty dictionary does not use lucious spacing.
+  (   {is_empty_term(D)}
+  ->  indent(I1), "{}"
+  ;   % A singleton dictionary does not use lucious spacing if
+      % its member is singleton.
+      {is_singleton_term(D)}
+  ->  indent(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, I1), "}"
+  ;   indent(I1), "{", nl,
       {I2 is I1 + 1},
-      term_entries(dict_entry, Pairs, I2),
-      indent(I1, closing_curly_bracket)
+      term_entries(dict_entry, L, I2),
+      indent(I1), "}"
   ).
 % 2. List.
-% The empty list and singleton lists do not use lusious spacing.
-pl_term(List, I1) -->
-  {is_list(List)}, !,
-  (   {length(List, Length), Length =< 1}
-  ->  indent(I1, list(List))
-  ;   indent(I1, opening_square_bracket),
-      nl,
+pl_term(L, I1) -->
+  {is_list(L)}, !,
+  (   % The empty list does not use lusious spacing.
+      {is_empty_term(L)}
+  ->  indent(I1), list(L)
+  ;   % A singleton list does not use lucious spacing
+      % if its member is singleton.
+      {is_singleton_term(L)}
+  ->  indent(I1), list(L)
+  ;   indent(I1), "[", nl,
       {I2 is I1 + 1},
-      term_entries(pl_term, List, I2),
-      indent(I1, closing_square_bracket)
+      term_entries(pl_term, L, I2),
+      indent(I1), "]"
   ).
 % 3. Other term.
-pl_term(Term, I) -->
-  indent(I, nondict(Term)).
+pl_term(T, I) -->
+  indent(I), nondict(T).
+
 
 
 %! term_entries(:Dcg_4, +Entries:list, +Indent:nonneg)// is det.
@@ -127,27 +137,50 @@ term_entries(Dcg_4, [H], I) --> !,
   nl.
 term_entries(Dcg_4, [H|T], I) -->
   dcg_call(Dcg_4, H, I),
-  ",",
-  nl,
+  ",", nl,
   term_entries(Dcg_4, T, I).
+
 
 
 %! dict_entry(+Pair:pair, +Indent:nonneg)// is det.
 
 dict_entry(Key-Val, I1) -->
-  indent(I1, nondict(Key)),
+  indent(I1), nondict(Key),
   ": ",
   % Newline and additional indentation before dictionary or list values
-  % that contain more that one entry.
-  {(  is_dict(Val)
-  ->  dict_pairs(Val, _, Pairs),
-      length(Pairs, Length)
-  ;   is_list(Val)
-  ->  length(Val, Length)
-  ;   Length = 1
-  )},
-  ({Length > 1} -> {I2 is I1 + 1}, nl ; {I2 = 0}),
+  % that are non-empty and non-singleton.
+  (   {(is_empty_term(Val) ; is_singleton_term(Val))}
+  ->  {I2 = 0}
+  ;   {succ(I1, I2)}, nl
+  ),
   pl_term(Val, I2).
+
+
+
+%! is_empty_term(@Term) is semidet.
+
+is_empty_term(D):-
+  is_dict(D), !,
+  is_empty_dict(D).
+is_empty_term(L):-
+  is_list(L), !,
+  empty_list(L).
+
+
+
+%! is_singleton_term(@Term) is semidet.
+
+is_singleton_term(D):-
+  is_dict(D), !,
+  dict_pairs(D, _, L),
+  L = [_-Val],
+  is_singleton_term(Val).
+is_singleton_term(L):-
+  is_list(L), !,
+  L = [X],
+  is_singleton_term(X).
+is_singleton_term(_).
+
 
 
 %! nondict(@Term)// is det.
