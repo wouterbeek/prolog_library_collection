@@ -48,20 +48,20 @@ uri_query_encoding -->
 % # Syntax
 %
 % ```abnf
-%  pchar =  unreserved / pct-encoded / sub-delims / ":" / "@"
+% pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
-%  pct-encoded = "%" HEXDIG HEXDIG
+% pct-encoded = "%" HEXDIG HEXDIG
 % iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
-%  sub-delims =   "!" / "$" / "&" / "'" / "(" / ")"
-%               / "*" / "+" / "," / ";" / "="
-%  unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+% sub-delims = "!" / "$" / "&" / "'" / "(" / ")"
+%            / "*" / "+" / "," / ";" / "="
+% unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
-%  ucschar =   %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-%            / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-%            / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-%            / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-%            / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-%            / %xD0000-DFFFD / %xE1000-EFFFD
+% ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
+%         / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
+%         / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
+%         / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
+%         / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
+%         / %xD0000-DFFFD / %xE1000-EFFFD
 % ```
 %
 % @compat RFC 3986

@@ -40,6 +40,7 @@
 :- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc6266)).
+:- use_module(library(http/rfc6454), [origin//1 as 'Origin']).
 
 
 
@@ -51,7 +52,7 @@
 % 'Connection'(S) --> "Connection:", +(connection-token)
 % ```
 
-'Connection'(L) --> "Connection:", 'Connection0'(L).
+'Connection'(L) --> "Connection:", 'LWS', 'Connection0'(L).
 'Connection0'(L) --> ++('connection-token', L, []).
 
 
@@ -68,7 +69,9 @@
 %! 'Content-Disposition'(?Value:compound)// .
 %! 'Content-Disposition0'(?Value:compound)// .
 
-'Content-Disposition'(D) --> "Content-Disposition:", 'Content-Disposition0'(D).
+'Content-Disposition'(D) -->
+  "Content-Disposition:", 'LWS',
+  'Content-Disposition0'(D).
 'Content-Disposition0'(content_disposition{type: Type, params: Params}) -->
   'content-disposition'(Type, Params).
 
@@ -80,7 +83,7 @@
 % Content-Language = "Content-Language" ":" 1#language-tag
 % ```
 
-'Content-Language'(L) --> "Content-Language:", 'Content-Language0'(L).
+'Content-Language'(L) --> "Content-Language:", 'LWS', 'Content-Language0'(L).
 'Content-Language0'(L) --> ++('language-tag', L, []).
 
 
@@ -91,7 +94,7 @@
 % Content-Type = "Content-Type" ":" media-type
 % ```
 
-'Content-Type'(MT) --> "Content-Type:", 'Content-Type0'(MT).
+'Content-Type'(MT) --> "Content-Type:", 'LWS', 'Content-Type0'(MT).
 'Content-Type0'(MT) --> 'media-type'(MT).
 
 
@@ -103,7 +106,7 @@
 % Date = "Date" ":" HTTP-date
 % ```
 
-'Date'('Date'(DT)) --> "Date:", 'Date0'(DT).
+'Date'('Date'(DT)) --> "Date:", 'LWS', 'Date0'(DT).
 'Date0'(DT) --> 'HTTP-date'(DT).
 
 
@@ -141,7 +144,7 @@ http_parse_header_value(_, V, V).
 % Server = "Server" ":" 1*( product | comment )
 % ```
 
-'Server'(D) --> "Server:", 'Server0'(D).
+'Server'(D) --> "Server:", 'LWS', 'Server0'(D).
 'Server0'(L) --> +(server, L, [separator('LWS')]).
 server(D) --> product(D).
 server(S) --> comment(S).
@@ -154,26 +157,7 @@ server(S) --> comment(S).
 % Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 % ```
 
-'Transfer-Encoding'(L) --> "Transfer-Encoding:", 'Transfer-Encoding0'(L).
+'Transfer-Encoding'(L) -->
+  "Transfer-Encoding:", 'LWS',
+  'Transfer-Encoding0'(L).
 'Transfer-Encoding0'(L) --> ++('transfer-coding', L, []).
-
-
-
-%! 'transfer-coding'(?TransferCoding:or([oneof([chunked]),dict]))// .
-% ```abnf
-% transfer-coding = "chunked" | transfer-extension
-% ```
-
-'transfer-coding'(chunked) --> "chunked".
-'tarnsfer-coding'(D) --> 'transfer-extension'(D).
-
-
-
-%! 'transfer-extension'(?TransferExtension:dict)// .
-% ```abnf
-% transfer-extension = token *( ";" parameter )
-% ```
-
-'transfer-extension'('transfer-extension'{token: H, parameters: T}) -->
-  token(H),
-  parameters(T).

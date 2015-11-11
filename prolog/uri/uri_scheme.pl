@@ -39,12 +39,9 @@ scheme(S) -->
   {memberchk(S, [ftp,http,https,mailto])}.
 
 scheme_codes1([H|T]) --> 'ALPHA'(H), !, scheme_codes2(T).
-scheme_codes2([H|T]) -->
-  (   'ALPHA'(H)
-  ;   'DIGIT'(_, H)
-  ;   plus_sign(H)
-  ;   minus_sign(H)
-  ;   dot(H)
-  ), !,
-  scheme_codes2(T).
+scheme_codes2([H|T]) --> 'ALPHA'(H), !, scheme_codes2(T).
+scheme_codes2([H|T]) --> 'DIGIT'(_, H), !, scheme_codes2(T).
+scheme_codes2([0'+|T]) --> "+", !, scheme_codes2(T).
+scheme_codes2([0'-|T]) --> "-", !, scheme_codes2(T).
+scheme_codes2([0'.|T]) --> ".", !, scheme_codes2(T).
 scheme_codes2([]) --> [].

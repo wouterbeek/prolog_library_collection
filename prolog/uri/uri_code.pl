@@ -14,18 +14,16 @@
   ]
 ).
 
-/** <module> URI Syntax: Characters
-
-Grammar for URI characters.
+/** <module> URI Syntax: Codes
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/rfc2234)).
-:- use_module(library(uri/rfc3986)).
+:- use_module(library(uri/uri_port)).
 
 
 
@@ -57,6 +55,17 @@ pchar(_, C  ) --> 'pct-encoded'(C).
 pchar(_, C  ) --> 'sub-delims'(C).
 pchar(_, 0':) --> ":".
 pchar(_, 0'@) --> "@".
+
+
+
+%! 'pct-encoded'(?Code:between(0,255))// .
+% ```abnf
+% pct-encoded = "%" HEXDIG HEXDIG
+% ```
+
+'pct-encoded'(C) -->
+  "%",
+  '#'(2, 'HEXDIG', C, [convert(1-positional)]).
 
 
 

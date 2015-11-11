@@ -16,6 +16,7 @@ Grammar for port subcomponent of URI.
 */
 
 :- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/positional)).
 
 

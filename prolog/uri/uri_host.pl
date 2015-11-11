@@ -20,6 +20,7 @@
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc2234)).
 :- use_module(library(math/positional)).
 :- use_module(library(uri/uri_code)).
 

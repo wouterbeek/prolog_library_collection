@@ -81,12 +81,13 @@
   :- use_module(library(http/rfc2616_helpers)).
   :- use_module(library(http/rfc2616_test)).
   :- use_module(library(http/rfc2616_token)).
+  :- use_module(library(http/rfc4790)).
   :- use_module(library(http/rfc5987)).
   :- use_module(library(http/rfc6266)).
+  :- use_module(library(http/rfc6454)).
   :- use_module(library(http/rfc7230)).
   :- use_module(library(http/rfc7230_code)).
   :- use_module(library(http/rfc7230_token)).
-  :- use_module(library(http/web_origin)).
 :- use_module(library(image_ext)).
 %/iri
   :- use_module(library(iri/rfc3987)).

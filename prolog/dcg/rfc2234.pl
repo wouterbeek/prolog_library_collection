@@ -8,6 +8,7 @@
     'CR'//0,
     'CR'//1, % ?Code:code
     'CRLF'//0,
+    'CRLF'//1, % ?Codes:list(code)
     'CTL'//0,
     'CTL'//1, % ?Code:Code
     'DQUOTE'//0,

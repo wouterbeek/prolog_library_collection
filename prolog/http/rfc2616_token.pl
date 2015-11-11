@@ -13,6 +13,8 @@
     subtag//1, % ?Subtag:string
     subtype//1, % ?Subtype:string
     token//1, % ?Token:string
+    'transfer-coding'//1, % ?TransferCoding:or([oneof([chunked]),dict])
+    'transfer-extension'//1, % ?TransferExtension:dict
     type//1, % ?Type:string
     value//1 % ?Value:string
   ]
@@ -160,6 +162,27 @@ subtype(S) --> token(S).
 
 token(S) --> +(token_code, S, [convert1(codes_string)]).
 token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
+
+
+
+%! 'transfer-coding'(?TransferCoding:or([oneof([chunked]),dict]))// .
+% ```abnf
+% transfer-coding = "chunked" | transfer-extension
+% ```
+
+'transfer-coding'(chunked) --> "chunked".
+'tarnsfer-coding'(D) --> 'transfer-extension'(D).
+
+
+
+%! 'transfer-extension'(?TransferExtension:dict)// .
+% ```abnf
+% transfer-extension = token *( ";" parameter )
+% ```
+
+'transfer-extension'('transfer-extension'{token: H, parameters: T}) -->
+  token(H),
+  parameters(T).
 
 
 

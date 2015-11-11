@@ -31,7 +31,7 @@
      'Language-Tag'//1
    ]).
 :- use_module(library(string_ext)).
-:- use_module(library(uri/rfc3986)).
+:- use_module(library(uri/uri_code)).
 
 
 
