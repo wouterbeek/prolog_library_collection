@@ -1,20 +1,57 @@
 :- module(
-  web_origin,
+  rfc6454,
   [
+    'obs-fold'//1, % ?Codes:list(code)
+    'OWS'//1, % ?Codes:list(code)
+    origin//1,
+    'origin-list-or-null'//1,
+    'origin-list'//1
   ]
 ).
 
-/** <module> Web Origin
+/** <module> RFC 6454: Web Origin
+
+# Definitions
+
+
+---
 
 @author Wouter Beek
+@compat RFC 6454
+@license MIT License
+@see http://tools.ietf.org/html/rfc6454
 @version 2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/rfc2234)).
 :- use_module(library(uri/rfc3986)).
 
 
+
+
+
+%! 'obs-fold'(?Codes:list(code))// .
+% ```abnf
+% obs-fold = CRLF ( SP / HTAB )   ; obsolete line folding
+% ```
+
+'obs-fold'([H1,H2,H3]) --> 'CRLF'([H1,H2]), ('SP'(H3) ; 'HTAB'(H3)).
+
+
+
+%! 'OWS'// .
+%! 'OWS'(?Codes:list(code))// .
+% ```abnf
+% OWS = *( SP / HTAB / obs-fold )   ; "optional" whitespace
+% ```
+
+'OWS' --> 'OWS'(_).
+'OWS'(L) = *(ows_code, L, []).
+ows_code(C) --> 'SP'(C).
+ows_code(C) --> 'HTAB'(C).
+ows_code(C) --> 'obs-fold'(C).
 
 
 
