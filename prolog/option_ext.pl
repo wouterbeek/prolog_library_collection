@@ -1,8 +1,12 @@
 :- module(
   option_ext,
   [
-    if_option/3, % +Option:compound
+    if_option/3, % ?Option:compound
                  % +Options:list(compound)
+                 % :Goal_0
+    if_option/4, % ?Option:compound
+                 % +Options:list(compound)
+                 % +Default
                  % :Goal_0
     merge_options/2, % +Optionss:list(list(compound))
                      % -Options:list(compound)
@@ -18,18 +22,32 @@
 @version 2015/07, 2015/10-2015/11
 */
 
-:- meta_predicate(if_option(+,+,0)).
+:- meta_predicate(if_option(?,+,0)).
+:- meta_predicate(if_option(?,+,+,0)).
 
 
 
 
 
-%! if_option(+Option:compound, +Options:list(compound), :Goal_0) is det.
+%! if_option(?Option:compound, +Options:list(compound), :Goal_0) is det.
 
 if_option(Opt, Opts, Goal_0):-
   option(Opt, Opts), !,
   Goal_0.
 if_option(_, _, _).
+
+
+%! if_option(
+%!   ?Option:compound,
+%!   +Options:list(compound),
+%!   +Default,
+%!   :Goal_0
+%! ) is det.
+
+if_option(Opt, Opts, Default, Goal_0):-
+  option(Opt, Opts, Default), !,
+  Goal_0.
+if_option(_, _, _, _).
 
 
 
