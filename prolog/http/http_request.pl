@@ -143,7 +143,7 @@ http_request(Iri, Success_2, Error_2, Opts1):-
 %! http_stream(+Metadata:dict, :Success_2, :Error_2, +Read:stream) is det.
 
 http_stream(M, Success_2, _, Read):-
-  between(200, 299, M.status), !,
+  between(200, 299, M.http.status_code), !,
   call(Success_2, M, Read).
 http_stream(M, _, Error_2, Read):-
   call(Error_2, M, Read).
@@ -153,14 +153,14 @@ http_stream(M, _, Error_2, Read):-
 %! http_error_default(+Metadata:dict, +Read:stream) is det.
 
 http_error_default(M, Read):-
-  format(user_error, "REQUEST: ~a~n", [M.iri]),
-  dict_pairs(M.request, headers, ReqHs),
-  maplist(print_header(user_error), ReqHs),
-  (get_dict(data, M, Data) -> format(user_error, "~a~n", [Data]) ; true),
-  nl(user_error),
-
-  format(user_error, "RESPONSE: ~D~n", [M.status]),
-  dict_pairs(M.response, headers, ResHs),
+  %format(user_error, "REQUEST: ~a~n", [M.iri]),
+  %dict_pairs(M.request, headers, ReqHs),
+  %maplist(print_header(user_error), ReqHs),
+  %(get_dict(data, M, Data) -> format(user_error, "~a~n", [Data]) ; true),
+  %nl(user_error),
+  %
+  format(user_error, "RESPONSE: ~D~n", [M.http.status_code]),
+  dict_pairs(M.http.headers, http_headers, ResHs),
   maplist(print_header(user_error), ResHs),
   copy_stream_data(Read, user_error),
   nl(user_error).
