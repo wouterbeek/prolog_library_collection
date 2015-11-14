@@ -8,8 +8,9 @@
     directory_files/3, % +Directory:atom
                        % -AbsoluteFiles:list(atom)
                        % +Options:list(compound)
-    directory_subdirectories/2 % ?Directory:atom
-                               % ?Subdirectories:list(atom)
+    directory_subdirectories/2, % ?Directory:atom
+                                % ?Subdirectories:list(atom)
+    working_directory/1 % ?Directory:atom
   ]
 ).
 :- reexport(library(filesex)).
@@ -19,7 +20,7 @@
 Extensions for handling directory files in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/08-2015/09
+@version 2015/08-2015/09, 2015/11
 */
 
 :- use_module(library(apply)).
@@ -167,6 +168,16 @@ resolve_double_dots([_,'..'|T1], T2):-
   resolve_double_dots(T1, T2).
 resolve_double_dots([H|T1], [H|T2]):-
   resolve_double_dots(T1, T2).
+
+
+
+%! working_directory(+Directory:atom) is semidet.
+%! working_directory(-Directory:atom) is det.
+% Wrapper around working_directory/2 that only allows
+% the current working directory to be read.
+
+working_directory(Dir):-
+  working_directory(Dir, Dir).
 
 
 
