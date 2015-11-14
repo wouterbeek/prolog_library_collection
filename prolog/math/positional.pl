@@ -43,7 +43,7 @@ Support for positional number notation.
 %
 % ```prolog
 % year(Y) -->
-%   {clpfd_positional(Y, [Y1,Y2,Y3,Y4])},
+%   {clpfd_positional([Y1,Y2,Y3,Y4], Y)},
 %   '#'(4, 'DIGIT', [Y1,Y2,Y3,Y4], []).
 % ```
 
