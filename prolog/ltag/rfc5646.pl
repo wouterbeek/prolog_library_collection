@@ -38,6 +38,7 @@
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(lists)).
+:- use_module(library(string_ext)).
 
 
 
@@ -131,7 +132,7 @@ subtags([]) --> "".
 % primary-subtag = 1*8ALPHA
 % ```
 
-'primary-subtag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert(1-string)]).
+'primary-subtag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert1(codes_string)]).
 
 
 
@@ -192,6 +193,6 @@ singleton(C) --> between_code_radix(hex('79'), hex('7A'), C).
 % subtag = 1*8(ALPHA / DIGIT)
 % ```
 
-subtag(S) --> 'm*n'(1, 8, subtag0, S, [convert(1-string)]).
+subtag(S) --> 'm*n'(1, 8, subtag0, S, [convert1(codes_string)]).
 subtag0(C) --> 'ALPHA'(C).
 subtag0(C) --> 'DIGIT'(_, C).
