@@ -6,6 +6,8 @@
     create_grouped_sorted_dict/3, % +Options:list(compound)
                                   % +Tag:atom
                                   % -GroupedSortedDict:dict
+    dict_pairs/2, % ?Dict:dict
+                  % ?Pairs:list(pair)
     dict_remove_uninstantiated/2, % +Dict1:dict
                                   % -Dict2:dict
     dict_tag/3, % +Dict1:dict
@@ -66,6 +68,15 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
+
+
+
+%! dict_pairs(+Dict:dict, +Pairs:list(pair)) is semidet.
+%! dict_pairs(+Dict:dict, -Pairs:list(pair)) is det.
+%! dict_pairs(-Dict:dict, +Pairs:list(pair)) is det.
+
+dict_pairs(D, L):-
+  dict_pairs(D, _, L).
 
 
 
