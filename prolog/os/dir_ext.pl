@@ -29,7 +29,7 @@ Extensions for handling directory files in SWI-Prolog.
 :- use_module(library(option)).
 
 :- predicate_options(directory_files/3, 3, [
-     file_types(+list(atom)),
+     extensions(+list(atom)),
      include_directories(+boolean),
      include_self(+boolean),
      recursive(+boolean)
@@ -70,18 +70,18 @@ current_directory(Dir):-
 % instead of relative ones and excludes non-file entries.
 %
 % The following options are supported:
-%   * file_types(+FileTypes:list(atom))
+%   * extensions(+FileTypes:list(atom))
 %     A list of atomic file types that are used as a filter.
-%     Default is no file type filter.
+%     Default is no fitering on file extensions.
 %   * include_directories(+IncludeDirectories:boolean)
 %     Whether (sub)directories are included or not.
-%     Default is `false`.
+%     Default is `true`.
 %   * include_self(+IncludeSelf:boolean)
 %     Whether or not the enclosing directory is included.
 %     Default is `false`.
 %   * recursive(+Recursive:boolean)
 %     Whether subdirectories are searched recursively.
-%     Default is `true`.
+%     Default is `false`.
 
 directory_files(Dir, Files3, Opts1):-
   % Note that the list of files is *not* ordered!
@@ -96,13 +96,9 @@ directory_files(Dir, Files3, Opts1):-
   partition(exists_directory, New3, NewDirs, NewFiles1),
 
   % Filter based on a list of file types, if given.
-  (   option(file_types(FileTypes), Opts1)
+  (   option(extensions(Exts), Opts1)
   ->  include(
-        \File^(
-          file_name_extension(_, Ext, File),
-          user:prolog_file_type(Ext, FileType),
-          memberchk(FileType, FileTypes)
-        ),
+        \File^(file_name_extension(_, Ext, File), memberchk(Ext, Exts)),
         NewFiles1,
         NewFiles2
       )
@@ -114,7 +110,7 @@ directory_files(Dir, Files3, Opts1):-
   select_option(include_self(IncludeSelf), Opts1, Opts2, false),
 
   % Include directories and files from deeper recursion levels.
-  (   option(recursive(true), Opts2)
+  (   option(recursive(true), Opts2, false)
   ->  maplist(
         \NewDir^NewFiles^directory_files(NewDir, NewFiles, Opts2),
         NewDirs,
@@ -125,7 +121,7 @@ directory_files(Dir, Files3, Opts1):-
   ),
 
   % Include directories from this recursion level.
-  (   option(include_directories(true), Opts2)
+  (   option(include_directories(true), Opts2, true)
   ->  append(Files1, NewDirs, Files2)
   ;   Files2 = Files1
   ),
