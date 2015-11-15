@@ -8,25 +8,29 @@
     dcg_rest//1, % -Rest:list(code)
     dcg_void//0,
     eol//0,
-    indent//0,
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
-               % :Dcg_2
+               % :Dcg_0
     indent_nl//2, % +Indent:nonneg
-                  % :Dcg_2
+                  % :Dcg_0
     iri//1, % +Iri:atom
     nl//0,
     nonblank//0,
     nvpair//1, % +Pair:pair(atom)
-    nvpair//2, % :Name_2
-               % :Value_2
+    nvpair//2, % :Name_0
+               % :Value_0
     parsing//0,
     section//3, % +Indent:nonneg
                 % +Message:string
-                % :Dcg_2
+                % :Dcg_0
     skip_line//0,
     string//0,
-    string_without//1 % +EndCodes:list(code)
+    string_without//1, % +EndCodes:list(code)
+    tab//1, % +Indent:nonneg
+    tab//2, % +Indent:nonneg
+            % :Dcg_0
+    tab_nl//2 % +Indent:nonneg
+              % :Dcg_0
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -36,7 +40,7 @@
 DCG rules for parsing/generating often-occuring content.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10
+@version 2015/07-2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
@@ -48,13 +52,15 @@ DCG rules for parsing/generating often-occuring content.
 :- meta_predicate(indent_nl(+,//,?,?)).
 :- meta_predicate(nvpair(//,//,?,?)).
 :- meta_predicate(section(+,+,//,?,?)).
+:- meta_predicate(tab(+,//,?,?)).
+:- meta_predicate(tab_nl(+,//,?,?)).
 
-% The number of spaces that go into one indent.
+% The number of spaces that go into one tab.
 :- setting(
-     indent_size,
+     tab_size,
      integer,
      2,
-     'The number of spaces that go into one indent.'
+     'The number of spaces that go into one tab.'
    ).
 
 
@@ -107,35 +113,23 @@ eol --> "\r".
 
 
 
-%! indent// is det.
-
-indent -->
-  indent(1).
-
-
 %! indent(+Indent:nonneg)// is det.
 
-indent(I) -->
-  {
-    setting(indent_size, Size),
-    NSpaces is I * Size
-  },
-  '#'(NSpaces, space, []), !.
+indent(N) -->
+  '#'(N, space, []), !.
 
 
-%! indent(+Indent:nonneg, :Dcg_2)// is det.
+%! indent(+Indent:nonneg, :Dcg_0)// is det.
 
-indent(I, Dcg_2) -->
+indent(I, Dcg_0) -->
   indent(I),
-  Dcg_2.
+  Dcg_0.
 
 
+%! indent_nl(+Indent:nonneg, :Dcg_0)// is det.
 
-%! indent_nl(+Indent:nonneg, :Dcg_2)// is det.
-
-indent_nl(I, Dcg_2) -->
-  indent(I),
-  Dcg_2,
+indent_nl(I, Dcg_0) -->
+  indent(I, Dcg_0),
   nl.
 
 
@@ -167,12 +161,12 @@ nvpair(N-V) -->
   nvpair(atom(N), atom(V)).
 
 
-%! nvpair(:Name_2, :Value_2)// is det.
+%! nvpair(:Name_0, :Value_0)// is det.
 
-nvpair(N_2, V_2) -->
-  N_2,
+nvpair(N_0, V_0) -->
+  N_0,
   ": ",
-  V_2.
+  V_0.
 
 
 
@@ -183,11 +177,11 @@ parsing(H, H):-
 
 
 
-%! section(+Indent:nonneg, +Message:string, :Dcg_2)// is det.
+%! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
-section(I, Msg, Dcg_2) -->
+section(I, Msg, Dcg_0) -->
   indent_nl(I, atom(Msg)),
-  Dcg_2.
+  Dcg_0.
 
 
 
@@ -211,3 +205,35 @@ string -->
 
 string_without(End) -->
   string_without(End, _).
+
+
+
+%! tab// is det.
+
+tab -->
+  tab(1).
+
+
+%! tab(+Indent:nonneg)// is det.
+
+tab(I) -->
+  {
+    setting(tab_size, N0),
+    N is I * N0
+  },
+  indent(N).
+
+
+%! tab(+Indent:nonneg, :Dcg_2)// is det.
+
+tab(I, Dcg_0) -->
+  tab(I),
+  Dcg_0.
+
+
+
+%! tab_nl(+Indent:nonneg, :Dcg_0)// is det.
+
+tab_nl(I, Dcg_0) -->
+  tab(I, Dcg_0),
+  nl.

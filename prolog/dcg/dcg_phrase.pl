@@ -6,6 +6,8 @@
     atom_phrase/3, % :Dcg_0
                    % +Atom1:atom
                    % ?Atom2:atom
+    dcg_width/2, % :Dcg_0
+                 % -Width:nonneg
     dcg_with_output_to/2, % +Output:compound
                           % :Dcg_0
     string_phrase/2, % :Dcg_0
@@ -21,14 +23,16 @@
 Extensions to phrase/[2,3] for atom and string arguments.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/11
 */
 
 :- use_module(library(code_ext)).
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(error)).
 
 :- meta_predicate(atom_phrase(//,?)).
 :- meta_predicate(atom_phrase(//,?,?)).
+:- meta_predicate(dcg_width(//,-)).
 :- meta_predicate(dcg_with_output_to(+,//)).
 :- meta_predicate(string_phrase(//,?)).
 :- meta_predicate(string_phrase(//,?,?)).
@@ -60,6 +64,14 @@ atom_phrase(Dcg_0, A1, A2):-
   atom_codes(A1, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
   atom_codes(A2, Cs2).
+
+
+
+%! dcg_width(:Dcg_0, -Width:nonneg) is det.
+
+dcg_width(Dcg_0, W):-
+  dcg_with_output_to(codes(Cs), Dcg_0),
+  length(Cs, W).
 
 
 

@@ -98,34 +98,34 @@ pl_term(D, I1) -->
   {dict_pairs(D, _, L)},
   % An empty dictionary does not use lucious spacing.
   (   {is_empty_term(D)}
-  ->  indent(I1), "{}"
+  ->  tab(I1), "{}"
   ;   % A singleton dictionary does not use lucious spacing if
       % its member is singleton.
       {is_singleton_term(D)}
-  ->  indent(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, I1), "}"
-  ;   indent(I1), "{", nl,
+  ->  tab(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, I1), "}"
+  ;   tab(I1), "{", nl,
       {I2 is I1 + 1},
       term_entries(dict_entry, L, I2),
-      indent(I1), "}"
+      tab(I1), "}"
   ).
 % 2. List.
 pl_term(L, I1) -->
   {is_list(L)}, !,
   (   % The empty list does not use lusious spacing.
       {is_empty_term(L)}
-  ->  indent(I1), list(L)
+  ->  tab(I1), list(L)
   ;   % A singleton list does not use lucious spacing
       % if its member is singleton.
       {is_singleton_term(L)}
-  ->  indent(I1), list(L)
-  ;   indent(I1), "[", nl,
+  ->  tab(I1), list(L)
+  ;   tab(I1), "[", nl,
       {I2 is I1 + 1},
       term_entries(pl_term, L, I2),
-      indent(I1), "]"
+      tab(I1), "]"
   ).
 % 3. Other term.
 pl_term(T, I) -->
-  indent(I), nondict(T).
+  tab(I), nondict(T).
 
 
 
@@ -145,7 +145,7 @@ term_entries(Dcg_4, [H|T], I) -->
 %! dict_entry(+Pair:pair, +Indent:nonneg)// is det.
 
 dict_entry(Key-Val, I1) -->
-  indent(I1), nondict(Key),
+  tab(I1), nondict(Key),
   ": ",
   % Newline and additional indentation before dictionary or list values
   % that are non-empty and non-singleton.

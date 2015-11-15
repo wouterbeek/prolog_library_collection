@@ -58,7 +58,7 @@ dcg_list(Writer_1, L, Opts) -->
 
 dcg_list(_, _, _, _, []) --> !, [].
 dcg_list(Writer_1, I, Style, M, [H|T]) -->
-  indent(I),
+  tab(I),
   dcg_list_item_prefix(Style, M),
   dcg_call_cp(Writer_1, H),
   nl,
