@@ -1,9 +1,7 @@
 :- module(
-  count_ext,
+  counter,
   [
     create_counter/1, % +Name:compound
-    create_thread_counter/2, % +Suggestion:atom
-                             % -Name:compound
     delete_counter/1, % +Name
     delete_counter/2, % +Name:compound
                       % -Count:integer
@@ -21,15 +19,14 @@
   ]
 ).
 
-/** <module> Counter extension
+/** <module> Counters
 
 @author Wouter Beek
 @license MIT license
-i@version 2015/09-2015/10
+@version 2015/09-2015/11
 */
 
 :- use_module(library(error)).
-:- use_module(library(os/thread_ext)).
 
 %! counter(?Name:compound, Count:integer) is nondet.
 
@@ -45,26 +42,12 @@ i@version 2015/09-2015/10
 % @throws counter_exists If a counter with given name already exists.
 
 create_counter(N):-
-  with_mutex(count_ext, (
+  with_mutex(counter, (
     (   counter(N, _)
     ->  throw(error(counter_exists(N), 'Counter already exists.'))
     ;   assert(counter(N,0))
     )
   )).
-
-
-
-%! create_thread_counter(+LocalName:atom, -GlobalName:compound) is det.
-% Creates a thread-local counter.
-% The name of the counter is based on the given thread-local name.
-%
-% @throws counter_exists If the current thread already has a counter
-%         with LocalName.
-
-create_thread_counter(N1, N):-
-  thread_name(N2),
-  N =.. [N1,N2],
-  create_counter(N).
 
 
 
@@ -82,7 +65,7 @@ delete_counter(N):-
 % @throws existence_error If no counter with given name exists.
 
 delete_counter(N, C):-
-  with_mutex(count_ext, (
+  with_mutex(counter, (
     (retract(counter(N,C)) -> true ; existence_error(counter, N))
   )).
 
@@ -106,7 +89,7 @@ increment_counter(N, X):-
   increment_counter(N, 1, X).
 
 increment_counter(N, Diff, X):-
-  with_mutex(count_ext, (
+  with_mutex(counter, (
     (   retract(counter(N,X))
     ->  Y is X + Diff
     ;   Y = 1
@@ -120,7 +103,7 @@ reset_counter(N):-
   reset_counter(N, _).
 
 reset_counter(N, C):-
-  with_mutex(count_ext, (
+  with_mutex(counter, (
     (   retract(counter(N,C))
     ->  assert(counter(N,0))
     ;   existence_error(counter, N)

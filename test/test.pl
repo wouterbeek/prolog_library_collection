@@ -6,7 +6,7 @@
 :- use_module(library(cli_ext)).
 :- use_module(library(closure)).
 :- use_module(library(code_ext)).
-:- use_module(library(count_ext)).
+:- use_module(library(counter)).
 :- use_module(library(csv_ext)).
 :- use_module(library(date_ext)).
 :- use_module(library(db_ext)).
@@ -130,6 +130,7 @@
   :- use_module(library(os/os_ext)).
   :- use_module(library(os/pdf)).
   :- use_module(library(os/process_ext)).
+  :- use_module(library(os/thread_counter)).
   :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
 :- use_module(library(pair_ext)).
