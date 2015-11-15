@@ -6,16 +6,16 @@
     delete_thread_counter/2, % +Name:compound
                              % -Count:integer
     exists_thread_counter/1, % +Name:compound
-    get_thread_counter/2, % +Name:compound
-                          % -Count:integer
     increment_thread_counter/1, % +Name
     increment_thread_counter/2, % +Name, -Count
     increment_thread_counter/3, % +Name:compound
                                 % +Diff:integer
                                 % -Count:integer
     reset_thread_counter/1, % +Name
-    reset_thread_counter/2 % +Name:compound
-                           % -Count:integer
+    reset_thread_counter/2, % +Name:compound
+                            % -Count:integer
+    thread_counter/2 % ?Name:compound
+                     % ?Count:integer
   ]
 ).
 
@@ -69,11 +69,6 @@ delete_thread_counter(N, C):-
 
 exists_thread_counter(N):-
   thread_counter(N, _).
-
-
-
-get_thread_counter(N, C):-
-  thread_counter(N, C).
 
 
 
