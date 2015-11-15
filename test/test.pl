@@ -34,6 +34,7 @@
   :- use_module(library(dcg/dcg_quoted)).
   :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
+  :- use_module(library(dcg/dcg_table)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).

@@ -86,7 +86,7 @@ horizontal_line -->
 % @throws type_error if length is a negative integer.
 
 horizontal_line(Length) -->
-  '#'(Length, hyphen, []).
+  '#'(Length, hyphen, []), !.
 
 
 
