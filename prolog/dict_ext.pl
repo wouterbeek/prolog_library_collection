@@ -6,6 +6,8 @@
     create_grouped_sorted_dict/3, % +Options:list(compound)
                                   % +Tag:atom
                                   % -GroupedSortedDict:dict
+    dict_remove_uninstantiated/2, % +Dict1:dict
+                                  % -Dict2:dict
     dict_tag/3, % +Dict1:dict
                 % +Tag:atom
                 % ?Dict2:dict
@@ -64,6 +66,16 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
+
+
+
+%! dict_remove_uninstantiated(+Dict1:dict, -Dict2:dict) is det.
+
+dict_remove_uninstantiated(D1, D2):-
+  dict_pairs(D1, Tag, L1),
+  exclude(var_val, L1, L2),
+  dict_pairs(D2, Tag, L2).
+var_val(_-Val):- var(Val).
 
 
 
