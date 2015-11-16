@@ -7,7 +7,7 @@
                  % +Mode:oneof([append,read,write])
                  % -Stream:stream
                  % :Close_0
-                 % +Options:list(compound)
+                 % :Options:list(compound)
     read_mode/1, % ?Mode:atom
     write_mode/1 % ?Mode:atom
   ]
@@ -37,9 +37,22 @@ to open_any/5.
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
+:- meta_predicate(close_any2(0)).
+:- meta_predicate(http_open2(+,+,0,:)).
+:- meta_predicate(open_any2(+,+,-,0)).
+:- meta_predicate(open_any2(+,+,-,0,:)).
+
+is_meta(http_error).
+
 :- predicate_options(open_any2/5, 5, [
      metadata(-dict),
-     pass_to(open_any/5, 5)
+     pass_to(http_open2/4, 4),
+     pass_to(open_any/5, 5),
+     pass_to(zopen/3, 3)
+   ]).
+:- predicate_options(http_open2/4, 4, [
+     http_error(+callable),
+     metadata(-dict)
    ]).
 
 
@@ -71,14 +84,22 @@ open_any2(Source, Mode, Stream, Close_0):-
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
 %!   -Close_0,
-%!   +Options:list(compound)
+%!   :Options:list(compound)
 %! ) is nondet.
 
-open_any2(Source0, Mode, Stream, Close_0, Opts1):-
+open_any2(Source0, Mode, Stream, Close_0, Opts0):-
+  meta_options(is_meta, Opts0, Opts1),
   source_type(Source0, Source, Type),
   ignore(option(metadata(M), Opts1)),
   open_any_options(Type, Opts1, Opts2),
-  open_any(Source, Mode, Stream0, Close_0, Opts2),
+
+  % We want more support for opening an HTTP IRI stream
+  % than what `library(http/http_open)` provides.
+  (   Type == http_iri, Mode == read
+  ->  Close_0 = close(Stream),
+	    http_open2(Source, Stream, Close_0, Opts2)
+  ;   open_any(Source, Mode, Stream0, Close_0, Opts2)
+  ),
 
   % Compression.
   (   option(compress(Comp), Opts1),
@@ -105,6 +126,24 @@ open_any2(Source0, Mode, Stream, Close_0, Opts1):-
   ).
 
 
+%! http_open2(
+%!   +Iri:atom,
+%!   +Read:stream,
+%!   :Close_0,
+%!   :Options:list(compound)
+%! ) is det.
+
+http_open2(Iri, Read, Close_0, Opts):-
+  http_open(Iri, Read, Opts),
+  option(metadata(M), Opts),
+  (   between(200, 299, M.http.status_code)
+  ->  true
+  ;   option(http_error(Error_2), Opts, http_error_default),
+      call_cleanup(call(Error_2, M, Read), Close_0),
+      fail
+  ).
+
+
 
 
 
@@ -122,6 +161,17 @@ base_iri(Iri, BaseIri):-
 base_iri(File, BaseIri):-
   uri_file_name(Iri, File),
   base_iri(Iri, BaseIri).
+
+
+
+%! http_error_default(+Metadata:dict, +Read:stream) is det.
+
+http_error_default(M, Read):-
+  format(user_error, "RESPONSE: ~D~n", [M.http.status_code]),
+  dict_pairs(M.http.headers, http_headers, ResHs),
+  maplist(print_header(user_error), ResHs),
+  copy_stream_data(Read, user_error),
+  nl(user_error).
 
 
 
@@ -203,6 +253,11 @@ open_any_options(_, Opts, Opts).
 
 
 
+%! print_header(+Write:stream, +Header:pair) is det.
+
+print_header(Write, N-V):-
+  format(Write, "~w=~w~n", [N,V]).
+
 
 
 %! read_mode(+Mode:atom) is semidet.
@@ -225,7 +280,7 @@ source_type(Stream, Stream, stream):-
 source_type(Iri, Iri, file_iri):-
   is_file_iri(Iri), !.
 source_type(Iri, Iri, http_iri):-
-  is_iri(Iri), !.
+  is_http_iri(Iri), !.
 source_type(File, Iri, file_iri):-
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
