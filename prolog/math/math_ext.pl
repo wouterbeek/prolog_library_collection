@@ -46,6 +46,9 @@
     log/3, % +Base:integer
            % +X:float
            % +Y:float
+    max/3, % +X:number
+           % +Y:number
+           % ?Maximum:number
     minus/3, % ?X:number
              % ?Y:number
              % ?Z:number
@@ -106,7 +109,7 @@ X = -6.
 ---
 
 @Author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
@@ -448,6 +451,15 @@ log(Base, X, Y):-
   Numerator is log(X),
   Denominator is log(Base),
   Y is Numerator / Denominator.
+
+
+
+%! max(+X:number, +Y:number, +Maximum:number) is semidet.
+%! max(+X:number, +Y:number, -Maximum:number) is det.
+
+max(X, Y, Z):-
+  Z is max(X,Y).
+
 
 
 %! minus(+X:number, +Y:number, +Z:number) is semidet.
