@@ -1,0 +1,1022 @@
+@prefix  uso: <http://www.wouterbeek.com/uri-scheme/ontology/> .
+@prefix  xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix  rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Named toplevel resources (5)
+
+uso:UriScheme
+        rdfs:label "URI Scheme"^^xsd:string ;
+        rdfs:subClassOf rdfs:Resource .
+
+uso:description
+        rdfs:domain rdfs:Resource ;
+        rdfs:range xsd:string .
+
+uso:reference
+        rdfs:domain rdfs:Resource ;
+        rdfs:range xsd:string .
+
+uso:template
+        rdfs:domain rdfs:Resource ;
+        rdfs:range xsd:string .
+
+uso:uri_scheme
+        rdfs:domain rdfs:Resource ;
+        rdfs:range xsd:string .
+
+# Toplevel blank-nodes (181)
+[ a uso:UriScheme ;
+  uso:description "Diameter Protocol"^^xsd:string ;
+  uso:reference "[RFC6733]"^^xsd:string ;
+  uso:uri_scheme "aaa"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Diameter Protocol with Secure Transport"^^xsd:string ;
+  uso:reference "[RFC6733]"^^xsd:string ;
+  uso:uri_scheme "aaas"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "about"^^xsd:string ;
+  uso:reference "[RFC6694]"^^xsd:string ;
+  uso:uri_scheme "about"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "application configuration access protocol"^^xsd:string ;
+  uso:reference "[RFC2244]"^^xsd:string ;
+  uso:uri_scheme "acap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "acct"^^xsd:string ;
+  uso:reference "[RFC-ietf-appsawg-acct-uri-06]"^^xsd:string ;
+  uso:uri_scheme "acct"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Calendar Access Protocol"^^xsd:string ;
+  uso:reference "[RFC4324]"^^xsd:string ;
+  uso:uri_scheme "cap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "content identifier"^^xsd:string ;
+  uso:reference "[RFC2392]"^^xsd:string ;
+  uso:uri_scheme "cid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "coap"^^xsd:string ;
+  uso:reference "[RFC7252]"^^xsd:string ;
+  uso:uri_scheme "coap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "coaps"^^xsd:string ;
+  uso:reference "[RFC7252]"^^xsd:string ;
+  uso:uri_scheme "coaps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "TV-Anytime Content Reference Identifier"^^xsd:string ;
+  uso:reference "[RFC4078]"^^xsd:string ;
+  uso:uri_scheme "crid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "data"^^xsd:string ;
+  uso:reference "[RFC2397]"^^xsd:string ;
+  uso:uri_scheme "data"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "dav"^^xsd:string ;
+  uso:reference "[RFC4918]"^^xsd:string ;
+  uso:uri_scheme "dav"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "dictionary service protocol"^^xsd:string ;
+  uso:reference "[RFC2229]"^^xsd:string ;
+  uso:uri_scheme "dict"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Domain Name System"^^xsd:string ;
+  uso:reference "[RFC4501]"^^xsd:string ;
+  uso:uri_scheme "dns"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Host-specific file names"^^xsd:string ;
+  uso:reference "[RFC1738]"^^xsd:string ;
+  uso:uri_scheme "file"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "File Transfer Protocol"^^xsd:string ;
+  uso:reference "[RFC1738]"^^xsd:string ;
+  uso:uri_scheme "ftp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Geographic Locations"^^xsd:string ;
+  uso:reference "[RFC5870]"^^xsd:string ;
+  uso:uri_scheme "geo"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "go"^^xsd:string ;
+  uso:reference "[RFC3368]"^^xsd:string ;
+  uso:uri_scheme "go"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "The Gopher Protocol"^^xsd:string ;
+  uso:reference "[RFC4266]"^^xsd:string ;
+  uso:uri_scheme "gopher"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "H.323"^^xsd:string ;
+  uso:reference "[RFC3508]"^^xsd:string ;
+  uso:uri_scheme "h323"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Hypertext Transfer Protocol"^^xsd:string ;
+  uso:reference "[RFC7230, Section 2.7.1]"^^xsd:string ;
+  uso:uri_scheme "http"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Hypertext Transfer Protocol Secure"^^xsd:string ;
+  uso:reference "[RFC7230, Section 2.7.2]"^^xsd:string ;
+  uso:uri_scheme "https"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Inter-Asterisk eXchange Version 2"^^xsd:string ;
+  uso:reference "[RFC5456]"^^xsd:string ;
+  uso:uri_scheme "iax"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Internet Content Adaptation Protocol"^^xsd:string ;
+  uso:reference "[RFC3507]"^^xsd:string ;
+  uso:uri_scheme "icap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Instant Messaging"^^xsd:string ;
+  uso:reference "[RFC3860]"^^xsd:string ;
+  uso:uri_scheme "im"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "internet message access protocol"^^xsd:string ;
+  uso:reference "[RFC5092]"^^xsd:string ;
+  uso:uri_scheme "imap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Information Assets with Identifiers in Public Namespaces"^^xsd:string ;
+  uso:reference "[RFC4452]"^^xsd:string ;
+  uso:uri_scheme "info"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Internet Printing Protocol"^^xsd:string ;
+  uso:reference "[RFC3510]"^^xsd:string ;
+  uso:uri_scheme "ipp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Internet Registry Information Service"^^xsd:string ;
+  uso:reference "[RFC3981]"^^xsd:string ;
+  uso:uri_scheme "iris"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "iris.beep"^^xsd:string ;
+  uso:reference "[RFC3983]"^^xsd:string ;
+  uso:uri_scheme "iris.beep"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "iris.xpc"^^xsd:string ;
+  uso:reference "[RFC4992]"^^xsd:string ;
+  uso:uri_scheme "iris.xpc"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "iris.xpcs"^^xsd:string ;
+  uso:reference "[RFC4992]"^^xsd:string ;
+  uso:uri_scheme "iris.xpcs"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "iris.lwz"^^xsd:string ;
+  uso:reference "[RFC4993]"^^xsd:string ;
+  uso:uri_scheme "iris.lwz"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "jabber"^^xsd:string ;
+  uso:reference "[Peter_Saint-Andre]"^^xsd:string ;
+  uso:template "perm/jabber"^^xsd:string ;
+  uso:uri_scheme "jabber"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Lightweight Directory Access Protocol"^^xsd:string ;
+  uso:reference "[RFC4516]"^^xsd:string ;
+  uso:uri_scheme "ldap"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Electronic mail address"^^xsd:string ;
+  uso:reference "[RFC6068]"^^xsd:string ;
+  uso:uri_scheme "mailto"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "message identifier"^^xsd:string ;
+  uso:reference "[RFC2392]"^^xsd:string ;
+  uso:uri_scheme "mid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Message Session Relay Protocol"^^xsd:string ;
+  uso:reference "[RFC4975]"^^xsd:string ;
+  uso:uri_scheme "msrp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Message Session Relay Protocol Secure"^^xsd:string ;
+  uso:reference "[RFC4975]"^^xsd:string ;
+  uso:uri_scheme "msrps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Message Tracking Query Protocol"^^xsd:string ;
+  uso:reference "[RFC3887]"^^xsd:string ;
+  uso:uri_scheme "mtqp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Mailbox Update (MUPDATE) Protocol"^^xsd:string ;
+  uso:reference "[RFC3656]"^^xsd:string ;
+  uso:uri_scheme "mupdate"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "USENET news"^^xsd:string ;
+  uso:reference "[RFC5538]"^^xsd:string ;
+  uso:uri_scheme "news"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "network file system protocol"^^xsd:string ;
+  uso:reference "[RFC2224]"^^xsd:string ;
+  uso:uri_scheme "nfs"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ni"^^xsd:string ;
+  uso:reference "[RFC6920]"^^xsd:string ;
+  uso:uri_scheme "ni"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "nih"^^xsd:string ;
+  uso:reference "[RFC6920]"^^xsd:string ;
+  uso:uri_scheme "nih"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "USENET news using NNTP access"^^xsd:string ;
+  uso:reference "[RFC5538]"^^xsd:string ;
+  uso:uri_scheme "nntp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "opaquelocktokent"^^xsd:string ;
+  uso:reference "[RFC4918]"^^xsd:string ;
+  uso:uri_scheme "opaquelocktoken"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Post Office Protocol v3"^^xsd:string ;
+  uso:reference "[RFC2384]"^^xsd:string ;
+  uso:uri_scheme "pop"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Presence"^^xsd:string ;
+  uso:reference "[RFC3859]"^^xsd:string ;
+  uso:uri_scheme "pres"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "reload"^^xsd:string ;
+  uso:reference "[RFC6940]"^^xsd:string ;
+  uso:uri_scheme "reload"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Real-time Streaming Protocol (RTSP)"^^xsd:string ;
+  uso:reference "[RFC2326][RFC-ietf-mmusic-rfc2326bis-40]"^^xsd:string ;
+  uso:uri_scheme "rtsp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Real-time Streaming Protocol (RTSP) over TLS"^^xsd:string ;
+  uso:reference "[RFC2326][RFC-ietf-mmusic-rfc2326bis-40]"^^xsd:string ;
+  uso:uri_scheme "rtsps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Real-time Streaming Protocol (RTSP) over unreliable datagram transport"^^xsd:string ;
+  uso:reference "[RFC2326]"^^xsd:string ;
+  uso:uri_scheme "rtspu"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "service location"^^xsd:string ;
+  uso:reference "[RFC2609]"^^xsd:string ;
+  uso:uri_scheme "service"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "session"^^xsd:string ;
+  uso:reference "[RFC6787]"^^xsd:string ;
+  uso:uri_scheme "session"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Secure Hypertext Transfer Protocol"^^xsd:string ;
+  uso:reference "[RFC2660]"^^xsd:string ;
+  uso:uri_scheme "shttp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ManageSieve Protocol"^^xsd:string ;
+  uso:reference "[RFC5804]"^^xsd:string ;
+  uso:uri_scheme "sieve"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "session initiation protocol"^^xsd:string ;
+  uso:reference "[RFC3261]"^^xsd:string ;
+  uso:uri_scheme "sip"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "secure session initiation protocol"^^xsd:string ;
+  uso:reference "[RFC3261]"^^xsd:string ;
+  uso:uri_scheme "sips"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Short Message Service"^^xsd:string ;
+  uso:reference "[RFC5724]"^^xsd:string ;
+  uso:uri_scheme "sms"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Simple Network Management Protocol"^^xsd:string ;
+  uso:reference "[RFC4088]"^^xsd:string ;
+  uso:uri_scheme "snmp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "soap.beep"^^xsd:string ;
+  uso:reference "[RFC4227]"^^xsd:string ;
+  uso:uri_scheme "soap.beep"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "soap.beeps"^^xsd:string ;
+  uso:reference "[RFC4227]"^^xsd:string ;
+  uso:uri_scheme "soap.beeps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "stun"^^xsd:string ;
+  uso:reference "[RFC7064]"^^xsd:string ;
+  uso:uri_scheme "stun"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "stuns"^^xsd:string ;
+  uso:reference "[RFC7064]"^^xsd:string ;
+  uso:uri_scheme "stuns"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "tag"^^xsd:string ;
+  uso:reference "[RFC4151]"^^xsd:string ;
+  uso:uri_scheme "tag"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "telephone"^^xsd:string ;
+  uso:reference "[RFC3966]"^^xsd:string ;
+  uso:uri_scheme "tel"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Reference to interactive sessions"^^xsd:string ;
+  uso:reference "[RFC4248]"^^xsd:string ;
+  uso:uri_scheme "telnet"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Trivial File Transfer Protocol"^^xsd:string ;
+  uso:reference "[RFC3617]"^^xsd:string ;
+  uso:uri_scheme "tftp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "multipart/related relative reference resolution"^^xsd:string ;
+  uso:reference "[RFC2557]"^^xsd:string ;
+  uso:template "perm/thismessage"^^xsd:string ;
+  uso:uri_scheme "thismessage"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Interactive 3270 emulation sessions"^^xsd:string ;
+  uso:reference "[RFC6270]"^^xsd:string ;
+  uso:uri_scheme "tn3270"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Transaction Internet Protocol"^^xsd:string ;
+  uso:reference "[RFC2371]"^^xsd:string ;
+  uso:uri_scheme "tip"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "turn"^^xsd:string ;
+  uso:reference "[RFC7065]"^^xsd:string ;
+  uso:uri_scheme "turn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "turns"^^xsd:string ;
+  uso:reference "[RFC7065]"^^xsd:string ;
+  uso:uri_scheme "turns"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "TV Broadcasts"^^xsd:string ;
+  uso:reference "[RFC2838]"^^xsd:string ;
+  uso:uri_scheme "tv"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Uniform Resource Names"^^xsd:string ;
+  uso:reference "[RFC2141][IANA registry urn-namespaces]"^^xsd:string ;
+  uso:uri_scheme "urn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "versatile multimedia interface"^^xsd:string ;
+  uso:reference "[RFC2122]"^^xsd:string ;
+  uso:uri_scheme "vemmi"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "WebSocket connections"^^xsd:string ;
+  uso:reference "[RFC6455]"^^xsd:string ;
+  uso:uri_scheme "ws"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Encrypted WebSocket connections"^^xsd:string ;
+  uso:reference "[RFC6455]"^^xsd:string ;
+  uso:uri_scheme "wss"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xcon"^^xsd:string ;
+  uso:reference "[RFC6501]"^^xsd:string ;
+  uso:uri_scheme "xcon"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xcon-userid"^^xsd:string ;
+  uso:reference "[RFC6501]"^^xsd:string ;
+  uso:uri_scheme "xcon-userid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xmlrpc.beep"^^xsd:string ;
+  uso:reference "[RFC3529]"^^xsd:string ;
+  uso:uri_scheme "xmlrpc.beep"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xmlrpc.beeps"^^xsd:string ;
+  uso:reference "[RFC3529]"^^xsd:string ;
+  uso:uri_scheme "xmlrpc.beeps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Extensible Messaging and Presence Protocol"^^xsd:string ;
+  uso:reference "[RFC5122]"^^xsd:string ;
+  uso:uri_scheme "xmpp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Z39.50 Retrieval"^^xsd:string ;
+  uso:reference "[RFC2056]"^^xsd:string ;
+  uso:uri_scheme "z39.50r"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Z39.50 Session"^^xsd:string ;
+  uso:reference "[RFC2056]"^^xsd:string ;
+  uso:uri_scheme "z39.50s"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "adiumxtra"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/adiumxtra"^^xsd:string ;
+  uso:uri_scheme "adiumxtra"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "afp"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/afp"^^xsd:string ;
+  uso:uri_scheme "afp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Andrew File System global file names"^^xsd:string ;
+  uso:reference "[RFC1738]"^^xsd:string ;
+  uso:uri_scheme "afs"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "aim"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/aim"^^xsd:string ;
+  uso:uri_scheme "aim"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "apt"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/apt"^^xsd:string ;
+  uso:uri_scheme "apt"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "attachment"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/attachment"^^xsd:string ;
+  uso:uri_scheme "attachment"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "aw"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/aw"^^xsd:string ;
+  uso:uri_scheme "aw"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "barion"^^xsd:string ;
+  uso:reference "[Bíró_Tamás]"^^xsd:string ;
+  uso:template "prov/barion"^^xsd:string ;
+  uso:uri_scheme "barion"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "beshare"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/beshare"^^xsd:string ;
+  uso:uri_scheme "beshare"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "bitcoin"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/bitcoin"^^xsd:string ;
+  uso:uri_scheme "bitcoin"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "bolo"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/bolo"^^xsd:string ;
+  uso:uri_scheme "bolo"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "callto"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/callto"^^xsd:string ;
+  uso:uri_scheme "callto"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "chrome"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/chrome"^^xsd:string ;
+  uso:uri_scheme "chrome"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "chrome-extension"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/chrome-extension"^^xsd:string ;
+  uso:uri_scheme "chrome-extension"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "com-eventbrite-attendee"^^xsd:string ;
+  uso:reference "[Bob_Van_Zant]"^^xsd:string ;
+  uso:template "prov/com-eventbrite-attendee"^^xsd:string ;
+  uso:uri_scheme "com-eventbrite-attendee"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "content"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/content"^^xsd:string ;
+  uso:uri_scheme "content"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "cvs"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/cvs"^^xsd:string ;
+  uso:uri_scheme "cvs"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "dlna-playsingle"^^xsd:string ;
+  uso:reference "[DLNA]"^^xsd:string ;
+  uso:template "prov/dlna-playsingle"^^xsd:string ;
+  uso:uri_scheme "dlna-playsingle"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "dlna-playcontainer"^^xsd:string ;
+  uso:reference "[DLNA]"^^xsd:string ;
+  uso:template "prov/dlna-playcontainer"^^xsd:string ;
+  uso:uri_scheme "dlna-playcontainer"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "DTNRG research and development"^^xsd:string ;
+  uso:reference "[RFC5050]"^^xsd:string ;
+  uso:uri_scheme "dtn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "dvb"^^xsd:string ;
+  uso:reference "[draft-mcroberts-uri-dvb]"^^xsd:string ;
+  uso:uri_scheme "dvb"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ed2k"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ed2k"^^xsd:string ;
+  uso:uri_scheme "ed2k"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "facetime"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/facetime"^^xsd:string ;
+  uso:uri_scheme "facetime"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "feed"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/feed"^^xsd:string ;
+  uso:uri_scheme "feed"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "feedready"^^xsd:string ;
+  uso:reference "[Mirko_Nosenzo]"^^xsd:string ;
+  uso:template "prov/feedready"^^xsd:string ;
+  uso:uri_scheme "feedready"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "finger"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/finger"^^xsd:string ;
+  uso:uri_scheme "finger"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "fish"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/fish"^^xsd:string ;
+  uso:uri_scheme "fish"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "gg"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/gg"^^xsd:string ;
+  uso:uri_scheme "gg"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "git"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/git"^^xsd:string ;
+  uso:uri_scheme "git"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "gizmoproject"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/gizmoproject"^^xsd:string ;
+  uso:uri_scheme "gizmoproject"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "gtalk"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/gtalk"^^xsd:string ;
+  uso:uri_scheme "gtalk"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ham"^^xsd:string ;
+  uso:reference "[RFC7046]"^^xsd:string ;
+  uso:uri_scheme "ham"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "hcp"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/hcp"^^xsd:string ;
+  uso:uri_scheme "hcp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "icon"^^xsd:string ;
+  uso:reference "[draft-lafayette-icon-uri-scheme]"^^xsd:string ;
+  uso:uri_scheme "icon"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ipn"^^xsd:string ;
+  uso:reference "[RFC6260]"^^xsd:string ;
+  uso:uri_scheme "ipn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "irc"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/irc"^^xsd:string ;
+  uso:uri_scheme "irc"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "irc6"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/irc6"^^xsd:string ;
+  uso:uri_scheme "irc6"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ircs"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ircs"^^xsd:string ;
+  uso:uri_scheme "ircs"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "itms"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/itms"^^xsd:string ;
+  uso:uri_scheme "itms"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "jar"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/jar"^^xsd:string ;
+  uso:uri_scheme "jar"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "Java Message Service"^^xsd:string ;
+  uso:reference "[RFC6167]"^^xsd:string ;
+  uso:uri_scheme "jms"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "keyparc"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/keyparc"^^xsd:string ;
+  uso:uri_scheme "keyparc"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "lastfm"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/lastfm"^^xsd:string ;
+  uso:uri_scheme "lastfm"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ldaps"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ldaps"^^xsd:string ;
+  uso:uri_scheme "ldaps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "magnet"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/magnet"^^xsd:string ;
+  uso:uri_scheme "magnet"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "maps"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/maps"^^xsd:string ;
+  uso:uri_scheme "maps"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "market"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/market"^^xsd:string ;
+  uso:uri_scheme "market"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "message"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/message"^^xsd:string ;
+  uso:uri_scheme "message"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "mms"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/mms"^^xsd:string ;
+  uso:uri_scheme "mms"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ms-help"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/ms-help"^^xsd:string ;
+  uso:uri_scheme "ms-help"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ms-settings-power"^^xsd:string ;
+  uso:reference "[urischemeowners_at_microsoft.com]"^^xsd:string ;
+  uso:template "prov/ms-settings-power"^^xsd:string ;
+  uso:uri_scheme "ms-settings-power"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "msnim"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/msnim"^^xsd:string ;
+  uso:uri_scheme "msnim"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "mumble"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/mumble"^^xsd:string ;
+  uso:uri_scheme "mumble"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "mvn"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/mvn"^^xsd:string ;
+  uso:uri_scheme "mvn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "notes"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/notes"^^xsd:string ;
+  uso:uri_scheme "notes"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "oid"^^xsd:string ;
+  uso:reference "[draft-larmouth-oid-iri]"^^xsd:string ;
+  uso:template "prov/oid"^^xsd:string ;
+  uso:uri_scheme "oid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "palm"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/palm"^^xsd:string ;
+  uso:uri_scheme "palm"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "paparazzi"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/paparazzi"^^xsd:string ;
+  uso:uri_scheme "paparazzi"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "pkcs11"^^xsd:string ;
+  uso:reference "[draft-pechanec-pkcs11uri]"^^xsd:string ;
+  uso:template "prov/pkcs11"^^xsd:string ;
+  uso:uri_scheme "pkcs11"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "platform"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/platform"^^xsd:string ;
+  uso:uri_scheme "platform"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "proxy"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/proxy"^^xsd:string ;
+  uso:uri_scheme "proxy"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "psyc"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/psyc"^^xsd:string ;
+  uso:uri_scheme "psyc"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "query"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/query"^^xsd:string ;
+  uso:uri_scheme "query"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "res"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/res"^^xsd:string ;
+  uso:uri_scheme "res"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "resource"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/resource"^^xsd:string ;
+  uso:uri_scheme "resource"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "rmi"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/rmi"^^xsd:string ;
+  uso:uri_scheme "rmi"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "rsync"^^xsd:string ;
+  uso:reference "[RFC5781]"^^xsd:string ;
+  uso:uri_scheme "rsync"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "rtmfp"^^xsd:string ;
+  uso:reference "[RFC-thornburgh-rtmfp-flash-07]"^^xsd:string ;
+  uso:template "prov/rtmfp"^^xsd:string ;
+  uso:uri_scheme "rtmfp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "rtmp"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/rtmp"^^xsd:string ;
+  uso:uri_scheme "rtmp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "query"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/secondlife"^^xsd:string ;
+  uso:uri_scheme "secondlife"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "query"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/sftp"^^xsd:string ;
+  uso:uri_scheme "sftp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "sgn"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/sgn"^^xsd:string ;
+  uso:uri_scheme "sgn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "skype"^^xsd:string ;
+  uso:reference "[Alexey_Melnikov]"^^xsd:string ;
+  uso:template "prov/skype"^^xsd:string ;
+  uso:uri_scheme "skype"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "smb"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/smb"^^xsd:string ;
+  uso:uri_scheme "smb"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "smtp"^^xsd:string ;
+  uso:reference "[draft-melnikov-smime-msa-to-mda]"^^xsd:string ;
+  uso:template "prov/smtp"^^xsd:string ;
+  uso:uri_scheme "smtp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "soldat"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/soldat"^^xsd:string ;
+  uso:uri_scheme "soldat"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "spotify"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/spotify"^^xsd:string ;
+  uso:uri_scheme "spotify"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ssh"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ssh"^^xsd:string ;
+  uso:uri_scheme "ssh"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "steam"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/steam"^^xsd:string ;
+  uso:uri_scheme "steam"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "submit"^^xsd:string ;
+  uso:reference "[draft-melnikov-smime-msa-to-mda]"^^xsd:string ;
+  uso:template "prov/submit"^^xsd:string ;
+  uso:uri_scheme "submit"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "svn"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/svn"^^xsd:string ;
+  uso:uri_scheme "svn"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "teamspeak"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/teamspeak"^^xsd:string ;
+  uso:uri_scheme "teamspeak"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "teliaeid"^^xsd:string ;
+  uso:reference "[Peter_Lewandowski]"^^xsd:string ;
+  uso:template "prov/teliaeid"^^xsd:string ;
+  uso:uri_scheme "teliaeid"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "things"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/things"^^xsd:string ;
+  uso:uri_scheme "things"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "udp"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/udp"^^xsd:string ;
+  uso:uri_scheme "udp"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "unreal"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/unreal"^^xsd:string ;
+  uso:uri_scheme "unreal"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ut2004"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ut2004"^^xsd:string ;
+  uso:uri_scheme "ut2004"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ventrilo"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ventrilo"^^xsd:string ;
+  uso:uri_scheme "ventrilo"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "view-source"^^xsd:string ;
+  uso:reference "[Mykyta_Yevstifeyev]"^^xsd:string ;
+  uso:template "prov/view-source"^^xsd:string ;
+  uso:uri_scheme "view-source"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "webcal"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/webcal"^^xsd:string ;
+  uso:uri_scheme "webcal"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "wtai"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/wtai"^^xsd:string ;
+  uso:uri_scheme "wtai"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "wyciwyg"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/wyciwyg"^^xsd:string ;
+  uso:uri_scheme "wyciwyg"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xfire"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/xfire"^^xsd:string ;
+  uso:uri_scheme "xfire"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "xri"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/xri"^^xsd:string ;
+  uso:uri_scheme "xri"^^xsd:string
+] .
+[ a uso:UriScheme ;
+  uso:description "ymsgr"^^xsd:string ;
+  uso:reference "[Dave_Thaler]"^^xsd:string ;
+  uso:template "prov/ymsgr"^^xsd:string ;
+  uso:uri_scheme "ymsgr"^^xsd:string
+] .
