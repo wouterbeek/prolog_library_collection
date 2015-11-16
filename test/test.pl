@@ -91,7 +91,11 @@
   :- use_module(library(http/rfc7230_token)).
 :- use_module(library(image_ext)).
 %/iri
+  :- use_module(library(iri/iri_ext)).
   :- use_module(library(iri/rfc3987)).
+  :- use_module(library(iri/rfc3987_code)).
+  :- use_module(library(iri/rfc3987_component)).
+  :- use_module(library(iri/rfc3987_token)).
 :- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(list_script)).
@@ -168,18 +172,11 @@
   :- use_module(library(uri/rfc2396_code)).
   :- use_module(library(uri/rfc2396_token)).
   :- use_module(library(uri/rfc3986)).
-  :- use_module(library(uri/uri_authority)).
-  :- use_module(library(uri/uri_code)).
+  :- use_module(library(uri/rfc3986_code)).
+  :- use_module(library(uri/rfc3986_component)).
+  :- use_module(library(uri/rfc3986_token)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
-  :- use_module(library(uri/uri_fragment)).
-  :- use_module(library(uri/uri_hier)).
-  :- use_module(library(uri/uri_host)).
-  :- use_module(library(uri/uri_port)).
-  :- use_module(library(uri/uri_query)).
-  :- use_module(library(uri/uri_query_encoding)).
-  :- use_module(library(uri/uri_relative)).
-  :- use_module(library(uri/uri_scheme)).
 %/url
   :- use_module(library(url/rfc1738)).
   :- use_module(library(url/rfc1738_code)).

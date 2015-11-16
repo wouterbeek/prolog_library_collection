@@ -105,9 +105,10 @@ dcg_table_cell("data", W, Cell_1, Element) --> !,
   indent(W2).
 dcg_table_cell("header", W, Cell_1, Element) -->
   {
+    W0 is W - 2,
     dcg_with_output_to(
       codes(Cs),
-      dcg_between("*", dcg_table_cell("data", Cell_1, Element))
+      dcg_between("*", dcg_table_cell("data", W0, Cell_1, Element))
     ),
     length(Cs, W1), W2 is W - W1
   },

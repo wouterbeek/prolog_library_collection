@@ -1,6 +1,15 @@
 :- module(
   rfc3987,
   [
+    'absolute-IRI'//4, % ?Scheme:string
+                       % ?Authority:compound
+                       % ?Segments:list(string)
+                       % ?Query:string
+    'ihier-part'//2, % ?Authority:compound
+                     % ?Segments:list(string)
+    'irelative-part'//3, % ?Scheme:string
+                         % ?Authority:compound
+                         % ?Segments:list(string)
     'IRI'//1, % ?Iri:atom
     'IRI'//5, % ?Scheme:string
               % ?Authority:compound
@@ -53,18 +62,14 @@
     The coded character set defined by ISO/IEC 10646 and the Unicode Standard.
 
 @author Wouter Beek
-@compat [RFC 3987](http://tools.ietf.org/html/rfc3987)
-@version 2015/08, 2015/11
+@compat RFC 3987
+@see http://tools.ietf.org/html/rfc3987
+@version 2015/11
 */
 
 :- use_module(library(string_ext)).
+:- use_module(library(iri/rfc3987_component)).
 :- use_module(library(uri)).
-:- use_module(library(uri/uri_code)).
-:- use_module(library(uri/uri_fragment)).
-:- use_module(library(uri/uri_hier)).
-:- use_module(library(uri/uri_query)).
-:- use_module(library(uri/uri_relative)).
-:- use_module(library(uri/uri_scheme)).
 
 
 
@@ -77,14 +82,51 @@
 %!   ?Query:string
 %! )// .
 % ```abnf
-% absolute-IRI   = scheme ":" ihier-part [ "?" iquery ]
+% absolute-IRI = scheme ":" ihier-part [ "?" iquery ]
 % ```
 
-'absolute-IRI'(Scheme, Auth, Segments, Query) -->
+'absolute-IRI'(Scheme, Auth, L, Query) -->
   scheme(Scheme),
   ":",
-  'hier-part'(true, Scheme, Auth, Segments),
-  ("?", query(true, Query) ; "").
+  'ihier-part'(Scheme, Auth, L),
+  ("?" -> iquery(Query) ; "").
+
+
+
+%! 'ihier-part'(?Authority:compound, ?Segments:list(string))// .
+% ```abnf
+% ihier-part = "//" iauthority ipath-abempty
+%            / ipath-absolute
+%            / ipath-rootless
+%            / ipath-empty
+% ```
+
+'ihier-part'(Auth, L) --> "//", iauthority(Auth), 'ipath-abempty'(L).
+'ihier-part'(_, L) --> 'ipath-absolute'(L).
+'ihier-part'(_, L) --> 'ipath-rootless'(L).
+'ihier-part'(_, L) --> 'ipath-empty'(L).
+
+
+
+%! 'irelative-part'(
+%!   ?Scheme:string,
+%!   ?Authority:compound,
+%!   ?Segments:list(string)
+%! )// .
+% ```abnf
+% irelative-part = "//" iauthority ipath-abempty
+%                / ipath-absolute
+%                / ipath-noscheme
+%                / ipath-empty
+% ```
+
+'irelative-part'(Scheme, Auth, L) -->
+  "//",
+  iauthority(Scheme, Auth),
+  'ipath-abempty'(L).
+'irelative-part'(_, _, L) --> 'ipath-absolute'(L).
+'irelative-part'(_, _, L) --> 'ipath-noscheme'(L).
+'irelative-part'(_, _, L) --> 'ipath-empty'(L).
 
 
 
@@ -121,12 +163,12 @@
 % IRI = scheme ":" ihier-part [ "?" iquery ] [ "#" ifragment ]
 % ```
 
-'IRI'(Scheme, Auth, Segments, Query, Frag) -->
+'IRI'(Scheme, Auth, L, Query, Frag) -->
   scheme(Scheme),
   ":",
-  'hier-part'(true, Scheme, Auth, Segments),
-  ("?", query(true, Query) ;   ""),
-  ("#", fragment(true, Frag) ; "").
+  'ihier-part'(true, Scheme, Auth, L),
+  ("?" -> iquery(Query) ; ""),
+  ("#" -> ifragment(Frag) ; "").
 
 
 
@@ -143,7 +185,27 @@
 % IRI-reference = IRI / irelative-ref
 % ```
 
-'IRI-reference'(Scheme, Auth, Segments, Query, Frag) -->
-  'IRI'(Scheme, Auth, Segments, Query, Frag).
-'IRI-reference'(Scheme, Auth, Segments, Query, Frag) -->
-  'relative-ref'(true, Scheme, Auth, Segments, Query, Frag).
+'IRI-reference'(Scheme, Auth, L, Query, Frag) -->
+  'IRI'(Scheme, Auth, L, Query, Frag).
+'IRI-reference'(Scheme, Auth, L, Query, Frag) -->
+  'irelative-ref'(Scheme, Auth, L, Query, Frag).
+
+
+
+%! 'irelative-ref'(
+%!   ?Scheme:string,
+%!   ?Authority:compound,
+%!   ?Segments:list(string),
+%!   ?Query:string,
+%!   ?Fragment:string
+%! )// .
+% Relative IRI reference.
+%
+% ```abnf
+% irelative-ref = irelative-part [ "?" iquery ] [ "#" ifragment ]
+% ```
+
+'irelative-ref'(Scheme, Auth, L, Query, Frag) -->
+  'irelative-part'(Scheme, Auth, L),
+  ("?" -> iquery(Query) ; ""),
+  ("#" -> ifragment(Frag) ; "").

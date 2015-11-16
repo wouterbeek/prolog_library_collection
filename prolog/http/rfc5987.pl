@@ -31,7 +31,6 @@
      'Language-Tag'//1
    ]).
 :- use_module(library(string_ext)).
-:- use_module(library(uri/uri_code)).
 
 
 
@@ -134,10 +133,10 @@ language(L) --> 'Language-Tag'(L).
 
 %! 'value-chars'(?Value:string)// .
 % ```abnf
-% value-chars   = *( pct-encoded / attr-char )
+% value-chars = *( pct-encoded / attr-char )
 % ```
 
-'value-chars'(S) --> dcg_string(value_chars, S).
-value_chars([H|T]) --> 'pct-encoded'(H), !, value_chars(T).
-value_chars([H|T]) --> 'attr-char'(H), !, value_chars(T).
-value_chars([]) --> "".
+'value-chars'(S) --> dcg_string(value_codes, S).
+value_codes([H|T]) --> 'pct-encoded'(H), !, value_chars(T).
+value_codes([H|T]) --> 'attr-char'(H), !, value_chars(T).
+value_codes([]) --> "".

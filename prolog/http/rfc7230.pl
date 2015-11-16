@@ -1,7 +1,7 @@
 :- module(
   rfc7230,
   [
-    'Connection'//1, % ?Options:list
+    'Connection'//1, % ?Options:list(compound)
     'Content-Length'//1, % ?ContentLength:nonneg
     'HTTP-message'//3, % ?StartLine
                        % ?HeaderFields:list(compound)
@@ -9,8 +9,9 @@
     'HTTP-name'//0,
     'HTTP-version'//2, % ?Major:between(0,9)
                        % ?Minor:between(0,9)
-    'Host'//2 % ?Host
-              % ?Port
+    'Host'//2, % ?Host:compound
+               % ?Port:nonneg
+    'uri-host'//1 % ?Host:compound
   ]
 ).
 
@@ -18,6 +19,7 @@
 
 @author Wouter Beek
 @compat RFC 7230
+@see http://tools.ietf.org/html/rfc7230
 @version 2015/11
 */
 
@@ -26,6 +28,8 @@
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(http/rfc7230_code)).
+:- use_module(library(http/rfc7230_token)).
+:- use_module(library(uri/rfc3986_component)).
 
 
 
@@ -106,3 +110,12 @@ header_fields([]) --> "".
 % ```
 
 'Host'(Host, Port) --> 'uri-host'(Host), (":", port(Port) ; "").
+
+
+
+%! 'uri-host'(?Host)// .
+% ```abnf
+% uri-host = <host, see [RFC3986], Section 3.2.2>
+% ```
+
+'uri-host'(Host) --> host(Host).

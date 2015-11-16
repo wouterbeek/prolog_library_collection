@@ -31,9 +31,6 @@
 :- use_module(library(http/rfc4790)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
-:- use_module(library(uri/uri_scheme)).
-:- use_module(library(uri/uri_host)).
-:- use_module(library(uri/uri_port)).
 :- use_module(library(uuid)).
 
 

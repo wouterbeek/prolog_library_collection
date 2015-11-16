@@ -8,9 +8,10 @@
                             % +Field:oneof([authority,fragment,path,query,scheme])
                             % +Value:atom
                             % -Iri2:atom
-    uri_component/3 % +Uri:uri
-                    % +Field:atom
-                    % ?Data:atom
+    uri_component/3, % +Uri:uri
+                     % +Field:atom
+                     % ?Data:atom
+    uri_query_enc//0
   ]
 ).
 :- reexport(library(uri)).
@@ -20,10 +21,12 @@
 Additional predicates for handling URIs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@compat RFC 3986
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(dcg/dcg_code)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(lambda)).
@@ -191,3 +194,27 @@ uri_change_query_options(Uri1, Goal_2, Uri2):-
     ),
     Uri2
   ).
+
+
+
+%! uri_query_enc// .
+% ```abnf
+% query = *( pchar / "/" / "?" )
+% pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+% pct-encoded = "%" HEXDIG HEXDIG
+% sub-delims = "!" / "$" / "&" / "'" / "(" / ")"
+%            / "*" / "+" / "," / ";" / "="
+% unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+% ```
+
+uri_query_enc, "/" --> "/", !, uri_query_enc.
+uri_query_enc, "?" --> "?", !, uri_query_enc.
+uri_query_enc, ":" --> ":", !, uri_query_enc.
+uri_query_enc, "@" --> "@", !, uri_query_enc.
+uri_query_enc, [C] --> unreserved(C), !, uri_query_enc.
+uri_query_enc, [C] --> 'sub-delims'(C), !, uri_query_enc.
+uri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
+  between_code(0, 255, C), !,
+  {W1 is C // 16, W2 is C mod 16},
+  uri_query_enc.
+uri_query_enc --> "".
