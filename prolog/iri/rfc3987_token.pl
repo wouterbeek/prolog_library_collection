@@ -53,7 +53,7 @@
 % ipath-empty = 0<ipchar>
 % ```
 
-'path-empty'([]) --> "".
+'ipath-empty'([]) --> "".
 
 
 
@@ -62,7 +62,7 @@
 % ipath-noscheme = isegment-nz-nc *( "/" isegment )
 % ```
 
-'path-noscheme'([H|T]) --> 'segment-nz-nc'(H), isegments(T).
+'ipath-noscheme'([H|T]) --> 'isegment-nz-nc'(H), isegments(T).
 
 
 

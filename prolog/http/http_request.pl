@@ -38,7 +38,6 @@ posing an alternative to library(http/http_client).
 :- meta_predicate(http_post(+,+,2,+)).
 :- meta_predicate(http_post(+,+,2,2,+)).
 :- meta_predicate(http_request(+,2,2,+)).
-:- meta_predicate(http_stream(+,2,2,+)).
 
 :- predicate_options(http_get/3, 3, [
      pass_to(http_get/4, 4)
