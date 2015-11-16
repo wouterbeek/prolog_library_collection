@@ -134,13 +134,15 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
 %! ) is det.
 
 http_open2(Iri, Read, Close_0, Opts):-
-  http_open(Iri, Read, Opts),
-  option(metadata(M), Opts),
-  (   between(200, 299, M.http.status_code)
+  copy_term(Opts, OptsCp),
+  http_open(Iri, Read, OptsCp),
+  option(metadata(M), OptsCp),
+  (   between(200, 299, M.http.status_code),
+      option(metadata(M), Opts)
   ->  true
   ;   option(http_error(Error_2), Opts, http_error_default),
       call_cleanup(call(Error_2, M, Read), Close_0),
-      fail
+      http_open2(Iri, Read, Close_0, Opts)
   ).
 
 
