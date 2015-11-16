@@ -129,7 +129,7 @@ http_open2(Iri, Read1, Close_0, Opts1):-
   must_be(ground, Status),
   (   is_http_error(Status)
   ->  option(headers(Headers), Opts2),
-      http_error_message(Status, Headers, Read2),
+      call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
       http_open2(Iri, Read1, Close_0, Opts1)
   ;   Read1 = Read2,
       Opts1 = Opts2
