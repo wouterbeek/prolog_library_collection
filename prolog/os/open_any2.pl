@@ -38,7 +38,6 @@ to open_any/5.
 :- use_module(library(zlib)).
 
 :- meta_predicate(close_any2(0)).
-:- meta_predicate(http_open2(+,+,0,:)).
 :- meta_predicate(open_any2(+,+,-,0)).
 :- meta_predicate(open_any2(+,+,-,0,:)).
 
@@ -71,7 +70,7 @@ close_any2(Close_0):-
 %!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   -Close_0
+%!   :Close_0
 %! ) is det.
 % Wrapper around open_any2/5 with default options.
 
@@ -83,11 +82,12 @@ open_any2(Source, Mode, Stream, Close_0):-
 %!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   -Close_0,
+%!   :Close_0,
 %!   :Options:list(compound)
 %! ) is nondet.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0):-
+  strip_module(Close_0, _, BareClose_0),
   meta_options(is_meta, Opts0, Opts1),
   source_type(Source0, Source, Type),
   ignore(option(metadata(M), Opts1)),
@@ -96,9 +96,9 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
   (   Type == http_iri, Mode == read
-  ->  Close_0 = close(Stream),
-	    http_open2(Source, Stream, Close_0, Opts2)
-  ;   open_any(Source, Mode, Stream0, Close_0, Opts2)
+  ->  BareClose_0 = close(Stream),
+      http_open2(Source, Stream, BareClose_0, Opts2)
+  ;   open_any(Source, Mode, Stream0, BareClose_0, Opts2)
   ),
 
   % Compression.
@@ -112,37 +112,27 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   ;   Stream = Stream0
   ),
 
-  % HTTP error.
-  (   is_http_error0(Opts2)
-  ->  memberchk(status_code(Status), Opts2),
-      http_status_label(Status, Label),
-      throw(
-        error(
-          permission_error(url,Source),
-          context(_,status(Status,Label))
-        )
-      )
-  ;   open_any_metadata(Source, Mode, Type, Comp, Opts2, M)
-  ).
+  open_any_metadata(Source, Mode, Type, Comp, Opts2, M).
 
 
 %! http_open2(
 %!   +Iri:atom,
 %!   +Read:stream,
 %!   :Close_0,
-%!   :Options:list(compound)
+%!   +Options:list(compound)
 %! ) is det.
 
-http_open2(Iri, Read, Close_0, Opts):-
-  copy_term(Opts, OptsCp),
-  http_open(Iri, Read, OptsCp),
-  option(metadata(M), OptsCp),
-  (   between(200, 299, M.http.status_code),
-      option(metadata(M), Opts)
-  ->  true
-  ;   option(http_error(Error_2), Opts, http_error_default),
-      call_cleanup(call(Error_2, M, Read), Close_0),
-      http_open2(Iri, Read, Close_0, Opts)
+http_open2(Iri, Read1, Close_0, Opts1):-
+  copy_term(Opts1, Opts2),
+  http_open(Iri, Read2, Opts2),
+  option(status_code(Status), Opts2),
+  must_be(ground, Status),
+  (   is_http_error(Status)
+  ->  option(headers(Headers), Opts2),
+      http_error_message(Status, Headers, Read2),
+      http_open2(Iri, Read1, Close_0, Opts1)
+  ;   Read1 = Read2,
+      Opts1 = Opts2
   ).
 
 
@@ -166,25 +156,18 @@ base_iri(File, BaseIri):-
 
 
 
-%! http_error_default(+Metadata:dict, +Read:stream) is det.
+%! http_error_message(
+%!   +Status:between(100,599),
+%!   +Headers:list(compound),
+%!   +Read:stream
+%! ) is det.
 
-http_error_default(M, Read):-
-  format(user_error, "RESPONSE: ~D~n", [M.http.status_code]),
-  dict_pairs(M.http.headers, http_headers, ResHs),
-  maplist(print_header(user_error), ResHs),
+http_error_message(Status, Headers, Read):-
+  (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
+  format(user_error, "RESPONSE: ~d (~a)~n", [Status,Label]),
+  maplist(print_header(user_error), Headers),
   copy_stream_data(Read, user_error),
   nl(user_error).
-
-
-
-%! is_http_error0(+Options:list(compound)) is semidet.
-% Succeeds if Options contains an HTTP status code
-% that describes an error condition.
-
-is_http_error0(Opts):-
-  option(status_code(Status), Opts),
-  ground(Status),
-  is_http_error(Status).
 
 
 
@@ -223,7 +206,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
 
   % Mode.
   put_dict(mode, M1, Mode, M2),
-  
+
   % Compression.
   (   write_mode(Mode),
       ground(Comp)
