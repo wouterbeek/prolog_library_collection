@@ -303,5 +303,4 @@ table_position(Cell_1, L, pos(col(0,1,Cols),row(0,1,Rows),Ws,Len)):-
   number_of_columns(L, Cols),
   number_of_rows(L, Rows),
   column_widths(Cell_1, Cols, L, Ws),
-  maplist(plus(3), Ws, Lens),
-  sum_list(Lens, Len).
+  sum_list([1,Cols,Cols,Cols|Ws], Len).

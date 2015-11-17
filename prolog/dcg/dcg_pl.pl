@@ -125,7 +125,12 @@ pl_term(L, I1) -->
   ).
 % 3. Other term.
 pl_term(T, I) -->
-  tab(I), nondict(T).
+  tab(I), pl_term0(T).
+
+pl_term0(I) --> {integer(I)}, !, thousands_integer(I).
+pl_term0(S) --> {string(S)}, !, "\"", atom(S), "\"".
+pl_term0(A) --> {atom(A)}, !, atom(A).
+pl_term0(X) --> {gtrace}, pl_term0(X).
 
 
 
@@ -145,7 +150,7 @@ term_entries(Dcg_4, [H|T], I) -->
 %! dict_entry(+Pair:pair, +Indent:nonneg)// is det.
 
 dict_entry(Key-Val, I1) -->
-  tab(I1), nondict(Key),
+  tab(I1), pl_term(Key),
   ": ",
   % Newline and additional indentation before dictionary or list values
   % that are non-empty and non-singleton.
@@ -180,11 +185,3 @@ is_singleton_term(L):-
   L = [X],
   is_singleton_term(X).
 is_singleton_term(_).
-
-
-
-%! nondict(@Term)// is det.
-
-nondict(T) -->
-  {with_output_to(codes(Cs), write_term(T))},
-  Cs.
