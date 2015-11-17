@@ -54,7 +54,7 @@ json_read_any(Source, Dict):-
 
 json_read_any(Source, Dict, Opts):-
   setup_call_cleanup(
-    open_any2(Source, read, Read, Close, Opts),
+    open_any2(Source, read, Read, Close_1, Opts),
     json_read_dict(Read, Dict, Opts),
-    close_any2(Close)
+    close_any2(Close_1)
   ).

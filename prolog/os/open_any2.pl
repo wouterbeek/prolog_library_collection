@@ -1,12 +1,12 @@
 :- module(
   open_any2,
   [
-    close_any2/1, % :Close_0
+    close_any2/1, % +Close_0
     open_any2/4, % +Source, +Mode, -Stream, :Close_0
     open_any2/5, % +Source
                  % +Mode:oneof([append,read,write])
                  % -Stream:stream
-                 % :Close_0
+                 % -Close_0
                  % :Options:list(compound)
     read_mode/1, % ?Mode:atom
     write_mode/1 % ?Mode:atom
@@ -37,9 +37,9 @@ to open_any/5.
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
-:- meta_predicate(close_any2(0)).
-:- meta_predicate(open_any2(+,+,-,0)).
-:- meta_predicate(open_any2(+,+,-,0,:)).
+:- meta_predicate(close_any2(+)).
+:- meta_predicate(open_any2(+,+,-,-)).
+:- meta_predicate(open_any2(+,+,-,-,:)).
 
 is_meta(http_error).
 
@@ -58,7 +58,7 @@ is_meta(http_error).
 
 
 
-%! close_any2(:Close_0) is det.
+%! close_any2(+Close_0) is det.
 % Synonym of close_any/1 for consistency.
 
 close_any2(Close_0):-
@@ -70,7 +70,7 @@ close_any2(Close_0):-
 %!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   :Close_0
+%!   +Close_0
 %! ) is det.
 % Wrapper around open_any2/5 with default options.
 
@@ -82,12 +82,11 @@ open_any2(Source, Mode, Stream, Close_0):-
 %!   +Source,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   :Close_0,
+%!   +Close_0,
 %!   :Options:list(compound)
 %! ) is nondet.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0):-
-  strip_module(Close_0, _, BareClose_0),
   meta_options(is_meta, Opts0, Opts1),
   source_type(Source0, Source, Type),
   ignore(option(metadata(M), Opts1)),
@@ -96,9 +95,8 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
   (   Type == http_iri, Mode == read
-  ->  BareClose_0 = close(Stream),
-      http_open2(Source, Stream, BareClose_0, Opts2)
-  ;   open_any(Source, Mode, Stream0, BareClose_0, Opts2)
+  ->  http_open2(Source, Stream, Close_0, Opts2)
+  ;   open_any(Source, Mode, Stream0, Close_0, Opts2)
   ),
 
   % Compression.
@@ -118,7 +116,7 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
 %! http_open2(
 %!   +Iri:atom,
 %!   +Read:stream,
-%!   :Close_0,
+%!   +Close_0,
 %!   +Options:list(compound)
 %! ) is det.
 
@@ -132,6 +130,7 @@ http_open2(Iri, Read1, Close_0, Opts1):-
       call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
       http_open2(Iri, Read1, Close_0, Opts1)
   ;   Read1 = Read2,
+      Close_0 = close(Read1),
       Opts1 = Opts2
   ).
 

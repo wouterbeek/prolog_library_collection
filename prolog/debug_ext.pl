@@ -43,7 +43,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/10
+@version 2015/07-2015/11
 */
 
 :- use_module(library(aggregate)).
@@ -229,11 +229,7 @@ if_debug(_, Goal_0):-
 %! number_of_open_files(-N:nonneg) is det.
 
 number_of_open_files(N):-
-  aggregate_all(
-    count,
-    stream_property(_, output),
-    N
-  ).
+  aggregate_all(count, (member(X, [input,output]), stream_property(_, X)), N).
 
 
 
