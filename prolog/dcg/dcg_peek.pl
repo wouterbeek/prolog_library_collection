@@ -2,8 +2,9 @@
   dcg_peek,
   [
     dcg_peek//1, % :Dcg_0
-    dcg_peek//2 % +Length:nonneg
-                % ?Codes:list(code)
+    dcg_peek//2, % +Length:nonneg
+                 % ?Codes:list(code)
+    dcg_peek_code//1 % ?Code:code
   ]
 ).
 
@@ -12,7 +13,7 @@
 Peeking in difference lists.
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/11
 */
 
 :- meta_predicate(dcg_peek(//,?,?)).
@@ -36,3 +37,7 @@ dcg_peek(Dcg_0), Dcg_0 -->
 dcg_peek(Length, Peek), Peek -->
   {length(Peek, Length)},
   Peek.
+
+
+
+dcg_peek_code(C), [C] --> [C].

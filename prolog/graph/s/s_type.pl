@@ -240,7 +240,7 @@ graphic_sequence([H | T]):-
 % @arg Harary An undirected Harary graph.
 
 s_harary(K, N, H):-
-  even(K), !,
+  is_even(K), !,
   VLast is N - 1,
   numlist(0, VLast, Vs),
   HalfK is K / 2,
@@ -256,7 +256,7 @@ s_harary(K, N, H):-
     H
   ).
 s_harary(K, N, H):-
-  even(N), !,
+  is_even(N), !,
   NewK is K - 1,
   s_harary(NewK, N, G),
   s_harary(G, =, N, H).

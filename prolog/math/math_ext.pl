@@ -30,7 +30,6 @@
     euclidean_distance/3, % +Coordinate1:coordinate
                           % +Coordinate2:coordinate
                           % -EuclideanDistance:float
-    even/1, % +Integer:integer
     factorial/2, % +N:integer
                  % -F:integer
     fibonacci/2, % ?Index:integer
@@ -43,6 +42,8 @@
     int_div_zero/3, % ?X
                     % ?Y
                     % ?Z
+    is_even/1, % +Number:number
+    is_odd/1, % +Number:number
     log/3, % +Base:integer
            % +X:float
            % +Y:float
@@ -60,7 +61,6 @@
     number_length/3, % +Number:number
                      % +Radix:integer
                      % -Length:integer
-    odd/1, % +Integer:integer
     permutations/2, % +NumberOfObjects, -NumberOfPermutations
     permutations/3, % +NumbersOfObjects:list(integer)
                     % +PermutationLength:integer
@@ -362,12 +362,6 @@ euclidean_distance(
   EuclideanDistance is sqrt(X2).
 
 
-%! even(+Number:number) is semidet.
-% Succeeds if the integer is even.
-
-even(N):-
-  mod(N, 2, 0).
-
 
 %! factorial(+N:integer, -F:integer) is det.
 % Returns the factorial of the given number.
@@ -437,6 +431,22 @@ fractional_integer(_, 0).
 int_div_zero(_, 0, 0):- !.
 int_div_zero(X, Y, Z):-
   Z #= X // Y.
+
+
+
+%! is_even(+Number:number) is semidet.
+% Succeeds if the number is even.
+
+is_even(N):-
+  mod(N, 2, 0).
+
+
+
+%! is_odd(+Number:number) is semidet.
+% Succeeds if the number is odd.
+
+is_odd(N):-
+  mod(N, 2, 1).
 
 
 
@@ -541,14 +551,6 @@ number_length(N1, Radix, L1):-
   number_length(N2, Radix, L2),
   L1 is L2 + 1.
 number_length(_N, _Radix, 1):- !.
-
-
-
-%! odd(?Number:number) is semidet.
-% Succeeds if the integer is odd.
-
-odd(N):-
-  mod(N, 2, 1).
 
 
 
