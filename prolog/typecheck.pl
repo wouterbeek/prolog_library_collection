@@ -9,6 +9,7 @@
     is_file_iri/1, % @Term
     is_http_iri/1, % @Term
     is_iri/1, % @Term
+    is_uri/1, % @Term
     negative_float/1, % @Term
     negative_integer/1, % @Term
     nonneg/1, % @Term
@@ -71,7 +72,7 @@ Predicates used for parsing and checking value-type conformance.
 ---
 
 @author Wouter Beek
-@version 2015/07, 2015/09-2015/10
+@version 2015/07, 2015/09-2015/11
 */
 
 :- use_module(library(error)).
@@ -163,6 +164,13 @@ is_http_iri(Iri):-
 
 is_iri(T):-
   error:has_type(iri, T).
+
+
+
+%! is_uri*@Term) is semidet.
+
+is_uri(T):-
+  is_iri(T).
 
 
 
