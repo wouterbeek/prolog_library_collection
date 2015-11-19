@@ -15,8 +15,7 @@
 
 /** <module> Open any v2
 
-Wrapper around library(iostream) that adds a metadata option
-to open_any/5.
+Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
 @version 2015/10-2015/11
@@ -85,6 +84,10 @@ open_any2(Source, Mode, Stream, Close_0):-
 %!   +Close_0,
 %!   :Options:list(compound)
 %! ) is nondet.
+% The following options are supported:
+%   * compress(+oneof([deflate,gzip,none]))
+%   * metadata(-dict)
+%   * Passed to open_any/5.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   meta_options(is_meta, Opts0, Opts1),
