@@ -11,6 +11,8 @@
     uri_component/3, % +Uri:uri
                      % +Field:atom
                      % ?Data:atom
+    uri_file_extensions/2, % +Uri:uri
+                           % -Extensions:list(atom)
     uri_optional_query_enc//0,
     uri_query_enc//0
   ]
@@ -32,6 +34,7 @@ Additional predicates for handling URIs.
 :- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(option)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(uri)).
 
 :- meta_predicate(uri_change_query(+,2,-)).
@@ -133,6 +136,14 @@ uri_field0(fragment).
 uri_field0(path).
 uri_field0(search).
 uri_field0(scheme).
+
+
+
+%! uri_file_extensions(+Uri:uri, -Extensions:list(atom)) is det.
+
+uri_file_extensions(Uri, Exts):-
+  uri_components(Uri, uri_components(_,_,Path,_,_)),
+  file_extensions(Path, Exts).
 
 
 

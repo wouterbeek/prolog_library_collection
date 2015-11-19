@@ -6,6 +6,10 @@
 
     file_age/2, % +File:atom
                 % -Age:float
+    file_extensions/2, % +File:atom
+                       % -Extensions:list(atom)
+    file_paths/2, % +File:atom
+                  % -Paths:list(atom)
     is_fresh_age/2, % +Age:between(0.0,inf)
                     % +FreshnessLifetime:between(0.0,inf)
     is_fresh_file/2, % +File:atom
@@ -32,7 +36,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
 @license MIT license
-@version 2015/07-2015/10
+@version 2015/07-2015/11
 */
 
 :- use_module(library(apply)).
@@ -42,7 +46,6 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(filesex)).
 :- use_module(library(lists)).
 :- use_module(library(os/dir_ext)).
-:- use_module(library(os/file_ext)).
 :- use_module(library(os/os_ext)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
@@ -79,6 +82,22 @@ file_age(File, Age):-
   time_file(File, LastModified),
   get_time(Now),
   Age is Now - LastModified.
+
+
+
+%! file_extensions(+File:atom, -Extensions:list(atom)) is det.
+
+file_extensions(File, Exts):-
+  file_paths(File, Paths),
+  last(Paths, Path),
+  atomic_list_concat([_|Exts], ., Path).
+
+
+
+%! file_paths(+File:atom, -Paths:list(atom)) is det.
+
+file_paths(File, Paths):-
+  atomic_list_concat(Paths, /, File).
 
 
 

@@ -8,8 +8,6 @@
                 % -Path:atom
     uri_authority_directory/2, % +Uri:atom
                                % -Directory:atom
-    uri_file_extension/2, % +Uri:atom
-                          % ?FileExtension:atom
     uri_flat_directory/3, % +ParentDirectory:atom
                           % +Uri:atom
                           % -UriDirectory:atom
@@ -27,16 +25,14 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2013/05, 2013/09, 2013/11-2014/04, 2014/08, 2014/11
+@version 2013/05, 2013/09, 2013/11-2014/04, 2014/08, 2014/11, 2015/11
 */
 
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
-:- use_module(library(semweb/rdf_db), except([rdf_node/1])).
+:- use_module(library(os/file_ext)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
-
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_ext)).
 
 :- multifile(error:has_type/2).
 error:has_type(email, Term):-
@@ -116,25 +112,6 @@ uri_authority_directory(Url, Dir):-
   directory_subdirectories(DataDir, DataDirComponents),
   append(DataDirComponents, [Scheme,Authority], DirComponents),
   directory_subdirectories(Dir, DirComponents).
-
-
-%! uri_file_extension(+Url:url, +FileExtension:atom) is semidet.
-%! uri_file_extension(+Url:url, -FileExtension:atom) is semidet.
-% Returns the empty atom in case there is no file extension.
-
-uri_file_extension(Url, FileExtension):-
-  % Extract the path.
-  uri_components(Url, uri_components(_,_,Path,_,_)),
-
-  % Extract the file.
-  atomic_list_concat(PathComponents, '/', Path),
-  last(PathComponents, FileComponent),
-
-  % Extract the file extensions.
-  atomic_list_concat(FileComponents, '.', FileComponent),
-  length(FileComponents, Length),
-  Length > 1,
-  last(FileComponents, FileExtension).
 
 
 %! uri_flat_directory(

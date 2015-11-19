@@ -91,7 +91,7 @@ open_any2(Source, Mode, Stream, Close_0):-
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   meta_options(is_meta, Opts0, Opts1),
-  source_type(Source0, Source, Type),
+  source_type(Source0, Mode, Source, Type),
   ignore(option(metadata(M), Opts1)),
   open_any_options(Type, Opts1, Opts2),
 
@@ -256,26 +256,29 @@ read_mode(read).
 
 %! source_type(
 %!   +Source0,
+%!   +Mode:oneof([append,read,write]),
 %!   -Source,
 %!   -Type:oneof([file_iri,http_iri,stream,string])
 %! ) is nondet.
 
-source_type(stream(Stream), Stream, stream):- !.
-source_type(string(S), S, string):- !.
-source_type(Stream, Stream, stream):-
+source_type(stream(Stream), _, Stream, stream):- !.
+source_type(string(S), _, S, string):- !.
+source_type(Stream, _, Stream, stream):-
   is_stream(Stream), !.
-source_type(Iri, Iri, file_iri):-
+source_type(Iri, _, Iri, file_iri):-
   is_file_iri(Iri), !.
-source_type(Iri, Iri, http_iri):-
+source_type(Iri, _, Iri, http_iri):-
   is_http_iri(Iri), !.
-source_type(File, Iri, file_iri):-
+source_type(File, _, Iri, file_iri):-
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-source_type(Pattern, Iri, Type):-
-  expand_file_name(Pattern, Files),
-  % NONDET
-  member(File, Files),
-  source_type(File, Iri, Type).
+source_type(Pattern, Mode, Iri, Type):-
+  absolute_file_name(
+    Pattern,
+    File,
+    [access(Mode),expand(true),file_errors(fail),solutions(first)]
+  ),
+  source_type(File, Mode, Iri, Type).
 
 
 %! write_mode(+Mode:atom) is semidet.

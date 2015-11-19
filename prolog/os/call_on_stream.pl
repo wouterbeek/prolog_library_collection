@@ -77,7 +77,7 @@ read_from_stream(Source, Goal_2):-
 
 
 %! read_from_stream(+Source, :Goal_2, +Options:list(compound)) is det.
-% Wrapper around call_on_stream/4 with read mode.
+% Calls Goal_2 on a metadata dictionary and a read stream (in that order).
 
 read_from_stream(Source, Goal_2, Opts):-
   call_on_archive(Source, Goal_2, Opts).
@@ -92,7 +92,7 @@ write_to_stream(Source, Goal_2):-
 
 
 %! write_to_stream(+Source, :Goal_2, +Options:list(compound)) is det.
-% Wrapper around write_on_stream/4 with write mode.
+% Calls Goal_2 on a metadata dictionary and a write stream (in that order).
 
 write_to_stream(Source, Goal_2, Opts):-
   append_or_write_to_stream(Source, write, Goal_2, Opts).
