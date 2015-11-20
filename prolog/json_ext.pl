@@ -3,10 +3,14 @@
   [
     atomize_json/2, % +Json:dict
                     % -AtomizedJson:dict
-    json_read_any/2, % +File, -Dict
-    json_read_any/3 % +File:atom
-                    % -Dict:dict
-                    % +Options:list(compound)
+    json_read_any/2, % +Source, -Json
+    json_read_any/3, % +Source
+                     % -Json:dict
+                     % +Options:list(compound)
+    json_write_any/2, % +Sink, +Json
+    json_write_any/3 % +Sink
+                     % +Json:dict
+                     % +Options:list(compound)
   ]
 ).
 
@@ -40,7 +44,7 @@ atomize_json(D1, D2):-
 
 
 
-%! json_read_any(+Source, -Dict:dict, +Options:list(compound)) is det.
+%! json_read_any(+Source, -Dict:dict) is det.
 % Wrapper around json_read_any/3 with default options.
 
 json_read_any(Source, Dict):-
@@ -56,5 +60,26 @@ json_read_any(Source, Dict, Opts):-
   setup_call_cleanup(
     open_any2(Source, read, Read, Close_1, Opts),
     json_read_dict(Read, Dict, Opts),
+    close_any2(Close_1)
+  ).
+
+
+
+%! json_write_any(+Sink, -Dict:dict) is det.
+% Wrapper around json_write_any/3 with default options.
+
+json_write_any(Sink, Dict):-
+  json_write_any(Sink, Dict, []).
+
+
+%! json_write_any(+Sink, -Dict:dict, +Options:list(compound)) is det.
+% Write JSON to any sink.
+%
+% Options are passed to open_any2/5 and json_write_dict/3.
+
+json_read_any(Sink, Dict, Opts):-
+  setup_call_cleanup(
+    open_any2(Sink, write, Write, Close_1, Opts),
+    json_write_dict(Write, Dict, Opts),
     close_any2(Close_1)
   ).
