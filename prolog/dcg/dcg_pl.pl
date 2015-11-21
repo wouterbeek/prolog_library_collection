@@ -112,7 +112,7 @@ pl_term(D, I1) -->
   ;   % A singleton dictionary does not use lucious spacing if
       % its member is singleton.
       {is_singleton_term(D)}
-  ->  tab(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, I1), "}"
+  ->  tab(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, 1), tab(1), "}"
   ;   tab(I1), "{", nl,
       {I2 is I1 + 1},
       term_entries(dict_entry, L, I2),

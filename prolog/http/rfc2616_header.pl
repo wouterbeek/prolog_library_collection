@@ -1,18 +1,22 @@
 :- module(
   rfc2616_header,
   [
+    'Accept-Ranges'//1, % ?Ranges:list(or([oneof([bytes]),string]))
     'Access-Control-Allow-Origin'//1, % ?Origins:list(dict)
     'Connection'//1, % ?ConnectionTokens:list(string)
-    'Content-Disposition'//1, % ?Value:dict
+    'Content-Disposition'//1, % ?ContentDisposition:dict
     'Content-Language'//1, % ?LanguageTags:list(list(string)))
+    'Content-Length'//1, % ?Length:nonneg
     'Content-Type'//1, % ?MediaType:dict
-    'Date'//1, % ?Value:compound
+    'Date'//1, % ?DateTime:compound
+    'ETag'//1, % ?ETag:dict
     'field-content'//2, % :Name
                         % -Value:compound
     'field-name'//1, % ?Name:string
     'field-value'//2, % :Name
                       % -Value:compound
     'message-header'//1, % ?Header:pair(string,compound)
+    'Last-Modified'//1, % ?DateTime:compound
     'Server'//1, % ?Value:list([dict,string])
     'Transfer-Encoding'//1 % ?TransferEncoding:list(or([oneof([chunked]),dict])))
   ]
@@ -27,17 +31,27 @@
 */
 
 :- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/rfc_common)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
+:- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6454)).
 
-:- meta_predicate(abnf_list(3,-,?,?)).
 :- meta_predicate('field-content'(3,-,?,?)).
 :- meta_predicate('field-value'(3,-,?,?)).
 
 
+
+
+
+%! 'Accept-Ranges'(?Ranges:list(or([oneof([bytes]),string])))// .
+% ```abnf
+% Accept-Ranges = "Accept-Ranges" ":" acceptable-ranges
+% ```
+
+'Accept-Ranges'(L) --> 'acceptable-ranges'(L).
 
 
 
@@ -87,6 +101,15 @@
 
 
 
+%! 'Content-Length'(?Length:nonneg)// .
+% ```abnf
+% Content-Length = "Content-Length" ":" 1*DIGIT
+% ```
+
+'Content-Length'(N) --> '+DIGIT'(N).
+
+
+
 %! 'Content-Type'(?MediaType:dict)// .
 % ```abnf
 % Content-Type = "Content-Type" ":" media-type
@@ -103,6 +126,15 @@
 % ```
 
 'Date'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! 'ETag'(?ETag:compound)// .
+% ```abnf
+% ETag = "ETag" ":" entity-tag
+% ```
+
+'ETag'(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
 
 
 
@@ -155,6 +187,15 @@
 
 
 
+%! 'Last-Modified'(?DateTime:compound)// .
+% ```abnf
+% Last-Modified = "Last-Modified" ":" HTTP-date
+% ```
+
+'Last-Modified'(DT) --> 'HTTP-date'(DT).
+
+
+
 %! 'Server'(?Server:list(or[dict,string]))// .
 % ```abnf
 % Server = "Server" ":" 1*( product | comment )
@@ -176,17 +217,3 @@ server_comp(S) --> comment(S).
 % ```
 
 'Transfer-Encoding'(L) --> abnf_list('transfer-coding', L).
-
-
-
-
-% HELPERS %
-
-abnf_list(Dcg_1, [H|T]) -->
-  dcg_call(Dcg_1, H), !,
-  abnf_list_sep,
-  abnf_list(Dcg_1, T).
-abnf_list(_, [])        --> "".
-abnf_list_sep --> 'LWS', !, abnf_list_sep.
-abnf_list_sep --> ",",   !, abnf_list_sep.
-abnf_list_sep --> "".

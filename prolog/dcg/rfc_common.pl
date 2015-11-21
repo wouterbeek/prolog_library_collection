@@ -44,6 +44,5 @@
 '#DIGIT'(0, N, N) --> !, "".
 '#DIGIT'(M1, N1, N) -->
   'DIGIT'(D), !,
-  {N2 is N1 + D * 10 ^ M1,
-   M2 is M1 - 1},
+  {N2 is N1 *10 + D, M2 is M1 - 1},
   '#DIGIT'(M2, N2, N).

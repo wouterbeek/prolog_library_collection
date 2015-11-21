@@ -1,22 +1,30 @@
 :- module(
   rfc2616_token,
   [
+    'acceptable-ranges'//1, % ?Ranges:list(or([oneof([bytes]),string]))
     attribute//1, % ?Attribute:string
+    'bytes-unit'//1, % ?BytesUnit:oneof([bytes])
     comment//1, % ?Comment:string
+    'entity-tag'//2, % ?Weak:boolean
+                     % ?OpaqueTag:string
     'language-tag'//1, % ?LanguageTag:list(string)
     'media-type'//1, % ?MediaType:dict
+    'opaque-tag'//1, % ?OpaqueTag:string
+    'other-range-unit'//1, % ?RangeUnit:string
     parameter//1, % ?Parameter:pair(string)
     'primary-tag'//1, % ?PrimaryTag:string
     product//1, % ?Product:dict
     'product-version'//1, % ?ProductVersion:string
     'quoted-string'//1, % ?String:string
+    'range-unit'//1, % ?RangeUnit:or([oneof([bytes]),string])
     subtag//1, % ?Subtag:string
     subtype//1, % ?Subtype:string
     token//1, % ?Token:string
     'transfer-coding'//1, % ?TransferCoding:or([oneof([chunked]),dict])
     'transfer-extension'//1, % ?TransferExtension:dict
     type//1, % ?Type:string
-    value//1 % ?Value:string
+    value//1, % ?Value:string
+    weak//0
   ]
 ).
 
@@ -37,12 +45,31 @@
 
 
 
+%! 'acceptable-ranges'(?Ranges:list(or([oneof([bytes]),string])))// .
+% ```abnf
+% acceptable-ranges = 1#range-unit | "none"
+% ```
+
+'acceptable-ranges'(L)  --> abnf_list('range-unit', L).
+'acceptable-ranges'([]) --> "none".
+
+
+
 %! attribute(?Attribute:string)// .
 % ```abnf
 % attribute = token
 % ```
 
 attribute(S) --> token(S).
+
+
+
+%! 'bytes-unit'(?BytesUnit:oneof([bytes]))// .
+% ```abnf
+% bytes-unit = "bytes"
+% ```
+
+'bytes-unit'(bytes) --> "bytes".
 
 
 
@@ -57,6 +84,17 @@ comment_codes2([H|T]) --> ctext(H),           !, comment_codes2(T).
 comment_codes2([H|T]) --> 'quoted-pair'(H),   !, comment_codes2(T).
 comment_codes2(L)     --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
 comment_codes2([])    --> "".
+
+
+
+%! 'entity-tag'(?Weak:boolean, ?OpaqueTag:string)// .
+% ```abnf
+% entity-tag = [ weak ] opaque-tag
+% ```
+
+'entity-tag'(Weak, OTag) -->
+  (weak -> {Weak = true} ; {Weak = false}),
+  'opaque-tag'(OTag).
 
 
 
@@ -81,6 +119,24 @@ subtags([])    --> "".
   "/",
   subtype(Subtype),
   parameters(L).
+
+
+
+%! 'opaque-tag'(?OpaqueTag:string)// .
+% ```abnf
+% opaque-tag = quoted-string
+% ```
+
+'opaque-tag'(OTag) --> 'quoted-string'(OTag).
+
+
+
+%! 'other-range-unit'(?RangeUnit:string)// .
+% ```abnf
+% other-range-unit = token
+% ```
+
+'other-range-unit'(S) --> token(S).
 
 
 
@@ -133,6 +189,16 @@ product(D) -->
 quoted_string_codes([H|T]) --> qdtext(H),        !, quoted_string_codes(T).
 quoted_string_codes([H|T]) --> 'quoted-pair'(H), !, quoted_string_codes(T).
 quoted_string_codes([])    --> "".
+
+
+
+%! 'range-unit'(?RangeUnit:or([oneof([bytes]),string]))// .
+% ```abnf
+% range-unit = bytes-unit | other-range-unit
+% ```
+
+'range-unit'(A) --> 'bytes-unit'(A), !.
+'range-unit'(S) --> 'other-range-unit'(S).
 
 
 
@@ -208,6 +274,15 @@ type(S) --> token(S).
 
 value(S) --> token(S), !.
 value(S) --> 'quoted-string'(S).
+
+
+
+%! weak// .
+% ```abnf
+% weak = "W/"
+% ```
+
+weak --> "W/".
 
 
 

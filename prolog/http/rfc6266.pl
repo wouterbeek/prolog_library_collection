@@ -17,7 +17,6 @@ header from RFC 2616.
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_token), [
      token//1, % ?Token:string
@@ -41,10 +40,9 @@ header from RFC 2616.
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(Type, Params) -->{gtrace},
-  'disposition-type'(Type),
-  *(disposition_param, Params, []).
-disposition_param(Param) --> ";", 'disposition-parm'(Param).
+'content-disposition'(Type, L) --> 'disposition-type'(Type), params(L).
+params([H|T]) --> ";", !, 'disposition-parm'(H), params(T).
+params([])    --> "".
 
 
 
@@ -54,7 +52,7 @@ disposition_param(Param) --> ";", 'disposition-parm'(Param).
 %               | ext-token "=" ext-value
 % ```
 
-'disp-ext-parm'(Key-Val) --> token(Key), "=", value(Val).
+'disp-ext-parm'(Key-Val) --> token(Key), !, "=", value(Val).
 'disp-ext-parm'(Key-x(X,Y,Z)) --> 'ext-token'(Key), "=", 'ext-value'(X, Y, Z).
 
 
@@ -84,9 +82,9 @@ disposition_param(Param) --> ";", 'disposition-parm'(Param).
 %                  ; case-insensitive
 % ```
 
-'disposition-type'(inline) --> "inline".
+'disposition-type'(inline)      --> "inline".
 'disposition-type'(attachement) --> "attachment".
-'disposition-type'(Type) --> 'disp-ext-type'(Type).
+'disposition-type'(Type)        --> 'disp-ext-type'(Type).
 
 
 
