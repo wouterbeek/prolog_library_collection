@@ -13,6 +13,7 @@
 @version 2015/11
 */
 
+:- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_token)).
 
 
@@ -21,5 +22,5 @@
 
 %! parameters(?Parameters:list(pair(string)))// .
 
-parameters([H|T]) --> ";", !, parameter(H), parameters(T).
+parameters([H|T]) --> ";", !, ('LWS', ! ; ""),  parameter(H), parameters(T).
 parameters([]) --> "".

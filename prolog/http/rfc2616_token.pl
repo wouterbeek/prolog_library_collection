@@ -206,7 +206,7 @@ type(S) --> token(S).
 % value = token | quoted-string
 % ```
 
-value(S) --> token(S).
+value(S) --> token(S), !.
 value(S) --> 'quoted-string'(S).
 
 

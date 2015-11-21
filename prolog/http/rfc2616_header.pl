@@ -7,11 +7,11 @@
     'Content-Language'//1, % ?LanguageTags:list(list(string)))
     'Content-Type'//1, % ?MediaType:dict
     'Date'//1, % ?Value:compound
-    'field-content'//2, % +Name:string
-                        % ?Value:compound
+    'field-content'//2, % :Name
+                        % -Value:compound
     'field-name'//1, % ?Name:string
-    'field-value'//2, % +Name:string
-                      % ?Value:compound
+    'field-value'//2, % :Name
+                      % -Value:compound
     'message-header'//1, % ?Header:pair(string,compound)
     'Server'//1, % ?Value:list([dict,string])
     'Transfer-Encoding'//1 % ?TransferEncoding:list(or([oneof([chunked]),dict])))
@@ -34,6 +34,8 @@
 :- use_module(library(http/rfc6454)).
 
 :- meta_predicate(abnf_list(3,-,?,?)).
+:- meta_predicate('field-content'(3,-,?,?)).
+:- meta_predicate('field-value'(3,-,?,?)).
 
 
 
@@ -47,7 +49,7 @@
 % ```
 
 'Access-Control-Allow-Origin'(L) --> 'origin-list-or-null'(L).
-'Access-Control-Allow-Origin'(_) --> "*".
+'Access-Control-Allow-Origin'(*) --> "*".
 
 
 
@@ -104,16 +106,14 @@
 
 
 
-%! 'field-content'(+Name:string, ?Value:compound)// .
+%! 'field-content'(+Name:atom, ?Value:compound)// .
 % ```abnf
 % field-content = <the OCTETs making up the field-value
 %                  and consisting of either *TEXT or combinations
 %                  of token, separators, and quoted-string>
 % ```
-% @tbd
 
-'field-content'(Name, Value) -->
-  {atom_string(Pred, Name), gtrace},
+'field-content'(Pred, Value) -->
   dcg_call(Pred, Value).
 
 
@@ -127,7 +127,7 @@
 
 
 
-%! 'field-value'(+Name:string, ?Value:compound)// .
+%! 'field-value'(+Name:atom, ?Value:compound)// .
 % ```abnf
 % field-value = *( field-content | LWS )
 % ```
@@ -141,8 +141,9 @@
 % message-header = field-name ":" [ field-value ]
 % ```
 
-'message-header'(Name-Value) -->
+'message-header'(Pred-Value) -->
   'field-name'(Name),
+  {atom_string(Pred, Name)},
   ":",
   % The field-content does not include any leading or trailing LWS:
   % linear white space occurring before the first non-whitespace
@@ -150,7 +151,7 @@
   % character of the field-value. Such leading or trailing LWS MAY be
   % removed without changing the semantics of the field value.
   'LWS',
-  ('field-value'(Name, Value), ! ; "").
+  ('field-value'(Pred, Value), ! ; "").
 
 
 

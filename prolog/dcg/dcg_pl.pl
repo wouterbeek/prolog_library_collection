@@ -1,6 +1,7 @@
 :- module(
   dcg_pl,
   [
+    pl_dateTime//1, % +DateTime:compound
     pl_pair//1, % +Pair:pair
     pl_pair//2, % :Name_2
                 % :Value_2
@@ -20,6 +21,7 @@ DCG rules for printing SWI-Prolog 7 terms.
 @version 2015/08, 2015/10-2015/11
 */
 
+:- use_module(library(date_ext)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_call)).
@@ -35,6 +37,14 @@ DCG rules for printing SWI-Prolog 7 terms.
 :- meta_predicate(term_entries(4,+,+,?,?)).
 
 
+
+
+
+%! pl_dateTime(+DateTime:compound)// is det.
+
+pl_dateTime(DT1, X, Y):-
+  dateTime_date(DT1, DT2),
+  format_time(codes(X,Y), "%FT%T%z", DT2).
 
 
 
@@ -131,6 +141,7 @@ pl_term0(I) --> {integer(I)}, !, thousands_integer(I).
 pl_term0(S) --> {string(S)}, !, "\"", atom(S), "\"".
 pl_term0(A) --> {atom(A)}, !, atom(A).
 pl_term0(N-V) --> !, pl_pair(N-V).
+pl_term0(DT) --> pl_dateTime(DT), !.
 pl_term0(X) --> {gtrace}, pl_term0(X).
 
 
