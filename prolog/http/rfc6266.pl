@@ -8,15 +8,27 @@
 
 /** <module> RFC 6266: Use of the Content-Disposition Header Field in the HTTP
 
+Takes over the definition and registration of the `Content-Disposition`
+header from RFC 2616.
+
 @author Wouter Beek
 @compat RFC 6266
+@see http://tools.ietf.org/html/rfc6266
 @version 2015/11
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_token)).
-:- use_module(library(http/rfc5987)).
+:- use_module(library(http/rfc2616_token), [
+     token//1, % ?Token:string
+     'quoted-string'//1, % QuotedString:string
+     value//1 % ?Value:string
+   ]).
+:- use_module(library(http/rfc5987_token), [
+     'ext-value'//3 % ?Charset:string
+                    % ?Language:list(string)
+                    % ?Value:string
+   ]).
 
 
 
