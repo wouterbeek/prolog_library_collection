@@ -31,7 +31,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/rfc_common)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(math/positional)).
 
@@ -45,7 +45,7 @@
 % ```
 
 'asctime-date'(dateTime(_,Mo,D,H,Mi,S,Off)) -->
-  wkday(_WKD), 'SP',
+  wkday(_WKD), !, 'SP',
   date3(D, Mo), 'SP',
   time(H, Mi, S), 'SP',
   '#DIGIT'(4, Off).
@@ -58,10 +58,8 @@
 % ```
 
 date1(D, Mo, Y) -->
-  '#DIGIT'(2, D),
-  'SP',
-  month(Mo),
-  'SP',
+  '#DIGIT'(2, D), 'SP',
+  month(Mo), !, 'SP',
   '#DIGIT'(4, Y).
 
 
@@ -73,7 +71,7 @@ date1(D, Mo, Y) -->
 
 date2(D, Mo, Y) -->
   '#DIGIT'(2, D), "-",
-  month(Mo), "-",
+  month(Mo), !, "-",
   '#DIGIT'(2, Y).
 
 
@@ -84,9 +82,9 @@ date2(D, Mo, Y) -->
 % ```
 
 date3(D, Mo) -->
-  month(Mo),
+  month(Mo), !,
   'SP',
-  ('#DIGIT'(2, D) ; ('SP', '#DIGIT'(1, D))).
+  ('#DIGIT'(2, D) ; ('SP', 'DIGIT'(D))).
 
 
 
@@ -95,7 +93,7 @@ date3(D, Mo) -->
 % delta-seconds  = 1*DIGIT
 % ```
 
-'delta-seconds'(S) --> +('DIGIT', S, [convert(1-sum)]).
+'delta-seconds'(N) --> '+DIGIT'(N).
 
 
 
@@ -104,8 +102,8 @@ date3(D, Mo) -->
 % HTTP-date = rfc1123-date | rfc850-date | asctime-date
 % ```
 
-'HTTP-date'(DT) --> 'rfc1123-date'(DT).
-'HTTP-date'(DT) --> 'rfc850-date'(DT).
+'HTTP-date'(DT) --> 'rfc1123-date'(DT), !.
+'HTTP-date'(DT) --> 'rfc850-date'(DT),  !.
 'HTTP-date'(DT) --> 'asctime-date'(DT).
 
 
@@ -151,7 +149,7 @@ month(12) --> "Dec".
 % ```
 
 'rfc1123-date'(dateTime(Y,Mo,D,H,Mi,S,_Off)) -->
-  wkday(_WKD), ",", 'SP',
+  wkday(_WKD), !, ",", 'SP',
   date1(D, Mo, Y), 'SP',
   time(H, Mi, S), 'SP',
   "GMT".
@@ -163,10 +161,7 @@ month(12) --> "Dec".
 % time = 2DIGIT ":" 2DIGIT ":" 2DIGIT
 % ```
 
-time(H, Mi, S) -->
-  '#DIGIT'(2, H), ":",
-  '#DIGIT'(2, Mi), ":",
-  '#DIGIT'(2, S).
+time(H, Mi, S) --> '#DIGIT'(2, H), ":", '#DIGIT'(2, Mi), ":", '#DIGIT'(2, S).
 
 
 
@@ -198,12 +193,3 @@ weekday(4) --> "Thursday".
 weekday(5) --> "Friday".
 weekday(6) --> "Saturday".
 weekday(7) --> "Sunday".
-
-
-
-
-
-% HELPERS %
-
-'#DIGIT'(M, N) -->
-  #(M, 'DIGIT', N, [convert1(positional)]).

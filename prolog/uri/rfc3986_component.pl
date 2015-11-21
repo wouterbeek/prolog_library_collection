@@ -26,6 +26,7 @@
 :- use_module(library(math/positional)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
+:- use_module(library(uri/rfc3986_token)).
 
 
 

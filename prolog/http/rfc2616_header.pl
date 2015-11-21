@@ -1,22 +1,20 @@
 :- module(
   rfc2616_header,
   [
+    'Access-Control-Allow-Origin'//1, % ?Origins:list(dict)
     'Connection'//1, % ?ConnectionTokens:list(string)
-    'Connection0'//1, % ?ConnectionTokens:list(string)
     'Content-Disposition'//1, % ?Value:dict
-    'Content-Disposition0'//1, % ?Value:dict
     'Content-Language'//1, % ?LanguageTags:list(list(string)))
-    'Content-Language0'//1, % ?LanguageTags:list(list(string)))
     'Content-Type'//1, % ?MediaType:dict
-    'Content-Type0'//1, % ?MediaType:dict
     'Date'//1, % ?Value:compound
-    'Date0'//1, % ?Value:compound
-    http_parsed_header_pair/2, % +Header:compound
-                               % -ParsedHeaderPair:pair(atom)
+    'field-content'//2, % +Name:string
+                        % ?Value:compound
+    'field-name'//1, % ?Name:string
+    'field-value'//2, % +Name:string
+                      % ?Value:compound
+    'message-header'//1, % ?Header:pair(string,compound)
     'Server'//1, % ?Value:list([dict,string])
-    'Server0'//1, % ?Value:list([dict,string])
-    'Transfer-Encoding'//1, % ?TransferEncoding:list(or([oneof([chunked]),dict])))
-    'Transfer-Encoding0'//1 % ?TransferEncoding:list(or([oneof([chunked]),dict])))
+    'Transfer-Encoding'//1 % ?TransferEncoding:list(or([oneof([chunked]),dict])))
   ]
 ).
 
@@ -28,32 +26,37 @@
 @version 2015/11
 */
 
-:- use_module(library(apply)).
-:- use_module(library(atom_ext)).
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_phrase)).
-:- use_module(library(dcg/dcg_pl)).
-:- use_module(library(http/abnf_list)).
-:- use_module(library(http/rfc2616)).
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
-:- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc6266)).
-:- use_module(library(http/rfc6454), [origin//1 as 'Origin']).
+:- use_module(library(http/rfc6454)).
+
+:- meta_predicate(abnf_list(3,-,?,?)).
 
 
+
+
+
+%! 'Access-Control-Allow-Origin'(?Origins:list(dict))// .
+% ```abnf
+% Access-Control-Allow-Origin = "Access-Control-Allow-Origin"
+%                               ":" origin-list-or-null
+%                             | "*"
+% ```
+
+'Access-Control-Allow-Origin'(L) --> 'origin-list-or-null'(L).
+'Access-Control-Allow-Origin'(_) --> "*".
 
 
 
 %! 'Connection'(?ConnectionTokens:list(string))// .
-%! 'Connection0'(?ConnectionTokens:list(string))// .
 % ```abnf
 % 'Connection'(S) --> "Connection:", +(connection-token)
 % ```
 
-'Connection'(L) --> "Connection:", 'LWS', 'Connection0'(L).
-'Connection0'(L) --> ++('connection-token', L, []).
+'Connection'(L) --> abnf_list('connection-token', L).
 
 
 
@@ -67,97 +70,122 @@
 
 
 %! 'Content-Disposition'(?Value:compound)// .
-%! 'Content-Disposition0'(?Value:compound)// .
 
-'Content-Disposition'(D) -->
-  "Content-Disposition:", 'LWS',
-  'Content-Disposition0'(D).
-'Content-Disposition0'(content_disposition{type: Type, params: Params}) -->
+'Content-Disposition'(content_disposition{type: Type, params: Params}) -->
   'content-disposition'(Type, Params).
 
 
 
 %! 'Content-Language'(?LanguageTags:list(list(string)))// .
-%! 'Content-Language0'(?LanguageTags:list(list(string)))// .
 % ```abnf
 % Content-Language = "Content-Language" ":" 1#language-tag
 % ```
 
-'Content-Language'(L) --> "Content-Language:", 'LWS', 'Content-Language0'(L).
-'Content-Language0'(L) --> ++('language-tag', L, []).
+'Content-Language'(L) --> abnf_list('language-tag', L).
 
 
 
 %! 'Content-Type'(?MediaType:dict)// .
-%! 'Content-Type0'(?MediaType:dict)// .
 % ```abnf
 % Content-Type = "Content-Type" ":" media-type
 % ```
 
-'Content-Type'(MT) --> "Content-Type:", 'LWS', 'Content-Type0'(MT).
-'Content-Type0'(MT) --> 'media-type'(MT).
+'Content-Type'(MT) --> 'media-type'(MT).
 
 
 
 
 %! 'Date'(?DateTime:compound)// .
-%! 'Date0'(?DateTime:compound)// .
 % ```
 % Date = "Date" ":" HTTP-date
 % ```
 
-'Date'('Date'(DT)) --> "Date:", 'LWS', 'Date0'(DT).
-'Date0'(DT) --> 'HTTP-date'(DT).
+'Date'(DT) --> 'HTTP-date'(DT).
 
 
 
-%! http_parsed_header_pair(+Header:compound, -ParsedHeaderPair:pair(atom)) is det.
+%! 'field-content'(+Name:string, ?Value:compound)// .
+% ```abnf
+% field-content = <the OCTETs making up the field-value
+%                  and consisting of either *TEXT or combinations
+%                  of token, separators, and quoted-string>
+% ```
+% @tbd
 
-http_parsed_header_pair(Comp, N-V):-
-  Comp =.. [N0,V0],
-  http_restore_header_name(N0, N),
-  http_parse_header_value(N, V0, V),
-  dcg_with_output_to(current_output, pl_term(N-V)),
-  nl(current_output),
-  flush_output(current_output).
-
-
-http_restore_header_name(N0, N):-
-  atomic_list_concat(L0, '_', N0),
-  maplist(capitalize_atom, L0, L),
-  atomic_list_concat(L, -, N).
+'field-content'(Name, Value) -->
+  {atom_string(Pred, Name), gtrace},
+  dcg_call(Pred, Value).
 
 
-http_parse_header_value(N0, V0, V):-
-  atom(V0), !,
-  atom_concat(N0, '0', N),
-  Dcg_0 =.. [N,V],
-  atom_phrase(Dcg_0, V0).
-% @tbd Some header values are already parsed by http_open/3.
-http_parse_header_value(_, V, V).
+
+%! 'field-name'(?Name:string)// .
+% ```abnf
+% field-name = token
+% ```
+
+'field-name'(Name) --> token(Name).
+
+
+
+%! 'field-value'(+Name:string, ?Value:compound)// .
+% ```abnf
+% field-value = *( field-content | LWS )
+% ```
+
+'field-value'(Name, Value) --> 'field-content'(Name, Value).
+
+
+
+%! 'message-header'(?Header:pair(string,compound))// .
+% ```abnf
+% message-header = field-name ":" [ field-value ]
+% ```
+
+'message-header'(Name-Value) -->
+  'field-name'(Name),
+  ":",
+  % The field-content does not include any leading or trailing LWS:
+  % linear white space occurring before the first non-whitespace
+  % character of the field-value or after the last non-whitespace
+  % character of the field-value. Such leading or trailing LWS MAY be
+  % removed without changing the semantics of the field value.
+  'LWS',
+  ('field-value'(Name, Value), ! ; "").
 
 
 
 %! 'Server'(?Server:list(or[dict,string]))// .
-%! 'Server0'(?Server:list(or[dict,string]))// .
 % ```abnf
 % Server = "Server" ":" 1*( product | comment )
 % ```
 
-'Server'(D) --> "Server:", 'LWS', 'Server0'(D).
-'Server0'(L) --> +(server, L, [separator('LWS')]).
-server(D) --> product(D).
-server(S) --> comment(S).
+'Server'(L) --> '+server_comp'(L).
+'+server_comp'([H|T]) --> server_comp(H), !, '*server_comp'(T).
+% Sub-product tokens are separated by white space.
+'*server_comp'([H|T]) --> 'LWS', server_comp(H), !, '*server_comp'(T).
+'*server_comp'([])    --> "".
+server_comp(D) --> product(D).
+server_comp(S) --> comment(S).
 
 
 
 %! 'Transfer-Encoding'(?TransferEncoding:list(or([oneof([chunked]),dict])))// .
-%! 'Transfer-Encoding0'(?TransferEncoding:list(or([oneof([chunked]),dict])))// .
 % ```abnf
 % Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 % ```
 
-'Transfer-Encoding'(L) -->
-  "Transfer-Encoding:", 'LWS',
-  'Transfer-Encoding0'(L).
-'Transfer-Encoding0'(L) --> ++('transfer-coding', L, []).
+'Transfer-Encoding'(L) --> abnf_list('transfer-coding', L).
+
+
+
+
+% HELPERS %
+
+abnf_list(Dcg_1, [H|T]) -->
+  dcg_call(Dcg_1, H), !,
+  abnf_list_sep,
+  abnf_list(Dcg_1, T).
+abnf_list(_, [])        --> "".
+abnf_list_sep --> 'LWS', !, abnf_list_sep.
+abnf_list_sep --> ",",   !, abnf_list_sep.
+abnf_list_sep --> "".

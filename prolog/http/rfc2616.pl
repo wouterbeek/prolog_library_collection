@@ -2,12 +2,18 @@
   rfc2616,
   [
     comment//0,
+    'generic-message'//4, % ?Version:pair(nonneg)
+                          % ?Status:between(100,599)
+                          % ?Headers:list(pair(string,compound))
+                          % ?Body:list(code)
     http_URL//4, % ?Host:or([list(nonneg),list(string)])
                  % ?Port:nonneg
                  % ?Path:list(string)
                  % ?Query:string
-    'HTTP-Version'//2 % ?Major:nonneg
-                      % ?Minor:nonneg
+    'HTTP-message'//0,
+    'HTTP-Version'//1, % ?Version:pair(nonneg)
+    'start-line'//2 % ?Version:pair(nonneg)
+                    % ?Status:between(100,599)
   ]
 ).
 
@@ -44,6 +50,27 @@ comment0 --> "".
 
 
 
+%! 'generic-message'(
+%!   ?Version:pair(nonneg),
+%!   ?Status:between(100,599),
+%!   ?Headers:list(pair(string,compound)),
+%!   ?Body:list(code)
+%! )// .
+% ```abnf
+% generic-message = start-line
+%                   *(message-header CRLF)
+%                   CRLF
+%                   [ message-body ]
+% ```
+
+'generic-message'(Version, Status, Headers, Body) -->
+  'start-line'(Version, Status),
+  meassage_headers(Headers),
+  'CRLF',
+  ('message-body'(Body) ; {Body = []}).
+
+
+
 %! http_URL(
 %!   ?Host:or([list(nonneg),list(string)]),
 %!   ?Port:nonneg,
@@ -65,13 +92,33 @@ http_URL(Host, Port, Path, Query) -->
 
 
 
-%! 'HTTP-Version'(?Major:nonneg, ?Minor:nonneg)// .
+%! 'HTTP-message'// .
+% ```abnf
+% HTTP-message = Request | Response   ; HTTP/1.1 messages
+% ```
+
+'HTTP-message' --> 'Request'.
+'HTTP-message' --> 'Response'.
+
+
+
+%! 'HTTP-Version'(?Version:pair(nonneg))// .
 % ```abnf
 % HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT
 % ```
 
-'HTTP-Version'(X, Y) -->
+'HTTP-Version'(X-Y) -->
   "HTTP/",
   +('DIGIT', X, [convert(1-positional)]),
   ".",
   +('DIGIT', Y, [convert(1-positional)]).
+
+
+
+%! 'start-line'(?Version:pair(nonneg), ?Status:between(100,599))// .
+% ```abnf
+% start-line = Request-Line | Status-Line
+% ```
+
+'start-line'(Version, Status) --> 'Request-Line'(Version, Status).
+'start-line'(Version, Status) --> 'Status-Line'(Version, Status).

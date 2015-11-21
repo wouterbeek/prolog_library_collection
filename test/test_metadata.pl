@@ -1,7 +1,7 @@
 :- module(
   test_metadata,
   [
-    test_metadata/1 % ?Name:oneof([openany])
+    test_metadata/1 % ?Name:oneof([call_on_archive,openany])
   ]
 ).
 

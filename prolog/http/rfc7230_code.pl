@@ -3,16 +3,14 @@
   [
     'BWS'//0,
     'obs-text'//1, % ?Code:code
+    'OWS'//0
     'quoted-pair'//1, % ?Code:code
-    'OWS'//0,
     qdtext//1, % ?Code:code
     'RWS'//0,
     tchar//1 % ?TokenCharacter:code
   ]
 ).
-:- reexport(
-  library(dcg/rfc2234),
-  [
+:- reexport(library(dcg/rfc2234), [
     'ALPHA'//1, % ?Code:code
     'CR'//0,
     'CRLF'//0,
@@ -31,12 +29,12 @@
     'RWS'//0,
     'SP'//0,
     'VCHAR'//1
-  ]
-).
+  ]).
 
 /** <module> RFC 7230: Codes
 
 @author Wouter Beek
+@compat RFC 7230
 @version 2015/11
 */
 

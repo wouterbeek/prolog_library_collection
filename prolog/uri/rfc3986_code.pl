@@ -9,6 +9,19 @@
     unreserved//1 % ?Code:code
   ]
 ).
+:- reexport(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'CR'//0,
+     'DIGIT'//1, % ?Weight:betwen(0,9)
+     'DIGIT'//2, % ?Weight:betwen(0,9)
+                 % ?Code:code
+     'DQUOTE'//0,
+     'HEXDIG'//1, % ?Weight:betwen(0,9)
+     'HEXDIG'//2, % ?Weight:betwen(0,9)
+                  % ?Code:code
+     'LF'//0,
+     'SP'//0
+   ]).
 
 /** <module> RFC 3986: Codes
 
@@ -20,7 +33,6 @@
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/rfc2234)).
 
 
 
@@ -46,22 +58,23 @@
 % pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
 
-pchar(C) --> unreserved(C).
-pchar(C) --> 'pct-encoded'(C).
-pchar(C) --> 'sub-delims'(C).
+pchar(C)   --> unreserved(C).
+pchar(C)   --> 'pct-encoded'(C).
+pchar(C)   --> 'sub-delims'(C).
 pchar(0':) --> ":".
 pchar(0'@) --> "@".
 
 
 
 %! 'pct-encoded'(?Code:between(0,255))// .
+% Similar to escape//1 in RFC 1738 which also supports
+% uppercase hexadecimal letters.
+%
 % ```abnf
 % pct-encoded = "%" HEXDIG HEXDIG
 % ```
 
-'pct-encoded'(C) -->
-  "%",
-  '#'(2, 'HEXDIG', C, [convert1(positional)]).
+'pct-encoded'(C) --> "%", 'HEXDIG'(H1), 'HEXDIG'(H2), {C is H1 * 16 + H2}.
 
 
 
@@ -99,8 +112,8 @@ reserved(C) --> 'sub-delims'(C).
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-unreserved(C) --> 'ALPHA'(C).
-unreserved(C) --> 'DIGIT'(_, C).
+unreserved(C)   --> 'ALPHA'(C).
+unreserved(C)   --> 'DIGIT'(_, C).
 unreserved(0'-) --> "-".
 unreserved(0'.) --> ".".
 unreserved(0'_) --> "_".

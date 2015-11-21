@@ -129,7 +129,7 @@ http_open2(Iri, Read1, Close_0, Opts1):-
   option(status_code(Status), Opts2),
   must_be(ground, Status),
   (   is_http_error(Status)
-  ->  option(headers(Headers), Opts2),
+  ->  option(raw_headers(Headers), Opts2),
       call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
       http_open2(Iri, Read1, Close_0, Opts1)
   ;   Read1 = Read2,
@@ -160,14 +160,14 @@ base_iri(File, BaseIri):-
 
 %! http_error_message(
 %!   +Status:between(100,599),
-%!   +Headers:list(compound),
+%!   +Headers:list(string),
 %!   +Read:stream
 %! ) is det.
 
 http_error_message(Status, Headers, Read):-
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
   format(user_error, "RESPONSE: ~d (~a)~n", [Status,Label]),
-  maplist(print_header(user_error), Headers),
+  maplist(writeln(user_error), Headers),
   copy_stream_data(Read, user_error),
   nl(user_error).
 
@@ -190,12 +190,11 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
   ;   Type == http_iri
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
-      option(headers(Headers1), Opts),
+      option(raw_headers(Lines), Opts),
       option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
-      %maplist(http_parsed_header_pair, Headers1, Headers2),
-      maplist(option_pair, Headers1, Headers2),
-      create_grouped_sorted_dict(Headers2, http_headers, MHeaders),
+      maplist(parse_header, Lines, Headers),
+      create_grouped_sorted_dict(Headers, http_headers, MHeaders),
       MHttp = metadata{
                 final_iri: FinalIri,
                 headers: MHeaders,
@@ -218,6 +217,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
 
   % Source type.
   put_dict(source_type, M3, Type, M4).
+parse_header(Line, Header):- phrase('message-header'(Header), Line).
 
 
 
@@ -231,19 +231,12 @@ open_any_options(http_iri, Opts1, Opts3):- !,
   Opts2 = [
     cert_verify_hook(cert_accept_any),
     final_url(_),
-    headers(_),
+    raw_headers(_),
     status_code(_),
     version(_)
   ],
   merge_options(Opts1, Opts2, Opts3).
 open_any_options(_, Opts, Opts).
-
-
-
-%! print_header(+Write:stream, +Header:pair) is det.
-
-print_header(Write, N-V):-
-  format(Write, "~w=~w~n", [N,V]).
 
 
 

@@ -1,18 +1,18 @@
 :- module(
   dcg_abnf_common,
   [
-    '[-]?'//1, % ?Sign:number
-    '[+-]'//1, % ?Sign:number
-    '[+-]?'//1, % ?Sign:number
+    '[-]?'//1, % ?Sign:oneof([-1,1])
+    '[+-]'//1, % ?Sign:oneof([-1,1])
+    '[+-]?'//1, % ?Sign:oneof([-1,1])
     '[a-z]*'//1, % ?Codes:list(code)
     '[a-z]+'//1, % ?Codes:list(code)
     '[a-zA-Z]*'//1, % ?Codes:list(code)
     '[a-zA-Z]+'//1, % ?Codes:list(code)
-    '[0-9]'//1, % ?Digit:between(0,9)
-    '[0-9]'//2, % ?Digit:between(0,9)
+    '[0-9]'//1, % ?Weight:between(0,9)
+    '[0-9]'//2, % ?Weight:between(0,9)
                 % ?Code:code
-    '[0-9]*'//1, % ?Digits:list(between(0,9))
-    '[0-9]+'//1 % ?Digits:list(between(0,9))
+    '[0-9]*'//1, % ?Weights:list(nonneg)
+    '[0-9]+'//1 % ?Weights:list(nonneg)
   ]
 ).
 
@@ -23,120 +23,79 @@ but that occur often enough to legitimate a dedicated and more efficient
 implementation.
 
 @author Wouter Beek
-@tbd Can this be superseded by grammar rules from
-     implemented standards/specifications?
-@version 2015
+@version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 
 
 
 
 
-%! '[-]?'(+Sign:number)// .
 %! '[-]?'(-Sign:oneof([-1,1]))// .
 
-'[-]?'(Sg) -->
-  (   {ground(Sg)}
-  ->  (   {Sg < 0}
-      ->  "-"
-      ;   ""
-      )
-  ;   (   "-",
-          {Sg = -1}
-      ;   "",
-          {Sg = 1}
-      )
-  ).
+'[-]?'(-1) --> "-", !.
+'[-]?'(1) --> "".
 
 
 
-%! '[+-]'(+Sign:number)// .
 %! '[+-]'(-Sign:oneof([-1,1]))// .
 
-'[+-]'(Sg) -->
-  (   {ground(Sg)}
-  ->  (   {Sg < 0}
-      ->  "-"
-      ;   "+"
-      )
-  ;   (   "-",
-          {Sg = -1}
-      ;   "+",
-          {Sg = 1}
-      )
-  ).
+'[+-]'(-1) --> "-", !.
+'[+-]'(1)  --> "+".
 
 
 
-%! '[+-]?'(+Sign:number)// .
 %! '[+-]?'(-Sign:oneof([-1,1]))// .
 
-'[+-]?'(Sg) -->
-  '[+-]'(Sg).
+'[+-]?'(Sg) --> '[+-]'(Sg), !.
 '[+-]?'(1) --> "".
 
 
 
 %! '[a-z]*'(?Codes:list(code))// .
 
-'[a-z]*'([H|T]) -->
-  ascii_letter_lowercase(H),
-  '[a-z]*'(T).
+'[a-z]*'([H|T]) --> ascii_letter_lowercase(H), '[a-z]*'(T).
 '[a-z]*'([]) --> [].
 
 
 
 %! '[a-z]+'(?Codes:list(code))// .
 
-'[a-z]+'([H|T]) -->
-  ascii_letter_lowercase(H),
-  '[a-z]*'(T).
+'[a-z]+'([H|T]) --> ascii_letter_lowercase(H), '[a-z]*'(T).
 
 
 
 %! '[a-zA-Z]*'(?Codes:list(code))// .
 
-'[a-zA-Z]*'([H|T]) -->
-  ascii_letter(H),
-  '[a-zA-Z]*'(T).
+'[a-zA-Z]*'([H|T]) --> ascii_letter(H), !, '[a-zA-Z]*'(T).
 '[a-zA-Z]*'([]) --> [].
 
 
 
 %! '[a-zA-Z]+'(?Codes:list(code))// .
 
-'[a-zA-Z]+'([H|T]) -->
-  ascii_letter(H),
-  '[a-zA-Z]*'(T).
+'[a-zA-Z]+'([H|T]) --> ascii_letter(H), '[a-zA-Z]*'(T).
 
 
 
 %! '[0-9]'(?Weight:between(0,9))// .
 
-'[0-9]'(Weight) -->
-  decimal_digit(Weight).
+'[0-9]'(W) --> decimal_digit(W).
 
 %! '[0-9]'(?Weight:between(0,9), ?Code:code)// .
 
-'[0-9]'(Weight, Code) -->
-  decimal_digit(Weight, Code).
+'[0-9]'(W, C) --> decimal_digit(W, C).
 
 
 
 %! '[0-9]*'(?Weights:list(between(0,9)))// .
 
-'[0-9]*'([H|T]) -->
-  '[0-9]'(H),
-  '[0-9]*'(T).
+'[0-9]*'([H|T]) --> '[0-9]'(H), !, '[0-9]*'(T).
 '[0-9]*'([]) --> [].
 
 
 
 %! '[0-9]+'(?Weights:list(between(0,9)))// .
 
-'[0-9]+'([H|T]) -->
-  '[0-9]'(H),
-  '[0-9]*'(T).
+'[0-9]+'([H|T]) --> '[0-9]'(H), '[0-9]*'(T).

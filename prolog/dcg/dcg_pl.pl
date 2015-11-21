@@ -130,6 +130,7 @@ pl_term(T, I) -->
 pl_term0(I) --> {integer(I)}, !, thousands_integer(I).
 pl_term0(S) --> {string(S)}, !, "\"", atom(S), "\"".
 pl_term0(A) --> {atom(A)}, !, atom(A).
+pl_term0(N-V) --> !, pl_pair(N-V).
 pl_term0(X) --> {gtrace}, pl_term0(X).
 
 

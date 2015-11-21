@@ -68,7 +68,6 @@
   :- use_module(library(html/html_resource)).
 %/http
   :- use_module(library(http/abnf_list)).
-  :- use_module(library(http/access_control)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).

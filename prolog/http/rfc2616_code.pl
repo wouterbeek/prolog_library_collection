@@ -26,12 +26,8 @@
     'CTL'//0,
     'CTL'//1, % ?Code:code
     'DIGIT'//1, % ?Weight:nonneg
-    'DIGIT'//2, % ?Weight:nonneg
-                % ?Code:code
     'DQUOTE'//0 as '"',
     'HEXDIG'//1 as 'HEX', % ?Weight:nonneg
-    'HEXDIG'//2 as 'HEX', % ?Weight:nonneg
-                     % ?Code:code
     'HTAB'//0 as 'HT',
     'HTAB'//1 as 'HT', % ?Code:code
     'LF'//0,
@@ -48,9 +44,6 @@
 @deprecated
 @version 2015/11
 */
-
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
 
 
 
@@ -84,7 +77,7 @@
 % CHAR = <any US-ASCII character (octets 0 - 127)>
 % ```
 
-'CHAR'(C) --> between_code(0, 127, C).
+'CHAR'(C) --> [C], {between(0, 127, C)}.
 
 
 
@@ -178,10 +171,12 @@ ctext(C) --> 'TEXT'(C), {C \== 0'(, C \== 0')}.
 % LWS = [CRLF] 1*(SP|HT)
 % ```
 
-'LWS' --> ?('CRLF'), +(lws, []).
-lws --> 'SP'.
-lws --> 'HT'.
-
+'LWS' --> 'CRLF', !, '+lws'.
+'LWS' -->            '+lws'.
+'+lws' --> lws, !, '*lws'.
+'*lws' --> lws, !, '*lws'.
+'*lws' --> "".
+lws --> ('SP' ; 'HT').
 
 
 %! 'OCTET'(?Code:code)// .
@@ -198,7 +193,7 @@ lws --> 'HT'.
 % qdtext = <any TEXT except <">>
 % ```
 
-qdtext(C) --> 'TEXT'(C), {\+ char_code('"', C)}.
+qdtext(C) --> 'TEXT'(C), {C \== 0'"}.   %"
 
 
 
@@ -226,25 +221,25 @@ qdtext(C) --> 'TEXT'(C), {\+ char_code('"', C)}.
 %            | "/" | "[" | "]" | "?" | "=" | "{" | "}" | SP | HT
 % ```
 
-separators(0'() --> "(".
-separators(0')) --> ")".
-separators(0'<) --> "<".
-separators(0'>) --> ">".
-separators(0'@) --> "@".
-separators(0',) --> ",".
-separators(0';) --> ";".
-separators(0':) --> ":".
+separators(0'()  --> "(".
+separators(0'))  --> ")".
+separators(0'<)  --> "<".
+separators(0'>)  --> ">".
+separators(0'@)  --> "@".
+separators(0',)  --> ",".
+separators(0';)  --> ";".
+separators(0':)  --> ":".
 separators(0'\\) --> "\\".
-separators(0'") --> "\"". %"
-separators(0'/) --> "/".
-separators(0'[) --> "[".
-separators(0']) --> "]".
-separators(0'?) --> "?".
-separators(0'=) --> "=".
-separators(0'{) --> "{".
-separators(0'}) --> "}".
-separators(C) --> 'SP'(C).
-separators(C) --> 'HT'(C).
+separators(0'")  --> "\"". %"
+separators(0'/)  --> "/".
+separators(0'[)  --> "[".
+separators(0'])  --> "]".
+separators(0'?)  --> "?".
+separators(0'=)  --> "=".
+separators(0'{)  --> "{".
+separators(0'})  --> "}".
+separators(C)    --> 'SP'(C).
+separators(C)    --> 'HT'(C).
 
 
 

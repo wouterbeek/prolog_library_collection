@@ -28,7 +28,6 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_helpers)).
@@ -53,11 +52,11 @@ attribute(S) --> token(S).
 % ```
 
 comment(S) --> dcg_string(comment_codes1, S).
-comment_codes1(L) --> "(", comment_codes2(L), ")".
-comment_codes2([H|T]) --> ctext(H), !, comment_codes2(T).
-comment_codes2([H|T]) --> 'quoted-pair'(H), !, comment_codes2(T).
-comment_codes2(L) --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
-comment_codes2([]) --> "".
+comment_codes1(L)     --> "(", comment_codes2(L), ")".
+comment_codes2([H|T]) --> ctext(H),           !, comment_codes2(T).
+comment_codes2([H|T]) --> 'quoted-pair'(H),   !, comment_codes2(T).
+comment_codes2(L)     --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
+comment_codes2([])    --> "".
 
 
 
@@ -68,7 +67,7 @@ comment_codes2([]) --> "".
 
 'language-tag'([H|T]) --> 'primary-tag'(H), subtags(T).
 subtags([H|T]) --> "-", !, subtag(H), subtags(T).
-subtags([]) --> "".
+subtags([])    --> "".
 
 
 
@@ -99,7 +98,7 @@ parameter(Key-Val) --> attribute(Key), "=", value(Val).
 % primary-tag = 1*8ALPHA
 % ```
 
-'primary-tag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert1(codes_string)]).
+'primary-tag'(S) --> 'ALPHA'(1, 8, S).
 
 
 
@@ -131,9 +130,9 @@ product(D) -->
 % ```
 
 'quoted-string'(S) --> "\"", dcg_string(quoted_string_codes, S), "\"".
-quoted_string_codes([H|T]) --> qdtext(H), !, quoted_string_codes(T).
+quoted_string_codes([H|T]) --> qdtext(H),        !, quoted_string_codes(T).
 quoted_string_codes([H|T]) --> 'quoted-pair'(H), !, quoted_string_codes(T).
-quoted_string_codes([]) --> "".
+quoted_string_codes([])    --> "".
 
 
 
@@ -142,7 +141,7 @@ quoted_string_codes([]) --> "".
 % subtag = 1*8ALPHA
 % ```
 
-subtag(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert1(codes_string)]).
+subtag(S) --> 'ALPHA'(1, 8, S).
 
 
 
@@ -159,8 +158,15 @@ subtype(S) --> token(S).
 % ```abnf
 % token = 1*<any CHAR except CTLs or separators>
 % ```
+%
+% ```library(dcg/dcg_abnf)
+% +(token_code, S, [convert1(codes_string)])
+% ```
 
-token(S) --> +(token_code, S, [convert1(codes_string)]).
+token(S) --> dcg_string(token_codes1, S).
+token_codes1([H|T]) --> token_code(H), !, token_codes2(T).
+token_codes2([H|T]) --> token_code(H), !, token_codes2(T).
+token_codes2([]) --> "".
 token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 
 
@@ -171,7 +177,7 @@ token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 % ```
 
 'transfer-coding'(chunked) --> "chunked".
-'tarnsfer-coding'(D) --> 'transfer-extension'(D).
+'transfer-coding'(D) --> 'transfer-extension'(D).
 
 
 
@@ -202,3 +208,17 @@ type(S) --> token(S).
 
 value(S) --> token(S).
 value(S) --> 'quoted-string'(S).
+
+
+
+
+
+% HELPERS %
+
+'ALPHA'(M, N, S) --> dcg_string(alpha_codes(M, N, 0), S).
+alpha_codes(_, C, C, [])     --> !, "".
+alpha_codes(M, N, C1, [H|T]) -->
+  'ALPHA'(H), !,
+  {C2 is C1 + 1},
+  alpha_codes(M, N, C2, T).
+alpha_codes(M, _, C, []) --> {C >= M}, "".

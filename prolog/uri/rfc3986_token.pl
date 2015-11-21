@@ -29,6 +29,7 @@
 */
 
 :- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(math/positional)).
 :- use_module(library(string_ext)).

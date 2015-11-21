@@ -7,13 +7,9 @@
     digit//2, % ?Weight:between(0,9)
               % ?Code:code
     digits//1, % ?Integer:nonneg
-    digits//2, % ?Integer:nonneg
-               % ?Codes:list(code)
     escape//1, % ?Code:code
     extra//1, % ?Code:code
     hex//1, % ?Weight:between(0,15)
-    hex//2, % ?Weight:between(0,15)
-            % ?Code:code
     hialpha//1, % ?Code:code
     lowalpha//1, % ?Code:code
     national//1, % ?Code:code
@@ -32,7 +28,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/rfc_common)).
 
 
 
@@ -86,8 +82,7 @@ digit(9, 0'9) --> "9".
 % digits = 1*digit
 % ```
 
-digits(N) --> digits(N, _).
-digits(N, Cs) --> +(digit, N, Cs, [convert(1-sum)]).
+digits(N) --> '+DIGIT'(N).
 
 
 
@@ -96,7 +91,7 @@ digits(N, Cs) --> +(digit, N, Cs, [convert(1-sum)]).
 % escape = "%" hex hex
 % ```
 
-escape(C) --> "%", #(2, hex, C, [convert(1-positional)]).
+escape(C) --> "%", hex(H1), hex(H2), {C is H1 * 16 + H2}.
 
 
 
@@ -240,7 +235,7 @@ punctuation(0'<) --> "<".
 punctuation(0'>) --> ">".
 punctuation(0'#) --> "#".
 punctuation(0'%) --> "%".
-punctuation(0'") --> "\"".
+punctuation(0'") --> "\"".   %"
 
 
 

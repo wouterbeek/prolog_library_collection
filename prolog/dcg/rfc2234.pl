@@ -41,11 +41,8 @@
 
 @author Wouter Beek
 @compat RFC 2234
-@deprecated Use `library(dcg/rfcXXX)` instead.
 @version 2015/11
 */
-
-:- use_module(library(dcg/dcg_code)).
 
 
 
@@ -84,7 +81,7 @@
 % CHAR = %x01-7F   ; any 7-bit US-ASCII character, excluding NUL
 % ```
 
-'CHAR'(C) --> between_code_radix(hex('01'), hex('7F'), C).
+'CHAR'(C) --> [C], {between(1, 127, C)}.
 
 
 
@@ -97,7 +94,7 @@
 % ```
 
 'CR' --> 'CR'(_).
-'CR'(C) --> code_radix(hex('0D'), C).
+'CR'(13) --> [13].
 
 
 
@@ -110,7 +107,7 @@
 % ```
 
 'CRLF' --> 'CRLF'(_).
-'CRLF'([X,Y]) --> 'CR'(X), 'LF'(Y).
+'CRLF'([C1,C2]) --> 'CR'(C1), 'LF'(C2).
 
 
 
@@ -125,8 +122,7 @@
 % ```
 
 'CTL' --> 'CTL'(_).
-'CTL'(C) --> between_code_radix(hex('00'), hex('1F'), C).
-'CTL'(C) --> code_radix(hex('7F'), C).
+'CTL'(C) --> [C], {(between(0, 31, C) ; C = 127)}.
 
 
 
@@ -150,7 +146,7 @@
 % ```
 
 'DQUOTE' --> 'DQUOTE'(_).
-'DQUOTE'(C) --> code_radix(hex('22'), C).
+'DQUOTE'(34) --> [34].
 
 
 
@@ -185,7 +181,7 @@
 % ```
 
 'HTAB' --> 'HTAB'(_).
-'HTAB'(C) --> code_radix(hex('09'), C).
+'HTAB'(9) --> [9].
 
 
 
@@ -200,7 +196,7 @@
 % ```
 
 'LF' --> 'LF'(_).
-'LF'(C) --> code_radix(hex('0A'), C).
+'LF'(10) --> [10].
 
 
 
@@ -213,7 +209,7 @@
 % ```
 
 'LWSP' --> 'LWSP'(_).
-'LWSP'([H|T]) --> 'WSP'(H), !, 'LWSP'(T).
+'LWSP'([H|T])     --> 'WSP'(H),      !,           'LWSP'(T).
 'LWSP'([X,Y,Z|T]) --> 'CRLF'([X,Y]), !, 'WSP'(Z), 'LWSP'(T).
 'LWSP'([]) --> "".
 
@@ -228,7 +224,7 @@
 % OCTET = %x00-FF   ; 8 bits of data
 % ```
 
-'OCTET'(C) --> between_code_radix(hex('00'), hex('FF'), C).
+'OCTET'(C) --> [C], {between(0, 255, C)}.
 
 
 
@@ -242,8 +238,8 @@
 % SP = %x20
 % ```
 
-'SP' --> 'SP'(_).
-'SP'(C) --> code_radix(hex('20'), C).
+'SP' --> [32].
+'SP'(32) --> [32].
 
 
 
@@ -254,7 +250,7 @@
 % VCHAR = %x21-7E   ; visible (printing) characters
 % ```
 
-'VCHAR'(C) --> between_code_radix(hex('21'), hex('7E'), C).
+'VCHAR'(C) --> [C], {between(33, 126, C)}.
 
 
 
@@ -267,5 +263,4 @@
 % ```
 
 'WSP' --> 'WSP'(_).
-'WSP'(C) --> 'SP'(C).
-'WSP'(C) --> 'HTAB'(C).
+'WSP'(C) --> 'SP'(C) ; 'HTAB'(C).

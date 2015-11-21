@@ -3,12 +3,9 @@
   [
     has_same_origin/2, % +X:or([atom,dict])
                        % +Y:or([atom,dict])
-    'obs-fold'//1, % ?Codes:list(code)
-    'OWS'//1, % ?Codes:list(code)
     origin/2, % +Uri:atom
               % -Origin:or([atom,dict])
     origin//1, % ?Origins:list(dict)
-    origin0//1, % ?Origins:list(dict)
     'origin-list-or-null'//1,
     'origin-list'//1
   ]
@@ -24,13 +21,16 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/rfc2234)).
 :- use_module(library(default)).
 :- use_module(library(http/rfc4790)).
+:- use_module(library(http/rfc6454_code)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(uri/rfc3986_component), [
+     scheme//1, % ?Scheme:string
+     host//1, % ?Host:compound
+     port//1 % ?Port:nonneg
+   ]).
 :- use_module(library(uuid)).
 
 
@@ -64,15 +64,6 @@ has_same_origin(X1, Y1):-
   maplist(is_iri, [X1,Y1]), !,
   maplist(origin, [X1,Y1], [X2,Y2]),
   has_same_origin(X2, Y2).
-
-
-
-%! 'obs-fold'(?Codes:list(code))// .
-% ```abnf
-% obs-fold = CRLF ( SP / HTAB )   ; obsolete line folding
-% ```
-
-'obs-fold'([H1,H2,H3]) --> 'CRLF'([H1,H2]), ('SP'(H3) ; 'HTAB'(H3)).
 
 
 
@@ -145,13 +136,11 @@ origin(Uri, origin{scheme: Scheme, host: Host, port: Port}):-
 
 
 %! origin(?Origins:list(dict))// .
-%! origin0(?Origins:list(dict))// .
 % ```abnf
 % origin = "Origin:" OWS origin-list-or-null OWS
 % ```
 
-origin(L) --> "Origin:", 'OWS', origin0(L).
-origin0(L) --> 'origin-list-or-null'(L), 'OWS'.
+origin(L) --> "Origin:", 'OWS', 'origin-list-or-null'(L), 'OWS'.
 
 
 
@@ -160,7 +149,9 @@ origin0(L) --> 'origin-list-or-null'(L), 'OWS'.
 % origin-list = serialized-origin *( SP serialized-origin )
 % ```
 
-'origin-list'(L) --> +('serialized-origin', L, [separator('SP')]).
+'origin-list'([H|T]) --> 'serialized-origin'(H), !, origin_list(T).
+origin_list([H|T]) --> 'SP', 'serialized-origin'(H), !, origin_list(T).
+origin_list([])    --> "".
 
 
 
@@ -169,26 +160,8 @@ origin0(L) --> 'origin-list-or-null'(L), 'OWS'.
 % origin-list-or-null = %x6E %x75 %x6C %x6C / origin-list
 % ```
 
-'origin-list-or-null'([]) -->
-  code_radix(hex('6E')),
-  code_radix(hex('75')),
-  code_radix(hex('6C')),
-  code_radix(hex('6C')).
+'origin-list-or-null'([]) --> "null", !.
 'origin-list-or-null'(L) --> 'origin-list'(L).
-
-
-
-%! 'OWS'// .
-%! 'OWS'(?Codes:list(code))// .
-% ```abnf
-% OWS = *( SP / HTAB / obs-fold )   ; "optional" whitespace
-% ```
-
-'OWS' --> 'OWS'(_).
-'OWS'(L) --> *(ows_code, L, []).
-ows_code(C) --> 'SP'(C).
-ows_code(C) --> 'HTAB'(C).
-ows_code(C) --> 'obs-fold'(C).
 
 
 
@@ -201,5 +174,5 @@ ows_code(C) --> 'obs-fold'(C).
 'serialized-origin'(origin{scheme: Scheme, host: Host, port: Port}) -->
   scheme(Scheme),
   "://",
-  host(false, Host),
+  host(Host),
   (":", port(Port) ; {Port = 80}).
