@@ -7,6 +7,8 @@
     inverse_pair/2, % ?Pair:pair
                     % ?Inverse:pair
     is_reflexive_pair/1, % +Pair:pair)
+    is_var_key/1, % +Pair:pair
+    is_var_value/1, % +Pair:pair
     pair/3, % ?Pair:pair
             % ?Element1
             % ?Element2
@@ -27,7 +29,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).
@@ -76,8 +78,19 @@ inverse_pair(X-Y, Y-X).
 
 %! is_reflexive_pair(+Pair:pair) is semidet.
 
-is_reflexive_pair(Pair):-
-  pair(Pair, X, X).
+is_reflexive_pair(Pair):- pair(Pair, X, X).
+
+
+
+%! is_var_key(+Pair:pair) is semidet.
+
+is_var_key(K-_):- var(K).
+
+
+
+%! is_var_value(+Pair:pair) is semidet.
+
+is_var_value(_-V):- var(V).
 
 
 
@@ -94,8 +107,7 @@ pair(X-Y, X, Y).
 % Succeeds if Element occurs in Pair.
 
 pair_element(X-_, X).
-pair_element(X-Y, Y):-
-  X \== Y.
+pair_element(X-Y, Y):- X \== Y.
 
 
 

@@ -31,6 +31,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -50,7 +51,8 @@ is_meta(http_error).
    ]).
 :- predicate_options(http_open2/4, 4, [
      http_error(+callable),
-     metadata(-dict)
+     metadata(-dict),
+     retry(+positive_integer)
    ]).
 
 
@@ -87,6 +89,7 @@ open_any2(Source, Mode, Stream, Close_0):-
 % The following options are supported:
 %   * compress(+oneof([deflate,gzip,none]))
 %   * metadata(-dict)
+%   * retry(+positive_integer)
 %   * Passed to open_any/5.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0):-
@@ -112,7 +115,6 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
       zopen(Stream0, Stream, ZOpts)
   ;   Stream = Stream0
   ),
-
   open_any_metadata(Source, Mode, Type, Comp, Opts2, M).
 
 
@@ -123,7 +125,11 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
 %!   +Options:list(compound)
 %! ) is det.
 
-http_open2(Iri, Read1, Close_0, Opts1):-
+http_open2(Iri, Read, Close_0, Opts1):-
+  select_option(retry(N), Opts1, Opts2, 1),
+  http_open2(Iri, Read, 0, N, Close_0, Opts2).
+
+http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
   copy_term(Opts1, Opts2),
   http_open(Iri, Read2, Opts2),
   option(status_code(Status), Opts2),
@@ -131,7 +137,13 @@ http_open2(Iri, Read1, Close_0, Opts1):-
   (   is_http_error(Status)
   ->  option(raw_headers(Headers), Opts2),
       call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
-      http_open2(Iri, Read1, Close_0, Opts1)
+      M2 is M1 + 1,
+      gtrace,
+      (   M2 =:= 1
+      ->  Close_0 = close(Read1),
+          Opts1 = Opts2
+      ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
+      )
   ;   Read1 = Read2,
       Close_0 = close(Read1),
       Opts1 = Opts2
@@ -160,11 +172,12 @@ base_iri(File, BaseIri):-
 
 %! http_error_message(
 %!   +Status:between(100,599),
-%!   +Headers:list(string),
+%!   +Lines:list(list(code)),
 %!   +Read:stream
 %! ) is det.
 
-http_error_message(Status, Headers, Read):-
+http_error_message(Status, Lines, Read):-
+  maplist(atom_codes, Headers, Lines),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
   format(user_error, "RESPONSE: ~d (~a)~n", [Status,Label]),
   maplist(writeln(user_error), Headers),
@@ -191,17 +204,17 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
-      maplist(atom_string, Lines0, Lines), maplist(writeln, Lines0),
       option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
       maplist(parse_header, Lines, Headers),
       create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-      MHttp = metadata{
-                final_iri: FinalIri,
-                headers: MHeaders,
-                status_code: StatusCode,
-                version: Version
-              },
+      exclude(is_var_value, [
+        final_iri-FinalIri,
+        headers-MHeaders,
+        status_code-StatusCode,
+        version-Version
+      ], MPairs),
+      dict_pairs(MHttp, http, MPairs),
       M1 = metadata{base_iri: BaseIri, http: MHttp, source_type: http_iri}
   ;   M1 = metadata{}
   ),

@@ -43,9 +43,6 @@ DCG rules for parsing/generating often-occuring content.
 @version 2015/07-2015/08, 2015/10-2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_bracketed)).
-:- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(settings)).
 
 :- meta_predicate(indent(+,//,?,?)).
@@ -70,15 +67,13 @@ DCG rules for parsing/generating often-occuring content.
 %! ...// .
 % Wrapper around ...//1 that does not return the processed codes.
 
-... -->
-  ...(_).
+... --> ...(_).
 
 
 %! ...(-Codes:list(code))// .
 % Wrapper around string//1.
 
-...(Cs) -->
-  string(Cs).
+...(Cs) --> string(Cs).
 
 
 
@@ -115,36 +110,30 @@ eol --> "\r".
 
 %! indent(+Indent:nonneg)// is det.
 
-indent(N) -->
-  '#'(N, space, []), !.
+indent(0) --> !, "".
+indent(N1) --> " ", !, {N2 is N1 - 1}, indent(N2).
 
 
 %! indent(+Indent:nonneg, :Dcg_0)// is det.
 
-indent(I, Dcg_0) -->
-  indent(I),
-  Dcg_0.
+indent(I, Dcg_0) --> indent(I), Dcg_0.
 
 
 %! indent_nl(+Indent:nonneg, :Dcg_0)// is det.
 
-indent_nl(I, Dcg_0) -->
-  indent(I, Dcg_0),
-  nl.
+indent_nl(I, Dcg_0) --> indent(I, Dcg_0), nl.
 
 
 
 %! iri(+Iri:atom)// is det.
 
-iri(Iri) -->
-  bracketed(langular, atom(Iri)).
+iri(Iri) --> "<", atom(Iri), ">".
 
 
 
 %! nl// is det.
 
-nl -->
-  "\n".
+nl --> "\n".
 
 
 
@@ -157,31 +146,24 @@ nonblank --> nonblank(_).
 
 %! nvpair(+Pair:pair(atom))// is det.
 
-nvpair(N-V) -->
-  nvpair(atom(N), atom(V)).
+nvpair(N-V) --> nvpair(atom(N), atom(V)).
 
 
 %! nvpair(:Name_0, :Value_0)// is det.
 
-nvpair(N_0, V_0) -->
-  N_0,
-  ": ",
-  V_0.
+nvpair(N_0, V_0) --> N_0, ": ", V_0.
 
 
 
 %! parsing// is semidet.
 
-parsing(H, H):-
-   nonvar(H).
+parsing(H, H):- nonvar(H).
 
 
 
 %! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
-section(I, Msg, Dcg_0) -->
-  indent_nl(I, atom(Msg)),
-  Dcg_0.
+section(I, Msg, Dcg_0) --> indent_nl(I, atom(Msg)), Dcg_0.
 
 
 
@@ -195,45 +177,33 @@ skip_line --> [_], skip_line.
 %! string// .
 % Wrapper around string//1.
 
-string -->
-  string(_).
+string --> string(_).
 
 
 
 %! string_without(+EndCodes:list(code))// .
 % Wrapper around string_without//2.
 
-string_without(End) -->
-  string_without(End, _).
+string_without(End) --> string_without(End, _).
 
 
 
 %! tab// is det.
 
-tab -->
-  tab(1).
+tab --> tab(1).
 
 
 %! tab(+Indent:nonneg)// is det.
 
-tab(I) -->
-  {
-    setting(tab_size, N0),
-    N is I * N0
-  },
-  indent(N).
+tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
 
 
 %! tab(+Indent:nonneg, :Dcg_2)// is det.
 
-tab(I, Dcg_0) -->
-  tab(I),
-  Dcg_0.
+tab(I, Dcg_0) --> tab(I), Dcg_0.
 
 
 
 %! tab_nl(+Indent:nonneg, :Dcg_0)// is det.
 
-tab_nl(I, Dcg_0) -->
-  tab(I, Dcg_0),
-  nl.
+tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.

@@ -1,24 +1,26 @@
 :- module(
   rfc2616_header,
   [
-    'Accept-Ranges'//1, % ?Ranges:list(or([oneof([bytes]),string]))
-    'Access-Control-Allow-Origin'//1, % ?Origins:list(dict)
-    'Connection'//1, % ?ConnectionTokens:list(string)
-    'Content-Disposition'//1, % ?ContentDisposition:dict
-    'Content-Language'//1, % ?LanguageTags:list(list(string)))
-    'Content-Length'//1, % ?Length:nonneg
-    'Content-Type'//1, % ?MediaType:dict
-    'Date'//1, % ?DateTime:compound
-    'ETag'//1, % ?ETag:dict
+    'Accept-Ranges'//1, % -Ranges:list(or([oneof([bytes]),string]))
+    'Access-Control-Allow-Credentials'//1, % -AllowCredentials:boolean
+    'Access-Control-Allow-Headers'//1, % ?HeaderNames:list(string)
+    'Access-Control-Allow-Origin'//1, % -Origins:list(dict)
+    'Connection'//1, % -ConnectionTokens:list(string)
+    'Content-Disposition'//1, % -ContentDisposition:dict
+    'Content-Language'//1, % -LanguageTags:list(list(string)))
+    'Content-Length'//1, % -Length:nonneg
+    'Content-Type'//1, % -MediaType:dict
+    'Date'//1, % -DateTime:compound
+    'ETag'//1, % -ETag:dict
     'field-content'//2, % :Name
                         % -Value:compound
-    'field-name'//1, % ?Name:string
+    'field-name'//1, % -Name:string
     'field-value'//2, % :Name
                       % -Value:compound
-    'message-header'//1, % ?Header:pair(string,compound)
-    'Last-Modified'//1, % ?DateTime:compound
-    'Server'//1, % ?Value:list([dict,string])
-    'Transfer-Encoding'//1 % ?TransferEncoding:list(or([oneof([chunked]),dict])))
+    'message-header'//1, % -Header:pair(string,compound)
+    'Last-Modified'//1, % -DateTime:compound
+    'Server'//1, % -Value:list([dict,string])
+    'Transfer-Encoding'//1 % -TransferEncoding:list(or([oneof([chunked]),dict])))
   ]
 ).
 
@@ -26,12 +28,16 @@
 
 @author Wouter Beek
 @compat RFC 2616
+@compat Cross-Origin Resource Sharing (W3C Recommendation)
 @deprecated
+@see http://www.w3.org/TR/cors/
 @version 2015/11
 */
 
 :- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/rfc_common)).
+:- use_module(library(debug)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
 :- use_module(library(http/rfc2616_helpers)).
@@ -46,7 +52,7 @@
 
 
 
-%! 'Accept-Ranges'(?Ranges:list(or([oneof([bytes]),string])))// .
+%! 'Accept-Ranges'(-Ranges:list(or([oneof([bytes]),string])))// .
 % ```abnf
 % Accept-Ranges = "Accept-Ranges" ":" acceptable-ranges
 % ```
@@ -55,7 +61,25 @@
 
 
 
-%! 'Access-Control-Allow-Origin'(?Origins:list(dict))// .
+%! 'Access-Control-Allow-Credentials'(?AllowCredentials:boolean)// .
+% ```abnf
+% Access-Control-Allow-Credentials: "Access-Control-Allow-Credentials" ":" true
+% ```
+
+'Access-Control-Allow-Credentials'(true) --> "true".
+
+
+
+%! 'Access-Control-Allow-Headers'(?HeaderNames:list(string))// .
+% ```abnf
+% Access-Control-Allow-Headers: "Access-Control-Allow-Headers" ":" #field-name
+% ```
+
+'Access-Control-Allow-Headers'(L) --> abnf_list('field-name', L).
+
+
+
+%! 'Access-Control-Allow-Origin'(-Origins:list(dict))// .
 % ```abnf
 % Access-Control-Allow-Origin = "Access-Control-Allow-Origin"
 %                               ":" origin-list-or-null
@@ -67,7 +91,7 @@
 
 
 
-%! 'Connection'(?ConnectionTokens:list(string))// .
+%! 'Connection'(-ConnectionTokens:list(string))// .
 % ```abnf
 % 'Connection'(S) --> "Connection:", +(connection-token)
 % ```
@@ -76,7 +100,7 @@
 
 
 
-%! 'connection-token'(?ConnectionToken:string)// .
+%! 'connection-token'(-ConnectionToken:string)// .
 % ```abnf
 % connection-token = token
 % ```
@@ -85,14 +109,14 @@
 
 
 
-%! 'Content-Disposition'(?Value:compound)// .
+%! 'Content-Disposition'(-Value:compound)// .
 
 'Content-Disposition'(content_disposition{type: Type, params: Params}) -->
   'content-disposition'(Type, Params).
 
 
 
-%! 'Content-Language'(?LanguageTags:list(list(string)))// .
+%! 'Content-Language'(-LanguageTags:list(list(string)))// .
 % ```abnf
 % Content-Language = "Content-Language" ":" 1#language-tag
 % ```
@@ -101,7 +125,7 @@
 
 
 
-%! 'Content-Length'(?Length:nonneg)// .
+%! 'Content-Length'(-Length:nonneg)// .
 % ```abnf
 % Content-Length = "Content-Length" ":" 1*DIGIT
 % ```
@@ -110,7 +134,7 @@
 
 
 
-%! 'Content-Type'(?MediaType:dict)// .
+%! 'Content-Type'(-MediaType:dict)// .
 % ```abnf
 % Content-Type = "Content-Type" ":" media-type
 % ```
@@ -120,7 +144,7 @@
 
 
 
-%! 'Date'(?DateTime:compound)// .
+%! 'Date'(-DateTime:compound)// .
 % ```
 % Date = "Date" ":" HTTP-date
 % ```
@@ -129,7 +153,7 @@
 
 
 
-%! 'ETag'(?ETag:compound)// .
+%! 'ETag'(-ETag:compound)// .
 % ```abnf
 % ETag = "ETag" ":" entity-tag
 % ```
@@ -138,19 +162,24 @@
 
 
 
-%! 'field-content'(+Name:atom, ?Value:compound)// .
+%! 'field-content'(+Name:atom, -Value:compound)// .
 % ```abnf
 % field-content = <the OCTETs making up the field-value
 %                  and consisting of either *TEXT or combinations
 %                  of token, separators, and quoted-string>
 % ```
 
+'field-content'(Pred, Value) --> dcg_call(Pred, Value), !.
 'field-content'(Pred, Value) -->
-  dcg_call(Pred, Value).
+  dcg_rest(Cs),
+  {
+    string_codes(Value, Cs),
+    debug(http(parse), "Cannot parse HTTP header ~a: ~s", [Pred,Value])
+  }.
 
 
 
-%! 'field-name'(?Name:string)// .
+%! 'field-name'(-Name:string)// .
 % ```abnf
 % field-name = token
 % ```
@@ -159,7 +188,7 @@
 
 
 
-%! 'field-value'(+Name:atom, ?Value:compound)// .
+%! 'field-value'(+Name:atom, -Value:compound)// .
 % ```abnf
 % field-value = *( field-content | LWS )
 % ```
@@ -168,7 +197,7 @@
 
 
 
-%! 'message-header'(?Header:pair(string,compound))// .
+%! 'message-header'(-Header:pair(string,compound))// .
 % ```abnf
 % message-header = field-name ":" [ field-value ]
 % ```
@@ -187,7 +216,7 @@
 
 
 
-%! 'Last-Modified'(?DateTime:compound)// .
+%! 'Last-Modified'(-DateTime:compound)// .
 % ```abnf
 % Last-Modified = "Last-Modified" ":" HTTP-date
 % ```
@@ -196,7 +225,7 @@
 
 
 
-%! 'Server'(?Server:list(or[dict,string]))// .
+%! 'Server'(-Server:list(or[dict,string]))// .
 % ```abnf
 % Server = "Server" ":" 1*( product | comment )
 % ```
@@ -211,9 +240,18 @@ server_comp(S) --> comment(S).
 
 
 
-%! 'Transfer-Encoding'(?TransferEncoding:list(or([oneof([chunked]),dict])))// .
+%! 'Transfer-Encoding'(-TransferEncoding:list(or([oneof([chunked]),dict])))// .
 % ```abnf
 % Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 % ```
 
 'Transfer-Encoding'(L) --> abnf_list('transfer-coding', L).
+
+
+
+%! 'WWW-Authenticate'// .
+% ```abnf
+% WWW-Authenticate = "WWW-Authenticate" ":" 1#challenge
+% ```
+
+'WWW-Authenticate'(L) --> '1#'(challenge, L).

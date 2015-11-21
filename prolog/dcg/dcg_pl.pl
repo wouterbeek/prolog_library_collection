@@ -32,6 +32,7 @@ DCG rules for printing SWI-Prolog 7 terms.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(pl/pl_term)).
+:- use_module(library(typecheck)).
 
 :- meta_predicate(pl_pair(//,//,?,?)).
 :- meta_predicate(term_entries(4,+,+,?,?)).
@@ -137,12 +138,13 @@ pl_term(L, I1) -->
 pl_term(T, I) -->
   tab(I), pl_term0(T).
 
-pl_term0(I) --> {integer(I)}, !, thousands_integer(I).
-pl_term0(S) --> {string(S)}, !, "\"", atom(S), "\"".
-pl_term0(A) --> {atom(A)}, !, atom(A).
+pl_term0(I)   --> {integer(I)}, !, thousands_integer(I).
+pl_term0(S)   --> {string(S)}, !, "\"", atom(S), "\"".
+pl_term0(A)   --> {is_iri(A)}, !, iri(A).
+pl_term0(A)   --> {atom(A)}, !, atom(A).
 pl_term0(N-V) --> !, pl_pair(N-V).
-pl_term0(DT) --> pl_dateTime(DT), !.
-pl_term0(X) --> {gtrace}, pl_term0(X).
+pl_term0(DT)  --> pl_dateTime(DT), !.
+pl_term0(X)   --> {gtrace}, pl_term0(X).
 
 
 

@@ -50,7 +50,7 @@
 % acceptable-ranges = 1#range-unit | "none"
 % ```
 
-'acceptable-ranges'(L)  --> abnf_list('range-unit', L).
+'acceptable-ranges'(L)  --> +#('range-unit', L).
 'acceptable-ranges'([]) --> "none".
 
 
