@@ -21,9 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(math/positional)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
 :- use_module(library(uri/rfc3986_token)).
@@ -61,10 +59,11 @@ authority(Scheme, authority(UserInfo,Host,Port)) -->
 % fragment = *( pchar / "/" / "?" )
 % ```
 
-fragment(S) --> *(fragment_code, S, [convert1(codes_string)]).
-fragment_code(C) --> pchar(C).
-fragment_code(0'/) --> "/".
-fragment_code(0'?) --> "?".
+fragment(S) --> dcg_string(fragment_codes, S).
+fragment_codes([H|T]   --> pchar(C), !, fragment_codes(T).
+fragment_codes([0'/|T] --> "/",      !, fragment_codes(T).
+fragment_codes([0'?|T] --> "?",      !, fragment_codes(T).
+fragment_codes([])     --> "".
 
 
 
@@ -116,7 +115,7 @@ path(L) --> 'path-empty'(L).
 % port = *DIGIT
 % ```
 
-port(N) --> *('DIGIT', N, [convert1(positional)]).
+port(N) --> '*DIGIT'(N).
 
 
 
@@ -125,10 +124,11 @@ port(N) --> *('DIGIT', N, [convert1(positional)]).
 % query = *( pchar / "/" / "?" )
 % ```
 
-query(S) --> *(query_code, S, [convert1(codes_string)]).
-query_code(C) --> pchar(C).
-query_code(0'/) --> "/".
-query_code(0'?) --> "?".
+query(S) --> dcg_string(query_codes, S).
+query_codes([H|T])   --> pchar(C), !, query_codes(T).
+query_codes([0'/|T]) --> "/",      !, query_codes(T).
+query_codes([0'?|T]) --> "?",      !, query_codes(T).
+query_codes([])      --> "".
 
 
 
@@ -141,13 +141,13 @@ query_code(0'?) --> "?".
 % ```
 
 scheme(S) --> dcg_string(scheme_codes1, S).
-scheme_codes1([H|T]) --> 'ALPHA'(H), !, scheme_codes2(T).
-scheme_codes2([H|T]) --> 'ALPHA'(H), !, scheme_codes2(T).
-scheme_codes2([H|T]) --> 'DIGIT'(_, H), !, scheme_codes2(T).
-scheme_codes2([0'+|T]) --> "+", !, scheme_codes2(T).
-scheme_codes2([0'-|T]) --> "-", !, scheme_codes2(T).
-scheme_codes2([0'.|T]) --> ".", !, scheme_codes2(T).
-scheme_codes2([]) --> [].
+scheme_codes1([H|T])   --> 'ALPHA'(H),    !, scheme_codes2(T).
+scheme_codes2([H|T])   --> 'ALPHA'(H),    !, scheme_codes2(T).
+scheme_codes2([H|T])   --> 'DIGIT'(_, H), !, scheme_codes2(T).
+scheme_codes2([0'+|T]) --> "+",           !, scheme_codes2(T).
+scheme_codes2([0'-|T]) --> "-",           !, scheme_codes2(T).
+scheme_codes2([0'.|T]) --> ".",           !, scheme_codes2(T).
+scheme_codes2([])      --> "".
 
 
 
@@ -179,11 +179,12 @@ scheme_codes2([]) --> [].
 % The passing of authentication information in clear text has proven to be
 % a security risk.
 
-userinfo(S) --> *(userinfo_code, S, [convert1(codes_string)]).
-userinfo_code(C) --> unreserved(C).
-userinfo_code(C) --> 'pct-encoded'(C).
-userinfo_code(C) --> 'sub-delims'(C).
-userinfo_code(0':) --> ":".
+userinfo(S) --> dcg_string(userinfo_codes, S).
+userinfo_codes([H|T])   --> unreserved(H),    !, userinfo_codes(T).
+userinfo_codes([H|T])   --> 'pct-encoded'(H), !, userinfo_codes(T).
+userinfo_codes([H|T])   --> 'sub-delims'(H),  !, userinfo_codes(T).
+userinfo_codes([0':|T]) --> ":",              !, userinfo_codes(T).
+userinfo_codes([])      --> "".
 
 
 
@@ -194,5 +195,5 @@ userinfo_code(0':) --> ":".
 %! default_port(+Scheme:string, -Port:oneof([443,80])) is det.
 % The default port for the given scheme.
 
-default_port("http", 80).
+default_port("http",  80 ).
 default_port("https", 443).

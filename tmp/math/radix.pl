@@ -71,6 +71,3 @@ digits_radix(Ds, N):-
   maplist(digit_weight, Ds, Ws).
 digits_radix(_, _):-
   instantiation_error(_).
-
-
-

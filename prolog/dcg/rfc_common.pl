@@ -3,8 +3,14 @@
   [
     '*DIGIT'//1, % ?Weight:nonneg
     '+DIGIT'//1, % ?Weight:nonneg
-    '#DIGIT'//2 % +Occurrences:nonneg
-                % ?Weight:nonneg
+    '#DIGIT'//2, % +Occurrences:nonneg
+                 % ?Weight:nonneg
+    '*HEXDIG'//1, % ?Weight:nonneg
+    '+HEXDIG'//1, % ?Weight:nonneg
+    'm*n'//4 % +Low:nonneg
+             % +High:nonneg
+             % :Dcg_1
+             % -Content:list
   ]
 ).
 
@@ -15,6 +21,9 @@
 */
 
 :- use_module(library(dcg/rfc2234)).
+
+:- meta_predicate('m*n'(?,?,3,-,?,?)).
+:- meta_predicate('m*n'(?,?,+,3,-,?,?)).
 
 
 
@@ -46,3 +55,40 @@
   'DIGIT'(D), !,
   {N2 is N1 *10 + D, M2 is M1 - 1},
   '#DIGIT'(M2, N2, N).
+
+
+
+%! '*HEXDIG'(?Weight:nonneg)// .
+% A non-negative integer serialized as a non-empty sequence of decimal digits.
+
+'*HEXDIG'(N) --> '*HEXDIG'(0, N).
+'*HEXDIG'(N1, N) --> 'HEXDIG'(D), !, {N2 is N1 * 10 + D}, '*HEXDIG'(N2, N).
+'*HEXDIG'(N, N)  --> "".
+
+
+
+%! '+HEXDIG'(?Weight:nonneg)// .
+% A non-negative integer serialized as a non-empty sequence of decimal digits.
+
+'+HEXDIG'(N) --> '+HEXDIG'(0, N).
+'+HEXDIG'(N1, N) --> 'HEXDIG'(D), !, {N2 is N1 * 10 + D}, '*HEXDIG'(N2, N).
+
+
+
+%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_1, -Content:list)// .
+
+'m*n'(M, N, Dcg_1, L) -->
+  % Init counter.
+  'm*n'(M, N, 0, Dcg_1, L).
+
+'m*n'(M, N, C1, Dcg_1, [H|T]) -->
+  % Satisfy higher bound in order to carry on.
+  {(var(N) -> true ; C < N)},
+  % One more application of DCG rule.
+  dcg_call(Dcg_1, H), !,
+  % Increment counter.
+  {C2 is C1 + 1},
+  'm*n'(M, N, C2, Dcg_1, T).
+'m*n'(M, _, C, _, []) -->
+  % Satisfy lower bound in order to stop.
+  {(var(M) -> true ; M =< C)}.

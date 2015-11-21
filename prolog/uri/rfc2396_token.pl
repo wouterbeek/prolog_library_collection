@@ -24,8 +24,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc_common)).
 :- use_module(library(uri/rfc2396_code)).
 
 
@@ -54,7 +54,7 @@ domainlabel_codes(L) -->
 
 fragment(S) --> dcg_string(fragment_codes, S).
 fragment_codes([H|T]) --> uric(H), !, fragment_codes(T).
-fragment_codes([]) --> "".
+fragment_codes([])    --> "".
 
 
 
@@ -64,14 +64,10 @@ fragment_codes([]) --> "".
 % ```
 
 'IPv4address'([N1,N2,N3,N4]) -->
-  +(digit, N1, [convert1()]),
-  ".",
-  +(digit, N2, [convert(1-sum)]),
-  ".",
-  +(digit, N3, [convert(1-sum)]),
-  ".",
-  +(digit, N4, [convert(1-sum)]),
-  ".".
+  '+DIGIT'(N1), ".",
+  '+DIGIT'(N2), ".",
+  '+DIGIT'(N3), ".",
+  '+DIGIT'(N4), ".".
 
 
 
@@ -82,8 +78,8 @@ fragment_codes([]) --> "".
 
 opaque_part(S) --> dcg_string(opaque_part_codes1, S).
 opaque_part_codes1([H|T]) --> uric_no_slash(H), !, opaque_part_codes2(T).
-opaque_part_codes2([H|T]) --> uric(H), !, opaque_part_codes2(T).
-opaque_part_codes2([]) --> "".
+opaque_part_codes2([H|T]) --> uric(H),          !, opaque_part_codes2(T).
+opaque_part_codes2([])    --> "".
 
 
 
@@ -94,7 +90,7 @@ opaque_part_codes2([]) --> "".
 
 param(S) --> dcg_string(param_codes, S).
 param_codes([H|T]) --> pchar(H), !, param_codes(T).
-param_codes([]) --> "".
+param_codes([])    --> "".
 
 
 
@@ -103,7 +99,7 @@ param_codes([]) --> "".
 % port = *digit
 % ```
 
-port(N) --> *(digit, N, [convert(1-sum)]).
+port(N) --> *'DIGIT'(N).
 
 
 
@@ -114,7 +110,7 @@ port(N) --> *(digit, N, [convert(1-sum)]).
 
 query(S) --> dcg_string(query_codes, S).
 query_codes([H|T]) --> uric(H), !, query_codes(T).
-query_codes([]) --> "".
+query_codes([])    --> "".
 
 
 
@@ -125,11 +121,11 @@ query_codes([]) --> "".
 % ```
 
 reg_name(S) --> dcg_string(reg_name_codes1, S).
-reg_name_codes1([H|T]) --> reg_name_code(H), reg_name_codes2(T).
+reg_name_codes1([H|T]) --> reg_name_code(H),    reg_name_codes2(T).
 reg_name_codes2([H|T]) --> reg_name_code(H), !, reg_name_codes2(T).
-reg_name_codes2([]) --> "".
-reg_name_code(C) --> unreserved(C).
-reg_name_code(C) --> escaped(C).
+reg_name_codes2([])    --> "".
+reg_name_code(C)   --> unreserved(C).
+reg_name_code(C)   --> escaped(C).
 reg_name_code(0'$) --> "$".
 reg_name_code(0',) --> ",".
 reg_name_code(0';) --> ";".
@@ -168,11 +164,12 @@ rel_segment_code(0',) --> ",".
 % ```
 
 scheme(S) --> dcg_string(scheme_codes1, S).
-scheme_codes1([H|T]) --> alpha(H), scheme_codes2(T).
-scheme_codes2([H|T]) --> digit(H), !, scheme_codes2(T).
-scheme_codes2([0'+|T]) --> "+", !, scheme_codes2(T).
-scheme_codes2([0'-|T]) --> "-", !, scheme_codes2(T).
-scheme_codes2([0'.|T]) --> ".", !, scheme_codes2(T).
+scheme_codes1([H|T])   --> alpha(H),    scheme_codes2(T).
+scheme_codes2([H|T])   --> digit(H), !, scheme_codes2(T).
+scheme_codes2([0'+|T]) --> "+",      !, scheme_codes2(T).
+scheme_codes2([0'-|T]) --> "-",      !, scheme_codes2(T).
+scheme_codes2([0'.|T]) --> ".",      !, scheme_codes2(T).
+scheme_codes2([])      --> "".
 
 
 
@@ -183,7 +180,7 @@ scheme_codes2([0'.|T]) --> ".", !, scheme_codes2(T).
 
 toplabel(S) --> dcg_string(toplabel_codes, S).
 toplabel_codes([H]) --> alpha(H).
-toplabel_codes(L) -->
+toplabel_codes(L)   -->
   alpha(H),
   alphanums(T),
   alphanum(X),
@@ -198,15 +195,16 @@ toplabel_codes(L) -->
 % ```
 
 userinfo(S) --> dcg_string(userinfo_codes, S).
-userinfo_codes([H|T]) --> unreserved(H), !, userinfo_codes(T).
-userinfo_codes([H|T]) --> escaped(H), !, userinfo_codes(T).
-userinfo_codes([0';|T]) --> ";", !, userinfo_codes(T).
-userinfo_codes([0':|T]) --> ":", !, userinfo_codes(T).
-userinfo_codes([0'&|T]) --> "&", !, userinfo_codes(T).
-userinfo_codes([0'=|T]) --> "=", !, userinfo_codes(T).
-userinfo_codes([0'+|T]) --> "+", !, userinfo_codes(T).
-userinfo_codes([0'$|T]) --> "$", !, userinfo_codes(T).
-userinfo_codes([0',|T]) --> ",", !, userinfo_codes(T).
+userinfo_codes([H|T])   --> unreserved(H), !, userinfo_codes(T).
+userinfo_codes([H|T])   --> escaped(H),    !, userinfo_codes(T).
+userinfo_codes([0';|T]) --> ";",           !, userinfo_codes(T).
+userinfo_codes([0':|T]) --> ":",           !, userinfo_codes(T).
+userinfo_codes([0'&|T]) --> "&",           !, userinfo_codes(T).
+userinfo_codes([0'=|T]) --> "=",           !, userinfo_codes(T).
+userinfo_codes([0'+|T]) --> "+",           !, userinfo_codes(T).
+userinfo_codes([0'$|T]) --> "$",           !, userinfo_codes(T).
+userinfo_codes([0',|T]) --> ",",           !, userinfo_codes(T).
+userinfo_codes([])      --> "".
 
 
 
@@ -214,6 +212,6 @@ userinfo_codes([0',|T]) --> ",", !, userinfo_codes(T).
 
 % HELPERS %
 
-alphanums([H|T]) --> alphanum(H), !, alphanums(T).
-alphanums([0'-|T]) --> "-", !, alphanums(T).
-alphanums([]) --> "".
+alphanums([H|T])   --> alphanum(H), !, alphanums(T).
+alphanums([0'-|T]) --> "-",         !, alphanums(T).
+alphanums([])      --> "".

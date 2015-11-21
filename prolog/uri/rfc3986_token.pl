@@ -28,11 +28,6 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_cardinal)).
-:- use_module(library(dcg/dcg_code)).
-:- use_module(library(math/positional)).
-:- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
 
 
@@ -48,7 +43,7 @@
 %           / "25" %x30-35        ; 250-255
 % ```
 
-'dec-octet'(N) --> between_radix(dec(0), dec(255), dec(N)).
+'dec-octet'(N) --> '+DIGIT'(N), {between(0, 255, N)}.
 
 
 
@@ -60,7 +55,16 @@
 % ```
 
 h16(N) -->
-  'm*n'(1, 4, 'HEXDIG', N, [convert1(positional)]).
+  'm*n'(1, 4, 'HEXDIG', L),
+  {positional(L, 16, N)}.
+
+positional(L, Base, N):-
+  positional(L, Base, 0, N).
+
+positional([], _, N, N):- !.
+positional([H|T], Base, N1, N):-
+  N2 is N1 * Base + H,
+  positional(T, Base, N2, N).
 
 
 
@@ -86,7 +90,7 @@ h16(N) -->
 
 %! 'IPv6address'(?Ipv6Address:compound)// .
 % ```abnf
-% IPv6address =                              6( h16 ":" ) ls32
+% IPv6address =                            6( h16 ":" ) ls32
 %             /                       "::" 5( h16 ":" ) ls32
 %             / [               h16 ] "::" 4( h16 ":" ) ls32
 %             / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
@@ -96,6 +100,9 @@ h16(N) -->
 %             / [ *5( h16 ":" ) h16 ] "::"    h16
 %             / [ *6( h16 ":" ) h16 ] "::"
 % ```
+
+'IPv6address' --> '#h16'(6, L), ls32(X).
+
 
 'IPv6address'(ipv6(FormerH16s,LatterH16s,Ls32s)) -->
   {ipv6_pattern(C1, DoubleColon, C2, Colon, C3)},
@@ -119,13 +126,12 @@ h16(N) -->
 % ```
 
 'IPvFuture'(ipvfuture(N,S)) -->
-  "v",
-  +('HEXDIG', N, [convert1(positional)]),
-  ".",
-  +(ipv_future_code, S, [convert1(codes_string)]).
-ipv_future_code(C) --> unreserved(C).
-ipv_future_code(C) --> 'sub-delims'(C).
-ipv_future_code(0':) --> ":".
+  "v", '+HEXDIG'(N), ".",
+  dcg_string(ipv_future_codes, S).
+ipv_future_codes([H|T])   --> unreserved(H),   !, ipv_future_codes(T).
+ipv_future_codes([H|T])   --> 'sub-delims'(H), !, ipv_future_codes(T).
+ipv_future_codes([0':|T]) --> ":",             !, ipv_future_codes(T).
+ipv_future_codes([])      --> "".
 
 
 
@@ -134,8 +140,8 @@ ipv_future_code(0':) --> ":".
 % ls32 = ( h16 ":" h16 ) / IPv4address
 % ```
 
-ls32(ipa([H16A,H16B])) --> h16(H16A), ":", h16(H16B).
-ls32(ipv4(Address)) --> 'IPv4address'(Address).
+ls32(ipa([H16A,H16B])) --> h16(H16A), !, ":", h16(H16B).
+ls32(ipv4(Address))    --> 'IPv4address'(Address).
 
 
 
@@ -154,7 +160,7 @@ ls32(ipv4(Address)) --> 'IPv4address'(Address).
 % ```
 
 'path-absolute'([H|T]) --> "/", 'segment-nz'(H), !, segments(T).
-'path-absolute'([]) --> "/".
+'path-absolute'([])    --> "/".
 
 
 
@@ -190,10 +196,11 @@ ls32(ipv4(Address)) --> 'IPv4address'(Address).
 % reg-name = *( unreserved / pct-encoded / sub-delims )
 % ```
 
-'reg-name'(S) --> *(reg_name_code, S, [convert1(codes_string)]).
-reg_name_code(C) --> unreserved(C).
-reg_name_code(C) --> 'pct-encoded'(C).
-reg_name_code(C) --> 'sub-delims'(C).
+'reg-name'(S) --> dcg_string(reg_name_codes, S).
+reg_name_codes([H|T]) --> unreserved(H),    !, reg_name_codes(T).
+reg_name_codes([H|T]) --> 'pct-encoded'(H), !, reg_name_codes(T).
+reg_name_codes([H|T]) --> 'sub-delims'(H),  !, reg_name_codes(T).
+reg_name_codes([])    --> "".
 
 
 
@@ -202,7 +209,7 @@ reg_name_code(C) --> 'sub-delims'(C).
 % segment = *pchar
 % ```
 
-segment(S) --> *(pchar, S, [convert1(codes_string)]).
+segment(S) --> dcg_string('*pchar', S).
 
 
 
@@ -210,10 +217,10 @@ segment(S) --> *(pchar, S, [convert1(codes_string)]).
 % Non-empty (nz = non-zero?) segment.
 %
 % ```abnf
-% segment-nz = 1* pchar
+% segment-nz = 1*pchar
 % ```
 
-'segment-nz'(S) --> +(pchar, S, [convert1(codes_string)]).
+'segment-nz'(S) --> dcg_string('+pchar', S).
 
 
 
@@ -224,17 +231,24 @@ segment(S) --> *(pchar, S, [convert1(codes_string)]).
 % segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
 % ```
 
-'segment-nz-nc'(S) --> +(segment_nz_nc_code, S, [convert1(codes_string)]).
-segment_nz_nc_code(C) --> unreserved(C).
-segment_nz_nc_code(C) --> 'pct-encoded'(C).
-segment_nz_nc_code(C) --> 'sub-delims'(C).
-segment_nz_nc_code(0'@) --> "@".
+'segment-nz-nc'(S) --> dcg_string(segment_nz_nc_codes, S).
+segment_nz_nc_codes([H|T])   --> unreserved(H),    !, segment_nz_nc_codes(T).
+segment_nz_nc_codes([H|T])   --> 'pct-encoded'(H), !, segment_nz_nc_codes(T).
+segment_nz_nc_codes([H|T])   --> 'sub-delims'(H),  !, segment_nz_nc_codes(T).
+segment_nz_nc_codes([0'@|T]) --> "@",              !, segment_nz_nc_codes(T).
+segment_nz_nc_codes([])      --> "".
 
 
 
 
 
 % HELPERS %
+
+'#h16'(M, L) --> '#h16'(M, 0, L).
+'#h16'(M,  M, [])    --> "".
+'#h16'(M1, N, [H|T]) --> h16(HT), !, {M2 is M1 + 1}, '#h16'(M2, N, T).
+
+
 
 %! ipv6_pattern(
 %!   ?NumberOfFormerH16s:between(0,7),
@@ -256,7 +270,13 @@ ipv6_pattern(7, true,  0, false, 0).
 
 
 
+'+pchar'([H|T]) --> pchar(H), !, '*pchar'(T).
+'*pchar'([H|T]) --> pchar(H), !, '*pchar'(T).
+'*pchar'([])    --> "".
+
+
+
 %! segments(?Segments:list(string))// .
 
 segments([H|T]) --> "/", !, segment(H), segments(T).
-segments([]) --> "".
+segments([])    --> "".

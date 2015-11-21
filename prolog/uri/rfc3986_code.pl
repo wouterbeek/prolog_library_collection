@@ -31,9 +31,6 @@
 @version 2015/08, 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
-
 
 
 

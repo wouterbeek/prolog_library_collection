@@ -55,12 +55,9 @@ Library `dcg/basics` comes with the following rules for cardinals:
 %! between(+Low:integer, +High:integer, ?Value:integer)// .
 % Consume integers between the given lower and higher bounds.
 
-between(Low, High) -->
-  between(Low, High, _).
+between(Low, High) --> between(Low, High, _).
 
-between(Low, High, Value) -->
-  integer(Value),
-  {between(Low, High, Value)}.
+between(Low, High, N) --> integer(N), {between(Low, High, N)}.
 
 
 
@@ -75,24 +72,14 @@ between(Low, High, Value) -->
 % Consume digits between the given lower and higher bounds.
 %
 % This supports digits of hexadecimal radix.
-%
-% @throws type_error If LowWeight or HighWeight are not hexadecimal digits.
 
-between_digit(Low, High) -->
-  between_digit(Low, High, _).
+between_digit(Low, High) --> between_digit(Low, High, _).
 
-between_digit(Low, Hight, Weight) -->
-  between_digit(Low, Hight, Weight, _).
+between_digit(Low, High, W) --> between_digit(Low, High, W, _).
 
-between_digit(Low, _, _, _) -->
-  {\+ is_hex(Low)}, !,
-  {type_error(hex, Low)}.
-between_digit(_, High, _, _) -->
-  {\+ is_hex(High)}, !,
-  {type_error(hex, High)}.
-between_digit(Low, High, Weight, Code) -->
-  hexadecimal_digit(Weight, Code),
-  {between(Low, High, Weight)}.
+between_digit(Low, High, W, C) -->
+  hexadecimal_digit(W, C),
+  {between(Low, High, W)}.
 
 
 
