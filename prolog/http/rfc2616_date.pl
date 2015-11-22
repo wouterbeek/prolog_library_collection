@@ -31,9 +31,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616_code)).
-:- use_module(library(math/positional)).
 
 
 
@@ -45,10 +44,7 @@
 % ```
 
 'asctime-date'(dateTime(_,Mo,D,H,Mi,S,Off)) -->
-  wkday(_WKD), !, 'SP',
-  date3(D, Mo), 'SP',
-  time(H, Mi, S), 'SP',
-  '#digit'(4, Off).
+  wkday(_WKD), !, 'SP', date3(D, Mo), 'SP', time(H, Mi, S), 'SP', '#digit'(4, Off).
 
 
 
@@ -57,10 +53,7 @@
 % date1 = 2DIGIT SP month SP 4DIGIT
 % ```
 
-date1(D, Mo, Y) -->
-  '#digit'(2, D), 'SP',
-  month(Mo), !, 'SP',
-  '#digit'(4, Y).
+date1(D, Mo, Y) --> '#digit'(2, D), 'SP', month(Mo), !, 'SP', '#digit'(4, Y).
 
 
 
@@ -69,10 +62,7 @@ date1(D, Mo, Y) -->
 % date2 = 2DIGIT "-" month "-" 2DIGIT
 % ```
 
-date2(D, Mo, Y) -->
-  '#digit'(2, D), "-",
-  month(Mo), !, "-",
-  '#digit'(2, Y).
+date2(D, Mo, Y) --> '#digit'(2, D), "-", month(Mo), !, "-", '#digit'(2, Y).
 
 
 
@@ -81,10 +71,7 @@ date2(D, Mo, Y) -->
 % date3 = month SP ( 2DIGIT | ( SP 1DIGIT ))
 % ```
 
-date3(D, Mo) -->
-  month(Mo), !,
-  'SP',
-  ('#digit'(2, D) ; ('SP', digit(D))).
+date3(D, Mo) --> month(Mo), !, 'SP', ('#digit'(2, D) ; ('SP', digit(D))).
 
 
 

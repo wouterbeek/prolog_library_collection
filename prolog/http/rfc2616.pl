@@ -25,10 +25,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(uri/rfc2396)).
 :- use_module(library(uri/rfc2396_token)).
@@ -42,11 +39,10 @@
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment --> "(", comment0, ")".
-comment0 --> ctext(_),         !, comment0.
-comment0 --> 'quoted-pair'(_), !, comment0.
-comment0 --> comment,          !, comment0.
-comment0 --> "".
+comment --> "(", *(comment0), ")".
+comment0 --> ctext(_).
+comment0 --> 'quoted-pair'(_).
+comment0 --> comment.
 
 
 
@@ -87,8 +83,8 @@ comment0 --> "".
 http_URL(Host, Port, Path, Query) -->
   "http://",
   host(Host),
-  (":", port(Port) ; {Port = 80}),
-  (abs_path(Path), ("?", query(Query) ; "") ; {Path = []}).
+  (":" -> port(Port) ; {Port = 80}),
+  (abs_path(Path) -> ("?" -> query(Query) ; "") ; {Path = []}).
 
 
 

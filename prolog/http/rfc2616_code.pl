@@ -171,12 +171,10 @@ ctext(C) --> 'TEXT'(C), {C \== 0'(, C \== 0')}.
 % LWS = [CRLF] 1*(SP|HT)
 % ```
 
-'LWS' --> 'CRLF', !, '+lws'.
-'LWS' -->            '+lws'.
-'+lws' --> lws, !, '*lws'.
-'*lws' --> lws, !, '*lws'.
-'*lws' --> "".
-lws --> ('SP' ; 'HT').
+'LWS' --> ?('CRLF'), +(lws).
+lws --> 'SP'.
+lws --> 'HT'.
+
 
 
 %! 'OCTET'(?Code:code)// .

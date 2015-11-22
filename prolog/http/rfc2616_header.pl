@@ -37,8 +37,7 @@
 */
 
 :- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
@@ -241,14 +240,13 @@
 % ```abnf
 % Server = "Server" ":" 1*( product | comment )
 % ```
-
-'Server'(L) --> '+server_comp'(L).
-'+server_comp'([H|T]) --> server_comp(H), !, '*server_comp'(T).
+%
 % Sub-product tokens are separated by white space.
-'*server_comp'([H|T]) --> 'LWS', server_comp(H), !, '*server_comp'(T).
-'*server_comp'([])    --> "".
-server_comp(D) --> product(D).
-server_comp(S) --> comment(S).
+
+'Server'([H|T]) --> server1(H), *(server2, T).
+server1(D) --> product(D).
+server1(S) --> comment(S).
+server2(X) --> 'LWS', server1(X).
 
 
 

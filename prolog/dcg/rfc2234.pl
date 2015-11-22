@@ -1,9 +1,6 @@
 :- module(
   rfc2234,
   [
-    'BIT'//1, % ?Weight:between(0,1)
-    'BIT'//2, % ?Weight:between(0,1)
-              % ?Code:code
     'CHAR'//1, % ?Code:code
     'CR'//0,
     'CR'//1, % ?Code:code
@@ -12,9 +9,6 @@
     'CTL'//0,
     'CTL'//1, % ?Code:Code
     'DQUOTE'//0,
-    'HEXDIG'//1, % ?Weight:between(0,15)
-    'HEXDIG'//2, % ?Weight:between(0,15)
-                 % ?Code:code
     'HTAB'//0,
     'HTAB'//1, % ?Code:code
     'LF'//0,
@@ -27,13 +21,17 @@
     'WSP'//0
   ]
 ).
-:- reexport(
-  library(url/rfc1738_code),
-  [
-    alpha//1 as 'ALPHA', % ?Code:code
-    digit//1 as 'DIGIT', % ?Weight:between(0,9)
-    digit//2 as 'DIGIT' % ?Weight:between(0,9)
-                        % ?Code:code
+:- reexport(library(dcg/dcg_ext), [
+     alpha//1 as 'ALPHA', % ?Code:code
+     bit//1 as 'BIT', % ?Integer:between(0,1)
+     digit//1 as 'DIGIT', % ?Integer:between(0,9)
+     digit//2 as 'DIGIT' % ?Integer:between(0,9)
+                         % ?Code:code
+   ]).
+:- reexport(library(dcg/dcg_rfc), [
+    'HEXDIG'//1, % ?Weight:between(0,15)
+    'HEXDIG'//2 % ?Weight:between(0,15)
+                % ?Code:code
   ]
 ).
 
@@ -43,6 +41,8 @@
 @compat RFC 2234
 @version 2015/11
 */
+
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -65,10 +65,6 @@
 % ```abnf
 % BIT = "0" / "1"
 % ```
-
-'BIT'(W) --> 'BIT'(W, _).
-'BIT'(0, 0'0) --> "0".
-'BIT'(1, 0'1) --> "1".
 
 
 
@@ -146,29 +142,18 @@
 % ```
 
 'DQUOTE' --> 'DQUOTE'(_).
-'DQUOTE'(34) --> [34].
+'DQUOTE'(0'") --> "\"".   %"
 
 
 
-%! 'HEXDIG'(?Weight:between(0,15))// .
-%! 'HEXDIG'(?Weight:between(0,15), ?Code:code)// .
-% Uppercase-only notation for hexadecimal digits.
-%
+%! 'HEXDIG'(?Integer:between(0,15))// .
+%! 'HEXDIG'(?Integer:between(0,15), ?Code:code)// .
 % RFC 1738 (URL) defines a similar grammar rule that include
 % lower-case letters as well under the name hex//2.
 %
 % ```abnf
 % HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
 % ```
-
-'HEXDIG'(W) --> 'HEXDIG'(W, _).
-'HEXDIG'(W, C) --> 'DIGIT'(W, C).
-'HEXDIG'(10, 0'A) --> "A".
-'HEXDIG'(11, 0'B) --> "B".
-'HEXDIG'(12, 0'C) --> "C".
-'HEXDIG'(13, 0'D) --> "D".
-'HEXDIG'(14, 0'E) --> "E".
-'HEXDIG'(15, 0'F) --> "F".
 
 
 
@@ -181,7 +166,7 @@
 % ```
 
 'HTAB' --> 'HTAB'(_).
-'HTAB'(9) --> [9].
+'HTAB'(0x09) --> [0x09].
 
 
 
@@ -196,7 +181,7 @@
 % ```
 
 'LF' --> 'LF'(_).
-'LF'(10) --> [10].
+'LF'(0x0A) --> [0x0A].
 
 
 
@@ -238,8 +223,8 @@
 % SP = %x20
 % ```
 
-'SP' --> [32].
-'SP'(32) --> [32].
+'SP' --> 'SP'(_).
+'SP'(0x20) --> [0x20].
 
 
 

@@ -17,11 +17,11 @@
 :- use_module(library(lists), except([delete/3,subset/2])).
 :- use_module(library(pure_input)).
 
-:- use_module(plc(dcg/dcg_abnf_common)).
 :- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_content)).
 :- use_module(plc(dcg/dcg_generics)).
 :- use_module(plc(dcg/dcg_meta)).
+:- use_module(plc(dcg/dcg_re)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
@@ -32,8 +32,7 @@ user:prolog_file_type(bib, bibtex).
 
 
 
-bibtex(atom(Atom), Entries):- !,
-  atom_phrase(bibtex(Entries), Atom).
+bibtex(atom(Atom), Entries):- !, atom_phrase(bibtex(Entries), Atom).
 bibtex(file(File), Entries):- !,
   flag(tick, _, 0),
   phrase_from_file(bibtex(Entries), File),
@@ -50,79 +49,47 @@ bibtex(Input, _):-
 % GRAMMAR %
 
 bibtex([H|T]) --> skip, entry(H), !, {tick}, bibtex(T).
-bibtex([]) --> skip.
+bibtex([])    --> skip.
 
 tick:-
   flag(tick, X, X + 1),
   writeln(X),
-  (   X =:= 18544
-  ->  gtrace
-  ;   true
-  ).
+  (X =:= 18544 -> gtrace ; true).
 
 entry(entry(Class,Name,Pairs)) -->
   class(Class), "{", skip, name(Name), skip, ",", skip,
-  pairs(Pairs), skip,
-  "}".
+  pairs(Pairs), skip, "}".
 
-pairs([H|T]) -->
-  pair(H),
-  (   skip, ","
-  ->  pairs(T)
-  ;   {T = []}
-  ).
-pairs([]) --> "".
+pairs([H|T]) --> pair(H), (skip, "," -> pairs(T) ; {T = []}).
+pairs([])    --> "".
 
-pair(Key-Value) -->
-  skip, name(Key), skip, "=", skip, value(Value).
+pair(Key-Value) --> skip, name(Key), skip, "=", skip, value(Value).
 
-value(Value) -->
-  "{", !,
-  value(Value, 0).
-value(Value) -->
-  "\"", !,
-  ...(Codes),
-  "\"",
-  {atom_codes(Value, Codes)}.
-value(Value) -->
-  name(Value).
+value(Value) --> "{",  !, value(Value, 0).
+value(Value) --> "\"", !, ...(Codes), "\"", {atom_codes(Value, Codes)}.
+value(Value) --> name(Value).
 
-value(Value, I) -->
-  dcg_atom(value0(I), Value).
+value(Value, I) --> dcg_atom(value0(I), Value).
 
-value0(I, [H|T]) -->
-  opening_curly_bracket(H), !,
-  {NewI is I + 1},
-  value0(NewI, T).
-value0(0, []) --> "}", !.
-value0(I, [H|T]) -->
-  closing_curly_bracket(H), !,
-  {NewI is I - 1},
-  value0(NewI, T).
-value0(I, [H|T]) -->
-  [H], !,
-  value0(I, T).
-value0(_, []) --> "".
+value0(I, [0'{|T]) --> "{", !, {NewI is I + 1}, value0(NewI, T).
+value0(0, [])      --> "}", !.
+value0(I, [0'}|T]) --> "}", !, {NewI is I - 1}, value0(NewI, T).
+value0(I, [H|T])   --> [H], !, value0(I, T).
+value0(_, [])      --> "".
 
 class(Class) -->
-  "@",
-  dcg_atom('[a-zA-Z]+', Class0),
+  "@", +(alpha, Cs), {string_codes(Class0, Cs)},
   {validate(Class0, Class, _, _)}.
 
-name(Name) --> dcg_atom(name0, Name).
-
-name0([H|T]) --> char(H), name0(T), !.
-name0([H]) --> char(H).
-
-char(C) --> ascii_letter(C).
-char(C) --> decimal_digit(C).
-char(C) --> colon(C).
-char(C) --> hyphen(C).
-char(C) --> underscore(C).
+name(Name) --> +(char, Cs), {string_codes(S, Cs)}.
+char(C)   --> alpha(C).
+char(C)   --> digit(C).
+char(0':) --> ":".
+char(0'-) --> "-".
+char(0'_) --> "_".
 
 %skip --> comment, !, skip.
-skip --> white, !, skip.
-skip --> "".
+skip --> *(white).
 
 comment --> "%", ..., eol.
 
