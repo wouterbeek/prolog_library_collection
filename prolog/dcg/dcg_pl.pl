@@ -127,13 +127,14 @@ pl_term(L, I1) -->
 % 3. Other term.
 pl_term(T, I) --> tab(I), pl_term0(T).
 
-pl_term0(I)   --> {integer(I)}, !, thousands_integer(I).
-pl_term0(S)   --> {string(S)}, !, "\"", atom(S), "\"".
-pl_term0(A)   --> {is_iri(A)}, !, iri(A).
-pl_term0(A)   --> {atom(A)}, !, atom(A).
-pl_term0(N-V) --> !, pl_pair(N-V).
-pl_term0(DT)  --> pl_dateTime(DT), !.
-pl_term0(X)   --> {gtrace}, pl_term0(X).
+pl_term0(I)    --> {integer(I)}, !, thousands_integer(I).
+pl_term0(S)    --> {string(S)}, !, "\"", atom(S), "\"".
+pl_term0(A)    --> {is_iri(A)}, !, iri(A).
+pl_term0(A)    --> {atom(A)}, !, atom(A).
+pl_term0(N-V)  --> !, pl_pair(N-V).
+pl_term0(DT)   --> pl_dateTime(DT), !.
+pl_term0(Comp) --> {compound(Comp)}, !, {term_to_atom(Comp, A)}, atom(A).
+pl_term0(X)    --> {gtrace}, pl_term0(X).
 
 
 

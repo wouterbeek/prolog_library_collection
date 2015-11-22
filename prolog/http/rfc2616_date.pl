@@ -31,7 +31,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/rfc_common)).
+:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(math/positional)).
 

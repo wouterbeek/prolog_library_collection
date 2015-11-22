@@ -1,8 +1,10 @@
 :- module(
   rfc2616_helpers,
   [
-    abnf_list//2, % :Dcg_1
-                  % Contents:list
+    '*#'//2, % :Dcg_1
+             % Contents:list
+    '+#'//2, % :Dcg_1
+             % Contents:list
     parameters//1 % ?Parameters:list(pair(string))
   ]
 ).
@@ -19,22 +21,23 @@
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_token)).
 
-:- meta_predicate(abnf_list(3,-,?,?)).
+:- meta_predicate(*#(3,-,?,?)).
+:- meta_predicate(+#(3,-,?,?)).
 
 
 
 
 
-%! abnf_list(:Dcg_1, ?Contents:list)// .
+%! *#(:Dcg_1, ?Contents:list)// .
 
-abnf_list(Dcg_1, [H|T]) -->
-  dcg_call(Dcg_1, H), !,
-  abnf_list_sep,
-  abnf_list(Dcg_1, T).
-abnf_list(_, [])        --> "".
-abnf_list_sep --> 'LWS', !, abnf_list_sep.
-abnf_list_sep --> ",",   !, abnf_list_sep.
-abnf_list_sep --> "".
+*#(Dcg_1, [H|T]) --> dcg_call(Dcg_1, H), !, abnf_list_sep, *#(Dcg_1, T).
+*#(_, [])        --> "".
+
+
+
+%! +#(:Dcg_1, ?Contents:list)// .
+
++#(Dcg_1, [H|T]) --> dcg_call(Dcg_1, H), !, abnf_list_sep, *#(Dcg_1, T).
 
 
 
@@ -42,3 +45,13 @@ abnf_list_sep --> "".
 
 parameters([H|T]) --> ";", !, ('LWS', ! ; ""),  parameter(H), parameters(T).
 parameters([]) --> "".
+
+
+
+
+
+% HELPERS %
+
+abnf_list_sep --> 'LWS', !, abnf_list_sep.
+abnf_list_sep --> ",",   !, abnf_list_sep.
+abnf_list_sep --> "".

@@ -29,7 +29,9 @@
 */
 
 :- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234_re)).
+:- use_module(library(lists)).
 :- use_module(library(uri/rfc3986_code)).
 
 
@@ -95,30 +97,16 @@ h16(I) --> 'm*nHEXDIG'(1, 4, I).
 %             / [ *6( h16 ":" ) h16 ] "::"
 % ```
 
-'IPv6address' -->       #(6, 'h16:', L), ls32(X).
-'IPv6address' --> "::", #(5, 'h16:', L), ls32(X).
-'IPv6address' --> ?(h16, L1), "::", #(4, 'h16:', L2), ls32(X).
-'IPv6address' -->
-  ('m*n'(_, 1, 'h16:', L1), ?(h16, L2) ; L1 = [], L2 = []),
-  "::", #(4, 'h16:', L3), ls32(X).
-
-'h16:'(X) --> h16(X), ":".
-
-
-
-'IPv6address'(ipv6(FormerH16s,LatterH16s,Ls32s)) -->
-  {ipv6_pattern(C1, DoubleColon, C2, Colon, C3)},
-  'm*n'(0, 7, h16, FormerH16s, [count(C1),separator(colon)]),
-  (   "::",
-      {DoubleColon = true}
-  ;   {DoubleColon = false}
-  ),
-  'm*n'(0, 6, h16, LatterH16s, [count(C2),separator(colon)]),
-  (   ":",
-      {Colon = true}
-  ;   {Colon = false}
-  ),
-  'm*n'(0, 1, ls32, Ls32s, [count(C3)]).
+'IPv6address'(L) -->                                           #(6, 'h16:', L2), ls32(Z), {append(L2, [Z], L)}.
+'IPv6address'(L) -->                                     "::", #(5, 'h16:', L2), ls32(Z), {append(L2, [Z], L)}.
+'IPv6address'(L) --> (                     h16(X) ; ""), "::", #(4, 'h16:', L2), ls32(Z), {append([X|L2], [Z], L)}.
+'IPv6address'(L) --> ('*n'(1, 'h16:', L1), h16(X) ; ""), "::", #(3, 'h16:', L2), ls32(Z), {append([L1,[X|L2],[Z]], L)}.
+'IPv6address'(L) --> ('*n'(2, 'h16:', L1), h16(X) ; ""), "::", #(2, 'h16:', L2), ls32(Z), {append([L1,[X|L2],[Z]], L)}.
+'IPv6address'(L) --> ('*n'(3, 'h16:', L1), h16(X) ; ""), "::", h16(Y), ":",      ls32(Z), {append(L1, [X,Y,Z], L)}.
+'IPv6address'(L) --> ('*n'(4, 'h16:', L1), h16(X) ; ""), "::",                   ls32(Z), {append(L1, [X,Z], L)}.
+'IPv6address'(L) --> ('*n'(5, 'h16:', L1), h16(X) ; ""), "::", h16(Y),                    {append(L1, [X,Y], L)}.
+'IPv6address'(L) --> ('*n'(6, 'h16:', L1), h16(X) ; ""), "::",                            {append(L1, [X], L)}.
+'h16:'(I) --> h16(I), ":".
 
 
 

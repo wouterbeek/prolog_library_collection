@@ -22,6 +22,7 @@
 */
 
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
 :- use_module(library(uri/rfc3986_token)).
@@ -60,10 +61,10 @@ authority(Scheme, authority(UserInfo,Host,Port)) -->
 % ```
 
 fragment(S) --> dcg_string(fragment_codes, S).
-fragment_codes([H|T]   --> pchar(C), !, fragment_codes(T).
-fragment_codes([0'/|T] --> "/",      !, fragment_codes(T).
-fragment_codes([0'?|T] --> "?",      !, fragment_codes(T).
-fragment_codes([])     --> "".
+fragment_codes([H|T])   --> pchar(H), !, fragment_codes(T).
+fragment_codes([0'/|T]) --> "/",      !, fragment_codes(T).
+fragment_codes([0'?|T]) --> "?",      !, fragment_codes(T).
+fragment_codes([])      --> "".
 
 
 
@@ -125,7 +126,7 @@ port(N) --> '*DIGIT'(N).
 % ```
 
 query(S) --> dcg_string(query_codes, S).
-query_codes([H|T])   --> pchar(C), !, query_codes(T).
+query_codes([H|T])   --> pchar(H), !, query_codes(T).
 query_codes([0'/|T]) --> "/",      !, query_codes(T).
 query_codes([0'?|T]) --> "?",      !, query_codes(T).
 query_codes([])      --> "".

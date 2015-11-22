@@ -35,9 +35,10 @@ Library `dcg/basics` comes with the following rules for cardinals:
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/11
 */
 
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(error)).
 :- use_module(library(plunit)).
 :- use_module(library(math/math_ext)).
@@ -76,6 +77,10 @@ between_digit(Low, High, W, C) --> hexadecimal_digit(W, C), {between(Low, High, 
 
 
 %! between_radix(+Low:compound, +High:compound)// .
+
+between_radix(Low, High) --> between_radix(Low, High, _).
+
+
 %! between_radix(+Low:compound, +High:compound, ?Value:compound)// .
 % Consume integers that are specified in various bases
 % (binary, octal, decimal, hexadecimal)
@@ -101,7 +106,6 @@ between_digit(Low, High, W, C) --> hexadecimal_digit(W, C), {between(Low, High, 
 % Codes = [49, 53].
 % ```
 
-between_radix(Low, High) --> between_radix(Low, High, _).
 between_radix(Low, High, Value) -->
   {
     radconv(Low, dec(LowDec)),

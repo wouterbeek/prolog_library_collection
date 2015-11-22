@@ -24,8 +24,8 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc_common)).
 :- use_module(library(uri/rfc2396_code)).
 
 
@@ -99,7 +99,7 @@ param_codes([])    --> "".
 % port = *digit
 % ```
 
-port(N) --> *'DIGIT'(N).
+port(I) --> '*DIGIT'(I).
 
 
 

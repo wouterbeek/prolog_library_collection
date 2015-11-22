@@ -1,7 +1,7 @@
 :- module(
   rfc3987_component,
   [
-    iauthority//2, % ?Scheme:string
+    iauthority//2, % +Scheme:string
                    % ?Authority:compound
     ifragment//1, % ?Code:code
     ihost//1, % ?Host:compound
@@ -29,7 +29,7 @@
 
 
 
-%! iauthority(?Scheme:string, ?Authority:compound)// .
+%! iauthority(+Scheme:string, ?Authority:compound)// .
 % ```abnf
 % iauthority = [ iuserinfo "@" ] ihost [ ":" port ]
 % ```

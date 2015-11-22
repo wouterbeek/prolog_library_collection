@@ -1,14 +1,24 @@
 :- module(
   dcg_re,
   [
-    ?//2, % :Dcg_1
-          % -Content:list
-    *//2, % :Dcg_1
-          % -Content:list
-    +//2, % :Dcg_1
-          % -Content:list
-    'm*n'//4, % +Low:nonneg
-              % +High:nonneg
+    '?'//1, % :Dcg_1
+    '?'//2, % :Dcg_1
+            % -Content:list
+    '*'//1, % :Dcg_1
+    '*'//2, % :Dcg_1
+            % -Content:list
+    '+'//1, % :Dcg_1
+    '+'//2, % :Dcg_1
+            % -Content:list
+    '#'//2, % +Occurrences, :Dcg_1
+    '#'//3, % +Occurrences:nonneg
+            % :Dcg_1
+            % -Content:list
+    '*n'//3, % ?High:nonneg
+             % :Dcg_1
+             % -Content:list
+    'm*n'//4, % ?Low:nonneg
+              % ?High:nonneg
               % :Dcg_1
               % -Content:list
     posfrac/2, % +Digits:list(between(0,9))
@@ -27,6 +37,7 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(lists)).
 
@@ -38,9 +49,10 @@
 :- meta_predicate(+(3,-,?,?)).
 :- meta_predicate(#(+,//,?,?)).
 :- meta_predicate(#(+,3,-,?,?)).
+:- meta_predicate('*n'(?,3,-,?,?)).
 :- meta_predicate('m*n'(?,?,//,?,?)).
 :- meta_predicate('m*n'(?,?,3,-,?,?)).
-:- meta_predicate('m*n__'(?,?,//,-,?,?)).
+:- meta_predicate('m*n__'(?,?,+,//,?,?)).
 :- meta_predicate('m*n__'(?,?,+,3,-,?,?)).
 
 
@@ -50,13 +62,19 @@
 
 ?(Dcg_1, L) --> 'm*n'(0, 1, Dcg_1, L).
 
+
+
 *(Dcg_1) --> 'm*n'(0, _, Dcg_1).
 
 *(Dcg_1, L) --> 'm*n'(0, _, Dcg_1, L).
 
+
+
 #(N, Dcg_1) --> 'm*n'(N, N, Dcg_1).
 
 #(N, Dcg_1, L) --> 'm*n'(N, N, Dcg_1, L).
+
+
 
 +(Dcg_1) --> 'm*n'(1, _, Dcg_1).
 
@@ -64,47 +82,55 @@
 
 
 
+%! '*n'(?High:nonneg, :Dcg_1, -Content:list)// .
+
+'*n'(High, Dcg_1, L) --> 'm*n'(_, High, Dcg_1, L).
+
+
+
 %! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_1)// .
 
-'m*n'(Low, High, Dcg_1) --> 'm*n__'(M, N, 0, Dcg_1).
+'m*n'(Low, High, Dcg_1) --> 'm*n__'(Low, High, 0, Dcg_1).
 
-'m*n__'(M, N, C1, Dcg_1) -->
-  {(var(N) -> true ; C < N)},
+'m*n__'(Low, High, Count1, Dcg_1) -->
+  {(var(High) -> true ; Count1 < High)},
   Dcg_1, !,
-  {C2 is C1 + 1},
-  'm*n__'(M, N, C2, Dcg_1).
-'m*n__'(M, _, C, _) --> {(var(M) -> true ; M =< C)}.
+  {Count2 is Count1 + 1},
+  'm*n__'(Low, High, Count2, Dcg_1).
+'m*n__'(Low, _, Count, _) --> {(var(Low) -> true ; Low =< Count)}.
 
 
 %! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_1, -Content:list)// .
 
-'m*n'(M, N, Dcg_1, L) --> 'm*n__'(M, N, 0, Dcg_1, L).
+'m*n'(Low, High, Dcg_1, L) --> 'm*n__'(Low, High, 0, Dcg_1, L).
 
-'m*n__'(M, N, C1, Dcg_1, [H|T]) -->
-  {(var(N) -> true ; C < N)},
+'m*n__'(Low, High, Count1, Dcg_1, [H|T]) -->
+  {(var(High) -> true ; Count1 < High)},
   dcg_call(Dcg_1, H), !,
-  {C2 is C1 + 1},
-  'm*n__'(M, N, C2, Dcg_1, T).
-'m*n__'(M, _, C, _, []) --> {(var(M) -> true ; M =< C)}.
+  {Count2 is Count1 + 1},
+  'm*n__'(Low, High, Count2, Dcg_1, T).
+'m*n__'(Low, _, Count, _, []) --> {(var(Low) -> true ; Low =< Count)}.
 
 
 
 %! posfrac(+Digits:list(between(0,9)), -FractionalPart:rational) is det.
 
-postfrac(Ds, Frac):-
-  aggregate_all(
-    sum(N),
-    (
-      nth1(I, Ws, W),
-      N is W rdiv (10 ^ I)
-    ),
-    F
-  ).
+posfrac(Ds, Frac):-
+  aggregate_all(sum(Rat), (nth1(I, Ds, D), Rat is D rdiv (10 ^ I)), Frac).
 
 
 
-possum(L, Base, N):- possum(L, Base, 0, N).
-possum([H|T], Base, N1, N):- !,
-  N2 is N1 * Base + H,
-  possum(T, Base, N2, N).
-possum([], _, N, N).
+%! possum(+Digits:list(between(0,9)), -Integer:nonneg) is det.
+
+possum(Ds, I):- possum(Ds, 10, I).
+
+
+%! possum(
+%!   +Digits:list(between(0,9)),
+%!   +Base:positive_integer,
+%!   -Integer:nonneg
+%! ) is det.
+
+possum(Ds, Base, I):- possum(Ds, Base, 0, I).
+possum([D|Ds], Base, I1, I):- !, I2 is I1 * Base + D, possum(Ds, Base, I2, I).
+possum([], _, I, I).

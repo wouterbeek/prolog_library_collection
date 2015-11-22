@@ -5,7 +5,8 @@
                        % ?Authority:compound
                        % ?Segments:list(string)
                        % ?Query:string
-    'ihier-part'//2, % ?Authority:compound
+    'ihier-part'//3, % +Scheme:string
+                     % ?Authority:compound
                      % ?Segments:list(string)
     'irelative-part'//3, % ?Scheme:string
                          % ?Authority:compound
@@ -93,7 +94,7 @@
 
 
 
-%! 'ihier-part'(?Authority:compound, ?Segments:list(string))// .
+%! 'ihier-part'(+Scheme:string, ?Authority:compound, ?Segments:list(string))// .
 % ```abnf
 % ihier-part = "//" iauthority ipath-abempty
 %            / ipath-absolute
@@ -101,10 +102,10 @@
 %            / ipath-empty
 % ```
 
-'ihier-part'(Auth, L) --> "//", iauthority(Auth), 'ipath-abempty'(L).
-'ihier-part'(_, L) --> 'ipath-absolute'(L).
-'ihier-part'(_, L) --> 'ipath-rootless'(L).
-'ihier-part'(_, L) --> 'ipath-empty'(L).
+'ihier-part'(Scheme, Auth, L) --> "//", iauthority(Scheme, Auth), 'ipath-abempty'(L).
+'ihier-part'(_, _, L)         --> 'ipath-absolute'(L).
+'ihier-part'(_, _, L)         --> 'ipath-rootless'(L).
+'ihier-part'(_, _, L)         --> 'ipath-empty'(L).
 
 
 
@@ -166,7 +167,7 @@
 'IRI'(Scheme, Auth, L, Query, Frag) -->
   scheme(Scheme),
   ":",
-  'ihier-part'(true, Scheme, Auth, L),
+  'ihier-part'(Scheme, Auth, L),
   ("?" -> iquery(Query) ; ""),
   ("#" -> ifragment(Frag) ; "").
 

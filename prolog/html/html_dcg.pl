@@ -1,7 +1,7 @@
 :- module(
   html_dcg,
   [
-    html_attribute//1, % ?Attribute:pair(atom)
+    html_attr//1, % ?Attribute:pair(atom)
     html_dcg//1, % +Content:list(or([atom,compound,list(code)]))
     html_element//1, % +Name:atom
     html_element//2, % +Name:atom
@@ -85,7 +85,7 @@ html_element(Name, Attrs, Content) -->
   "<",
   atom(Name),
   " ",
-  html_attributes(Attrs),
+  html_attrs(Attrs),
   ">",
   phrase(Content),
   "</",

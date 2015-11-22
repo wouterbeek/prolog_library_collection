@@ -77,7 +77,7 @@ json_write_any(Sink, Dict):-
 %
 % Options are passed to open_any2/5 and json_write_dict/3.
 
-json_read_any(Sink, Dict, Opts):-
+json_write_any(Sink, Dict, Opts):-
   setup_call_cleanup(
     open_any2(Sink, write, Write, Close_1, Opts),
     json_write_dict(Write, Dict, Opts),

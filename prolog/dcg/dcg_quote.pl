@@ -1,5 +1,5 @@
 :- module(
-  dcg_quoted,
+  dcg_quote,
   [
     quoted//1, % :Dcg_0
     quoted//2, % :Quote_0

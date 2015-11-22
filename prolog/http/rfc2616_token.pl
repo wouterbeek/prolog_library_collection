@@ -4,7 +4,9 @@
     'acceptable-ranges'//1, % ?Ranges:list(or([oneof([bytes]),string]))
     attribute//1, % ?Attribute:string
     'bytes-unit'//1, % ?BytesUnit:oneof([bytes])
+    'cache-directive'//1, % ?Directive:compound
     comment//1, % ?Comment:string
+    'connection-token'//1, % -ConnectionToken:string
     'entity-tag'//2, % ?Weak:boolean
                      % ?OpaqueTag:string
     'language-tag'//1, % ?LanguageTag:list(string)
@@ -37,7 +39,9 @@
 */
 
 :- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(http/rfc2616_code)).
+:- use_module(library(http/rfc2616_header)).
 :- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(string_ext)).
 
@@ -73,6 +77,73 @@ attribute(S) --> token(S).
 
 
 
+%! 'cache-directive'(?Directive:compound)// .
+% ```abnf
+% cache-directive = cache-request-directive | cache-response-directive
+% ```
+
+'cache-directive'(Dir) --> 'cache-request-directive'(Dir).
+'cache-directive'(Dir) --> 'cache-response-directive'(Dir).
+
+
+
+%! 'cache-extension'(?CacheExtension:or([string,pair(string)]))// .
+% ```abnf
+% cache-extension = token [ "=" ( token | quoted-string ) ]
+% ```
+
+'cache-extension'(Ext) -->
+  token(N),
+  ("=" -> (token(V) ; 'quoted-string'(V)), {Ext = N-V} ; {Ext = N}).
+
+
+
+%! 'cache-request-directive'// .
+% ```abnf
+% cache-request-directive = "no-cache"
+%                         | "no-store"
+%                         | "max-age" "=" delta-seconds
+%                         | "max-stale" [ "=" delta-seconds ]
+%                         | "min-fresh" "=" delta-seconds
+%                         | "no-transform"
+%                         | "only-if-cached"
+%                         | cache-extension
+% ```
+
+'cache-request-directive'("no-cache")             --> "no-cache".
+'cache-request-directive'("no-store")             --> "no-store".
+'cache-request-directive'('max-age'(Delta))       --> "max-age=", 'delta-seconds'(Delta).
+'cache-request-directive'('max-stale'(Delta))     --> "max-stale", ("=" -> 'delta-seconds'(Delta) ; "").
+'cache-request-directive'('min-fresh'(Delta))     --> "min-fresh=", 'delta-seconds'(Delta).
+'cache-request-directive'("no-transform")         --> "no-transform".
+'cache-request-directive'("only-if-cached")       --> "only-if-cached".
+'cache-request-directive'('cache-extension'(Ext)) --> 'cache-extension'(Ext).
+
+%! 'cache-response-directive'// .
+% ```abnf
+% cache-response-directive = "public"
+%                          | "private" [ "=" <"> 1#field-name <"> ]
+%                          | "no-cache" [ "=" <"> 1#field-name <"> ]
+%                          | "no-store"
+%                          | "no-transform"
+%                          | "must-revalidate"
+%                          | "proxy-revalidate"
+%                          | "max-age" "=" delta-seconds
+%                          | "s-maxage" "=" delta-seconds
+%                          | cache-extension
+
+'cache-response-directive'("public")           --> "public".
+'cache-response-directive'(private(L))         --> "private", ("=" -> "\"", +#('field-name', L), "\"" ; {L = []}).
+'cache-response-directive'('no-cache'(L))      --> "no-cache", ("=" -> "\"", +#('field-name', L), "\"" ; {L = []}).
+'cache-response-directive'("no-store")         --> "no-store".
+'cache-response-directive'("no-transform")     --> "no-transform".
+'cache-response-directive'("must-revalidate")  --> "must-revalidate".
+'cache-response-directive'("proxy-revalidate") --> "proxy-revalidate".
+'cache-response-directive'('max-age'(Delta))   --> "max-age=", 'delta-seconds'(Delta).
+'cache-response-directive'('s-maxage'(Delta))  --> "s-maxage=", 'delta-seconds'(Delta).
+'cache-response-directive'(Ext)                --> 'cache-extension'(Ext).
+
+
 %! comment(?Comment:string)// .
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
@@ -84,6 +155,24 @@ comment_codes2([H|T]) --> ctext(H),           !, comment_codes2(T).
 comment_codes2([H|T]) --> 'quoted-pair'(H),   !, comment_codes2(T).
 comment_codes2(L)     --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
 comment_codes2([])    --> "".
+
+
+
+%! 'connection-token'(-ConnectionToken:string)// .
+% ```abnf
+% connection-token = token
+% ```
+
+'connection-token'(T) --> token(T).
+
+
+
+%! 'delta-seconds'(?Delta:nonneg)// .
+% ```abnf
+% delta-seconds = 1*DIGIT
+% ```
+
+'delta-seconds'(I) --> '+DIGIT'(I).
 
 
 

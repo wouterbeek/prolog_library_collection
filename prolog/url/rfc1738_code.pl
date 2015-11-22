@@ -28,7 +28,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/rfc_common)).
+:- use_module(library(dcg/rfc2234_re)).
 
 
 

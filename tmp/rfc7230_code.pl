@@ -3,7 +3,7 @@
   [
     'BWS'//0,
     'obs-text'//1, % ?Code:code
-    'OWS'//0
+    'OWS'//0,
     'quoted-pair'//1, % ?Code:code
     qdtext//1, % ?Code:code
     'RWS'//0,
@@ -25,8 +25,6 @@
     'HTAB'//0,
     'LF'//0,
     'OCTET'//1,
-    'OWS'//0,
-    'RWS'//0,
     'SP'//0,
     'VCHAR'//1
   ]).
@@ -48,8 +46,7 @@
 % BWS = OWS
 % ```
 
-'BWS' --> 'BWS'(_).
-'BWS'(C) --> 'OWS'(C).
+'BWS' --> 'OWS'.
 
 
 
@@ -58,20 +55,18 @@
 % obs-text = %x80-FF
 % ```
 
-'obs-text'(C) --> between_code_radix(hex('80'), hex('FF'), C).
+'obs-text'(C) --> [C], {between(0x80, 0xFF, C)}.
 
 
 
 %! 'OWS'// .
-%! 'OWS'(?Codes:list(code))// .
 % ```abnf
 % OWS = *( SP / HTAB )
 % ```
 
-'OWS' --> 'OWS'(_).
-'OWS'([H|T]) --> 'SP'(H), !, 'OWS'(T).
-'OWS'([H|T]) --> 'HTAB'(H), !, 'OWS'(T).
-'OWS'([]) --> "".
+'OWS' --> 'SP',   !, 'OWS'.
+'OWS' --> 'HTAB', !, 'OWS'.
+'OWS' --> "".
 
 
 
@@ -99,13 +94,11 @@ qdtext(C) --> 'obs-text'(C).
 
 
 %! 'RWS'// .
-%! 'RWS'(?Codes:list(code))// .
 % ```abnf
 % RWS = 1*( SP / HTAB )
 % ```
 
-'RWS' --> 'RWS'(_).
-'RWS'([H|T]) --> ('SP'(H) ; 'HTAB'(H)), 'OWS'(T).
+'RWS' --> ('SP' ; 'HTAB'), 'OWS'.
 
 
 

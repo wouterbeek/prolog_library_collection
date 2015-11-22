@@ -12,11 +12,10 @@
 :- use_module(library(db_ext)).
 %/dcg
   :- use_module(library(dcg/dcg_abnf)).
-  :- use_module(library(dcg/dcg_abnf_common)).
   :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
-  :- use_module(library(dcg/dcg_bracketed)).
+  :- use_module(library(dcg/dcg_bracket)).
   :- use_module(library(dcg/dcg_call)).
   :- use_module(library(dcg/dcg_cardinal)).
   :- use_module(library(dcg/dcg_char)).
@@ -31,6 +30,7 @@
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
   :- use_module(library(dcg/dcg_pl)).
+  :- use_module(library(dcg/dcg_quote)).
   :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_table)).
@@ -38,6 +38,7 @@
   :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).
   :- use_module(library(dcg/rfc2234)).
+  :- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
@@ -80,13 +81,12 @@
   :- use_module(library(http/rfc2616_helpers)).
   :- use_module(library(http/rfc2616_test)).
   :- use_module(library(http/rfc2616_token)).
+  :- use_module(library(http/rfc2617)).
   :- use_module(library(http/rfc4790)).
-  :- use_module(library(http/rfc5987)).
+  :- use_module(library(http/rfc5987_code)).
+  :- use_module(library(http/rfc5987_token)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc6454)).
-  :- use_module(library(http/rfc7230)).
-  :- use_module(library(http/rfc7230_code)).
-  :- use_module(library(http/rfc7230_token)).
 :- use_module(library(image_ext)).
 %/iri
   :- use_module(library(iri/iri_ext)).
@@ -109,7 +109,6 @@
   :- use_module(library(math/math_ext)).
   :- use_module(library(math/positional)).
   :- use_module(library(math/radconv)).
-  :- use_module(library(math/radix)).
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
 :- use_module(library(msg_ext)).

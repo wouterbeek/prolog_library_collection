@@ -1,5 +1,5 @@
 :- module(
-  dcg_bracketed,
+  dcg_bracket,
   [
     bracketed//1, % :Dcg_0
     bracketed//2 % ?Type:oneof([angular,curly,langular,round,square])

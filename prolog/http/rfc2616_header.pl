@@ -5,12 +5,14 @@
     'Access-Control-Allow-Credentials'//1, % -AllowCredentials:boolean
     'Access-Control-Allow-Headers'//1, % ?HeaderNames:list(string)
     'Access-Control-Allow-Origin'//1, % -Origins:list(dict)
+    'Cache-Control'//1, % -Directives:list(compound)
     'Connection'//1, % -ConnectionTokens:list(string)
     'Content-Disposition'//1, % -ContentDisposition:dict
     'Content-Language'//1, % -LanguageTags:list(list(string)))
     'Content-Length'//1, % -Length:nonneg
     'Content-Type'//1, % -MediaType:dict
     'Date'//1, % -DateTime:compound
+    'Expires'//1, % ?DateTime:compound
     'ETag'//1, % -ETag:dict
     'field-content'//2, % :Name
                         % -Value:compound
@@ -36,12 +38,13 @@
 
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/rfc_common)).
+:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(debug)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
 :- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
+:- use_module(library(http/rfc2617)).
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6454)).
 
@@ -75,7 +78,7 @@
 % Access-Control-Allow-Headers: "Access-Control-Allow-Headers" ":" #field-name
 % ```
 
-'Access-Control-Allow-Headers'(L) --> abnf_list('field-name', L).
+'Access-Control-Allow-Headers'(L) --> *#('field-name', L).
 
 
 
@@ -91,21 +94,21 @@
 
 
 
+%! 'Cache-Control'(?Directives:list(compound))// .
+% ```abnf
+% Cache-Control = "Cache-Control" ":" 1#cache-directive
+% ```
+
+'Cache-Control'(L) --> +#('cache-directive', L).
+
+
+
 %! 'Connection'(-ConnectionTokens:list(string))// .
 % ```abnf
-% 'Connection'(S) --> "Connection:", +(connection-token)
+% 'Connection'(S) --> "Connection:", 1#(connection-token)
 % ```
 
-'Connection'(L) --> abnf_list('connection-token', L).
-
-
-
-%! 'connection-token'(-ConnectionToken:string)// .
-% ```abnf
-% connection-token = token
-% ```
-
-'connection-token'(T) --> token(T).
+'Connection'(L) --> +#('connection-token', L).
 
 
 
@@ -121,7 +124,7 @@
 % Content-Language = "Content-Language" ":" 1#language-tag
 % ```
 
-'Content-Language'(L) --> abnf_list('language-tag', L).
+'Content-Language'(L) --> +#('language-tag', L).
 
 
 
@@ -159,6 +162,15 @@
 % ```
 
 'ETag'(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
+
+
+
+%! 'Expires'(?DateTime:compound)// .
+% ```abnf
+% Expires = "Expires" ":" HTTP-date
+% ```
+
+'Expires'(DT) --> 'HTTP-date'(DT).
 
 
 
@@ -245,13 +257,13 @@ server_comp(S) --> comment(S).
 % Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 % ```
 
-'Transfer-Encoding'(L) --> abnf_list('transfer-coding', L).
+'Transfer-Encoding'(L) --> +#('transfer-coding', L).
 
 
 
-%! 'WWW-Authenticate'// .
+%! 'WWW-Authenticate'(?Challenges:list(dict))// .
 % ```abnf
 % WWW-Authenticate = "WWW-Authenticate" ":" 1#challenge
 % ```
 
-'WWW-Authenticate'(L) --> '1#'(challenge, L).
+'WWW-Authenticate'(L) --> +#(challenge, L).

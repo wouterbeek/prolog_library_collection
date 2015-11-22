@@ -1,12 +1,15 @@
 :- module(
   rfc2234_re,
   [
-    '*DIGIT'//1, % ?Weight:nonneg
-    '+DIGIT'//1, % ?Weight:nonneg
+    '*DIGIT'//1, % ?Integer:nonneg
+    '+DIGIT'//1, % ?Integer:nonneg
     '#DIGIT'//2, % +Occurrences:nonneg
-                 % ?Weight:nonneg
-    '*HEXDIG'//1, % ?Weight:nonneg
-    '+HEXDIG'//1 % ?Weight:nonneg
+                 % ?Integer:nonneg
+    '*HEXDIG'//1, % ?Integer:nonneg
+    '+HEXDIG'//1, % ?Integer:nonneg
+    'm*nHEXDIG'//3 % ?Low:nonneg
+                   % ?High:nonneg
+                   % -Integer:nonneg
   ]
 ).
 
@@ -23,14 +26,14 @@
 
 
 
-'*DIGIT'(I) --> *('DIGIT', L), {possum(L, I)}.
+'*DIGIT'(I) --> *('DIGIT', Ds), {possum(Ds, I)}.
 
-'+DIGIT'(I) --> +('DIGIT', L), {possum(L, I)}.
+'+DIGIT'(I) --> +('DIGIT', Ds), {possum(Ds, I)}.
 
-'#DIGIT'(M, I) --> #(M, 'DIGIT', L), {possum(L, I)}.
+'#DIGIT'(M, I) --> #(M, 'DIGIT', Ds), {possum(Ds, I)}.
 
-'*HEXDIG'(I) --> *('HEXDIG', L), {possum(L, I)}.
+'*HEXDIG'(I) --> *('HEXDIG', Ds), {possum(Ds, I)}.
 
-'+HEXDIG'(I) --> +('HEXDIG', L), {possum(L, I)}.
+'+HEXDIG'(I) --> +('HEXDIG', Ds), {possum(Ds, I)}.
 
-'m*nHEXDIG'(M, N, I) --> 'm*n'(M, N, 'HEXDIG', L), {possum(L, I)}.
+'m*nHEXDIG'(M, N, I) --> 'm*n'(M, N, 'HEXDIG', Ds), {possum(Ds, I)}.
