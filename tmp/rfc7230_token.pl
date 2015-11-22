@@ -12,10 +12,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(http/rfc7230_code)).
-:- use_module(library(string_ext)).
 
 
 
@@ -26,11 +24,11 @@
 % quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
 % ```
 
-'quoted-string'(S) --> dcg_string(quoted_string_codes1, S).
-quoted_string_codes1(Cs) --> 'DQUOTE', quoted_string_codes2(Cs), 'DQUOTE'.
-quoted_string_codes2([H|T]) --> qdtext(H), !, quoted_string_codes2(T).
-quoted_string_codes2([H|T]) --> 'quoted-pair'(H), !, quoted_string_codes2(T).
-quoted_string_codes2([]) --> "".
+'quoted-string'(S) -->
+  "\"", *(quoted_string_code, Cs), "\"",
+  {string_codes(S, Cs)}.
+quoted_string_code(C) --> qdtext(C).
+quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
@@ -41,4 +39,4 @@ quoted_string_codes2([]) --> "".
 %
 % @compat RFC 7230
 
-token(S) --> +(tchar, S, [convert1(codes_string)]).
+token(S) --> +(tchar, Cs), {string_codes(S, Cs)}.

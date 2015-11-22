@@ -28,7 +28,7 @@ which does not exist.  'Language-Tag'//1 does exist.
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 
 
@@ -40,7 +40,7 @@ which does not exist.  'Language-Tag'//1 does exist.
 % language-range = language-tag / "*"
 % ```
 
-'language-range'(L) --> 'Language-Tag'(L).
+'language-range'(L)     --> 'Language-Tag'(L).
 'language-range'(["*"]) --> "*".
 
 
@@ -50,9 +50,8 @@ which does not exist.  'Language-Tag'//1 does exist.
 % Language-Tag = Primary-subtag *( "-" Subtag )
 % ```
 
-'Language-Tag'([H|T]) --> 'Primary-subtag'(H), subtags(T).
-subtags([H|T]) --> "-", 'Subtag'(H), !, subtags(T).
-subtags([]) --> "".
+'Language-Tag'([H|T]) --> 'Primary-subtag'(H), *(subtag, T).
+subtag(S) --> "-", 'Subtag'(S).
 
 
 
@@ -61,6 +60,4 @@ subtags([]) --> "".
 % Subtag = 1*8(ALPHA / DIGIT)
 % ```
 
-'Subtag'(S) --> 'm*n'(1, 8, subtag, S, [convert(1-string)]).
-subtag(C) --> 'ALPHA'(C).
-subtag(C) --> 'DIGIT'(_, C).
+'Subtag'(S) --> 'm*n'(1, 8, alphadigit, Cs), {string_codes(S, Cs)}.

@@ -21,8 +21,8 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
 :- use_module(library(uri/rfc3986_token)).
@@ -116,7 +116,7 @@ path(L) --> 'path-empty'(L).
 % port = *DIGIT
 % ```
 
-port(N) --> '*DIGIT'(N).
+port(N) --> '*digit'(N).
 
 
 

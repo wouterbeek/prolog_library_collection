@@ -41,7 +41,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(url/rfc1738_component)).
 :- use_module(library(url/rfc1738_file)).
 :- use_module(library(url/rfc1738_ftp)).
@@ -124,7 +124,7 @@ otherurl(Scheme, User, Password, Host, Port, Path) -->
 % schemepart = *xchar | ip-schemepart
 % ```
 
-schemepart(S) --> *(xchar, S, [convert(1-string)]).
+schemepart(S) --> *(xchar, Cs), {string_codes(S, Cs)}.
 schemepart(User, Password, Host, Port, Path) -->
   'ip-schemepart'(User, Password, Host, Port, Path).
 
@@ -159,7 +159,7 @@ url(other(Scheme,User,Password,Host,Port,Path)) -->
 % urlpath = *xchar   ; depends on protocol see section 3.1
 % ```
 
-urlpath(S) --> *(xchar, S, [convert(1-string)]).
+urlpath(S) --> *(xchar, Cs), {string_codes(S, Cs)}.
 
 /*
 % MAILTO %

@@ -34,7 +34,7 @@ This modifies the following RFC 2616 rules:
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(http/rfc5987_code)).
 :- use_module(library(ltag/rfc5646), [
@@ -51,9 +51,9 @@ This modifies the following RFC 2616 rules:
 % charset = "UTF-8" / "ISO-8859-1" / mime-charset
 % ```
 
-charset("UTF-8") --> "UTF-8".
+charset("UTF-8")      --> "UTF-8".
 charset("ISO-8859-1") --> "ISO-8859-1".
-charset(Charset) --> 'mime-charset'(Charset).
+charset(Charset)      --> 'mime-charset'(Charset).
 
 
 
@@ -100,7 +100,7 @@ language(L) --> 'Language-Tag'(L).
 % mime-charset  = 1*mime-charsetc
 % ```
 
-'mime-charset'(S) --> +('mime-charsetc', S, [convert1(codes_string)]).
+'mime-charset'(S) --> +('mime-charsetc', Cs), {string_codes(S, Cs)}.
 
 
 
@@ -109,7 +109,7 @@ language(L) --> 'Language-Tag'(L).
 % parameter = reg-parameter / ext-parameter
 % ```
 
-parameter(Param) --> 'reg-parameter'(Param).
+parameter(Param) --> 'reg-parameter'(Param), !.
 parameter(Param) --> 'ext-parameter'(Param).
 
 
@@ -119,7 +119,7 @@ parameter(Param) --> 'ext-parameter'(Param).
 % parmname = 1*attr-char
 % ```
 
-parmname(S) --> +('attr-char', S, [convert1(codes_string)]).
+parmname(S) --> +('attr-char', Cs), {string_codes(S, Cs)}.
 
   
 
@@ -139,7 +139,6 @@ parmname(S) --> +('attr-char', S, [convert1(codes_string)]).
 % value-chars = *( pct-encoded / attr-char )
 % ```
 
-'value-chars'(S) --> dcg_string(value_codes, S).
-value_codes([H|T]) --> 'pct-encoded'(H), !, value_codes(T).
-value_codes([H|T]) --> 'attr-char'(H), !, value_codes(T).
-value_codes([]) --> "".
+'value-chars'(S) --> *(value_char, Cs), {string_codes(S, Cs)}.
+value_char(C) --> 'pct-encoded'(C).
+value_char(C) --> 'attr-char'(C).

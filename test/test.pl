@@ -11,7 +11,7 @@
 :- use_module(library(date_ext)).
 :- use_module(library(db_ext)).
 %/dcg
-  :- use_module(library(dcg/dcg_abnf)).
+  %:- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
@@ -38,7 +38,6 @@
   :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).
   :- use_module(library(dcg/rfc2234)).
-  :- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
 :- use_module(library(dict_ext)).
@@ -67,7 +66,7 @@
   :- use_module(library(html/html_dom)).
   :- use_module(library(html/html_resource)).
 %/http
-  :- use_module(library(http/abnf_list)).
+  %:- use_module(library(http/abnf_list)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).

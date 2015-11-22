@@ -32,11 +32,8 @@ Grammar rules for processing atoms.
 
 %! atom_capitalize// .
 
-atom_capitalize, [Upper] -->
-  [Lower],
-  {code_type(Upper, to_upper(Lower))}, !,
-  dcg_cp.
-atom_capitalize --> "".
+atom_capitalize, [Up] --> [Low], {code_type(Up, to_upper(Low))}, !, dcg_cp.
+atom_capitalize       --> "".
 
 
 
@@ -62,23 +59,19 @@ atom_capitalize --> "".
 % false.
 % ```
 
-atom_ci(A) -->
-  *(code_ci, A, [convert(1-atom)]).
+atom_ci(A) --> *(code_ci, A, [convert(1-atom)]).
 
 
 
 %! atom_ellipsis(+Atom:atom, +Ellipsis:positive_integer)// .
 
-atom_ellipsis(A, Ellipsis) -->
-  {atom_truncate(A, Ellipsis, A0)},
-  atom(A0).
+atom_ellipsis(A, Ellipsis) --> {atom_truncate(A, Ellipsis, A0)}, atom(A0).
 
 
 
 %! atom_lower(?Atom:atom)// .
 
-atom_lower(A) -->
-  *(code_lower, A, [convert(1-atom)]).
+atom_lower(A) --> *(code_lower, A, [convert(1-atom)]).
 
 
 
@@ -99,5 +92,4 @@ atom_title(A) -->
 
 %! atom_upper(?Atom:atom)// .
 
-atom_upper(A) -->
-  *(code_upper, A, [convert(1-atom)]).
+atom_upper(A) --> *(code_upper, A, [convert(1-atom)]).

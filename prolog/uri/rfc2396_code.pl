@@ -52,10 +52,10 @@
 % delims = "<" | ">" | "#" | "%" | <">
 % ```
 
-delims(0'<) --> "<".
-delims(0'>) --> ">".
-delims(0'#) --> "#".
-delims(0'%) --> "%".
+delims(0'<)  --> "<".
+delims(0'>)  --> ">".
+delims(0'#)  --> "#".
+delims(0'%)  --> "%".
 delims(0'\") --> "\"".
 
 
@@ -91,8 +91,8 @@ mark(0')) --> ")".
 % pchar = unreserved | escaped | ":" | "@" | "&" | "=" | "+" | "$" | ","
 % ```
 
-pchar(C) --> unreserved(C).
-pchar(C) --> escaped(C).
+pchar(C)   --> unreserved(C).
+pchar(C)   --> escaped(C).
 pchar(0':) --> ":".
 pchar(0'@) --> "@".
 pchar(0'&) --> "&".
@@ -145,14 +145,14 @@ unreserved(C) --> mark(C).
 % unwise = "{" | "}" | "|" | "\" | "^" | "[" | "]" | "`"
 % ```
 
-unwise(0'{) --> "{".
-unwise(0'}) --> "}".
-unwise(0'|) --> "|".
+unwise(0'{)  --> "{".
+unwise(0'})  --> "}".
+unwise(0'|)  --> "|".
 unwise(0'\\) --> "\\".
-unwise(0'^) --> "^".
-unwise(0'[) --> "[".
-unwise(0']) --> "]".
-unwise(0'`) --> "`".
+unwise(0'^)  --> "^".
+unwise(0'[)  --> "[".
+unwise(0'])  --> "]".
+unwise(0'`)  --> "`".
 
 
 
@@ -187,8 +187,8 @@ uric(C) --> escaped(C).
 %               | "&" | "=" | "+" | "$" | ","
 % ```
 
-uric_no_slash(C) --> unreserved(C).
-uric_no_slash(C) --> escaped(C).
+uric_no_slash(C)   --> unreserved(C).
+uric_no_slash(C)   --> escaped(C).
 uric_no_slash(0';) --> ";".
 uric_no_slash(0'?) --> "?".
 uric_no_slash(0':) --> ":".

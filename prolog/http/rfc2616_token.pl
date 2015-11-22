@@ -5,7 +5,7 @@
     attribute//1, % ?Attribute:string
     'bytes-unit'//1, % ?BytesUnit:oneof([bytes])
     'cache-directive'//1, % ?Directive:compound
-    comment//1, % ?Comment:string
+    comment//0,
     'connection-token'//1, % -ConnectionToken:string
     'entity-tag'//2, % ?Weak:boolean
                      % ?OpaqueTag:string
@@ -38,12 +38,11 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_header)).
 :- use_module(library(http/rfc2616_helpers)).
-:- use_module(library(string_ext)).
 
 
 
@@ -54,7 +53,7 @@
 % acceptable-ranges = 1#range-unit | "none"
 % ```
 
-'acceptable-ranges'(L)  --> +#('range-unit', L).
+'acceptable-ranges'(L)  --> +#('range-unit', L), !.
 'acceptable-ranges'([]) --> "none".
 
 
@@ -82,7 +81,7 @@ attribute(S) --> token(S).
 % cache-directive = cache-request-directive | cache-response-directive
 % ```
 
-'cache-directive'(Dir) --> 'cache-request-directive'(Dir).
+'cache-directive'(Dir) --> 'cache-request-directive'(Dir), !.
 'cache-directive'(Dir) --> 'cache-response-directive'(Dir).
 
 
@@ -144,17 +143,16 @@ attribute(S) --> token(S).
 'cache-response-directive'(Ext)                --> 'cache-extension'(Ext).
 
 
-%! comment(?Comment:string)// .
+
+%! comment//
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment(S) --> dcg_string(comment_codes1, S).
-comment_codes1(L)     --> "(", comment_codes2(L), ")".
-comment_codes2([H|T]) --> ctext(H),           !, comment_codes2(T).
-comment_codes2([H|T]) --> 'quoted-pair'(H),   !, comment_codes2(T).
-comment_codes2(L)     --> comment_codes1(L1), !, comment_codes2(L2), {append(L1, L2, L)}.
-comment_codes2([])    --> "".
+comment --> "(", *(comment_part), ")".
+comment_part --> ctext(_).
+comment_part --> 'quoted-pair'(_).
+comment_part --> comment.
 
 
 
@@ -172,7 +170,7 @@ comment_codes2([])    --> "".
 % delta-seconds = 1*DIGIT
 % ```
 
-'delta-seconds'(I) --> '+DIGIT'(I).
+'delta-seconds'(I) --> '+digit'(I).
 
 
 
@@ -192,9 +190,8 @@ comment_codes2([])    --> "".
 % language-tag = primary-tag *( "-" subtag )
 % ```
 
-'language-tag'([H|T]) --> 'primary-tag'(H), subtags(T).
-subtags([H|T]) --> "-", !, subtag(H), subtags(T).
-subtags([])    --> "".
+'language-tag'([H|T]) --> 'primary-tag'(H), *(next_subtag, T).
+next_subtag(Subtag) --> "-", !, subtag(Subtag).
 
 
 
@@ -243,7 +240,7 @@ parameter(Key-Val) --> attribute(Key), "=", value(Val).
 % primary-tag = 1*8ALPHA
 % ```
 
-'primary-tag'(S) --> 'ALPHA'(1, 8, S).
+'primary-tag'(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
@@ -274,10 +271,9 @@ product(D) -->
 % quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
 % ```
 
-'quoted-string'(S) --> "\"", dcg_string(quoted_string_codes, S), "\"".
-quoted_string_codes([H|T]) --> qdtext(H),        !, quoted_string_codes(T).
-quoted_string_codes([H|T]) --> 'quoted-pair'(H), !, quoted_string_codes(T).
-quoted_string_codes([])    --> "".
+'quoted-string'(S) --> "\"", *(quoted_string_code, Cs), "\"", {string_codes(S, Cs)}.
+quoted_string_code(C) --> qdtext(C).
+quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
@@ -296,7 +292,7 @@ quoted_string_codes([])    --> "".
 % subtag = 1*8ALPHA
 % ```
 
-subtag(S) --> 'ALPHA'(1, 8, S).
+subtag(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
@@ -313,15 +309,8 @@ subtype(S) --> token(S).
 % ```abnf
 % token = 1*<any CHAR except CTLs or separators>
 % ```
-%
-% ```library(dcg/dcg_abnf)
-% +(token_code, S, [convert1(codes_string)])
-% ```
 
-token(S) --> dcg_string(token_codes1, S).
-token_codes1([H|T]) --> token_code(H), !, token_codes2(T).
-token_codes2([H|T]) --> token_code(H), !, token_codes2(T).
-token_codes2([]) --> "".
+token(S) --> +(token_code, Cs), {string_codes(S, Cs)}.
 token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 
 
@@ -331,8 +320,8 @@ token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 % transfer-coding = "chunked" | transfer-extension
 % ```
 
-'transfer-coding'(chunked) --> "chunked".
-'transfer-coding'(D) --> 'transfer-extension'(D).
+'transfer-coding'(chunked) --> "chunked", !.
+'transfer-coding'(D)       --> 'transfer-extension'(D).
 
 
 
@@ -372,17 +361,3 @@ value(S) --> 'quoted-string'(S).
 % ```
 
 weak --> "W/".
-
-
-
-
-
-% HELPERS %
-
-'ALPHA'(M, N, S) --> dcg_string(alpha_codes(M, N, 0), S).
-alpha_codes(_, C, C, [])     --> !, "".
-alpha_codes(M, N, C1, [H|T]) -->
-  'ALPHA'(H), !,
-  {C2 is C1 + 1},
-  alpha_codes(M, N, C2, T).
-alpha_codes(M, _, C, []) --> {C >= M}, "".

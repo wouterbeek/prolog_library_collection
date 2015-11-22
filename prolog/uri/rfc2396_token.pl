@@ -52,9 +52,7 @@ domainlabel_codes(L) -->
 % fragment = *uric
 % ```
 
-fragment(S) --> dcg_string(fragment_codes, S).
-fragment_codes([H|T]) --> uric(H), !, fragment_codes(T).
-fragment_codes([])    --> "".
+fragment(S) --> *(uric, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -64,10 +62,10 @@ fragment_codes([])    --> "".
 % ```
 
 'IPv4address'([N1,N2,N3,N4]) -->
-  '+DIGIT'(N1), ".",
-  '+DIGIT'(N2), ".",
-  '+DIGIT'(N3), ".",
-  '+DIGIT'(N4), ".".
+  '+digit'(N1), ".",
+  '+digit'(N2), ".",
+  '+digit'(N3), ".",
+  '+digit'(N4), ".".
 
 
 
@@ -76,10 +74,7 @@ fragment_codes([])    --> "".
 % opaque_part = uric_no_slash *uric
 % ```
 
-opaque_part(S) --> dcg_string(opaque_part_codes1, S).
-opaque_part_codes1([H|T]) --> uric_no_slash(H), !, opaque_part_codes2(T).
-opaque_part_codes2([H|T]) --> uric(H),          !, opaque_part_codes2(T).
-opaque_part_codes2([])    --> "".
+opaque_part(S) --> uric_no_slash(H), *(uric, T), {string_codes(S, [H|T])}.
 
 
 
@@ -88,9 +83,7 @@ opaque_part_codes2([])    --> "".
 % param = *pchar
 % ```
 
-param(S) --> dcg_string(param_codes, S).
-param_codes([H|T]) --> pchar(H), !, param_codes(T).
-param_codes([])    --> "".
+param(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -99,7 +92,7 @@ param_codes([])    --> "".
 % port = *digit
 % ```
 
-port(I) --> '*DIGIT'(I).
+port(I) --> '*digit'(I).
 
 
 
@@ -108,9 +101,7 @@ port(I) --> '*DIGIT'(I).
 % query = *uric
 % ```
 
-query(S) --> dcg_string(query_codes, S).
-query_codes([H|T]) --> uric(H), !, query_codes(T).
-query_codes([])    --> "".
+query(S) --> *(uric, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -120,10 +111,7 @@ query_codes([])    --> "".
 %          | ";" | ":" | "@" | "&" | "=" | "+" )
 % ```
 
-reg_name(S) --> dcg_string(reg_name_codes1, S).
-reg_name_codes1([H|T]) --> reg_name_code(H),    reg_name_codes2(T).
-reg_name_codes2([H|T]) --> reg_name_code(H), !, reg_name_codes2(T).
-reg_name_codes2([])    --> "".
+reg_name(S) --> +(reg_name_code, Cs), {string_codes(S, Cs)}.
 reg_name_code(C)   --> unreserved(C).
 reg_name_code(C)   --> escaped(C).
 reg_name_code(0'$) --> "$".
@@ -143,11 +131,9 @@ reg_name_code(0'+) --> "+".
 %             | ";" | "@" | "&" | "=" | "+" | "$" | "," )
 % ```
 
-rel_segment(S) --> dcg_string(rel_segment_codes, S).
-rel_segment_codes([H|T]) --> rel_segment_code(H), rel_segment_codes(T).
-rel_segment_codes([H]) --> rel_segment_code(H).
-rel_segment_code(C) --> unreserved(C).
-rel_segment_code(C) --> escaped(C).
+rel_segment(S) --> +(rel_segment_code, Cs), {string_codes(S, Cs)}.
+rel_segment_code(C)   --> unreserved(C).
+rel_segment_code(C)   --> escaped(C).
 rel_segment_code(0';) --> ";".
 rel_segment_code(0'@) --> "@".
 rel_segment_code(0'&) --> "&".
@@ -163,13 +149,12 @@ rel_segment_code(0',) --> ",".
 % scheme = alpha *( alpha | digit | "+" | "-" | "." )
 % ```
 
-scheme(S) --> dcg_string(scheme_codes1, S).
-scheme_codes1([H|T])   --> alpha(H),    scheme_codes2(T).
-scheme_codes2([H|T])   --> digit(H), !, scheme_codes2(T).
-scheme_codes2([0'+|T]) --> "+",      !, scheme_codes2(T).
-scheme_codes2([0'-|T]) --> "-",      !, scheme_codes2(T).
-scheme_codes2([0'.|T]) --> ".",      !, scheme_codes2(T).
-scheme_codes2([])      --> "".
+scheme(S) --> *(scheme_code, Cs), {string_codes(S, Cs)}.
+scheme_code(C)   --> alpha(C).
+scheme_code(C)   --> digit(C).
+scheme_code(0'+) --> "+".
+scheme_code(0'-) --> "-".
+scheme_code(0'.) --> ".".
 
 
 
@@ -194,17 +179,16 @@ toplabel_codes(L)   -->
 %          | ";" | ":" | "&" | "=" | "+" | "$" | "," )
 % ```
 
-userinfo(S) --> dcg_string(userinfo_codes, S).
-userinfo_codes([H|T])   --> unreserved(H), !, userinfo_codes(T).
-userinfo_codes([H|T])   --> escaped(H),    !, userinfo_codes(T).
-userinfo_codes([0';|T]) --> ";",           !, userinfo_codes(T).
-userinfo_codes([0':|T]) --> ":",           !, userinfo_codes(T).
-userinfo_codes([0'&|T]) --> "&",           !, userinfo_codes(T).
-userinfo_codes([0'=|T]) --> "=",           !, userinfo_codes(T).
-userinfo_codes([0'+|T]) --> "+",           !, userinfo_codes(T).
-userinfo_codes([0'$|T]) --> "$",           !, userinfo_codes(T).
-userinfo_codes([0',|T]) --> ",",           !, userinfo_codes(T).
-userinfo_codes([])      --> "".
+userinfo(S) --> *(userinfo_code, Cs), {string_codes(S, Cs)}.
+userinfo_code(C)   --> unreserved(C).
+userinfo_code(C)   --> escaped(C).
+userinfo_code(0';) --> ";".
+userinfo_code(0':) --> ":".
+userinfo_code(0'&) --> "&".
+userinfo_code(0'=) --> "=".
+userinfo_code(0'+) --> "+".
+userinfo_code(0'$) --> "$".
+userinfo_code(0',) --> ",".
 
 
 

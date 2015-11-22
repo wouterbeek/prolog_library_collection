@@ -19,7 +19,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 
 
 
@@ -31,14 +31,10 @@
 %                           *("-" (1*8alphanum / "*"))
 % ```
 
-'extended-language-range'([H|T]) -->
-  ('m*n'(1, 8, 'ALPHA', H, [convert(1-string)]) ; "*", {H = "*"}), !,
-  extended_language_range0(T).
-extended_language_range0([H|T]) -->
-  "-", !,
-  ('m*n'(1, 8, alphanum, H, [convert(1-string)]) ; "*", {H = "*"}),
-  extended_language_range0(T).
-extended_language_range0([]) --> "".
+'extended-language-range'([H|T]) --> ext_lrange1(H), *(ext_lrange2, T).
+ext_lrange1(X) --> 'm*n'(1, 8, 'ALPHA', Cs), !, {string_codes(X, Cs)}.
+ext_lrange1("*") --> "*".
+ext_lrange2(X) --> "-", ext_lrange1(X).
 
 
 
@@ -47,12 +43,6 @@ extended_language_range0([]) --> "".
 % language-range = (1*8ALPHA *("-" 1*8alphanum)) / "*"
 % ```
 
-'language-range'([H|T]) -->
-  'm*n'(1, 8, 'ALPHA', H, [convert(1-string)]), !,
-  language_range0(T).
-'language-range'(["*"]) --> "*".
-language_range0([H|T]) -->
-  "-", !,
-  'm*n'(1, 8, alphanum, H, [convert(1-string)]),
-  language_range0(T).
-language_range0([]) --> "".
+'language-range'([H|T]) --> lrange1(H), *(lrange2, T).
+lrange1(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
+lrange2(S) --> "-", lrange1(S).

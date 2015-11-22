@@ -23,8 +23,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(http/rfc7230_code)).
@@ -62,7 +62,7 @@ connection_options([]).
 % Content-Length = 1*DIGIT
 % ```
 
-'Content-Length'(N) --> +('DIGIT', N, [convert(1-positional)]).
+'Content-Length'(I) --> '+digit'(I).
 
 
 
@@ -95,12 +95,7 @@ header_fields([]) --> "".
 % HTTP-version = HTTP-name "/" DIGIT "." DIGIT
 % ```
 
-'HTTP-version'(X, Y) -->
-  'HTTP-name',
-  "/",
-  'DIGIT'(X),
-  ".",
-  'DIGIT'(Y).
+'HTTP-version'(X, Y) --> 'HTTP-name', "/", digit(X), ".", digit(Y).
 
 
 

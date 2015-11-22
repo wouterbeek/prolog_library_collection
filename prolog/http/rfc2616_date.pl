@@ -31,7 +31,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/rfc2234_re)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(math/positional)).
 
@@ -48,7 +48,7 @@
   wkday(_WKD), !, 'SP',
   date3(D, Mo), 'SP',
   time(H, Mi, S), 'SP',
-  '#DIGIT'(4, Off).
+  '#digit'(4, Off).
 
 
 
@@ -58,9 +58,9 @@
 % ```
 
 date1(D, Mo, Y) -->
-  '#DIGIT'(2, D), 'SP',
+  '#digit'(2, D), 'SP',
   month(Mo), !, 'SP',
-  '#DIGIT'(4, Y).
+  '#digit'(4, Y).
 
 
 
@@ -70,9 +70,9 @@ date1(D, Mo, Y) -->
 % ```
 
 date2(D, Mo, Y) -->
-  '#DIGIT'(2, D), "-",
+  '#digit'(2, D), "-",
   month(Mo), !, "-",
-  '#DIGIT'(2, Y).
+  '#digit'(2, Y).
 
 
 
@@ -84,7 +84,7 @@ date2(D, Mo, Y) -->
 date3(D, Mo) -->
   month(Mo), !,
   'SP',
-  ('#DIGIT'(2, D) ; ('SP', 'DIGIT'(D))).
+  ('#digit'(2, D) ; ('SP', digit(D))).
 
 
 
@@ -93,7 +93,7 @@ date3(D, Mo) -->
 % delta-seconds  = 1*DIGIT
 % ```
 
-'delta-seconds'(N) --> '+DIGIT'(N).
+'delta-seconds'(N) --> '+digit'(N).
 
 
 
@@ -115,15 +115,15 @@ date3(D, Mo) -->
 %       | "Sep" | "Oct" | "Nov" | "Dec"
 % ```
 
-month(1) --> "Jan".
-month(2) --> "Feb".
-month(3) --> "Mar".
-month(4) --> "Apr".
-month(5) --> "May".
-month(6) --> "Jun".
-month(7) --> "Jul".
-month(8) --> "Aug".
-month(9) --> "Sep".
+month(1)  --> "Jan".
+month(2)  --> "Feb".
+month(3)  --> "Mar".
+month(4)  --> "Apr".
+month(5)  --> "May".
+month(6)  --> "Jun".
+month(7)  --> "Jul".
+month(8)  --> "Aug".
+month(9)  --> "Sep".
 month(10) --> "Oct".
 month(11) --> "Nov".
 month(12) --> "Dec".
@@ -161,7 +161,7 @@ month(12) --> "Dec".
 % time = 2DIGIT ":" 2DIGIT ":" 2DIGIT
 % ```
 
-time(H, Mi, S) --> '#DIGIT'(2, H), ":", '#DIGIT'(2, Mi), ":", '#DIGIT'(2, S).
+time(H, Mi, S) --> '#digit'(2, H), ":", '#digit'(2, Mi), ":", '#digit'(2, S).
 
 
 

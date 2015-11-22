@@ -21,6 +21,20 @@
               % ?High:nonneg
               % :Dcg_1
               % -Content:list
+    '*digit'//1, % ?Integer:nonneg
+    '+digit'//1, % ?Integer:nonneg
+    '#digit'//2, % +Occurrences:nonneg
+                 % ?Integer:nonneg
+    '*hex'//1, % ?Integer:nonneg
+    '+hex'//1, % ?Integer:nonneg
+    'm*nhex'//3, % ?Low:nonneg
+                 % ?High:nonneg
+                 % -Integer:nonneg
+    '*hexdig'//1, % ?Integer:nonneg
+    '+hexdig'//1, % ?Integer:nonneg
+    'm*nhexdig'//3, % ?Low:nonneg
+                    % ?High:nonneg
+                    % -Integer:nonneg
     posfrac/2, % +Digits:list(between(0,9))
                % -FractionalPart:rational
     possum/2, % +Digits, -Number
@@ -29,6 +43,17 @@
              % -Number:nonneg
   ]
 ).
+:- reexport(library(url/rfc1738_code), [
+     alpha//1, % ?Code:code
+     alphadigit//1, % ?Code:code
+     digit//1, % ?Weight:between(0,9)
+     hex//1, % ?Weight:between(0,15)
+     hialpha//1, % ?Code:code
+     lowalpha//1 % ?Code:code
+   ]).
+:- reexport(library(dcg/rfc2234), [
+     'HEXDIG'//1 as hexdig % ?Weight:between(0,15)
+   ]).
 
 /** <module> DCG: Regular Expression
 
@@ -38,8 +63,8 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/rfc2234)).
 :- use_module(library(lists)).
+:- use_module(library(url/rfc1738_code)).
 
 :- meta_predicate(?(//,?,?)).
 :- meta_predicate(?(3,-,?,?)).
@@ -110,6 +135,24 @@
   {Count2 is Count1 + 1},
   'm*n__'(Low, High, Count2, Dcg_1, T).
 'm*n__'(Low, _, Count, _, []) --> {(var(Low) -> true ; Low =< Count)}.
+
+
+
+% Digit
+'*digit'(I) --> *(digit, Ds), {possum(Ds, I)}.
+'+digit'(I) --> +(digit, Ds), {possum(Ds, I)}.
+'#digit'(M, I) --> #(M, digit, Ds), {possum(Ds, I)}.
+
+
+
+% Hexadecimal
+'*hex'(I) --> *(hex, Ds), {possum(Ds, I)}.
+'+hex'(I) --> +(hex, Ds), {possum(Ds, I)}.
+'m*nhex'(M, N, I) --> 'm*n'(M, N, hex, Ds), {possum(Ds, I)}.
+
+'*hexdig'(I) --> *(hexdig, Ds), {possum(Ds, I)}.
+'+hexdig'(I) --> +(hexdig, Ds), {possum(Ds, I)}.
+'m*nhexdig'(M, N, I) --> 'm*n'(M, N, hexdig, Ds), {possum(Ds, I)}.
 
 
 

@@ -21,8 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(string_ext)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(iri/rfc3987_code)).
 
 
@@ -44,7 +43,7 @@
 % ```
 
 'ipath-absolute'([H|T]) --> "/", 'isegment-nz'(H), !, isegments(T).
-'ipath-absolute'([]) --> "/".
+'ipath-absolute'([])    --> "/".
 
 
 
@@ -80,7 +79,7 @@
 % ireg-name = *( iunreserved / pct-encoded / sub-delims )
 % ```
 
-'ireg-name'(S) --> *(ireg_name_code, S, [convert1(codes_string)]).
+'ireg-name'(S) --> *(ireg_name_code, Cs), {string_codes(S, Cs)}.
 ireg_name_code(C) --> iunreserved(C).
 ireg_name_code(C) --> 'pct-encoded'(C).
 ireg_name_code(C) --> 'sub-delims'(C).
@@ -92,7 +91,7 @@ ireg_name_code(C) --> 'sub-delims'(C).
 % isegment = *ipchar
 % ```
 
-isegment(S) --> *(ipchar, S, [convert1(codes_string)]).
+isegment(S) --> *(ipchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -101,7 +100,7 @@ isegment(S) --> *(ipchar, S, [convert1(codes_string)]).
 % isegment-nz = 1*ipchar
 % ```
 
-'isegment-nz'(S) --> +(ipchar, S, [convert1(codes_string)]).
+'isegment-nz'(S) --> +(ipchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -111,10 +110,10 @@ isegment(S) --> *(ipchar, S, [convert1(codes_string)]).
 %                ; non-zero-length segment without any colon ":"
 % ```
 
-'isegment-nz-nc'(S) --> +(isegment_nz_nc_code, S, [convert1(codes_string)]).
-isegment_nz_nc_code(C) --> iunreserved(C).
-isegment_nz_nc_code(C) --> 'pct-encoded'(C).
-isegment_nz_nc_code(C) --> 'sub-delims'(C).
+'isegment-nz-nc'(S) --> +(isegment_nz_nc_code, Cs), {string_codes(S, Cs)}.
+isegment_nz_nc_code(C)   --> iunreserved(C).
+isegment_nz_nc_code(C)   --> 'pct-encoded'(C).
+isegment_nz_nc_code(C)   --> 'sub-delims'(C).
 isegment_nz_nc_code(0'@) --> "@".
 
 
@@ -124,4 +123,4 @@ isegment_nz_nc_code(0'@) --> "@".
 % HELPERS %
 
 isegments([H|T]) --> "/", !, isegment(H), isegments(T).
-isegments([]) --> "".
+isegments([])    --> "".

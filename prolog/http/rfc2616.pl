@@ -28,6 +28,7 @@
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(uri/rfc2396)).
 :- use_module(library(uri/rfc2396_token)).
@@ -41,11 +42,10 @@
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment -->
-  "(", comment0, ")".
-comment0 --> ctext(_), comment0.
-comment0 --> 'quoted-pair'(_), comment0.
-comment0 --> comment, comment0.
+comment --> "(", comment0, ")".
+comment0 --> ctext(_),         !, comment0.
+comment0 --> 'quoted-pair'(_), !, comment0.
+comment0 --> comment,          !, comment0.
 comment0 --> "".
 
 
@@ -107,11 +107,7 @@ http_URL(Host, Port, Path, Query) -->
 % HTTP-Version = "HTTP" "/" 1*DIGIT "." 1*DIGIT
 % ```
 
-'HTTP-Version'(X-Y) -->
-  "HTTP/",
-  +('DIGIT', X, [convert(1-positional)]),
-  ".",
-  +('DIGIT', Y, [convert(1-positional)]).
+'HTTP-Version'(X-Y) --> "HTTP/", '+digit'(X), ".", '+digit'(Y).
 
 
 

@@ -30,7 +30,6 @@
 
 :- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(lists)).
 :- use_module(library(uri/rfc3986_code)).
 
@@ -47,7 +46,7 @@
 %           / "25" %x30-35        ; 250-255
 % ```
 
-'dec-octet'(I) --> '+DIGIT'(I), {between(0, 255, I)}.
+'dec-octet'(I) --> '+digit'(I), {between(0, 255, I)}.
 
 
 
@@ -58,7 +57,7 @@
 % h16 = 1*4HEXDIG
 % ```
 
-h16(I) --> 'm*nHEXDIG'(1, 4, I).
+h16(I) --> 'm*nhexdig'(1, 4, I).
 
 
 
@@ -116,7 +115,7 @@ h16(I) --> 'm*nHEXDIG'(1, 4, I).
 % ```
 
 'IPvFuture'(ipvfuture(I,S)) -->
-  "v", '+HEXDIG'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
+  "v", '+hexdig'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
 ipv_future_code(C)   --> unreserved(C).
 ipv_future_code(C)   --> 'sub-delims'(C).
 ipv_future_code(0':) --> ":".
@@ -197,7 +196,7 @@ reg_name_codes([])    --> "".
 % segment = *pchar
 % ```
 
-segment(S) --> dcg_string('*pchar', S).
+segment(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -208,7 +207,7 @@ segment(S) --> dcg_string('*pchar', S).
 % segment-nz = 1*pchar
 % ```
 
-'segment-nz'(S) --> dcg_string('+pchar', S).
+'segment-nz'(S) --> +(pchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -231,9 +230,6 @@ segment_nz_nc_codes([])      --> "".
 
 
 % HELPERS %
-
-'+pchar'(L) --> +(pchar, L).
-'*pchar'(L) --> *(pchar, L).
 
 segments([H|T]) --> "/", !, segment(H), segments(T).
 segments([])    --> "".

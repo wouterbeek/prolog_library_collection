@@ -28,7 +28,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/rfc2234_re)).
+:- use_module(library(dcg/dcg_re)).
 
 
 
@@ -77,12 +77,11 @@ digit(9, 0'9) --> "9".
 
 
 %! digits(?Number:nonneg)// .
-%! digits(?Number:nonneg, ?Codes:list(code))// .
 % ```abnf
 % digits = 1*digit
 % ```
 
-digits(N) --> '+DIGIT'(N).
+digits(N) --> '+digit'(N).
 
 
 

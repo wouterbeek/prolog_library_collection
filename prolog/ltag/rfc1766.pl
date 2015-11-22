@@ -15,7 +15,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 
 
 
@@ -26,9 +26,8 @@
 % Language-Tag = Primary-tag *( "-" Subtag )
 % ```
 
-'Language-Tag'([H|T]) --> 'Primary-tag'(H), subtags(T).
-subtags([H|T]) --> "-", !, 'Subtag'(H), subtags(T).
-subtags([]) --> "".
+'Language-Tag'([H|T]) --> 'Primary-tag'(H), *(subtag, T).
+subtag(S) --> "-", 'Subtag'(S).
 
 
 
@@ -37,7 +36,7 @@ subtags([]) --> "".
 % Primary-tag = 1*8ALPHA
 % ```
 
-'Primary-tag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [covnert(1-string)]).
+'Primary-tag'(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
@@ -46,4 +45,4 @@ subtags([]) --> "".
 % Subtag = 1*8ALPHA
 % ```
 
-'Subtag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert(1-string)]).
+'Subtag'(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.

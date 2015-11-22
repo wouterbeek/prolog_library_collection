@@ -33,16 +33,9 @@ Handles user input and sequences in which user input is needed continuously
 */
 
 :- use_module(library(filesex)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(readutil)).
-
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/dcg_unicode)).
-:- use_module(plc(generics/string_ext)).
-:- use_module(plc(os/file_ext)).
 
 :- meta_predicate(user_input(+,3,+)).
 :- meta_predicate(user_interaction(+,+,:,+,+)).

@@ -38,7 +38,7 @@
 
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/rfc2234_re)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(debug)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
@@ -133,7 +133,7 @@
 % Content-Length = "Content-Length" ":" 1*DIGIT
 % ```
 
-'Content-Length'(N) --> '+DIGIT'(N).
+'Content-Length'(N) --> '+digit'(N).
 
 
 

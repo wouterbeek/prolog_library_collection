@@ -21,7 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(url/rfc1738_code)).
 :- use_module(library(url/rfc1738_component)).
 
@@ -34,7 +34,7 @@
 % gopher+_string = *xchar
 % ```
 
-'gopher+_string'(S) --> *(xchar, S, [convert(1-string)]).
+'gopher+_string'(S) --> *(xchar, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -79,7 +79,7 @@ gopherurl(Host, Port, Type, Selector, Search, String) -->
 % gtype = xchar
 % ```
 
-gtype(S) --> xchar(C), {string_codes(S, C)}.
+gtype(S) --> xchar(C), {string_codes(S, [C])}.
 
 
 
@@ -88,4 +88,4 @@ gtype(S) --> xchar(C), {string_codes(S, C)}.
 % selector = *xchar
 % ```
 
-selector(S) --> *(xchar, S, [convert(1-string)]).
+selector(S) --> *(xchar, Cs), {string_codes(S, Cs)}.

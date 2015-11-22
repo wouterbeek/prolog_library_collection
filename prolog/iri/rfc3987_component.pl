@@ -20,8 +20,7 @@
 @version 2015/08, 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(string_ext)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(iri/rfc3987_code)).
 :- use_module(library(iri/rfc3987_token)).
 
@@ -48,8 +47,8 @@ iauthority(Scheme, authority(UserInfo,Host,Port)) -->
 % ihost = IP-literal / IPv4address / ireg-name
 % ```
 
-ihost(Host) --> 'IP-literal'(Host).
-ihost(Host) --> 'IPv4address'(Host).
+ihost(Host) --> 'IP-literal'(Host), !.
+ihost(Host) --> 'IPv4address'(Host), !.
 ihost(Host) --> 'ireg-name'(Host).
 
 
@@ -59,8 +58,8 @@ ihost(Host) --> 'ireg-name'(Host).
 % ifragment = *( ipchar / "/" / "?" )
 % ```
 
-ifragment(S) --> *(ifragment_code, S, [convert1(codes_string)]).
-ifragment_code(C) --> ipchar(C).
+ifragment(S) --> *(ifragment_code, Cs), {string_codes(S, Cs)}.
+ifragment_code(C)   --> ipchar(C).
 ifragment_code(0'/) --> "/".
 ifragment_code(0'?) --> "?".
 
@@ -93,9 +92,9 @@ ipath(L) --> 'ipath-empty'(L).
 % iquery = *( ipchar / iprivate / "/" / "?" )
 % ```
 
-iquery(S) --> *(iquery_code, S, [convert1(codes_string)]).
-iquery_code(C) --> ipchar(C).
-iquery_code(C) --> iprivate(C).
+iquery(S) --> *(iquery_code, Cs), {string_codes(S, Cs)}.
+iquery_code(C)   --> ipchar(C).
+iquery_code(C)   --> iprivate(C).
 iquery_code(0'/) --> "/".
 iquery_code(0'?) --> "?".
 
@@ -106,10 +105,10 @@ iquery_code(0'?) --> "?".
 % iuserinfo = *( iunreserved / pct-encoded / sub-delims / ":" )
 % ```
 
-iuserinfo(S) --> *(iuserinfo_code, S, [convert1(codes_string)]).
-iuserinfo_code(C) --> iunreserved(C).
-iuserinfo_code(C) --> 'pct-encoded'(C).
-iuserinfo_code(C) --> 'sub-delims'(C).
+iuserinfo(S) --> *(iuserinfo_code, Cs), {string_codes(S, Cs)}.
+iuserinfo_code(C) -->   iunreserved(C).
+iuserinfo_code(C) -->   'pct-encoded'(C).
+iuserinfo_code(C) -->   'sub-delims'(C).
 iuserinfo_code(0':) --> ":".
 
 

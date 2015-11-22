@@ -27,7 +27,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(lists)).
 :- use_module(library(url/rfc1738_code)).
@@ -68,7 +68,7 @@ host(Host) --> hostnumber(Host).
 % ```
 
 hostname([H|T]) --> domainlabel(H), ".", !, hostname(T).
-hostname([H]) --> toplabel(H).
+hostname([H])   --> toplabel(H).
 
 
 
@@ -132,9 +132,9 @@ port(N) --> digits(N).
 % scheme = 1*[ lowalpha | digit | "+" | "-" | "." ]
 % ```
 
-scheme(Scheme) --> +(scheme_code, Scheme, [convert(1-string)]).
-scheme_code(C) --> lowalpha(C).
-scheme_code(C) --> digit(C).
+scheme(Scheme) --> +(scheme_code, Cs), {string_codes(Scheme, Cs)}.
+scheme_code(C)   --> lowalpha(C).
+scheme_code(C)   --> digit(C).
 scheme_code(0'+) --> "+".
 scheme_code(0'-) --> "-".
 scheme_code(0'.) --> ".".

@@ -14,7 +14,6 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(url/rfc1738_component)).
 :- use_module(library(url/rfc1738_ftp)).
 

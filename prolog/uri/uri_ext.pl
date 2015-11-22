@@ -151,7 +151,7 @@ uri_file_extensions(Uri, Exts):-
 
 uri_optional_query_enc, "%2F" --> "/", !, uri_optional_query_enc.
 uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
-uri_optional_query_enc, [C] --> [C], !, uri_optional_query_enc.
+uri_optional_query_enc, [C] --> [C],   !, uri_optional_query_enc.
 uri_optional_query_enc --> "".
 
 
@@ -166,11 +166,11 @@ uri_optional_query_enc --> "".
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-uri_query_enc, "/" --> "/", !, uri_query_enc.
-uri_query_enc, "?" --> "?", !, uri_query_enc.
-uri_query_enc, ":" --> ":", !, uri_query_enc.
-uri_query_enc, "@" --> "@", !, uri_query_enc.
-uri_query_enc, [C] --> unreserved(C), !, uri_query_enc.
+uri_query_enc, "/" --> "/",             !, uri_query_enc.
+uri_query_enc, "?" --> "?",             !, uri_query_enc.
+uri_query_enc, ":" --> ":",             !, uri_query_enc.
+uri_query_enc, "@" --> "@",             !, uri_query_enc.
+uri_query_enc, [C] --> unreserved(C),   !, uri_query_enc.
 uri_query_enc, [C] --> 'sub-delims'(C), !, uri_query_enc.
 uri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   between_code(0, 255, C), !,
