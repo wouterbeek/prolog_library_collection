@@ -47,9 +47,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
+:- use_module(library(dcg/dcg_re)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(string_ext)).
 :- use_module(library(uri/rfc2396_code)).
 :- use_module(library(uri/rfc2396_token)).
 
@@ -101,8 +100,8 @@ authority(auth(RegisteredName)) --> reg_name(RegisteredName).
 % ```
 
 hier_part(Auth, Path, Query) -->
-  (net_path(Auth, Path) ; abs_path(Path)),
-  ("?", query(Query) ; "").
+  (net_path(Auth, Path) ; abs_path(Path)), !,
+  ("?", query(Query), ! ; "").
 
 
 
@@ -111,7 +110,7 @@ hier_part(Auth, Path, Query) -->
 % host = hostname | IPv4address
 % ```
 
-host(Ls) --> hostname(Ls).
+host(Ls) --> hostname(Ls), !.
 host(Ns) --> 'IPv4address'(Ns).
 
 
@@ -124,7 +123,7 @@ host(Ns) --> 'IPv4address'(Ns).
 hostname(L) -->
   domainlabels(L0),
   toplabel(Z),
-  ("." ; ""),
+  (".", ! ; ""),
   {append(L0, [Z], L)}.
 domainlabels([H|T]) --> domainlabel(H), !, domainlabels(T).
 domainlabels([]) --> "".
@@ -138,7 +137,7 @@ domainlabels([]) --> "".
 
 hostport(Host, Port) -->
   host(Host),
-  (":", port(Port) ; {Port = 80}).
+  (":", !, port(Port) ; {Port = 80}).
 
 
 
@@ -150,7 +149,7 @@ hostport(Host, Port) -->
 net_path(Auth, Path) -->
   "//",
   authority(Auth),
-  (abs_path(Path) ; {Path = []}).
+  (abs_path(Path), ! ; {Path = []}).
 
 
 
@@ -159,11 +158,9 @@ net_path(Auth, Path) -->
 % path = [ abs_path | opaque_part ]
 % ```
 
-path(Path) -->
-  (   abs_path(Path)
-  ;   opaque_part(OpaquePart), {Path = [OpaquePart]}
-  ;   {Path = []}
-  ).
+path(Path) --> abs_path(Path), !.
+path([OpaquePart]) --> opaque_part(OpaquePart), !.
+path([]) --> "".
 
 
 
@@ -183,7 +180,7 @@ segments0([]) --> "".
 % rel_path = rel_segment [ abs_path ]
 % ```
 
-rel_path([H|T]) --> rel_segment(H), (abs_path(T) ; {T = []}).
+rel_path([H|T]) --> rel_segment(H), ?(abs_path, T).
 
 
 
@@ -193,8 +190,8 @@ rel_path([H|T]) --> rel_segment(H), (abs_path(T) ; {T = []}).
 % ```
 
 relativeURI(Auth, Path, Query) -->
-  (net_path(Auth, Path) ; abs_path(Path) ; rel_path(Path)),
-  ("?", query(Query) ; "").
+  (net_path(Auth, Path) ; abs_path(Path) ; rel_path(Path)), !,
+  ("?" -> query(Query) ; "").
 
 
 
@@ -204,8 +201,8 @@ relativeURI(Auth, Path, Query) -->
 % ```
 
 segment(S) --> param(H), !, params(T), {string_list_concat([H|T], ";", S)}.
-params([H|T]) --> ";", !, param(H), params([H|T]).
-params([]) --> "".
+params([H|T]) --> ";",   !, param(H), params([H|T]).
+params([])    --> "".
 
 
 
@@ -219,7 +216,7 @@ params([]) --> "".
 % ```
 
 server(UserInfo, Host, Port) -->
-  ((userinfo(UserInfo), "@" ; ""), hostport(Host, Port) ; "").
+  ((userinfo(UserInfo) -> "@" ; "") -> hostport(Host, Port) ; "").
 
 
 

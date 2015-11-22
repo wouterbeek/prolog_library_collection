@@ -31,7 +31,6 @@
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_phrase)).
   :- use_module(library(dcg/dcg_pl)).
-  :- use_module(library(dcg/dcg_quoted)).
   :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_table)).

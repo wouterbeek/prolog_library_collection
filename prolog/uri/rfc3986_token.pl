@@ -28,6 +28,8 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/rfc2234_re)).
 :- use_module(library(uri/rfc3986_code)).
 
 
@@ -43,7 +45,7 @@
 %           / "25" %x30-35        ; 250-255
 % ```
 
-'dec-octet'(N) --> '+DIGIT'(N), {between(0, 255, N)}.
+'dec-octet'(I) --> '+DIGIT'(I), {between(0, 255, I)}.
 
 
 
@@ -54,17 +56,7 @@
 % h16 = 1*4HEXDIG
 % ```
 
-h16(N) -->
-  'm*n'(1, 4, 'HEXDIG', L),
-  {positional(L, 16, N)}.
-
-positional(L, Base, N):-
-  positional(L, Base, 0, N).
-
-positional([], _, N, N):- !.
-positional([H|T], Base, N1, N):-
-  N2 is N1 * Base + H,
-  positional(T, Base, N2, N).
+h16(I) --> 'm*nHEXDIG'(1, 4, I).
 
 
 
@@ -73,8 +65,7 @@ positional([H|T], Base, N1, N):-
 % IP-literal = "[" ( IPv6address / IPvFuture  ) "]"
 % ```
 
-'IP-literal'(Literal) --> "[", 'IPv6address'(Literal), !, "]".
-'IP-literal'(Literal) --> "[", 'IPvFuture'(Literal), "]".
+'IP-literal'(Lit) --> "[", ('IPv6address'(Lit), ! ; 'IPvFuture'(Lit)), "]".
 
 
 
@@ -83,8 +74,11 @@ positional([H|T], Base, N1, N):-
 % IPv4address = dec-octet "." dec-octet "." dec-octet "." dec-octet
 % ```
 
-'IPv4address'([N1,N2,N3,N4]) -->
-  '#'(4, 'dec-octet', [N1,N2,N3,N4], [separator(dot)]).
+'IPv4address'([I1,I2,I3,I4]) -->
+  'dec-octet'(I1), ".",
+  'dec-octet'(I2), ".",
+  'dec-octet'(I3), ".",
+  'dec-octet'(I4), ".".
 
 
 
@@ -101,7 +95,15 @@ positional([H|T], Base, N1, N):-
 %             / [ *6( h16 ":" ) h16 ] "::"
 % ```
 
-'IPv6address' --> '#h16'(6, L), ls32(X).
+'IPv6address' -->       #(6, 'h16:', L), ls32(X).
+'IPv6address' --> "::", #(5, 'h16:', L), ls32(X).
+'IPv6address' --> ?(h16, L1), "::", #(4, 'h16:', L2), ls32(X).
+'IPv6address' -->
+  ('m*n'(_, 1, 'h16:', L1), ?(h16, L2) ; L1 = [], L2 = []),
+  "::", #(4, 'h16:', L3), ls32(X).
+
+'h16:'(X) --> h16(X), ":".
+
 
 
 'IPv6address'(ipv6(FormerH16s,LatterH16s,Ls32s)) -->
@@ -125,13 +127,11 @@ positional([H|T], Base, N1, N):-
 % IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
 % ```
 
-'IPvFuture'(ipvfuture(N,S)) -->
-  "v", '+HEXDIG'(N), ".",
-  dcg_string(ipv_future_codes, S).
-ipv_future_codes([H|T])   --> unreserved(H),   !, ipv_future_codes(T).
-ipv_future_codes([H|T])   --> 'sub-delims'(H), !, ipv_future_codes(T).
-ipv_future_codes([0':|T]) --> ":",             !, ipv_future_codes(T).
-ipv_future_codes([])      --> "".
+'IPvFuture'(ipvfuture(I,S)) -->
+  "v", '+HEXDIG'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
+ipv_future_code(C)   --> unreserved(C).
+ipv_future_code(C)   --> 'sub-delims'(C).
+ipv_future_code(0':) --> ":".
 
 
 
@@ -244,39 +244,8 @@ segment_nz_nc_codes([])      --> "".
 
 % HELPERS %
 
-'#h16'(M, L) --> '#h16'(M, 0, L).
-'#h16'(M,  M, [])    --> "".
-'#h16'(M1, N, [H|T]) --> h16(HT), !, {M2 is M1 + 1}, '#h16'(M2, N, T).
-
-
-
-%! ipv6_pattern(
-%!   ?NumberOfFormerH16s:between(0,7),
-%!   ?HasDoubleColon:boolean,
-%!   ?NumberOfLatterH16s:between(0,6),
-%!   ?HasColon:boolean,
-%!   ?NumberOfLs32s:between(0,1)
-%! ).
-
-ipv6_pattern(0, false, 6, true,  1).
-ipv6_pattern(0, true,  5, true,  1).
-ipv6_pattern(1, true,  4, true,  1).
-ipv6_pattern(2, true,  3, true,  1).
-ipv6_pattern(3, true,  3, true,  1).
-ipv6_pattern(4, true,  1, true,  1).
-ipv6_pattern(5, true,  0, false, 1).
-ipv6_pattern(6, true,  1, false, 0).
-ipv6_pattern(7, true,  0, false, 0).
-
-
-
-'+pchar'([H|T]) --> pchar(H), !, '*pchar'(T).
-'*pchar'([H|T]) --> pchar(H), !, '*pchar'(T).
-'*pchar'([])    --> "".
-
-
-
-%! segments(?Segments:list(string))// .
+'+pchar'(L) --> +(pchar, L).
+'*pchar'(L) --> *(pchar, L).
 
 segments([H|T]) --> "/", !, segment(H), segments(T).
 segments([])    --> "".

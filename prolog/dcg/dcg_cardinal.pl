@@ -40,11 +40,8 @@ Library `dcg/basics` comes with the following rules for cardinals:
 
 :- use_module(library(error)).
 :- use_module(library(plunit)).
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(math/radconv)).
-:- use_module(library(math/radix)).
 :- use_module(library(typecheck)).
 
 
@@ -56,7 +53,6 @@ Library `dcg/basics` comes with the following rules for cardinals:
 % Consume integers between the given lower and higher bounds.
 
 between(Low, High) --> between(Low, High, _).
-
 between(Low, High, N) --> integer(N), {between(Low, High, N)}.
 
 
@@ -74,12 +70,8 @@ between(Low, High, N) --> integer(N), {between(Low, High, N)}.
 % This supports digits of hexadecimal radix.
 
 between_digit(Low, High) --> between_digit(Low, High, _).
-
 between_digit(Low, High, W) --> between_digit(Low, High, W, _).
-
-between_digit(Low, High, W, C) -->
-  hexadecimal_digit(W, C),
-  {between(Low, High, W)}.
+between_digit(Low, High, W, C) --> hexadecimal_digit(W, C), {between(Low, High, W)}.
 
 
 
@@ -109,9 +101,7 @@ between_digit(Low, High, W, C) -->
 % Codes = [49, 53].
 % ```
 
-between_radix(Low, High) -->
-  between_radix(Low, High, _).
-
+between_radix(Low, High) --> between_radix(Low, High, _).
 between_radix(Low, High, Value) -->
   {
     radconv(Low, dec(LowDec)),

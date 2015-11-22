@@ -3,6 +3,11 @@
   [
     '...'//0,
     '...'//1, % -Codes:list(code)
+    ascii_alpha//1, % ?Code:code
+    ascii_alpha_num//1, % ?Code:code
+    ascii_higher//1, % ?Code:code
+    ascii_lower//1, % ?Code:code
+    ascii_num//1, % ?Code:code
     dcg_cp//0,
     dcg_done//0,
     dcg_rest//1, % -Rest:list(code)
@@ -74,6 +79,20 @@ DCG rules for parsing/generating often-occuring content.
 % Wrapper around string//1.
 
 ...(Cs) --> string(Cs).
+
+
+
+ascii_alpha_num(C) --> ascii_alpha(C).
+ascii_alpha_num(C) --> ascii_num(C).
+
+ascii_alpha(C) --> ascii_higher(C).
+ascii_alpha(C) --> ascii_lower(C).
+
+ascii_higher(C) --> [C], {between(0'A, 0'Z, C)}.
+
+ascii_lower(C)  --> [C], {between(0'a, 0'z, C)}.
+
+ascii_num(C) --> [C], {between(0'0, 0'9, C)}.
 
 
 

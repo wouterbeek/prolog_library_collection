@@ -50,7 +50,6 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(apply)).
 :- use_module(library(check_installation)). % Private predicates.
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug)).
@@ -85,14 +84,11 @@ call_collect_messages(Goal_0):-
   process_status(Status).
 
 process_status(true):- !.
-process_status(fail):- !,
-  fail.
-process_status(E):-
-  print_error(E).
+process_status(fail):- !, fail.
+process_status(E):- print_error(E).
 
 process_warnings([]):- !.
-process_warnings(Es):-
-  maplist(print_error, Es).
+process_warnings(Es):- maplist(print_error, Es).
 %process_warnings(Es):-
 %  length(Es, N),
 %  (N =:= 0 -> true ; print_message(warnings, number_of_warnings(N))).
@@ -217,12 +213,9 @@ debug_with_output_to(Flag, Goal_0):-
 %
 % @see library(debug)
 
-if_debug(Flag, _):-
-  var(Flag), !.
-if_debug(Flag, _):-
-  \+ debugging(Flag), !.
-if_debug(_, Goal_0):-
-  call(Goal_0).
+if_debug(Flag, _):-   var(Flag), !.
+if_debug(Flag, _):-   \+ debugging(Flag), !.
+if_debug(_, Goal_0):- call(Goal_0).
 
 
 
@@ -237,15 +230,12 @@ number_of_open_files(N):-
 
 %! print_error(+Error:compound) is det.
 
-print_error(exception(E)):- !,
-  print_error(E).
-print_error(E):-
-  print_message(error, E).
+print_error(exception(E)):- !, print_error(E).
+print_error(E):- print_message(error, E).
 
 
 
-tmon:-
-  prolog_ide(thread_monitor).
+tmon:- prolog_ide(thread_monitor).
 
 
 
@@ -255,8 +245,6 @@ tmon:-
 
 :- multifile(prolog:message//1).
 
-prolog:message(loading_module(File)) -->
-  ['[M] ',File].
+prolog:message(loading_module(File)) --> ['[M] ',File].
 
-prolog:message(number_of_warnings(N)) -->
-  ['~D warnings'-[N]].
+prolog:message(number_of_warnings(N)) --> ['~D warnings'-[N]].

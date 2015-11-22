@@ -106,4 +106,3 @@ rational_parts_weights(D, IW, FW):-
   rational_parts(D, I, F),
   positional(I, IW),
   positional_fraction(FW, F).
-

@@ -15,7 +15,6 @@
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(http/http_header)). % Private.
 
@@ -30,7 +29,7 @@ http_status_code(Code) -->
   integer(Code),
   " ",
   {http_status_label(Code, Label)},
-  bracketed(atom(Label)),
+  "(", atom(Label), ")",
   ".".
 
 

@@ -23,7 +23,6 @@ DCG rules for printing SWI-Prolog 7 terms.
 
 :- use_module(library(date_ext)).
 :- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_bracketed)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_collection)).
@@ -51,16 +50,12 @@ pl_dateTime(DT1, X, Y):-
 
 %! pl_pair(+Pair:pair)// is det.
 
-pl_pair(N-V) -->
-  pl_pair(pl_term(N), pl_term(V)).
+pl_pair(N-V) --> pl_pair(pl_term(N), pl_term(V)).
 
 
 %! pl_pair(:Name_2, :Value_2)// is det.
 
-pl_pair(N_2, V_2) -->
-  N_2,
-  "-",
-  V_2.
+pl_pair(N_2, V_2) --> N_2, "-", V_2.
 
 
 
@@ -84,21 +79,16 @@ pl_stream_position(stream(_,Row,Col,_)) -->
   column(Col),
   "]".
 
-row(N) -->
-  "Row: ",
-  thousands_integer(N).
+row(N) --> "Row: ", thousands_integer(N).
 
-column(N) -->
-  "Col: ",
-  thousands_integer(N).
+column(N) --> "Col: ", thousands_integer(N).
 
 
 
 %! pl_term(@Term)// is det.
 % Wrapper around pl_term//2 with no indentation.
 
-pl_term(Term) -->
-  pl_term(Term, 0).
+pl_term(Term) --> pl_term(Term, 0).
 
 
 %! pl_term(@Term, +Indent:nonneg)// is det.
@@ -135,8 +125,7 @@ pl_term(L, I1) -->
       tab(I1), "]"
   ).
 % 3. Other term.
-pl_term(T, I) -->
-  tab(I), pl_term0(T).
+pl_term(T, I) --> tab(I), pl_term0(T).
 
 pl_term0(I)   --> {integer(I)}, !, thousands_integer(I).
 pl_term0(S)   --> {string(S)}, !, "\"", atom(S), "\"".
@@ -151,9 +140,7 @@ pl_term0(X)   --> {gtrace}, pl_term0(X).
 %! term_entries(:Dcg_4, +Entries:list, +Indent:nonneg)// is det.
 
 term_entries(_, [], _) --> !, "".
-term_entries(Dcg_4, [H], I) --> !,
-  dcg_call(Dcg_4, H, I),
-  nl.
+term_entries(Dcg_4, [H], I) --> !, dcg_call(Dcg_4, H, I), nl.
 term_entries(Dcg_4, [H|T], I) -->
   dcg_call(Dcg_4, H, I),
   ",", nl,
@@ -178,12 +165,8 @@ dict_entry(Key-Val, I1) -->
 
 %! is_empty_term(@Term) is semidet.
 
-is_empty_term(D):-
-  is_dict(D), !,
-  is_empty_dict(D).
-is_empty_term(L):-
-  is_list(L), !,
-  empty_list(L).
+is_empty_term(D):- is_dict(D), !, is_empty_dict(D).
+is_empty_term(L):- is_list(L), !, empty_list(L).
 
 
 

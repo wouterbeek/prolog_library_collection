@@ -19,7 +19,6 @@ Grammar snippets for LaTeX.
 
 :- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_atom)).
-:- use_module(plc(dcg/dcg_bracket)).
 :- use_module(plc(dcg/dcg_generics)).
 :- use_module(plc(dcg/dcg_replace)).
 :- use_module(plc(generics/code_ext)).
@@ -59,15 +58,13 @@ file_to_latex_title(PrologFile, Local):-
 
 latex(Command) -->
   % Allow Prolog multiline commenting.
-  (   forward_slash, asterisk % Avoids colorization in bad editors.
-  ;   ""
-  ),
+  % Avoids colorization in bad editors.
+  ("/*"  ; ""),
   atom(Command),
-  bracketed(atom(latex)),
+  "(latex)",
   % Allow Prolog multiline commenting.
-  (   asterisk, forward_slash % Avoids colorization in bad editors.
-  ;   ""
-  ).
+  % Avoids colorization in bad editors.
+  ("*/" ; "").
 
 
 
