@@ -12,12 +12,12 @@
 :- reexport(library(dcg/rfc2234), [
      'ALPHA'//1, % ?Code:code
      'CR'//0,
-     'DIGIT'//1, % ?Weight:betwen(0,9)
-     'DIGIT'//2, % ?Weight:betwen(0,9)
+     'DIGIT'//1, % ?Weight:between(0,9)
+     'DIGIT'//2, % ?Weight:between(0,9)
                  % ?Code:code
      'DQUOTE'//0,
-     'HEXDIG'//1, % ?Weight:betwen(0,9)
-     'HEXDIG'//2, % ?Weight:betwen(0,9)
+     'HEXDIG'//1, % ?Weight:between(0,9)
+     'HEXDIG'//2, % ?Weight:between(0,9)
                   % ?Code:code
      'LF'//0,
      'SP'//0
