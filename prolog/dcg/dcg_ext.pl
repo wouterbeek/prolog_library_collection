@@ -342,12 +342,16 @@ pos(I, Ds):- pos(I, 10, Ds).
 
 %! pos(+Integer:nonneg, +Base:nonneg, -Digits:list(between(0,9))) is det.
 
-pos(I1, Base, [H|T]):-
-  I1 >= Base, !,
-  H is I1 // Base,
-  I2 is I1 mod Base,
-  pos(I2, Base, T).
-pos(I, _, [I]).
+pos(I, Base, Ds):-
+  pos_rev(I, Base, Ds0),
+  reverse(Ds0, Ds).
+
+pos_rev(I, Base, [I]):-
+  I < Base, !.
+pos_rev(I1, Base, [H|T]):-
+  H is I1 mod Base,
+  I2 is I1 // Base,
+  pos_rev(I2, Base, T).
 
 
 
