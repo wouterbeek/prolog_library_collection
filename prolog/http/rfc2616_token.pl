@@ -204,7 +204,8 @@ next_subtag(Subtag) --> "-", !, subtag(Subtag).
   type(Type),
   "/",
   subtype(Subtype),
-  parameters(L).
+  *(sep_parameter, L).
+sep_parameter --> ";", parameter.
 
 
 

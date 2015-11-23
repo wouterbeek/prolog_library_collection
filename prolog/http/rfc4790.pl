@@ -30,19 +30,15 @@
 % except that at first, the lower-case letters (octet values 97-122) in
 % each input string are changed to upper case (octet values 65-90).
 
-ascii_casemap(L1, L2):-
-  maplist(ascii_casemap_code, L1, L2).
-ascii_casemap_code(X, Y):-
-  between(97, 122, X), !,
-  Y is X - 32.
+ascii_casemap(L1, L2):- maplist(ascii_casemap_code, L1, L2).
+ascii_casemap_code(X, Y):- between(0'a, 0'z, X), !, Y is X - 32.
 ascii_casemap_code(X, X).
 
 
 
 %! octet_match(+X:list(between(0,255)), +Y:list(between(0,255))) is semidet.
 
-octet_match(X, Y):-
-  octet_order(X, Y, =).
+octet_match(X, Y):- octet_order(X, Y, =).
 
 
 
@@ -67,10 +63,8 @@ octet_match(X, Y):-
 octet_order([], [], =):- !.
 octet_order([], _, <):- !.
 octet_order(_, [], >):- !.
-octet_order([H|T1], [H|T2], Comp):- !,
-  octet_order(T1, T2, Comp).
-octet_order([H1|_], [H2|_], <):-
-  H1 < H2, !.
+octet_order([H|T1], [H|T2], Comp):- !, octet_order(T1, T2, Comp).
+octet_order([H1|_], [H2|_], <):- H1 < H2, !.
 octet_order(_, _, >).
 
 
@@ -83,12 +77,9 @@ octet_order(_, _, >).
 % a "match" result from the equality function.  Otherwise, the
 % substring operation returns "no-match".
 
-octet_substring([H|T1], [H|T2]):-
-  octet_substring_found(T1, T2), !.
+octet_substring([H|T1], [H|T2]):- octet_substring_found(T1, T2), !.
 octet_substring([], _):- !.
-octet_substring(L, [_|T]):-
-  octet_substring(L, T).
+octet_substring(L, [_|T]):- octet_substring(L, T).
 
-octet_substring_found([H|T1], [H|T2]):- !,
-  octet_substring_found(T1, T2).
+octet_substring_found([H|T1], [H|T2]):- !, octet_substring_found(T1, T2).
 octet_substring_found([], _).

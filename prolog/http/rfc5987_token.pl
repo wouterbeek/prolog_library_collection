@@ -34,7 +34,7 @@ This modifies the following RFC 2616 rules:
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(http/rfc5987_code)).
 :- use_module(library(ltag/rfc5646), [
@@ -51,8 +51,8 @@ This modifies the following RFC 2616 rules:
 % charset = "UTF-8" / "ISO-8859-1" / mime-charset
 % ```
 
-charset("UTF-8")      --> "UTF-8".
-charset("ISO-8859-1") --> "ISO-8859-1".
+charset("UTF-8")      --> "UTF-8", !.
+charset("ISO-8859-1") --> "ISO-8859-1", !.
 charset(Charset)      --> 'mime-charset'(Charset).
 
 
@@ -80,12 +80,8 @@ charset(Charset)      --> 'mime-charset'(Charset).
 %           ; (see [RFC2231], Section 7)
 % ```
 
-'ext-value'(Charset, Language, Value) -->
-  charset(Charset),
-  "'",
-  (language(Language) ; ""),
-  "'",
-  'value-chars'(Value).
+'ext-value'(Charset, Lang, Value) -->
+  charset(Charset), "'", ?(language, Lang), "'", 'value-chars'(Value).
 
 
 

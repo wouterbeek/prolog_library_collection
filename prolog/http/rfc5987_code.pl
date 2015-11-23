@@ -39,8 +39,8 @@
 %           ; token except ( "*" / "'" / "%" )
 % ```
 
-'attr-char'(C) --> 'ALPHA'(C).
-'attr-char'(C) --> 'DIGIT'(C).
+'attr-char'(C)   --> 'ALPHA'(C).
+'attr-char'(C)   --> 'DIGIT'(C).
 'attr-char'(0'!) --> "!".
 'attr-char'(0'#) --> "#".
 'attr-char'(0'$) --> "$".
@@ -67,8 +67,8 @@
 %               ; SHOULD be registered in the IANA charset registry
 % ```
 
-'mime-charsetc'(C) --> 'ALPHA'(C).
-'mime-charsetc'(C) --> 'DIGIT'(C).
+'mime-charsetc'(C)   --> 'ALPHA'(C).
+'mime-charsetc'(C)   --> 'DIGIT'(C).
 'mime-charsetc'(0'!) --> "!".
 'mime-charsetc'(0'#) --> "#".
 'mime-charsetc'(0'$) --> "$".

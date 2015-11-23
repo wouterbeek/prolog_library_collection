@@ -17,6 +17,7 @@ header from RFC 2616.
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_token), [
      token//1, % ?Token:string
@@ -40,9 +41,8 @@ header from RFC 2616.
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(Type, L) --> 'disposition-type'(Type), params(L).
-params([H|T]) --> ";", !, 'disposition-parm'(H), params(T).
-params([])    --> "".
+'content-disposition'([H|T]) --> 'disposition-type'(Type), *(disposition_param, L).
+disposition_param(X) --> ";", 'disposition-parm'(H).
 
 
 
@@ -52,8 +52,8 @@ params([])    --> "".
 %               | ext-token "=" ext-value
 % ```
 
-'disp-ext-parm'(Key-Val) --> token(Key), !, "=", value(Val).
-'disp-ext-parm'(Key-x(X,Y,Z)) --> 'ext-token'(Key), "=", 'ext-value'(X, Y, Z).
+'disp-ext-parm'(Key-Val)        --> token(Key), !,    "=", value(Val).
+'disp-ext-parm'(Key-ext(X,Y,Z)) --> 'ext-token'(Key), "=", 'ext-value'(X, Y, Z).
 
 
 
@@ -103,5 +103,5 @@ params([])    --> "".
 %               | "filename*" "=" ext-value
 % ```
 
-'filename-parm'("filename"-Val) --> "filename=", value(Val).
-'filename-parm'("filename*"-x(X,Y,Z)) --> "filename*=", 'ext-value'(X, Y, Z).
+'filename-parm'("filename"-Val)         --> "filename=", !, value(Val).
+'filename-parm'("filename*"-ext(X,Y,Z)) --> "filename*=", 'ext-value'(X, Y, Z).

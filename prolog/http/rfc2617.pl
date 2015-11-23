@@ -15,9 +15,9 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
 
 

@@ -21,6 +21,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(http/rfc4790)).
 :- use_module(library(http/rfc6454_code)).
@@ -149,9 +150,8 @@ origin(L) --> "Origin:", 'OWS', 'origin-list-or-null'(L), 'OWS'.
 % origin-list = serialized-origin *( SP serialized-origin )
 % ```
 
-'origin-list'([H|T]) --> 'serialized-origin'(H), !, origin_list(T).
-origin_list([H|T]) --> 'SP', 'serialized-origin'(H), !, origin_list(T).
-origin_list([])    --> "".
+'origin-list'([H|T]) --> 'serialized-origin'(H), !, *(serialized_origin, T).
+serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 
 
 
@@ -161,7 +161,7 @@ origin_list([])    --> "".
 % ```
 
 'origin-list-or-null'([]) --> "null", !.
-'origin-list-or-null'(L) --> 'origin-list'(L).
+'origin-list-or-null'(L)  --> 'origin-list'(L).
 
 
 

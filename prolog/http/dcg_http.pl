@@ -1,5 +1,5 @@
 :- module(
-  rfc2616_helpers,
+  dcg_http,
   [
     '*#'//2, % :Dcg_1
              % -Contents:list
@@ -9,7 +9,7 @@
   ]
 ).
 
-/** <module> RFC 2616: Helper predicates
+/** <module> DCG rules for HTTP
 
 @author Wouter Beek
 @compat RFC 2616

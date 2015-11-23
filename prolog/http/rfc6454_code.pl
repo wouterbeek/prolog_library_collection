@@ -35,6 +35,8 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_ext)).
+
 
 
 
@@ -53,7 +55,7 @@
 % OWS = *( SP / HTAB / obs-fold )   ; "optional" whitespace
 % ```
 
-'OWS' --> 'SP',       !, 'OWS'.
-'OWS' --> 'HTAB',     !, 'OWS'.
-'OWS' --> 'obs-fold', !, 'OWS'.
-'OWS' --> "".
+'OWS' --> *(ows).
+ows --> 'SP'.
+ows --> 'HTAB'.
+ows --> 'obs-fold'.
