@@ -40,6 +40,10 @@
     hialpha//1, % ?Code:code
     lowalpha//1, % ?Code:code
     percent_enc//1, % ?Code:code
+    pos/2, % +Integer, -Digits
+    pos/3, % +Integer:nonneg
+           % +Base:nonneg
+           % -Digits:list(between(0,9))
     pos_frac/2, % +Digits:list(between(0,9))
                 % -FractionalPart:rational
     pos_sum/2, % +Digits, -Number
@@ -327,6 +331,23 @@ lowalpha(0'z) --> "z".
 % ```
 
 percent_enc(C) --> "%", hex(H1), hex(H2), {C is H1 * 16 + H2}.
+
+
+
+%! pos(+Integer:nonneg, -Digits:list(between(0,9))) is det.
+% Wrapper around pois/2 with decimal base.
+
+pos(I, Ds):- pos(I, 10, Ds).
+
+
+%! pos(+Integer:nonneg, +Base:nonneg, -Digits:list(between(0,9))) is det.
+
+pos(I1, Base, [H|T]):-
+  I1 >= Base, !,
+  H is I1 // Base,
+  I2 is I1 mod Base,
+  pos(I2, Base, T).
+pos(I, _, [I]).
 
 
 
