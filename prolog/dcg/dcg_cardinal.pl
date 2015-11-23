@@ -23,16 +23,9 @@
     thousands_integer//1 % +Integer:integer
   ]
 ).
-:- reexport(library(dcg/basics)).
+:- reexport(library(dcg/basics), [float//1,integer//1,number//1]).
 
 /** <module> Processing cardinal numbers in DCGs
-
-Library `dcg/basics` comes with the following rules for cardinals:
-  - `float//1`
-  - `integer//1`
-  - `number//1`
-
----
 
 @author Wouter Beek
 @version 2015/07-2015/08, 2015/11

@@ -10,17 +10,15 @@
 /** <module> DCG rules for the C programming language.
 
 @author Wouter Beek
-@version 2013/02, 2013/06, 2014/01-2014/02, 2014/12-2015/01
+@version 2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_char)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_generics)).
 :- use_module(library(dcg/dcg_meta)).
 :- use_module(library(dcg/dcg_replace)).
-:- use_module(library(dcg/language/sw_number)).
 
 
 
@@ -40,16 +38,17 @@
 % cccddd
 % ```
 
-c_convert -->
-  *(dcg_replace, [`\b`,`\n`,`\t`], [bell,line_feed,horizontal_tab], []).
+c_convert, "\b" --> "\\b", !, c_convert.
+c_convert, "\n" --> "\\n", !, c_convert.
+c_convert, "\t" --> "\\t", !, c_convert.
+c_convert, [C] --> [C],    !, c_convert.
+c_convert --> "".
 
 
 
 %! c_double(?Float:float)// .
 
-c_double(N) -->
-  'DOUBLE'(sparql, N),
-  (char_ci(f) ; char_ci(l) ; "").
+c_double(N) --> 'DOUBLE'(N), ("f" ; "F" ; "l" ; "L").
 
 
 
@@ -61,19 +60,8 @@ c_double(N) -->
 % CName = "appe__lensappp_" .
 % ```
 
-c_name -->
-  eos.
-c_name, [C] -->
-  ascii_letter_lowercase(C),
-  c_name.
-c_name, [C] -->
-  decimal_digit(C),
-  c_name.
-c_name, [C2] -->
-  ascii_letter_uppercase(C1),
-  {to_lower(C1, C2)},
-  c_name.
-c_name, "_" -->
-  [_],
-  c_name.
-
+c_name, [C]  --> lowalpha(C), !, c_name.
+c_name, [C]  --> digit(C),    !, c_name.
+c_name, [C2] --> upalpha(C1), !, {to_lower(C1, C2)}, c_name.
+c_name, "_"  --> [_],         !, c_name.
+c_name       --> eos.

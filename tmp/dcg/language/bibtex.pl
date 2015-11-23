@@ -19,9 +19,9 @@
 
 :- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_content)).
+:- use_module(plc(dcg/dcg_ext)).
 :- use_module(plc(dcg/dcg_generics)).
 :- use_module(plc(dcg/dcg_meta)).
-:- use_module(plc(dcg/dcg_re)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
@@ -57,8 +57,7 @@ tick:-
   (X =:= 18544 -> gtrace ; true).
 
 entry(entry(Class,Name,Pairs)) -->
-  class(Class), "{", skip, name(Name), skip, ",", skip,
-  pairs(Pairs), skip, "}".
+  class(Class), "{", skip, name(Name), skip, ",", skip, pairs(Pairs), skip, "}".
 
 pairs([H|T]) --> pair(H), (skip, "," -> pairs(T) ; {T = []}).
 pairs([])    --> "".
@@ -69,24 +68,25 @@ value(Value) --> "{",  !, value(Value, 0).
 value(Value) --> "\"", !, ...(Codes), "\"", {atom_codes(Value, Codes)}.
 value(Value) --> name(Value).
 
-value(Value, I) --> dcg_atom(value0(I), Value).
+value(Value, Indent) --> dcg_atom(value0(Indent), Value).
 
-value0(I, [0'{|T]) --> "{", !, {NewI is I + 1}, value0(NewI, T).
-value0(0, [])      --> "}", !.
-value0(I, [0'}|T]) --> "}", !, {NewI is I - 1}, value0(NewI, T).
-value0(I, [H|T])   --> [H], !, value0(I, T).
+value0(Indent, [0'{|T]) -->
+  "{", !, {NewIndent is Indent + 1}, value0(NewIndent, T).
+value0(0, []) --> "}", !.
+value0(Indent, [0'}|T]) -->
+  "}", !, {NewIndent is Indent - 1}, value0(NewIndent, T).
+value0(Indent, [H|T])   --> [H], !, value0(Indent, T).
 value0(_, [])      --> "".
 
 class(Class) -->
   "@", +(alpha, Cs), {string_codes(Class0, Cs)},
   {validate(Class0, Class, _, _)}.
 
-name(Name) --> +(char, Cs), {string_codes(S, Cs)}.
-char(C)   --> alpha(C).
-char(C)   --> digit(C).
-char(0':) --> ":".
-char(0'-) --> "-".
-char(0'_) --> "_".
+name(Name) --> +(name_code, Cs), {string_codes(S, Cs)}.
+name_code(C)   --> alphadigit(C).
+name_code(0':) --> ":".
+name_code(0'-) --> "-".
+name_code(0'_) --> "_".
 
 %skip --> comment, !, skip.
 skip --> *(white).

@@ -31,6 +31,8 @@
 @version 2015/08, 2015/11
 */
 
+:- use_module(library(dcg/dcg_rfc)).
+
 
 
 
@@ -109,8 +111,7 @@ reserved(C) --> 'sub-delims'(C).
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-unreserved(C)   --> 'ALPHA'(C).
-unreserved(C)   --> 'DIGIT'(_, C).
+unreserved(C)   --> alphadigit(C).
 unreserved(0'-) --> "-".
 unreserved(0'.) --> ".".
 unreserved(0'_) --> "_".

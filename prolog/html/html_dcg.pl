@@ -21,12 +21,11 @@
 DCG grammar for HTML snippets.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2015/11
 */
 
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 
 :- meta_predicate(html_element(+,+,//,?,?)).
@@ -36,10 +35,7 @@ DCG grammar for HTML snippets.
 %! html_attr(?Attribute:pair)// .
 % Used for *checking* GraphViz HTML-like labels.
 
-html_attr(Name-Value) --> atom(Name), "=\"", html_string(Value), "\"".
-
-html_attrs([H|T]) --> html_attr(H), !, " ", html_attrs(T).
-html_attrs([]) --> "".
+html_attr(Name-Value) --> " ", atom(Name), "=\"", html_string(Value), "\"".
 
 
 
@@ -47,21 +43,14 @@ html_attrs([]) --> "".
 
 % Tag with no content.
 html_dcg([tag(Name,Attrs)|T]) --> !,
-  html_element(Name, Attrs),
-  html_dcg(T).
+  html_element(Name, Attrs), html_dcg(T).
 % Tag with content.
 html_dcg([tag(Name,Attrs,Contents)|T]) --> !,
-  html_element(Name, Attrs, html_dcg(Contents)),
-  html_dcg(T).
+  html_element(Name, Attrs, html_dcg(Contents)), html_dcg(T).
 % Atom.
-html_dcg([H|T]) -->
-  {atom(H)}, !,
-  atom(H),
-  html_dcg(T).
+html_dcg([H|T]) --> {atom(H)}, !, atom(H), html_dcg(T).
 % Codes list.
-html_dcg([H|T]) -->
-  html_string(H), !,
-  html_dcg(T).
+html_dcg([H|T]) --> html_string(H), !, html_dcg(T).
 % Done.
 html_dcg([]) --> !, "".
 
@@ -79,18 +68,12 @@ html_entity(Name) --> "&", atom(Name), ";".
 
 html_element(Name) --> html_element(Name, []).
 
-html_element(Name, Attrs) --> "<", atom(Name), " ", html_attrs(Attrs), "/>".
+html_element(Name, Attrs) --> "<", atom(Name), *(html_attr, Attrs), "/>".
 
 html_element(Name, Attrs, Content) -->
-  "<",
-  atom(Name),
-  " ",
-  html_attrs(Attrs),
-  ">",
+  "<", atom(Name), *(html_attr, Attrs), ">",
   phrase(Content),
-  "</",
-  atom(Name),
-  ">".
+  "</", atom(Name), ">".
 
 
 
@@ -110,10 +93,10 @@ html_graphic(C) --> html_punctuation(C).
 %! html_punctuation(?Code:nonneg)// .
 
 % First come the translations for escaped punctuation characters.
-html_punctuation(0'") --> "&quot;". % Double quotes (").
-html_punctuation(0'<) --> "&lt;".   % Smaller than (<).
-html_punctuation(0'>) --> "&gt;".   % Greater than (>).
-html_punctuation(0'&) --> "&amp;".  % Ampersand (&).
+html_punctuation(0'") --> "&quot;".   %"
+html_punctuation(0'<) --> "&lt;".
+html_punctuation(0'>) --> "&gt;".
+html_punctuation(0'&) --> "&amp;".
 html_punctuation(C)   --> punctuation(C), {\+ member(C, [34,60,62,68])}.
 
 
@@ -122,9 +105,7 @@ html_punctuation(C)   --> punctuation(C), {\+ member(C, [34,60,62,68])}.
 % An **HTML string** is a sequence of printable or graphic HTML characters.
 % This includes spaces.
 
-html_string(S) --> dcg_atom(html_string_codes, S).
-html_string_codes([H|T]) --> html_graphic(H), !, html_string_codes(T).
-html_string_codes([]) --> "".
+html_string(S) --> *(html_graphic, Cs), {string_codes(S, Cs)}.
 
 
 

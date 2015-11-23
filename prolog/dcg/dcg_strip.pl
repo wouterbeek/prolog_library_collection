@@ -10,11 +10,10 @@
 /** <module> DCG strip
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 
 :- meta_predicate(dcg_strip(//,?,?)).
 :- meta_predicate(dcg_strip_left(//,?,?)).
@@ -24,8 +23,8 @@
 
 
 
-dcg_strip(Dcg_0), Cs --> *(Dcg_0), string(Cs), (+(Dcg_0), eos ; eos), !.
+dcg_strip(Dcg_0), Cs       --> *(Dcg_0), string(Cs), *(Dcg_0), eos.
 
-dcg_strip_left(Dcg_0), Cs --> *(Dcg_0), string(Cs), !.
+dcg_strip_left(Dcg_0), Cs  --> *(Dcg_0), string(Cs).
 
-dcg_strip_right(Dcg_0), Cs --> string(Cs), (+(Dcg_0), eos ; eos), !.
+dcg_strip_right(Dcg_0), Cs --> string(Cs), *(Dcg_0), eos.

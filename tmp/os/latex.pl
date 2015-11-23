@@ -13,16 +13,9 @@ Grammar snippets for LaTeX.
 @version 2014/07, 2014/10-2014/11
 */
 
-:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(option)).
 :- use_module(library(readutil)).
-
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_atom)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_replace)).
-:- use_module(plc(generics/code_ext)).
-:- use_module(plc(io/file_ext)).
 
 
 

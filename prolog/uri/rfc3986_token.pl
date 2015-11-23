@@ -28,8 +28,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_rfc)).
 :- use_module(library(lists)).
 :- use_module(library(uri/rfc3986_code)).
 
@@ -57,7 +57,7 @@
 % h16 = 1*4HEXDIG
 % ```
 
-h16(I) --> 'm*nhexdig'(1, 4, I).
+h16(I) --> 'm*nHEXDIG'(1, 4, I).
 
 
 
@@ -76,10 +76,7 @@ h16(I) --> 'm*nhexdig'(1, 4, I).
 % ```
 
 'IPv4address'([I1,I2,I3,I4]) -->
-  'dec-octet'(I1), ".",
-  'dec-octet'(I2), ".",
-  'dec-octet'(I3), ".",
-  'dec-octet'(I4), ".".
+  'dec-octet'(I1), ".", 'dec-octet'(I2), ".", 'dec-octet'(I3), ".", 'dec-octet'(I4), ".".
 
 
 
@@ -115,7 +112,7 @@ h16(I) --> 'm*nhexdig'(1, 4, I).
 % ```
 
 'IPvFuture'(ipvfuture(I,S)) -->
-  "v", '+hexdig'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
+  "v", '+HEXDIG'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
 ipv_future_code(C)   --> unreserved(C).
 ipv_future_code(C)   --> 'sub-delims'(C).
 ipv_future_code(0':) --> ":".
@@ -137,7 +134,7 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 % path-abempty = *( "/" segment )
 % ```
 
-'path-abempty'(L) --> segments(L).
+'path-abempty'(L) --> *(sep_segment, L).
 
 
 
@@ -146,8 +143,8 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 % path-absolute = "/" [ segment-nz *( "/"  segment ) ]
 % ```
 
-'path-absolute'([H|T]) --> "/", 'segment-nz'(H), !, segments(T).
-'path-absolute'([])    --> "/".
+'path-absolute'([H|T]) -->
+  "/", ('segment-nz'(H) -> *(sep_segment, T) ; {T = []}).
 
 
 
@@ -165,7 +162,7 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 % path-noscheme = segment-nz-nc *( "/"  segment )
 % ```
 
-'path-noscheme'([H|T]) --> 'segment-nz-nc'(H), segments(T).
+'path-noscheme'([H|T]) --> 'segment-nz-nc'(H), *(sep_segment, T).
 
 
 
@@ -174,7 +171,7 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 % path-rootless = segment-nz *( "/"  segment )
 % ```
 
-'path-rootless'([H|T]) --> 'segment-nz'(H), segments(T).
+'path-rootless'([H|T]) --> 'segment-nz'(H), *(sep_segment, T).
 
 
 
@@ -183,11 +180,10 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 % reg-name = *( unreserved / pct-encoded / sub-delims )
 % ```
 
-'reg-name'(S) --> dcg_string(reg_name_codes, S).
-reg_name_codes([H|T]) --> unreserved(H),    !, reg_name_codes(T).
-reg_name_codes([H|T]) --> 'pct-encoded'(H), !, reg_name_codes(T).
-reg_name_codes([H|T]) --> 'sub-delims'(H),  !, reg_name_codes(T).
-reg_name_codes([])    --> "".
+'reg-name'(S) --> *(reg_name_code, Cs), {string_codes(S, Cs)}.
+reg_name_code(C) --> unreserved(C).
+reg_name_code(C) --> 'pct-encoded'(C).
+reg_name_code(C) --> 'sub-delims'(C).
 
 
 
@@ -218,12 +214,11 @@ segment(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
 % segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
 % ```
 
-'segment-nz-nc'(S) --> dcg_string(segment_nz_nc_codes, S).
-segment_nz_nc_codes([H|T])   --> unreserved(H),    !, segment_nz_nc_codes(T).
-segment_nz_nc_codes([H|T])   --> 'pct-encoded'(H), !, segment_nz_nc_codes(T).
-segment_nz_nc_codes([H|T])   --> 'sub-delims'(H),  !, segment_nz_nc_codes(T).
-segment_nz_nc_codes([0'@|T]) --> "@",              !, segment_nz_nc_codes(T).
-segment_nz_nc_codes([])      --> "".
+'segment-nz-nc'(S) --> +(segment_nz_nc_code, Cs), {string_codes(S, Cs)}.
+segment_nz_nc_code(C)   --> unreserved(C).
+segment_nz_nc_code(C)   --> 'pct-encoded'(C).
+segment_nz_nc_code(C)   --> 'sub-delims'(C).
+segment_nz_nc_code(0'@) --> "@".
 
 
 
@@ -231,5 +226,4 @@ segment_nz_nc_codes([])      --> "".
 
 % HELPERS %
 
-segments([H|T]) --> "/", !, segment(H), segments(T).
-segments([])    --> "".
+sep_segment(S) --> "/", segment(S).

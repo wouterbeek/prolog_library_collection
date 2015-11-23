@@ -87,7 +87,7 @@ genericurl(Scheme, User, Password, Host, Port, Path) -->
 'ip-schemepart'(User, Password, Host, Port, Path) -->
   "//",
   login(User, Password, Host, Port),
-  ("/", urlpath(Path) ; "").
+  ("/" -> urlpath(Path) ; "").
 
 
 

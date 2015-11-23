@@ -41,8 +41,10 @@ header from RFC 2616.
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'([H|T]) --> 'disposition-type'(Type), *(disposition_param, L).
-disposition_param(X) --> ";", 'disposition-parm'(H).
+'content-disposition'(Type, Params) -->
+  'disposition-type'(Type),
+  *(disposition_param, Params).
+disposition_param(X) --> ";", 'disposition-parm'(X).
 
 
 

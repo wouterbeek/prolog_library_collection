@@ -21,7 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(iri/rfc3987_code)).
 
 
@@ -33,7 +33,7 @@
 % ipath-abempty = *( "/" isegment )
 % ```
 
-'ipath-abempty'(L) --> isegments(L).
+'ipath-abempty'(L) --> *(sep_isegment, L).
 
 
 
@@ -42,8 +42,8 @@
 % ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
 % ```
 
-'ipath-absolute'([H|T]) --> "/", 'isegment-nz'(H), !, isegments(T).
-'ipath-absolute'([])    --> "/".
+'ipath-absolute'(L) -->
+  "/", ('isegment-nz'(H) -> *(sep_isegment, T), {L = [H|T]} ; {L = []}).
 
 
 
@@ -61,7 +61,7 @@
 % ipath-noscheme = isegment-nz-nc *( "/" isegment )
 % ```
 
-'ipath-noscheme'([H|T]) --> 'isegment-nz-nc'(H), isegments(T).
+'ipath-noscheme'([H|T]) --> 'isegment-nz-nc'(H), *(sep_isegment, T).
 
 
 
@@ -70,7 +70,7 @@
 % ipath-rootless = isegment-nz *( "/" isegment )
 % ```
 
-'ipath-rootless'([H|T]) --> 'segment-nz'(H), isegments(T).
+'ipath-rootless'([H|T]) --> 'segment-nz'(H), *(sep_isegment, T).
 
 
 
@@ -122,5 +122,4 @@ isegment_nz_nc_code(0'@) --> "@".
 
 % HELPERS %
 
-isegments([H|T]) --> "/", !, isegment(H), isegments(T).
-isegments([])    --> "".
+sep_isegment(S) --> "/", isegment(S).

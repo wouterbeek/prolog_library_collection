@@ -39,9 +39,9 @@
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
-:- use_module(library(http/rfc2616_helpers)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc2617)).
 :- use_module(library(http/rfc6266)).
@@ -114,7 +114,7 @@
 %! 'Content-Disposition'(-Value:compound)// .
 
 'Content-Disposition'(content_disposition{type: Type, params: Params}) -->
-  'content-disposition'(Type, Params).
+ 'content-disposition'(Type, Params).
 
 
 
@@ -223,7 +223,7 @@
   % character of the field-value. Such leading or trailing LWS MAY be
   % removed without changing the semantics of the field value.
   'LWS',
-  ('field-value'(Pred, Value), ! ; "").
+  ?('field-value'(Pred), Value).
 
 
 
@@ -243,10 +243,10 @@
 %
 % Sub-product tokens are separated by white space.
 
-'Server'([H|T]) --> server1(H), *(server2, T).
-server1(D) --> product(D).
-server1(S) --> comment(S).
-server2(X) --> 'LWS', server1(X).
+'Server'([H|T]) --> server(H), *(sep_server, T).
+server(D) --> product(D).
+server(S) --> comment(S).
+sep_server(X) --> 'LWS', server(X).
 
 
 

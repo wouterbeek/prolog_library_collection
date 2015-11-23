@@ -47,8 +47,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(uri/rfc2396_code)).
 :- use_module(library(uri/rfc2396_token)).
 
@@ -76,11 +75,9 @@ abs_path(L) --> "/", path_segments(L).
 % absoluteURI = scheme ":" ( hier_part | opaque_part )
 % ```
 
-absoluteURI(Scheme, Opaque) --> scheme(Scheme), ":", opaque_part(Opaque).
+absoluteURI(Scheme, Opaque) --> scheme(Scheme), ":", opaque_part(Opaque), !.
 absoluteURI(Scheme, Auth, Path, Query) -->
-  scheme(Scheme),
-  ":",
-  hier_part(Auth, Path, Query).
+  scheme(Scheme), ":", hier_part(Auth, Path, Query).
 
 
 
@@ -89,8 +86,8 @@ absoluteURI(Scheme, Auth, Path, Query) -->
 % authority = server | reg_name
 % ```
 
-authority(auth(UserInfo,Host,Port)) --> server(UserInfo, Host, Port).
-authority(auth(RegisteredName)) --> reg_name(RegisteredName).
+authority(auth(UserInfo,Host,Port)) --> server(UserInfo, Host, Port), !.
+authority(auth(RegisteredName))     --> reg_name(RegisteredName).
 
 
 
@@ -100,8 +97,8 @@ authority(auth(RegisteredName)) --> reg_name(RegisteredName).
 % ```
 
 hier_part(Auth, Path, Query) -->
-  (net_path(Auth, Path) ; abs_path(Path)), !,
-  ("?", query(Query), ! ; "").
+  (net_path(Auth, Path), ! ; abs_path(Path)),
+  ("?" -> query(Query) ; "").
 
 
 
@@ -121,12 +118,8 @@ host(Ns) --> 'IPv4address'(Ns).
 % ```
 
 hostname(L) -->
-  domainlabels(L0),
-  toplabel(Z),
-  (".", ! ; ""),
-  {append(L0, [Z], L)}.
-domainlabels([H|T]) --> domainlabel(H), !, domainlabels(T).
-domainlabels([]) --> "".
+  *(domainlabel_sep, L1), toplabel(X), ?("."), {append(L1, [X], L)}.
+domainlabel_sep(C) --> domainlabel(C), ".".
 
 
 
@@ -135,9 +128,7 @@ domainlabels([]) --> "".
 % hostport = host [ ":" port ]
 % ```
 
-hostport(Host, Port) -->
-  host(Host),
-  (":", !, port(Port) ; {Port = 80}).
+hostport(Host, Port) --> host(Host), (":" -> port(Port) ; {Port = 80}).
 
 
 
@@ -147,9 +138,7 @@ hostport(Host, Port) -->
 % ```
 
 net_path(Auth, Path) -->
-  "//",
-  authority(Auth),
-  (abs_path(Path), ! ; {Path = []}).
+  "//", authority(Auth), (abs_path(Path) -> "" ; {Path = []}).
 
 
 
@@ -158,9 +147,9 @@ net_path(Auth, Path) -->
 % path = [ abs_path | opaque_part ]
 % ```
 
-path(Path) --> abs_path(Path), !.
+path(Path)         --> abs_path(Path), !.
 path([OpaquePart]) --> opaque_part(OpaquePart), !.
-path([]) --> "".
+path([])           --> "".
 
 
 
@@ -169,9 +158,8 @@ path([]) --> "".
 % path_segments = segment *( "/" segment )
 % ```
 
-path_segments([H|T]) --> segment(H), segments0(T).
-segments0([H|T]) --> "/", !, segment(H), segments0(T).
-segments0([]) --> "".
+path_segments([H|T]) --> segment(H), *(sep_segment, T).
+sep_segment(X) --> "/", segment(X).
 
 
 
@@ -180,7 +168,7 @@ segments0([]) --> "".
 % rel_path = rel_segment [ abs_path ]
 % ```
 
-rel_path([H|T]) --> rel_segment(H), ?(abs_path, T).
+rel_path([H|T]) --> rel_segment(H), (abs_path(T) -> "" ; {T = []}).
 
 
 
@@ -190,7 +178,7 @@ rel_path([H|T]) --> rel_segment(H), ?(abs_path, T).
 % ```
 
 relativeURI(Auth, Path, Query) -->
-  (net_path(Auth, Path) ; abs_path(Path) ; rel_path(Path)), !,
+  (net_path(Auth, Path), ! ; abs_path(Path), ! ; rel_path(Path)),
   ("?" -> query(Query) ; "").
 
 
@@ -200,9 +188,8 @@ relativeURI(Auth, Path, Query) -->
 % segment = *pchar *( ";" param )
 % ```
 
-segment(S) --> param(H), !, params(T), {string_list_concat([H|T], ";", S)}.
-params([H|T]) --> ";",   !, param(H), params([H|T]).
-params([])    --> "".
+segment([H|T]) --> *(pchar, Cs), {string_codes(H, Cs)}, *(sep_param, T).
+sep_param(S) --> ";", param(S).
 
 
 
@@ -216,7 +203,9 @@ params([])    --> "".
 % ```
 
 server(UserInfo, Host, Port) -->
-  ((userinfo(UserInfo) -> "@" ; "") -> hostport(Host, Port) ; "").
+  (userinfo(UserInfo) -> "@" ; ""), !,
+  hostport(Host, Port).
+server(_, _, _) --> "".
 
 
 
@@ -234,7 +223,7 @@ server(UserInfo, Host, Port) -->
 
 'URI-reference'(Scheme, OpaquePart, Frag) -->
   absoluteURI(Scheme, OpaquePart),
-  ("#", fragment(Frag) ; "").
+  ("#" -> fragment(Frag) ; "").
 'URI-reference'(_, Auth, Path, Query, Frag) -->
   relativeURI(Auth, Path, Query),
-  ("#", fragment(Frag) ; "").
+  ("#" -> fragment(Frag) ; "").

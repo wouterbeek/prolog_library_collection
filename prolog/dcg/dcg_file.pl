@@ -10,12 +10,10 @@
 Grammar snippets for files.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/os_ext)).
 
@@ -42,23 +40,22 @@ Grammar snippets for files.
 % Relative directory with respect to the home directory (Unix only).
 file_path(Path) -->
   "~/", !,
-  path_segment*(Segments),
+  path_segments(T),
   {
-    atomic_list_concat(Segments, /, RelPath),
+    atomic_list_concat(T, /, RelPath),
     relative_file_name(Path, '~', RelPath)
   }.
 % Absolute directory.
 file_path(Path) -->
   root_prefix,
-  path_segment*(Segments),
-  {atomic_list_concat([''|Segments], /, Path)}.
+  *(path_segment, T),
+  {atomic_list_concat([''|T], /, Path)}.
 
 
 
 %! local_file_name(-Local:atom)// .
 
-local_file_name(Local) -->
-  dcg_atom(local_file_char, Local).
+local_file_name(Local) --> *(local_file_char, Local).
 
 
 
@@ -74,51 +71,30 @@ root_prefix -->
 
 % HELPERS %
 
-%! directory_char(?Code:nonneg)// .
-% Character that are allowed to occur in a file path.
+dir_char(C)   --> alphadigit(C).
+dir_char(0'.) --> ".".
+dir_char(0'-) --> "-".
+dir_char(0'+) --> "+".
+dir_char(0'_) --> "_".
 
-directory_char(C) --> ascii_letter(C).
-directory_char(C) --> decimal_digit(C).
-directory_char(C) --> dot(C).
-directory_char(C) --> minus_sign(C).
-directory_char(C) --> plus_sign(C).
-directory_char(C) --> underscore(C).
-
-
-
-%! 'path_segment*'(-Segments:list(atom))// .
-
-path_segment*([H|T]) -->
-  dcg_atom(path_segment, H), !,
-  (   directory_separator
-  ->  path_segment*(T)
-  ;   {T = []}
-  ).
-path_segment*([]) --> "".
-
-
-
-%! path_segment(-Segment:list(code))// .
-
-path_segment([H|T]) -->
-  directory_char(H), !,
-  path_segment(T).
-path_segment([]) --> "".
-
-
-
-%! directory_separator// .
 
 :- if(os(unix)).
-directory_separator --> "/".
+dir_sep --> "/".
 :- endif.
 :- if(os(windows)).
-directory_separator --> "\\".
+dir_sep --> "\\".
 :- endif.
 
 
+local_file_char(C)   --> alphadigit(C).
+local_file_char(0'.) --> ".".
 
-%! local_file_char(?Code:nonneg)// .
 
-local_file_char(C) --> ascii_alpha_numeric(C).
-local_file_char(C) --> dot(C).
+path_segment(S) --> *(dir_char, Cs), {string_codes(S, Cs)}.
+
+
+path_segments([H|T]) --> path_segment(H), *(sep_path_segment, T).
+path_segments([])    --> "".
+
+
+sep_path_segment(X) --> dir_sep, path_segment(X).

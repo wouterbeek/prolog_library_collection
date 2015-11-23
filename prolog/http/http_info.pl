@@ -11,10 +11,10 @@
 /** <module> HTTP debug
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10-2015/11
 */
 
-:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(http/http_header)). % Private.
 

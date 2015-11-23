@@ -1,16 +1,17 @@
 :- module(
   dcg_rfc,
   [
+    alphadigit_hyphen//1, % ?Code:code
     'HEXDIG'//1, % ?Integer:between(0,15)
     'HEXDIG'//2, % ?Integer:between(0,15)
                  % ?Code:code
     '*HEXDIG'//1, % ?Integer:nonneg
     '+HEXDIG'//1, % ?Integer:nonneg
-    'm*nHEXDIG'//1 % ?Integer:nonneg
+    'm*nHEXDIG'//3 % ?Low:nonneg
+                   % ?High:nonneg
+                   % ?Integer:nonneg
   ]
 ).
-:- reexport(library(rfc2234), [
-   ]).
 
 /** <module> DCG: RFC support
 
@@ -21,6 +22,13 @@ DCGs that I do not particularly like but that are often used in RFCs.
 */
 
 :- use_module(library(dcg/dcg_ext)).
+
+
+
+
+
+alphadigit_hyphen(C)   --> alphadigit(C).
+alphadigit_hyphen(0'-) --> "-".
 
 
 
@@ -51,4 +59,4 @@ DCGs that I do not particularly like but that are often used in RFCs.
 
 '+HEXDIG'(I) --> +('HEXDIG', Ds), {pos_sum(Ds, I)}.
 
-'m*nHEXDIG'(M, N, I) --> 'm*n'(M, N, 'HEXDIG', Ds), {pos_sum(Ds, I)}.
+'m*nHEXDIG'(Low, High, I) --> 'm*n'(Low, High, 'HEXDIG', Ds), {pos_sum(Ds, I)}.

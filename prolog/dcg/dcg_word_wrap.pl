@@ -25,13 +25,12 @@ There are various uses of wrapping text:
       since HTML does not display newlines.
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
-:- use_module(library(dcg/basics)).
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_peek)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(list_ext)).
@@ -112,8 +111,8 @@ dcg_word_wrap_hard(Padding, Separator, 0, WrapMargin), Separator --> !,
   dcg_word_wrap_hard(Padding, Separator, WrapMargin, WrapMargin).
 % In the midst of parsing a line.
 % Process the next character and decrease the counter.
-dcg_word_wrap_hard(Padding, Separator, Remaining1, WrapMargin), [Code] -->
-  [Code],
+dcg_word_wrap_hard(Padding, Separator, Remaining1, WrapMargin), [C] -->
+  [C],
   {Remaining2 is Remaining1 - 1}, !,
   dcg_word_wrap_hard(Padding, Separator, Remaining2, WrapMargin).
 % The last character was consumed.
@@ -140,14 +139,15 @@ dcg_word_wrap_hard(Padding, _, Remaining, _),
 
 % Process another character. Notice that there are several options here.
 dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
-    *(code, Word2, []),
+    *(code, Word2),
     Postfix
 -->
   % The behavior of word wrapping depends on properties of
   %  the upcoming word in the parsed string.
   % We therefore peek at this upcoming string.
   % A word is simplistically defined as a sequence of graphic characters.
-  dcg_peek('+'(graphic, Word1, [count(WordLength)])), !,
+  dcg_peek(+(graphic, Word1)), !,
+  {length(Word1, WordLength)},
   
   (   % Case 1: The word is too long to ever occur on a single line.
       % Therefore, we might as well split it now.
@@ -161,18 +161,14 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
         Postfix = Separator,
         NewRemaining = WrapMargin
       },
-      *(code, Word2, [])
+      *(code, Word2)
   ;   % Case 2: What a nice accident! The word happens to fit exactly
       % into the remaining positions of the current line.
       % Place the word, and insert the split dirrectly after the word.
       % Also, skip any directly following white characters from the stream
       % (since they would otherwise start the next line).
       {WordLength == Remaining}
-  ->  {
-        Word2 = Word1,
-        Postfix = Separator,
-        NewRemaining = WrapMargin
-      },
+  ->  {Word2 = Word1, Postfix = Separator, NewRemaining = WrapMargin},
       *(code, Word1, []),
       whites
   ;   % Case 3: The word is too long to fit on the current line,
@@ -182,10 +178,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
       % Process the entire word later.
       {WordLength > Remaining}
   ->  {
-        (   Padding == true
-        ->  repeating_list(32, Remaining, Word2)
-        ;   Word2 = []
-        ),
+        (Padding == true -> repeating_list(32, Remaining, Word2) ; Word2 = []),
         Postfix = Separator,
         NewRemaining = WrapMargin
       }
@@ -194,23 +187,17 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
       %  there will be at least one character position left after it.
       % Place the word, and consume it.
       {Word2 = Word1},
-      *(code, Word1, []),
+      *(code, Word1),
 
       % Whether a space should be inserted after the word, depends on
       %  whether a whitespace character appears in the processed string.
       % This is not always the case, e.g. when the word occurs
       %  at the end of the processed string.
       % We need to do some bookkeeping in order to get this right.
-      (   dcg_peek(u_white(Code))
-      ->  [Code],
-          {
-            Postfix = space,
-            SpaceLength = 1
-          }
-      ;   {
-            Postfix = dcg_void,
-            SpaceLength = 0
-          }
+      (   dcg_peek(u_white(C))
+      ->  [C],
+          {Postfix = space, SpaceLength = 1}
+      ;   {Postfix = dcg_void, SpaceLength = 0}
       ),
       {NewRemaining is Remaining - WordLength - SpaceLength}
   ),
@@ -225,8 +212,8 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
 dcg_word_wrap_soft(Padding, Separator, 0, WrapMargin), Separator --> !,
   dcg_word_wrap_soft(Padding, Separator, WrapMargin, WrapMargin).
 % Process a non-graphic character.
-dcg_word_wrap_soft(Padding, Separator, Remaining1, WrapMargin), [Code] -->
-  [Code], !,
+dcg_word_wrap_soft(Padding, Separator, Remaining1, WrapMargin), [C] -->
+  [C], !,
   {Remaining2 is Remaining1 - 1},
   dcg_word_wrap_soft(Padding, Separator, Remaining2, WrapMargin).
 % The last character was consumed.
@@ -242,5 +229,5 @@ dcg_word_wrap_soft(Padding, _, Remaining, _),
 
 % HELPERS %
 
-apply_padding(false, _) --> "".
-apply_padding(true, Remaining) --> '#'(Remaining, space, []).
+apply_padding(false, _)        --> !, "".
+apply_padding(true, Remaining) --> #(Remaining, " ").

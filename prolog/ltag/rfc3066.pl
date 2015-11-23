@@ -28,8 +28,7 @@ which does not exist.  'Language-Tag'//1 does exist.
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -40,7 +39,7 @@ which does not exist.  'Language-Tag'//1 does exist.
 % language-range = language-tag / "*"
 % ```
 
-'language-range'(L)     --> 'Language-Tag'(L).
+'language-range'(L)     --> 'Language-Tag'(L), !.
 'language-range'(["*"]) --> "*".
 
 
@@ -50,8 +49,8 @@ which does not exist.  'Language-Tag'//1 does exist.
 % Language-Tag = Primary-subtag *( "-" Subtag )
 % ```
 
-'Language-Tag'([H|T]) --> 'Primary-subtag'(H), *(subtag, T).
-subtag(S) --> "-", 'Subtag'(S).
+'Language-Tag'([H|T]) --> 'Primary-subtag'(H), *(sep_subtag, T).
+sep_subtag(S) --> "-", 'Subtag'(S).
 
 
 

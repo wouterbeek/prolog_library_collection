@@ -19,8 +19,8 @@
 @version 2015/11
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(url/rfc1738_component)).
-:- use_module(library(url/rfc1738_helpers)).
 
 
 
@@ -31,9 +31,8 @@
 % hpath = hsegment *[ "/" hsegment ]
 % ```
 
-hpath([H|T]) --> hsegment(H), hsegments(T).
-hsegments([H|T]) --> "/", !, hsegment(H), hsegments(T).
-hsegments([]) --> "".
+hpath([H|T]) --> hsegment(H), *(sep_hsegment, T).
+sep_hsegment(C) --> "/", hsegment(C).
 
 
 
@@ -42,7 +41,7 @@ hsegments([]) --> "".
 % hsegment = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
 % ```
 
-hsegment(S) --> content2(S).
+hsegment(S) --> *(code0, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -54,7 +53,7 @@ hsegment(S) --> content2(S).
 httpurl(Host, Port, Path, Search) -->
   "http://",
   hostport(Host, Port),
-  ("/", hpath(Path), ("?", search(Search) ; "") ; "").
+  ("/" -> hpath(Path), ("?" -> search(Search) ; "") ; "").
 
 
 
@@ -63,4 +62,17 @@ httpurl(Host, Port, Path, Search) -->
 % search = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
 % ```
 
-search(S) --> content2(S).
+search(S) --> *(code0, Cs), {string_codes(S, Cs)}.
+
+
+
+
+
+% HELPERS %
+
+code0(C)   --> uchar(C).
+code0(0';) --> ";".
+code0(0':) --> ":".
+code0(0'@) --> "@".
+code0(0'&) --> "&".
+code0(0'=) --> "=".

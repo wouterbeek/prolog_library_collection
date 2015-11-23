@@ -48,6 +48,7 @@
               % -Number:nonneg
   ]
 ).
+:- reexport(library(dcg/basics), except([digit//1,digits//1])).
 
 /** <module> DCG Extensions
 
@@ -134,16 +135,16 @@ My favorite collection of DCG rules.
 
 
 % Digit
-'*digit'(I) --> *(digit, Ds), {possum(Ds, I)}.
-'+digit'(I) --> +(digit, Ds), {possum(Ds, I)}.
-'#digit'(M, I) --> #(M, digit, Ds), {possum(Ds, I)}.
+'*digit'(I) --> *(digit, Ds), {pos_sum(Ds, I)}.
+'+digit'(I) --> +(digit, Ds), {pos_sum(Ds, I)}.
+'#digit'(M, I) --> #(M, digit, Ds), {pos_sum(Ds, I)}.
 
 
 
 % Hexadecimal
-'*hex'(I) --> *(hex, Ds), {possum(Ds, I)}.
-'+hex'(I) --> +(hex, Ds), {possum(Ds, I)}.
-'m*nhex'(M, N, I) --> 'm*n'(M, N, hex, Ds), {possum(Ds, I)}.
+'*hex'(I) --> *(hex, Ds), {pos_sum(Ds, I)}.
+'+hex'(I) --> +(hex, Ds), {pos_sum(Ds, I)}.
+'m*nhex'(M, N, I) --> 'm*n'(M, N, hex, Ds), {pos_sum(Ds, I)}.
 
 
 
@@ -332,7 +333,7 @@ percent_enc(C) --> "%", hex(H1), hex(H2), {C is H1 * 16 + H2}.
 %! pos_frac(+Digits:list(between(0,9)), -FractionalPart:rational) is det.
 % Positional fractional.
 
-posfrac(Ds, Frac):-
+pos_frac(Ds, Frac):-
   aggregate_all(sum(Rat), (nth1(I, Ds, D), Rat is D rdiv (10 ^ I)), Frac).
 
 
@@ -340,15 +341,15 @@ posfrac(Ds, Frac):-
 %! pos_sum(+Digits:list(between(0,9)), -Integer:nonneg) is det.
 % Positional summation.
 
-possum(Ds, I):- possum(Ds, 10, I).
+pos_sum(Ds, I):- pos_sum(Ds, 10, I).
 
 
-%! possum(
+%! pos_sum(
 %!   +Digits:list(between(0,9)),
 %!   +Base:positive_integer,
 %!   -Integer:nonneg
 %! ) is det.
 
-possum(Ds, Base, I):- possum(Ds, Base, 0, I).
-possum([D|Ds], Base, I1, I):- !, I2 is I1 * Base + D, possum(Ds, Base, I2, I).
-possum([], _, I, I).
+pos_sum(Ds, Base, I):- pos_sum(Ds, Base, 0, I).
+pos_sum([D|Ds], Base, I1, I):- !, I2 is I1 * Base + D, pos_sum(Ds, Base, I2, I).
+pos_sum([], _, I, I).

@@ -5,7 +5,7 @@
     attribute//1, % ?Attribute:string
     'bytes-unit'//1, % ?BytesUnit:oneof([bytes])
     'cache-directive'//1, % ?Directive:compound
-    comment//0,
+    comment//1, % ?Comment:string
     'connection-token'//1, % -ConnectionToken:string
     'entity-tag'//2, % ?Weak:boolean
                      % ?OpaqueTag:string
@@ -38,11 +38,11 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_header)).
-:- use_module(library(http/rfc2616_helpers)).
+:- use_module(library(lists)).
 
 
 
@@ -144,15 +144,17 @@ attribute(S) --> token(S).
 
 
 
-%! comment//
+%! comment(?Comment:string)//
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment --> "(", *(comment_part), ")".
-comment_part --> ctext(_).
-comment_part --> 'quoted-pair'(_).
-comment_part --> comment.
+comment(S) -->
+  "(", *(comment_part, Css), ")",
+  {append(Css, Cs), string_codes(S, Cs)}.
+comment_part([C]) --> ctext(C).
+comment_part([C]) --> 'quoted-pair'(C).
+comment_part(Cs) --> comment(Cs).
 
 
 
@@ -205,7 +207,6 @@ next_subtag(Subtag) --> "-", !, subtag(Subtag).
   "/",
   subtype(Subtype),
   *(sep_parameter, L).
-sep_parameter --> ";", parameter.
 
 
 
@@ -333,7 +334,7 @@ token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 
 'transfer-extension'('transfer-extension'{token: H, parameters: T}) -->
   token(H),
-  parameters(T).
+  *(sep_parameter, T).
 
 
 
@@ -362,3 +363,11 @@ value(S) --> 'quoted-string'(S).
 % ```
 
 weak --> "W/".
+
+
+
+
+
+% HELPERS %
+
+sep_parameter(Param) --> ";", parameter(Param).

@@ -24,8 +24,8 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_rfc)).
 :- use_module(library(uri/rfc2396_code)).
 
 
@@ -38,12 +38,13 @@
 % ```
 
 domainlabel(S) --> dcg_string(domainlabel_codes, S).
-domainlabel_codes([C]) --> alphanum(C).
 domainlabel_codes(L) -->
-  alphanum(H),
-  alphanums(T),
-  alphanum(X),
-  {append([H|T], [X], L)}.
+  alphadigit(H),
+  (   *(alphadigit_hyphen, T),
+      alphadigit(X)
+  ->  {append([H|T], [X], L)}
+  ;   {L = [H]}
+  ).
 
 
 
@@ -62,10 +63,7 @@ fragment(S) --> *(uric, Cs), {string_codes(S, Cs)}.
 % ```
 
 'IPv4address'([N1,N2,N3,N4]) -->
-  '+digit'(N1), ".",
-  '+digit'(N2), ".",
-  '+digit'(N3), ".",
-  '+digit'(N4), ".".
+  '+digit'(N1), ".", '+digit'(N2), ".", '+digit'(N3), ".", '+digit'(N4), ".".
 
 
 
@@ -150,8 +148,7 @@ rel_segment_code(0',) --> ",".
 % ```
 
 scheme(S) --> *(scheme_code, Cs), {string_codes(S, Cs)}.
-scheme_code(C)   --> alpha(C).
-scheme_code(C)   --> digit(C).
+scheme_code(C)   --> alphadigit(C).
 scheme_code(0'+) --> "+".
 scheme_code(0'-) --> "-".
 scheme_code(0'.) --> ".".
@@ -163,13 +160,13 @@ scheme_code(0'.) --> ".".
 % toplabel = alpha | alpha *( alphanum | "-" ) alphanum
 % ```
 
-toplabel(S) --> dcg_string(toplabel_codes, S).
-toplabel_codes([H]) --> alpha(H).
-toplabel_codes(L)   -->
+toplabel(S) -->
   alpha(H),
-  alphanums(T),
-  alphanum(X),
-  {append([H|T], [X], L)}.
+  (   *(alphadigit_hyphen, T), alphadigit(X)
+  ->  {append([H|T], [X], Cs)}
+  ;   {Cs = [H]}
+  ),
+  {string_codes(S, Cs)}.
 
 
 
@@ -189,13 +186,3 @@ userinfo_code(0'=) --> "=".
 userinfo_code(0'+) --> "+".
 userinfo_code(0'$) --> "$".
 userinfo_code(0',) --> ",".
-
-
-
-
-
-% HELPERS %
-
-alphanums([H|T])   --> alphanum(H), !, alphanums(T).
-alphanums([0'-|T]) --> "-",         !, alphanums(T).
-alphanums([])      --> "".

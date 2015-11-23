@@ -33,7 +33,7 @@
               % :Dcg_0
   ]
 ).
-:- reexport(library(dcg/basics)).
+:- reexport(library(dcg/basics), except([digit//1,digits//1])).
 
 /** <module> DCG content
 

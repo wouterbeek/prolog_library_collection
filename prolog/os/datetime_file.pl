@@ -20,7 +20,6 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/basics)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(filesex)).

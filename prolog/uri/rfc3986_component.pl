@@ -21,8 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc3986_code)).
 :- use_module(library(uri/rfc3986_token)).
@@ -60,11 +59,10 @@ authority(Scheme, authority(UserInfo,Host,Port)) -->
 % fragment = *( pchar / "/" / "?" )
 % ```
 
-fragment(S) --> dcg_string(fragment_codes, S).
-fragment_codes([H|T])   --> pchar(H), !, fragment_codes(T).
-fragment_codes([0'/|T]) --> "/",      !, fragment_codes(T).
-fragment_codes([0'?|T]) --> "?",      !, fragment_codes(T).
-fragment_codes([])      --> "".
+fragment(S) --> *(fragment_code, Cs), {string_codes(S, Cs)}.
+fragment_code(C)   --> pchar(C).
+fragment_code(0'/) --> "/".
+fragment_code(0'?) --> "?".
 
 
 
@@ -83,8 +81,8 @@ fragment_codes([])      --> "".
 % host = IP-literal / IPv4address / reg-name
 % ```
 
-host(Host) --> 'IP-literal'(Host).
-host(Host) --> 'IPv4address'(Host).
+host(Host) --> 'IP-literal'(Host), !.
+host(Host) --> 'IPv4address'(Host), !.
 host(Host) --> 'reg-name'(Host).
 
 
@@ -99,13 +97,13 @@ host(Host) --> 'reg-name'(Host).
 % ```
 
 % Begins with "/" or is empty.
-path(L) --> 'path-abempty'(L).
+path(L) --> 'path-abempty'(L), !.
 % Begins with "/" but not "//".
-path(L) --> 'path-absolute'(L).
+path(L) --> 'path-absolute'(L), !.
 % Begins with a non-colon segment
-path(L) --> 'path-noscheme'(L).
+path(L) --> 'path-noscheme'(L), !.
 % Begins with a segment
-path(L) --> 'path-rootless'(L).
+path(L) --> 'path-rootless'(L), !.
 % Empty path (i.e., no segments).
 path(L) --> 'path-empty'(L).
 
@@ -116,7 +114,7 @@ path(L) --> 'path-empty'(L).
 % port = *DIGIT
 % ```
 
-port(N) --> '*digit'(N).
+port(I) --> '*digit'(I).
 
 
 
@@ -125,11 +123,10 @@ port(N) --> '*digit'(N).
 % query = *( pchar / "/" / "?" )
 % ```
 
-query(S) --> dcg_string(query_codes, S).
-query_codes([H|T])   --> pchar(H), !, query_codes(T).
-query_codes([0'/|T]) --> "/",      !, query_codes(T).
-query_codes([0'?|T]) --> "?",      !, query_codes(T).
-query_codes([])      --> "".
+query(S) --> *(query_code, Cs), {string_codes(S, Cs)}.
+query_code(C)   --> pchar(C).
+query_code(0'/) --> "/".
+query_code(0'?) --> "?".
 
 
 
@@ -141,14 +138,12 @@ query_codes([])      --> "".
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 % ```
 
-scheme(S) --> dcg_string(scheme_codes1, S).
-scheme_codes1([H|T])   --> 'ALPHA'(H),    !, scheme_codes2(T).
-scheme_codes2([H|T])   --> 'ALPHA'(H),    !, scheme_codes2(T).
-scheme_codes2([H|T])   --> 'DIGIT'(_, H), !, scheme_codes2(T).
-scheme_codes2([0'+|T]) --> "+",           !, scheme_codes2(T).
-scheme_codes2([0'-|T]) --> "-",           !, scheme_codes2(T).
-scheme_codes2([0'.|T]) --> ".",           !, scheme_codes2(T).
-scheme_codes2([])      --> "".
+scheme(S) --> 'ALPHA'(H), *(scheme_code, T), {string_codes(S, [H|T])}.
+scheme_code(C)   --> 'ALPHA'(C).
+scheme_code(C)   --> 'DIGIT'(_, C).
+scheme_code(0'+) --> "+".
+scheme_code(0'-) --> "-".
+scheme_code(0'.) --> ".".
 
 
 
@@ -180,12 +175,11 @@ scheme_codes2([])      --> "".
 % The passing of authentication information in clear text has proven to be
 % a security risk.
 
-userinfo(S) --> dcg_string(userinfo_codes, S).
-userinfo_codes([H|T])   --> unreserved(H),    !, userinfo_codes(T).
-userinfo_codes([H|T])   --> 'pct-encoded'(H), !, userinfo_codes(T).
-userinfo_codes([H|T])   --> 'sub-delims'(H),  !, userinfo_codes(T).
-userinfo_codes([0':|T]) --> ":",              !, userinfo_codes(T).
-userinfo_codes([])      --> "".
+userinfo(S) --> *(userinfo_code, Cs), {string_codes(S, Cs)}.
+userinfo_code(C)   --> unreserved(C).
+userinfo_code(C)   --> 'pct-encoded'(C).
+userinfo_code(C)   --> 'sub-delims'(C).
+userinfo_code(0':) --> ":".
 
 
 

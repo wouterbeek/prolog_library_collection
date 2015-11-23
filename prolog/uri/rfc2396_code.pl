@@ -13,13 +13,13 @@
   ]
 ).
 :- reexport(
-  library(url/rfc1738_code),
+  library(dcg/dcg_ext),
   [
     alpha//1, % ?Code:code
     alphadigit//1 as alphanum, % ?Code:code
-    digit//1, % ?Weight:between(0,9)
-    escape//1 as escaped, % ?Code:code
-    hex//1, % ?Weight:between(0,15)
+    digit//1, % ?Integer:between(0,9)
+    percent_enc//1 as escaped, % ?Code:code
+    hex//1, % ?Integer:between(0,15)
     lowalpha//1, % ?Code:code
     hialpha//1 as upalpha % ?Code:code
   ]
@@ -126,7 +126,7 @@ reserved(0',) --> ",".
 % space = <US-ASCII coded character 20 hexadecimal>
 % ```
 
-space(32) --> [32].
+space(0' ) --> " ".
 
 
 

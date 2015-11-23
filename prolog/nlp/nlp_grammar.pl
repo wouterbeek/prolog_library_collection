@@ -11,10 +11,10 @@
 Simple NLP predicates for often occurring cases.
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@version 2015/09-2015/11
 */
 
-:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -22,6 +22,4 @@ Simple NLP predicates for often occurring cases.
 
 %! plural(+Count:integer, +Singular:atom)// is det.
 
-plural(C, N) -->
-  atom(N),
-  ({abs(C) =:= 1} -> "" ; "s").
+plural(C, N) --> atom(N), ({abs(C) =:= 1} -> "" ; "s").

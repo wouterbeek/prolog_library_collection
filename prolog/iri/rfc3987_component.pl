@@ -20,7 +20,7 @@
 @version 2015/08, 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(iri/rfc3987_code)).
 :- use_module(library(iri/rfc3987_token)).
 
@@ -75,13 +75,13 @@ ifragment_code(0'?) --> "?".
 % ```
 
 % Begins with "/" or is empty.
-ipath(L) --> 'ipath-abempty'(L).
+ipath(L) --> 'ipath-abempty'(L), !.
 % Begins with "/" but not "//".
-ipath(L) --> 'ipath-absolute'(L).
+ipath(L) --> 'ipath-absolute'(L), !.
 % Begins with a non-colon segment
-ipath(L) --> 'ipath-noscheme'(L).
+ipath(L) --> 'ipath-noscheme'(L), !.
 % Begins with a segment
-ipath(L) --> 'ipath-rootless'(L).
+ipath(L) --> 'ipath-rootless'(L), !.
 % Empty path (i.e., no segments).
 ipath(L) --> 'ipath-empty'(L).
 

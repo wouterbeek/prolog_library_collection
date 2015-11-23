@@ -21,7 +21,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(url/rfc1738_code)).
 :- use_module(library(url/rfc1738_component)).
 
@@ -44,7 +44,7 @@
 ftpurl(User, Password, Host, Port, Path, Type) -->
   "ftp://",
   login(User, Password, Host, Port),
-  ("/", fpath(Path), (";type=", ftptype(Type) ; "") ; "").
+  ("/" -> fpath(Path), (";type=" -> ftptype(Type) ; "") ; "").
 
 
 
@@ -53,9 +53,8 @@ ftpurl(User, Password, Host, Port, Path, Type) -->
 % fpath = fsegment *[ "/" fsegment ]
 % ```
 
-fpath([H|T]) --> fsegment(H), fsegments(T).
-fsegments([H|T]) --> "/", !, fsegment(H), fsegments(T).
-fsegments([]) --> "".
+fpath([H|T]) --> fsegment(H), *(sep_fsegment, T).
+sep_fsegment(X) --> "/", fsegment(X).
 
 
 
@@ -64,13 +63,13 @@ fsegments([]) --> "".
 % fsegment = *[ uchar | "?" | ":" | "@" | "&" | "=" ]
 % ```
 
-fsegment(S) --> dcg_string(fsegment_codes, S).
-fsegment_codes([H|T]) --> uchar(H), !, fsegment_codes(T).
-fsegment_codes([0'?|T]) --> "?", !, fsegment_codes(T).
-fsegment_codes([0':|T]) --> ":", !, fsegment_codes(T).
-fsegment_codes([0'@|T]) --> "@", !, fsegment_codes(T).
-fsegment_codes([0'&|T]) --> "&", !, fsegment_codes(T).
-fsegment_codes([0'=|T]) --> "=", !, fsegment_codes(T).
+fsegment(S) --> *(fsegment_code, Cs), {string_codes(S, Cs)}.
+fsegment_code(C)   --> uchar(C).
+fsegment_code(0'?) --> "?".
+fsegment_code(0':) --> ":".
+fsegment_code(0'@) --> "@".
+fsegment_code(0'&) --> "&".
+fsegment_code(0'=) --> "=".
 
 
 

@@ -27,11 +27,10 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(lists)).
 :- use_module(library(url/rfc1738_code)).
-:- use_module(library(url/rfc1738_helpers)).
 
 
 
@@ -43,12 +42,12 @@
 % ```
 
 domainlabel(S) --> dcg_string(domainlabel_codes, S).
-domainlabel_codes([C]) --> alphadigit(C).
-domainlabel_codes(L) -->
+domainlabel_codes(L)   -->
   alphadigit(H),
-  alphadigits(T),
+  *(alphadigit_hyphen, T),
   alphadigit(X),
   {append([H|T], [X], L)}.
+domainlabel_codes([C]) --> alphadigit(C).
 
 
 
@@ -87,7 +86,7 @@ hostnumber([N1,N2,N3,N4]) -->
 % hostport = host [ ":" port ]
 % ```
 
-hostport(Host, Port) --> host(Host), (":", port(Port) ; {Port = 80}).
+hostport(Host, Port) --> host(Host), (":" -> port(Port) ; {Port = 80}).
 
 
 
@@ -102,7 +101,7 @@ hostport(Host, Port) --> host(Host), (":", port(Port) ; {Port = 80}).
 % ```
 
 login(User, Password, Host, Port) -->
-  (user(User), (":", password(Password) ; ""), "@" ; ""),
+  (user(User) -> (":" -> password(Password) ; ""), "@" ; ""),
   hostport(Host, Port).
 
 
@@ -112,7 +111,7 @@ login(User, Password, Host, Port) -->
 % password = *[ uchar | ";" | "?" | "&" | "=" ]
 % ```
 
-password(S) --> content1(S).
+password(S) --> *(code0, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -147,12 +146,12 @@ scheme_code(0'.) --> ".".
 % ```
 
 toplabel(S) --> dcg_string(toplabel_codes, S).
-toplabel_codes([H]) --> alpha(H).
-toplabel_codes(L) -->
+toplabel_codes(L)   -->
   alpha(H),
-  alphadigits(T),
+  *(alphadigit_hyphen, T),
   alphadigit(X),
   {append([H|T], [X], L)}.
+toplabel_codes([H]) --> alpha(H).
 
 
 
@@ -161,4 +160,20 @@ toplabel_codes(L) -->
 % user = *[ uchar | ";" | "?" | "&" | "=" ]
 % ```
 
-user(S) --> content1(S).
+user(S) --> *(code0, Cs), {string_codes(S, Cs)}.
+
+
+
+
+
+% HELPERS %
+
+alphadigit_hyphen(C)   --> alphadigit(C).
+alphadigit_hyphen(0'-) --> "-".
+
+
+code0(C)   --> uchar(C).
+code0(0';) --> ";".
+code0(0'?) --> "?".
+code0(0'&) --> "&".
+code0(0'=) --> "=".

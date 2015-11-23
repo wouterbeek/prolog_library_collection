@@ -28,6 +28,6 @@
 
 fileurl(Host, Path) -->
   "file://",
-  (host(Host) ; "localhost", {Host = localhost}),
+  (host(Host), ! ; "localhost", {Host = localhost}),
   "/",
   fpath(Path).

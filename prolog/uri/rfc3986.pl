@@ -63,10 +63,10 @@
 %           / path-empty
 % ```
 
-'hier-part'(Auth, L) --> "//", authority(Auth), 'path-abempty'(L).
-'hier-part'(_, L) --> 'path-absolute'(L).
-'hier-part'(_, L) --> 'path-rootless'(L).
-'hier-part'(_, L) --> 'path-empty'(L).
+'hier-part'(Auth, L) --> "//", !, authority(Auth), 'path-abempty'(L).
+'hier-part'(_, L)    --> 'path-absolute'(L), !.
+'hier-part'(_, L)    --> 'path-rootless'(L), !.
+'hier-part'(_, L)    --> 'path-empty'(L).
 
 
 
@@ -87,11 +87,9 @@
 % ```
 
 'relative-part'(Scheme, Auth, L) -->
-  "//",
-  authority(Scheme, Auth),
-  'path-abempty'(L).
-'relative-part'(_, _, L) --> 'path-absolute'(L).
-'relative-part'(_, _, L) --> 'path-noscheme'(L).
+  "//", !, authority(Scheme, Auth), 'path-abempty'(L).
+'relative-part'(_, _, L) --> 'path-absolute'(L), !.
+'relative-part'(_, _, L) --> 'path-noscheme'(L), !.
 'relative-part'(_, _, L) --> 'path-empty'(L).
 
 

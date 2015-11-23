@@ -77,7 +77,6 @@
   :- use_module(library(http/rfc2616_code)).
   :- use_module(library(http/rfc2616_date)).
   :- use_module(library(http/rfc2616_header)).
-  :- use_module(library(http/rfc2616_helpers)).
   :- use_module(library(http/rfc2616_test)).
   :- use_module(library(http/rfc2616_token)).
   :- use_module(library(http/rfc2617)).
@@ -180,7 +179,6 @@
   :- use_module(library(url/rfc1738_file)).
   :- use_module(library(url/rfc1738_ftp)).
   :- use_module(library(url/rfc1738_gopher)).
-  :- use_module(library(url/rfc1738_helpers)).
   :- use_module(library(url/rfc1738_http)).
 :- use_module(library(uuid_ext)).
 %/xml

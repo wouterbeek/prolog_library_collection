@@ -15,7 +15,7 @@
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_re)).
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -26,8 +26,8 @@
 % Language-Tag = Primary-tag *( "-" Subtag )
 % ```
 
-'Language-Tag'([H|T]) --> 'Primary-tag'(H), *(subtag, T).
-subtag(S) --> "-", 'Subtag'(S).
+'Language-Tag'([H|T]) --> 'Primary-tag'(H), *(sep_subtag, T).
+sep_subtag(S) --> "-", 'Subtag'(S).
 
 
 
