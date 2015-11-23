@@ -15,7 +15,7 @@
 Support for image files.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10-2015/11
 */
 
 :- use_module(library(dcg/dcg_content)).

@@ -16,7 +16,7 @@
 /** <module> Date-time file support
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10-2015/11
 */
 
 :- use_module(library(apply)).

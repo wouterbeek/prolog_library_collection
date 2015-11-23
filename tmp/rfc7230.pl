@@ -24,8 +24,7 @@
 */
 
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_re)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(http/rfc7230_code)).
 :- use_module(library(http/rfc7230_token)).

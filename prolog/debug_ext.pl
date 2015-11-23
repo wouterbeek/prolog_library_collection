@@ -243,7 +243,5 @@ tmon:- prolog_ide(thread_monitor).
 % MESSAGES %
 
 :- multifile(prolog:message//1).
-
 prolog:message(loading_module(File)) --> ['[M] ',File].
-
 prolog:message(number_of_warnings(N)) --> ['~D warnings'-[N]].
