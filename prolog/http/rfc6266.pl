@@ -44,7 +44,7 @@ header from RFC 2616.
 'content-disposition'(Type, Params) -->
   'disposition-type'(Type),
   *(disposition_param, Params).
-disposition_param(X) --> ";", 'disposition-parm'(X).
+disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 
 
 

@@ -66,8 +66,11 @@ atomize_dict0(X, X).
 
 create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, GroupedPairs),
+  group_pairs_by_key(SortedPairs, GroupedPairs0),
+  maplist(unpack_singleton_value, GroupedPairs0, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
+unpack_singleton_value(Key-[Val], Key-Val):- !.
+unpack_singleton_value(Key-Vals, Key-Vals).
 
 
 

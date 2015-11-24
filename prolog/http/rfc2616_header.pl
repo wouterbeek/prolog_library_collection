@@ -1,28 +1,28 @@
 :- module(
   rfc2616_header,
   [
-    'Accept-Ranges'//1, % -Ranges:list(or([oneof([bytes]),string]))
-    'Access-Control-Allow-Credentials'//1, % -AllowCredentials:boolean
-    'Access-Control-Allow-Headers'//1, % ?HeaderNames:list(string)
-    'Access-Control-Allow-Origin'//1, % -Origins:list(dict)
-    'Cache-Control'//1, % -Directives:list(compound)
-    'Connection'//1, % -ConnectionTokens:list(string)
-    'Content-Disposition'//1, % -ContentDisposition:dict
-    'Content-Language'//1, % -LanguageTags:list(list(string)))
-    'Content-Length'//1, % -Length:nonneg
-    'Content-Type'//1, % -MediaType:dict
-    'Date'//1, % -DateTime:compound
-    'Expires'//1, % ?DateTime:compound
-    'ETag'//1, % -ETag:dict
+    'accept-ranges'//1, % -Ranges:list(or([oneof([bytes]),string]))
+    'access-control-allow-credentials'//1, % -AllowCredentials:boolean
+    'access-control-allow-headers'//1, % ?HeaderNames:list(string)
+    'access-control-allow-origin'//1, % -Origins:list(dict)
+    'cache-control'//1, % -Directives:list(compound)
+    connection//1, % -ConnectionTokens:list(string)
+    'content-disposition'//1, % -ContentDisposition:dict
+    'content-language'//1, % -LanguageTags:list(list(string)))
+    'content-length'//1, % -Length:nonneg
+    'content-type'//1, % -MediaType:dict
+    date//1, % -DateTime:compound
+    expires//1, % ?DateTime:compound
+    etag//1, % -ETag:dict
     'field-content'//2, % :Name
                         % -Value:compound
     'field-name'//1, % -Name:string
     'field-value'//2, % :Name
                       % -Value:compound
     'message-header'//1, % -Header:pair(string,compound)
-    'Last-Modified'//1, % -DateTime:compound
-    'Server'//1, % -Value:list([dict,string])
-    'Transfer-Encoding'//1 % -TransferEncoding:list(or([oneof([chunked]),dict])))
+    'last-modified'//1, % -DateTime:compound
+    server//1, % -Value:list([dict,string])
+    'transfer-encoding'//1 % -TransferEncoding:list(or([oneof([chunked]),dict])))
   ]
 ).
 
@@ -54,122 +54,122 @@
 
 
 
-%! 'Accept-Ranges'(-Ranges:list(or([oneof([bytes]),string])))// .
+%! 'accept-ranges'(-Ranges:list(or([oneof([bytes]),string])))// .
 % ```abnf
 % Accept-Ranges = "Accept-Ranges" ":" acceptable-ranges
 % ```
 
-'Accept-Ranges'(L) --> 'acceptable-ranges'(L).
+'accept-ranges'(L) --> 'acceptable-ranges'(L).
 
 
 
-%! 'Access-Control-Allow-Credentials'(?AllowCredentials:boolean)// .
+%! 'access-control-allow-credentials'(?AllowCredentials:boolean)// .
 % ```abnf
 % Access-Control-Allow-Credentials: "Access-Control-Allow-Credentials" ":" true
 % ```
 
-'Access-Control-Allow-Credentials'(true) --> "true".
+'access-control-allow-credentials'(true) --> "true".
 
 
 
-%! 'Access-Control-Allow-Headers'(?HeaderNames:list(string))// .
+%! 'access-control-allow-headers'(?HeaderNames:list(string))// .
 % ```abnf
 % Access-Control-Allow-Headers: "Access-Control-Allow-Headers" ":" #field-name
 % ```
 
-'Access-Control-Allow-Headers'(L) --> *#('field-name', L).
+'access-control-allow-headers'(L) --> *#('field-name', L).
 
 
 
-%! 'Access-Control-Allow-Origin'(-Origins:list(dict))// .
+%! 'access-control-allow-origin'(-Origins:list(dict))// .
 % ```abnf
 % Access-Control-Allow-Origin = "Access-Control-Allow-Origin"
 %                               ":" origin-list-or-null
 %                             | "*"
 % ```
 
-'Access-Control-Allow-Origin'(L) --> 'origin-list-or-null'(L).
-'Access-Control-Allow-Origin'(*) --> "*".
+'access-control-allow-origin'(L) --> 'origin-list-or-null'(L).
+'access-control-allow-origin'(*) --> "*".
 
 
 
-%! 'Cache-Control'(?Directives:list(compound))// .
+%! 'cache-control'(?Directives:list(compound))// .
 % ```abnf
 % Cache-Control = "Cache-Control" ":" 1#cache-directive
 % ```
 
-'Cache-Control'(L) --> +#('cache-directive', L).
+'cache-control'(L) --> +#('cache-directive', L).
 
 
 
-%! 'Connection'(-ConnectionTokens:list(string))// .
+%! 'connection'(-ConnectionTokens:list(string))// .
 % ```abnf
 % 'Connection'(S) --> "Connection:", 1#(connection-token)
 % ```
 
-'Connection'(L) --> +#('connection-token', L).
+'connection'(L) --> +#('connection-token', L).
 
 
 
-%! 'Content-Disposition'(-Value:compound)// .
+%! 'content-disposition'(-Value:compound)// .
 
-'Content-Disposition'(content_disposition{type: Type, params: Params}) -->
+'content-disposition'(content_disposition{type: Type, params: Params}) -->
  'content-disposition'(Type, Params).
 
 
 
-%! 'Content-Language'(-LanguageTags:list(list(string)))// .
+%! 'content-language'(-LanguageTags:list(list(string)))// .
 % ```abnf
 % Content-Language = "Content-Language" ":" 1#language-tag
 % ```
 
-'Content-Language'(L) --> +#('language-tag', L).
+'content-language'(L) --> +#('language-tag', L).
 
 
 
-%! 'Content-Length'(-Length:nonneg)// .
+%! 'content-length'(-Length:nonneg)// .
 % ```abnf
 % Content-Length = "Content-Length" ":" 1*DIGIT
 % ```
 
-'Content-Length'(N) --> '+digit'(N).
+'content-length'(N) --> '+digit'(N).
 
 
 
-%! 'Content-Type'(-MediaType:dict)// .
+%! 'content-type'(-MediaType:dict)// .
 % ```abnf
 % Content-Type = "Content-Type" ":" media-type
 % ```
 
-'Content-Type'(MT) --> 'media-type'(MT).
+'content-type'(MT) --> 'media-type'(MT).
 
 
 
 
-%! 'Date'(-DateTime:compound)// .
+%! date(-DateTime:compound)// .
 % ```
 % Date = "Date" ":" HTTP-date
 % ```
 
-'Date'(DT) --> 'HTTP-date'(DT).
+date(DT) --> 'HTTP-date'(DT).
 
 
 
-%! 'ETag'(-ETag:compound)// .
+%! etag(-ETag:compound)// .
 % ```abnf
 % ETag = "ETag" ":" entity-tag
 % ```
 
-'ETag'(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
+etag(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
 
 
 
-%! 'Expires'(?DateTime:compound)// .
+%! expires(?DateTime:compound)// .
 % ```abnf
 % Expires = "Expires" ":" HTTP-date
 % ```
 
-'Expires'(DT) --> 'HTTP-date'(DT).
+expires(DT) --> 'HTTP-date'(DT).
 
 
 
@@ -195,7 +195,7 @@
 % field-name = token
 % ```
 
-'field-name'(Name) --> token(Name).
+'field-name'(LowerName) --> token(Name), {string_lower(Name, LowerName)}.
 
 
 
@@ -223,45 +223,45 @@
   % character of the field-value. Such leading or trailing LWS MAY be
   % removed without changing the semantics of the field value.
   'LWS',
-  ?('field-value'(Pred), Value).
+  ('field-value'(Pred, Value), ! ; "").
 
 
 
-%! 'Last-Modified'(-DateTime:compound)// .
+%! 'last-modified'(-DateTime:compound)// .
 % ```abnf
 % Last-Modified = "Last-Modified" ":" HTTP-date
 % ```
 
-'Last-Modified'(DT) --> 'HTTP-date'(DT).
+'last-modified'(DT) --> 'HTTP-date'(DT).
 
 
 
-%! 'Server'(-Server:list(or[dict,string]))// .
+%! server(-Server:list(or[dict,string]))// .
 % ```abnf
 % Server = "Server" ":" 1*( product | comment )
 % ```
 %
 % Sub-product tokens are separated by white space.
 
-'Server'([H|T]) --> server(H), *(sep_server, T).
-server(D) --> product(D).
-server(S) --> comment(S).
-sep_server(X) --> 'LWS', server(X).
+server([H|T]) --> server0(H), *(sep_server0, T).
+server0(D) --> product(D).
+server0(S) --> comment(S).
+sep_server0(X) --> 'LWS', server0(X).
 
 
 
-%! 'Transfer-Encoding'(-TransferEncoding:list(or([oneof([chunked]),dict])))// .
+%! 'transfer-encoding'(-TransferEncoding:list(or([oneof([chunked]),dict])))// .
 % ```abnf
 % Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 % ```
 
-'Transfer-Encoding'(L) --> +#('transfer-coding', L).
+'transfer-encoding'(L) --> +#('transfer-coding', L).
 
 
 
-%! 'WWW-Authenticate'(?Challenges:list(dict))// .
+%! 'www-authenticate'(?Challenges:list(dict))// .
 % ```abnf
 % WWW-Authenticate = "WWW-Authenticate" ":" 1#challenge
 % ```
 
-'WWW-Authenticate'(L) --> +#(challenge, L).
+'www-authenticate'(L) --> +#(challenge, L).
