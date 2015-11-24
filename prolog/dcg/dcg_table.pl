@@ -21,6 +21,7 @@ Generates tables for text-based display.
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
@@ -67,6 +68,7 @@ dcg_table(Rows1, Opts0) -->
     option(cell(Cell_1), Opts, pl_term),
     option(indexed(Ind), Opts, false),
     option(maximum_number_of_rows(Max), Opts, inf),
+    %%%%add_sum_row(Rows1, Rows2, Opts),
     table_position(Cell_1, Rows1, Pos1)
   },
   dcg_table_caption(Pos1, Caption_0),
@@ -74,6 +76,24 @@ dcg_table(Rows1, Opts0) -->
   dcg_table_header_row(Ind, Pos1, Rows1, Cell_1, Pos2, Rows2),
   dcg_table_data_rows(Ind, Pos2, Max, Cell_1, Rows2, Pos3),
   dcg_table_line(Pos3).
+
+
+add_sum_row(Rows1, Rows2, Opts):-
+  option(sum_col(Cols0), Opts, []),
+  sort(Cols0, Cols),
+  number_of_columns(Rows1, Last),
+  add_sum_row0(1, Last, Rows1, Cols, Row),
+  append(Rows1, [Row], Rows2).
+
+add_sum_row0(Last, Last, _, _, []):- !.
+add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]):- !,
+  maplist(nth0(Col1), Rows, Vals),
+  sum_list(Vals, Sum),
+  Col2 is Col1 + 1,
+  add_sum_row0(Col2, Last, Rows, Cols, T).
+add_sum_row0(Col1, Last, Rows, Cols, [_|T]):-
+  Col2 is Col1 + 1,
+  add_sum_row0(Col2, Last, Rows, Cols, T).
 
 
 
