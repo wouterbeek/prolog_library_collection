@@ -39,6 +39,8 @@
                  % -Integer:nonneg
     hialpha//1, % ?Code:code
     lowalpha//1, % ?Code:code
+    opt//2, % :Dcg_1
+            % ?Argument
     percent_enc//1, % ?Code:code
     pos/2, % +Integer, -Digits
     pos/3, % +Integer:nonneg
@@ -79,6 +81,8 @@ My favorite collection of DCG rules.
 :- meta_predicate('m*n'(?,?,3,-,?,?)).
 :- meta_predicate('m*n__'(?,?,+,//,?,?)).
 :- meta_predicate('m*n__'(?,?,+,3,-,?,?)).
+:- meta_predicate(opt(3,?,?,?)).
+
 
 
 
@@ -320,6 +324,13 @@ lowalpha(0'w) --> "w".
 lowalpha(0'x) --> "x".
 lowalpha(0'y) --> "y".
 lowalpha(0'z) --> "z".
+
+
+
+%! opt(:Dcg_1, ?Argument)// .
+
+opt(Dcg_1, Arg) --> dcg_call(Dcg_1, Arg), !.
+opt(_, _) --> "".
 
 
 

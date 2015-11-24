@@ -81,7 +81,7 @@ charset(Charset)      --> 'mime-charset'(Charset).
 % ```
 
 'ext-value'(Charset, Lang, Value) -->
-  charset(Charset), "'", ?(language, Lang), "'", 'value-chars'(Value).
+  charset(Charset), "'", opt(language, Lang), "'", 'value-chars'(Value).
 
 
 
