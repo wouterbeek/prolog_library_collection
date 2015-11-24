@@ -138,7 +138,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
   ->  option(raw_headers(Headers), Opts2),
       call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
       M2 is M1 + 1,
-      (   M2 =:= 1
+      (   M2 =:= N
       ->  Close_0 = true,
           Opts1 = Opts2
       ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)

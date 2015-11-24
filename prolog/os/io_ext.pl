@@ -66,7 +66,7 @@ read_input_to_codes(In, Cs):-
   setup_call_cleanup(
     open_any2(In, read, Read, Close_0, [encoding(utf8)]),
     read_stream_to_codes(Read, Cs),
-    close_any(Close_0)
+    close_any2(Close_0)
   ).
 
 
