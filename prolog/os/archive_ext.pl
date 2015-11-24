@@ -16,10 +16,10 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@version 2015/09-2015/11
 */
 
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lambda)).
 :- use_module(library(os/open_any2)).
@@ -148,7 +148,7 @@ call_on_archive_entry0(Entry, Goal_2, Opts1, M1, Arch):-
   (   MEntry = [MEntry1|_],
       MEntry1.name = Entry
   ->  put_dict(archive_entry, M1, MEntry, M2),
-      call(Goal_2, M2, Read)
+      call_cleanup(call(Goal_2, M2, Read), close(Read))
   ;   close(Read),
       fail
   ).

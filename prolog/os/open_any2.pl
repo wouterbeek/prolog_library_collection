@@ -22,6 +22,7 @@ Wrapper around library(iostream)'s open_any/5.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_info)).

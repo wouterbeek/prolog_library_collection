@@ -32,6 +32,9 @@
     if_debug/2, % ?Flag:compound
                 % :Goal_0
     number_of_open_files/1, % -N:nonneg
+    pof/1, % :Goal_0
+    pofa/0,
+    pofz/0,
     print_error/1, % +Error:compound
     tmon/0
   ]
@@ -70,6 +73,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate(debug_verbose(?,0,+,+)).
 :- meta_predicate(debug_with_output_to(?,0)).
 :- meta_predicate(if_debug(?,0)).
+:- meta_predicate(pof(0)).
 
 
 
@@ -224,6 +228,12 @@ number_of_open_files(N):-
   aggregate_all(count, (member(X, [input,output]), stream_property(_, X)), N).
 
 
+
+%! pof(:Goal_0) is det.
+
+pof(Goal_0):- pofa, Goal_0, pofz.
+pofa:- number_of_open_files(N), format(user_output, "<~D|", [N]).
+pofz:- number_of_open_files(N), format(user_output, "|~D>~n", [N]).
 
 
 
