@@ -32,11 +32,8 @@
 */
 
 :- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(error)).
-:- use_module(library(plunit)).
-:- use_module(library(math/math_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(math/radconv)).
-:- use_module(library(typecheck)).
 
 
 
