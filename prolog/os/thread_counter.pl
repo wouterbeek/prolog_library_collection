@@ -3,8 +3,7 @@
   [
     create_thread_counter/1, % +Name:compound
     delete_thread_counter/1, % +Name
-    delete_thread_counter/2, % +Name:compound
-                             % -Count:integer
+    delete_thread_counters/1, % +Name
     exists_thread_counter/1, % +Name:compound
     increment_thread_counter/1, % +Name
     increment_thread_counter/2, % +Name, -Count
@@ -50,20 +49,20 @@ create_thread_counter(N):-
 
 
 %! delete_thread_counter(+Name:compound) is det.
-% Wrapper around delete_thread_counter/2 that does not return
-% the value of the counter.
+% Remove the counter(s) with the given name.
+%
+% @throws existence_error If no counter with the given name exists.
 
 delete_thread_counter(N):-
-  delete_thread_counter(N, _).
+  exists_thread_counter(N), !,
+  retractall(thread_counter(N,_)).
+delete_thread_counter(N):-
+  existence_error(thread_counter, N).
 
 
-%! delete_thread_counter(+Name:compound, -Value:integer) is det.
-% Removed the counter with the given name and returns its value.
-%
-% @throws existence_error If no counter with given name exists.
 
-delete_thread_counter(N, C):-
-  (retract(thread_counter(N,C)) -> true ; existence_error(thread_counter, N)).
+delete_thread_counters(N):-
+  retractall(thread_counter(N,_)).
 
 
 
