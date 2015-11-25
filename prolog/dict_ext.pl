@@ -3,7 +3,10 @@
   [
     atomize_dict/2, % +Dict:dict
                     % -AtomizedDict:dict
-    create_grouped_sorted_dict/3, % +Options:list(compound)
+    create_dict/3, % +Pairs:list(pair)
+                   % +Tag:atom
+                   % -Dict:dict
+    create_grouped_sorted_dict/3, % +Pairs:list(pair)
                                   % +Tag:atom
                                   % -GroupedSortedDict:dict
     dict_pairs/2, % ?Dict:dict
@@ -55,6 +58,18 @@ atomize_dict0(S, A):-
   string(S), !,
   atom_string(A, S).
 atomize_dict0(X, X).
+
+
+
+%! create_dict(+Pairs:list(pair), +Tag:atom, -Dict:dict) is det.
+
+create_dict(Pairs, Tag, Dict):-
+  maplist(dict_pair, Pairs, DictPairs),
+  create_grouped_sorted_dict(DictPairs, Tag, Dict).
+
+dict_pair(Key1-Val1, Key2-Val2):-
+  atom_string(Key2, Key1),
+  (singleton_list(Val2, Val1), ! ; Val2 = Val1).
 
 
 

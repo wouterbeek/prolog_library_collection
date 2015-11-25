@@ -14,6 +14,8 @@
     '#'//3, % +Occurrences:nonneg
             % :Dcg_1
             % -Content:list
+    '*n'//2, % ?High:nonneg
+             % :Dcg_1
     '*n'//3, % ?High:nonneg
              % :Dcg_1
              % -Content:list
@@ -24,9 +26,13 @@
      alpha//1, % ?Code:code
      alphadigit//1, % ?Code:code
      bit//1, % ?Integer:between(0,1)
+     def//3, % :Dcg_1
+             % -Argument
+             % +Default
      digit//1, % ?Integer:between(0,9)
      digit//2, % ?Integer:between(0,9)
                % ?Code:code
+     digit_code//1, % ?Code:code
     '*digit'//1, % ?Integer:nonneg
     '+digit'//1, % ?Integer:nonneg
     '#digit'//2, % +Occurrences:nonneg
@@ -76,11 +82,13 @@ My favorite collection of DCG rules.
 :- meta_predicate(+(3,-,?,?)).
 :- meta_predicate(#(+,//,?,?)).
 :- meta_predicate(#(+,3,-,?,?)).
+:- meta_predicate('*n'(?,//,?,?)).
 :- meta_predicate('*n'(?,3,-,?,?)).
 :- meta_predicate('m*n'(?,?,//,?,?)).
 :- meta_predicate('m*n'(?,?,3,-,?,?)).
 :- meta_predicate('m*n__'(?,?,+,//,?,?)).
 :- meta_predicate('m*n__'(?,?,+,3,-,?,?)).
+:- meta_predicate(def(3,-,+,?,?)).
 :- meta_predicate(opt(3,?,?,?)).
 
 
@@ -109,6 +117,11 @@ My favorite collection of DCG rules.
 
 +(Dcg_1, L) --> 'm*n'(1, _, Dcg_1, L).
 
+
+
+%! '*n'(?High:nonneg, :Dcg_1, -Content:list)// .
+
+'*n'(High, Dcg_1) --> 'm*n'(_, High, Dcg_1).
 
 
 %! '*n'(?High:nonneg, :Dcg_1, -Content:list)// .
@@ -198,7 +211,15 @@ bit(1, 0'1) --> "1".
 
 
 
+%! def(:Dcg_1, -Argument, +Default)// .
+
+def(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
+def(_, Def, Def) --> "".
+
+
+
 %! digit(?Weight:between(0,9))// .
+% Wrapper around digit//2.
 
 digit(D) --> digit(D, _).
 
@@ -217,6 +238,13 @@ digit(6, 0'6) --> "6".
 digit(7, 0'7) --> "7".
 digit(8, 0'8) --> "8".
 digit(9, 0'9) --> "9".
+
+
+
+%! digit_code(?Code:code)// .
+% Wrapper around digit//2.
+
+digit_code(C) --> digit(C, _).
 
 
 

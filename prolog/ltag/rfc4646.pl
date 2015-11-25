@@ -15,9 +15,9 @@
   ]
 ).
 :- reexport(
-  library(uri/rfc2396_code),
+  library(dcg/dcg_ext),
   [
-    alphanum//1 % ?Code:code
+    alphadigit//1 as alphanum % ?Code:code
   ]
 ).
 
@@ -38,13 +38,20 @@ The comment for singleton//1 swaps upper and lowercase letters.
 @version 2015/11
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
-:- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234)).
-:- use_module(library(string_ext)).
+:- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/record_jar)).
+:- use_module(library(dict_ext)).
+:- use_module(library(lambda)).
+:- use_module(library(memoization)).
+:- use_module(library(pio)).
 
-
+iana(Dicts):- memo(init_iana(Dicts)).
+init_iana(Dicts):-
+  FileOpts = [access(read),extensions([iana])],
+  absolute_file_name(language_subtag_registry, File, FileOpts),
+  phrase_from_file('record-jar'(_, Records), File),
+  maplist(\Record^Dict^create_dict(Record, record, Dict), Records, Dicts).
 
 
 
@@ -62,10 +69,8 @@ The comment for singleton//1 swaps upper and lowercase letters.
 % extension = singleton 1*("-" (2*8alphanum))
 % ```
 
-extension([H|T]) -->
-  singleton(H),
-  +(extension0, T, []).
-extension0(S) --> "-", 'm*n'(2, 8, alphanum, S, [convert1(codes_string)]).
+extension([H|T]) --> singleton(H), +(sep_ext, T).
+sep_ext(S) --> "-", 'm*n'(2, 8, alphadigit, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -74,9 +79,9 @@ extension0(S) --> "-", 'm*n'(2, 8, alphanum, S, [convert1(codes_string)]).
 % extlang = *3("-" 3ALPHA)   ; reserved for future use
 % ```
 
-extlang(L) -->
-  '*n'(3, reserved, L, []).
-reserved(S) --> "-", #(3, 'ALPHA', S, [convert1(codes_string)]).
+extlang(L) --> '*n'(3, sep_extlang, L).
+sep_extlang(S) --> "-", #(3, alpha, Cs), {string_codes(S, Cs)}.
+
 
 
 %! grandfathered(?LanguageTag:list(string))// .
@@ -88,9 +93,10 @@ reserved(S) --> "-", #(3, 'ALPHA', S, [convert1(codes_string)]).
 % ```
 
 grandfathered([H|T]) -->
-  'm*n'(1, 3, 'ALPHA', H, [convert1(codes_string)]),
-  'm*n'(1, 2, grandfathered0, T, []).
-grandfathered0(S) --> "-", 'm*n'(2, 8, alphanum, S, [convert1(codes_string)]).
+  'm*n'(1, 3, alpha, Cs), {string_codes(H, Cs)},
+  'm*n'(1, 2, sep_grandfathered, T).
+sep_grandfathered(S) -->
+  "-", 'm*n'(2, 8, alphadigit, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -106,16 +112,14 @@ grandfathered0(S) --> "-", 'm*n'(2, 8, alphanum, S, [convert1(codes_string)]).
 
 langtag(L) -->
   language(L1),
-  ("-", script(X2), {L2 = [X2]} ; {L2 = []}),
-  ("-", region(X3), {L3 = [X3]} ; {L3 = []}),
-  variants(L4),
-  extensions(L5),
-  ("-", privateuse(L6) ; {L6 = []}),
+  ("-" -> script(X2), {L2 = [X2]} ; {L2 = []}),
+  ("-" -> region(X3), {L3 = [X3]} ; {L3 = []}),
+  *(sep_variant, L4),
+  *(sep_extension, L5),
+  ("-" -> privateuse(L6) ; {L6 = []}),
   {append([L1,L2,L3,L4,L5,L6], L)}.
-extensions([H|T]) --> "-", extension(H), !, extensions(T).
-extensions([]) --> "".
-variants([H|T]) --> "-", variant(H), !, variants(T).
-variants([]) --> "".
+sep_extension(S) --> "-", extension(S).
+sep_variant(S) --> "-", variant(S).
 
 
 
@@ -128,10 +132,10 @@ variants([]) --> "".
 % ```
 				     
 language([H|T]) -->
-  'm*n'(2, 3, 'ALPHA', H, [convert1(codes_string)]),
-  ("-", extlang(T) ; "").
-language([H]) --> #(4, 'ALPHA', H, [convert1(codes_string)]).
-language([H]) --> 'm*n'(5, 8, 'ALPHA', H, [convert1(codes_string)]).
+  'm*n'(2, 3, alpha, Cs), {string_codes(H, Cs)},
+  ("-" -> extlang(T) ; {T = []}).
+language([H]) --> #(4, alpha, Cs), {string_codes(H, Cs)}.
+language([H]) --> 'm*n'(5, 8, alpha, Cs), {string_codes(H, Cs)}.
 
 
 
@@ -142,8 +146,8 @@ language([H]) --> 'm*n'(5, 8, 'ALPHA', H, [convert1(codes_string)]).
 %               / grandfathered       ; grandfathered tags
 % ```
 
-'Language-Tag'(L) --> langtag(L).
-'Language-Tag'(L) --> privateuse(L).
+'Language-Tag'(L) --> langtag(L), !.
+'Language-Tag'(L) --> privateuse(L), !.
 'Language-Tag'(L) --> grandfathered(L).
 
 
@@ -153,8 +157,8 @@ language([H]) --> 'm*n'(5, 8, 'ALPHA', H, [convert1(codes_string)]).
 % privateuse = ("x"/"X") 1*("-" (1*8alphanum))
 % ```
 
-privateuse(["x"|T]) --> ("x" ; "X"), +(privateuse0, T, []).
-privateuse0(S) --> "-", 'm*n'(1, 8, alphanum, S, [convert1(codes_string)]).
+privateuse(["x"|T]) --> ("x", ! ; "X"), +(sep_privateuse, T).
+sep_privateuse(S) --> "-", 'm*n'(1, 8, alphadigit, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -164,8 +168,8 @@ privateuse0(S) --> "-", 'm*n'(1, 8, alphanum, S, [convert1(codes_string)]).
 %        / 3DIGIT   ; UN M.49 code
 % ```
 
-region(S) --> #(2, 'ALPHA', S, [convert1(codes_string)]).
-region(S) --> #(3, 'DIGIT', _, S, [convert2(codes_string)]).
+region(S) --> #(2, alpha, Cs), {string_codes(S, Cs)}.
+region(S) --> #(3, digit_code, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -174,7 +178,7 @@ region(S) --> #(3, 'DIGIT', _, S, [convert2(codes_string)]).
 % script = 4ALPHA   ; ISO 15924 code
 % ```
 
-script(S) --> #(4, 'ALPHA', S, [convert1(codes_string)]).
+script(S) --> #(4, alpha, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -185,11 +189,7 @@ script(S) --> #(4, 'ALPHA', S, [convert1(codes_string)]).
 %           ; Single letters: x/X is reserved for private use
 % ```
 
-singleton(C) --> between_code_radix(hex('41'), hex('57'), C).
-singleton(C) --> between_code_radix(hex('59'), hex('5A'), C).
-singleton(C) --> between_code_radix(hex('61'), hex('77'), C).
-singleton(C) --> between_code_radix(hex('79'), hex('7A'), C).
-singleton(C) --> 'DIGIT'(C).
+singleton(C) --> alphadigit(C), {C \== 0x58, C\== 0x78}.
 
 
 
@@ -199,6 +199,5 @@ singleton(C) --> 'DIGIT'(C).
 %         / (DIGIT 3alphanum)
 % ```
 
-variant(S) --> 'm*n'(5, 8, alphanum, S, [convert1(codes_string)]).
-variant(S) --> dcg_string(variant_codes, S).
-variant_codes([H|T]) --> 'DIGIT'(_, H), #(3, alphanum, T, []).
+variant(S) --> 'm*n'(5, 8, alphadigit, Cs), !, {string_codes(S, Cs)}.
+variant(S) --> digit_code(H), #(3, alphadigit, T), {string_codes(S, [H|T])}.

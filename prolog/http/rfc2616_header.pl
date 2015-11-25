@@ -37,6 +37,7 @@
 */
 
 :- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(http/dcg_http)).

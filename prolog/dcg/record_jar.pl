@@ -1,9 +1,8 @@
 :- module(
   record_jar,
   [
-    'blank-line'//0,
-    'record-jar'//2 % ?Encoding:atom
-                    % ?Records:list(list(nvpair(atom,list(atom))))
+    'record-jar'//2 % ?Encoding:string
+                    % ?Records:list(list(pair(string,list(string))))
   ]
 ).
 
@@ -14,17 +13,30 @@ variable repertoire of fields in a text format.
 
 @author Wouter Beek
 @see Originally described in *The Art of Unix Programming*.
-@see Latest description was found at
-     http://tools.ietf.org/html/draft-phillips-record-jar-02
+@see http://tools.ietf.org/html/draft-phillips-record-jar-02
+@see http://www.inter-locale.com/ID/draft-phillips-record-jar-01.html
 @version 2015/11
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/record_jar/record_jar_char)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234)).
+:- use_module(library(list_ext)).
 
 
+
+
+
+%! 'ASCCHAR'(?Code:code)// .
+% ASCII characters except %x26 (&) and %x5C (\).
+%
+% ```abnf
+% ASCCHAR = %x21-25 / %x27-5B / %x5D-7E
+% ```
+
+'ASCCHAR'(C) -->
+  [C],
+  {between(0x21, 0x25, C); between(0x27, 0x5B, C) ; between(0x5D, 0x7E, C)}.
 
 
 
@@ -33,7 +45,31 @@ variable repertoire of fields in a text format.
 % blank-line = WSP CRLF
 % ```
 
-'blank-line' --> 'WSP', 'CRLF'.
+'blank-line' --> 'WSP', eol.
+
+
+
+%! character// .
+% Wrapper around character//1.
+
+character --> character(_).
+
+
+%! character(?Code:code)// .
+% ```abnf
+% character = SP / ASCCHAR / UNICHAR / ESCAPE
+% ```
+%
+% Note that ampersand// and backslash// are explicitly excluded.
+%
+% ## Inconsistency
+%
+% I assume the horizontal tab is also allowed in comments, as is space.
+
+character(C) --> 'SP'(C).
+character(C) --> 'ASCCHAR'(C).
+character(C) --> 'UNICHAR'(C).
+character(C) --> 'ESCAPE'(C).
 
 
 
@@ -45,7 +81,7 @@ variable repertoire of fields in a text format.
 % Notice that the horizontal tab is not allowed in comments,
 % possibly to control the maximum width of comment lines.
 
-comment --> 'SP', '*n'(69, character, []).
+comment --> 'SP', '*n'(69, character).
 
 
 
@@ -53,8 +89,10 @@ comment --> 'SP', '*n'(69, character, []).
 % ```abnf
 % continuation = ["\"] [[*SP CRLF] 1*SP]
 % ```
+%
+% @bug IANA does not follow record-jar correctly.  They use LF i.o. CRLF.
 
-continuation --> ("\\" ; ""), ((*('SP', []), 'CRLF' ; ""), +('SP', []) ; "").
+continuation --> ?("\\"), (((*('SP'), eol) ; ""), +('SP'), ! ; "").
 
 
 
@@ -62,34 +100,49 @@ continuation --> ("\\" ; ""), ((*('SP', []), 'CRLF' ; ""), +('SP', []) ; "").
 % ```abnf
 % encodingSig = "%%encoding" field-sep *(ALPHA / DIGIT / "-" / "_") CRLF
 % ```
+%
+% @bug IANA uses LF i.o. CRLF.
 
 encodingSig(Enc) -->
   "%%encoding",
   'field-sep',
-  dcg_string(encodingSig_codes, Enc),
-  'CRLF'.
-encodingSig_codes([H|T]) --> 'ALPHA'(H), !, encodingSig_codes(T).
-encodingSig_codes([H|T]) --> 'DIGIT'(_, H), !, encodingSig_codes(T).
-encodingSig_codes([0'-|T]) --> "-", !, encodingSig_codes(T)
-encodingSig_codes([0'_|T]) --> "_", !, encodingSig_codes(T)
-encodingSig_codes([]) --> "".
+  *(encodingSig_code, Cs), {string_codes(Enc, Cs)},
+  eol.
+encodingSig_code(C) --> alphadigit(C).
+encodingSig_code(0'-) --> "-".
+encodingSig_code(0'_) --> "_".
 
 
 
-%! field(?Field:nvpair(string,list(string)))// .
+%! 'ESCAPE'(?Code:code)// .
+% ```abnf
+% ESCAPE = "\" ("\" / "&" / "r" / "n" / "t" ) / "&#x" 2*6HEXDIG ";"
+% ```
+
+'ESCAPE'(C) --> "\\", escape(C).
+'ESCAPE'(C) --> "&#x", 'm*n'(2, 6, 'HEXDIG', Ds), {pos_sum(Ds, C)}.
+escape(0'\\) --> "\\".
+escape(0'&)  --> "&".
+escape(0'r)  --> "r".
+escape(0'n)  --> "n".
+escape(0't)  --> "t".
+
+
+
+%! field(?Field:npair(string,list(string)))// .
 % ```abnf
 % field = ( field-name field-sep field-body CRLF )
 % ```
 
-field(Name=Body) -->
+field(Name-Body) -->
   'field-name'(Name),
   'field-sep',
   'field-body'(Body),
-  'CRLF'.
+  eol.
 
 
 
-%! 'field-body'(?Body:list(string))// .
+%! 'field-body'(?Body:or([string,list(string)]))// .
 % The field-body contains the data value. Logically, the field-body
 % consists of a single line of text using any combination of characters
 % from the Universal Character Set followed by a `CRLF` (newline).
@@ -116,11 +169,8 @@ field(Name=Body) -->
 %      of the file's semantics).
 % @see Information on grapheme clusters, UAX29.
 
-'field-body'([H|T]) -->
-  continuation, !,
-  *(character, H, [convert(1-string)]),
-  'field-body'(T).
-'field-body'([]) --> "".
+'field-body'(L) --> *(field_body, L).
+field_body(S) --> continuation, +(character, Cs), {string_codes(S, Cs)}.
 
 
 
@@ -147,13 +197,12 @@ field(Name=Body) -->
 % Whitespace characters and colon (":", %x3A) are not permitted in a
 % field-name.
 % ```
-% We therefore introduce the extra DCG rule 'field-name-character'//1.
+% We therefore introduce the extra DCG rule field_name_character//1.
 
-'field-name'(Name) -->
-  +(character0, Name, [convert(1-string)]).
-character0(_) --> 'SP', !, {fail}.
-character0(_) --> ":", !, {fail}.
-character0(C) --> character(C).
+'field-name'(S) --> +(field_name_character, Cs), {string_codes(S, Cs)}.
+field_name_character(_) --> 'SP', !, {fail}.
+field_name_character(_) --> ":", !, {fail}.
+field_name_character(C) --> character(C).
 
 
 
@@ -171,34 +220,24 @@ character0(C) --> character(C).
 
 
 
-%! 'record-jar'(
-%!   ?Encoding:string,
-%!   ?Records:list(list(nvpair(string,list(string))))
-%! )// .
+%! record(?Fields:list(pair(string,list(string))))// .
+% ```abnf
+% record = 1*field separator
+% ```
+
+record(Record) --> +(field, Record), separator.
+
+
+
+%! 'record-jar'(?Encoding:string, ?Records:list(list(pair(string,list(string)))))// .
 % ```abnf
 % record-jar = [encodingSig] [separator] *record
 % ```
 
 'record-jar'(Enc, Records) -->
-  {flag(record_jar, _, 0)},
-  (encodingSig(Enc) ; {Enc = "UTF-8"}),
-  % The disjunction with the empty string is not needed here,
-  % since the production of the separator can process
-  % the empty string as well.
+  def(encodingSig, Enc, "UTF-8"),
   ?(separator),
-  *(record, Records, []).
-
-
-
-%! record(?Fields:list(nvpair(atom,list(atom))))// .
-% ```abnf
-% record = 1*field separator
-% ```
-
-record(Fields) -->
-  '+'(field, Fields, []),
-  separator,
-  {debug(record_jar, "~a=~w~n", [Name,Value])}.
+  *(record, Records).
 
 
 
@@ -207,5 +246,21 @@ record(Fields) -->
 % separator = [blank-line] *("%%" [comment] CRLF)
 % ```
 
-separator --> ?('blank-line'), *(separator0).
-separator0 --> "%%", ?(comment), 'CRLF'.
+separator --> ?('blank-line'), *(sep_comment).
+sep_comment --> "%%", ?(comment), eol.
+
+
+
+%! 'UNICHAR'(?Code:code)// .
+% ```abnf
+% UNICHAR = %x80-10FFFF
+% ```
+
+'UNICHAR'(C) --> [C], {between(0x80, 0x10FFFF, C)}.
+
+
+
+% HELPERS %
+
+eol --> 'CRLF', !.
+eol --> 'LF'.

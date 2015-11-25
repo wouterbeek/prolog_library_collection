@@ -119,6 +119,8 @@
     shorter/3, % +Comparator:pred
                % +List1:list
                % +List2:list
+    singleton_list/2, % ?Element
+                      % ?Singleton:list
     split_list_by_number_of_sublists/3, % +List:list
                                         % +NumberOfSublists:nonneg
                                         % -Sublists:list(list)
@@ -754,6 +756,14 @@ shorter(Order, List1, List2):-
   length(List1, Length1),
   length(List2, Length2),
   compare(Order, Length2, Length1).
+
+
+
+%! singleton_list(+Element, +Singleton:list) is semidet.
+%! singleton_list(+Element, -Singleton:list) is det.
+%! singleton_list(-Element, +Singleton:list) is det.
+
+singleton_list(X, [X]).
 
 
 

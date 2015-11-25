@@ -31,6 +31,7 @@
 @version 2015/08, 2015/11
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_rfc)).
 
 
