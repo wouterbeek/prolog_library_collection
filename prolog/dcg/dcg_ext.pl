@@ -79,6 +79,7 @@ My favorite collection of DCG rules.
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(lists)).
+:- use_module(library(math/math_ext)).
 
 :- meta_predicate(?(//,?,?)).
 :- meta_predicate(?(3,-,?,?)).
@@ -452,5 +453,5 @@ sum_pos(I, Base, Ds):-
 sum_pos0(0, _, []):- !.
 sum_pos0(I1, Base, [H|T]):-
   H is I1 mod Base,
-  I2 is I1 / Base,
+  I2 is I1 // Base,
   sum_pos0(I2, Base, T).
