@@ -10,6 +10,8 @@
 :- use_module(library(csv_ext)).
 :- use_module(library(date_ext)).
 :- use_module(library(db_ext)).
+%/datetime
+  :- use_module(library(datetime/rfc3339)).
 %/dcg
   %:- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_arrow)).
@@ -68,6 +70,7 @@
 %/http
   %:- use_module(library(http/abnf_list)).
   :- use_module(library(http/csp2)).
+  :- use_module(library(http/dcg_http)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).
@@ -87,6 +90,7 @@
   :- use_module(library(http/rfc5987_token)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc6454)).
+  :- use_module(library(http/rfc6454_code)).
   :- use_module(library(http/rfc6797)).
 :- use_module(library(image_ext)).
 %/iri
@@ -186,5 +190,7 @@
 :- use_module(library(uuid_ext)).
 %/xml
   :- use_module(library(xml/xml_dom)).
+  :- use_module(library(xml/xml10_code)).
+  :- use_module(library(xml/xml11_code)).
 %/xpath
   :- use_module(library(xpath/xpath_table)).
