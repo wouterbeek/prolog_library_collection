@@ -37,6 +37,8 @@
     '+digit'//1, % ?Integer:nonneg
     '#digit'//2, % +Occurrences:nonneg
                  % ?Integer:nonneg
+     frac_pos/2, % +Fractional:between(0.0,1.0)
+                 % -Digits:list(between(0,9))
      hex//1, % ?Integer:between(0,15)
     '*hex'//1, % ?Integer:nonneg
     '+hex'//1, % ?Integer:nonneg
@@ -55,9 +57,13 @@
     pos_frac/2, % +Digits:list(between(0,9))
                 % -FractionalPart:rational
     pos_sum/2, % +Digits, -Number
-    pos_sum/3 % +Digits:list(nonneg)
-              % +Base:positive_integer
-              % -Number:nonneg
+    pos_sum/3, % +Digits:list(nonneg)
+               % +Base:positive_integer
+               % -Number:nonneg
+    sum_pos/2, % +Number, -Digits
+    sum_pos/3 % +Number:nonneg
+              % +Base:nonneg
+              % -Digits:list(between(0,9))
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -248,6 +254,14 @@ digit_code(C) --> digit(C, _).
 
 
 
+%! frac_pos(+Fractional:between(0.0,1.0), -Digits:list(between(0,9))) is det.
+
+frac_pos(Frac, Ds):-
+  fractional_integer(Frac, I),
+  sum_pos(I, Ds).
+
+
+
 %! hex(?Weight:between(0,15))// .
 % Wrapper around hex//2.
 
@@ -415,5 +429,28 @@ pos_sum(Ds, I):- pos_sum(Ds, 10, I).
 %! ) is det.
 
 pos_sum(Ds, Base, I):- pos_sum(Ds, Base, 0, I).
-pos_sum([D|Ds], Base, I1, I):- !, I2 is I1 * Base + D, pos_sum(Ds, Base, I2, I).
+pos_sum([D|Ds], Base, I1, I):- !,
+  I2 is I1 * Base + D,
+  pos_sum(Ds, Base, I2, I).
 pos_sum([], _, I, I).
+
+
+
+%! sum_pos(+Number:nonneg, -Digits:list(between(0,9))) is det.
+% Wrapper around sum_pos/3 with decimal base.
+
+sum_pos(I, Ds):-
+  sum_pos(I, 10, Ds).
+
+
+%! sum_pos(+Number:nonneg, +Base:nonneg, -Digits:list(between(0,9))) is det.
+
+sum_pos(I, Base, Ds):-
+  sum_pos0(I, Base, Ds0),
+  reverse(Ds0, Ds).
+
+sum_pos0(0, _, []):- !.
+sum_pos0(I1, Base, [H|T]):-
+  H is I1 mod Base,
+  I2 is I1 / Base,
+  sum_pos0(I2, Base, T).

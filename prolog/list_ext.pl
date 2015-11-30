@@ -45,8 +45,8 @@
                   % -L1:list
                   % -L2:list
     list_binary_term/3, % ?List:list
-                            % ?Operator
-                            % ?Term:compound
+                        % ?Operator
+                        % ?Term:compound
     list_replace/3, % +List:list
                     % +Replacements:list(pair)
                     % -NewList:list
