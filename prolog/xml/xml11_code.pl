@@ -5,7 +5,7 @@
     'RestrictedChar11'//1 % ?Code:code
   ]
 ).
-:- reexport(library(xml/xml11_code), [
+:- reexport(library(xml/xml10_code), [
      'S'//0
    ]).
 
