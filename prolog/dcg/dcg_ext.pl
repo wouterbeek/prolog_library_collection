@@ -23,23 +23,27 @@
               % ?High:nonneg
               % :Dcg_1
               % -Content:list
-     alpha//1, % ?Code:code
-     alphadigit//1, % ?Code:code
-     bit//1, % ?Integer:between(0,1)
-     def//3, % :Dcg_1
-             % -Argument
-             % +Default
-     digit//1, % ?Integer:between(0,9)
-     digit//2, % ?Integer:between(0,9)
-               % ?Code:code
-     digit_code//1, % ?Code:code
+    alpha//1, % ?Code:code
+    alphadigit//1, % ?Code:code
+    bit//1, % ?Integer:between(0,1)
+    def//3, % :Dcg_1
+            % -Argument
+            % +Default
+    digit//1, % ?Integer:between(0,9)
+    digit//2, % ?Integer:between(0,9)
+              % ?Code:code
+    digit_code//1, % ?Code:code
     '*digit'//1, % ?Integer:nonneg
     '+digit'//1, % ?Integer:nonneg
     '#digit'//2, % +Occurrences:nonneg
                  % ?Integer:nonneg
-     frac_pos/2, % +Fractional:between(0.0,1.0)
-                 % -Digits:list(between(0,9))
-     hex//1, % ?Integer:between(0,15)
+    frac_pos/2, % +Fractional:between(0.0,1.0)
+                % -Digits:list(between(0,9))
+    generate_as_digits//2, % +Number, +NumberOfDigits
+    generate_as_digits//3, % +Number:nonneg
+                           % +Base:nonneg
+                           % +NumberOfDigits:nonneg
+    hex//1, % ?Integer:between(0,15)
     '*hex'//1, % ?Integer:nonneg
     '+hex'//1, % ?Integer:nonneg
     'm*nhex'//3, % ?Low:nonneg
@@ -260,6 +264,28 @@ digit_code(C) --> digit(C, _).
 frac_pos(Frac, Ds):-
   fractional_integer(Frac, I),
   sum_pos(I, Ds).
+
+
+
+%! generate_as_digits(+Number:nonneg, +NumberOfDigits:nonneg)// is det.
+
+generate_as_digits(N, M) -->
+  generate_as_digits(N, 10, M).
+
+
+%! generate_as_digits(
+%!   +Number:nonneg,
+%!   +Base:nonneg,
+%!   +NumberOfDigits:nonneg
+%! )// is det.
+
+generate_as_digits(_, _, 0) --> !, "".
+generate_as_digits(N1, Base, M1) -->
+  {M2 is M1 - 1},
+  {D is N1 // Base ^ M2},
+  digit(D),
+  {N2 is N1 mod Base ^ M2},
+  generate_as_digits(N2, Base, M2).
 
 
 

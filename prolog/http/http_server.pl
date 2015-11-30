@@ -83,14 +83,14 @@ start_server(Opts1):-
     _
   ),
   merge_options(Opts1, Opts2, Opts3),
-  
+
   % Set port option.
   (   select_option(port(Port), Opts3, Opts4)
   ->  true
   ;   setting(http:port, Port),
       Opts4 = Opts3
   ),
-  
+
   start_server(Port, http_dispatch, Opts4).
 
 %! start_server(+Port:integer, :Goal_0, +Options:list(compound)) is det.
@@ -105,7 +105,7 @@ start_server(Opts1):-
 
 % Loop the sequence of server port numbers.
 start_server(Port, Goal_0, Opts):-
-  \+ is_of_type(between(1000, 9999), Port), !,
+  \+ is_of_type(between(1, 9999), Port), !,
   start_server(1000, Goal_0, Opts).
 % A server is already running at the given port.
 start_server(Port, _, Opts):-
