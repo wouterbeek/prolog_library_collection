@@ -40,7 +40,7 @@ Use the following settings while developing on localhost:
 :- meta_predicate(start_server(+,:,+)).
 
 :- predicate_options(start_server/1, 1, [
-     port(+between(1000,9999)),
+     port(+between(1,9999)),
      pass_to(start_server/3, 3)
    ]).
 :- predicate_options(start_server/3, 3, [
@@ -66,6 +66,7 @@ Use the following settings while developing on localhost:
 
 start_server:-
   start_server([]).
+
 
 %! start_server(+Options:list(compound)) is det.
 %
@@ -93,7 +94,8 @@ start_server(Opts1):-
 
   start_server(Port, http_dispatch, Opts4).
 
-%! start_server(+Port:integer, :Goal_0, +Options:list(compound)) is det.
+
+%! start_server(+Port:between(1,9999), :Goal_0, +Options:list(compound)) is det.
 % The following options are supported:
 %   * use_existing(+UseExisting:boolean)
 %     If there is already a server running at the given port,
@@ -135,13 +137,15 @@ start_server(Port, Goal_0, Opts1):-
   print_message(informational, server_started(Port)).
 
 
+
 %! stop_server is det.
 
 stop_server:-
   setting(http:port, Port),
   stop_server(Port).
 
-%! stop_server(+Port:between(1000,9999)) is det.
+
+%! stop_server(+Port:between(1,9999)) is det.
 
 stop_server(Port):-
   http_server_property(Port, _), !,
