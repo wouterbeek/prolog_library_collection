@@ -9,11 +9,13 @@
     'connection-token'//1, % -ConnectionToken:string
     'entity-tag'//2, % ?Weak:boolean
                      % ?OpaqueTag:string
+    'extension-pragma'//1, % ?Extension:or([string,pair(string)])
     'language-tag'//1, % ?LanguageTag:list(string)
     'media-type'//1, % ?MediaType:dict
     'opaque-tag'//1, % ?OpaqueTag:string
     'other-range-unit'//1, % ?RangeUnit:string
     parameter//1, % ?Parameter:pair(string)
+    'pragma-directive'//1, % ?Directive:or([oneof(['no-cache']),string,pair(string)])
     'primary-tag'//1, % ?PrimaryTag:string
     product//1, % ?Product:dict
     'product-version'//1, % ?ProductVersion:string
@@ -187,6 +189,17 @@ comment_part(Cs) --> comment(Cs).
 
 
 
+%! 'extension-pragma'(?Extension:or([string,pair(string)]))// .
+% ```abnf
+% extension-pragma = token [ "=" ( token | quoted-string ) ]
+% ```
+
+'extension-pragma'(T) -->
+  token(N),
+  ("=" -> (token(V), ! ; 'quoted-string'(V)), {T = N-V} ; {T = N}).
+
+
+
 %! 'language-tag'(?LanguageTag:list(string))// .
 % ```abnf
 % language-tag = primary-tag *( "-" subtag )
@@ -237,6 +250,16 @@ parameter(Key-Val) --> attribute(Key), "=", value(Val).
 
 
 
+%! 'pragma-directive'(?Directive:or([oneof(['no-cache']),string,pair(string)]))// .
+% ```abnf
+% pragma-directive = "no-cache" | extension-pragma
+% ```
+
+'pragma-directive'('no-cache') --> "no-cache", !.
+'pragma-directive'(X)          --> 'extension-pragma'(X).
+
+
+
 %! 'primary-tag'(?PrimaryTag:string)// .
 % ```abnf
 % primary-tag = 1*8ALPHA
@@ -268,6 +291,33 @@ product(D) -->
 
 
 
+%! 'protocol-name'(?Name:string)// .
+% ```abnf
+% protocol-name = token
+% ```
+
+'protocol-name'(S) --> token(S).
+
+
+
+%! 'protocol-version'(?Version:string)//.
+% ```abnf
+% protocol-version = token
+% ```
+
+'protocol-version'(S) --> token(S).
+
+
+
+%! pseudonym(?Pseudonym:string)// .
+% ```abnf
+% pseudonym = token
+% ```
+
+pseudonym(S) --> token(S).
+
+
+
 %! 'quoted-string'(?String:string)// .
 % ```abnf
 % quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
@@ -286,6 +336,29 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 'range-unit'(A) --> 'bytes-unit'(A), !.
 'range-unit'(S) --> 'other-range-unit'(S).
+
+
+
+%! 'received-by'(Receiver)// .
+% ```abnf
+% received-by = ( host [ ":" port ] ) | pseudonym
+% ```
+
+'received-by'(Host, Port) --> host(Host), !, (":" -> port(Port) ; {Port = 80}).
+'received-by'(S) --> pseudonym(S).
+
+
+
+%! 'received-protocol'(?Protocol:dict)// .
+% ```abnf
+% received-protocol = [ protocol-name "/" ] protocol-version
+% ```
+
+'received-protocol'(protocol{name: N, version: V}) -->
+  'protocol-name'(N), "/", !,
+  'protocol-version'(V).
+'received-protocol'(protocol{version: V}) -->
+  'protocol-version'(V).
 
 
 
@@ -370,4 +443,4 @@ weak --> "W/".
 
 % HELPERS %
 
-sep_parameter(Param) --> ";", 'LWS', parameter(Param).
+sep_parameter(Param) --> ";", ?('LWS'), parameter(Param).

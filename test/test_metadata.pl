@@ -37,12 +37,12 @@ print_dict0(M, _):-
   print_dict(M).
 
 %test_source('http://csarven.ca/').
-test_source('http://rdf.freebase.com/ns/m.012_t_').
-test_source('http://datendienst.dnb.de/cgi-bin/mabit.pl?cmd=fetch&userID=opendata&pass=opendata&mabheft=ZDBTitel.ttl.gz').
-test_source('http://prologmoo.com/downloads/mud.ttl').
-test_source('http://almere.pilod.nl/sparql?default-graph-uri=&query=CONSTRUCT+%0D%0A%7B%0D%0A++++%3Fa+geo%3Ageometry+%3Fc+.%0D%0A%7D%0D%0AWHERE%0D%0A%7B+%3Fa+geo%3Ageometry+%3Fc+.%7D%0D%0A&should-sponge=&format=text%2Fturtle&timeout=0&debug=on').
-test_source('http://almere.pilod.nl/sparql?default-graph-uri=&query=construct%0D%0A%7Bgraph+%3Fg+%7B%3Fs+%3Fp+%3Fo%7D%7D%0D%0A%7Bgraph+%3Fg%0D%0A%7B%0D%0A%3Fs+%3Fp+%3Fo%0D%0A%7D%0D%0AFILTER+regex%28str%28%3Fg%29%2C%22%5Ehttp%3A%2F%2Fbag.kadaster.nl%2F%22%29%0D%0A%7D+LIMIT+10000&should-sponge=&format=text%2Fturtle&timeout=0&debug=on').
-test_source('http://nxp.dydra.com/nxp/public-data.ttl').
+%test_source('http://rdf.freebase.com/ns/m.012_t_').
+%test_source('http://datendienst.dnb.de/cgi-bin/mabit.pl?cmd=fetch&userID=opendata&pass=opendata&mabheft=ZDBTitel.ttl.gz').
+%test_source('http://prologmoo.com/downloads/mud.ttl').
+%test_source('http://almere.pilod.nl/sparql?default-graph-uri=&query=CONSTRUCT+%0D%0A%7B%0D%0A++++%3Fa+geo%3Ageometry+%3Fc+.%0D%0A%7D%0D%0AWHERE%0D%0A%7B+%3Fa+geo%3Ageometry+%3Fc+.%7D%0D%0A&should-sponge=&format=text%2Fturtle&timeout=0&debug=on').
+%test_source('http://almere.pilod.nl/sparql?default-graph-uri=&query=construct%0D%0A%7Bgraph+%3Fg+%7B%3Fs+%3Fp+%3Fo%7D%7D%0D%0A%7Bgraph+%3Fg%0D%0A%7B%0D%0A%3Fs+%3Fp+%3Fo%0D%0A%7D%0D%0AFILTER+regex%28str%28%3Fg%29%2C%22%5Ehttp%3A%2F%2Fbag.kadaster.nl%2F%22%29%0D%0A%7D+LIMIT+10000&should-sponge=&format=text%2Fturtle&timeout=0&debug=on').
+%test_source('http://nxp.dydra.com/nxp/public-data.ttl').
 test_source('https://www.dropbox.com/s/okzyej25j2aypkg/BEL2RDFexample.owl?dl=1').
 test_source('http://54.213.4.161/lod/load-it/loadit.nq').
 test_source('http://aemet.linkeddata.es/resource/WeatherStation/id08001').

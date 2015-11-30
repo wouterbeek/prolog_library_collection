@@ -18,7 +18,8 @@
     'SP'//0,
     'SP'//1, % ?Code:code
     'VCHAR'//1, % ?Code:code
-    'WSP'//0
+    'WSP'//0,
+    'WSP'//1 % ?Code:code
   ]
 ).
 :- reexport(library(dcg/dcg_ext), [
@@ -240,6 +241,11 @@
 
 
 %! 'WSP'// .
+% Wrapper around 'WSP'//1.
+
+'WSP' --> 'WSP'(_).
+
+
 %! 'WSP'(?Code:code)// .
 % Whitesapace, defined as either space or horizontal tab.
 %
@@ -247,5 +253,5 @@
 % WSP = SP / HTAB   ; white space
 % ```
 
-'WSP' --> 'WSP'(_).
-'WSP'(C) --> 'SP'(C) ; 'HTAB'(C).
+'WSP'(C) --> 'SP'(C).
+'WSP'(C) --> 'HTAB'(C).

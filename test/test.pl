@@ -67,12 +67,14 @@
   :- use_module(library(html/html_resource)).
 %/http
   %:- use_module(library(http/abnf_list)).
+  :- use_module(library(http/csp2)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).
   :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
+  :- use_module(library(http/rfc2109)).
   :- use_module(library(http/rfc2616)).
   :- use_module(library(http/rfc2616_code)).
   :- use_module(library(http/rfc2616_date)).
@@ -85,6 +87,7 @@
   :- use_module(library(http/rfc5987_token)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc6454)).
+  :- use_module(library(http/rfc6797)).
 :- use_module(library(image_ext)).
 %/iri
   :- use_module(library(iri/iri_ext)).

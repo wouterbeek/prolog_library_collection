@@ -22,9 +22,11 @@
     'last-modified'//1, % -DateTime:compound
     location//1, % ?Uri:dict
     'message-header'//1, % -Header:pair(string,dict)
+    pragma//1, % ?Directives:list
     server//1, % -Value:list([dict,string])
     'transfer-encoding'//1, % -TransferEncoding:list(or([oneof([chunked]),dict])))
     vary//1, % ?Value
+    via//1, % ?Value:list(dict)
     'www-authenticate'//1 % ?Challenges:list(dict)
   ]
 ).
@@ -44,13 +46,16 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
+:- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/rfc2109)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc2617)).
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6454)).
+:- use_module(library(http/rfc6797)).
 :- use_module(library(uri/rfc2396)).
 
 :- meta_predicate('field-content'(3,-,?,?)).
@@ -189,7 +194,9 @@ expires(DT) --> 'HTTP-date'(DT).
 'field-content'(ModPred, 'field-content'{status: Status, value: Value}) -->
   {strip_module(ModPred, _, Pred)},
   (   {current_predicate(Pred/3)}
-  ->  (   dcg_call(ModPred, Value)
+  ->  (   dcg_call(ModPred, Value),
+          % This should fail in case only /part/ of the HTTP header is parsed.
+          eos
       ->  {Status = valid}
       ;   dcg_rest(Cs),
           {
@@ -263,8 +270,17 @@ location(D) -->
   % character of the field-value or after the last non-whitespace
   % character of the field-value. Such leading or trailing LWS MAY be
   % removed without changing the semantics of the field value.
-  'LWS',
+  ?('LWS'),
   ('field-value'(Pred, Value), ! ; "").
+
+
+
+%! pragma(?Directives:list)// .
+% ```abnf
+% Pragma = "Pragma" ":" 1#pragma-directive
+% ```
+
+pragma(L) --> '+#'('pragma-directive', L).
 
 
 
@@ -275,10 +291,10 @@ location(D) -->
 %
 % Sub-product tokens are separated by white space.
 
-server([H|T]) --> server0(H), *(sep_server0, T).
-server0(D) --> product(D).
-server0(S) --> comment(S).
-sep_server0(X) --> 'LWS', server0(X).
+server(L) --> +(sep_server_word, L).
+sep_server_word(X) --> ?('LWS'), server_word(X).
+server_word(D) --> product(D).
+server_word(S) --> comment(S).
 
 
 
@@ -298,6 +314,21 @@ sep_server0(X) --> 'LWS', server0(X).
 
 vary("*") --> "*".
 vary(L)   --> '+#'('field-name', L).
+
+
+
+%! via(?Value:list(dict))// .
+% ```abnf
+% Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
+% ```
+
+via(L) -->
+  '+#'(via_component, L).
+via_component(D) -->
+  'received-protocol'(X),
+  'received-by'(Y),
+  (comment(Z) -> {T = [comment-Z]} ; {T = []}),
+  {dict_pairs(D, via, ['received-protocol'-X,'received-by'-Y|T])}.
 
 
 

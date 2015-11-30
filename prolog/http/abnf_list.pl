@@ -470,7 +470,4 @@ used in the HTTP 1.1 specification.
 
 % HELPERS %
 
-'m##n_separator' -->
-  '*'('LWS', []),
-  ",",
-  '*'('LWS', []).
+'m##n_separator' --> *('LWS'), ",", *('LWS').
