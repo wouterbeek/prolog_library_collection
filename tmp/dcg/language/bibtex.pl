@@ -34,7 +34,6 @@ user:prolog_file_type(bib, bibtex).
 
 bibtex(atom(Atom), Entries):- !, atom_phrase(bibtex(Entries), Atom).
 bibtex(file(File), Entries):- !,
-  flag(tick, _, 0),
   phrase_from_file(bibtex(Entries), File),
   maplist(validate_entry, Entries).
 bibtex(string(String), Entries):- !,
@@ -48,13 +47,8 @@ bibtex(Input, _):-
 
 % GRAMMAR %
 
-bibtex([H|T]) --> skip, entry(H), !, {tick}, bibtex(T).
+bibtex([H|T]) --> skip, entry(H), !, bibtex(T).
 bibtex([])    --> skip.
-
-tick:-
-  flag(tick, X, X + 1),
-  writeln(X),
-  (X =:= 18544 -> gtrace ; true).
 
 entry(entry(Class,Name,Pairs)) -->
   class(Class), "{", skip, name(Name), skip, ",", skip, pairs(Pairs), skip, "}".

@@ -64,7 +64,7 @@ basic_filtering(Ranges, Tag):-
   atomic_list_concat(Subtags2, -, Tag),
   basic_filtering0(Subtags1, Subtags2), !.
 
-basic_filtering0([], _).
+basic_filtering0(_, []).
 basic_filtering0([H1|T1], [H2|T2]):-
   subtag_match(H1, H2),
   basic_filtering0(T1, T2).

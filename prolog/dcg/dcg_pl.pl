@@ -21,7 +21,7 @@ DCG rules for printing SWI-Prolog 7 terms.
 @version 2015/08, 2015/10-2015/11
 */
 
-:- use_module(library(date_ext)).
+:- use_module(library(datetime/date_ext)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_collection)).
@@ -29,7 +29,6 @@ DCG rules for printing SWI-Prolog 7 terms.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
-:- use_module(library(pl/pl_term)).
 :- use_module(library(typecheck)).
 
 :- meta_predicate(pl_pair(//,//,?,?)).
