@@ -370,4 +370,4 @@ weak --> "W/".
 
 % HELPERS %
 
-sep_parameter(Param) --> ";", parameter(Param).
+sep_parameter(Param) --> ";", 'LWS', parameter(Param).

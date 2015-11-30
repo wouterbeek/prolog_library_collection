@@ -26,6 +26,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_rfc)).
+:- use_module(library(dcg/dcg_word)).
 :- use_module(library(uri/rfc2396_code)).
 
 

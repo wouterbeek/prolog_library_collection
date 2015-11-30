@@ -1,7 +1,7 @@
 :- module(
   default,
   [
-    defgoal/2, % :DefaultGoal
+    defgoal/2, % :DefaultGoal_1
                % ?Value
     defval/2 % +Default
              % ?Value
@@ -11,17 +11,16 @@
 /** <module> Default
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2015/11
 */
 
 :- meta_predicate(defgoal(1,?)).
-:- meta_predicate(defval(+,?)).
 
 
 
 
 
-%! defgoal(:Goal, ?Value) is det.
+%! defgoal(:DefaultGoal_1, ?Value) is det.
 % Runs the given goal, whenever the given value is uninstantiated.
 % The given goal is assumed to be unary and deterministic,
 % always returning an instantiation for `Value`.
@@ -40,8 +39,8 @@
 
 defgoal(_, X):-
   ground(X), !.
-defgoal(Goal, X):-
-  call(Goal, X), !.
+defgoal(Goal_1, X):-
+  once(call(Goal_1, X)).
 
 
 

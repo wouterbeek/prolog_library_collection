@@ -15,14 +15,17 @@
     expires//1, % ?DateTime:compound
     etag//1, % -ETag:dict
     'field-content'//2, % :Name
-                        % -Value:compound
+                        % -Value:dict
     'field-name'//1, % -Name:string
     'field-value'//2, % :Name
-                      % -Value:compound
-    'message-header'//1, % -Header:pair(string,compound)
+                      % -Value:dict
     'last-modified'//1, % -DateTime:compound
+    location//1, % ?Uri:dict
+    'message-header'//1, % -Header:pair(string,dict)
     server//1, % -Value:list([dict,string])
-    'transfer-encoding'//1 % -TransferEncoding:list(or([oneof([chunked]),dict])))
+    'transfer-encoding'//1, % -TransferEncoding:list(or([oneof([chunked]),dict])))
+    vary//1, % ?Value
+    'www-authenticate'//1 % ?Challenges:list(dict)
   ]
 ).
 
@@ -40,6 +43,7 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
@@ -47,6 +51,7 @@
 :- use_module(library(http/rfc2617)).
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6454)).
+:- use_module(library(uri/rfc2396)).
 
 :- meta_predicate('field-content'(3,-,?,?)).
 :- meta_predicate('field-value'(3,-,?,?)).
@@ -174,20 +179,32 @@ expires(DT) --> 'HTTP-date'(DT).
 
 
 
-%! 'field-content'(+Name:atom, -Value:compound)// .
+%! 'field-content'(+Name:atom, -Value:dict)// .
 % ```abnf
 % field-content = <the OCTETs making up the field-value
 %                  and consisting of either *TEXT or combinations
 %                  of token, separators, and quoted-string>
 % ```
 
-'field-content'(Pred, Value) --> dcg_call(Pred, Value), !.
-'field-content'(Pred, Value) -->
-  dcg_rest(Cs),
-  {
-    string_codes(Value, Cs),
-    debug(http(parse), "Cannot parse HTTP header ~a: ~s", [Pred,Value])
-  }.
+'field-content'(ModPred, 'field-content'{status: Status, value: Value}) -->
+  {strip_module(ModPred, _, Pred)},
+  (   {current_predicate(Pred/3)}
+  ->  (   dcg_call(ModPred, Value)
+      ->  {Status = valid}
+      ;   dcg_rest(Cs),
+          {
+            Status = invalid,
+            string_codes(Value, Cs),
+            debug(http(parse), "Buggy HTTP header ~a: ~a", [Pred,Value])
+          }
+      )
+  ;   dcg_rest(Cs),
+      {
+        Status = unrecognized,
+        string_codes(Value, Cs),
+        debug(http(parse), "No parser for HTTP header ~a: ~s", [Pred,Value])
+      }
+  ).
 
 
 
@@ -209,7 +226,30 @@ expires(DT) --> 'HTTP-date'(DT).
 
 
 
-%! 'message-header'(-Header:pair(string,compound))// .
+%! 'last-modified'(-DateTime:compound)// .
+% ```abnf
+% Last-Modified = "Last-Modified" ":" HTTP-date
+% ```
+
+'last-modified'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! location(?Location:dict)// .
+% ```abnf
+% Location = "Location" ":" absoluteURI
+% ```
+
+location(D) -->
+  {dict_remove_uninstantiated(
+    uri{scheme: Scheme, authority: Auth, path: Path, query: Query},
+    D
+  )},
+  absoluteURI(Scheme, Auth, Path, Query).
+
+
+
+%! 'message-header'(-Header:pair(string,dict))// .
 % ```abnf
 % message-header = field-name ":" [ field-value ]
 % ```
@@ -225,15 +265,6 @@ expires(DT) --> 'HTTP-date'(DT).
   % removed without changing the semantics of the field value.
   'LWS',
   ('field-value'(Pred, Value), ! ; "").
-
-
-
-%! 'last-modified'(-DateTime:compound)// .
-% ```abnf
-% Last-Modified = "Last-Modified" ":" HTTP-date
-% ```
-
-'last-modified'(DT) --> 'HTTP-date'(DT).
 
 
 
@@ -257,6 +288,16 @@ sep_server0(X) --> 'LWS', server0(X).
 % ```
 
 'transfer-encoding'(L) --> +#('transfer-coding', L).
+
+
+
+%! vary// .
+% ```abnf
+% Vary  = "Vary" ":" ( "*" | 1#field-name )
+% ```
+
+vary("*") --> "*".
+vary(L)   --> '+#'('field-name', L).
 
 
 

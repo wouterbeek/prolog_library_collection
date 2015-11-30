@@ -86,8 +86,8 @@ absoluteURI(Scheme, Auth, Path, Query) -->
 % authority = server | reg_name
 % ```
 
-authority(auth(UserInfo,Host,Port)) --> server(UserInfo, Host, Port), !.
-authority(auth(RegisteredName))     --> reg_name(RegisteredName).
+authority(auth(RegisteredName))     --> reg_name(RegisteredName), !.
+authority(auth(UserInfo,Host,Port)) --> server(UserInfo, Host, Port).
 
 
 
