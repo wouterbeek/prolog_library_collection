@@ -283,7 +283,7 @@ source_type(Pattern, Mode, Iri, Type):-
   absolute_file_name(
     Pattern,
     File,
-    [access(Mode),expand(true),file_errors(fail),solutions(first)]
+    [access(Mode),expand(true),file_errors(error),solutions(first)]
   ),
   source_type(File, Mode, Iri, Type).
 
