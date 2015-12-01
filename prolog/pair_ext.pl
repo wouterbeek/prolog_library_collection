@@ -16,6 +16,8 @@
                     % ?Element
     pair_first/2, % +Pair:pair
                   % ?First
+    pair_list/2, % ?Pair:pair
+                 % ?List:list
     pair_second/2, % +Pair:pair
                    % ?Second
     pairs_to_set/2 % +Pairs:list(pair)
@@ -29,7 +31,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11
+@version 2015/08, 2015/10-2015/12
 */
 
 :- use_module(library(apply)).
@@ -115,6 +117,14 @@ pair_element(X-Y, Y):- X \== Y.
 %! pair_first(+Pair:pair, -First) is det.
 
 pair_first(X-_, X).
+
+
+
+%! pair_list(+Pair:pair, +List:list) is semidet.
+%! pair_list(+Pair:pair, -List:list) is det.
+%! pair_list(-Pair:pair, +List:list) is det.
+
+pair_list(X-Y, [X,Y]).
 
 
 
