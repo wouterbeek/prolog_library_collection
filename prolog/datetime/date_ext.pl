@@ -1,6 +1,9 @@
 :- module(
   date_ext,
   [
+    date_mask/3, % +Mask:oneof([year,month,day,hour,minute,second,offset])
+                 % +DateTime:compound
+                 % -MaskedDateTime:compound
     dateTime_date/2, % +DateTime:compound
                      % -Date:compound
     get_date/1 % -Date:compound
@@ -12,12 +15,28 @@
 Support predicates for dealing with date and time representations.
 
 @author Wouter Beek
-@version 2015/08, 2015/11
+@version 2015/08, 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
 
 
+
+
+
+%! date_mask(
+%!   +Mask:oneof([year,month,day,hour,minute,second,offset]),
+%!   +DateTime:compound,
+%!   -MaskedDateTime:compound
+%! ) is det.
+
+date_mask(year,   dateTime(_,Mo,D,H,Mi,S,Off), dateTime(_,Mo,D,H,Mi,S,Off)).
+date_mask(month,  dateTime(Y,_, D,H,Mi,S,Off), dateTime(Y,_, D,H,Mi,S,Off)).
+date_mask(day,    dateTime(Y,Mo,_,H,Mi,S,Off), dateTime(Y,Mo,_,H,Mi,S,Off)).
+date_mask(hour,   dateTime(Y,Mo,D,_,Mi,S,Off), dateTime(Y,Mo,D,_,Mi,S,Off)).
+date_mask(minute, dateTime(Y,Mo,D,H,_, S,Off), dateTime(Y,Mo,D,H,_, S,Off)).
+date_mask(second, dateTime(Y,Mo,D,H,Mi,_,Off), dateTime(Y,Mo,D,H,Mi,_,Off)).
+date_mask(offset, dateTime(Y,Mo,D,H,Mi,S,_  ), dateTime(Y,Mo,D,H,Mi,S,_  )).
 
 
 
