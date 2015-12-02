@@ -26,7 +26,6 @@ Generates tables for text-based display.
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
 
-:- meta_predicate(cell_width(1,+,-)).
 :- meta_predicate(column_widths(1,+,+,-)).
 :- meta_predicate(column_widths0(1,+,+,-)).
 :- meta_predicate(dcg_table(+,:,?,?)).
@@ -263,13 +262,6 @@ cell_border --> "│ ".
 
 
 
-%! cell_width(:Cell_1, +Element, -Width:nonneg) is det.
-
-cell_width(Cell_1, X, W):-
-  dcg_width(dcg_call_cp(Cell_1, X), W).
-
-
-
 %! column_widths(
 %!   :Cell_1,
 %!   +NumberOfColumns:nonneg,
@@ -277,17 +269,9 @@ cell_width(Cell_1, X, W):-
 %!   -Widths:list(nonneg)
 %! ) is det.
 
-column_widths(Cell_1, Cols, [H|T], Ws2):-
-  repeating_list(1, Cols, Ws1),
-  column_widths0(Cell_1, [H|T], Ws1, Ws2).
-
-column_widths0(_, [], Ws, Ws):- !.
-column_widths0(Cell_1, [head(H)|T], Ws1, Ws2):- !,
-  column_widths0(Cell_1, [H|T], Ws1, Ws2).
-column_widths0(Cell_1, [Row|T], Ws1, Ws4):-
-  maplist(cell_width(Cell_1), Row, Ws2),
-  maplist(max, Ws1, Ws2, Ws3),
-  column_widths0(Cell_1, T, Ws3, Ws4).
+column_widths(Cell_1, Rows, MaxWs):-
+  rows_to_cols(Rows, Cols),
+  maplist(dcg_max_width(Cell_1), Cols, Maxws).
 
 
 
@@ -303,9 +287,8 @@ next_position_row(
 
 %! number_of_columns(+Rows:list(compound), -NumberOfColumns:nonneg) is det.
 
-number_of_columns([head(H)|T], Len):- !,
-  number_of_columns([H|T], Len).
-number_of_columns([H|_], Len):-
+number_of_columns([H0|T], Len):-
+  row_list(H0, H),
   length(H, Len).
 
 
@@ -314,6 +297,30 @@ number_of_columns([H|_], Len):-
 
 number_of_rows(L, Len):-
   length(L, Len).
+
+
+
+%! row_list(+Row:compound, -List:list) is det.
+
+row_list(head(L), L):- !.
+row_list(L, L).
+
+
+
+%! rows_to_cols(+Rows:list(compound), -Columns:list) is det.
+
+rows_to_cols(Rows, Cols):-
+  number_of_columns(Rows, N),
+  repeating_list([], N, Cols0),
+  rows_to_cols(Rows, Cols0, Cols).
+
+rows_to_cols([], Sol, Sol):- !.
+rows_to_cols([H10|T1], L1, Sol):-
+  row_list(H10, H1),
+  maplist(add_head, H1, L1, L2),
+  rows_to_cols(T1, L2, Sol).
+
+add_head(H, T, [H|T]).
 
 
 

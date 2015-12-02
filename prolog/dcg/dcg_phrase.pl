@@ -6,6 +6,9 @@
     atom_phrase/3, % :Dcg_0
                    % +Atom1:atom
                    % ?Atom2:atom
+    dcg_max_width/3, % :Dcg_1
+                     % +Arguments:list
+                     % -MaxWidth:nonneg
     dcg_width/2, % :Dcg_0
                  % -Width:nonneg
     dcg_with_output_to/2, % +Output:compound
@@ -23,15 +26,18 @@
 Extensions to phrase/[2,3] for atom and string arguments.
 
 @author Wouter Beek
-@version 2015/07, 2015/11
+@version 2015/07, 2015/11-2015/12
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(code_ext)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 
 :- meta_predicate(atom_phrase(//,?)).
 :- meta_predicate(atom_phrase(//,?,?)).
+:- meta_predicate(dcg_max_width(3,+,-)).
 :- meta_predicate(dcg_width(//,-)).
 :- meta_predicate(dcg_with_output_to(+,//)).
 :- meta_predicate(string_phrase(//,?)).
@@ -64,6 +70,20 @@ atom_phrase(Dcg_0, A1, A2):-
   atom_codes(A1, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
   atom_codes(A2, Cs2).
+
+
+
+%! dcg_max_width(:Dcg_1, +Arguments:list, -MaxWidth:nonneg) is det.
+
+dcg_max_width(Dcg_1, Args, MaxW):-
+  aggregate_all(
+    max(W),
+    (
+      member(Arg, Args),
+      dcg_width(dcg_call_cp(Dcg_1, Arg), W)
+    ),
+    MaxW
+  ).
 
 
 
