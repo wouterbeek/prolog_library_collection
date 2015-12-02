@@ -16,15 +16,13 @@
 Grammar rules for processing atoms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(dcg/dcg_word)).
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -59,19 +57,23 @@ atom_capitalize       --> "".
 % false.
 % ```
 
-atom_ci(A) --> *(code_ci, A, [convert(1-atom)]).
+atom_ci(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_ci, Cs).
+atom_ci(A) --> *(code_ci, Cs), {atom_codes(A, Cs)}.
 
 
 
 %! atom_ellipsis(+Atom:atom, +Ellipsis:positive_integer)// .
 
-atom_ellipsis(A, Ellipsis) --> {atom_truncate(A, Ellipsis, A0)}, atom(A0).
+atom_ellipsis(A, Ellipsis) -->
+  {atom_truncate(A, Ellipsis, A0)},
+  atom(A0).
 
 
 
 %! atom_lower(?Atom:atom)// .
 
-atom_lower(A) --> *(code_lower, A, [convert(1-atom)]).
+atom_lower(A) --> *(code_lower, Cs), {atom_codes(A, Cs)}.
+atom_lower(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_lower, Cs).
 
 
 
@@ -79,17 +81,18 @@ atom_lower(A) --> *(code_lower, A, [convert(1-atom)]).
 
 atom_title(A) -->
   {var(A)}, !,
-  letter_uppercase(H),
-  *(letter_lowercase, T, []),
-  {atom_codes(A, [H|T])}.
-atom_title('') --> "".
+  hialpha(C),
+  *(lowalpha, Cs),
+  {atom_codes(A, [C|Cs])}.
+atom_title('') --> !, "".
 atom_title(A) -->
-  {atom_codes(A, [H|T])},
-  letter_uppercase(H),
-  *(letter_lowercase, T, []).
+  {atom_codes(A, [C|Cs])},
+  hialpha(C),
+  *(lowalpha, Cs).
 
 
 
 %! atom_upper(?Atom:atom)// .
 
-atom_upper(A) --> *(code_upper, A, [convert(1-atom)]).
+atom_upper(A) --> *(code_upper, Cs), {atom_codes(A, Cs)}.
+atom_upper(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_upper, Cs).
