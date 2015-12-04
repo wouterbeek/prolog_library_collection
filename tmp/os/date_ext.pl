@@ -1,8 +1,6 @@
 :- module(
   date_ext,
   [
-    date_time_dict/2, % ?DateTime:compound
-                      % ?Dict:dict
     hash_date/1, % -Hash:atom
     iso8601_date/2, % +Date:compound
                     % -Representation:atom
@@ -13,42 +11,6 @@
               % ?Second:integer
   ]
 ).
-
-/** <module> Datetime extensions
-
-Extensions for date and time.
-
-@author Wouter Beek
-@version 2013-2015
-*/
-
-:- use_module(library(apply)).
-
-:- use_module(plc(generics/meta_ext)).
-:- use_module(plc(io/dir_ext)).
-
-
-
-
-
-%! date_time_dict(?Date:compound, ?Dict:dict) is det.
-
-date_time_dict(
-  date(Y,Mo,D,H,Mi,S,Offset,TZ,DST),
-  date_time{
-    day:D,
-    'daylight-saving-time':DST,
-    hour:H,
-    minute:Mi,
-    month:Mo,
-    offset:Offset,
-    second:S,
-    timezone:TZ,
-    year:Y
-  }
-).
-
-
 
 %! hash_date(-Hash:atom) is det.
 % Returns the hash of the current timestamp.

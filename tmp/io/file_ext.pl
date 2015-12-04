@@ -127,17 +127,6 @@ In line with the terminology this modules uses the following variable names:
 :- use_module(library(filesex)).
 :- use_module(library(lists), except([delete/3,subset/2])).
 
-:- use_module(plc(generics/atom_ext)).
-:- use_module(plc(generics/error_ext)).
-:- use_module(plc(generics/list_ext)).
-:- use_module(plc(generics/meta_ext)).
-:- use_module(plc(math/math_ext)).
-:- use_module(plc(io/dir_ext)).
-:- use_module(plc(io/file_gnu)).
-:- use_module(plc(io/io_dateTime)).
-:- use_module(plc(os/os_ext)).
-:- use_module(plc(prolog/pl_mode)).
-
 :- predicate_options(absolute_file_name_number/4, 4, [
      pass_to(absolute_file_name/3, 3)
    ]).

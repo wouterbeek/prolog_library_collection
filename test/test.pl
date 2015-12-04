@@ -10,7 +10,7 @@
 :- use_module(library(csv_ext)).
 :- use_module(library(db_ext)).
 %/datetime
-  :- use_module(library(datetime/date_ext)).
+  :- use_module(library(datetime/datetime)).
   :- use_module(library(datetime/rfc3339)).
 %/dcg
   %:- use_module(library(dcg/dcg_abnf)).

@@ -24,8 +24,6 @@ Logging infrastructure.
 %:- use_module(library(debug)).
 :- use_module(library(persistency)).
 
-:- use_module(plc(os/date_ext)).
-
 :- persistent(
   log_entry(
     category:atom,

@@ -28,7 +28,7 @@
 @author Wouter Beek
 @compat RFC 2616
 @deprecated
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -38,12 +38,12 @@
 
 
 
-%! 'asctime-date'(?DateTime:compound)// .
+%! 'asctime-date'(?Datetime:compound)// .
 % ```abnf
 % asctime-date = wkday SP date3 SP time SP 4DIGIT
 % ```
 
-'asctime-date'(dateTime(_,Mo,D,H,Mi,S,Off)) -->
+'asctime-date'(datetime(_,Mo,D,H,Mi,S,Off)) -->
   wkday(_WKD), !, 'SP', date3(D, Mo), 'SP', time(H, Mi, S), 'SP', '#digit'(4, Off).
 
 
@@ -122,7 +122,7 @@ month(12) --> "Dec".
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
 % ```
 
-'rfc850-date'(dateTime(Y,Mo,D,H,Mi,S,_Off)) -->
+'rfc850-date'(datetime(Y,Mo,D,H,Mi,S,_Off)) -->
   weekday(_WKD), ",", 'SP',
   date2(D, Mo, Y), 'SP',
   time(H, Mi, S), 'SP',
@@ -135,7 +135,7 @@ month(12) --> "Dec".
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"
 % ```
 
-'rfc1123-date'(dateTime(Y,Mo,D,H,Mi,S,_Off)) -->
+'rfc1123-date'(datetime(Y,Mo,D,H,Mi,S,_Off)) -->
   wkday(_WKD), !, ",", 'SP',
   date1(D, Mo, Y), 'SP',
   time(H, Mi, S), 'SP',
