@@ -22,7 +22,28 @@ Support predicates for dealing with date and time representations.
 
 :- use_module(library(apply)).
 
-
+% Prolog date/3
+error:has_type(date, date(Y,Mo,D)):-
+  (var(Y) -> true ; error:has_type(integer, Y)),
+  (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
+  (var(D) -> true ; error:has_type(between(1,31), D)).
+% Prolog date/9
+error:has_type(date, date(Y,Mo,D,H,Mi,S,Off,_,_)):-
+  error:has_type(date, date(Y,Mo,D)),
+  error:has_type(date, time(H,Mi,S)),
+  (var(Off) -> true ; error:has_type(between(-50400,50400), Off)).
+% XSD-inspired 7-value model.
+error:has_type(datetime, datetime(Y,Mo,D,H,Mi,S,Off)):-
+  error:has_type(date, date(Y,Mo,D)),
+  (var(H) -> true ; error:has_type(between(0,24), H)),
+  (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
+  (var(S) -> true ; error:has_type(rational, S)),
+  (var(Off) -> true ; error:has_type(between(-840,840), Off)).
+% Prolog time/3
+error:has_type(date, time(H,Mi,S)):-
+  (var(H) -> true ; error:has_type(between(0,24), H)),
+  (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
+  (var(S) -> true ; error:has_type(float, S)).
 
 
 
