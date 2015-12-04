@@ -25,7 +25,7 @@ There are various uses of wrapping text:
       since HTML does not display newlines.
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/11
+@version 2015/07, 2015/10-2015/12
 */
 
 :- use_module(library(dcg/dcg_code)).

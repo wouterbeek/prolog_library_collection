@@ -18,10 +18,9 @@
 Logging infrastructure.
 
 @author Wouter Beek
-@version 2015/03, 2015/06
+@version 2015/03, 2015/06, 2015/12
 */
 
-%:- use_module(library(debug)).
 :- use_module(library(persistency)).
 
 :- persistent(
@@ -103,3 +102,12 @@ user:message_hook(Term, Kind, Lines):-
   get_date(Date0),
   iso8601_date(Date0, Date),
   assert_log_entry(unknown, Date, Kind, Term, Msg).
+
+
+
+
+
+% HELPERS %
+
+iso8601_date(Date, A):-
+  format_time(atom(A), '%FT%T%z', Date).

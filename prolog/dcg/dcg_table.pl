@@ -12,7 +12,7 @@
 Generates tables for text-based display.
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
@@ -26,8 +26,7 @@ Generates tables for text-based display.
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
 
-:- meta_predicate(column_widths(1,+,+,-)).
-:- meta_predicate(column_widths0(1,+,+,-)).
+:- meta_predicate(column_widths(1,+,-)).
 :- meta_predicate(dcg_table(+,:,?,?)).
 :- meta_predicate(dcg_table_caption(+,0,?,?)).
 :- meta_predicate(dcg_table_cell(+,+,1,+,?,?)).
@@ -262,16 +261,11 @@ cell_border --> "│ ".
 
 
 
-%! column_widths(
-%!   :Cell_1,
-%!   +NumberOfColumns:nonneg,
-%!   +Rows:list,
-%!   -Widths:list(nonneg)
-%! ) is det.
+%! column_widths(:Cell_1, +Rows:list, -Widths:list(nonneg)) is det.
 
 column_widths(Cell_1, Rows, MaxWs):-
   rows_to_cols(Rows, Cols),
-  maplist(dcg_max_width(Cell_1), Cols, Maxws).
+  maplist(dcg_max_width(Cell_1), Cols, MaxWs).
 
 
 
@@ -287,7 +281,7 @@ next_position_row(
 
 %! number_of_columns(+Rows:list(compound), -NumberOfColumns:nonneg) is det.
 
-number_of_columns([H0|T], Len):-
+number_of_columns([H0|_], Len):-
   row_list(H0, H),
   length(H, Len).
 
@@ -329,5 +323,5 @@ add_head(H, T, [H|T]).
 table_position(Cell_1, L, pos(col(0,1,Cols),row(0,1,Rows),Ws,Len)):-
   number_of_columns(L, Cols),
   number_of_rows(L, Rows),
-  column_widths(Cell_1, Cols, L, Ws),
+  column_widths(Cell_1, L, Ws),
   sum_list([1,Cols,Cols,Cols|Ws], Len).

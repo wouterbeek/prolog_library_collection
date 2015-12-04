@@ -8,10 +8,10 @@
 :- use_module(library(code_ext)).
 :- use_module(library(counter)).
 :- use_module(library(csv_ext)).
-:- use_module(library(db_ext)).
 %/datetime
   :- use_module(library(datetime/datetime)).
   :- use_module(library(datetime/rfc3339)).
+:- use_module(library(db_ext)).
 %/dcg
   %:- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_arrow)).

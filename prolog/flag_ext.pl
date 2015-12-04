@@ -6,9 +6,12 @@
     switch/1, % ?Switch:compound
     switch/2, % +Switch:compound
               % ?Status:boolean
-    tmp_set_prolog_flag/3 % +Flag:atom
-                          % +Value
-                          % :Goal_0
+    tmp_set_prolog_flag/3, % +Flag:atom
+                           % +Value
+                           % :Goal_0
+    tmp_set_setting/3 % +Setting:atom
+                      % +Value
+                      % :Goal_0
   ]
 ).
 
@@ -18,12 +21,14 @@ Extensions for setting Prolog flags.
 
 @author Wouter Beek
 @tbd Support global and local switches.
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2015/12
 */
 
 :- use_module(library(db_ext)).
+:- use_module(library(settings)).
 
 :- meta_predicate(tmp_set_prolog_flag(+,+,0)).
+:- meta_predicate(tmp_set_setting(+,+,0)).
 
 %! switch(+Switch:compound, +Status:boolean) is semidet.
 %! switch(+Switch:compound, -Status:boolean) is det.
@@ -75,3 +80,16 @@ tmp_set_prolog_flag(Flag, Tmp, Goal_0):-
 reset_prolog_flag(_, Main, Main):- !.
 reset_prolog_flag(Flag, Main, _):-
   set_prolog_flag(Flag, Main).
+
+
+
+%! tmp_set_setting(+Setting:atom, +Value, :Goal_0) is det.
+
+tmp_set_setting(Setting, Tmp, Goal_0):-
+  strip_module(Goal_0, Mod, _),
+  Mod:setting(Setting, Main),
+  setup_call_cleanup(
+    Mod:set_setting(Setting, Tmp),
+    Goal_0,
+    Mod:set_setting(Setting, Main)
+  ).
