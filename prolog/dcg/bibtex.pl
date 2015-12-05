@@ -1,27 +1,23 @@
 :- module(
   bibtex,
   [
-    bibtex/2 % +Input:compound
-             % -Entries:list(compound)
+    bibtex_load/2, % +Source, -Entries
+    bibtex_load/3 % +Source
+                  % -Entries:list(compound)
+                  % +Options:list(compound)
   ]
 ).
 
-/** <module> BibTeX grammar
+/** <module> BibTeX parsing
 
 @author Wouter Beek
-@version 2015/05
+@version 2015/12
 */
 
-:- use_module(library(apply)).
-:- use_module(library(error)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(lists)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
-
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_content)).
-:- use_module(plc(dcg/dcg_ext)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_meta)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
@@ -32,67 +28,59 @@ user:prolog_file_type(bib, bibtex).
 
 
 
-bibtex(atom(Atom), Entries):- !, atom_phrase(bibtex(Entries), Atom).
-bibtex(file(File), Entries):- !,
-  phrase_from_file(bibtex(Entries), File),
-  maplist(validate_entry, Entries).
-bibtex(string(String), Entries):- !,
-  string_phrase(bibtex(Entries), String).
-bibtex(Input, _):-
-  type_error(compound, Input).
+%! bibtex_load(+Source, -Entries:list(compound)) is det.
+% Wrapper around bibtex_load/3 with default options.
+
+bibtex_load(Source, Entries):-
+  bibtex_load(Source, Entries, []).
+
+
+%! bibtex_load(
+%!   +Source,
+%!   -Entries:list(compound),
+%!   +Options:list(compound)
+%! ) is det.
+
+bibtex_load(Source, Entries, Opts):-
+  setup_call_cleanup(
+    open_any2(Source, read, Read, Close_0, Opts),
+    phrase_from_stream(Read, bibtex(Entries)),
+    close_any2(Close_0)
+  ).
 
 
 
-
-
-% GRAMMAR %
-
-bibtex([H|T]) --> skip, entry(H), !, bibtex(T).
-bibtex([])    --> skip.
+bibtex([H|T]) --> blanks, entry(H), blanks, !, bibtex(T).
+bibtex([])    --> blanks.
 
 entry(entry(Class,Name,Pairs)) -->
-  class(Class), "{", skip, name(Name), skip, ",", skip, pairs(Pairs), skip, "}".
+  class(Class), "{", blanks, name(Name), blanks, ",", blanks,
+  pairs(Pairs), blanks,
+  "}".
 
-pairs([H|T]) --> pair(H), (skip, "," -> pairs(T) ; {T = []}).
+pairs([H|T]) --> pair(H), !, (blanks, "," -> pairs(T) ; {T = []}).
 pairs([])    --> "".
 
-pair(Key-Value) --> skip, name(Key), skip, "=", skip, value(Value).
+pair(Key-Val) --> blanks, name(Key), blanks, "=", blanks, value(Val).
 
-value(Value) --> "{",  !, value(Value, 0).
-value(Value) --> "\"", !, ...(Codes), "\"", {atom_codes(Value, Codes)}.
-value(Value) --> name(Value).
-
-value(Value, Indent) --> dcg_atom(value0(Indent), Value).
-
-value0(Indent, [0'{|T]) -->
-  "{", !, {NewIndent is Indent + 1}, value0(NewIndent, T).
-value0(0, []) --> "}", !.
-value0(Indent, [0'}|T]) -->
-  "}", !, {NewIndent is Indent - 1}, value0(NewIndent, T).
-value0(Indent, [H|T])   --> [H], !, value0(Indent, T).
-value0(_, [])      --> "".
+value(Val) --> "{",  !, ...(Cs), "}",  {string_codes(Val, Cs)}.
+value(Val) --> "\"", !, ...(Cs), "\"", {string_codes(Val, Cs)}.
+value(Val) --> name(Val).
 
 class(Class) -->
   "@", +(alpha, Cs), {string_codes(Class0, Cs)},
   {validate(Class0, Class, _, _)}.
 
-name(Name) --> +(name_code, Cs), {string_codes(S, Cs)}.
+name(Name) --> +(name_code, Cs), {string_codes(Name, Cs)}.
 name_code(C)   --> alphadigit(C).
 name_code(0':) --> ":".
 name_code(0'-) --> "-".
 name_code(0'_) --> "_".
 
-%skip --> comment, !, skip.
-skip --> *(white).
-
 comment --> "%", ..., eol.
 
 eol --> "\r\n".
 eol --> "\n".
-
-white --> " ".
-white --> "\t".
-white --> eol.
 
 
 
@@ -209,9 +197,9 @@ validate(
 
 prolog:message(missing_bibtex_key(Class,Key)) -->
   [
-    'Key ',
+    "Key ",
     Key,
-    ' is not allowed to be missing for BibTeX entry type ',
+    " is not allowed to be missing for BibTeX entry type ",
     Class,
-    .
+    "."
   ].

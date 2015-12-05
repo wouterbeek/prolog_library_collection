@@ -13,6 +13,7 @@
   :- use_module(library(datetime/rfc3339)).
 :- use_module(library(db_ext)).
 %/dcg
+  :- use_module(library(dcg/bibtex)).
   %:- use_module(library(dcg/dcg_abnf)).
   :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
