@@ -7,19 +7,19 @@
     inverse_pair/2, % ?Pair:pair
                     % ?Inverse:pair
     is_reflexive_pair/1, % +Pair:pair)
-    is_var_key/1, % +Pair:pair
-    is_var_value/1, % +Pair:pair
     pair/3, % ?Pair:pair
             % ?Element1
             % ?Element2
     pair_element/2, % ?Pair:pair
                     % ?Element
-    pair_first/2, % +Pair:pair
-                  % ?First
+    pair_key/2, % +Pair:pair
+                % ?Key
+    pair_has_var_key/1, % +Pair:pair
+    pair_has_var_value/1, % +Pair:pair
     pair_list/2, % ?Pair:pair
                  % ?List:list
-    pair_second/2, % +Pair:pair
-                   % ?Second
+    pair_value/2, % +Pair:pair
+                  % ?Value
     pairs_ordered_values/3, % +Pairs:list(pair)
                             % +Order:oneof([@<,@=<,@>,@>=])
                             % -Values:list
@@ -116,10 +116,10 @@ pair_element(X-Y, Y):- X \== Y.
 
 
 
-%! pair_first(+Pair:pair, +First) is semidet.
-%! pair_first(+Pair:pair, -First) is det.
+%! pair_key(+Pair:pair, +First) is semidet.
+%! pair_key(+Pair:pair, -First) is det.
 
-pair_first(X-_, X).
+pair_key(X-_, X).
 
 
 
@@ -131,10 +131,10 @@ pair_list(X-Y, [X,Y]).
 
 
 
-%! pair_second(+Pair:pair, +Second) is semidet.
-%! pair_second(+Pair:pair, -Second) is det.
+%! pair_value(+Pair:pair, +Second) is semidet.
+%! pair_value(+Pair:pair, -Second) is det.
 
-pair_second(_-X, X).
+pair_value(_-X, X).
 
 
 

@@ -208,7 +208,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
       option(version(Version), Opts),
       maplist(parse_header, Lines, Headers),
       create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-      exclude(is_var_value, [
+      exclude(pair_has_var_value, [
         final_iri-FinalIri,
         headers-MHeaders,
         status_code-StatusCode,

@@ -10,6 +10,7 @@
                  % :Goal_0
     merge_options/2, % +Optionss:list(list(compound))
                      % -Options:list(compound)
+    option_has_var_value/1, % +Option:compound
     option_pair/2 % ?Option:compound
                   % ?Pair:pair
   ]
@@ -19,7 +20,7 @@
 /** <module> Option extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/11
+@version 2015/07, 2015/10-2015/12
 */
 
 :- meta_predicate(if_option(?,+,0)).
@@ -62,6 +63,15 @@ merge_options([H1,H2|T], L):- !,
   merge_options([H3|T], L).
 merge_options([L], L):- !.
 merge_options([], []).
+
+
+
+%! option_has_var_value(+Option:compound) is semidet.
+% Succeeds if the value of Option is uninstantiated.
+
+option_has_var_value(Opt):-
+  Opt =.. [_,Val],
+  var(Val).
 
 
 

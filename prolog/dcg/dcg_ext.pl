@@ -200,7 +200,7 @@ alpha(C) --> hialpha(C).
 % ```
 
 alphadigit(C) --> alpha(C).
-alphadigit(C) --> digit(C).
+alphadigit(C) --> digit(_, C).
 
 
 
