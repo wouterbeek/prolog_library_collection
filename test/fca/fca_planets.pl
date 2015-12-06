@@ -13,7 +13,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(fca/fca_export)).
+:- use_module(library(fca/fca_viz)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
 
@@ -27,7 +27,7 @@
 
 fca_planets:-
   planets_context(Context),
-  fca_export(
+  fca_viz(
     Context,
     File,
     [

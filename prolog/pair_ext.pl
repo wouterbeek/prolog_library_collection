@@ -87,18 +87,6 @@ is_reflexive_pair(Pair):- pair(Pair, X, X).
 
 
 
-%! is_var_key(+Pair:pair) is semidet.
-
-is_var_key(K-_):- var(K).
-
-
-
-%! is_var_value(+Pair:pair) is semidet.
-
-is_var_value(_-V):- var(V).
-
-
-
 %! pair(+Pair:pair, +X, +Y) is semidet.
 %! pair(+Pair:pair, -X, -Y) is det.
 %! pair(-Pair:pair, +X, +Y) is det.
@@ -113,6 +101,18 @@ pair(X-Y, X, Y).
 
 pair_element(X-_, X).
 pair_element(X-Y, Y):- X \== Y.
+
+
+
+%! pair_has_var_key(+Pair:pair) is semidet.
+
+pair_has_var_key(K-_):- var(K).
+
+
+
+%! pair_has_var_value(+Pair:pair) is semidet.
+
+pair_has_var_value(_-V):- var(V).
 
 
 
