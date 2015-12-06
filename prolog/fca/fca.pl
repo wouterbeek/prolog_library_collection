@@ -7,6 +7,8 @@
     as2os/3, % +Context:compound
              % +Attributes:ordset
              % -Objects:ordset
+    concept_attributes/2, % +Concept:compound
+                          % -Attributes:ordset
     concept_cardinality/2, % +Concept:compound
                            % ?Cardinality:nonneg
     concept_closure/3, % +Context:atom
@@ -15,12 +17,18 @@
     concept_components/3, % ?Concept:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
+    concept_objects/2, % +Concept:compound
+                       % -Objects:ordset
     concepts/2, % +Context:compound
                 % -Concepts:list(compound)
+    context_attributes/2, % +Context:compound
+                          % ?Attributes:ordset
     context_components/4, % ?Context:compound
                           % ?Objects:ordset
                           % ?Attributes:ordset
                           % :Goal_2
+    context_objects/2, % +Context:compound
+                       % ?Objects:ordset
     direct_subconcept/3, % +Concepts:list(compound)
                          % ?Concept1:compound
                          % ?Concept2:compound
@@ -51,7 +59,7 @@ As is the set of attributes,
 and Goal_2 is the relation between Os and As (in that order).
 
 @author Wouter Beek
-@version 2015/10-2015/11
+@version 2015/10-2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -85,6 +93,12 @@ as2os(Context, [A1|As], Os):-
     (a2o(Context, A1, O), maplist(o2a(Context, O), As)),
     Os
   ).
+
+
+
+%! concept_attributes(+Concept:compound, -Attributes:ordset) is det.
+
+concept_attributes(concept(_,As), As).
 
 
 
@@ -137,6 +151,12 @@ concept_components(concept(Os,As), Os, As).
 
 
 
+%! concept_objects(+Concept:compound, -Objects:ordset) is det.
+
+concept_objects(concept(Os,_), Os).
+
+
+
 %! concepts(+Context:compound, -Concepts:list(compound)) is det.
 
 concepts(Context, Cs):-
@@ -146,6 +166,13 @@ concepts(Context, Cs):-
   intersections(Oss0, Oss),
   maplist(os2as(Context), [Os|Oss], Ass),
   maplist(concept_components, Cs, [Os|Oss], Ass).
+
+
+
+%! context_attributes(+Context:compound, +Attributes:ordset) is semidet.
+%! context_attributes(+Context:compound, -Attributes:ordset) is det.
+
+context_attributes(context(_,As,_), As).
 
 
 
@@ -163,6 +190,13 @@ concepts(Context, Cs):-
 %! ) is det.
 
 context_components(context(Os,As,Goal_2), Os, As, Goal_2).
+
+
+
+%! context_objects(+Context:compound, +Objects:ordset) is semidet.
+%! context_objects(+Context:compound, -Objects:ordset) is det.
+
+context_objects(context(Os,_,_), Os).
 
 
 

@@ -5,10 +5,10 @@
   ]
 ).
 
-/** FCA Planets Example
+/** FCA planets example
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(aggregate)).
