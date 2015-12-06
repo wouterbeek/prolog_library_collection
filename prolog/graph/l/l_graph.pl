@@ -11,7 +11,7 @@
 Support for graphs with labeled edges.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2015/12
 */
 
 :- use_module(library(aggregate)).
@@ -21,14 +21,7 @@ Support for graphs with labeled edges.
 
 
 
-%! l_edges_vertices(+Es:list(compound), -Vs:ordset) is det.
+%! l_edges_vertices(+Edges:list(compound), -Vertices:ordset) is det.
 
-l_edges_vertices(Es,Vs):-
-  aggregate_all(
-    set(V),
-    (
-      member(edge(X,_,Y), Es),
-      member(V, [X,Y])
-    ),
-    Vs
-  ).
+l_edges_vertices(Es, Vs):-
+  aggregate_all(set(V), (member(edge(X,_,Y), Es), member(V, [X,Y])), Vs).
