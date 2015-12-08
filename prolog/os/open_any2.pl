@@ -102,8 +102,8 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
   (   Type == http_iri, Mode == read
-  ->  http_open2(Source, Stream, Close_0, Opts2)
-  ;   open_any(Source, Mode, Stream0, Close_0, Opts2)
+  ->  http_open2(Source, Stream, Close0_0, Opts2)
+  ;   open_any(Source, Mode, Stream0, Close0_0, Opts2)
   ),
 
   % Compression.
@@ -113,8 +113,10 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
           ZOpts = [format(Comp)]
       ;   ZOpts = []
       ),
-      zopen(Stream0, Stream, ZOpts)
-  ;   Stream = Stream0
+      zopen(Stream0, Stream, ZOpts),
+      Close_0 = close(Stream)
+  ;   Stream = Stream0,
+      Close_0 = Close0_0
   ),
   open_any_metadata(Source, Mode, Type, Comp, Opts2, M).
 
