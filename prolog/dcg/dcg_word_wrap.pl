@@ -197,7 +197,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
       (   dcg_peek(u_white(C))
       ->  [C],
           {Postfix = space, SpaceLength = 1}
-      ;   {Postfix = dcg_void, SpaceLength = 0}
+      ;   {Postfix = dcg_rest, SpaceLength = 0}
       ),
       {NewRemaining is Remaining - WordLength - SpaceLength}
   ),

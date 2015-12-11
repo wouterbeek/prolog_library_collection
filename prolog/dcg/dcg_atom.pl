@@ -30,7 +30,7 @@ Grammar rules for processing atoms.
 
 %! atom_capitalize// .
 
-atom_capitalize, [Up] --> [Low], {code_type(Up, to_upper(Low))}, !, dcg_cp.
+atom_capitalize, [Up] --> [Low], {code_type(Up, to_upper(Low))}, !, dcg_rest.
 atom_capitalize       --> "".
 
 

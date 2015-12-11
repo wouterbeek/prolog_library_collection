@@ -3,10 +3,9 @@
   [
     '...'//0,
     '...'//1, % -Codes:list(code)
-    dcg_cp//0,
     dcg_done//0,
+    dcg_rest//0,
     dcg_rest//1, % -Rest:list(code)
-    dcg_void//0,
     eol//0,
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
@@ -40,7 +39,7 @@
 DCG rules for parsing/generating often-occuring content.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2015/11
+@version 2015/07-2015/08, 2015/10-2015/12
 */
 
 :- use_module(library(settings)).
@@ -77,27 +76,21 @@ DCG rules for parsing/generating often-occuring content.
 
 
 
-%! dcg_cp// .
-
-dcg_cp(X, X).
-
-
-
 %! dcg_done// .
 
 dcg_done(_, _).
 
 
 
+%! dcg_rest// is det.
+% Same as `dcg_rest --> "".'
+
+dcg_rest(X, X).
+
+
 %! dcg_rest(-Rest:list(code))// is det.
 
 dcg_rest(X, X, []).
-
-
-
-%! dcg_void// .
-
-dcg_void --> "".
 
 
 
@@ -167,10 +160,9 @@ section(I, Msg, Dcg_0) --> indent_nl(I, atom(Msg)), Dcg_0.
 
 
 
-%! skip_line// .
+%! skip_line// is det.
 
-skip_line --> eol, !.
-skip_line --> [_], skip_line.
+skip_line --> ..., eol, !.
 
 
 
