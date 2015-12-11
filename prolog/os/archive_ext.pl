@@ -142,7 +142,15 @@ call_on_archive0(In, Goal_2, Opts1):-
     close_any2(Close_0)
   ).
 
-call_on_archive_entry0(Entry, Goal_2, Opts1, M1, Arch):-
+% Semi-deterministic if an archive entry name is given.
+call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch):-
+  nonvar(Entry), !,
+  call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch), !.
+% Non-deterministic if no archive entry name is given.
+call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch):-
+  call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch).
+
+call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch):-
   merge_options([meta_data(MEntry)], Opts1, Opts2),
   archive_data_stream(Arch, Read, Opts2),
   (   MEntry = [MEntry1|_],
