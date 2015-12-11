@@ -1,6 +1,8 @@
 :- module(
   equiv,
   [
+    equiv/2, % +Partial:ordset(pair)
+             % -EquicalenceRelation:ugraph
     equiv_class/3, % +EquivalenceRelation:ugraph
                    % +Element
                    % -EquivalenceClass:ordset
@@ -22,15 +24,23 @@
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(closure)).
-:- use_module(library(error)).
+:- use_module(library(graph/s/s_graph)).
 :- use_module(library(graph/s/s_test)).
 :- use_module(library(lambda)).
 :- use_module(library(list_ext)).
-:- use_module(library(pair_ext)).
 :- use_module(library(plunit)).
+:- use_module(library(set/equiv_closure)).
 :- use_module(library(set/relation)).
 
 
+
+
+
+%! equiv(+Partial:ordset(pair), -EquivalenceRelation:ugraph) is det.
+
+equiv(L1, G):-
+  equiv_closure(L1, L2),
+  s_edges(G, L2).
 
 
 
