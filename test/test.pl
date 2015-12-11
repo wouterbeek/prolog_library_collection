@@ -62,7 +62,6 @@
     :- use_module(library(graph/s/s_subgraph)).
     :- use_module(library(graph/s/s_test)).
     :- use_module(library(graph/s/s_type)).
-    :- use_module(library(graph/s/s_vertex)).
 :- use_module(library(hash_ext)).
 %/html
   :- use_module(library(html/html_dcg)).

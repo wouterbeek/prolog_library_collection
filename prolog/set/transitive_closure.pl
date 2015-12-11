@@ -24,7 +24,7 @@ test(
   'transitive_closure(+,-) is det. TRUE',
   [forall(transitive_closure_test(GName,Closure))]
 ):-
-  s_graph_test(GName, G),
+  s_test_graph(GName, G),
   s_graph_components(G, Vs, Es1),
   transitive_closure(Es1, Es2),
   s_graph_components(Closure, Vs, Es2).

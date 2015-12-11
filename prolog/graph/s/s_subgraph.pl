@@ -1,6 +1,8 @@
 :- module(
   s_subgraph,
   [
+    s_connected_component/2, % +Graph:ugraph
+                             % -ConnectedComponent:ugraph
     s_direct_subgraph/2, % ?SubGraph:ugraph
                          % +Graph:ugraph
     s_edge_induced_subgraph/3, % ?SubGraph:ugraph
@@ -21,7 +23,7 @@
 Subgraph operations.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2015/12
 */
 
 :- use_module(library(graph/s/s_graph)).
@@ -30,6 +32,39 @@ Subgraph operations.
 :- use_module(library(set/set_ext)).
 
 
+
+
+
+%! s_connected_component(+Graph:ugraph, +ConnectedComponent:ugraph) is semidet.
+%! s_connected_component(+Graph:ugraph, -ConnectedComponent:ugraph) is nondet.
+
+s_connected_component(G, Comp):-
+  s_subgraph(Comp, G),
+  s_connected_graph(Comp).
+
+/* Alternative implementation:
+s_connected_component(CC, Graph):-
+  s_graph_components(Graph, Vs0, Es0),
+  replace_graph_components(Vs0, Es0),
+  repeat,
+  (graph([V|Vs], Es) -> true ; !, fail),
+  s_connected_component(Vs, SolVs, Es, SolEs, [V], CC),
+  replace_graph_components(SolVs, SolEs).
+
+s_connected_component(Vs1, SolVs, Es1, SolEs, [H1|T], CC2):-
+  % @tbd Use the fact that `Es1` is sorted.
+  select(H1-H2, Es1, Es2), !,
+  ord_del_element(Vs1, H2, Vs2),
+  s_connected_component(Vs2, SolVs, Es2, SolEs, [H2,H1|T], CC1),
+  ord_add_element(CC1, H2, CC2).
+s_connected_component(Vs, Vs, Es, Es, [H], [H]):- !.
+s_connected_component(Vs, SolVs, Es, SolEs, [_|T], CC):-
+  s_connected_component(Vs, SolVs, Es, SolEs, T, CC).
+
+replace_graph_components(Vs, Es):-
+  retractall(graph(_,_)),
+  assert(graph(Vs,Es)).
+*/
 
 
 

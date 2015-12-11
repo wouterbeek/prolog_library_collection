@@ -29,12 +29,11 @@ Design decisions:
 @license MIT license
 @tbd Implement height/2 where the height of an element is the lenght of
      the longest chain from `Element` to a minimal element.
-@version 2015/10
+@version 2015/10 2015/12
 */
 
 :- use_module(library(graph/graph_walk)).
-:- use_module(library(graph/s/s_edge)).
-:- use_module(library(graph/s/s_vertex)).
+:- use_module(library(graph/s/s_graph)).
 :- use_module(library(set/relation)).
 
 

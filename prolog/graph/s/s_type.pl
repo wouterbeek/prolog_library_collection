@@ -39,7 +39,7 @@
 Predicates for distinguishing different types/kinds of graphs.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2015/12
 */
 
 :- use_module(library(apply)).
@@ -47,7 +47,6 @@ Predicates for distinguishing different types/kinds of graphs.
 :- use_module(library(graph/graph_walk)).
 :- use_module(library(graph/s/s_graph)).
 :- use_module(library(graph/s/s_metrics)).
-:- use_module(library(graph/s/s_vertex)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(ordsets)).
@@ -165,7 +164,7 @@ test(
   's_cyclic_graph(+,-) is semidet. TRUE',
   [forall(s_cyclic_graph_test(GName,Order,true))]
 ):-
-  s_graph_test(GName, G),
+  s_test_graph(GName, G),
   s_cyclic_graph(G, Order).
 
 s_cyclic_graph_test(cycle(3), 3, true).
@@ -360,19 +359,19 @@ s_regular_graph(G):-
 % Returns the degree of the given graph, if it is regular.
 
 s_regular_graph(G, K):-
-  s_graph_degree(G, K).
+  s_degree(G, K).
 
 :- begin_tests('s_regular_graph/1').
 
 test(
   's_regular_graph(+) is semidet. TRUE',
-  [forall(s_graph_test(regular(_),G))]
+  [forall(s_test_graph(regular(_),G))]
 ):-
   s_regular_graph(G).
 
 test(
   's_regular_graph(+) is semidet. FAIL',
-  [fail,forall(s_graph_test(nonregular(_),G))]
+  [fail,forall(s_test_graph(nonregular(_),G))]
 ):-
   s_regular_graph(G).
 
@@ -401,7 +400,7 @@ s_star_graph(G):-
 %! s_star_graph(+Graph:ugraph, -Order:nonneg) is semidet.
 
 s_star_graph(G, Order):-
-  s_graph_order(G, Order),
+  s_order(G, Order),
   s_degree_sequence(G, [Order|T]),
   inflist(1, [Order|T]).
 

@@ -16,14 +16,16 @@
 /** <module> Equivalence
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2015/12
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
 :- use_module(library(graph/s/s_test)).
 :- use_module(library(lambda)).
+:- use_module(library(list_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(plunit)).
 :- use_module(library(set/relation)).
@@ -64,7 +66,7 @@ test(
   'equiv_class(+,+,-) is det. TRUE',
   [forall(equiv_class_test(GName,X,EqClass))]
 ):-
-  s_graph_test(GName, EqRel),
+  s_test_graph(GName, EqRel),
   equiv_class(EqRel, X, EqClass).
 
 equiv_class_test(equiv(1), 1, [1,2,3,4]).
@@ -80,8 +82,13 @@ equiv_class_test(equiv(1), 4, [1,2,3,4]).
 %! equiv_partition(-EquivRelation:ugraph, +Partition:ordset(ordset)) is det.
 
 equiv_partition(EqRel, Part):-
+  nonvar(EqRel), !,
   relation_components(EqRel, S, _),
   quotient_set(EqRel, S, Part).
+equiv_partition(EqRel, Part):-
+  nonvar(Part), !,
+  aggregate_all(set(X-Y), (member(QSet, Part), member(X, Y, QSet)), Es),
+  s_edges(EqRel, Es).
 
 :- begin_tests('equiv_partition/2').
 
@@ -89,7 +96,7 @@ test(
   'equiv_partition(+,-) is det. TRUE',
   [forall(equiv_partition_test(GName,Part))]
 ):-
-  s_graph_test(GName, G),
+  s_test_graph(GName, G),
   equiv_partition(G, Part).
 
 % Base case.
