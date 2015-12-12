@@ -116,11 +116,11 @@ concept_closure(Con, concept(Os0,_), concept(Os,As)):-
   nonvar(Os0), !,
   os2as(Con, Os0, As),
   as2os(Con, As, Os).
-concept(Con, concept(_,As0), concept(Os,As)):-
+concept_closure(Con, concept(_,As0), concept(Os,As)):-
   nonvar(As0), !,
   as2os(Con, As0, Os),
   os2as(Con, Os, As).
-concept(_, C0, _):-
+concept_closure(_, C0, _):-
   instantiation_error(C0).
 
 
@@ -140,24 +140,23 @@ concept_objects(concept(Os,_), Os).
 
 %! concepts(+Context:compound, -Concepts:list(compound)) is det.
 
-concepts(Con, Cs):-
-  context_attributes(Con, As),
-  maplist(singleton, As, SimpleAss),
-  maplist(as2os(Con), SimpleAss, SimpleOss),
-  intersections(SimpleOss, ComplexOss),
-  context_objects(Con, Os),
-  maplist(os2as(Con), [Os|ComplexOss], ComplexAss),
-  maplist(concept_components, Cs, [Os|ComplexOss], ComplexAss).
-% Alternative: Start with objects.
 %concepts(Con, Cs):-
-%  context_objects(Con, Os),
-%  maplist(singleton, Os, SimpleOss),
-%  maplist(os2as(Con), SimpleOss, SimpleAss0),
-%  sort(SimpleAss0, SimpleAss),
-%  intersections(SimpleAss, ComplexAss),
 %  context_attributes(Con, As),
-%  maplist(as2os(Con), [As|ComplexAss], ComplexOss),
-%  maplist(concept_components, Cs, ComplexOss, ComplexAss).
+%  maplist(singleton, As, SimpleAss),
+%  maplist(as2os(Con), SimpleAss, SimpleOss),
+%  intersections(SimpleOss, ComplexOss),
+%  context_objects(Con, Os),
+%  maplist(os2as(Con), [Os|ComplexOss], ComplexAss),
+%  maplist(concept_components, Cs, [Os|ComplexOss], ComplexAss).
+concepts(Con, Cs):-
+  context_objects(Con, Os),
+  maplist(singleton, Os, SimpleOss),
+  maplist(os2as(Con), SimpleOss, SimpleAss0),
+  sort(SimpleAss0, SimpleAss),
+  intersections(SimpleAss, ComplexAss),
+  context_attributes(Con, As),
+  maplist(as2os(Con), [As|ComplexAss], ComplexOss),
+  maplist(concept_components, Cs, ComplexOss, [As|ComplexAss]).
 
 
 
