@@ -29,25 +29,24 @@
                           % :Mapping_2
     context_objects/2, % +Context:compound
                        % ?Objects:ordset
-    direct_subconcept/3, % +Concepts:list(compound)
-                         % ?Concept1:compound
-                         % ?Concept2:compound
     fca_hasse/2, % +Context:compound
                  % -Hasse:ugraph
     fca_lattice/2, % +Context:compound
                    % -Lattice:ugraph
     is_concept/2, % +Context:compound
                   % +Concept:compound
+    is_strict_subconcept/2, % +Concept1:compound
+                            % +Concept2:compound
+    is_subconcept/2, % +Concept1:compound
+                     % +Concept2:compound
     o2a/3, % +Context:compound
            % +Object
            % -Attribute
     os2as/3, % +Context:compound
              % +Objects:ordset
              % -Attributes:ordset
-    sort_concepts/2, % +Concepts:list(compound)
-                     % -Sorted:list(compound)
-    strict_subconcept/2 % +Concept1:compound
-                        % +Concept2:compound
+    sort_concepts/2 % +Concepts:list(compound)
+                    % -Sorted:list(compound)
   ]
 ).
 
@@ -142,12 +141,23 @@ concept_objects(concept(Os,_), Os).
 %! concepts(+Context:compound, -Concepts:list(compound)) is det.
 
 concepts(Con, Cs):-
-  context_components(Con, Os, As, _),
-  maplist(singleton, As, Ass0),
-  maplist(as2os(Con), Ass0, Oss0),
-  intersections(Oss0, Oss),
-  maplist(os2as(Con), [Os|Oss], Ass),
-  maplist(concept_components, Cs, [Os|Oss], Ass).
+  context_attributes(Con, As),
+  maplist(singleton, As, SimpleAss),
+  maplist(as2os(Con), SimpleAss, SimpleOss),
+  intersections(SimpleOss, ComplexOss),
+  context_objects(Con, Os),
+  maplist(os2as(Con), [Os|ComplexOss], ComplexAss),
+  maplist(concept_components, Cs, [Os|ComplexOss], ComplexAss).
+% Alternative: Start with objects.
+%concepts(Con, Cs):-
+%  context_objects(Con, Os),
+%  maplist(singleton, Os, SimpleOss),
+%  maplist(os2as(Con), SimpleOss, SimpleAss0),
+%  sort(SimpleAss0, SimpleAss),
+%  intersections(SimpleAss, ComplexAss),
+%  context_attributes(Con, As),
+%  maplist(as2os(Con), [As|ComplexAss], ComplexOss),
+%  maplist(concept_components, Cs, ComplexOss, ComplexAss).
 
 
 
@@ -188,8 +198,12 @@ direct_subconcept(Cs, A, B):-
   split_member(SortedCs, _, A, AfterA),
   % NONDET
   split_member(AfterA, BetweenAB, B, _),
-  strict_subconcept(A, B),
-  \+ (member(C, BetweenAB), strict_subconcept(A, C), strict_subconcept(C, B)).
+  is_strict_subconcept(A, B),
+  \+ (
+    member(C, BetweenAB),
+    is_strict_subconcept(A, C),
+    is_strict_subconcept(C, B)
+  ).
 
 
 
@@ -225,6 +239,22 @@ is_concept(Con, C):- concept_closure(Con, C, C).
 
 
 
+%! is_strict_subconcept(+Concept1:compound, +Concept2:compound) is semidet.
+
+is_strict_subconcept(C, D):-
+  maplist(concept_components, [C,D], _, [CAs,DAs]),
+  strict_subset(CAs, DAs).
+
+
+
+%! is_subconcept(+Concept1:compound, +Concept2:compound) is semidet.
+
+is_subconcept(C, D):-
+  maplist(concept_components, [C,D], _, [CAs,DAs]),
+  subset(CAs, DAs).
+
+
+
 %! o2a(+Context:compound, +Object, -Attribute) is nondet.
 
 o2a(context(_,_,Map_2), O, A):- call(Map_2, O, A).
@@ -246,11 +276,3 @@ sort_concepts(Cs, SortedCs):-
   pairs_keys_values(Pairs, Cards, Cs),
   keysort(Pairs, SortedPairs),
   pairs_values(SortedPairs, SortedCs).
-
-
-
-%! strict_subconcept(+Concept1:compound, +Concept2:compound) is semidet.
-
-strict_subconcept(C, D):-
-  maplist(concept_components, [C,D], _, [CAs,DAs]),
-  strict_subset(CAs, DAs).
