@@ -23,10 +23,10 @@
                 % -Concepts:list(compound)
     context_attributes/2, % +Context:compound
                           % ?Attributes:ordset
-    context_components/4, % ?Context:compound
-                          % ?Objects:ordset
-                          % ?Attributes:ordset
-                          % :Goal_2
+    context_components/4, % +Context:compound
+                          % -Objects:ordset
+                          % -Attributes:ordset
+                          % :Mapping_2
     context_objects/2, % +Context:compound
                        % ?Objects:ordset
     direct_subconcept/3, % +Concepts:list(compound)
@@ -78,21 +78,16 @@ and Goal_2 is the relation between Os and As (in that order).
 
 %! a2o(+Context:compound, +Attribute, -Object) is nondet.
 
-a2o(context(_,_,Goal_2), A, O):-
-  call(Goal_2, O, A).
+a2o(context(_,_,Map_2), A, O):- call(Map_2, O, A).
 
 
 
 %! as2os(+Context:compound, +Attributes:ordset, -Objects:ordset) is det.
 % Map from attributes to objects exhibiting those attributes.
 
-as2os(context(Os,_,_), [], Os):- !.
-as2os(Context, [A1|As], Os):-
-  aggregate_all(
-    set(O),
-    (a2o(Context, A1, O), maplist(o2a(Context, O), As)),
-    Os
-  ).
+as2os(Con, [], Os):- !, context_objects(Con, Os).
+as2os(Con, [A1|As], Os):-
+  aggregate_all(set(O), (a2o(Con, A1, O), maplist(o2a(Con, O), As)), Os).
 
 
 
@@ -106,16 +101,11 @@ concept_attributes(concept(_,As), As).
 %! concept_cardinality(+Concept:compound, -Cardinality:nonneg) is det.
 % The **cardinality** of a concept is the number of attributes of that concept.
 
-concept_cardinality(concept(_,As), Card):-
-  length(As, Card).
+concept_cardinality(concept(_,As), Card):- length(As, Card).
 
 
 
-%! concept_closure(
-%!   +Context:compound,
-%!   +PartialConcept:compound,
-%!   -Concept:compound
-%! ) is semidet.
+%! concept_closure(+Context:compound, +PartialConcept:compound, -Concept:compound) is semidet.
 % Succeeds if Concept is the unique formal concept based on the given
 % PartialConcept.
 %
@@ -123,29 +113,21 @@ concept_cardinality(concept(_,As), Card):-
 %
 % @throws instantiation_error
 
-concept_closure(Context, concept(Os0,_), concept(Os,As)):-
+concept_closure(Con, concept(Os0,_), concept(Os,As)):-
   nonvar(Os0), !,
-  os2as(Context, Os0, As),
-  as2os(Context, As, Os).
-concept(Context, concept(_,As0), concept(Os,As)):-
+  os2as(Con, Os0, As),
+  as2os(Con, As, Os).
+concept(Con, concept(_,As0), concept(Os,As)):-
   nonvar(As0), !,
-  as2os(Context, As0, Os),
-  os2as(Context, Os, As).
+  as2os(Con, As0, Os),
+  os2as(Con, Os, As).
 concept(_, C0, _):-
   instantiation_error(C0).
 
 
 
-%! concept_components(
-%!   +Concept:compound,
-%!   -Objects:ordset,
-%!   -Attributes:ordset
-%! ) is det.
-%! concept_components(
-%!   -Concept:compound,
-%!   +Objects:ordset,
-%!   +Attributes:ordset
-%! ) is det.
+%! concept_components(+Concept:compound, -Objects:ordset, -Attributes:ordset) is det.
+%! concept_components(-Concept:compound, +Objects:ordset, +Attributes:ordset) is det.
 
 concept_components(concept(Os,As), Os, As).
 
@@ -159,12 +141,12 @@ concept_objects(concept(Os,_), Os).
 
 %! concepts(+Context:compound, -Concepts:list(compound)) is det.
 
-concepts(Context, Cs):-
-  context_components(Context, Os, As, _),
+concepts(Con, Cs):-
+  context_components(Con, Os, As, _),
   maplist(singleton, As, Ass0),
-  maplist(as2os(Context), Ass0, Oss0),
+  maplist(as2os(Con), Ass0, Oss0),
   intersections(Oss0, Oss),
-  maplist(os2as(Context), [Os|Oss], Ass),
+  maplist(os2as(Con), [Os|Oss], Ass),
   maplist(concept_components, Cs, [Os|Oss], Ass).
 
 
@@ -172,31 +154,25 @@ concepts(Context, Cs):-
 %! context_attributes(+Context:compound, +Attributes:ordset) is semidet.
 %! context_attributes(+Context:compound, -Attributes:ordset) is det.
 
-context_attributes(context(_,As,_), As).
+context_attributes(context(_,Attr_1,_), As):-
+  aggregate_all(set(A), call(Attr_1, A), As).
 
 
 
-%! context_components(
-%!   +Context:compound,
-%!   -Objects:ordset,
-%!   -Attributes:ordset,
-%!   :Goal_2
-%! ) is det.
-%! context_components(
-%!   -Context:compound,
-%!   +Objects:ordset,
-%!   +Attributes:ordset,
-%!   :Goal_2
-%! ) is det.
+%! context_components(+Context:compound, -Objects:ordset, -Attributes:ordset, :Mapping_2) is det.
 
-context_components(context(Os,As,Goal_2), Os, As, Goal_2).
+context_components(Con, Os, As, Map_2):-
+  Con = context(_,_,Map_2),
+  context_attributes(Con, As),
+  context_objects(Con, Os).
 
 
 
 %! context_objects(+Context:compound, +Objects:ordset) is semidet.
 %! context_objects(+Context:compound, -Objects:ordset) is det.
 
-context_objects(context(Os,_,_), Os).
+context_objects(context(Obj_1,_,_), Os):-
+  aggregate_all(set(O), call(Obj_1, O), Os).
 
 
 
@@ -219,8 +195,8 @@ direct_subconcept(Cs, A, B):-
 
 %! fca_hasse(+Context:compound, -Hasse:ugraph) is det.
 
-fca_hasse(Context, Hasse):-
-  concepts(Context, Cs),
+fca_hasse(Con, Hasse):-
+  concepts(Con, Cs),
   aggregate_all(set(C1-C2), direct_subconcept(Cs, C1, C2), Es),
   s_graph_components(Hasse, Cs, Es).
 
@@ -228,8 +204,8 @@ fca_hasse(Context, Hasse):-
 
 %! fca_lattice(+Context:compound, -Lattice:ugraph) is det.
 
-fca_lattice(Context, Lattice):-
-  concepts(Context, Cs),
+fca_lattice(Con, Lattice):-
+  concepts(Con, Cs),
   aggregate_all(
     set(C1-C2),
     (
@@ -245,27 +221,21 @@ fca_lattice(Context, Lattice):-
 
 %! is_concept(+Context:compound, +Concept:compound) is semidet.
 
-is_concept(Context, C):-
-  concept_closure(Context, C, C).
+is_concept(Con, C):- concept_closure(Con, C, C).
 
 
 
 %! o2a(+Context:compound, +Object, -Attribute) is nondet.
 
-o2a(context(_,_,Goal_2), O, A):-
-  call(Goal_2, O, A).
+o2a(context(_,_,Map_2), O, A):- call(Map_2, O, A).
 
 
 
 %! os2as(+Context:compound, +Objects:ordset, -Attributes:ordset) is det.
 
-os2as(context(_,As,_), [], As):- !.
-os2as(Context, [O1|Os], As):-
-  aggregate_all(
-    set(A),
-    (o2a(Context, O1, A), maplist(a2o(Context, A), Os)),
-    As
-  ).
+os2as(Con, [], As):- !, context_attributes(Con, As).
+os2as(Con, [O1|Os], As):-
+  aggregate_all(set(A), (o2a(Con, O1, A), maplist(a2o(Con, A), Os)), As).
 
 
 

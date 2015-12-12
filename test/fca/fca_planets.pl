@@ -16,6 +16,7 @@
 :- use_module(library(fca/fca_viz)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
+:- use_module(library(solution_sequences)).
 
 :- initialization(list_external_programs).
 
@@ -26,51 +27,56 @@
 %! fca_planets is det.
 
 fca_planets:-
-  planets_context(Context),
+  Context = context(
+    fca_planets:planet_object,
+    fca_planets:planet_attribute,
+    fca_planets:planet_property
+  ),
   fca_viz(
     Context,
     File,
     [
-      attribute_label(planet_a_abbr),
+      attribute_label(planet_attribute_label),
       concept_label(both),
       graph_label("FCA for planets"),
-      object_label(planet_o_abbr)
+      object_label(planet_object_label)
     ]
   ),
   open_pdf(File).
 
 
 
-%! planets_concet(-Context:compound) is det.
+%! planet_attribute(-Object:atom) is multi.
 
-planets_context(context(Os,As,fca_planets:planet_property)):-
-  aggregate_all(set(O), planet_property(O, _), Os),
-  aggregate_all(set(A), planet_property(_, A), As).
+planet_attribute(A):- distinct(A, planet_property(_, A)).
 
 
 
-%! planet_a_abbr(+Attribute:compound)// is det.
+%! planet_attribute_label(+Attribute:compound)// is det.
 
-planet_a_abbr(T) -->
-  {
-    T =.. L,
-    maplist(atom_codes, L, [[X|_],[Y|_]])
-  },
+planet_attribute_label(T) -->
+  {T =.. L, maplist(atom_codes, L, [[X|_],[Y|_]])},
   [X,Y].
 
 
 
-%! planet_o_abbr(+Object:atom)// is det.
+%! planet_object(-Object:atom) is multi.
 
-planet_o_abbr('Earth')   --> "E".
-planet_o_abbr('Jupiter') --> "J".
-planet_o_abbr('Mars')    --> "Ma".
-planet_o_abbr('Mercury') --> "Me".
-planet_o_abbr('Neptune') --> "N".
-planet_o_abbr('Pluto')   --> "P".
-planet_o_abbr('Saturn')  --> "S".
-planet_o_abbr('Uranus')  --> "U".
-planet_o_abbr('Venus')   --> "V".
+planet_object(O):- distinct(O, planet_property(O, _)).
+
+
+
+%! planet_object_label(+Object:atom)// is det.
+
+planet_object_label('Earth')   --> "E".
+planet_object_label('Jupiter') --> "J".
+planet_object_label('Mars')    --> "Ma".
+planet_object_label('Mercury') --> "Me".
+planet_object_label('Neptune') --> "N".
+planet_object_label('Pluto')   --> "P".
+planet_object_label('Saturn')  --> "S".
+planet_object_label('Uranus')  --> "U".
+planet_object_label('Venus')   --> "V".
 
 
 
