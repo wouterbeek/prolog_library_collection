@@ -70,6 +70,7 @@ and Goal_2 is the relation between Os and As (in that order).
 :- use_module(library(pairs)).
 :- use_module(library(set/intersection)).
 :- use_module(library(set/set_ext)).
+:- use_module(library(thread)).
 
 
 
@@ -154,9 +155,8 @@ concepts(Con, Cs):-
   maplist(os2as(Con), SimpleOss, SimpleAss0),
   sort(SimpleAss0, SimpleAss),
   intersections(SimpleAss, ComplexAss),
-  context_attributes(Con, As),
-  maplist(as2os(Con), [As|ComplexAss], ComplexOss),
-  maplist(concept_components, Cs, ComplexOss, [As|ComplexAss]).
+  concurrent_maplist(as2os(Con), ComplexAss, ComplexOss),
+  maplist(concept_components, Cs, ComplexOss, ComplexAss).
 
 
 
