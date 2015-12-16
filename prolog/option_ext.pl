@@ -10,6 +10,9 @@
                  % :Goal_0
     merge_options/2, % +Optionss:list(list(compound))
                      % -Options:list(compound)
+    option_components/3, % ?Option:compound
+                         % ?Name:atom
+                         % ?Value
     option_has_var_value/1, % +Option:compound
     option_pair/2 % ?Option:compound
                   % ?Pair:pair
@@ -63,6 +66,14 @@ merge_options([H1,H2|T], L):- !,
   merge_options([H3|T], L).
 merge_options([L], L):- !.
 merge_options([], []).
+
+
+
+%! option_components(+Option:compound, -Name:atom, -Value) is det.
+%! option_components(+Option:compound, -Name:atom, -Value) is det.
+
+option_components(Opt, Name, Value):-
+  Opt =.. [Name,Value].
 
 
 
