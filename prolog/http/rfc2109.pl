@@ -7,10 +7,39 @@
 
 /** <module> RFC 2109
 
+Grammar
+
+```abnf
+set-cookie = "Set-Cookie:" cookies
+cookies = 1#cookie
+cookie = NAME "=" VALUE *(";" cookie-av)
+NAME = attr
+attr = token
+VALUE = value
+cookie-av = "Comment" "=" value
+          | "Domain" "=" value
+          | "Max-Age" "=" value
+          | "Path" "=" value
+          | "Secure"
+          | "Version" "=" 1*DIGIT
+value = word
+word = token | quoted-string
+```
+
+# Common mistakes
+
+Comma's in Set-Cookie values, especially in dates.  This is not allowed since
+comma is used as a separator in `#' and `token' is not allowed to contain a
+comma.  Example:
+
+```http
+__Host-js_csrf=H9teNf8adQDrvSiROZyOCs0N; expires=Wed, 19 Dec 2018 18:04:52 GMT; Path=/; secure
+```
+
 @author Wouter Beek
 @compat RFC 2109
 @see https://tools.ietf.org/html/rfc2109
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -31,15 +60,6 @@ attr(S) --> token(S).
 
 
 
-%! cookies(?Cookies:list(list(pair)))// .
-% ```abnf
-% cookies = 1#cookie
-% ```
-
-cookies(L) --> {gtrace},'+#'(cookie, L).
-
-
-
 %! cookie(?Cookie:list(pair))// .
 % ```abnf
 % cookie = NAME "=" VALUE *(";" cookie-av)
@@ -49,6 +69,15 @@ cookie([N-V|T]) -->
   'NAME'(N), "=", 'VALUE'(V),
   *(sep_cookie_av, T).
 sep_cookie_av(X) --> ";", ?('LWS'), 'cookie-av'(X).
+
+
+
+%! cookies(?Cookies:list(list(pair)))// .
+% ```abnf
+% cookies = 1#cookie
+% ```
+
+cookies(L) --> '+#'(cookie, L).
 
 
 

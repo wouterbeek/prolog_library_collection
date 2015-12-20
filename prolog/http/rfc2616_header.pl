@@ -10,6 +10,7 @@
     'content-disposition'//1, % -ContentDisposition:dict
     'content-language'//1, % -LanguageTags:list(list(string)))
     'content-length'//1, % -Length:nonneg
+    'content-location'//1, % -Location:atom
     'content-type'//1, % -MediaType:dict
     date//1, % -DateTime:compound
     expires//1, % ?DateTime:compound
@@ -38,7 +39,7 @@
 @compat Cross-Origin Resource Sharing (W3C Recommendation)
 @deprecated
 @see http://www.w3.org/TR/cors/
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_call)).
@@ -48,14 +49,18 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2109)).
+:- use_module(library(http/ie_headers)).
+:- use_module(library(http/google_headers)).
+%:- use_module(library(http/rfc2109)). % `Set-Cookie' obsoleted by RFC 6265.
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_date)).
 :- use_module(library(http/rfc2616_token)).
 :- use_module(library(http/rfc2617)).
+:- use_module(library(http/rfc6265)).
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6454)).
 :- use_module(library(http/rfc6797)).
+:- use_module(library(http/rfc7034)).
 :- use_module(library(uri/rfc2396)).
 
 :- meta_predicate('field-content'(3,-,?,?)).
@@ -144,6 +149,16 @@
 % ```
 
 'content-length'(N) --> '+digit'(N).
+
+
+
+%! 'content-location'(-Location:atom)// is det.
+% ```abnf
+% Content-Location = "Content-Location" ":" ( absoluteURI | relativeURI )
+% ```
+
+'content-location'(Location) --> absoluteURI(Location), !.
+'content-location'(Location) --> relativeURI(Location).
 
 
 
@@ -247,12 +262,7 @@ expires(DT) --> 'HTTP-date'(DT).
 % Location = "Location" ":" absoluteURI
 % ```
 
-location(D) -->
-  {dict_remove_uninstantiated(
-    uri{scheme: Scheme, authority: Auth, path: Path, query: Query},
-    D
-  )},
-  absoluteURI(Scheme, Auth, Path, Query).
+location(Uri) --> absoluteURI(Uri).
 
 
 
@@ -322,12 +332,13 @@ vary(L)   --> '+#'('field-name', L).
 % Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
 % ```
 
-via(L) -->
-  '+#'(via_component, L).
+via(L) --> '+#'(via_component, L).
+
 via_component(D) -->
   'received-protocol'(X),
+  +('LWS'),
   'received-by'(Y),
-  (comment(Z) -> {T = [comment-Z]} ; {T = []}),
+  (+('LWS'), comment(Z) -> {T = [comment-Z]} ; {T = []}),
   {dict_pairs(D, via, ['received-protocol'-X,'received-by'-Y|T])}.
 
 

@@ -21,6 +21,8 @@
     'product-version'//1, % ?ProductVersion:string
     'quoted-string'//1, % ?String:string
     'range-unit'//1, % ?RangeUnit:or([oneof([bytes]),string])
+    'received-by'//1, % -Receiver:dict
+    'received-protocol'//1, % -Protocol:dict
     subtag//1, % ?Subtag:string
     subtype//1, % ?Subtype:string
     token//1, % ?Token:string
@@ -37,7 +39,7 @@
 @author Wouter Beek
 @compat RFC 2616
 @deprecated
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -45,6 +47,8 @@
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_header)).
 :- use_module(library(lists)).
+:- use_module(library(uri/rfc2396), [host//1]).
+:- use_module(library(uri/rfc2396_token), [port//1]).
 
 
 
@@ -339,13 +343,15 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'received-by'(Receiver)// .
+%! 'received-by'(-Receiver:dict)// .
 % ```abnf
 % received-by = ( host [ ":" port ] ) | pseudonym
 % ```
 
-'received-by'(Host, Port) --> host(Host), !, (":" -> port(Port) ; {Port = 80}).
-'received-by'(S) --> pseudonym(S).
+'received-by'(receiver{host: Host, port: Port}) -->
+  host(Host), !,
+  (":" -> port(Port) ; {Port = 80}).
+'received-by'(receiver{pseudonym: S}) --> pseudonym(S).
 
 
 

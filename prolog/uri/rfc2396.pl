@@ -2,12 +2,7 @@
   rfc2396,
   [
     abs_path//1, % ?Path:list(string)
-    absoluteURI//2, % ?Scheme:string
-                    % ?OpaquePart:string
-    absoluteURI//4, % ?Scheme:string
-                    % ?Authority:compound
-                    % ?Path:list(string)
-                    % ?Query:string
+    absoluteURI//1, % -Uri:dict
     authority//1, % ?Authority:compound
     hier_part//3, % ?Authority:compound
                   % ?Path:list(string)
@@ -21,21 +16,12 @@
     path//1, % ?Path:list(string)
     path_segments//1, % ?Segments:list(string)
     rel_path//1, % ?Path:list(string)
-    relativeURI//3, % ?Authority:compound
-                    % ?Path:list(string)
-                    % ?Query:string
+    relativeURI//1, % -Uri:dict
     segment//1, % ?Segment:string
     server//3, % ?UserInfo:string
                % ?Host:or([list(nonneg),list(string)])
                % ?Port:nonneg
-    'URI-reference'//3, % ?Scheme:string
-                        % ?OpaquePart:string
-                        % ?Fragment:string
-    'URI-reference'//5 % ?Scheme:string
-                       % ?Authority:compound
-                       % ?Path:list(string)
-                       % ?Query:string
-                       % ?Fragment:string
+    'URI-reference'//1 % -Uri:dict
   ]
 ).
 
@@ -44,10 +30,11 @@
 @author Wouter Beek
 @compat RFC 2396
 @deprecated Use module `rfc3986` instead.
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(uri/rfc2396_code)).
 :- use_module(library(uri/rfc2396_token)).
 
@@ -64,20 +51,23 @@ abs_path(L) --> "/", path_segments(L).
 
 
 
-%! absoluteURI(?Scheme:string, ?OpaquePart:string)// .
-%! absoluteURI(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Path:list(string),
-%!   ?Query:string
-%! )// .
+%! absoluteURI(-Uri:dict)// is det.
 % ```abnf
 % absoluteURI = scheme ":" ( hier_part | opaque_part )
 % ```
 
-absoluteURI(Scheme, Opaque) --> scheme(Scheme), ":", opaque_part(Opaque), !.
-absoluteURI(Scheme, Auth, Path, Query) -->
-  scheme(Scheme), ":", hier_part(Auth, Path, Query).
+absoluteURI(absolute_uri{scheme: Scheme, opaque: Opaque}) -->
+  scheme(Scheme),
+  ":",
+  opaque_part(Opaque), !.
+absoluteURI(Uri) -->
+  scheme(Scheme),
+  ":",
+  hier_part(Auth, Path, Query),
+  {dict_remove_uninstantiated(
+    absolute_uri{scheme: Scheme, authority: Auth, path: Path, query: Query},
+    Uri
+  )}.
 
 
 
@@ -172,14 +162,18 @@ rel_path([H|T]) --> rel_segment(H), (abs_path(T) -> "" ; {T = []}).
 
 
 
-%! relativeURI(?Authority:compound, ?Path:list(string), ?Query:string)// .
+%! relativeURI(-Uri:dict)// .
 % ```abnf
 % relativeURI = ( net_path | abs_path | rel_path ) [ "?" query ]
 % ```
 
-relativeURI(Auth, Path, Query) -->
+relativeURI(Uri) -->
   (net_path(Auth, Path), ! ; abs_path(Path), ! ; rel_path(Path)),
-  ("?" -> query(Query) ; "").
+  ("?" -> query(Query) ; ""),
+  {dict_remove_uninstantiated(
+    relative_uri{authority: Auth, path: Path, query: Query},
+    Uri
+  )}.
 
 
 
@@ -209,21 +203,11 @@ server(_, _, _) --> "".
 
 
 
-%! 'URI-reference'(?Scheme:string, ?OpaquePart:string, ?Fragment:string)// .
-%! 'URI-reference'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Path:list(string),
-%!   ?Query:string,
-%!   ?Fragment:string
-%! )// .
+%! 'URI-reference'(-Uri:dict)// is det.
 % ```abnf
 % URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
 % ```
 
-'URI-reference'(Scheme, OpaquePart, Frag) -->
-  absoluteURI(Scheme, OpaquePart),
-  ("#" -> fragment(Frag) ; "").
-'URI-reference'(_, Auth, Path, Query, Frag) -->
-  relativeURI(Auth, Path, Query),
-  ("#" -> fragment(Frag) ; "").
+'URI-reference'(Uri2) -->
+  (absoluteURI(Uri1), ! ; relativeURI(Uri1)),
+  ("#" -> fragment(Frag), {Uri2 = Uri1.put(fragment, Frag)} ; {Uri2 = Uri1}).
