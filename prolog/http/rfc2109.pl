@@ -38,6 +38,7 @@ __Host-js_csrf=H9teNf8adQDrvSiROZyOCs0N; expires=Wed, 19 Dec 2018 18:04:52 GMT; 
 
 @author Wouter Beek
 @compat RFC 2109
+@deprecated
 @see https://tools.ietf.org/html/rfc2109
 @version 2015/11-2015/12
 */
