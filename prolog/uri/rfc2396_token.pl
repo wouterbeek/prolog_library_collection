@@ -21,7 +21,7 @@
 @author Wouter Beek
 @compat RFC 2396
 @deprecated
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -38,14 +38,11 @@
 % domainlabel = alphanum | alphanum *( alphanum | "-" ) alphanum
 % ```
 
-domainlabel(S) --> dcg_string(domainlabel_codes, S).
-domainlabel_codes(L) -->
-  alphadigit(H),
-  (   *(alphadigit_hyphen, T),
-      alphadigit(X)
-  ->  {append([H|T], [X], L)}
-  ;   {L = [H]}
-  ).
+domainlabel(S) --> dcg_string(domainlabel_codes1, S).
+domainlabel_codes1([H|T]) --> alphadigit(H), domainlabel_codes2(T).
+domainlabel_codes2([0'-,H|T]) --> "-", !, alphadigit(H), domainlabel_codes2(T).
+domainlabel_codes2([H|T]) --> alphadigit(H), !, domainlabel_codes2(T).
+domainlabel_codes2([]) --> "".
 
 
 
@@ -161,13 +158,11 @@ scheme_code(0'.) --> ".".
 % toplabel = alpha | alpha *( alphanum | "-" ) alphanum
 % ```
 
-toplabel(S) -->
-  alpha(H),
-  (   *(alphadigit_hyphen, T), alphadigit(X)
-  ->  {append([H|T], [X], Cs)}
-  ;   {Cs = [H]}
-  ),
-  {string_codes(S, Cs)}.
+toplabel(S) --> dcg_string(toplabel_codes1, S).
+toplabel_codes1([H|T]) --> alpha(H), toplabel_codes2(T).
+toplabel_codes2([0'-,H|T]) --> "-", !, alphadigit(H), toplabel_codes2(T).
+toplabel_codes2([H|T]) --> alphadigit(H), !, toplabel_codes2(T).
+toplabel_codes2([]) --> "".
 
 
 

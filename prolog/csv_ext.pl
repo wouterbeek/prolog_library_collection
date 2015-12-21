@@ -3,9 +3,8 @@
   [
     csv_write_stream/2, % +Write:stream
                         % +Rows:list(compound)
-    list_row/2, % ?List:list
-                % ?Row:compound
-    tsv_read_file/2, % +File, -Rows
+    tsv_read_file/2, % +File:atom
+                     % -Rows:list(compound)
     tsv_read_file/3, % +File:atom
                      % -Rows:list(compound)
                      % +Options:list(compound)
@@ -41,15 +40,6 @@
 
 csv_write_stream(Write, Rows):-
   csv_write_stream(Write, Rows, []).
-
-
-
-%! list_row(+List:list, +Row:compound) is semidet.
-%! list_row(+List:list, -Row:compound) is det.
-%! list_row(-List:list, +Row:compound) is det.
-
-list_row(List, Row):-
-  Row =.. [row|List].
 
 
 

@@ -6,7 +6,6 @@
     'OWS'//0,
     'quoted-pair'//1, % ?Code:code
     qdtext//1, % ?Code:code
-    'RWS'//0,
     tchar//1 % ?TokenCharacter:code
   ]
 ).
@@ -28,13 +27,18 @@
     'SP'//0,
     'VCHAR'//1
   ]).
+:- reexport(library(http/rfc7034), [
+    'RWS'//0
+   ]).
 
 /** <module> RFC 7230: Codes
 
 @author Wouter Beek
 @compat RFC 7230
-@version 2015/11
+@version 2015/11-2015/12
 */
+
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -64,9 +68,7 @@
 % OWS = *( SP / HTAB )
 % ```
 
-'OWS' --> 'SP',   !, 'OWS'.
-'OWS' --> 'HTAB', !, 'OWS'.
-'OWS' --> "".
+'OWS' --> *('SP' ; 'HTAB').
 
 
 
@@ -90,15 +92,6 @@ qdtext(C) --> 'obs-text'(C).
 % ```
 
 'quoted-pair'(C) --> "\\", ('HTAB'(C) ; 'SP'(C) ; 'VCHAR'(C) ; 'obs-text'(C)).
-
-
-
-%! 'RWS'// .
-% ```abnf
-% RWS = 1*( SP / HTAB )
-% ```
-
-'RWS' --> ('SP' ; 'HTAB'), 'OWS'.
 
 
 

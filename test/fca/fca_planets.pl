@@ -13,6 +13,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_collection)).
 :- use_module(library(fca/fca_viz)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/pdf)).
@@ -36,17 +37,15 @@ fca_planets:-
     Context,
     File,
     [
-      attribute_label(planet_attribute_label),
-      concept_label(both),
-      graph_label("FCA for planets"),
-      object_label(planet_object_label)
+      concept_label(planet_concept_label),
+      graph_label("FCA for planets")
     ]
   ),
   open_pdf(File).
 
 
 
-%! planet_attribute(-Object:atom) is multi.
+%! planet_attribute(-Attribute:atom) is multi.
 
 planet_attribute(A):- distinct(A, planet_property(_, A)).
 
@@ -57,6 +56,15 @@ planet_attribute(A):- distinct(A, planet_property(_, A)).
 planet_attribute_label(T) -->
   {T =.. L, maplist(atom_codes, L, [[X|_],[Y|_]])},
   [X,Y].
+
+
+
+%! planet_concept_label(+Concept:compound)// is det.
+
+planet_concept_label(concept(Os,As)) -->
+  set(planet_object_label, Os),
+  " / ",
+  set(planet_attribute_label, As).
 
 
 

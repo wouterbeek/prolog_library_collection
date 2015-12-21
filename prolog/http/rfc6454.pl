@@ -5,9 +5,10 @@
                        % +Y:or([atom,dict])
     origin/2, % +Uri:atom
               % -Origin:or([atom,dict])
-    origin//1, % ?Origins:list(dict)
-    'origin-list-or-null'//1,
-    'origin-list'//1
+    origin//1, % -Origins:list(dict)
+    'origin-list-or-null'//1, % -Origins:list(dict)
+    'origin-list'//1, % -Origins:list(dict)
+    'serialized-origin'//1 % -Origin:dict
   ]
 ).
 
@@ -136,7 +137,7 @@ origin(Uri, origin{scheme: Scheme, host: Host, port: Port}):-
 
 
 
-%! origin(?Origins:list(dict))// .
+%! origin(-Origins:list(dict))// .
 % ```abnf
 % origin = "Origin:" OWS origin-list-or-null OWS
 % ```
@@ -145,7 +146,7 @@ origin(L) --> "Origin:", 'OWS', 'origin-list-or-null'(L), 'OWS'.
 
 
 
-%! 'origin-list'(?Origins:list(dict))// .
+%! 'origin-list'(-Origins:list(dict))// .
 % ```abnf
 % origin-list = serialized-origin *( SP serialized-origin )
 % ```
@@ -155,7 +156,7 @@ serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 
 
 
-%! 'origin-list-or-null'(?Origins:list(dict))// .
+%! 'origin-list-or-null'(-Origins:list(dict))// .
 % ```abnf
 % origin-list-or-null = %x6E %x75 %x6C %x6C / origin-list
 % ```
@@ -165,7 +166,7 @@ serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 
 
 
-%! 'serialized-origin'(?Origin:dict)// .
+%! 'serialized-origin'(-Origin:dict)// .
 % ```abnf
 % serialized-origin = scheme "://" host [ ":" port ]
 %                   ; <scheme>, <host>, <port> from RFC 3986

@@ -1,6 +1,8 @@
 :- module(
   option_ext,
   [
+    flatten_option/2, % +Option:compound
+                      % -FlattenedOptions:list(compound)
     if_option/3, % ?Option:compound
                  % +Options:list(compound)
                  % :Goal_0
@@ -26,10 +28,21 @@
 @version 2015/07, 2015/10-2015/12
 */
 
+:- use_module(library(apply)).
+:- use_module(library(lambda)).
+
 :- meta_predicate(if_option(?,+,0)).
 :- meta_predicate(if_option(?,+,+,0)).
 
 
+
+
+
+%! flatten_option(+Options:compound, -FlattenedOptions:list(compound)) is det.
+
+flatten_option(Opt, Opts):-
+  option_components(Opt, N, Vs),
+  maplist(\V^Opt^option_components(Opt, N, V), Vs, Opts).
 
 
 
