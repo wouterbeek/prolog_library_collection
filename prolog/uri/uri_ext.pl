@@ -25,17 +25,18 @@ Additional predicates for handling URIs.
 
 @author Wouter Beek
 @compat RFC 3986
-@version 2015/08, 2015/10-2015/11
+@version 2015/08, 2015/10-2015/12
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
 :- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(uri)).
+:- use_module(library(uri/rfc3986_code)).
 
 :- meta_predicate(uri_change_query(+,2,-)).
 :- meta_predicate(uri_change_query_options(+,2,-)).
@@ -172,7 +173,7 @@ uri_query_enc, ":" --> ":",             !, uri_query_enc.
 uri_query_enc, "@" --> "@",             !, uri_query_enc.
 uri_query_enc, [C] --> unreserved(C),   !, uri_query_enc.
 uri_query_enc, [C] --> 'sub-delims'(C), !, uri_query_enc.
-uri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
+uri_query_enc, "%", hex(W1), hex(W2) -->
   between_code(0, 255, C), !,
   {W1 is C // 16, W2 is C mod 16},
   uri_query_enc.
