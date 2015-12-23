@@ -1,59 +1,3 @@
-:- module(
-  rfc2616_token,
-  [
-    'acceptable-ranges'//1, % ?Ranges:list(or([oneof([bytes]),string]))
-    attribute//1, % ?Attribute:string
-    'bytes-unit'//1, % ?BytesUnit:oneof([bytes])
-    'cache-directive'//1, % ?Directive:compound
-    comment//1, % ?Comment:string
-    'connection-token'//1, % -ConnectionToken:string
-    'entity-tag'//2, % ?Weak:boolean
-                     % ?OpaqueTag:string
-    'extension-pragma'//1, % ?Extension:or([string,pair(string)])
-    'language-tag'//1, % ?LanguageTag:list(string)
-    'media-type'//1, % ?MediaType:dict
-    'opaque-tag'//1, % ?OpaqueTag:string
-    'other-range-unit'//1, % ?RangeUnit:string
-    parameter//1, % ?Parameter:pair(string)
-    'pragma-directive'//1, % ?Directive:or([oneof(['no-cache']),string,pair(string)])
-    'primary-tag'//1, % ?PrimaryTag:string
-    product//1, % ?Product:dict
-    'product-version'//1, % ?ProductVersion:string
-    'quoted-string'//1, % ?String:string
-    'range-unit'//1, % ?RangeUnit:or([oneof([bytes]),string])
-    'received-by'//1, % -Receiver:dict
-    'received-protocol'//1, % -Protocol:dict
-    subtag//1, % ?Subtag:string
-    subtype//1, % ?Subtype:string
-    token//1, % ?Token:string
-    'transfer-coding'//1, % ?TransferCoding:or([oneof([chunked]),dict])
-    'transfer-extension'//1, % ?TransferExtension:dict
-    type//1, % ?Type:string
-    value//1, % ?Value:string
-    weak//0
-  ]
-).
-
-/** <module> RFC 2616: Tokens
-
-@author Wouter Beek
-@compat RFC 2616
-@deprecated
-@version 2015/11-2015/12
-*/
-
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_header)).
-:- use_module(library(lists)).
-:- use_module(library(uri/rfc2396), [host//1]).
-:- use_module(library(uri/rfc2396_token), [port//1]).
-
-
-
-
-
 %! 'acceptable-ranges'(?Ranges:list(or([oneof([bytes]),string])))// .
 % ```abnf
 % acceptable-ranges = 1#range-unit | "none"
@@ -61,6 +5,15 @@
 
 'acceptable-ranges'(L)  --> +#('range-unit', L), !.
 'acceptable-ranges'([]) --> "none".
+
+
+
+%! 'age-value'(-Age:nonneg)// is det.
+% ```abnf
+% age-value = delta-seconds
+% ```
+
+'age-value'(N) --> 'delta-seconds'(N).
 
 
 
@@ -164,15 +117,6 @@ comment_part(Cs) --> comment(Cs).
 
 
 
-%! 'connection-token'(-ConnectionToken:string)// .
-% ```abnf
-% connection-token = token
-% ```
-
-'connection-token'(T) --> token(T).
-
-
-
 %! 'delta-seconds'(?Delta:nonneg)// .
 % ```abnf
 % delta-seconds = 1*DIGIT
@@ -190,6 +134,15 @@ comment_part(Cs) --> comment(Cs).
 'entity-tag'(Weak, OTag) -->
   (weak -> {Weak = true} ; {Weak = false}),
   'opaque-tag'(OTag).
+
+
+
+%! 'extension-method'(?Method:atom)// is det.
+% ```abnf
+% extension-method = token
+% ```
+
+'extension-method'(S) --> token(S).
 
 
 
@@ -214,16 +167,12 @@ next_subtag(Subtag) --> "-", !, subtag(Subtag).
 
 
 
-%! 'media-type'// .
+%! 'md5-digest'(-Md5:string)// is det.
 % ```abnf
-% media-type = type "/" subtype *( ";" parameter )
+% md5-digest = <base64 of 128 bit MD5 digest as per RFC 1864>
 % ```
 
-'media-type'('media-type'{type: Type, subtype: Subtype, parameters: L}) -->
-  type(Type),
-  "/",
-  subtype(Subtype),
-  *(sep_parameter, L).
+'md5-digest' --> <base64 of 128 bit MD5 digest as per RFC 1864>
 
 
 
@@ -242,15 +191,6 @@ next_subtag(Subtag) --> "-", !, subtag(Subtag).
 % ```
 
 'other-range-unit'(S) --> token(S).
-
-
-
-%! parameter(?Parameter:pair(string))// .
-% ```abnf
-% parameter = attribute "=" value
-% ```
-
-parameter(Key-Val) --> attribute(Key), "=", value(Val).
 
 
 
@@ -295,44 +235,6 @@ product(D) -->
 
 
 
-%! 'protocol-name'(?Name:string)// .
-% ```abnf
-% protocol-name = token
-% ```
-
-'protocol-name'(S) --> token(S).
-
-
-
-%! 'protocol-version'(?Version:string)//.
-% ```abnf
-% protocol-version = token
-% ```
-
-'protocol-version'(S) --> token(S).
-
-
-
-%! pseudonym(?Pseudonym:string)// .
-% ```abnf
-% pseudonym = token
-% ```
-
-pseudonym(S) --> token(S).
-
-
-
-%! 'quoted-string'(?String:string)// .
-% ```abnf
-% quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
-% ```
-
-'quoted-string'(S) --> "\"", *(quoted_string_code, Cs), "\"", {string_codes(S, Cs)}.
-quoted_string_code(C) --> qdtext(C).
-quoted_string_code(C) --> 'quoted-pair'(C).
-
-
-
 %! 'range-unit'(?RangeUnit:or([oneof([bytes]),string]))// .
 % ```abnf
 % range-unit = bytes-unit | other-range-unit
@@ -343,86 +245,12 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'received-by'(-Receiver:dict)// .
-% ```abnf
-% received-by = ( host [ ":" port ] ) | pseudonym
-% ```
-
-'received-by'(receiver{host: Host, port: Port}) -->
-  host(Host), !,
-  (":" -> port(Port) ; {Port = 80}).
-'received-by'(receiver{pseudonym: S}) --> pseudonym(S).
-
-
-
-%! 'received-protocol'(?Protocol:dict)// .
-% ```abnf
-% received-protocol = [ protocol-name "/" ] protocol-version
-% ```
-
-'received-protocol'(protocol{name: N, version: V}) -->
-  'protocol-name'(N), "/", !,
-  'protocol-version'(V).
-'received-protocol'(protocol{version: V}) -->
-  'protocol-version'(V).
-
-
-
 %! subtag(?Subtag:string)// .
 % ```abnf
 % subtag = 1*8ALPHA
 % ```
 
 subtag(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
-
-
-
-%! subtype// .
-% ```abnf
-% subtype = token
-% ```
-
-subtype(S) --> token(S).
-
-
-
-%! token(?Token:string)// .
-% ```abnf
-% token = 1*<any CHAR except CTLs or separators>
-% ```
-
-token(S) --> +(token_code, Cs), {string_codes(S, Cs)}.
-token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
-
-
-
-%! 'transfer-coding'(?TransferCoding:or([oneof([chunked]),dict]))// .
-% ```abnf
-% transfer-coding = "chunked" | transfer-extension
-% ```
-
-'transfer-coding'(chunked) --> "chunked", !.
-'transfer-coding'(D)       --> 'transfer-extension'(D).
-
-
-
-%! 'transfer-extension'(?TransferExtension:dict)// .
-% ```abnf
-% transfer-extension = token *( ";" parameter )
-% ```
-
-'transfer-extension'('transfer-extension'{token: H, parameters: T}) -->
-  token(H),
-  *(sep_parameter, T).
-
-
-
-%! type(?Type:string)// .
-% ```abnf
-% type = token
-% ```
-
-type(S) --> token(S).
 
 
 
@@ -442,11 +270,3 @@ value(S) --> 'quoted-string'(S).
 % ```
 
 weak --> "W/".
-
-
-
-
-
-% HELPERS %
-
-sep_parameter(Param) --> ";", ?('LWS'), parameter(Param).

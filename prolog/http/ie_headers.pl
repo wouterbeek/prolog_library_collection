@@ -13,6 +13,7 @@
 @version 2015/12
 */
 
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616_code)).
 :- use_module(library(http/rfc2616_token)).
@@ -43,7 +44,7 @@
 % X-Powered-By: PHP/5.4.0
 % ```
 
-'x-powered-by'(S) --> token(S).
+'x-powered-by'(S) --> ...(Cs), {string_codes(S, Cs)}.
   
 
 
