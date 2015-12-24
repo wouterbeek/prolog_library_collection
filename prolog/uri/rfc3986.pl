@@ -41,7 +41,7 @@
   'hier-part'(D0),
   {dict_pairs(D0, hier_part, T1)},
   ("?" -> query(Query), {T2 = [query-Query|T1]} ; {T2 = T1}),
-  {dict_pairs(D, absolute_uri, [scheme-Scheme|T])}.
+  {dict_pairs(D, absolute_uri, [scheme-Scheme|T2])}.
 
 
 
@@ -381,9 +381,9 @@ reg_name_code(C) --> 'sub-delims'(C).
 % relative-ref = relative-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'relative-ref'(RelUri3) -->
+'relative-ref'(D) -->
   'relative-part'(D0),
-  {dict_pairs(D0, relative_part, T)}
+  {dict_pairs(D0, relative_part, T)},
   ("?" -> query(Query) ; ""),
   ("#" -> fragment(Frag) ; ""),
   {
@@ -500,7 +500,7 @@ unreserved(0'~) --> "~".
   ("?" -> query(Query) ; ""),
   ("#" -> fragment(Frag) ; ""),
   {
-    exclude(pair_has_var_value, [fragment-Frag,query-Query|T], L),
+    exclude(pair_has_var_value, [fragment-Frag,query-Query,scheme-Scheme|T], L),
     dict_pairs(D, uri, L)
   }.
 

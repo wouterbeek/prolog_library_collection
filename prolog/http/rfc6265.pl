@@ -9,6 +9,7 @@
 
 @author Wouter Beek
 @compat RFC 6265
+@see https://tools.ietf.org/html/rfc6265
 @version 2015/12
 */
 
@@ -16,8 +17,7 @@
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(http/rfc1034)).
-:- use_module(library(http/rfc2616_date)).
-:- use_module(library(http/rfc2616_token)).
+:- use_module(library(http/http11)).
 
 
 
@@ -25,8 +25,8 @@
 
 %! 'cookie-av'(-Pair:pair)// is det.
 % ```abnf
-% cookie-av = expires-av / max-age-av / domain-av /
-%             path-av / secure-av / httponly-av /
+% cookie-av = expires-av | max-age-av | domain-av /
+%             path-av | secure-av | httponly-av /
 %             extension-av
 % ```
 
@@ -60,7 +60,7 @@
 
 %! 'cookie-octet'(-Code:code)// .
 % ```abnf
-% cookie-octet = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+% cookie-octet = %x21 | %x23-2B | %x2D-3A | %x3C-5B | %x5D-7E
 %                ; US-ASCII characters excluding CTLs,
 %                ; whitespace DQUOTE, comma, semicolon,
 %                ; and backslash
@@ -79,7 +79,7 @@
 
 %! 'cookie-value'(-Value)// is det.
 % ```abnf
-% cookie-value = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
+% cookie-value = *cookie-octet | ( DQUOTE *cookie-octet DQUOTE )
 % ```
 
 'cookie-value'(S) --> 'DQUOTE', !, dcg_string('cookie-octet', S), 'DQUOTE'.
@@ -99,9 +99,8 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 %! 'domain-value'(-Subdomain:atom)// .
 % ```abnf
-% domain-value = <subdomain>
-%                ; defined in [RFC1034], Section 3.5, as
-%                ; enhanced by [RFC1123], Section 2.1
+% domain-value = <subdomain>   ; defined in [RFC1034], Section 3.5, as
+%                              ; enhanced by [RFC1123], Section 2.1
 % ```
 
 'domain-value'(V) --> subdomain(V).
@@ -138,9 +137,8 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 %! 'max-age-av'(-MaximumAge:pair(atom,nonneg))// is det.
 % ```abnf
 % max-age-av = "Max-Age=" non-zero-digit *DIGIT
-%              ; In practice, both expires-av and max-age-av
-%              ; are limited to dates representable by the
-%              ; user agent.
+%            ; In practice, both expires-av and max-age-av
+%            ; are limited to dates representable by the user agent.
 % ```
 
 'max-age-av'(max_age-N) -->

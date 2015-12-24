@@ -17,13 +17,13 @@ DCG implementation of the ABNF list extension
 used in the HTTP 1.1 specification.
 
 @author Wouter Beek
-@compat RFC 2616
-@version 2015/11
+@compat RFC 7230
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(option)).
-:- use_module(library(http/rfc2616_code)).
+:- use_module(library(http/http11)).
 
 :- meta_predicate('##'(?,//,:,?,?)).
 :- meta_predicate('##'(?,3,?,:,?,?)).
@@ -470,4 +470,4 @@ used in the HTTP 1.1 specification.
 
 % HELPERS %
 
-'m##n_separator' --> *('LWS'), ",", *('LWS').
+'m##n_separator' --> 'OWS', ",", 'OWS'.

@@ -1,6 +1,10 @@
 :- module(
   http11,
   [
+    'field-name'//1, % -Name:string
+    'header-field'//1, % -Header:pair
+    method//1, % -Method:string
+    'OWS'//0
   ]
 ).
 
@@ -8,6 +12,17 @@
 
 @author Wouter Beek
 @compat RFC 7230
+@compat RFC 7231
+@compat RFC 7232
+@compat RFC 7233
+@compat RFC 7234
+@compat RFC 7235
+@see https://tools.ietf.org/html/rfc7230
+@see https://tools.ietf.org/html/rfc7231
+@see https://tools.ietf.org/html/rfc7232
+@see https://tools.ietf.org/html/rfc7233
+@see https://tools.ietf.org/html/rfc7234
+@see https://tools.ietf.org/html/rfc7235
 @version 2015/11-2015/12
 */
 
@@ -27,10 +42,11 @@
     'LF'//0,
     'OCTET'//1, % ?Code:code
     'SP'//0,
-    'SP'//1 % ?Code:code
+    'SP'//1, % ?Code:code
     'VCHAR'//1 % ?Code:code
   ]).
-:- use_module(library(ltag/rfc5646), [
+:- use_module(library(http/dcg_http)).
+:- use_module(library(ltag/rfc4647), [
      'language-range'//1 % -LanguageRange:list(string)
    ]).
 :- use_module(library(ltag/rfc5646), [
@@ -52,6 +68,9 @@
     segment//1, % -Segment:string
     'URI-reference'//1 % -UriReference:dict
    ]).
+
+:- meta_predicate('field-content'(3,-,?,?)).
+:- meta_predicate('field-value'(3,-,?,?)).
 
 
 
@@ -81,7 +100,7 @@ sep_segment(S) --> "/", segment(S).
 % Accept = #( media-range [ accept-params ] )
 % ```
 
-accept(L) --> #(accept_part, L).
+accept(L) --> *#(accept_part, L).
 accept_part(MediaRange-Params) -->
   'media-range'(MediaRange),
   ?('accept-params', Params).
@@ -90,13 +109,13 @@ accept_part(MediaRange-Params) -->
 
 %! 'accept-charset'(-Charactersets:list(dict))// is det.
 % ```abnf
-% Accept-Charset = 1#( ( charset / "*" ) [ weight ] )
+% Accept-Charset = 1#( ( charset | "*" ) [ weight ] )
 % ```
 
 'accept-charset'(L) --> +#(accept_charset_part, L).
 accept_charset_part(X) -->
   (charset(Charset) -> "" ; "*", {Charset = "*"}),
-  (weight(Weight) -> {X = Weight-Charset} ; {X = Weight}).
+  (weight(Weight) -> {X = Weight-Charset} ; {X = Charset}).
 
 
 
@@ -105,7 +124,7 @@ accept_charset_part(X) -->
 % Accept-Encoding = #( codings [ weight ] )
 % ```
 
-'accept-encoding'(L) --> #(accept_encoding_part, L).
+'accept-encoding'(L) --> *#(accept_encoding_part, L).
 accept_encoding_part(X) -->
   codings(Coding),
   (weight(Weight) -> {X = Weight-Coding} ; {X = Coding}).
@@ -114,7 +133,7 @@ accept_encoding_part(X) -->
 
 %! 'accept-ext'(-Extension)// is det.
 % ```abnf
-% accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
+% accept-ext = OWS ";" OWS token [ "=" ( token | quoted-string ) ]
 % ```
 
 'accept-ext'(Ext) -->
@@ -129,7 +148,7 @@ accept_encoding_part(X) -->
 % Accept-Language = 1#( language-range [ weight ] )
 % ```
 
-'accept-language' --> 1#(accept_language_part, L).
+'accept-language'(L) --> +#(accept_language_part, L).
 accept_language_part(X) -->
   'language-range'(LRange),
   (weight(Weight) -> {X = Weight-LRange} ; {X = LRange}).
@@ -145,12 +164,88 @@ accept_language_part(X) -->
 
 
 
+%! 'accept-ranges'(-Ranges:list(or([oneof([bytes]),string])))// is det.
+% ```abnf
+% Accept-Ranges = acceptable-ranges
+% ```
+
+'accept-ranges'(L) --> 'acceptable-ranges'(L).
+
+
+
+%! 'acceptable-ranges'(-Ranges:list(or([oneof([bytes]),string])))// is det.
+% ```abnf
+% acceptable-ranges = 1#range-unit | "none"
+% ```
+
+'acceptable-ranges'(L)  --> +#('range-unit', L), !.
+'acceptable-ranges'([]) --> "none".
+
+
+
+%! age(-Age:nonneg)// is det.
+% ```abnf
+% Age = delta-seconds
+% ```
+
+age(N) --> 'delta-seconds'(N).
+
+
+
+%! allow(-Methods:list(string))// is det.
+% ```abnf
+% Allow = #method
+% ```
+
+allow(L) --> *#(method, L).
+
+
+
+%! 'asctime-date'(-Date:compound)// is det.
+% ```abnf
+% asctime-date = day-name SP date3 SP time-of-day SP year
+% ```
+
+'asctime-date'(datetime(Y,Mo,D,H,Mi,S,0)) -->
+  'day-name'(D),
+  'SP',
+  date3(Mo, D),
+  'SP',
+  'time-of-day'(time(H,Mi,S)),
+  'SP',
+  year(Y).
+
+
+
 %! 'asterisk-form'// is det.
 % ```abnf
 % asterisk-form = "*"
 % ```
 
 'asterisk-form' --> "*".
+
+
+
+%! 'auth-param'(-Param:list(string))// is det.
+% ```abnf
+% auth-param = token BWS "=" BWS ( token | quoted-string )
+% ```
+
+'auth-param'(N-V) -->
+  token(N),
+  'BWS',
+  "=",
+  'BWS',
+  (token(V), ! ; 'quoted-string'(V)).
+
+
+
+%! 'auth-scheme'(-Scheme:string)// is det.
+% ```abnf
+% auth-scheme = token
+% ```
+
+'auth-scheme'(S) --> token(S).
 
 
 
@@ -163,12 +258,159 @@ accept_language_part(X) -->
 
 
 
+%! authorization(-Credentials:dict)// is det.
+% ```abnf
+% Authorization = credentials
+% ```
+
+authorization(D) --> credentials(D).
+
+
+
 %! 'BWS'// is det.
 % ```abnf
 % BWS = OWS   ; "bad" whitespace
 % ```
 
 'BWS' --> 'OWS'.
+
+
+
+%! 'byte-content-range'(-ContentRange:dict)// is det.
+% ```abnf
+% byte-content-range = bytes-unit SP ( byte-range-resp | unsatisfied-range )
+% ```
+
+'byte-content-range'(
+  content_range{length: Length, range: Range, unit: bytes}
+) -->
+  'bytes-unit',
+  'SP',
+  ('byte-range-resp'(Range, Length), ! ; 'unsatisfied-range'(Range, Length)).
+
+
+
+%! 'byte-range'(-Range:pair(nonneg))// is det.
+% ```abnf
+% byte-range = first-byte-pos "-" last-byte-pos
+% ```
+
+'byte-range'(First-Last) -->
+  'first-byte-pos'(First),
+  "-",
+  'last-byte-pos'(Last).
+
+
+
+%! 'byte-range-resp'(-Range:pair(nonneg), -Length:nonneg)// is det.
+% ```abnf
+% byte-range-resp = byte-range "/" ( complete-length | "*" )
+% ```
+
+'byte-range-resp'(Range, Length) -->
+  'byte-range'(Range),
+  "/",
+  ("*" -> {Length = *} ; 'complete-length'(Length)).
+
+
+
+%! 'byte-range-spec'(-Value:or([nonneg,pair(nonneg)]))// is det.
+% ```abnf
+% byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
+% ```
+
+'byte-range-spec'(X) -->
+  'first-byte-pos'(First),
+  "-",
+  ('last-byte-pos'(Last) -> {X = First-Last} ; {X = First}).
+
+
+
+%! 'byte-ranges-specifier'(-RangeSpecifier:dict)// is det.
+% ```abnf
+% byte-ranges-specifier = bytes-unit "=" byte-range-set
+% ```
+
+'byte-ranges-specifier'(range_specifier{ranges: Ranges, unit: bytes}) -->
+  'bytes-unit',
+  "=",
+  'byte-range-set'(Ranges).
+
+
+
+%! 'byte-range-set'(-Ranges:list(or([integer,pair(nonneg)])))// is det.
+% ```abnf
+% byte-range-set  = 1#( byte-range-spec | suffix-byte-range-spec )
+% ```
+
+'byte-range-set'(Ranges) --> +#(byte_range_set_part, Ranges).
+byte_range_set_part(Range) --> 'byte-range-spec'(Range).
+byte_range_set_part(Range) --> 'suffix-byte-range-spec'(Range).
+
+
+
+%! 'bytes-unit'// is det.
+% ```abnf
+% bytes-unit = "bytes"
+% ```
+
+'bytes-unit' --> "bytes".
+
+
+
+%! 'cache-control'(?Directives:list(compound))// .
+% ```abnf
+% Cache-Control = 1#cache-directive
+% ```
+
+'cache-control'(L) --> +#('cache-directive', L).
+
+
+
+%! 'cache-directive'(?Directive)// is det.
+% ```abnf
+% cache-directive = token [ "=" ( token | quoted-string ) ]
+% ```
+
+'cache-directive'(X) -->
+  token(N),
+  ("=" -> (token(V), ! ; 'quoted-string'(V)), {X =.. [N,V]} ; {X = N}),
+  {check_cache_directive(X)}.
+
+check_cache_directive(X):- check_cache_directive(request, X), !.
+check_cache_directive(X):- check_cache_directive(response, X), !.
+check_cache_directove(_).
+
+check_cache_directive(request, 'no-cache').
+check_cache_directive(request, 'no-store').
+check_cache_directive(request, 'max-age'(Delta)):- 'delta-seconds'(Delta).
+check_cache_directive(request, 'max-stale'(Delta)):- 'delta-seconds'(Delta).
+check_cache_directive(request, 'min-fresh'(Delta)):- 'delta-seconds'(Delta).
+check_cache_directive(request, 'no-transform').
+check_cache_directive(request, 'only-if-cached').
+check_cache_directive(response, public).
+check_cache_directive(response, private(L)):- *#('field-name', L).
+check_cache_directive(response, 'no-cache'(L)):- *#('field-name', L).
+check_cache_directive(response, 'no-store').
+check_cache_directive(response, 'no-transform').
+check_cache_directive(response, 'must-revalidate').
+check_cache_directive(response, 'proxy-revalidate').
+check_cache_directive(response, 'max-age'(Delta)):- 'delta-seconds'(Delta).
+check_cache_directive(response, 's-maxage'(Delta)):- 'delta-seconds'(Delta).
+
+
+
+%! challenge(-Challenge:dict)// is det.
+% ```abnf
+% challenge = auth-scheme [ 1*SP ( token68 | #auth-param ) ]
+% ```
+
+challenge(challenge{scheme: Scheme, parameters: Params}) -->
+  'auth-scheme'(Scheme),
+  (   +('SP')
+  ->  (token68(S) -> {Params = [S]} ; *#('auth-param', Params))
+  ;   {Params = []}
+  ).
 
 
 
@@ -259,7 +501,7 @@ sep_chunk_ext(Ext) -->
 
 %! codings(-Coding)// is det.
 % ```abnf
-% codings = content-coding / "identity" / "*"
+% codings = content-coding | "identity" | "*"
 % ```
 
 codings(S) --> 'content-coding'(S).
@@ -280,12 +522,21 @@ comment_code --> comment.
 
 
 
-%! 'connection'(-Options:list(string))// .
+%! 'complete-length'(-Length:nonneg)// is det.
+% ```abnf
+% complete-length = 1*DIGIT
+% ```
+
+'complete-length'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+
+
+
+%! connection(-Options:list(string))// .
 % ```abnf
 % 'Connection'(S) --> 1#(connection-option)
 % ```
 
-'connection'(L) --> +#('connection-option', L).
+connection(L) --> +#('connection-option', L).
 
 
 
@@ -344,6 +595,16 @@ comment_code --> comment.
 
 
 
+%! 'content-range'(-ContentRange:dict)// is det.
+% ```abnf
+% Content-Range = byte-content-range | other-content-range
+% ```
+
+'content-range'(D) --> 'byte-content-range'(D), !.
+'content-range'(D) --> 'other-content-range'(D).
+
+
+
 %! 'content-type'(-MediaType:dict)// .
 % ```abnf
 % Content-Type = media-type
@@ -353,15 +614,149 @@ comment_code --> comment.
 
 
 
+%! credentials(-Credentials:dict)// is det.
+% ```abnf
+% credentials = auth-scheme [ 1*SP ( token68 | #auth-param ) ]
+% ```
+
+credentials(credentials{scheme: Scheme, parameters: Params}) -->
+  'auth-scheme'(Scheme),
+  (   +('SP')
+  ->  (token68(S) -> {Params = [S]} ; *#('auth-param', Params))
+  ;   {Params = []}
+  ).
+
+
+
 %! ctext(?Code:code)// is det.
 % ```abnf
-% ctext = HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text
+% ctext = HTAB | SP | %x21-27 | %x2A-5B | %x5D-7E | obs-text
 % ```
 
 ctext(C) --> 'HTAB'(C).
 ctext(C) --> 'SP'(C).
 ctext(C) --> [C], {(between(0x21, 0x27, C), ! ; between(0x2A, 0x5B, C), ! ; between(0x5D, 0x7E, C))}.
 ctext(C) --> 'obs-text'(C).
+
+
+
+%! date(-Datetime:compound)// is det.
+% ```abnf
+% Date = HTTP-date
+% ```
+
+date(DT) --> 'HTTP-date'(DT).
+
+
+
+%! date1(-Date:compound)// is det.
+% ```abnf
+% date1 = day SP month SP year   ; e.g., 02 Jun 1982
+% ```
+
+date1(date(Y,Mo,D)) --> day(D), 'SP', month(Mo), 'SP', year(Y).
+
+
+
+%! date2(-Date:compound)// is det.
+% ```abnf
+% date2 = day "-" month "-" 2DIGIT   ; e.g., 02-Jun-82
+% ```
+
+date2(date(Y,Mo,D)) -->
+  day(D),
+  "-",
+  month(Mo),
+  "-",
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, Y)}.
+
+
+
+%! date3(-Month:between(1,12), -Day:between(0,99))// is det.
+% ```abnf
+% date3 = month SP ( 2DIGIT | ( SP 1DIGIT ))   ; e.g., Jun  2
+% ```
+
+date3(Mo, D) -->
+  month(Mo),
+  'SP',
+  (#(2, 'DIGIT', Ds) -> {pos_sum(Ds, D)} ; 'SP', #(1, 'DIGIT', D)).
+
+
+
+%! day(-Day:between(0,99))// is det.
+% ```abnf
+% day = 2DIGIT
+% ```
+
+day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
+
+
+
+%! 'day-name'(-Day:between(1,7))// is det.
+% ```abnf
+% day-name = %x4D.6F.6E   ; "Mon", case-sensitive
+%          | %x54.75.65   ; "Tue", case-sensitive
+%          | %x57.65.64   ; "Wed", case-sensitive
+%          | %x54.68.75   ; "Thu", case-sensitive
+%          | %x46.72.69   ; "Fri", case-sensitive
+%          | %x53.61.74   ; "Sat", case-sensitive
+%          | %x53.75.6E   ; "Sun", case-sensitive
+% ```
+
+'day-name'(1) --> "Mon".
+'day-name'(2) --> "Tue".
+'day-name'(3) --> "Wed".
+'day-name'(4) --> "Thu".
+'day-name'(5) --> "Fri".
+'day-name'(6) --> "Sat".
+'day-name'(7) --> "Sun".
+
+
+
+%! 'day-name-l'(-Day:between(1,7))// is det.
+% ```abnf
+% day-name-l = %x4D.6F.6E.64.61.79            ; "Monday", case-sensitive
+%            | %x54.75.65.73.64.61.79         ; "Tuesday", case-sensitive
+%            | %x57.65.64.6E.65.73.64.61.79   ; "Wednesday", case-sensitive
+%            | %x54.68.75.72.73.64.61.79      ; "Thursday", case-sensitive
+%            | %x46.72.69.64.61.79            ; "Friday", case-sensitive
+%            | %x53.61.74.75.72.64.61.79      ; "Saturday", case-sensitive
+%            | %x53.75.6E.64.61.79            ; "Sunday", case-sensitive
+% ```
+
+%! weekday(?Weekday:between(1,7))// .
+% ```abnf
+% weekday = "Monday" | "Tuesday" | "Wednesday"
+%         | "Thursday" | "Friday" | "Saturday" | "Sunday"
+% ```
+
+'day-name-l'(1) --> "Monday".
+'day-name-l'(2) --> "Tuesday".
+'day-name-l'(3) --> "Wednesday".
+'day-name-l'(4) --> "Thursday".
+'day-name-l'(5) --> "Friday".
+'day-name-l'(6) --> "Saturday".
+'day-name-l'(7) --> "Sunday".
+
+
+
+%! 'delay-seconds'(-Seconds:nonneg)// is det.
+% ```abnf
+% delay-seconds = 1*DIGIT
+% ```
+
+'delay-seconds'(S) --> +('DIGIT', Ds), {pos_num(Ds, S)}.
+
+
+
+%! 'delta-seconds'(-Delta:nonneg)// is det.
+% ```abnf
+% delta-seconds = 1*DIGIT
+% ```
+
+'delta-seconds'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -394,6 +789,46 @@ ctext(C) --> 'obs-text'(C).
 
 
 
+%! 'entity-tag'(-EntityTag:dict)// is det.
+% ```abnf
+% entity-tag = [ weak ] opaque-tag
+% ```
+
+'entity-tag'(entity_tag{weak: Weak, opaque_tag: OTag}) -->
+  (weak -> {Weak = true} ; {Weak = false}),
+  'opaque-tag'(OTag).
+
+
+
+%! expires(?Datetime:compound)// .
+% ```abnf
+% Expires = HTTP-date
+% ```
+
+expires(DT) --> 'HTTP-date'(DT).
+
+
+
+%! etag(-ETag:dict)// is det.
+% ```abnf
+% ETag = "ETag" ":" entity-tag
+% ```
+
+etag(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
+
+
+
+%! etagc(-Code:code)// .
+% ```abnf
+% etagc = %x21 | %x23-7E | obs-text   ; VCHAR except double quotes, plus obs-text
+% ```
+
+etagc(0x21) --> [0x21].
+etagc(C)    --> [C], {between(0x23, 0x7E, C)}.
+etagc(C)    --> 'obs-text'(C).
+
+
+
 %! expect(-Expectation:string)// is det.
 % ```abnf
 % Expect = "100-continue"
@@ -403,9 +838,20 @@ expect("100-continue") --> "100-continue".
 
 
 
-%! 'field-content'(+Name:atom, -Value:dict)// .
+%! 'extension-pragma'(?Extension:or([string,pair(string)]))// .
 % ```abnf
-% field-content = field-vchar [ 1*( SP / HTAB ) field-vchar ]
+% extension-pragma = token [ "=" ( token | quoted-string ) ]
+% ```
+
+'extension-pragma'(T) -->
+  token(N),
+  ("=" -> (token(V), ! ; 'quoted-string'(V)), {T = N-V} ; {T = N}).
+
+
+
+%! 'field-content'(+Name:atom, -Value)// .
+% ```abnf
+% field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
 'field-content'(ModPred, 'field-content'{status: Status, value: Value}) -->
@@ -465,23 +911,32 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-value'(+Name:atom, -Value:compound)// .
+%! 'field-value'(+Name:atom, -Value)// .
 % ```abnf
 % field-value = *( field-content | 'obs-fold' )
 % ```
 
-'field-value'(Name, Value) --> 'field-content'(Name, Value).
-'field-value' --> 'obs-fold'.
+'field-value'(Name, Value) --> 'field-content'(Name, Value), !.
+'field-value'(_, _) --> 'obs-fold'.
 
 
 
 %! 'field-vchar'(-Code:code)// is det.
 % ```abnf
-% field-vchar = VCHAR / obs-text
+% field-vchar = VCHAR | obs-text
 % ```
 
 'field-vchar'(C) --> 'VCHAR'(C).
 'field-vchar'(C) --> 'obs-text'(C).
+
+
+
+%! 'first-byte-pos'(-Position:nonneg)// is det.
+% ```abnf
+% first-byte-pos = 1*DIGIT
+% ```
+
+'first-byte-pos'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
 
 
 
@@ -515,12 +970,27 @@ from --> mailbox.
 
 
 
-%! 'header-field'(-Header:pair(string))// is det.
+%! 'GMT'// is det.
+% ```abnf
+% GMT = %x47.4D.54   ; "GMT", case-sensitive
+% ```
+
+'GMT' --> "GMT".
+
+
+
+%! 'header-field'(-Header:pair)// is det.
 % ```abnf
 % header-field = field-name ":" OWS field-value OWS
 % ```
 
-'header-field'(N-V) --> 'field-name'(N), ":", 'OWS', 'field-value'(V), 'OWS'.
+'header-field'(Name-Value) -->
+  'field-name'(Name),
+  {atom_string(Pred, Name)},
+  ":",
+  'OWS',
+  'field-value'(Pred, Value),
+  'OWS'.
 
 
 
@@ -535,22 +1005,22 @@ host(D) -->
 
 
 
-%! 'http-URI'(-HttpUri:dict)// is det.
+%! hour(-Hour:between(0,99))// is det.
 % ```abnf
-% http-URI = "http:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
+% hour = 2DIGIT
 % ```
 
-'http-URI' -->
-  "http://",
-  authority(Auth),
-  'path-abempty'(Path),
-  ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Frag) ; ""),
-  {
-    L1 = [authority-Auth,fragment-Frag,path-Path,query-Query],
-    exclude(pair_has_var_value, L1, L2),
-    dict_pairs(D, http_uri, L2)
-  }.
+hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+
+
+
+%! 'HTTP-date'(?Datetime:compound)// is det.
+% ```abnf
+% HTTP-date = IMF-fixdate | obs-date
+% ```
+
+'HTTP-date'(DT) --> 'IMF-fixdate'(DT), !.
+'HTTP-date'(DT) --> 'obs-date'(DT).
 
 
 
@@ -574,6 +1044,25 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 % ```
 
 'HTTP-name' --> [0x48,0x54,0x54,0x50].
+
+
+
+%! 'http-URI'(-HttpUri:dict)// is det.
+% ```abnf
+% http-URI = "http:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
+% ```
+
+'http-URI'(D) -->
+  "http://",
+  authority(Auth),
+  'path-abempty'(Path),
+  ("?" -> query(Query) ; ""),
+  ("#" -> fragment(Frag) ; ""),
+  {
+    L1 = [authority-Auth,fragment-Frag,path-Path,query-Query],
+    exclude(pair_has_var_value, L1, L2),
+    dict_pairs(D, http_uri, L2)
+  }.
 
 
 
@@ -610,6 +1099,74 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 
 
 
+%! 'if-match'(-Value)// is det.
+% ```abnf
+% If-Match = "*" | 1#entity-tag
+% ```
+
+'if-match'(*) --> "*".
+'if-match'(L) --> +#('entity-tag', L).
+
+
+
+%! 'if-modified-since'(-Datetime:compound)// is det.
+% ```abnf
+% If-Modified-Since = HTTP-date
+% ```
+
+'if-modified-since'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! 'if-none-match'(-Value)// is det.
+% ```abnf
+% If-None-Match = "*" | 1#entity-tag
+% ```
+
+'if-none-match'(*) --> "*".
+'if-none-match'(L) --> +#('entity-tag', L).
+
+
+
+%! 'if-range'(-Value:or([datetime,dict]))// is det.
+% ```abnf
+% If-Range = entity-tag | HTTP-date
+% ```
+
+'if-range'(EntityTag) --> 'entity-tag'(EntityTag), !.
+'if-range'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! 'if-unmodified-since'(-Datetime:compound)// is det.
+% ```abnf
+% If-Unmodified-Since = HTTP-date
+% ```
+
+'if-unmodified-since'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! 'IMF-fixdate'(-Datetime:compound)// is det.
+% ```abnf
+% IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
+%             ; fixed length/zone/capitalization subset of the format
+%             ; see Section 3.3 of [RFC5322]
+% ```
+
+'IMF-fixdate' --> 'day-name'(D), ",", 'SP', date1(D), 'SP', 'time-of-day', 'SP', 'GMT'.
+
+
+
+%! 'last-byte-pos'(-Position:nonneg)// is det.
+% ```abnf
+% last-byte-pos = 1*DIGIT
+% ```
+
+'last-byte-pos'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+
+
+
 %! 'last-chunk'(-Extensions:list)// is det.
 % ```abnf
 % last-chunk = 1*("0") [ chunk-ext ] CRLF
@@ -618,6 +1175,24 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
 'last-chunk'(Exts) --> +("0"), 'chunk-ext'(Exts), 'CRLF'.
+
+
+
+%! 'last-modified'(-Datetime:compound)// .
+% ```abnf
+% Last-Modified = HTTP-date
+% ```
+
+'last-modified'(DT) --> 'HTTP-date'(DT).
+
+
+
+%! location(-Uri:dict)// is det.
+% ```abnf
+% Location = URI-reference
+% ```
+
+location(Uri) --> 'URI-reference'(Uri).
 
 
 
@@ -633,8 +1208,8 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 %! 'media-range'(-MediaRange:dict)// is det.
 % ```abnf
 % media-range = ( "*/*"
-%               / ( type "/" "*" )
-%               / ( type "/" subtype )
+%               | ( type "/" "*" )
+%               | ( type "/" subtype )
 %               ) *( OWS ";" OWS parameter )
 % ```
 
@@ -691,9 +1266,59 @@ method(S) --> token(S).
 
 
 
+%! minute(-Minute:between(0,99))// is det.
+% ```abnf
+% minute = 2DIGIT
+% ```
+
+minute(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+
+
+
+%! month(-Month:between(1,12))// is det.
+% ```abnf
+% month = %x4A.61.6E ;   "Jan", case-sensitive
+%       | %x46.65.62 ;   "Feb", case-sensitive
+%       | %x4D.61.72 ;   "Mar", case-sensitive
+%       | %x41.70.72 ;   "Apr", case-sensitive
+%       | %x4D.61.79 ;   "May", case-sensitive
+%       | %x4A.75.6E ;   "Jun", case-sensitive
+%       | %x4A.75.6C ;   "Jul", case-sensitive
+%       | %x41.75.67 ;   "Aug", case-sensitive
+%       | %x53.65.70 ;   "Sep", case-sensitive
+%       | %x4F.63.74 ;   "Oct", case-sensitive
+%       | %x4E.6F.76 ;   "Nov", case-sensitive
+%       | %x44.65.63 ;   "Dec", case-sensitive
+% ```
+
+month(1)  --> "Jan".
+month(2)  --> "Feb".
+month(3)  --> "Mar".
+month(4)  --> "Apr".
+month(5)  --> "May".
+month(6)  --> "Jun".
+month(7)  --> "Jul".
+month(8)  --> "Aug".
+month(9)  --> "Sep".
+month(10) --> "Oct".
+month(11) --> "Nov".
+month(12) --> "Dec".
+
+
+
+%! 'obs-date'(-Datetime:compound)// is det.
+% ```abnf
+% obs-date = rfc850-date | asctime-date
+% ```
+
+'obs-date'(DT) --> 'rfc850-date'(DT), !.
+'obs-date'(DT) --> 'asctime-date'(DT).
+
+
+
 %! 'obs-fold'// is det.
 % ```abnf
-% obs-fold = CRLF 1*( SP / HTAB ) ; obsolete line folding
+% obs-fold = CRLF 1*( SP | HTAB )   ; obsolete line folding
 % ```
 
 'obs-fold' --> 'CRLF', +(sp_or_htab).
@@ -709,6 +1334,36 @@ method(S) --> token(S).
 
 
 
+%! 'opaque-tag'(?OpaqueTag:string)// .
+% ```abnf
+% opaque-tag = DQUOTE *etagc DQUOTE
+% ```
+
+'opaque-tag'(S) --> 'DQUOTE', *(etagc, Cs), 'DQUOTE', {string_codes(S, Cs)}.
+
+
+
+%! 'other-content-range'(-ContentRange:dict)// is det.
+% ```abnf
+% other-content-range = other-range-unit SP other-range-resp
+% ```
+
+'other-content-range'(content_range{range: Range, unit: Unit}) -->
+  'other-range-unit'(Unit),
+  'SP',
+  'other-range-resp'(Range).
+
+
+
+%! 'other-range-resp'(-String:string)// is det.
+% ```abnf
+% other-range-resp = *CHAR
+% ```
+
+'other-range-resp'(S) --> *('CHAR', Cs), {string_codes(S, Cs)}.
+
+
+
 %! 'origin-form'(-Uri:dict)// is det.
 % ```abnf
 % origin-form = absolute-path [ "?" query ]
@@ -720,9 +1375,39 @@ method(S) --> token(S).
 
 
 
+%! 'other-range-set'(-RangeSet:string)// is det.
+% ```abnf
+% other-range-set = 1*VCHAR
+% ```
+
+'other-range-set'(S) --> +('VCHAR', Cs), {pos_num(Cs, S)}.
+
+
+
+%! 'other-range-unit'(?RangeUnit:string)// .
+% ```abnf
+% other-range-unit = token
+% ```
+
+'other-range-unit'(S) --> token(S).
+
+
+
+%! 'other-ranges-specifier'(-RangeSpecifier:dict)// is det.
+% ```abnf
+% other-ranges-specifier = other-range-unit "=" other-range-set
+% ```
+
+'other-ranges-specifier'(range_specifier{ranges: [Range], unit: Unit}) -->
+  'other-range-unit'(Unit),
+  "=",
+  'other-range-set'(Range).
+
+
+
 %! 'OWS'// is det.
 % ```abnf
-% OWS = *( SP / HTAB )   ; optional whitespace
+% OWS = *( SP | HTAB )   ; optional whitespace
 % ```
 
 'OWS' --> *(sp_or_htab).
@@ -731,19 +1416,19 @@ method(S) --> token(S).
 
 %! parameter(?Parameter:pair(string))// .
 % ```abnf
-% parameter = token "=" ( token / quoted-string )
+% parameter = token "=" ( token | quoted-string )
 % ```
 
 parameter(N-V) --> token(N), "=", (token(V), ! ; 'quoted-string'(V)).
 
 
 
-%! 'partial-URI'// is det.
+%! 'partial-URI'(-Uri:dict)// is det.
 % ```abnf
 % partial-URI = relative-part [ "?" query ]
 % ```
 
-'partial-URI' -->
+'partial-URI'(D) -->
   'relative-part'(D0),
   {dict_pairs(D0, relative_part, T)},
   ("?" -> query(Query) ; ""),
@@ -751,6 +1436,64 @@ parameter(N-V) --> token(N), "=", (token(V), ! ; 'quoted-string'(V)).
     exclude(pair_has_var_value, [query-Query|T], L),
     dict_pair(D, partial_uri, L)
   }.
+
+
+
+%! pragma(?Directives:list)// .
+% ```abnf
+% Pragma = 1#pragma-directive
+% ```
+
+pragma(L) --> +#('pragma-directive', L).
+
+
+
+%! 'pragma-directive'(?Directive:or([oneof(['no-cache']),string,pair(string)]))// .
+% ```abnf
+% pragma-directive = "no-cache" | extension-pragma
+% ```
+
+'pragma-directive'('no-cache') --> "no-cache", !.
+'pragma-directive'(X)          --> 'extension-pragma'(X).
+
+
+
+%! product(-Product:dict)// is det.
+% ```abnf
+% product = token ["/" product-version]
+% ```
+
+product(D) -->
+  token(Name),
+  ("/" -> 'product-version'(Version), {T = [version-Version]} ; {T = []}),
+  {dict_pairs(D, product, [name-Name|T])}.
+
+
+
+%! 'product-version'(-Version:string)// is det.
+% ```
+% product-version = token
+% ```
+
+'product-version'(S) --> token(S).
+
+
+
+%! 'proxy-authenticate'(-Challenges:list(dict))// is det.
+% ```abnf
+% Proxy-Authenticate = 1#challenge
+% ```
+
+'proxy-authenticate'(L) --> +#(challenge, L).
+
+
+
+%! 'proxy-authorization'(-Credentials:dict)// is det.
+% ```abnf
+% Proxy-Authorization = credentials
+% ```
+
+'proxy-authorization'(D) --> credentials(D).
 
 
 
@@ -795,7 +1538,7 @@ pseudonym(S) --> token(S).
 
 %! qdtext(-Code:code)// is det.
 % ```abnf
-% qdtext = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text
+% qdtext = HTAB | SP /%x21 | %x23-5B | %x5D-7E | obs-text
 % ```
 
 qdtext(C)    --> 'HTAB'(C).
@@ -808,7 +1551,7 @@ qdtext(C)    --> 'obs-text'(C).
 
 %! 'quoted-pair'(-Code:code)// is det.
 % ```abnf
-% quoted-pair = "\" ( HTAB / SP / VCHAR / obs-text )
+% quoted-pair = "\" ( HTAB | SP | VCHAR | obs-text )
 % ```
 
 'quoted-pair'(C) --> "\\", quoted_pair_code(C).
@@ -821,7 +1564,7 @@ quoted_pair_code(C) --> 'obs-text'(C).
 
 %! 'quoted-string'(?String:string)// .
 % ```abnf
-% quoted-string = DQUOTE *( qdtext / quoted-pair ) DQUOTE
+% quoted-string = DQUOTE *( qdtext | quoted-pair ) DQUOTE
 % ```
 
 'quoted-string'(S) -->
@@ -836,10 +1579,10 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 %! qvalue(-Value:between(0.0,1.0))// is det.
 % ```abnf
-% qvalue = ( "0" [ "." 0*3DIGIT ] ) / ( "1" [ "." 0*3("0") ] )
+% qvalue = ( "0" [ "." 0*3DIGIT ] ) | ( "1" [ "." 0*3("0") ] )
 % ```
 
-qvalue(N)
+qvalue(N) -->
   "0",
   (   "."
   ->  'm*n'(0, 3, 'DIGIT', Ds),
@@ -850,9 +1593,29 @@ qvalue(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 
 
 
+%! range(-RangeSpecifier:dict)// is det.
+% ```abnf
+% Range = byte-ranges-specifier | other-ranges-specifier
+% ```
+
+range(D) --> 'byte-ranges-specifier'(D).
+range(D) --> 'other-ranges-specifier'(D).
+
+
+
+%! 'range-unit'(-Value)// is det.
+% ```abnf
+% range-unit = bytes-unit | other-range-unit
+% ```
+
+'range-unit'(A) --> 'bytes-unit'(A), !.
+'range-unit'(S) --> 'other-range-unit'(S).
+
+
+
 %! rank(-Rank:between(0.0,1.0))// is det.
 % ```abnf
-% rank = ( "0" [ "." 0*3DIGIT ] ) / ( "1" [ "." 0*3("0") ] )
+% rank = ( "0" [ "." 0*3DIGIT ] ) | ( "1" [ "." 0*3("0") ] )
 % ```
 
 rank(N) -->
@@ -868,10 +1631,10 @@ rank(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 
 %! 'reason-phrase'(-Reason:string)// is det.
 % ```abnf
-% reason-phrase = *( HTAB / SP / VCHAR / obs-text )
+% reason-phrase = *( HTAB | SP | VCHAR | obs-text )
 % ```
 
-'reason-phrase' --> *(reason_phrase_code, Cs), {string_codes(S, Cs)}.
+'reason-phrase'(S) --> *(reason_phrase_code, Cs), {string_codes(S, Cs)}.
 reason_phrase_code(C) --> 'HTAB'(C).
 reason_phrase_code(C) --> 'SP'(C).
 reason_phrase_code(C) --> 'VCHAR'(C).
@@ -905,25 +1668,13 @@ reason_phrase_code(C) --> 'obs-text'(C).
 
 
 
-%! 'Request'// .
+%! referer(-Uri:dict)// is det.
 % ```abnf
-% Request = Request-Line
-%           *(( general-header
-%             | request-header
-%             | entity-header )
-%             CRLF )
-%            CRLF
-%            [ message-body ]
+% Referer = absolute-URI | partial-URI
 % ```
 
-'Request' -->
-  'Request-Line',
-  *(header_eol, L),
-  'CRLF',
-  def('message-body', Cs, []).
-header_eol(X) --> 'general-header'(X).
-header_eol(X) --> 'request-header'(X).
-header_oel(X) --> 'entity-header'(X).
+referer(Uri) --> 'absolute-URI'(Uri), !.
+referer(Uri) --> 'partial-URI'(Uri).
 
 
 
@@ -947,9 +1698,9 @@ header_oel(X) --> 'entity-header'(X).
 %! 'request-target'(-Target)// is det.
 % ```abnf
 % request-target = origin-form
-%                / absolute-form
-%                / authority-form
-%                / asterisk-form
+%                | absolute-form
+%                | authority-form
+%                | asterisk-form
 % ```
 
 'request-target'(D) --> 'origin-form'(D).
@@ -959,12 +1710,58 @@ header_oel(X) --> 'entity-header'(X).
 
 
 
+%! 'retry-after'(-Value:or([compound,nonneg]))// is det.
+% ```abnf
+% Retry-After = HTTP-date | delay-seconds
+% ```
+
+'retry-after'(DT) --> 'HTTP-date'(DT), !.
+'retry-after'(S) --> 'delay-seconds'(S).
+
+
+
+%! 'rfc850-date'(-Datetime:compound)// is det.
+% ```abnf
+% rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
+% ```
+
+'rfc850-date'(datetime(Y,Mo,D,H,Mi,S,0)) -->
+  'day-name-l'(D),
+  ",",
+  'SP',
+  date2(date(Y,Mo,D)),
+  'SP',
+  'time-of-day'(time(H,Mi,S)),
+  'SP',
+  'GMT'.
+
+
+
 %! 'RWS'// is det.
 % ```abnf
-% RWS = 1*( SP / HTAB )   ; required whitespace
+% RWS = 1*( SP | HTAB )   ; required whitespace
 % ```
 
 'RWS' --> +(sp_or_htab).
+
+
+
+%! second(-Second:between(0,99))// is det.
+% ```abnf
+% second = 2DIGIT
+% ```
+
+second(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+
+
+
+%! server(-Values:list(string))// is det.
+% ```abnf
+% Server = product *( RWS ( product | comment ) )
+% ```
+
+server([H|T]) --> product(H), *(sep_product_or_comment, T).
+sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
 
 
 
@@ -1004,7 +1801,7 @@ header_oel(X) --> 'entity-header'(X).
 
 
 
-%! subtype// .
+%! subtype(-Subtype:string)// is det.
 % ```abnf
 % subtype = token
 % ```
@@ -1013,9 +1810,27 @@ subtype(S) --> token(S).
 
 
 
+%! 'suffix-byte-range-spec'(-Value:nonpos)// is det.
+% ```abnf
+% suffix-byte-range-spec = "-" suffix-length
+% ```
+
+'suffix-byte-range-spec'(N) --> "-", 'suffix-length'(N).
+
+
+
+%! 'suffix-length'(-Length:nonneg)// is det.
+% ```abnf
+% suffix-length = 1*DIGIT
+% ```
+
+'suffix-length'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+
+
+
 %! 't-codings'// is det.
 % ```abnf
-% t-codings = "trailers" / ( transfer-coding [ t-ranking ] )
+% t-codings = "trailers" | ( transfer-coding [ t-ranking ] )
 % ```
 
 't-codings'(trailers) --> "trailers".
@@ -1036,9 +1851,9 @@ subtype(S) --> token(S).
 
 %! tchar(-Code:code)// is det.
 % ```abnf
-% tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*"
-%       / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
-%      / DIGIT / ALPHA   ; any VCHAR, except delimiters
+% tchar = "!" | "#" | "$" | "%" | "&" | "'" | "*"
+%       | "+" | "-" | "." | "^" | "_" | "`" | "|" | "~"
+%      | DIGIT | ALPHA   ; any VCHAR, except delimiters
 
 
 tchar(C)   --> 'ALPHA'(C).
@@ -1046,7 +1861,7 @@ tchar(C)   --> 'DIGIT'(_, C).
 tchar(0'!) --> "!".
 tchar(0'#) --> "#".
 tchar(0'$) --> "$".
-tchar(0'%) --> "\%".
+tchar(0'%) --> "%".
 tchar(0'&) --> "&".
 tchar(0'') --> "'".
 tchar(0'*) --> "*".
@@ -1070,12 +1885,38 @@ te(L) --> *#('t-codings', L).
 
 
 
-%! token(?Token:string)// .
+%! 'time-of-day'(-Time:compound)// is det.
+% ```abnf
+% time-of-day = hour ":" minute ":" second
+%             ; 00:00:00 - 23:59:60 (leap second)
+% ```
+
+'time-of-day'(time(H,Mi,S)) --> hour(H), ":", minute(Mi), ":", second(S).
+
+
+
+%! token(?Token:string)// is det.
 % ```abnf
 % token = 1*tchar
 % ```
 
 token(S) --> +(tchar, Cs), {string_codes(S, Cs)}.
+
+
+
+%! token68(-Token:code)// .
+% ```
+% token68 = 1*( ALPHA | DIGIT | "-" | "." | "_" | "~" | "+" | "/" ) *"="
+
+token68(S) --> +(token68_code, Cs), {string_codes(S, Cs)}, *("=").
+token68_code(C)   --> 'ALPHA'(C).
+token68_code(C)   --> 'DIGIT'(_, C).
+token68_code(0'-) --> "-".
+token68_code(0'.) --> ".".
+token68_code(0'_) --> "_".
+token68_code(0'~) --> "~".
+token68_code(0'+) --> "+".
+token68_code(0'/) --> "/".
 
 
 
@@ -1101,10 +1942,10 @@ header_field_eol(Header) --> 'header-field'(Header), 'CRLF'.
 %! 'transfer-coding'(?TransferCoding:dict)// is det.
 % ```abnf
 % transfer-coding = "chunked"
-%                 / "compress"
-%                 / "deflate"
-%                 / "gzip"
-%                 / transfer-extension
+%                 | "compress"
+%                 | "deflate"
+%                 | "gzip"
+%                 | transfer-extension
 % ```
 
 'transfer-coding'(transfer_coding{token: chunked, parameter: []}) -->
@@ -1143,7 +1984,7 @@ sep_transfer_parameter(Param) --> 'OWS', ";", 'OWS', 'transfer-parameter'(Param)
 
 %! 'transfer-parameter'(-Parameter:pair)// is det.
 % ```abnf
-% transfer-parameter = token BWS "=" BWS ( token / quoted-string )
+% transfer-parameter = token BWS "=" BWS ( token | quoted-string )
 % ```
 
 'transfer-parameter'(N-V) -->
@@ -1164,12 +2005,41 @@ type(S) --> token(S).
 
 
 
+%! 'unsatisfied-range'(-Range:*, -Length:nonneg)// is det.
+% ```abnf
+% unsatisfied-range = "*/" complete-length
+% ```
+
+'unsatisfied-range'(*, Length) --> "*/", 'complete-length'(Length).
+
+
+
 %! upgrade// is det.
 % ```abnf
 % upgrade = 1#protocol
 % ```
 
 upgrade(L) --> +#(protocol, L).
+
+
+
+%! 'user-agent'(-UserAgent:list(string)
+% ```abnf
+% User-Agent = product *( RWS ( product | comment ) )
+% ```
+
+user_agent([H|T]) --> product(H), *(sep_product_or_comment, T).
+sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
+
+
+
+%! vary(-Value)// is det.
+% ```abnf
+% Vary = "*" | 1#field-name
+% ```
+
+vary(*) --> "*", !.
+vary(L) --> +#('field-name', L).
 
 
 
@@ -1189,12 +2059,106 @@ via_component(D) -->
 
 
 
+%! 'warn-agent'(-Agent)// is det.
+% ```abnf
+% warn-agent = ( uri-host [ ":" port ] ) | pseudonym
+%            ; the name or pseudonym of the server adding
+%            ; the Warning header field, for use in debugging
+%            ; a single "-" is recommended when agent unknown
+% ```
+
+'warn-agent'(D) -->
+  'uri-host'(D0),
+  (":" -> port(Port), {D = D0.put(port, Port)} ; {D = D0}).
+'warn-agent'(S) --> pseudonym(S).
+
+
+
+%! 'warn-code'(-Code:between(0,999))// is det.
+% ```abnf
+% warn-code = 3DIGIT
+% ```
+
+'warn-code'(N) --> #(3, 'DIGIT', Ds), {pos_num(Ds, N)}.
+
+
+
+%! 'warn-date'(-Datetime:datetime)// is det.
+% ```abnf
+% warn-date = DQUOTE HTTP-date DQUOTE
+% ```
+
+'warn-date'(DT) --> 'DQUOTE', 'HTTP-date'(DT), 'DQUOTE'.
+
+
+
+%! 'warn-text'(-Text:string)// is det.
+% ```abnf
+% warn-text = quoted-string
+% ```
+
+'warn-text'(S) --> 'quoted-string'(S).
+
+
+
+%! warning(-Values:list(dict))// is det.
+% ```abnf
+% warning = 1#warning-value
+% ```
+
+warning(L) --> +#('warning-value', L).
+
+
+
+%! 'warning-value'(-Value:dict)// is det.
+% ```abnf
+% warning-value = warn-code SP warn-agent SP warn-text [ SP warn-date ]
+% ```
+
+'warning-value'(D) -->
+  'warn-code'(Code),
+  'SP',
+  'warn-agent'(Agent),
+  'SP',
+  'warn-text'(Text),
+  ('SP' -> 'warn-date'(DT), {T = [date-DT]} ; {T = []}),
+  {dict_pairs(D, warning_value, [agent-Agent,code-Code,text-Text|T])}.
+
+
+
+%! weak// is det.
+% ```abnf
+% weak = %x57.2F   ; "W/", case-sensitive
+% ```
+
+weak --> "W/".
+
+
+
 %! weight(-Weight:between(0.0,1.0))// is det.
 % ```abnf
 % weight = OWS ";" OWS "q=" qvalue
 % ```
 
 weight(N) --> 'OWS', ";", 'OWS', "q=", qvalue(N).
+
+
+
+%! 'www-authenticate'(?Challenges:list(dict))// is det.
+% ```abnf
+% WWW-Authenticate = 1#challenge
+% ```
+
+'www-authenticate'(L) --> +#(challenge, L).
+
+
+
+%! year(-Year:between(0,9999))// is det.
+% ```
+% year = 4DIGIT
+% ```
+
+year(Y) --> #(4, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
 
 
 

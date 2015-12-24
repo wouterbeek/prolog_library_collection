@@ -18,7 +18,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2015/11
+@version 2015/10-2015/12
 */
 
 :- use_module(library(apply)).
@@ -28,7 +28,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(http/http_info)).
 :- use_module(library(http/http_open)). % HTTP support.
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
-:- use_module(library(http/rfc2616_header)).
+:- use_module(library(http/http11)).
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(lists)).
@@ -233,7 +233,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
 
   % Source type.
   put_dict(source_type, M3, Type, M4).
-parse_header(Line, Header):- phrase('message-header'(Header), Line).
+parse_header(Line, Header):- phrase('header-field'(Header), Line).
 
 
 

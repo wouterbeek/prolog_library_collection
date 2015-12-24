@@ -45,8 +45,7 @@ __Host-js_csrf=H9teNf8adQDrvSiROZyOCs0N; expires=Wed, 19 Dec 2018 18:04:52 GMT; 
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616_code), ['LWS'//0]).
-:- use_module(library(http/rfc2616_token), ['quoted-string'//1,token//1]).
+:- use_module(library(http/rfc2616), ['LWS'//0,'quoted-string'//1,token//1]).
 
 
 

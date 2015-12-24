@@ -17,8 +17,7 @@
 */
 
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616), ['Method'//1]).
-:- use_module(library(http/rfc2616_header), ['field-name'//1]).
+:- use_module(library(http/http11), ['field-name'//1,method//1]).
 :- use_module(library(http/rfc6454)).
 
 
@@ -48,7 +47,7 @@
 % Access-Control-Allow-Methods: "Access-Control-Allow-Methods" ":" #Method
 % ```
 
-'access-control-allow-methods'(L) --> *#('Method', L).
+'access-control-allow-methods'(L) --> *#(method, L).
 
 
 

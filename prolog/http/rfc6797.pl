@@ -10,12 +10,11 @@
 @author
 @compat RFC 6797
 @see https://tools.ietf.org/html/rfc6797
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/rfc2616_code), ['LWS'//0]).
-:- use_module(library(http/rfc2616_token), ['quoted-string'//1,token//1]).
+:- use_module(library(http/rfc2616), ['LWS'//0,'quoted-string'//1,token//1]).
 
 
 

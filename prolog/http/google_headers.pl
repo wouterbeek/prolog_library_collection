@@ -13,9 +13,11 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_date)).
-:- use_module(library(http/rfc2616_token)).
+:- use_module(library(http/rfc2616), [
+     'LWS'//0,
+     'rfc850-date'//1, % -Datetime:datetime
+     token//1 % -Token:string
+   ]).
 
 
 
@@ -60,8 +62,11 @@
 % @see https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
 
 'x-robots-tag'(robots{user_agent: UA, directives: L}) -->
-  user_agent(UA), ":", !, ?('LWS'), '+#'(directive, L).
-'x-robots-tag'(robots{directives: L}) --> '+#'(directive, L).
+  user_agent(UA),
+  ":", !,
+  ?('LWS'),
+  +#(directive, L).
+'x-robots-tag'(robots{directives: L}) --> +#(directive, L).
 
 
 user_agent(S) --> token(S).

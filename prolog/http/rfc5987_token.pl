@@ -14,9 +14,6 @@
     'value-chars'//1 % Value:string
   ]
 ).
-:- reexport(library(http/rfc2616_token), [
-     value//1 % ?Value:string
-   ]).
 
 /** <module> RFC 5987: Character Set and Language Encoding for
              Hypertext Transfer Protocol (HTTP) Header Field Parameters
@@ -31,7 +28,7 @@ This modifies the following RFC 2616 rules:
 @author Wouter Beek
 @compat RFC 5987
 @see http://tools.ietf.org/html/rfc5987
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).

@@ -22,9 +22,21 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616_code)).
+:- use_module(library(http/rfc2616), [
+     'LWS'//0,
+     token//1
+   ]).
 
 
+
+
+
+%! attr(-Attribute:string)// is det.
+% ```abnf
+% attr = token
+% ```
+
+attr(S) --> token(S).
 
 
 
@@ -67,7 +79,16 @@ sep_set_cookie_av(X) --> ";", ?('LWS'), 'set-cookie-av'(X).
 % cookies = 1#cookie
 % ```
 
-cookies(L) --> '+#'(cookie, L).
+cookies(L) --> +#(cookie, L).
+
+
+
+%! 'NAME'(-Name:string)// is det.
+% ```abnf
+% NAME = attr
+% ```
+
+'NAME'(S) --> attr(S).
 
 
 
@@ -76,7 +97,7 @@ cookies(L) --> '+#'(cookie, L).
 % portlist = 1#portnum
 % ```
 
-portlist(L) --> '+#'(portnum, L).
+portlist(L) --> +#(portnum, L).
 
 
 
@@ -85,7 +106,7 @@ portlist(L) --> '+#'(portnum, L).
 % portnum = 1*DIGIT
 % ```
 
-portnum(N) --> '+digit'(N).
+portnum(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
 
 
 
@@ -101,16 +122,16 @@ portnum(N) --> '+digit'(N).
 %               | "Secure"
 %               | "Version" "=" 1*DIGIT
 
-'set-cookie-av'(comment-V) --> "Comment=", !, value(V).
+'set-cookie-av'(comment-V)    --> "Comment=", !, value(V).
 'set-cookie-av'(commentURL-V) --> "CommentURL=\"", !, http_URL(V), "\"".
-'set-cookie-av'(discard) --> "Discard", !.
-'set-cookie-av'(domain-V) --> "Domain=", !, value(V).
-'set-cookie-av'(max_age-V) --> "Max-Age=", !, value(V).
-'set-cookie-av'(path-V) --> "Path=", !, value(V).
-'set-cookie-av'(port-V) --> "Port=\"", !, portlist(V), "\"".
-'set-cookie-av'(port) --> "Port", !.
-'set-cookie-av'(secure) --> "Secure", !.
-'set-cookie-av'(version-V) --> "Version=", '+digit'(V).
+'set-cookie-av'(discard)      --> "Discard", !.
+'set-cookie-av'(domain-V)     --> "Domain=", !, value(V).
+'set-cookie-av'(max_age-V)    --> "Max-Age=", !, value(V).
+'set-cookie-av'(path-V)       --> "Path=", !, value(V).
+'set-cookie-av'(port-V)       --> "Port=\"", !, portlist(V), "\"".
+'set-cookie-av'(port)         --> "Port", !.
+'set-cookie-av'(secure)       --> "Secure", !.
+'set-cookie-av'(version-V)    --> "Version=", +('DIGIT', Ds), {pos_sum(Ds, V)}.
 
 
 
@@ -120,3 +141,22 @@ portnum(N) --> '+digit'(N).
 % ```
 
 'set-cookie2'(L) --> cookies(L).
+
+
+
+%! value(-Value:string)// is det.
+% ```abnf
+% value = token | quoted-string
+% ```
+
+value(S) --> token(S), !.
+value(S) --> 'quoted-string'(S).
+
+
+
+%! 'VALUE'(-Value:string)// is det.
+% ```abnf
+% VALUE = value
+% ```
+
+'VALUE'(S) --> value(S).

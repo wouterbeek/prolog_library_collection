@@ -15,8 +15,7 @@
 
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_token)).
+:- use_module(library(http/rfc2616), ['LWS'//0]).
 
 
 

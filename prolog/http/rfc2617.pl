@@ -12,13 +12,13 @@
 @author Wouter Beek
 @deprecated
 @see https://tools.ietf.org/html/rfc2617
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/rfc2234), ['SP'//0]).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_token)).
+:- use_module(library(http/rfc2616), ['quoted-string'//1,token//1]).
 
 
 

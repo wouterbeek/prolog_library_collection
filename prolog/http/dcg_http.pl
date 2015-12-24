@@ -13,12 +13,12 @@
 @author Wouter Beek
 @compat RFC 2616
 @depracated
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/rfc2616_code)).
+:- use_module(library(http/rfc2616), ['LWS'//0]).
 
 :- meta_predicate(*#(3,-,?,?)).
 :- meta_predicate(+#(3,-,?,?)).

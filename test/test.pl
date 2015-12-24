@@ -78,12 +78,7 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/rfc2109)).
-  :- use_module(library(http/rfc2616)).
-  :- use_module(library(http/rfc2616_code)).
-  :- use_module(library(http/rfc2616_date)).
-  :- use_module(library(http/rfc2616_header)).
-  :- use_module(library(http/rfc2616_test)).
-  :- use_module(library(http/rfc2616_token)).
+  :- use_module(library(http/http11)).
   :- use_module(library(http/rfc2617)).
   :- use_module(library(http/rfc4790)).
   :- use_module(library(http/rfc5987_code)).

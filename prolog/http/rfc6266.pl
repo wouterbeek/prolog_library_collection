@@ -1,8 +1,7 @@
 :- module(
   rfc6266,
   [
-    'content-disposition'//2 % ?Type:string
-                             % ?Parameters:list(pair)
+    'content-disposition'//1 % -Disposition:dict
   ]
 ).
 
@@ -14,12 +13,11 @@ header from RFC 2616.
 @author Wouter Beek
 @compat RFC 6266
 @see http://tools.ietf.org/html/rfc6266
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/rfc2616_code)).
-:- use_module(library(http/rfc2616_token), [
+:- use_module(library(http/rfc2616), [
      token//1, % ?Token:string
      'quoted-string'//1, % QuotedString:string
      value//1 % ?Value:string
@@ -34,14 +32,13 @@ header from RFC 2616.
 
 
 
-%! 'content-disposition'(?ContentDisposition:compound)// .
-%! 'content-disposition'(?Type:string, ?Parameters:list(pair(string)))// .
+%! 'content-disposition'(-Disposition:dict)// is det.
 % ```abnf
 % content-disposition = "Content-Disposition" ":"
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(Type, Params) -->
+'content-disposition'(disposition{type: Type, parameters: Params}) -->
   'disposition-type'(Type),
   *(disposition_param, Params).
 disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
@@ -50,8 +47,7 @@ disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 
 %! 'disp-ext-parm(?Parameter:pair(string))// .
 % ```abnf
-% disp-ext-parm = token "=" value
-%               | ext-token "=" ext-value
+% disp-ext-parm = token "=" value | ext-token "=" ext-value
 % ```
 
 'disp-ext-parm'(Key-Val)        --> token(Key), !,    "=", value(Val).

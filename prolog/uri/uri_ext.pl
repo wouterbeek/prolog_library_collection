@@ -36,7 +36,7 @@ Additional predicates for handling URIs.
 :- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(uri/rfc3986_code)).
+:- use_module(library(uri/rfc3986)).
 
 :- meta_predicate(uri_change_query(+,2,-)).
 :- meta_predicate(uri_change_query_options(+,2,-)).

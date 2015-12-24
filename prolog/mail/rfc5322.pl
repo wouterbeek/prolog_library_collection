@@ -13,7 +13,7 @@
 @version 2015/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_ext), except([atom//1])).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % ?Code:code
      'CR'//0,
@@ -148,7 +148,7 @@ comment --> "(", *(?('FWS'), ccontent), ?('FWS'), ")".
 
 ctext(C) -->
   [C],
-  {(between(33, 39, C) ; between(42, 91, C)! ; between(93, 126, C))}, !.
+  {once((between(33, 39, C) ; between(42, 91, C) ; between(93, 126, C)))}.
 ctext(C) --> 'obs-ctext'(C).
 
 
@@ -215,7 +215,7 @@ day(D) --> 'obs-day'(D).
 % display-name = phrase
 % ```
 
-'display-name'(S) --> phrase(S).
+'display-name'(S) --> phrase0(S).
 
 
 
@@ -272,12 +272,12 @@ dtext(C) --> 'obs-dtext'(C).
 
 
 
-%! group(-Group:list(string))// is det.
+%! group(-Name:string, -Groups:list(string))// is det.
 % ```abnf
 % group = display-name ":" [group-list] ";" [CFWS]
 % ```
 
-group --> 'display-name'(Name), ":", ?('group-list', L), ";", ?('CFWS').
+group(Name, Groups) --> 'display-name'(Name), ":", def('group-list', Groups, []), ";", ?('CFWS').
 
 
 
@@ -399,8 +399,8 @@ month(12) --> "Dec".
 % phrase = 1*word / obs-phrase
 % ```
 
-phrase(L) --> +(word, L).
-phrase(L) --> 'obs-phrase'(L).
+phrase0(L) --> +(word, L), !.
+phrase0(L) --> 'obs-phrase'(L).
 
 
 
@@ -566,5 +566,5 @@ zone(N) -->
   'FWS',
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
   #(4, 'DIGIT', Ds), !,
-  {pos_sum(Ds, N0), N is -N0}.
+  {pos_sum(Ds, N0), N is Sg * N0}.
 zone(N) --> 'obs-zone'(N).

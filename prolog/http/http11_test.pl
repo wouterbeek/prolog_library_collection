@@ -1,26 +1,26 @@
-:- module(rfc2616_test, []).
+:- module(http11_test, []).
 
-/** <module> RFC 2616: Unit tests
+/** <module> HTTP 1.1: Unit tests
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
-:- use_module(library(http/rfc2616_date)).
+:- use_module(library(http/http11)).
 :- use_module(library(plunit)).
 
 
 
 
 
-:- begin_tests(rfc2616).
+:- begin_tests(http11).
 
-test('Date', "Tue, 15 Nov 1994 08:12:31 GMT.", datetime(1994,11,15,8,12,31,_)).
-test('User-Agent', "User-Agent: CERN-LineMode/2.15 libwww/2.17b3", []).
-test('Server', "Server: Apache/0.8.4", ["Apache","0.8.4"]).
+test(date, "Tue, 15 Nov 1994 08:12:31 GMT.", datetime(1994,11,15,8,12,31,_)).
+test('user-agent', "User-Agent: CERN-LineMode/2.15 libwww/2.17b3", []).
+test(server, "Server: Apache/0.8.4", ["Apache","0.8.4"]).
 
-test(rfc2616_date, [forall(test(Dcg_1,S,DT))]):-
+test(http11, [forall(test(Dcg_1,S,DT))]):-
   Dcg_0 =.. [Dcg_1,DT],
   once(string_phrase(Dcg_0, S)).
 
-:- end_tests(rfc2616).
+:- end_tests(http11).
