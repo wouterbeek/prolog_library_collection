@@ -18,7 +18,7 @@
 @compat RFC 6454
 @license MIT License
 @see http://tools.ietf.org/html/rfc6454
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
@@ -28,10 +28,10 @@
 :- use_module(library(http/rfc6454_code)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
-:- use_module(library(uri/rfc3986_component), [
-     scheme//1, % ?Scheme:string
-     host//1, % ?Host:compound
-     port//1 % ?Port:nonneg
+:- use_module(library(uri/rfc3986), [
+     host//1, % -Host:compound
+     port//1, % -Port:nonneg
+     scheme//1 % -Scheme:string
    ]).
 :- use_module(library(uuid)).
 

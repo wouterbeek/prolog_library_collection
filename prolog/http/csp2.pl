@@ -10,11 +10,18 @@
 @author Wouter Beek
 @compat Content Secirity Policy Level 2 W3C Candicate Recommendation
 @see http://www.w3.org/TR/CSP2/
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/rfc2234)).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'DIGIT'//2, % ?Weight:between(0,9)
+                 % ?Code:code
+     'VCHAR'//1, % ?Code:code
+     'WSP'//0,
+     'WSP'//1 % ?Code:code
+   ]).
 :- use_module(library(http/dcg_http)).
 
 
@@ -36,7 +43,8 @@
 % ```
 
 'directive-name'(S) --> +(directive_name_code, Cs), {string_codes(S, Cs)}.
-directive_name_code(C)   --> alphadigit(C).
+directive_name_code(C)   --> 'ALPHA'(C).
+directive_name_code(C)   --> 'DIGIT'(_, C).
 directive_name_code(0'-) --> "-".
 
 

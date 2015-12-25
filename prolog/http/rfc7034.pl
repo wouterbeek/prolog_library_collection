@@ -1,7 +1,6 @@
 :- module(
   rfc7034,
   [
-    'RWS'//0,
     'x-frame-options'//1 % -Value
   ]
 ).
@@ -15,7 +14,10 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/rfc2234)).
+:- use_module(library(dcg/rfc2234), [
+     'HTAB'//0,
+     'SP'//0
+   ]).
 :- use_module(library(http/rfc6454)).
 
 

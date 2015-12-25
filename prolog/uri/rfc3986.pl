@@ -9,6 +9,7 @@
     port//1, % -Port:nonneg
     query//1, % -Query:string
     'relative-part'//1, % -RelativeUri:dict
+    scheme//1, % -Scheme:string
     segment//1, % -Segment:string
     'sub-delims'//1 , % ?Code:code
     unreserved//1, % ?Code:code
@@ -68,7 +69,7 @@
 % authoritatively to requests that target the identified resource.
 
 authority(D) -->
-  (userinfo(UserInfo) -> "@" ; ""),
+  (userinfo(UserInfo), "@", ! ; ""),
   host(Host),
   (":" -> port(Port) ; ""),
   {

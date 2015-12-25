@@ -6,6 +6,7 @@
                              % -Status:compound
                              % -Messages:list(compound)
     debug_all_files/0,
+    debug_collect_messages/1, % :Goal_0
     debug_concurrent_maplist/3, % +Flag:compound
                                 % :Goal_1
                                 % +Arguments1:list
@@ -65,6 +66,7 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- meta_predicate(call_collect_messages(0)).
 :- meta_predicate(call_collect_messages(0,-,-)).
+:- meta_predicate(debug_collect_messages(0)).
 :- meta_predicate(debug_concurrent_maplist(+,1,+)).
 :- meta_predicate(debug_concurrent_maplist(+,2,+,+)).
 :- meta_predicate(debug_concurrent_maplist(+,3,+,+,+)).
@@ -136,6 +138,16 @@ do_not_load(File1):-
 
 do_not_load0(dcg_ascii).
 do_not_load0(dcg_unicode).
+
+
+
+%! debug_collect_messages(:Goal_0) is det.
+
+debug_collect_messages(Goal_0):-
+  call_collect_messages(Goal_0, Status, Es),
+  process_warnings(Es),
+  process_status(Status),
+  (Status == true, ! ; trace, debug_collect_messages(Goal_0)).
 
 
 

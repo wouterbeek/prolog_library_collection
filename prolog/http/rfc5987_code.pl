@@ -15,7 +15,7 @@
                   % ?Code:code
      'LWSP'//0
 ]).
-:- reexport(library(uri/rfc3986_code), [
+:- reexport(library(uri/rfc3986), [
      'pct-encoded'//1 % ?Code:between(0,255)
    ]).
 

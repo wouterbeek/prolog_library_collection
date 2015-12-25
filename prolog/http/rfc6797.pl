@@ -14,7 +14,11 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(http/rfc2616), ['LWS'//0,'quoted-string'//1,token//1]).
+:- use_module(library(http/rfc2616), [
+     'LWS'//0,
+     'quoted-string'//1,
+     token//1
+   ]).
 
 
 

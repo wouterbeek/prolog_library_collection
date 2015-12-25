@@ -13,11 +13,11 @@
 @author Wouter Beek
 @compat RFC 3987
 @see http://tools.ietf.org/html/rfc3987
-@version 2015/08, 2015/11
+@version 2015/08, 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_code)).
-:- use_module(library(uri/rfc3986_code)).
+:- use_module(library(uri/rfc3986)).
 
 
 

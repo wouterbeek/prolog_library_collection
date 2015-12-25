@@ -26,9 +26,8 @@
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234)).
-:- use_module(library(http/rfc7230_code)).
-:- use_module(library(http/rfc7230_token)).
-:- use_module(library(uri/rfc3986_component)).
+:- use_module(library(http/http11)).
+:- use_module(library(uri/rfc3986)).
 
 
 

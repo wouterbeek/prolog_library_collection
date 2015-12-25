@@ -166,12 +166,7 @@
 :- use_module(library(typeconv)).
 %/uri
   :- use_module(library(uri/rfc2396)).
-  :- use_module(library(uri/rfc2396_code)).
-  :- use_module(library(uri/rfc2396_token)).
   :- use_module(library(uri/rfc3986)).
-  :- use_module(library(uri/rfc3986_code)).
-  :- use_module(library(uri/rfc3986_component)).
-  :- use_module(library(uri/rfc3986_token)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
 %/url

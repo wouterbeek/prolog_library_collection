@@ -139,7 +139,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
   must_be(ground, Status),
   (   is_http_error(Status)
   ->  option(raw_headers(Headers), Opts2),
-      call_cleanup(http_error_message(Status, Headers, Read2), close(Read2)),
+      call_cleanup(http_error_message(Iri, Status, Headers, Read2), close(Read2)),
       M2 is M1 + 1,
       (   M2 =:= N
       ->  Close_0 = true,
@@ -173,16 +173,19 @@ base_iri(File, BaseIri):-
 
 
 %! http_error_message(
+%!   +Iri:atom,
 %!   +Status:between(100,599),
 %!   +Lines:list(list(code)),
 %!   +Read:stream
 %! ) is det.
 
-http_error_message(Status, Lines, Read):-
-  maplist(atom_codes, Headers, Lines),
+http_error_message(Iri, Status, Lines, Read):-
+  maplist(parse_header, Lines, Headers),
+  create_grouped_sorted_dict(Headers, http_headers, M),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
-  format(user_error, "RESPONSE: ~d (~a)~n", [Status,Label]),
-  maplist(writeln(user_error), Headers),
+  format(user_error, "RESPONSE: ~d (~a)~nFinal IRI:~a~n", [Status,Label,Iri]),
+  print_dict(M, 1),
+  nl(user_error),
   copy_stream_data(Read, user_error),
   nl(user_error).
 

@@ -51,7 +51,12 @@
      'SP'//1, % ?Code:code
      'VCHAR'//1 % ?Code:code
    ]).
+:- use_module(library(http/cors)).
+:- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/rfc6265)).
+:- use_module(library(http/rfc6797)).
+:- use_module(library(http/rfc7034)).
 :- use_module(library(ltag/rfc4647), [
      'language-range'//1 % -LanguageRange:list(string)
    ]).
@@ -380,7 +385,11 @@ byte_range_set_part(Range) --> 'suffix-byte-range-spec'(Range).
 
 'cache-directive'(X) -->
   token(N),
-  ("=" -> (token(V), ! ; 'quoted-string'(V)), {X =.. [N,V]} ; {X = N}).
+  (   "="
+  ->  (token(V), ! ; 'quoted-string'(V)),
+      {atom_string(N0, N), X =.. [N0,V]}
+  ;   {X = N}
+  ).
 
 /*
 cache_request_directive('no-cache') --> "no-cache".
@@ -411,7 +420,7 @@ cache_response_directive('s-maxage'(Delta)) --> 'delta-seconds'(Delta).
 challenge(challenge{scheme: Scheme, parameters: Params}) -->
   'auth-scheme'(Scheme),
   (   +('SP')
-  ->  (token68(S) -> {Params = [S]} ; '*#'('auth-param', Params))
+  ->  ('*#'('auth-param', Params), ! ; token68(S), {Params = [S]})
   ;   {Params = []}
   ).
 
@@ -500,7 +509,7 @@ sep_chunk_ext(Ext) -->
 
 'chunk-size'(N) --> +('HEXDIG', Ds), {pos_sum(Ds, 16, N)}.
 
-		     
+
 
 %! codings(-Coding)// is det.
 % ```abnf
@@ -526,7 +535,8 @@ comment_codes1([0'(|T]) -->
   {append(T0, [0')], T)}.
 comment_codes2([H|T]) --> ctext(H), !, comment_codes2(T).
 comment_codes2([H|T]) --> 'quoted-pair'(H), !, comment_codes2(T).
-comment_codes2(L) --> comment_codes1(L).
+comment_codes2(L) --> comment_codes1(L), !.
+comment_codes2([]) --> "".
 
 
 
@@ -713,12 +723,12 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 %          | %x53.75.6E   ; "Sun", case-sensitive
 % ```
 
-'day-name'(1) --> "Mon".
-'day-name'(2) --> "Tue".
-'day-name'(3) --> "Wed".
-'day-name'(4) --> "Thu".
-'day-name'(5) --> "Fri".
-'day-name'(6) --> "Sat".
+'day-name'(1) --> "Mon", !.
+'day-name'(2) --> "Tue", !.
+'day-name'(3) --> "Wed", !.
+'day-name'(4) --> "Thu", !.
+'day-name'(5) --> "Fri", !.
+'day-name'(6) --> "Sat", !.
 'day-name'(7) --> "Sun".
 
 
@@ -862,7 +872,9 @@ known_unknown(servidor).
 known_unknown('x-acre-source-url').
 known_unknown('x-cache').
 known_unknown('x-cache-lookup').
-known_unknown('x-content-type-options'). % Had grammar.  Implemented.
+known_unknown('x-content-type-options'). % Has grammar.  Implemented.
+known_unknown('x-dropbox-http-protocol').
+known_unknown('x-dropbox-request-id').
 known_unknown('x-drupal-cache').
 known_unknown('x-metaweb-cost').
 known_unknown('x-metaweb-tid').
@@ -942,7 +954,7 @@ from(Pair) --> mailbox(Pair).
 % header-field = field-name ":" OWS field-value OWS
 % ```
 
-'header-field'(Name-Value) -->
+'header-field'(Pred-Value) -->
   'field-name'(Name),
   {atom_string(Pred, Name)},
   ":",
@@ -994,7 +1006,6 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
   def('message-body', Cs, []),
   {D = D0.put([body-Cs,headers-L])},
   'CRLF'.
-header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 
 
 
@@ -1115,7 +1126,7 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 % ```
 
 'IMF-fixdate'(datetime(Y,Mo,D,H,Mi,S,_)) -->
-  'day-name'(D),
+  'day-name'(_DayInWeek),
   ",",
   'SP',
   date1(date(Y,Mo,D)),
@@ -1514,7 +1525,7 @@ qdtext(C)    --> 'SP'(C).
 qdtext(0x21) --> [0x21].
 qdtext(C)    --> [C], {(between(0x23, 0x5B, C), ! ; between(0x5D, 0x7E, C))}.
 qdtext(C)    --> 'obs-text'(C).
-				  
+
 
 
 %! 'quoted-pair'(-Code:code)// is det.
@@ -1734,7 +1745,6 @@ second(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % ```
 
 server([H|T]) --> product(H), *(sep_product_or_comment, T).
-sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
 
 
 
@@ -1913,7 +1923,6 @@ trailer(L) --> +#('field-name', L).
 % ```
 
 'trailer-part'(Headers) --> *(header_field_eol, Headers).
-header_field_eol(Header) --> 'header-field'(Header), 'CRLF'.
 
 
 
@@ -2007,7 +2016,6 @@ upgrade(L) --> +#(protocol, L).
 % ```
 
 user_agent([H|T]) --> product(H), *(sep_product_or_comment, T).
-sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
 
 
 
@@ -2141,8 +2149,14 @@ year(Y) --> #(4, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
 
 
 
-			   
+
 % HELPERS %
+
+header_field_eol(Header) --> 'header-field'(Header), 'CRLF'.
+
+
+sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
+
 
 sp_or_htab --> 'SP'.
 sp_or_htab --> 'HTAB'.

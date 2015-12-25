@@ -15,8 +15,24 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234)).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'CHAR'//1, % ?Code:code
+     'CR'//0,
+     'CRLF'//0,
+     'CTL'//1, % ?Code:code
+     'DIGIT'//1, % ?Weight:between(0,9)
+     'DQUOTE'//0,
+     'HEXDIG'//1, % ?Weight:between(0,15)
+     'HTAB'//0,
+     'LF'//0,
+     'OCTET'//1, % ?Code:code
+     'SP'//0,
+     'VCHAR'//1, % ?Code:code
+     'WSP'//0
+   ]).
 :- use_module(library(http/rfc1034)).
+:- use_module(library(http/rfc2616)).
 :- use_module(library(http/http11)).
 
 
@@ -61,9 +77,9 @@
 %! 'cookie-octet'(-Code:code)// .
 % ```abnf
 % cookie-octet = %x21 | %x23-2B | %x2D-3A | %x3C-5B | %x5D-7E
-%                ; US-ASCII characters excluding CTLs,
-%                ; whitespace DQUOTE, comma, semicolon,
-%                ; and backslash
+%              ; US-ASCII characters excluding CTLs,
+%              ; whitespace DQUOTE, comma, semicolon,
+%              ; and backslash
 % ```
 
 'cookie-octet'(0x21) --> [0x21], !.
@@ -82,7 +98,7 @@
 % cookie-value = *cookie-octet | ( DQUOTE *cookie-octet DQUOTE )
 % ```
 
-'cookie-value'(S) --> 'DQUOTE', !, dcg_string('cookie-octet', S), 'DQUOTE'.
+'cookie-value'(S) --> 'DQUOTE', !, dcg_string(cookie_value_codes, S), 'DQUOTE'.
 'cookie-value'(S) --> dcg_string(cookie_value_codes, S).
 cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 

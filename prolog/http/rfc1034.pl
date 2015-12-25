@@ -13,7 +13,15 @@
 @version 2015/12
 */
 
-:- use_module(library(dcg/dcg_ext), ['*'//2,alpha//1,digit//2]).
+:- use_module(library(dcg/dcg_ext), [
+     '?'//2,
+     '*'//2
+   ]).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1 as alpha0, % ?Code:code
+     'DIGIT'//2 as digit0 % ?Weight:between(0,9)
+                          % ?Code:code
+   ]).
 :- use_module(library(dcg/dcg_word)).
 
 
@@ -25,25 +33,28 @@
 % <digit> ::= any one of the ten digits 0 through 9
 % ```
 
-digit(C) --> digit(_, C).
+digit(C) --> digit0(_, C).
 
 
 
-%! label(-Label:string)// .
+%! label(-Label:string)// is det.
 % ```
 % <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
 % ```
 
-label(S) --> 'ldr-str'(S).
+label(S) --> letter(H), ?(label_tail, T), {string_codes(S, [H|T])}.
+label_tail(L2)  --> 'ldh-str'(L1), !, 'let-dig'(X), {append(L1, [X], L2)}.
+label_tail([H]) --> 'let-dig'(H).
 
 
 
-%! 'ldh-str'(-String:string)// is det.
+%! 'ldh-str'(-Codes:list(code))// is det.
 % ```
 % <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
 % ```
 
-'ldr-str'(S) --> dcg_string('let-dig-hyp', S).
+'ldh-str'([H|T]) --> 'let-dig-hyp'(H), 'ldh-str'(T), !.
+'ldh-str'([H])   --> 'let-dig-hyp'(H).
 
 
 
@@ -52,7 +63,7 @@ label(S) --> 'ldr-str'(S).
 % <let-dig> ::= <letter> | <digit>
 % ```
 
-'let-dig'(C) --> letter(C).
+'let-dig'(C) --> letter(C), !.
 'let-dig'(C) --> digit(C).
 
 
@@ -63,7 +74,7 @@ label(S) --> 'ldr-str'(S).
 % ```
 
 'let-dig-hyp'(0'-) --> "-", !.
-'let-dig-hyp'(C) --> 'let-dig'(C).
+'let-dig-hyp'(C)   --> 'let-dig'(C).
 
 
 
@@ -73,7 +84,7 @@ label(S) --> 'ldr-str'(S).
 % upper case and a through z in lower case
 % ```
 
-letter(C) --> alpha(C).
+letter(C) --> alpha0(C).
 
 
 
@@ -82,5 +93,5 @@ letter(C) --> alpha(C).
 % <subdomain> ::= <label> | <subdomain> "." <label>
 % ```
 
-subdomain([H|T]) --> label(H), *(sep_label, T).
+subdomain([H|T]) --> {gtrace}, label(H), *(sep_label, T).
 sep_label(X) --> ".", label(X).
