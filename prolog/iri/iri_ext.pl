@@ -8,7 +8,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11
+@version 2015/11-2015/12
 */
 
 :- use_module(library(dcg/dcg_code)).

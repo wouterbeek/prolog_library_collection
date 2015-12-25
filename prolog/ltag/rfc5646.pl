@@ -180,7 +180,7 @@ regular(["zh","xiang"]) --> "zh-xiang".
 %           / %x61-77   ; a - w
 %           / %x79-7A   ; y - z
 
-singleton(C) --> 'DIGIT'(C).
+singleton(C) --> 'DIGIT'(_, C).
 singleton(C) --> between_code_radix(hex('41'), hex('57'), C).
 singleton(C) --> between_code_radix(hex('59'), hex('5A'), C).
 singleton(C) --> between_code_radix(hex('61'), hex('77'), C).

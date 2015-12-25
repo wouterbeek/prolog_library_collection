@@ -61,7 +61,7 @@ connection_options([]).
 % Content-Length = 1*DIGIT
 % ```
 
-'Content-Length'(I) --> '+digit'(I).
+'Content-Length'(I) --> +('DIGIT', Ds), {pos_sum(Ds, I)}.
 
 
 

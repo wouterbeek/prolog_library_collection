@@ -17,13 +17,16 @@
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % ?Code:code
      'CR'//0,
+     'CR'//1, % ?Code:code
      'CRLF'//0,
+     'CRLF'//1, % ?Code:code
      'DIGIT'//1, % ?Weight:nonneg
      'DQUOTE'//0,
      'HTAB'//0,
      'LF'//0,
      'SP'//0,
      'VCHAR'//1, % ?Code:code
+     'WSP'//0,
      'WSP'//1 % ?Code:code
    ]).
 
@@ -31,32 +34,35 @@
 
 
 
-%! 'addr-spec'(-Pair:pair(string))// is det.
+%! 'addr-spec'(-Address:dict)// is det.
 % ```abnf
 % addr-spec = local-part "@" domain
 % ```
 
-'addr-spec'(LocalPart-Domain) --> 'local-part'(LocalPart), "@", domain(Domain).
+'addr-spec'(addr_spec{domain: Domain, local_part: LocalPart}) -->
+  'local-part'(LocalPart),
+  "@",
+  domain(Domain).
 
 
 
-%! address// is det.
+%! address(-Value)// is det.
 % ```abnf
 % address = mailbox / group
 % ```
 
-address --> mailbox.
-address --> group.
+address(Pairs) --> mailbox(Pairs).
+address([groups-Groups,name-Name]) --> group(Name, Groups).
 
 
 
-%! 'angle-addr'(-Address)// is det.
+%! 'angle-addr'(-Address:dict)// is det.
 % ```abnf
 % angle-addr = [CFWS] "<" addr-spec ">" [CFWS] / obs-angle-addr
 % ```
 
-'angle-addr'(X) --> ?('CFWS'), "<", 'addr-spec'(X), ">", ?('CFWS').
-'angle-addr'(X) --> 'obs-angle-addr'(X).
+'angle-addr'(D) --> ?('CFWS'), "<", 'addr-spec'(D), ">", ?('CFWS').
+'angle-addr'(D) --> 'obs-angle-addr'(D).
 
 
 
@@ -124,8 +130,9 @@ ccontent --> comment.
 % CFWS = (1*([FWS] comment) [FWS]) / FWS
 % ```
 
-'CFWS' --> +(?('FWS'), comment), ?('FWS').
+'CFWS' --> +(sep_comment), ?('FWS').
 'CFWS' --> 'FWS'.
+sep_comment --> ?('FWS'), comment.
 
 
 
@@ -134,7 +141,8 @@ ccontent --> comment.
 % comment = "(" *([FWS] ccontent) [FWS] ")"
 % ```
 
-comment --> "(", *(?('FWS'), ccontent), ?('FWS'), ")".
+comment --> "(", *(sep_ccontent), ?('FWS'), ")".
+sep_ccontent --> ?('FWS'), ccontent.
 
 
 
@@ -281,14 +289,14 @@ group(Name, Groups) --> 'display-name'(Name), ":", def('group-list', Groups, [])
 
 
 
-%! 'group-list'// is det.
+%! 'group-list'(-Value:list)// is det.
 % ```abnf
 % group-list = mailbox-list / CFWS / obs-group-list
 % ```
 
-'group-list' --> 'mailbox-list'.
-'group-list' --> 'CFWS'.
-'group-list' --> 'obs-group-list'.
+'group-list'(L)  --> 'mailbox-list'(L).
+'group-list'([]) --> 'CFWS'.
+'group-list'(L)  --> 'obs-group-list'(L).
 
 
 
@@ -306,8 +314,8 @@ hour(H) --> 'obs-hour'(H).
 % ```abnf
 % FWS = ([*WSP CRLF] 1*WSP) / obs-FWS   ; Folding white space
 % ```
-                                          
-'FWS' --> ?(*('WSP'), 'CRLF'), +('WSP').
+
+'FWS' --> (*('WSP'), 'CRLF', ! ; ""), +('WSP').
 'FWS' --> 'obs-FWS'.
 
 
@@ -385,12 +393,354 @@ month(12) --> "Dec".
 
 
 
+%! 'obs-addr-list'(-Addresses:list)// is det.
+% ```abnf
+% obs-addr-list = *([CFWS] ",") address *("," [address / CFWS])
+% ```
+
+'obs-addr-list'([H|T]) -->
+  *(obs_list_prefix),
+  address(H),
+  obs_addr_list_tail(T).
+obs_addr_list_tail(L) -->
+  ",", !,
+  (address(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
+  obs_addr_list_tail(T).
+obs_addr_list_tail([]) --> "".
+
+
+
+%! 'obs-angle-addr'(-Address:dict)// is det.
+% ```abnf
+% obs-angle-addr = [CFWS] "<" obs-route addr-spec ">" [CFWS]
+% ```
+
+'obs-angle-addr'(obs_angle_addr{addr_spec: Addr, obs_route: Route}) -->
+  ?('CFWS'),
+  "<",
+  'obs-route'(Route),
+  'addr-spec'(Addr),
+  ">",
+  ?('CFWS').
+
+
+
+%! 'obs-body'(-Body:list(code))// is det.
+% ```abnf
+% obs-body = *((*LF *CR *((%d0 / text) *LF *CR)) / CRLF)
+% ```
+
+'obs-body'([H1,H2|T]) -->
+  'CRLF'([H1,H2]), !,
+  'obs-body'(T).
+'obs-body'(L) -->
+  *('LR', L1),
+  *('CR', L2),
+  obs_body_codes(L3),
+  {append([L1,L2,L3], L0), L0 \== []}, !,
+  'obs-body'(L6),
+  {append(L3, L6, L)}.
+'obs-body'([]) --> "".
+obs_body_codes([0|T]) --> [0],     !, *('LF'), *('CR'), obs_body_codes(T).
+obs_body_codes([H|T]) --> text(H), !, *('LF'), *('CR'), obs_body_codes(T).
+obs_body_codes([])    --> "".
+
+
+
+%! 'obs-ctext'(?Code:code)// .
+% ```abnf
+% obs-ctext = obs-NO-WS-CTL
+% ```
+
+'obs-ctext'(C) --> 'obs-NO-WS-CTL'(C).
+
+
+
+%! 'obs-day'(-Day:bewtween(0,99))// is det.
+% ```abnf
+% obs-day = [CFWS] 1*2DIGIT [CFWS]
+% ```
+
+'obs-day'(D) --> ?('CFWS'), 'm*n'(1, 2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
+
+
+
 %! 'obs-day-of-week'(-Day:between(1,7))// is det.
 % ```abnf
 % obs-day-of-week = [CFWS] day-name [CFWS]
 % ```
 
 'obs-day-of-week'(D) --> ?('CFWS'), 'day-name'(D), ?('CFWS').
+
+
+
+%! 'obs-domain'(-Domain:list(string))// is det.
+% ```abnf
+% obs-domain = atom *("." atom)
+% ```
+
+'obs-domain'([H|T]) --> atom(H), *(sep_atom, T).
+sep_atom(X) --> ",", atom(X).
+
+
+
+%! 'obs-domain-list'(-Domains:list)// is det.
+% ```abnf
+% obs-domain-list = *(CFWS / ",") "@" domain *("," [CFWS] ["@" domain])
+% ```
+
+'obs-domain-list'([H|T]) -->
+  *(obs_domain_list_prefix),
+  "@",
+  domain(H),
+  obs_domain_list_tail(T).
+obs_domain_list_prefix --> 'CFWS'.
+obs_domain_list_prefix --> ",".
+obs_domain_list_tail(L) -->
+  ",",
+  ?('CFWS'),
+  ("@" -> domain(H), {L = [H|T]} ; {L = T}),
+  obs_domain_list_tail(T).
+obs_domain_list_tail([]) --> "".
+
+
+
+%! 'obs-dtext'(?Code:code)// is det.
+% ```abnf
+% obs-dtext = obs-NO-WS-CTL / quoted-pair
+% ```
+
+'obs-dtext'(C) --> 'obs-NO-WS-CTL'(C).
+'obs-dtext'(C) --> 'quoted-pair'(C).
+
+
+
+%! 'obs-FWS'// is det.
+% ```abnf
+% obs-FWS = 1*WSP *(CRLF 1*WSP)
+% ```
+
+'obs-FWS' --> +('WSP'), *(obs_fws_part).
+obs_fws_part --> 'CRLF', +('WSP').
+
+
+
+%! 'obs-group-list(-Groups:list)// is det.
+% ```abnf
+% obs-group-list = 1*([CFWS] ",") [CFWS]
+% ```
+
+'obs-group-list'([]) --> +(obs_list_prefix), ?('CFWS').
+
+
+
+%! 'obs-hour'(-Hour:between(0,99))// is det.
+% ```abnf
+% obs-hour = [CFWS] 2*DIGIT [CFWS]
+% ```
+
+'obs-hour'(H) --> ?('CFWS'), 'm*n'(1, 2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+
+
+
+%! 'obs-local-part'(-LocalPart:list(string))// is det.
+% ```abnf
+% obs-local-part = word *("." word)
+% ```
+
+'obs-local-part'([H|T]) --> word(H), *(sep_word, T).
+sep_word(X) --> ".", word(X).
+
+
+
+%! 'obs-mbox-list'(-Mailboxes:list)// is det.
+% ```abnf
+% obs-mbox-list = *([CFWS] ",") mailbox *("," [mailbox / CFWS])
+% ```
+
+'obs-mbox-list'([H|T]) -->
+  *(obs_list_prefix),
+  mailbox(H),
+  obs_mbox_list_tail(T).
+obs_mbox_list_tail(L) -->
+  ",", !,
+  (mailbox(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
+  obs_mbox_list_tail(T).
+obs_mbox_list_tail([]) --> "".
+
+
+
+%! 'obs-minute'(-Minute:between(0,99))// is det.
+% ```abnf
+% obs-minute = [CFWS] 2*DIGIT [CFWS]
+% ```
+
+'obs-minute'(Mi) --> ?('CFWS'), 'm*n'(1, 2, 'DIGIT', Ds), {pos_sum(Ds, Mi)}.
+
+
+
+%! 'obs-NO-WS-CTL'(?Code:code)// .
+% ```abnf
+% obs-NO-WS-CTL = %d1-8     ; US-ASCII control
+%               / %d11      ; characters that do not
+%               / %d12      ; include the carriage
+%               / %d14-31   ; return, line feed, and
+%               / %d127     ; white space characters
+% ```
+
+'obs-NO-WS-CTL'(C) -->
+  [C],
+  {once((
+    between(1, 8, C) ;
+    between(11, 12, C) ;
+    between(14, 31, C) ;
+    C =:= 127
+  ))}.
+
+
+
+%! 'obs-phrase'(-Words:list(string))// is det.
+% ```abnf
+% obs-phrase = word *(word / "." / CFWS)
+% ```
+
+'obs-phrase'([H|T]) --> word(H), obs_phrase_tail(T).
+obs_phrase_tail([H|T]) --> word(H), !, obs_phrase_tail(T).
+obs_phrase_tail(L) --> ".", !, obs_phrase_tail(L).
+obs_phrase_tail(L) --> 'CFWS', !, obs_phrase_tail(L).
+obs_phrase_tail([]) --> "".
+
+
+
+%! 'obs-phrase-list'(-Phrases:list)// is det.
+% ```abnf
+% obs-phrase-list = [phrase / CFWS] *("," [phrase / CFWS])
+% ```
+
+'obs-phrase-list'(L) -->
+  (phrase(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}), !,
+  obs_phrase_tail(T).
+obs_phrase_list_tail(L) -->
+  ",", !,
+  (phrase(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
+  obs_phrase_list_tail(T).
+obs_phrase_list_tail([]) --> "".
+
+
+
+%! 'obs-qp'(?Code:code)// .
+% ```abnf
+% obs-qp = "\" (%d0 / obs-NO-WS-CTL / LF / CR)
+% ```
+
+'obs-qp'(C) --> "\\", obs_qp_code(C).
+obs_qp_code(0) --> [0].
+obs_qp_code(C) --> 'obs-NO-WS-CTL'(C).
+obs_qp_code(C) --> 'LF'(C).
+obs_qp_code(C) --> 'CR'(C).
+
+
+
+%! 'obs-qtext'(?Code:code)// .
+% ```abnf
+% obs-qtext = obs-NO-WS-CTL
+% ```
+
+'obs-qtext'(C) --> 'obs-NO-WS-CTL'(C).
+
+
+
+%! 'obs-route'(-Route)// is det.
+% ```abnf
+% obs-route = obs-domain-list ":"
+% ```
+
+'obs-route'(L) --> 'obs-domain-list'(L), ":".
+
+
+
+%! 'obs-second'(-Second:between(0,99))// is det.
+% ```abnf
+% obs-second = [CFWS] 2*DIGIT [CFWS]
+% ```
+
+'obs-second'(S) --> ?('CFWS'), 'm*n'(1, 2, 'DIGIT', Ds), {pos_sum(Ds, S)}.
+
+
+
+%! 'obs-utext'(?Code:code)// .
+% ```abnf
+% obs-utext = %d0 / obs-NO-WS-CTL / VCHAR
+% ```
+
+'obs-utext'(0) --> [0].
+'obs-utext'(C) --> 'obs-NO-WS-CTL'(C).
+'obs-utext'(C) --> 'VCHAR'(C).
+
+
+
+%! 'obs-unstruct'// .
+% ```abnf
+% obs-unstruct = *((*LF *CR *(obs-utext *LF *CR)) / FWS)
+% ```
+
+'obs-unstruct'([H|T]) -->
+  'FWS'(H), !,
+  'obs-unstruct'(T).
+'obs-unstruct'(L) -->
+  *('LF', L1),
+  *('CR', L2),
+  obs_unstruct_codes(L3),
+  {append([L1,L2,L3], L0), L0 \== []}, !,
+  'obs-unstruct'(L4),
+  {append(L3, L4, L)}.
+'obs-unstruct'([]) --> "".
+obs_unstruct_codes([H|T]) -->
+  'obs-utext'(H), !,
+  *('LF'),
+  *('CR'),
+  obs_unstruct_codes(T).
+obs_unstruct_codes([]) --> "".
+
+
+
+%! 'obs-year'(-Year:between(0,99))// is det.
+% ```abnf
+% obs-year = [CFWS] 2*DIGIT [CFWS]
+% ```
+
+'obs-year'(Y) --> ?('CFWS'), 'm*n'(1, 2, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
+
+
+
+%! 'obs-zone'(-Zone:string)// is det.
+% ```abnf
+% obs-zone = "UT"            ; Universal Time
+%          / "GMT"           ; North American UT
+%          / "EST" / "EDT"   ; Eastern:  - 5/ - 4
+%          / "CST" / "CDT"   ; Central:  - 6/ - 5
+%          / "MST" / "MDT"   ; Mountain: - 7/ - 6
+%          / "PST" / "PDT"   ; Pacific:  - 8/ - 7
+%          / %d65-73         ; Military zones - "A"
+%          / %d75-90         ; through "I" and "K"
+%          / %d97-105        ; through "Z", both
+%          / %d107-122       ; upper and lower case
+% ```
+
+'obs-zone'("Universal Time") --> "UT", !.
+'obs-zone'("North American UT") --> "GMT", !.
+'obs-zone'("Eastern") --> ("EST" ; "EDT"), !.
+'obs-zone'("Central") --> ("CST" ; "CDT"), !.
+'obs-zone'("Mountain") --> ("MST" ; "MDT"), !.
+'obs-zone'("Pacific") --> ("PST" ; "PDT"), !.
+'obs-zone'("Military") -->
+  [C],
+  {once((
+    between(65, 73, C) ;
+    between(75, 90, C) ;
+    between(97, 105, C) ;
+    between(107, 122, C)
+  ))}.
 
 
 
@@ -428,7 +778,7 @@ qtext(C)  --> 'obs-qtext'(C).
 
 
 
-%! 'quoted-pair'(-Code:code)// .
+%! 'quoted-pair'(?Code:code)// .
 % ```abnf
 % quoted-pair = ("\" (VCHAR / WSP)) / obs-qp
 % ```
@@ -531,7 +881,7 @@ time(H, Mi, S, Off) -->
 % unstructured = (*([FWS] VCHAR) *WSP) / obs-unstruct
 % ```
 
-unstructured(S) --> *(unstructured_code, Cs) *('WSP'), {string_codes(S, Cs)}.
+unstructured(S) --> *(unstructured_code, Cs), *('WSP'), {string_codes(S, Cs)}.
 unstructured(S) --> 'obs-unstruct'(S).
 unstructured_code(C) --> ?('FWS'), 'VCHAR'(C).
 
@@ -568,3 +918,11 @@ zone(N) -->
   #(4, 'DIGIT', Ds), !,
   {pos_sum(Ds, N0), N is Sg * N0}.
 zone(N) --> 'obs-zone'(N).
+
+
+
+
+
+% HELPERS %
+
+obs_list_prefix --> ?('CFWS'), ",".

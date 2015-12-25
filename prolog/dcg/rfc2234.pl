@@ -1,6 +1,7 @@
 :- module(
   rfc2234,
   [
+    'ALPHA'//1, % ?Code:code
     'CHAR'//1, % ?Code:code
     'CR'//0,
     'CR'//1, % ?Code:code
@@ -8,7 +9,13 @@
     'CRLF'//1, % ?Codes:list(code)
     'CTL'//0,
     'CTL'//1, % ?Code:Code
+    'DIGIT'//1, % ?Weight
+    'DIGIT'//2, % ?Weight:between(0,9)
+                % ?Code:code
     'DQUOTE'//0,
+    'HEXDIG'//1, % ?Weight
+    'HEXDIG'//2, % ?Weight:between(0,15)
+                 % ?Code:code
     'HTAB'//0,
     'HTAB'//1, % ?Code:code
     'LF'//0,
@@ -22,28 +29,13 @@
     'WSP'//1 % ?Code:code
   ]
 ).
-:- reexport(library(dcg/dcg_ext), [
-     alpha//1 as 'ALPHA', % ?Code:code
-     bit//1 as 'BIT', % ?Integer:between(0,1)
-     digit//1 as 'DIGIT', % ?Integer:between(0,9)
-     digit//2 as 'DIGIT' % ?Integer:between(0,9)
-                         % ?Code:code
-   ]).
-:- reexport(library(dcg/dcg_rfc), [
-    'HEXDIG'//1, % ?Weight:between(0,15)
-    'HEXDIG'//2 % ?Weight:between(0,15)
-                % ?Code:code
-  ]
-).
 
 /** <module> RFC 2234: Augmented BNF for Syntax Specifications: ABNF
 
 @author Wouter Beek
 @compat RFC 2234
-@version 2015/11
+@version 2015/11-2015/12
 */
-
-:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -57,15 +49,19 @@
 % ALPHA = %x41-5A / %x61-7A   ; A-Z / a-z
 % ```
 
+'ALPHA'(C) --> [C], {once(between(0x41, 0x5A, C) ; between(0x61, 0x7A, C))}.
 
 
-%! 'BIT'(?Weight:between(0,1))// .
-%! 'BIT'(?Weight:between(0,1), ?Code:code)// .
+
+%! 'BIT'(?Code:code)// .
 % A binary digit, i.e. `0` or `1`.
 %
 % ```abnf
 % BIT = "0" / "1"
 % ```
+
+'BIT'(0'0) --> "0".
+'BIT'(0'1) --> "1".
 
 
 
@@ -96,6 +92,10 @@
 
 
 %! 'CRLF'// .
+
+'CRLF' --> 'CRLF'(_).
+
+
 %! 'CRLF'(?Codes:list(code))// .
 % Internet standard newline.
 %
@@ -103,12 +103,15 @@
 % CRLF = CR LF   ; Internet standard newline
 % ```
 
-'CRLF' --> 'CRLF'(_).
 'CRLF'([C1,C2]) --> 'CR'(C1), 'LF'(C2).
 
 
 
 %! 'CTL'// .
+
+'CTL' --> 'CTL'(_).
+
+
 %! 'CTL'(?Code:code)// .
 % Control character.
 %
@@ -118,12 +121,15 @@
 % CTL = %x00-1F / %x7F   ; controls
 % ```
 
-'CTL' --> 'CTL'(_).
 'CTL'(C) --> [C], {(between(0, 31, C) ; C = 127)}.
 
 
 
 %! 'DIGIT'(?Weight:between(0,9))// .
+
+'DIGIT'(W) --> 'DIGIT'(W, _).
+
+
 %! 'DIGIT'(?Weight:between(0,9), ?Code:code)// .
 % RFC 1738 (URL) defines this in a different but compatible way
 % under the name digit//[1,2].
@@ -132,9 +138,24 @@
 % DIGIT = %x30-39   ; 0-9
 % ```
 
+'DIGIT'(0, 0'0) --> [0x30].
+'DIGIT'(1, 0'1) --> [0x31].
+'DIGIT'(2, 0'2) --> [0x32].
+'DIGIT'(3, 0'3) --> [0x33].
+'DIGIT'(4, 0'4) --> [0x34].
+'DIGIT'(5, 0'5) --> [0x35].
+'DIGIT'(6, 0'6) --> [0x36].
+'DIGIT'(7, 0'7) --> [0x37].
+'DIGIT'(8, 0'8) --> [0x38].
+'DIGIT'(9, 0'9) --> [0x39].
+
 
 
 %! 'DQUOTE'// .
+
+'DQUOTE' --> 'DQUOTE'(_).
+
+
 %! 'DQUOTE'(?Code:code)// .
 % US-ASCII double-quote mark.
 %
@@ -142,13 +163,16 @@
 % DQUOTE = %x22   ; " (Double Quote)
 % ```
 
-'DQUOTE' --> 'DQUOTE'(_).
 'DQUOTE'(0'") --> "\"".   %"
 
 
 
-%! 'HEXDIG'(?Integer:between(0,15))// .
-%! 'HEXDIG'(?Integer:between(0,15), ?Code:code)// .
+%! 'HEXDIG'(?Weight:between(0,15))// .
+
+'HEXDIG'(W) --> 'HEXDIG'(W, _).
+
+
+%! 'HEXDIG'(?Weight:between(0,15), ?Code:code)// .
 % RFC 1738 (URL) defines a similar grammar rule that include
 % lower-case letters as well under the name hex//2.
 %
@@ -156,9 +180,21 @@
 % HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
 % ```
 
+'HEXDIG'(W, C)    --> 'DIGIT'(W, C).
+'HEXDIG'(10, 0'A) --> "A".
+'HEXDIG'(11, 0'B) --> "B".
+'HEXDIG'(12, 0'C) --> "C".
+'HEXDIG'(13, 0'D) --> "D".
+'HEXDIG'(14, 0'E) --> "E".
+'HEXDIG'(15, 0'F) --> "F".
+
 
 
 %! 'HTAB'// .
+
+'HTAB' --> 'HTAB'(_).
+
+
 %! 'HTAB'(?Code:code)// .
 % The horizontal tab.
 %
@@ -166,12 +202,15 @@
 % HTAB = %x09   ; horizontal tab
 % ```
 
-'HTAB' --> 'HTAB'(_).
 'HTAB'(0x09) --> [0x09].
 
 
 
 %! 'LF'// .
+
+'LF' --> 'LF'(_).
+
+
 %! 'LF'(?Code:code)// .
 % The linefeed.
 %
@@ -181,12 +220,15 @@
 % LF = %x0A   ; linefeed
 % ```
 
-'LF' --> 'LF'(_).
 'LF'(0x0A) --> [0x0A].
 
 
 
 %! 'LWSP'// .
+
+'LWSP' --> 'LWSP'(_).
+
+
 %! 'LWSP'(?Codes:list(code))// .
 % Linear white space.
 %
@@ -194,7 +236,6 @@
 % LWSP = *(WSP / CRLF WSP)   ; linear white space (past newline)
 % ```
 
-'LWSP' --> 'LWSP'(_).
 'LWSP'([H|T])     --> 'WSP'(H),      !,           'LWSP'(T).
 'LWSP'([X,Y,Z|T]) --> 'CRLF'([X,Y]), !, 'WSP'(Z), 'LWSP'(T).
 'LWSP'([]) --> "".
@@ -215,6 +256,10 @@
 
 
 %! 'SP'// .
+
+'SP' --> 'SP'(_).
+
+
 %! 'SP'(?Code:code)// .
 % The space.
 %
@@ -224,7 +269,6 @@
 % SP = %x20
 % ```
 
-'SP' --> 'SP'(_).
 'SP'(0x20) --> [0x20].
 
 

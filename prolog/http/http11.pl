@@ -27,24 +27,30 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
-    'ALPHA'//1, % ?Code:code
-    'CR'//0,
-    'CRLF'//0,
-    'CTL'//0,
-    'CTL'//1, % ?Code:code
-    'DIGIT'//1, % ?Weight:nonneg
-    'DQUOTE'//0 as '"',
-    'HEXDIG'//1 as 'HEX', % ?Weight:nonneg
-    'HTAB'//0 as 'HT',
-    'HTAB'//1 as 'HT', % ?Code:code
-    'LF'//0,
-    'OCTET'//1, % ?Code:code
-    'SP'//0,
-    'SP'//1, % ?Code:code
-    'VCHAR'//1 % ?Code:code
-  ]).
+     'ALPHA'//1, % ?Code:code
+     'CHAR'//1, % ?Code:code
+     'CR'//0,
+     'CRLF'//0,
+     'CTL'//0,
+     'CTL'//1, % ?Code:code
+     'DIGIT'//1, % ?Weight:nonneg
+     'DIGIT'//2, % ?Weight:nonneg
+                 % ?Code:code
+     'DQUOTE'//0,
+     'HEXDIG'//1, % ?Weight:nonneg
+     'HTAB'//0,
+     'HTAB'//1, % ?Code:code
+     'LF'//0,
+     'OCTET'//1, % ?Code:code
+     'SP'//0,
+     'SP'//1, % ?Code:code
+     'VCHAR'//1 % ?Code:code
+   ]).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(ltag/rfc4647), [
      'language-range'//1 % -LanguageRange:list(string)
@@ -57,16 +63,16 @@
    ]).
 :- use_module(library(pair_ext)).
 :- use_module(library(uri/rfc3986), [
-    'absolute-URI'//1, % -AbsoluteUri:dict
-    authority//1, % -Authority:dict
-    fragment//1, % -Fragment:string
-    host//1 as 'uri-host', % -Host:dict
-    'path-abempty'//1, % -Segments:list(string)
-    port//1, % -Port:nonneg
-    query//1, % -Query:string
-    'relative-part'//1, % -RelativeUri:dict
-    segment//1, % -Segment:string
-    'URI-reference'//1 % -UriReference:dict
+     'absolute-URI'//1, % -AbsoluteUri:dict
+     authority//1, % -Authority:dict
+     fragment//1, % -Fragment:string
+     host//1 as 'uri-host', % -Host:dict
+     'path-abempty'//1, % -Segments:list(string)
+     port//1, % -Port:nonneg
+     query//1, % -Query:string
+     'relative-part'//1, % -RelativeUri:dict
+     segment//1, % -Segment:string
+     'URI-reference'//1 % -UriReference:dict
    ]).
 
 :- meta_predicate('field-content'(3,-,?,?)).
@@ -100,7 +106,7 @@ sep_segment(S) --> "/", segment(S).
 % Accept = #( media-range [ accept-params ] )
 % ```
 
-accept(L) --> *#(accept_part, L).
+accept(L) --> '*#'(accept_part, L).
 accept_part(MediaRange-Params) -->
   'media-range'(MediaRange),
   ?('accept-params', Params).
@@ -124,7 +130,7 @@ accept_charset_part(X) -->
 % Accept-Encoding = #( codings [ weight ] )
 % ```
 
-'accept-encoding'(L) --> *#(accept_encoding_part, L).
+'accept-encoding'(L) --> '*#'(accept_encoding_part, L).
 accept_encoding_part(X) -->
   codings(Coding),
   (weight(Weight) -> {X = Weight-Coding} ; {X = Coding}).
@@ -197,7 +203,7 @@ age(N) --> 'delta-seconds'(N).
 % Allow = #method
 % ```
 
-allow(L) --> *#(method, L).
+allow(L) --> '*#'(method, L).
 
 
 
@@ -374,29 +380,26 @@ byte_range_set_part(Range) --> 'suffix-byte-range-spec'(Range).
 
 'cache-directive'(X) -->
   token(N),
-  ("=" -> (token(V), ! ; 'quoted-string'(V)), {X =.. [N,V]} ; {X = N}),
-  {check_cache_directive(X)}.
+  ("=" -> (token(V), ! ; 'quoted-string'(V)), {X =.. [N,V]} ; {X = N}).
 
-check_cache_directive(X):- check_cache_directive(request, X), !.
-check_cache_directive(X):- check_cache_directive(response, X), !.
-check_cache_directove(_).
-
-check_cache_directive(request, 'no-cache').
-check_cache_directive(request, 'no-store').
-check_cache_directive(request, 'max-age'(Delta)):- 'delta-seconds'(Delta).
-check_cache_directive(request, 'max-stale'(Delta)):- 'delta-seconds'(Delta).
-check_cache_directive(request, 'min-fresh'(Delta)):- 'delta-seconds'(Delta).
-check_cache_directive(request, 'no-transform').
-check_cache_directive(request, 'only-if-cached').
-check_cache_directive(response, public).
-check_cache_directive(response, private(L)):- *#('field-name', L).
-check_cache_directive(response, 'no-cache'(L)):- *#('field-name', L).
-check_cache_directive(response, 'no-store').
-check_cache_directive(response, 'no-transform').
-check_cache_directive(response, 'must-revalidate').
-check_cache_directive(response, 'proxy-revalidate').
-check_cache_directive(response, 'max-age'(Delta)):- 'delta-seconds'(Delta).
-check_cache_directive(response, 's-maxage'(Delta)):- 'delta-seconds'(Delta).
+/*
+cache_request_directive('no-cache') --> "no-cache".
+cache_request_directive('no-store') --> "no-store".
+cache_request_directive('max-age'(Delta)) --> 'delta-seconds'(Delta).
+cache_request_directive('max-stale'(Delta)) --> 'delta-seconds'(Delta).
+cache_request_directive('min-fresh'(Delta)) --> 'delta-seconds'(Delta).
+cache_request_directive('no-transform') --> "no-transform".
+cache_request_directive('only-if-cached') --> "only-if-cached".
+cache_response_directive(public) --> "public".
+cache_response_directive(private(L)) --> '*#'('field-name', L).
+cache_response_directive('no-cache'(L)) --> '*#'('field-name', L).
+cache_response_directive('no-store') --> "no-store".
+cache_response_directive('no-transform') --> "no-transform".
+cache_response_directive('must-revalidate') --> "must-revalidate".
+cache_response_directive('proxy-revalidate') --> "proxy-revalidate".
+cache_response_directive('max-age'(Delta)) --> 'delta-seconds'(Delta).
+cache_response_directive('s-maxage'(Delta)) --> 'delta-seconds'(Delta).
+*/
 
 
 
@@ -408,7 +411,7 @@ check_cache_directive(response, 's-maxage'(Delta)):- 'delta-seconds'(Delta).
 challenge(challenge{scheme: Scheme, parameters: Params}) -->
   'auth-scheme'(Scheme),
   (   +('SP')
-  ->  (token68(S) -> {Params = [S]} ; *#('auth-param', Params))
+  ->  (token68(S) -> {Params = [S]} ; '*#'('auth-param', Params))
   ;   {Params = []}
   ).
 
@@ -510,15 +513,20 @@ codings(*) --> "*".
 
 
 
-%! comment// .
+%! comment(-Comment:string)// is det.
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment --> "(", *(comment_code), ")".
-comment_code --> ctext(_).
-comment_code --> 'quoted-pair'(_).
-comment_code --> comment.
+comment(S) --> dcg_string(comment_codes1, S).
+comment_codes1([0'(|T]) -->
+  "(",
+  comment_codes2(T0),
+  ")",
+  {append(T0, [0')], T)}.
+comment_codes2([H|T]) --> ctext(H), !, comment_codes2(T).
+comment_codes2([H|T]) --> 'quoted-pair'(H), !, comment_codes2(T).
+comment_codes2(L) --> comment_codes1(L).
 
 
 
@@ -527,7 +535,7 @@ comment_code --> comment.
 % complete-length = 1*DIGIT
 % ```
 
-'complete-length'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+'complete-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -587,11 +595,11 @@ connection(L) --> +#('connection-option', L).
 
 %! 'content-location'(-Location:atom)// is det.
 % ```abnf
-% Content-Location = absolute-URI | relative-URI
+% Content-Location = absolute-URI | partial-URI
 % ```
 
 'content-location'(Uri) --> 'absolute-URI'(Uri), !.
-'content-location'(Uri) --> 'relative-URI'(Uri).
+'content-location'(Uri) --> 'partial-URI'(Uri).
 
 
 
@@ -622,7 +630,7 @@ connection(L) --> +#('connection-option', L).
 credentials(credentials{scheme: Scheme, parameters: Params}) -->
   'auth-scheme'(Scheme),
   (   +('SP')
-  ->  (token68(S) -> {Params = [S]} ; *#('auth-param', Params))
+  ->  (token68(S) -> {Params = [S]} ; '*#'('auth-param', Params))
   ;   {Params = []}
   ).
 
@@ -747,7 +755,7 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % delay-seconds = 1*DIGIT
 % ```
 
-'delay-seconds'(S) --> +('DIGIT', Ds), {pos_num(Ds, S)}.
+'delay-seconds'(S) --> +('DIGIT', Ds), {pos_sum(Ds, S)}.
 
 
 
@@ -757,35 +765,6 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % ```
 
 'delta-seconds'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
-
-
-
-%! 'entity-header'(-Header:pair)// is det.
-% ```abnf
-% entity-header = Allow
-%               | Content-Encoding
-%               | Content-Language
-%               | Content-Length
-%               | Content-Location
-%               | Content-MD5
-%               | Content-Range
-%               | Content-Type
-%               | Expires
-%               | Last-Modified
-%               | extension-header
-% ```
-
-'entity-header'(allow-V) --> allow(V).
-'entity-header'('content-encoding'-V) --> 'content-encoding'(V).
-'entity-header'('content-language'-V) --> 'content-language'(V).
-'entity-header'('content-length'-V) --> 'content-length'(V).
-'entity-header'('content-location'-V) --> 'content-location'(V).
-'entity-header'('content-md5'-V) --> 'content-md5'(V).
-'entity-header'('content-range'-V) --> 'content-range'(V).
-'entity-header'('content-type'-V) --> 'vontent-type'(V).
-'entity-header'(expires-V) --> expires(V).
-'entity-header'('last-modified'-V) --> 'last-modified'(V).
-'entity-header'('extension-header'-V) --> 'extension-header'(V).
 
 
 
@@ -814,7 +793,7 @@ expires(DT) --> 'HTTP-date'(DT).
 % ETag = "ETag" ":" entity-tag
 % ```
 
-etag(eTag{weak: Weak, 'opaque-tag': OTag}) --> 'entity-tag'(Weak, OTag).
+etag(D) --> 'entity-tag'(D).
 
 
 
@@ -936,37 +915,16 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 % first-byte-pos = 1*DIGIT
 % ```
 
-'first-byte-pos'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+'first-byte-pos'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
-%! from(-Mailbox)// is det.
+%! from(-Mailbox:pair(string))// is det.
 % ```abnf
 % From = mailbox
 % ```
 
-from --> mailbox.
-
-
-
-%! 'generic-message'(
-%!   ?Version:pair(nonneg),
-%!   ?Status:between(100,599),
-%!   ?Headers:list(pair(string,compound)),
-%!   ?Body:list(code)
-%! )// .
-% ```abnf
-% generic-message = start-line
-%                   *(message-header CRLF)
-%                   CRLF
-%                   [ message-body ]
-% ```
-
-'generic-message'(Version, Status, Headers, Body) -->
-  'start-line'(Version, Status),
-  meassage_headers(Headers),
-  'CRLF',
-  ('message-body'(Body) ; {Body = []}).
+from(Pair) --> mailbox(Pair).
 
 
 
@@ -1024,16 +982,18 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 
 
 
-%! 'HTTP-message'// .
+%! 'HTTP-message'(-Message:dict)// is det.
 % ```abnf
 % HTTP-message = start-line *( header-field CRLF ) CRLF [ message-body ]
 % ```
 
-'HTTP-message'(http_msg{body: Cs, headers: L}) -->
-  'start-line',
+'HTTP-message'(D) -->
+  'start-line'(D0),
   *(header_field_eol, L),
   'CRLF',
-  def('message-body', Cs, []).
+  def('message-body', Cs, []),
+  {D = D0.put([body-Cs,headers-L])},
+  'CRLF'.
 header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 
 
@@ -1147,14 +1107,22 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 
 
 
-%! 'IMF-fixdate'(-Datetime:compound)// is det.
+%! 'IMF-fixdate'(-Datetime:datetime)// is det.
 % ```abnf
 % IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
 %             ; fixed length/zone/capitalization subset of the format
 %             ; see Section 3.3 of [RFC5322]
 % ```
 
-'IMF-fixdate' --> 'day-name'(D), ",", 'SP', date1(D), 'SP', 'time-of-day', 'SP', 'GMT'.
+'IMF-fixdate'(datetime(Y,Mo,D,H,Mi,S,_)) -->
+  'day-name'(D),
+  ",",
+  'SP',
+  date1(date(Y,Mo,D)),
+  'SP',
+  'time-of-day'(time(H,Mi,S)),
+  'SP',
+  'GMT'.
 
 
 
@@ -1163,7 +1131,7 @@ header_field_eol(X) --> 'header-field'(X), 'CRLF'.
 % last-byte-pos = 1*DIGIT
 % ```
 
-'last-byte-pos'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+'last-byte-pos'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1201,7 +1169,7 @@ location(Uri) --> 'URI-reference'(Uri).
 % Max-Forwards = 1*DIGIT
 % ```
 
-'max-forwards'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+'max-forwards'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1380,7 +1348,7 @@ month(12) --> "Dec".
 % other-range-set = 1*VCHAR
 % ```
 
-'other-range-set'(S) --> +('VCHAR', Cs), {pos_num(Cs, S)}.
+'other-range-set'(S) --> +('VCHAR', Cs), {pos_sum(Cs, S)}.
 
 
 
@@ -1434,7 +1402,7 @@ parameter(N-V) --> token(N), "=", (token(V), ! ; 'quoted-string'(V)).
   ("?" -> query(Query) ; ""),
   {
     exclude(pair_has_var_value, [query-Query|T], L),
-    dict_pair(D, partial_uri, L)
+    dict_pairs(D, partial_uri, L)
   }.
 
 
@@ -1608,7 +1576,7 @@ range(D) --> 'other-ranges-specifier'(D).
 % range-unit = bytes-unit | other-range-unit
 % ```
 
-'range-unit'(A) --> 'bytes-unit'(A), !.
+'range-unit'(bytes) --> 'bytes-unit', !.
 'range-unit'(S) --> 'other-range-unit'(S).
 
 
@@ -1678,13 +1646,18 @@ referer(Uri) --> 'partial-URI'(Uri).
 
 
 
-%! 'request-line'// .
+%! 'request-line'(-Message:dict)// is det.
 % ```abnf
 % request-line = method SP request-target SP HTTP-version CRLF
 % ```
 
 'request-line'(
-  request_line{method: Method, request_target: Iri, version: Version}
+  http_message{
+    method: Method,
+    request_target: Iri,
+    type: request,
+    version: Version
+  }
 ) -->
   method(Method),
   'SP',
@@ -1765,13 +1738,13 @@ sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
 
 
 
-%! 'start-line'(-Line:dict)// is det.
+%! 'start-line'(-StartLine:dict)// is det.
 % ```abnf
 % start-line = request-line | status-line
 % ```
 
-'start-line'(X) --> 'request-line'(X), !.
-'start-line'(X) --> 'status-line'(X).
+'start-line'(D) --> 'request-line'(D), !.
+'start-line'(D) --> 'status-line'(D).
 
 
 
@@ -1784,13 +1757,18 @@ sep_product_or_comment(X) --> 'RWS', (product(X), ! ; comment(X)).
 
 
 
-%! 'status-line'// is det.
+%! 'status-line'(-Message:dict)// is det.
 % ```abnf
 % status-line = HTTP-version SP status-code SP reason-phrase CRLF
 % ```
 
 'status-line'(
-  status_line{reason: Reason, status: Status, version: Version}
+  http_message{
+    reason: Reason,
+    status: Status,
+    type: response,
+    version: Version
+  }
 ) -->
   'HTTP-version'(Version),
   'SP',
@@ -1824,7 +1802,7 @@ subtype(S) --> token(S).
 % suffix-length = 1*DIGIT
 % ```
 
-'suffix-length'(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+'suffix-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1881,7 +1859,7 @@ tchar(0'~) --> "~".
 % TE = #t-codings
 % ```
 
-te(L) --> *#('t-codings', L).
+te(L) --> '*#'('t-codings', L).
 
 
 
@@ -1927,7 +1905,7 @@ token68_code(0'/) --> "/".
 
 trailer(L) --> +#('field-name', L).
 
-					
+
 
 %! 'trailer-part'(-Headers:list(pair(string)))// is det.
 % ```abnf
@@ -2079,7 +2057,7 @@ via_component(D) -->
 % warn-code = 3DIGIT
 % ```
 
-'warn-code'(N) --> #(3, 'DIGIT', Ds), {pos_num(Ds, N)}.
+'warn-code'(N) --> #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 

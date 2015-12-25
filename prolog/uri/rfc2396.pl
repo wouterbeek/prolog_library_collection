@@ -13,19 +13,21 @@
 @author Wouter Beek
 @compat RFC 2396
 @deprecated Use module `rfc3986' instead.
+@see https://tools.ietf.org/html/rfc2396
 @version 2015/11-2015/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_rfc)).
+:- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext), ['?'//1,'+'//2,'*'//2,pos_sum/2]).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dict_ext)).
+:- use_module(library(pair_ext)).
 
 
 
 
 
-%! abs_path(-Path:list(string))// .
+%! abs_path(-Path:list(string))// is det.
 % ```abnf
 % abs_path = "/"  path_segments
 % ```
@@ -39,28 +41,49 @@ abs_path(L) --> "/", path_segments(L).
 % absoluteURI = scheme ":" ( hier_part | opaque_part )
 % ```
 
-absoluteURI(absolute_uri{scheme: Scheme, opaque: Opaque}) -->
+absoluteURI(D) -->
   scheme(Scheme),
   ":",
-  opaque_part(Opaque), !.
-absoluteURI(Uri) -->
-  scheme(Scheme),
-  ":",
-  hier_part(Auth, Path, Query),
-  {dict_remove_uninstantiated(
-    absolute_uri{scheme: Scheme, authority: Auth, path: Path, query: Query},
-    Uri
-  )}.
+  (   opaque_part(Opaque)
+  ->  {D = absolute_uri{scheme: Scheme, opaque_part: Opaque}}
+  ;   hier_part(D0),
+      {
+        dict_pairs(D0, hier_part, T),
+        dict_pairs(D, absolute_uri, [scheme-Scheme|T])
+      }
+  ).
 
 
 
-%! authority(-Authority:compound)// .
+%! 'alpha(-Code:code)// .
+% ```abnf
+% alpha = lowalpha | upalpha
+% ```
+
+alpha(C) --> lowalpha(C).
+alpha(C) --> upalpha(C).
+
+
+
+%! alphanum(-Code:code)// .
+% ```abnf
+% alphanum = alpha | digit
+% ```
+
+alphanum(C) --> alpha(C).
+alphanum(C) --> digit(C).
+
+
+
+%! authority(-Authority:compound)// is det.
 % ```abnf
 % authority = server | reg_name
 % ```
 
-authority(authority{registered_name: RegisteredName}) --> reg_name(RegisteredName), !.
-authority(authority{server: Server}) --> server(Server).
+authority(authority{registered_name: RegisteredName}) -->
+  reg_name(RegisteredName), !.
+authority(authority{server: Server}) -->
+  server(Server).
 
 
 
@@ -69,28 +92,55 @@ authority(authority{server: Server}) --> server(Server).
 % delims = "<" | ">" | "#" | "%" | <">
 % ```
 
-delims(0'<)  --> "<".
-delims(0'>)  --> ">".
-delims(0'#)  --> "#".
-delims(0'%)  --> "%".
-delims(0'\") --> "\"".
+delims(0'<) --> "<".
+delims(0'>) --> ">".
+delims(0'#) --> "#".
+delims(0'%) --> "%".
+delims(0'") --> "\"".   %"
 
 
 
-%! domainlabel(DomainLabel:string)// .
+%! digit(-Code:code)// .
+% ```
+% digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+% ```
+
+digit(0'0) --> "0".
+digit(0'1) --> "1".
+digit(0'2) --> "2".
+digit(0'3) --> "3".
+digit(0'4) --> "4".
+digit(0'5) --> "5".
+digit(0'6) --> "6".
+digit(0'7) --> "7".
+digit(0'8) --> "8".
+digit(0'9) --> "9".
+
+
+
+%! domainlabel(DomainLabel:string)// is det.
 % ```abnf
 % domainlabel = alphanum | alphanum *( alphanum | "-" ) alphanum
 % ```
 
 domainlabel(S) --> dcg_string(domainlabel_codes1, S).
-domainlabel_codes1([H|T]) --> alphadigit(H), domainlabel_codes2(T).
-domainlabel_codes2([0'-,H|T]) --> "-", !, alphadigit(H), domainlabel_codes2(T).
-domainlabel_codes2([H|T]) --> alphadigit(H), !, domainlabel_codes2(T).
+domainlabel_codes1([H|T]) --> alphanum(H), domainlabel_codes2(T).
+domainlabel_codes2([0'-,H|T]) --> "-", !, alphanum(H), domainlabel_codes2(T).
+domainlabel_codes2([H|T]) --> alphanum(H), !, domainlabel_codes2(T).
 domainlabel_codes2([]) --> "".
 
 
 
-%! fragment(-Fragment:string)// .
+%! escaped(-Code:code)// .
+% ```
+% escaped = "%" hex hex
+% ```
+
+escaped(C) --> "%", hex(D1), hex(D2), {C is D1 * 16 + D2}.
+
+
+
+%! fragment(-Fragment:string)// is det.
 % ```abnf
 % fragment = *uric
 % ```
@@ -99,24 +149,50 @@ fragment(S) --> *(uric, Cs), {string_codes(S, Cs)}.
 
 
 
-%! hier_part(-Authority:compound, -Path:list(string), -Query:string)// .
+%! hex(-Code:code)// .
+% ```abnf
+% hex = digit | "A" | "B" | "C" | "D" | "E" | "F"
+%             | "a" | "b" | "c" | "d" | "e" | "f"
+% ```
+
+hex(C)   --> digit(C).
+hex(0'A) --> "A".
+hex(0'B) --> "B".
+hex(0'C) --> "C".
+hex(0'D) --> "D".
+hex(0'E) --> "E".
+hex(0'F) --> "F".
+hex(0'a) --> "a".
+hex(0'b) --> "b".
+hex(0'c) --> "c".
+hex(0'd) --> "d".
+hex(0'e) --> "e".
+hex(0'f) --> "f".
+
+
+
+%! hier_part(-HierarchicalPart:dict)// is det.
 % ```abnf
 % hier_part = ( net_path | abs_path ) [ "?" query ]
 % ```
 
-hier_part(Auth, Path, Query) -->
+hier_part(D) -->
   (net_path(Auth, Path), ! ; abs_path(Path)),
-  ("?" -> query(Query) ; "").
+  ("?" -> query(Query) ; ""),
+  {
+    exclude(pair_has_var_value, [authority-Auth,path-Path,query-Query], L),
+    dict_pairs(D, hier_part, L)
+  }.
 
 
 
-%! host(-Host:or([list(nonneg),list(string)]))// .
+%! host(-Host:dict)// is det.
 % ```abnf
 % host = hostname | IPv4address
 % ```
 
-host(Ls) --> hostname(Ls), !.
-host(Ns) --> 'IPv4address'(Ns).
+host(host{hostname: Ls}) --> hostname(Ls), !.
+host(host{ipv4address: Ns}) --> 'IPv4address'(Ns).
 
 
 
@@ -134,7 +210,7 @@ domainlabel_sep(C) --> domainlabel(C), ".".
 
 
 
-%! hostport(-Host:or([list(nonneg),list(string)]), -Port:nonneg)// .
+%! hostport(-Host:dict, -Port:nonneg)// is det.
 % ```abnf
 % hostport = host [ ":" port ]
 % ```
@@ -149,7 +225,49 @@ hostport(Host, Port) --> host(Host), (":" -> port(Port) ; {Port = 80}).
 % ```
 
 'IPv4address'([N1,N2,N3,N4]) -->
-  '+digit'(N1), ".", '+digit'(N2), ".", '+digit'(N3), ".", '+digit'(N4), ".".
+  +(digit, Ds1), {pos_sum(Ds1, N1)},
+  ".",
+  +(digit, Ds2), {pos_sum(Ds2, N2)},
+  ".",
+  +(digit, Ds3), {pos_sum(Ds3, N3)},
+  ".",
+  +(digit, Ds4), {pos_sum(Ds4, N4)}.
+
+
+
+%! lowalpha(-Code:code)// .
+% ```abnf
+% lowalpha = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+%          | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r"
+%          | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+% ```
+
+lowalpha(0'a) --> "a".
+lowalpha(0'b) --> "b".
+lowalpha(0'c) --> "c".
+lowalpha(0'd) --> "d".
+lowalpha(0'e) --> "e".
+lowalpha(0'f) --> "f".
+lowalpha(0'g) --> "g".
+lowalpha(0'h) --> "h".
+lowalpha(0'i) --> "i".
+lowalpha(0'j) --> "j".
+lowalpha(0'k) --> "k".
+lowalpha(0'l) --> "l".
+lowalpha(0'm) --> "m".
+lowalpha(0'n) --> "n".
+lowalpha(0'o) --> "o".
+lowalpha(0'p) --> "p".
+lowalpha(0'q) --> "q".
+lowalpha(0'r) --> "r".
+lowalpha(0's) --> "s".
+lowalpha(0't) --> "t".
+lowalpha(0'u) --> "u".
+lowalpha(0'v) --> "v".
+lowalpha(0'w) --> "w".
+lowalpha(0'x) --> "x".
+lowalpha(0'y) --> "y".
+lowalpha(0'z) --> "z".
 
 
 
@@ -170,7 +288,7 @@ mark(0')) --> ")".
 
 
 
-%! net_path(-Authority:compound, -Path:list(list(string))// .
+%! net_path(-Authority:compound, -Path:list(list(string))// is det.
 % ```abnf
 % net_path = "//" authority [ abs_path ]
 % ```
@@ -302,6 +420,21 @@ rel_segment_code(0',) --> ",".
 
 
 
+%! relativeURI(-Uri:dict)// .
+% ```abnf
+% relativeURI = ( net_path | abs_path | rel_path ) [ "?" query ]
+% ```
+
+relativeURI(D) -->
+  (net_path(Auth, Path), ! ; abs_path(Path), ! ; rel_path(Path)),
+  ("?" -> query(Query) ; ""),
+  {
+    exclude(pair_has_var_value, [authority-Auth,path-Path,query-Query], L),
+    dict_pairs(D, relative_uri, L)
+  }.
+
+
+
 %! reserved(-Code:code)// .
 % ```abfn
 % reserved = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
@@ -343,21 +476,6 @@ space(0' ) --> [0x20].
 
 
 
-%! relativeURI(-Uri:dict)// .
-% ```abnf
-% relativeURI = ( net_path | abs_path | rel_path ) [ "?" query ]
-% ```
-
-relativeURI(D) -->
-  (net_path(Auth, Path), ! ; abs_path(Path), ! ; rel_path(Path)),
-  ("?" -> query(Query) ; ""),
-  {dict_remove_uninstantiated(
-    relative_uri{authority: Auth, path: Path, query: Query},
-    D
-  )}.
-
-
-
 %! segment(-Segment:list(string))// .
 % ```abnf
 % segment = *pchar *( ";" param )
@@ -368,19 +486,19 @@ sep_param(S) --> ";", param(S).
 
 
 
-%! server(
-%!   -UserInfo:string,
-%!   -Host:or([list(nonneg),list(string)]),
-%!   -Port:nonneg
-%! )// .
+%! server(-Server:dict)// is det.
 % ```abnf
 % server = [ [ userinfo "@" ] hostport ]
 % ```
 
-server(server{userinfo: UserInfo, host: Host, port: Port}) -->
-  (userinfo(UserInfo) -> "@" ; ""), !,
-  hostport(Host, Port).
-server(_, _, _) --> "".
+server(D) -->
+  (userinfo(UserInfo) -> "@" ; ""),
+  hostport(Host, Port), !,
+  {
+    exclude(pair_has_var_value, [host-Host,port-Port,userinfo-UserInfo], L),
+    dict_pairs(D, server, L)
+  }.
+server(server{}) --> "".
 
 
 
@@ -391,9 +509,45 @@ server(_, _, _) --> "".
 
 toplabel(S) --> dcg_string(toplabel_codes1, S).
 toplabel_codes1([H|T]) --> alpha(H), toplabel_codes2(T).
-toplabel_codes2([0'-,H|T]) --> "-", !, alphadigit(H), toplabel_codes2(T).
-toplabel_codes2([H|T]) --> alphadigit(H), !, toplabel_codes2(T).
+toplabel_codes2([0'-,H|T]) --> "-", !, alphanum(H), toplabel_codes2(T).
+toplabel_codes2([H|T]) --> alphanum(H), !, toplabel_codes2(T).
 toplabel_codes2([]) --> "".
+
+
+
+%! upalpha(-Code:code)// .
+% ```abnf
+% upalpha = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I"
+%         | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R"
+%         | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+% ```
+
+upalpha(0'A) --> "A".
+upalpha(0'B) --> "B".
+upalpha(0'C) --> "C".
+upalpha(0'D) --> "D".
+upalpha(0'E) --> "E".
+upalpha(0'F) --> "F".
+upalpha(0'G) --> "G".
+upalpha(0'H) --> "H".
+upalpha(0'I) --> "I".
+upalpha(0'J) --> "J".
+upalpha(0'K) --> "K".
+upalpha(0'L) --> "L".
+upalpha(0'M) --> "M".
+upalpha(0'N) --> "N".
+upalpha(0'O) --> "O".
+upalpha(0'P) --> "P".
+upalpha(0'Q) --> "Q".
+upalpha(0'R) --> "R".
+upalpha(0'S) --> "S".
+upalpha(0'T) --> "T".
+upalpha(0'U) --> "U".
+upalpha(0'V) --> "V".
+upalpha(0'W) --> "W".
+upalpha(0'X) --> "X".
+upalpha(0'Y) --> "Y".
+upalpha(0'Z) --> "Z".
 
 
 
@@ -402,9 +556,9 @@ toplabel_codes2([]) --> "".
 % URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
 % ```
 
-'URI-reference'(Uri2) -->
-  (absoluteURI(Uri1), ! ; relativeURI(Uri1)),
-  ("#" -> fragment(Frag), {Uri2 = Uri1.put(fragment, Frag)} ; {Uri2 = Uri1}).
+'URI-reference'(D) -->
+  (absoluteURI(D0), ! ; relativeURI(D0)),
+  ("#" -> fragment(Frag), {D = D0.put(fragment, Frag)} ; {D = D0}).
 
 
 
@@ -431,17 +585,6 @@ unwise(0'^)  --> "^".
 unwise(0'[)  --> "[".
 unwise(0'])  --> "]".
 unwise(0'`)  --> "`".
-
-
-
-%! upalpha(-Code:code)// .
-% RFC 1738 (URL) defines this under the name hialpha//1.
-%
-% ```abnf
-% upalpha = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I"
-%         | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R"
-%         | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
-% ```
 
 
 

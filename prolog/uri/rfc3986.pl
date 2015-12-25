@@ -22,9 +22,14 @@
 @version 2015/11-2015/12
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_rfc)).
+:- use_module(library(dcg/rfc2234), [
+     'DIGIT'//1, % ?Weight:between(0,9)
+     'HEXDIG'//1 % ?Weight:between(0,9)
+   ]).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 
 
 
@@ -80,7 +85,25 @@ authority(D) -->
 %           / "25" %x30-35        ; 250-255
 % ```
 
-'dec-octet'(I) --> '+digit'(I), {between(0, 255, I)}.
+'dec-octet'(D) -->
+  "25",
+  [C], {between(0x30, 0x35, C)}, !,
+  {D3 is C - 0x30, pos_sum([2,5,D3], D)}.
+'dec-octet'(D) -->
+  "2",
+  [C], {between(0x30, 0x34, C), !, D2 is C - 0x30},
+  'DIGIT'(D3), !,
+  {pos_sum([2,D2,D3], D)}.
+'dec-octet'(D) -->
+  "1",
+  #(2, 'DIGIT', [D2,D3]), !,
+  {pos_sum([1,D2,D3], D)}.
+'dec-octet'(D) -->
+  [C], {between(0x31, 0x39, C), D1 is C - 0x30},
+  'DIGIT'(D2),
+  {D is D1 * 10 + D2}.
+'dec-octet'(D) -->
+  'DIGIT'(D).
 
 
 
@@ -118,7 +141,7 @@ fragment_code(0'?) --> "?".
 % h16 = 1*4HEXDIG
 % ```
 
-h16(I) --> 'm*nHEXDIG'(1, 4, I).
+h16(N) --> 'm*n'(1, 4, 'HEXDIG', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -215,7 +238,12 @@ host(Host) --> 'reg-name'(Host).
 % ```
 
 'IPvFuture'(ipvfuture(I,S)) -->
-  "v", '+HEXDIG'(I), ".", +(ipv_future_code, Cs), {string_codes(S, Cs)}.
+  "v",
+  +('HEXDIG', Ds),
+  {pos_sum(Ds, 16, I)},
+  ".",
+  +(ipv_future_code, Cs),
+  {string_codes(S, Cs)}.
 ipv_future_code(C)   --> unreserved(C).
 ipv_future_code(C)   --> 'sub-delims'(C).
 ipv_future_code(0':) --> ":".
@@ -330,7 +358,7 @@ pchar(0'@) --> "@".
 % port = *DIGIT
 % ```
 
-port(I) --> '*digit'(I).
+port(N) --> *('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -496,7 +524,7 @@ unreserved(0'~) --> "~".
   scheme(Scheme),
   ":",
   'hier-part'(D0),
-  {dict_pair(D0, hier_part, T)},
+  {dict_pairs(D0, hier_part, T)},
   ("?" -> query(Query) ; ""),
   ("#" -> fragment(Frag) ; ""),
   {

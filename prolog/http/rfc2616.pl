@@ -19,13 +19,15 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'CHAR'//1, % -Code:code
+     'CHAR'//1, % ?Code:code
      'CRLF'//0,
-     'CTL'//1, % -Code:code
-     'DIGIT'//1, % -Digit:between(0,9)
+     'CTL'//1, % ?Code:code
+     'DIGIT'//1, % ?Digit:between(0,9)
      'HTAB'//0 as 'HT',
-     'OCTET'//1, % -Code:code
-     'SP'//0
+     'HTAB'//1 as 'HT', % ?Code:code
+     'OCTET'//1, % ?Code:code
+     'SP'//0,
+     'SP'//1 % ?Code:code
    ]).
 :- use_module(library(pair_ext)).
 :- use_module(library(uri/rfc2396), [
@@ -67,7 +69,7 @@ date2(date(Y,Mo,D)) -->
   month(Mo),
   "-",
   #(2, 'DIGIT', Ds2),
-  {pos_num(Ds2, Y)}.
+  {pos_sum(Ds2, Y)}.
 
 
 
@@ -144,9 +146,11 @@ qdtext(C) --> 'TEXT'(C), {C \== 0'"}.   %"
 
 'quoted-string'(S) -->
   "\"",
-  *((qdtext ; 'quoted-pair'), Cs),
+  *(quoted_string_code, Cs),
   {string_codes(S, Cs)},
   "\"".
+quoted_string_code(C) --> qdtext(C).
+quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
@@ -172,11 +176,11 @@ qdtext(C) --> 'TEXT'(C), {C \== 0'"}.   %"
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"
 % ```
 
-'rfc1123-date'(datetime(Y,Mo,D,H,Mi,S,_Off)) -->
-  wkday(_WKD),
+'rfc1123-date'(datetime(Y,Mo,D,H,Mi,S,_)) -->
+  wkday(_),
   ",",
   'SP',
-  date1(D, Mo, Y),
+  date1(date(Y,Mo,D)),
   'SP',
   time(time(H,Mi,S)),
   'SP',
