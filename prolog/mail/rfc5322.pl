@@ -24,6 +24,7 @@
      'DQUOTE'//0,
      'HTAB'//0,
      'LF'//0,
+     'LF'//1, % ?Code:code
      'SP'//0,
      'VCHAR'//1, % ?Code:code
      'WSP'//0,
@@ -188,7 +189,7 @@ date(Y, Mo, D) --> day(D), month(Mo), year(Y).
 % day = ([FWS] 1*2DIGIT FWS) / obs-day
 % ```
 
-day(D) --> ?('FWS'), 'm*n'(1, 2, 'DIGIT', Ds), 'FWS', {pos_num(Ds, D)}.
+day(D) --> ?('FWS'), 'm*n'(1, 2, 'DIGIT', Ds), 'FWS', {pos_sum(Ds, D)}.
 day(D) --> 'obs-day'(D).
 
 
@@ -280,6 +281,19 @@ dtext(C) --> 'obs-dtext'(C).
 
 
 
+%! 'FWS'// .
+% Folding white space.
+%
+% ```abnf
+% FWS = ([*WSP CRLF] 1*WSP) / obs-FWS   ; Folding white space
+% ```
+
+'FWS' --> ?(fws_prefix), +('WSP').
+'FWS' --> 'obs-FWS'.
+fws_prefix --> *('WSP'), 'CRLF'.
+
+
+
 %! group(-Name:string, -Groups:list(string))// is det.
 % ```abnf
 % group = display-name ":" [group-list] ";" [CFWS]
@@ -307,16 +321,6 @@ group(Name, Groups) --> 'display-name'(Name), ":", def('group-list', Groups, [])
 
 hour(H) --> #(2, 'DIGIT', Ds), !, {pos_sum(Ds, H)}.
 hour(H) --> 'obs-hour'(H).
-
-
-
-%! 'FWS'// .
-% ```abnf
-% FWS = ([*WSP CRLF] 1*WSP) / obs-FWS   ; Folding white space
-% ```
-
-'FWS' --> (*('WSP'), 'CRLF', ! ; ""), +('WSP').
-'FWS' --> 'obs-FWS'.
 
 
 
@@ -434,7 +438,7 @@ obs_addr_list_tail([]) --> "".
   'CRLF'([H1,H2]), !,
   'obs-body'(T).
 'obs-body'(L) -->
-  *('LR', L1),
+  *('LF', L1),
   *('CR', L2),
   obs_body_codes(L3),
   {append([L1,L2,L3], L0), L0 \== []}, !,
@@ -684,9 +688,9 @@ obs_qp_code(C) --> 'CR'(C).
 % obs-unstruct = *((*LF *CR *(obs-utext *LF *CR)) / FWS)
 % ```
 
-'obs-unstruct'([H|T]) -->
-  'FWS'(H), !,
-  'obs-unstruct'(T).
+'obs-unstruct'(L) -->
+  'FWS', !,
+  'obs-unstruct'(L).
 'obs-unstruct'(L) -->
   *('LF', L1),
   *('CR', L2),
@@ -840,6 +844,20 @@ specials(0'\\) --> "\\".
 specials(0',)  --> ",".
 specials(0'.)  --> ".".
 specials(0'")  --> 'DQUOTE'.   %"
+
+
+
+%! text(-Code:code)// .
+% ```abnf
+% text = %d1-9      ; Characters excluding CR
+%      / %d11       ;  and LF
+%      / %d12 
+%      / %d14-127
+% ```
+
+text(C) -->
+  [C],
+  {once((between(1, 9, C) ; between(11, 12, C) ; between(14, 127, C)))}.
 
 
 

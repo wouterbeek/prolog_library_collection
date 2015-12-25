@@ -19,6 +19,7 @@
     '*n'//3, % ?High:nonneg
              % :Dcg_1
              % -Content:list
+    'm*'//2, % ?Low, :Dcg_0
     'm*'//3, % ?Low:nonneg
              % :Dcg_1
              % -Content:list
@@ -95,6 +96,7 @@ My favorite collection of DCG rules.
 :- meta_predicate('*n'(?,//,?,?)).
 :- meta_predicate('*n'(?,3,-,?,?)).
 :- meta_predicate('m*'(?,//,?,?)).
+:- meta_predicate('m*'(?,3,-,?,?)).
 :- meta_predicate('m*n'(?,?,//,?,?)).
 :- meta_predicate('m*n'(?,?,3,-,?,?)).
 :- meta_predicate('m*n__'(?,?,+,//,?,?)).
@@ -139,6 +141,11 @@ My favorite collection of DCG rules.
 
 '*n'(High, Dcg_1, L) --> 'm*n'(_, High, Dcg_1, L).
 
+
+
+%! 'm*'(?Low:nonneg, :Dcg_0)// .
+
+'m*'(Low, Dcg_0) --> 'm*n'(Low, _, Dcg_0).
 
 
 %! 'm*'(?Low:nonneg, :Dcg_1, -Content:list)// .

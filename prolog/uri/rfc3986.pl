@@ -10,6 +10,8 @@
     query//1, % -Query:string
     'relative-part'//1, % -RelativeUri:dict
     segment//1, % -Segment:string
+    'sub-delims'//1 , % ?Code:code
+    unreserved//1, % ?Code:code
     'URI-reference'//1 % -UriReference:dict
   ]
 ).
