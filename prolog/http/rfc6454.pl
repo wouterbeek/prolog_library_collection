@@ -3,11 +3,13 @@
   [
     has_same_origin/2, % +X:or([atom,dict])
                        % +Y:or([atom,dict])
+    'obs-fold'//0,
     origin/2, % +Uri:atom
               % -Origin:or([atom,dict])
     origin//1, % -Origins:list(dict)
     'origin-list-or-null'//1, % -Origins:list(dict)
     'origin-list'//1, % -Origins:list(dict)
+    'OWS'//0,
     'serialized-origin'//1 % -Origin:dict
   ]
 ).
@@ -22,10 +24,30 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'CHAR'//1, % ?Code:code
+     'CR'//0,
+     'CRLF'//0,
+     'CTL'//1, % ?Code:code
+     'DIGIT'//1, % ?Weight
+     'DIGIT'//2, % ?Weight:between(0,9)
+                 % ?Code:code
+     'DQUOTE'//0,
+     'HEXDIG'//1, % ?Weight
+     'HEXDIG'//2, % ?Weight:between(0,9)
+                  % ?Code:code
+     'HTAB'//0,
+     'LF'//0,
+     'OCTET'//1, % ?Code:code
+     'SP'//0,
+     'VCHAR'//1, % ?Code:code
+     'WSP'//0
+   ]).
 :- use_module(library(default)).
 :- use_module(library(http/rfc4790)).
-:- use_module(library(http/rfc6454_code)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986), [
@@ -66,6 +88,15 @@ has_same_origin(X1, Y1):-
   maplist(is_iri, [X1,Y1]), !,
   maplist(origin, [X1,Y1], [X2,Y2]),
   has_same_origin(X2, Y2).
+
+
+
+%! 'obs-fold'// .
+% ```abnf
+% obs-fold = CRLF ( SP / HTAB )   ; obsolete line folding
+% ```
+
+'obs-fold' --> 'CRLF', ('SP' ; 'HTAB').
 
 
 
@@ -161,8 +192,20 @@ serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 % origin-list-or-null = %x6E %x75 %x6C %x6C / origin-list
 % ```
 
-'origin-list-or-null'([]) --> "null", !.
+'origin-list-or-null'([]) --> atom_ci(null), !.
 'origin-list-or-null'(L)  --> 'origin-list'(L).
+
+
+
+%! 'OWS'// .
+% ```abnf
+% OWS = *( SP / HTAB / obs-fold )   ; "optional" whitespace
+% ```
+
+'OWS' --> *(ows).
+ows --> 'SP'.
+ows --> 'HTAB'.
+ows --> 'obs-fold'.
 
 
 

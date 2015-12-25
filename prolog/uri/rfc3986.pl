@@ -6,6 +6,7 @@
     fragment//1, % -Fragment:string
     host//1, % -Host:dict
     'path-abempty'//1, % -Segments:list(string)
+    'pct-encoded'//1, % -Code:between(0,255)
     port//1, % -Port:nonneg
     query//1, % -Query:string
     'relative-part'//1, % -RelativeUri:dict
@@ -13,6 +14,7 @@
     segment//1, % -Segment:string
     'sub-delims'//1 , % ?Code:code
     unreserved//1, % ?Code:code
+    'URI'//1, % -Uri:dict
     'URI-reference'//1 % -UriReference:dict
   ]
 ).
@@ -300,7 +302,8 @@ path(L) --> 'path-empty'(L).
 % ```
 
 'path-absolute'([H|T]) -->
-  "/", ('segment-nz'(H) -> *(sep_segment, T) ; {T = []}).
+  "/",
+  ('segment-nz'(H) -> *(sep_segment, T) ; {T = []}).
 
 
 
@@ -331,7 +334,7 @@ path(L) --> 'path-empty'(L).
 
 
 
-%! pchar(?Code:code)// .
+%! pchar(-Code:code)// .
 % ```abnf
 % pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
@@ -344,7 +347,7 @@ pchar(0'@) --> "@".
 
 
 
-%! 'pct-encoded'(?Code:between(0,255))// .
+%! 'pct-encoded'(-Code:between(0,255))// .
 % Similar to escape//1 in RFC 1738 which also supports
 % uppercase hexadecimal letters.
 %
@@ -398,7 +401,9 @@ reg_name_code(C) --> 'sub-delims'(C).
 % ```
 
 'relative-part'(relative_part{authority: Auth, path: L}) -->
-  "//", !, authority(Auth), 'path-abempty'(L).
+  "//", !,
+  authority(Auth),
+  'path-abempty'(L).
 'relative-part'(relative_part{path: L}) --> 'path-absolute'(L), !.
 'relative-part'(relative_part{path: L}) --> 'path-noscheme'(L), !.
 'relative-part'(relative_part{path: L}) --> 'path-empty'(L).

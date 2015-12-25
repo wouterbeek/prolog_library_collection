@@ -42,9 +42,10 @@ digit(C) --> digit0(_, C).
 % <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
 % ```
 
-label(S) --> letter(H), ?(label_tail, T), {string_codes(S, [H|T])}.
-label_tail(L2)  --> 'ldh-str'(L1), !, 'let-dig'(X), {append(L1, [X], L2)}.
+label(S) --> letter(H), label_tail(T), !, {string_codes(S, [H|T])}.
+label_tail(L2)  --> 'ldh-str'(L1), 'let-dig'(X), {append(L1, [X], L2)}.
 label_tail([H]) --> 'let-dig'(H).
+label_tail([])  --> "".
 
 
 
@@ -53,8 +54,7 @@ label_tail([H]) --> 'let-dig'(H).
 % <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
 % ```
 
-'ldh-str'([H|T]) --> 'let-dig-hyp'(H), 'ldh-str'(T), !.
-'ldh-str'([H])   --> 'let-dig-hyp'(H).
+'ldh-str'(L) --> 'let-dig-hyp'(H), ('ldh-str'(T), {L = [H|T]} ; {L = [H]}).
 
 
 
@@ -93,5 +93,5 @@ letter(C) --> alpha0(C).
 % <subdomain> ::= <label> | <subdomain> "." <label>
 % ```
 
-subdomain([H|T]) --> {gtrace}, label(H), *(sep_label, T).
+subdomain([H|T]) --> label(H), *(sep_label, T).
 sep_label(X) --> ".", label(X).

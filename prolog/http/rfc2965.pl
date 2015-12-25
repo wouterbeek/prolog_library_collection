@@ -122,16 +122,24 @@ portnum(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
 %               | "Secure"
 %               | "Version" "=" 1*DIGIT
 
-'set-cookie-av'(comment-V)    --> "Comment=", !, value(V).
-'set-cookie-av'(commentURL-V) --> "CommentURL=\"", !, http_URL(V), "\"".
-'set-cookie-av'(discard)      --> "Discard", !.
-'set-cookie-av'(domain-V)     --> "Domain=", !, value(V).
-'set-cookie-av'(max_age-V)    --> "Max-Age=", !, value(V).
-'set-cookie-av'(path-V)       --> "Path=", !, value(V).
-'set-cookie-av'(port-V)       --> "Port=\"", !, portlist(V), "\"".
-'set-cookie-av'(port)         --> "Port", !.
-'set-cookie-av'(secure)       --> "Secure", !.
-'set-cookie-av'(version-V)    --> "Version=", +('DIGIT', Ds), {pos_sum(Ds, V)}.
+'set-cookie-av'(comment-V) --> atom_ci('Comment'), "=", !, value(V).
+'set-cookie-av'(commentURL-V) -->
+  atom_ci('CommentURL'),
+  "=\"", !,
+  http_URL(V),
+  "\"".
+'set-cookie-av'(discard) --> atom_ci('Discard'), !.
+'set-cookie-av'(domain-V) --> atom_ci('Domain'), "=", !, value(V).
+'set-cookie-av'(max_age-V) --> atom_ci('Max-Age'), "=", !, value(V).
+'set-cookie-av'(path-V) --> atom_ci('Path'), "=", !, value(V).
+'set-cookie-av'(port-V) --> atom_ci('Port'), "=\"", !, portlist(V), "\"".
+'set-cookie-av'(port) --> atom_ci('Port'), !.
+'set-cookie-av'(secure) --> atom_ci('Secure'), !.
+'set-cookie-av'(version-V) -->
+  atom_ci('Version'),
+  "=",
+  +('DIGIT', Ds),
+  {pos_sum(Ds, V)}.
 
 
 

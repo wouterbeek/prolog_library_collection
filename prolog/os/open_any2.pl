@@ -183,7 +183,7 @@ http_error_message(Iri, Status, Lines, Read):-
   maplist(parse_header, Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, M),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
-  format(user_error, "RESPONSE: ~d (~a)~nFinal IRI:~a~n", [Status,Label,Iri]),
+  format(user_error, "RESPONSE: ~d (~a)~nFinal IRI: ~a~n", [Status,Label,Iri]),
   print_dict(M, 1),
   nl(user_error),
   copy_stream_data(Read, user_error),

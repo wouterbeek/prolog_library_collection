@@ -7,35 +7,6 @@
 
 /** <module> RFC 2109
 
-Grammar
-
-```abnf
-set-cookie = "Set-Cookie:" cookies
-cookies = 1#cookie
-cookie = NAME "=" VALUE *(";" cookie-av)
-NAME = attr
-attr = token
-VALUE = value
-cookie-av = "Comment" "=" value
-          | "Domain" "=" value
-          | "Max-Age" "=" value
-          | "Path" "=" value
-          | "Secure"
-          | "Version" "=" 1*DIGIT
-value = word
-word = token | quoted-string
-```
-
-# Common mistakes
-
-Comma's in Set-Cookie values, especially in dates.  This is not allowed since
-comma is used as a separator in `#' and `token' is not allowed to contain a
-comma.  Example:
-
-```http
-__Host-js_csrf=H9teNf8adQDrvSiROZyOCs0N; expires=Wed, 19 Dec 2018 18:04:52 GMT; Path=/; secure
-```
-
 @author Wouter Beek
 @compat RFC 2109
 @deprecated
@@ -91,12 +62,12 @@ cookies(L) --> '+#'(cookie, L).
 %           | "Version" "=" 1*DIGIT
 % ```
 
-'cookie-av'(comment-V) --> "Comment=", !, value(V).
-'cookie-av'(domain-V)  --> "Domain=", !, value(V).
-'cookie-av'(max_age-V) --> "Max-age=", !, value(V).
-'cookie-av'(path-V)    --> "Path=", !, value(V).
-'cookie-av'(secure)    --> "Secure", !.
-'cookie-av'(version-V) --> "Version=", +(digit, Ds), {pos_sum(Ds, V)}.
+'cookie-av'(comment-V) --> atom_ci('Comment='), !, value(V).
+'cookie-av'(domain-V)  --> atom_ci('Domain='), !, value(V).
+'cookie-av'(max_age-V) --> atom_ci('Max-age='), !, value(V).
+'cookie-av'(path-V)    --> atom_ci('Path='), !, value(V).
+'cookie-av'(secure)    --> atom_ci('Secure'), !.
+'cookie-av'(version-V) --> atom_ci('Version='), +(digit, Ds), {pos_sum(Ds, V)}.
 
 
 

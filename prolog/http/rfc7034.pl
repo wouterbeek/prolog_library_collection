@@ -13,6 +13,7 @@
 @version 2015/12
 */
 
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
      'HTAB'//0,
@@ -46,6 +47,6 @@
 %   * `ALLOW-FROM'
 %     Followed by a serialized-origin [RFC6454].
 
-'x-frame-options'(deny) --> "DENY".
-'x-frame-options'(sameorigin) --> "SAMEORIGIN".
-'x-frame-options'(Origin) --> "ALLOW-FROM", 'RWS', 'serialized-origin'(Origin).
+'x-frame-options'(deny) --> atom_ci('DENY').
+'x-frame-options'(sameorigin) --> atom_ci('SAMEORIGIN').
+'x-frame-options'(Origin) --> atom_ci('ALLOW-FROM'), 'RWS', 'serialized-origin'(Origin).

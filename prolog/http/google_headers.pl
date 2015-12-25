@@ -72,16 +72,16 @@
 user_agent(S) --> token(S).
 
 
-directive(all) --> "all".
-directive(noindex) --> "noindex".
-directive(nofollow) --> "nofollow".
-directive(none) --> "none".
-directive(noarchive) --> "noarchive".
-directive(nosnippet) --> "nosnippet".
-directive(noodp) --> "noodp".
-directive(notranslate) --> "notranslate".
-directive(noimageindex) --> "noimageindex".
+directive(all) --> atom_ci(all).
+directive(noindex) --> atom_ci(noindex).
+directive(nofollow) --> atom_ci(nofollow).
+directive(none) --> atom_ci(none).
+directive(noarchive) --> atom_ci(noarchive).
+directive(nosnippet) --> atom_ci(nosnippet).
+directive(noodp) --> atom_ci(noodp).
+directive(notranslate) --> atom_ci(notranslate).
+directive(noimageindex) --> atom_ci(noimageindex).
 directive(unavailable_after-DT) -->
-  "unavailable_after:",
+  atom_ci('unavailable_after:'),
   ?('LWS'),
   'rfc850-date'(DT).

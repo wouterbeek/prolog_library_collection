@@ -69,31 +69,35 @@
   :- use_module(library(html/html_resource)).
 %/http
   %:- use_module(library(http/abnf_list)).
+  :- use_module(library(http/cors)).
   :- use_module(library(http/csp2)).
   :- use_module(library(http/dcg_http)).
+  :- use_module(library(http/google_headers)).
+  :- use_module(library(http/http11)).
+  :- use_module(library(http/http11_test)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_info)).
   :- use_module(library(http/http_receive)).
   :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
+  :- use_module(library(http/ie_headers)).
+  :- use_module(library(http/rfc1034)).
   :- use_module(library(http/rfc2109)).
-  :- use_module(library(http/http11)).
+  :- use_module(library(http/rfc2616)).
   :- use_module(library(http/rfc2617)).
+  :- use_module(library(http/rfc2965)).
   :- use_module(library(http/rfc4790)).
-  :- use_module(library(http/rfc5987_code)).
-  :- use_module(library(http/rfc5987_token)).
+  :- use_module(library(http/rfc5987)).
+  :- use_module(library(http/rfc6265)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc6454)).
-  :- use_module(library(http/rfc6454_code)).
   :- use_module(library(http/rfc6797)).
+  :- use_module(library(http/rfc7034)).
 :- use_module(library(image_ext)).
 %/iri
   :- use_module(library(iri/iri_ext)).
   :- use_module(library(iri/rfc3987)).
-  :- use_module(library(iri/rfc3987_code)).
-  :- use_module(library(iri/rfc3987_component)).
-  :- use_module(library(iri/rfc3987_token)).
 :- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(list_script)).
@@ -171,12 +175,6 @@
   :- use_module(library(uri/uri_file_name)).
 %/url
   :- use_module(library(url/rfc1738)).
-  :- use_module(library(url/rfc1738_code)).
-  :- use_module(library(url/rfc1738_component)).
-  :- use_module(library(url/rfc1738_file)).
-  :- use_module(library(url/rfc1738_ftp)).
-  :- use_module(library(url/rfc1738_gopher)).
-  :- use_module(library(url/rfc1738_http)).
 :- use_module(library(uuid_ext)).
 %/xml
   :- use_module(library(xml/xml_dom)).

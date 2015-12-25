@@ -47,6 +47,7 @@ fieldvalue     = *[ uchar | "?" | ":" | "@" | "&" ]
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(lists)).
@@ -100,26 +101,26 @@ article_code(0'=) --> "=".
 
 
 
-%! digit(?Weight:between(0,9))// .
+%! digit(?Weight:between(0,9))// is det.
 % Wrapper around digit//2.
 
 digit(D) --> digit(D, _).
 
 
-%! digit(?Weight:between(0,9), ?Code:code)// .
+%! digit(?Weight:between(0,9), ?Code:code)// is det.
 % ```abnf
 % digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 % ```
 
-digit(0, 0'0) --> "0".
-digit(1, 0'1) --> "1".
-digit(2, 0'2) --> "2".
-digit(3, 0'3) --> "3".
-digit(4, 0'4) --> "4".
-digit(5, 0'5) --> "5".
-digit(6, 0'6) --> "6".
-digit(7, 0'7) --> "7".
-digit(8, 0'8) --> "8".
+digit(0, 0'0) --> "0", !.
+digit(1, 0'1) --> "1", !.
+digit(2, 0'2) --> "2", !.
+digit(3, 0'3) --> "3", !.
+digit(4, 0'4) --> "4", !.
+digit(5, 0'5) --> "5", !.
+digit(6, 0'6) --> "6", !.
+digit(7, 0'7) --> "7", !.
+digit(8, 0'8) --> "8", !.
 digit(9, 0'9) --> "9".
 
 
@@ -186,8 +187,9 @@ extra(0',) --> ",".
 % ```
 
 fileurl(url{host: Host, path: Path, scheme: file}) -->
-  "file://",
-  (host(Host), ! ; "localhost", {Host = localhost}),
+  atom_ci(file),
+  "://",
+  (host(Host), ! ; atom_ci(localhost), {Host = localhost}),
   "/",
   fpath(Path).
 
@@ -199,11 +201,12 @@ fileurl(url{host: Host, path: Path, scheme: file}) -->
 % ```
 
 ftpurl(D) -->
-  "ftp://",
+  atom_ci(ftp),
+  "://",
   login(User, Password, Host, Port),
   (   "/"
   ->  fpath(Path),
-      (";type=" -> ftptype(Type), {T = [type-Type]} ; {T = []})
+      (";", atom_ci(type), "=" -> ftptype(Type), {T = [type-Type]} ; {T = []})
   ;   {Path = []}
   ),
   {
@@ -238,16 +241,16 @@ fsegment_code(0'=) --> "=".
 
 
 
-%! ftptype(-Type:oneof(["A","D","I","a","d","i"]))// .
+%! ftptype(-Type:oneof(["A","D","I","a","d","i"]))// is det.
 % ```abnf
 % ftptype = "A" | "I" | "D" | "a" | "i" | "d"
 % ```
 
-ftptype("A") --> "A".
-ftptype("D") --> "D".
-ftptype("I") --> "I".
-ftptype("a") --> "a".
-ftptype("d") --> "d".
+ftptype("A") --> "A", !.
+ftptype("D") --> "D", !.
+ftptype("I") --> "I", !.
+ftptype("a") --> "a", !.
+ftptype("d") --> "d", !.
 ftptype("i") --> "i".
 
 
@@ -281,7 +284,8 @@ genericurl(D) -->
 % ```
 
 gopherurl(D) -->
-  "gopher://",
+  atom_ci(gopher),
+  "://",
   hostport(Host, Port),
   (   "/"
   ->  (   gtype(Type)
@@ -351,13 +355,13 @@ gtype(S) --> xchar(C), {string_codes(S, [C])}.
 
 
 
-%! hex(?Weight:between(0,15))// .
+%! hex(?Weight:between(0,15))// is det.
 % Wrapper around hex//2.
 
 hex(I) --> hex(I, _).
 
 
-%! hex(?Weight:between(0,15), ?Code:code)// .
+%! hex(?Weight:between(0,15), ?Code:code)// is det.
 % Hexadecimal digit, supporting both uppercase and lowercase letters.
 %
 % ```abnf
@@ -366,18 +370,18 @@ hex(I) --> hex(I, _).
 %     | "a" | "b" | "c" | "d" | "e" | "f"
 % ```
 
-hex(I, C)    --> digit(I, C).
-hex(10, 0'A) --> "A".
-hex(11, 0'B) --> "B".
-hex(12, 0'C) --> "C".
-hex(13, 0'D) --> "D".
-hex(14, 0'E) --> "E".
-hex(15, 0'F) --> "F".
-hex(10, 0'a) --> "a".
-hex(11, 0'b) --> "b".
-hex(12, 0'c) --> "c".
-hex(13, 0'd) --> "d".
-hex(14, 0'e) --> "e".
+hex(I, C)    --> digit(I, C), !.
+hex(10, 0'A) --> "A", !.
+hex(11, 0'B) --> "B", !.
+hex(12, 0'C) --> "C", !.
+hex(13, 0'D) --> "D", !.
+hex(14, 0'E) --> "E", !.
+hex(15, 0'F) --> "F", !.
+hex(10, 0'a) --> "a", !.
+hex(11, 0'b) --> "b", !.
+hex(12, 0'c) --> "c", !.
+hex(13, 0'd) --> "d", !.
+hex(14, 0'e) --> "e", !.
 hex(15, 0'f) --> "f".
 
 
@@ -484,7 +488,8 @@ hsegment(S) --> *(code2, Cs), {string_codes(S, Cs)}.
 % ```
 
 httpurl(D) -->
-  "http://",
+  atom_ci(http),
+  "://",
   hostport(Host, Port),
   ("/" -> hpath(Path), ("?" -> search(Search) ; "") ; {Path = []}),
   {
@@ -575,7 +580,8 @@ lowalpha(0'z) --> "z".
 % ```
 
 mailtourl(url{address: Addr, scheme:mailto}) -->
-  "mailto:",
+  atom_ci(mailto),
+  ":",
   encoded822addr(Addr).
 
 
@@ -603,7 +609,8 @@ national(0'`)  --> "`".
 % ```
 
 newsurl(D) -->
-  "news:",
+  atom_ci(news),
+  ":",
   grouppart(T),
   {dict_pairs(D, url, [scheme-news|T])}.
 
@@ -615,7 +622,8 @@ newsurl(D) -->
 % ```
 
 nntpurl(D) -->
-  "nntp://",
+  atom_ci(nntp),
+  "://",
   hostport(Host, Port),
   "/",
   group(Group),
@@ -747,7 +755,8 @@ selector(S) --> *(xchar, Cs), {string_codes(S, Cs)}.
 % ```
 
 telneturl(D) -->
-  "telnet://",
+  atom_ci(telnet),
+  "://",
   login(User, Password, Host, Port),
   ?("/"),
   {

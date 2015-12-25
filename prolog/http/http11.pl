@@ -27,6 +27,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
@@ -54,7 +55,9 @@
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc6265)).
+:- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6797)).
 :- use_module(library(http/rfc7034)).
 :- use_module(library(ltag/rfc4647), [
@@ -190,7 +193,7 @@ accept_language_part(X) -->
 % ```
 
 'acceptable-ranges'(L)  --> +#('range-unit', L), !.
-'acceptable-ranges'([]) --> "none".
+'acceptable-ranges'([]) --> atom_ci(none).
 
 
 
@@ -365,7 +368,7 @@ byte_range_set_part(Range) --> 'suffix-byte-range-spec'(Range).
 % bytes-unit = "bytes"
 % ```
 
-'bytes-unit' --> "bytes".
+'bytes-unit' --> atom_ci(bytes).
 
 
 
@@ -517,7 +520,7 @@ sep_chunk_ext(Ext) -->
 % ```
 
 codings(S) --> 'content-coding'(S).
-codings(identity) --> "identity".
+codings(identity) --> atom_ci(identity).
 codings(*) --> "*".
 
 
@@ -723,13 +726,13 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 %          | %x53.75.6E   ; "Sun", case-sensitive
 % ```
 
-'day-name'(1) --> "Mon", !.
-'day-name'(2) --> "Tue", !.
-'day-name'(3) --> "Wed", !.
-'day-name'(4) --> "Thu", !.
-'day-name'(5) --> "Fri", !.
-'day-name'(6) --> "Sat", !.
-'day-name'(7) --> "Sun".
+'day-name'(1) --> atom_ci('Mon'), !.
+'day-name'(2) --> atom_ci('Tue'), !.
+'day-name'(3) --> atom_ci('Wed'), !.
+'day-name'(4) --> atom_ci('Thu'), !.
+'day-name'(5) --> atom_ci('Fri'), !.
+'day-name'(6) --> atom_ci('Sat'), !.
+'day-name'(7) --> atom_ci('Sun').
 
 
 
@@ -750,13 +753,13 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 %         | "Thursday" | "Friday" | "Saturday" | "Sunday"
 % ```
 
-'day-name-l'(1) --> "Monday".
-'day-name-l'(2) --> "Tuesday".
-'day-name-l'(3) --> "Wednesday".
-'day-name-l'(4) --> "Thursday".
-'day-name-l'(5) --> "Friday".
-'day-name-l'(6) --> "Saturday".
-'day-name-l'(7) --> "Sunday".
+'day-name-l'(1) --> atom_ci('Monday'), !.
+'day-name-l'(2) --> atom_ci('Tuesday'), !.
+'day-name-l'(3) --> atom_ci('Wednesday'), !.
+'day-name-l'(4) --> atom_ci('Thursday'), !.
+'day-name-l'(5) --> atom_ci('Friday'), !.
+'day-name-l'(6) --> atom_ci('Saturday'), !.
+'day-name-l'(7) --> atom_ci('Sunday').
 
 
 
@@ -823,7 +826,7 @@ etagc(C)    --> 'obs-text'(C).
 % Expect = "100-continue"
 % ```
 
-expect("100-continue") --> "100-continue".
+expect("100-continue") --> atom_ci('100-continue').
 
 
 
@@ -870,6 +873,7 @@ expect("100-continue") --> "100-continue".
 known_unknown('cf-ray').
 known_unknown(servidor).
 known_unknown('x-acre-source-url').
+known_unknown('x-adblock-key').
 known_unknown('x-cache').
 known_unknown('x-cache-lookup').
 known_unknown('x-content-type-options'). % Has grammar.  Implemented.
@@ -945,7 +949,7 @@ from(Pair) --> mailbox(Pair).
 % GMT = %x47.4D.54   ; "GMT", case-sensitive
 % ```
 
-'GMT' --> "GMT".
+'GMT' --> atom_ci('GMT').
 
 
 
@@ -1057,7 +1061,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % ```
 
 'https-URI'(D) -->
-  "https://",
+  atom_ci('https://'),
   authority(Auth),
   'path-abempty'(Path),
   ("?" -> query(Query) ; ""),
@@ -1270,18 +1274,18 @@ minute(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 %       | %x44.65.63 ;   "Dec", case-sensitive
 % ```
 
-month(1)  --> "Jan".
-month(2)  --> "Feb".
-month(3)  --> "Mar".
-month(4)  --> "Apr".
-month(5)  --> "May".
-month(6)  --> "Jun".
-month(7)  --> "Jul".
-month(8)  --> "Aug".
-month(9)  --> "Sep".
-month(10) --> "Oct".
-month(11) --> "Nov".
-month(12) --> "Dec".
+month(1)  --> atom_ci('Jan'), !.
+month(2)  --> atom_ci('Feb'), !.
+month(3)  --> atom_ci('Mar'), !.
+month(4)  --> atom_ci('Apr'), !.
+month(5)  --> atom_ci('May'), !.
+month(6)  --> atom_ci('Jun'), !.
+month(7)  --> atom_ci('Jul'), !.
+month(8)  --> atom_ci('Aug'), !.
+month(9)  --> atom_ci('Sep'), !.
+month(10) --> atom_ci('Oct'), !.
+month(11) --> atom_ci('Nov'), !.
+month(12) --> atom_ci('Dec').
 
 
 
@@ -1432,7 +1436,7 @@ pragma(L) --> +#('pragma-directive', L).
 % pragma-directive = "no-cache" | extension-pragma
 % ```
 
-'pragma-directive'('no-cache') --> "no-cache", !.
+'pragma-directive'('no-cache') --> atom_ci('no-cache'), !.
 'pragma-directive'(X)          --> 'extension-pragma'(X).
 
 
@@ -1821,7 +1825,7 @@ subtype(S) --> token(S).
 % t-codings = "trailers" | ( transfer-coding [ t-ranking ] )
 % ```
 
-'t-codings'(trailers) --> "trailers".
+'t-codings'(trailers) --> atom_ci(trailers).
 't-codings'(X) -->
   'transfer-coding'(TransferCoding),
   ('t-ranking'(Rank) -> {X = TransferCoding-Rank} ; {X = TransferCoding}).
@@ -1833,7 +1837,7 @@ subtype(S) --> token(S).
 % t-ranking = OWS ";" OWS "q=" rank
 % ```
 
-'t-ranking'(Rank) --> 'OWS', ";", 'OWS', "q=", rank(Rank).
+'t-ranking'(Rank) --> 'OWS', ";", 'OWS', atom_ci('q='), rank(Rank).
 
 
 
@@ -1936,13 +1940,13 @@ trailer(L) --> +#('field-name', L).
 % ```
 
 'transfer-coding'(transfer_coding{token: chunked, parameter: []}) -->
-  "chunked", !.
+  atom_ci(chunked), !.
 'transfer-coding'(transfer_coding{token: compress, parameter: []}) -->
-  "compress", !.
+  atom_ci(compress), !.
 'transfer-coding'(transfer_coding{token: deflate, paramers: []}) -->
-  "deflate", !.
+  atom_ci(deflate), !.
 'transfer-coding'(transfer_coding{token: gzip, parameters: []}) -->
-  "gzip", !.
+  atom_ci(gzip), !.
 'transfer-coding'(D) -->
   'transfer-extension'(D).
 
@@ -2126,7 +2130,7 @@ weak --> "W/".
 % weight = OWS ";" OWS "q=" qvalue
 % ```
 
-weight(N) --> 'OWS', ";", 'OWS', "q=", qvalue(N).
+weight(N) --> 'OWS', ";", 'OWS', atom_ci('q='), qvalue(N).
 
 
 

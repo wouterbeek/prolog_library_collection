@@ -4,9 +4,28 @@
     'LWS'//0,
     'quoted-string'//1, % -String:string
     'rfc1123-date'//1, % -Datetime:datetime
-    token//1 % -Token:string
+    token//1, % -Token:string
+    value//1 % -Value:string
   ]
 ).
+:- reexport(library(dcg/rfc2234), [
+     'ALPHA'//1, % ?Code:code
+     'CHAR'//1, % ?Code:code
+     'CRLF'//0,
+     'CTL'//1, % ?Code:code
+     'DIGIT'//1, % ?Digit
+     'DIGIT'//2, % ?Digit:between(0,9)
+                 % ?Code:code
+     'HTAB'//0 as 'HT',
+     'HTAB'//1 as 'HT', % ?Code:code
+     'OCTET'//1, % ?Code:code
+     'SP'//0,
+     'SP'//1 % ?Code:code
+   ]).
+:- reexport(library(url/rfc1738), [
+     hialpha//1 as 'HIALPHA', % ?Code:code
+     lowalpha//1 as 'LOALPHA' % ?Code:code
+   ]).
 
 /** <module> RFC 2616: HTTP 1.1
 
@@ -17,18 +36,8 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/rfc2234), [
-     'CHAR'//1, % ?Code:code
-     'CRLF'//0,
-     'CTL'//1, % ?Code:code
-     'DIGIT'//1, % ?Digit:between(0,9)
-     'HTAB'//0 as 'HT',
-     'HTAB'//1 as 'HT', % ?Code:code
-     'OCTET'//1, % ?Code:code
-     'SP'//0,
-     'SP'//1 % ?Code:code
-   ]).
 :- use_module(library(pair_ext)).
 :- use_module(library(uri/rfc2396), [
      abs_path//1, % -Path:list(string)
@@ -52,8 +61,8 @@ date1(date(Y,Mo,D)) -->
   'SP',
   month(Mo),
   'SP',
-  #('DIGIT', Ds2),
-  {sum_pos(Ds2, Y)}.
+  #(4, 'DIGIT', Ds2),
+  {pos_sum(Ds2, Y)}.
 
 
 
@@ -79,7 +88,7 @@ date2(date(Y,Mo,D)) -->
 % ```
 
 http_URL(D) -->
-  "http://",
+  atom_ci('http://'),
   host(Host),
   (":" -> port(Port) ; ""),
   (abs_path(Path) -> ("?" -> query(Query) ; "") ; ""),
@@ -106,18 +115,18 @@ http_URL(D) -->
 %       | "Sep" | "Oct" | "Nov" | "Dec"
 % ```
 
-month(1)  --> "Jan", !.
-month(2)  --> "Feb", !.
-month(3)  --> "Mar", !.
-month(4)  --> "Apr", !.
-month(5)  --> "May", !.
-month(6)  --> "Jun", !.
-month(7)  --> "Jul", !.
-month(8)  --> "Aug", !.
-month(9)  --> "Sep", !.
-month(10) --> "Oct", !.
-month(11) --> "Nov", !.
-month(12) --> "Dec".
+month(1)  --> atom_ci('Jan'), !.
+month(2)  --> atom_ci('Feb'), !.
+month(3)  --> atom_ci('Mar'), !.
+month(4)  --> atom_ci('Apr'), !.
+month(5)  --> atom_ci('May'), !.
+month(6)  --> atom_ci('Jun'), !.
+month(7)  --> atom_ci('Jul'), !.
+month(8)  --> atom_ci('Aug'), !.
+month(9)  --> atom_ci('Sep'), !.
+month(10) --> atom_ci('Oct'), !.
+month(11) --> atom_ci('Nov'), !.
+month(12) --> atom_ci('Dec').
 
 
 
@@ -167,7 +176,7 @@ quoted_string_code(C) --> 'quoted-pair'(C).
   'SP',
   time(time(H,Mi,S)),
   'SP',
-  "GMT".
+  atom_ci('GMT').
 
 
 
@@ -184,7 +193,7 @@ quoted_string_code(C) --> 'quoted-pair'(C).
   'SP',
   time(time(H,Mi,S)),
   'SP',
-  "GMT".
+  atom_ci('GMT').
 
 
 
@@ -231,13 +240,13 @@ separators(C)    --> 'HT'(C).
 % ```
 
 time(time(H,Mi,S)) -->
-  #('DIGIT', Ds1),
+  #(2, 'DIGIT', Ds1),
   {pos_sum(Ds1, H)},
   ":",
-  #('DIGIT', Ds2),
+  #(2, 'DIGIT', Ds2),
   {pos_sum(Ds2, Mi)},
   ":",
-  #('DIGIT', Ds3),
+  #(2, 'DIGIT', Ds3),
   {pos_sum(Ds3, S)}.
 
 
@@ -252,19 +261,29 @@ token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
 
 
 
+%! value(-Value:string)// is det.
+% ```abnf
+% value = token | quoted-string
+% ```
+
+value(S) --> token(S), !.
+value(S) --> 'quoted-string'(S).
+
+
+
 %! weekday(-Day:between(1,7))// is det.
 % ```abnf
 % weekday = "Monday" | "Tuesday" | "Wednesday"
 %         | "Thursday" | "Friday" | "Saturday" | "Sunday"
 % ```
 
-weekday(1) --> "Monday".
-weekday(2) --> "Tuesday".
-weekday(3) --> "Wednesday".
-weekday(4) --> "Thursday".
-weekday(5) --> "Friday".
-weekday(6) --> "Saturday".
-weekday(7) --> "Sunday".
+weekday(1) --> atom_ci('Monday'), !.
+weekday(2) --> atom_ci('Tuesday'), !.
+weekday(3) --> atom_ci('Wednesday'), !.
+weekday(4) --> atom_ci('Thursday'), !.
+weekday(5) --> atom_ci('Friday'), !.
+weekday(6) --> atom_ci('Saturday'), !.
+weekday(7) --> atom_ci('Sunday').
 
 
 
@@ -273,10 +292,10 @@ weekday(7) --> "Sunday".
 % wkday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"
 % ```
 
-wkday(1) --> "Mon", !.
-wkday(2) --> "Tue", !.
-wkday(3) --> "Wed", !.
-wkday(4) --> "Thu", !.
-wkday(5) --> "Fri", !.
-wkday(6) --> "Sat", !.
-wkday(7) --> "Sun".
+wkday(1) --> atom_ci('Mon'), !.
+wkday(2) --> atom_ci('Tue'), !.
+wkday(3) --> atom_ci('Wed'), !.
+wkday(4) --> atom_ci('Thu'), !.
+wkday(5) --> atom_ci('Fri'), !.
+wkday(6) --> atom_ci('Sat'), !.
+wkday(7) --> atom_ci('Sun').

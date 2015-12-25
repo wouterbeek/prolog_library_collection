@@ -23,6 +23,10 @@ Grammar rules for processing atoms.
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(url/rfc1738), [
+     hialpha//1, % ?Code:code
+     lowalpha//1 % ?Code:code
+   ]).
 
 
 

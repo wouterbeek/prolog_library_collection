@@ -18,7 +18,12 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext), ['?'//1,'+'//2,'*'//2,pos_sum/2]).
+:- use_module(library(dcg/dcg_ext), [
+     '?'//1,
+     '+'//2,
+     '*'//2,
+     pos_sum/2
+   ]).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dict_ext)).
 :- use_module(library(pair_ext)).

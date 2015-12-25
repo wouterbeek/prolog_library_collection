@@ -16,6 +16,7 @@
 @version 2015/11-2015/12
 */
 
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/http11), ['field-name'//1,method//1]).
 :- use_module(library(http/rfc6454)).
@@ -29,7 +30,7 @@
 % Access-Control-Allow-Credentials: "Access-Control-Allow-Credentials" ":" true
 % ```
 
-'access-control-allow-credentials'(true) --> "true".
+'access-control-allow-credentials'(true) --> atom_ci(true).
 
 
 

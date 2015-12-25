@@ -16,16 +16,16 @@ header from RFC 2616.
 @version 2015/11-2015/12
 */
 
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), [
-     token//1, % ?Token:string
-     'quoted-string'//1, % QuotedString:string
-     value//1 % ?Value:string
+     'LWS'//0,
+     token//1, % -Token:string
+     'quoted-string'//1, % -String:string
+     value//1 % -Value:string
    ]).
-:- use_module(library(http/rfc5987_token), [
-     'ext-value'//3 % ?Charset:string
-                    % ?Language:list(string)
-                    % ?Value:string
+:- use_module(library(http/rfc5987), [
+     'ext-value'//1 % -Value:dict
    ]).
 
 
@@ -38,24 +38,33 @@ header from RFC 2616.
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(disposition{type: Type, parameters: Params}) -->
+'content-disposition'(D) -->
   'disposition-type'(Type),
-  *(disposition_param, Params).
+  *(disposition_param, T),
+  {dict_pairs(D, disposition, [type-Type|T])}.
 disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 
 
 
-%! 'disp-ext-parm(?Parameter:pair(string))// .
+%! 'disp-ext-parm(-Parameter:pair)// is det.
 % ```abnf
 % disp-ext-parm = token "=" value | ext-token "=" ext-value
 % ```
 
-'disp-ext-parm'(Key-Val)        --> token(Key), !,    "=", value(Val).
-'disp-ext-parm'(Key-ext(X,Y,Z)) --> 'ext-token'(Key), "=", 'ext-value'(X, Y, Z).
+'disp-ext-parm'(N-V) -->
+  token(N0), !,
+  {atom_string(N, N0)},
+  "=",
+  value(V).
+'disp-ext-parm'(N-D) -->
+  'ext-token'(N0),
+  {atom_string(N, N0)},
+  "=",
+  'ext-value'(D).
 
 
 
-%! 'disp-ext-type'(?Type:string)// .
+%! 'disp-ext-type'(-Type:string)// is det.
 % ```abfn
 % disp-ext-type = token
 % ```
@@ -64,7 +73,7 @@ disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 
 
 
-%! 'disposition-parm'(?Parameters:list(pair(string)))// .
+%! 'disposition-parm'(?Parameters:list(pair))// is det.
 % ```abnf
 % disposition-parm = filename-parm | disp-ext-parm
 % ```
@@ -80,26 +89,26 @@ disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 %                  ; case-insensitive
 % ```
 
-'disposition-type'(inline)      --> "inline".
-'disposition-type'(attachement) --> "attachment".
-'disposition-type'(Type)        --> 'disp-ext-type'(Type).
+'disposition-type'(inline) --> atom_ci(inline), !.
+'disposition-type'(attachement) --> atom_ci(attachment), !.
+'disposition-type'(S) --> 'disp-ext-type'(S0), {string_lower(S0, S)}.
 
 
 
-%! 'ext-token'(?Value:string)// .
+%! 'ext-token'(-Value:string)// is det.
 % ```abnf
 % ext-token = <the characters in token, followed by "*">
 % ```
 
-'ext-token'(Val) --> token(Val0), "*", {string_concat(Val0, "*", Val)}.
+'ext-token'(S) --> token(S0), "*", {string_concat(S0, "*", S)}.
 
 
 
-%! 'filename-parm'(?Parameter:pair(string))// .
+%! 'filename-parm'(?Parameter:pair)// is det.
 % ```abnf
 % filename-parm = "filename" "=" value
 %               | "filename*" "=" ext-value
 % ```
 
-'filename-parm'("filename"-Val)         --> "filename=", !, value(Val).
-'filename-parm'("filename*"-ext(X,Y,Z)) --> "filename*=", 'ext-value'(X, Y, Z).
+'filename-parm'(filename-S) --> atom_ci(filename), "=", !, value(S).
+'filename-parm'('filename*'-D) --> atom_ci(filename), "*=", 'ext-value'(D).

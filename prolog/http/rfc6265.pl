@@ -1,7 +1,7 @@
 :- module(
   rfc6265,
   [
-    'set-cookie'//1 % -Pairs:list(pair)
+    'set-cookie'//1 % -Cookie:dict
   ]
 ).
 
@@ -13,6 +13,7 @@
 @version 2015/12
 */
 
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
@@ -31,6 +32,7 @@
      'VCHAR'//1, % ?Code:code
      'WSP'//0
    ]).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/rfc1034)).
 :- use_module(library(http/rfc2616)).
 :- use_module(library(http/http11)).
@@ -41,27 +43,35 @@
 
 %! 'cookie-av'(-Pair:pair)// is det.
 % ```abnf
-% cookie-av = expires-av | max-age-av | domain-av /
-%             path-av | secure-av | httponly-av /
-%             extension-av
+% cookie-av = expires-av
+%           | max-age-av
+%           | domain-av
+%           | path-av
+%           | secure-av
+%           | httponly-av
+%           | extension-av
 % ```
 
-'cookie-av'(X) --> 'expires-av'(X), !.
-'cookie-av'(X) --> 'max-age-av'(X), !.
-'cookie-av'(X) --> 'domain-av'(X), !.
-'cookie-av'(X) --> 'path-av'(X), !.
-'cookie-av'(X) --> 'secure-av'(X), !.
-'cookie-av'(X) --> 'httponly-av'(X), !.
-'cookie-av'(X) --> 'extension-av'(X).
+'cookie-av'(expires-DT) --> 'expires-av'(DT), !.
+'cookie-av'('max-age'-N) --> 'max-age-av'(N), !.
+'cookie-av'(domain-L) --> 'domain-av'(L), !.
+'cookie-av'(path-S) --> 'path-av'(S), !.
+'cookie-av'(secure-true) --> 'secure-av', !.
+'cookie-av'(httponly-true) --> 'httponly-av', !.
+'cookie-av'(extension-S) --> 'extension-av'(S).
 
 
 
-%! 'cookie-pair'(-Pair:pair(string))// .
+%! 'cookie-pair'(-Pair:pair(atom,string))// .
 % ```abnf
 % cookie-pair = cookie-name "=" cookie-value
 % ```
 
-'cookie-pair'(N-V) --> 'cookie-name'(N), "=", 'cookie-value'(V).
+'cookie-pair'(N-V) -->
+  'cookie-name'(N0),
+  {atom_string(N, N0)},
+  "=",
+  'cookie-value'(V).
 
 
 
@@ -104,61 +114,62 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
 
-%! 'domain-av'(-Domain:pair(atom))// .
+%! 'domain-av'(-Domain:list(string))// is det.
 % ```abnf
 % domain-av = "Domain=" domain-value
 % ```
 
-'domain-av'(domain-V) --> "Domain=", 'domain-value'(V).
+'domain-av'(L) --> atom_ci('Domain'), "=", 'domain-value'(L).
 
 
 
-%! 'domain-value'(-Subdomain:atom)// .
+%! 'domain-value'(-Subdomain:list(string))// is det.
 % ```abnf
 % domain-value = <subdomain>   ; defined in [RFC1034], Section 3.5, as
 %                              ; enhanced by [RFC1123], Section 2.1
 % ```
 
-'domain-value'(V) --> subdomain(V).
+'domain-value'(L) --> subdomain(L).
 
 
 
-%! 'expires-av'(-Expires:pair(atom,compound))// .
+%! 'expires-av'(-Expires:datetime)// is det.
 % ```abnf
 % expires-av = "Expires=" sane-cookie-date
 % ```
 
-'expires-av'(expires-DT) --> "Expires=", 'sane-cookie-date'(DT).
+'expires-av'(DT) --> atom_ci('Expires'), "=", 'sane-cookie-date'(DT).
 
 
 
-%! 'extension-av'(-Extension:pair(oneof([extension]),string))// .
+%! 'extension-av'(-Extension:string)// is det.
 % ```abnf
 % extension-av = <any CHAR except CTLs or ";">
 % ```
 
-'extension-av'(extension-S) --> word(S).
+'extension-av'(S) --> word(S).
 
 
 
-%! 'httponly-av'(-HttpOnly:oneof([http_only]))// .
+%! 'httponly-av'// is det.
 % ```abnf
 % httponly-av = "HttpOnly"
 % ```
 
-'httponly-av'(http_only) --> "HttpOnly".
+'httponly-av' --> atom_ci('HttpOnly').
 
 
 
-%! 'max-age-av'(-MaximumAge:pair(atom,nonneg))// is det.
+%! 'max-age-av'(-MaximumAge:nonneg)// is det.
 % ```abnf
 % max-age-av = "Max-Age=" non-zero-digit *DIGIT
 %            ; In practice, both expires-av and max-age-av
 %            ; are limited to dates representable by the user agent.
 % ```
 
-'max-age-av'(max_age-N) -->
-  "Max-Age=",
+'max-age-av'(N) -->
+  atom_ci('Max-Age'),
+  "=",
   'non-zero-digit'(H),
   *(digit, T),
   {pos_sum([H|T], N)}.
@@ -170,28 +181,28 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 % non-zero-digit = %x31-39   ; digits 1 through 9
 % ```
 
-'non-zero-digit'(1) --> "1".
-'non-zero-digit'(2) --> "2".
-'non-zero-digit'(3) --> "3".
-'non-zero-digit'(4) --> "4".
-'non-zero-digit'(5) --> "5".
-'non-zero-digit'(6) --> "6".
-'non-zero-digit'(7) --> "7".
-'non-zero-digit'(8) --> "8".
+'non-zero-digit'(1) --> "1", !.
+'non-zero-digit'(2) --> "2", !.
+'non-zero-digit'(3) --> "3", !.
+'non-zero-digit'(4) --> "4", !.
+'non-zero-digit'(5) --> "5", !.
+'non-zero-digit'(6) --> "6", !.
+'non-zero-digit'(7) --> "7", !.
+'non-zero-digit'(8) --> "8", !.
 'non-zero-digit'(9) --> "9".
 
 
 
-%! 'path-av'(-Path:pair(atom,string))// .
+%! 'path-av'(-Path:string)// is det.
 % ```abnf
 % path-av = "Path=" path-value
 % ```
 
-'path-av'(path-S) --> "Path=", 'path-value'(S).
+'path-av'(S) --> atom_ci('Path'), "=", 'path-value'(S).
 
 
 
-%! 'path-value'(-Path:stiring)// .
+%! 'path-value'(-Path:string)// is det.
 % ```abnf
 % path-value = <any CHAR except CTLs or ";">
 % ```
@@ -209,30 +220,33 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
 
-%! 'secure-av'(-Secure:oneof([secure]))// is det.
+%! 'secure-av'// is det.
 % ```abnf
 % secure-av = "Secure"
 % ```
 
-'secure-av'(secure) --> "Secure".
+'secure-av' --> atom_ci('Secure').
 
 
 
-%! 'set-cookie'(-Pairs:list(pair))// is det.
+%! 'set-cookie'(-Cookie:dict)// is det.
 % ```abnf
 % set-cookie-header = "Set-Cookie:" SP set-cookie-string
 % ```
 
-'set-cookie'(L) --> 'set-cookie-string'(L).
+'set-cookie'(D) --> 'set-cookie-string'(D).
 
 
 
-%! 'set-cookie-string'(-Pairs:list(pair))// is det.
+%! 'set-cookie-string'(-Cookie:dict)// is det.
 % ```abnf
 % set-cookie-string = cookie-pair *( ";" SP cookie-av )
 % ```
 
-'set-cookie-string'([H|T]) --> 'cookie-pair'(H), *(sep_cookie_av, T).
+'set-cookie-string'(D) -->
+  'cookie-pair'(H),
+  *(sep_cookie_av, T),
+  {create_grouped_sorted_dict([H|T], cookie, D)}.
 sep_cookie_av(X) --> ";", 'SP', 'cookie-av'(X).
 
 

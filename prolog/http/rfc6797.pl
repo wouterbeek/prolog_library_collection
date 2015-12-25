@@ -7,7 +7,7 @@
 
 /** <module> RFC 6797: HTTP Strict Transport Security (HSTS)
 
-@author
+@author Wouter Beek
 @compat RFC 6797
 @see https://tools.ietf.org/html/rfc6797
 @version 2015/11-2015/12
@@ -16,8 +16,8 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
-     'quoted-string'//1,
-     token//1
+     'quoted-string'//1, % -String:string
+     token//1 % -Token:string
    ]).
 
 

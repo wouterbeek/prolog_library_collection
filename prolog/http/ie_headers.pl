@@ -13,6 +13,7 @@
 @version 2015/12
 */
 
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), ['LWS'//0]).
@@ -27,7 +28,7 @@
 %
 % @see https://msdn.microsoft.com/library/gg622941%28v=vs.85%29.aspx
 
-'x-content-type-options'(nosniff) --> "nosniff".
+'x-content-type-options'(nosniff) --> atom_ci(nosniff).
 
 
 
@@ -87,5 +88,5 @@
 % @see http://blogs.msdn.com/b/ieinternals/archive/2011/01/31/controlling-the-internet-explorer-xss-filter-with-the-x-xss-protection-http-header.aspx
 
 'x-xss-protection'(optout) --> "0", !.
-'x-xss-protection'(block) --> "1;", !, ?('LWS'), "mode=block".
+'x-xss-protection'(block) --> "1;", !, ?('LWS'), atom_ci('mode=block').
 'x-xss-protection'(optin) --> "1".

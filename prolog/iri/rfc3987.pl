@@ -1,27 +1,9 @@
 :- module(
   rfc3987,
   [
-    'absolute-IRI'//4, % ?Scheme:string
-                       % ?Authority:compound
-                       % ?Segments:list(string)
-                       % ?Query:string
-    'ihier-part'//3, % +Scheme:string
-                     % ?Authority:compound
-                     % ?Segments:list(string)
-    'irelative-part'//3, % ?Scheme:string
-                         % ?Authority:compound
-                         % ?Segments:list(string)
-    'IRI'//1, % ?Iri:atom
-    'IRI'//5, % ?Scheme:string
-              % ?Authority:compound
-              % ?Segments:list(string)
-              % ?Query:string
-              % ?Fragment:string
-    'IRI-reference'//5 % ?Scheme:string
-                       % ?Authority:compound
-                       % ?Segments:list(string)
-                       % ?Query:string
-                       % ?Fragment:string
+    'absolute-IRI'//1, % -AbsoluteIri:dict
+    'IRI'//1, % -Iri:dict
+    'IRI-reference'//1 % -IriReference:dict
   ]
 ).
 
@@ -65,36 +47,64 @@
 @author Wouter Beek
 @compat RFC 3987
 @see http://tools.ietf.org/html/rfc3987
-@version 2015/11
+@version 2015/08, 2015/11-2015/12
 */
 
+:- use_module(library(apply)).
+:- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(pair_ext)).
 :- use_module(library(string_ext)).
-:- use_module(library(iri/rfc3987_component)).
 :- use_module(library(uri)).
+:- use_module(library(uri/rfc3986)).
 
 
 
 
 
-%! 'absolute-IRI'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Segments:list(string),
-%!   ?Query:string
-%! )// .
+%! 'absolute-IRI'(-AbsoluteIri:dict)// is det.
 % ```abnf
 % absolute-IRI = scheme ":" ihier-part [ "?" iquery ]
 % ```
 
-'absolute-IRI'(Scheme, Auth, L, Query) -->
+'absolute-IRI'(D) -->
   scheme(Scheme),
   ":",
-  'ihier-part'(Scheme, Auth, L),
-  ("?" -> iquery(Query) ; "").
+  'ihier-part'(D0),
+  {dict_pairs(D0, hier_part, T)},
+  ("?" -> iquery(Query), {T = [query-Query|T0]} ; {T = T0}),
+  {dict_pairs(D, iri, [scheme-Scheme|T])}.
 
 
 
-%! 'ihier-part'(+Scheme:string, ?Authority:compound, ?Segments:list(string))// .
+%! iauthority(-Scheme:string, -Authority:dict)// is det.
+% ```abnf
+% iauthority = [ iuserinfo "@" ] ihost [ ":" port ]
+% ```
+
+iauthority(Scheme. Auth) -->
+  (iuserinfo(UserInfo), "@", {T = [userinfo-Userinfo]} ; {T = []}),
+  ihost(Host), !,
+  % If the port subcomponent is empty or not given,
+  % TCP port 80 (the reserved port for WWW services) is the default.
+  (":" -> port(Port) ; {default_port(Scheme, Port)}),
+  {dict_pairs(Auth, authority, [host-Host,port-Port|T])}.
+
+
+
+%! ifragment(-Fragment:string)// is det.
+% ```abnf
+% ifragment = *( ipchar / "/" / "?" )
+% ```
+
+ifragment(S) --> *(ifragment_code, Cs), {string_codes(S, Cs)}.
+ifragment_code(C)   --> ipchar(C).
+ifragment_code(0'/) --> "/".
+ifragment_code(0'?) --> "?".
+
+
+
+%! 'ihier-part'(-HierarchicalPart:dict)// .
 % ```abnf
 % ihier-part = "//" iauthority ipath-abempty
 %            / ipath-absolute
@@ -102,18 +112,145 @@
 %            / ipath-empty
 % ```
 
-'ihier-part'(Scheme, Auth, L) --> "//", iauthority(Scheme, Auth), 'ipath-abempty'(L).
-'ihier-part'(_, _, L)         --> 'ipath-absolute'(L).
-'ihier-part'(_, _, L)         --> 'ipath-rootless'(L).
-'ihier-part'(_, _, L)         --> 'ipath-empty'(L).
+'ihier-part'(hier_part{authority: Auth, path: L, scheme: Scheme}) -->
+  "//",
+  iauthority(Scheme, Auth),
+  'ipath-abempty'(L).
+'ihier-part'(hier_part{path: L}) --> 'ipath-absolute'(L).
+'ihier-part'(hier_part{path: L}) --> 'ipath-rootless'(L).
+'ihier-part'(hier_part{path: L}) --> 'ipath-empty'(L).
 
 
 
-%! 'irelative-part'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Segments:list(string)
-%! )// .
+%! ihost(-Host:dict)// is det.
+% ```abnf
+% ihost = IP-literal / IPv4address / ireg-name
+% ```
+
+ihost(Host) --> 'IP-literal'(Host), !.
+ihost(Host) --> 'IPv4address'(Host), !.
+ihost(Host) --> 'ireg-name'(Host).
+
+
+
+%! ipath(-Segments:list(string))// is det.
+% ```abnf
+% ipath = ipath-abempty    ; begins with "/" or is empty
+%       / ipath-absolute   ; begins with "/" but not "//"
+%       / ipath-noscheme   ; begins with a non-colon segment
+%       / ipath-rootless   ; begins with a segment
+%       / ipath-empty      ; zero characters
+% ```
+
+% Begins with "/" or is empty.
+ipath(L) --> 'ipath-abempty'(L), !.
+% Begins with "/" but not "//".
+ipath(L) --> 'ipath-absolute'(L), !.
+% Begins with a non-colon segment
+ipath(L) --> 'ipath-noscheme'(L), !.
+% Begins with a segment
+ipath(L) --> 'ipath-rootless'(L), !.
+% Empty path (i.e., no segments).
+ipath(L) --> 'ipath-empty'(L).
+
+
+
+%! 'ipath-abempty'(-Segments:list(string))// is det.
+% ```abnf
+% ipath-abempty = *( "/" isegment )
+% ```
+
+'ipath-abempty'(L) --> *(sep_isegment, L).
+
+
+
+%! 'ipath-absolute'(-Segments:list(string))// is det.
+% ```abnf
+% ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
+% ```
+
+'ipath-absolute'(L) -->
+  "/", ('isegment-nz'(H) -> *(sep_isegment, T), {L = [H|T]} ; {L = []}).
+
+
+
+%! 'ipath-empty'(-Segments:list(string))// is det.
+% ```abnf
+% ipath-empty = 0<ipchar>
+% ```
+
+'ipath-empty'([]) --> "".
+
+
+
+%! 'ipath-noscheme'(-Segments:list(string))// is det.
+% ```abnf
+% ipath-noscheme = isegment-nz-nc *( "/" isegment )
+% ```
+
+'ipath-noscheme'([H|T]) --> 'isegment-nz-nc'(H), *(sep_isegment, T).
+
+
+
+%! 'ipath-rootless'(-Segments:list(string))// is det.
+% ```abnf
+% ipath-rootless = isegment-nz *( "/" isegment )
+% ```
+
+'ipath-rootless'([H|T]) --> 'segment-nz'(H), *(sep_isegment, T).
+
+
+
+%! ipchar(-Code:code)// .
+% ```abnf
+% ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
+% ```
+
+ipchar(C) --> iunreserved(C).
+ipchar(C) --> 'pct-encoded'(C).
+ipchar(C) --> 'sub-delims'(C).
+ipchar(0':) --> ":".
+ipchar(0'@) --> "@".
+
+
+
+%! iprivate(-Code:code)// .
+% ```abnf
+% iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
+% ```
+
+iprivate(C) --> between_code_radix(hex('E000'),   hex('F8FF'),   C).
+iprivate(C) --> between_code_radix(hex('F0000'),  hex('FFFFD'),  C).
+iprivate(C) --> between_code_radix(hex('100000'), hex('10FFFD'), C).
+
+
+
+%! iquery(-Query:string)// is det.
+% ``abnf
+% iquery = *( ipchar / iprivate / "/" / "?" )
+% ```
+
+iquery(S) --> *(iquery_code, Cs), {string_codes(S, Cs)}.
+iquery_code(C)   --> ipchar(C).
+iquery_code(C)   --> iprivate(C).
+iquery_code(0'/) --> "/".
+iquery_code(0'?) --> "?".
+
+
+
+%! 'ireg-name'(-RegisteredName:string)// is det.
+% ```abnf
+% ireg-name = *( iunreserved / pct-encoded / sub-delims )
+% ```
+
+'ireg-name'(S) --> *(ireg_name_code, Cs), {string_codes(S, Cs)}.
+ireg_name_code(C) --> iunreserved(C).
+ireg_name_code(C) --> 'pct-encoded'(C).
+ireg_name_code(C) --> 'sub-delims'(C).
+
+
+
+%! 'irelative-part'(-RelativePart:dict)// is det.
 % ```abnf
 % irelative-part = "//" iauthority ipath-abempty
 %                / ipath-absolute
@@ -121,92 +258,162 @@
 %                / ipath-empty
 % ```
 
-'irelative-part'(Scheme, Auth, L) -->
+'irelative-part'(relative_part{authority: Auth, path: L, scheme: Scheme}) -->
   "//",
   iauthority(Scheme, Auth),
-  'ipath-abempty'(L).
-'irelative-part'(_, _, L) --> 'ipath-absolute'(L).
-'irelative-part'(_, _, L) --> 'ipath-noscheme'(L).
-'irelative-part'(_, _, L) --> 'ipath-empty'(L).
+  'ipath-abempty'(L), !.
+'irelative-part'(relative_part{path: L}) --> 'ipath-absolute'(L), !.
+'irelative-part'(relative_part{path: L}) --> 'ipath-noscheme'(L), !.
+'irelative-part'(relative_part{path: L}) --> 'ipath-empty'(L).
 
 
 
-%! 'IRI'(?Iri:atom)// .
-
-'IRI'(Iri) -->
-  {var(Iri)}, !,
-  'IRI'(Scheme, Auth, Segments, Query, Frag),
-  {
-    atomic_list_concat([''|Segments], '/', Path),
-    uri_components(Iri, uri_components(Scheme,Auth,Path,Query,Frag))
-  }.
-'IRI'(Iri) -->
-  {
-    uri_components(Iri, uri_components(Scheme0,Auth0,Path0,Query0,Frag0)),
-    maplist(
-      atom_string,
-      [Scheme0,Auth0,Path0,Query0,Frag0],
-      [Scheme,Auth,Path,Query,Frag]
-    ),
-    string_list_concat([""|Segments], "/", Path)
-  },
-  'IRI'(Scheme, Auth, Segments, Query, Frag).
-
-
-%! 'IRI'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Segments:list(string),
-%!   ?Query:string,
-%!   ?Fragment:string
-%! )// .
+%! 'IRI'(-Iri:dict)// is det.
 % ```abnf
 % IRI = scheme ":" ihier-part [ "?" iquery ] [ "#" ifragment ]
 % ```
 
-'IRI'(Scheme, Auth, L, Query, Frag) -->
+'IRI'(D) -->
   scheme(Scheme),
   ":",
-  'ihier-part'(Scheme, Auth, L),
+  'ihier-part'(D0),
+  {dict_pairs(D0, hier_part, T0)},
   ("?" -> iquery(Query) ; ""),
-  ("#" -> ifragment(Frag) ; "").
+  ("#" -> ifragment(Frag) ; ""),
+  {
+    L0 = [query-Query,fragment-Frag,scheme-Scheme|T0],
+    exclude(pair_has_var_value, L0, L),
+    dict_pairs(D, iri, L)
+  }.
 
 
 
-%! 'IRI-reference'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Segments:list(string),
-%!   ?Query:string,
-%!   ?Fragment:string
-%! )// .
+%! 'IRI-reference'(-IriReference:dict)// is det.
 % There are two types of IRI reference: (1) IRI, (2) IRI relative reference.
 %
 % ```abnf
 % IRI-reference = IRI / irelative-ref
 % ```
 
-'IRI-reference'(Scheme, Auth, L, Query, Frag) -->
-  'IRI'(Scheme, Auth, L, Query, Frag).
-'IRI-reference'(Scheme, Auth, L, Query, Frag) -->
-  'irelative-ref'(Scheme, Auth, L, Query, Frag).
+'IRI-reference'(D) --> 'IRI'(D), !.
+'IRI-reference'(D) --> 'irelative-ref'(D).
 
 
 
-%! 'irelative-ref'(
-%!   ?Scheme:string,
-%!   ?Authority:compound,
-%!   ?Segments:list(string),
-%!   ?Query:string,
-%!   ?Fragment:string
-%! )// .
+%! 'irelative-ref'(-RelativeReference:dict)// is det.
 % Relative IRI reference.
 %
 % ```abnf
 % irelative-ref = irelative-part [ "?" iquery ] [ "#" ifragment ]
 % ```
 
-'irelative-ref'(Scheme, Auth, L, Query, Frag) -->
-  'irelative-part'(Scheme, Auth, L),
+'irelative-ref'(D) -->
+  'irelative-part'(D0),
+  {dict_pairs(D0, relative_part, T0)},
   ("?" -> iquery(Query) ; ""),
-  ("#" -> ifragment(Frag) ; "").
+  ("#" -> ifragment(Frag) ; ""),
+  {
+    L0 = [fragment-Frag,query-Query,scheme-Scheme|T0],
+    exclude(pair_has_var_value, L0, L),
+    dict_pairs(D, relative_ref, L)
+  }.
+
+
+
+%! isegment(-Segment:string)// is det.
+% ```abnf
+% isegment = *ipchar
+% ```
+
+isegment(S) --> *(ipchar, Cs), {string_codes(S, Cs)}.
+
+
+
+%! 'isegment-nz'(-Segment:string)// is det.
+% ```abnf
+% isegment-nz = 1*ipchar
+% ```
+
+'isegment-nz'(S) --> +(ipchar, Cs), {string_codes(S, Cs)}.
+
+
+
+%! 'isegment-nz-nc'(-Segment:string)// is det.
+% ```abnf
+% isegment-nz-nc = 1*( iunreserved / pct-encoded / sub-delims / "@" )
+%                ; non-zero-length segment without any colon ":"
+% ```
+
+'isegment-nz-nc'(S) --> +(isegment_nz_nc_code, Cs), {string_codes(S, Cs)}.
+isegment_nz_nc_code(C)   --> iunreserved(C).
+isegment_nz_nc_code(C)   --> 'pct-encoded'(C).
+isegment_nz_nc_code(C)   --> 'sub-delims'(C).
+isegment_nz_nc_code(0'@) --> "@".
+
+
+
+%! iunreserved(-Code:code)// .
+% ```abnf
+% iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+% ```
+
+iunreserved(C) --> unreserved(C).
+iunreserved(C) --> ucschar(C).
+
+
+
+%! iuserinfo(-UserInfo:string)// is det.
+% ```abnf
+% iuserinfo = *( iunreserved / pct-encoded / sub-delims / ":" )
+% ```
+
+iuserinfo(S) --> *(iuserinfo_code, Cs), {string_codes(S, Cs)}.
+iuserinfo_code(C) -->   iunreserved(C).
+iuserinfo_code(C) -->   'pct-encoded'(C).
+iuserinfo_code(C) -->   'sub-delims'(C).
+iuserinfo_code(0':) --> ":".
+
+
+
+%! ucschar(-Code:code)// .
+% ```abnf
+% ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
+%         / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
+%         / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
+%         / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
+%         / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
+%         / %xD0000-DFFFD / %xE1000-EFFFD
+% ```
+
+ucschar(C) --> between_code_radix(hex('A0'),    hex('D7FF'),  C).
+ucschar(C) --> between_code_radix(hex('F900'),  hex('FDCF'),  C).
+ucschar(C) --> between_code_radix(hex('FDF0'),  hex('FFEF'),  C).
+ucschar(C) --> between_code_radix(hex('10000'), hex('1FFFD'), C).
+ucschar(C) --> between_code_radix(hex('20000'), hex('2FFFD'), C).
+ucschar(C) --> between_code_radix(hex('30000'), hex('3FFFD'), C).
+ucschar(C) --> between_code_radix(hex('40000'), hex('4FFFD'), C).
+ucschar(C) --> between_code_radix(hex('50000'), hex('5FFFD'), C).
+ucschar(C) --> between_code_radix(hex('60000'), hex('6FFFD'), C).
+ucschar(C) --> between_code_radix(hex('70000'), hex('7FFFD'), C).
+ucschar(C) --> between_code_radix(hex('80000'), hex('8FFFD'), C).
+ucschar(C) --> between_code_radix(hex('90000'), hex('9FFFD'), C).
+ucschar(C) --> between_code_radix(hex('A0000'), hex('AFFFD'), C).
+ucschar(C) --> between_code_radix(hex('B0000'), hex('BFFFD'), C).
+ucschar(C) --> between_code_radix(hex('C0000'), hex('CFFFD'), C).
+ucschar(C) --> between_code_radix(hex('D0000'), hex('DFFFD'), C).
+ucschar(C) --> between_code_radix(hex('E1000'), hex('EFFFD'), C).
+
+
+
+
+
+% HELPERS %
+
+%! default_port(+Scheme:string, -Port:oneof([443,80])) is det.
+% The default port for the given scheme.
+
+default_port("http", 80).
+default_port("https", 443).
+
+
+sep_isegment(S) --> "/", isegment(S).

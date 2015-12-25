@@ -45,8 +45,7 @@ test_open_any2:-
 test_open_any2(Source):-
   setup_call_cleanup(
     open_any2(Source, read, _, Close_0, [metadata(M)]),
-    %(print_dict(M), nl),
-    true,
+    (print_dict(M), nl),
     close_any2(Close_0)
   ).
 
