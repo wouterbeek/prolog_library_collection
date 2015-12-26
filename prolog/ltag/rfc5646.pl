@@ -1,28 +1,19 @@
 :- module(
   rfc5646,
   [
-    extlang//1, % ?Extension:list(string)
-    grandfathered//1, % ?LanguageTag:list(string)
-    irregular//1, % ?LanguageTag:list(string)
-    'Language-Tag'//1, % ?LanguageTag:list(string)
-    'obs-language-tag'//1, % ?LanguageTag:list(string)
-    'primary-subtag'//1, % ?SubTag:string
-    privateuse//1, % ?LanguageTag:list(string)
-    regular//1, % ?LanguageTag:list(string)
-    singleton//1, % ?Code:code
-    subtag//1 % ?SubTag:string
+    'Language-Tag'//1 % -LanguageTag:list(string)
   ]
 ).
 :- reexport(
   library(ltag/rfc4646),
   [
-    alphanum//1, % ?Code:code
-    extension//1, % ?Extension:list(string)
-    langtag//1, % ?LanguageTag:list(string)
-    language//1, % ?LanguageTag:list(string)
-    region//1, % ?Region:string
-    script//1, % ?Script:string
-    variant//1 % ?Variant:string
+    alphanum//1, % -Code:code
+    extension//1, % -Extension:list(string)
+    langtag//1, % -LanguageTag:list(string)
+    language//1, % -LanguageTag:list(string)
+    region//1, % -Region:string
+    script//1, % -Script:string
+    variant//1 % -Variant:string
   ]
 ).
 
@@ -30,13 +21,18 @@
 
 @author Wouter Beek
 @compat RFC 5646
-@version 2015/09, 2015/11
+@see https://tools.ietf.org/html/rfc5646
+@version 2015/09, 2015/11-2015/12
 */
 
-:- use_module(library(dcg/dcg_abnf)).
-:- use_module(library(dcg/dcg_code)).
+:- use_module(library(dcg/dcg_atom)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
-:- use_module(library(dcg/rfc2234)).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % -Code:code
+     'DIGIT'//2 % -Weight:between(0,9)
+                % -Code:code
+   ]).
 :- use_module(library(lists)).
 :- use_module(library(string_ext)).
 
@@ -44,33 +40,37 @@
 
 
 
-%! extlang(?Ext:list(string))// .
+%! extlang(-Ext:list(string))// is det.
 % RFC 4646 allows this to match the empty string as well.
 %
 % ```abnf
-% extlang = 3ALPHA              ; selected ISO 639 codes
-%           *2("-" 3ALPHA)      ; permanently reserved
+% extlang = 3ALPHA           ; selected ISO 639 codes
+%           *2("-" 3ALPHA)   ; permanently reserved
 % ```
 
 extlang([H|T]) -->
-  #(3, 'ALPHA', H, [convert(1-string)]),
+  #(3, 'ALPHA', Cs),
+  {string_codes(H, Cs)},
   '*n'(2, permanently_reserved, T, []).
-permanently_reserved(S) --> "-", #(3, 'ALPHA', S, [convert(1-string)]).
+permanently_reserved(S) -->
+  "-",
+  #(3, 'ALPHA', Cs),
+  {string_codes(S, Cs)}.
 
 
 
-%! gransfathered(?GrandfatheredLanguageTag:list(string))// .
+%! gransfathered(-GrandfatheredLanguageTag:list(string))// is det.
 % ```abnf
 % grandfathered = irregular   ; non-redundant tags registered
 %               / regular     ; during the RFC 3066 era
 % ```
 
-grandfathered(L) --> irregular(L).
+grandfathered(L) --> irregular(L), !.
 grandfathered(L) --> regular(L).
 
 
 
-%! irregular(?IrregularLanguageTag:list(string))// .
+%! irregular(-IrregularLanguageTag:list(string))// is det.
 % ```abnf
 % irregular = "en-GB-oed"    ; irregular tags do not match
 %           / "i-ami"        ; the 'langtag' production and
@@ -83,70 +83,69 @@ grandfathered(L) --> regular(L).
 %           / "i-mingo"      ; combination
 % ```
 
-irregular(["en","GB","oed"]) --> "en-GB-oed".
-irregular(["i","ami"]) --> "i-ami".
-irregular(["i","bnn"]) --> "i-bnn".
-irregular(["i","default"]) --> "i-default".
-irregular(["i","enochian"]) --> "i-enochian".
-irregular(["i","hak"]) --> "i-hak".
-irregular(["i","klingon"]) --> "i-klingon".
-irregular(["i","lux"]) --> "i-lux".
-irregular(["i","mingo"]) --> "i-mingo".
-irregular(["i","navajo"]) --> "i-navajo".
-irregular(["i","pwn"]) --> "i-pwn".
-irregular(["i","tao"]) --> "i-tao".
-irregular(["i","tay"]) --> "i-tay".
-irregular(["i","tsu"]) --> "i-tsu".
-irregular(["sgn","BE","FR"]) --> "sgn-BE-FR".
-irregular(["sgn","BE","NL"]) --> "sgn-BE-NL".
+irregular(["en","GB","oed"]) --> "en-GB-oed", !.
+irregular(["i","ami"])       --> "i-ami", !.
+irregular(["i","bnn"])       --> "i-bnn", !.
+irregular(["i","default"])   --> "i-default", !.
+irregular(["i","enochian"])  --> "i-enochian", !.
+irregular(["i","hak"])       --> "i-hak", !.
+irregular(["i","klingon"])   --> "i-klingon", !.
+irregular(["i","lux"])       --> "i-lux", !.
+irregular(["i","mingo"])     --> "i-mingo", !.
+irregular(["i","navajo"])    --> "i-navajo", !.
+irregular(["i","pwn"])       --> "i-pwn", !.
+irregular(["i","tao"])       --> "i-tao", !.
+irregular(["i","tay"])       --> "i-tay", !.
+irregular(["i","tsu"])       --> "i-tsu", !.
+irregular(["sgn","BE","FR"]) --> "sgn-BE-FR", !.
+irregular(["sgn","BE","NL"]) --> "sgn-BE-NL", !.
 irregular(["sgn","CH","DE"]) --> "sgn-CH-DE".
 
 
 
-%! 'Language-Tag'(?LanguageTag:list(string))// .
+%! 'Language-Tag'(-LanguageTag:list(string))// is det.
 % ```abnf
-% Language-Tag  = langtag             ; normal language tags
-%               / privateuse          ; private use tag
-%               / grandfathered       ; grandfathered tags
+% Language-Tag = langtag         ; normal language tags
+%              / privateuse      ; private use tag
+%              / grandfathered   ; grandfathered tags
 % ```
 
-'Language-Tag'(L) --> langtag(L).
-'Language-Tag'(L) --> privateuse(L).
+'Language-Tag'(L) --> langtag(L), !.
+'Language-Tag'(L) --> privateuse(L), !.
 'Language-Tag'(L) --> grandfathered(L).
 
 
 
-%! 'obs-language-tag'(?LanguageTag:list(string))// .
+%! 'obs-language-tag'(-ObsoluteLanguageTag:list(string))// is det.
 % ```abnf
 % obs-language-tag = primary-subtag *( "-" subtag )
 % ```
 
-'obs-language-tag'([H|T]) --> 'primary-subtag'(H), subtags(T).
-subtags([H|T]) --> "-", !, subtag(H), subtags(T).
-subtags([]) --> "".
+'obs-language-tag'([H|T]) --> 'primary-subtag'(H), *(sep_subtag, T).
+sep_subtag(S) --> "-", subtag(S).
 
 
 
-%! 'primary-subtag'(?SubTag:string)// .
+%! 'primary-subtag'(-PrimarySubTag:string)// is det.
 % ```abnf
 % primary-subtag = 1*8ALPHA
 % ```
 
-'primary-subtag'(S) --> 'm*n'(1, 8, 'ALPHA', S, [convert1(codes_string)]).
+'primary-subtag'(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
-%! privateuse(PrivateUse:list(string))// .
+%! privateuse(-PrivateUse:list(string))// is det.
 % ```abnf
 % privateuse = "x" 1*("-" (1*8alphanum))
 % ```
 
-privateuse(["x"|T]) --> "x", +(privateuse0, T, []).
-privateuse0(S) --> "-", 'm*n'(1, 8, alphanum, S, [covnert(1-string)]).
+privateuse(["x"|T]) --> atom_ci(x), +(privateuse_tail, T).
+privateuse_tail(S) --> "-", 'm*n'(1, 8, alphanum, Cs), {string_codes(S, Cs)}.
 
 
 
-%! regular(?LanguageTag:list(string))// .
+%! regular(-RegularLanguageTag:list(string))// is det.
 % ```abnf
 % regular = "art-lojban"    ; these tags match the 'langtag'
 %         / "cel-gaulish"   ; production, but their subtags
@@ -158,19 +157,19 @@ privateuse0(S) --> "-", 'm*n'(1, 8, alphanum, S, [covnert(1-string)]).
 %         / "zh-min-nan"    ; subtag or sequence of subtags
 %         / "zh-xiang"
 
-regular(["art","lojban"]) --> "art-lojban".
-regular(["cel","gaulish"]) --> "cel-gaulish".
-regular(["no","bok"]) --> "no-bok".
-regular(["no","nyn"]) --> "no-nyn".
-regular(["zh","guoyu"]) --> "zh-guoyu".
-regular(["zh","hakka"]) --> "zh-hakka".
-regular(["zh","min"]) --> "zh-min".
-regular(["zh","min","nan"]) --> "zh-min-nan".
-regular(["zh","xiang"]) --> "zh-xiang".
+regular(["art","lojban"])   --> "art-lojban", !.
+regular(["cel","gaulish"])  --> "cel-gaulish", !.
+regular(["no","bok"])       --> "no-bok", !.
+regular(["no","nyn"])       --> "no-nyn", !.
+regular(["zh","guoyu"])     --> "zh-guoyu", !.
+regular(["zh","hakka"])     --> "zh-hakka", !.
+regular(["zh","min"])       --> "zh-min", !.
+regular(["zh","min","nan"]) --> "zh-min-nan", !.
+regular(["zh","xiang"])     --> "zh-xiang".
 
 
 
-%! singleton(?Singleton:code)// .
+%! singleton(-Singleton:code)// .
 % RFC 4646 defines this rule in a different order.
 %
 % ```abnf
@@ -181,18 +180,22 @@ regular(["zh","xiang"]) --> "zh-xiang".
 %           / %x79-7A   ; y - z
 
 singleton(C) --> 'DIGIT'(_, C).
-singleton(C) --> between_code_radix(hex('41'), hex('57'), C).
-singleton(C) --> between_code_radix(hex('59'), hex('5A'), C).
-singleton(C) --> between_code_radix(hex('61'), hex('77'), C).
-singleton(C) --> between_code_radix(hex('79'), hex('7A'), C).
+singleton(C) -->
+  [C],
+  {once((
+    between(0x41, 0x57, C) ;
+    between(0x59, 0x5A, C) ;
+    between(0x61, 0x77, C) ;
+    between(0x79, 0x7A, C)
+  ))}.
 
 
 
-%! subtag(?SubTag:string)// .
+%! subtag(-SubTag:string)// is det.
 % ```abnf
 % subtag = 1*8(ALPHA / DIGIT)
 % ```
 
-subtag(S) --> 'm*n'(1, 8, subtag0, S, [convert1(codes_string)]).
-subtag0(C) --> 'ALPHA'(C).
-subtag0(C) --> 'DIGIT'(_, C).
+subtag(S) --> 'm*n'(1, 8, subtag_code, Cs), {string_codes(S, Cs)}.
+subtag_code(C) --> 'ALPHA'(C).
+subtag_code(C) --> 'DIGIT'(_, C).

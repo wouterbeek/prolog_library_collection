@@ -1,23 +1,14 @@
 :- module(
   rfc4646,
   [
-    extension//1, % ?Extension:list(string)
-    extlang//1, % ?Extension:list(string)
-    grandfathered//1, % ?LanguageTag:list(string)
-    langtag//1, % ?LanguageTag:list(string)
-    language//1, % ?LanguageTag:list(string)
-    'Language-Tag'//1, % ?LanguageTag:list(string)
-    privateuse//1, % ?LanguageTag:list(string)
-    region//1, % ?Region:string
-    script//1, % ?Script:string
-    singleton//1, % ?Code:code
-    variant//1 % ?Variant:string
-  ]
-).
-:- reexport(
-  library(dcg/dcg_ext),
-  [
-    alphadigit//1 as alphanum % ?Code:code
+    alphanum//1, % -Code:code
+    extension//1, % -Extension:list(string)
+    langtag//1, % -LanguageTag:list(string)
+    language//1, % -LanguageTag:list(string)
+    'Language-Tag'//1, % -LanguageTag:list(string)
+    region//1, % -Region:string
+    script//1, % -Script:string
+    variant//1 % -Variant:string
   ]
 ).
 
@@ -35,11 +26,17 @@ The comment for singleton//1 swaps upper and lowercase letters.
 @author Wouter Beek
 @compat RFC 4646
 @deprecated Use module `rfc5646` instead.
-@version 2015/11
+@see http://tools.ietf.org/html/rfc4646
+@version 2015/11-2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/rfc2234), [
+     'ALPHA'//1, % -Code:code
+     'DIGIT'//2 % -Weight:between(0,9)
+                % -Code:code
+   ]).
 :- use_module(library(dcg/record_jar)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lambda)).
@@ -55,16 +52,19 @@ init_iana(Dicts):-
 
 
 
-%! alphanum(?Code:code)// .
-% RFC 3986 (URI) defines this in a different but compatible way.
-%
+
+
+%! alphanum(-Code:code)// is det.
 % ```abnf
 % alphanum = (ALPHA / DIGIT)   ; letters and numbers
 % ```
 
+alphanum(C) --> 'ALPHA'(C).
+alphanum(C) --> 'DIGIT'(_, C).
 
 
-%! extension(?Extension:list(string))// .
+
+%! extension(-Extension:list(string))// is det.
 % ```abnf
 % extension = singleton 1*("-" (2*8alphanum))
 % ```
@@ -74,17 +74,17 @@ sep_ext(S) --> "-", 'm*n'(2, 8, alphadigit, Cs), {string_codes(S, Cs)}.
 
 
 
-%! extlang(?Extension:list(string))// .
+%! extlang(-Extension:list(string))// is det.
 % ```abnf
 % extlang = *3("-" 3ALPHA)   ; reserved for future use
 % ```
 
 extlang(L) --> '*n'(3, sep_extlang, L).
-sep_extlang(S) --> "-", #(3, alpha, Cs), {string_codes(S, Cs)}.
+sep_extlang(S) --> "-", #(3, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
-%! grandfathered(?LanguageTag:list(string))// .
+%! grandfathered(-LanguageTag:list(string))// is det.
 % ```abnf
 % grandfathered = 1*3ALPHA 1*2("-" (2*8alphanum))
 %               ; grandfathered registration
@@ -93,14 +93,14 @@ sep_extlang(S) --> "-", #(3, alpha, Cs), {string_codes(S, Cs)}.
 % ```
 
 grandfathered([H|T]) -->
-  'm*n'(1, 3, alpha, Cs), {string_codes(H, Cs)},
+  'm*n'(1, 3, 'ALPHA', Cs), {string_codes(H, Cs)},
   'm*n'(1, 2, sep_grandfathered, T).
 sep_grandfathered(S) -->
-  "-", 'm*n'(2, 8, alphadigit, Cs), {string_codes(S, Cs)}.
+  "-", 'm*n'(2, 8, alphanum, Cs), {string_codes(S, Cs)}.
 
 
 
-%! langtag(?LanguageTag:list(string))// .
+%! langtag(-LanguageTag:list(string))// is det.
 % ```abnf
 % langtag = language
 %           ["-" script]
@@ -123,7 +123,7 @@ sep_variant(S) --> "-", variant(S).
 
 
 
-%! language(?Language:list(string))// .
+%! language(-Language:list(string))// is det.
 % ```abnf
 % language = 2*3ALPHA        ; shortest ISO 639 code
 %            ["-" extlang]   ; sometimes followed by extended language subtags
@@ -132,18 +132,18 @@ sep_variant(S) --> "-", variant(S).
 % ```
 				     
 language([H|T]) -->
-  'm*n'(2, 3, alpha, Cs), {string_codes(H, Cs)},
+  'm*n'(2, 3, 'ALPHA', Cs), {string_codes(H, Cs)},
   ("-" -> extlang(T) ; {T = []}).
-language([H]) --> #(4, alpha, Cs), {string_codes(H, Cs)}.
-language([H]) --> 'm*n'(5, 8, alpha, Cs), {string_codes(H, Cs)}.
+language([H]) --> #(4, 'ALPHA', Cs), {string_codes(H, Cs)}.
+language([H]) --> 'm*n'(5, 8, 'ALPHA', Cs), {string_codes(H, Cs)}.
 
 
 
-%! 'Language-Tag'(?LanguageTag:list(string))// .
+%! 'Language-Tag'(-LanguageTag:list(string))// .
 % ```abnf
-% Language-Tag  = langtag             ; normal language tags
-%               / privateuse          ; private use tag
-%               / grandfathered       ; grandfathered tags
+% Language-Tag = langtag         ; normal language tags
+%              / privateuse      ; private use tag
+%              / grandfathered   ; grandfathered tags
 % ```
 
 'Language-Tag'(L) --> langtag(L), !.
@@ -152,52 +152,60 @@ language([H]) --> 'm*n'(5, 8, alpha, Cs), {string_codes(H, Cs)}.
 
 
 
-%! privateuse(PrivateUse:list(string))// .
+%! privateuse(-PrivateUse:list(string))// is det.
 % ```abnf
 % privateuse = ("x"/"X") 1*("-" (1*8alphanum))
 % ```
 
-privateuse(["x"|T]) --> ("x", ! ; "X"), +(sep_privateuse, T).
-sep_privateuse(S) --> "-", 'm*n'(1, 8, alphadigit, Cs), {string_codes(S, Cs)}.
+privateuse(["x"|T]) --> atom_ci(x), +(sep_privateuse, T).
+sep_privateuse(S) --> "-", 'm*n'(1, 8, alphanum, Cs), {string_codes(S, Cs)}.
 
 
 
-%! region(?Region:string)
+%! region(-Region:string)
 % ```abnf
 % region = 2ALPHA   ; ISO 3166-1 code
 %        / 3DIGIT   ; UN M.49 code
 % ```
 
-region(S) --> #(2, alpha, Cs), {string_codes(S, Cs)}.
-region(S) --> #(3, digit_code, Cs), {string_codes(S, Cs)}.
+region(S) --> #(2, 'ALPHA', Cs), {string_codes(S, Cs)}.
+region(S) --> #(3, 'DIGIT', _, Cs), {string_codes(S, Cs)}.
 
 
 
-%! script(?Script:string)// .
+%! script(-Script:string)// is det.
 % ```abnf
 % script = 4ALPHA   ; ISO 15924 code
 % ```
 
-script(S) --> #(4, alpha, Cs), {string_codes(S, Cs)}.
+script(S) --> #(4, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
-%! singleton(?Code:code)// .
+%! singleton(-Code:code)// .
 % ```abnf
 % singleton = %x41-57 / %x59-5A / %x61-77 / %x79-7A / DIGIT
 %           ; "a"-"w" / "y"-"z" / "A"-"W" / "Y"-"Z" / "0"-"9"
 %           ; Single letters: x/X is reserved for private use
 % ```
 
-singleton(C) --> alphadigit(C), {C \== 0x58, C\== 0x78}.
+singleton(C) -->
+  [C],
+  {once((
+    between(0x41, 0x57, C) ;
+    between(0x59, 0x5A, C) ;
+    between(0x61, 0x77, C) ;
+    between(0x79, 0x7A, C)
+  ))}, !.
+singleton(C) --> 'DIGIT'(_, C).
 
 
 
-%! variant(?Variant:string)// .
+%! variant(-Variant:string)// is det.
 % ```abnf
 % variant = 5*8alphanum         ; registered variants
 %         / (DIGIT 3alphanum)
 % ```
 
-variant(S) --> 'm*n'(5, 8, alphadigit, Cs), !, {string_codes(S, Cs)}.
-variant(S) --> digit_code(H), #(3, alphadigit, T), {string_codes(S, [H|T])}.
+variant(S) --> 'm*n'(5, 8, alphanum, Cs), !, {string_codes(S, Cs)}.
+variant(S) --> 'DIGIT'(_, H), #(3, alphanum, T), {string_codes(S, [H|T])}.
