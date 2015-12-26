@@ -38,6 +38,12 @@ Timezone other than `"GMT"'.
 Expires: Sat, 26 Dec 2015 010:30:29 UTC
 ```
 
+The numer zero i.o. a datetime value.
+
+```http
+Expires: 0
+```
+
 
 ## Last-modified
 
@@ -47,6 +53,14 @@ Timezone other than `"GMT"'.
 Last-Modified: Sat, 26 Dec 2015 010:30:29 UTC
 ```
 
+
+## Link
+
+The query component of an URI cannot contain unescaped angular brackets.
+
+```http
+Link: <http://el.dbpedia.org/data/Linux.rdf>; rel="alternate"; type="application/rdf+xml"; title="Structured Descriptor Document (RDF/XML format)", <http://el.dbpedia.org/data/Linux.n3>; rel="alternate"; type="text/n3"; title="Structured Descriptor Document (N3/Turtle format)", <http://el.dbpedia.org/data/Linux.json>; rel="alternate"; type="application/json"; title="Structured Descriptor Document (RDF/JSON format)", <http://el.dbpedia.org/data/Linux.atom>; rel="alternate"; type="application/atom+xml"; title="OData (Atom+Feed format)", <http://el.dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fel.dbpedia.org&query=DESCRIBE+<http://el.dbpedia.org/resource/Linux>&format=text%2Fcsv>; rel="alternate"; type="text/csv"; title="Structured Descriptor Document (CSV format)", <http://el.dbpedia.org/data/Linux.ntriples>; rel="alternate"; type="text/plain"; title="Structured Descriptor Document (N-Triples format)", <http://el.dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fel.dbpedia.org&query=DESCRIBE+<http://el.dbpedia.org/resource/Linux>&output=application/microdata+json>; rel="alternate"; type="application/microdata+json"; title="Structured Descriptor Document (Microdata/JSON format)", <http://el.dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fel.dbpedia.org&query=DESCRIBE+<http://el.dbpedia.org/resource/Linux>&output=text/html>; rel="alternate"; type="text/html"; title="Structured Descriptor Document (Microdata/HTML format)", <http://el.dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fel.dbpedia.org&query=DESCRIBE+<http://el.dbpedia.org/resource/Linux>&output=application/ld+json>; rel="alternate"; type="application/ld+json"; title="Structured Descriptor Document (JSON-LD format)", <http://el.dbpedia.org/resource/Linux>; rel="http://xmlns.com/foaf/0.1/primaryTopic", <http://el.dbpedia.org/resource/Linux>; rev="describedby", <http://mementoarchive.lanl.gov/dbpedia/timegate/http://el.dbpedia.org/page/Linux>; rel="timegate"
+```
 
 ## Location
 
@@ -956,25 +970,44 @@ known_unknown('fuseki-request-id').
 known_unknown(servidor).
 known_unknown('x-acre-source-url').
 known_unknown('x-adblock-key').
+known_unknown('x-backend').
 known_unknown('x-cache').
+known_unknown('x-cache-action').
+known_unknown('x-cache-age').
+known_unknown('x-cache-hits').
 known_unknown('x-cache-lookup').
+known_unknown('x-cacheable').
 known_unknown('x-content-type-options'). % Has grammar.  Implemented.
 known_unknown('x-dropbox-http-protocol').
 known_unknown('x-dropbox-request-id').
 known_unknown('x-drupal-cache').
+known_unknown('x-fastly-request-id').
+known_unknown('x-frame-options').
+known_unknown('x-github-request-id').
 known_unknown('x-metaweb-cost').
 known_unknown('x-metaweb-tid').
+known_unknown('x-pad').
+known_unknown('x-pal-host').
 known_unknown('x-pingback').
 known_unknown('x-powered-by').
+known_unknown('x-productontology-limit').
+known_unknown('x-productontology-offset').
+known_unknown('x-productontology-results').
+known_unknown('x-purl').
 known_unknown('x-robots-tag'). % Has grammar.  Implemented.
 known_unknown('x-rack-cache').
 known_unknown('x-request-id').
 known_unknown('x-response-id').
 known_unknown('x-runtime').
+known_unknown('x-served-by').
 known_unknown('x-served-from-cache').
 known_unknown('x-sparql').
+known_unknown('x-sparql-default-graph').
+known_unknown('x-timer').
 known_unknown('x-ua-compatible').
 known_unknown('x-varnish').
+known_unknown('x-varnish-caching-rule-id').
+known_unknown('x-varnish-header-set-id').
 known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
@@ -1927,7 +1960,7 @@ subtype(S) --> token(S).
 % ```abnf
 % tchar = "!" | "#" | "$" | "%" | "&" | "'" | "*"
 %       | "+" | "-" | "." | "^" | "_" | "`" | "|" | "~"
-%      | DIGIT | ALPHA   ; any VCHAR, except delimiters
+%       | DIGIT | ALPHA   ; any VCHAR, except delimiters
 
 
 tchar(C)   --> 'ALPHA'(C).
