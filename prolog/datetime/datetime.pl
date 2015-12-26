@@ -1,6 +1,8 @@
 :- module(
   datetime,
   [
+    call_time/2, % :Goal_0
+                 % -Seconds:nonneg
     date_mask/3, % +Mask:oneof([year,month,day,hour,minute,second,offset])
                  % +Datetime:compound
                  % -MaskedDatetime:compound
@@ -21,6 +23,8 @@ Support predicates for dealing with date and time representations.
 */
 
 :- use_module(library(apply)).
+
+:- meta_predicate(call_time(0,-)).
 
 % Prolog date/3
 error:has_type(date, date(Y,Mo,D)):-
@@ -44,6 +48,14 @@ error:has_type(date, time(H,Mi,S)):-
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)).
+
+
+
+
+
+%! call_time(:Goal_0, -Seconds:nonneg) is det.
+
+call_time(Goal_0, N):- get_time(X), Goal_0, get_time(Y), N is Y - X.
 
 
 

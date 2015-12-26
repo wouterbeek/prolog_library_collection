@@ -103,7 +103,7 @@
 
 
 
-%! 'cookie-value'(-Value)// is det.
+%! 'cookie-value'(-Value:string)// is det.
 % ```abnf
 % cookie-value = *cookie-octet | ( DQUOTE *cookie-octet DQUOTE )
 % ```

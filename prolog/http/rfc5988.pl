@@ -19,6 +19,9 @@
      'MediaDesc'//1 % -MediaDescriptions:list(string)
    ]).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/http11), [
+     'OWS'//0
+   ]).
 :- use_module(library(http/rfc2616), [
      'ALPHA'//1, % ?Code:code
      'DIGIT'//1, % ?Weight
@@ -155,7 +158,7 @@ link(L) --> *#('link-value', L).
   'URI-Reference'(Uri),
   ">",
   *(sep_link_param, Params).
-sep_link_param(Param) --> ";", 'link-param'(Param).
+sep_link_param(Param) --> 'OWS', ";", 'OWS', 'link-param'(Param).
 
 
 

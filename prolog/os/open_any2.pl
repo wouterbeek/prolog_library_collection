@@ -23,6 +23,7 @@ Wrapper around library(iostream)'s open_any/5.
 
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
+:- use_module(library(datetime/datetime)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_info)).
@@ -32,6 +33,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(lists)).
+:- use_module(library(msg_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(typecheck)).
@@ -134,21 +136,29 @@ http_open2(Iri, Read, Close_0, Opts1):-
 
 http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
   copy_term(Opts1, Opts2),
-  http_open(Iri, Read2, Opts2),
-  option(status_code(Status), Opts2),
-  must_be(ground, Status),
-  (   is_http_error(Status)
-  ->  option(raw_headers(Headers), Opts2),
-      call_cleanup(http_error_message(Iri, Status, Headers, Read2), close(Read2)),
-      M2 is M1 + 1,
-      (   M2 =:= N
-      ->  Close_0 = true,
+  call_time(catch(http_open(Iri, Read2, Opts2), Exception, true), Time),
+  (   var(Exception)
+  ->  option(status_code(Status), Opts2),
+      must_be(ground, Status),
+      (   is_http_error(Status)
+      ->  option(raw_headers(Headers), Opts2),
+          call_cleanup(
+            http_error_message(Iri, Status, Headers, Read2),
+            close(Read2)
+          ),
+          M2 is M1 + 1,
+          (   M2 =:= N
+	  ->  Close_0 = true,
+              Opts1 = Opts2
+	  ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
+	  )
+      ;   Read1 = Read2,
+          Close_0 = close(Read1),
           Opts1 = Opts2
-      ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
       )
-  ;   Read1 = Read2,
-      Close_0 = close(Read1),
-      Opts1 = Opts2
+  ;   message_to_string(Exception, S),
+      msg_warning("[HTTP] time: ~fsec; message: ~s~n", [Time,S]),
+      fail
   ).
 
 

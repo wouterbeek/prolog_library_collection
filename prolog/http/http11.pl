@@ -10,6 +10,85 @@
 
 /** <module> HTTP 1.1: Hypertext Transfer Protocol (HTTP/1.1)
 
+# Common mistakes
+
+## Access-Control-Allow-Credentials
+
+Value `*' i.o. `true'.
+
+```http
+Access-Control-Allow-Credentials: *
+```
+
+
+## ETag
+
+No double quotes (`DQUOTE') surrounding the opaque identifier.
+
+```http
+ETag: e90ec0728cc9d1a7dd2c917923275fb9
+```
+
+
+## Expires
+
+Timezone other than `"GMT"'.
+
+```http
+Expires: Sat, 26 Dec 2015 010:30:29 UTC
+```
+
+
+## Last-modified
+
+Timezone other than `"GMT"'.
+
+```http
+Last-Modified: Sat, 26 Dec 2015 010:30:29 UTC
+```
+
+
+## Location
+
+Lowercase hexadecimal digits in percent encoded characters of URIs
+(disallowed by RFC 3986).
+
+```http
+Location: https://login2.gnoss.com/obtenerCookie.aspx?UQ5IKlMXioK1tiCnK0oh7y%2fPdqTnyAdHPDV0j1Ox5tEdM14pGmhdaSTZhT3hezOjI4lDAwx%2fOghE%2fLJk7Ce%2ff%2ft%2bsC%2bywTcFPSXaYZhh2Wg9q5mWlDWDvLHMReIWmqWzGhnxNpc4DnbUDjewEMV5vfTVzKD%2bx3gMLq9vZvV%2fL8aIAQOcWkSRam0OyOCkc2KV2zUx24WqdUo9oS5od1ILHDmDwYJxq7WwRgFnHP73WfYJuQJNhwolaTkH7%2blbmx7V4K7bF12Van5ArXjz6umEpg%3d%3d
+```
+
+
+## Server
+
+No linear white space (`LWS') between product and comment.
+
+```http
+Server: Jetty(8.1.1.v20120215)
+```
+
+
+## Set-Cookie
+
+Omitting the requires space (`SP') between the separator (`;')
+and the cookie parameter.
+
+```http
+set-cookie: NSC_tfep-83+63+5+220-91=ffffffff516a73d445525d5f4f58455e445a4a423660;path=/;httponly
+```
+
+
+## Via
+
+Via components must consist of two parts ('protocol' and 'by')
+that must be separated by white space (`RWS').
+
+```http
+Via: mt-s6, fs4
+```
+
+
+---
+
 @author Wouter Beek
 @compat RFC 7230
 @compat RFC 7231
@@ -802,6 +881,8 @@ expires(DT) --> 'HTTP-date'(DT).
 
 
 %! etag(-ETag:dict)// is det.
+% Used for Web cache validation and optimistic concurrency control.
+%
 % ```abnf
 % ETag = "ETag" ":" entity-tag
 % ```

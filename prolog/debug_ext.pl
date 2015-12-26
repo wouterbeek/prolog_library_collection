@@ -147,7 +147,13 @@ debug_collect_messages(Goal_0):-
   call_collect_messages(Goal_0, Status, Es),
   process_warnings(Es),
   process_status(Status),
-  (Status == true, ! ; trace, debug_collect_messages(Goal_0)).
+  (   Status == true
+  ->  true
+  ;   Status == false
+  ->  false
+  ;   trace,
+      debug_collect_messages(Goal_0)
+  ).
 
 
 

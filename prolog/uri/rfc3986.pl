@@ -447,7 +447,7 @@ reserved(C) --> 'sub-delims'(C).
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 % ```
 
-scheme(S) --> alpha(H), *(scheme_code, T), {string_codes(S, [H|T])}.
+scheme(S) --> alpha(H), !, *(scheme_code, T), {string_codes(S, [H|T])}.
 scheme_code(C)   --> alpha(C).
 scheme_code(C)   --> digit(_, C).
 scheme_code(0'+) --> "+".
