@@ -101,6 +101,15 @@ Via: mt-s6, fs4
 ```
 
 
+## X-Frame-Options
+
+A valid value that appears multiple times.
+(RFC 7034 does not allow comma-separated values.)
+
+```http
+X-Frame-Options: SAMEORIGIN, SAMEORIGIN
+```
+
 ---
 
 @author Wouter Beek
@@ -976,14 +985,26 @@ known_unknown('x-cache-action').
 known_unknown('x-cache-age').
 known_unknown('x-cache-hits').
 known_unknown('x-cache-lookup').
+known_unknown('x-cache-operation').
+known_unknown('x-cache-rule').
 known_unknown('x-cacheable').
 known_unknown('x-content-type-options'). % Has grammar.  Implemented.
 known_unknown('x-dropbox-http-protocol').
 known_unknown('x-dropbox-request-id').
 known_unknown('x-drupal-cache').
 known_unknown('x-fastly-request-id').
-known_unknown('x-frame-options').
+known_unknown('x-generator').
 known_unknown('x-github-request-id').
+known_unknown('x-goog-generation').
+known_unknown('x-goog-hash').
+known_unknown('x-goog-meta-uploaded-by').
+known_unknown('x-goog-metageneration').
+known_unknown('x-goog-storage').
+known_unknown('x-goog-storage-class').
+known_unknown('x-goog-stored-content-encoding').
+known_unknown('x-goog-stored-content-length').
+known_unknown('x-http-host').
+known_unknown('x-hosted-by').
 known_unknown('x-metaweb-cost').
 known_unknown('x-metaweb-tid').
 known_unknown('x-pad').
@@ -1004,7 +1025,9 @@ known_unknown('x-served-from-cache').
 known_unknown('x-sparql').
 known_unknown('x-sparql-default-graph').
 known_unknown('x-timer').
+known_unknown('x-total-results').
 known_unknown('x-ua-compatible').
+known_unknown('x-uniprot-release').
 known_unknown('x-varnish').
 known_unknown('x-varnish-caching-rule-id').
 known_unknown('x-varnish-header-set-id').

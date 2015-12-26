@@ -37,8 +37,8 @@
 %! 'x-frame-options'(-Value)// .
 % ```abnf
 % X-Frame-Options = "DENY"
-%                   / "SAMEORIGIN"
-%                   / ( "ALLOW-FROM" RWS SERIALIZED-ORIGIN )
+%                 / "SAMEORIGIN"
+%                 / ( "ALLOW-FROM" RWS SERIALIZED-ORIGIN )
 % ```
 %
 % The following values are supported:
