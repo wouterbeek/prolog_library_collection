@@ -20,9 +20,9 @@
                  % ?List:list
     pair_value/2, % +Pair:pair
                   % ?Value
-    pairs_ordered_values/3, % +Pairs:list(pair)
-                            % +Order:oneof([@<,@=<,@>,@>=])
-                            % -Values:list
+    pairs_sorted_values/3, % +Pairs:list(pair)
+                           % +Order:oneof([@<,@=<,@>,@>=])
+                           % -Values:list
     pairs_to_set/2 % +Pairs:list(pair)
                    % -Set:ordset
   ]
@@ -138,7 +138,7 @@ pair_value(_-X, X).
 
 
 
-%! pairs_ordered_values(+Pairs:list(pair), -Values:list) is det.
+%! pairs_sorted_values(+Pairs:list(pair), -Values:list) is det.
 % | **Order** | **Ordering** | **Duplicate handling** |
 % |:---------:|:------------:|:----------------------:|
 % | `@<`      | ascending    | remove                 |
@@ -146,7 +146,7 @@ pair_value(_-X, X).
 % | `@>`      | descending   | remove                 |
 % | `@>=`     | descending   | keep                   |
 
-pairs_ordered_values(Pairs, Order, Values):-
+pairs_sorted_values(Pairs, Order, Values):-
   sort(1, Order, Pairs, SortedPairs),
   pairs_values(SortedPairs, Values).
 
