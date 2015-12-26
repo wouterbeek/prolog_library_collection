@@ -47,10 +47,8 @@
                            % +ToFile:atom
     new_file_name/2, % +Path1:atom
                      % -Path2:atom
-    prefix_path/2, % ?PrefixPath:atom
-                   % +Path:atom
-    younger_file/2 % +Path1:atom
-                   % +Path2:atom
+    prefix_path/2 % ?PrefixPath:atom
+                  % +Path:atom
   ]
 ).
 
@@ -118,14 +116,13 @@ In line with the terminology this modules uses the following variable names:
 ---
 
 @author Wouter Beek
-@version 2011/08-2012/05, 2012/09, 2013/04-2013/06, 2013/09-2014/01, 2014/05,
-         2014/08-2014/11, 2015/01-2015/02, 2015/04
+@version 2015/07, 2015/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(filesex)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(lists)).
 
 :- predicate_options(absolute_file_name_number/4, 4, [
      pass_to(absolute_file_name/3, 3)
@@ -469,18 +466,9 @@ prefix_path(PrefixPath, Path):-
 
 
 
-%! younger_file(+Path1:atom, +Path2:atom) is semidet.
-% Succeeds if the file denoted by Path1 is younger than
-% the file denoted by Path2.
-
-younger_file(Path1, Path2):-
-  dateTime_file(Path1, Time1),
-  dateTime_file(Path2, Time2),
-  Time1 > Time2.
 
 
-
-% HELPERS
+% HELPERS %
 
 %! spec_atomic_concat(+Spec, +Atomic:atom, -NewSpec) is det.
 % Concatenates the given atom to the inner atomic term of the given
@@ -494,4 +482,3 @@ spec_atomic_concat(Spec1, Atomic, Spec2):-
   Spec1 =.. [Outer,Inner1],
   spec_atomic_concat(Inner1, Atomic, Inner2),
   Spec2 =.. [Outer,Inner2].
-

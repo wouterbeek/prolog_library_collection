@@ -7,6 +7,10 @@
     create_datetime_file/1, % -File
     create_datetime_file/2, % +Spec:compound
                             % -File:atom
+    is_older_file/2, % +Path1:atom
+                     % +Path2:atom
+    is_younger_file/2, % +Path1:atom
+                       % +Path2:atom
     latest_datetime_file/1, % -File
     latest_datetime_file/2 % +Spec:compound
                            % -File:atom
@@ -16,7 +20,7 @@
 /** <module> Date-time file support
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/11
+@version 2015/07, 2015/10-2015/12
 */
 
 :- use_module(library(apply)).
@@ -72,6 +76,24 @@ create_datetime_file(Spec, File):-
   format_time(string(S), "%S", TS),
   string_list_concat([H,Mi,S], "_", Local),
   directory_file_path(Dir, Local, File).
+
+
+
+%! is_older_file(+Path1:atom, +Path2:atom) is semidet.
+
+is_older_file(Path1, Path2):-
+  is_younger_file(Path2, Path1).
+
+
+
+%! is_younger_file(+Path1:atom, +Path2:atom) is semidet.
+% Succeeds if the file denoted by Path1 is younger than
+% the file denoted by Path2.
+
+is_younger_file(Path1, Path2):-
+  time_file(Path1, T1),
+  time_file(Path2, T2),
+  T1 > T2.
 
 
 
