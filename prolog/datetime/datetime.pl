@@ -76,6 +76,21 @@ date_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )).
 
 
 %! date_to_datetime(+Date:compound, -Datetime:compound) is det.
+% Converts the three Prolog date-time compound term representations to
+% the one XSD datetime representation.
+%
+% The Prolog term: date(Y,Mo,D,H,Mi,S,Off,TZ,DST)
+% The XSD term:    date(Y,Mo,D,H,Mi,S,Off)
+%
+% There are two main differences:
+%   1. In Prolog `S` represents the seconds as a *floating point number*
+%      between 0.0 and 60.0.
+%      In XSD `S` represents the seconds as a *decimal number*
+%      greater than or equal to 0 and less than 60.
+%   2. In Prolog `Off` represents the offset relative to UTC in *seconds*
+%      as an integer, where positive values are west of Greenwich.
+%      In XSD `Off` represents the offset relative to UTC in *minutes*
+%      as an integer between -840 and 840 inclusive.
 
 date_to_datetime(time(H,Mi,S1), datetime(_,_,_,H,Mi,S2,_)):- !,
   S2 is rationalize(S1).
