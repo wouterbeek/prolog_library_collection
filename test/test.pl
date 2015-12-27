@@ -144,8 +144,6 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(print_ext)).
 :- use_module(library(progress)).
-%/rest
-  :- use_module(library(rest/rest)).
 :- use_module(library(service_db)).
 %/set
   :- use_module(library(set/direct_subset)).

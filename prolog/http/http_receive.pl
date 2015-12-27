@@ -1,6 +1,10 @@
 :- module(
   http_receive,
   [
+    http_method/2, % +Request:list(compound)
+                   % -Method:atom
+    http_output/2, % +Request:list(compound)
+                   % -Output:stream
     http_search/3, % +Request:list(compound)
                    % +Key:atom
                    % -Value:atom
@@ -19,6 +23,20 @@ Support for receiving an HTTP reply.
 */
 
 
+
+
+
+%! http_method(+Request:list(compound), -Method:atom) is det.
+
+http_method(Req, M):-
+  memberchk(method(M), Req).
+
+
+
+%! http_output(+Request:list(compound), -Output:stream) is det.
+
+http_output(Req, Out):-
+  memberchk(pool(client(_,_,_,Out)), Req).
 
 
 
