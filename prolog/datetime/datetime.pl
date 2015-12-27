@@ -3,9 +3,9 @@
   [
     call_time/2, % :Goal_0
                  % -Seconds:nonneg
-    date_mask/3, % +Mask:oneof([year,month,day,hour,minute,second,offset])
-                 % +Datetime:compound
-                 % -MaskedDatetime:compound
+    datetime_mask/3, % +Mask:oneof([none,year,month,day,hour,minute,second,offset])
+                     % +Datetime:compound
+                     % -MaskedDatetime:compound
     date_to_datetime/2, % +Date:compound
                         % -Datetime:compound
     datetime_to_date/2, % +Datetime:compound
@@ -59,19 +59,20 @@ call_time(Goal_0, N):- get_time(X), Goal_0, get_time(Y), N is Y - X.
 
 
 
-%! date_mask(
-%!   +Mask:oneof([year,month,day,hour,minute,second,offset]),
+%! datetime_mask(
+%!   +Mask:oneof([none,year,month,day,hour,minute,second,offset]),
 %!   +Datetime:compound,
 %!   -MaskedDatetime:compound
 %! ) is det.
 
-date_mask(year,   datetime(_,Mo,D,H,Mi,S,Off), datetime(_,Mo,D,H,Mi,S,Off)).
-date_mask(month,  datetime(Y,_, D,H,Mi,S,Off), datetime(Y,_, D,H,Mi,S,Off)).
-date_mask(day,    datetime(Y,Mo,_,H,Mi,S,Off), datetime(Y,Mo,_,H,Mi,S,Off)).
-date_mask(hour,   datetime(Y,Mo,D,_,Mi,S,Off), datetime(Y,Mo,D,_,Mi,S,Off)).
-date_mask(minute, datetime(Y,Mo,D,H,_, S,Off), datetime(Y,Mo,D,H,_, S,Off)).
-date_mask(second, datetime(Y,Mo,D,H,Mi,_,Off), datetime(Y,Mo,D,H,Mi,_,Off)).
-date_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )).
+datetime_mask(none,   datetime(Y,Mo,D,H,Mi,S,Off), datetime(Y,Mo,D,H,Mi,S,Off)).
+datetime_mask(year,   datetime(_,Mo,D,H,Mi,S,Off), datetime(_,Mo,D,H,Mi,S,Off)).
+datetime_mask(month,  datetime(Y,_, D,H,Mi,S,Off), datetime(Y,_, D,H,Mi,S,Off)).
+datetime_mask(day,    datetime(Y,Mo,_,H,Mi,S,Off), datetime(Y,Mo,_,H,Mi,S,Off)).
+datetime_mask(hour,   datetime(Y,Mo,D,_,Mi,S,Off), datetime(Y,Mo,D,_,Mi,S,Off)).
+datetime_mask(minute, datetime(Y,Mo,D,H,_, S,Off), datetime(Y,Mo,D,H,_, S,Off)).
+datetime_mask(second, datetime(Y,Mo,D,H,Mi,_,Off), datetime(Y,Mo,D,H,Mi,_,Off)).
+datetime_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )).
 
 
 
