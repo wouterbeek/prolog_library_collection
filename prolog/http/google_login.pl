@@ -18,7 +18,7 @@
 :- use_module(library(http/http_error)).
 :- use_module(library(http/http_session)).
 
-:- http_handler(root(login), login, []).
+:- http_handler(root(login), login, [id(login)]).
 
 
 %! current_user(?SessionId, ?User:atom) is semidet.
