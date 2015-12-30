@@ -8,6 +8,7 @@
                   % +Options:list(compound)
     pool/1, % ?Pool
     print_pool/1, % ?Pool
+    print_pools/0,
     remove_resource/2 % +Pool
                       % -Resource
   ]
@@ -24,6 +25,8 @@
 :- use_module(library(option)).
 :- use_module(library(msg_ext)).
 :- use_module(library(solution_sequences)).
+
+%:- debug(pool(add)).
 
 :- meta_predicate(add_worker(+,2,+)).
 :- meta_predicate(pool_worker(+,2,+)).
@@ -65,16 +68,16 @@ add_resource(Pool, X):-
 
 add_resource0(Pool, X):-
   pooled(Pool, X), !,
-  debug(pool, "~w was already pooled in ~w", [X,Pool]).
+  debug(pool(skip), "~w was already pooled in ~w", [X,Pool]).
 add_resource0(Pool, X):-
   pooling(Pool, X), !,
-  debug(pool, "~w is currently pooling in ~w", [X,Pool]).
+  debug(pool(skip), "~w is currently pooling in ~w", [X,Pool]).
 add_resource0(Pool, X):-
   pool(Pool, X), !,
-  debug(pool, "~w is already in pool ~w", [X,Pool]).
+  debug(pool(skip), "~w is already in pool ~w", [X,Pool]).
 add_resource0(Pool, X):-
   assertz(pool(Pool,X)),
-  debug(pool, "Added ~w to pool ~w", [X,Pool]).
+  debug(pool(add), "Added ~w to pool ~w", [X,Pool]).
 
 
 
@@ -130,9 +133,18 @@ print_pool(Pool):-
   aggregate_all(count, pooling(Pool, _), NPooling),
   aggregate_all(count, pooled(Pool, _), NPooled),
   msg_normal(
-    "Pool ~w~n  Pending: ~D~n  Processing: ~D~n  Processed: ~D~n",
+    "Pool ~w:~n  Pending: ~D~n  Processing: ~D~n  Processed: ~D~n",
     [Pool,NPool,NPooling,NPooled]
   ).
+
+
+
+%! print_pools is det.
+
+print_pools:-
+  print_pool(_),
+  fail.
+print_pools.
 
 
 
