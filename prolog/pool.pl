@@ -6,7 +6,8 @@
     add_worker/3, % +Pool
                   % :Goal_1
                   % +Options:list(compound)
-    print_pool/1, % +Pool
+    pool/1, % ?Pool
+    print_pool/1, % ?Pool
     remove_resource/2 % +Pool
                       % -Resource
   ]
@@ -22,8 +23,7 @@
 :- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(msg_ext)).
-
-:- debug(pool).
+:- use_module(library(solution_sequences)).
 
 :- meta_predicate(add_worker(+,2,+)).
 :- meta_predicate(pool_worker(+,2,+)).
@@ -64,14 +64,17 @@ add_resource(Pool, X):-
   with_mutex(pool, add_resource0(Pool, X)).
 
 add_resource0(Pool, X):-
-  pooled(Pool, X), !.
+  pooled(Pool, X), !,
+  debug(pool, "~w was already pooled in ~w", [X,Pool]).
 add_resource0(Pool, X):-
-  pooling(Pool, X), !.
+  pooling(Pool, X), !,
+  debug(pool, "~w is currently pooling in ~w", [X,Pool]).
 add_resource0(Pool, X):-
-  pool(Pool, X), !.
+  pool(Pool, X), !,
+  debug(pool, "~w is already in pool ~w", [X,Pool]).
 add_resource0(Pool, X):-
-  assert(pool(Pool,X)),
-  debug(pool, "Added ~w to pool ~w.", [X,Pool]).
+  assertz(pool(Pool,X)),
+  debug(pool, "Added ~w to pool ~w", [X,Pool]).
 
 
 
@@ -83,6 +86,17 @@ add_worker(Pool, Goal_2, Opts):-
   format(atom(Alias), "~w_~d", [Pool,N]),
   ignore(option(alias(Alias), Opts)),
   thread_create(pool_worker(Pool, Goal_2, Opts), _, [detached(true)]).
+
+
+
+%! pool(+Pool) is semidet.
+%! pool(-Pool) is nondet.
+
+pool(Pool):-
+  distinct(Pool, pool0(Pool)).
+pool0(Pool):- pool(Pool, _).
+pool0(Pool):- pooling(Pool, _).
+pool0(Pool):- pooled(Pool, _).
 
 
 
@@ -108,8 +122,10 @@ pool_worker(Pool, Goal_2, Opts):-
 
 
 %! print_pool(+Pool) is det.
+%! print_pool(-Pool) is nondet.
 
 print_pool(Pool):-
+  pool(Pool),
   aggregate_all(count, pool(Pool, _), NPool),
   aggregate_all(count, pooling(Pool, _), NPooling),
   aggregate_all(count, pooled(Pool, _), NPooled),
