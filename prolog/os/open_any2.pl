@@ -40,6 +40,13 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(uri)).
 :- use_module(library(zlib)).
 
+% @tbd This avoids the following warning, but should it be necessary?
+%      ```
+%      [HTTP] time: 0.026562sec; message: '$c_call_prolog'/0: Undefined procedure: open_any2:ssl_verify/5
+%      ```
+:- public(ssl_verify/5).
+ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
+
 :- meta_predicate(close_any2(+)).
 :- meta_predicate(open_any2(+,+,-,-)).
 :- meta_predicate(open_any2(+,+,-,-,:)).
