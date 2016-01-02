@@ -1,75 +1,54 @@
 :- module(
   dcg_ext,
   [
-    '?'//1, % :Dcg_1
-    '?'//2, % :Dcg_1
-            % -Content:list
-    '*'//1, % :Dcg_1
-    '*'//2, % :Dcg_1
-            % -Content:list
-    '+'//1, % :Dcg_1
-    '+'//2, % :Dcg_1
-            % -Content:list
-    '#'//2, % +Occurrences, :Dcg_1
-    '#'//3, % +Occurrences:nonneg
-            % :Dcg_1
-            % -Content:list
-    '*n'//2, % ?High:nonneg
-             % :Dcg_1
-    '*n'//3, % ?High:nonneg
-             % :Dcg_1
-             % -Content:list
-    'm*'//2, % ?Low, :Dcg_0
-    'm*'//3, % ?Low:nonneg
-             % :Dcg_1
-             % -Content:list
-    'm*n'//3, % ?Low, ?High, :Dcg_1
-    'm*n'//4, % ?Low:nonneg
-              % ?High:nonneg
-              % :Dcg_1
-              % -Content:list
-    bit//1, % ?Integer:between(0,1)
-    def//3, % :Dcg_1
-            % -Argument
-            % +Default
-    digit_code//1, % ?Code:code
-    frac_pos/2, % +Fractional:between(0.0,1.0)
-                % -Digits:list(between(0,9))
-    generate_as_digits//2, % +Number, +NumberOfDigits
-    generate_as_digits//3, % +Number:nonneg
-                           % +Base:nonneg
-                           % +NumberOfDigits:nonneg
-    opt//2, % :Dcg_1
-            % ?Argument
-    pos/2, % +Integer, -Digits
-    pos/3, % +Integer:nonneg
-           % +Base:nonneg
-           % -Digits:list(between(0,9))
-    pos_frac/2, % +Digits:list(between(0,9))
-                % -FractionalPart:rational
-    pos_sum/2, % +Digits, -Number
-    pos_sum/3, % +Digits:list(nonneg)
-               % +Base:positive_integer
-               % -Number:nonneg
-    sum_pos/2, % +Number, -Digits
-    sum_pos/3 % +Number:nonneg
-              % +Base:nonneg
-              % -Digits:list(between(0,9))
+    '?'//1,	% :Dcg_0
+    '?'//2,	% :Dcg_1, -Arguments1:list
+    '?'//3,	% :Dcg_2, -Arguments1:list, -Arguments2:list
+    '*'//1,	% :Dcg_0
+    '*'//2,	% :Dcg_1, -Arguments1:list
+    '*'//3,	% :Dcg_2, -Arguments1:list, -Arguments2:list
+    '+'//1,	% :Dcg_0
+    '+'//2,	% :Dcg_1, -Arguments1:list
+    '+'//3,	% :Dcg_2, -Arguments1:list, -Arguments2:list
+    '#'//2,	% ?Occurrences:nonneg, :Dcg_0
+    '#'//3,	% ?Occurrences:nonneg, :Dcg_1, -Arguments1:list
+    '#'//4,	% ?Occurrences:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list
+    '*n'//2,	% ?High:nonneg, :Dcg_0
+    '*n'//3,	% ?High:nonneg, :Dcg_1, -Arguments1:list
+    '*n'//4,	% ?High:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list
+    'm*'//2,	% ?Low:nonneg, :Dcg_0
+    'm*'//3,	% ?Low:nonneg, :Dcg_1, -Arguments1:list
+    'm*'//4,	% ?Low:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list
+    'm*n'//3,	% ?Low:nonneg, ?High:nonneg, :Dcg_0
+    'm*n'//4,	% ?Low:nonneg, ?High:nonneg, :Dcg_1, -Arguments1:list
+    'm*n'//5,	% ?Low:nonneg, ?High:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list
+    bit//1,		% ?Integer:between(0,1)
+    def//3,		% :Dcg_1, -Argument, +Default
+    digit_code//1,	% ?Code:code
+    frac_pos/2,		% +Fractional:between(0.0,1.0), -Digits:list(between(0,9))
+    generate_as_digits//2, % +Number:nonneg, +NumberOfDigits:nonneg
+    generate_as_digits//3, % +Number:nonneg, +Base:nonneg, +NumberOfDigits:nonneg
+    opt//2,		% :Dcg_1, ?Argument
+    pos/2,		% +Number:nonneg, -Digits:list(between(0,9))
+    pos/3,		% +Number:nonneg, +Base:nonneg, -Digits:list(between(0,9))
+    pos_frac/2,		% +Digits:list(between(0,9)), -FractionalPart:rational
+    pos_sum/2,		% +Digits:list(between(0,9)), -Number:nonneg
+    pos_sum/3,		% +Digits:list(nonneg), +Base:positive_integer, -Number:nonneg
+    sum_pos/2,		% +Number:nonneg, -Digits:list(between(0,9))
+    sum_pos/3		% +Number:nonneg, +Base:nonneg, -Digits:list(nonneg)
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
 :- reexport(library(url/rfc1738), [
-     alpha//1, % ?Code:code
-     alphadigit//1, % ?Code:code
-     digit//1, % ?Weight
-     digit//2, % ?Weight:between(0,9)
-               % ?Code:code
+     alpha//1,		% ?Code:code
+     alphadigit//1,	% ?Code:code
+     digit//1,		% ?Weight:between(0,9)
+     digit//2,		% ?Weight:between(0,9), ?Code:code
      escape//1 as percent_escape, % ?Code:code
-     hex//1, % ?Weigth
-     hex//2, % ?Weigth:between(0,15)
-             % ?Code:code
-     hialpha//1, % ?Code:code
-     lowalpha//1 % ?Code:code
+     hex//1,		% ?Weigth:between(0,15)
+     hex//2,		% ?Weigth:between(0,15), ?Code:code
+     hialpha//1,	% ?Code:code
+     lowalpha//1	% ?Code:code
    ]).
 
 /** <module> DCG Extensions
@@ -77,7 +56,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -87,20 +66,28 @@ My favorite collection of DCG rules.
 
 :- meta_predicate(?(//,?,?)).
 :- meta_predicate(?(3,-,?,?)).
+:- meta_predicate(?(4,-,-,?,?)).
 :- meta_predicate(*(//,?,?)).
 :- meta_predicate(*(3,-,?,?)).
+:- meta_predicate(*(4,-,-,?,?)).
 :- meta_predicate(+(//,?,?)).
 :- meta_predicate(+(3,-,?,?)).
+:- meta_predicate(+(4,-,-,?,?)).
 :- meta_predicate(#(+,//,?,?)).
 :- meta_predicate(#(+,3,-,?,?)).
+:- meta_predicate(#(+,4,-,-,?,?)).
 :- meta_predicate('*n'(?,//,?,?)).
 :- meta_predicate('*n'(?,3,-,?,?)).
+:- meta_predicate('*n'(?,4,-,-,?,?)).
 :- meta_predicate('m*'(?,//,?,?)).
 :- meta_predicate('m*'(?,3,-,?,?)).
+:- meta_predicate('m*'(?,4,-,-,?,?)).
 :- meta_predicate('m*n'(?,?,//,?,?)).
 :- meta_predicate('m*n'(?,?,3,-,?,?)).
+:- meta_predicate('m*n'(?,?,4,-,-,?,?)).
 :- meta_predicate('m*n__'(?,?,+,//,?,?)).
 :- meta_predicate('m*n__'(?,?,+,3,-,?,?)).
+:- meta_predicate('m*n__'(?,?,+,4,-,-,?,?)).
 :- meta_predicate(def(3,-,+,?,?)).
 :- meta_predicate(opt(3,?,?,?)).
 
@@ -108,55 +95,71 @@ My favorite collection of DCG rules.
 
 
 
-?(Dcg_1) --> 'm*n'(0, 1, Dcg_1).
+%! ?(:Dcg_0)// is det.
+%! ?(:Dcg_1, -Arguments1:list)// is det.
+%! ?(:Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
 
-?(Dcg_1, L) --> 'm*n'(0, 1, Dcg_1, L).
-
-
-
-*(Dcg_1) --> 'm*n'(0, _, Dcg_1).
-
-*(Dcg_1, L) --> 'm*n'(0, _, Dcg_1, L).
+?(Dcg_0) --> 'm*n'(0, 1, Dcg_0).
+?(Dcg_1, L1) --> 'm*n'(0, 1, Dcg_1, L1).
+?(Dcg_2, L1, L2) --> 'm*n'(0, 1, Dcg_2, L1, L2).
 
 
 
-#(N, Dcg_1) --> 'm*n'(N, N, Dcg_1).
+%! *(:Dcg_0)// is det.
+%! *(:Dcg_1, -Arguments1:list)// is det.
+%! *(:Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
 
-#(N, Dcg_1, L) --> 'm*n'(N, N, Dcg_1, L).
-
-
-
-+(Dcg_1) --> 'm*n'(1, _, Dcg_1).
-
-+(Dcg_1, L) --> 'm*n'(1, _, Dcg_1, L).
+*(Dcg_0) --> 'm*n'(0, _, Dcg_0).
+*(Dcg_1, L1) --> 'm*n'(0, _, Dcg_1, L1).
+*(Dcg_2, L1, L2) --> 'm*n'(0, _, Dcg_2, L1, L2).
 
 
 
-%! '*n'(?High:nonneg, :Dcg_1, -Content:list)// .
+%! #(?Occurrences:nonneg, :Dcg_0)// is det.
+%! #(?Occurrences:nonneg, :Dcg_1, -Arguments1:list)// is det.
+%! #(?Occurrences:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
 
-'*n'(High, Dcg_1) --> 'm*n'(_, High, Dcg_1).
-
-
-%! '*n'(?High:nonneg, :Dcg_1, -Content:list)// .
-
-'*n'(High, Dcg_1, L) --> 'm*n'(_, High, Dcg_1, L).
-
+#(N, Dcg_0) --> 'm*n'(N, N, Dcg_0).
+#(N, Dcg_1, L1) --> 'm*n'(N, N, Dcg_1, L1).
+#(N, Dcg_2, L1, L2) --> 'm*n'(N, N, Dcg_2, L1, L2).
 
 
-%! 'm*'(?Low:nonneg, :Dcg_0)// .
+
+%! '*n'(?High:nonneg, :Dcg_0)// is det.
+%! '*n'(?High:nonneg, :Dcg_1, -Arguments1:list)// is det.
+%! '*n'(?High:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
+
++(Dcg_0) --> 'm*n'(1, _, Dcg_0).
++(Dcg_1, L1) --> 'm*n'(1, _, Dcg_1, L1).
++(Dcg_2, L1, L2) --> 'm*n'(1, _, Dcg_2, L1, L2).
+
+
+
+%! '*n'(?High:nonneg, :Dcg_0)// is det.
+%! '*n'(?High:nonneg, :Dcg_1, -Arguments1:list)// is det.
+%! '*n'(?High:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
+
+'*n'(High, Dcg_0) --> 'm*n'(_, High, Dcg_0).
+'*n'(High, Dcg_1, L1) --> 'm*n'(_, High, Dcg_1, L1).
+'*n'(High, Dcg_2, L1, L2) --> 'm*n'(_, High, Dcg_2, L1, L2).
+
+
+
+%! 'm*'(?Low:nonneg, :Dcg_0)// is det.
+%! 'm*'(?Low:nonneg, :Dcg_1, -Arguments1:list)// is det.
+%! 'm*'(?Low:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
 
 'm*'(Low, Dcg_0) --> 'm*n'(Low, _, Dcg_0).
+'m*'(Low, Dcg_1, L1) --> 'm*n'(Low, _, Dcg_1, L1).
+'m*'(Low, Dcg_2, L1, L2) --> 'm*n'(Low, _, Dcg_2, L1, L2).
 
 
-%! 'm*'(?Low:nonneg, :Dcg_1, -Content:list)// .
 
-'m*'(Low, Dcg_1, L) --> 'm*n'(Low, _, Dcg_1, L).
-
-
-%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_0)// .
+%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_0)// is det.
+%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_1, -Arguments1:list)// is det.
+%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_2, -Arguments1:list, -Arguments2:list)// is det.
 
 'm*n'(Low, High, Dcg_0) --> 'm*n__'(Low, High, 0, Dcg_0).
-
 'm*n__'(Low, High, Count1, Dcg_0) -->
   {(var(High) -> true ; Count1 < High)},
   Dcg_0, !,
@@ -164,26 +167,26 @@ My favorite collection of DCG rules.
   'm*n__'(Low, High, Count2, Dcg_0).
 'm*n__'(Low, _, Count, _) --> {(var(Low) -> true ; Low =< Count)}.
 
-
-%! 'm*n'(?Low:nonneg, ?High:nonneg, :Dcg_1, -Content:list)// .
-
-'m*n'(Low, High, Dcg_1, L) --> 'm*n__'(Low, High, 0, Dcg_1, L).
-
-'m*n__'(Low, High, Count1, Dcg_1, [H|T]) -->
+'m*n'(Low, High, Dcg_1, L1) --> 'm*n__'(Low, High, 0, Dcg_1, L1).
+'m*n__'(Low, High, Count1, Dcg_1, [H1|T1]) -->
   {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H), !,
+  dcg_call(Dcg_1, H1), !,
   {Count2 is Count1 + 1},
-  'm*n__'(Low, High, Count2, Dcg_1, T).
+  'm*n__'(Low, High, Count2, Dcg_1, T1).
 'm*n__'(Low, _, Count, _, []) --> {(var(Low) -> true ; Low =< Count)}.
+
+'m*n'(Low, High, Dcg_2, L1, L2) --> 'm*n__'(Low, High, 0, Dcg_2, L1, L2).
+'m*n__'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
+  {(var(High) -> true ; Count1 < High)},
+  dcg_call(Dcg_2, H1, H2), !,
+  {Count2 is Count1 + 1},
+  'm*n__'(Low, High, Count2, Dcg_2, T1, T2).
+'m*n__'(Low, _, Count, _, [], []) --> {(var(Low) -> true ; Low =< Count)}.
 
 
 
 %! bit(?Integer:between(0,1))// .
 % Wrapper around bit//2.
-
-bit(I) --> bit(I, _).
-
-
 %! bit(?Integer:between(0,1), ?Code:code)// .
 % Binary digit.
 %
@@ -191,6 +194,7 @@ bit(I) --> bit(I, _).
 % BIT = "0" / "1"
 % ```
 
+bit(I) --> bit(I, _).
 bit(0, 0'0) --> "0".
 bit(1, 0'1) --> "1".
 

@@ -51,7 +51,7 @@
 extlang([H|T]) -->
   #(3, 'ALPHA', Cs),
   {string_codes(H, Cs)},
-  '*n'(2, permanently_reserved, T, []).
+  '*n'(2, permanently_reserved, T).
 permanently_reserved(S) -->
   "-",
   #(3, 'ALPHA', Cs),

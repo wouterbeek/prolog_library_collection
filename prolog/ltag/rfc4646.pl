@@ -27,10 +27,11 @@ The comment for singleton//1 swaps upper and lowercase letters.
 @compat RFC 4646
 @deprecated Use module `rfc5646` instead.
 @see http://tools.ietf.org/html/rfc4646
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % -Code:code
