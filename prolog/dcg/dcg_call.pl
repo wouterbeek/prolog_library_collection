@@ -31,23 +31,24 @@ Variants of apply/2, call/[1,5], once/1 for DCGs.
 
 :- use_module(library(lists)).
 
-:- meta_predicate(dcg_apply(//,+,?,?)).
-:- meta_predicate(dcg_apply_cp(//,+,?,?)).
-:- meta_predicate(dcg_between(//,//,?,?)).
-:- meta_predicate(dcg_between(//,//,//,?,?)).
-:- meta_predicate(dcg_call(//,?,?)).
-:- meta_predicate(dcg_call(3,?,?,?)).
-:- meta_predicate(dcg_call(4,?,?,?,?)).
-:- meta_predicate(dcg_call(5,?,?,?,?,?)).
-:- meta_predicate(dcg_call(6,?,?,?,?,?,?)).
-:- meta_predicate(dcg_call(7,?,?,?,?,?,?,?)).
-:- meta_predicate(dcg_call_cp(//,?,?)).
-:- meta_predicate(dcg_call_cp(3,?,?,?)).
-:- meta_predicate(dcg_call_cp(4,?,?,?,?)).
-:- meta_predicate(dcg_call_cp(5,?,?,?,?,?)).
-:- meta_predicate(dcg_call_cp(6,?,?,?,?,?,?)).
-:- meta_predicate(dcg_call_cp(7,?,?,?,?,?,?,?)).
-:- meta_predicate(dcg_once(//,?,?)).
+:- meta_predicate
+  dcg_apply(//,+,?,?),
+  dcg_apply_cp(//,+,?,?),
+  dcg_between(//,//,?,?),
+  dcg_between(//,//,//,?,?),
+  dcg_call(//,?,?),
+  dcg_call(3,?,?,?),
+  dcg_call(4,?,?,?,?),
+  dcg_call(5,?,?,?,?,?),
+  dcg_call(6,?,?,?,?,?,?),
+  dcg_call(7,?,?,?,?,?,?,?),
+  dcg_call_cp(//,?,?),
+  dcg_call_cp(3,?,?,?),
+  dcg_call_cp(4,?,?,?,?),
+  dcg_call_cp(5,?,?,?,?,?),
+  dcg_call_cp(6,?,?,?,?,?,?),
+  dcg_call_cp(7,?,?,?,?,?,?,?),
+  dcg_once(//,?,?).
 
 
 

@@ -128,7 +128,8 @@ pool_worker(Pool, Goal_2, Opts):-
 %! print_pool(-Pool) is nondet.
 
 print_pool(Pool):-
-  pool(Pool),
+  % Enforce determinism for instantiation `(+)'.
+  (var(Pool) -> pool(Pool) ; once(pool(Pool))),
   aggregate_all(count, pool(Pool, _), NPool),
   aggregate_all(count, pooling(Pool, _), NPooling),
   aggregate_all(count, pooled(Pool, _), NPooled),

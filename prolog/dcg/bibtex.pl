@@ -11,9 +11,10 @@
 /** <module> BibTeX parsing
 
 @author Wouter Beek
-@version 2015/12
+@version 2015/12-2016/01
 */
 
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/open_any2)).
@@ -77,10 +78,10 @@ name_code(0':) --> ":".
 name_code(0'-) --> "-".
 name_code(0'_) --> "_".
 
-comment --> "%", ..., eol.
+comment --> "%", ..., bibtex_eol.
 
-eol --> "\r\n".
-eol --> "\n".
+bibtex_eol --> "\r\n".
+bibtex_eol --> "\n".
 
 
 

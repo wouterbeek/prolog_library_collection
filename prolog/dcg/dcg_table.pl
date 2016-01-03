@@ -30,6 +30,7 @@ Generates tables for text-based display.
 :- meta_predicate(dcg_table(+,:,?,?)).
 :- meta_predicate(dcg_table_caption(+,0,?,?)).
 :- meta_predicate(dcg_table_cell(+,+,1,+,?,?)).
+:- meta_predicate(dcg_table_cell_content(+,//,?,?)).
 :- meta_predicate(dcg_table_data_rows(+,+,+,1,+,-,?,?)).
 :- meta_predicate(dcg_table_header_row(+,+,+,1,-,-,?,?)).
 :- meta_predicate(dcg_table_row(+,+,1,+,?,?)).

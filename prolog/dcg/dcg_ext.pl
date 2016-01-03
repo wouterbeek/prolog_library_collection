@@ -28,6 +28,7 @@
     frac_pos/2,		% +Fractional:between(0.0,1.0), -Digits:list(between(0,9))
     generate_as_digits//2, % +Number:nonneg, +NumberOfDigits:nonneg
     generate_as_digits//3, % +Number:nonneg, +Base:nonneg, +NumberOfDigits:nonneg
+    opt//2,		% :Dcg_0
     opt//2,		% :Dcg_1, ?Argument
     pos/2,		% +Number:nonneg, -Digits:list(between(0,9))
     pos/3,		% +Number:nonneg, +Base:nonneg, -Digits:list(between(0,9))
@@ -89,6 +90,7 @@ My favorite collection of DCG rules.
 :- meta_predicate('m*n__'(?,?,+,3,-,?,?)).
 :- meta_predicate('m*n__'(?,?,+,4,-,-,?,?)).
 :- meta_predicate(def(3,-,+,?,?)).
+:- meta_predicate(opt(//,?,?)).
 :- meta_predicate(opt(3,?,?,?)).
 
 
@@ -242,6 +244,12 @@ generate_as_digits(N1, Base, M1) -->
   {N2 is N1 mod Base ^ M2},
   generate_as_digits(N2, Base, M2).
 
+
+
+%! opt(:Dcg_0)// .
+
+opt(Dcg_0) --> Dcg_0, !.
+opt(_) --> "".
 
 
 %! opt(:Dcg_1, ?Argument)// .
