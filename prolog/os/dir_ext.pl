@@ -10,8 +10,8 @@
                        % +Options:list(compound)
     directory_subdirectories/2, % ?Directory:atom
                                 % ?Subdirectories:list(atom)
-    run_in_working_directory/2 % :Goal_0
-                               % +Directory:atom
+    run_in_working_directory/2, % :Goal_0
+                                % +Directory:atom
     working_directory/1 % ?Directory:atom
   ]
 ).
@@ -173,7 +173,7 @@ resolve_double_dots([H|T1], [H|T2]):-
 
 %! run_in_working_directory(:Goal_0, +Directory:atom) is det.
 
-run_in_working_directory(Goal, Dir):-
+run_in_working_directory(Goal_0, Dir):-
   working_directory(OldDir, Dir),
   Goal_0,
   working_directory(Dir, OldDir).

@@ -4,12 +4,6 @@
     'set-cookie2'//1 % -Value
   ]
 ).
-:- reexport(library(http/rfc2109), [
-     attr//1, % -Attribute:string
-     'NAME'//1, % -Name:string
-     'VALUE'//1, % -Value:string
-     value//1 % -Value:string
-   ]).
 
 /** <module> RFC 2965: HTTP State Management Mechanism
 
@@ -17,13 +11,15 @@
 @compat RFC 2965
 @deprecated
 @see https://tools.ietf.org/html/rfc2965
-@version 2015/12
+@version 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616), [
-     'LWS'//0,
+     'DIGIT'//1,
+     'DIGIT'//2,
+     http_URL//1,
      token//1
    ]).
 
@@ -106,7 +102,7 @@ portlist(L) --> +#(portnum, L).
 % portnum = 1*DIGIT
 % ```
 
-portnum(N) --> +('DIGIT', Ds), {pos_num(Ds, N)}.
+portnum(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 

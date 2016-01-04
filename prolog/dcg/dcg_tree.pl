@@ -1,8 +1,8 @@
 :- module(
   dcg_tree,
   [
-    dcg_tree/2, % :Node_3, +Tree
-    dcg_tree/3  % :Node_3, +Tree, +Opts
+    dcg_tree//2, % :Node_3, +Tree
+    dcg_tree//3  % :Node_3, +Tree, +Opts
   ]
 ).
 
@@ -12,15 +12,15 @@
 @version 2016/01
 */
 
-:- use_module(library(dcg_call)).
-:- use_module(library(dcg_content)).
+:- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_content)).
 :- use_module(library(option)).
 
 :- meta_predicate
-	dcg_node(+, 3, +),
-	dcg_tree(3, +),
-	dcg_tree(3, +, +),
-	dcg_trees(+, 3, +).
+	dcg_node(+, 3, +, ?, ?),
+	dcg_tree(3, +, ?, ?),
+	dcg_tree(3, +, +, ?, ?),
+	dcg_trees(+, 3, +, ?, ?).
 
 
 
@@ -65,8 +65,8 @@ dcg_node(I1, Node_3, Node) -->
 	(   {I1 =:= 0}
 	->  ""
 	;   {I2 is I1 - 1},
-	    dcg_tab(I2),
+	    tab(I2),
 	    " |-"
 	),
-	dcg_once(Node_3, Node),
-	dcg_nl.
+	dcg_once(dcg_call(Node_3, Node)),
+	nl.

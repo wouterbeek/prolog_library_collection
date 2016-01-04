@@ -12,13 +12,13 @@
 Generates tables for text-based display.
 
 @author Wouter Beek
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(default)).
@@ -26,16 +26,17 @@ Generates tables for text-based display.
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
 
-:- meta_predicate(column_widths(1,+,-)).
-:- meta_predicate(dcg_table(+,:,?,?)).
-:- meta_predicate(dcg_table_caption(+,0,?,?)).
-:- meta_predicate(dcg_table_cell(+,+,1,+,?,?)).
-:- meta_predicate(dcg_table_cell_content(+,//,?,?)).
-:- meta_predicate(dcg_table_data_rows(+,+,+,1,+,-,?,?)).
-:- meta_predicate(dcg_table_header_row(+,+,+,1,-,-,?,?)).
-:- meta_predicate(dcg_table_row(+,+,1,+,?,?)).
-:- meta_predicate(dcg_table_row(+,+,+,1,+,?,?)).
-:- meta_predicate(table_position(1,+,-)).
+:- meta_predicate
+    column_widths(1, +, -),
+    dcg_table(+, :, ?, ?),
+    dcg_table_caption(+, 0, ?, ?),
+    dcg_table_cell(+, +, 1, +, ?, ?),
+    dcg_table_cell_content(+, //, ?, ?),
+    dcg_table_data_rows(+, +, +, 1, +, -, ?, ?),
+    dcg_table_header_row(+, +, +, 1, -, -, ?, ?),
+    dcg_table_row(+, +, 1, +, ?, ?),
+    dcg_table_row(+, +, +, 1, +, ?, ?),
+    table_position(1, +, -).
 
 is_meta(caption).
 is_meta(cell).
@@ -52,14 +53,10 @@ is_meta(cell).
 
 
 %! dcg_table(+Rows:list(compound))// is det.
-% Wrapper around dcg_table//2 with default options.
+%! dcg_table(+Rows:list(compound), +Options:list(compound))// is det.
 
 dcg_table(L) -->
   dcg_table(L, []).
-
-
-%! dcg_table(+Rows:list(compound), +Options:list(compound))// is det.
-
 dcg_table(Rows1, Opts0) -->
   {
     meta_options(is_meta, Opts0, Opts),
@@ -234,10 +231,10 @@ dcg_table_end_of_line(_) --> "┤".
 
 dcg_table_middle_of_line(pos(_,_,[H],_)) --> !,
   {H0 is H + 2},
-  #(H0, bar, []), !.
+  #(H0, bar), !.
 dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),[H|T],Len)) -->
   {H0 is H + 2},
-  #(H0, bar, []), !,
+  #(H0, bar), !,
   ({Row2 =:= 1} -> "┬" ; {Row1 =:= Last} -> "┴" ; "┼"),
   dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),T,Len)).
 bar --> "─".

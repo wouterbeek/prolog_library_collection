@@ -165,10 +165,10 @@ nlp_dict_update(Lang, _):-
 word_entry(Word, Something) -->
   word_part(Word0), !,
   {string_codes(Word, Word0)},
-  dcg_rest(Something0),
+  rest(Something0),
   {string_codes(Something, Something0)}.
 word_entry(Word, "") -->
-  dcg_rest(Word0),
+  rest(Word0),
   {string_codes(Word, Word0)}.
 
 word_part([]) -->

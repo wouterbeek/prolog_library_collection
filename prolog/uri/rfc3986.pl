@@ -5,6 +5,8 @@
     authority//1, % -Authority:dict
     fragment//1, % -Fragment:string
     host//1, % -Host:dict
+    'IP-literal'//1, % ?IpLiteral:compound
+    'IPv4address'//1, % ?Address:list(between(0,255))
     'path-abempty'//1, % -Segments:list(string)
     'pct-encoded'//1, % -Code:between(0,255)
     port//1, % -Port:nonneg
@@ -12,6 +14,7 @@
     'relative-part'//1, % -RelativeUri:dict
     scheme//1, % -Scheme:string
     segment//1, % -Segment:string
+    'segment-nz'//1, % -Segment:string
     'sub-delims'//1 , % ?Code:code
     unreserved//1, % ?Code:code
     'URI'//1, % -Uri:dict
@@ -24,7 +27,7 @@
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(apply)).

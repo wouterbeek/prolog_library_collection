@@ -13,7 +13,7 @@
 
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/rfc2234)).
-:- use_module(library(iri/rfc3987_code)).
+:- use_module(library(iri/rfc3987)).
 
 
 

@@ -8,16 +8,12 @@
 /** <module> Google-specific HTTP headers
 
 @author Wouter Beek
-@version 2015/12
+@version 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616), [
-     'LWS'//0,
-     'rfc850-date'//1, % -Datetime:datetime
-     token//1 % -Token:string
-   ]).
+:- use_module(library(http/http11)).
 
 
 
@@ -64,7 +60,7 @@
 'x-robots-tag'(robots{user_agent: UA, directives: L}) -->
   user_agent(UA),
   ":", !,
-  ?('LWS'),
+  'OWS',
   +#(directive, L).
 'x-robots-tag'(robots{directives: L}) --> +#(directive, L).
 

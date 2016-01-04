@@ -29,12 +29,13 @@ Support for bracketed expressions in DCG.
 %! bracketed(:Dcg_0)// .
 % Wrapper around bracketed//2 using round brackets.
 
-bracketed(Dcg_0) --> bracketed(round, Dcg_0).
 
 
 %! bracketed(+Type:oneof([angular,curly,langular,round,square]), :Dcg_0)// is det.
 %! bracketed(-Type:oneof([angular,curly,langular,round,square]), :Dcg_0)// is nondet.
 
+bracketed(Dcg_0) -->
+  bracketed(round, Dcg_0).
 bracketed(Type, Dcg_0) -->
   (   {var(Type)}
   ->  bracketed0(Type, Dcg_0)

@@ -74,7 +74,7 @@ image_dimensions0(File, Width, Height) -->
   integer(Width),
   "x",
   integer(Height),
-  dcg_done.
+  done.
 
 
 

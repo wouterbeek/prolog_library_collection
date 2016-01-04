@@ -25,7 +25,7 @@ There are various uses of wrapping text:
       since HTML does not display newlines.
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/12
+@version 2015/07, 2015/10-2016/01
 */
 
 :- use_module(library(dcg/dcg_code)).
@@ -39,9 +39,10 @@ There are various uses of wrapping text:
 
 :- setting(wrap_margin, integer, 80, 'The default wrap margin.').
 
-:- meta_predicate(dcg_word_wrap(:,?,?)).
-:- meta_predicate(dcg_word_wrap_hard(+,//,+,+,?,?)).
-:- meta_predicate(dcg_word_wrap_soft(+,//,+,+,?,?)).
+:- meta_predicate
+    dcg_word_wrap(:, ?, ?),
+    dcg_word_wrap_hard(+, //, +, +, ?, ?),
+    dcg_word_wrap_soft(+, //, +, +, ?, ?).
 
 is_meta(separator).
 
@@ -88,7 +89,7 @@ dcg_word_wrap(Opts1) -->
   ->  dcg_word_wrap_soft(Padding, Separator, WrapMargin, WrapMargin),
       % Prevent backtracking on codes/1 that appears in the head.
       !
-  ;   dcg_cp
+  ;   rest
   ).
 
 
@@ -197,7 +198,7 @@ dcg_word_wrap_soft(Padding, Separator, Remaining, WrapMargin),
       (   dcg_peek(u_white(C))
       ->  [C],
           {Postfix = space, SpaceLength = 1}
-      ;   {Postfix = dcg_rest, SpaceLength = 0}
+      ;   {Postfix = rest, SpaceLength = 0}
       ),
       {NewRemaining is Remaining - WordLength - SpaceLength}
   ),

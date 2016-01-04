@@ -21,16 +21,6 @@ Make arbitrary consecutive replacements in text files.
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 
-:- use_module(plc(dcg/dcg_abnf)).
-:- use_module(plc(dcg/dcg_ascii)).
-:- use_module(plc(dcg/dcg_content)).
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_replace)).
-:- use_module(plc(generics/atom_ext)). % Meta-option.
-:- use_module(plc(generics/code_ext)).
-:- use_module(plc(io/file_ext)).
-:- use_module(plc(prolog/pl_control)).
-
 :- meta_predicate(replace_in_file(+,//,//,-)).
 :- meta_predicate(replace_in_file(+,//,//,?,?)).
 

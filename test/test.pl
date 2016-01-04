@@ -14,8 +14,6 @@
 :- use_module(library(db_ext)).
 %/dcg
   :- use_module(library(dcg/bibtex)).
-  %:- use_module(library(dcg/dcg_abnf)).
-  :- use_module(library(dcg/dcg_arrow)).
   :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
   :- use_module(library(dcg/dcg_bracket)).
@@ -26,6 +24,7 @@
   :- use_module(library(dcg/dcg_collection)).
   :- use_module(library(dcg/dcg_content)).
   :- use_module(library(dcg/dcg_debug)).
+  :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_list)).
   :- use_module(library(dcg/dcg_msg)).
@@ -37,9 +36,11 @@
   :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_table)).
+  :- use_module(library(dcg/dcg_tree)).
   :- use_module(library(dcg/dcg_unicode)).
   :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).
+  :- use_module(library(dcg/record_jar)).
   :- use_module(library(dcg/rfc2234)).
 :- use_module(library(debug_ext)).
 :- use_module(library(default)).
@@ -103,11 +104,12 @@
 :- use_module(library(list_script)).
 %/ltag
   :- use_module(library(ltag/ltag_match)).
-  :- use_module(library(ltag/rfc1766)).
   :- use_module(library(ltag/rfc3066)).
   :- use_module(library(ltag/rfc4646)).
   :- use_module(library(ltag/rfc4647)).
   :- use_module(library(ltag/rfc5646)).
+%/mail
+:- use_module(library(mail/rfc5322)).
 %/math
   :- use_module(library(math/dimension)).
   :- use_module(library(math/math_ext)).
@@ -142,8 +144,10 @@
 :- use_module(library(pair_ext)).
 %/pl
   :- use_module(library(pl/pl_term)).
+:- use_module(library(pool)).
 :- use_module(library(print_ext)).
 :- use_module(library(progress)).
+:- use_module(library(row_ext)).
 :- use_module(library(service_db)).
 %/set
   :- use_module(library(set/direct_subset)).

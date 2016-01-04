@@ -21,7 +21,7 @@
 dcg_split(Sep_2, Cs) -->
   ...(Cs0),
   Sep_2, !,
-  (   dcg_done,
+  (   done,
       {Cs = Cs0}
   ;   dcg_split(Sep_2, Cs)
   ).

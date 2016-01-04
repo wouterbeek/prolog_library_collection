@@ -2,8 +2,10 @@
   rfc3987,
   [
     'absolute-IRI'//1, % -AbsoluteIri:dict
+    iprivate//1, % -Code:code
     'IRI'//1, % -Iri:dict
-    'IRI-reference'//1 % -IriReference:dict
+    'IRI-reference'//1, % -IriReference:dict
+    iunreserved//1 % -Code:code
   ]
 ).
 
@@ -71,7 +73,7 @@
   scheme(Scheme),
   ":",
   'ihier-part'(D0),
-  {dict_pairs(D0, hier_part, T)},
+  {dict_pairs(D0, hier_part, T0)},
   ("?" -> iquery(Query), {T = [query-Query|T0]} ; {T = T0}),
   {dict_pairs(D, iri, [scheme-Scheme|T])}.
 
@@ -82,8 +84,8 @@
 % iauthority = [ iuserinfo "@" ] ihost [ ":" port ]
 % ```
 
-iauthority(Scheme. Auth) -->
-  (iuserinfo(UserInfo), "@", {T = [userinfo-Userinfo]} ; {T = []}),
+iauthority(Scheme, Auth) -->
+  (iuserinfo(UserInfo), "@", {T = [userinfo-UserInfo]} ; {T = []}),
   ihost(Host), !,
   % If the port subcomponent is empty or not given,
   % TCP port 80 (the reserved port for WWW services) is the default.
@@ -313,7 +315,7 @@ ireg_name_code(C) --> 'sub-delims'(C).
   ("?" -> iquery(Query) ; ""),
   ("#" -> ifragment(Frag) ; ""),
   {
-    L0 = [fragment-Frag,query-Query,scheme-Scheme|T0],
+    L0 = [fragment-Frag,query-Query|T0],
     exclude(pair_has_var_value, L0, L),
     dict_pairs(D, relative_ref, L)
   }.

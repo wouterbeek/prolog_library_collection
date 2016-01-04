@@ -30,4 +30,4 @@ file_lines(File, N):-
 
 parse_wc(N, Read):-
   read_input_to_codes(Read, Cs),
-  phrase((integer(N), dcg_done), Cs).
+  phrase((integer(N), done), Cs).

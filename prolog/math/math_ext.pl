@@ -649,7 +649,7 @@ permutations(NumberOfObjects, PermutationLength, NumberOfPermutations):-
 plus_float(X, Y, Z):- number(X), number(Y), !, Z is X + Y.
 plus_float(X, Y, Z):- nonvar(X), nonvar(Z), !, Y is Z - X.
 plus_float(X, Y, Z):- nonvar(Y), nonvar(Z), !, X is Z - Y.
-plus_float(X, Y, Z):- instantiation_error(_).
+plus_float(_, _, _):- instantiation_error(_).
 
 
 

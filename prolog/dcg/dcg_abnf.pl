@@ -523,7 +523,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_0, Sep_0, CP)
@@ -539,7 +539,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_1, Sep_0, L1_, CP),
@@ -557,7 +557,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_2, Sep_0, L1_, L2_, CP),
@@ -575,7 +575,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_3, Sep_0, L1_, L2_, L3_, CP),
@@ -593,7 +593,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_4, Sep_0, L1_, L2_, L3_, L4_, CP),
@@ -611,7 +611,7 @@ is_meta(separator).
     'm*n_typecheck'(M, N),
     meta_options(is_meta, Opts0, Opts),
     option(copy_term(CP), Opts, false),
-    option(separator(Sep_0), Opts, dcg_rest)
+    option(separator(Sep_0), Opts, rest)
   },
   (   parsing
   ->  'm*n_parse'(M, N, 0, C, Dcg_5, Sep_0, L1_, L2_, L3_, L4_, L5_, CP),

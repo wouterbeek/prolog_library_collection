@@ -1,6 +1,7 @@
 :- module(
   rfc2616,
   [
+    http_URL//1, % -Url:dict
     'LWS'//0,
     'quoted-string'//1, % -String:string
     'rfc1123-date'//1, % -Datetime:datetime

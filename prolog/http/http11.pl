@@ -4,7 +4,8 @@
     'field-name'//1, % -Name:string
     'header-field'//1, % -Header:pair
     method//1, % -Method:string
-    'OWS'//0
+    'OWS'//0,
+    'rfc850-date'//1 % -Date:datetime
   ]
 ).
 
@@ -957,14 +958,14 @@ expect("100-continue") --> atom_ci('100-continue').
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
       ->  {Status = valid}
-      ;   dcg_rest(Cs),
+      ;   rest(Cs),
           {
             Status = invalid,
             string_codes(Value, Cs),
             debug(http(parse), "Buggy HTTP header ~a: ~a", [Pred,Value])
           }
       )
-  ;   dcg_rest(Cs),
+  ;   rest(Cs),
       {
         Status = unrecognized,
         string_codes(Value, Cs),
