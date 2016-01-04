@@ -14,8 +14,6 @@
                    % -File:atom
     create_file_link/2, % +File:atom
                         % +Dir:atom
-    file_age/2, % +File:atom
-                % -Age:between(0.0,inf)
     file_alternative/5, % +FromPath:atom
                         % ?Dir:atom
                         % ?Name:atom
@@ -218,16 +216,6 @@ create_file(Spec, Base, FileKind, Path):-
 create_file_link(File, Dir):-
   file_alternative(File, Dir, _, _, Link),
   link_file(File, Link, symbolic).
-
-
-
-%! file_age(+File:atom, -Age:between(0.0,inf)) is det.
-% Returns a file's age in seconds.
-
-file_age(File, Age):-
-  time_file(File, LastModified),
-  get_time(Now),
-  Age is Now - LastModified.
 
 
 

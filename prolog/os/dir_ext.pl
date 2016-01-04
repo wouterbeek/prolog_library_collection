@@ -10,6 +10,8 @@
                        % +Options:list(compound)
     directory_subdirectories/2, % ?Directory:atom
                                 % ?Subdirectories:list(atom)
+    run_in_working_directory/2 % :Goal_0
+                               % +Directory:atom
     working_directory/1 % ?Directory:atom
   ]
 ).
@@ -20,13 +22,15 @@
 Extensions for handling directory files in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/11
+@version 2015/08-2015/09, 2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+
+:- meta_predicate(run_in_working_directory(0,+)).
 
 :- predicate_options(directory_files/3, 3, [
      extensions(+list(atom)),
@@ -164,6 +168,15 @@ resolve_double_dots([_,'..'|T1], T2):-
   resolve_double_dots(T1, T2).
 resolve_double_dots([H|T1], [H|T2]):-
   resolve_double_dots(T1, T2).
+
+
+
+%! run_in_working_directory(:Goal_0, +Directory:atom) is det.
+
+run_in_working_directory(Goal, Dir):-
+  working_directory(OldDir, Dir),
+  Goal_0,
+  working_directory(Dir, OldDir).
 
 
 

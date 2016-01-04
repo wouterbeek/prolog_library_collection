@@ -5,6 +5,9 @@
                 % ?Absolute:number
     average/2, % +Numbers:list(number)
                % -Average:number
+    between_float/3, % ?Low:float
+                     % ?High:float
+                     % +Number:float
     betwixt/3, % +Low, +High, ?Value
     betwixt/4, % +Low:integer
                % +High:integer
@@ -68,6 +71,7 @@
     permutations/3, % +NumberOfObjects:integer
                     % +PermutationLength:integer
                     % -NumberOfPermutations:integer
+    plus_float/3, % ?X, ?Y, ?Z
     pred/2, % +X:integer
             % -Y:integer
     square/2, % ?N:float
@@ -109,7 +113,7 @@ X = -6.
 ---
 
 @Author Wouter Beek
-@version 2015/07, 2015/10-2015/11
+@version 2015/07, 2015/10-2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
@@ -194,6 +198,16 @@ average(L, Average):-
   sum_list(L, Sum),
   length(L, N),
   Average is Sum / N.
+
+
+
+%! between_float(?Low:float, ?High:float, +Number:float) is semidet.
+
+between_float(Low, High, Number):-
+  % Meet the lower boundary requirement.
+  (var(Low) -> true ; Low =< Number),
+  % Meet the higher boundary requirement.
+  (var(High) -> true ; Number =< High).
 
 
 
@@ -488,6 +502,10 @@ minus(X, Y, Z):-
   X is Y + Z.
 
 
+
+%! mod(+X:rational, +Y:rational, -Z:rational) is det.
+%! mod(+X:float, +Y:float, -Z:float) is det.
+
 mod(X, Y, Z):-
   rational(X),
   rational(Y), !,
@@ -497,6 +515,7 @@ mod(X, Y, Z):-
   float(Y), !,
   DIV is X / Y,
   Z is X - round(DIV) * Y.
+
 
 
 %! normalized_number(
@@ -620,6 +639,17 @@ permutations(NumberOfObjects, PermutationLength, NumberOfPermutations):-
   Compensation is NumberOfObjects - PermutationLength,
   factorial(Compensation, F2),
   NumberOfPermutations is F1 / F2.
+
+
+
+%! plus_float(+X:number, +Y:number, -Z:number) is det.
+%! plus_float(+X:number, -Y:number, +Z:number) is det.
+%! plus_float(-X:number, +Y:number, +Z:number) is det.
+
+plus_float(X, Y, Z):- number(X), number(Y), !, Z is X + Y.
+plus_float(X, Y, Z):- nonvar(X), nonvar(Z), !, Y is Z - X.
+plus_float(X, Y, Z):- nonvar(Y), nonvar(Z), !, X is Z - Y.
+plus_float(X, Y, Z):- instantiation_error(_).
 
 
 

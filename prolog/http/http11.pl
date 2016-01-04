@@ -654,7 +654,7 @@ comment_codes2([]) --> "".
 
 
 
-%! connection(-Options:list(string))// .
+%! connection(-Options:list(string))// is det.
 % ```abnf
 % 'Connection'(S) --> 1#(connection-option)
 % ```
@@ -1670,16 +1670,12 @@ qdtext(C)    --> 'obs-text'(C).
 
 
 
-%! 'quoted-pair'(-Code:code)// is det.
+%! 'quoted-pair'(-Code:code)// .
 % ```abnf
 % quoted-pair = "\" ( HTAB | SP | VCHAR | obs-text )
 % ```
 
-'quoted-pair'(C) --> "\\", quoted_pair_code(C).
-quoted_pair_code(C) --> 'HTAB'(C).
-quoted_pair_code(C) --> 'SP'(C).
-quoted_pair_code(C) --> 'VCHAR'(C).
-quoted_pair_code(C) --> 'obs-text'(C).
+'quoted-pair'(C) --> "\\", ('HTAB'(C) ; 'SP'(C) ; 'VCHAR'(C) ; 'obs-text'(C)).
 
 
 
