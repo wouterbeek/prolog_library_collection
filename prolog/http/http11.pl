@@ -1044,16 +1044,6 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-value'(+Name:atom, -Value)// .
-% ```abnf
-% field-value = *( field-content | 'obs-fold' )
-% ```
-
-'field-value'(Name, Value) --> 'field-content'(Name, Value), !.
-'field-value'(_, _) --> 'obs-fold'.
-
-
-
 %! 'field-vchar'(-Code:code)// is det.
 % ```abnf
 % field-vchar = VCHAR | obs-text
@@ -1061,6 +1051,16 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 'field-vchar'(C) --> 'VCHAR'(C).
 'field-vchar'(C) --> 'obs-text'(C).
+
+
+
+%! 'field-value'(+Name:atom, -Value)// .
+% ```abnf
+% field-value = *( field-content | 'obs-fold' )
+% ```
+
+'field-value'(Name, Value) --> 'field-content'(Name, Value), !.
+'field-value'(_, _) --> 'obs-fold'.
 
 
 
@@ -1659,7 +1659,7 @@ pseudonym(S) --> token(S).
 
 %! qdtext(-Code:code)// is det.
 % ```abnf
-% qdtext = HTAB | SP /%x21 | %x23-5B | %x5D-7E | obs-text
+% qdtext = HTAB | SP | %x21 | %x23-5B | %x5D-7E | obs-text
 % ```
 
 qdtext(C)    --> 'HTAB'(C).
