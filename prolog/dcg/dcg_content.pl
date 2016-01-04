@@ -6,14 +6,20 @@
     dcg_done//0,
     dcg_rest//0,
     dcg_rest//1, % -Rest:list(code)
-    eol//0,
+    dcg_eol//0,
+    dcg_nl//0,
+    dcg_tab//0,
+    dcg_tab//1, % +Indent:nonneg
+    dcg_tab//2, % +Indent:nonneg
+                % :Dcg_0
+    dcg_tab_nl//2 % +Indent:nonneg
+                  % :Dcg_0
     indent//1, % +Indent:nonneg
     indent//2, % +Indent:nonneg
                % :Dcg_0
     indent_nl//2, % +Indent:nonneg
                   % :Dcg_0
     iri//1, % +Iri:atom
-    nl//0,
     nonblank//0,
     nvpair//1, % +Pair:pair(atom)
     nvpair//2, % :Name_0
@@ -25,11 +31,6 @@
     skip_line//0,
     string//0,
     string_without//1, % +EndCodes:list(code)
-    tab//1, % +Indent:nonneg
-    tab//2, % +Indent:nonneg
-            % :Dcg_0
-    tab_nl//2 % +Indent:nonneg
-              % :Dcg_0
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -48,8 +49,8 @@ DCG rules for parsing/generating often-occuring content.
 :- meta_predicate(indent_nl(+,//,?,?)).
 :- meta_predicate(nvpair(//,//,?,?)).
 :- meta_predicate(section(+,+,//,?,?)).
-:- meta_predicate(tab(+,//,?,?)).
-:- meta_predicate(tab_nl(+,//,?,?)).
+:- meta_predicate(dcg_tab(+,//,?,?)).
+:- meta_predicate(dcg_tab_nl(+,//,?,?)).
 
 % The number of spaces that go into one tab.
 :- setting(
@@ -82,6 +83,19 @@ dcg_done(_, _).
 
 
 
+%! dcg_eol// .
+
+dcg_eol --> "\n".
+dcg_eol --> "\r".
+
+
+
+%! dcg_nl// is det.
+
+dcg_nl --> "\n".
+
+
+
 %! dcg_rest// is det.
 % Same as `dcg_rest --> "".'
 
@@ -94,10 +108,25 @@ dcg_rest(X, X, []).
 
 
 
-%! eol// .
+%! dcg_tab// is det.
 
-eol --> "\n".
-eol --> "\r".
+dcg_tab --> dcg_tab(1).
+
+
+%! tab(+Indent:nonneg)// is det.
+
+dcg_tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
+
+
+%! dcg_tab(+Indent:nonneg, :Dcg_2)// is det.
+
+dcg_tab(I, Dcg_0) --> dcg_tab(I), Dcg_0.
+
+
+
+%! dcg_tab_nl(+Indent:nonneg, :Dcg_0)// is det.
+
+dcg_tab_nl(I, Dcg_0) --> dcg_tab(I, Dcg_0), nl.
 
 
 
@@ -121,12 +150,6 @@ indent_nl(I, Dcg_0) --> indent(I, Dcg_0), nl.
 %! iri(+Iri:atom)// is det.
 
 iri(Iri) --> "<", atom(Iri), ">".
-
-
-
-%! nl// is det.
-
-nl --> "\n".
 
 
 
@@ -177,25 +200,3 @@ string --> string(_).
 % Wrapper around string_without//2.
 
 string_without(End) --> string_without(End, _).
-
-
-
-%! tab// is det.
-
-tab --> tab(1).
-
-
-%! tab(+Indent:nonneg)// is det.
-
-tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
-
-
-%! tab(+Indent:nonneg, :Dcg_2)// is det.
-
-tab(I, Dcg_0) --> tab(I), Dcg_0.
-
-
-
-%! tab_nl(+Indent:nonneg, :Dcg_0)// is det.
-
-tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
