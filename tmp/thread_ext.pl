@@ -7,11 +7,6 @@
                      % +DebugMessage:atom
     thread_create/1, % :Goal
 % RUN ON SUBLISTS INFRASTRUCTURE
-    intermittent_thread/5, % :Goal
-                           % :EndGoal
-                           % +Interval:positive_integer
-                           % -Id
-                           % +Options:list(nvpair)
     run_on_sublists/3, % +List:list
                        % :Goal
                        % +NumberOfThreads:positive_integer
@@ -52,8 +47,6 @@ Allows one to monitor running threads that register.
 :- use_module(plc(prolog/pl_control)).
 
 :- meta_predicate(forall_thread(0,0,+,+)).
-:- meta_predicate(intermittent_goal(0,0,+)).
-:- meta_predicate(intermittent_thread(0,0,+,-,+)).
 :- meta_predicate(run_on_sublists(+,1,+)).
 :- meta_predicate(thread_create(0)).
 
@@ -107,40 +100,6 @@ thread_create(Goal):-
 
 
 % RUN ON SUBLIST INFRASTRUCTURE %
-
-%! intermittent_goal(:Goal, :EndGoal, +Interval:positive_integer) is det.
-% Performs the given goal interspersed with time intervals
-% of the given duration.
-%
-% If the end goal succeeds the thread succeeds
-% (i.e., intermittent goal execution stops).
-
-intermittent_goal(_G, EndG, _I):-
-  call(EndG), !.
-intermittent_goal(G, EndG, I):-
-  call(G),
-  sleep(I),
-  intermittent_goal(G, EndG, I).
-
-%! intermittent_thread(
-%!   :Goal,
-%!   :EndGoal,
-%!   +Interval:positive_integer,
-%!   -Id,
-%!   +Options:list(nvpair)
-%! ) is det.
-% ...
-%
-% @arg Goal The goal that is repeated.
-% @arg EndGoal The goal that stops `Goal` from being repeated,
-%        as soon as it succeeds once.
-% @arg Interval A positive integer representing the number of seconds
-%        in between consecutive goal executions.
-% @arg Id
-% @arg Options A list of name-value pairs.
-
-intermittent_thread(G, EndG, I, Id, O):-
-  thread_create(intermittent_goal(G, EndG, I), Id, O).
 
 %! run_on_sublists(+List, :Goal, +NumberOfThreads:positive_integer) is det.
 % Run the given goal in different threads,

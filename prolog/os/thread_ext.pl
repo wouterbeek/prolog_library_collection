@@ -2,6 +2,8 @@
   thread_ext,
   [
     default_number_of_threads/1, % ?NumberOfThreads:positive_integer
+    intermittent_thread/3, % :Goal_0, :EndGoal_0, +Interval
+    intermittent_thread/4, % :Goal_0, :EndGoal_0, +Interval, +Opts
     print_thread/0,
     print_thread/1, % +Name:atom
     print_threads/0,
@@ -12,13 +14,20 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@license MIT license
-@version 2015/10
+@version 2015/10, 2016/01
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
+
+:- meta_predicate
+    intermittent_goal(0, 0, +),
+    intermittent_thread(0, 0, +, +).
+
+:- predicate_options(intermittent_thread/5, 5, [
+     pass_to(thread_create/3, 3)
+   ]).
 
 
 
@@ -29,6 +38,41 @@
 
 default_number_of_threads(N):-
   current_prolog_flag(cpu_count, N).
+
+
+
+%! intermittent_goal(:Goal_0, :EndGoal_0, +Interval:positive_integer) is det.
+% Performs the given goal interspersed with time intervals
+% of the given duration.
+%
+% If the end goal succeeds the thread succeeds
+% (i.e., intermittent goal execution stops).
+
+intermittent_goal(_, EndGoal_0, _) :-
+  EndGoal_0, !.
+intermittent_goal(Goal_0, EndGoal_0, I) :-
+  Goal_0,
+  sleep(I),
+  intermittent_goal(Goal_0, EndGoal_0, I).
+
+
+
+%! intermittent_thread(:Goal_0, :EndGoal_0, +Interval) is det.
+%! intermittent_thread(
+%!   :Goal_0,
+%!   :EndGoal_0,
+%!   +Interval:positive_integer,
+%!   +Opts
+%! ) is det.
+% The following options are supported:
+%   * id(?atom)
+%   * Other options are passed to thread_create/3.
+
+intermittent_thread(Goal_0, EndGoal_0, I) :-
+  intermittent_thread(Goal_0, EndGoal_0, I, []).
+intermittent_thread(Goal_0, EndGoal_0, I, Opts) :-
+  ignore(option(id(Id), Opts)),
+  thread_create(intermittent_goal(Goal_0, EndGoal_0, I), Id, Opts).
 
 
 
