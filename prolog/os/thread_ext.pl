@@ -23,6 +23,7 @@
 
 :- meta_predicate
     intermittent_goal(0, 0, +),
+    intermittent_thread(0, 0, +),
     intermittent_thread(0, 0, +, +).
 
 :- predicate_options(intermittent_thread/5, 5, [
