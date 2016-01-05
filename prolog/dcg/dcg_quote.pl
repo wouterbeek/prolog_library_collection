@@ -17,6 +17,7 @@ Support for quoting in DCGs.
 
 :- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_call)).
+:- use_module(library(dcg/dcg_ext)).
 
 :- meta_predicate
 	quoted(//, ?, ?),
