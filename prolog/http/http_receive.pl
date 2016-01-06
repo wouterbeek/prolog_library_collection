@@ -1,18 +1,12 @@
 :- module(
   http_receive,
   [
-    http_method/2, % +Request:list(compound)
-                   % -Method:atom
-    http_output/2, % +Request:list(compound)
-                   % -Output:stream
-    http_request_uri/2, % +Request:list(compound)
-                        % -Uri:atom
-    http_search/3, % +Request:list(compound)
-                   % +Key:atom
-                   % -Value:atom
-    http_search_pl/3 % +Request:list(compound)
-                     % +Key:atom
-                     % -Value:atom
+    http_method/2,      % +Request, -Method
+    http_output/2,      % +Request, -Output
+    http_request_iri/3, % +Request, +Prefix, -Iri
+    http_request_uri/2, % +Request, -Uri
+    http_search/3,      % +Request, +Key, -Value
+    http_search_pl/3    % +Request, +Key, -Value
   ]
 ).
 
@@ -21,8 +15,10 @@
 Support for receiving an HTTP reply.
 
 @author Wouter Beek
-@version 2015/08, 2015/12
+@version 2015/08, 2015/12-2016/01
 */
+
+:- use_module(library(rdf/rdf_prefix)).
 
 
 
@@ -39,6 +35,15 @@ http_method(Req, M):-
 
 http_output(Req, Out):-
   memberchk(pool(client(_,_,_,Out)), Req).
+
+
+
+%! http_request_iri(+Request:list(compound), +Prefix:atom, -Iri:atom) is det.
+
+http_request_iri(Req, Prefix, Iri):-
+  memberchk(request_uri(Local0), Req),
+  sub_atom(Local0, 1, _, 0, Local),
+  rdf_global_id(Prefix:Local, Iri).
 
 
 
