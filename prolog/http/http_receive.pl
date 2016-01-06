@@ -1,14 +1,15 @@
 :- module(
   http_receive,
   [
-    http_accept/2,      % +Request, -Mediatypes
-    http_iri/3,         % +Request, +Prefix, -Iri
-    http_method/2,      % +Request, -Method
-    http_output/2,      % +Request, -Output
-    http_search/3,      % +Request, +Key, -Value
-    http_search_pl/3,   % +Request, +Key, -Value
-    http_uri/2,         % +Request, -Uri
-    mediatype_is_html/1 % +Mediatype
+    http_accept/2,       % +Request, -Mediatypes
+    http_iri/3,          % +Request, +Prefix, -Iri
+    http_method/2,       % +Request, -Method
+    http_output/2,       % +Request, -Output
+    http_search/3,       % +Request, +Key, -Value
+    http_search_pl/3,    % +Request, +Key, -Value
+    http_status_reply/2, % +Request, +Status
+    http_uri/2,          % +Request, -Uri
+    mediatype_is_html/1  % +Mediatype
   ]
 ).
 
@@ -20,6 +21,7 @@ Support for receiving an HTTP reply.
 @version 2015/08, 2015/12-2016/01
 */
 
+:- use_module(library(http/http_header)).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf/rdf_prefix)).
 
@@ -73,6 +75,14 @@ http_search(Request, Key, Val):-
 http_search_pl(Request, Key, Val):-
   http_search(Request, Key, Atom),
   term_to_atom(Val, Atom).
+
+
+
+%! http_status_reply(+Request:list(compound), +Status:compound) is det.
+
+http_status_reply(Req, Status):-
+  http_output(Req, Out),
+  http_status_reply(Status, Out, [], _).
 
 
 
