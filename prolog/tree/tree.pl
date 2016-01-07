@@ -7,14 +7,13 @@
                      % -Root:term
     edges_to_tree/2, % +Edges:list(compound)
                      % -Tree:compound
+    print_tree/1, % +Tree
     some_subpaths_to_tree/2, % +SomeSubPaths:list(list)
                              % -Tree:compound
     tree_depth/2, % +Tree:compound
                   % -Depth:nonneg
-    tree_to_leaf_coord/2, % +Tree:compound
-                          % -Coord:list(nonneg)
-    tree_to_graph/2 % +Tree:compound
-                    % -Graph:compound
+    tree_to_leaf_coord/2 % +Tree:compound
+                         % -Coord:list(nonneg)
   ]
 ).
 
@@ -50,7 +49,9 @@ a
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(lists)).
+:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_tree)).
+:- use_module(library(list_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
 
@@ -141,6 +142,11 @@ edges_to_children(_, [], Es, Es).
 
 
 
+print_tree(Tree):-
+  dcg_with_output_to(current_output, dcg_tree(Tree)).
+
+
+
 some_subpaths_to_tree(SomeSubPaths, Tree):-
   aggregate_all(
     set(SubPath),
@@ -157,11 +163,9 @@ some_subpaths_to_tree(SomeSubPaths, Tree):-
 
 %! tree_depth(+Tree:compound, -Depth:nonneg) is det.
 
-tree_depth(T, 0):-
-  subtrees(T, []), !.
-tree_depth(T, D):-
-  subtrees(T, Ts),
-  maplist(tree_depth, Ts, Ds),
+tree_depth(_-[], 0):- !.
+tree_depth(_-SubTs, D):-
+  maplist(tree_depth, SubTs, Ds),
   max_list(Ds, MaxD),
   D is MaxD + 1.
 
@@ -169,36 +173,7 @@ tree_depth(T, D):-
 
 %! tree_to_leaf_coord(+Tree:compound, -Coord:list(nonneg)) is nondet.
 
-tree_to_leaf_coord(T, []):-
-  subtrees(T, []), !.
-tree_to_leaf_coord(T, [I|Is]):-
-  subtrees(T, Ts),
-  nth0(I, Ts, T0),
-  tree_to_leaf_coord(T0, Is).
-
-
-
-%! tree_to_graph(+Tree:compound, -Graph:compound) is det.
-
-tree_to_graph(T, graph(Vs,Es)):-
-  tree_to_graph(T, Vs, Es, _).
-
-% A leaf node.
-tree_to_graph(Tree, [Leaf], [], Leaf):-
-  unlabeled_tree(Tree, Leaf, []), !.
-% A non-leaf node.
-tree_to_graph(Tree, Vs, Es, Parent):-
-  labeled_tree(Tree, Parent, Label, SubTrees),
-
-  % Extract the vertices and edges for all subtrees.
-  maplist(tree_to_graph, SubTrees, SubVs, SubEs, Children),
-
-  % Connect the root node to its direct child nodes.
-  findall(
-    edge(Parent, Label, Child),
-    member(Child, Children),
-    ParentChildEs
-  ),
-
-  ord_union([[Parent]|SubVs], Vs),
-  ord_union([ParentChildEs|SubEs], Es).
+tree_to_leaf_coord(_-[], []):- !.
+tree_to_leaf_coord(_-SubTs, [I|Is]):-
+  nth0(I, SubTs, SubT),
+  tree_to_leaf_coord(SubT, Is).

@@ -1,13 +1,9 @@
 :- module(
   assoc_ext,
   [
-    get_assoc_ord_member/3, % +Key
-                            % +Assoc:assoc
-                            % ?Value
-    put_assoc_ord_member/4 % +Key
-                           % +OldAssoc:assoc
-                           % +Value
-                           % -NewAssoc:assoc
+    get_assoc_ord_member/3, % +Key, +Assoc, ?Value
+    print_assoc/1, % +Assoc
+    put_assoc_ord_member/4  % +Key, +OldAssoc, +Value, -NewAssoc
   ]
 ).
 :- reexport(library(assoc)).
@@ -17,14 +13,31 @@
 An association list with multiple values per key, using ordered sets.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10-2016/01
 */
 
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
+:- use_module(library(pairs)).
+:- use_module(library(tree/tree)).
 
 
+
+
+%! assoc_to_tree(+Assoc, -Tree) is det.
+
+assoc_to_tree(Assoc, Tree):-
+  assoc_to_tree(Assoc, assoc, Tree).
+
+assoc_to_tree(Assoc, Key, Key-Subtrees):-
+  (assoc_to_list(Assoc, Pairs) -> true ; Pairs = []),
+  pairs_keys(Pairs, Keys),
+  maplist(get_assoc0(Assoc), Keys, Subassocs),
+  maplist(assoc_to_tree, Subassocs, Keys, Subtrees).
+
+get_assoc0(Assoc, Key, Subassoc):-
+  get_assoc(Key, Assoc, Subassoc).
 
 
 
@@ -32,9 +45,17 @@ An association list with multiple values per key, using ordered sets.
 
 get_assoc_ord_member(Key, Assoc, Val):-
   get_assoc(Key, Assoc, Set),
-  % Use ord_memberchk/2 when instantiation is `(+,+)`
-  % and use member/2 when instantiation is `(-,+)`.
+  % Use ord_memberchk/2 when instantiation is `(+,+,+)'
+  % and use member/2 when instantiation is `(+,+,-)'.
   (nonvar(Val) -> ord_memberchk(Val, Set) ; member(Val, Set)).
+
+
+
+%! print_assoc(+Assoc) is det.
+
+print_assoc(Assoc):-
+  assoc_to_tree(Assoc, Tree),
+  print_tree(Tree).
 
 
 
