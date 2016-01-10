@@ -8,9 +8,7 @@
     http_search/3,       % +Request, +Key, -Value
     http_search_pl/3,    % +Request, +Key, -Value
     http_status_reply/2, % +Request, +Status
-    http_uri/2,          % +Request, -Uri
-    mediatype_is_html/1, % +Mediatype
-    mediatype_is_json/1  % +Mediatype
+    http_uri/2           % +Request, -Uri
   ]
 ).
 
@@ -91,18 +89,3 @@ http_status_reply(Req, Status):-
 
 http_uri(Req, Uri):-
   memberchk(request_uri(Uri), Req).
-
-
-
-%! mediatype_is_html(+Mediatype:compound) is semidet.
-
-mediatype_is_html(application/'xhtml+xml').
-mediatype_is_html(application/xml).
-mediatype_is_html(text/html).
-
-
-
-%! mediatype_is_json(+Mediatype:compound) is semidet.
-
-mediatype_is_json(application/json).
-mediatype_is_json(application/'ld+json').
