@@ -147,7 +147,7 @@ dom_clean([element(N,As,Contents1)|T1], [element(N,As,Contents2)|T2]):-
 %! json_download(+Iri:atom, -Json:dict) is det.
 
 json_download(Iri, Json):-
-  http_get(Iri, json_read_dict0(Json)).
+  http_get(Iri, json_read_dict0(Json), [request_header('Accept','application/json')]).
 json_read_dict0(Json, _, Read):-
   json_read_dict(Read, Json).
 
