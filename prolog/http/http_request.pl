@@ -91,6 +91,9 @@ http_request(Iri, Success_2, Opts1) :-
   merge_options([metadata(M)], Opts1, Opts2),
   setup_call_cleanup(
     open_any2(Iri, read, Read, Close_0, Opts2),
-    (is_http_error(M.http.status_code) -> true ; call(Success_2, M, Read)),
+    (   is_http_error(M.http.status_code)
+    ->  throw(error(http_error(M.http.status_code),_))
+    ;   call(Success_2, M, Read)
+    ),
     close_any2(Close_0)
   ).
