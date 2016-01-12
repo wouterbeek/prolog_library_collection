@@ -30,7 +30,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11
+@version 2015/08-2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
@@ -152,4 +152,5 @@ print_dict(D):-
 %! print_dict(Dict:dict, +Indent:nonneg) is det.
 
 print_dict(D, I):-
-  dcg_with_output_to(user_output, pl_term(D, I)).
+  dcg_with_output_to(user_output, pl_term(D, I)),
+  flush_output(user_output).

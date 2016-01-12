@@ -18,7 +18,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2015/12
+@version 2015/10-2016/01
 */
 
 :- use_module(library(apply)).
@@ -44,12 +44,14 @@ Wrapper around library(iostream)'s open_any/5.
 %      ```
 %      [HTTP] time: 0.026562sec; message: '$c_call_prolog'/0: Undefined procedure: open_any2:ssl_verify/5
 %      ```
-:- public(ssl_verify/5).
+:- public
+    ssl_verify/5.
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
-:- meta_predicate(close_any2(+)).
-:- meta_predicate(open_any2(+,+,-,-)).
-:- meta_predicate(open_any2(+,+,-,-,:)).
+:- meta_predicate
+    close_any2(+),
+    open_any2(+,+,-,-),
+    open_any2(+,+,-,-,:).
 
 is_meta(http_error).
 
@@ -72,7 +74,7 @@ is_meta(http_error).
 %! close_any2(+Close_0) is det.
 % Synonym of close_any/1 for consistency.
 
-close_any2(Close_0):-
+close_any2(Close_0) :-
   close_any(Close_0).
 
 
@@ -85,7 +87,7 @@ close_any2(Close_0):-
 %! ) is det.
 % Wrapper around open_any2/5 with default options.
 
-open_any2(Source, Mode, Stream, Close_0):-
+open_any2(Source, Mode, Stream, Close_0) :-
   open_any2(Source, Mode, Stream, Close_0, []).
 
 
@@ -102,7 +104,7 @@ open_any2(Source, Mode, Stream, Close_0):-
 %   * retry(+positive_integer)
 %   * Passed to open_any/5.
 
-open_any2(Source0, Mode, Stream, Close_0, Opts0):-
+open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   meta_options(is_meta, Opts0, Opts1),
   source_type(Source0, Mode, Source, Type),
   ignore(option(metadata(M), Opts1)),
@@ -137,11 +139,11 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0):-
 %!   +Options:list(compound)
 %! ) is det.
 
-http_open2(Iri, Read, Close_0, Opts1):-
+http_open2(Iri, Read, Close_0, Opts1) :-
   select_option(retry(N), Opts1, Opts2, 1),
   http_open2(Iri, Read, 0, N, Close_0, Opts2).
 
-http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
+http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
   copy_term(Opts1, Opts2),
   call_time(catch(http_open(Iri, Read2, Opts2), Exception, true), Time),
   (   var(Exception)
@@ -155,10 +157,10 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
           ),
           M2 is M1 + 1,
           (   M2 =:= N
-	  ->  Close_0 = true,
+          ->  Close_0 = true,
               Opts1 = Opts2
-	  ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
-	  )
+          ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
+          )
       ;   Read1 = Read2,
           Close_0 = close(Read1),
           Opts1 = Opts2
@@ -177,13 +179,13 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1):-
 %! base_iri(+Source, -BaseIri:atom) is det.
 
 % The IRI that is read from, sans the fragment component.
-base_iri(Iri, BaseIri):-
+base_iri(Iri, BaseIri) :-
   is_iri(Iri), !,
   % Remove the fragment part, if any.
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
   uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
 % The file is treated as an IRI.
-base_iri(File, BaseIri):-
+base_iri(File, BaseIri) :-
   uri_file_name(Iri, File),
   base_iri(Iri, BaseIri).
 
@@ -196,13 +198,18 @@ base_iri(File, BaseIri):-
 %!   +Read:stream
 %! ) is det.
 
-http_error_message(Iri, Status, Lines, Read):-
+http_error_message(Iri, Status, Lines, Read) :-
   maplist(parse_header, Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, M),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
-  format(user_error, "RESPONSE: ~d (~a)~nFinal IRI: ~a~n", [Status,Label,Iri]),
-  print_dict(M, 1),
+  format(
+    user_error,
+    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n",
+    [Status,Label,Iri]
+  ),
+  print_dict(M, 2),
   nl(user_error),
+  format(user_error, "  Message content:~n", []),
   copy_stream_data(Read, user_error),
   nl(user_error).
 
@@ -217,7 +224,7 @@ http_error_message(Iri, Status, Lines, Read):-
 %!   -Metadata:dict
 %! ) is det.
 
-open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
+open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
   % File-type specific.
   (   Type == file_iri
   ->  base_iri(Source, BaseIri),
@@ -253,7 +260,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4):- !,
 
   % Source type.
   put_dict(source_type, M3, Type, M4).
-parse_header(Line, Header):- phrase('header-field'(Header), Line).
+parse_header(Line, Header) :- phrase('header-field'(Header), Line).
 
 
 
@@ -263,7 +270,7 @@ parse_header(Line, Header):- phrase('header-field'(Header), Line).
 %!   -OpenOptions:list(compound)
 %! ) is det.
 
-open_any_options(http_iri, Opts1, Opts3):- !,
+open_any_options(http_iri, Opts1, Opts3) :- !,
   Opts2 = [
     cert_verify_hook(cert_accept_any),
     final_url(_),
@@ -290,18 +297,18 @@ read_mode(read).
 %!   -Type:oneof([file_iri,http_iri,stream,string])
 %! ) is nondet.
 
-source_type(stream(Stream), _, Stream, stream):- !.
-source_type(string(S), _, S, string):- !.
-source_type(Stream, _, Stream, stream):-
+source_type(stream(Stream), _, Stream, stream) :- !.
+source_type(string(S), _, S, string) :- !.
+source_type(Stream, _, Stream, stream) :-
   is_stream(Stream), !.
-source_type(Iri, _, Iri, file_iri):-
+source_type(Iri, _, Iri, file_iri) :-
   is_file_iri(Iri), !.
-source_type(Iri, _, Iri, http_iri):-
+source_type(Iri, _, Iri, http_iri) :-
   is_http_iri(Iri), !.
-source_type(File, _, Iri, file_iri):-
+source_type(File, _, Iri, file_iri) :-
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-source_type(Pattern, Mode, Iri, Type):-
+source_type(Pattern, Mode, Iri, Type) :-
   absolute_file_name(
     Pattern,
     File,
