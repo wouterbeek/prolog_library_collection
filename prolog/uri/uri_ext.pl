@@ -150,6 +150,7 @@ uri_file_extensions(Uri, Exts):-
 
 %! uri_optional_query_enc// .
 
+uri_optional_query_enc, "%2C" --> ",", !, uri_optional_query_enc.
 uri_optional_query_enc, "%2F" --> "/", !, uri_optional_query_enc.
 uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
 uri_optional_query_enc, [C] --> [C],   !, uri_optional_query_enc.
