@@ -2,17 +2,11 @@
   http_download,
   [
     file_download/2, % +Iri, ?File
-    file_download/3, % +Iri:iri
-                     % ?File:atom
-                     % +Options:list(compound)
+    file_download/3, % +Iri, ?File, +Opts
     html_download/2, % +Iri, -Dom
-    html_download/3, % +Iri:iri
-                     % -Dom:list(compound)
-                     % +Options:list(compound)
-    json_download/2, % +Iri:iri
-                     % -Json:dict
-    xml_download/2 % +Iri:iri
-                   % -Dom:list(compound)
+    html_download/3, % +Iri, -Dom, +Opts
+    json_download/2, % +Iri, -Json
+    xml_download/2   % +Iri, -Dom
   ]
 ).
 

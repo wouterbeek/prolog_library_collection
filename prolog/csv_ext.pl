@@ -1,17 +1,11 @@
 :- module(
   csv_ext,
   [
-    csv_write_stream/2, % +Write:stream
-                        % +Rows:list(compound)
-    tsv_read_file/2, % +File:atom
-                     % -Rows:list(compound)
-    tsv_read_file/3, % +File:atom
-                     % -Rows:list(compound)
-                     % +Options:list(compound)
+    csv_write_stream/2, % +Write, +Rows
+    tsv_read_file/2,    % +File,  -Rows
+    tsv_read_file/3,    % +File,  -Rows, +Opts
     tsv_write_stream/2, % +Write, +Rows
-    tsv_write_stream/3 % +Write:stream
-                       % +Rows:list(compound)
-                       % +Options:list(compound)
+    tsv_write_stream/3  % +Write, +Rows, +Opts
   ]
 ).
 :- reexport(library(csv)).
@@ -19,7 +13,7 @@
 /** <module> CSV extensions
 
 @author Wouter Beek
-@version 2015/10-2015/11
+@version 2015/10-2015/11, 2016/01
 */
 
 :- use_module(library(option)).

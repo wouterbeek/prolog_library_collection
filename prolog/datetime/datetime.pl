@@ -1,16 +1,16 @@
 :- module(
   datetime,
   [
-    call_time/2, % :Goal_0
-                 % -Seconds:nonneg
-    datetime_mask/3, % +Mask:oneof([none,year,month,day,hour,minute,second,offset])
-                     % +Datetime:compound
-                     % -MaskedDatetime:compound
+    call_time/2,        % :Goal_0
+                        % -Seconds:nonneg
+    datetime_mask/3,    % +Mask:oneof([none,year,month,day,hour,minute,second,offset])
+                        % +Datetime:compound
+                        % -MaskedDatetime:compound
     date_to_datetime/2, % +Date:compound
                         % -Datetime:compound
     datetime_to_date/2, % +Datetime:compound
                         % -Date:compound
-    get_datetime/1 % -Datetime:compound
+    get_datetime/1      % -Datetime:compound
   ]
 ).
 

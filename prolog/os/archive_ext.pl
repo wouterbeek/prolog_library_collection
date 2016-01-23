@@ -1,14 +1,12 @@
 :- module(
   archive_ext,
   [
-    archive_info/1, % +In
-    archive_info/2, % +In
-                    % +Options:list(compound)
-    call_on_archive/2, % +In
-                       % :Goal_2
-    call_on_archive/3 % +In
-                      % :Goal_2
-                      % +Options:list(compound)
+    archive_extract/1, % +Source
+    archive_extract/2, % +Source, ?Directory
+    archive_info/1,    % +Source
+    archive_info/2,    % +Source, +Opts
+    call_on_archive/2, % +Source, :Goal_2
+    call_on_archive/3  % +Source, :Goal_2, +Opts
   ]
 ).
 :- reexport(library(archive)).
@@ -16,18 +14,20 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11
+@version 2015/09-2015/11, 2016/01
 */
 
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(lambda)).
+:- use_module(library(http/http_info)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(yall)).
 
-:- meta_predicate(call_on_archive(+,2)).
-:- meta_predicate(call_on_archive(+,2,+)).
-:- meta_predicate(call_on_archive0(+,2,+)).
-:- meta_predicate(call_on_archive_entry0(+,2,+,+,+)).
+:- meta_predicate
+    call_on_archive(+, 2),
+    call_on_archive(+, 2, +),
+    call_on_archive0(+, 2, +),
+    call_on_archive_entry0(+, 2, +, +, +).
 
 :- predicate_options(archive_info/2, 2, [
      indent(+nonneg),
@@ -50,17 +50,45 @@
 
 
 
-%! archive_info(+In) is det.
+%! archive_extract(+Source) is det.
+
+archive_extract(Source) :-
+  archive_extract(Source, _).
+
+
+%! archive_extract(+Source, ?Directory) is det.
+% Extracts the given file into the given directory.
+%
+% In case no directory is given, the directory of the given source is used.
+%
+% @throws instantiation_error When File is a variable.
+% @throws type_error When `Source` is neither an absolute file name nor a URL.
+
+archive_extract(Source, Dir) :-
+  (var(Dir) -> file_directory_name(Source, Dir) ; true),
+  call_on_archive(Source, archive_extract_entry(Dir)).
+
+archive_extract_entry(Dir, M, Read) :-
+  directory_file_path(Dir, M.archive_entry, Path),
+  setup_call_cleanup(
+    open_any2(Path, write, Write, Close_0),
+    copy_stream_data(Read, Write),
+    close_any2(Close_0)
+  ).
+
+
+
+%! archive_info(+Source) is det.
 % Wrapper around archive_info/2 with default options.
 
-archive_info(In):-
-  archive_info(In, []).
+archive_info(Source) :-
+  archive_info(Source, []).
 
 
-%! archive_info(+In, +Options:list(compound)) is det.
+%! archive_info(+Source, +Options:list(compound)) is det.
 % Writes archive information for the given file or URL to current input.
 %
-% ### Example
+% # Example
 %
 % ```prolog
 % ?- absolute_file_name(data('abcde.tar.gz'), File, [access(read)]),
@@ -107,50 +135,53 @@ archive_info(In):-
 %   * indent(+nonneg)
 %     Default is 0.
 
-archive_info(In, Opts):-
+archive_info(Source, Opts) :-
   option(indent(I), Opts, 0),
-  call_on_archive(In, \M^_^print_dict(M, I), Opts).
+  call_on_archive(Source, [M,_Arch]>>print_dict(M, I), Opts).
 
 
 
-%! call_on_archive(+In, :Goal_2) is det.
+%! call_on_archive(+Source, :Goal_2) is det.
 % Wrapper around call_on_archive/3 with default options.
 
-call_on_archive(In, Goal_2):-
-  call_on_archive(In, Goal_2, []).
+call_on_archive(Source, Goal_2) :-
+  call_on_archive(Source, Goal_2, []).
 
 
-%! call_on_archive(+In, :Goal_2, +Options:list(compound)) is det.
+%! call_on_archive(+Source, :Goal_2, +Options:list(compound)) is det.
 % Goal_2 called on a metadata dictionary and a read stream (in that order).
 
-call_on_archive(In, Goal_2, Opts):-
+call_on_archive(Source, Goal_2, Opts) :-
   option(archive_entry(Entry), Opts, _),
-  call_on_archive0(In, call_on_archive_entry0(Entry, Goal_2, Opts), Opts).
+  call_on_archive0(Source, call_on_archive_entry0(Entry, Goal_2, Opts), Opts).
 
-call_on_archive0(In, Goal_2, Opts1):-
+call_on_archive0(Source, Goal_2, Opts1) :-
   % Archive options that cannot be overridden.
   merge_options([close_parent(false)], Opts1, Opts2),
   % Archive options that can be overridden.
   merge_options(Opts2, [filter(all),format(all),format(raw)], Opts3),
   setup_call_cleanup(
-    open_any2(In, read, Read, Close_0, [metadata(M)|Opts1]),
-    setup_call_cleanup(
-      archive_open(Read, Arch, Opts3),
-      call(Goal_2, M, Arch),
-      archive_close(Arch)
+    open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
+    (   is_http_error(M.http.status_code)
+    ->  true
+    ;   setup_call_cleanup(
+          archive_open(Read, Arch, Opts3),
+          call(Goal_2, M, Arch),
+          archive_close(Arch)
+        )
     ),
     close_any2(Close_0)
   ).
 
 % Semi-deterministic if an archive entry name is given.
-call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch):-
+call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch) :-
   nonvar(Entry), !,
   call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch), !.
 % Non-deterministic if no archive entry name is given.
-call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch):-
+call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch) :-
   call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch).
 
-call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch):-
+call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch) :-
   merge_options([meta_data(MEntry)], Opts1, Opts2),
   archive_data_stream(Arch, Read, Opts2),
   (   MEntry = [MEntry1|_],

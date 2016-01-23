@@ -67,12 +67,12 @@ csp(S) --> 'csp-header-value'(S).
 
 
 
-%! 'directive-name'(-Name:string)// is det.
+%! 'directive-name'(-Name:atom)// is det.
 % ```abnf
 % directive-name = 1*( ALPHA / DIGIT / "-" )
 % ```
 
-'directive-name'(S) --> +(directive_name_code, Cs), {string_codes(S, Cs)}.
+'directive-name'(A) --> +(directive_name_code, Cs), {atom_codes(A, Cs)}.
 directive_name_code(C)   --> 'ALPHA'(C).
 directive_name_code(C)   --> 'DIGIT'(_, C).
 directive_name_code(0'-) --> "-".

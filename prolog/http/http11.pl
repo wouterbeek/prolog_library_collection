@@ -993,6 +993,7 @@ known_unknown('x-content-type-options'). % Has grammar.  Implemented.
 known_unknown('x-dropbox-http-protocol').
 known_unknown('x-dropbox-request-id').
 known_unknown('x-drupal-cache').
+known_unknown('x-ec-custom-error').
 known_unknown('x-fastly-request-id').
 known_unknown('x-generator').
 known_unknown('x-github-request-id').

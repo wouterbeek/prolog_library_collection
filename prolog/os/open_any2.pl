@@ -46,6 +46,7 @@ Wrapper around library(iostream)'s open_any/5.
 %      ```
 :- public
     ssl_verify/5.
+
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 :- meta_predicate
