@@ -164,7 +164,7 @@ rest(X, X, []).
 
 %! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
-section(I, Msg, Dcg_0) --> indent_nl(I, atom(Msg)), Dcg_0.
+section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
 
 
 

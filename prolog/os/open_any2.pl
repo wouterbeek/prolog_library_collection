@@ -87,6 +87,8 @@ close_any2(Close_0) :-
 %!   +Close_0
 %! ) is det.
 % Wrapper around open_any2/5 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 open_any2(Source, Mode, Stream, Close_0) :-
   open_any2(Source, Mode, Stream, Close_0, []).
@@ -104,6 +106,8 @@ open_any2(Source, Mode, Stream, Close_0) :-
 %   * metadata(-dict)
 %   * retry(+positive_integer)
 %   * Passed to open_any/5.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   meta_options(is_meta, Opts0, Opts1),
@@ -130,7 +134,12 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   ;   Stream = Stream0,
       Close_0 = Close0_0
   ),
-  open_any_metadata(Source, Mode, Type, Comp, Opts2, M).
+  open_any_metadata(Source, Mode, Type, Comp, Opts2, M),
+  (   get_dict(http, M, MHttp),
+      is_http_error(MHttp.status_code)
+  ->  existence_error(open_any2, M)
+  ;   true
+  ).
 
 
 %! http_open2(
@@ -238,12 +247,16 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
       option(version(Version), Opts),
       maplist(parse_header, Lines, Headers),
       create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-      exclude(pair_has_var_value, [
-        final_iri-FinalIri,
-        headers-MHeaders,
-        status_code-StatusCode,
-        version-Version
-      ], MPairs),
+      exclude(
+        pair_has_var_value,
+        [
+          final_iri-FinalIri,
+          headers-MHeaders,
+          status_code-StatusCode,
+          version-Version
+        ],
+        MPairs
+      ),
       dict_pairs(MHttp, http, MPairs),
       M1 = metadata{base_iri: BaseIri, http: MHttp, source_type: http_iri}
   ;   M1 = metadata{}
@@ -261,7 +274,10 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
 
   % Source type.
   put_dict(source_type, M3, Type, M4).
-parse_header(Line, Header) :- phrase('header-field'(Header), Line).
+parse_header(Line, N-V2) :-
+  phrase('header-field'(N-V1), Line),
+  string_codes(Raw, Line),
+  V2 = V1.put(raw, Raw).
 
 
 

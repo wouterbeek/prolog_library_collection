@@ -71,6 +71,8 @@ append_to_stream(Source, Goal_2, Opts):-
 
 %! read_from_stream(+Source, :Goal_2) is det.
 % Wrapper around read_from_stream/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 read_from_stream(Source, Goal_2):-
   read_from_stream(Source, Goal_2, []).
@@ -78,6 +80,8 @@ read_from_stream(Source, Goal_2):-
 
 %! read_from_stream(+Source, :Goal_2, +Options:list(compound)) is det.
 % Calls Goal_2 on a metadata dictionary and a read stream (in that order).
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 read_from_stream(Source, Goal_2, Opts):-
   call_on_archive(Source, Goal_2, Opts).

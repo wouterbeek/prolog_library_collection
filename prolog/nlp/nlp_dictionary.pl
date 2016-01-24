@@ -78,6 +78,8 @@ nlp_dict_assert0(Lang, N1, Read):-
 
 
 %! nlp_dict_download(+Language:string) is det.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 nlp_dict_download(Lang):-
   nlp_dict_iri(Lang, Iri),
@@ -100,6 +102,8 @@ nlp_dict_file(Lang, File):-
 
 %! nlp_dict_init is det.
 % Initialize the dictionary for each supported language.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 nlp_dict_init:-
   forall(nlp_dict_lang(Lang), nlp_dict_init(Lang)).
@@ -107,6 +111,8 @@ nlp_dict_init:-
 
 %! nlp_dict_init(+Language:string) is det.
 % Initialize the dictionary for the given Language.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 nlp_dict_init(Lang):-
   nlp_dict_file(Lang, File),
@@ -148,6 +154,8 @@ nlp_dict_lang(Lang):-
 
 
 %! nlp_dict_update(+Language:string, +Age:float) is det.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 % The persistent store is still fresh.
 nlp_dict_update(Lang, Age):-

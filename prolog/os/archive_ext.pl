@@ -143,6 +143,8 @@ archive_info(Source, Opts) :-
 
 %! call_on_archive(+Source, :Goal_2) is det.
 % Wrapper around call_on_archive/3 with default options.
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 call_on_archive(Source, Goal_2) :-
   call_on_archive(Source, Goal_2, []).
@@ -150,6 +152,8 @@ call_on_archive(Source, Goal_2) :-
 
 %! call_on_archive(+Source, :Goal_2, +Options:list(compound)) is det.
 % Goal_2 called on a metadata dictionary and a read stream (in that order).
+%
+% @throws existence_error if an HTTP request returns an error code.
 
 call_on_archive(Source, Goal_2, Opts) :-
   option(archive_entry(Entry), Opts, _),
@@ -160,15 +164,14 @@ call_on_archive0(Source, Goal_2, Opts1) :-
   merge_options([close_parent(false)], Opts1, Opts2),
   % Archive options that can be overridden.
   merge_options(Opts2, [filter(all),format(all),format(raw)], Opts3),
-  setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
-    (   is_http_error(M.http.status_code)
-    ->  true
-    ;   setup_call_cleanup(
-          archive_open(Read, Arch, Opts3),
-          call(Goal_2, M, Arch),
-          archive_close(Arch)
-        )
+  call_cleanup(
+    (
+      open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
+      setup_call_cleanup(
+        archive_open(Read, Arch, Opts3),
+        call(Goal_2, M, Arch),
+        archive_close(Arch)
+      )
     ),
     close_any2(Close_0)
   ).
