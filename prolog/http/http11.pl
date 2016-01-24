@@ -186,9 +186,6 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'URI-reference'//1 % -UriReference:dict
    ]).
 
-:- meta_predicate('field-content'(3,-,?,?)).
-:- meta_predicate('field-value'(3,-,?,?)).
-
 
 
 
@@ -946,32 +943,36 @@ expect("100-continue") --> atom_ci('100-continue').
 
 
 
-%! 'field-content'(+Name:atom, -Value)// .
+%! 'field-content'(+Key, -Dict)// .
 % ```abnf
 % field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
-'field-content'(ModPred, 'field-content'{status: Status, value: Value}) -->
-  {strip_module(ModPred, _, Pred)},
-  (   {current_predicate(Pred/3)}
-  ->  (   dcg_call(ModPred, Value),
+'field-content'(Key, D) -->
+  (   {current_predicate(Key/3)}
+  ->  (   % Valid value.
+          dcg_call(Key, Value),
+          'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
-      ->  {Status = valid}
-      ;   rest(Cs),
+      ->  {D = 'field-content'{status: valid, value: Value}}
+      ;   % Empty value.
+          phrase('obs-fold')
+      ->  {D = 'field-content'{status: empty}}
+      ;	  % Buggy value.
+          rest(Cs),
           {
-            Status = invalid,
-            string_codes(Value, Cs),
-            debug(http(parse), "Buggy HTTP header ~a: ~a", [Pred,Value])
+            D = 'field-content'{status: invalid},
+            debug(http(parse), "Buggy HTTP header ~a: ~s", [Key,Cs])
           }
       )
-  ;   rest(Cs),
+  ;   % Unknown unknown key.
+      rest(Cs),
       {
-        Status = unrecognized,
-        string_codes(Value, Cs),
-        (   known_unknown(Pred)
+        D = 'field-content'{status: unrecognized},
+        (   known_unknown(Key)
         ->  true
-        ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Pred,Value])
+        ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key,Cs])
         )
       }
   ).
@@ -1056,13 +1057,15 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-value'(+Name:atom, -Value)// .
+%! 'field-value'(+Codes, +Key, -Dict) .
 % ```abnf
 % field-value = *( field-content | 'obs-fold' )
 % ```
 
-'field-value'(Name, Value) --> 'field-content'(Name, Value), !.
-'field-value'(_, _) --> 'obs-fold'.
+'field-value'(Cs, Key, D2) :-
+  phrase('field-content'(Key, D1), Cs),
+  string_codes(Raw, Cs),
+  D2 = D1.put(raw, Raw).
 
 
 
@@ -1098,13 +1101,13 @@ from(Pair) --> mailbox(Pair).
 % header-field = field-name ":" OWS field-value OWS
 % ```
 
-'header-field'(Pred-Value) -->
-  'field-name'(Name),
-  {atom_string(Pred, Name)},
+'header-field'(Key-D) -->
+  'field-name'(Key0),
+  {atom_string(Key, Key0)},
   ":",
   'OWS',
-  'field-value'(Pred, Value),
-  'OWS'.
+  rest(Cs),
+  {'field-value'(Cs, Key, D)}.
 
 
 

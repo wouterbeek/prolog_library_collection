@@ -13,6 +13,7 @@
     query//1, % -Query:string
     'relative-part'//1, % -RelativeUri:dict
     scheme//1, % -Scheme:string
+    scheme_code//1, % -Code:code
     segment//1, % -Segment:string
     'segment-nz'//1, % -Segment:string
     'sub-delims'//1 , % ?Code:code

@@ -36,12 +36,11 @@ http_scheme(https).
 %! http_status_code(+Code:between(100,599))// is det.
 
 http_status_code(Code) -->
-  "HTTP status code ",
+  "HTTP status code: ",
   integer(Code),
   " ",
   {http_status_label(Code, Label)},
-  "(", atom(Label), ")",
-  ".".
+  "(", atom(Label), ")".
 
 
 

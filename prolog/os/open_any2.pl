@@ -38,6 +38,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 % @tbd This avoids the following warning, but should it be necessary?
@@ -209,7 +210,7 @@ base_iri(File, BaseIri) :-
 %! ) is det.
 
 http_error_message(Iri, Status, Lines, Read) :-
-  maplist(parse_header, Lines, Headers),
+  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, M),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
   format(
@@ -245,7 +246,7 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
       option(raw_headers(Lines), Opts),
       option(status_code(StatusCode), Opts),
       option(version(Version), Opts),
-      maplist(parse_header, Lines, Headers),
+      maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
       create_grouped_sorted_dict(Headers, http_headers, MHeaders),
       exclude(
         pair_has_var_value,
@@ -274,10 +275,6 @@ open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
 
   % Source type.
   put_dict(source_type, M3, Type, M4).
-parse_header(Line, N-V2) :-
-  phrase('header-field'(N-V1), Line),
-  string_codes(Raw, Line),
-  V2 = V1.put(raw, Raw).
 
 
 

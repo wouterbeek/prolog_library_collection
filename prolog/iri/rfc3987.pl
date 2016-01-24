@@ -2,10 +2,14 @@
   rfc3987,
   [
     'absolute-IRI'//1, % -AbsoluteIri:dict
-    iprivate//1, % -Code:code
+    ipchar//1, % ?Code:code
+    iprivate//1, % ?Code:code
+    iquery_code//1, % ?Code:code
+    ireg_name_code//1, % ?Code:code
     'IRI'//1, % -Iri:dict
     'IRI-reference'//1, % -IriReference:dict
-    iunreserved//1 % -Code:code
+    iunreserved//1, % ?Code:code
+    iuserinfo_code//1 % ?Code:code
   ]
 ).
 
@@ -68,6 +72,13 @@
 % ```abnf
 % absolute-IRI = scheme ":" ihier-part [ "?" iquery ]
 % ```
+%
+% AbsoluteIri contains the following keys:
+%   * authority
+%   * hier_part
+%   * path
+%   * query
+%   * scheme
 
 'absolute-IRI'(D) -->
   scheme(Scheme),
@@ -208,11 +219,11 @@ ipath(L) --> 'ipath-empty'(L).
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
 
-ipchar(C) --> iunreserved(C).
-ipchar(C) --> 'pct-encoded'(C).
-ipchar(C) --> 'sub-delims'(C).
+ipchar(C)   --> iunreserved(C).
+ipchar(C)   --> 'sub-delims'(C).
 ipchar(0':) --> ":".
 ipchar(0'@) --> "@".
+ipchar(C)   --> 'pct-encoded'(C).
 
 
 
@@ -233,10 +244,10 @@ iprivate(C) --> between_code_radix(hex('100000'), hex('10FFFD'), C).
 % ```
 
 iquery(S) --> *(iquery_code, Cs), {string_codes(S, Cs)}.
-iquery_code(C)   --> ipchar(C).
 iquery_code(C)   --> iprivate(C).
 iquery_code(0'/) --> "/".
 iquery_code(0'?) --> "?".
+iquery_code(C)   --> ipchar(C).
 
 
 
@@ -247,8 +258,8 @@ iquery_code(0'?) --> "?".
 
 'ireg-name'(S) --> *(ireg_name_code, Cs), {string_codes(S, Cs)}.
 ireg_name_code(C) --> iunreserved(C).
-ireg_name_code(C) --> 'pct-encoded'(C).
 ireg_name_code(C) --> 'sub-delims'(C).
+ireg_name_code(C) --> 'pct-encoded'(C).
 
 
 
@@ -371,9 +382,9 @@ iunreserved(C) --> ucschar(C).
 
 iuserinfo(S) --> *(iuserinfo_code, Cs), {string_codes(S, Cs)}.
 iuserinfo_code(C) -->   iunreserved(C).
-iuserinfo_code(C) -->   'pct-encoded'(C).
-iuserinfo_code(C) -->   'sub-delims'(C).
 iuserinfo_code(0':) --> ":".
+iuserinfo_code(C) -->   'sub-delims'(C).
+iuserinfo_code(C) -->   'pct-encoded'(C).
 
 
 

@@ -81,11 +81,8 @@ dict_pair(Key1-Val1, Key2-Val2):-
 
 create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, GroupedPairs0),
-  maplist(unpack_singleton_value, GroupedPairs0, GroupedPairs),
+  group_pairs_by_key(SortedPairs, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
-unpack_singleton_value(Key-[Val], Key-Val):- !.
-unpack_singleton_value(Key-Vals, Key-Vals).
 
 
 
