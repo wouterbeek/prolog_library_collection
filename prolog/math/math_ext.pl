@@ -119,10 +119,10 @@ X = -6.
 :- use_module(library(apply)).
 :- use_module(library(clpfd)).
 :- use_module(library(error)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(math/rational_ext)).
 :- use_module(library(typecheck)).
+:- use_module(library(yall)).
 
 :- multifile(clpfd:run_propagator/2).
 
@@ -386,7 +386,7 @@ euclidean_distance(
 
 factorial(N, F):-
   numlist(1, N, Ns), !,
-  foldl(\Y^X^Z^(Z is X * Y), Ns, 1, F).  
+  foldl([Y,X,Z]>>(Z is X * Y), Ns, 1, F).  
 % E.g., $0!$.
 factorial(_, 1).
 
@@ -631,7 +631,7 @@ permutations(NumbersOfObjects, PermutationLength, NumberOfPermutations):-
 
   % The groups.
   maplist(factorial, NumbersOfObjects, F2s),
-  foldl(\Y^X^Z^(Z is X * Y), [F3|F2s], 1, F23),
+  foldl([Y,X,Z]>>(Z is X * Y), [F3|F2s], 1, F23),
 
   NumberOfPermutations is F1 / F23.
 permutations(NumberOfObjects, PermutationLength, NumberOfPermutations):-

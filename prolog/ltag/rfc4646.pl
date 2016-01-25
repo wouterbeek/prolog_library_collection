@@ -40,16 +40,16 @@ The comment for singleton//1 swaps upper and lowercase letters.
    ]).
 :- use_module(library(dcg/record_jar)).
 :- use_module(library(dict_ext)).
-:- use_module(library(lambda)).
 :- use_module(library(memoization)).
 :- use_module(library(pio)).
+:- use_module(library(yall)).
 
 iana(Dicts):- memo(init_iana(Dicts)).
 init_iana(Dicts):-
   FileOpts = [access(read),extensions([iana])],
   absolute_file_name(language_subtag_registry, File, FileOpts),
   phrase_from_file('record-jar'(_, Records), File),
-  maplist(\Record^Dict^create_dict(Record, record, Dict), Records, Dicts).
+  maplist([Record,Dict]>>create_dict(Record, record, Dict), Records, Dicts).
 
 
 

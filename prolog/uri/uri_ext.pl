@@ -25,7 +25,7 @@ Additional predicates for handling URIs.
 
 @author Wouter Beek
 @compat RFC 3986
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -33,10 +33,10 @@ Additional predicates for handling URIs.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
-:- use_module(library(lambda)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(uri/rfc3986)).
+:- use_module(library(yall)).
 
 :- meta_predicate(uri_change_query(+,2,-)).
 :- meta_predicate(uri_change_query_options(+,2,-)).
@@ -57,14 +57,14 @@ uri_add_query(Uri1, Name, Uri2):-
   atom(Name), !,
   uri_change_query(
     Uri1,
-    \Query1^Query2^atomic_list_concat([Query1,Name], '&', Query2),
+    [Query1,Query2]>>atomic_list_concat([Query1,Name], '&', Query2),
     Uri2
   ).
 uri_add_query(Uri1, Opts, Uri2):-
   is_list(Opts), !,
   uri_change_query_options(
     Uri1,
-    \Opts1^Opts2^merge_options(Opts, Opts1, Opts2),
+    [Opts1,Opts2]>>merge_options(Opts, Opts1, Opts2),
     Uri2
   ).
 uri_add_query(Uri1, Opt, Uri2):-
@@ -232,12 +232,8 @@ uri_change_query(Uri1, Goal_2, Uri2):-
 %! ) is det.
 
 uri_change_query_options(Uri1, Goal_2, Uri2):-
-  uri_change_query(
-    Uri1,
-    \Q1^Q2^(
-      uri_query_components(Q1, Opts1),
-      call(Goal_2, Opts1, Opts2),
-      uri_query_components(Q2, Opts2)
-    ),
-    Uri2
-  ).
+  uri_change_query(Uri1, uri_change_query_strings0(Goal_2), Uri2).
+uri_change_query_strings0(Goal_2, Q1, Q2) :-
+  uri_query_components(Q1, Opts1),
+  call(Goal_2, Opts1, Opts2),
+  uri_query_components(Q2, Opts2).

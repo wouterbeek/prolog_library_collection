@@ -26,9 +26,9 @@ Extensions for handling directory files in SWI-Prolog.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(yall)).
 
 :- meta_predicate(run_in_working_directory(0,+)).
 
@@ -102,7 +102,7 @@ directory_files(Dir, Files3, Opts1):-
   % Filter based on a list of file types, if given.
   (   option(extensions(Exts), Opts1)
   ->  include(
-        \File^(file_name_extension(_, Ext, File), memberchk(Ext, Exts)),
+        [File]>>(file_name_extension(_, Ext, File), memberchk(Ext, Exts)),
         NewFiles1,
         NewFiles2
       )
@@ -116,7 +116,7 @@ directory_files(Dir, Files3, Opts1):-
   % Include directories and files from deeper recursion levels.
   (   option(recursive(true), Opts2, false)
   ->  maplist(
-        \NewDir^NewFiles^directory_files(NewDir, NewFiles, Opts2),
+        [NewDir,NewFiles]>>directory_files(NewDir, NewFiles, Opts2),
         NewDirs,
         NewFiless
       ),

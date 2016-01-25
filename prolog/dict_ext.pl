@@ -36,9 +36,9 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(lambda)).
 :- use_module(library(list_ext)).
 :- use_module(library(pairs)).
+:- use_module(library(yall)).
 
 
 
@@ -133,7 +133,7 @@ merge_dict(D1, D2, D):-
   dict_pairs(D1, Tag1, Ps1),
   dict_pairs(D2, Tag2, Ps2Dupl),
   pairs_keys(Ps1, Ks1),
-  exclude(\K^memberchk(K, Ks1), Ps2Dupl, Ps2),
+  exclude([K]>>memberchk(K, Ks1), Ps2Dupl, Ps2),
   append(Ps1, Ps2, Ps),
   (Tag1 = Tag2 -> true ; Tag = Tag1),
   dict_pairs(D, Tag, Ps).
