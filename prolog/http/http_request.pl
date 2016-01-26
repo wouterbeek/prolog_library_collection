@@ -89,10 +89,8 @@ http_post(Iri, Data, Success_2, Opts1) :-
 
 http_request(Iri, Success_2, Opts1) :-
   merge_options([metadata(M)], Opts1, Opts2),
-  call_cleanup(
-    (
-      open_any2(Iri, read, Read, Close_0, Opts2),
-      call(Success_2, M, Read)
-    ),
+  setup_call_cleanup(
+    open_any2(Iri, read, Read, Close_0, Opts2),
+    call(Success_2, M, Read),
     close_any2(Close_0)
   ).

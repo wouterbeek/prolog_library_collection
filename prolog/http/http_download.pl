@@ -94,7 +94,7 @@ file_download(Iri, File, Opts):-
 % No file name is given.
 % Create a file name based on the given IRI.
 file_download(Iri, File, Opts):-
-  nested_uri_file_name(Iri, File),
+  uri_file_name_nested(Iri, File),
   file_download(Iri, File, Opts).
 
 write_stream_to_file0(File, _, Read):-

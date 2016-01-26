@@ -24,8 +24,7 @@
                    % -ThreadFile:atom
     touch/1, % +File:atom
     root_prefix/1, % ?Prefix:atom
-    write_stream_to_file/2 % +Write:stream
-                           % +File:atom
+    write_stream_to_file/2 % +Read, +File
   ]
 ).
 :- reexport(library(filesex)).
@@ -187,9 +186,10 @@ touch(File):-
 
 
 
-%! write_stream_to_file(+Read:stream, +File:atom) is det.
+%! write_stream_to_file(+Read, +File) is det.
 
 write_stream_to_file(Read, File):-
+  gtrace,
   setup_call_cleanup(
     open(File, write, Write, [type(binary)]),
     copy_stream_data(Read, Write),

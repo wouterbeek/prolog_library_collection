@@ -116,18 +116,18 @@ ihost_gen(D) --> 'ireg-name_gen'(D).
 % ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
 % isegment-nz = 1*ipchar
 'ipath-absolute_gen'(D) -->
-  {D.userinfo == '', D.post == '', atom_codes0(D.path, [0'/|Cs])},
+  {D.userinfo == '', D.port == '', atom_codes0(D.path, [0'/|Cs])},
   "/",
   *(isegment_sep_code, Cs).
 
 % ipath-empty = 0<ipchar>
 'ipath-empty_gen'(D) -->
-  {D.userinfo == '', D.post == '', D.path = ''},
+  {D.userinfo == '', D.port == '', D.path = ''},
   "".
 
 % ipath-rootless = isegment-nz *( "/" isegment )
 'ipath-rootless_gen'(D) -->
-  {D.userinfo == '', D.post == '', atom_codes0(D.path, Cs)},
+  {D.userinfo == '', D.port == '', atom_codes0(D.path, Cs)},
   *(isegment_sep_code, Cs).
 
 % iquery = *( ipchar / iprivate / "/" / "?" )
