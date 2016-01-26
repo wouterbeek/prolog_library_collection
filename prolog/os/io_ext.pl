@@ -1,16 +1,12 @@
 :- module(
   io_ext,
   [
-    print_input/2, % +Input
-                   % +Options:list(compound)
-    read_input_to_atom/2, % +Input
-                          % -Content:atom
-    read_input_to_codes/2, % +Input
-                           % -Content:list(code)
-    read_input_to_string/2, % +Input
-                            % -Content:string
-    write_output_to_atom/2 % :Goal_1
-                           % -Content:atom
+    print_input/2,          % +Input, +Opts
+    read_input_to_atom/2,   % +Input, -Content
+    read_input_to_codes/2,  % +Input, -Content
+    read_input_to_string/2, % +Input, -Content
+    write_output_to_atom/2, % :Goal_1, -Content
+    write_stream_to_file/2  % +Read, +File
   ]
 ).
 :- reexport(library(readutil)).
@@ -20,7 +16,7 @@
 Predicates that extend the swipl builtin I/O predicates operating on streams.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11
+@version 2015/08, 2015/10-2015/11, 2016/01
 */
 
 :- use_module(library(os/open_any2)).
@@ -39,12 +35,12 @@ Predicates that extend the swipl builtin I/O predicates operating on streams.
 
 
 
-%! print_input(+Input, +Options:list(compound)) is det.
+%! print_input(+Input, +Opts) is det.
 
 print_input(In, Opts):-
   forall(read_input_to_line(In, Cs), print_line(Cs, Opts)).
 
-%! print_line(+Content:list(code), +Options:list(compound)) is det.
+%! print_line(+Cs, +Opts) is det.
 
 print_line(Cs, Opts):-
   (option(indent(I), Opts) -> tab(I) ; true),
@@ -52,7 +48,7 @@ print_line(Cs, Opts):-
 
 
 
-%! read_input_to_atom(+Input, -Atom:atom) is det.
+%! read_input_to_atom(+Input, -Atom) is det.
 
 read_input_to_atom(In, A):-
   read_input_to_codes(In, Cs),
@@ -60,7 +56,7 @@ read_input_to_atom(In, A):-
 
 
 
-%! read_input_to_codes(+Input, -Codes:list(code)) is det.
+%! read_input_to_codes(+Input, -Cs) is det.
 
 read_input_to_codes(In, Cs):-
   setup_call_cleanup(
@@ -71,7 +67,7 @@ read_input_to_codes(In, Cs):-
 
 
 
-%! read_input_to_line(+Input, -Line:list(code)) is nondet.
+%! read_input_to_line(+Input, -Cs) is nondet.
 
 read_input_to_line(In, Cs):-
   setup_call_cleanup(
@@ -83,7 +79,7 @@ read_input_to_line(In, Cs):-
 
 
 
-%! read_input_to_string(+Input, -String:string) is det.
+%! read_input_to_string(+Input, -String) is det.
 
 read_input_to_string(In, S):-
   read_input_to_codes(In, Cs),
@@ -91,7 +87,7 @@ read_input_to_string(In, S):-
 
 
 
-%! write_output_to_atom(:Goal_1, -Atom:atom) is det.
+%! write_output_to_atom(:Goal_1, -Atom) is det.
 % Is called as call(Goal_1, Write).
 
 write_output_to_atom(Goal_1, Atom):-
@@ -106,4 +102,16 @@ write_output_to_atom(Goal_1, Atom):-
       memory_file_to_atom(Handle, Atom)
     ),
     free_memory_file(Handle)
+  ).
+
+
+
+%! write_stream_to_file(+Read, +File) is det.
+
+write_stream_to_file(Read, File):-
+  gtrace,
+  setup_call_cleanup(
+    open(File, write, Write, [type(binary)]),
+    copy_stream_data(Read, Write),
+    close(Write)
   ).

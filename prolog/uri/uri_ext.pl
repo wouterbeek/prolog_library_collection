@@ -38,8 +38,9 @@ Additional predicates for handling URIs.
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
-:- meta_predicate(uri_change_query(+,2,-)).
-:- meta_predicate(uri_change_query_options(+,2,-)).
+:- meta_predicate
+    uri_change_query_options(+,2,-),
+    uri_change_query_string(+,2,-).
 
 
 
@@ -198,7 +199,7 @@ uri_components0(Uri, UriComps) :-
 
 
 
-%! uri_change_query(+From:or([compound,uri]), :Goal_2, -To:uri) is det.
+%! uri_change_query_string(+From:or([compound,uri]), :Goal_2, -To:uri) is det.
 % Deterministic if `Goal_2` is deterministic.
 %
 % Meta-wrapper that is used by every predicate that operates
@@ -207,7 +208,7 @@ uri_components0(Uri, UriComps) :-
 % The additional arguments of `Goal_2` are the list of query parameters
 % before and after calling.
 
-uri_change_query(Uri1, Goal_2, Uri2) :-
+uri_change_query_string(Uri1, Goal_2, Uri2) :-
   % Disasseble from URI.
   uri_components0(Uri1, uri_components(Scheme,Auth,Path,Q1,Frag)),
   % BEWARE: If a URL has no query string,
@@ -229,7 +230,7 @@ uri_change_query(Uri1, Goal_2, Uri2) :-
 %! ) is det.
 
 uri_change_query_options(Uri1, Goal_2, Uri2) :-
-  uri_change_query(Uri1, uri_change_query_string0(Goal_2), Uri2).
+  uri_change_query_string(Uri1, uri_change_query_string0(Goal_2), Uri2).
 
 uri_change_query_string0(Goal_2, Q1, Q2) :-
   uri_query_components(Q1, Opts1),

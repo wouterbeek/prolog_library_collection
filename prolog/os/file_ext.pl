@@ -23,8 +23,7 @@
     thread_file/2, % +File:atom
                    % -ThreadFile:atom
     touch/1, % +File:atom
-    root_prefix/1, % ?Prefix:atom
-    write_stream_to_file/2 % +Read, +File
+    root_prefix/1 % ?Prefix:atom
   ]
 ).
 :- reexport(library(filesex)).
@@ -34,8 +33,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@license MIT license
-@version 2015/07-2015/11
+@version 2015/07-2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
@@ -183,15 +181,3 @@ thread_file(Base, File):-
 
 touch(File):-
   setup_call_cleanup(open(File, write, Write), true, close(Write)).
-
-
-
-%! write_stream_to_file(+Read, +File) is det.
-
-write_stream_to_file(Read, File):-
-  gtrace,
-  setup_call_cleanup(
-    open(File, write, Write, [type(binary)]),
-    copy_stream_data(Read, Write),
-    close(Write)
-  ).
