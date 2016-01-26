@@ -16,8 +16,6 @@
 
 Support for downloading files and datastructures over HTTP(S).
 
----
-
 @author Wouter Beek
 @tbd We cannot use library(lambda) because this copies the goal term,
      not returning the DOM argument.  Maybe yall can be used?

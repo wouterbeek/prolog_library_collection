@@ -1,11 +1,9 @@
 :- module(
   ansi_ext,
   [
-    ansi_format_list/1, % +Messages:list(compound)
+    ansi_format_list/1,   % +Messages:list(compound)
     ansi_format_listln/1, % +Messages:list(compound)
-    ansi_formatln/3 % +AnsiAttributes:list
-                    % +Format:atom
-                    % +Arguments:list
+    ansi_formatln/3       % +AnsiAttributes, +Format, +Args
   ]
 ).
 
@@ -20,6 +18,8 @@ Predicates for using ANSI markup in the console.
 */
 
 :- use_module(library(error)).
+
+
 
 
 
@@ -63,7 +63,7 @@ ansi_format_listln(L):-
   nl.
 
 
-%! ansi_formatln(+AnsiAttributes:list, +Format:atom, +Arguments:list) is det.
+%! ansi_formatln(+AnsiAttributes, +Format, +Args) is det.
 
 ansi_formatln(Attrs, Format, Args):-
   ansi_format(Attrs, Format, Args),

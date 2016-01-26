@@ -109,7 +109,6 @@ write_output_to_atom(Goal_1, Atom):-
 %! write_stream_to_file(+Read, +File) is det.
 
 write_stream_to_file(Read, File):-
-  gtrace,
   setup_call_cleanup(
     open(File, write, Write, [type(binary)]),
     copy_stream_data(Read, Write),
