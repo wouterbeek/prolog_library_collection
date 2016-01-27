@@ -1,12 +1,13 @@
 :- module(
   archive_ext,
   [
-    archive_extract/1, % +Source
-    archive_extract/2, % +Source, ?Directory
-    archive_info/1,    % +Source
-    archive_info/2,    % +Source, +Opts
-    call_on_archive/2, % +Source, :Goal_2
-    call_on_archive/3  % +Source, :Goal_2, +Opts
+    archive_entry_path/2, % +ArchiveEntry, -Path
+    archive_extract/1,    % +Source
+    archive_extract/2,    % +Source, ?Directory
+    archive_info/1,       % +Source
+    archive_info/2,       % +Source, +Opts
+    call_on_archive/2,    % +Source, :Goal_2
+    call_on_archive/3     % +Source, :Goal_2, +Opts
   ]
 ).
 :- reexport(library(archive)).
@@ -47,6 +48,24 @@
    ]).
 
 
+
+
+
+%! archive_entry_path(+ArchiveEntry, -Path) is det.
+
+% The raw archive entry's path is the empty path.
+archive_entry_path([H], '') :-
+  is_unarchived(H), !.
+% A non-raw archive entry: add its name to the path.
+archive_entry_path([H|T1], EntryPath2) :-
+  archive_entry_path(T1, EntryPath1),
+  directory_file_path(EntryPath1, H.name, EntryPath2).
+
+% Succeeds if dictionary D describes a leaf node in a compression tree.
+% A leaf node in a compression tree describes an unarchived or raw file.
+is_unarchived(D) :-
+  D.name == data,
+  D.format == raw, !.
 
 
 

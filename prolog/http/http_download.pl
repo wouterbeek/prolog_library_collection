@@ -81,27 +81,22 @@ file_download(Iri, File, Opts):-
   ;   delete_file(File),
       file_download(Iri, File, Opts)
   ).
-% Throw an exception if Iri is not an absolute URI.
+% Throw an exception if Iri is not absolute.
 file_download(Iri, _, _):-
   \+ uri_is_global(Iri), !,
   type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Iri, File, Opts1):-
+file_download(Iri, File0, Opts1):-
   iri_normalized(Iri, NormIri),
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
   merge_options([metadata(M)], Opts1, Opts2),
   http_get(Iri, write_stream_to_file0(TmpFile), Opts2),
-  (   http_header(M, 'content-disposition', ContentDisposition),
-      get_dict(ContentDisposition, filename, LocalFile)
-  ->  true
-  % @tbd Implement common file extensions for MIME types.
-  %;   http_header(M, 'content-type', ContentType)
-  %->  mime_ext(ContentType.type, ContentType, subtype, Ext),
-  %    file_name_extension(Hash, Ext, LocalFile)
-  ;   LocalFile = Hash
+  (   nonvar(File0)
+  ->  File = File0
+  ;   (file_name(M, File0) -> true ; File0 = Hash),
+      absolute_file_name(File0, File, [access(write)])
   ),
-  absolute_file_name(LocalFile, File, [access(write)]),
   rename_file(TmpFile, File).
 
 write_stream_to_file0(File, _, Read):-
