@@ -2,35 +2,28 @@
   dcg_content,
   [
     '...'//0,
-    '...'//1, % -Codes:list(code)
+    '...'//1,          % -Codes
     dcg_tab//0,
     done//0,
     eol//0,
     nl//0,
-    indent//1, % +Indent:nonneg
-    indent//2, % +Indent:nonneg
-               % :Dcg_0
-    indent_nl//2, % +Indent:nonneg
-                  % :Dcg_0
-    iri//1, % +Iri:atom
+    indent//1,         % +Indent:nonneg
+    indent//2,         % +Indent:nonneg, :Dcg_0
+    indent_nl//2,      % +Indent:nonneg, :Dcg_0
+    iri//1,            % +Iri
     nonblank//0,
-    nvpair//1, % +Pair:pair(atom)
-    nvpair//2, % :Name_0
-               % :Value_0
+    nvpair//1,         % +Pair:pair
+    nvpair//2,         % :Name_0, :Value_0
     parsing//0,
     rest//0,
-    rest//1, % -Rest:list(code)
-    section//3, % +Indent:nonneg
-                % +Message:string
-                % :Dcg_0
+    rest//1,           % -Rest:list(code)
+    section//3,        % +Indent:nonneg, +Message:string, :Dcg_0
     skip_line//0,
     string//0,
-    string_without//1, % +EndCodes:list(code)
-    tab//1, % +Indent:nonneg
-    tab//2, % +Indent:nonneg
-            % :Dcg_0
-    tab_nl//2 % +Indent:nonneg
-              % :Dcg_0
+    string_without//1, % +EndCodes
+    tab//1,            % +Indent:nonneg
+    tab//2,            % +Indent:nonneg, :Dcg_0
+    tab_nl//2          % +Indent:nonneg, :Dcg_0
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -133,9 +126,9 @@ nonblank --> nonblank(_).
 
 
 
-%! nvpair(+Pair:pair(atom))// is det.
+%! nvpair(+Pair:pair)// is det.
 
-nvpair(N-V) --> nvpair(atom(N), atom(V)).
+nvpair(N-V) --> nvpair(pl_term(N), pl_term(V)).
 
 
 %! nvpair(:Name_0, :Value_0)// is det.
