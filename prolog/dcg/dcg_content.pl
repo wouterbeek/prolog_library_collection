@@ -36,6 +36,7 @@ DCG rules for parsing/generating often-occuring content.
 @version 2015/07-2015/08, 2015/10-2016/01
 */
 
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(settings)).
 
 :- meta_predicate
