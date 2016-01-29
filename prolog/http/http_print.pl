@@ -42,7 +42,7 @@ archive_entry(I, L) -->
 
 http_iri_metadata(I, M) -->
   iri_metadata(I, M),
-  http_metadata(I, M.http).
+  http_metadata(I, M.'llo:http').
 
 
 
@@ -72,7 +72,7 @@ http_header_key(Key1) -->
 %! http_header_value(+Value)// is det.
 
 http_header_value(Value) -->
-  {string_codes(Value.raw, Cs)},
+  {string_codes(Value.'llo:raw', Cs)},
   string(Cs),
   nl.
 
@@ -86,7 +86,7 @@ http_headers(I, L) -->
 
 http_header_status0(_-Vs, Comp) :-
   (Vs = [V|_] -> true ; Vs = V),
-  http_header_status_comparator0(V.status, Comp).
+  http_header_status_comparator0(V.'llo:parser', Comp).
 
 http_header_status_comparator0(unrecognized, <) :- !.
 http_header_status_comparator0(invalid,      =) :- !.
@@ -118,9 +118,9 @@ http_metadata(I1, M) -->
     dict_pairs(M.headers, _, L)
   },
   section(I1, "HTTP metadata:", (
-    tab_nl(I2, http_status_code(M.status_code)),
-    tab_nl(I2, nvpair("Version", pl_pair(M.version))),
-    tab_nl(I2, nvpair("Final IRI", iri(M.final_iri))),
+    tab_nl(I2, http_status_code(M.'llo:status-code')),
+    tab_nl(I2, nvpair("Version", pl_pair(M.'llo:version'))),
+    tab_nl(I2, nvpair("Final IRI", iri(M.'llo:final_iri'))),
     section(I2, "Headers:", http_headers(I3, L))
   )).
 
@@ -141,4 +141,4 @@ http_status_code(Code) -->
 
 iri_metadata(I1, M) -->
   {I2 is I1 + 1},
-  section(I1, "IRI metadata:", tab_nl(I2, nvpair("Base IRI", iri(M.base_iri)))).
+  section(I1, "IRI metadata:", tab_nl(I2, nvpair("Base IRI", iri(M.'llo:base-iri')))).

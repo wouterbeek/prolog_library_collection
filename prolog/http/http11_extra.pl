@@ -1,6 +1,7 @@
 :- module(
   http11_extra,
   [
+    'HTTP-version'//1 % -Version:dict
   ]
 ).
 
@@ -28,7 +29,7 @@ HTTP 1.1 grammar rules that are not actually used.
 
 
 
-%! 'absolute-form'(-AbsoluteUri:dict)// is det.
+%! 'absolute-form'(-Uri:dict)// is det.
 % ```abnf
 % absolute-form = absolute-URI
 % ```
@@ -37,12 +38,13 @@ HTTP 1.1 grammar rules that are not actually used.
 
 
 
-%! 'absolute-path'(-AbsolutePath:list(string))// is det.
+%! 'absolute-path'(-Path:list(string))// is det.
 % ```abnf
 % absolute-path = 1*( "/" segment )
 % ```
 
 'absolute-path'(L) --> +(sep_segment, L).
+
 sep_segment(S) --> "/", segment(S).
 
 
@@ -70,18 +72,8 @@ sep_segment(S) --> "/", segment(S).
 % chunked-body = *chunk last-chunk trailer-part CRLF
 % ```
 
-'chunked-body'(
-  chunked_body{
-    '@type': 'llh:chunked-body',
-    'llh:chunks': Chunks,
-    'llh:last-chunk': Exts,
-    'llh:trailer-part': Headers
-  }
-) -->
-  *(chunk, Chunks),
-  'last-chunk'(Exts),
-  'trailer-part'(Headers),
-  'CRLF'.
+'chunked-body'(_{'@type': 'llo:chunked-body', 'llo:chunks': Chunks, 'llo:last-chunk': Exts, 'llo:trailer-part': Headers}) -->
+  *(chunk, Chunks), 'last-chunk'(Exts), 'trailer-part'(Headers), 'CRLF'.
 
 
 
@@ -109,7 +101,7 @@ sep_segment(S) --> "/", segment(S).
 
 
 
-%! 'http-URI'(-HttpUri:dict)// is det.
+%! 'http-URI'(-Uri:dict)// is det.
 % ```abnf
 % http-URI = "http:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
 % ```
@@ -128,21 +120,17 @@ sep_segment(S) --> "/", segment(S).
 
 
 
-%! 'HTTP-version'(?Version:dict)// is det.
+%! 'HTTP-version'(-Version:dict)// is det.
 % ```abnf
 % HTTP-version = HTTP-name "/" DIGIT "." DIGIT
 % ```
 
-'HTTP-version'(version{major: Major, minor: Minor}) -->
-  'HTTP-name',
-  "/",
-  digit(Major),
-  ".",
-  digit(Minor).
+'HTTP-version'(_{'@type': 'llo:version', 'llo:major': Major, 'llo:minor': Minor}) -->
+  'HTTP-name', "/", digit(Major), ".", digit(Minor).
 
 
 
-%! 'https-URI'(-HttpsUri:dict)// is det.
+%! 'https-URI'(-Uri:dict)// is det.
 % ```abnf
 % https-URI = "https:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
 % ```
@@ -177,9 +165,8 @@ sep_segment(S) --> "/", segment(S).
 % reason-phrase = *( HTAB | SP | VCHAR | obs-text )
 % ```
 
-'reason-phrase'(S) -->
-  *(reason_phrase_code, Cs),
-  {string_codes(S, Cs)}.
+'reason-phrase'(S) --> *(reason_phrase_code, Cs), {string_codes(S, Cs)}.
+
 reason_phrase_code(C) --> 'HTAB'(C).
 reason_phrase_code(C) --> 'SP'(C).
 reason_phrase_code(C) --> 'VCHAR'(C).
@@ -194,10 +181,10 @@ reason_phrase_code(C) --> 'obs-text'(C).
 
 'request-line'(
   http_message{
-    'llh:method': Method,
-    'llh:request-target': Iri,
-    'llh:message-type': "request",
-    'llh:version': Version
+    'llo:method': Method,
+    'llo:request-target': Iri,
+    'llo:message-type': "request",
+    'llo:version': Version
   }
 ) -->
   method(Method),

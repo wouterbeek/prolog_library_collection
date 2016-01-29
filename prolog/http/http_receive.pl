@@ -42,9 +42,10 @@ mediatype_pair(media(MT,_,N,_), N-MT).
 
 %! http_header(+Metadata, +Key, -Value) is nondet.
 
-http_header(M, Key, Value) :-
-  member(D, M.http.headers.Key),
-  Value = D.value.
+http_header(D, Key, Value) :-
+  get_dict(Key, D, D0s),
+  member(D0, D0s),
+  Value = D0.'llo:value'.
 
 
 

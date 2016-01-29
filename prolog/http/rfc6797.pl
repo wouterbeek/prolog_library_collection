@@ -1,7 +1,7 @@
 :- module(
   rfc6797,
   [
-    'strict-transport-security'//1 % ?Directives:list(or([string,pair(string)]))
+    'strict-transport-security'//1 % -Directives:list(dict)
   ]
 ).
 
@@ -10,32 +10,33 @@
 @author Wouter Beek
 @compat RFC 6797
 @see https://tools.ietf.org/html/rfc6797
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
      'quoted-string'//1, % -String:string
-     token//1 % -Token:string
+     token//1            % -Token:string
    ]).
 
 
 
 
 
-%! directive(?Directive:or([string,pair(string)]))// .
+%! directive(-Directive:dict)// is det.
 % ```abnf
 % directive = directive-name [ "=" directive-value ]
 % ```
 
-directive(T) -->
-  'directive-name'(N),
-  ("=" -> 'directive-value'(V), {T = N-V} ; {T = N}).
+directive(D2) -->
+  {D1 = _{'@type': 'llo:directive', 'llo:key': Key}},
+  'directive-name'(Key),
+  ("=" -> 'directive-value'(Value), {D2 = D1.put({'llo:value': Value})} ; {D2 = D1}).
 
 
 
-%! 'directive-name'(?Name:string)// .
+%! 'directive-name'(-Name:string)// is det.
 % ```abnf
 % directive-name = token
 % ```
@@ -44,7 +45,7 @@ directive(T) -->
 
 
 
-%! 'directive-value'(?Value:string)// .
+%! 'directive-value'(-Value:string)// is det.
 % ```abnf
 % directive-value = token | quoted-string
 % ```
@@ -54,7 +55,7 @@ directive(T) -->
 
 
 
-%! 'strict-transport-security'(?Directives:list(or([string,pair(string)])))// .
+%! 'strict-transport-security'(-Directives:list(dict))// is det.
 % ```abnf
 % Strict-Transport-Security = "Strict-Transport-Security" ":"
 %                             [ directive ]  *( ";" [ directive ] )
@@ -62,4 +63,5 @@ directive(T) -->
 
 'strict-transport-security'([H|T]) --> directive(H), !, *(sep_directive, T).
 'strict-transport-security'(L)     --> *(sep_directive, L).
+
 sep_directive(X) --> ";", ?('LWS'), directive(X).

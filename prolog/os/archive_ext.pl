@@ -59,13 +59,13 @@ archive_entry_path([H], '') :-
 % A non-raw archive entry: add its name to the path.
 archive_entry_path([H|T1], EntryPath2) :-
   archive_entry_path(T1, EntryPath1),
-  directory_file_path(EntryPath1, H.name, EntryPath2).
+  directory_file_path(EntryPath1, H.'llo:name', EntryPath2).
 
-% Succeeds if dictionary D describes a leaf node in a compression tree.
+% Succeeds if dictionary M describes a leaf node in a compression tree.
 % A leaf node in a compression tree describes an unarchived or raw file.
-is_unarchived(D) :-
-  D.name == data,
-  D.format == raw, !.
+is_unarchived(M) :-
+  M.'llo:name' == "data",
+  M.'llo:format' == "raw", !.
 
 
 
@@ -88,7 +88,7 @@ archive_extract(Source, Dir) :-
   call_on_archive(Source, archive_extract_entry(Dir)).
 
 archive_extract_entry(Dir, M, Read) :-
-  directory_file_path(Dir, M.archive_entry, Path),
+  directory_file_path(Dir, M.'llo:archive-entry', Path),
   setup_call_cleanup(
     open_any2(Path, write, Write, Close_0),
     copy_stream_data(Read, Write),
@@ -98,13 +98,7 @@ archive_extract_entry(Dir, M, Read) :-
 
 
 %! archive_info(+Source) is det.
-% Wrapper around archive_info/2 with default options.
-
-archive_info(Source) :-
-  archive_info(Source, []).
-
-
-%! archive_info(+Source, +Options:list(compound)) is det.
+%! archive_info(+Source, +Opts) is det.
 % Writes archive information for the given file or URL to current input.
 %
 % # Example
@@ -154,6 +148,9 @@ archive_info(Source) :-
 %   * indent(+nonneg)
 %     Default is 0.
 
+archive_info(Source) :-
+  archive_info(Source, []).
+
 archive_info(Source, Opts) :-
   option(indent(I), Opts, 0),
   call_on_archive(Source, [M,_Arch]>>print_dict(M, I), Opts).
@@ -161,18 +158,13 @@ archive_info(Source, Opts) :-
 
 
 %! call_on_archive(+Source, :Goal_2) is det.
-% Wrapper around call_on_archive/3 with default options.
+%! call_on_archive(+Source, :Goal_2, +Opts) is det.
+% Goal_2 called on a metadata dictionary and a read stream (in that order).
 %
 % @throws existence_error if an HTTP request returns an error code.
 
 call_on_archive(Source, Goal_2) :-
   call_on_archive(Source, Goal_2, []).
-
-
-%! call_on_archive(+Source, :Goal_2, +Options:list(compound)) is det.
-% Goal_2 called on a metadata dictionary and a read stream (in that order).
-%
-% @throws existence_error if an HTTP request returns an error code.
 
 call_on_archive(Source, Goal_2, Opts) :-
   option(archive_entry(Entry), Opts, _),
@@ -204,12 +196,34 @@ call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch) :-
   call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch).
 
 call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch) :-
-  merge_options([meta_data(MEntry)], Opts1, Opts2),
+  merge_options([meta_data(MEntry1)], Opts1, Opts2),
   archive_data_stream(Arch, Read, Opts2),
-  (   MEntry = [MEntry1|_],
-      MEntry1.name = Entry
-  ->  put_dict(archive_entry, M1, MEntry, M2),
+  maplist(jsonld_metadata, MEntry1, MEntry2),
+  (   MEntry2 = [MEntryH|_],
+      atom_string(Entry, MEntryH.'llo:name')
+  ->  M2 = M1.put(_{'llo:archive-entry': MEntry2}),
       call_cleanup(call(Goal_2, M2, Read), close(Read))
   ;   close(Read),
       fail
   ).
+
+jsonld_metadata(
+  archive_meta_data{
+    filetype: Filetype1,
+    filters: Filters1,
+    format: Format1,
+    mtime: Mtime,
+    name: Name1,
+    size: Size
+  },
+  _{
+    '@type': 'llo:archive-entry',
+    'llo:filetype': Filetype2,
+    'llo:filters': Filters2,
+    'llo:format': Format2,
+    'llo:mtime': Mtime,
+    'llo:name': Name2,
+    'llo:size': Size
+  }
+) :-
+  maplist(atom_string, [Filetype1,Format1,Name1|Filters1], [Filetype2,Format2,Name2|Filters2]).

@@ -2,14 +2,10 @@
   open_any2,
   [
     close_any2/1, % +Close_0
-    open_any2/4, % +Source, +Mode, -Stream, :Close_0
-    open_any2/5, % +Source
-                 % +Mode:oneof([append,read,write])
-                 % -Stream:stream
-                 % -Close_0
-                 % :Options:list(compound)
-    read_mode/1, % ?Mode:atom
-    write_mode/1 % ?Mode:atom
+    open_any2/4,  % +Source, +Mode, -Stream, -Close_0
+    open_any2/5,  % +Source, +Mode, -Stream, -Close_0, :Opts
+    read_mode/1,  % ?Mode
+    write_mode/1  % ?Mode
   ]
 ).
 
@@ -81,27 +77,8 @@ close_any2(Close_0) :-
 
 
 
-%! open_any2(
-%!   +Source,
-%!   +Mode:oneof([append,read,write]),
-%!   -Stream:stream,
-%!   +Close_0
-%! ) is det.
-% Wrapper around open_any2/5 with default options.
-%
-% @throws existence_error if an HTTP request returns an error code.
-
-open_any2(Source, Mode, Stream, Close_0) :-
-  open_any2(Source, Mode, Stream, Close_0, []).
-
-
-%! open_any2(
-%!   +Source,
-%!   +Mode:oneof([append,read,write]),
-%!   -Stream:stream,
-%!   +Close_0,
-%!   :Options:list(compound)
-%! ) is nondet.
+%! open_any2(+Source, +Mode, -Stream, -Close_0) is det.
+%! open_any2(+Source, +Mode, -Stream, -Close_0, :Opts) is nondet.
 % The following options are supported:
 %   * compress(+oneof([deflate,gzip,none]))
 %   * metadata(-dict)
@@ -110,10 +87,13 @@ open_any2(Source, Mode, Stream, Close_0) :-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
+open_any2(Source, Mode, Stream, Close_0) :-
+  open_any2(Source, Mode, Stream, Close_0, []).
+
 open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   meta_options(is_meta, Opts0, Opts1),
   source_type(Source0, Mode, Source, Type),
-  ignore(option(metadata(M), Opts1)),
+  ignore(option(metadata(D), Opts1)),
   open_any_options(Type, Opts1, Opts2),
 
   % We want more support for opening an HTTP IRI stream
@@ -135,20 +115,15 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   ;   Stream = Stream0,
       Close_0 = Close0_0
   ),
-  open_any_metadata(Source, Mode, Type, Comp, Opts2, M),
-  (   get_dict(http, M, MHttp),
-      is_http_error(MHttp.status_code)
-  ->  existence_error(open_any2, M)
+  open_any_metadata(Source, Mode, Type, Comp, Opts2, D),
+  (   get_dict('llo:status-code', D, Status),
+      is_http_error(Status)
+  ->  existence_error(open_any2, D)
   ;   true
   ).
 
 
-%! http_open2(
-%!   +Iri:atom,
-%!   +Read:stream,
-%!   +Close_0,
-%!   +Options:list(compound)
-%! ) is det.
+%! http_open2(+Iri, +Read, +Close_0, +Opts) is det.
 
 http_open2(Iri, Read, Close_0, Opts1) :-
   select_option(retry(N), Opts1, Opts2, 1),
@@ -156,8 +131,8 @@ http_open2(Iri, Read, Close_0, Opts1) :-
 
 http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
   copy_term(Opts1, Opts2),
-  call_time(catch(http_open(Iri, Read2, Opts2), Exception, true), Time),
-  (   var(Exception)
+  call_time(catch(http_open(Iri, Read2, Opts2), E, true), Time),
+  (   var(E)
   ->  option(status_code(Status), Opts2),
       must_be(ground, Status),
       (   is_http_error(Status)
@@ -176,7 +151,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
           Close_0 = close(Read1),
           Opts1 = Opts2
       )
-  ;   message_to_string(Exception, S),
+  ;   message_to_string(E, S),
       msg_warning("[HTTP] time: ~fsec; message: ~s~n", [Time,S]),
       fail
   ).
@@ -187,7 +162,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
 
 % HELPERS %
 
-%! base_iri(+Source, -BaseIri:atom) is det.
+%! base_iri(+Source, -BaseIri) is det.
 
 % The IRI that is read from, sans the fragment component.
 base_iri(Iri, BaseIri) :-
@@ -202,12 +177,7 @@ base_iri(File, BaseIri) :-
 
 
 
-%! http_error_message(
-%!   +Iri:atom,
-%!   +Status:between(100,599),
-%!   +Lines:list(list(code)),
-%!   +Read:stream
-%! ) is det.
+%! http_error_message(+Iri, +Status, +Lines:list(list(code)), +Read) is det.
 
 http_error_message(Iri, Status, Lines, Read) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
@@ -226,113 +196,82 @@ http_error_message(Iri, Status, Lines, Read) :-
 
 
 
-%! open_any_metadata(
-%!   +Source,
-%!   +Mode:oneof([append,read,write]),
-%!   +Type:oneof([file_iri,http_iri,stream,string]),
-%!   +Compress:oneof([deflate,gzip]),
-%!   +Options:list(compound),
-%!   -Metadata:dict
-%! ) is det.
+%! open_any_metadata(+Source, +Mode, +Type, +Compress, +Opts, -Metadata) is det.
 
-open_any_metadata(Source, Mode, Type, Comp, Opts, M4) :- !,
-  % File-type specific.
-  (   Type == file_iri
+open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
+  atomic_list_concat([llo,Type1], :, Type2),
+  D1 = _{'@type': Type2},
+  (   Type1 == file_iri
   ->  base_iri(Source, BaseIri),
-      M1 = metadata{base_iri: BaseIri, source_type: file_iri}
-  ;   Type == http_iri
+      D2 = D1.put({'llo:base-iri': BaseIri})
+  ;   Type1 == http_iri
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
-      option(status_code(StatusCode), Opts),
-      option(version(Version), Opts),
-      maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
-      create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-      exclude(
-        pair_has_var_value,
-        [
-          final_iri-FinalIri,
-          headers-MHeaders,
-          status_code-StatusCode,
-          version-Version
-        ],
-        MPairs
-      ),
-      dict_pairs(MHttp, http, MPairs),
-      M1 = metadata{base_iri: BaseIri, http: MHttp, source_type: http_iri}
-  ;   M1 = metadata{}
+      option(status_code(Status), Opts),
+      option(version(Major-Minor), Opts),
+      maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, L0),
+      create_grouped_sorted_dict(L0, D01),
+      D02 = D1.put(
+          _{
+            'llo:base-iri': BaseIri,
+            'llo:final-iri': FinalIri,
+            'llo:status-code': Status,
+            'llo:version': _{'@type': 'llo:version', 'llo:major': Major, 'llo:minor': Minor}
+          }),
+      D2 = D02.put(D01)
+  ;   D2 = D1
   ),
-
-  % Mode.
-  put_dict(mode, M1, Mode, M2),
-
-  % Compression.
-  (   write_mode(Mode),
-      ground(Comp)
-  ->  put_dict(compress, M2, Comp, M3)
-  ;   M3 = M2
-  ),
-
-  % Source type.
-  put_dict(source_type, M3, Type, M4).
+  atomic_list_concat([llo,Mode1], :, Mode2),
+  D3 = D2.put(_{'llo:mode': Mode2}),
+  (write_mode(Mode1), ground(Comp)-> D4 = D3.put(_{'llo:compress': Comp}) ; D4 = D3).
 
 
 
-%! open_any_options(
-%!   +Type:oneof([file_iri,http_iri,stream,string]),
-%!   +Options:list(compound),
-%!   -OpenOptions:list(compound)
-%! ) is det.
+%! open_any_options(+Type, +Opts, -OpenOpts) is det.
 
 open_any_options(http_iri, Opts1, Opts3) :- !,
-  Opts2 = [
-    cert_verify_hook(cert_accept_any),
-    final_url(_),
-    raw_headers(_),
-    status_code(_),
-    version(_)
-  ],
+  Opts2 = [cert_verify_hook(cert_accept_any),final_url(_),raw_headers(_),status_code(_),version(_)],
   merge_options(Opts1, Opts2, Opts3).
 open_any_options(_, Opts, Opts).
 
 
 
-%! read_mode(+Mode:atom) is semidet.
-%! read_mode(-Mode:atom) is multi.
+%! read_mode(+Mode) is semidet.
+%! read_mode(-Mode) is multi.
+% Mode is one of the following values:
+%   - read
 
 read_mode(read).
 
 
 
-%! source_type(
-%!   +Source0,
-%!   +Mode:oneof([append,read,write]),
-%!   -Source,
-%!   -Type:oneof([file_iri,http_iri,stream,string])
-%! ) is nondet.
+%! source_type(+Source0, +Mode, -Source, -Type) is nondet.
+% Type has either of the following values:
+%   - file_iri
+%   - http_iri
+%   - steam
+%   - string
 
-source_type(stream(Stream), _, Stream, stream) :- !.
-source_type(string(S), _, S, string) :- !.
-source_type(Stream, _, Stream, stream) :-
-  is_stream(Stream), !.
-source_type(Iri, _, Iri, file_iri) :-
-  is_file_iri(Iri), !.
-source_type(Iri, _, Iri, http_iri) :-
-  is_http_iri(Iri), !.
-source_type(File, _, Iri, file_iri) :-
+source_type(stream(Stream), _,    Stream, stream  ) :- !.
+source_type(string(S),      _,    S,      string  ) :- !.
+source_type(Stream,         _,    Stream, stream  ) :- is_stream(Stream), !.
+source_type(Iri,            _,    Iri,    file_iri) :- is_file_iri(Iri), !.
+source_type(Iri,            _,    Iri,    http_iri) :- is_http_iri(Iri), !.
+source_type(File,           _,    Iri,    file_iri) :-
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-source_type(Pattern, Mode, Iri, Type) :-
-  absolute_file_name(
-    Pattern,
-    File,
-    [access(Mode),expand(true),file_errors(error),solutions(first)]
-  ),
+source_type(Pattern,        Mode, Iri, Type) :-
+  absolute_file_name(Pattern, File, [access(Mode),expand(true),file_errors(error),solutions(first)]),
   source_type(File, Mode, Iri, Type).
 
 
-%! write_mode(+Mode:atom) is semidet.
-%! write_mode(-Mode:atom) is multi.
+
+%! write_mode(+Mode) is semidet.
+%! write_mode(-Mode) is multi.
+% Mode is one of the following values:
+%   - append
+%   - write
 
 write_mode(append).
 write_mode(write).

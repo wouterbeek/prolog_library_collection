@@ -87,11 +87,11 @@ file_extensions(File, Exts) :-
 
 file_name(M, Name) :-
   % The Content-Disposition HTTP header may contain the intended file name.
-  http_header(M, 'content-disposition', ContentDisposition),
+  http_header(M, 'llo:content-disposition', ContentDisposition),
   get_dict(ContentDisposition, filename, Base0),
 
   % An archive may add an entry path to the archive file path.
-  (   get_dict(M, archive_entry, ArchiveEntry),
+  (   get_dict(M, 'llo:archive-entry', ArchiveEntry),
       archive_entry_path(ArchiveEntry, ArchiveEntryPath)
   ->  directory_file_path(Base0, ArchiveEntryPath, Base)
   ;   Base = Base0

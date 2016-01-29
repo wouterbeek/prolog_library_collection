@@ -290,9 +290,9 @@ ipv_future_code(0':) --> ":".
 % ls32 = ( h16 ":" h16 ) / IPv4address
 % ```
 
-ls32(_{'@type': 'llh:h16', 'rdf:value': [H16a,H16b]}) -->
+ls32(_{'@type': 'llo:h16', 'rdf:value': [H16a,H16b]}) -->
   h16(H16a), ":", h16(H16b), !.
-ls32(_{'@type': 'llh:IPv4address', 'rdf:value': Ipv4Address}) -->
+ls32(_{'@type': 'llo:IPv4address', 'rdf:value': Ipv4Address}) -->
   'IPv4address'(Ipv4Address).
 
 

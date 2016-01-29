@@ -1,11 +1,11 @@
 :- module(
   http11,
   [
-    'field-name'//1, % -Name:string
+    'field-name'//1,   % -Name:string
     'header-field'//1, % -Header:pair
-    method//1, % -Method:string
+    method//1,         % -Method:string
     'OWS'//0,
-    'rfc850-date'//1 % -Lex
+    'rfc850-date'//1   % -Lex:string
   ]
 ).
 
@@ -126,7 +126,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(apply)).
@@ -136,23 +136,23 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'CHAR'//1, % ?Code:code
+     'ALPHA'//1,  % ?Code:code
+     'CHAR'//1,   % ?Code:code
      'CR'//0,
      'CRLF'//0,
      'CTL'//0,
-     'CTL'//1, % ?Code:code
-     'DIGIT'//1, % ?Weight:nonneg
-     'DIGIT'//2, % ?Weight:nonneg, ?Code:code
+     'CTL'//1,    % ?Code:code
+     'DIGIT'//1,  % ?Weight:nonneg
+     'DIGIT'//2,  % ?Weight:nonneg, ?Code:code
      'DQUOTE'//0,
      'HEXDIG'//1, % ?Weight:nonneg
      'HTAB'//0,
-     'HTAB'//1, % ?Code:code
+     'HTAB'//1,   % ?Code:code
      'LF'//0,
-     'OCTET'//1, % ?Code:code
+     'OCTET'//1,  % ?Code:code
      'SP'//0,
-     'SP'//1, % ?Code:code
-     'VCHAR'//1 % ?Code:code
+     'SP'//1,     % ?Code:code
+     'VCHAR'//1   % ?Code:code
    ]).
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
@@ -172,14 +172,15 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      mailbox//1 % -Pair:pair(string)
    ]).
 :- use_module(library(pair_ext)).
+:- use_module(library(rdf11/rdf11)).
 :- use_module(library(uri/rfc3986), [
-     'absolute-URI'//1, % -AbsoluteUri:dict
-     fragment//1, % -Fragment:string
+     'absolute-URI'//1,     % -AbsoluteUri:dict
+     fragment//1,           % -Fragment:string
      host//1 as 'uri-host', % -Host:dict
-     port//1, % -Port:nonneg
-     query//1, % -Query:string
-     'relative-part'//1, % -RelativeUri:dict
-     'URI-reference'//1 % -UriReference:dict
+     port//1,               % -Port:nonneg
+     query//1,              % -Query:string
+     'relative-part'//1,    % -RelativeUri:dict
+     'URI-reference'//1     % -UriReference:dict
    ]).
 
 
@@ -194,9 +195,9 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 accept(L) --> '*#'(accept_value, L).
 
 accept_value(D2) -->
-  {D1 = _{'@type': 'llh:accept-value', 'llh:media-range': MediaRange}},
+  {D1 = _{'@type': 'llo:accept-value', 'llo:media-range': MediaRange}},
   'media-range'(MediaRange),
-  ('accept-params'(Params) -> {D2 = D1.put({'llh:accept-params': Params})} ; {D2 = D1}).
+  ('accept-params'(Params) -> {D2 = D1.put(_{'llo:accept-params': Params})} ; {D2 = D1}).
 
 
 
@@ -209,8 +210,8 @@ accept_value(D2) -->
 
 accept_charset_value(D2) -->
   ("*" -> {Charset = "*"} ; charset(Charset)),
-  {D1 = _{'@type': 'llh:character-set', 'llh:charset': Charset}},
-  (weight(Weight) -> {D2 = D1.put({'llh:weight': Weight})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:character-set', 'llo:charset': Charset}},
+  (weight(Weight) -> {D2 = D1.put(_{'llo:weight': Weight})} ; {D2 = D1}).
 
 
 
@@ -222,9 +223,9 @@ accept_charset_value(D2) -->
 'accept-encoding'(L) --> '*#'(accept_encoding_value, L).
 
 accept_encoding_value(D2) -->
-  {D1 = _{'llh:codings': Codings}},
+  {D1 = _{'llo:codings': Codings}},
   codings(Codings),
-  (weight(Weight) -> {D2 = D1.put({'llh:weight': Weight})} ; {D2 = D1}).
+  (weight(Weight) -> {D2 = D1.put(_{'llo:weight': Weight})} ; {D2 = D1}).
 
 
 
@@ -236,8 +237,8 @@ accept_encoding_value(D2) -->
 'accept-ext'(D2) -->
   'OWS', ";", 'OWS',
   token(Key),
-  {D1 = accept_ext{'@type': 'llh:parameter', 'llh:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put({'llh:value': Value})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
+  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 
@@ -250,8 +251,8 @@ accept_encoding_value(D2) -->
 
 accept_language_value(D2) -->
   'language-range'(LanguageRange),
-  {D1 = _{'llh:language-range': LanguageRange}},
-  (weight(Weight) -> {D2 = D1.put({'llh:weight': Weight})} ; {D2 = D1}).
+  {D1 = _{'llo:language-range': LanguageRange}},
+  (weight(Weight) -> {D2 = D1.put(_{'llo:weight': Weight})} ; {D2 = D1}).
 
 
 
@@ -260,7 +261,7 @@ accept_language_value(D2) -->
 % accept-params = weight *( accept-ext )
 % ```
 
-'accept-params'(_{'@type': 'llh:accept-parameters', 'llh:weignt': Weight, 'llh:accept-ext': Exts}) -->
+'accept-params'(_{'@type': 'llo:accept-parameters', 'llo:weignt': Weight, 'llo:accept-ext': Exts}) -->
   weight(Weight),
   *('accept-ext', Exts).
 
@@ -309,7 +310,7 @@ allow(L) --> '*#'(method, L).
 
 'asctime-date'(Lex) -->
   'day-name'(D), 'SP', date3(Mo, D), 'SP', 'time-of-day'(H, Mi, S), 'SP', year(Y),
-  {in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
 
 
 
@@ -318,7 +319,7 @@ allow(L) --> '*#'(method, L).
 % auth-param = token BWS "=" BWS ( token | quoted-string )
 % ```
 
-'auth-param'(_{'@type': 'llh:parameter', 'llh:key': Key, 'llh:value': Value}) -->
+'auth-param'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
   token(Key), 'BWS', "=", 'BWS', (token(Value), ! ; 'quoted-string'(Value)).
 
 
@@ -360,8 +361,8 @@ authorization(D) --> credentials(D).
   'SP',
   ('byte-range-resp'(Range, Length), ! ; 'unsatisfied-range'(Range, Length)),
   {
-    D1 = _{'@type': 'llh:byte-content-range', 'llh:range': Range, 'llh:unit': "bytes"},
-    (var(Length) -> D2 = D1 ; D2 = D1.put({'llh:length': Length}))
+    D1 = _{'@type': 'llo:byte-content-range', 'llo:range': Range, 'llo:unit': "bytes"},
+    (var(Length) -> D2 = D1 ; D2 = D1.put(_{'llo:length': Length}))
   }.
 
 
@@ -371,7 +372,7 @@ authorization(D) --> credentials(D).
 % byte-range = first-byte-pos "-" last-byte-pos
 % ```
 
-'byte-range'(byte_range{'@type': 'llh:byte-range', 'llh:first-byte-pos': First, 'llh:last-byte-pos': Last}) -->
+'byte-range'(_{'@type': 'llo:byte-range', 'llo:first-byte-pos': First, 'llo:last-byte-pos': Last}) -->
   'first-byte-pos'(First), "-", 'last-byte-pos'(Last).
 
 
@@ -394,8 +395,8 @@ authorization(D) --> credentials(D).
 'byte-range-spec'(D2) -->
   'first-byte-pos'(First),
   "-",
-  {D1 = byte_range_spec{'@type': 'llh:byte-range-spec', 'llh:first': First}},
-  ('last-byte-pos'(Last) -> {D2 = D1.put({'llh:last': Last})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:byte-range-spec', 'llo:first': First}},
+  ('last-byte-pos'(Last) -> {D2 = D1.put(_{'llo:last': Last})} ; {D2 = D1}).
 
 
 
@@ -404,11 +405,7 @@ authorization(D) --> credentials(D).
 % byte-ranges-specifier = bytes-unit "=" byte-range-set
 % ```
 
-'byte-ranges-specifier'(byte_ranges_specifier{
-  '@type': 'llh:byte-ranges-specifier',
-  'llh:byte-range-set': Ranges,
-  'bytes-unit': "bytes"
-}) -->
+'byte-ranges-specifier'(_{'@type': 'llo:byte-ranges-specifier', 'llo:byte-range-set': Ranges, 'bytes-unit': "bytes"}) -->
   'bytes-unit', "=", 'byte-range-set'(Ranges).
 
 
@@ -450,8 +447,8 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 
 'cache-directive'(D2) -->
   token(Key),
-  {D1 = cache_directive{'@type': 'llh:cache-directive', 'llh:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put({'llh:value': Value})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:cache-directive', 'llo:key': Key}},
+  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 /*
 cache_request_directive('no-cache') --> "no-cache".
@@ -481,10 +478,10 @@ cache_response_directive('s-maxage'(Delta)) --> 'delta-seconds'(Delta).
 
 challenge(D2) -->
   'auth-scheme'(AuthScheme),
-  {D1 = _{'@type': 'llh:challenge', 'llh:auth-scheme': AuthScheme}},
+  {D1 = _{'@type': 'llo:challenge', 'llo:auth-scheme': AuthScheme}},
   (   +('SP')
   ->  ('*#'('auth-param', Params), ! ; token68(S), {Params = [S]}),
-      {D2 = D1.put({'llh:parameters': Params})}
+      {D2 = D1.put(_{'llo:parameters': Params})}
   ;   {D2 = D1}
   ).
 
@@ -506,7 +503,7 @@ charset(S) --> token(S).
 %
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
-chunk(chunk{'@type': 'llh:chunk', 'llh:chunk-data': Cs, 'llh:chunk-ext': Exts, 'llh:chunk-size': Size}) -->
+chunk(_{'@type': 'llo:chunk', 'llo:chunk-data': Cs, 'llo:chunk-ext': Exts, 'llo:chunk-size': Size}) -->
   'chunk-size'(Size), 'chunk-ext'(Exts), 'CRLF', 'chunk-data'(Cs), 'CRLF'.
 
 
@@ -529,8 +526,8 @@ chunk(chunk{'@type': 'llh:chunk', 'llh:chunk-data': Cs, 'llh:chunk-ext': Exts, '
 
 sep_chunk_ext(D2) -->
   ";", 'chunk-ext-name'(Key),
-  {D1 = _{'llh:key': Key}},
-  ("=" -> 'chunk-ext-val'(Value), {D2 = D1.put({'llh:value': Value})} ; {D2 = D1}).
+  {D1 = _{'llo:key': Key}},
+  ("=" -> 'chunk-ext-val'(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 
@@ -683,10 +680,10 @@ connection(L) --> +#('connection-option', L).
 
 credentials(D2) -->
   'auth-scheme'(AuthScheme),
-  {D1 = _{'llh:auth-scheme': AuthScheme}},
+  {D1 = _{'llo:auth-scheme': AuthScheme}},
   (   +('SP')
   ->  (token68(S) -> {Params = [S]} ; '*#'('auth-param', Params)),
-      {D2 = D1.put({'llh:parameters': Params})}
+      {D2 = D1.put(_{'llo:parameters': Params})}
   ;   {D2 = D1}
   ).
 
@@ -873,8 +870,8 @@ expect("100-continue") --> atom_ci('100-continue').
 
 'extension-pragma'(D2) -->
   token(Key),
-  {D1 = _{'@type': 'llh:parameter', 'llh:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put({'llh:value': Value})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
+  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 
@@ -890,21 +887,21 @@ expect("100-continue") --> atom_ci('100-continue').
           'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
-      ->  {D = 'field-content'{'llh:parser': "valid", 'llh:value': Value}}
+      ->  {D = _{'llo:parser': "valid", 'llo:value': Value}}
       ;   % Empty value.
           phrase('obs-fold')
-      ->  {D = 'field-content'{'llh:parser': "empty"}}
-      ;	  % Buggy value.
+      ->  {D = _{'llo:parser': "empty"}}
+      ;    % Buggy value.
           rest(Cs),
           {
-            D = 'field-content'{'llh:parser': "invalid"},
+            D = _{'llo:parser': "invalid"},
             debug(http(parse), "Buggy HTTP header ~a: ~s", [Key,Cs])
           }
       )
   ;   % Unknown unknown key.
       rest(Cs),
       {
-        D = 'field-content'{'llh:parser': "unrecognized"},
+        D = _{'llo:parser': "unrecognized"},
         (   known_unknown(Key)
         ->  true
         ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key,Cs])
@@ -1000,7 +997,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 'field-value'(Cs, Key, D2) :-
   phrase('field-content'(Key, D1), Cs),
   string_codes(Raw, Cs),
-  D2 = D1.put({'llh:raw', Raw}).
+  D2 = D1.put(_{'llo:raw': Raw}).
 
 
 
@@ -1036,10 +1033,11 @@ from(D) --> mailbox(D).
 % header-field = field-name ":" OWS field-value OWS
 % ```
 
-'header-field'(Key-D) -->
-  'field-name'(Key0), {atom_string(Key, Key0)},
+'header-field'(Key3-D) -->
+  'field-name'(Key2), {atom_string(Key1, Key2)},
   ":", 'OWS',
-  rest(Cs), {'field-value'(Cs, Key, D)}.
+  rest(Cs), {'field-value'(Cs, Key1, D)},
+  {atomic_list_concat([llo,Key1], :, Key3)}.
 
 
 
@@ -1050,8 +1048,8 @@ from(D) --> mailbox(D).
 
 host(D2) -->
   'uri-host'(UriHost),
-  {D1 = host{'@type': 'llh:host', 'llh:uri-host': UriHost}},
-  (":" -> port(Port), {D2 = D1.put({'llh:port', Port})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:host', 'llo:uri-host': UriHost}},
+  (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1}).
 
 
 
@@ -1070,7 +1068,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % ```
 
 'HTTP-date'(_{'@type': Class, 'rdf:value': Lex}) -->
-  ('IMF-fixdate'(Lex) -> {Class = 'llh:IMF-fixdate'} ; 'obs-date'(Class, Lex)).
+  ('IMF-fixdate'(Lex) -> {Class = 'llo:IMF-fixdate'} ; 'obs-date'(Class, Lex)).
 
 
 
@@ -1079,7 +1077,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % If-Match = "*" | 1#entity-tag
 % ```
 
-'if-match'(if_match{'@type': 'llh:if-match', 'rdf:type': L}) -->
+'if-match'(_{'@type': 'llo:if-match', 'rdf:type': L}) -->
   ("*" -> {L = []} ; +#('entity-tag', L)).
 
 
@@ -1098,12 +1096,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % If-None-Match = "*" | 1#entity-tag
 % ```
 
-'if-none-match'(
-  if_none_match{
-    '@type': 'llh:if-none-match',
-    'rdf:value': L
-  }
-) -->
+'if-none-match'(_{'@type': 'llo:if-none-match', 'rdf:value': L}) -->
   ("*" -> {L = []} ; +#('entity-tag', L)).
 
 
@@ -1127,7 +1120,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 
 
 
-%! 'IMF-fixdate'(-Lex)// is det.
+%! 'IMF-fixdate'(-Lex:string)// is det.
 % ```abnf
 % IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
 %             ; fixed length/zone/capitalization subset of the format
@@ -1143,7 +1136,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
   'time-of-day'(H, Mi, S),
   'SP',
   'GMT',
-  {in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
 
 
 
@@ -1202,7 +1195,14 @@ location(Uri) --> 'URI-reference'(Uri).
 %               ) *( OWS ";" OWS parameter )
 % ```
 
-'media-range'(media_range{parameters: Parameters, subtype: Subtype, type: Type}) -->
+'media-range'(
+  _{
+    '@type': 'llo:media-range',
+    'llo:parameters': Parameters,
+    'llo:subtype': Subtype,
+    'llo:type': Type
+  }
+) -->
   (   "*/*"
   ->  {Subtype = "*", Type = "*"}
   ;   type(Type), "/*"
@@ -1218,12 +1218,12 @@ location(Uri) --> 'URI-reference'(Uri).
 % media-type = type "/" subtype *( OWS ";" OWS parameter )
 % ```
 
-'media-type'(media_type{type: Type, subtype: Subtype, parameters: Params}) -->
-  type(Type),
-  "/",
-  subtype(Subtype),
-  *(sep_parameter, Params).
-sep_parameter(Param) --> 'OWS', ";", 'OWS', parameter(Param).
+'media-type'(D2) -->
+  {D1 = _{'@type': 'llo:media-type', 'llo:type': Type, 'llo:subtype': Subtype}},
+  type(Type), "/", subtype(Subtype),
+  (+(sep_parameter, L) -> {D2 = D1.put({'llo:parameters': L})} ; {D2 = D1}).
+
+sep_parameter(Parameter) --> 'OWS', ";", 'OWS', parameter(Parameter).
 
 
 
@@ -1295,13 +1295,13 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-date'(-Class, -Lex)// is det.
+%! 'obs-date'(-Class:iri, -Lex:string)// is det.
 % ```abnf
 % obs-date = rfc850-date | asctime-date
 % ```
 
-'obs-date'('llh:rfc850-date', Lex)  --> 'rfc850-date'(Lex), !.
-'obs-date'('llh:asctime-date', Lex) --> 'asctime-date'(Lex).
+'obs-date'('llo:rfc850-date', Lex)  --> 'rfc850-date'(Lex), !.
+'obs-date'('llo:asctime-date', Lex) --> 'asctime-date'(Lex).
 
 
 
@@ -1376,14 +1376,14 @@ month(12) --> atom_ci('Dec').
 % other-ranges-specifier = other-range-unit "=" other-range-set
 % ```
 
-'other-ranges-specifier'(_{
-  '@type': 'llh:other-ranges-specifier',
-  'llh:other-range-unit': OtherRangeUnit,
-  'llh:other-range-set': OtherRangeSet
-}) -->
-  'other-range-unit'(OtherRangeUnit),
-  "=",
-  'other-range-set'(OtherRangeSet).
+'other-ranges-specifier'(
+  _{
+    '@type': 'llo:other-ranges-specifier',
+    'llo:other-range-unit': OtherRangeUnit,
+    'llo:other-range-set': OtherRangeSet
+  }
+) -->
+  'other-range-unit'(OtherRangeUnit), "=", 'other-range-set'(OtherRangeSet).
 
 
 
@@ -1401,7 +1401,7 @@ month(12) --> atom_ci('Dec').
 % parameter = token "=" ( token | quoted-string )
 % ```
 
-parameter(_{'@type': 'llh:parameter', 'llh:key': Key, 'llh:value': Value}) -->
+parameter(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
   token(Key),
   "=",
   (token(Value), ! ; 'quoted-string'(Value)).
@@ -1415,7 +1415,7 @@ parameter(_{'@type': 'llh:parameter', 'llh:key': Key, 'llh:value': Value}) -->
 
 'partial-URI'(D2) -->
   'relative-part'(D1),
-  ("?" -> query(Query), {D2 = D1.put({'uri:query': Query})} ; {D2 = D1}).
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}).
 
 
 
@@ -1445,8 +1445,8 @@ pragma(L) --> +#('pragma-directive', L).
 
 product(D2) -->
   token(Name),
-  {D1 = _{'@type': 'llh:product', 'llh:name': Name}},
-  ("/" -> 'product-version'(Version), {D2 = D1.put({'llh:version': Version})} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:product', 'llo:name': Name}},
+  ("/" -> 'product-version'(Version), {D2 = D1.put(_{'llo:version': Version})} ; {D2 = D1}).
 
 
 
@@ -1484,8 +1484,8 @@ product(D2) -->
 
 protocol(D2) -->
   'protocol-name'(Name),
-  {D1 = _{'@type': 'llh:protocol', 'llh:protocol': Name}},
-  ("/" -> 'protocol-version'(Version), {D2 = D1.put('protocol-version', Version)} ; {D2 = D1}).
+  {D1 = _{'@type': 'llo:protocol', 'llo:protocol': Name}},
+  ("/" -> 'protocol-version'(Version), {D2 = D1.put({'protocol-version': Version})} ; {D2 = D1}).
 
 
 
@@ -1565,7 +1565,7 @@ qvalue(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 % Range = byte-ranges-specifier | other-ranges-specifier
 % ```
 
-range(_{'@type': 'llh:range', 'rdf:value': D}) -->
+range(_{'@type': 'llo:range', 'rdf:value': D}) -->
   ('byte-ranges-specifier'(D), ! ; 'other-ranges-specifier'(D)).
 
 
@@ -1595,10 +1595,10 @@ rank(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 % received-by = ( uri-host [ ":" port ] ) | pseudonym
 % ```
 
-'received-by'(_{'@type': 'llh:receiver', 'llh:uri-host': UriHost, 'llh:port': Port}) -->
+'received-by'(_{'@type': 'llo:receiver', 'llo:uri-host': UriHost, 'llo:port': Port}) -->
   'uri-host'(UriHost), !,
   (":" -> port(Port) ; {Port = 80}).
-'received-by'(_{'@type': 'llh:receiver', 'llh:pseudonym': Pseudonym}) --> pseudonym(Pseudonym).
+'received-by'(_{'@type': 'llo:receiver', 'llo:pseudonym': Pseudonym}) --> pseudonym(Pseudonym).
 
 
 
@@ -1608,8 +1608,8 @@ rank(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 % ```
 
 'received-protocol'(D2) -->
-  {D1 = _{'@type': 'llh:protocol', 'llh:version': Version}},
-  ('protocol-name'(Name), "/" -> {D2 = D1.put({'llh:name': Name})} ; {D2 = D1}),
+  {D1 = _{'@type': 'llo:protocol', 'llo:version': Version}},
+  ('protocol-name'(Name), "/" -> {D2 = D1.put(_{'llo:name': Name})} ; {D2 = D1}),
   'protocol-version'(Version).
 
 
@@ -1633,7 +1633,7 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 
 
 
-%! 'rfc850-date'(-Lex)// is det.
+%! 'rfc850-date'(-Lex:string)// is det.
 % ```abnf
 % rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
 % ```
@@ -1647,7 +1647,7 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
   'time-of-day'(H, Mi, S),
   'SP',
   'GMT',
-  {in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
 
 
 
@@ -1713,8 +1713,8 @@ subtype(S) --> token(S).
 't-codings'("trailers") --> atom_ci(trailers).
 't-codings'(D2) -->
   'transfer-coding'(TransferCoding),
-  {D1 = _{'llh:transfer-coding': TransferCoding}},
-  ('t-ranking'(Rank) -> {D2 = D1.put({'llh:t-ranking': Rank})} ; {D2 = D1}).
+  {D1 = _{'llo:transfer-coding': TransferCoding}},
+  ('t-ranking'(Rank) -> {D2 = D1.put(_{'llo:t-ranking': Rank})} ; {D2 = D1}).
 
 
 
@@ -1839,9 +1839,10 @@ trailer(L) --> +#('field-name', L).
 % transfer-extension = token *( OWS ";" OWS transfer-parameter )
 % ```
 
-'transfer-extension'(_{'@type': 'llh:transfer-extension', 'llh:token': H, 'llh:parameters': T}) -->
+'transfer-extension'(_{'@type': 'llo:transfer-extension', 'llo:token': H, 'llo:parameters': T}) -->
   token(H),
   *(sep_transfer_parameter, T).
+
 sep_transfer_parameter(Param) --> 'OWS', ";", 'OWS', 'transfer-parameter'(Param).
 
 
@@ -1851,7 +1852,7 @@ sep_transfer_parameter(Param) --> 'OWS', ";", 'OWS', 'transfer-parameter'(Param)
 % transfer-parameter = token BWS "=" BWS ( token | quoted-string )
 % ```
 
-'transfer-parameter'(_{'@type': 'llh:parameter', 'llh:key': Key, 'llh:value': Value}) -->
+'transfer-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
   token(Key),
   'BWS',
   "=",
@@ -1916,8 +1917,8 @@ via_component(D2) -->
   'received-protocol'(ReceivedProtocol),
   'RWS',
   'received-by'(ReceivedBy),
-  {D1 = via{'llh:received-protocol': ReceivedProtocol, 'llh:received-by': ReceivedBy}},
-  ('RWS' -> comment(Z), {D2 = D1.put('llh:comment', Z)} ; {D2 = D1}).
+  {D1 = _{'llo:received-protocol': ReceivedProtocol, 'llo:received-by': ReceivedBy}},
+  ('RWS' -> comment(Z), {D2 = D1.put('llo:comment', Z)} ; {D2 = D1}).
 
 
 
@@ -1930,12 +1931,12 @@ via_component(D2) -->
 % ```
 
 'warn-agent'(D3) -->
-  {D1 = agent{'@type': 'llh:warn-agent'}},
+  {D1 = _{'@type': 'llo:warn-agent'}},
   (   'uri-host'(UriHost),
-      (":" -> port(Port), {D2 = D1.put({'llh:port', Port})} ; {D2 = D1})
-  ->  {D3 = D2.put({'llh:uri-host': UriHost})}
+      (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1})
+  ->  {D3 = D2.put(_{'llo:uri-host': UriHost})}
   ;   pseudonym(Pseudonym)
-  ->  {D3 = D1.put({'llh:pseudonym': Pseudonym})}
+  ->  {D3 = D1.put(_{'llo:pseudonym': Pseudonym})}
   ).
 
 
@@ -1988,14 +1989,18 @@ warning(L) --> +#('warning-value', L).
   'warn-agent'(WarnAgent),
   'SP',
   'warn-text'(WarnText),
-  {D1 = warning_value{
-	  '@type': 'llh:warning-value',
-	  'llh:warn-agent': WarnAgent,
-	  'llh:warn-code': WarnCode,
-	  'llh:warn-text': WarnText
-	}
+  {D1 = _{
+      '@type': 'llo:warning-value',
+      'llo:warn-agent': WarnAgent,
+      'llo:warn-code': WarnCode,
+      'llo:warn-text': WarnText
+    }
   },
-  ('SP' -> 'warn-date'(WarnDate), {D2 = D1.put({'llh:warn-date', WarnDate})} ; {D2 = D1}).
+  (   'SP'
+  ->  'warn-date'(WarnDate),
+      {D2 = D1.put(_{'llo:warn-date': WarnDate})}
+  ;   {D2 = D1}
+  ).
 
 
 

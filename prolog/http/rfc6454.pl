@@ -1,16 +1,14 @@
 :- module(
   rfc6454,
   [
-    has_same_origin/2, % +X:or([atom,dict])
-                       % +Y:or([atom,dict])
+    has_same_origin/2,        % +Uri1, +Uri2
     'obs-fold'//0,
-    origin/2, % +Uri:atom
-              % -Origin:or([atom,dict])
-    origin//1, % -Origins:list(dict)
+    origin/2,                 % +Uri, -Origin:dict
+    origin//1,                % -Origins:list(dict)
     'origin-list-or-null'//1, % -Origins:list(dict)
-    'origin-list'//1, % -Origins:list(dict)
+    'origin-list'//1,         % -Origins:list(dict)
     'OWS'//0,
-    'serialized-origin'//1 % -Origin:dict
+    'serialized-origin'//1    % -Origin:dict
   ]
 ).
 
@@ -20,30 +18,28 @@
 @compat RFC 6454
 @license MIT License
 @see http://tools.ietf.org/html/rfc6454
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'CHAR'//1, % ?Code:code
+     'ALPHA'//1, % ?Code
+     'CHAR'//1, % ?Code
      'CR'//0,
      'CRLF'//0,
-     'CTL'//1, % ?Code:code
+     'CTL'//1, % ?Code
      'DIGIT'//1, % ?Weight
-     'DIGIT'//2, % ?Weight:between(0,9)
-                 % ?Code:code
+     'DIGIT'//2, % ?Weight:between(0,9), ?Code
      'DQUOTE'//0,
      'HEXDIG'//1, % ?Weight
-     'HEXDIG'//2, % ?Weight:between(0,9)
-                  % ?Code:code
+     'HEXDIG'//2, % ?Weight:between(0,9), ?Code
      'HTAB'//0,
      'LF'//0,
-     'OCTET'//1, % ?Code:code
+     'OCTET'//1, % ?Code
      'SP'//0,
-     'VCHAR'//1, % ?Code:code
+     'VCHAR'//1, % ?Code
      'WSP'//0
    ]).
 :- use_module(library(default)).
@@ -51,7 +47,7 @@
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986), [
-     host//1, % -Host:compound
+     host//1, % -Host:dict
      port//1, % -Port:nonneg
      scheme//1 % -Scheme:string
    ]).
@@ -61,7 +57,7 @@
 
 
 
-%! has_same_origin(+X:or([atom,dict]), +Y:or([atom,dict])) is semidet.
+%! has_same_origin(+Uri1, +Uri2) is semidet.
 % Two origins are "the same" if, and only if, they are identical.  In
 % particular:
 %
@@ -80,11 +76,11 @@
 %      therefore have globally unique identifiers as origins.
 
 has_same_origin(
-  origin{scheme: Scheme1, host: Host1, port: Port1},
-  origin{scheme: Scheme2, host: Host2, port: Port2}
-):-
+  _{'uri:scheme': Scheme1, 'uri:host': Host1, 'uri:port': Port1},
+  _{'uri:scheme': Scheme2, 'uri:host': Host2, 'uri:port': Port2}
+) :-
   maplist(==, [Scheme1,Host1,Port1], [Scheme2,Host2,Port2]), !.
-has_same_origin(X1, Y1):-
+has_same_origin(X1, Y1) :-
   maplist(is_iri, [X1,Y1]), !,
   maplist(origin, [X1,Y1], [X2,Y2]),
   has_same_origin(X2, Y2).
@@ -100,7 +96,7 @@ has_same_origin(X1, Y1):-
 
 
 
-%! origin(+Uri:atom, -Origin:or([atom,dict])) is det.
+%! origin(+Uri, -Origin:dict) is det.
 % The origin of a URI is the value computed by the following algorithm:
 %   1.  If the URI does not use a hierarchical element as a naming
 %       authority (see [RFC3986], Section 3.2) or if the URI is not an
@@ -156,19 +152,24 @@ has_same_origin(X1, Y1):-
 %
 %   7.  Return the triple (uri-scheme, uri-host, uri-port).
 
-origin(Uri, Uid):-
-  \+ uri_is_global(Uri), !,
-  uuid(Uid).
-origin(Uri, origin{scheme: Scheme, host: Host, port: Port}):-
-  uri_components(Uri, uri_components(Scheme0,Auth,_,_,_)),
-  downcase_atom(Scheme0, Scheme),
-  uri_authority_components(Auth, uri_authority(_,_,Host0,Port)),
-  ascii_casemap(Host0, Host),
-  defval(Port, 80).
+origin(Uri, D2) :-
+  D1 = _{'@type': 'llo:origin'},
+  (   uri_is_global(Uri)
+  ->  uri_components(Uri, uri_components(Scheme1,Auth,_,_,_)),
+      downcase_atom(Scheme1, Scheme2),
+      uri_authority_components(Auth, uri_authority(_,_,Host1,Port)),
+      ascii_casemap(Host1, Host2),
+      defval(Port, 80),
+      maplist(atom_string, [Scheme3,Host3], [Scheme2,Host2]),
+      D2 = D1.put({'uri:scheme': Scheme3, 'uri:host': Host3, 'uri:port': Port})
+  ;   uuid(Uid1),
+      atom_string(Uid1, Uid2),
+      D2 = D1.put({'llo:uuid': Uid2})
+  ).
+  
 
 
-
-%! origin(-Origins:list(dict))// .
+%! origin(-Origins:list(dict))// is det.
 % ```abnf
 % origin = "Origin:" OWS origin-list-or-null OWS
 % ```
@@ -177,17 +178,18 @@ origin(L) --> "Origin:", 'OWS', 'origin-list-or-null'(L), 'OWS'.
 
 
 
-%! 'origin-list'(-Origins:list(dict))// .
+%! 'origin-list'(-Origins:list(dict))// is det.
 % ```abnf
 % origin-list = serialized-origin *( SP serialized-origin )
 % ```
 
 'origin-list'([H|T]) --> 'serialized-origin'(H), !, *(serialized_origin, T).
+
 serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 
 
 
-%! 'origin-list-or-null'(-Origins:list(dict))// .
+%! 'origin-list-or-null'(-Origins:list(dict))// is det.
 % ```abnf
 % origin-list-or-null = %x6E %x75 %x6C %x6C / origin-list
 % ```
@@ -197,25 +199,26 @@ serialized_origin(X) --> 'SP', 'serialized-origin'(X).
 
 
 
-%! 'OWS'// .
+%! 'OWS'// is det.
 % ```abnf
 % OWS = *( SP / HTAB / obs-fold )   ; "optional" whitespace
 % ```
 
 'OWS' --> *(ows).
+
 ows --> 'SP'.
 ows --> 'HTAB'.
 ows --> 'obs-fold'.
 
 
 
-%! 'serialized-origin'(-Origin:dict)// .
+%! 'serialized-origin'(-Origin:dict)// is det.
 % ```abnf
 % serialized-origin = scheme "://" host [ ":" port ]
 %                   ; <scheme>, <host>, <port> from RFC 3986
 % ```
 
-'serialized-origin'(origin{scheme: Scheme, host: Host, port: Port}) -->
+'serialized-origin'(_{'@type': 'llo:origin', 'uri:scheme': Scheme, 'uri:host': Host, 'uri:port': Port}) -->
   scheme(Scheme),
   "://",
   host(Host),

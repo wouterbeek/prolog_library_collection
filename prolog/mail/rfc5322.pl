@@ -30,6 +30,7 @@
      'WSP'//0,
      'WSP'//1 % ?Code:code
    ]).
+:- use_module(library(rdf11/rdf11)).
 
 
 
@@ -40,7 +41,7 @@
 % addr-spec = local-part "@" domain
 % ```
 
-'addr-spec'(_{'@type': 'llh:addres-specification', 'llh:domain': Domain, 'llh:local_part': LocalPart}) -->
+'addr-spec'(_{'@type': 'llo:addres-specification', 'llo:domain': Domain, 'llo:local_part': LocalPart}) -->
   'local-part'(LocalPart), "@", domain(Domain).
 
 
@@ -179,7 +180,7 @@ date(Y, Mo, D) --> day(D), month(Mo), year(Y).
   date(Y, Mo, D),
   time(H, Mi, S, Off),
   ?('CFWS'),
-  {in_date_time(date_time(Y,Mo,D,H,Mi,S,Off), Lex)}.
+  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S,Off), Lex)}.
 
 
 
@@ -303,8 +304,8 @@ fws_prefix --> *('WSP'), 'CRLF'.
 group(D2) -->
   'display-name'(Name),
   ":",
-  {D1 = _{'llh:display-name': Name}},
-  ('group-list'(L) -> {D2 = D1.put({'llh:group-list': L})} ; {D2 = D1}),
+  {D1 = _{'llo:display-name': Name}},
+  ('group-list'(L) -> {D2 = D1.put({'llo:group-list': L})} ; {D2 = D1}),
   ";",
   ?('CFWS').
 
@@ -402,9 +403,9 @@ month(12) --> "Dec".
 % ```
 
 'name-addr'(D2) -->
-  ('display-name'(Name) -> {D1 = _{'llh:display-name': Name}} ; {D1 = _{}}),
+  ('display-name'(Name) -> {D1 = _{'llo:display-name': Name}} ; {D1 = _{}}),
   'angle-addr'(Addr),
-  {D2 = D1.put({'llh:address': Addr})}.
+  {D2 = D1.put({'llo:address': Addr})}.
 
 
 
@@ -428,7 +429,7 @@ obs_addr_list_tail([]) --> "".
 % obs-angle-addr = [CFWS] "<" obs-route addr-spec ">" [CFWS]
 % ```
 
-'obs-angle-addr'(_{'llh:addres-specification': Addr, 'llh:obsolete-route': Route}) -->
+'obs-angle-addr'(_{'llo:addres-specification': Addr, 'llo:obsolete-route': Route}) -->
   ?('CFWS'),
   "<", 'obs-route'(Route), 'addr-spec'(Addr), ">",
   ?('CFWS').

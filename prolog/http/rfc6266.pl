@@ -13,16 +13,16 @@ header from RFC 2616.
 @author Wouter Beek
 @compat RFC 6266
 @see http://tools.ietf.org/html/rfc6266
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
-     token//1, % -Token:string
+     token//1,           % -Token:string
      'quoted-string'//1, % -String:string
-     value//1 % -Value:string
+     value//1            % -Value:string
    ]).
 :- use_module(library(http/rfc5987), [
      'ext-value'//1 % -Value:dict
@@ -38,29 +38,24 @@ header from RFC 2616.
 %                       disposition-type *( ";" disposition-parm )
 % ```
 
-'content-disposition'(D) -->
+'content-disposition'(D2) -->
   'disposition-type'(Type),
-  *(disposition_param, T),
-  {dict_pairs(D, disposition, [type-Type|T])}.
-disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
+  {D1 = _{'@type': 'llo:disposition', 'llo:disposition-type': Type}},
+  (+(disposition_param, L) -> {D2 = D1.put({'llo:parameters': L})} ; {D2 = D1}).
+
+disposition_param(D) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(D).
 
 
 
-%! 'disp-ext-parm(-Parameter:pair)// is det.
+%! 'disp-ext-parm(-Parameter:dict)// is det.
 % ```abnf
 % disp-ext-parm = token "=" value | ext-token "=" ext-value
 % ```
 
-'disp-ext-parm'(N-V) -->
-  token(N0), !,
-  {atom_string(N, N0)},
-  "=",
-  value(V).
-'disp-ext-parm'(N-D) -->
-  'ext-token'(N0),
-  {atom_string(N, N0)},
-  "=",
-  'ext-value'(D).
+'disp-ext-parm'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  token(Key), !, "=", value(Value).
+'disp-ext-parm'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  'ext-token'(Key), "=", 'ext-value'(Value).
 
 
 
@@ -69,29 +64,29 @@ disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 % disp-ext-type = token
 % ```
 
-'disp-ext-type'(Type) --> token(Type).
+'disp-ext-type'(S) --> token(S).
 
 
 
-%! 'disposition-parm'(?Parameters:list(pair))// is det.
+%! 'disposition-parm'(-Parameter:dict)// is det.
 % ```abnf
 % disposition-parm = filename-parm | disp-ext-parm
 % ```
 
-'disposition-parm'(Param) --> 'filename-parm'(Param).
-'disposition-parm'(Param) --> 'disp-ext-parm'(Param).
+'disposition-parm'(D) --> 'filename-parm'(D).
+'disposition-parm'(D) --> 'disp-ext-parm'(D).
 
 
 
-%! 'disposition-type'(?Type:or([oneof([attachement,inline]),string]))// .
+%! 'disposition-type'(-Type:string)// is det.
 % ```abnf
 % disposition-type = "inline" | "attachment" | disp-ext-type
 %                  ; case-insensitive
 % ```
 
-'disposition-type'(inline) --> atom_ci(inline), !.
-'disposition-type'(attachement) --> atom_ci(attachment), !.
-'disposition-type'(S) --> 'disp-ext-type'(S0), {string_lower(S0, S)}.
+'disposition-type'("inline")      --> atom_ci(inline), !.
+'disposition-type'("attachement") --> atom_ci(attachment), !.
+'disposition-type'(S2)            --> 'disp-ext-type'(S1), {string_lower(S1, S2)}.
 
 
 
@@ -100,15 +95,17 @@ disposition_param(X) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(X).
 % ext-token = <the characters in token, followed by "*">
 % ```
 
-'ext-token'(S) --> token(S0), "*", {string_concat(S0, "*", S)}.
+'ext-token'(S2) --> token(S1), "*", {string_concat(S1, "*", S2)}.
 
 
 
-%! 'filename-parm'(?Parameter:pair)// is det.
+%! 'filename-parm'(-Parameter:dict)// is det.
 % ```abnf
 % filename-parm = "filename" "=" value
 %               | "filename*" "=" ext-value
 % ```
 
-'filename-parm'(filename-S) --> atom_ci(filename), "=", !, value(S).
-'filename-parm'('filename*'-D) --> atom_ci(filename), "*=", 'ext-value'(D).
+'filename-parm'(D) -->
+  {D = _{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}},
+  atom_ci(filename), ("*" -> {Key = "filename*"} ; {Key = "filename"}), "=",
+  (value(Value), ! ; 'ext-value'(Value)).
