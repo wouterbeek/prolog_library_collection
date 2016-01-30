@@ -91,10 +91,10 @@ http_URL(D4) -->
   atom_ci('http://'),
   host(Host),
   {D1 = _{'@type': 'llo:URL', 'llo:scheme': "http", 'llo:host': Host}},
-  (":" -> port(Port), {D2 = D1.put({'llo:port': Port})} ; {D2 = D1}),
+  (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1}),
   (   abs_path(Path)
-  ->  {D3 = D2.put({'llo:path': Path})},
-      ("?" -> query(Query), {D4 = D3.put({'llo:query': Query})} ; {D4 = D3})
+  ->  {D3 = D2.put(_{'llo:path': Path})},
+      ("?" -> query(Query), {D4 = D3.put(_{'llo:query': Query})} ; {D4 = D3})
   ;   {D4 = D2}
   ).
 

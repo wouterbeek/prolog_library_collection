@@ -54,7 +54,7 @@
   ":",
   'hier-part'(HierPart),
   {D1 = absolute_uri{'@type': 'uri:absolute-URI', 'uri:hierarchical-part': HierPart, 'uri:scheme': Scheme}},
-  ("?" -> query(Query), {D2 = D1.put({'uri:query', Query})} ; {D2 = D1}).
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}).
 
 
 
@@ -75,10 +75,10 @@
 
 authority(D4) -->
   {D1 = authority{'@type': 'uri:authority'}},
-  (userinfo(Userinfo), "@" -> {D2 = D1.put({'uri:userinfo', Userinfo})} ; {D2 = D1}),
+  (userinfo(Userinfo), "@" -> {D2 = D1.put(_{'uri:userinfo': Userinfo})} ; {D2 = D1}),
   host(Host),
-  {D3 = D2.put({'uri:host', Host})},
-  (":" -> port(Port), {D4 = D3.put({'uri:port', Port})} ; {D4 = D3}).
+  {D3 = D2.put(_{'uri:host': Host})},
+  (":" -> port(Port), {D4 = D3.put(_{'uri:port': Port})} ; {D4 = D3}).
 
 
 
@@ -169,13 +169,13 @@ h16(N) -->
   (   "//"
   ->  authority(Authority),
       'path-abempty'(PathAbempty),
-      {D2 = D1.put({'uri:authority': Authority, 'uri:path-abempty', PathAbempty})}
+      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
   ;   'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put({'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
   ;   'path-rootless'(PathRootless)
-  ->  {D2 = D1.put({'uri:path-rootless': PathRootless})}
+  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
   ;   'path-empty'(PathEmpty)
-  ->  {D2 = D1.put({'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
   ).
 
 
@@ -198,11 +198,11 @@ h16(N) -->
 host(D2) -->
   {D1 = host{'@type': 'uri:host'}},
   (   'IP-literal'(IpLiteral)
-  ->  {D2 = D1.put({'uri:IP-literal', IpLiteral})}
+  ->  {D2 = D1.put(_{'uri:IP-literal': IpLiteral})}
   ;   'IPv4address'(Ipv4Address)
-  ->  {D2 = D1.put({'uri:IPv4address', Ipv4Address})}
+  ->  {D2 = D1.put(_{'uri:IPv4address': Ipv4Address})}
   ;   'reg-name'(RegName)
-  ->  {D2 = D1.put({'uri:reg-name', RegName})}
+  ->  {D2 = D1.put(_{'uri:reg-name': RegName})}
   ).
 
 
@@ -216,9 +216,9 @@ host(D2) -->
   {D1 = ip_literal{'@type': 'uri:IP-literal'}},
   "[",
   (   'IPv6address'(Ipv6Address)
-  ->  {D2 = D1.put({'uri:IPv6address', Ipv6Address})}
+  ->  {D2 = D1.put(_{'uri:IPv6address': Ipv6Address})}
   ;   'IPvFuture'(IpvFuture)
-  ->  {D2 = D1.put({'uri:IPvFuture': IpvFuture})}
+  ->  {D2 = D1.put(_{'uri:IPvFuture': IpvFuture})}
   ),
   "]".
 
@@ -310,19 +310,19 @@ path(D2) -->
   {D1 = path{'@type': 'uri:path'}},
   (   % Begins with "/" or is empty.
       'path-abempty'(PathAbempty)
-  ->  {D2 = D1.put({'uri:path-abempty', PathAbempty})}
+  ->  {D2 = D1.put(_{'uri:path-abempty': PathAbempty})}
   ;   % Begins with "/" but not "//".
       'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put({'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
   ;   % Begins with a non-colon segment
       'path-noscheme'(PathNoscheme)
-  ->  {D2 = D1.put({'uri:path-noscheme': PathNoscheme})}
+  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
   ;   % Begins with a segment
       'path-rootless'(PathRootless)
-  ->  {D2 = D1.put({'uri:path-rootless': PathRootless})}
+  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
   ;   % Empty path (i.e., no segments).
       'path-empty'(PathEmpty)
-  ->  {D2 = D1.put({'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
   ).
 
 
@@ -461,13 +461,13 @@ reg_name_code(C) --> 'sub-delims'(C).
   (   "//"
   ->  authority(Authority),
       'path-abempty'(PathAbempty),
-      {D2 = D1.put({'uri:authority': Authority, 'uri:path-abempty', PathAbempty})}
+      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
   ;   'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put({'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
   ;   'path-noscheme'(PathNoscheme)
-  ->  {D2 = D1.put({'uri:path-noscheme': PathNoscheme})}
+  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
   ;   'path-empty'(PathEmpty)
-  ->  {D2 = D1.put({'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
   ).
 
 
@@ -482,8 +482,8 @@ reg_name_code(C) --> 'sub-delims'(C).
 'relative-ref'(D3) -->
   'relative-part'(RelativePart),
   {D1 = relative_ref{'@type': 'uri:relative-ref', 'uri:relative-part': RelativePart}},
-  ("?" -> query(Query), {D2 = D1.put({'uri:query', Query})} ; {D2 = D1}),
-  ("#" -> fragment(Fragment), {D3 = D2.put({'uri:fragment', Fragment})} ; {D3 = D2}).
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -602,8 +602,8 @@ unreserved(0'~) --> "~".
   ":",
   'hier-part'(HierPart),
   {D1 = uri{'@type': 'uri:URI', 'uri:scheme': Scheme, 'uri:hier-part': HierPart}},
-  ("?" -> query(Query), {D2 = D1.put({'uri:query': Query})} ; {D2 = D1}),
-  ("#" -> fragment(Fragment), {D3 = D2.put({'uri:fragment': Fragment})} ; {D3 = D2}).
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -615,9 +615,9 @@ unreserved(0'~) --> "~".
 'URI-reference'(D2) -->
   {D1 = _{'@type': 'uri:URI-reference'}},
   (   'URI'(Uri)
-  ->  {D2 = D1.put({'uri:URI': Uri})}
+  ->  {D2 = D1.put(_{'uri:URI': Uri})}
   ;   'relative-ref'(RelativeRef)
-  ->  {D2 = D1.put({'uri:relative-ref': RelativeRef})}
+  ->  {D2 = D1.put(_{'uri:relative-ref': RelativeRef})}
   ).
 
 

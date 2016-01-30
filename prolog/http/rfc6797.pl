@@ -32,7 +32,7 @@
 directive(D2) -->
   {D1 = _{'@type': 'llo:directive', 'llo:key': Key}},
   'directive-name'(Key),
-  ("=" -> 'directive-value'(Value), {D2 = D1.put({'llo:value': Value})} ; {D2 = D1}).
+  ("=" -> 'directive-value'(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 

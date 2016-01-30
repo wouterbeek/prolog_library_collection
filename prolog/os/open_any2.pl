@@ -203,7 +203,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   D1 = _{'@type': Type2},
   (   Type1 == file_iri
   ->  base_iri(Source, BaseIri),
-      D2 = D1.put({'llo:base-iri': BaseIri})
+      D2 = D1.put(_{'llo:base-iri': BaseIri})
   ;   Type1 == http_iri
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),

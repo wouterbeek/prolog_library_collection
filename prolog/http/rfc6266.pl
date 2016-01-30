@@ -41,7 +41,7 @@ header from RFC 2616.
 'content-disposition'(D2) -->
   'disposition-type'(Type),
   {D1 = _{'@type': 'llo:disposition', 'llo:disposition-type': Type}},
-  (+(disposition_param, L) -> {D2 = D1.put({'llo:parameters': L})} ; {D2 = D1}).
+  (+(disposition_param, L) -> {D2 = D1.put(_{'llo:parameters': L})} ; {D2 = D1}).
 
 disposition_param(D) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(D).
 

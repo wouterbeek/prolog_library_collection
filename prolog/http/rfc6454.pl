@@ -161,10 +161,10 @@ origin(Uri, D2) :-
       ascii_casemap(Host1, Host2),
       defval(Port, 80),
       maplist(atom_string, [Scheme3,Host3], [Scheme2,Host2]),
-      D2 = D1.put({'uri:scheme': Scheme3, 'uri:host': Host3, 'uri:port': Port})
+      D2 = D1.put(_{'uri:scheme': Scheme3, 'uri:host': Host3, 'uri:port': Port})
   ;   uuid(Uid1),
       atom_string(Uid1, Uid2),
-      D2 = D1.put({'llo:uuid': Uid2})
+      D2 = D1.put(_{'llo:uuid': Uid2})
   ).
   
 

@@ -1,6 +1,7 @@
 :- module(
   json_ext,
   [
+    atom_json_dict/2, % ?Atom, ?Json
     atomize_json/2, % +Json:dict
                     % -AtomizedJson:dict
     json_read_any/2, % +Source, -Json
@@ -17,7 +18,7 @@
 /** <module> JSON extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11
+@version 2015/09-2015/11, 2016/01
 */
 
 :- use_module(library(apply)).
@@ -31,6 +32,14 @@
    ]).
 
 
+
+
+
+%! atom_json_dict(+Atom, -Json) is det.
+%! atom_json_dict(-Atom, +Json) is det.
+
+atom_json_dict(A, D) :-
+  atom_json_dict(A, D, []).
 
 
 

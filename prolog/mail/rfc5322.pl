@@ -305,7 +305,7 @@ group(D2) -->
   'display-name'(Name),
   ":",
   {D1 = _{'llo:display-name': Name}},
-  ('group-list'(L) -> {D2 = D1.put({'llo:group-list': L})} ; {D2 = D1}),
+  ('group-list'(L) -> {D2 = D1.put(_{'llo:group-list': L})} ; {D2 = D1}),
   ";",
   ?('CFWS').
 
@@ -405,7 +405,7 @@ month(12) --> "Dec".
 'name-addr'(D2) -->
   ('display-name'(Name) -> {D1 = _{'llo:display-name': Name}} ; {D1 = _{}}),
   'angle-addr'(Addr),
-  {D2 = D1.put({'llo:address': Addr})}.
+  {D2 = D1.put(_{'llo:address': Addr})}.
 
 
 

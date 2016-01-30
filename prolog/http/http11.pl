@@ -1221,7 +1221,7 @@ location(Uri) --> 'URI-reference'(Uri).
 'media-type'(D2) -->
   {D1 = _{'@type': 'llo:media-type', 'llo:type': Type, 'llo:subtype': Subtype}},
   type(Type), "/", subtype(Subtype),
-  (+(sep_parameter, L) -> {D2 = D1.put({'llo:parameters': L})} ; {D2 = D1}).
+  (+(sep_parameter, L) -> {D2 = D1.put(_{'llo:parameters': L})} ; {D2 = D1}).
 
 sep_parameter(Parameter) --> 'OWS', ";", 'OWS', parameter(Parameter).
 
@@ -1485,7 +1485,7 @@ product(D2) -->
 protocol(D2) -->
   'protocol-name'(Name),
   {D1 = _{'@type': 'llo:protocol', 'llo:protocol': Name}},
-  ("/" -> 'protocol-version'(Version), {D2 = D1.put({'protocol-version': Version})} ; {D2 = D1}).
+  ("/" -> 'protocol-version'(Version), {D2 = D1.put(_{'protocol-version': Version})} ; {D2 = D1}).
 
 
 

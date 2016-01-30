@@ -44,7 +44,7 @@ attr(S) --> token(S).
 'av-pair'(D2) -->
   attr(Key),
   {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
-  ("=" -> value(Value), {D2 = D1.put({'llo:value': Value})} ; {D2 = D1}).
+  ("=" -> value(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 
