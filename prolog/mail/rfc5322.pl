@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 5322
 @see https://tools.ietf.org/html/rfc5322
-@version 2015/12-2016/01
+@version 2015/12-2016/02
 */
 
 :- use_module(library(dcg/dcg_ext), except([atom//1])).
@@ -31,6 +31,7 @@
      'WSP'//1 % ?Code:code
    ]).
 :- use_module(library(rdf11/rdf11)).
+:- use_module(library(sgml)).
 
 
 
@@ -180,7 +181,10 @@ date(Y, Mo, D) --> day(D), month(Mo), year(Y).
   date(Y, Mo, D),
   time(H, Mi, S, Off),
   ?('CFWS'),
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S,Off), Lex)}.
+  {
+    rdf_equal(xsd:dateTime, D),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S,Off), D, Lex)
+  }.
 
 
 

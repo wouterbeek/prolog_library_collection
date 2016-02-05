@@ -173,6 +173,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
    ]).
 :- use_module(library(pair_ext)).
 :- use_module(library(rdf11/rdf11)).
+:- use_module(library(sgml)).
 :- use_module(library(uri/rfc3986), [
      'absolute-URI'//1,     % -AbsoluteUri:dict
      fragment//1,           % -Fragment:string
@@ -309,8 +310,17 @@ allow(L) --> '*#'(method, L).
 % ```
 
 'asctime-date'(Lex) -->
-  'day-name'(D), 'SP', date3(Mo, D), 'SP', 'time-of-day'(H, Mi, S), 'SP', year(Y),
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  'day-name'(D),
+  'SP',
+  date3(Mo, D),
+  'SP',
+  'time-of-day'(H, Mi, S),
+  'SP',
+  year(Y),
+  {
+    rdf_equal(xsd:dateTime, Type),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+  }.
 
 
 
@@ -1136,7 +1146,10 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
   'time-of-day'(H, Mi, S),
   'SP',
   'GMT',
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {
+    rdf_equal(xsd:dateTime, Type),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+  }.
 
 
 
@@ -1647,7 +1660,10 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
   'time-of-day'(H, Mi, S),
   'SP',
   'GMT',
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {
+    rdf_equal(xsd:dateTime, Type),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+  }.
 
 
 

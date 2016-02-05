@@ -175,7 +175,10 @@ quoted_string_code(C) --> 'quoted-pair'(C).
   time(H, Mi, S),
   'SP',
   atom_ci('GMT'),
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {
+    rdf_equal(xsd:dateTime, Type),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+  }.
 
 
 
@@ -193,7 +196,10 @@ quoted_string_code(C) --> 'quoted-pair'(C).
   time(H, Mi, S),
   'SP',
   atom_ci('GMT'),
-  {rdf11:in_date_time(date_time(Y,Mo,D,H,Mi,S), Lex)}.
+  {
+    rdf_equal(xsd:dateTime, Type),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+  }.
 
 
 
