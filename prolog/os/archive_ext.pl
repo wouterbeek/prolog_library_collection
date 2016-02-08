@@ -175,14 +175,12 @@ call_on_archive0(Source, Goal_2, Opts1) :-
   merge_options([close_parent(false)], Opts1, Opts2),
   % Archive options that can be overridden.
   merge_options(Opts2, [filter(all),format(all),format(raw)], Opts3),
-  call_cleanup(
-    (
-      open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
-      setup_call_cleanup(
-        archive_open(Read, Arch, Opts3),
-        call(Goal_2, M, Arch),
-        archive_close(Arch)
-      )
+  setup_call_cleanup(
+    open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
+    setup_call_cleanup(
+      archive_open(Read, Arch, Opts3),
+      call(Goal_2, M, Arch),
+      archive_close(Arch)
     ),
     close_any2(Close_0)
   ).

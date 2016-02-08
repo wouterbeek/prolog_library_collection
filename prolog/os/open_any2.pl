@@ -90,32 +90,33 @@ close_any2(Close_0) :-
 open_any2(Source, Mode, Stream, Close_0) :-
   open_any2(Source, Mode, Stream, Close_0, []).
 
-open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
-  meta_options(is_meta, Opts0, Opts1),
-  source_type(Source0, Mode, Source, Type),
-  ignore(option(metadata(D), Opts1)),
-  open_any_options(Type, Opts1, Opts2),
+open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
+  meta_options(is_meta, Opts1, Opts2),
+  source_type(Source1, Mode, Source2, Type),
+  ignore(option(metadata(D), Opts2)),
+  open_any_options(Type, Opts2, Opts3),
 
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
   (   Type == http_iri, Mode == read
-  ->  http_open2(Source, Stream, Close0_0, Opts2)
-  ;   open_any(Source, Mode, Stream0, Close0_0, Opts2)
+  ->  http_open2(Source2, Stream1, Close1_0, Opts3)
+  ;   open_any(Source2, Mode, Stream1, Close1_0, Opts3)
   ),
 
   % Compression.
-  (   option(compress(Comp), Opts1),
+  (   option(compress(Comp), Opts2)
+  ->  ZOpts1 = [close_parent(true)],
       (   write_mode(Mode)
       ->  must_be(oneof([deflate,gzip]), Comp),
-          ZOpts = [format(Comp)]
-      ;   ZOpts = []
+          merge_options([format(Comp)], ZOpts1, ZOpts2)
+      ;   ZOpts2 = ZOpts1
       ),
-      zopen(Stream0, Stream, ZOpts),
-      Close_0 = close(Stream)
-  ;   Stream = Stream0,
-      Close_0 = Close0_0
+      zopen(Stream1, Stream2, ZOpts2),
+      Close2_0 = close(Stream2)
+  ;   Stream2 = Stream1,
+      Close2_0 = Close1_0
   ),
-  open_any_metadata(Source, Mode, Type, Comp, Opts2, D),
+  open_any_metadata(Source2, Mode, Type, Comp, Opts3, D),
   (   get_dict('llo:status-code', D, Status),
       is_http_error(Status)
   ->  existence_error(open_any2, D)

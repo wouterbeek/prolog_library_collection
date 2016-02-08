@@ -5,5 +5,4 @@ maintainer('Wouter Beek', 'me@wouterbeek.com').
 name('Prolog_Library_Collection').
 packager('Wouter Beek', 'me@wouterbeek.com').
 title('A collection of SWI-Prolog libraries.').
-type(lib).
 version('0.0.54').
