@@ -60,7 +60,7 @@ absoluteURI(D) -->
 
 
 
-%! 'alpha(-Code:code)// .
+%! alpha(-Code:code)// .
 % ```abnf
 % alpha = lowalpha | upalpha
 % ```
@@ -293,7 +293,7 @@ mark(0')) --> ")".
 
 
 
-%! net_path(-Authority:compound, -Path:list(list(string))// is det.
+%! net_path(-Authority:compound, -Path:list(list(string)))// is det.
 % ```abnf
 % net_path = "//" authority [ abs_path ]
 % ```

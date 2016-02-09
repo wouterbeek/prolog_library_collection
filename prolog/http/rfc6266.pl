@@ -47,7 +47,7 @@ disposition_param(D) --> ?('LWS'), ";", ?('LWS'), 'disposition-parm'(D).
 
 
 
-%! 'disp-ext-parm(-Parameter:dict)// is det.
+%! 'disp-ext-parm'(-Parameter:dict)// is det.
 % ```abnf
 % disp-ext-parm = token "=" value | ext-token "=" ext-value
 % ```

@@ -134,7 +134,7 @@ collection0(Writer_1, L) -->
   collection0(Writer_1, comma, L).
 
 
-%! Collection0(:Writer_1, :Separator_0, +Elements:list)// is det.
+%! collection0(:Writer_1, :Separator_0, +Elements:list)// is det.
 
 collection0(_, _, []) --> !, "".
 collection0(Writer_1, _, [H]) --> !,

@@ -539,7 +539,7 @@ obs_fws_part --> 'CRLF', +('WSP').
 
 
 
-%! 'obs-group-list// is det.
+%! 'obs-group-list'// is det.
 % ```abnf
 % obs-group-list = 1*([CFWS] ",") [CFWS]
 % ```

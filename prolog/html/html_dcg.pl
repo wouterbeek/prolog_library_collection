@@ -59,7 +59,7 @@ html_dcg([]) --> !, "".
 
 
 
-%! html_entity(+Name:atom)// is det..
+%! html_entity(+Name:atom)// is det.
 
 html_entity(Name) --> "&", atom(Name), ";".
 

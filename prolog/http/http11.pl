@@ -1511,7 +1511,7 @@ protocol(D2) -->
 
 
 
-%! 'protocol-version'(-Version:string)//.
+%! 'protocol-version'(-Version:string)// .
 % ```abnf
 % protocol-version = token
 % ```

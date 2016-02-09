@@ -180,7 +180,7 @@ parmname(S) --> +('attr-char', Cs), {string_codes(S, Cs)}.
 
   
 
-%! 'reg-parameter'(-Parameter:dict))// is det.
+%! 'reg-parameter'(-Parameter:dict)// is det.
 % A regular parameter, as defined in RFC 2616.
 %
 % ```abnf

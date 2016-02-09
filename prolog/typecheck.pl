@@ -167,7 +167,7 @@ is_iri(T):-
 
 
 
-%! is_uri*@Term) is semidet.
+%! is_uri(@Term) is semidet.
 
 is_uri(T):-
   is_iri(T).
