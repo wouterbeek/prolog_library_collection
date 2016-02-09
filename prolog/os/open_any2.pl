@@ -104,13 +104,14 @@ open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
   ),
 
   % Compression.
-  (   option(compress(Comp), Opts2)
-  ->  ZOpts1 = [close_parent(true)],
-      (   write_mode(Mode)
-      ->  must_be(oneof([deflate,gzip]), Comp),
-          merge_options([format(Comp)], ZOpts1, ZOpts2)
-      ;   ZOpts2 = ZOpts1
-      ),
+  (   (   write_mode(Mode),
+          option(compress(Comp), Opts2)
+      ->  ZOpts1 = [format(Comp)]
+      ;   read_mode(Mode),
+          option(decompress(Decomp), Opts2)
+      ->  ZOpts1 = [format(Decomp)]
+      )
+  ->  merge_options(ZOpts1, [close_parent(true)], ZOpts2),
       zopen(Stream1, Stream2, ZOpts2),
       Close2_0 = close(Stream2)
   ;   Stream2 = Stream1,
