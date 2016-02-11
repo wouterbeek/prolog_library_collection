@@ -1,16 +1,12 @@
 :- module(
   datetime,
   [
-    call_time/2,        % :Goal_0
-                        % -Seconds:nonneg
-    datetime_mask/3,    % +Mask:oneof([none,year,month,day,hour,minute,second,offset])
-                        % +Datetime:compound
-                        % -MaskedDatetime:compound
-    date_to_datetime/2, % +Date:compound
-                        % -Datetime:compound
-    datetime_to_date/2, % +Datetime:compound
-                        % -Date:compound
-    get_datetime/1      % -Datetime:compound
+    call_time/2,        % :Goal_0, -Seconds
+    datetime_mask/3,    % +Mask, +DT, -MaskedDT
+    date_to_datetime/2, % +D, -DT
+    datetime_to_date/2, % +DT, -D
+    get_datetime/1,     % -DT
+    is_datetime/1       % +DT
   ]
 ).
 
@@ -19,10 +15,11 @@
 Support predicates for dealing with date and time representations.
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12
+@version 2015/08, 2015/11-2015/12, 2016/02
 */
 
 :- use_module(library(apply)).
+:- use_module(library(error)).
 
 :- meta_predicate(call_time(0,-)).
 
@@ -123,3 +120,10 @@ get_datetime(DT):-
   get_time(TS),
   stamp_date_time(TS, D, local),
   date_to_datetime(D, DT).
+
+
+
+%! is_datetime(@Term) is semidet.
+
+is_datetime(T) :-
+  is_of_type(datetime, T).
