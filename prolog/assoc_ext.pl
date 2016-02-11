@@ -20,7 +20,7 @@ An association list with multiple values per key, using ordered sets.
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
-:- use_module(library(tree/tree)).
+:- use_module(library(tree/s_tree)).
 
 
 

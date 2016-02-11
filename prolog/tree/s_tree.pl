@@ -1,23 +1,19 @@
 :- module(
-  tree,
+  s_tree,
   [
-    all_subpaths_to_tree/2, % +AllSubPaths:list(list)
-                            % -Tree:tree
-    edges_to_root/2, % +Edges:list(compound)
-                     % -Root:term
-    edges_to_tree/2, % +Edges:list(compound)
-                     % -Tree:compound
-    print_tree/1, % +Tree
-    some_subpaths_to_tree/2, % +SomeSubPaths:list(list)
-                             % -Tree:compound
-    tree_depth/2, % +Tree:compound
-                  % -Depth:nonneg
-    tree_to_leaf_coord/2 % +Tree:compound
-                         % -Coord:list(nonneg)
+    all_subpaths_to_tree/2,  % +AllSubPaths:list(list), -Tree
+    edges_to_root/2,         % +Es, -Root
+    edges_to_tree/2,         % +Es, -Tree
+    is_s_tree/1,             % @Term
+    print_tree/1,            % +Tree
+    some_subpaths_to_tree/2, % +SomeSubPaths:list(list), -Tree
+    s_tree_to_graph/2,       % +Tree, -Graph
+    tree_depth/2,            % +Tree, -Depth
+    tree_to_leaf_coord/2     % +Tree, -Coord:list(nonneg)
   ]
 ).
 
-/** <module> Tree
+/** <module> Simple tree (unlabeled)
 
 Tree datastructure.
 
@@ -44,13 +40,14 @@ a
 ```
 
 @author Wouter Beek
-@version 2016/01
+@version 2016/01-2016/02
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/dcg_tree)).
+:- use_module(library(graph/s/s_edge)).
 :- use_module(library(list_ext)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
@@ -142,8 +139,28 @@ edges_to_children(_, [], Es, Es).
 
 
 
+%! is_s_tree(@Term) is semidet.
+
+is_s_tree(t(_,L)) :-
+  forall(member(T, L), is_s_tree(T)).
+
+
+
 print_tree(Tree):-
   dcg_with_output_to(current_output, dcg_tree(Tree)).
+
+
+
+%! s_tree_to_graph(+Tree, -Graph) is det.
+
+s_tree_to_graph(Tree, Graph) :-
+  s_tree_to_edges(Tree, Es),
+  s_edges_to_vertices(Es, Vs),
+  Graph = graph(Vs, Es).
+
+s_tree_to_edges(t(X,Ts), Es) :-
+  findall([X-Y|Es], (member(t(Y,Ts0), Ts), s_tree_to_edges(t(Y,Ts0), Es)), Ess),
+  append(Ess, Es).
 
 
 
