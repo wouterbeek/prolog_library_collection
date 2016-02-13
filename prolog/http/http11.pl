@@ -1007,7 +1007,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 'field-value'(Cs, Key, D2) :-
   phrase('field-content'(Key, D1), Cs),
   string_codes(Raw, Cs),
-  D2 = D1.put(_{'llo:raw': Raw}).
+  D2 = D1.put(_{'@type': 'llo:HTTP-header','llo:raw': Raw}).
 
 
 
