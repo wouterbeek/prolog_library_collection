@@ -1,7 +1,7 @@
 :- module(
   cors,
   [
-    'access-control-allow-credentials'//1, % -AllowCredentials:boolean
+    'access-control-allow-credentials'//1, % -AllowCredentials:dict
     'access-control-allow-headers'//1,     % -HeaderNames:list(string)
     'access-control-allow-methods'//1,     % -Methods:list(string)
     'access-control-allow-origin'//1       % -Origins:list
@@ -13,7 +13,7 @@
 @author Wouter Beek
 @compat Cross-Origin Resource Sharing
 @see http://www.w3.org/TR/cors
-@version 2015/11-2016/01
+@version 2015/11-2016/02
 */
 
 :- use_module(library(dcg/dcg_atom)).
@@ -28,12 +28,16 @@
 
 
 
-%! 'access-control-allow-credentials'(-AllowCredentials:boolean)// is det.
+%! 'access-control-allow-credentials'(-AllowCredentials:dict)// is det.
 % ```abnf
 % Access-Control-Allow-Credentials: "Access-Control-Allow-Credentials" ":" true
 % ```
 
-'access-control-allow-credentials'(true) --> atom_ci(true).
+'access-control-allow-credentials'(_{
+  '@type': 'xsd:boolean',
+  '@value': true
+}) -->
+  atom_ci(true).
 
 
 

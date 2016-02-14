@@ -1,10 +1,8 @@
 :- module(
   dcg_http,
   [
-    '*#'//2, % :Dcg_1
-             % -Contents:list
-    '+#'//2 % :Dcg_1
-            % -Contents:list
+    '*#'//2, % :Dcg_1, -Contents:list
+    '+#'//2  % :Dcg_1, -Contents:list
   ]
 ).
 

@@ -1,9 +1,9 @@
 :- module(
   csp2,
   [
-    'content-security-policy'//1, % ?Policies:list(dict)
+    'content-security-policy'//1,             % ?Policies:list(dict)
     'content-security-policy-report-only'//1, % ?Policies:list(dict)
-    csp//1 % -Value:string
+    csp//1                                    % -Value:string
   ]
 ).
 

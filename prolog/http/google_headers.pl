@@ -57,12 +57,10 @@
 %
 % @see https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
 
-'x-robots-tag'(robots{user_agent: UA, directives: L}) -->
-  user_agent(UA),
-  ":", !,
-  'OWS',
-  +#(directive, L).
-'x-robots-tag'(robots{directives: L}) --> +#(directive, L).
+'x-robots-tag'(_{'user-agent': UA, directives: L}) -->
+  user_agent(UA), ":", !,
+  'OWS', +#(directive, L).
+'x-robots-tag'(_{directives: L}) --> +#(directive, L).
 
 
 user_agent(S) --> token(S).

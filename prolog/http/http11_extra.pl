@@ -72,8 +72,16 @@ sep_segment(S) --> "/", segment(S).
 % chunked-body = *chunk last-chunk trailer-part CRLF
 % ```
 
-'chunked-body'(_{'@type': 'llo:chunked-body', 'llo:chunks': Chunks, 'llo:last-chunk': Exts, 'llo:trailer-part': Headers}) -->
-  *(chunk, Chunks), 'last-chunk'(Exts), 'trailer-part'(Headers), 'CRLF'.
+'chunked-body'(_{
+  '@type': 'llo:chunked-body',
+  'llo:chunks': Chunks,
+  'llo:last-chunk': Exts,
+  'llo:trailer-part': Headers
+}) -->
+  *(chunk, Chunks),
+  'last-chunk'(Exts),
+  'trailer-part'(Headers),
+  'CRLF'.
 
 
 
@@ -125,8 +133,14 @@ sep_segment(S) --> "/", segment(S).
 % HTTP-version = HTTP-name "/" DIGIT "." DIGIT
 % ```
 
-'HTTP-version'(_{'@type': 'llo:version', 'llo:major': Major, 'llo:minor': Minor}) -->
-  'HTTP-name', "/", digit(Major), ".", digit(Minor).
+'HTTP-version'(_{
+  '@type': 'llo:version',
+  'llo:major': _{'@type': 'xsd:nonNegativeInteger', '@value': Major},
+  'llo:minor': _{'@type': 'xsd:nonNegativeInteger', '@value': Minor}
+}) -->
+  'HTTP-name', "/",
+  digit(Major), ".",
+  digit(Minor).
 
 
 
@@ -181,10 +195,10 @@ reason_phrase_code(C) --> 'obs-text'(C).
 
 'request-line'(
   http_message{
-    'llo:method': Method,
+    'llo:HTTP-method': Method,
     'llo:request-target': Iri,
-    'llo:message-type': "request",
-    'llo:version': Version
+    'llo:message-type': "HTTP-request",
+    'llo:HTTP-version': Version
   }
 ) -->
   method(Method),
@@ -204,14 +218,10 @@ reason_phrase_code(C) --> 'obs-text'(C).
 %                | asterisk-form
 % ```
 
-'request-target'(request_target{type: "origin-form", value: D}) -->
-  'origin-form'(D).
-'request-target'(request_target{type: "absolute-form", value: D}) -->
-  'absolute-form'(D).
-'request-target'(request_target{type: "authority-form", value: D}) -->
-  'authority-form'(D).
-'request-target'(request_target{type: "asterisk-form"}) -->
-  'asterisk-form'.
+'request-target'(_{type: "origin-form", value: D}) -->    'origin-form'(D).
+'request-target'(_{type: "absolute-form", value: D}) -->  'absolute-form'(D).
+'request-target'(_{type: "authority-form", value: D}) --> 'authority-form'(D).
+'request-target'(_{type: "asterisk-form"}) -->            'asterisk-form'.
 
 
 
@@ -229,8 +239,11 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```abnf
 % status-code = 3DIGIT
 % ```
+%
+% @tbd Define an XSD to the limit [100,599].
 
-'status-code'(N) --> #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
+'status-code'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -239,20 +252,16 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % status-line = HTTP-version SP status-code SP reason-phrase CRLF
 % ```
 
-'status-line'(
-  http_message{
+'status-line'(_{
     reason: Reason,
     status: Status,
-    type: response,
+    '@type': 'HTTP-response',
     version: Version
   }
 ) -->
-  'HTTP-version'(Version),
-  'SP',
-  'status-code'(Status),
-  'SP',
-  'reason-phrase'(Reason),
-  'CRLF'.
+  'HTTP-version'(Version), 'SP',
+  'status-code'(Status), 'SP',
+  'reason-phrase'(Reason), 'CRLF'.
 
 
 

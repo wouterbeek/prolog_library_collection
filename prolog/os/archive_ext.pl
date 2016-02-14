@@ -224,4 +224,8 @@ jsonld_metadata(
     'llo:size': Size
   }
 ) :-
-  maplist(atom_string, [Filetype1,Format1,Name1|Filters1], [Filetype2,Format2,Name2|Filters2]).
+  maplist(
+    atom_string,
+    [Filetype1,Format1,Name1|Filters1],
+    [Filetype2,Format2,Name2|Filters2]
+  ).

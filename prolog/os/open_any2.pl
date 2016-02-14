@@ -214,26 +214,39 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(version(Major-Minor), Opts),
       maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, L0),
       create_grouped_sorted_dict(L0, D01),
-      D02 = D1.put(
-          _{
-            'llo:base-iri': BaseIri,
-            'llo:final-iri': FinalIri,
-            'llo:status-code': Status,
-            'llo:version': _{'@type': 'llo:version', 'llo:major': Major, 'llo:minor': Minor}
-          }),
+      D02 = D1.put(_{
+        'llo:base-iri': BaseIri,
+        'llo:final-iri': FinalIri,
+        'llo:HTTP-status-code': Status,
+        'llo:HTTP-version': _{
+          '@type': 'llo:HTTP-version',
+          'llo:major': Major,
+          'llo:minor': Minor
+        }
+      }),
       D2 = D02.put(D01)
   ;   D2 = D1
   ),
   atomic_list_concat([llo,Mode1], :, Mode2),
   D3 = D2.put(_{'llo:mode': Mode2}),
-  (write_mode(Mode1), ground(Comp)-> D4 = D3.put(_{'llo:compress': Comp}) ; D4 = D3).
+  (   write_mode(Mode1),
+      ground(Comp)
+  ->  D4 = D3.put(_{'llo:compression': Comp})
+  ;   D4 = D3
+  ).
 
 
 
 %! open_any_options(+Type, +Opts, -OpenOpts) is det.
 
 open_any_options(http_iri, Opts1, Opts3) :- !,
-  Opts2 = [cert_verify_hook(cert_accept_any),final_url(_),raw_headers(_),status_code(_),version(_)],
+  Opts2 = [
+    cert_verify_hook(cert_accept_any),
+    final_url(_),
+    raw_headers(_),
+    status_code(_),
+    version(_)
+  ],
   merge_options(Opts1, Opts2, Opts3).
 open_any_options(_, Opts, Opts).
 
@@ -263,8 +276,9 @@ source_type(Iri,            _,    Iri,    http_iri) :- is_http_iri(Iri), !.
 source_type(File,           _,    Iri,    file_iri) :-
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-source_type(Pattern,        Mode, Iri, Type) :-
-  absolute_file_name(Pattern, File, [access(Mode),expand(true),file_errors(error),solutions(first)]),
+source_type(Pattern, Mode, Iri, Type) :-
+  Opts = [access(Mode),expand(true),file_errors(error),solutions(first)],
+  absolute_file_name(Pattern, File, Opts),
   source_type(File, Mode, Iri, Type).
 
 

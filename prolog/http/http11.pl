@@ -126,7 +126,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2016/01
+@version 2015/11-2016/02
 */
 
 :- use_module(library(apply)).
@@ -198,7 +198,10 @@ accept(L) --> '*#'(accept_value, L).
 accept_value(D2) -->
   {D1 = _{'@type': 'llo:accept-value', 'llo:media-range': MediaRange}},
   'media-range'(MediaRange),
-  ('accept-params'(Params) -> {D2 = D1.put(_{'llo:accept-params': Params})} ; {D2 = D1}).
+  (   'accept-params'(Params)
+  ->  {D2 = D1.put(_{'llo:accept-params': Params})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -239,7 +242,11 @@ accept_encoding_value(D2) -->
   'OWS', ";", 'OWS',
   token(Key),
   {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
+  (   "="
+  ->  (token(Value), ! ; 'quoted-string'(Value)),
+      {D2 = D1.put(_{'llo:value': Value})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -262,9 +269,12 @@ accept_language_value(D2) -->
 % accept-params = weight *( accept-ext )
 % ```
 
-'accept-params'(_{'@type': 'llo:accept-parameters', 'llo:weignt': Weight, 'llo:accept-ext': Exts}) -->
-  weight(Weight),
-  *('accept-ext', Exts).
+'accept-params'(_{
+  '@type': 'llo:accept-parameters',
+  'llo:weignt': Weight,
+  'llo:accept-ext': Exts
+}) -->
+  weight(Weight), *('accept-ext', Exts).
 
 
 
@@ -282,16 +292,18 @@ accept_language_value(D2) -->
 % acceptable-ranges = 1#range-unit | "none"
 % ```
 
-'acceptable-ranges'(L) --> (+#('range-unit', L) -> "" ; atom_ci(none) -> {L = []}).
+'acceptable-ranges'(L) -->
+  (+#('range-unit', L) -> "" ; atom_ci(none) -> {L = []}).
 
 
 
-%! age(-Age:nonneg)// is det.
+%! age(-Age:dict)// is det.
 % ```abnf
 % Age = delta-seconds
 % ```
 
-age(N) --> 'delta-seconds'(N).
+age(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  'delta-seconds'(N).
 
 
 
@@ -329,8 +341,14 @@ allow(L) --> '*#'(method, L).
 % auth-param = token BWS "=" BWS ( token | quoted-string )
 % ```
 
-'auth-param'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
-  token(Key), 'BWS', "=", 'BWS', (token(Value), ! ; 'quoted-string'(Value)).
+'auth-param'(_{
+  '@type': 'llo:parameter',
+  'llo:key': Key,
+  'llo:value': Value
+}) -->
+  token(Key),
+  'BWS', "=", 'BWS',
+  (token(Value), ! ; 'quoted-string'(Value)).
 
 
 
@@ -371,7 +389,11 @@ authorization(D) --> credentials(D).
   'SP',
   ('byte-range-resp'(Range, Length), ! ; 'unsatisfied-range'(Range, Length)),
   {
-    D1 = _{'@type': 'llo:byte-content-range', 'llo:range': Range, 'llo:unit': "bytes"},
+    D1 = _{
+      '@type': 'llo:byte-content-range',
+      'llo:range': Range,
+      'llo:unit': "bytes"
+    },
     (var(Length) -> D2 = D1 ; D2 = D1.put(_{'llo:length': Length}))
   }.
 
@@ -382,12 +404,16 @@ authorization(D) --> credentials(D).
 % byte-range = first-byte-pos "-" last-byte-pos
 % ```
 
-'byte-range'(_{'@type': 'llo:byte-range', 'llo:first-byte-pos': First, 'llo:last-byte-pos': Last}) -->
+'byte-range'(_{
+  '@type': 'llo:byte-range',
+  'llo:first-byte-pos': _{'@type': 'xsd:nonNegativeInteger', '@value': First},
+  'llo:last-byte-pos': _{'@type': 'xsd:nonNegativeInteger', '@value': Last}
+}) -->
   'first-byte-pos'(First), "-", 'last-byte-pos'(Last).
 
 
 
-%! 'byte-range-resp'(-Range:dict, ?Length:nonneg)// is det.
+%! 'byte-range-resp'(-Range:dict, ?Length:dict)// is det.
 % ```abnf
 % byte-range-resp = byte-range "/" ( complete-length | "*" )
 % ```
@@ -405,8 +431,16 @@ authorization(D) --> credentials(D).
 'byte-range-spec'(D2) -->
   'first-byte-pos'(First),
   "-",
-  {D1 = _{'@type': 'llo:byte-range-spec', 'llo:first': First}},
-  ('last-byte-pos'(Last) -> {D2 = D1.put(_{'llo:last': Last})} ; {D2 = D1}).
+  {D1 = _{
+    '@type': 'llo:byte-range-spec',
+    'llo:first': _{'@type': 'xsd:nonNegativeInteger', '@value': First}
+  }},
+  (   'last-byte-pos'(Last)
+  ->  {D2 = D1.put(_{
+        'llo:last': _{'@type': 'xsd:nonNegativeInteger', '@value': Last}
+      })}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -415,7 +449,11 @@ authorization(D) --> credentials(D).
 % byte-ranges-specifier = bytes-unit "=" byte-range-set
 % ```
 
-'byte-ranges-specifier'(_{'@type': 'llo:byte-ranges-specifier', 'llo:byte-range-set': Ranges, 'bytes-unit': "bytes"}) -->
+'byte-ranges-specifier'(_{
+  '@type': 'llo:byte-ranges-specifier',
+  'llo:byte-range-set': Ranges,
+  'bytes-unit': "bytes"
+}) -->
   'bytes-unit', "=", 'byte-range-set'(Ranges).
 
 
@@ -458,26 +496,11 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 'cache-directive'(D2) -->
   token(Key),
   {D1 = _{'@type': 'llo:cache-directive', 'llo:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
-
-/*
-cache_request_directive('no-cache') --> "no-cache".
-cache_request_directive('no-store') --> "no-store".
-cache_request_directive('max-age'(Delta)) --> 'delta-seconds'(Delta).
-cache_request_directive('max-stale'(Delta)) --> 'delta-seconds'(Delta).
-cache_request_directive('min-fresh'(Delta)) --> 'delta-seconds'(Delta).
-cache_request_directive('no-transform') --> "no-transform".
-cache_request_directive('only-if-cached') --> "only-if-cached".
-cache_response_directive(public) --> "public".
-cache_response_directive(private(L)) --> '*#'('field-name', L).
-cache_response_directive('no-cache'(L)) --> '*#'('field-name', L).
-cache_response_directive('no-store') --> "no-store".
-cache_response_directive('no-transform') --> "no-transform".
-cache_response_directive('must-revalidate') --> "must-revalidate".
-cache_response_directive('proxy-revalidate') --> "proxy-revalidate".
-cache_response_directive('max-age'(Delta)) --> 'delta-seconds'(Delta).
-cache_response_directive('s-maxage'(Delta)) --> 'delta-seconds'(Delta).
-*/
+  (   "="
+  ->  (token(Value), ! ; 'quoted-string'(Value)),
+      {D2 = D1.put(_{'llo:value': Value})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -513,7 +536,12 @@ charset(S) --> token(S).
 %
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
-chunk(_{'@type': 'llo:chunk', 'llo:chunk-data': Cs, 'llo:chunk-ext': Exts, 'llo:chunk-size': Size}) -->
+chunk(_{
+  '@type': 'llo:chunk',
+  'llo:chunk-data': Cs,
+  'llo:chunk-ext': Exts,
+  'llo:chunk-size': _{'@type': 'xsd:nonNegativeInteger', '@value': Size}
+}) -->
   'chunk-size'(Size), 'chunk-ext'(Exts), 'CRLF', 'chunk-data'(Cs), 'CRLF'.
 
 
@@ -537,7 +565,11 @@ chunk(_{'@type': 'llo:chunk', 'llo:chunk-data': Cs, 'llo:chunk-ext': Exts, 'llo:
 sep_chunk_ext(D2) -->
   ";", 'chunk-ext-name'(Key),
   {D1 = _{'llo:key': Key}},
-  ("=" -> 'chunk-ext-val'(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
+  (   "="
+  ->  'chunk-ext-val'(Value),
+      {D2 = D1.put(_{'llo:value': Value})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -584,21 +616,24 @@ codings("*")        --> "*".
 
 comment(S) --> dcg_string(comment_codes1, S).
 
-comment_codes1([0'(|T]) --> "(", comment_codes2(T0), ")", {append(T0, [0')], T)}.
+comment_codes1([0'(|T]) -->
+  "(", comment_codes2(T0), ")",
+  {append(T0, [0')], T)}.
 
-comment_codes2([H|T])   --> ctext(H), !, comment_codes2(T).
-comment_codes2([H|T])   --> 'quoted-pair'(H), !, comment_codes2(T).
-comment_codes2(L)       --> comment_codes1(L), !.
-comment_codes2([])      --> "".
+comment_codes2([H|T]) --> ctext(H), !, comment_codes2(T).
+comment_codes2([H|T]) --> 'quoted-pair'(H), !, comment_codes2(T).
+comment_codes2(L)     --> comment_codes1(L), !.
+comment_codes2([])    --> "".
 
 
 
-%! 'complete-length'(-Length:nonneg)// is det.
+%! 'complete-length'(-Length:dict)// is det.
 % ```abnf
 % complete-length = 1*DIGIT
 % ```
 
-'complete-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'complete-length'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -652,7 +687,8 @@ connection(L) --> +#('connection-option', L).
 % Content-Length = 1*DIGIT
 % ```
 
-'content-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'content-length'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -670,7 +706,8 @@ connection(L) --> +#('connection-option', L).
 % Content-Range = byte-content-range | other-content-range
 % ```
 
-'content-range'(D) --> ('byte-content-range'(D), ! ; 'other-content-range'(D)).
+'content-range'(D) -->
+  ('byte-content-range'(D), ! ; 'other-content-range'(D)).
 
 
 
@@ -706,7 +743,9 @@ credentials(D2) -->
 
 ctext(C) --> 'HTAB'(C).
 ctext(C) --> 'SP'(C).
-ctext(C) --> [C], {(between(0x21, 0x27, C), ! ; between(0x2A, 0x5B, C), ! ; between(0x5D, 0x7E, C))}.
+ctext(C) --> [C], {(between(0x21, 0x27, C), !
+                  ; between(0x2A, 0x5B, C), !
+                  ; between(0x5D, 0x7E, C))}.
 ctext(C) --> 'obs-text'(C).
 
 
@@ -720,7 +759,7 @@ date(D) --> 'HTTP-date'(D).
 
 
 
-%! date1(-Y, -Mo, -D)// is det.
+%! date1(-Year:between(0,9999), -Month:between(1,12), -Day:between(0,99))// is det.
 % ```abnf
 % date1 = day SP month SP year   ; e.g., 02 Jun 1982
 % ```
@@ -729,12 +768,15 @@ date1(Y, Mo, D) --> day(D), 'SP', month(Mo), 'SP', year(Y).
 
 
 
-%! date2(-Y, -Mo, -D)// is det.
+%! date2(-Year:between(0,9999), -Month:between(1,12), -Day:beween(0,99))// is det.
 % ```abnf
 % date2 = day "-" month "-" 2DIGIT   ; e.g., 02-Jun-82
 % ```
 
-date2(Y, Mo, D) --> day(D), "-", month(Mo), "-", #(2, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
+date2(Y, Mo, D) -->
+  day(D), "-",
+  month(Mo), "-",
+  #(2, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
 
 
 
@@ -743,7 +785,9 @@ date2(Y, Mo, D) --> day(D), "-", month(Mo), "-", #(2, 'DIGIT', Ds), {pos_sum(Ds,
 % date3 = month SP ( 2DIGIT | ( SP 1DIGIT ))   ; e.g., Jun  2
 % ```
 
-date3(Mo, D) --> month(Mo), 'SP', (#(2, 'DIGIT', Ds) -> {pos_sum(Ds, D)} ; 'SP', #(1, 'DIGIT', D)).
+date3(Mo, D) -->
+  month(Mo), 'SP',
+  (#(2, 'DIGIT', Ds) -> {pos_sum(Ds, D)} ; 'SP', #(1, 'DIGIT', D)).
 
 
 
@@ -827,7 +871,7 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % entity-tag = [ weak ] opaque-tag
 % ```
 
-'entity-tag'(entity_tag{weak: Weak, opaque_tag: OTag}) -->
+'entity-tag'(_{weak: Weak, opaque_tag: OTag}) -->
   (weak -> {Weak = true} ; {Weak = false}),
   'opaque-tag'(OTag).
 
@@ -881,7 +925,11 @@ expect("100-continue") --> atom_ci('100-continue').
 'extension-pragma'(D2) -->
   token(Key),
   {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
-  ("=" -> (token(Value), ! ; 'quoted-string'(Value)), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
+  (   "="
+  ->  (token(Value), ! ; 'quoted-string'(Value)),
+      {D2 = D1.put(_{'llo:value': Value})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -1196,7 +1244,8 @@ location(Uri) --> 'URI-reference'(Uri).
 % Max-Forwards = 1*DIGIT
 % ```
 
-'max-forwards'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'max-forwards'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1232,7 +1281,11 @@ location(Uri) --> 'URI-reference'(Uri).
 % ```
 
 'media-type'(D2) -->
-  {D1 = _{'@type': 'llo:media-type', 'llo:type': Type, 'llo:subtype': Subtype}},
+  {D1 = _{
+    '@type': 'llo:media-type',
+    'llo:type': Type,
+    'llo:subtype': Subtype
+  }},
   type(Type), "/", subtype(Subtype),
   (+(sep_parameter, L) -> {D2 = D1.put(_{'llo:parameters': L})} ; {D2 = D1}).
 
@@ -1308,7 +1361,7 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-date'(-Class:iri, -Lex:string)// is det.
+%! 'obs-date'(-Class, -Lex:string)// is det.
 % ```abnf
 % obs-date = rfc850-date | asctime-date
 % ```
@@ -1327,7 +1380,7 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-text'(-Code:code)// is det.
+%! 'obs-text'(?Code:code)// is det.
 % ```abnf
 % obs-text = %x80-FF
 % ```
@@ -1336,7 +1389,7 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'opaque-tag'(?OpaqueTag:string)// .
+%! 'opaque-tag'(-OpaqueTag:string)// .
 % ```abnf
 % opaque-tag = DQUOTE *etagc DQUOTE
 % ```
@@ -1350,7 +1403,7 @@ month(12) --> atom_ci('Dec').
 % other-content-range = other-range-unit SP other-range-resp
 % ```
 
-'other-content-range'(content_range{range: Range, unit: Unit}) -->
+'other-content-range'(_{range: Range, unit: Unit}) -->
   'other-range-unit'(Unit),
   'SP',
   'other-range-resp'(Range).
@@ -1389,13 +1442,11 @@ month(12) --> atom_ci('Dec').
 % other-ranges-specifier = other-range-unit "=" other-range-set
 % ```
 
-'other-ranges-specifier'(
-  _{
-    '@type': 'llo:other-ranges-specifier',
-    'llo:other-range-unit': OtherRangeUnit,
-    'llo:other-range-set': OtherRangeSet
-  }
-) -->
+'other-ranges-specifier'(_{
+  '@type': 'llo:other-ranges-specifier',
+  'llo:other-range-unit': OtherRangeUnit,
+  'llo:other-range-set': OtherRangeSet
+}) -->
   'other-range-unit'(OtherRangeUnit), "=", 'other-range-set'(OtherRangeSet).
 
 
@@ -1415,9 +1466,7 @@ month(12) --> atom_ci('Dec').
 % ```
 
 parameter(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
-  token(Key),
-  "=",
-  (token(Value), ! ; 'quoted-string'(Value)).
+  token(Key), "=", (token(Value), ! ; 'quoted-string'(Value)).
 
 
 
@@ -1459,7 +1508,11 @@ pragma(L) --> +#('pragma-directive', L).
 product(D2) -->
   token(Name),
   {D1 = _{'@type': 'llo:product', 'llo:name': Name}},
-  ("/" -> 'product-version'(Version), {D2 = D1.put(_{'llo:version': Version})} ; {D2 = D1}).
+  (   "/"
+  ->  'product-version'(Version),
+      {D2 = D1.put(_{'llo:version': Version})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -1498,7 +1551,11 @@ product(D2) -->
 protocol(D2) -->
   'protocol-name'(Name),
   {D1 = _{'@type': 'llo:protocol', 'llo:protocol': Name}},
-  ("/" -> 'protocol-version'(Version), {D2 = D1.put(_{'protocol-version': Version})} ; {D2 = D1}).
+  (   "/"
+  ->  'protocol-version'(Version),
+      {D2 = D1.put(_{'protocol-version': Version})}
+  ;   {D2 = D1}
+  ).
 
 
 
@@ -1556,7 +1613,9 @@ qdtext(C)    --> 'obs-text'(C).
 % quoted-string = DQUOTE *( qdtext | quoted-pair ) DQUOTE
 % ```
 
-'quoted-string'(S) --> 'DQUOTE', *(quoted_string_code, Cs), 'DQUOTE', {string_codes(S, Cs)}.
+'quoted-string'(S) -->
+  'DQUOTE', *(quoted_string_code, Cs), 'DQUOTE',
+  {string_codes(S, Cs)}.
 
 quoted_string_code(C) --> qdtext(C).
 quoted_string_code(C) --> 'quoted-pair'(C).
@@ -1568,8 +1627,16 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 % qvalue = ( "0" [ "." 0*3DIGIT ] ) | ( "1" [ "." 0*3("0") ] )
 % ```
 
-qvalue(N)   --> "0", ("." -> 'm*n'(0, 3, 'DIGIT', Ds), {pos_frac(Ds, N0), N is float(N0)} ; {N = 0}).
-qvalue(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
+qvalue(N)   -->
+  "0",
+  (   "."
+  ->  'm*n'(0, 3, 'DIGIT', Ds),
+      {pos_frac(Ds, N0), N is float(N0)}
+  ;   {N = 0}
+  ).
+qvalue(1.0) -->
+  "1",
+  ("." -> 'm*n'(0, 3, "0") ; "").
 
 
 
@@ -1636,13 +1703,15 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 
 
 
-%! 'retry-after'(-Value)// is det.
+%! 'retry-after'(-Value:dict)// is det.
 % ```abnf
 % Retry-After = HTTP-date | delay-seconds
 % ```
 
-'retry-after'(D) --> 'HTTP-date'(D), !.
-'retry-after'(N) --> 'delay-seconds'(N).
+'retry-after'(D) -->
+  'HTTP-date'(D), !.
+'retry-after'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  'delay-seconds'(N).
 
 
 
@@ -1680,8 +1749,10 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 % ```abnf
 % second = 2DIGIT
 % ```
+%
+% @tbd Define an XSD for the range [0,99].
 
-second(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+second(N) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1703,12 +1774,13 @@ subtype(S) --> token(S).
 
 
 
-%! 'suffix-byte-range-spec'(-Value:nonpos)// is det.
+%! 'suffix-byte-range-spec'(-Value:dict)// is det.
 % ```abnf
 % suffix-byte-range-spec = "-" suffix-length
 % ```
 
-'suffix-byte-range-spec'(N) --> "-", 'suffix-length'(N).
+'suffix-byte-range-spec'(_{'@type': 'xsd:negativeInteger', '@value': N2}) -->
+  "-", 'suffix-length'(N1), {N2 is -N1}.
 
 
 
@@ -1734,12 +1806,15 @@ subtype(S) --> token(S).
 
 
 
-%! 't-ranking'(-Rank:between(0.0,1.0))// is det.
+%! 't-ranking'(-Rank:dict)// is det.
 % ```abnf
 % t-ranking = OWS ";" OWS "q=" rank
 % ```
+%
+% @tbd Define an XSD for the range [0.0,1.0].
 
-'t-ranking'(Rank) --> 'OWS', ";", 'OWS', atom_ci('q='), rank(Rank).
+'t-ranking'(_{'@type': 'xsd:decimal', '@value': Rank}) -->
+  'OWS', ";", 'OWS', atom_ci('q='), rank(Rank).
 
 
 
@@ -1855,7 +1930,11 @@ trailer(L) --> +#('field-name', L).
 % transfer-extension = token *( OWS ";" OWS transfer-parameter )
 % ```
 
-'transfer-extension'(_{'@type': 'llo:transfer-extension', 'llo:token': H, 'llo:parameters': T}) -->
+'transfer-extension'(_{
+  '@type': 'llo:transfer-extension',
+  'llo:token': H,
+  'llo:parameters': T
+}) -->
   token(H),
   *(sep_transfer_parameter, T).
 
@@ -1868,7 +1947,11 @@ sep_transfer_parameter(Param) --> 'OWS', ";", 'OWS', 'transfer-parameter'(Param)
 % transfer-parameter = token BWS "=" BWS ( token | quoted-string )
 % ```
 
-'transfer-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+'transfer-parameter'(_{
+  '@type': 'llo:parameter',
+  'llo:key': Key,
+  'llo:value': Value
+}) -->
   token(Key),
   'BWS',
   "=",
@@ -1886,12 +1969,12 @@ type(S) --> token(S).
 
 
 
-%! 'unsatisfied-range'(-CompleteLength:nonneg)// is det.
+%! 'unsatisfied-range'(-Range:string, -CompleteLength:dict)// is det.
 % ```abnf
 % unsatisfied-range = "*/" complete-length
 % ```
 
-'unsatisfied-range'(N) --> "*/", 'complete-length'(N).
+'unsatisfied-range'("*", Length) --> "*/", 'complete-length'(Length).
 
 
 
@@ -1958,12 +2041,13 @@ via_component(D2) -->
 
 
 
-%! 'warn-code'(-Code:between(0,999))// is det.
+%! 'warn-code'(-WarningCode:dict)// is det.
 % ```abnf
 % warn-code = 3DIGIT
 % ```
 
-'warn-code'(N) --> #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
+'warn-code'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -2000,12 +2084,11 @@ warning(L) --> +#('warning-value', L).
 % ```
 
 'warning-value'(D2) -->
-  'warn-code'(WarnCode),
-  'SP',
-  'warn-agent'(WarnAgent),
-  'SP',
+  'warn-code'(WarnCode), 'SP',
+  'warn-agent'(WarnAgent), 'SP',
   'warn-text'(WarnText),
-  {D1 = _{
+  {
+    D1 = _{
       '@type': 'llo:warning-value',
       'llo:warn-agent': WarnAgent,
       'llo:warn-code': WarnCode,
@@ -2034,7 +2117,8 @@ weak --> "W/".
 % weight = OWS ";" OWS "q=" qvalue
 % ```
 
-weight(N) --> 'OWS', ";", 'OWS', atom_ci('q='), qvalue(N).
+weight(_{'@type': 'xsd:double', '@value': N}) -->
+  'OWS', ";", 'OWS', atom_ci('q='), qvalue(N).
 
 
 

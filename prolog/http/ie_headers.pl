@@ -2,8 +2,8 @@
   ie_headers,
   [
     'x-content-type-options'//1, % -Status:oneof([nosniff])
-    'x-powered-by'//1, % -Value:string
-    'x-xss-protection'//1 % -Status:oneof([block,optin,optout])
+    'x-powered-by'//1,           % -Value:string
+    'x-xss-protection'//1        % -Status:oneof([block,optin,optout])
   ]
 ).
 
