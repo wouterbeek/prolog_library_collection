@@ -8,7 +8,7 @@
 /** <module> Google-specific HTTP headers
 
 @author Wouter Beek
-@version 2015/12-2016/01
+@version 2015/12-2016/02
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -75,7 +75,7 @@ directive(nosnippet) --> atom_ci(nosnippet).
 directive(noodp) --> atom_ci(noodp).
 directive(notranslate) --> atom_ci(notranslate).
 directive(noimageindex) --> atom_ci(noimageindex).
-directive(unavailable_after-DT) -->
+directive(unavailable_after-D) -->
   atom_ci('unavailable_after:'),
   ?('LWS'),
-  'rfc850-date'(DT).
+  'rfc850-date'(D).

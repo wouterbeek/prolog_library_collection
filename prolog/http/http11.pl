@@ -4,8 +4,7 @@
     'field-name'//1,   % -Name:string
     'header-field'//1, % -Header:pair
     method//1,         % -Method:string
-    'OWS'//0,
-    'rfc850-date'//1   % -Lex:string
+    'OWS'//0
   ]
 ).
 
@@ -316,12 +315,12 @@ allow(L) --> '*#'(method, L).
 
 
 
-%! 'asctime-date'(-Lex)// is det.
+%! 'asctime-date'(-D)// is det.
 % ```abnf
 % asctime-date = day-name SP date3 SP time-of-day SP year
 % ```
 
-'asctime-date'(Lex) -->
+'asctime-date'(_{'@type': Type, '@value': Lex}) -->
   'day-name'(D),
   'SP',
   date3(Mo, D),
@@ -848,12 +847,13 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 
 
 
-%! 'delay-seconds'(-Seconds:nonneg)// is det.
+%! 'delay-seconds'(-D)// is det.
 % ```abnf
 % delay-seconds = 1*DIGIT
 % ```
 
-'delay-seconds'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'delay-seconds'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+  +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
@@ -1120,13 +1120,13 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 
 
 
-%! 'HTTP-date'(-Datetime:dict)// is det.
+%! 'HTTP-date'(-D)// is det.
 % ```abnf
 % HTTP-date = IMF-fixdate | obs-date
 % ```
 
-'HTTP-date'(_{'@type': Class, 'rdf:value': Lex}) -->
-  ('IMF-fixdate'(Lex) -> {Class = 'llo:IMF-fixdate'} ; 'obs-date'(Class, Lex)).
+'HTTP-date'(D) --> 'IMF-fixdate'(D).
+'HTTP-date'(D) --> 'obs-date'(D).
 
 
 
@@ -1178,14 +1178,14 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 
 
 
-%! 'IMF-fixdate'(-Lex:string)// is det.
+%! 'IMF-fixdate'(-D)// is det.
 % ```abnf
 % IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
 %             ; fixed length/zone/capitalization subset of the format
 %             ; see Section 3.3 of [RFC5322]
 % ```
 
-'IMF-fixdate'(Lex) -->
+'IMF-fixdate'(_{'@type': Type, '@value': Lex}) -->
   'day-name'(_DayInWeek),
   ",",
   'SP',
@@ -1361,13 +1361,13 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-date'(-Class, -Lex:string)// is det.
+%! 'obs-date'(-D)// is det.
 % ```abnf
 % obs-date = rfc850-date | asctime-date
 % ```
 
-'obs-date'('llo:rfc850-date', Lex)  --> 'rfc850-date'(Lex), !.
-'obs-date'('llo:asctime-date', Lex) --> 'asctime-date'(Lex).
+'obs-date'(D)  --> 'rfc850-date'(D), !.
+'obs-date'(D) --> 'asctime-date'(D).
 
 
 
@@ -1708,19 +1708,17 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 % Retry-After = HTTP-date | delay-seconds
 % ```
 
-'retry-after'(D) -->
-  'HTTP-date'(D), !.
-'retry-after'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
-  'delay-seconds'(N).
+'retry-after'(D) --> 'HTTP-date'(D), !.
+'retry-after'(D) --> 'delay-seconds'(D).
 
 
 
-%! 'rfc850-date'(-Lex:string)// is det.
+%! 'rfc850-date'(-D)// is det.
 % ```abnf
 % rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
 % ```
 
-'rfc850-date'(Lex) -->
+'rfc850-date'(_{'@type': Type, '@value': Lex}) -->
   'day-name-l'(D),
   ",",
   'SP',

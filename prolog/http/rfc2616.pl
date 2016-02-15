@@ -161,12 +161,12 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'rfc850-date'(-Lex:string)// is det.
+%! 'rfc850-date'(-D)// is det.
 % ```abnf
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
 % ```
 
-'rfc850-date'(Lex) -->
+'rfc850-date'(_{'@type': Type, '@value': Lex}) -->
   weekday(D),
   ",",
   'SP',
