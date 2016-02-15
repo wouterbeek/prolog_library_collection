@@ -681,7 +681,7 @@ connection(L) --> +#('connection-option', L).
 
 
 
-%! 'content-length'(-Length:nonneg)// is det.
+%! 'content-length'(-D)// is det.
 % ```abnf
 % Content-Length = 1*DIGIT
 % ```
