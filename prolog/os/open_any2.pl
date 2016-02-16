@@ -14,7 +14,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2016/01
+@version 2015/10-2016/02
 */
 
 :- use_module(library(apply)).
@@ -118,7 +118,7 @@ open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
       Close2_0 = Close1_0
   ),
   open_any_metadata(Source2, Mode, Type, Comp, Opts3, D),
-  (   get_dict('llo:status-code', D, Status),
+  (   get_dict('llo:status_code', D, Status),
       is_http_error(Status)
   ->  existence_error(open_any2, D)
   ;   true
@@ -205,7 +205,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   D1 = _{'@type': Type2},
   (   Type1 == file_iri
   ->  base_iri(Source, BaseIri),
-      D2 = D1.put(_{'llo:base-iri': BaseIri})
+      D2 = D1.put(_{'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri}})
   ;   Type1 == http_iri
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
@@ -215,11 +215,11 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, L0),
       create_grouped_sorted_dict(L0, D01),
       D02 = D1.put(_{
-        'llo:base-iri': BaseIri,
-        'llo:final-iri': FinalIri,
-        'llo:HTTP-status-code': Status,
-        'llo:HTTP-version': _{
-          '@type': 'llo:HTTP-version',
+        'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri},
+        'llo:final_iri': _{'@type': 'xsd:anyURI', '@value': FinalIri},
+        'llo:status_code': Status,
+        'llo:version': _{
+          '@type': 'llo:Version',
           'llo:major': Major,
           'llo:minor': Minor
         }

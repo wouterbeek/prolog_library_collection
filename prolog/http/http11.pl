@@ -195,10 +195,10 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 accept(L) --> '*#'(accept_value, L).
 
 accept_value(D2) -->
-  {D1 = _{'@type': 'llo:accept-value', 'llo:media-range': MediaRange}},
+  {D1 = _{'@type': 'llo:AcceptValue', 'llo:media_range': MediaRange}},
   'media-range'(MediaRange),
   (   'accept-params'(Params)
-  ->  {D2 = D1.put(_{'llo:accept-params': Params})}
+  ->  {D2 = D1.put(_{'llo:parameters': Params})}
   ;   {D2 = D1}
   ).
 
@@ -213,7 +213,7 @@ accept_value(D2) -->
 
 accept_charset_value(D2) -->
   ("*" -> {Charset = "*"} ; charset(Charset)),
-  {D1 = _{'@type': 'llo:character-set', 'llo:charset': Charset}},
+  {D1 = _{'@type': 'llo:CharacterSet', 'llo:character_set': Charset}},
   (weight(Weight) -> {D2 = D1.put(_{'llo:weight': Weight})} ; {D2 = D1}).
 
 
@@ -240,7 +240,7 @@ accept_encoding_value(D2) -->
 'accept-ext'(D2) -->
   'OWS', ";", 'OWS',
   token(Key),
-  {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
+  {D1 = _{'@type': 'llo:Parameter', 'llo:key': Key}},
   (   "="
   ->  (token(Value), ! ; 'quoted-string'(Value)),
       {D2 = D1.put(_{'llo:value': Value})}
@@ -258,7 +258,7 @@ accept_encoding_value(D2) -->
 
 accept_language_value(D2) -->
   'language-range'(LanguageRange),
-  {D1 = _{'llo:language-range': LanguageRange}},
+  {D1 = _{'llo:language_range': LanguageRange}},
   (weight(Weight) -> {D2 = D1.put(_{'llo:weight': Weight})} ; {D2 = D1}).
 
 
@@ -269,9 +269,9 @@ accept_language_value(D2) -->
 % ```
 
 'accept-params'(_{
-  '@type': 'llo:accept-parameters',
-  'llo:weignt': Weight,
-  'llo:accept-ext': Exts
+  '@type': 'llo:AcceptParameters',
+  'llo:weight': Weight,
+  'llo:accept_extensions': Exts
 }) -->
   weight(Weight), *('accept-ext', Exts).
 
@@ -341,7 +341,7 @@ allow(L) --> '*#'(method, L).
 % ```
 
 'auth-param'(_{
-  '@type': 'llo:parameter',
+  '@type': 'llo:Parameter',
   'llo:key': Key,
   'llo:value': Value
 }) -->
@@ -389,7 +389,7 @@ authorization(D) --> credentials(D).
   ('byte-range-resp'(Range, Length), ! ; 'unsatisfied-range'(Range, Length)),
   {
     D1 = _{
-      '@type': 'llo:byte-content-range',
+      '@type': 'llo:ByteContentRange',
       'llo:range': Range,
       'llo:unit': "bytes"
     },
@@ -404,9 +404,9 @@ authorization(D) --> credentials(D).
 % ```
 
 'byte-range'(_{
-  '@type': 'llo:byte-range',
-  'llo:first-byte-pos': _{'@type': 'xsd:nonNegativeInteger', '@value': First},
-  'llo:last-byte-pos': _{'@type': 'xsd:nonNegativeInteger', '@value': Last}
+  '@type': 'llo:ByteRange',
+  'llo:first_byte_position': _{'@type': 'xsd:nonNegativeInteger', '@value': First},
+  'llo:last_byte_position': _{'@type': 'xsd:nonNegativeInteger', '@value': Last}
 }) -->
   'first-byte-pos'(First), "-", 'last-byte-pos'(Last).
 
@@ -431,7 +431,7 @@ authorization(D) --> credentials(D).
   'first-byte-pos'(First),
   "-",
   {D1 = _{
-    '@type': 'llo:byte-range-spec',
+    '@type': 'llo:ByteRangeSpec',
     'llo:first': _{'@type': 'xsd:nonNegativeInteger', '@value': First}
   }},
   (   'last-byte-pos'(Last)
@@ -449,9 +449,9 @@ authorization(D) --> credentials(D).
 % ```
 
 'byte-ranges-specifier'(_{
-  '@type': 'llo:byte-ranges-specifier',
-  'llo:byte-range-set': Ranges,
-  'bytes-unit': "bytes"
+  '@type': 'llo:ByteRangesSpecifier',
+  'llo:byte_range_set': Ranges,
+  'llo:bytes_unit': "bytes"
 }) -->
   'bytes-unit', "=", 'byte-range-set'(Ranges).
 
@@ -494,7 +494,7 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 
 'cache-directive'(D2) -->
   token(Key),
-  {D1 = _{'@type': 'llo:cache-directive', 'llo:key': Key}},
+  {D1 = _{'@type': 'llo:CacheDirective', 'llo:key': Key}},
   (   "="
   ->  (token(Value), ! ; 'quoted-string'(Value)),
       {D2 = D1.put(_{'llo:value': Value})}
@@ -510,7 +510,7 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 
 challenge(D2) -->
   'auth-scheme'(AuthScheme),
-  {D1 = _{'@type': 'llo:challenge', 'llo:auth-scheme': AuthScheme}},
+  {D1 = _{'@type': 'llo:Challenge', 'llo:authority_scheme': AuthScheme}},
   (   +('SP')
   ->  ('*#'('auth-param', Params), ! ; token68(S), {Params = [S]}),
       {D2 = D1.put(_{'llo:parameters': Params})}
@@ -536,12 +536,14 @@ charset(S) --> token(S).
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
 chunk(_{
-  '@type': 'llo:chunk',
-  'llo:chunk-data': Cs,
-  'llo:chunk-ext': Exts,
-  'llo:chunk-size': _{'@type': 'xsd:nonNegativeInteger', '@value': Size}
+  '@type': 'llo:Chunk',
+  'llo:chunk_data': Cs,
+  'llo:chunk_extensions': Exts,
+  'llo:chunk_size': _{'@type': 'xsd:nonNegativeInteger', '@value': Size}
 }) -->
-  'chunk-size'(Size), 'chunk-ext'(Exts), 'CRLF', 'chunk-data'(Cs), 'CRLF'.
+  'chunk-size'(Size),
+  'chunk-ext'(Exts), 'CRLF',
+  'chunk-data'(Cs), 'CRLF'.
 
 
 
@@ -705,8 +707,7 @@ connection(L) --> +#('connection-option', L).
 % Content-Range = byte-content-range | other-content-range
 % ```
 
-'content-range'(D) -->
-  ('byte-content-range'(D), ! ; 'other-content-range'(D)).
+'content-range'(D) --> ('byte-content-range'(D), ! ; 'other-content-range'(D)).
 
 
 
@@ -726,7 +727,7 @@ connection(L) --> +#('connection-option', L).
 
 credentials(D2) -->
   'auth-scheme'(AuthScheme),
-  {D1 = _{'llo:auth-scheme': AuthScheme}},
+  {D1 = _{'llo:authority_scheme': AuthScheme}},
   (   +('SP')
   ->  (token68(S) -> {Params = [S]} ; '*#'('auth-param', Params)),
       {D2 = D1.put(_{'llo:parameters': Params})}
@@ -871,7 +872,11 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % entity-tag = [ weak ] opaque-tag
 % ```
 
-'entity-tag'(_{weak: Weak, opaque_tag: OTag}) -->
+'entity-tag'(_{
+  '@type': 'llo:EntityTag',
+  'llo:weak': Weak,
+  'llo:opaque_tag': OTag
+}) -->
   (weak -> {Weak = true} ; {Weak = false}),
   'opaque-tag'(OTag).
 
@@ -924,7 +929,7 @@ expect("100-continue") --> atom_ci('100-continue').
 
 'extension-pragma'(D2) -->
   token(Key),
-  {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
+  {D1 = _{'@type': 'llo:Parameter', 'llo:key': Key}},
   (   "="
   ->  (token(Value), ! ; 'quoted-string'(Value)),
       {D2 = D1.put(_{'llo:value': Value})}
@@ -945,21 +950,21 @@ expect("100-continue") --> atom_ci('100-continue').
           'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
-      ->  {D = _{'llo:parser': "valid", 'llo:value': Value}}
+      ->  {D = _{'@type': 'llo:ValidHttpHeader', 'llo:value': Value}}
       ;   % Empty value.
           phrase('obs-fold')
-      ->  {D = _{'llo:parser': "empty"}}
+      ->  {D = _{'@type': 'llo:EmptyHttpHeader'}}
       ;    % Buggy value.
           rest(Cs),
           {
-            D = _{'llo:parser': "invalid"},
+            D = _{'@type': 'llo:InvalidHttpHeader'},
             debug(http(parse), "Buggy HTTP header ~a: ~s", [Key,Cs])
           }
       )
   ;   % Unknown unknown key.
       rest(Cs),
       {
-        D = _{'llo:parser': "unrecognized"},
+        D = _{'@type': 'llo:UnknownHttpHeader'},
         (   known_unknown(Key)
         ->  true
         ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key,Cs])
@@ -1055,7 +1060,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 'field-value'(Cs, Key, D2) :-
   phrase('field-content'(Key, D1), Cs),
   string_codes(Raw, Cs),
-  D2 = D1.put(_{'@type': 'llo:HTTP-header','llo:raw': Raw}).
+  D2 = D1.put(_{'llo:raw': Raw}).
 
 
 
@@ -1106,7 +1111,7 @@ from(D) --> mailbox(D).
 
 host(D2) -->
   'uri-host'(UriHost),
-  {D1 = _{'@type': 'llo:host', 'llo:uri-host': UriHost}},
+  {D1 = _{'@type': 'llo:Host', 'llo:uri_host': UriHost}},
   (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1}).
 
 
@@ -1135,7 +1140,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % If-Match = "*" | 1#entity-tag
 % ```
 
-'if-match'(_{'@type': 'llo:if-match', 'rdf:type': L}) -->
+'if-match'(_{'@type': 'llo:IfMatch', 'rdf:type': L}) -->
   ("*" -> {L = []} ; +#('entity-tag', L)).
 
 
@@ -1154,7 +1159,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % If-None-Match = "*" | 1#entity-tag
 % ```
 
-'if-none-match'(_{'@type': 'llo:if-none-match', 'rdf:value': L}) -->
+'if-none-match'(_{'@type': 'llo:IfNoneMatch', 'rdf:value': L}) -->
   ("*" -> {L = []} ; +#('entity-tag', L)).
 
 
@@ -1186,13 +1191,9 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % ```
 
 'IMF-fixdate'(_{'@type': Type, '@value': Lex}) -->
-  'day-name'(_DayInWeek),
-  ",",
-  'SP',
-  date1(Y, Mo, D),
-  'SP',
-  'time-of-day'(H, Mi, S),
-  'SP',
+  'day-name'(_DayInWeek), ",", 'SP',
+  date1(Y, Mo, D), 'SP',
+  'time-of-day'(H, Mi, S), 'SP',
   'GMT',
   {
     rdf_equal(xsd:dateTime, Type),
@@ -1235,7 +1236,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % Location = URI-reference
 % ```
 
-location(Uri) --> 'URI-reference'(Uri).
+location(D) --> 'URI-reference'(D).
 
 
 
@@ -1259,7 +1260,7 @@ location(Uri) --> 'URI-reference'(Uri).
 
 'media-range'(
   _{
-    '@type': 'llo:media-range',
+    '@type': 'llo:MediaRange',
     'llo:parameters': Parameters,
     'llo:subtype': Subtype,
     'llo:type': Type
@@ -1399,7 +1400,11 @@ month(12) --> atom_ci('Dec').
 % other-content-range = other-range-unit SP other-range-resp
 % ```
 
-'other-content-range'(_{range: Range, unit: Unit}) -->
+'other-content-range'(_{
+  '@type': 'llo:OtherContentRange',
+  'llo:range': Range,
+  'llo:unit': Unit
+}) -->
   'other-range-unit'(Unit),
   'SP',
   'other-range-resp'(Range).
@@ -1439,9 +1444,9 @@ month(12) --> atom_ci('Dec').
 % ```
 
 'other-ranges-specifier'(_{
-  '@type': 'llo:other-ranges-specifier',
-  'llo:other-range-unit': OtherRangeUnit,
-  'llo:other-range-set': OtherRangeSet
+  '@type': 'llo:OtherRangesSpecifier',
+  'llo:other_range_unit': OtherRangeUnit,
+  'llo:other_range_set': OtherRangeSet
 }) -->
   'other-range-unit'(OtherRangeUnit), "=", 'other-range-set'(OtherRangeSet).
 
@@ -1461,7 +1466,7 @@ month(12) --> atom_ci('Dec').
 % parameter = token "=" ( token | quoted-string )
 % ```
 
-parameter(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+parameter(_{'@type': 'llo:Parameter', 'llo:key': Key, 'llo:value': Value}) -->
   token(Key), "=", (token(Value), ! ; 'quoted-string'(Value)).
 
 
@@ -1503,7 +1508,7 @@ pragma(L) --> +#('pragma-directive', L).
 
 product(D2) -->
   token(Name),
-  {D1 = _{'@type': 'llo:product', 'llo:name': Name}},
+  {D1 = _{'@type': 'llo:Product', 'llo:name': Name}},
   (   "/"
   ->  'product-version'(Version),
       {D2 = D1.put(_{'llo:version': Version})}
@@ -1546,10 +1551,10 @@ product(D2) -->
 
 protocol(D2) -->
   'protocol-name'(Name),
-  {D1 = _{'@type': 'llo:protocol', 'llo:protocol': Name}},
+  {D1 = _{'@type': 'llo:Protocol', 'llo:name': Name}},
   (   "/"
   ->  'protocol-version'(Version),
-      {D2 = D1.put(_{'protocol-version': Version})}
+      {D2 = D1.put(_{'llo:version': Version})}
   ;   {D2 = D1}
   ).
 
@@ -1641,7 +1646,7 @@ qvalue(1.0) -->
 % Range = byte-ranges-specifier | other-ranges-specifier
 % ```
 
-range(_{'@type': 'llo:range', 'rdf:value': D}) -->
+range(_{'@type': 'llo:Range', 'rdf:value': D}) -->
   ('byte-ranges-specifier'(D), ! ; 'other-ranges-specifier'(D)).
 
 
@@ -1671,10 +1676,10 @@ rank(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 % received-by = ( uri-host [ ":" port ] ) | pseudonym
 % ```
 
-'received-by'(_{'@type': 'llo:receiver', 'llo:uri-host': UriHost, 'llo:port': Port}) -->
+'received-by'(_{'@type': 'llo:Receiver', 'llo:uri_host': UriHost, 'llo:port': Port}) -->
   'uri-host'(UriHost), !,
   (":" -> port(Port) ; {Port = 80}).
-'received-by'(_{'@type': 'llo:receiver', 'llo:pseudonym': Pseudonym}) --> pseudonym(Pseudonym).
+'received-by'(_{'@type': 'llo:Receiver', 'llo:pseudonym': Pseudonym}) --> pseudonym(Pseudonym).
 
 
 
@@ -1684,7 +1689,7 @@ rank(1.0) --> "1", ("." -> 'm*n'(0, 3, "0") ; "").
 % ```
 
 'received-protocol'(D2) -->
-  {D1 = _{'@type': 'llo:protocol', 'llo:version': Version}},
+  {D1 = _{'@type': 'llo:Protocol', 'llo:version': Version}},
   ('protocol-name'(Name), "/" -> {D2 = D1.put(_{'llo:name': Name})} ; {D2 = D1}),
   'protocol-version'(Version).
 
@@ -1795,7 +1800,7 @@ subtype(S) --> token(S).
 't-codings'("trailers") --> atom_ci(trailers).
 't-codings'(D2) -->
   'transfer-coding'(TransferCoding),
-  {D1 = _{'llo:transfer-coding': TransferCoding}},
+  {D1 = _{'@type': 'llo:TCoding', 'llo:transfer_coding': TransferCoding}},
   ('t-ranking'(Rank) -> {D2 = D1.put(_{'llo:t-ranking': Rank})} ; {D2 = D1}).
 
 
@@ -1925,7 +1930,7 @@ trailer(L) --> +#('field-name', L).
 % ```
 
 'transfer-extension'(_{
-  '@type': 'llo:transfer-extension',
+  '@type': 'llo:TransferExtension',
   'llo:token': H,
   'llo:parameters': T
 }) -->
@@ -1942,7 +1947,7 @@ sep_transfer_parameter(Param) --> 'OWS', ";", 'OWS', 'transfer-parameter'(Param)
 % ```
 
 'transfer-parameter'(_{
-  '@type': 'llo:parameter',
+  '@type': 'llo:Parameter',
   'llo:key': Key,
   'llo:value': Value
 }) -->
@@ -2010,7 +2015,11 @@ via_component(D2) -->
   'received-protocol'(ReceivedProtocol),
   'RWS',
   'received-by'(ReceivedBy),
-  {D1 = _{'llo:received-protocol': ReceivedProtocol, 'llo:received-by': ReceivedBy}},
+  {D1 = _{
+    '@type': 'llo:ViaComponent',
+    'llo:received_protocol': ReceivedProtocol,
+    'llo:received_by': ReceivedBy
+  }},
   ('RWS' -> comment(Z), {D2 = D1.put('llo:comment', Z)} ; {D2 = D1}).
 
 
@@ -2024,10 +2033,10 @@ via_component(D2) -->
 % ```
 
 'warn-agent'(D3) -->
-  {D1 = _{'@type': 'llo:warn-agent'}},
+  {D1 = _{'@type': 'llo:WarningAgent'}},
   (   'uri-host'(UriHost),
       (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1})
-  ->  {D3 = D2.put(_{'llo:uri-host': UriHost})}
+  ->  {D3 = D2.put(_{'llo:uri_host': UriHost})}
   ;   pseudonym(Pseudonym)
   ->  {D3 = D1.put(_{'llo:pseudonym': Pseudonym})}
   ).
@@ -2083,15 +2092,15 @@ warning(L) --> +#('warning-value', L).
   'warn-text'(WarnText),
   {
     D1 = _{
-      '@type': 'llo:warning-value',
-      'llo:warn-agent': WarnAgent,
-      'llo:warn-code': WarnCode,
-      'llo:warn-text': WarnText
+      '@type': 'llo:WarningValue',
+      'llo:warning_agent': WarnAgent,
+      'llo:warning_code': WarnCode,
+      'llo:warning_text': WarnText
     }
   },
   (   'SP'
   ->  'warn-date'(WarnDate),
-      {D2 = D1.put(_{'llo:warn-date': WarnDate})}
+      {D2 = D1.put(_{'llo:warning_date': WarnDate})}
   ;   {D2 = D1}
   ).
 

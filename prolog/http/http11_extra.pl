@@ -10,7 +10,7 @@
 HTTP 1.1 grammar rules that are not actually used.
 
 @author Wouter Beek
-@version 2016/01
+@version 2016/01-2016/02
 */
 
 :- use_module(library(apply)).
@@ -73,10 +73,10 @@ sep_segment(S) --> "/", segment(S).
 % ```
 
 'chunked-body'(_{
-  '@type': 'llo:chunked-body',
+  '@type': 'llo:ChunkedBody',
   'llo:chunks': Chunks,
-  'llo:last-chunk': Exts,
-  'llo:trailer-part': Headers
+  'llo:last_chunk': Exts,
+  'llo:trailer_part': Headers
 }) -->
   *(chunk, Chunks),
   'last-chunk'(Exts),
@@ -134,7 +134,7 @@ sep_segment(S) --> "/", segment(S).
 % ```
 
 'HTTP-version'(_{
-  '@type': 'llo:version',
+  '@type': 'llo:Version',
   'llo:major': _{'@type': 'xsd:nonNegativeInteger', '@value': Major},
   'llo:minor': _{'@type': 'xsd:nonNegativeInteger', '@value': Minor}
 }) -->
@@ -193,14 +193,12 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % request-line = method SP request-target SP HTTP-version CRLF
 % ```
 
-'request-line'(
-  http_message{
-    'llo:HTTP-method': Method,
-    'llo:request-target': Iri,
-    'llo:message-type': "HTTP-request",
-    'llo:HTTP-version': Version
-  }
-) -->
+'request-line'(_{
+  '@type': 'llo:HttpRequest',
+  'llo:method': Method,
+  'llo:request_target': Iri,
+  'llo:version': Version
+}) -->
   method(Method),
   'SP',
   'request-target'(Iri),
@@ -218,10 +216,10 @@ reason_phrase_code(C) --> 'obs-text'(C).
 %                | asterisk-form
 % ```
 
-'request-target'(_{type: "origin-form", value: D}) -->    'origin-form'(D).
-'request-target'(_{type: "absolute-form", value: D}) -->  'absolute-form'(D).
-'request-target'(_{type: "authority-form", value: D}) --> 'authority-form'(D).
-'request-target'(_{type: "asterisk-form"}) -->            'asterisk-form'.
+'request-target'(D) --> 'origin-form'(D).
+'request-target'(D) --> 'absolute-form'(D).
+'request-target'(D) --> 'authority-form'(D).
+'request-target'(D) --> 'asterisk-form'.
 
 
 
@@ -253,12 +251,11 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```
 
 'status-line'(_{
-    reason: Reason,
-    status: Status,
-    '@type': 'HTTP-response',
-    version: Version
-  }
-) -->
+  reason: Reason,
+  status: Status,
+  '@type': 'HttpResponse',
+  version: Version
+}) -->
   'HTTP-version'(Version), 'SP',
   'status-code'(Status), 'SP',
   'reason-phrase'(Reason), 'CRLF'.
