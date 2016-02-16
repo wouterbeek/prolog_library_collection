@@ -137,7 +137,7 @@ sep_link_param(D) --> 'OWS', ";", 'OWS', 'link-param'(D).
 % media-type     = type-name "/" subtype-name
 % ```
 
-'media-type'(_{'@type': 'llo:media-type', 'llo:type': Type, 'llo:subtype': Subtype}) -->
+'media-type'(_{'@type': 'llo:MediaType', 'llo:type': Type, 'llo:subtype': Subtype}) -->
   'type-name'(Type), "/", 'subtype-name'(Subtype).
 
 

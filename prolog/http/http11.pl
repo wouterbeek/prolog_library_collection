@@ -1281,11 +1281,7 @@ location(Uri) --> 'URI-reference'(Uri).
 % ```
 
 'media-type'(D2) -->
-  {D1 = _{
-    '@type': 'llo:media-type',
-    'llo:type': Type,
-    'llo:subtype': Subtype
-  }},
+  {D1 = _{'@type':'llo:MediaType','llo:type':Type,'llo:subtype':Subtype}},
   type(Type), "/", subtype(Subtype),
   (+(sep_parameter, L) -> {D2 = D1.put(_{'llo:parameters': L})} ; {D2 = D1}).
 
