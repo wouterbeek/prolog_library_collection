@@ -8,6 +8,7 @@
     debug_concurrent_maplist/3, % +Flag, :Goal_1, +Args1
     debug_concurrent_maplist/4, % +Flag, :Goal_2, +Args1, +Args2
     debug_concurrent_maplist/5, % +Flag, :Goal_3, +Args1, +Args2, +Args3
+    debug_maplist/3,            % +Flag, :Goal_1, +Args1
     debug_verbose/2,            % +Flag, :Goal_0
     debug_verbose/3,            % +Flag, :Goal_0, +Format
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
@@ -28,7 +29,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01
+@version 2015/07-2015/11, 2016/01-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -52,6 +53,7 @@ Tools that ease debugging SWI-Prolog programs.
     debug_concurrent_maplist(+,1,+),
     debug_concurrent_maplist(+,2,+,+),
     debug_concurrent_maplist(+,3,+,+,+),
+    debug_maplist(+, 1, +),
     debug_verbose(?,0),
     debug_verbose(?,0,+),
     debug_verbose(?,0,+,+),
@@ -164,6 +166,24 @@ debug_concurrent_maplist(Flag, Goal_3, Args1, Args2, Args3):-
   maplist(Goal_3, Args1, Args2, Args3).
 debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
   concurrent_maplist(Goal_3, Args1, Args2, Args3).
+
+
+
+%! debug_maplist(+Flag, :Goal_1, +Args1) .
+
+debug_maplist(Flag, Goal_1, L1) :-
+  debugging(Flag), !,
+  length(L1, Len1),
+  debug_maplist0(Flag, Goal_1, L1, 1, Len1).
+debug_maplist(_, Goal_1, L1) :-
+  maplist(Goal_1, L1).
+
+debug_maplist0(_, _, [], _, _).
+debug_maplist0(Flag, Goal_1, [H|T], Len1, Len) :-
+  call(Goal_1, H),
+  (Len1 mod 100 =:= 0 -> debug(Flag, "~D out of ~D calls.", [Len1,Len]) ; true),
+  Len2 is Len1 + 1,
+  debug_maplist0(Flag, Goal_1, T, Len2, Len).
 
 
 
