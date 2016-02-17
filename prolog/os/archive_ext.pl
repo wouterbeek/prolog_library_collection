@@ -88,7 +88,7 @@ archive_extract(Source, Dir) :-
   call_on_archive(Source, archive_extract_entry(Dir)).
 
 archive_extract_entry(Dir, M, Read) :-
-  directory_file_path(Dir, M.'llo:ArchiveEntry', Path),
+  directory_file_path(Dir, M.'llo:archive_entry', Path),
   setup_call_cleanup(
     open_any2(Path, write, Write, Close_0),
     copy_stream_data(Read, Write),
@@ -199,7 +199,7 @@ call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch) :-
   maplist(jsonld_metadata, MEntry1, MEntry2),
   (   MEntry2 = [MEntryH|_],
       atom_string(Entry, MEntryH.'llo:name')
-  ->  M2 = M1.put(_{'llo:ArchiveEntry': MEntry2}),
+  ->  M2 = M1.put(_{'llo:archive_entry': MEntry2}),
       call_cleanup(call(Goal_2, M2, Read), close(Read))
   ;   close(Read),
       fail

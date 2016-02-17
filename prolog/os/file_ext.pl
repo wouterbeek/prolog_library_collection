@@ -91,7 +91,7 @@ file_name(M, Name) :-
   get_dict(ContentDisposition, filename, Base0),
 
   % An archive may add an entry path to the archive file path.
-  (   get_dict(M, 'llo:ArchiveEntry', ArchiveEntry),
+  (   get_dict(M, 'llo:archive_entry', ArchiveEntry),
       archive_entry_path(ArchiveEntry, ArchiveEntryPath)
   ->  directory_file_path(Base0, ArchiveEntryPath, Base)
   ;   Base = Base0
