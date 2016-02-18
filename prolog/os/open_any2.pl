@@ -223,8 +223,8 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
         'llo:time': _{'@type': 'xsd:float', '@value': Time},
         'llo:version': _{
           '@type': 'llo:Version',
-          'llo:major': Major,
-          'llo:minor': Minor
+          'llo:major': _{'@type': 'xsd:nonNegativeInteger', '@value': Major},
+          'llo:minor': _{'@type': 'xsd:nonNegativeInteger', '@value': Minor}
         }
       }),
       D2 = D02.put(D01)
