@@ -272,7 +272,11 @@ host(D2) -->
 % IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
 % ```
 
-'IPvFuture'(ipvfuture{'@type': 'uri:IPvFuture', 'uri:major': I, 'uri:minor': S}) -->
+'IPvFuture'(_{
+  '@type': 'uri:IPvFuture',
+  'uri:major': _{'@type': 'xsd:nonNegativeInteger', '@value': I},
+  'uri:minor': S
+}) -->
   "v",
   +('HEXDIG', Ds),
   {pos_sum(Ds, 16, I)},
