@@ -154,9 +154,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
           Close_0 = close(Read1),
           Opts1 = Opts2
       )
-  ;   message_to_string(E, S),
-      msg_warning("[HTTP] time: ~fsec; message: ~s~n", [Time,S]),
-      fail
+  ;   throw(E)
   ).
 
 
