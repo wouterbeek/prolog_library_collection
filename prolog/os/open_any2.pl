@@ -136,6 +136,7 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
   call_time(catch(http_open(Iri, Read2, Opts2), E, true), Time),
   (   var(E)
   ->  option(status_code(Status), Opts2),
+      option(time(Time), Opts2),
       must_be(ground, Status),
       (   is_http_error(Status)
       ->  option(raw_headers(Headers), Opts2),
@@ -211,6 +212,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
       option(status_code(Status), Opts),
+      option(time(Time), Opts),
       option(version(Major-Minor), Opts),
       maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, L0),
       create_grouped_sorted_dict(L0, D01),
@@ -218,6 +220,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
         'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri},
         'llo:final_iri': _{'@type': 'xsd:anyURI', '@value': FinalIri},
         'llo:status_code': Status,
+        'llo:time': _{'@type': 'xsd:float', '@value': Time},
         'llo:version': _{
           '@type': 'llo:Version',
           'llo:major': Major,
@@ -245,6 +248,7 @@ open_any_options(http_iri, Opts1, Opts3) :- !,
     final_url(_),
     raw_headers(_),
     status_code(_),
+    time(_),
     version(_)
   ],
   merge_options(Opts1, Opts2, Opts3).
