@@ -2,11 +2,13 @@
   datetime,
   [
     call_time/2,        % :Goal_0, -Seconds
-    datetime_mask/3,    % +Mask, +DT, -MaskedDT
+    datetime_masks/3,   % +Masks, +DT, -MaskedDT
     date_to_datetime/2, % +D, -DT
     datetime_to_date/2, % +DT, -D
     get_datetime/1,     % -DT
-    is_datetime/1       % +DT
+    is_date/1,          % +D
+    is_datetime/1,      % +DT
+    stamp_to_datetime/2 % +TS, -DT
   ]
 ).
 
@@ -72,6 +74,14 @@ datetime_mask(second, datetime(Y,Mo,D,H,Mi,_,Off), datetime(Y,Mo,D,H,Mi,_,Off)).
 datetime_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )).
 
 
+%! datetime_masks(+Masks:list(atom), +DT, -MaskedDT) is det.
+
+datetime_masks([], DT, DT) :- !.
+datetime_masks([H|T], DT1, DT3) :-
+  datetime_mask(H, DT1, DT2),
+  datetime_masks(T, DT2, DT3).
+
+
 
 %! date_to_datetime(+Date:compound, -Datetime:compound) is det.
 % Converts the three Prolog date-time compound term representations to
@@ -118,8 +128,14 @@ datetime_to_date(datetime(Y,Mo,D,H,Mi,S1,Off1), date(Y,Mo,D,H,Mi,S2,Off2,-,-)):-
 
 get_datetime(DT):-
   get_time(TS),
-  stamp_date_time(TS, D, local),
-  date_to_datetime(D, DT).
+  stamp_to_datetime(TS, DT).
+
+
+
+%! is_date(@Term) is semidet.
+
+is_date(T) :-
+  is_of_type(date, T).
 
 
 
@@ -127,3 +143,11 @@ get_datetime(DT):-
 
 is_datetime(T) :-
   is_of_type(datetime, T).
+
+
+
+%! stamp_to_datetime(+TS, -DT) is det.
+
+stamp_to_datetime(TS, DT) :-
+  stamp_date_time(TS, D, local),
+  date_to_datetime(D, DT).
