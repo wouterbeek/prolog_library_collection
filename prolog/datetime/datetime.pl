@@ -65,15 +65,18 @@ call_time(Goal_0, N):- get_time(X), Goal_0, get_time(Y), N is Y - X.
 %!   -MaskedDatetime:compound
 %! ) is det.
 
-datetime_mask(none,   datetime(Y,Mo,D,H,Mi,S,Off), datetime(Y,Mo,D,H,Mi,S,Off)).
-datetime_mask(year,   datetime(_,Mo,D,H,Mi,S,Off), datetime(_,Mo,D,H,Mi,S,Off)).
-datetime_mask(month,  datetime(Y,_, D,H,Mi,S,Off), datetime(Y,_, D,H,Mi,S,Off)).
-datetime_mask(day,    datetime(Y,Mo,_,H,Mi,S,Off), datetime(Y,Mo,_,H,Mi,S,Off)).
-datetime_mask(hour,   datetime(Y,Mo,D,_,Mi,S,Off), datetime(Y,Mo,D,_,Mi,S,Off)).
-datetime_mask(minute, datetime(Y,Mo,D,H,_, S,Off), datetime(Y,Mo,D,H,_, S,Off)).
-datetime_mask(second, datetime(Y,Mo,D,H,Mi,_,Off), datetime(Y,Mo,D,H,Mi,_,Off)).
-datetime_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )).
-
+datetime_mask(none,   DT,                          DT                         ) :- !.
+datetime_mask(year,   date(_,Mo,D),                date(_,Mo,D)               ) :- !.
+datetime_mask(year,   datetime(_,Mo,D,H,Mi,S,Off), datetime(_,Mo,D,H,Mi,S,Off)) :- !.
+datetime_mask(month,  date(Y,_, D),                date(Y,_, D)               ) :- !.
+datetime_mask(month,  datetime(Y,_, D,H,Mi,S,Off), datetime(Y,_, D,H,Mi,S,Off)) :- !.
+datetime_mask(day,    date(Y,Mo,_),                date(Y,Mo,_)               ) :- !.
+datetime_mask(day,    datetime(Y,Mo,_,H,Mi,S,Off), datetime(Y,Mo,_,H,Mi,S,Off)) :- !.
+datetime_mask(hour,   datetime(Y,Mo,D,_,Mi,S,Off), datetime(Y,Mo,D,_,Mi,S,Off)) :- !.
+datetime_mask(minute, datetime(Y,Mo,D,H,_, S,Off), datetime(Y,Mo,D,H,_, S,Off)) :- !.
+datetime_mask(second, datetime(Y,Mo,D,H,Mi,_,Off), datetime(Y,Mo,D,H,Mi,_,Off)) :- !.
+datetime_mask(offset, datetime(Y,Mo,D,H,Mi,S,_  ), datetime(Y,Mo,D,H,Mi,S,_  )) :- !.
+datetime_mask(_,      DT,                          DT                         ).
 
 
 %! date_to_datetime(+Date:compound, -Datetime:compound) is det.
