@@ -1,9 +1,9 @@
 :- module(
   rest,
   [
-    rest_handler/5,   % +Request, +Endpoint, :Exists_1,   :Singular_3, :Plural_2
-    rest_mediatype/3, % +Request, +MediaTypes, :Plural_2
-    rest_mediatype/4  % +Request, +Resource,   +MediaTypes, :Singular_3
+    rest_handler/5,   % +Request, +HandleId, :Exists_1,   :Singular_3, :Plural_2
+    rest_mediatype/3, % +Method, +MediaTypes, :Plural_2
+    rest_mediatype/4  % +Method, +Resource,   +MediaTypes, :Singular_3
   ]
 ).
 
@@ -15,6 +15,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_receive)).
 :- use_module(library(settings)).
@@ -33,18 +34,19 @@
 
 
 
-rest_handler(Req, Endpoint, Exists_1, Singular_3, Plural_2) :-
-  setting(rest:host, Host),
+rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   memberchk(request_uri(Local), Req),
-  atom_concat(Host, Local, Res),
   http_accept(Req, MTs),
-  (   same_iri(Res, Endpoint)
-  ->  call(Plural_2, Req, MTs)
-  ;   call(Exists_1, Res)
-  ->  call(Singular_3, Req, Res, MTs)
-  ;   http_status_reply(Req, not_found(Res))
-  ).
-rest_handler(Req, _, _) :-
+  http_link_to_id(HandleId, [], Endpoint),
+  http_method(Req, Method),
+  (   same_iri(Local, Endpoint)
+  ->  call(Plural_2, Method, MTs)
+  ;   setting(rest:host, Host),
+      atom_concat(Host, Local, Res),
+      call(Exists_1, Res)
+  ->  call(Singular_3, Method, MTs, Res)
+  ), !.
+rest_handler(Req, _, _, _, _) :-
   memberchk(request_uri(Res), Req),
   http_status_reply(Req, not_found(Res)).
 
@@ -54,18 +56,11 @@ same_iri(X1, Y1):-
   X2 == Y2.
 
 
-
-rest_mediatype(Req, [], _) :- !,
-  http_status_reply(Req, non_acceptable(_)).
-rest_mediatype(Req, [MT|_], Plural_2) :-
-  call(Plural_2, Req, MT), !.
-rest_mediatype(Req, [_|MTs], Plural_2) :-
-  rest_mediatype(Req, MTs, Plural_2).
+rest_mediatype(Method, [], _) :- !, http_status_reply(Method, non_acceptable(_)).
+rest_mediatype(Method, [MT|_], Plural_2) :- call(Plural_2, Method, MT), !.
+rest_mediatype(Method, [_|MTs], Plural_2) :- rest_mediatype(Method, MTs, Plural_2).
 
 
-rest_mediatype(Req, _, [], _) :- !,
-  http_status_reply(Req, non_acceptable(_)).
-rest_mediatype(Req, Res, [MT|_], Singular_3) :-
-  call(Singular_3, Req, Res, MT), !.
-rest_mediatype(Req, Res, [_|MTs], Singular_3) :-
-  rest_mediatype(Req, Res, MTs, Singular_3).
+rest_mediatype(Method, _, [], _) :- !, http_status_reply(Method, non_acceptable(_)).
+rest_mediatype(Method, Res, [MT|_], Singular_3) :- call(Singular_3, Method, Res, MT), !.
+rest_mediatype(Method, Res, [_|MTs], Singular_3) :- rest_mediatype(Method, Res, MTs, Singular_3).
