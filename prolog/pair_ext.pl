@@ -1,30 +1,21 @@
 :- module(
   pair_ext,
   [
-    group_pairs_by_key/3, % :Comparator_2
-                          % +Pairs:list(pair)
-                          % -GroupedPairs:list(pair)
-    inverse_pair/2, % ?Pair:pair
-                    % ?Inverse:pair
-    is_reflexive_pair/1, % +Pair:pair)
-    pair/3, % ?Pair:pair
-            % ?Element1
-            % ?Element2
-    pair_element/2, % ?Pair:pair
-                    % ?Element
-    pair_key/2, % +Pair:pair
-                % ?Key
-    pair_has_var_key/1, % +Pair:pair
-    pair_has_var_value/1, % +Pair:pair
-    pair_list/2, % ?Pair:pair
-                 % ?List:list
-    pair_value/2, % +Pair:pair
-                  % ?Value
-    pairs_sorted_values/3, % +Pairs:list(pair)
-                           % +Order:oneof([@<,@=<,@>,@>=])
-                           % -Values:list
-    pairs_to_set/2 % +Pairs:list(pair)
-                   % -Set:ordset
+    asc_pairs/2,           % +Pairs, -AscendingPairs
+    asc_pairs_values/2,    % +Pairs, -AscendingValues
+    desc_pairs/2,          % +Pairs, -DescendingPairs
+    desc_pairs_values/2,   % +Pairs, -DescendingValues
+    group_pairs_by_key/3,  % :Comparator_2, +Pairs, -GroupedPairs
+    inverse_pair/2,        % ?Pair, ?InversePair
+    is_reflexive_pair/1,   % +Pair
+    pair/3,                % ?Pair, ?Key, ?Value
+    pair_element/2,        % ?Pair, ?Element
+    pair_key/2,            % +Pair, ?Key
+    pair_has_var_key/1,    % +Pair
+    pair_has_var_value/1,  % +Pair
+    pair_list/2,           % ?Pair, ?List
+    pair_value/2,          % +Pair, ?Value
+    pairs_to_set/2         % +Pairs, -Elements
   ]
 ).
 :- reexport(library(pairs)).
@@ -53,6 +44,34 @@ error:has_type(pair(Type1,Type2), X-Y):-
   maplist(error:has_type, [Type1,Type2], [X,Y]).
 
 
+
+
+
+%! asc_pairs(+Pairs, -AscendingPairs) is det.
+% Sort Pairs in ascending order.
+
+asc_pairs(L1, L2) :- keysort(L1, L2).
+
+
+
+%! asc_pairs_values(+Pairs, -AscendingValues) is det.
+% Sort the valus of Pairs in ascending order.
+
+asc_pairs_values(L1, L3) :- asc_pairs(L1, L2), pairs_values(L2, L3).
+
+
+
+%! desc_pairs(+Pairs, -AscendingPairs) is det.
+% Sort Pairs in descending order.
+
+desc_pairs(L1, L2) :- sort(1, @>=, L1, L2).
+
+
+
+%! desc_pairs_values(+Pairs, -DescendingValues) is det.
+% Sort the values of Pairs in descending order.
+
+desc_pairs_values(L1, L3) :- desc_pairs(L1, L2), pairs_values(L2, L3).
 
 
 
@@ -135,20 +154,6 @@ pair_list(X-Y, [X,Y]).
 %! pair_value(+Pair:pair, -Second) is det.
 
 pair_value(_-X, X).
-
-
-
-%! pairs_sorted_values(+Pairs:list(pair), -Values:list) is det.
-% | **Order** | **Ordering** | **Duplicate handling** |
-% |:---------:|:------------:|:----------------------:|
-% | `@<`      | ascending    | remove                 |
-% | `@=<`     | ascending    | keep                   |
-% | `@>`      | descending   | remove                 |
-% | `@>=`     | descending   | keep                   |
-
-pairs_sorted_values(Pairs, Order, Values):-
-  sort(1, Order, Pairs, SortedPairs),
-  pairs_values(SortedPairs, Values).
 
 
 

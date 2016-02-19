@@ -35,7 +35,7 @@ Support for receiving an HTTP reply.
 http_accept(Req, MTs) :-
   memberchk(accept(L), Req),
   maplist(mediatype_pair, L, Pairs),
-  pairs_sorted_values(Pairs, @>=, MTs).
+  desc_pairs_values(Pairs, MTs).
 mediatype_pair(media(MT,_,N,_), N-MT).
 
 
