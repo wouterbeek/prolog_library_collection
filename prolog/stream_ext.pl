@@ -1,24 +1,25 @@
 :- module(
   stream_ext,
   [
-    stream_metadata/2 % +Stream:stream
-                      % -Metadata:dict
+    stream_metadata/2 % +Stream, -Metadata
   ]
 ).
 
 /** <module> Stream extensions
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2016/01
 */
 
+:- use_module(library(dict_ext)).
 
 
 
 
-stream_metadata(S, M):-
+
+stream_metadata(S, D):-
   findall(P, (stream_property(S, P0), property_pair0(P0, P)), L),
-  dict_pairs(M, stream, L).
+  dict_pairs(D, L).
 
 property_pair0(Property, Pair):-
   Property =.. [Key|Values],

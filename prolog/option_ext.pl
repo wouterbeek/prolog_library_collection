@@ -25,14 +25,15 @@
 /** <module> Option extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/12
+@version 2015/07, 2015/10-2016/01
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lambda)).
+:- use_module(library(yall)).
 
-:- meta_predicate(if_option(?,+,0)).
-:- meta_predicate(if_option(?,+,+,0)).
+:- meta_predicate
+    if_option(?, +, 0),
+    if_option(?, +, +, 0).
 
 
 
@@ -42,7 +43,7 @@
 
 flatten_option(Opt, Opts):-
   option_components(Opt, N, Vs),
-  maplist(\V^Opt^option_components(Opt, N, V), Vs, Opts).
+  maplist([V,Opt]>>option_components(Opt, N, V), Vs, Opts).
 
 
 

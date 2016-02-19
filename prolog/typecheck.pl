@@ -1,31 +1,31 @@
 :- module(
   typecheck,
   [
-    boolean/1, % @Term
-    char/1, % @Term
-    chars/1, % @Term
-    code/1, % @Term
-    codes/1, % @Term
-    is_file_iri/1, % @Term
-    is_http_iri/1, % @Term
-    is_iri/1, % @Term
-    is_uri/1, % @Term
-    negative_float/1, % @Term
-    negative_integer/1, % @Term
-    nonneg/1, % @Term
-    nonpos/1, % @Term
-    positive_float/1, % @Term
-    positive_integer/1, % @Term
-    text/1 % @Term
+    boolean/1,           % @Term
+    char/1,              % @Term
+    chars/1,             % @Term
+    code/1,              % @Term
+    codes/1,             % @Term
+    is_file_iri/1,       % @Term
+    is_http_iri/1,       % @Term
+    is_iri/1,            % @Term
+    is_uri/1,            % @Term
+    must_be_directory/1, % +Dir
+    must_be_file/2,      % +Mode:oneof([append,read,write]), +File
+    negative_float/1,    % @Term
+    negative_integer/1,  % @Term
+    nonneg/1,            % @Term
+    nonpos/1,            % @Term
+    positive_float/1,    % @Term
+    positive_integer/1,  % @Term
+    text/1               % @Term
   ]
 ).
 :- reexport(
   library(error),
   [
-    is_of_type/2, % +Type
-                  % @Term
-    must_be/2 % +Type
-              % @Term
+    is_of_type/2, % +Type, @Term
+    must_be/2     % +Type, @Term
   ]
 ).
 
@@ -167,10 +167,41 @@ is_iri(T):-
 
 
 
-%! is_uri*@Term) is semidet.
+%! is_uri(@Term) is semidet.
 
 is_uri(T):-
   is_iri(T).
+
+
+
+%! must_be_directory(+Dir) is det.
+
+must_be_directory(Dir) :-
+  var(Dir), !,
+  instantiation_error(Dir).
+must_be_directory(Dir) :-
+  \+ exists_directory(Dir), !,
+  existence_error(directory, Dir).
+must_be_directory(_).
+
+
+
+%! must_be_file(+Mode:oneof([append,read,write]), +File) is det.
+% @throws existence_error If File does not exist.
+% @throws instantiation_error If File is uninstantiated.
+% @throws permission_error If File cannot be accessed under Mode.
+
+must_be_file(_, File) :-
+  var(File), !,
+  instantiation_error(File).
+must_be_file(Mode, File) :-
+  memberchk(Mode, [access,read]),
+  \+ exists_file(File), !,
+  existence_error(file, File).
+must_be_file(Mode, File) :-
+  \+ access_file(File, Mode), !,
+  permission_error(Mode, file, File).
+must_be_file(_, _).
 
 
 

@@ -47,6 +47,6 @@
 %   * `ALLOW-FROM'
 %     Followed by a serialized-origin [RFC6454].
 
-'x-frame-options'(deny) --> atom_ci('DENY').
-'x-frame-options'(sameorigin) --> atom_ci('SAMEORIGIN').
-'x-frame-options'(Origin) --> atom_ci('ALLOW-FROM'), 'RWS', 'serialized-origin'(Origin).
+'x-frame-options'("deny")       --> atom_ci('DENY').
+'x-frame-options'("sameorigin") --> atom_ci('SAMEORIGIN').
+'x-frame-options'(Origin)       --> atom_ci('ALLOW-FROM'), 'RWS', 'serialized-origin'(Origin).

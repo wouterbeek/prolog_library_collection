@@ -1,8 +1,7 @@
 :- module(
   l_graph,
   [
-    l_edges_vertices/2 % +Edges:list(compound)
-                       % -Vertices:ordset
+    l_edges_vertices/2 % +Es, -Vs
   ]
 ).
 
@@ -11,7 +10,7 @@
 Support for graphs with labeled edges.
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12, 2016/02
 */
 
 :- use_module(library(aggregate)).

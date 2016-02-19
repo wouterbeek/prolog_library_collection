@@ -27,7 +27,7 @@
 /** <module> Graph theory: Metrics
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -36,9 +36,9 @@
 :- use_module(library(graph/s/s_subgraph)).
 :- use_module(library(graph/s/s_test)).
 :- use_module(library(graph/s/s_type)).
-:- use_module(library(lambda)).
 :- use_module(library(lists)).
 :- use_module(library(plunit)).
+:- use_module(library(yall)).
 
 
 
@@ -111,7 +111,7 @@ s_degree_test(G, V, Degree, fail):-
 
 s_degree_sequence(G, DegreeSeq):-
   s_vertices(G, Vs),
-  maplist(\V^Degree^s_degree(G, V, Degree), Vs, VDegrees),
+  maplist([V,Degree]>>s_degree(G, V, Degree), Vs, VDegrees),
   sort(0, @>=, VDegrees, DegreeSeq).
 
 :- begin_tests('s_degree_sequence/2').

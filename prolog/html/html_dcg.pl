@@ -59,7 +59,7 @@ html_dcg([]) --> !, "".
 
 
 
-%! html_entity(+Name:atom)// is det..
+%! html_entity(+Name:atom)// is det.
 
 html_entity(Name) --> "&", atom(Name), ";".
 
@@ -153,7 +153,10 @@ html_style(Name-Value) --> atom(Name), ":", (" ", ! ; ""), atom(Value), ";".
   *(media_desc_sep),
   ...(Cs),
   media_desc_post, !,
-  {string_codes(H, Cs), (known_media_desc(H) -> L = [H|T] ; L = T)},
+  {
+    string_codes(H, Cs),
+    (known_media_desc(H) -> L = [H|T] ; L = T)
+  },
   'MediaDesc'(T).
 'MediaDesc'([]) --> "".
 

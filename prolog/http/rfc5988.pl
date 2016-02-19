@@ -23,27 +23,26 @@
      'OWS'//0
    ]).
 :- use_module(library(http/rfc2616), [
-     'ALPHA'//1, % ?Code:code
-     'DIGIT'//1, % ?Weight
-     'DIGIT'//2, % ?Weight:between(0,9)
-                 % ?Code:code
-     'LOALPHA'//1, % ?Code:code
+     'ALPHA'//1,         % ?Code
+     'DIGIT'//1,         % ?Weight
+     'DIGIT'//2,         % ?Weight:between(0,9), ?Code
+     'LOALPHA'//1,       % ?Code
      'quoted-string'//1, % -String:string
      'SP'//0
    ]).
 :- use_module(library(http/rfc4288), [
      'subtype-name'//1, % -SubtypeName:string
-     'type-name'//1 % -TypeName:string
+     'type-name'//1     % -TypeName:string
    ]).
 :- use_module(library(http/rfc5987), [
      'ext-value'//1, % -Value:dict
-     parmname//1 % -Name:string
+     parmname//1     % -Name:string
    ]).
 :- use_module(library(ltag/rfc5646), [
      'Language-Tag'//1 % -LTag:list(string)
    ]).
 :- use_module(library(uri/rfc3986), [
-     'URI'//1, % -Uri:dict
+     'URI'//1,                             % -Uri:dict
      'URI-reference'//1 as 'URI-Reference' % -UriReference:dict
    ]).
 
@@ -80,23 +79,20 @@ link(L) --> *#('link-value', L).
 
 
 
-%! 'link-extension'// is det.
+%! 'link-extension'(-Key:string, -Value)// is det.
 % ```abnf
 % link-extension = ( parmname [ "=" ( ptoken | quoted-string ) ] )
 %                 | ( ext-name-star "=" ext-value )
 % ```
 
-'link-extension'(N-V) -->
-  'ext-name-star'(N), !,
-  "=",
-  'ext-value'(V).
-'link-extension'(X) -->
-  parmname(N),
-  ("=" -> (ptoken(V), ! ; 'quoted-string'(V)), {X = N-V} ; {X = N-true}).
+'link-extension'(Key, Value) -->
+  'ext-name-star'(Key), !, "=", 'ext-value'(Value).
+'link-extension'(Key, Value) -->
+  parmname(Key), ("=" -> (ptoken(Value), ! ; 'quoted-string'(Value)) ; {Value = true}).
 
 
 
-%! 'link-param'(-Parameter:pair)// is det.
+%! 'link-param'(-Parameter:dict)// is det.
 % ```abnf
 % link-param = ( ( "rel" "=" relation-types )
 %              | ( "anchor" "=" <"> URI-Reference <"> )
@@ -109,42 +105,18 @@ link(L) --> *#('link-value', L).
 %              | ( link-extension ) )
 % ```
 
-'link-param'(rel-L) -->
-  atom_ci(rel),
-  "=", !,
-  'relation-types'(L).
-'link-param'(anchor-Uri) -->
-  atom_ci(anchor),
-  "=", !,
-  "\"",
-  'URI-Reference'(Uri),
-  "\"".
-'link-param'(rev-L) -->
-  atom_ci(rev),
-  "=", !,
-  'relation-types'(L).
-'link-param'(hreflang-LTag) -->
-  atom_ci(hreflang),
-  "=", !,
-  'Language-Tag'(LTag).
-'link-param'(media-X) -->
-  atom_ci(media),
-  "=", !,
-  ('MediaDesc'(X) ; "\"", 'MediaDesc'(X), "\""), !.
-'link-param'(title-S) -->
-  atom_ci(title),
-  "=", !,
-  'quoted-string'(S).
-'link-param'('title*'-S) -->
-  atom_ci('title*'),
-  "=", !,
-  'ext-value'(S).
-'link-param'(type-X) -->
-  atom_ci(type),
-  "=", !,
-  ('media-type'(X) ; 'quoted-mt'(X)), !.
-'link-param'(Pair) -->
-  'link-extension'(Pair).
+'link-param'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  'link-param'(Key, Value).
+
+'link-param'("rel", L)         --> atom_ci(rel), "=", !, 'relation-types'(L).
+'link-param'("anchor", Uri)    --> atom_ci(anchor), "=", !, "\"", 'URI-Reference'(Uri), "\"".
+'link-param'("rev", L)         --> atom_ci(rev), "=", !, 'relation-types'(L).
+'link-param'("hreflang", LTag) --> atom_ci(hreflang), "=", !, 'Language-Tag'(LTag).
+'link-param'("media", L)       --> atom_ci(media), "=", !, ('MediaDesc'(L) ; "\"", 'MediaDesc'(L), "\""), !.
+'link-param'("title", S)       --> atom_ci(title), "=", !, 'quoted-string'(S).
+'link-param'("title*", S)      --> atom_ci('title*'), "=", !, 'ext-value'(S).
+'link-param'("type", D)        --> atom_ci(type), "=", !, ('media-type'(D) ; 'quoted-mt'(D)), !.
+'link-param'(S, X)             --> 'link-extension'(S, X).
 
 
 
@@ -153,12 +125,10 @@ link(L) --> *#('link-value', L).
 % link-value = "<" URI-Reference ">" *( ";" link-param )
 % ```
 
-'link-value'(link{parameters: Params, uri: Uri}) -->
-  "<",
-  'URI-Reference'(Uri),
-  ">",
-  *(sep_link_param, Params).
-sep_link_param(Param) --> 'OWS', ";", 'OWS', 'link-param'(Param).
+'link-value'(_{'@type': 'llo:link-value', 'llo:parameters': L, 'llo:uri': D}) -->
+  "<", 'URI-Reference'(D), ">", *(sep_link_param, L).
+
+sep_link_param(D) --> 'OWS', ";", 'OWS', 'link-param'(D).
 
 
 
@@ -167,10 +137,8 @@ sep_link_param(Param) --> 'OWS', ";", 'OWS', 'link-param'(Param).
 % media-type     = type-name "/" subtype-name
 % ```
 
-'media-type'(media_type{type: Type, subtype: Subtype}) -->
-  'type-name'(Type),
-  "/",
-  'subtype-name'(Subtype).
+'media-type'(_{'@type': 'llo:MediaType', 'llo:type': Type, 'llo:subtype': Subtype}) -->
+  'type-name'(Type), "/", 'subtype-name'(Subtype).
 
 
 
@@ -183,7 +151,7 @@ ptoken(S) --> +(ptokenchar, Cs), {string_codes(S, Cs)}.
 
 
 
-%! ptokenchar(-Code:code)// .
+%! ptokenchar(?Code)// .
 % abnf
 % ptokenchar = "!" | "#" | "$" | "%" | "&" | "'" | "("
 %            | ")" | "*" | "+" | "-" | "." | "/" | DIGIT
@@ -234,15 +202,13 @@ ptokenchar(0'~) --> "~".
 
 
 
-%! 'reg-rel-type'(-Code:code)// .
+%! 'reg-rel-type'(-Value:string)// .
 % ```abnf
 % reg-rel-type   = LOALPHA *( LOALPHA | DIGIT | "." | "-" )
 % ```
 
-'reg-rel-type'(S) -->
-  'LOALPHA'(H),
-  *(reg_rel_type_code, T),
-  {string_codes(S, [H|T])}.
+'reg-rel-type'(S) --> 'LOALPHA'(H), *(reg_rel_type_code, T), {string_codes(S, [H|T])}.
+
 reg_rel_type_code(C)   --> 'LOALPHA'(C).
 reg_rel_type_code(C)   --> 'DIGIT'(_, C).
 reg_rel_type_code(0'.) --> ".".
@@ -250,12 +216,12 @@ reg_rel_type_code(0'-) --> "-".
 
 
 
-%! 'relation-type'(-Value:dict)// is det.
+%! 'relation-type'(-Value)// is det.
 % ```abnf
 % relation-type  = reg-rel-type | ext-rel-type
 % ```
 
-'relation-type'(D) --> 'reg-rel-type'(D).
+'relation-type'(S) --> 'reg-rel-type'(S).
 'relation-type'(D) --> 'ext-rel-type'(D).
 
 
@@ -266,11 +232,7 @@ reg_rel_type_code(0'-) --> "-".
 %                | <"> relation-type *( 1*SP relation-type ) <">
 % ```
 
-'relation-types'([H|T]) -->
-  "\"", !,
-  'relation-type'(H),
-  *(sep_relation_type, T),
-  "\"".
-'relation-types'([H]) -->
-  'relation-type'(H).
+'relation-types'([H|T]) --> "\"", !, 'relation-type'(H), *(sep_relation_type, T), "\"".
+'relation-types'([H])   --> 'relation-type'(H).
+
 sep_relation_type(X) --> +('SP'), 'relation-type'(X).

@@ -1,7 +1,7 @@
 :- module(
   rfc5322,
   [
-    mailbox//1 % -Pair:pair(string)
+    mailbox//1 % -Mailbox:dict
   ]
 ).
 
@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 5322
 @see https://tools.ietf.org/html/rfc5322
-@version 2015/12
+@version 2015/12-2016/02
 */
 
 :- use_module(library(dcg/dcg_ext), except([atom//1])).
@@ -30,6 +30,8 @@
      'WSP'//0,
      'WSP'//1 % ?Code:code
    ]).
+:- use_module(library(rdf11/rdf11)).
+:- use_module(library(sgml)).
 
 
 
@@ -40,20 +42,18 @@
 % addr-spec = local-part "@" domain
 % ```
 
-'addr-spec'(addr_spec{domain: Domain, local_part: LocalPart}) -->
-  'local-part'(LocalPart),
-  "@",
-  domain(Domain).
+'addr-spec'(_{'@type': 'llo:addres-specification', 'llo:domain': Domain, 'llo:local_part': LocalPart}) -->
+  'local-part'(LocalPart), "@", domain(Domain).
 
 
 
-%! address(-Value)// is det.
+%! address(-Address:dict)// is det.
 % ```abnf
 % address = mailbox / group
 % ```
 
-address(Pairs) --> mailbox(Pairs).
-address([groups-Groups,name-Name]) --> group(Name, Groups).
+address(D) --> mailbox(D).
+address(D) --> group(D).
 
 
 
@@ -67,7 +67,7 @@ address([groups-Groups,name-Name]) --> group(Name, Groups).
 
 
 
-%! atext(-Code:code)// .
+%! atext(?Code:code)// .
 % ```abnf
 % atext = ALPHA / DIGIT   ; Printable US-ASCII
 %       / "!" / "#"       ;  characters not including
@@ -133,6 +133,7 @@ ccontent --> comment.
 
 'CFWS' --> +(sep_comment), ?('FWS').
 'CFWS' --> 'FWS'.
+
 sep_comment --> ?('FWS'), comment.
 
 
@@ -143,6 +144,7 @@ sep_comment --> ?('FWS'), comment.
 % ```
 
 comment --> "(", *(sep_ccontent), ?('FWS'), ")".
+
 sep_ccontent --> ?('FWS'), ccontent.
 
 
@@ -155,9 +157,7 @@ sep_ccontent --> ?('FWS'), ccontent.
 %       / obs-ctext
 % ```
 
-ctext(C) -->
-  [C],
-  {once((between(33, 39, C) ; between(42, 91, C) ; between(93, 126, C)))}.
+ctext(C) --> [C], {once((between(33, 39, C) ; between(42, 91, C) ; between(93, 126, C)))}.
 ctext(C) --> 'obs-ctext'(C).
 
 
@@ -176,11 +176,15 @@ date(Y, Mo, D) --> day(D), month(Mo), year(Y).
 % date-time = [ day-of-week "," ] date time [CFWS]
 % ```
 
-'date-time'(datetime(Y,Mo,D,H,Mi,S,Off)) -->
+'date-time'(Lex) -->
   ('day-of-week'(D) -> "," ; ""),
   date(Y, Mo, D),
   time(H, Mi, S, Off),
-  ?('CFWS').
+  ?('CFWS'),
+  {
+    rdf_equal(xsd:dateTime, D),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S,Off), D, Lex)
+  }.
 
 
 
@@ -209,7 +213,7 @@ day(D) --> 'obs-day'(D).
 
 
 
-%! 'day-of-week'(-Day)// .
+%! 'day-of-week'(-Day:between(1,7))// is det.
 % ```abnf
 % day-of-week = ([FWS] day-name) / obs-day-of-week
 % ```
@@ -264,12 +268,13 @@ spc_dtext(C) --> ?('FWS'), dtext(C).
 % ```
 
 'dot-atom-text'(S) --> atext(H), *(dot_or_atext, T), {string_codes(S, [H|T])}.
+
 dot_or_atext(0'.) --> ".".
 dot_or_atext(C)   --> atext(C).
 
 
 
-%! dtext(-Code:code)// .
+%! dtext(?Code:code)// .
 % ```abnf
 % dtext = %d33-90     ; Printable US-ASCII
 %       / %d94-126    ;  characters not including
@@ -290,16 +295,23 @@ dtext(C) --> 'obs-dtext'(C).
 
 'FWS' --> ?(fws_prefix), +('WSP').
 'FWS' --> 'obs-FWS'.
+
 fws_prefix --> *('WSP'), 'CRLF'.
 
 
 
-%! group(-Name:string, -Groups:list(string))// is det.
+%! group(-Group:dict)// is det.
 % ```abnf
 % group = display-name ":" [group-list] ";" [CFWS]
 % ```
 
-group(Name, Groups) --> 'display-name'(Name), ":", def('group-list', Groups, []), ";", ?('CFWS').
+group(D2) -->
+  'display-name'(Name),
+  ":",
+  {D1 = _{'llo:display-name': Name}},
+  ('group-list'(L) -> {D2 = D1.put(_{'llo:group-list': L})} ; {D2 = D1}),
+  ";",
+  ?('CFWS').
 
 
 
@@ -310,7 +322,7 @@ group(Name, Groups) --> 'display-name'(Name), ":", def('group-list', Groups, [])
 
 'group-list'(L)  --> 'mailbox-list'(L).
 'group-list'([]) --> 'CFWS'.
-'group-list'(L)  --> 'obs-group-list'(L).
+'group-list'([]) --> 'obs-group-list'.
 
 
 
@@ -335,24 +347,25 @@ hour(H) --> 'obs-hour'(H).
 
 
 
-%! mailbox(-Pair:pair(string))// is det.
+%! mailbox(-Mailbox:dict)// is det.
 % ```abnf
 % mailbox = name-addr / addr-spec
 % ```
 
-mailbox(X) --> 'name-addr'(X).
-mailbox(X) --> 'addr-spec'(X).
+mailbox(D) --> 'name-addr'(D).
+mailbox(D) --> 'addr-spec'(D).
 
 
 
-%! 'mailbox-list'(-Mailboxes:list)// is det.
+%! 'mailbox-list'(-Mailboxes:list(dict))// is det.
 % ```abnf
 % mailbox-list = (mailbox *("," mailbox)) / obs-mbox-list
 % ```
 
 'mailbox-list'([H|T]) --> mailbox(H), *(sep_mailbox, T), !.
-'mailbox-list'(L) --> 'obs-mbox-list'(L).
-sep_mailbox(X) --> ",", mailbox(X).
+'mailbox-list'(L)     --> 'obs-mbox-list'(L).
+
+sep_mailbox(D) --> ",", mailbox(D).
 
 
 
@@ -388,24 +401,25 @@ month(12) --> "Dec".
 
 
 
-%! 'name-addr'(-Pair:pair(string))// is det.
+%! 'name-addr'(-Address:dict)// is det.
 % ```abnf
 % name-addr = [display-name] angle-addr
 % ```
 
-'name-addr'(Name-Addr) --> ?('display-name', Name), 'angle-addr'(Addr).
+'name-addr'(D2) -->
+  ('display-name'(Name) -> {D1 = _{'llo:display-name': Name}} ; {D1 = _{}}),
+  'angle-addr'(Addr),
+  {D2 = D1.put(_{'llo:address': Addr})}.
 
 
 
-%! 'obs-addr-list'(-Addresses:list)// is det.
+%! 'obs-addr-list'(-Addresses:list(dict))// is det.
 % ```abnf
 % obs-addr-list = *([CFWS] ",") address *("," [address / CFWS])
 % ```
 
-'obs-addr-list'([H|T]) -->
-  *(obs_list_prefix),
-  address(H),
-  obs_addr_list_tail(T).
+'obs-addr-list'([H|T]) --> *(obs_list_prefix), address(H), obs_addr_list_tail(T).
+
 obs_addr_list_tail(L) -->
   ",", !,
   (address(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
@@ -419,12 +433,9 @@ obs_addr_list_tail([]) --> "".
 % obs-angle-addr = [CFWS] "<" obs-route addr-spec ">" [CFWS]
 % ```
 
-'obs-angle-addr'(obs_angle_addr{addr_spec: Addr, obs_route: Route}) -->
+'obs-angle-addr'(_{'llo:addres-specification': Addr, 'llo:obsolete-route': Route}) -->
   ?('CFWS'),
-  "<",
-  'obs-route'(Route),
-  'addr-spec'(Addr),
-  ">",
+  "<", 'obs-route'(Route), 'addr-spec'(Addr), ">",
   ?('CFWS').
 
 
@@ -484,22 +495,21 @@ obs_body_codes([])    --> "".
 % ```
 
 'obs-domain'([H|T]) --> atom(H), *(sep_atom, T).
+
 sep_atom(X) --> ",", atom(X).
 
 
 
-%! 'obs-domain-list'(-Domains:list)// is det.
+%! 'obs-domain-list'(-Domains:list(string))// is det.
 % ```abnf
 % obs-domain-list = *(CFWS / ",") "@" domain *("," [CFWS] ["@" domain])
 % ```
 
-'obs-domain-list'([H|T]) -->
-  *(obs_domain_list_prefix),
-  "@",
-  domain(H),
-  obs_domain_list_tail(T).
+'obs-domain-list'([H|T]) --> *(obs_domain_list_prefix), "@", domain(H), obs_domain_list_tail(T).
+
 obs_domain_list_prefix --> 'CFWS'.
 obs_domain_list_prefix --> ",".
+
 obs_domain_list_tail(L) -->
   ",",
   ?('CFWS'),
@@ -529,12 +539,12 @@ obs_fws_part --> 'CRLF', +('WSP').
 
 
 
-%! 'obs-group-list(-Groups:list)// is det.
+%! 'obs-group-list'// is det.
 % ```abnf
 % obs-group-list = 1*([CFWS] ",") [CFWS]
 % ```
 
-'obs-group-list'([]) --> +(obs_list_prefix), ?('CFWS').
+'obs-group-list' --> +(obs_list_prefix), ?('CFWS').
 
 
 
@@ -547,25 +557,24 @@ obs_fws_part --> 'CRLF', +('WSP').
 
 
 
-%! 'obs-local-part'(-LocalPart:list(string))// is det.
+%! 'obs-local-part'(-Words:list(string))// is det.
 % ```abnf
 % obs-local-part = word *("." word)
 % ```
 
 'obs-local-part'([H|T]) --> word(H), *(sep_word, T).
+
 sep_word(X) --> ".", word(X).
 
 
 
-%! 'obs-mbox-list'(-Mailboxes:list)// is det.
+%! 'obs-mbox-list'(-Mailboxes:list(dict))// is det.
 % ```abnf
 % obs-mbox-list = *([CFWS] ",") mailbox *("," [mailbox / CFWS])
 % ```
 
-'obs-mbox-list'([H|T]) -->
-  *(obs_list_prefix),
-  mailbox(H),
-  obs_mbox_list_tail(T).
+'obs-mbox-list'([H|T]) --> *(obs_list_prefix), mailbox(H), obs_mbox_list_tail(T).
+
 obs_mbox_list_tail(L) -->
   ",", !,
   (mailbox(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
@@ -594,12 +603,7 @@ obs_mbox_list_tail([]) --> "".
 
 'obs-NO-WS-CTL'(C) -->
   [C],
-  {once((
-    between(1, 8, C) ;
-    between(11, 12, C) ;
-    between(14, 31, C) ;
-    C =:= 127
-  ))}.
+  {once((between(1, 8, C) ; between(11, 12, C) ; between(14, 31, C) ; C =:= 127))}.
 
 
 
@@ -609,26 +613,26 @@ obs_mbox_list_tail([]) --> "".
 % ```
 
 'obs-phrase'([H|T]) --> word(H), obs_phrase_tail(T).
+
 obs_phrase_tail([H|T]) --> word(H), !, obs_phrase_tail(T).
-obs_phrase_tail(L) --> ".", !, obs_phrase_tail(L).
-obs_phrase_tail(L) --> 'CFWS', !, obs_phrase_tail(L).
-obs_phrase_tail([]) --> "".
+obs_phrase_tail(L)     --> ".", !, obs_phrase_tail(L).
+obs_phrase_tail(L)     --> 'CFWS', !, obs_phrase_tail(L).
+obs_phrase_tail([])    --> "".
 
 
 
-%! 'obs-phrase-list'(-Phrases:list)// is det.
+%! 'obs-phrase-list'// is det.
 % ```abnf
 % obs-phrase-list = [phrase / CFWS] *("," [phrase / CFWS])
 % ```
 
-'obs-phrase-list'(L) -->
-  (phrase(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}), !,
-  obs_phrase_tail(T).
-obs_phrase_list_tail(L) -->
-  ",", !,
-  (phrase(H) -> {L = [H|T]} ; ?('CFWS'), {L = T}),
-  obs_phrase_list_tail(T).
-obs_phrase_list_tail([]) --> "".
+'obs-phrase-list' --> phrase_cfws_empty, *(sep_phrase_cfws_empty).
+
+sep_phrase_cfws_empty --> ",", phrase_cfws_empty.
+
+phrase_cfws_empty --> phrase0(_), !.
+phrase_cfws_empty --> 'CFWS', !.
+phrase_cfws_empty --> "".
 
 
 
@@ -638,6 +642,7 @@ obs_phrase_list_tail([]) --> "".
 % ```
 
 'obs-qp'(C) --> "\\", obs_qp_code(C).
+
 obs_qp_code(0) --> [0].
 obs_qp_code(C) --> 'obs-NO-WS-CTL'(C).
 obs_qp_code(C) --> 'LF'(C).
@@ -654,7 +659,7 @@ obs_qp_code(C) --> 'CR'(C).
 
 
 
-%! 'obs-route'(-Route)// is det.
+%! 'obs-route'(-Route:list(string))// is det.
 % ```abnf
 % obs-route = obs-domain-list ":"
 % ```
@@ -683,14 +688,12 @@ obs_qp_code(C) --> 'CR'(C).
 
 
 
-%! 'obs-unstruct'// .
+%! 'obs-unstruct'(-Codes:list(code))// is det.
 % ```abnf
 % obs-unstruct = *((*LF *CR *(obs-utext *LF *CR)) / FWS)
 % ```
 
-'obs-unstruct'(L) -->
-  'FWS', !,
-  'obs-unstruct'(L).
+'obs-unstruct'(L) --> 'FWS', !, 'obs-unstruct'(L).
 'obs-unstruct'(L) -->
   *('LF', L1),
   *('CR', L2),
@@ -699,12 +702,9 @@ obs_qp_code(C) --> 'CR'(C).
   'obs-unstruct'(L4),
   {append(L3, L4, L)}.
 'obs-unstruct'([]) --> "".
-obs_unstruct_codes([H|T]) -->
-  'obs-utext'(H), !,
-  *('LF'),
-  *('CR'),
-  obs_unstruct_codes(T).
-obs_unstruct_codes([]) --> "".
+
+obs_unstruct_codes([H|T]) --> 'obs-utext'(H), !, *('LF'), *('CR'), obs_unstruct_codes(T).
+obs_unstruct_codes([])    --> "".
 
 
 
@@ -748,7 +748,7 @@ obs_unstruct_codes([]) --> "".
 
 
 
-%! phrase(-Words:list(string))// .
+%! phrase0(-Words:list(string))// is det.
 % ```abnf
 % phrase = 1*word / obs-phrase
 % ```
@@ -758,7 +758,7 @@ phrase0(L) --> 'obs-phrase'(L).
 
 
 
-%! qcontent(-Code:code)// .
+%! qcontent(?Code:code)// .
 % ```abnf
 % qcontent = qtext / quoted-pair
 % ```
@@ -768,7 +768,7 @@ qcontent(C) --> 'quoted-pair'(C).
 
 
 
-%! qtext(-Code:code)// .
+%! qtext(?Code:code)// .
 % ```abnf
 % qtext = %d33        ; Printable US-ASCII
 %       / %d35-91     ;  characters not including
@@ -793,7 +793,7 @@ qtext(C)  --> 'obs-qtext'(C).
 
 
 
-%! 'quoted-string'(-String:string)// .
+%! 'quoted-string'(-String:string)// is det.
 % ```abnf
 % quoted-string = [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
 % ```
@@ -806,6 +806,7 @@ qtext(C)  --> 'obs-qtext'(C).
   'DQUOTE',
   ?('CFWS'),
   {string_codes(S, Cs)}.
+
 quoted_string_code(C) --> ?('FWS'), qcontent(C).
 
 
@@ -820,7 +821,7 @@ second(S) --> 'obs-second'(S).
 
 
 
-%! specials(-Code:code)// .
+%! specials(?Code:code)// .
 % ```abnf
 % specials = "(" / ")"   ; Special characters that do
 %          / "<" / ">"   ;  not appear in atext
@@ -847,7 +848,7 @@ specials(0'")  --> 'DQUOTE'.   %"
 
 
 
-%! text(-Code:code)// .
+%! text(?Code:code)// .
 % ```abnf
 % text = %d1-9      ; Characters excluding CR
 %      / %d11       ;  and LF
@@ -855,9 +856,7 @@ specials(0'")  --> 'DQUOTE'.   %"
 %      / %d14-127
 % ```
 
-text(C) -->
-  [C],
-  {once((between(1, 9, C) ; between(11, 12, C) ; between(14, 127, C)))}.
+text(C) --> [C], {once((between(1, 9, C) ; between(11, 12, C) ; between(14, 127, C)))}.
 
 
 
@@ -871,9 +870,7 @@ text(C) -->
 % time = time-of-day zone
 % ```
 
-time(H, Mi, S, Off) -->
-  'time-of-day'(H, Mi, S),
-  zone(Off).
+time(H, Mi, S, Off) --> 'time-of-day'(H, Mi, S), zone(Off).
 
 
 
@@ -886,26 +883,23 @@ time(H, Mi, S, Off) -->
 % time-of-day = hour ":" minute [ ":" second ]
 % ```
 
-'time-of-day'(H, Mi, S) -->
-  hour(H),
-  ":",
-  minute(Mi),
-  (":" -> second(S) ; {S = 0}).
+'time-of-day'(H, Mi, S) --> hour(H), ":", minute(Mi), (":" -> second(S) ; {S = 0}).
 
 
 
-%! unstructured(-String:string)// .
+%! unstructured(-String:string)// is det.
 % ```abnf
 % unstructured = (*([FWS] VCHAR) *WSP) / obs-unstruct
 % ```
 
 unstructured(S) --> *(unstructured_code, Cs), *('WSP'), {string_codes(S, Cs)}.
 unstructured(S) --> 'obs-unstruct'(S).
+
 unstructured_code(C) --> ?('FWS'), 'VCHAR'(C).
 
 
 
-%! word(-Word:string)// .
+%! word(-Word:string)// is det.
 % ```abnf
 % word = atom / quoted-string
 % ```

@@ -1,8 +1,8 @@
 :- module(
   rfc2109,
   [
-    attr//1, % -Attribute:string
-    'set-cookie'//1 % -Cookies:list(list(pair))
+    attr//1,        % -Attribute:string
+    'set-cookie'//1 % -Cookies:list(dict)
   ]
 ).
 
@@ -32,19 +32,19 @@ attr(S) --> token(S).
 
 
 
-%! cookie(-Cookie:list(pair))// is det.
+%! cookie(-Cookie:dict)// is det.
 % ```abnf
 % cookie = NAME "=" VALUE *(";" cookie-av)
 % ```
 
-cookie([N-V|T]) -->
-  'NAME'(N), "=", 'VALUE'(V),
-  *(sep_cookie_av, T).
-sep_cookie_av(X) --> ";", ?('LWS'), 'cookie-av'(X).
+cookie(_{'@type': 'llo:cookie', 'llo:key': Key, 'llo:value': Value, 'llo:parameters': L}) -->
+  'NAME'(Key), "=", 'VALUE'(Value), *(sep_cookie_av, L).
+
+sep_cookie_av(D) --> ";", ?('LWS'), 'cookie-av'(D).
 
 
 
-%! 'cookie-av'(-Pair:pair)// is det.
+%! 'cookie-av'(-Parameter:dict)// is det.
 % ```abnf
 % cookie-av = "Comment" "=" value
 %           | "Domain" "=" value
@@ -54,16 +54,19 @@ sep_cookie_av(X) --> ";", ?('LWS'), 'cookie-av'(X).
 %           | "Version" "=" 1*DIGIT
 % ```
 
-'cookie-av'(comment-V)   --> atom_ci('Comment='), !, value(V).
-'cookie-av'(domain-V)    --> atom_ci('Domain='), !, value(V).
-'cookie-av'(max_age-V)   --> atom_ci('Max-age='), !, value(V).
-'cookie-av'(path-V)      --> atom_ci('Path='), !, value(V).
-'cookie-av'(secure-true) --> atom_ci('Secure'), !.
-'cookie-av'(version-V)   --> atom_ci('Version='), +(digit, Ds), {pos_sum(Ds, V)}.
+'cookie-av'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  cookie_av(Key, Value).
+
+cookie_av("comment", S)   --> atom_ci('Comment='), !, value(S).
+cookie_av("domain", S)    --> atom_ci('Domain='), !, value(S).
+cookie_av("max-age", S)   --> atom_ci('Max-age='), !, value(S).
+cookie_av("path", S)      --> atom_ci('Path='), !, value(S).
+cookie_av("secure", true) --> atom_ci('Secure'), !.
+cookie_av("version", N)   --> atom_ci('Version='), +(digit, Ds), {pos_sum(Ds, N)}.
 
 
 
-%! cookies(-Cookies:list(list(pair)))// is det.
+%! cookies(-Cookies:list(dict))// is det.
 % ```abnf
 % cookies = 1#cookie
 % ```
@@ -81,7 +84,7 @@ cookies(L) --> '+#'(cookie, L).
 
 
 
-%! 'set-cookie'(-Cookies:list(list(pair)))// is det.
+%! 'set-cookie'(-Cookies:list(dict))// is det.
 % ```abnf
 % set-cookie = "Set-Cookie:" cookies
 % ```

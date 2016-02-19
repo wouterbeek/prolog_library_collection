@@ -37,9 +37,6 @@
                             % +OldDatastructure
                             % +Arguments:list
                             % -NewDatastructurte
-
-% RETRY
-    loop_until_true/1 % :Goal
   ]
 ).
 
@@ -55,20 +52,18 @@ Extensions to the SWI-Prolog meta predicates.
 :- use_module(library(aggregate)).
 :- use_module(library(debug)).
 
-:- use_module(plc(generics/error_ext)).
-:- use_module(plc(generics/list_ext)).
-:- use_module(plc(prolog/pl_control)).
+:- meta_predicate
+    generic(:, :, +),
+    maplist_pairs(3, +, -),
+    mapset(2, +, -),
+    nth0_call(1, +, +),
+    nth0_call(+, 1, +, +),
+    update_datastructure(3, +, +, -).
 
-:- meta_predicate(generic(:,:,+)).
-:- meta_predicate(maplist_pairs(3,+,-)).
-:- meta_predicate(mapset(2,+,-)).
-:- meta_predicate(nth0_call(1,+,+)).
-:- meta_predicate(nth0_call(+,1,+,+)).
-:- meta_predicate(loop_until_true(0)).
-:- meta_predicate(loop_until_true0(+,0)).
-:- meta_predicate(update_datastructure(3,+,+,-)).
+:- dynamic
+    tmp/1.
 
-:- dynamic(tmp/1).
+
 
 
 
@@ -97,6 +92,8 @@ generic(P1, Context, Args):-
 
 
 
+
+
 % IDLE %
 
 true(_).
@@ -104,6 +101,7 @@ true(_,_).
 true(_,_,_).
 true(_,_,_,_).
 true(_,_,_,_,_).
+
 
 
 
@@ -174,6 +172,8 @@ nth0_call(O1, Goal, I, X):-
 
 
 
+
+
 % MODULES %
 
 %! modules(-Modules:list(atom)) is det.
@@ -206,23 +206,3 @@ update_datastructure(_, Datastructure, [], Datastructure).
 update_datastructure(Goal, Datastructure1, [H|T], Datastructure3):-
   call(Goal, Datastructure1, H, Datastructure2),
   update_datastructure(Goal, Datastructure2, T, Datastructure3).
-
-
-
-% RETRY %
-
-%! loop_until_true(:Goal) .
-
-loop_until_true(Goal):-
-  catch(
-    Goal,
-    Exception,
-    loop_until_true0(Exception, Goal)
-  ).
-
-loop_until_true0(Exception, _):-
-  var(Exception), !.
-loop_until_true0(Exception, Goal):-
-  debug(loop_until_true, '~w', Exception),
-  Goal.
-

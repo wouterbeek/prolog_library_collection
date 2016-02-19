@@ -2,35 +2,28 @@
   dcg_content,
   [
     '...'//0,
-    '...'//1, % -Codes:list(code)
+    '...'//1,          % -Codes
     dcg_tab//0,
     done//0,
     eol//0,
     nl//0,
-    indent//1, % +Indent:nonneg
-    indent//2, % +Indent:nonneg
-               % :Dcg_0
-    indent_nl//2, % +Indent:nonneg
-                  % :Dcg_0
-    iri//1, % +Iri:atom
+    indent//1,         % +Indent:nonneg
+    indent//2,         % +Indent:nonneg, :Dcg_0
+    indent_nl//2,      % +Indent:nonneg, :Dcg_0
+    iri//1,            % +Iri
     nonblank//0,
-    nvpair//1, % +Pair:pair(atom)
-    nvpair//2, % :Name_0
-               % :Value_0
+    nvpair//1,         % +Pair:pair
+    nvpair//2,         % :Name_0, :Value_0
     parsing//0,
     rest//0,
-    rest//1, % -Rest:list(code)
-    section//3, % +Indent:nonneg
-                % +Message:string
-                % :Dcg_0
+    rest//1,           % -Rest:list(code)
+    section//3,        % +Indent:nonneg, +Message:string, :Dcg_0
     skip_line//0,
     string//0,
-    string_without//1, % +EndCodes:list(code)
-    tab//1, % +Indent:nonneg
-    tab//2, % +Indent:nonneg
-            % :Dcg_0
-    tab_nl//2 % +Indent:nonneg
-              % :Dcg_0
+    string_without//1, % +EndCodes
+    tab//1,            % +Indent:nonneg
+    tab//2,            % +Indent:nonneg, :Dcg_0
+    tab_nl//2          % +Indent:nonneg, :Dcg_0
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -43,6 +36,7 @@ DCG rules for parsing/generating often-occuring content.
 @version 2015/07-2015/08, 2015/10-2016/01
 */
 
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(settings)).
 
 :- meta_predicate
@@ -133,9 +127,9 @@ nonblank --> nonblank(_).
 
 
 
-%! nvpair(+Pair:pair(atom))// is det.
+%! nvpair(+Pair:pair)// is det.
 
-nvpair(N-V) --> nvpair(atom(N), atom(V)).
+nvpair(N-V) --> nvpair(pl_term(N), pl_term(V)).
 
 
 %! nvpair(:Name_0, :Value_0)// is det.
@@ -164,7 +158,7 @@ rest(X, X, []).
 
 %! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
-section(I, Msg, Dcg_0) --> indent_nl(I, atom(Msg)), Dcg_0.
+section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
 
 
 

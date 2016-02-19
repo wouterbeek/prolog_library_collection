@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 1034
 @see https://tools.ietf.org/html/rfc1034
-@version 2015/12
+@version 2015/12-2016/01
 */
 
 :- use_module(library(dcg/dcg_ext), [
@@ -18,9 +18,8 @@
      '*'//2
    ]).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1 as alpha0, % ?Code:code
-     'DIGIT'//2 as digit0 % ?Weight:between(0,9)
-                          % ?Code:code
+     'ALPHA'//1 as alpha0, % ?Code
+     'DIGIT'//2 as digit0  % ?Weight:between(0,9), ?Code
    ]).
 :- use_module(library(dcg/dcg_word)).
 
@@ -28,7 +27,7 @@
 
 
 
-%! digit(-Code:code)// is det.
+%! digit(?Code)// .
 % ```
 % <digit> ::= any one of the ten digits 0 through 9
 % ```
@@ -43,6 +42,7 @@ digit(C) --> digit0(_, C).
 % ```
 
 label(S) --> letter(H), label_tail(T), !, {string_codes(S, [H|T])}.
+
 label_tail(L2)  --> 'ldh-str'(L1), 'let-dig'(X), {append(L1, [X], L2)}.
 label_tail([H]) --> 'let-dig'(H).
 label_tail([])  --> "".
@@ -58,7 +58,7 @@ label_tail([])  --> "".
 
 
 
-%! 'let-dig'(-Code:code)// is det.
+%! 'let-dig'(?Code)// .
 % ```
 % <let-dig> ::= <letter> | <digit>
 % ```
@@ -68,7 +68,7 @@ label_tail([])  --> "".
 
 
 
-%! 'let-dig-hyp'(-Code:code)// is det.
+%! 'let-dig-hyp'(?Code)// .
 % ```
 % <let-dig-hyp> ::= <let-dig> | "-"
 % ```
@@ -78,7 +78,7 @@ label_tail([])  --> "".
 
 
 
-%! letter(-Code:code)// is det.
+%! letter(?Code)// .
 % ```
 % <letter> ::= any one of the 52 alphabetic characters A through Z in
 % upper case and a through z in lower case
@@ -94,4 +94,5 @@ letter(C) --> alpha0(C).
 % ```
 
 subdomain([H|T]) --> label(H), *(sep_label, T).
+
 sep_label(X) --> ".", label(X).

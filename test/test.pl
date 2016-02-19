@@ -126,6 +126,7 @@
 %/os
   :- use_module(library(os/archive_ext)).
   :- use_module(library(os/call_on_stream)).
+  :- use_module(library(os/compress_ext)).
   :- use_module(library(os/datetime_file)).
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).

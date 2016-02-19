@@ -17,19 +17,19 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'CHAR'//1, % ?Code:code
+     'ALPHA'//1, % ?Code
+     'CHAR'//1, % ?Code
      'CR'//0,
      'CRLF'//0,
-     'CTL'//1, % ?Code:code
+     'CTL'//1, % ?Code
      'DIGIT'//1, % ?Weight:between(0,9)
      'DQUOTE'//0,
      'HEXDIG'//1, % ?Weight:between(0,15)
      'HTAB'//0,
      'LF'//0,
-     'OCTET'//1, % ?Code:code
+     'OCTET'//1, % ?Code
      'SP'//0,
-     'VCHAR'//1, % ?Code:code
+     'VCHAR'//1, % ?Code
      'WSP'//0
    ]).
 :- use_module(library(dict_ext)).
@@ -41,7 +41,7 @@
 
 
 
-%! 'cookie-av'(-Pair:pair)// is det.
+%! 'cookie-av'(-Parameter:dict)// is det.
 % ```abnf
 % cookie-av = expires-av
 %           | max-age-av
@@ -52,26 +52,26 @@
 %           | extension-av
 % ```
 
-'cookie-av'(expires-DT) --> 'expires-av'(DT), !.
-'cookie-av'('max-age'-N) --> 'max-age-av'(N), !.
-'cookie-av'(domain-L) --> 'domain-av'(L), !.
-'cookie-av'(path-S) --> 'path-av'(S), !.
-'cookie-av'(secure-true) --> 'secure-av', !.
-'cookie-av'(httponly-true) --> 'httponly-av', !.
-'cookie-av'(extension-S) --> 'extension-av'(S).
+'cookie-av'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  cookie_av(Key, Value).
+
+cookie_av("expires", Lex)   --> 'expires-av'(Lex), !.
+cookie_av("max-age", N)     --> 'max-age-av'(N), !.
+cookie_av("domain", L)      --> 'domain-av'(L), !.
+cookie_av("path", S)        --> 'path-av'(S), !.
+cookie_av("secure", true)   --> 'secure-av', !.
+cookie_av("httponly", true) --> 'httponly-av', !.
+cookie_av("extension", S)   --> 'extension-av'(S).
 
 
 
-%! 'cookie-pair'(-Pair:pair(atom,string))// .
+%! 'cookie-pair'(-Parameter:dict)// .
 % ```abnf
 % cookie-pair = cookie-name "=" cookie-value
 % ```
 
-'cookie-pair'(N-V) -->
-  'cookie-name'(N0),
-  {atom_string(N, N0)},
-  "=",
-  'cookie-value'(V).
+'cookie-pair'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  'cookie-name'(Key), "=", 'cookie-value'(Value).
 
 
 
@@ -84,7 +84,7 @@
 
 
 
-%! 'cookie-octet'(-Code:code)// .
+%! 'cookie-octet'(?Code)// .
 % ```abnf
 % cookie-octet = %x21 | %x23-2B | %x2D-3A | %x3C-5B | %x5D-7E
 %              ; US-ASCII characters excluding CTLs,
@@ -110,6 +110,7 @@
 
 'cookie-value'(S) --> 'DQUOTE', !, dcg_string(cookie_value_codes, S), 'DQUOTE'.
 'cookie-value'(S) --> dcg_string(cookie_value_codes, S).
+
 cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
@@ -133,12 +134,12 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
 
-%! 'expires-av'(-Expires:datetime)// is det.
+%! 'expires-av'(-Lex:string)// is det.
 % ```abnf
 % expires-av = "Expires=" sane-cookie-date
 % ```
 
-'expires-av'(DT) --> atom_ci('Expires'), "=", 'sane-cookie-date'(DT).
+'expires-av'(Lex) --> atom_ci('Expires'), "=", 'sane-cookie-date'(Lex).
 
 
 
@@ -168,11 +169,8 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 % ```
 
 'max-age-av'(N) -->
-  atom_ci('Max-Age'),
-  "=",
-  'non-zero-digit'(H),
-  *(digit, T),
-  {pos_sum([H|T], N)}.
+  atom_ci('Max-Age'), "=",
+  'non-zero-digit'(H), *(digit, T), {pos_sum([H|T], N)}.
 
 
 
@@ -211,12 +209,12 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
 
-%! 'sane-cookie-date'(-DateTime:compound)// is det.
+%! 'sane-cookie-date'(-Lex:string)// is det.
 % ```abnf
 % sane-cookie-date  = <rfc1123-date, defined in [RFC2616], Section 3.3.1>
 % ```
 
-'sane-cookie-date'(V) --> 'rfc1123-date'(V).
+'sane-cookie-date'(Lex) --> 'rfc1123-date'(Lex).
 
 
 
@@ -238,16 +236,14 @@ cookie_value_codes(Cs) --> *('cookie-octet', Cs).
 
 
 
-%! 'set-cookie-string'(-Cookie:dict)// is det.
+%! 'set-cookie-string'(-Parameters:list(dict))// is det.
 % ```abnf
 % set-cookie-string = cookie-pair *( ";" SP cookie-av )
 % ```
 
-'set-cookie-string'(D) -->
-  'cookie-pair'(H),
-  *(sep_cookie_av, T),
-  {create_grouped_sorted_dict([H|T], cookie, D)}.
-sep_cookie_av(X) --> ";", 'SP', 'cookie-av'(X).
+'set-cookie-string'([H|T]) --> 'cookie-pair'(H), *(sep_cookie_av, T).
+
+sep_cookie_av(D) --> ";", 'SP', 'cookie-av'(D).
 
 
 
@@ -256,5 +252,7 @@ sep_cookie_av(X) --> ";", 'SP', 'cookie-av'(X).
 % HELPERS %
 
 word(S) --> dcg_string(word_codes, S).
+
 word_codes(Cs) --> *(word_code, Cs).
+
 word_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), C \= 0';}.

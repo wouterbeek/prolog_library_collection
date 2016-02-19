@@ -1,27 +1,19 @@
 :- module(
   msg_ext,
   [
-    msg_emphasis/1, % +Format:string
-    msg_emphasis/2, % +Format:string
-                    % +Arguments:list
-    msg_normal/1, % +Format:string
-    msg_normal/2, % +Format:string
-                  % +Arguments:list
-    msg_notification/1, % +Format:string
-    msg_notification/2, % +Format:string
-                        % +Arguments:list
-    msg_success/1, % +Format:string
-    msg_success/2, % +Format:string
-                   % +Arguments:list
-    msg_warning/1, % +Format:string
-    msg_warning/2, % +Format:string
-                   % +Arguments:list
-    verbose/1, % :Goal_0
-    verbose/2, % :Goal_0
-               % +Format:string
-    verbose/3 % :Goal_0
-              % +Format:string
-              % +Arguments:list
+    msg_emphasis/1,     % +Format
+    msg_emphasis/2,     % +Format, +Args
+    msg_normal/1,       % +Format
+    msg_normal/2,       % +Format, +Args
+    msg_notification/1, % +Format
+    msg_notification/2, % +Format, +Args
+    msg_success/1,      % +Format
+    msg_success/2,      % +Format, +Args
+    msg_warning/1,      % +Format
+    msg_warning/2,      % +Format, +Args
+    verbose/1,          % :Goal_0
+    verbose/2,          % :Goal_0, +Format
+    verbose/3           % :Goal_0, +Format, +Args
   ]
 ).
 
@@ -30,7 +22,7 @@
 Prints messages for the user.
 
 @author Wouter Beek
-@version 2015/10-2015/11
+@version 2015/10-2015/11, 2016/01
 */
 
 :- use_module(library(ansi_term)).
@@ -39,27 +31,29 @@ Prints messages for the user.
 :- use_module(library(debug_ext)).
 :- use_module(library(http/http_info)).
 
-:- meta_predicate(verbose(0)).
-:- meta_predicate(verbose(0,+)).
-:- meta_predicate(verbose(0,+,+)).
-:- meta_predicate(verbose0(0)).
-:- meta_predicate(verbose0(0,+)).
-:- meta_predicate(verbose0(0,+,+)).
+:- meta_predicate
+    verbose(0),
+    verbose(0,+),
+    verbose(0,+,+),
+    verbose0(0),
+    verbose0(0,+),
+    verbose0(0,+,+).
 
-:- multifile(user:message_hook/3).
+:- multifile
+    user:message_hook/3.
 
 
 
 
 
-%! msg_emphasis(+Format:string) is det.
+%! msg_emphasis(+Format) is det.
 % Wrapper around msg_emphasis/2 with no arguments.
 
 msg_emphasis(Format):-
   msg_emphasis(Format, []).
 
 
-%! msg_emphasis(+Format:string, +Arguments:list) is det.
+%! msg_emphasis(+Format, +Args) is det.
 % Prints an emphasized message, using ANSI properties.
 
 msg_emphasis(Format, Args):-
@@ -67,14 +61,14 @@ msg_emphasis(Format, Args):-
 
 
 
-%! msg_normal(+Format:string) is det.
+%! msg_normal(+Format) is det.
 % Wrapper around msg_normal/2 with no arguments.
 
 msg_normal(Format):-
   msg_normal(Format, []).
 
 
-%! msg_normal(+Format:string, +Arguments:list) is det.
+%! msg_normal(+Format, +Args) is det.
 % Prints a normal messages, using no ANSI properties.
 
 msg_normal(Format, Args):-
@@ -82,14 +76,14 @@ msg_normal(Format, Args):-
 
 
 
-%! msg_notfication(+Format:string) is det.
+%! msg_notfication(+Format) is det.
 % Wrapper around msg_notification/2 with no arguments.
 
 msg_notification(Format):-
   msg_notification(Format, []).
 
 
-%! msg_notification(+Format:string, +Arguments:list) is det.
+%! msg_notification(+Format, +Args) is det.
 % Prints a notification message, using ANSI properties.
 
 msg_notification(Format, Args):-
@@ -97,14 +91,14 @@ msg_notification(Format, Args):-
 
 
 
-%! msg_success(+Format:string) is det.
+%! msg_success(+Format) is det.
 % Wrapper around msg_success/2 with no arguments.
 
 msg_success(Format):-
   msg_success(Format, []).
 
 
-%! msg_success(+Format:string, +Arguments:list) is det.
+%! msg_success(+Format, +Args) is det.
 % Prints a success message, using ANSI properties.
 
 msg_success(Format, Args):-
@@ -112,14 +106,14 @@ msg_success(Format, Args):-
 
 
 
-%! msg_warning(+Format:string) is det.
+%! msg_warning(+Format) is det.
 % Wrapper around msg_warning/2 with no arguments.
 
 msg_warning(Format):-
   msg_warning(Format, []).
 
 
-%! msg_warning(+Format:string, +Arguments:list) is det.
+%! msg_warning(+Format, +Args) is det.
 % Prints a warnings message, using ANSI properties.
 
 msg_warning(Format, Args):-
@@ -135,7 +129,7 @@ verbose(Goal_0):-
   nl.
 
 
-%! verbose(:Goal_0, +Format:string) is det.
+%! verbose(:Goal_0, +Format) is det.
 % Wrapper around verbose/3.
 
 verbose(Goal_0, Format):-
@@ -143,7 +137,7 @@ verbose(Goal_0, Format):-
   nl.
 
 
-%! verbose(:Goal_0, +Format:string, +Arguments:list) is det.
+%! verbose(:Goal_0, +Format, +Args) is det.
 % Verbose call of Goal_0.
 %
 % If Flag is instantiated then messages are only displayed if the

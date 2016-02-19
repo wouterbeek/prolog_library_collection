@@ -1,17 +1,17 @@
 :- module(
   rfc5987,
   [
-    'attr-char'//1, % ?Code:code
-    charset//1, % ?Characterset:string
-    'ext-parameter'//1, % ?Parameter:pair(string)
-    'ext-value'//1, % -Value:dict
-    language//1, % ?LanguageTag:list(string)
-    'mime-charset'//1, % ?CharacterSet:string
-    'mime-charsetc'//1, % ?Code:code
-    parameter//1, % ?Parameter:pair(string)
-    parmname//1, % Name:string
-    'reg-parameter'//1, % ?Parameter:pair(string)
-    'value-chars'//1 % Value:string
+    'attr-char'//1,     % ?Code
+    charset//1,         % -Characterset:string
+    'ext-parameter'//1, % -Parameter:dict
+    'ext-value'//1,     % -Value:dict
+    language//1,        % -LanguageTag:list(string)
+    'mime-charset'//1,  % -CharacterSet:string
+    'mime-charsetc'//1, % ?Code
+    parameter//1,       % -Parameter:dict
+    parmname//1,        % -Name:string
+    'reg-parameter'//1, % -Parameter:dict
+    'value-chars'//1    % -Value:string
   ]
 ).
 
@@ -21,25 +21,23 @@
 @author Wouter Beek
 @compat RFC 5987
 @see http://tools.ietf.org/html/rfc5987
-@version 2015/11-2015/12
+@version 2015/11-2016/01
 */
 
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'DIGIT'//1, % ?Weight:between(0,9)
-     'DIGIT'//2, % ?Weight:between(0,9)
-                 % ?Code:code
+     'ALPHA'//1,  % ?Code
+     'DIGIT'//1,  % ?Weight:between(0,9)
+     'DIGIT'//2,  % ?Weight:between(0,9), ?Code
      'HEXDIG'//1, % ?Weight:between(0,9)
-     'HEXDIG'//2, % ?Weight:between(0,9)
-                  % ?Code:code
+     'HEXDIG'//2, % ?Weight:between(0,9), ?Code
      'LWSP'//0
    ]).
 :- use_module(library(http/rfc2616), [
      'quoted-string'//1, % -String:string
-     token//1 % -Token:string
+     token//1            % -Token:string
    ]).
 :- use_module(library(ltag/rfc5646), [
      'Language-Tag'//1 % ?LanguageTag:list(string)
@@ -52,10 +50,9 @@
 
 
 
-%! 'attr-char'(-Code:code)// .
+%! 'attr-char'(?Code)// .
 % ```abnf
-% attr-char = ALPHA / DIGIT
-%           / "!" / "#" / "$" / "&" / "+" / "-" / "."
+% attr-char = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "."
 %           / "^" / "_" / "`" / "|" / "~"
 %           ; token except ( "*" / "'" / "%" )
 % ```
@@ -88,17 +85,17 @@ charset(Charset)      --> 'mime-charset'(Charset).
 
 
 
-%! 'ext-parameter'(-Parameter:pair(string,dict))// is det.
+%! 'ext-parameter'(-Parameter:dict)// is det.
 % Extended paramter.
 %
 % ```abnf
 % ext-parameter = parmname "*" LWSP "=" LWSP ext-value
 % ```
 
-'ext-parameter'(N-D) -->
-  parmname(N), "*",
+'ext-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  parmname(Key), "*",
   'LWSP', "=", 'LWSP',
-  'ext-value'(D).
+  'ext-value'(Value).
 
 
 
@@ -111,7 +108,7 @@ charset(Charset)      --> 'mime-charset'(Charset).
 %           ; (see [RFC2231], Section 7)
 % ```
 
-'ext-value'(ext_value{charset: Charset, language: Lang, value: Value}) -->
+'ext-value'(_{'llo:charset': Charset, 'llo:language': Lang, 'llo:value': Value}) -->
   charset(Charset),
   "'",
   opt(language, Lang),
@@ -135,7 +132,7 @@ language(L) --> 'Language-Tag'(L).
 
 
 
-%! 'mime-charsetc'(-Code:code)// .
+%! 'mime-charsetc'(?Code)// .
 % ```abnf
 % mime-charsetc = ALPHA / DIGIT
 %               / "!" / "#" / "$" / "%" / "&"
@@ -164,13 +161,13 @@ language(L) --> 'Language-Tag'(L).
 
 
 
-%! parameter(-Parameter:pair(string))// is det.
+%! parameter(-Parameter:dict)// is det.
 % ```abnf
 % parameter = reg-parameter / ext-parameter
 % ```
 
-parameter(Param) --> 'reg-parameter'(Param), !.
-parameter(Param) --> 'ext-parameter'(Param).
+parameter(D) --> 'reg-parameter'(D), !.
+parameter(D) --> 'ext-parameter'(D).
 
 
 
@@ -183,14 +180,15 @@ parmname(S) --> +('attr-char', Cs), {string_codes(S, Cs)}.
 
   
 
-%! 'reg-parameter'(-Parameter:pair(string))// is det.
+%! 'reg-parameter'(-Parameter:dict)// is det.
 % A regular parameter, as defined in RFC 2616.
 %
 % ```abnf
 % reg-parameter = parmname LWSP "=" LWSP value
 % ```
 
-'reg-parameter'(N-V) --> parmname(N), 'LWSP', "=", 'LWSP', value(V).
+'reg-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  parmname(Key), 'LWSP', "=", 'LWSP', value(Value).
 
 
 
@@ -210,5 +208,6 @@ value(S) --> 'quoted-string'(S).
 % ```
 
 'value-chars'(S) --> *(value_char, Cs), {string_codes(S, Cs)}.
+
 value_char(C) --> 'pct-encoded'(C).
 value_char(C) --> 'attr-char'(C).

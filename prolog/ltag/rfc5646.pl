@@ -1,7 +1,7 @@
 :- module(
   rfc5646,
   [
-    'Language-Tag'//1 % -LanguageTag:list(string)
+    'Language-Tag'//1 % -LanguageTag:dict
   ]
 ).
 :- reexport(
@@ -22,7 +22,7 @@
 @author Wouter Beek
 @compat RFC 5646
 @see https://tools.ietf.org/html/rfc5646
-@version 2015/09, 2015/11-2015/12
+@version 2015/09, 2015/11-2016/01
 */
 
 :- use_module(library(dcg/dcg_atom)).
@@ -30,8 +30,7 @@
 :- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % -Code:code
-     'DIGIT'//2 % -Weight:between(0,9)
-                % -Code:code
+     'DIGIT'//2 % -Weight:between(0,9), -Code:code
    ]).
 :- use_module(library(lists)).
 :- use_module(library(string_ext)).
@@ -103,16 +102,21 @@ irregular(["sgn","CH","DE"]) --> "sgn-CH-DE".
 
 
 
-%! 'Language-Tag'(-LanguageTag:list(string))// is det.
+%! 'Language-Tag'(-LanguageTag:dict)// is det.
 % ```abnf
 % Language-Tag = langtag         ; normal language tags
 %              / privateuse      ; private use tag
 %              / grandfathered   ; grandfathered tags
 % ```
 
-'Language-Tag'(L) --> langtag(L), !.
-'Language-Tag'(L) --> privateuse(L), !.
-'Language-Tag'(L) --> grandfathered(L).
+'Language-Tag'(language_tag{'@type': Class, 'rdf:value': L}) -->
+  (   langtag(L)
+  ->  {Class = 'ltag:NormalLanguageTag'}
+  ;   privateuse(L)
+  ->  {Class = 'ltag:PrivateUseTag'}
+  ;   grandfathered(L)
+  ->  {Class = 'ltag:GrandfatheredTag'}
+  ).
 
 
 
@@ -121,7 +125,10 @@ irregular(["sgn","CH","DE"]) --> "sgn-CH-DE".
 % obs-language-tag = primary-subtag *( "-" subtag )
 % ```
 
-'obs-language-tag'([H|T]) --> 'primary-subtag'(H), *(sep_subtag, T).
+'obs-language-tag'([H|T]) -->
+  'primary-subtag'(H),
+  *(sep_subtag, T).
+
 sep_subtag(S) --> "-", subtag(S).
 
 
@@ -131,7 +138,9 @@ sep_subtag(S) --> "-", subtag(S).
 % primary-subtag = 1*8ALPHA
 % ```
 
-'primary-subtag'(S) --> 'm*n'(1, 8, 'ALPHA', Cs), {string_codes(S, Cs)}.
+'primary-subtag'(S) -->
+  'm*n'(1, 8, 'ALPHA', Cs),
+  {string_codes(S, Cs)}.
 
 
 
@@ -140,8 +149,13 @@ sep_subtag(S) --> "-", subtag(S).
 % privateuse = "x" 1*("-" (1*8alphanum))
 % ```
 
-privateuse(["x"|T]) --> atom_ci(x), +(privateuse_tail, T).
-privateuse_tail(S) --> "-", 'm*n'(1, 8, alphanum, Cs), {string_codes(S, Cs)}.
+privateuse(["x"|T]) -->
+  atom_ci(x),
+  +(privateuse_tail, T).
+privateuse_tail(S) -->
+  "-",
+  'm*n'(1, 8, alphanum, Cs),
+  {string_codes(S, Cs)}.
 
 
 
@@ -169,7 +183,7 @@ regular(["zh","xiang"])     --> "zh-xiang".
 
 
 
-%! singleton(-Singleton:code)// .
+%! singleton(?Singleton:code)// .
 % RFC 4646 defines this rule in a different order.
 %
 % ```abnf
@@ -196,6 +210,9 @@ singleton(C) -->
 % subtag = 1*8(ALPHA / DIGIT)
 % ```
 
-subtag(S) --> 'm*n'(1, 8, subtag_code, Cs), {string_codes(S, Cs)}.
+subtag(S) -->
+  'm*n'(1, 8, subtag_code, Cs),
+  {string_codes(S, Cs)}.
+
 subtag_code(C) --> 'ALPHA'(C).
 subtag_code(C) --> 'DIGIT'(_, C).

@@ -2,7 +2,7 @@
   rfc4288,
   [
     'subtype-name'//1, % -SubtypeName:string
-    'type-name'//1 % -TypeName:string
+    'type-name'//1     % -TypeName:string
   ]
 ).
 
@@ -16,9 +16,8 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'DIGIT'//2 % ?Weight:between(0,9)
-                % ?Code:code
+     'ALPHA'//1, % ?Code
+     'DIGIT'//2  % ?Weight:between(0,9), ?Code
    ]).
 
 
@@ -34,7 +33,7 @@
 
 
 
-%! 'reg-name-chars'(-Code:code)// .
+%! 'reg-name-chars'(?Code)// .
 % ```abnf
 % reg-name-chars = ALPHA / DIGIT / "!"
 %                / "#" / "$" / "&" / "."

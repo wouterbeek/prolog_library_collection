@@ -1,8 +1,7 @@
 :- module(
   dcg_debug,
   [
-    dcg_debug/2 % +Topic:compound
-                % :Dcg_0
+    dcg_debug/2 % +Topic:compound, :Dcg_0
   ]
 ).
 :- reexport(library(debug)).

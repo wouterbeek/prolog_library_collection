@@ -17,12 +17,10 @@
 Support for properties of relations.
 
 @author Wouter Beek
-@license MIT license
-@version 2015/10
+@version 2015/10, 2016/01
 */
 
 :- use_module(library(graph/s/s_graph)).
-:- use_module(library(lambda)).
 
 
 

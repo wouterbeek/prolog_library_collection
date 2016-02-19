@@ -36,23 +36,26 @@ attr(S) --> token(S).
 
 
 
-%! 'av-pair'(-Pair)// is det.
+%! 'av-pair'(-Parameter:dict)// is det.
 % ```abnf
 % av-pair = attr ["=" value]   ; optional value
 % ```
 
-'av-pair'(N-V) --> attr(N), "=", !, value(V).
-'av-pair'(N) --> attr(N).
+'av-pair'(D2) -->
+  attr(Key),
+  {D1 = _{'@type': 'llo:parameter', 'llo:key': Key}},
+  ("=" -> value(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
 
 
 
-%! 'av-pairs'(-Pairs:list)// .
+%! 'av-pairs'(-Parameters:list(dict))// is det.
 % ```abnf
 % av-pairs = av-pair *(";" av-pair)
 % ```
 
 'av-pairs'([H|T]) --> 'av-pair'(H), *(sep_av_pair, T).
-sep_av_pair(X) --> ";", ?('LWS'), 'av-pair'(X).
+
+sep_av_pair(D) --> ";", ?('LWS'), 'av-pair'(D).
 
 
 
@@ -61,16 +64,14 @@ sep_av_pair(X) --> ";", ?('LWS'), 'av-pair'(X).
 % cookie = NAME "=" VALUE *(";" set-cookie-av)
 % ```
 
-cookie(cookie{name: Name, value: Value, pairs: L}) -->
-  'NAME'(Name),
-  "=",
-  'VALUE'(Value),
-  *(sep_set_cookie_av, L).
+cookie(_{'@type': 'llo:cookie', 'llo:key': Key, 'llo:value': Value, 'llo:parameters': L}) -->
+  'NAME'(Key), "=", 'VALUE'(Value), *(sep_set_cookie_av, L).
+
 sep_set_cookie_av(X) --> ";", ?('LWS'), 'set-cookie-av'(X).
 
 
 
-%! cookies(-Cookies:list(dict))// .
+%! cookies(-Cookies:list(dict))// is det.
 % ```abnf
 % cookies = 1#cookie
 % ```
@@ -88,7 +89,7 @@ cookies(L) --> +#(cookie, L).
 
 
 
-%! portlist(-PortNumbers:list(nonneg))// is det.
+%! portlist(-Ports:list(nonneg))// is det.
 % ```abnf
 % portlist = 1#portnum
 % ```
@@ -97,7 +98,7 @@ portlist(L) --> +#(portnum, L).
 
 
 
-%! portnum(-PortNumber:nonneg)// is det.
+%! portnum(-Port:nonneg)// is det.
 % ```abnf
 % portnum = 1*DIGIT
 % ```
@@ -106,7 +107,7 @@ portnum(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
-%! 'set-cookie-av'(-Pair:pair)// is det.
+%! 'set-cookie-av'(-Parameter:dict)// is det.
 % ```abnf
 % set-cookie-av = "Comment" "=" value
 %               | "CommentURL" "=" <"> http_URL <">
@@ -118,28 +119,23 @@ portnum(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
 %               | "Secure"
 %               | "Version" "=" 1*DIGIT
 
-'set-cookie-av'(comment-V) --> atom_ci('Comment'), "=", !, value(V).
-'set-cookie-av'(commentURL-V) -->
-  atom_ci('CommentURL'),
-  "=\"", !,
-  http_URL(V),
-  "\"".
-'set-cookie-av'(discard) --> atom_ci('Discard'), !.
-'set-cookie-av'(domain-V) --> atom_ci('Domain'), "=", !, value(V).
-'set-cookie-av'(max_age-V) --> atom_ci('Max-Age'), "=", !, value(V).
-'set-cookie-av'(path-V) --> atom_ci('Path'), "=", !, value(V).
-'set-cookie-av'(port-V) --> atom_ci('Port'), "=\"", !, portlist(V), "\"".
-'set-cookie-av'(port) --> atom_ci('Port'), !.
-'set-cookie-av'(secure) --> atom_ci('Secure'), !.
-'set-cookie-av'(version-V) -->
-  atom_ci('Version'),
-  "=",
-  +('DIGIT', Ds),
-  {pos_sum(Ds, V)}.
+'set-cookie-av'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+  set_cookie_av(Key, Value).
+
+set_cookie_av("comment", S)    --> atom_ci('Comment'), "=", !, value(S).
+set_cookie_av("commentURL", D) --> atom_ci('CommentURL'), "=\"", !, http_URL(D), "\"".
+set_cookie_av("discard", true) --> atom_ci('Discard'), !.
+set_cookie_av("domain", S)     --> atom_ci('Domain'), "=", !, value(S).
+set_cookie_av("max-age", S)    --> atom_ci('Max-Age'), "=", !, value(S).
+set_cookie_av("path", S)       --> atom_ci('Path'), "=", !, value(S).
+set_cookie_av("port", L)       --> atom_ci('Port'), "=\"", !, portlist(L), "\"".
+set_cookie_av("port", true)    --> atom_ci('Port'), !.
+set_cookie_av("secure", true)  --> atom_ci('Secure'), !.
+set_cookie_av("version", N)    --> atom_ci('Version'), "=", +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
 
-%! 'set-cookie2'(-Cookies:list(dict))// .
+%! 'set-cookie2'(-Cookies:list(dict))// is det.
 % ```abnf
 % set-cookie = "Set-Cookie2:" cookies
 % ```

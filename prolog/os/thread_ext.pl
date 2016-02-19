@@ -1,13 +1,15 @@
 :- module(
   thread_ext,
   [
+    attached_thread/1,           % :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads:positive_integer
-    intermittent_thread/3, % :Goal_0, :EndGoal_0, +Interval
-    intermittent_thread/4, % :Goal_0, :EndGoal_0, +Interval, +Opts
+    detached_thread/1,           % :Goal_0
+    intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
+    intermittent_thread/4,       % :Goal_0, :EndGoal_0, +Interval, +Opts
     print_thread/0,
-    print_thread/1, % +Name:atom
+    print_thread/1,              % +Name:atom
     print_threads/0,
-    thread_name/1 % -Name:atom
+    thread_name/1                % -Name:atom
   ]
 ).
 
@@ -22,6 +24,8 @@
 :- use_module(library(dcg/dcg_phrase)).
 
 :- meta_predicate
+    attached_thread(0),
+    detached_thread(0),
     intermittent_goal(0, 0, +),
     intermittent_thread(0, 0, +),
     intermittent_thread(0, 0, +, +).
@@ -34,11 +38,25 @@
 
 
 
+%! attached_thread(:Goal_0) is det.
+
+attached_thread(Goal_0) :-
+  thread_create(Goal_0, _, []).
+
+
+
 %! default_number_of_threads(+NumberOfThreads:positive_integer) is semidet.
 %! default_number_of_threads(-NumberOfThreads:positive_integer) is det.
 
-default_number_of_threads(N):-
+default_number_of_threads(N) :-
   current_prolog_flag(cpu_count, N).
+
+
+
+%! detached_thread(:Goal_0) is det.
+
+detached_thread(Goal_0) :-
+  thread_create(Goal_0, _, [detached(true)]).
 
 
 
@@ -82,7 +100,7 @@ print_thread:-
   print_thread(Name).
 
 
-print_thread(Name):-
+print_thread(Name) :-
   dcg_with_output_to(user_output, thread(0, Name)).
 
 
@@ -97,7 +115,7 @@ print_threads:-
 %! thread_name(-Name:atom) is det.
 % Returns the name of the current thread.
 
-thread_name(Name):-
+thread_name(Name) :-
   thread_self(Id),
   thread_property(Id, alias(Name)).
 

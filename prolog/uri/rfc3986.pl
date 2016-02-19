@@ -5,14 +5,15 @@
     authority//1, % -Authority:dict
     fragment//1, % -Fragment:string
     host//1, % -Host:dict
-    'IP-literal'//1, % ?IpLiteral:compound
+    'IP-literal'//1, % ?IpLiteral:dict
     'IPv4address'//1, % ?Address:list(between(0,255))
     'path-abempty'//1, % -Segments:list(string)
     'pct-encoded'//1, % -Code:between(0,255)
     port//1, % -Port:nonneg
     query//1, % -Query:string
-    'relative-part'//1, % -RelativeUri:dict
+    'relative-part'//1, % -RelativePart:dict
     scheme//1, % -Scheme:string
+    scheme_code//1, % -Code:code
     segment//1, % -Segment:string
     'segment-nz'//1, % -Segment:string
     'sub-delims'//1 , % ?Code:code
@@ -48,13 +49,12 @@
 % absolute-URI = scheme ":" hier-part [ "?" query ]
 % ```
 
-'absolute-URI'(D) -->
+'absolute-URI'(D2) -->
   scheme(Scheme),
   ":",
-  'hier-part'(D0),
-  {dict_pairs(D0, hier_part, T1)},
-  ("?" -> query(Query), {T2 = [query-Query|T1]} ; {T2 = T1}),
-  {dict_pairs(D, absolute_uri, [scheme-Scheme|T2])}.
+  'hier-part'(HierPart),
+  {D1 = absolute_uri{'@type': 'uri:absolute-URI', 'uri:hierarchical-part': HierPart, 'uri:scheme': Scheme}},
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}).
 
 
 
@@ -73,14 +73,12 @@
 % The authority component determines who has the right to respond
 % authoritatively to requests that target the identified resource.
 
-authority(D) -->
-  (userinfo(UserInfo), "@", ! ; ""),
+authority(D4) -->
+  {D1 = authority{'@type': 'uri:authority'}},
+  (userinfo(Userinfo), "@" -> {D2 = D1.put(_{'uri:userinfo': Userinfo})} ; {D2 = D1}),
   host(Host),
-  (":" -> port(Port) ; ""),
-  {
-    exclude(pair_has_var_value, [host-Host,port-Port,userinfo-UserInfo], L),
-    dict_pairs(D, authority, L)
-  }.
+  {D3 = D2.put(_{'uri:host': Host})},
+  (":" -> port(Port), {D4 = D3.put(_{'uri:port': Port})} ; {D4 = D3}).
 
 
 
@@ -120,7 +118,10 @@ authority(D) -->
 % fragment = *( pchar / "/" / "?" )
 % ```
 
-fragment(S) --> *(fragment_code, Cs), {string_codes(S, Cs)}.
+fragment(S) -->
+  *(fragment_code, Cs),
+  {string_codes(S, Cs)}.
+
 fragment_code(C)   --> pchar(C).
 fragment_code(0'/) --> "/".
 fragment_code(0'?) --> "?".
@@ -149,7 +150,9 @@ fragment_code(0'?) --> "?".
 % h16 = 1*4HEXDIG
 % ```
 
-h16(N) --> 'm*n'(1, 4, 'HEXDIG', Ds), {pos_sum(Ds, N)}.
+h16(N) -->
+  'm*n'(1, 4, 'HEXDIG', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -161,16 +164,19 @@ h16(N) --> 'm*n'(1, 4, 'HEXDIG', Ds), {pos_sum(Ds, N)}.
 %           / path-empty
 % ```
 
-'hier-part'(hier_part{authority: Auth, path: L}) -->
-  "//", !,
-  authority(Auth),
-  'path-abempty'(L).
-'hier-part'(hier_part{path: L}) -->
-  'path-absolute'(L), !.
-'hier-part'(hier_part{path: L}) -->
-  'path-rootless'(L), !.
-'hier-part'(hier_part{path: L}) -->
-  'path-empty'(L).
+'hier-part'(D2) -->
+  {D1 = hier_part{'@type': 'uri:hier-part'}},
+  (   "//"
+  ->  authority(Authority),
+      'path-abempty'(PathAbempty),
+      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
+  ;   'path-absolute'(PathAbsolute)
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ;   'path-rootless'(PathRootless)
+  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
+  ;   'path-empty'(PathEmpty)
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ).
 
 
 
@@ -189,18 +195,32 @@ h16(N) --> 'm*n'(1, 4, 'HEXDIG', Ds), {pos_sum(Ds, N)}.
 % host = IP-literal / IPv4address / reg-name
 % ```
 
-host(Host) --> 'IP-literal'(Host), !.
-host(Host) --> 'IPv4address'(Host), !.
-host(Host) --> 'reg-name'(Host).
+host(D2) -->
+  {D1 = host{'@type': 'uri:host'}},
+  (   'IP-literal'(IpLiteral)
+  ->  {D2 = D1.put(_{'uri:IP-literal': IpLiteral})}
+  ;   'IPv4address'(Ipv4Address)
+  ->  {D2 = D1.put(_{'uri:IPv4address': Ipv4Address})}
+  ;   'reg-name'(RegName)
+  ->  {D2 = D1.put(_{'uri:reg-name': RegName})}
+  ).
 
 
 
-%! 'IP-literal'(?IpLiteral:compound)// is det.
+%! 'IP-literal'(?IpLiteral:dict)// is det.
 % ```abnf
 % IP-literal = "[" ( IPv6address / IPvFuture  ) "]"
 % ```
 
-'IP-literal'(Lit) --> "[", ('IPv6address'(Lit), ! ; 'IPvFuture'(Lit)), "]".
+'IP-literal'(D2) -->
+  {D1 = ip_literal{'@type': 'uri:IP-literal'}},
+  "[",
+  (   'IPv6address'(Ipv6Address)
+  ->  {D2 = D1.put(_{'uri:IPv6address': Ipv6Address})}
+  ;   'IPvFuture'(IpvFuture)
+  ->  {D2 = D1.put(_{'uri:IPvFuture': IpvFuture})}
+  ),
+  "]".
 
 
 
@@ -210,11 +230,18 @@ host(Host) --> 'reg-name'(Host).
 % ```
 
 'IPv4address'([I1,I2,I3,I4]) -->
-  'dec-octet'(I1), ".", 'dec-octet'(I2), ".", 'dec-octet'(I3), ".", 'dec-octet'(I4), ".".
+  'dec-octet'(I1),
+  ".",
+  'dec-octet'(I2),
+  ".",
+  'dec-octet'(I3),
+  ".",
+  'dec-octet'(I4),
+  ".".
 
 
 
-%! 'IPv6address'(-Ipv6Address:list)// is det.
+%! 'IPv6address'(-Ipv6Address:list(dict))// is det.
 % ```abnf
 % IPv6address =                            6( h16 ":" ) ls32
 %             /                       "::" 5( h16 ":" ) ls32
@@ -240,12 +267,16 @@ host(Host) --> 'reg-name'(Host).
 
 
 
-%! 'IPvFuture'(-IpLiteral:compound)// is det.
+%! 'IPvFuture'(-IpvFuture:dict)// is det.
 % ```abnf
 % IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
 % ```
 
-'IPvFuture'(ipvfuture(I,S)) -->
+'IPvFuture'(_{
+  '@type': 'uri:IPvFuture',
+  'uri:major': _{'@type': 'xsd:nonNegativeInteger', '@value': I},
+  'uri:minor': S
+}) -->
   "v",
   +('HEXDIG', Ds),
   {pos_sum(Ds, 16, I)},
@@ -258,13 +289,15 @@ ipv_future_code(0':) --> ":".
 
 
 
-%! ls32(-Address:compound)// is det.
+%! ls32(-Ls32:dict)// is det.
 % ```abnf
 % ls32 = ( h16 ":" h16 ) / IPv4address
 % ```
 
-ls32(ipa([H16a,H16b])) --> h16(H16a), !, ":", h16(H16b).
-ls32(ipv4(Address))    --> 'IPv4address'(Address).
+ls32(_{'@type': 'llo:h16', 'rdf:value': [H16a,H16b]}) -->
+  h16(H16a), ":", h16(H16b), !.
+ls32(_{'@type': 'llo:IPv4address', 'rdf:value': Ipv4Address}) -->
+  'IPv4address'(Ipv4Address).
 
 
 
@@ -277,16 +310,24 @@ ls32(ipv4(Address))    --> 'IPv4address'(Address).
 %      /  path-empty      ; zero characters
 % ```
 
-% Begins with "/" or is empty.
-path(L) --> 'path-abempty'(L), !.
-% Begins with "/" but not "//".
-path(L) --> 'path-absolute'(L), !.
-% Begins with a non-colon segment
-path(L) --> 'path-noscheme'(L), !.
-% Begins with a segment
-path(L) --> 'path-rootless'(L), !.
-% Empty path (i.e., no segments).
-path(L) --> 'path-empty'(L).
+path(D2) -->
+  {D1 = path{'@type': 'uri:path'}},
+  (   % Begins with "/" or is empty.
+      'path-abempty'(PathAbempty)
+  ->  {D2 = D1.put(_{'uri:path-abempty': PathAbempty})}
+  ;   % Begins with "/" but not "//".
+      'path-absolute'(PathAbsolute)
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ;   % Begins with a non-colon segment
+      'path-noscheme'(PathNoscheme)
+  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
+  ;   % Begins with a segment
+      'path-rootless'(PathRootless)
+  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
+  ;   % Empty path (i.e., no segments).
+      'path-empty'(PathEmpty)
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ).
 
 
 
@@ -295,7 +336,8 @@ path(L) --> 'path-empty'(L).
 % path-abempty = *( "/" segment )
 % ```
 
-'path-abempty'(L) --> *(sep_segment, L).
+'path-abempty'(L) -->
+  *(sep_segment, L).
 
 
 
@@ -324,7 +366,9 @@ path(L) --> 'path-empty'(L).
 % path-noscheme = segment-nz-nc *( "/"  segment )
 % ```
 
-'path-noscheme'([H|T]) --> 'segment-nz-nc'(H), *(sep_segment, T).
+'path-noscheme'([H|T]) -->
+  'segment-nz-nc'(H),
+  *(sep_segment, T).
 
 
 
@@ -333,7 +377,9 @@ path(L) --> 'path-empty'(L).
 % path-rootless = segment-nz *( "/"  segment )
 % ```
 
-'path-rootless'([H|T]) --> 'segment-nz'(H), *(sep_segment, T).
+'path-rootless'([H|T]) -->
+  'segment-nz'(H),
+  *(sep_segment, T).
 
 
 
@@ -358,7 +404,11 @@ pchar(0'@) --> "@".
 % pct-encoded = "%" HEXDIG HEXDIG
 % ```
 
-'pct-encoded'(C) --> "%", 'HEXDIG'(H1), 'HEXDIG'(H2), {C is H1 * 16 + H2}.
+'pct-encoded'(C) -->
+  "%",
+  'HEXDIG'(H1),
+  'HEXDIG'(H2),
+  {C is H1 * 16 + H2}.
 
 
 
@@ -367,7 +417,9 @@ pchar(0'@) --> "@".
 % port = *DIGIT
 % ```
 
-port(N) --> *('DIGIT', Ds), {pos_sum(Ds, N)}.
+port(N) -->
+  *('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -383,19 +435,24 @@ query_code(0'?) --> "?".
 
 
 
-%! 'reg-name'(?RegisteredName:string)// is det.
+%! 'reg-name'(?RegName:string)// is det.
+% “Registered name”
+%
 % ```abnf
 % reg-name = *( unreserved / pct-encoded / sub-delims )
 % ```
 
-'reg-name'(S) --> *(reg_name_code, Cs), {string_codes(S, Cs)}.
+'reg-name'(S) -->
+  *(reg_name_code, Cs),
+  {string_codes(S, Cs)}.
+
 reg_name_code(C) --> unreserved(C).
 reg_name_code(C) --> 'pct-encoded'(C).
 reg_name_code(C) --> 'sub-delims'(C).
 
 
 
-%! 'relative-part'(-RelativeUri:dict)// is det.
+%! 'relative-part'(-RelativePart:dict)// is det.
 % ```abnf
 % relative-part = "//" authority path-abempty
 %               / path-absolute
@@ -403,32 +460,34 @@ reg_name_code(C) --> 'sub-delims'(C).
 %               / path-empty
 % ```
 
-'relative-part'(relative_part{authority: Auth, path: L}) -->
-  "//", !,
-  authority(Auth),
-  'path-abempty'(L).
-'relative-part'(relative_part{path: L}) --> 'path-absolute'(L), !.
-'relative-part'(relative_part{path: L}) --> 'path-noscheme'(L), !.
-'relative-part'(relative_part{path: L}) --> 'path-empty'(L).
+'relative-part'(D2) -->
+  {D1 = relative_part{'@type': 'uri:relative-part'}},
+  (   "//"
+  ->  authority(Authority),
+      'path-abempty'(PathAbempty),
+      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
+  ;   'path-absolute'(PathAbsolute)
+  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ;   'path-noscheme'(PathNoscheme)
+  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
+  ;   'path-empty'(PathEmpty)
+  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ).
 
 
 
-%! 'relative-ref'(-RelativeUri:dict)// is det.
+%! 'relative-ref'(-RelativeRef:dict)// is det.
 % Relative URI reference.
 %
 % ```abnf
 % relative-ref = relative-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'relative-ref'(D) -->
-  'relative-part'(D0),
-  {dict_pairs(D0, relative_part, T)},
-  ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Frag) ; ""),
-  {
-    exclude(pair_has_var_value, [fragment-Frag,query-Query|T], L),
-    dict_pairs(D, relative_ref, L)
-  }.
+'relative-ref'(D3) -->
+  'relative-part'(RelativePart),
+  {D1 = relative_ref{'@type': 'uri:relative-ref', 'uri:relative-part': RelativePart}},
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -450,7 +509,11 @@ reserved(C) --> 'sub-delims'(C).
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 % ```
 
-scheme(S) --> alpha(H), !, *(scheme_code, T), {string_codes(S, [H|T])}.
+scheme(S) -->
+  alpha(H), !,
+  *(scheme_code, T),
+  {string_codes(S, [H|T])}.
+
 scheme_code(C)   --> alpha(C).
 scheme_code(C)   --> digit(_, C).
 scheme_code(0'+) --> "+".
@@ -464,7 +527,9 @@ scheme_code(0'.) --> ".".
 % segment = *pchar
 % ```
 
-segment(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
+segment(S) -->
+  *(pchar, Cs),
+  {string_codes(S, Cs)}.
 
 
 
@@ -475,7 +540,9 @@ segment(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
 % segment-nz = 1*pchar
 % ```
 
-'segment-nz'(S) --> +(pchar, Cs), {string_codes(S, Cs)}.
+'segment-nz'(S) -->
+  +(pchar, Cs),
+  {string_codes(S, Cs)}.
 
 
 
@@ -486,7 +553,10 @@ segment(S) --> *(pchar, Cs), {string_codes(S, Cs)}.
 % segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
 % ```
 
-'segment-nz-nc'(S) --> +(segment_nz_nc_code, Cs), {string_codes(S, Cs)}.
+'segment-nz-nc'(S) -->
+  +(segment_nz_nc_code, Cs),
+  {string_codes(S, Cs)}.
+
 segment_nz_nc_code(C)   --> unreserved(C).
 segment_nz_nc_code(C)   --> 'pct-encoded'(C).
 segment_nz_nc_code(C)   --> 'sub-delims'(C).
@@ -531,17 +601,13 @@ unreserved(0'~) --> "~".
 % URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'URI'(D) -->
+'URI'(D3) -->
   scheme(Scheme),
   ":",
-  'hier-part'(D0),
-  {dict_pairs(D0, hier_part, T)},
-  ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Frag) ; ""),
-  {
-    exclude(pair_has_var_value, [fragment-Frag,query-Query,scheme-Scheme|T], L),
-    dict_pairs(D, uri, L)
-  }.
+  'hier-part'(HierPart),
+  {D1 = uri{'@type': 'uri:URI', 'uri:scheme': Scheme, 'uri:hier-part': HierPart}},
+  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -550,8 +616,13 @@ unreserved(0'~) --> "~".
 % URI-reference = URI / relative-ref
 % ```
 
-'URI-reference'(Uri) --> 'URI'(Uri).
-'URI-reference'(Uri) --> 'relative-ref'(Uri).
+'URI-reference'(D2) -->
+  {D1 = _{'@type': 'uri:URI-reference'}},
+  (   'URI'(Uri)
+  ->  {D2 = D1.put(_{'uri:URI': Uri})}
+  ;   'relative-ref'(RelativeRef)
+  ->  {D2 = D1.put(_{'uri:relative-ref': RelativeRef})}
+  ).
 
 
 
@@ -583,7 +654,10 @@ unreserved(0'~) --> "~".
 % The passing of authentication information in clear text has proven to be
 % a security risk.
 
-userinfo(S) --> *(userinfo_code, Cs), {string_codes(S, Cs)}.
+userinfo(S) -->
+  *(userinfo_code, Cs),
+  {string_codes(S, Cs)}.
+
 userinfo_code(C)   --> unreserved(C).
 userinfo_code(C)   --> 'pct-encoded'(C).
 userinfo_code(C)   --> 'sub-delims'(C).

@@ -18,7 +18,7 @@
 /** <module> Equivalence
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12-2016/01
 */
 
 :- use_module(library(aggregate)).
@@ -26,11 +26,11 @@
 :- use_module(library(closure)).
 :- use_module(library(graph/s/s_graph)).
 :- use_module(library(graph/s/s_test)).
-:- use_module(library(lambda)).
 :- use_module(library(list_ext)).
 :- use_module(library(plunit)).
 :- use_module(library(set/equiv_closure)).
 :- use_module(library(set/relation)).
+:- use_module(library(yall)).
 
 
 
@@ -65,7 +65,7 @@ equiv_class(EqRel, X, EqClass):-
   closure0_set(
     % Since an equivalence relation is symmetric,
     % we do not need to use e.g. adjacent/3 here.
-    \X^Y^relation_pair(EqRel, X-Y),
+    [X,Y]>>relation_pair(EqRel, X-Y),
     X,
     EqClass
   ).

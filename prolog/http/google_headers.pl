@@ -8,7 +8,7 @@
 /** <module> Google-specific HTTP headers
 
 @author Wouter Beek
-@version 2015/12-2016/01
+@version 2015/12-2016/02
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -57,12 +57,10 @@
 %
 % @see https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag
 
-'x-robots-tag'(robots{user_agent: UA, directives: L}) -->
-  user_agent(UA),
-  ":", !,
-  'OWS',
-  +#(directive, L).
-'x-robots-tag'(robots{directives: L}) --> +#(directive, L).
+'x-robots-tag'(_{'user-agent': UA, directives: L}) -->
+  user_agent(UA), ":", !,
+  'OWS', +#(directive, L).
+'x-robots-tag'(_{directives: L}) --> +#(directive, L).
 
 
 user_agent(S) --> token(S).
@@ -77,7 +75,7 @@ directive(nosnippet) --> atom_ci(nosnippet).
 directive(noodp) --> atom_ci(noodp).
 directive(notranslate) --> atom_ci(notranslate).
 directive(noimageindex) --> atom_ci(noimageindex).
-directive(unavailable_after-DT) -->
+directive(unavailable_after-D) -->
   atom_ci('unavailable_after:'),
   ?('LWS'),
-  'rfc850-date'(DT).
+  'rfc850-date'(D).

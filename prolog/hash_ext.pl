@@ -1,8 +1,7 @@
 :- module(
   hash_ext,
   [
-    md5/2 % @Term
-          % -Hash:atom
+    md5/2 % @Term, -Hash
   ]
 ).
 
@@ -11,10 +10,10 @@
 Extended support for using hashes.
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2016/01
 */
 
-:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_db), [rdf_atom_md5/3]).
 
 
 
