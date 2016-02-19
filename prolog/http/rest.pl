@@ -3,7 +3,7 @@
   [
     rest_handler/5,   % +Request, +HandleId, :Exists_1,   :Singular_3, :Plural_2
     rest_mediatype/3, % +Method, +MediaTypes, :Plural_2
-    rest_mediatype/4  % +Method, +Resource,   +MediaTypes, :Singular_3
+    rest_mediatype/4  % +Method, +MediaTypes, +Resource, :Singular_3
   ]
 ).
 
@@ -61,6 +61,6 @@ rest_mediatype(Method, [MT|_], Plural_2) :- call(Plural_2, Method, MT), !.
 rest_mediatype(Method, [_|MTs], Plural_2) :- rest_mediatype(Method, MTs, Plural_2).
 
 
-rest_mediatype(Method, _, [], _) :- !, http_status_reply(Method, non_acceptable(_)).
-rest_mediatype(Method, Res, [MT|_], Singular_3) :- call(Singular_3, Method, Res, MT), !.
-rest_mediatype(Method, Res, [_|MTs], Singular_3) :- rest_mediatype(Method, Res, MTs, Singular_3).
+rest_mediatype(Method, [], _, _) :- !, http_status_reply(Method, non_acceptable(_)).
+rest_mediatype(Method, [MT|_], Res, Singular_3) :- call(Singular_3, Method, MT, Res), !.
+rest_mediatype(Method, [_|MTs], Res, Singular_3) :- rest_mediatype(Method, MTs, Res, Singular_3).
