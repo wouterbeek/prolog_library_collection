@@ -20,12 +20,7 @@
 :- use_module(library(http/http_receive)).
 :- use_module(library(settings)).
 
-:- setting(
-     rest:host,
-     atom,
-     'http://cliopatria.lod.labs.vu.nl',
-	   'The host IRI with respect to which the REST API should work.'
-   ).
+:- setting(rest:host, atom, '', 'The host IRI with respect to which the REST API should work.').
 
 :- html_meta
    rest_handler(+, +, 1, 3, 2),

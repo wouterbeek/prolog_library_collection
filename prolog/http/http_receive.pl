@@ -1,15 +1,17 @@
 :- module(
   http_receive,
   [
-    http_accept/2,       % +Request, -Mediatypes
-    http_header/3,       % +M, +Key, -Value
-    http_iri/3,          % +Request, +Prefix, -Iri
-    http_method/2,       % +Request, -Method
-    http_output/2,       % +Request, -Output
-    http_search/3,       % +Request, +Key, -Value
-    http_search_pl/3,    % +Request, +Key, -Value
-    http_status_reply/2, % +Request, +Status
-    http_uri/2           % +Request, -Uri
+    http_accept/2,         % +Request, -Mediatypes
+    http_header/3,         % +M, +Key, -Value
+    http_iri/3,            % +Request, +Prefix, -Iri
+    http_method/2,         % +Request, -Method
+    http_output/2,         % +Request, -Output
+    http_read_json_dict/1, % -Data
+    http_search/3,         % +Request, +Key, -Value
+    http_search_pl/3,      % +Request, +Key, -Value
+    http_status_reply/1,   % +Status
+    http_status_reply/2,   % +Request, +Status
+    http_uri/2             % +Request, -Uri
   ]
 ).
 
@@ -30,7 +32,7 @@ Support for receiving an HTTP reply.
 
 
 
-%! http_accept(+Request:list(compound), -Mediatypes:list(compound)) is det.
+%! http_accept(+Request, -Mediatypes) is det.
 
 http_accept(Req, MTs) :-
   memberchk(accept(L), Req),
@@ -49,7 +51,7 @@ http_header(D, Key, Value) :-
 
 
 
-%! http_iri(+Request:list(compound), +Prefix:atom, -Iri:atom) is det.
+%! http_iri(+Request, +Prefix, -Iri) is det.
 
 http_iri(Req, Prefix, Iri) :-
   memberchk(request_uri(Local0), Req),
@@ -58,21 +60,29 @@ http_iri(Req, Prefix, Iri) :-
 
 
 
-%! http_method(+Request:list(compound), -Method:atom) is det.
+%! http_method(+Request, -Method) is det.
 
 http_method(Req, M) :-
   memberchk(method(M), Req).
 
 
 
-%! http_output(+Request:list(compound), -Output:stream) is det.
+%! http_output(+Request, -Output) is det.
 
 http_output(Req, Out) :-
   memberchk(pool(client(_,_,_,Out)), Req).
 
 
 
-%! http_search(+Request:list(compound), +Key:atom, -Value:atom) is det.
+%! http_read_json_dict(-Data) is det
+
+http_read_json_dict(Data) :-
+  http_current_request(Req),
+  http_read_json_dict(Req, Data).
+
+
+
+%! http_search(+Request, +Key, -Value) is det.
 
 http_search(Request, Key, Val) :-
   memberchk(search(L), Request),
@@ -80,7 +90,7 @@ http_search(Request, Key, Val) :-
 
 
 
-%! http_search_pl(+Request:list(compound), +Key:atom, -Value:atom) is det.
+%! http_search_pl(+Request, +Key, -Value) is det.
 
 http_search_pl(Request, Key, Val) :-
   http_search(Request, Key, Atom),
@@ -88,7 +98,12 @@ http_search_pl(Request, Key, Val) :-
 
 
 
-%! http_status_reply(+Request:list(compound), +Status:compound) is det.
+%! http_status_reply(+Status) is det.
+%! http_status_reply(+Request, +Status) is det.
+
+http_status_reply(Status) :-
+  http_current_request(Req),
+  http_status_reply(Req, Status).
 
 http_status_reply(Req, Status) :-
   http_output(Req, Out),
@@ -96,7 +111,7 @@ http_status_reply(Req, Status) :-
 
 
 
-%! http_uri(+Request:list(compound), -Uri:atom) is det.
+%! http_uri(+Request, -Uri) is det.
 
 http_uri(Req, Uri) :-
   memberchk(request_uri(Uri), Req).
