@@ -1,9 +1,10 @@
 *~
-data/
 *#
+*.#*
+.tramp_history
 *.aux
+*.db
 *.log
 *.old
 *.pdf
-*.db
-*.#*
+data/

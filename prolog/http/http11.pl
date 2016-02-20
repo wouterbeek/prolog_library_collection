@@ -4,7 +4,8 @@
     'field-name'//1,   % -Name:string
     'header-field'//1, % -Header:pair
     method//1,         % -Method:string
-    'OWS'//0
+    'OWS'//0,
+    'rfc850-date'//1   % -Date:dict
   ]
 ).
 
@@ -38,7 +39,7 @@ Timezone other than `"GMT"'.
 Expires: Sat, 26 Dec 2015 010:30:29 UTC
 ```
 
-The numer zero i.o. a datetime value.
+The numer zero i.o. a date-time value.
 
 ```http
 Expires: 0
@@ -1714,7 +1715,7 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 
 
 
-%! 'rfc850-date'(-D)// is det.
+%! 'rfc850-date'(-Date:dict)// is det.
 % ```abnf
 % rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
 % ```

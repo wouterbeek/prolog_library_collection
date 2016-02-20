@@ -8,9 +8,9 @@
 :- use_module(library(code_ext)).
 :- use_module(library(counter)).
 :- use_module(library(csv_ext)).
-%/datetime
-  :- use_module(library(datetime/datetime)).
-  :- use_module(library(datetime/rfc3339)).
+%/date_time
+  :- use_module(library(date_time/date_time)).
+  :- use_module(library(date_time/rfc3339)).
 :- use_module(library(db_ext)).
 %/dcg
   :- use_module(library(dcg/bibtex)).
@@ -127,7 +127,7 @@
   :- use_module(library(os/archive_ext)).
   :- use_module(library(os/call_on_stream)).
   :- use_module(library(os/compress_ext)).
-  :- use_module(library(os/datetime_file)).
+  :- use_module(library(os/date_time_file)).
   :- use_module(library(os/dir_ext)).
   :- use_module(library(os/external_program)).
   :- use_module(library(os/file_ext)).

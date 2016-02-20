@@ -1,26 +1,21 @@
 :- module(
-  datetime_file,
+  date_time_file,
   [
-    create_date_directory/1, % -Directory:atom
-    create_date_directory/2, % +Spec
-                             % -Directory:atom
-    create_datetime_file/1, % -File
-    create_datetime_file/2, % +Spec:compound
-                            % -File:atom
-    is_older_file/2, % +Path1:atom
-                     % +Path2:atom
-    is_younger_file/2, % +Path1:atom
-                       % +Path2:atom
-    latest_datetime_file/1, % -File
-    latest_datetime_file/2 % +Spec:compound
-                           % -File:atom
+    create_date_directory/1, % -Dir
+    create_date_directory/2, % +Spec, -Dir
+    create_datetime_file/1,  % -File
+    create_datetime_file/2,  % +Spec, -File
+    is_older_file/2,         % +Path1, +Path2
+    is_younger_file/2,       % +Path1, +Path2
+    latest_datetime_file/1,  % -File
+    latest_datetime_file/2   % +Spec, -File
   ]
 ).
 
 /** <module> Date-time file support
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/12
+@version 2015/07, 2015/10-2015/12, 2016/02
 */
 
 :- use_module(library(apply)).
@@ -59,16 +54,16 @@ create_date_directory(Spec, Dir):-
 
 
 
-%! create_datetime_file(-File:atom) is det.
+%! create_date_time_file(-File:atom) is det.
 % Wrapper around datetime_file/2 using `.' as the parent directory.
 
-create_datetime_file(File):-
-  create_datetime_file(., File).
+create_date_time_file(File):-
+  create_date_time_file(., File).
 
 
-%! create_datetime_file(+Spec:compound, -File:atom) is det.
+%! create_date_time_file(+Spec:compound, -File:atom) is det.
 
-create_datetime_file(Spec, File):-
+create_date_time_file(Spec, File):-
   create_date_directory(Spec, Dir),
   get_time(TS),
   format_time(string(H), "%H", TS),
@@ -97,16 +92,16 @@ is_younger_file(Path1, Path2):-
 
 
 
-%! latest_datetime_file(-File:atom) is det.
-% Wrapper around latest_datetime_file/2 using `.' as the parent directory.
+%! latest_date_time_file(-File:atom) is det.
+% Wrapper around latest_date_time_file/2 using `.' as the parent directory.
 
-latest_datetime_file(Latest):-
-  latest_datetime_file(., Latest).
+latest_date_time_file(Latest):-
+  latest_date_time_file(., Latest).
 
 
-%! latest_datetime_file(+Spec:compound, -File:atom) is det.
+%! latest_date_time_file(+Spec:compound, -File:atom) is det.
 
-latest_datetime_file(Spec, Latest):-
+latest_date_time_file(Spec, Latest):-
   absolute_file_name(Spec, Dir, [access(read),file_type(directory)]),
 
   % Year

@@ -155,7 +155,7 @@ print_tree(Tree):-
 
 s_tree_to_graph(Tree, Graph) :-
   s_tree_to_edges(Tree, Es),
-  s_edges_to_vertices(Es, Vs),
+  s_edges_vertices(Es, Vs),
   Graph = graph(Vs, Es).
 
 s_tree_to_edges(t(X,Ts), Es) :-

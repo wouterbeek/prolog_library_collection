@@ -1,27 +1,25 @@
 :- module(
   dcg_pl,
   [
-    pl_datetime//1, % +Datetime:compound
-    pl_pair//1, % +Pair:pair
-    pl_pair//2, % :Name_2
-                % :Value_2
-    pl_predicate//1, % +Predicate:compound
-    pl_stream_position//1, % +Stream:compound
-    pl_term//1, % @Term
-    pl_term//2 % @Term
-               % +Indent:nonneg
+    pl_date_time//1,       % +DT
+    pl_pair//1,            % +Pair
+    pl_pair//2,            % :Name_2, :Value_2
+    pl_predicate//1,       % +Predicate:compound
+    pl_stream_position//1, % +Stream
+    pl_term//1,            % @Term
+    pl_term//2             % @Term, +Indent
   ]
 ).
 
 /** <module> DCG Prolog term
 
-DCG rules for printing SWI-Prolog 7 terms.
+DCG rules for printing terms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2015/12, 2016/02
 */
 
-:- use_module(library(datetime/datetime)).
+:- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_call)).
 :- use_module(library(dcg/dcg_cardinal)).
 :- use_module(library(dcg/dcg_collection)).
@@ -31,22 +29,23 @@ DCG rules for printing SWI-Prolog 7 terms.
 :- use_module(library(list_ext)).
 :- use_module(library(typecheck)).
 
-:- meta_predicate(pl_pair(//,//,?,?)).
-:- meta_predicate(term_entries(4,+,+,?,?)).
+:- meta_predicate
+    pl_pair(//, //, ?, ?),
+    term_entries(4, +, +, ?, ?).
 
 
 
 
 
-%! pl_datetime(+Datetime:compound)// is det.
+%! pl_date_time(+DT)// is det.
 
-pl_datetime(DT, X, Y):-
-  datetime_to_date(DT, D),
+pl_date_time(DT, X, Y):-
+  date_time_to_date(DT, D),
   format_time(codes(X,Y), "%FT%T%z", D).
 
 
 
-%! pl_pair(+Pair:pair)// is det.
+%! pl_pair(+Pair)// is det.
 
 pl_pair(N-V) --> pl_pair(pl_term(N), pl_term(V)).
 
@@ -89,7 +88,7 @@ column(N) --> "Col: ", thousands_integer(N).
 pl_term(Term) --> pl_term(Term, 0).
 
 
-%! pl_term(@Term, +Indent:nonneg)// is det.
+%! pl_term(@Term, +Indent)// is det.
 
 % 1. Dictionary.
 pl_term(D, I1) -->
@@ -131,13 +130,13 @@ pl_term0(S)    --> {string(S)},      !, "\"", atom(S), "\"".
 %pl_term0(A)    --> {is_iri(A)},      !, iri(A).
 pl_term0(A)    --> {atom(A)},        !, atom(A).
 pl_term0(N-V)  -->                   !, pl_pair(N-V).
-pl_term0(DT)   -->                      pl_datetime(DT), !.
+pl_term0(DT)   -->                      pl_date_time(DT), !.
 pl_term0(Comp) --> {compound(Comp)}, !, {term_to_atom(Comp, A)}, atom(A).
 pl_term0(X)    --> {gtrace},            pl_term0(X).
 
 
 
-%! term_entries(:Dcg_4, +Entries:list, +Indent:nonneg)// is det.
+%! term_entries(:Dcg_4, +Entries, +Indent)// is det.
 
 term_entries(_, [], _) --> !, "".
 term_entries(Dcg_4, [H], I) --> !, dcg_call(Dcg_4, H, I), nl.
