@@ -1,19 +1,18 @@
 :- module(
   uri_ext,
   [
-    uri_add_query/3, % +From:or([compound,uri])
-                     % +New:or([atom,compound,list(compound),list(or([atom,list(compound)]))])
-                     % -To:uri
-    uri_change_component/4, % +Iri1:atom
-                            % +Field:oneof([authority,fragment,path,query,scheme])
-                            % +Value:atom
-                            % -Iri2:atom
-    uri_component/3, % +Uri:uri
-                     % +Field:atom
-                     % ?Data:atom
-    uri_file_extensions/2, % +Uri:uri
-                           % -Extensions:list(atom)
+    uri_add_query/3,            % +From:or([compound,uri])
+                                % +New:or([atom,compound,list(compound),list(or([atom,list(compound)]))])
+                                % -To:uri
+    uri_change_component/4,     % +Iri1:atom
+                                % +Field:oneof([authority,fragment,path,query,scheme])
+                                % +Value:atom
+                                % -Iri2:atom
+    uri_component/3,            % +Uri, +Field, ?Data
+    uri_file_extensions/2,      % +Uri:uri
+                                % -Extensions:list(atom)
     uri_optional_query_enc//0,
+    uri_path_on_current_host/2, % +Uri, -Path
     uri_query_enc//0
   ]
 ).
@@ -25,7 +24,7 @@ Additional predicates for handling URIs.
 
 @author Wouter Beek
 @compat RFC 3986
-@version 2015/08, 2015/10-2016/01
+@version 2015/08, 2015/10-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -33,8 +32,10 @@ Additional predicates for handling URIs.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(default)).
 :- use_module(library(error)).
+:- use_module(library(http/http_host)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(settings)).
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
@@ -154,6 +155,13 @@ uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
 uri_optional_query_enc, "%40" --> "@", !, uri_optional_query_enc.
 uri_optional_query_enc, [C] --> [C],   !, uri_optional_query_enc.
 uri_optional_query_enc --> "".
+
+
+
+uri_path_on_current_host(Uri, Path) :-
+  http_public_host(_, Host, _, [global(true)]),
+  atomic_list_concat([www,Host], ., Auth),
+  uri_components(Uri, uri_components(http,Auth,Path,_,_)).
 
 
 
