@@ -4,6 +4,7 @@
     http_accept/2,         % +Request, -Mediatypes
     http_header/3,         % +M, +Key, -Value
     http_iri/3,            % +Request, +Prefix, -Iri
+    http_link_to_id/2,     % +HandleId, -Local
     http_method/2,         % +Request, -Method
     http_output/2,         % +Request, -Output
     http_read_json_dict/1, % -Data
@@ -23,6 +24,7 @@ Support for extracting information from HTTP requests/received messages.
 @version 2015/08, 2015/12-2016/02
 */
 
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_wrapper)).
@@ -59,6 +61,13 @@ http_iri(Req, Prefix, Iri) :-
   memberchk(request_uri(Local0), Req),
   sub_atom(Local0, 1, _, 0, Local),
   rdf_global_id(Prefix:Local, Iri).
+
+
+
+%! http_link_to_id(+HandleId, -Local) is det.
+
+http_link_to_id(HandleId, Local) :-
+  http_link_to_id(HandleId, [], Local).
 
 
 
