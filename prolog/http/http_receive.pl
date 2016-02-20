@@ -17,13 +17,15 @@
 
 /** <module> HTTP receive
 
-Support for receiving an HTTP reply.
+Support for extracting information from HTTP requests/received messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/12-2016/01
+@version 2015/08, 2015/12-2016/02
 */
 
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_json)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(semweb/rdf_db), [rdf_global_id/2]).
@@ -104,6 +106,7 @@ http_search_pl(Request, Key, Val) :-
 http_status_reply(Status) :-
   http_current_request(Req),
   http_status_reply(Req, Status).
+
 
 http_status_reply(Req, Status) :-
   http_output(Req, Out),
