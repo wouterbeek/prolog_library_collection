@@ -1,14 +1,15 @@
 :- module(
   date_time,
   [
-    call_time/2,         % :Goal_0, -Seconds
-    date_time_masks/3,   % +Masks, +DT, -MaskedDT
-    date_to_date_time/2, % +D, -DT
-    date_time_to_date/2, % +DT, -D
-    get_date_time/1,     % -DT
-    is_date/1,           % +D
-    is_date_time/1,      % +DT
-    stamp_to_date_time/2 % +TS, -DT
+    call_time/2,             % :Goal_0, -Seconds
+    date_time_masks/3,       % +Masks, +DT, -MaskedDT
+    date_to_date_time/2,     % +D, -DT
+    date_time_to_date/2,     % +DT, -D
+    get_date_time/1,         % -DT
+    is_date/1,               % +D
+    is_date_time/1,          % +DT
+    stamp_to_date_time/2,    % +TS, -DT
+    something_to_date_time/2 % +Something, -DT
   ]
 ).
 
@@ -115,11 +116,9 @@ date_time_masks([H|T], DT1, DT3) :-
 %      In XSD `Off` represents the offset relative to UTC in *minutes*
 %      as an integer between -840 and 840 inclusive.
 
-date_to_date_time(time(H,Mi,S1), date_time(_,_,_,H,Mi,S2,_)):- !,
-  S2 is rationalize(S1).
+date_to_date_time(time(H,Mi,S), date_time(_,_,_,H,Mi,S,_)):- !.
 date_to_date_time(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,_)):- !.
-date_to_date_time(date(Y,Mo,D,H,Mi,S1,Off1,_,_), date_time(Y,Mo,D,H,Mi,S2,Off2)):-
-  S2 is rationalize(S1),
+date_to_date_time(date(Y,Mo,D,H,Mi,S,Off1,_,_), date_time(Y,Mo,D,H,Mi,S,Off2)):-
   Off2 is Off1 // 60.
 
 
@@ -166,3 +165,16 @@ is_date_time(T) :-
 stamp_to_date_time(TS, DT) :-
   stamp_date_time(TS, D, local),
   date_to_date_time(D, DT).
+
+
+
+%! something_to_date_time(+Something, -DT) is det.
+
+something_to_date_time(DT, DT) :-
+  is_date_time(DT), !.
+something_to_date_time(D, DT) :-
+  is_date(D), !,
+  date_to_date_time(D, DT).
+something_to_date_time(Stamp, DT) :-
+  float(Stamp), !,
+  stamp_to_date_time(Stamp, DT).
