@@ -39,7 +39,7 @@ Support for extracting information from HTTP requests/received messages.
 %! http_accept(+Request, -Mediatypes) is det.
 
 http_accept(Req, MTs) :-
-  memberchk(accept(L), Req),
+  (memberchk(accept(L), Req) -> true ; L = []),
   maplist(mediatype_pair, L, Pairs),
   desc_pairs_values(Pairs, MTs).
 mediatype_pair(media(MT,_,N,_), N-MT).

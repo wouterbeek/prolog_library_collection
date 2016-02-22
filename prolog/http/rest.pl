@@ -27,8 +27,8 @@
 rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   memberchk(request_uri(Local), Req),
   http_accept(Req, MTs),
-  http_link_to_id(HandleId, Endpoint),
   http_method(Req, Method),
+  http_link_to_id(HandleId, Endpoint),
   (   Local == Endpoint
   ->  call(Plural_2, Method, MTs)
   ;   uri_path(Res, Local),
@@ -40,11 +40,40 @@ rest_handler(Req, _, _, _, _) :-
   http_status_reply(Req, not_found(Res)).
 
 
-rest_mediatype(Method, [], _) :- !, http_status_reply(Method, non_acceptable(_)).
-rest_mediatype(Method, [MT|_], Plural_2) :- call(Plural_2, Method, MT), !.
-rest_mediatype(Method, [_|MTs], Plural_2) :- rest_mediatype(Method, MTs, Plural_2).
+% No media type is specified.  Anything goes.
+rest_mediatype(Method, [], Plural_2) :-
+  call(Plural_2, Method, _), !.
+% Some media type(s) is/are specified.  Try them in descending order of
+% preference.
+rest_mediatype(Method, MTs, Plural_2) :-
+  rest_mediatype0(Method, MTs, Plural_2).
+
+% None of the specified media types could be matched.  Give an error.
+rest_mediatype0(_, [], _) :- !,
+  why_not_acceptable(Why),
+  http_status_reply(not_acceptable(Why)).
+rest_mediatype0(Method, [MT|_], Plural_2) :-
+  call(Plural_2, Method, MT), !.
+rest_mediatype0(Method, [_|MTs], Plural_2) :-
+  rest_mediatype0(Method, MTs, Plural_2).
 
 
-rest_mediatype(Method, [], _, _) :- !, http_status_reply(Method, non_acceptable(_)).
-rest_mediatype(Method, [MT|_], Res, Singular_3) :- call(Singular_3, Method, MT, Res), !.
-rest_mediatype(Method, [_|MTs], Res, Singular_3) :- rest_mediatype(Method, MTs, Res, Singular_3).
+% No media type is specified.  Anything goes.
+rest_mediatype(Method, [], Res, Singular_3) :-
+  call(Singular_3, Method, _, Res), !.
+% Some media type(s) is/are specified.  Try them in descending order of
+% preference.
+rest_mediatype(Method, MTs, Res, Singular_3) :-
+  rest_mediatype0(Method, MTs, Res, Singular_3).
+
+% None of the specified media types could be matched.  Give an error.
+rest_mediatype0(_, [], _, _) :- !,
+  why_not_acceptable(Why),
+  http_status_reply(not_acceptable(Why)).
+rest_mediatype0(Method, [MT|_], Res, Singular_3) :-
+  call(Singular_3, Method, MT, Res), !.
+rest_mediatype0(Method, [_|MTs], Res, Singular_3) :-
+  rest_mediatype0(Method, MTs, Res, Singular_3).
+
+
+why_not_acceptable(p('No acceptable media type could be served.')).
