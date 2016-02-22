@@ -22,14 +22,14 @@
 Prints messages for the user.
 
 @author Wouter Beek
-@version 2015/10-2015/11, 2016/01
+@version 2015/10-2015/11, 2016/01-2016/02
 */
 
 :- use_module(library(ansi_term)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(debug_ext)).
-:- use_module(library(http/http_info)).
+:- use_module(library(http/http_ext)).
 
 :- meta_predicate
     verbose(0),

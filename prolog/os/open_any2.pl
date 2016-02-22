@@ -22,7 +22,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
-:- use_module(library(http/http_info)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(http/http_open)). % HTTP support.
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(http/http11)).

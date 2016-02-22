@@ -15,12 +15,12 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01
+@version 2015/09-2015/11, 2016/01-2016/02
 */
 
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_info)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(yall)).
 

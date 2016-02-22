@@ -25,7 +25,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(atom_ext)).
 :- use_module(library(error)).
 :- use_module(library(hash_ext)).
-:- use_module(library(http/http_receive)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(http/http_request)).
 :- use_module(library(http/json)).
 :- use_module(library(os/file_ext)).

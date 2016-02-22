@@ -24,14 +24,14 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01
+@version 2015/07-2015/11, 2016/01-2016/02
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(filesex)).
-:- use_module(library(http/http_receive)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/dir_ext)).

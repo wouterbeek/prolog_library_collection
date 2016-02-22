@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
-:- use_module(library(http/http_receive)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(uri/uri_ext)).
 
 :- html_meta

@@ -77,8 +77,7 @@
   :- use_module(library(http/http11)).
   :- use_module(library(http/http11_test)).
   :- use_module(library(http/http_download)).
-  :- use_module(library(http/http_info)).
-  :- use_module(library(http/http_receive)).
+  :- use_module(library(http/http_ext)).
   :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
