@@ -8,6 +8,7 @@
     dict_pairs/2,                 % ?Dict, ?Pairs
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
     dict_tag/3,                   % +Dict1, +Tag, ?Dict2
+    get_dict/4,                   % +Key, +Dict, -Value, +Default
     has_dict_key/2,               % +Dict, +Key
     is_empty_dict/1,              % @Term
     merge_dict/3,                 % +Dict1, +Dict2, -Dict
@@ -102,6 +103,14 @@ var_val(_-Val):- var(Val).
 dict_tag(Dict1, Tag, Dict2):-
   dict_pairs(Dict1, _, Ps),
   dict_pairs(Dict2, Tag, Ps).
+
+
+
+%! get_dict(+Key, +Dict, -Value, +Default) is det.
+
+get_dict(K, D, V, _) :-
+  get_dict(K, D, V), !.
+get_dict(_, _, Def, Def).
 
 
 
