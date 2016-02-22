@@ -19,6 +19,7 @@
     rest//1,           % -Rest:list(code)
     section//3,        % +Indent:nonneg, +Message:string, :Dcg_0
     skip_line//0,
+    str//1,            % +String
     string//0,
     string_without//1, % +EndCodes
     tab//1,            % +Indent:nonneg
@@ -33,7 +34,7 @@
 DCG rules for parsing/generating often-occuring content.
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/10-2016/01
+@version 2015/07-2015/08, 2015/10-2016/02
 */
 
 :- use_module(library(dcg/dcg_pl)).
@@ -48,10 +49,7 @@ DCG rules for parsing/generating often-occuring content.
     tab_nl(+,//,?,?).
 
 % The number of spaces that go into one tab.
-:- setting(
-     tab_size,
-     integer,
-     2,
+:- setting(tab_size, integer, 2,
      'The number of spaces that go into one tab.'
    ).
 
@@ -165,6 +163,14 @@ section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
 %! skip_line// is det.
 
 skip_line --> ..., eol, !.
+
+
+
+%! str(+String)// is det.
+
+str(S) -->
+  {string_codes(S, Cs)},
+  Cs.
 
 
 
