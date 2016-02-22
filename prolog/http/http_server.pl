@@ -50,10 +50,7 @@ Use the following settings while developing on localhost:
 
 % Define the default application server port in the same way ClioPatria does.
 :- if(\+ current_setting(http:port)).
-  :- setting(
-    http:port,
-    nonneg,
-    env('PORT',3020),
+  :- setting(http:port, nonneg, env('PORT',3020),
     'The default port the HTTP server listens to.'
   ).
 :- endif.

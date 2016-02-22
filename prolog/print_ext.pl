@@ -32,10 +32,7 @@ Additional predicates for printing.
      pass_to(dcg_table/4, 2)
    ]).
 
-:- setting(
-     screen_width,
-     integer,
-     80,
+:- setting(screen_width, integer, 80,
      'The default width of the screen in number of characters.'
    ).
 
