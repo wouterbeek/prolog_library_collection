@@ -1,11 +1,10 @@
 :- module(
   s_tree,
   [
-    all_subpaths_to_tree/2,  % +AllSubPaths:list(list), -Tree
+    paths_to_trees/2,  % +AllSubPaths:list(list), -Tree
     edges_to_root/2,         % +Es, -Root
     edges_to_tree/2,         % +Es, -Tree
     is_s_tree/1,             % @Term
-    print_tree/1,            % +Tree
     some_subpaths_to_tree/2, % +SomeSubPaths:list(list), -Tree
     s_tree_to_graph/2,       % +Tree, -Graph
     tree_depth/2,            % +Tree, -Depth
@@ -56,37 +55,33 @@ a
 
 
 
-%! all_subpaths_to_tree(+Subpaths:list(list), -Tree:compound) is det.
+%! paths_to_trees(+Subpaths:list(list), -Tree:compound) is det.
 % Creates the tree based on the given subpaths.
 %
 % ### Examples
 %
 % ```prolog
-% ?- all_subpaths_to_tree([[a,b],[a,c]], T).
-% T = t(a, [t(b, []), t(c, [])]).
+% ?- paths_to_trees([[a,b],[a,c]], T).
+% T = [t(a, [t(b, []), t(c, [])])].
 %
-% ?- all_subpaths_to_tree([[a,b],[a,c],[a,d]], T).
-% T = t(a, [t(b,[]), t(c, []), t(d, [])]).
+% ?- paths_to_trees([[a,b],[a,c],[a,d]], T).
+% T = [t(a, [t(b,[]), t(c, []), t(d, [])])].
 %
-% ?- all_subpaths_to_tree([[a,b],[a,c,e],[a,d]], T).
-% T = t(a, [t(b, []), t(c, [t(e, [])]), t(d, [])]).
+% ?- paths_to_trees([[a,b],[a,c,e],[a,d]], T).
+% T = [t(a, [t(b, []), t(c, [t(e, [])]), t(d, [])])].
 %
-% ?- all_subpaths_to_tree([[a,b],[a,c,e],[a,c,f],[a,d]], T).
-% T = t(a, [t(b, []), t(c, [t(e, []), t(f, [])]), t(d, [])]).
+% ?- paths_to_trees([[a,b],[a,c,e],[a,c,f],[a,d]], T).
+% T = [t(a, [t(b, []), t(c, [t(e, []), t(f, [])]), t(d, [])])].
 % ```
 
-all_subpaths_to_tree(Subpaths, Tree):-
-  all_subpaths_to_tree0(Subpaths, [Tree]), !.
-all_subpaths_to_tree(_, []).
-
 % Only the empty tree has zero subpaths.
-all_subpaths_to_tree0([], []):- !.
+paths_to_trees([], []):- !.
 % The subpaths may have different lengths.
 % If one subpath is fully processed, we still need to process the rest.
-all_subpaths_to_tree0([[]|Ls], Tree):- !,
-  all_subpaths_to_tree(Ls, Tree).
+paths_to_trees([[]|Ls], Tree):- !,
+  paths_to_trees(Ls, Tree).
 % Create the (sub)trees for the given subpaths recursively.
-all_subpaths_to_tree0(Ls1, Trees):-
+paths_to_trees(Ls1, Trees):-
   % Groups paths by parent node.
   findall(
     H-T,
@@ -100,7 +95,7 @@ all_subpaths_to_tree0(Ls1, Trees):-
     t(H, Subtrees),
     (
       member(H-Ls2, Pairs2),
-      all_subpaths_to_tree0(Ls2, Subtrees)
+      paths_to_trees(Ls2, Subtrees)
     ),
     Trees
   ).
@@ -146,11 +141,6 @@ is_s_tree(t(_,L)) :-
 
 
 
-print_tree(Tree):-
-  dcg_with_output_to(current_output, dcg_tree(Tree)).
-
-
-
 %! s_tree_to_graph(+Tree, -Graph) is det.
 
 s_tree_to_graph(Tree, Graph) :-
@@ -174,7 +164,7 @@ some_subpaths_to_tree(SomeSubPaths, Tree):-
     ),
     AllSubPaths
   ),
-  all_subpaths_to_tree(AllSubPaths, Tree).
+  paths_to_tree(AllSubPaths, Tree).
 
 
 

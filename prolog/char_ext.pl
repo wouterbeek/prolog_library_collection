@@ -1,6 +1,7 @@
 :- module(
   char_ext,
   [
+    char_digit/2, % ?Char, ?Digit
     first_char/2, % +Input:or([atom,list(char),list(code),number,string])
                   % ?Char:char
     is_char/1, % @Term
@@ -19,6 +20,16 @@
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
+
+
+
+
+
+%! char_digit(+Char, -Digit) is semidet.
+%! char_digit(-Char, +Digit) is det.
+
+char_digit(Char, Digit) :-
+  char_type(Char, digit(Digit)).
 
 
 
