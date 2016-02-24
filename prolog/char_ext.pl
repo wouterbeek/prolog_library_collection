@@ -1,20 +1,19 @@
 :- module(
   char_ext,
   [
-    first_char/2, % +Input:or([atom,list(char),list(code),number,string])
-                  % ?Char:char
-    is_char/1, % @Term
-    last_char/2, % +Input:or([atom,list(char),list(code),number,string])
-                 % ?Char:char
-    to_chars/2 % +Input:or([atom,list(char),list(code),number,string])
-               % -Chars:list(char)
+    downcase_char/2, % +Char, -DowncaseChar
+    first_char/2,    % +Source, ?Char
+    is_char/1,       % @Term
+    last_char/2,     % +Source, ?Char
+    to_chars/2,      % +Source, -Chars
+    upcase_char/2    % +Char, -UpcaseChar
   ]
 ).
 
 /** <module> Character extensions
 
 @author Wouter Beek
-@version 2015/07
+@version 2015/07, 2016/02
 */
 
 :- use_module(library(apply)).
@@ -22,14 +21,21 @@
 
 
 
-%! first_char(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   +Char:char
-%! ) is semidet.
-%! first_char(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   -Char:char
-%! ) is semidet.
+
+
+%! downcase_char(+Char, -DowncaseChar) is det.
+
+downcase_char(X, Y) :-
+  char_type(Y, to_lower(X)).
+
+
+
+%! first_char(+Source, +Char) is semidet.
+%! first_char(+Source, -Char) is semidet.
+% Source is either an atom, a list of characters, a list of codes, a number or
+% a string.
+%
+% Silently fails if the source does not have a first character.
 
 first_char(In, H):-
   to_chars(In, [H|_]).
@@ -44,15 +50,12 @@ is_char(Term):-
 
 
 
-%! last_char(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   +Char:char
-%! ) is semidet.
-%! last_char(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   -Char:char
-%! ) is semidet.
-% Silently fails if the input maps to the empty list of characters.
+%! last_char(+Source, +Char) is semidet.
+%! last_char(+Source, -Char) is semidet.
+% Source is either an atom, a list of characters, a list of codes, a number or
+% a string.
+%
+% Silently fails if the source does not have a last character.
 
 last_char(In, X):-
   to_chars(In, L),
@@ -60,10 +63,10 @@ last_char(In, X):-
 
 
 
-%! to_chars(
-%!   +Input:or([atom,list(char),list(code),number,string]),
-%!   -Chars:list(char)
-%! ) is det.
+%! to_chars(+Source, -Chars:list(char)) is det.
+% Source is either an atom, a list of characters, a list of codes, a number or
+% a string.
+%
 % Notice that the empty list of characters and the empty list of codes
 % both map onto the empty list of characters.
 
@@ -86,3 +89,10 @@ to_chars(N, L):-
 to_chars(S, L):-
   string(S), !,
   string_chars(S, L).
+
+
+
+%! upcase_char(+Char, -UpcaseChar) is det.
+
+upcase_char(X, Y) :-
+  char_type(Y, to_upper(X)).

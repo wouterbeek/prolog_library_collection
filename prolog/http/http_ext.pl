@@ -18,6 +18,7 @@
     is_http_error/1           % +StatusCode
   ]
 ).
+:- reexport(library(http/http_path)).
 
 /** <module> HTTP receive
 
@@ -31,7 +32,6 @@ Support for extracting information from HTTP requests/received messages.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
