@@ -13,9 +13,11 @@
 An association list with multiple values per key, using ordered sets.
 
 @author Wouter Beek
-@version 2015/10-2016/01
+@version 2015/10-2016/02
 */
 
+:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_tree)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
@@ -55,7 +57,7 @@ get_assoc_ord_member(Key, Assoc, Val):-
 
 print_assoc(Assoc):-
   assoc_to_tree(Assoc, Tree),
-  print_tree(Tree).
+  dcg_with_output_to(current_output, dcg_tree(Tree)).
 
 
 

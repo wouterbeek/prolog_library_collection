@@ -1,14 +1,14 @@
 :- module(
   s_tree,
   [
-    paths_to_trees/2,  % +AllSubPaths:list(list), -Tree
-    edges_to_root/2,         % +Es, -Root
-    edges_to_tree/2,         % +Es, -Tree
-    is_s_tree/1,             % @Term
-    some_subpaths_to_tree/2, % +SomeSubPaths:list(list), -Tree
-    s_tree_to_graph/2,       % +Tree, -Graph
-    tree_depth/2,            % +Tree, -Depth
-    tree_to_leaf_coord/2     % +Tree, -Coord:list(nonneg)
+    paths_to_trees/2,         % +AllSubPaths:list(list), -Tree
+    edges_to_root/2,          % +Es, -Root
+    edges_to_tree/2,          % +Es, -Tree
+    is_s_tree/1,              % @Term
+    some_subpaths_to_trees/2, % +SomeSubPaths:list(list), -Tree
+    s_tree_to_graph/2,        % +Tree, -Graph
+    tree_depth/2,             % +Tree, -Depth
+    tree_to_leaf_coord/2      % +Tree, -Coord:list(nonneg)
   ]
 ).
 
@@ -154,7 +154,7 @@ s_tree_to_edges(t(X,Ts), Es) :-
 
 
 
-some_subpaths_to_tree(SomeSubPaths, Tree):-
+some_subpaths_to_trees(SomeSubPaths, Trees):-
   aggregate_all(
     set(SubPath),
     (
@@ -164,7 +164,7 @@ some_subpaths_to_tree(SomeSubPaths, Tree):-
     ),
     AllSubPaths
   ),
-  paths_to_tree(AllSubPaths, Tree).
+  paths_to_trees(AllSubPaths, Trees).
 
 
 

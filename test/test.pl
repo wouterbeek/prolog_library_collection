@@ -69,7 +69,6 @@
   :- use_module(library(html/html_dom)).
   :- use_module(library(html/html_resource)).
 %/http
-  %:- use_module(library(http/abnf_list)).
   :- use_module(library(http/cors)).
   :- use_module(library(http/csp2)).
   :- use_module(library(http/dcg_http)).
@@ -82,6 +81,7 @@
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/ie_headers)).
+  :- use_module(library(http/rest)).
   :- use_module(library(http/rfc1034)).
   :- use_module(library(http/rfc2109)).
   :- use_module(library(http/rfc2616)).
@@ -168,6 +168,10 @@
 :- use_module(library(string_ext)).
 %/svg
   :- use_module(library(svg/svg_dom)).
+%/tree
+  :- use_module(library(tree/l_tree)).
+  :- use_module(library(tree/s_tree)).
+:- use_module(library(true)).
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
 %/uri

@@ -32,5 +32,12 @@ l_tree_to_graph(Tree, G) :-
   G = graph(Vs, Es).
 
 l_tree_to_edges(t(X,Pairs), Es) :-
-  findall([edge(X,P,Y)|Es], (member(P-t(Y,Pairs0), Pairs), l_tree_root(t(Y,Pairs0), Es)), Ess),
+  findall(
+    [edge(X,P,Y)|Es],
+    (
+      member(P-t(Y,Pairs0), Pairs),
+      l_tree_root(t(Y,Pairs0), Es)
+    ),
+    Ess
+  ),
   append(Ess, Es).
