@@ -276,6 +276,7 @@ source_type(Stream,         _,    Stream, stream  ) :- is_stream(Stream), !.
 source_type(Iri,            _,    Iri,    file_iri) :- is_file_iri(Iri), !.
 source_type(Iri,            _,    Iri,    http_iri) :- is_http_iri(Iri), !.
 source_type(File,           _,    Iri,    file_iri) :-
+  atom(File),
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
 source_type(Pattern, Mode, Iri, Type) :-

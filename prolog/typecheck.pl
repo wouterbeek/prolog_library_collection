@@ -147,6 +147,7 @@ codes(T):-
 %! is_file_iri(@Term) is semidet.
 
 is_file_iri(Iri):-
+  atom(Iri),
   uri_file_name(Iri, _).
 
 
