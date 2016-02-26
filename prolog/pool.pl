@@ -1,23 +1,19 @@
 :- module(
   pool,
   [
-    add_resource/2, % +Pool
-                    % +Resource
-    add_worker/3, % +Pool
-                  % :Goal_1
-                  % +Options:list(compound)
-    pool/1, % ?Pool
-    print_pool/1, % ?Pool
+    add_resource/2,   % +Pool, +Resource
+    add_worker/3,     % +Pool, :Goal_1, +Opts
+    pool/1,           % ?Pool
+    print_pool/1,     % ?Pool
     print_pools/0,
-    remove_resource/2 % +Pool
-                      % -Resource
+    remove_resource/2 % +Pool, -Resource
   ]
 ).
 
 /** <module> Pool
 
 @author Wouter Beek
-@version 2015/12
+@version 2015/12, 2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -43,19 +39,16 @@
 %! pool(?Pool, ?Term) is nondet.
 % Currently in pool pending processing.
 
-:- dynamic(pool/2).
-
-
 %! pooling(?Pool, ?Term) is nondet.
 % Currently being processed.
-
-:- dynamic(pooling/2).
-
 
 %! pooled(?Pool, ?Term) is nondet.
 % Previously processed.
 
-:- dynamic(pooled/2).
+:- dynamic
+    pool/2,
+    pooling/2,
+    pooled/2.
 
 
 
