@@ -16,7 +16,7 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01
+@version 2015/10, 2016/01-2016/02
 */
 
 :- use_module(library(aggregate)).
@@ -117,7 +117,9 @@ print_threads:-
 
 thread_name(Name) :-
   thread_self(Id),
-  thread_property(Id, alias(Name)).
+  thread_property(Id, alias(Name)), !.
+thread_name(Name) :-
+  thread_self(Name).
 
 
 

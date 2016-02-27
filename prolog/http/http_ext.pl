@@ -8,6 +8,7 @@
     http_method/2,            % +Request, -Method
     http_output/2,            % +Request, -Output
     http_read_json_dict/1,    % -Data
+    http_reply_file/1,        % +File
     http_scheme/1,            % ?Scheme
     http_search/3,            % +Request, +Key, -Value
     http_search_pl/3,         % +Request, +Key, -Value
@@ -91,6 +92,14 @@ http_output(Req, Out) :-
 http_read_json_dict(Data) :-
   http_current_request(Req),
   http_read_json_dict(Req, Data).
+
+
+
+%! http_reply_file(+File) is det.
+
+http_reply_file(File) :-
+  http_current_request(Req),
+  http_reply_file(File, [], Req).
 
 
 
