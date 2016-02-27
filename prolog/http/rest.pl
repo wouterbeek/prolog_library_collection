@@ -15,11 +15,12 @@
 
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_ext)).
+:- use_module(library(http/http_json)).
 :- use_module(library(uri/uri_ext)).
 
 :- html_meta
-   call_or_bad_request(2, +, +),
-   call_or_bad_request(3, +, +, +),
+   rest_call_or_exception(2, +, +),
+   rest_call_or_exception(3, +, +, +),
    rest_handler(+, +, 1, 3, 2),
    rest_mediatype(+, +, 2),
    rest_mediatype(+, +, +, 3).
@@ -28,24 +29,30 @@
 
 
 
-%! call_or_bad_request(:Goal_2, +Arg1, +Arg2) is det.
+%! rest_call_or_exception(:Goal_2, +Arg1, +Arg2) is det.
 
-call_or_bad_request(Goal_2, Arg1, Arg2) :-
-  catch(call(Goal_2, Arg1, Arg2), E, handle_exception(E)).
-
-
-%! call_or_bad_request(:Goal_3, +Arg1, +Arg2, +Arg3) is det.
-
-call_or_bad_request(Goal_3, Arg1, Arg2, Arg3) :-
-  catch(call(Goal_3, Arg1, Arg2, Arg3), E, handle_exception(E)).
+rest_call_or_exception(Goal_2, Arg1, Arg2) :-
+  catch(call(Goal_2, Arg1, Arg2), E, rest_exception(E)).
 
 
+%! rest_call_or_exception(:Goal_3, +Arg1, +Arg2, +Arg3) is det.
 
-%! handle_exception(+Exception) is det.
+rest_call_or_exception(Goal_3, Arg1, Arg2, Arg3) :-
+  catch(call(Goal_3, Arg1, Arg2, Arg3), E, rest_exception(E)).
 
-handle_exception(E) :-
+
+
+%! rest_exception(+Exception) is det.
+
+rest_exception(E) :-
   var(E), !.
-handle_exception(E) :-
+rest_exception(error(E,_)) :- !,
+  rest_exception(E).
+% The REST resource already exists.
+rest_exception(existence_error(_,_)) :- !,
+  reply_json_dict(_{}, [status(409)]).
+% The REST request could not be processed.
+rest_exception(E) :-
   http_status_reply(bad_request(E)).
 
 
@@ -70,7 +77,7 @@ rest_handler(Req, _, _, _, _) :-
 
 % No media type is specified.  Anything goes.
 rest_mediatype(Method, [], Plural_2) :-
-  call_or_bad_request(Plural_2, Method, _), !.
+  rest_call_or_exception(Plural_2, Method, _), !.
 % Some media type(s) is/are specified.  Try them in descending order of
 % preference.
 rest_mediatype(Method, MTs, Plural_2) :-
@@ -81,14 +88,14 @@ rest_mediatype0(_, [], _) :- !,
   why_not_acceptable(Why),
   http_status_reply(not_acceptable(Why)).
 rest_mediatype0(Method, [MT|_], Plural_2) :-
-  call_or_bad_request(Plural_2, Method, MT), !.
+  rest_call_or_exception(Plural_2, Method, MT), !.
 rest_mediatype0(Method, [_|MTs], Plural_2) :-
   rest_mediatype0(Method, MTs, Plural_2).
 
 
 % No media type is specified.  Anything goes.
 rest_mediatype(Method, [], Res, Singular_3) :-
-  call_or_bad_request(Singular_3, Method, _, Res), !.
+  rest_call_or_exception(Singular_3, Method, _, Res), !.
 % Some media type(s) is/are specified.  Try them in descending order of
 % preference.
 rest_mediatype(Method, MTs, Res, Singular_3) :-
@@ -99,7 +106,7 @@ rest_mediatype0(_, [], _, _) :- !,
   why_not_acceptable(Why),
   http_status_reply(not_acceptable(Why)).
 rest_mediatype0(Method, [MT|_], Res, Singular_3) :-
-  call_or_bad_request(Singular_3, Method, MT, Res), !.
+  rest_call_or_exception(Singular_3, Method, MT, Res), !.
 rest_mediatype0(Method, [_|MTs], Res, Singular_3) :-
   rest_mediatype0(Method, MTs, Res, Singular_3).
 

@@ -68,3 +68,12 @@
 
 'access-control-allow-origin'(L)   --> 'origin-list-or-null'(L).
 'access-control-allow-origin'("*") --> "*".
+
+
+
+%! 'access-control-request-method'(-Method)// is det.
+% ```abnf
+% Access-Control-Request-Method: "Access-Control-Request-Method" ":" Method
+% ```
+
+'access-control-request-method'(M) --> method(M).
