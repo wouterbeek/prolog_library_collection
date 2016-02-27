@@ -49,7 +49,7 @@ Extensions for handling directory files in SWI-Prolog.
 %
 % Does *not* ensure that any of the directories exist.
 
-append_directories(Dir1, Dir2, Dir3):-
+append_directories(Dir1, Dir2, Dir3) :-
   directory_subdirectories(Dir1, Subdirs1),
   directory_subdirectories(Dir2, Subdirs2),
   append(Subdirs1, Subdirs2, Subdirs3),
@@ -60,7 +60,7 @@ append_directories(Dir1, Dir2, Dir3):-
 %! current_directory(+Directory:atom) is semidet.
 %! current_directory(-Directory:atom) is det.
 
-current_directory(Dir):-
+current_directory(Dir) :-
   absolute_file_name(., Dir, [file_type(directory)]).
 
 
@@ -87,7 +87,7 @@ current_directory(Dir):-
 %     Whether subdirectories are searched recursively.
 %     Default is `false`.
 
-directory_files(Dir, Files3, Opts1):-
+directory_files(Dir, Files3, Opts1) :-
   % Note that the list of files is *not* ordered!
   directory_files(Dir, New1),
 
@@ -101,11 +101,7 @@ directory_files(Dir, Files3, Opts1):-
 
   % Filter based on a list of file types, if given.
   (   option(extensions(Exts), Opts1)
-  ->  include(
-        [File]>>(file_name_extension(_, Ext, File), memberchk(Ext, Exts)),
-        NewFiles1,
-        NewFiles2
-      )
+  ->  include(file_name_extension0(Exts), NewFiles1, NewFiles2)
   ;   NewFiles2 = NewFiles1
   ),
 
@@ -135,6 +131,9 @@ directory_files(Dir, Files3, Opts1):-
   ->  Files3 = [Dir|Files2]
   ;   Files3 = Files2
   ).
+file_name_extension0(Exts, File) :-
+  file_name_extension(_, Ext, File),
+  memberchk(Ext, Exts).
 
 
 
@@ -147,16 +146,18 @@ directory_files(Dir, Files3, Opts1):-
 %
 % For absolute directory names the first subdirectory name is the empty atom.
 
-directory_subdirectories(Dir, Subdirs):-
+directory_subdirectories(Dir, Subdirs) :-
   nonvar(Dir), !,
   atomic_list_concat(Subdirs0, /, Dir),
   resolve_double_dots(Subdirs0, Subdirs).
-directory_subdirectories(Dir, Subdirs0):-
+directory_subdirectories(Dir, Subdirs0) :-
   nonvar(Subdirs0), !,
   resolve_double_dots(Subdirs0, Subdirs),
   atomic_list_concat(Subdirs, /, Dir).
-directory_subdirectories(_, _):-
+directory_subdirectories(_, _) :-
   instantiation_error(_).
+
+
 
 %! resolve_double_dots(
 %!   +Subdirs:list(atom),
@@ -164,16 +165,16 @@ directory_subdirectories(_, _):-
 %! ) is det.
 
 resolve_double_dots([], []).
-resolve_double_dots([_,'..'|T1], T2):-
+resolve_double_dots([_,'..'|T1], T2) :-
   resolve_double_dots(T1, T2).
-resolve_double_dots([H|T1], [H|T2]):-
+resolve_double_dots([H|T1], [H|T2]) :-
   resolve_double_dots(T1, T2).
 
 
 
 %! run_in_working_directory(:Goal_0, +Directory:atom) is det.
 
-run_in_working_directory(Goal_0, Dir):-
+run_in_working_directory(Goal_0, Dir) :-
   working_directory(OldDir, Dir),
   Goal_0,
   working_directory(Dir, OldDir).
@@ -185,7 +186,7 @@ run_in_working_directory(Goal_0, Dir):-
 % Wrapper around working_directory/2 that only allows
 % the current working directory to be read.
 
-working_directory(Dir):-
+working_directory(Dir) :-
   working_directory(Dir, Dir).
 
 
