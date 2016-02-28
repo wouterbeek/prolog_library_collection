@@ -29,32 +29,33 @@
 
 
 
-%! rest_call_or_exception(:Goal_2, +Arg1, +Arg2) is det.
+%! rest_call_or_exception(:Plural_2, +Method, +MediaType) is det.
 
-rest_call_or_exception(Goal_2, Arg1, Arg2) :-
-  catch(call(Goal_2, Arg1, Arg2), E, rest_exception(E)).
-
-
-%! rest_call_or_exception(:Goal_3, +Arg1, +Arg2, +Arg3) is det.
-
-rest_call_or_exception(Goal_3, Arg1, Arg2, Arg3) :-
-  catch(call(Goal_3, Arg1, Arg2, Arg3), E, rest_exception(E)).
+rest_call_or_exception(Plural_2, Method, MT) :-
+  catch(call(Plural_2, Method, MT), E, rest_exception(MT, E)).
 
 
+%! rest_call_or_exception(:Singular_3, +Method, +MediaType, +Resource) is det.
 
-%! rest_exception(+Exception) is det.
+rest_call_or_exception(Singular_3, Method, MT, Res) :-
+  catch(call(Singular_3, Method, MT, Res), E, rest_exception(MT, E)).
 
-rest_exception(E) :-
+
+
+%! rest_exception(+MediaType, +Exception) is det.
+
+rest_exception(_, E) :-
   var(E), !.
-rest_exception(error(E,_)) :- !,
-  rest_exception(E).
+rest_exception(text/html, E) :- !,
+  throw(E).
+rest_exception(MT, error(E,_)) :- !,
+  rest_exception(MT, E).
 % The REST resource already exists.
-rest_exception(existence_error(_,_)) :- !,
+rest_exception(application/json, existence_error(_,_)) :- !,
   reply_json_dict(_{}, [status(409)]).
 % The REST request could not be processed.
-rest_exception(E) :-
+rest_exception(_, E) :-
   http_status_reply(bad_request(E)).
-
 
 
 %! rest_handler(+Request, +HandleId, :Exists_1, :Singular_3, Plural_2) is det.
