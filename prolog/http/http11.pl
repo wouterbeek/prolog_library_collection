@@ -1479,7 +1479,7 @@ parameter(_{'@type': 'llo:Parameter', 'llo:key': Key, 'llo:value': Value}) -->
 
 'partial-URI'(D2) -->
   'relative-part'(D1),
-  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}).
+  ("?" -> query(Query), {D2 = D1.put(_{'llo:query': Query})} ; {D2 = D1}).
 
 
 

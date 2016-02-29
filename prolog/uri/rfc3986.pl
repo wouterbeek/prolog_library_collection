@@ -53,8 +53,8 @@
   scheme(Scheme),
   ":",
   'hier-part'(HierPart),
-  {D1 = absolute_uri{'@type': 'uri:absolute-URI', 'uri:hierarchical-part': HierPart, 'uri:scheme': Scheme}},
-  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}).
+  {D1 = absolute_uri{'@type': 'llo:absolute-URI', 'llo:hierarchical-part': HierPart, 'llo:scheme': Scheme}},
+  ("?" -> query(Query), {D2 = D1.put(_{'llo:query': Query})} ; {D2 = D1}).
 
 
 
@@ -74,11 +74,11 @@
 % authoritatively to requests that target the identified resource.
 
 authority(D4) -->
-  {D1 = authority{'@type': 'uri:authority'}},
-  (userinfo(Userinfo), "@" -> {D2 = D1.put(_{'uri:userinfo': Userinfo})} ; {D2 = D1}),
+  {D1 = authority{'@type': 'llo:authority'}},
+  (userinfo(Userinfo), "@" -> {D2 = D1.put(_{'llo:userinfo': Userinfo})} ; {D2 = D1}),
   host(Host),
-  {D3 = D2.put(_{'uri:host': Host})},
-  (":" -> port(Port), {D4 = D3.put(_{'uri:port': Port})} ; {D4 = D3}).
+  {D3 = D2.put(_{'llo:host': Host})},
+  (":" -> port(Port), {D4 = D3.put(_{'llo:port': Port})} ; {D4 = D3}).
 
 
 
@@ -165,17 +165,17 @@ h16(N) -->
 % ```
 
 'hier-part'(D2) -->
-  {D1 = hier_part{'@type': 'uri:hier-part'}},
+  {D1 = hier_part{'@type': 'llo:hier-part'}},
   (   "//"
   ->  authority(Authority),
       'path-abempty'(PathAbempty),
-      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
+      {D2 = D1.put(_{'llo:authority': Authority, 'llo:path-abempty': PathAbempty})}
   ;   'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'llo:path-absolute': PathAbsolute})}
   ;   'path-rootless'(PathRootless)
-  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
+  ->  {D2 = D1.put(_{'llo:path-rootless': PathRootless})}
   ;   'path-empty'(PathEmpty)
-  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'llo:path-empty': PathEmpty})}
   ).
 
 
@@ -196,13 +196,13 @@ h16(N) -->
 % ```
 
 host(D2) -->
-  {D1 = host{'@type': 'uri:host'}},
+  {D1 = host{'@type': 'llo:host'}},
   (   'IP-literal'(IpLiteral)
-  ->  {D2 = D1.put(_{'uri:IP-literal': IpLiteral})}
+  ->  {D2 = D1.put(_{'llo:IP-literal': IpLiteral})}
   ;   'IPv4address'(Ipv4Address)
-  ->  {D2 = D1.put(_{'uri:IPv4address': Ipv4Address})}
+  ->  {D2 = D1.put(_{'llo:IPv4address': Ipv4Address})}
   ;   'reg-name'(RegName)
-  ->  {D2 = D1.put(_{'uri:reg-name': RegName})}
+  ->  {D2 = D1.put(_{'llo:reg-name': RegName})}
   ).
 
 
@@ -213,12 +213,12 @@ host(D2) -->
 % ```
 
 'IP-literal'(D2) -->
-  {D1 = ip_literal{'@type': 'uri:IP-literal'}},
+  {D1 = ip_literal{'@type': 'llo:IP-literal'}},
   "[",
   (   'IPv6address'(Ipv6Address)
-  ->  {D2 = D1.put(_{'uri:IPv6address': Ipv6Address})}
+  ->  {D2 = D1.put(_{'llo:IPv6address': Ipv6Address})}
   ;   'IPvFuture'(IpvFuture)
-  ->  {D2 = D1.put(_{'uri:IPvFuture': IpvFuture})}
+  ->  {D2 = D1.put(_{'llo:IPvFuture': IpvFuture})}
   ),
   "]".
 
@@ -273,9 +273,9 @@ host(D2) -->
 % ```
 
 'IPvFuture'(_{
-  '@type': 'uri:IPvFuture',
-  'uri:major': _{'@type': 'xsd:nonNegativeInteger', '@value': I},
-  'uri:minor': S
+  '@type': 'llo:IPvFuture',
+  'llo:major': _{'@type': 'xsd:nonNegativeInteger', '@value': I},
+  'llo:minor': S
 }) -->
   "v",
   +('HEXDIG', Ds),
@@ -311,22 +311,22 @@ ls32(_{'@type': 'llo:IPv4address', 'rdf:value': Ipv4Address}) -->
 % ```
 
 path(D2) -->
-  {D1 = path{'@type': 'uri:path'}},
+  {D1 = path{'@type': 'llo:path'}},
   (   % Begins with "/" or is empty.
       'path-abempty'(PathAbempty)
-  ->  {D2 = D1.put(_{'uri:path-abempty': PathAbempty})}
+  ->  {D2 = D1.put(_{'llo:path-abempty': PathAbempty})}
   ;   % Begins with "/" but not "//".
       'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'llo:path-absolute': PathAbsolute})}
   ;   % Begins with a non-colon segment
       'path-noscheme'(PathNoscheme)
-  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
+  ->  {D2 = D1.put(_{'llo:path-noscheme': PathNoscheme})}
   ;   % Begins with a segment
       'path-rootless'(PathRootless)
-  ->  {D2 = D1.put(_{'uri:path-rootless': PathRootless})}
+  ->  {D2 = D1.put(_{'llo:path-rootless': PathRootless})}
   ;   % Empty path (i.e., no segments).
       'path-empty'(PathEmpty)
-  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'llo:path-empty': PathEmpty})}
   ).
 
 
@@ -461,17 +461,17 @@ reg_name_code(C) --> 'sub-delims'(C).
 % ```
 
 'relative-part'(D2) -->
-  {D1 = relative_part{'@type': 'uri:relative-part'}},
+  {D1 = relative_part{'@type': 'llo:relative-part'}},
   (   "//"
   ->  authority(Authority),
       'path-abempty'(PathAbempty),
-      {D2 = D1.put(_{'uri:authority': Authority, 'uri:path-abempty': PathAbempty})}
+      {D2 = D1.put(_{'llo:authority': Authority, 'llo:path-abempty': PathAbempty})}
   ;   'path-absolute'(PathAbsolute)
-  ->  {D2 = D1.put(_{'uri:path-absolute': PathAbsolute})}
+  ->  {D2 = D1.put(_{'llo:path-absolute': PathAbsolute})}
   ;   'path-noscheme'(PathNoscheme)
-  ->  {D2 = D1.put(_{'uri:path-noscheme': PathNoscheme})}
+  ->  {D2 = D1.put(_{'llo:path-noscheme': PathNoscheme})}
   ;   'path-empty'(PathEmpty)
-  ->  {D2 = D1.put(_{'uri:path-empty': PathEmpty})}
+  ->  {D2 = D1.put(_{'llo:path-empty': PathEmpty})}
   ).
 
 
@@ -485,9 +485,9 @@ reg_name_code(C) --> 'sub-delims'(C).
 
 'relative-ref'(D3) -->
   'relative-part'(RelativePart),
-  {D1 = relative_ref{'@type': 'uri:relative-ref', 'uri:relative-part': RelativePart}},
-  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
-  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
+  {D1 = relative_ref{'@type': 'llo:relative-ref', 'llo:relative-part': RelativePart}},
+  ("?" -> query(Query), {D2 = D1.put(_{'llo:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'llo:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -605,9 +605,9 @@ unreserved(0'~) --> "~".
   scheme(Scheme),
   ":",
   'hier-part'(HierPart),
-  {D1 = uri{'@type': 'uri:URI', 'uri:scheme': Scheme, 'uri:hier-part': HierPart}},
-  ("?" -> query(Query), {D2 = D1.put(_{'uri:query': Query})} ; {D2 = D1}),
-  ("#" -> fragment(Fragment), {D3 = D2.put(_{'uri:fragment': Fragment})} ; {D3 = D2}).
+  {D1 = uri{'@type': 'llo:URI', 'llo:scheme': Scheme, 'llo:hier-part': HierPart}},
+  ("?" -> query(Query), {D2 = D1.put(_{'llo:query': Query})} ; {D2 = D1}),
+  ("#" -> fragment(Fragment), {D3 = D2.put(_{'llo:fragment': Fragment})} ; {D3 = D2}).
 
 
 
@@ -617,11 +617,10 @@ unreserved(0'~) --> "~".
 % ```
 
 'URI-reference'(D2) -->
-  {D1 = _{'@type': 'uri:URI-reference'}},
-  (   'URI'(Uri)
-  ->  {D2 = D1.put(_{'uri:URI': Uri})}
-  ;   'relative-ref'(RelativeRef)
-  ->  {D2 = D1.put(_{'uri:relative-ref': RelativeRef})}
+  (   'URI'(D1)
+  ->  {D2 = D1.put(_{'rdf:type': 'llo:URI'})}
+  ;   'relative-ref'(D1)
+  ->  {D2 = D1.put(_{'rdf:type': 'llo:relative-ref'})}
   ).
 
 

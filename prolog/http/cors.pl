@@ -46,7 +46,7 @@
 % Access-Control-Allow-Headers: "Access-Control-Allow-Headers" ":" #field-name
 % ```
 
-'access-control-allow-headers'(L) --> *#('field-name', L).
+'access-control-allow-headers'(_{'@list': L}) --> *#('field-name', L).
 
 
 
@@ -55,7 +55,7 @@
 % Access-Control-Allow-Methods: "Access-Control-Allow-Methods" ":" #Method
 % ```
 
-'access-control-allow-methods'(L) --> *#(method, L).
+'access-control-allow-methods'(_{'@list': L}) --> *#(method, L).
 
 
 
@@ -66,7 +66,7 @@
 %                             | "*"
 % ```
 
-'access-control-allow-origin'(L)   --> 'origin-list-or-null'(L).
+'access-control-allow-origin'(_{'@list': L})   --> 'origin-list-or-null'(L).
 'access-control-allow-origin'("*") --> "*".
 
 

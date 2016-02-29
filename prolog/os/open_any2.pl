@@ -209,6 +209,11 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   ->  base_iri(Source, BaseIri),
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
+      (   debugging(http(raw))
+      ->  maplist(string_codes, Strings, Lines),
+          forall(member(String, Strings), debug(http(raw), "~s", [String]))
+      ;   true
+      ),
       option(status_code(Status), Opts),
       option(time(Time), Opts),
       option(version(Major-Minor), Opts),
