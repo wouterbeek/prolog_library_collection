@@ -49,7 +49,6 @@ fieldvalue     = *[ uchar | "?" | ":" | "@" | "&" ]
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 

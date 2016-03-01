@@ -16,11 +16,8 @@ Generates tables for text-based display.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).

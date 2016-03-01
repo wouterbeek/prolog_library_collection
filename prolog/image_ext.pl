@@ -18,7 +18,7 @@ Support for image files.
 @version 2015/08, 2015/10-2015/11
 */
 
-:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(readutil)).

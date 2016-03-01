@@ -29,7 +29,7 @@ Support for extracting information from HTTP requests/received messages.
 @version 2015/08, 2015/10-2016/02
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).

@@ -20,8 +20,7 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 
 :- meta_predicate
     attached_thread(0),

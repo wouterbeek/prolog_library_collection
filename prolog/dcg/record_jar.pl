@@ -15,7 +15,7 @@ variable repertoire of fields in a text format.
 @see Originally described in *The Art of Unix Programming*.
 @see http://tools.ietf.org/html/draft-phillips-record-jar-02
 @see http://www.inter-locale.com/ID/draft-phillips-record-jar-01.html
-@version 2015/11
+@version 2015/11, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -257,10 +257,3 @@ sep_comment --> "%%", ?(comment), eol.
 % ```
 
 'UNICHAR'(C) --> [C], {between(0x80, 0x10FFFF, C)}.
-
-
-
-% HELPERS %
-
-eol --> 'CRLF', !.
-eol --> 'LF'.

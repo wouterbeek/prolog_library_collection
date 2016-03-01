@@ -24,7 +24,6 @@
      '*'//2,
      pos_sum/2
    ]).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dict_ext)).
 :- use_module(library(pair_ext)).
 

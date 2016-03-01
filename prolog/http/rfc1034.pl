@@ -21,7 +21,6 @@
      'ALPHA'//1 as alpha0, % ?Code
      'DIGIT'//2 as digit0  % ?Weight:between(0,9), ?Code
    ]).
-:- use_module(library(dcg/dcg_word)).
 
 
 

@@ -20,7 +20,7 @@ Support for natural language dictionaries.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(os/archive_ext)).

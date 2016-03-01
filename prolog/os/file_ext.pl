@@ -28,8 +28,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_content)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).

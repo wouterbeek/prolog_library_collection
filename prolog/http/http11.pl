@@ -131,10 +131,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
-:- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1,  % ?Code:code
      'CHAR'//1,   % ?Code:code

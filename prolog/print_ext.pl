@@ -22,7 +22,7 @@ Additional predicates for printing.
 @version 2015/08, 2015/11
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(settings)).
 

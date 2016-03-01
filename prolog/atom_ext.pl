@@ -62,8 +62,7 @@ This requires the atom to be translated to/from a list of numeric codes.
 For example, escaping spaces and grave accent (e.g. in URIs):
 
 ```prolog
-:- use_module(plc(dcg/dcg_generics)).
-:- use_module(plc(dcg/dcg_meta)).
+:- use_module(plc(dcg/dcg_ext)).
 :- use_module(plc(dcg/dcg_replace)).
 % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT to `%60`).
 atom_phrase(

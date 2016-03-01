@@ -15,7 +15,6 @@
 
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_word)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % ?Code
      'CHAR'//1, % ?Code

@@ -15,7 +15,7 @@
 @version 2015/10
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(msg_ext)).
 
 :- meta_predicate(dcg_msg_emphasis(//)).

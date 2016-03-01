@@ -16,7 +16,7 @@ An association list with multiple values per key, using ordered sets.
 @version 2015/10-2016/02
 */
 
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_tree)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).

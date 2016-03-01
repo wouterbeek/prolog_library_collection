@@ -46,7 +46,7 @@ a
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_tree)).
 :- use_module(library(graph/s/s_edge)).
 :- use_module(library(list_ext)).

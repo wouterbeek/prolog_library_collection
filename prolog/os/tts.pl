@@ -15,7 +15,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_phrase)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(os/external_program)).

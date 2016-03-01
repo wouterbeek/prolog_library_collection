@@ -1,6 +1,35 @@
 This is a collection of Prolog libraries that augment the functionality
 available in the [SWI-Prolog](www.swi-prolog.org) standard libraries.
 
+
+Abbreviations
+=============
+
+We use the following abbreviations for often occurring variable names:
+
+| **Variable name** | **Expansion** |
+|:-----------------:|:-------------:|
+| A                 | Atom          |
+| Arg               | Argument      |
+| C                 | Code          |
+| Char              | Character     |
+| D                 | Digit         |
+| Dcg               | Definite Clause Grammar goal |
+| Def               | Default       |
+| Frac              | Fractional    |
+| H                 | Head          |
+| I                 | Integer       |
+| L                 | List          |
+| Max               | Maximum       |
+| Min               | Minimum       |
+| N                 | Number        |
+| No$X$s            | NumberOf$X$s  |
+| Opt               | Options       |
+| S                 | String        |
+| Sep               | Separator     |
+| T                 | Tail          |
+
+
 `/dcg` Definite Clause Grammars
 ===============================
 

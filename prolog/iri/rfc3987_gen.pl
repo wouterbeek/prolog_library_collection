@@ -7,7 +7,6 @@ urn:ftd:cogchar.org:2012:runtime#liftconfig
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_phrase)).
 :- use_module(library(dcg/rfc2234), [
      'DIGIT'//2, % ?Weight:between(0,9), ?Code:code
      'HEXDIG'//1 % ?Weight:between(0,15)

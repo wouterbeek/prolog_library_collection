@@ -17,8 +17,7 @@ Also keeps track of items that could not be processed.
 @version 2015/08, 2015/10
 */
 
-:- use_module(library(dcg/dcg_debug)).
-:- use_module(library(dcg/dcg_cardinal)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lists)).
 :- use_module(library(progress)).
@@ -76,8 +75,8 @@ list_script(Goal_1, Todo0, Opts):-
 
   % Show an overview of processing the list.
   (   option(overview(true), Opts)
-  ->  dcg_debug(list_script, items_done(Done, N)),
-      dcg_debug(list_script, items_not_done(NotDone,N))
+  ->  debug(list_script, items_done(Done, N)),
+      debug(list_script, items_not_done(NotDone,N))
   ;   true
   ).
 
@@ -102,12 +101,12 @@ list_script(Goal_1, Msg, counter(M0,N), [X|Todo], [X|Done], NotDone, Mutex):-
   ), !,
   M is M0 + 1,
   % Retrieve the current index, based on the previous index.
-  dcg_debug(list_script, item_done(counter(M,N), Msg)),
+  debug(list_script, item_done(counter(M,N), Msg)),
   list_script(Goal_1, Msg, counter(M,N), Todo, Done, NotDone, Mutex).
 % A TODO item could not be processed; pushed to NOT-DONE.
 list_script(Goal_1, Msg, counter(M0,N), [X|Todo], Done, [X|NotDone], Mutex):-
   M is M0 + 1,
-  dcg_debug(list_script, item_not_done(counter(M,N), Msg)),
+  debug(list_script, item_not_done(counter(M,N), Msg)),
   list_script(Goal_1, Msg, counter(M,N), Todo, Done, NotDone, Mutex).
 
 

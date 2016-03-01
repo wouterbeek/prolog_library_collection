@@ -1,8 +1,7 @@
 :- module(
   dcg_replace,
   [
-    dcg_replace//2 % :FromDCG
-                   % :ToDCG
+    dcg_replace//2 % :From_0, :To_0
   ]
 ).
 
@@ -209,11 +208,10 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 
 :- use_module(library(error)).
 
-:- use_module(plc(dcg/dcg_generics)).
-
-:- meta_predicate(dcg_replace(//,//,?,?)).
-:- meta_predicate(dcg_replace0(//,//,?,?)).
-:- meta_predicate(is_not_nullable(//)).
+:- meta_predicate
+    dcg_replace(//, //, ?, ?),
+    dcg_replace0(//, //, ?, ?),
+    is_not_nullable(//).
 
 
 

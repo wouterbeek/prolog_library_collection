@@ -1,20 +1,20 @@
 :- module(
   dcg_split,
   [
-    dcg_split//2 % :Separator_2
-                 % -Substring:list(code)
+    dcg_split//2 % :Sep_2, -Substring:list(code)
   ]
 ).
 
-:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 
-:- meta_predicate(dcg_split(//,-,?,?)).
-
-
-
+:- meta_predicate
+    dcg_split(//, -, ?, ?).
 
 
-%! dcg_sep_list(:Separator_2, -Substring:list(code))// is nondet.
+
+
+
+%! dcg_sep_list(:Sep_2, -Substring:list(code))// is nondet.
 % Succeeds when the code lists in Codess are processed
 % and each is interspersed with Separators.
 

@@ -12,8 +12,7 @@
 @version 2016/01-2016/02
 */
 
-:- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(option)).
 
 is_meta(node_writer).

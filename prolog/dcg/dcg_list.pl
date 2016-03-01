@@ -17,8 +17,7 @@ Print numbered and unnumbered lists using DCGs.
 @version 2015/10
 */
 
-:- use_module(library(dcg/dcg_call)).
-:- use_module(library(dcg/dcg_content)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(option)).
 

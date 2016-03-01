@@ -16,29 +16,21 @@
   :- use_module(library(dcg/bibtex)).
   :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
-  :- use_module(library(dcg/dcg_bracket)).
-  :- use_module(library(dcg/dcg_call)).
-  :- use_module(library(dcg/dcg_cardinal)).
   :- use_module(library(dcg/dcg_char)).
   :- use_module(library(dcg/dcg_code)).
   :- use_module(library(dcg/dcg_collection)).
-  :- use_module(library(dcg/dcg_content)).
-  :- use_module(library(dcg/dcg_debug)).
   :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_list)).
   :- use_module(library(dcg/dcg_msg)).
   :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
-  :- use_module(library(dcg/dcg_phrase)).
   :- use_module(library(dcg/dcg_pl)).
-  :- use_module(library(dcg/dcg_quote)).
   :- use_module(library(dcg/dcg_split)).
   :- use_module(library(dcg/dcg_strip)).
   :- use_module(library(dcg/dcg_table)).
   :- use_module(library(dcg/dcg_tree)).
   :- use_module(library(dcg/dcg_unicode)).
-  :- use_module(library(dcg/dcg_word)).
   :- use_module(library(dcg/dcg_word_wrap)).
   :- use_module(library(dcg/record_jar)).
   :- use_module(library(dcg/rfc2234)).

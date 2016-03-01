@@ -13,18 +13,14 @@ Initialize locations for serving HTML resources.
 :- use_module(library(http/http_server_files)).
 
 :- dynamic
+    http:location/3,
     user:file_search_path/2,
-    http:location/3.
-:- multifile
-    user:file_search_path/2,
-    http:location/3.
+    user:prolog_file_type/2.
 
-user:file_search_path(css,   library(resource/css)).
-user:file_search_path(fonts, library(resource/fonts)).
-user:file_search_path(icon,  library(resource/icon)).
-user:file_search_path(img,   library(resource/img)).
-user:file_search_path(js,    library(resource/js)).
-user:file_search_path(pdf,   library(resource/pdf)).
+:- multifile
+    http:location/3,
+    user:file_search_path/2,
+    user:prolog_file_type/2.
 
 http:location(css,   root(css),   []).
 http:location(fonts, root(fonts), []).
@@ -32,6 +28,16 @@ http:location(icon,  root(icon),  []).
 http:location(img,   root(img),   []).
 http:location(js,    root(js),    []).
 http:location(pdf,   root(pdf),   []).
+
+user:prolog_file_type(htm,  html).
+user:prolog_file_type(html, html).
+
+user:file_search_path(css,   library(resource/css)).
+user:file_search_path(fonts, library(resource/fonts)).
+user:file_search_path(icon,  library(resource/icon)).
+user:file_search_path(img,   library(resource/img)).
+user:file_search_path(js,    library(resource/js)).
+user:file_search_path(pdf,   library(resource/pdf)).
 
 :- http_handler(css(.),   serve_files_in_directory(css),   [prefix]).
 :- http_handler(fonts(.), serve_files_in_directory(fonts), [prefix]).
