@@ -1,9 +1,8 @@
 :- module(
   pdf,
   [
-    open_pdf/1, % +File:atom
-    open_pdf/2 % +File:atom
-               % +Options:list(compound)
+    open_pdf/1, % +File
+    open_pdf/2 % +File, +Opts
   ]
 ).
 
@@ -13,7 +12,7 @@ Support for opening PDF files.
 
 @author Wouter Beek
 @license MIT License
-@version 2015/10
+@version 2015/10, 2016/03
 */
 
 :- use_module(library(option)).
@@ -24,8 +23,11 @@ Support for opening PDF files.
      pass_to(run_process/3, 3)
    ]).
 
-:- dynamic(user:file_type_program/2).
-:- multifile(user:file_type_program/2).
+:- dynamic
+    user:file_type_program/2.
+
+:- multifile
+    user:file_type_program/2.
 
 user:file_type_program(pdf, evince).
 user:file_type_program(pdf, xpdf).
@@ -34,14 +36,14 @@ user:file_type_program(pdf, xpdf).
 
 
 
-%! open_pdf(+File:atom) is det.
+%! open_pdf(+File) is det.
 % Wrapper around open_pdf/2 with default options.
 
 open_pdf(File):-
   open_pdf(File, [detached(true)]).
 
 
-%! open_pdf(+File:atom, +Options:list(compound)) is det.
+%! open_pdf(+File, +Opts) is det.
 % Opens the given PDF file.
 % Options are passed to run_process/3.
 
