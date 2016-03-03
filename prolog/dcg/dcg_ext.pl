@@ -73,6 +73,7 @@
     iri//1,                % +Iri
     nl//0,
     nonblank//0,
+    number//0,
     nvpair//1,             % +Pair
     nvpair//2,             % :Name_0, :Value_0
     opt//2,                % :Dcg_0
@@ -749,6 +750,13 @@ nl --> "\n".
 % Wrapper around nonblank//1 from library(dcg/basics).
 
 nonblank --> nonblank(_).
+
+
+
+%! number// .
+% Wrapper around number//1 from library(dcg/basics).
+
+number --> number(_).
 
 
 
