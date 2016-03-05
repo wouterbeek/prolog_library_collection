@@ -39,7 +39,7 @@
 Predicates for distinguishing different types/kinds of graphs.
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -50,6 +50,9 @@ Predicates for distinguishing different types/kinds of graphs.
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(ordsets)).
+
+:- meta_predicate
+    s_harary(+, 2, +, ?).
 
 
 
@@ -264,8 +267,8 @@ s_harary(K, N, H):-
   s_harary(NewK, N, G),
   s_harary(G, pred, N, H).
 
-s_harary(G, P, N, H):-
-  call(P, N, NewN),
+s_harary(G, P_2, N, H):-
+  call(P_2, N, NewN),
   findall(
     V-Ns,
     (
