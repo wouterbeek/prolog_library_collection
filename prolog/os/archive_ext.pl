@@ -27,8 +27,7 @@
 :- meta_predicate
     call_on_archive(+, 2),
     call_on_archive(+, 2, +),
-    call_on_archive0(+, 2, +),
-    call_on_archive_entry0(+, 2, +, +, +).
+    call_on_archive_entry0(+, +, 2, +, +).
 
 :- predicate_options(archive_info/2, 2, [
      indent(+nonneg),
@@ -37,9 +36,6 @@
 :- predicate_options(call_on_archive/3, 3, [
      archive_entry(+atom),
      pass_to(call_on_archive_entry0/5, 3),
-     pass_to(call_on_archive0/3, 3)
-   ]).
-:- predicate_options(call_on_archive0/3, 3, [
      pass_to(open_any2/5, 5),
      pass_to(archive_open/3, 3)
    ]).
@@ -166,11 +162,8 @@ archive_info(Source, Opts) :-
 call_on_archive(Source, Goal_2) :-
   call_on_archive(Source, Goal_2, []).
 
-call_on_archive(Source, Goal_2, Opts) :-
-  option(archive_entry(Entry), Opts, _),
-  call_on_archive0(Source, call_on_archive_entry0(Entry, Goal_2, Opts), Opts).
-
-call_on_archive0(Source, Goal_2, Opts1) :-
+call_on_archive(Source, Goal_2, Opts1) :-
+  option(archive_entry(Entry), Opts1, _),
   % Archive options that cannot be overridden.
   merge_options([close_parent(false)], Opts1, Opts2),
   % Archive options that can be overridden.
@@ -179,21 +172,21 @@ call_on_archive0(Source, Goal_2, Opts1) :-
     open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
     setup_call_cleanup(
       archive_open(Read, Arch, Opts3),
-      call(Goal_2, M, Arch),
+      call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts1),
       archive_close(Arch)
     ),
     close_any2(Close_0)
   ).
 
 % Semi-deterministic if an archive entry name is given.
-call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch) :-
+call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
   nonvar(Entry), !,
-  call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch), !.
+  call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M, Opts), !.
 % Non-deterministic if no archive entry name is given.
-call_on_archive_entry0(Entry, Goal_2, Opts, M, Arch) :-
-  call_on_archive_entry_nondet0(Entry, Goal_2, Opts, M, Arch).
+call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
+  call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M, Opts).
 
-call_on_archive_entry_nondet0(Entry, Goal_2, Opts1, M1, Arch) :-
+call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M1, Opts1) :-
   merge_options([meta_data(MEntry1)], Opts1, Opts2),
   archive_data_stream(Arch, Read, Opts2),
   maplist(jsonld_metadata, MEntry1, MEntry2),
