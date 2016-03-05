@@ -126,30 +126,30 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2016/02
+@version 2015/11-2016/03
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1,  % ?Code:code
-     'CHAR'//1,   % ?Code:code
+     'ALPHA'//1,  % ?C
+     'CHAR'//1,   % ?C
      'CR'//0,
      'CRLF'//0,
      'CTL'//0,
-     'CTL'//1,    % ?Code:code
+     'CTL'//1,    % ?C
      'DIGIT'//1,  % ?Weight:nonneg
-     'DIGIT'//2,  % ?Weight:nonneg, ?Code:code
+     'DIGIT'//2,  % ?Weight:nonneg, ?C
      'DQUOTE'//0,
      'HEXDIG'//1, % ?Weight:nonneg
      'HTAB'//0,
-     'HTAB'//1,   % ?Code:code
+     'HTAB'//1,   % ?C
      'LF'//0,
-     'OCTET'//1,  % ?Code:code
+     'OCTET'//1,  % ?C
      'SP'//0,
-     'SP'//1,     % ?Code:code
-     'VCHAR'//1   % ?Code:code
+     'SP'//1,     % ?C
+     'VCHAR'//1   % ?C
    ]).
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
@@ -160,10 +160,10 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- use_module(library(http/rfc6797)).
 :- use_module(library(http/rfc7034)).
 :- use_module(library(ltag/rfc4647), [
-     'language-range'//1 % -LanguageRange:list(string)
+     'language-range'//1 % -LRange:list(string)
    ]).
 :- use_module(library(ltag/rfc5646), [
-     'Language-Tag'//1 as 'language-tag' % -LanguageTag:dict
+     'Language-Tag'//1 as 'language-tag' % -LTag:dict
    ]).
 :- use_module(library(mail/rfc5322), [
      mailbox//1 % -Pair:pair(string)
@@ -180,6 +180,9 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'relative-part'//1,    % -RelativeUri:dict
      'URI-reference'//1     % -UriReference:dict
    ]).
+
+:- meta_predicate
+    'field-content'(3, -, ?, ?).
 
 
 
@@ -734,7 +737,7 @@ credentials(D2) -->
 
 
 
-%! ctext(?Code:code)// is det.
+%! ctext(?C)// is det.
 % ```abnf
 % ctext = HTAB | SP | %x21-27 | %x2A-5B | %x5D-7E | obs-text
 % ```
@@ -900,7 +903,7 @@ etag(D) --> 'entity-tag'(D).
 
 
 
-%! etagc(?Code:code)// .
+%! etagc(?C)// .
 % ```abnf
 % etagc = %x21 | %x23-7E | obs-text   ; VCHAR except double quotes, plus obs-text
 % ```
@@ -936,15 +939,15 @@ expect("100-continue") --> atom_ci('100-continue').
 
 
 
-%! 'field-content'(+Key:atom, -Value:dict)// .
+%! 'field-content'(:Key_3, -Value:dict)// .
 % ```abnf
 % field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
-'field-content'(Key, D) -->
-  (   {current_predicate(Key/3)}
+'field-content'(Key_3, D) -->
+  (   {current_predicate(Key_3/3)}
   ->  (   % Valid value.
-          dcg_call(Key, Value),
+          dcg_call(Key_3, Value),
           'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
@@ -956,16 +959,16 @@ expect("100-continue") --> atom_ci('100-continue').
           rest(Cs),
           {
             D = _{'@type': 'llo:InvalidHttpHeader'},
-            debug(http(parse), "Buggy HTTP header ~a: ~s", [Key,Cs])
+            debug(http(parse), "Buggy HTTP header ~a: ~s", [Key_3,Cs])
           }
       )
   ;   % Unknown unknown key.
       rest(Cs),
       {
         D = _{'@type': 'llo:UnknownHttpHeader'},
-        (   known_unknown(Key)
+        (   known_unknown(Key_3)
         ->  true
-        ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key,Cs])
+        ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key_3,Cs])
         )
       }
   ).
@@ -1040,7 +1043,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-vchar'(?Code:code)// .
+%! 'field-vchar'(?C)// .
 % ```abnf
 % field-vchar = VCHAR | obs-text
 % ```
@@ -1050,13 +1053,13 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-value'(+Codes, +Key, -Value:dict)// is det.
+%! 'field-value'(+Cs, +Key, -Value:dict)// is det.
 % ```abnf
 % field-value = *( field-content | 'obs-fold' )
 % ```
 
 'field-value'(Cs, Key, D2) :-
-  phrase('field-content'(Key, D1), Cs),
+  phrase('field-content'(http11:Key, D1), Cs),
   string_codes(Raw, Cs),
   D2 = D1.put(_{'llo:raw': Raw}).
 
@@ -1375,7 +1378,7 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-text'(?Code:code)// is det.
+%! 'obs-text'(?C)// is det.
 % ```abnf
 % obs-text = %x80-FF
 % ```
@@ -1585,7 +1588,7 @@ pseudonym(S) --> token(S).
 
 
 
-%! qdtext(?Code:code)// is det.
+%! qdtext(?C)// is det.
 % ```abnf
 % qdtext = HTAB | SP | %x21 | %x23-5B | %x5D-7E | obs-text
 % ```
@@ -1598,7 +1601,7 @@ qdtext(C)    --> 'obs-text'(C).
 
 
 
-%! 'quoted-pair'(?Code:code)// .
+%! 'quoted-pair'(?C)// .
 % ```abnf
 % quoted-pair = "\" ( HTAB | SP | VCHAR | obs-text )
 % ```
@@ -1815,7 +1818,7 @@ subtype(S) --> token(S).
 
 
 
-%! tchar(?Code:code)// is det.
+%! tchar(?C)// is det.
 % ```abnf
 % tchar = "!" | "#" | "$" | "%" | "&" | "'" | "*"
 %       | "+" | "-" | "." | "^" | "_" | "`" | "|" | "~"
