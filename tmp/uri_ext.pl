@@ -25,16 +25,18 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2013/05, 2013/09, 2013/11-2014/04, 2014/08, 2014/11, 2015/11
+@version 2013/05, 2013/09, 2013/11-2014/04, 2014/08, 2014/11, 2015/11, 2016/03
 */
 
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
+:- use_module(library(hash_ext)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(uri)).
 
-:- multifile(error:has_type/2).
+:- multifile
+    error:has_type/2.
+
 error:has_type(email, Term):-
   sub_atom(Term, Before, 1, After, '@'),
   Before > 0,
@@ -140,7 +142,7 @@ uri_flat_directory(
 uri_flat_directory(ParentDir, Url, UrlDir):-
   % A unique name for each URL that does not contain characters
   % that do not comply with POSIX file names.
-  rdf_atom_md5(Url, 1, Md5),
+  md5(Url, Md5),
 
   % Make it a subdirectory of the given parent directory
   directory_file_path(ParentDir, Md5, UrlDir).

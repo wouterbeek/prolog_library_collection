@@ -70,21 +70,23 @@ Generic graph traversal algorithm.
 :- use_module(library(ordsets)).
 :- use_module(library(semweb/rdf_db)).
 
-:- meta_predicate(traverse(2,3,+,+,-,:)).
-:- meta_predicate(traverse(2,2,3,+,?,-,:)).
-:- meta_predicate(traverse(2,3,+,?,-,-,-,-,:)).
-:- meta_predicate(traverse(2,2,3,+,?,-,-,-,-,:)).
-:- meta_predicate(traverse0(2,3,+,?,-,?,+,-,-,-,-,-,+)).
-:- meta_predicate(traverse_min(2,3,+,+,-,-,:)).
-:- meta_predicate(traverse_min(2,3,+,+,-,-,-,-,-,:)).
+:- meta_predicate
+    traverse(2,3,+,+,-,:),
+    traverse(2,2,3,+,?,-,:),
+    traverse(2,3,+,?,-,-,-,-,:),
+    traverse(2,2,3,+,?,-,-,-,-,:),
+    traverse0(2,3,+,?,-,?,+,-,-,-,-,-,+),
+    traverse_min(2,3,+,+,-,-,:),
+    traverse_min(2,3,+,+,-,-,-,-,-,:).
 
-:- rdf_meta(traverse(:,:,+,r,r,:)).
-:- rdf_meta(traverse(:,:,:,+,r,r,:)).
-:- rdf_meta(traverse(:,:,+,r,r,-,-,-,:)).
-:- rdf_meta(traverse(:,:,:,+,r,r,-,-,-,:)).
-:- rdf_meta(traverse0(:,:,+,r,r,?,+,-,-,-,-,-,+)).
-:- rdf_meta(traverse_min(:,:,+,r,r,-,:)).
-:- rdf_meta(traverse_min(:,:,+,r,r,-,-,-,-,:)).
+:- rdf_meta
+   traverse(:,:,+,r,r,:),
+   traverse(:,:,:,+,r,r,:),
+   traverse(:,:,+,r,r,-,-,-,:),
+   traverse(:,:,:,+,r,r,-,-,-,:),
+   traverse0(:,:,+,r,r,?,+,-,-,-,-,-,+),
+   traverse_min(:,:,+,r,r,-,:),
+   traverse_min(:,:,+,r,r,-,-,-,-,:).
 
 is_meta(debug_vertex_name).
 
