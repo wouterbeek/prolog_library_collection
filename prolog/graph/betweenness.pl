@@ -15,7 +15,7 @@
 Predicate that calculate betweenness centrality.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -24,8 +24,10 @@ Predicate that calculate betweenness centrality.
 :- use_module(library(list_ext)).
 :- use_module(library(pairs)).
 
-:- meta_predicate(betweenness(+,2,2,2,-)).
-:- meta_predicate(betweenness(+,2,2,2,+,-)).
+:- meta_predicate
+    betweenness(+,2,2,2,-),
+    betweenness(+,2,2,2,+,-),
+    shortest_paths(2, 3, +, ?, ?, -).
 
 
 
@@ -101,20 +103,20 @@ betweenness(G, G2Vs_2, G2Es_2, V2Ns_2, V, Betweenness):-
 
 % HELPERS %
 
-shortest_paths(G, G2Es, V2Ns, V, W, ShortestPaths):-
+shortest_paths(G, G2Es_2, V2Ns_3, V, W, ShortestPaths):-
   aggregate_all(
-    set(Length-Path),
+    set(Len-Path),
     (
       traverse(
+        G2Es_2,
+        V2Ns_3,
         G,
-        G2Es,
-        V2Ns,
         V,
         W,
         _,
         _,
         Path,
-        [distinct_vertices(true),vertex_distance(Length)]
+        [distinct_vertices(true),vertex_distance(Len)]
       )
     ),
     Pairs

@@ -24,7 +24,7 @@ Additional predicates for handling URIs.
 
 @author Wouter Beek
 @compat RFC 3986
-@version 2015/08, 2015/10-2016/02
+@version 2015/08, 2015/10-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -40,8 +40,9 @@ Additional predicates for handling URIs.
 :- use_module(library(yall)).
 
 :- meta_predicate
-    uri_change_query_options(+,2,-),
-    uri_change_query_string(+,2,-).
+    uri_change_query_options(+, 2, -),
+    uri_change_query_string(+, 2, -),
+    uri_change_query_string0(2, +, -).
 
 
 

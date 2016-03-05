@@ -15,7 +15,7 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01-2016/02
+@version 2015/09-2015/11, 2016/01-2016/03
 */
 
 :- use_module(library(debug_ext)).
@@ -27,7 +27,8 @@
 :- meta_predicate
     call_on_archive(+, 2),
     call_on_archive(+, 2, +),
-    call_on_archive_entry0(+, +, 2, +, +).
+    call_on_archive_entry0(+, +, 2, +, +),
+    call_on_archive_entry_nondet0(+, +, 2, +, +).
 
 :- predicate_options(archive_info/2, 2, [
      indent(+nonneg),

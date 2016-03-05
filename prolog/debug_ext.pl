@@ -29,7 +29,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/02
+@version 2015/07-2015/11, 2016/01-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -53,6 +53,7 @@ Tools that ease debugging SWI-Prolog programs.
     debug_concurrent_maplist(+,2,+,+),
     debug_concurrent_maplist(+,3,+,+,+),
     debug_maplist(+, 1, +),
+    debug_maplist0(+, 1, +, +, +),
     debug_verbose(?,0),
     debug_verbose(?,0,+),
     debug_verbose(?,0,+,+),
