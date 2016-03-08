@@ -169,7 +169,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      mailbox//1 % -Pair:pair(string)
    ]).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/rfc3986), [
      'absolute-URI'//1,     % -AbsoluteUri:dict

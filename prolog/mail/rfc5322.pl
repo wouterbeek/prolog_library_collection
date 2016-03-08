@@ -30,7 +30,7 @@
      'WSP'//0,
      'WSP'//1 % ?Code:code
    ]).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml)).
 
 

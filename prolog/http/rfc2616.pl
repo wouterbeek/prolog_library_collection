@@ -39,7 +39,7 @@
 :- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(pair_ext)).
-:- use_module(library(rdf11/rdf11)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc2396), [
      abs_path//1, % -Path:list(string)
      host//1,     % -Host
