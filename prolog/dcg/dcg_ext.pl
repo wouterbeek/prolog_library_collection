@@ -84,6 +84,9 @@
     pos_frac/2,            % +Ds:list(between(0,9)), -FracPart:rational
     pos_sum/2,             % +Ds:list(between(0,9)), -N:nonneg
     pos_sum/3,             % +Ds:list(nonneg), +Base:positive_integer, -N:nonneg
+    quoted//1,             % :Content_2
+    quoted//2,             % :Quote_2, :Content_2
+    quoted//3,             % ?Length, :Quote_2, :Content_2
     rest//0,
     rest//1,               % -Rest:list(code)
     section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
@@ -837,30 +840,28 @@ pos_sum([], _, I, I).
 
 
 
-%! quoted(:Dcg_0)// .
+%! quoted(:Content_2)// .
 
-quoted(Dcg_0) -->
-  quoted(double_quote, Dcg_0).
-
-
-%! quoted(:Quote_0, :Dcg_0)// .
-
-quoted(Quote_0, Dcg_0) -->
-  quoted(1, Quote_0, Dcg_0).
+quoted(Goal_2) -->
+  quoted(double_quote, Goal_2).
 
 
-%! quoted(?Length:positive_integer, :Quote_0, :Dcg_0)// .
+%! quoted(:Quote_2, :Content_2)// .
+
+quoted(Quote_2, Goal_2) -->
+  quoted(1, Quote_2, Goal_2).
+
+
+%! quoted(?Length:positive_integer, :Quote_2, :Content_0)// .
 % Typical values for Quote_0 are:
 %   - double_quote//0
 %   - single_quote//0
 
-quoted(N, Quote_0, Dcg_0) -->
-  {quote(Quote_0)},
-  dcg_between('#'(N, Quote_0), Dcg_0).
+quoted(N, Quote_2, Content_2) -->
+  {quote(Quote_2)},
+  dcg_between('#'(N, Quote_2), Content_2).
 
-quote(_:Dcg_0):-
-  var(Dcg_0),
-  quote_goal(Dcg_0).
+quote(_:Quote) :- var(Quote), quote_goal(Quote).
 
 quote_goal(double_quote).
 quote_goal(single_quote).
