@@ -163,18 +163,24 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
 
 % HELPERS %
 
-%! base_iri(+Source, -BaseIri) is det.
+%! base_iri(+Source, -BaseIri, +Opts) is det.
+% The following option is supported:
+%   - base_iri(+atom)
+%     Overruling other ways in which the base IRI may be set.
 
+% Overruled by option.
+base_iri(_, BaseIri, Opts) :-
+  option(base_iri(BaseIri), Opts), !.
 % The IRI that is read from, sans the fragment component.
-base_iri(Iri, BaseIri) :-
+base_iri(Iri, BaseIri, _) :-
   is_iri(Iri), !,
   % Remove the fragment part, if any.
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
   uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
 % The file is treated as an IRI.
-base_iri(File, BaseIri) :-
+base_iri(File, BaseIri, Opts) :-
   uri_file_name(Iri, File),
-  base_iri(Iri, BaseIri).
+  base_iri(Iri, BaseIri, Opts).
 
 
 
@@ -203,10 +209,10 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   atomic_list_concat([llo,Type1], :, Type2),
   D1 = _{'@type': Type2},
   (   Type1 == file_iri
-  ->  base_iri(Source, BaseIri),
+  ->  base_iri(Source, BaseIri, Opts),
       D2 = D1.put(_{'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri}})
   ;   Type1 == http_iri
-  ->  base_iri(Source, BaseIri),
+  ->  base_iri(Source, BaseIri, Opts),
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
       (   debugging(http(raw))
