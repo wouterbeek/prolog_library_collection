@@ -616,12 +616,8 @@ unreserved(0'~) --> "~".
 % URI-reference = URI / relative-ref
 % ```
 
-'URI-reference'(D2) -->
-  (   'URI'(D1)
-  ->  {D2 = D1.put(_{'rdf:type': 'llo:URI'})}
-  ;   'relative-ref'(D1)
-  ->  {D2 = D1.put(_{'rdf:type': 'llo:relative-ref'})}
-  ).
+'URI-reference'(D) --> 'URI'(D), !.
+'URI-reference'(D) --> 'relative-ref'(D).
 
 
 
