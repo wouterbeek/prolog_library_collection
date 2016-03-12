@@ -11,7 +11,7 @@
     get_dict/4,                   % +Key, +Dict, -Value, +Default
     has_dict_key/2,               % +Dict, +Key
     is_empty_dict/1,              % @Term
-    merge_dict/3,                 % +Dict1, +Dict2, -Dict
+    merge_dict/3,                 % +Dict1, +Dict2, -Dict3
     print_dict/1,                 % +Dict
     print_dict/2                  % +Dict, +Indent
   ]
@@ -21,7 +21,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01
+@version 2015/08-2015/11, 2016/01, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -130,19 +130,21 @@ is_empty_dict(D):-
 
 
 
-%! merge_dict(+Dict1, +Dict2, -Dict) is det.
+%! merge_dict(+Dict1, +Dict2, -Dict3) is det.
 % Merges two dictionaries into one new dictionary.
-% If Dict1 and Dict2 contain the same key then the value from Dict1 is used.
-% If Dict1 and Dict2 do not have the same tag then the tag of Dict1 is used.
+% If Dict1 and Dict2 contain the same key then the value from Dict2 is used.
+% If Dict1 and Dict2 do not have the same tag then the tag of Dict2 is used.
 
-merge_dict(D1, D2, D):-
+merge_dict(D1, D2, D3):-
   dict_pairs(D1, Tag1, Ps1),
-  dict_pairs(D2, Tag2, Ps2Dupl),
-  pairs_keys(Ps1, Ks1),
-  exclude([K]>>memberchk(K, Ks1), Ps2Dupl, Ps2),
-  append(Ps1, Ps2, Ps),
-  (Tag1 = Tag2 -> true ; Tag = Tag1),
-  dict_pairs(D, Tag, Ps).
+  dict_pairs(D2, Tag2, Ps2),
+  dict_keys(D2, Keys2),
+  exclude(key_in_keys0(Keys2), Ps1, OnlyPs1),
+  append(OnlyPs1, Ps2, Ps3),
+  (Tag1 = Tag2 -> true ; Tag3 = Tag2),
+  dict_pairs(D3, Tag3, Ps3).
+
+key_in_keys0(Keys, Key-_) :- memberchk(Key, Keys).
 
 
 
