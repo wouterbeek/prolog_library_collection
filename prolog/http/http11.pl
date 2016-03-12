@@ -944,10 +944,10 @@ expect("100-continue") --> atom_ci('100-continue').
 % field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
-'field-content'(Key_3, D) -->
+'field-content'(Mod:Key_3, D) -->
   (   {current_predicate(Key_3/3)}
   ->  (   % Valid value.
-          dcg_call(Key_3, Value),
+          dcg_call(Mod:Key_3, Value),
           'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
