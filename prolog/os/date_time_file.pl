@@ -1,13 +1,10 @@
 :- module(
   date_time_file,
   [
-    create_date_directory/1, % -Dir
     create_date_directory/2, % +Spec, -Dir
-    create_datetime_file/1,  % -File
     create_datetime_file/2,  % +Spec, -File
     is_older_file/2,         % +Path1, +Path2
     is_younger_file/2,       % +Path1, +Path2
-    latest_datetime_file/1,  % -File
     latest_datetime_file/2   % +Spec, -File
   ]
 ).
@@ -15,7 +12,7 @@
 /** <module> Date-time file support
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/12, 2016/02
+@version 2015/07, 2015/10-2015/12, 2016/02-2016/03
 */
 
 :- use_module(library(apply)).
@@ -28,14 +25,7 @@
 
 
 
-%! create_date_directory(-Directory:atom) is det.
-% Wrapper around create_date_directory/2 using `.' as the parent directory.
-
-create_date_directory(Dir):-
-  create_date_directory(., Dir).
-
-
-%! create_date_directory(+Spec:compound, -Directory:atom) is det.
+%! create_date_directory(+Spec:compound, -Directory) is det.
 % Create and return the current date subdirectory of the given absolute
 % directory name.
 %
@@ -53,14 +43,7 @@ create_date_directory(Spec, Dir):-
 
 
 
-%! create_date_time_file(-File:atom) is det.
-% Wrapper around datetime_file/2 using `.' as the parent directory.
-
-create_date_time_file(File):-
-  create_date_time_file(., File).
-
-
-%! create_date_time_file(+Spec:compound, -File:atom) is det.
+%! create_date_time_file(+Spec:compound, -File) is det.
 
 create_date_time_file(Spec, File):-
   create_date_directory(Spec, Dir),
@@ -73,14 +56,14 @@ create_date_time_file(Spec, File):-
 
 
 
-%! is_older_file(+Path1:atom, +Path2:atom) is semidet.
+%! is_older_file(+Path1, +Path2) is semidet.
 
 is_older_file(Path1, Path2):-
   is_younger_file(Path2, Path1).
 
 
 
-%! is_younger_file(+Path1:atom, +Path2:atom) is semidet.
+%! is_younger_file(+Path1, +Path2) is semidet.
 % Succeeds if the file denoted by Path1 is younger than
 % the file denoted by Path2.
 
@@ -91,14 +74,7 @@ is_younger_file(Path1, Path2):-
 
 
 
-%! latest_date_time_file(-File:atom) is det.
-% Wrapper around latest_date_time_file/2 using `.' as the parent directory.
-
-latest_date_time_file(Latest):-
-  latest_date_time_file(., Latest).
-
-
-%! latest_date_time_file(+Spec:compound, -File:atom) is det.
+%! latest_date_time_file(+Spec, -File) is det.
 
 latest_date_time_file(Spec, Latest):-
   absolute_file_name(Spec, Dir, [access(read),file_type(directory)]),
