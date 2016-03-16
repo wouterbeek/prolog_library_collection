@@ -40,6 +40,8 @@
 create_thread_counter(Name):-
   (   thread_counter(Name, _)
   ->  throw(error(thread_counter_exists(Name), 'Thread-local counter already exists.'))
+      %%%%delete_thread_counter(Name),%%%%HACK
+      %%%%create_thread_counter(Name)%%%%HACK
   ;   assert(thread_counter(Name,0))
   ).
 
@@ -52,13 +54,13 @@ delete_thread_counter(Name):-
   delete_thread_counter(Name, _).
 
 
-%! delete_thread_counter(+Name:compound, -Value) is nondet.
+%! delete_thread_counter(+Name:compound, -Integer) is nondet.
 % Remove the counter(s) with the given name.
 %
 % @throws existence_error If no counter with the given name exists.
 
-delete_thread_counter(Name, V):-
-  thread_counter(Name, V), !,
+delete_thread_counter(Name, I):-
+  thread_counter(Name, I), !,
   retractall(thread_counter(Name,_)).
 delete_thread_counter(Name, _):-
   existence_error(thread_counter, Name).

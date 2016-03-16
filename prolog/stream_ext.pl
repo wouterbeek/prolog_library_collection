@@ -1,19 +1,27 @@
 :- module(
   stream_ext,
   [
-    stream_metadata/2 % +Stream, -Metadata
+    exists_stream_alias/1, % +Alias
+    stream_metadata/2      % +Stream, -Metadata
   ]
 ).
 
 /** <module> Stream extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01
+@version 2015/10, 2016/01, 2016/03
 */
 
 :- use_module(library(dict_ext)).
 
 
+
+
+
+%! exists_stream_alias(+Alias) is det.
+
+exists_stream_alias(Alias) :-
+  stream_property(_, alias(Alias)).
 
 
 
