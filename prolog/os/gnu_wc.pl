@@ -1,17 +1,14 @@
 :- module(
   gnu_wc,
   [
-    file_lines/2 % +File:atom
-                 % -NumberOfLines:nonneg
+    file_lines/2 % +File, -NoLines
   ]
 ).
 
 /** <module> GNU word count
 
-Prolog API to GNU word count.
-
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2016/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -22,7 +19,7 @@ Prolog API to GNU word count.
 
 
 
-%! file_lines(+File:atom, -NumberOfLines:nonneg) is det.
+%! file_lines(+File, -NoLines) is det.
 % @tbd Use phrase_from_stream/2.
 
 file_lines(File, N):-
