@@ -1,6 +1,7 @@
 :- module(
   compress_ext,
   [
+    compress_file/1, % +From
     compress_file/2, % +From, +Compress
     compress_file/3  % +From, +Compress, +To
   ]
@@ -19,12 +20,17 @@
 
 
 
+%! compress_file(+From) is det.
 %! compress_file(+From, +Compress) is det.
 %! compress_file(+From, +Compress, +To) is det.
 % The following values are supported for Compress:
 %   - `deflate’
-%   - `gzip’
+%   - `gzip’ (default)
 %   - `none’
+
+compress_file(From) :-
+  compress_file(From, gzip).
+
 
 compress_file(From, Compress) :-
   thread_file(From, Tmp),
