@@ -10,6 +10,7 @@
     print_thread/1,              % +Name
     print_threads/0,
     thread_name/1,               % -Name
+    threadsafe_alias/2,          % +Alias, -TAlias
     threadsafe_format/3,         % +Alias, +Format, +Args
     threadsafe_name/2            % +Name1, -Name2
   ]
@@ -23,7 +24,6 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(error)).
 :- use_module(library(msg_ext)).
 :- use_module(library(stream_ext)).
 
@@ -127,9 +127,14 @@ thread_name(Name) :-
 
 
 
-threadsafe_format(Alias, Format, Args) :-
+threadsafe_alias(Alias, TAlias) :-
   threadsafe_name(Alias, TAlias),
-  (exists_stream_alias(TAlias) -> true ; existence_error(alias, TAlias)),
+  exists_stream_alias(TAlias).
+
+
+
+threadsafe_format(Alias, Format, Args) :-
+  threadsafe_alias(Alias, TAlias),
   format(TAlias, Format, Args).
 
 
