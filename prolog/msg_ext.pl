@@ -25,7 +25,7 @@ Prints messages for the user.
 @version 2015/10-2015/11, 2016/01-2016/02
 */
 
-:- use_module(library(ansi_term)).
+:- use_module(library(ansi_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(http/http_ext)).
@@ -56,7 +56,7 @@ msg_emphasis(Format):-
 % Prints an emphasized message, using ANSI properties.
 
 msg_emphasis(Format, Args):-
-  ansi_format([italic], Format, Args).
+  ansi_format(user_outut, [italic], Format, Args).
 
 
 
@@ -71,7 +71,7 @@ msg_normal(Format):-
 % Prints a normal messages, using no ANSI properties.
 
 msg_normal(Format, Args):-
-  ansi_format([], Format, Args).
+  ansi_format(user_output, [], Format, Args).
 
 
 
@@ -86,7 +86,7 @@ msg_notification(Format):-
 % Prints a notification message, using ANSI properties.
 
 msg_notification(Format, Args):-
-  ansi_format([bold,fg(yellow)], Format, Args).
+  ansi_format(user_output, [bold,fg(yellow)], Format, Args).
 
 
 
@@ -101,7 +101,7 @@ msg_success(Format):-
 % Prints a success message, using ANSI properties.
 
 msg_success(Format, Args):-
-  ansi_format([bold,fg(green)], Format, Args).
+  ansi_format(user_output, [bold,fg(green)], Format, Args).
 
 
 
@@ -116,7 +116,7 @@ msg_warning(Format):-
 % Prints a warnings message, using ANSI properties.
 
 msg_warning(Format, Args):-
-  ansi_format([bold,fg(red)], Format, Args).
+  ansi_format(user_error, [bold,fg(red)], Format, Args).
 
 
 

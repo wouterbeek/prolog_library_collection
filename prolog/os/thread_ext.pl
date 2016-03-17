@@ -2,25 +2,29 @@
   thread_ext,
   [
     attached_thread/1,           % :Goal_0
-    default_number_of_threads/1, % ?NumberOfThreads:positive_integer
+    default_number_of_threads/1, % ?NumberOfThreads
     detached_thread/1,           % :Goal_0
     intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
     intermittent_thread/4,       % :Goal_0, :EndGoal_0, +Interval, +Opts
     print_thread/0,
-    print_thread/1,              % +Name:atom
+    print_thread/1,              % +Name
     print_threads/0,
-    thread_name/1                % -Name:atom
+    thread_name/1,               % -Name
+    threadsafe_format/3,         % +Alias, +Format, +Args
+    threadsafe_name/2            % +Name1, -Name2
   ]
 ).
 
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01-2016/02
+@version 2015/10, 2016/01-2016/03
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(error)).
+:- use_module(library(msg_ext)).
 
 :- meta_predicate
     attached_thread(0),
@@ -119,6 +123,19 @@ thread_name(Name) :-
   thread_property(Id, alias(Name)), !.
 thread_name(Name) :-
   thread_self(Name).
+
+
+
+threadsafe_format(Alias, Format, Args) :-
+  threadsafe_name(Alias, TAlias),
+  (exists_stream_alias(TAlias) -> true ; existence_error(alias, TAlias)),
+  format(TAlias, Format, Args).
+
+
+
+threadsafe_name(Name1, Name2) :-
+  thread_name(Name0),
+  atomic_list_concat([Name0,Name1], Name2).
 
 
 
