@@ -1098,10 +1098,10 @@ from(D) --> mailbox(D).
 % ```
 
 'header-field'(Key3-D) -->
-  'field-name'(Key2), {atom_string(Key1, Key2)},
+  'field-name'(Key1), {atom_string(Key2, Key1)},
   ":", 'OWS',
-  rest(Cs), {'field-value'(Cs, Key1, D)},
-  {atomic_list_concat([llo,Key1], :, Key3)}.
+  rest(Cs), {'field-value'(Cs, Key2, D)},
+  {atomic_list_concat([llo,Key2], :, Key3)}.
 
 
 

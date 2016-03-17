@@ -193,7 +193,7 @@ call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M1, Opts1) :-
   maplist(jsonld_metadata, MEntry1, MEntry2),
   (   MEntry2 = [MEntryH|_],
       atom_string(Entry, MEntryH.'llo:name')
-  ->  M2 = M1.put(_{'llo:archive_entry': MEntry2}),
+  ->  M2 = M1.put(_{'llo:archive_entry': _{'@list': MEntry2}}),
       call_cleanup(call(Goal_2, M2, Read), close(Read))
   ;   close(Read),
       fail

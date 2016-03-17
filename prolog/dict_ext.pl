@@ -6,6 +6,7 @@
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedDict
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedDict
     dict_pairs/2,                 % ?Dict, ?Pairs
+    dict_put_pairs/3,             % +Dict1, +Pairs, -Dict2
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
     dict_tag/3,                   % +Dict1, +Tag, ?Dict2
     get_dict/4,                   % +Key, +Dict, -Value, +Default
@@ -83,6 +84,15 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 
 dict_pairs(D, L):-
   dict_pairs(D, _, L).
+
+
+
+%! dict_put_pairs(+Dict1, +Pairs, -Dict2) is det.
+
+dict_put_pairs(D1, L, D2) :-
+  dict_pairs(D1, L1),
+  append(L1, L, L2),
+  dict_pairs(D2, L2).
 
 
 

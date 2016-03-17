@@ -14,12 +14,13 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2016/02
+@version 2015/10-2016/03
 */
 
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
 :- use_module(library(date_time/date_time)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_ext)).
@@ -32,6 +33,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(msg_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(ssl)). % SSL support.
+:- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
@@ -223,22 +225,19 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(status_code(Status), Opts),
       option(time(Time), Opts),
       option(version(Major-Minor), Opts),
-      maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, L0),
-      create_grouped_sorted_dict(L0, D01),
-      D02 = D1.put(_{
+      string_list_concat([Major,Minor], ":", Version),
+      maplist(http_header0, Lines, Pairs),
+      D0 = D1.put(_{
         'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri},
         'llo:final_iri': _{'@type': 'xsd:anyURI', '@value': FinalIri},
         'llo:status_code': Status,
-        'llo:time': _{'@type': 'xsd:float', '@value': Time},
-        'llo:version': _{
-          '@type': 'llo:Version',
-          'llo:major': _{'@type': 'xsd:nonNegativeInteger', '@value': Major},
-          'llo:minor': _{'@type': 'xsd:nonNegativeInteger', '@value': Minor}
-        }
+        'llo:time': Time,
+        'llo:version': Version
       }),
-      D2 = D02.put(D01)
+      dict_put_pairs(D0, Pairs, D2)
   ;   D2 = D1
   ),
+  print_dict(D2),
   atomic_list_concat([llo,Mode1], :, Mode2),
   D3 = D2.put(_{'llo:mode': Mode2}),
   (   write_mode(Mode1),
@@ -246,6 +245,19 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   ->  D4 = D3.put(_{'llo:compression': Comp})
   ;   D4 = D3
   ).
+
+http_header0(Line, Key-Value) :-
+  phrase(http_header0(Key, Value), Line).
+
+http_header0(Key3, Val2) -->
+  http11:'field-name'(Key1),
+  ":", http11:'OWS',
+  rest(Val1),
+  {
+    atom_codes(Key2, Key1),
+    atomic_list_concat([llo,Key2], :, Key3),
+    string_codes(Val2, Val1)
+  }.
 
 
 
