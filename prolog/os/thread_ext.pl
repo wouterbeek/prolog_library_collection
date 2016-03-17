@@ -25,6 +25,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(msg_ext)).
+:- use_module(library(stream_ext)).
 
 :- meta_predicate
     attached_thread(0),
