@@ -164,9 +164,9 @@ verbose0(Goal_0, Format, Args):-
   ->  (   var(Error)
       ->  get_time(End),
           Delta is End - Start,
-          msg_success("~`.t success (~2f sec.)~72|", [Delta])
+          msg_success("~`.t success (~2f sec.)~72|~n", [Delta])
       ;   message_to_string(Error, String),
-          msg_warning("~`.t ERROR: ~w~72|", [String])
+          msg_warning("~`.t ERROR: ~w~72|~n", [String])
       )
-  ;   msg_warning("~`.t ERROR: (failed)~72|")
+  ;   msg_warning("~`.t ERROR: (failed)~72|~n")
   ).

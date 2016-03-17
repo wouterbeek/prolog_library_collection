@@ -197,7 +197,7 @@ http_error_message(Iri, Status, Lines, Read) :-
     "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n",
     [Status,Label,Iri]
   ),
-  print_dict(M, 2),
+  with_output_to(user_error, print_dict(M, 2)),
   nl(user_error),
   format(user_error, "  Message content:~n", []),
   copy_stream_data(Read, user_error),
@@ -237,7 +237,6 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       dict_put_pairs(D0, Pairs, D2)
   ;   D2 = D1
   ),
-  print_dict(D2),
   atomic_list_concat([llo,Mode1], :, Mode2),
   D3 = D2.put(_{'llo:mode': Mode2}),
   (   write_mode(Mode1),
