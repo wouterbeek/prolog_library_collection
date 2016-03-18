@@ -89,7 +89,7 @@ dict_inc(Dict, Key) :-
 
 
 dict_inc(Dict, Key, Val) :-
-  dict_inc(Dict, Key, 1, Value).
+  dict_inc(Dict, Key, 1, Val).
 
 
 dict_inc(Dict, Key, Diff, Val2) :-
