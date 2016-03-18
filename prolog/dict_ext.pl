@@ -5,8 +5,9 @@
     create_dict/3,                % +Pairs, +Tag, -Dict
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedDict
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedDict
-    dict_inc/2,                   % +Dict, +Key
-    dict_inc/3,                   % +Dict, +Key, +Value
+    dict_inc/2,                   % +Key, +Dict
+    dict_inc/3,                   % +Key, +Dict, -Value
+    dict_inc/4,                   % +Key, +Dict, +Diff, -Value
     dict_pairs/2,                 % ?Dict, ?Pairs
     dict_put_pairs/3,             % +Dict1, +Pairs, -Dict2
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
@@ -80,19 +81,19 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 
 
 
-%! dict_inc(+Dict, +Key) is det.
-%! dict_inc(+Dict, +Key, -Value) is det.
-%! dict_inc(+Dict, +Key, +Diff, -Value) is det.
+%! dict_inc(+Key, +Dict) is det.
+%! dict_inc(+Key, +Dict, -Value) is det.
+%! dict_inc(+Key, +Dict, +Diff, -Value) is det.
 
-dict_inc(Dict, Key) :-
-  dict_inc(Dict, Key, _).
-
-
-dict_inc(Dict, Key, Val) :-
-  dict_inc(Dict, Key, 1, Val).
+dict_inc(Key, Dict) :-
+  dict_inc(Key, Dict, _).
 
 
-dict_inc(Dict, Key, Diff, Val2) :-
+dict_inc(Key, Dict, Val) :-
+  dict_inc(Key, Dict, 1, Val).
+
+
+dict_inc(Key, Dict, Diff, Val2) :-
   get_dict(Key, Dict, Val1),
   Val2 is Val1 + Diff,
   nb_set_dict(Key, Dict, Val2).
