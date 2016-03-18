@@ -24,9 +24,9 @@
 %! compress_file(+From, +Compress) is det.
 %! compress_file(+From, +Compress, +To) is det.
 % The following values are supported for Compress:
-%   - `deflate’
-%   - `gzip’ (default)
-%   - `none’
+%   - `deflate'
+%   - `gzip' (default)
+%   - `none'
 
 compress_file(From) :-
   compress_file(From, gzip).
