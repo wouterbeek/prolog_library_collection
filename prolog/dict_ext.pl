@@ -1,23 +1,25 @@
 :- module(
   dict_ext,
   [
-    atomize_dict/2,               % +Dict, -AtomizedDict
-    create_dict/3,                % +Pairs, +Tag, -Dict
+    atomize_dict/2,         % +Dict, -AtomizedDict
+    create_dict/3,          % +Pairs, +Tag, -Dict
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedDict
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedDict
-    dict_inc/2,                   % +Key, +Dict
-    dict_inc/3,                   % +Key, +Dict, -Value
-    dict_inc/4,                   % +Key, +Dict, +Diff, -Value
-    dict_pairs/2,                 % ?Dict, ?Pairs
-    dict_put_pairs/3,             % +Dict1, +Pairs, -Dict2
+    dict_has_key/2,         % +Key, +Dict
+    dict_inc/2,             % +Key, +Dict
+    dict_inc/3,             % +Key, +Dict, -Value
+    dict_inc/4,             % +Key, +Dict, +Diff, -Value
+    dict_pairs/2,           % ?Dict, ?Pairs
+    dict_put_pairs/3,       % +Dict1, +Pairs, -Dict2
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
-    dict_tag/3,                   % +Dict1, +Tag, ?Dict2
-    get_dict/4,                   % +Key, +Dict, -Value, +Default
-    has_dict_key/2,               % +Dict, +Key
-    is_empty_dict/1,              % @Term
-    merge_dict/3,                 % +Dict1, +Dict2, -Dict3
-    print_dict/1,                 % +Dict
-    print_dict/2                  % +Dict, +Indent
+    dict_tag/3,             % +Dict1, +Tag, ?Dict2
+    get_dict/4,             % +Key, +Dict, -Value, +Default
+    is_empty_dict/1,        % @Term
+    merge_dict/3,           % +Dict1, +Dict2, -Dict3
+    mod_dict/4,             % +Key, +Dict1,           -Value, -Dict2
+    mod_dict/5,             % +Key, +Dict1, +Default, -Value, -Dict2
+    print_dict/1,           % +Dict
+    print_dict/2            % +Dict, +Indent
   ]
 ).
 :- reexport(library(dicts)).
@@ -78,6 +80,13 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
+
+
+
+%! dict_has_key(+Key, +Dict) is semidet.
+
+dict_has_key(Key, Dict) :-
+  get_dict(Key, Dict, _).
 
 
 
@@ -146,13 +155,6 @@ get_dict(_, _, Def, Def).
 
 
 
-%! has_dict_key(+Dict, +Key) is semidet.
-
-has_dict_key(Dict, Key) :-
-  get_dict(Key, Dict, _).
-
-
-
 %! is_empty_dict(@Term) is semidet.
 
 is_empty_dict(D):-
@@ -177,6 +179,21 @@ merge_dict(D1, D2, D3):-
   dict_pairs(D3, Tag3, Ps3).
 
 key_in_keys0(Keys, Key-_) :- memberchk(Key, Keys).
+
+
+
+%! mod_dict(+Key, +Dict1, -Value, -Dict2) is det.
+
+mod_dict(Key, Dict1, Val, Dict2) :-
+  dict_has_key(Key, Dict1),
+  del_dict(Key, Dict1, Val, Dict2).
+
+
+%! mod_dict(+Key, +Dict1, +Default, -Value, -Dict2) is det.
+
+mod_dict(Key, Dict1, _, Val, Dict2) :-
+  mod_dict(Key, Dict1, Val, Dict2), !.
+mod_dict(_, Dict, Def, Def, Dict). 
 
 
 

@@ -4,8 +4,6 @@
     relative_uri_path/3, % ?Uri:atom
                          % ?RelativeTo:atom
                          % ?RelativeUri:atom
-    uri_path/2, % +PathComponents:list
-                % -Path:atom
     uri_authority_directory/2, % +Uri:atom
                                % -Directory:atom
     uri_flat_directory/3, % +ParentDirectory:atom
@@ -79,30 +77,6 @@ relative_uri_path(Url, RelativeTo1, Relative1):-
   relative_file_path(Path, RelativeTo2, Relative2),
   uri_components(Url, uri_components(Scheme,Authority,Path,Search,Fragment)).
 
-
-
-%! uri_path(+PathComponents:list(atom), -Path:atom) is det.
-% Constructs absolute URI paths out of their constituent components.
-%
-% # Variable path components
-%
-% Path components are allowed to be variables.
-%
-% A sample usage of this is a variable `ApiVersion` which may or may not
-% be instantiated with the version number of an online API.
-%
-% Many Web services automatically resolve paths like [1] to paths like [2].
-% ```
-% [1]   /api/something
-% [2]   /api/default-version/something
-% ```
-
-uri_path(PathComponents1, Path):-
-  % Exclude the variable components.
-  exclude(var, PathComponents1, PathComponents2),
-
-  % A URI path is similar enough to a POSIX path.
-  directory_subdirectories(Path, PathComponents2).
 
 
 %! uri_authority_directory(+Url:atom, -Directory:atom) is det.
