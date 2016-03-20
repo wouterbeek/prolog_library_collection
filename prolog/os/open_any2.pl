@@ -143,10 +143,13 @@ http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
       option(time(Time), Opts2),
       must_be(ground, Status),
       (   is_http_error(Status)
-      ->  option(raw_headers(Headers), Opts2),
-          call_cleanup(
-            http_error_message(Iri, Status, Headers, Read2),
-            close(Read2)
+      ->  (   debugging(open_any2(http(error)))
+          ->  option(raw_headers(Headers), Opts2),
+              call_cleanup(
+                http_error_message(Iri, Status, Headers, Read2),
+                close(Read2)
+              )
+          ;   true
           ),
           M2 is M1 + 1,
           (   M2 =:= N
@@ -215,9 +218,9 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   ->  base_iri(Source, BaseIri, Opts),
       option(final_url(FinalIri), Opts),
       option(raw_headers(Lines), Opts),
-      (   debugging(http(raw))
-      ->  maplist(string_codes, Strings, Lines),
-          forall(member(String, Strings), debug(http(raw), "~s", [String]))
+      (   debugging(open_any2(http(raw)))
+      ->  maplist(string_codes, Ss, Lines),
+          forall(member(S, Ss), msg_notification("~s", [S]))
       ;   true
       ),
       option(status_code(Status), Opts),

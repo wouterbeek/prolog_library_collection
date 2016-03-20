@@ -13,6 +13,7 @@
     debug_verbose/3,            % +Flag, :Goal_0, +Format
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
+    dmon/0,
     if_debug/2,                 % ?Flag, :Goal_0
     number_of_open_files/1,     % -N
     pof/1,                      % :Goal_0
@@ -211,6 +212,10 @@ debug_verbose(Flag, Goal_0, Fragment, Args):-
 debug_with_output_to(Flag, Goal_0):-
   with_output_to(atom(A), Goal_0),
   debug(Flag, '~a', [A]).
+
+
+
+dmon:- prolog_ide(debug_monitor).
 
 
 
