@@ -30,8 +30,8 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(lists)).
-:- use_module(library(msg_ext)).
 :- use_module(library(pair_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
@@ -197,8 +197,7 @@ http_error_message(Iri, Status, Lines, Read) :-
     "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n",
     [Status,Label,Iri]
   ),
-  with_output_to(user_error, print_dict(M, 2)),
-  nl(user_error),
+  with_output_to(user_error, print_dict(M, [indent(2)])),
   format(user_error, "  Message content:~n", []),
   copy_stream_data(Read, user_error),
   nl(user_error).

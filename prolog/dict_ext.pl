@@ -17,9 +17,7 @@
     is_empty_dict/1,        % @Term
     merge_dict/3,           % +Dict1, +Dict2, -Dict3
     mod_dict/4,             % +Key, +Dict1,           -Value, -Dict2
-    mod_dict/5,             % +Key, +Dict1, +Default, -Value, -Dict2
-    print_dict/1,           % +Dict
-    print_dict/2            % +Dict, +Indent
+    mod_dict/5              % +Key, +Dict1, +Default, -Value, -Dict2
   ]
 ).
 :- reexport(library(dicts)).
@@ -194,15 +192,3 @@ mod_dict(Key, Dict1, Val, Dict2) :-
 mod_dict(Key, Dict1, _, Val, Dict2) :-
   mod_dict(Key, Dict1, Val, Dict2), !.
 mod_dict(_, Dict, Def, Def, Dict). 
-
-
-
-%! print_dict(+Dict) is det.
-%! print_dict(+Dict, +Indent) is det.
-
-print_dict(D):-
-  print_dict(D, 0).
-
-print_dict(D, I):-
-  dcg_with_output_to(user_output, pl_term(D, I)),
-  flush_output(user_output).

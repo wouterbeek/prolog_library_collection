@@ -39,9 +39,9 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(lists)).
-:- use_module(library(msg_ext)).
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
+:- use_module(library(print_ext)).
 :- use_module(library(swi_ide)).
 :- use_module(library(thread)).
 
@@ -190,19 +190,19 @@ debug_maplist0(Flag, Goal_1, [H|T], Len1, Len) :-
 %! debug_verbose(+Flag, :Goal_0) is det.
 
 debug_verbose(Flag, Goal_0):-
-  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0)).
+  debug_with_output_to(Flag, verbose(Goal_0)).
 
 
 %! debug_verbose(+Flag, :Goal_0, +Fragment) is det.
 
 debug_verbose(Flag, Goal_0, Fragment):-
-  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0, Fragment)).
+  debug_with_output_to(Flag, verbose(Goal_0, Fragment)).
 
 
 %! debug_verbose(+Flag, :Goal_0, +Fragment, +Args) is det.
 
 debug_verbose(Flag, Goal_0, Fragment, Args):-
-  debug_with_output_to(Flag, msg_ext:verbose0(Goal_0, Fragment, Args)).
+  debug_with_output_to(Flag, verbose(Goal_0, Fragment, Args)).
 
 
 

@@ -1,4 +1,3 @@
-:- use_module(library(ansi_ext)).
 :- use_module(library(assoc_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(char_ext)).
@@ -22,7 +21,6 @@
   :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_list)).
-  :- use_module(library(dcg/dcg_msg)).
   :- use_module(library(dcg/dcg_option)).
   :- use_module(library(dcg/dcg_peek)).
   :- use_module(library(dcg/dcg_pl)).
@@ -108,7 +106,6 @@
   :- use_module(library(math/radconv)).
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
-:- use_module(library(msg_ext)).
 %/nlp
   :- use_module(library(nlp/nlp_dictionary)).
   :- use_module(library(nlp/nlp_emoticon)).

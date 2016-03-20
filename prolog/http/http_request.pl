@@ -21,10 +21,10 @@ posing an alternative to library(http/http_client).
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dict_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_json)). % JSON support.
 :- use_module(library(option)).
+:- use_module(library(print_ext)).
 :- use_module(library(os/open_any2)).
 
 :- meta_predicate

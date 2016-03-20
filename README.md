@@ -11,11 +11,12 @@ We use the following abbreviations for often occurring variable names:
 |:-----------------:|:-------------:|
 | A                 | Atom          |
 | Arg               | Argument      |
+| Attr              | Attribute     |
 | C                 | Code          |
 | Char              | Character     |
 | D                 | Digit         |
-| Dcg               | Definite Clause Grammar goal |
 | Def               | Default       |
+| E                 | Error         |
 | Frac              | Fractional    |
 | H                 | Head          |
 | I                 | Integer       |
@@ -23,7 +24,7 @@ We use the following abbreviations for often occurring variable names:
 | Max               | Maximum       |
 | Min               | Minimum       |
 | N                 | Number        |
-| No$X$s            | NumberOf$X$s  |
+| Num$X$s           | NumberOf$X$s  |
 | Opt               | Options       |
 | S                 | String        |
 | Sep               | Separator     |

@@ -19,9 +19,9 @@
 */
 
 :- use_module(library(debug_ext)).
-:- use_module(library(dict_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(print_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -149,8 +149,7 @@ archive_info(Source) :-
   archive_info(Source, []).
 
 archive_info(Source, Opts) :-
-  option(indent(I), Opts, 0),
-  call_on_archive(Source, [M,_Arch]>>print_dict(M, I), Opts).
+  call_on_archive(Source, [M,_]>>print_dict(M, Opts), Opts).
 
 
 

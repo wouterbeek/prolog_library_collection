@@ -19,7 +19,7 @@
 :- use_module(library(aggregate)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
-:- use_module(library(msg_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(solution_sequences)).
 
 %:- debug(pool(add)).
@@ -126,7 +126,7 @@ print_pool(Pool):-
   aggregate_all(count, pool(Pool, _), NPool),
   aggregate_all(count, pooling(Pool, _), NPooling),
   aggregate_all(count, pooled(Pool, _), NPooled),
-  msg_normal(
+  format(
     "Pool ~w:~n  Pending: ~D~n  Processing: ~D~n  Processed: ~D~n",
     [Pool,NPool,NPooling,NPooled]
   ).
