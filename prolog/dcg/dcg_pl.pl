@@ -2,6 +2,7 @@
   dcg_pl,
   [
     date_time//1,       % +DT
+    dict//2,            % +Dict, +Indent
     predicate//1,       % +Predicate
     stream_position//1, % +Pos
     term//1,            % @Term

@@ -33,6 +33,7 @@ Additional predicates for printing.
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(settings)).
 
@@ -55,6 +56,37 @@ Additional predicates for printing.
 
 
 %! ansi_format(+Sink, +Attrs, +Format, +Args) is det.
+% The following attributes are supported:
+%   - bg(+atom)
+%   - blink(slow)
+%   - blink(rapid)
+%   - `bold`
+%   - `conceal`
+%   - `crossed_out`
+%   - `encircled`
+%   - `faint`
+%   - fg(+atom)
+%   - font(primary)
+%   - font(+between(1,8))
+%   - `fraktur`
+%   - `framed`
+%   - hbg(+atom)
+%   - hfg(+atom)
+%   - ideogram(overlined)
+%   - ideogram(stress_marking)
+%   - ideogram(underline)
+%   - ideogram(underline(double))
+%   - intensity(normal)
+%   - `italic`
+%   - `left_side_line`
+%   - `negative`
+%   - `overlined`
+%   - `reset`
+%     Turn all attributes off.
+%   - `right_side_line`
+%   - right_side_line(double)
+%   - `underline`
+%   - underline(double)
 
 ansi_format(Sink, Attrs, Format, Args) :-
   with_output_to(Sink, ansi_format(Attrs, Format, Args)).
@@ -66,13 +98,13 @@ ansi_format(Sink, Attrs, Format, Args) :-
 %! formatln(+Write, +Format, +Args) is det.
 % Variants of format/[1-3] with a newline appended.
 
-formatln(Format):-
+formatln(Format) :-
   format(Format), nl.
 
-formatln(Format, Args):-
+formatln(Format, Args) :-
   format(Format, Args), nl.
 
-formatln(Write, Format, Args):-
+formatln(Write, Format, Args) :-
   format(Write, Format, Args),
   nl(Write).
 
@@ -93,11 +125,11 @@ indent(N1) :-
 %! msg_notification(+Format, +Args) is det.
 % Prints a notification message, using ANSI properties.
 
-msg_notification(Format):-
+msg_notification(Format) :-
   msg_notification(Format, []).
 
 
-msg_notification(Format, Args):-
+msg_notification(Format, Args) :-
   ansi_format(user_output, [bold,fg(yellow)], Format, Args).
 
 
@@ -106,11 +138,11 @@ msg_notification(Format, Args):-
 %! msg_success(+Format, +Args) is det.
 % Prints a success message, using ANSI properties.
 
-msg_success(Format):-
+msg_success(Format) :-
   msg_success(Format, []).
 
 
-msg_success(Format, Args):-
+msg_success(Format, Args) :-
   ansi_format(user_output, [bold,fg(green)], Format, Args).
 
 
@@ -119,11 +151,11 @@ msg_success(Format, Args):-
 %! msg_warning(+Format, +Args) is det.
 % Prints a warnings message, using ANSI properties.
 
-msg_warning(Format):-
+msg_warning(Format) :-
   msg_warning(Format, []).
 
 
-msg_warning(Format, Args):-
+msg_warning(Format, Args) :-
   ansi_format(user_error, [bold,fg(red)], Format, Args).
 
 
@@ -131,13 +163,13 @@ msg_warning(Format, Args):-
 %! print_dict(+Dict) is det.
 %! print_dict(+Dict, +Opts) is det.
 
-print_dict(D):-
+print_dict(D) :-
   print_dict(D, []).
 
 
-print_dict(D, Opts):-
+print_dict(D, Opts) :-
   option(indent(I), Opts, 1),
-  dcg_with_output_to(current_output, term(D, I)),
+  dcg_with_output_to(current_output, dict(D, I)),
   nl.
 
 
@@ -145,11 +177,11 @@ print_dict(D, Opts):-
 %! print_table(+Rows) is det.
 %! print_table(+Rows, :Opts) is det.
 
-print_table(Rows):-
+print_table(Rows) :-
   print_table(Rows, []).
 
 
-print_table(Rows, Opts):-
+print_table(Rows, Opts) :-
   dcg_with_output_to(current_output, dcg_table(Rows, Opts)).
 
 
@@ -167,16 +199,16 @@ tab:-
 %! verbose(:Goal_0, +Format, +Args) is det.
 % Verbose calling of Goal_0.
 
-verbose(Goal_0):-
+verbose(Goal_0) :-
   term_string(Goal_0, Format),
   verbose(Goal_0, Format).
 
 
-verbose(Goal_0, Format):-
+verbose(Goal_0, Format) :-
   verbose(Goal_0, Format, []).
 
 
-verbose(Goal_0, Format, Args):-
+verbose(Goal_0, Format, Args) :-
   get_time(Start),
   format(Format, Args),
   (   catch(Goal_0, E, true)

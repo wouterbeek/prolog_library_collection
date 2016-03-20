@@ -21,6 +21,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(debug_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_ext)).
@@ -30,6 +31,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(option_ext)).
 :- use_module(library(iostream)).
 :- use_module(library(lists)).
+:- use_module(library(os/io_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(ssl)). % SSL support.
@@ -190,17 +192,14 @@ base_iri(File, BaseIri, Opts) :-
 
 http_error_message(Iri, Status, Lines, Read) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
-  create_grouped_sorted_dict(Headers, http_headers, M),
+  create_grouped_sorted_dict(Headers, http_headers, MHeaders),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
-  format(
-    user_error,
-    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n",
-    [Status,Label,Iri]
-  ),
-  with_output_to(user_error, print_dict(M, [indent(2)])),
-  format(user_error, "  Message content:~n", []),
-  copy_stream_data(Read, user_error),
-  nl(user_error).
+  dcg_with_output_to(string(S1), dict(MHeaders, 2)),
+  read_input_to_string(Read, S2),
+  msg_warning(
+    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
+    [Status,Label,Iri,S1,S2]
+  ).
 
 
 
