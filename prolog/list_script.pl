@@ -1,9 +1,7 @@
 :- module(
   list_script,
   [
-    list_script/3 % :Goal_1
-                  % +Todo:list
-                  % +Options:list(compound)
+    list_script/3 % :Goal_1, +Todo:list, +Opts
   ]
 ).
 
@@ -30,14 +28,15 @@ Also keeps track of items that could not be processed.
      with_mutex(+boolean)
    ]).
 
-:- meta_predicate(list_script(1,+,+)).
-:- meta_predicate(list_script(1,+,+,+,-,-,?)).
+:- meta_predicate
+    list_script(1, +, +),
+    list_script(1, +, +, +, -, -, ?).
 
 
 
 
 
-%! list_script(:Goal_1, +Todo:list, +Options:list(compound)) is det.
+%! list_script(:Goal_1, +Todo:list, +Opts) is det.
 % Processes the items in `Todo` using the given goal
 % and places the items either in the `Done` or in the `NotDone` list.
 % The `Done` list can be pre-instantiated.
@@ -116,10 +115,10 @@ list_script(Goal_1, Msg, counter(M0,N), [X|Todo], Done, [X|NotDone], Mutex):-
 % DEBUG %
 
 counter(counter(M,N)) -->
-  "[", thousands_integer(M), "/", thousands_integer(N), "]".
+  "[", thousands(M), "/", thousands(N), "]".
 
 enumerate_item(X) -->
-  "  - ", pl_term(X).
+  "  - ", term(X).
 
 'enumerate_item*'([H|T]) --> enumerate_item(H), 'enumerate_item*'(T).
 'enumerate_item*'([]) --> "".

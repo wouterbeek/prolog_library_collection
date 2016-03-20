@@ -30,7 +30,6 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(list_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(yall)).

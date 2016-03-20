@@ -1,16 +1,11 @@
 :- module(
   process_ext,
   [
-    renice/2, % +Pid:positive_integer
-              % +Nice:between(-20,19)
-    run_jar/2, % +Jar, +Arguments
-    run_jar/3, % +Jar:atom
-               % +Arguments:list
-               % +Options:list(compound)
-    run_process/2, % +Process, +Arguments
-    run_process/3 % +Process:atom
-                  % +Arguments:list
-                  % +Options:list(compound)
+    renice/2,      % +Pid:positive_integer, +Nice:between(-20,19)
+    run_jar/2,     % +Jar:atom, +Args
+    run_jar/3,     % +Jar:atom, +Args, +Opts
+    run_process/2, % +Process:atom, +Args
+    run_process/3  % +Process:atom, +Args, +Opts
   ]
 ).
 
@@ -23,7 +18,7 @@ Additional support for starting processes from within SWI-Prolog:
   * Process output and error streams in parallel by using threads.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -39,7 +34,8 @@ Additional support for starting processes from within SWI-Prolog:
 %!   ?ThreadId:atom
 %! ) is nondet.
 
-:- dynamic(thread_id/3).
+:- dynamic
+    thread_id/3.
 
 :- predicate_options(run_jar/3, 3, [
      pass_to(handle_process/3, 3)
@@ -56,8 +52,9 @@ Additional support for starting processes from within SWI-Prolog:
      pass_to(process_create/3, 3)
    ]).
 
-:- meta_predicate(run_jar(+,+,:)).
-:- meta_predicate(run_process(+,+,:)).
+:- meta_predicate
+    run_jar(+, +, :),
+    run_process(+, +, :).
 
 is_meta(error_goal).
 is_meta(output_goal).
@@ -79,17 +76,14 @@ renice(Pid, N):-
 
 
 
-%! run_jar(+Jar:atom, +Argumentss:list) is det.
-% Wrapper around run_jar/3 with default options.
-
-run_jar(Jar, Args):-
-  run_jar(Jar, Args, []).
-
-
-%! run_jar(+Jar:atom, +Argumentss:list, +Options:list(compound)) is det.
+%! run_jar(+Jar:atom, +Args) is det.
+%! run_jar(+Jar:atom, +Args, +Opts) is det.
 % Runs the given JAR file with the given commandline arguments.
 %
 % Options are passed to run_process/3.
+
+run_jar(Jar, Args):-
+  run_jar(Jar, Args, []).
 
 run_jar(Jar, Args, Opts1):-
   meta_options(is_meta, Opts1, Opts2),
@@ -103,18 +97,8 @@ run_jar(Jar, Args, Opts1):-
 
 
 
-%! run_process(+Process:atom, +Arguments:list) is det.
-% Wrapper around run_process/3 with default options.
-
-run_process(Process, Args):-
-  run_process(Process, Args, []).
-
-
-%! run_process(
-%!   +Process:atom,
-%!   +Arguments:list,
-%!   +Options:list(nvpair)
-%! ) is det.
+%! run_process(+Process:atom, +Args:list) is det.
+%! run_process(+Process:atom, +Args:list, +Opts) is det.
 % Calls an external process with the given name and arguments,
 % and call an internal goal on the output that is coming from
 % the external process.
@@ -134,6 +118,10 @@ run_process(Process, Args):-
 %   * Other options are passed to process_create/3.
 %
 % @tbd Output and error is separate threads.
+
+run_process(Process, Args):-
+  run_process(Process, Args, []).
+
 
 run_process(Process, Args, Opts1):-
   meta_options(is_meta, Opts1, Opts2),

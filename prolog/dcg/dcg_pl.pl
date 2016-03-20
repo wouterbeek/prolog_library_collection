@@ -1,13 +1,11 @@
 :- module(
   dcg_pl,
   [
-    pl_date_time//1,       % +DT
-    pl_pair//1,            % +Pair
-    pl_pair//2,            % :Name_2, :Value_2
-    pl_predicate//1,       % +Predicate:compound
-    pl_stream_position//1, % +Stream
-    pl_term//1,            % @Term
-    pl_term//2             % @Term, +Indent
+    date_time//1,       % +DT
+    predicate//1,       % +Predicate
+    stream_position//1, % +Pos
+    term//1,            % @Term
+    term//2             % @Term, +Indent
   ]
 ).
 
@@ -27,69 +25,21 @@ DCG rules for printing terms.
 :- use_module(library(typecheck)).
 
 :- meta_predicate
-    pl_pair(//, //, ?, ?),
     term_entries(4, +, +, ?, ?).
 
 
 
 
 
-%! pl_date_time(+DT)// is det.
+%! date_time(+DT)// is det.
 
-pl_date_time(DT, X, Y):-
+date_time(DT, X, Y):-
   date_time_to_date(DT, D),
   format_time(codes(X,Y), "%FT%T%z", D).
 
 
 
-%! pl_pair(+Pair)// is det.
-
-pl_pair(N-V) --> pl_pair(pl_term(N), pl_term(V)).
-
-
-%! pl_pair(:Name_2, :Value_2)// is det.
-
-pl_pair(N_2, V_2) --> N_2, "-", V_2.
-
-
-
-%! pl_predicate(+Predicate:compound)// is det.
-
-pl_predicate(Mod:PredLet/Arity) -->
-  atom(Mod),
-  ":",
-  atom(PredLet),
-  "/",
-  integer(Arity).
-
-
-
-%! pl_stream_position(+Position:compound)// is det.
-
-pl_stream_position(stream(_,Row,Col,_)) -->
-  "[",
-  row(Row),
-  ", ",
-  column(Col),
-  "]".
-
-row(N) --> "Row: ", thousands_integer(N).
-
-column(N) --> "Col: ", thousands_integer(N).
-
-
-
-%! pl_term(@Term)// is det.
-% Wrapper around pl_term//2 with no indentation.
-
-pl_term(Term) --> pl_term(Term, 0).
-
-
-%! pl_term(@Term, +Indent)// is det.
-
-% 1. Dictionary.
-pl_term(D, I1) -->
-  {is_dict(D)}, !,
+dict(D, I1) -->
   {dict_pairs(D, _, L)},
   % An empty dictionary does not use lucious spacing.
   (   {is_empty_term(D)}
@@ -103,51 +53,14 @@ pl_term(D, I1) -->
       term_entries(dict_entry, L, I2),
       tab(I1), "}"
   ).
-% 2. List.
-pl_term(L, I1) -->
-  {is_list(L)}, !,
-  (   % The empty list does not use lusious spacing.
-      {is_empty_term(L)}
-  ->  tab(I1), list(L)
-  ;   % A singleton list does not use lucious spacing
-      % if its member is singleton.
-      {is_singleton_term(L)}
-  ->  tab(I1), list(L)
-  ;   tab(I1), "[", nl,
-      {I2 is I1 + 1},
-      term_entries(pl_term, L, I2),
-      tab(I1), "]"
-  ).
-% 3. Other term.
-pl_term(T, I) --> tab(I), pl_term0(T).
-
-pl_term0(I)    --> {integer(I)},     !, thousands_integer(I).
-pl_term0(F)    --> {float(F)},       !, float(F).
-pl_term0(S)    --> {string(S)},      !, "\"", atom(S), "\"".
-%pl_term0(A)    --> {is_iri(A)},      !, iri(A).
-pl_term0(A)    --> {atom(A)},        !, atom(A).
-pl_term0(N-V)  -->                   !, pl_pair(N-V).
-pl_term0(DT)   -->                      pl_date_time(DT), !.
-pl_term0(Comp) --> {compound(Comp)}, !, {term_to_atom(Comp, A)}, atom(A).
-pl_term0(X)    --> {gtrace},            pl_term0(X).
 
 
 
-%! term_entries(:Dcg_4, +Entries, +Indent)// is det.
-
-term_entries(_, [], _) --> !, "".
-term_entries(Dcg_4, [H], I) --> !, dcg_call(Dcg_4, H, I), nl.
-term_entries(Dcg_4, [H|T], I) -->
-  dcg_call(Dcg_4, H, I),
-  ",", nl,
-  term_entries(Dcg_4, T, I).
-
-
-
-%! dict_entry(+Pair:pair, +Indent:nonneg)// is det.
+%! dict_entry(+Pair, +Indent)// is det.
 
 dict_entry(Key-Val, I1) -->
-  tab(I1), pl_term(Key),
+  tab(I1),
+  term(Key),
   ": ",
   % Newline and additional indentation before dictionary or list values
   % that are non-empty and non-singleton.
@@ -155,7 +68,7 @@ dict_entry(Key-Val, I1) -->
   ->  {I2 = 0}
   ;   {succ(I1, I2)}, nl
   ),
-  pl_term(Val, I2).
+  term(Val, I2).
 
 
 
@@ -178,3 +91,69 @@ is_singleton_term(L):-
   L = [X],
   is_singleton_term(X).
 is_singleton_term(_).
+
+
+
+list0(L, I1) -->
+  (   % The empty list does not use lusious spacing.
+      {is_empty_term(L)}
+  ->  tab(I1), list(L)
+  ;   % A singleton list does not use lucious spacing
+      % if its member is singleton.
+      {is_singleton_term(L)}
+  ->  tab(I1), list(L)
+  ;   tab(I1), "[", nl,
+      {I2 is I1 + 1},
+      term_entries(term, L, I2),
+      tab(I1), "]"
+  ).
+
+
+
+%! predicate(+Predicate)// is det.
+
+predicate(Mod:Pred/Arity) -->
+  atom(Mod), ":", atom(Pred), "/", integer(Arity).
+
+
+
+%! simple_term(@Term)// is det.
+
+simple_term(I)    --> {integer(I)},     !, thousands(I).
+simple_term(F)    --> {float(F)},       !, float(F).
+simple_term(S)    --> {string(S)},      !, "\"", atom(S), "\"".
+simple_term(A)    --> {atom(A)},        !, atom(A).
+simple_term(DT)   -->                      date_time(DT), !.
+simple_term(Comp) --> {compound(Comp)}, !, {term_to_atom(Comp, A)}, atom(A).
+simple_term(X)    --> {gtrace},            simple_term(X).
+
+
+
+%! stream_position(+Position:compound)// is det.
+
+stream_position(stream(_,Row,Col,_)) -->
+  "[Row: ", thousands(Row), ", Col: ", thousands(Col), "]".
+
+
+
+%! term(@Term)// is det.
+%! term(@Term, +Indent)// is det.
+
+term(T) --> term(T, 0).
+
+term(D, I) --> {is_dict(D)}, !, dict(D, I).
+term(L, I) --> {is_list(L)}, !, list0(L, I).
+term(T, I) --> tab(I), simple_term(T).
+
+
+
+%! term_entries(:Goal_4, +Entries, +Indent)// is det.
+
+term_entries(_, [], _) --> !, "".
+term_entries(Goal_4, [H], I) --> !,
+  dcg_call(Goal_4, H, I),
+  nl.
+term_entries(Goal_4, [H|T], I) -->
+  dcg_call(Goal_4, H, I),
+  ",", nl,
+  term_entries(Goal_4, T, I).

@@ -19,7 +19,7 @@
                        % :Goal
                        % +Headers:list(atom)
                        % +Tuples:list(list)
-                       % +Options:list(nvpair)
+                       % +Opts
   ]
 ).
 
@@ -133,7 +133,7 @@ user_input(Msg, Legal, Answer):-
 %!   :Goal,
 %!   +Headers:list(atom),
 %!   +Tuples:list,
-%!   +Options:list(nvpair)
+%!   +Opts
 %! ) is det.
 % The generic predicate for executing arbitray Prolog goals for arbitrary
 % sequences of Prolog terms under user-interaction.
@@ -155,11 +155,11 @@ user_input(Msg, Legal, Answer):-
 %      tuple are assumed to be the same.
 % @arg Tuples A list of tuples. These are the element lists for which goal
 %      is executed after user-confirmation.
-% @arg Options A list of name-value pairs.
+% @arg Opts A list of name-value pairs.
 
-user_interaction(Act, G, Hs, Ts, Options):-
+user_interaction(Act, G, Hs, Ts, Opts):-
   length(Ts, NumberOfTs),
-  user_interaction(Act, G, 1, NumberOfTs, Hs, Ts, Options).
+  user_interaction(Act, G, 1, NumberOfTs, Hs, Ts, Opts).
 
 
 %! user_interaction(
@@ -169,17 +169,17 @@ user_interaction(Act, G, Hs, Ts, Options):-
 %!   +NumberOfTuples:positive_integer,
 %!   +Headers:list(atom),
 %!   +Tuples:list,
-%!   +Options:list(nvpair)
+%!   +Opts
 %! ) is det.
 % The following options are supported:
 %   * `answer(+Answer:oneof(['A',n,q,y]]))`
 
 user_interaction(Act, _, _, _, _, [], _):-
   format(user_output, '\n-----\nDONE! <~s>\n-----\n', [Act]), !.
-user_interaction(Act, G, I, L, Hs, Ts, Options):-
-  option(answer(UserAtom), Options), !,
-  user_interaction(UserAtom, Act, G, I, L, Hs, Ts, Options).
-user_interaction(Act, G, I, L, Hs, Ts, Options):-
+user_interaction(Act, G, I, L, Hs, Ts, Opts):-
+  option(answer(UserAtom), Opts), !,
+  user_interaction(UserAtom, Act, G, I, L, Hs, Ts, Opts).
+user_interaction(Act, G, I, L, Hs, Ts, Opts):-
   % Construct the message.
   nth1(I, Ts, T),
   findall(
@@ -198,7 +198,7 @@ user_interaction(Act, G, I, L, Hs, Ts, Options):-
   user_input(Msg, legal_user_interaction, Answer),
 
   % Execute the goal based on the user input.
-  user_interaction(Answer, Act, G, I, L, Hs, Ts, Options).
+  user_interaction(Answer, Act, G, I, L, Hs, Ts, Opts).
 
 
 %! user_interaction(
@@ -209,7 +209,7 @@ user_interaction(Act, G, I, L, Hs, Ts, Options):-
 %!   +NumberOfTuples:positive_integer,
 %!   +Headers:list(atom),
 %!   +Tuples:list,
-%!   +Options:list(nvpair)
+%!   +Opts
 %! ) is det.
 
 % User choice: all.
@@ -222,17 +222,17 @@ user_interaction('A', _, G, I1, L, _, Ts, _):- !,
     )
   ).
 % User choice: no.
-user_interaction(n, Act, G, I1, L, Hs, Ts, Options):- !,
+user_interaction(n, Act, G, I1, L, Hs, Ts, Opts):- !,
   I2 is I1 + 1,
-  user_interaction(Act, G, I2, L, Hs, Ts, Options).
+  user_interaction(Act, G, I2, L, Hs, Ts, Opts).
 % User choice: quit.
 user_interaction(q, _, _, _, _, _, _, _):- !.
 % User choice: yes.
-user_interaction(y, Act, G, I1, L, Hs, Ts, Options):- !,
+user_interaction(y, Act, G, I1, L, Hs, Ts, Opts):- !,
   nth1(I1, Ts, T),
   apply(G, T),
   I2 is I1 + 1,
-  user_interaction(Act, G, I2, L, Hs, Ts, Options).
+  user_interaction(Act, G, I2, L, Hs, Ts, Opts).
 
 
 

@@ -1,8 +1,7 @@
 :- module(
   roman_numerals,
   [
-    roman_number//2 % ?Number:positive_integer
-                    % +Options:list(nvpair)
+    roman_number//2 % ?Number:positive_integer, +Opts
   ]
 ).
 
@@ -26,7 +25,7 @@
 
 
 
-%! roman_digit(?Number:positive_integer, +Options:list(nvpair))// .
+%! roman_digit(?Number:positive_integer, +Opts)// .
 % Symbols are placed from left to right in order of value
 % (from largest to lowest).
 %

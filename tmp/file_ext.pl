@@ -4,7 +4,7 @@
     absolute_file_name_number/4, % +Spec:compound
                                  % +Number:integer
                                  % -Abs:atom
-                                 % +Options:list(nvpair)
+                                 % +Opts
     common_prefix_path/3, % +Path1:atom
                           % +Path2:atom
                           % ?CommonPrefixPath:atom
@@ -126,7 +126,7 @@ In line with the terminology this modules uses the following variable names:
      pass_to(absolute_file_name/3, 3)
    ]).
 
-error:has_type(absolute_path, Term):-
+error:has_type(absolute_path, Term) :-
   error:has_type(atom, Term),
   root_prefix(Root),
   atom_concat(Root, _, Term).
@@ -139,16 +139,16 @@ error:has_type(absolute_path, Term):-
 %!   +Spec:compound,
 %!   +Number:nonneg,
 %!   -Abs:atom,
-%!   +Options:list(nvpair)
+%!   +Opts
 %! ) is det.
 % This comes in handy for numbered files, e.g. '/home/some_user/test_7.txt'.
 %
 % Options are passed to absolute_file_name/3.
 
-absolute_file_name_number(Spec, Number, Abs, Options):-
+absolute_file_name_number(Spec, Number, Abs, Opts) :-
   format(atom(Atom), '_~d', [Number]),
   spec_atomic_concat(Spec, Atom, NumberedSpec),
-  absolute_file_name(NumberedSpec, Abs, Options).
+  absolute_file_name(NumberedSpec, Abs, Opts).
 
 
 
@@ -164,7 +164,7 @@ absolute_file_name_number(Spec, Number, Abs, Options):-
 %! ) is det.
 % Succeeds id Path1 and Path2 share the same CommonPrefixPath.
 
-common_prefix_path(Path1, Path2, CommonPrefixPath):-
+common_prefix_path(Path1, Path2, CommonPrefixPath) :-
   directory_subdirectories(Path1, PathComponents1),
   directory_subdirectories(Path2, PathComponents2),
   common_list_prefix(PathComponents1, PathComponents2, CommonComponentPrefix),
@@ -186,7 +186,7 @@ common_prefix_path(Path1, Path2, CommonPrefixPath):-
 % @arg FileKind Either a registered file type or a file extension.
 % @arg Abs An absolute file path.
 
-create_file(Spec, Base, FileKind, Path):-
+create_file(Spec, Base, FileKind, Path) :-
   % Resolve the directory in case the compound term notation employed
   % by absolute_file_name/3 is used.
   absolute_file_name(Spec, Dir, [access(write),file_type(directory)]),
@@ -213,7 +213,7 @@ create_file(Spec, Base, FileKind, Path):-
 % The symbolic link has the same file base name and file extension
 % as the file linked to.
 
-create_file_link(File, Dir):-
+create_file_link(File, Dir) :-
   file_alternative(File, Dir, _, _, Link),
   link_file(File, Link, symbolic).
 
@@ -232,7 +232,7 @@ create_file_link(File, Dir):-
 %   - base file name
 %   - file extension
 
-file_alternative(FromPath, ToDir, ToBase, ToExt, ToPath):-
+file_alternative(FromPath, ToDir, ToBase, ToExt, ToPath) :-
   file_components(FromPath, FromDir, FromBase, FromExt),
   defval(FromDir, ToDir),
   defval(FromBase, ToBase),
@@ -257,19 +257,19 @@ file_alternative(FromPath, ToDir, ToBase, ToExt, ToPath):-
 %!   -Component:atom
 %! ) is multi.
 
-file_component(Path, Field, Component):-
+file_component(Path, Field, Component) :-
   call_det(file_component0, nonvar-Path, nonvar-Field, any-Component).
 
-file_component0(Path, base, Base):-
+file_component0(Path, base, Base) :-
   file_components(Path, _, Base, _).
-file_component0(Path, directory, Dir):-
+file_component0(Path, directory, Dir) :-
   file_components(Path, Dir, _, _).
-file_component0(Path, extension, Ext):-
+file_component0(Path, extension, Ext) :-
   file_components(Path, _, _, Ext).
-file_component0(Path, file_type, FileType):-
+file_component0(Path, file_type, FileType) :-
   file_component0(Path, extension, Ext),
   user:prolog_file_type(Ext, FileType).
-file_component0(Path, local, Local):-
+file_component0(Path, local, Local) :-
   directory_file_path(_, Local, Path).
 
 
@@ -284,7 +284,7 @@ file_component0(Path, local, Local):-
 %
 % For directories, the base name and file extension are the empty atom.
 
-file_components(Path, Dir, Base, Ext):-
+file_components(Path, Dir, Base, Ext) :-
   nonvar(Path), !,
   (   exists_directory(Path)
   ->  Dir = Path,
@@ -293,11 +293,11 @@ file_components(Path, Dir, Base, Ext):-
   ;   directory_file_path(Dir, Local, Path),
       file_name_extension(Base, Ext, Local)
   ).
-file_components(Path, Dir, Base, Ext):-
+file_components(Path, Dir, Base, Ext) :-
   maplist(nonvar, [Dir,Base,Ext]), !,
   file_name_extension(Base, Ext, Local),
   directory_file_path(Dir, Local, Path).
-file_components(_, _, _, _):-
+file_components(_, _, _, _) :-
   instantiation_error(_).
 
 
@@ -305,7 +305,7 @@ file_components(_, _, _, _):-
 %! file_kind_alternative(+Path1:atom, +Path2:atom) is semidet.
 % Succeeds if the files are type-alternatives of each other.
 
-file_kind_alternative(Path1, Path2):-
+file_kind_alternative(Path1, Path2) :-
   file_component(Path1, directory, Dir),
   file_component(Path2, directory, Dir),
   file_component(Path1, base, Dir),
@@ -320,7 +320,7 @@ file_kind_alternative(Path1, Path2):-
 %! ) is det.
 % Returns an alternative of the given file with the given file type.
 
-file_kind_alternative(FromFile, ToFileKind, ToFile):-
+file_kind_alternative(FromFile, ToFileKind, ToFile) :-
   file_kind_extension(ToFileKind, ToExt),
   file_alternative(FromFile, _, _, ToExt, ToFile).
 
@@ -336,13 +336,13 @@ file_kind_alternative(FromFile, ToFileKind, ToFile):-
 %
 % @throws instantiation_error If FileKind is uninstantiated.
 
-file_kind_extension(FileType, _):-
+file_kind_extension(FileType, _) :-
   var(FileType), !,
   instantiation_error(FileType).
-file_kind_extension(FileType, Ext):-
+file_kind_extension(FileType, Ext) :-
   \+ user:prolog_file_type(_, FileType), !,
   Ext = FileType.
-file_kind_extension(FileType, Ext):-
+file_kind_extension(FileType, Ext) :-
   user:prolog_file_type(Ext, FileType).
 
 
@@ -351,7 +351,7 @@ file_kind_extension(FileType, Ext):-
 %! hidden_file_name(+Path:atom, -HiddenPath:atom) is det.
 % Returns the hidden file name for the given atomic name.
 
-hidden_file_name(Path, HiddenPath):-
+hidden_file_name(Path, HiddenPath) :-
   file_components(Path, Dir, Base, Ext),
   atomic_concat(., Base, HiddenBase),
   file_components(HiddenPath, Dir, HiddenBase, Ext).
@@ -364,12 +364,12 @@ hidden_file_name(Path, HiddenPath):-
 %!   +Component:atom
 %! ) is semidet.
 
-local_file_component(Local, base, Base):-
+local_file_component(Local, base, Base) :-
   call_det(local_file_component0(Local, base, Base)).
 
-local_file_component0(Local, base, Base):-
+local_file_component0(Local, base, Base) :-
   local_file_components(Local, Base, _).
-local_file_component0(Local, extension, Ext):-
+local_file_component0(Local, extension, Ext) :-
   local_file_components(Local, _, Ext).
 
 
@@ -383,34 +383,34 @@ local_file_component0(Local, extension, Ext):-
 %
 % @throws instantiation_error
 
-local_file_components(Local, Base, Ext):-
+local_file_components(Local, Base, Ext) :-
   nonvar(Local), !,
   (   atomic_list_concat([Base,Ext], ., Local)
   ->  true
   ;   Base = Local,
       Ext = ''
   ).
-local_file_components(Local, Base, Ext):-
+local_file_components(Local, Base, Ext) :-
   maplist(nonvar, [Base,Ext]), !,
   (   Ext == ''
   ->  Local = Base
   ;   atomic_list_concat([Base,Ext], ., Local)
   ).
-local_file_components(_, _, _):-
+local_file_components(_, _, _) :-
   instantiation_error(_).
 
 
 
 %! merge_into_one_file(+FromFiles:list(atom), +ToFile:atom) is det.
 
-merge_into_one_file(FromFiles, ToFile):-
+merge_into_one_file(FromFiles, ToFile) :-
   setup_call_cleanup(
     open(ToFile, write, Out, [type(binary)]),
     maplist(merge_into_one_stream(Out), FromFiles),
     close(Out)
   ).
 
-merge_into_one_stream(Out, FromFile):-
+merge_into_one_stream(Out, FromFile) :-
   setup_call_cleanup(
     open(FromFile, read, In, [type(binary)]),
     copy_stream_data(In, Out),
@@ -425,10 +425,10 @@ merge_into_one_stream(Out, FromFile):-
 % Otherwise the file itself is returned.
 
 % The file does not yet exist; done.
-new_file_name(Path, Path):-
+new_file_name(Path, Path) :-
   \+ exists_file(Path), !.
 % The file already exists.
-new_file_name(Path1, Path3):-
+new_file_name(Path1, Path3) :-
   file_component(Path1, base, Base1),
   new_atom(Base1, Base2),
   file_alternative(Path1, _, Base2, _, Path2),
@@ -439,15 +439,15 @@ new_file_name(Path1, Path3):-
 %! prefix_path(+PrefixPath:atom, +Path:atom) is semidet.
 %! prefix_path(-PrefixPath:atom, +Path:atom) is multi.
 
-prefix_path(_, Path):-
+prefix_path(_, Path) :-
   var(Path), !,
   instantiation_error(Path).
-prefix_path(PrefixPath, Path):-
+prefix_path(PrefixPath, Path) :-
   var(PrefixPath), !,
   directory_subdirectories(Path, Components),
   prefix(PrefixComponents, Components),
   directory_subdirectories(PrefixPath, PrefixComponents).
-prefix_path(PrefixPath, Path):-
+prefix_path(PrefixPath, Path) :-
   directory_subdirectories(PrefixPath, PrefixComponents),
   directory_subdirectories(Path, Components),
   prefix(PrefixComponents, Components).
@@ -462,10 +462,10 @@ prefix_path(PrefixPath, Path):-
 % Concatenates the given atom to the inner atomic term of the given
 % specification.
 
-spec_atomic_concat(Atomic1, Atomic2, Atom):-
+spec_atomic_concat(Atomic1, Atomic2, Atom) :-
   atomic(Atomic1), !,
   atomic_concat(Atomic1, Atomic2, Atom).
-spec_atomic_concat(Spec1, Atomic, Spec2):-
+spec_atomic_concat(Spec1, Atomic, Spec2) :-
   compound(Spec1), !,
   Spec1 =.. [Outer,Inner1],
   spec_atomic_concat(Inner1, Atomic, Inner2),

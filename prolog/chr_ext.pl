@@ -24,8 +24,9 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 
-:- meta_predicate(chr_closure(+,-,+,+,3)).
-:- meta_predicate(chr_debug(+,3,+)).
+:- meta_predicate
+    chr_closure(+, -, +, +, 3),
+    chr_debug(+, 3, +).
 
 
 
@@ -35,7 +36,7 @@
 % Wrapper around chr_closure/5 that used the default debug tools.
 
 chr_closure(S1, S2, Mod):-
-  chr_closure(S1, S2, Mod, chr, pl_term).
+  chr_closure(S1, S2, Mod, chr, term).
 
 
 %! chr_closure(

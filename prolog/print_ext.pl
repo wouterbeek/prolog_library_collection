@@ -137,7 +137,7 @@ print_dict(D):-
 
 print_dict(D, Opts):-
   option(indent(I), Opts, 1),
-  dcg_with_output_to(current_output, pl_term(D, I)),
+  dcg_with_output_to(current_output, term(D, I)),
   nl.
 
 

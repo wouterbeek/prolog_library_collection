@@ -11,7 +11,7 @@
     remote_open/4 % +RemoteFile:compound
                   % +Mode:oneof([append,read,write])
                   % -Stream:stream
-                  % +Options:list(nvpair)
+                  % +Opts
   ]
 ).
 
@@ -84,11 +84,11 @@ remote_open(RemotePath, Mode, Stream):-
 %!   +RemoteFile:compound,
 %!   +Mode:oneof([append,read,write]),
 %!   -Stream:stream,
-%!   +Options:list(nvpair)
+%!   +Opts
 %! ) is det.
 % Options are passed to open/4.
 
-remote_open(remote_file(User,Machine,Path), Mode, Stream, Options):-
+remote_open(remote_file(User,Machine,Path), Mode, Stream, Opts):-
   atomic_list_concat([User,Machine], '@', UserMachine),
   atomic_concat(Path, '"', Suffix),
 
@@ -97,7 +97,7 @@ remote_open(remote_file(User,Machine,Path), Mode, Stream, Options):-
   
   atomic_list_concat([ssh,UserMachine,'"cat',CatSign,Suffix], ' ', Command),
   
-  open(pipe(Command), Mode, Stream, Options).
+  open(pipe(Command), Mode, Stream, Opts).
 
 %! mode_cat_sign(
 %!   ?Mode:oneof([append,read,write]),

@@ -4,7 +4,7 @@
 % GENERIC CALLS
     generic/3, % :GenericPredicate
                % :Context
-               % +Arguments:list
+               % +Args
 
 % IDLE
     true/1,
@@ -15,21 +15,21 @@
 
 % MAPLIST RELATED PREDICATES
     app_list/3, % +Preds:list
-                % +Args:list
+                % +Args
                 % -Results:list
     maplist_pairs/3, % :Goal
-                     % +List1:list
-                     % -List2:list
+                     % +L1
+                     % -L2
     mapset/3, % :Goal
-              % +List:list
+              % +List
               % -Set:ordset
     nth0_call/3, % :Goal
                  % +Index:nonneg
-                 % +Argument
-    nth0_call/4, % +Options:list(nvpair)
+                 % +Arg
+    nth0_call/4, % +Opts
                  % :Goal
                  % +Index:nonneg
-                 % +Argument
+                 % +Arg
 
 % MODULES
     modules/1, % -Modules:list(atom)
@@ -69,7 +69,7 @@ Extensions to the SWI-Prolog meta predicates.
 
 % GENERIC CALLS %
 
-%! generic(:GenericPredicate, :Context, +Arguments:list)
+%! generic(:GenericPredicate, :Context, +Args)
 % This uses the naming convention that similar predicates share
 % the same prefix.
 %
@@ -108,7 +108,7 @@ true(_,_,_,_,_).
 
 % MAPLIST RELATED PREDICATES %
 
-%! app_list(+Preds:list, +Args:list, -Results:list) is det.
+%! app_list(+Preds:list, +Args, -Results:list) is det.
 % Applies multiple predicates to a static list of arguments.
 % Returns the results of applying the given predicates to the given argument
 % list. The number of results is the number of predicates. The arguments are
@@ -121,17 +121,17 @@ app_list([Module:Pred | Preds], Args, [Result | Results]):-
   call(Module:Call),
   app_list(Preds, Args, Results).
 
-%! maplist_pairs(:Goal, +List1:list, -List2:list) is det.
-% Applies the given goal to all pairs of elements occuring in `List1`.
+%! maplist_pairs(:Goal, +L1, -L2) is det.
+% Applies the given goal to all pairs of elements occuring in `L1`.
 
-maplist_pairs(Goal, List1, List2):-
+maplist_pairs(Goal, L1, L2):-
   findall(
     Result,
     (
-      member(Element1, Element2, List1),
+      member(Element1, Element2, L1),
       call(Goal, Element1, Element2, Result)
     ),
-    List2
+    L2
   ).
 
 %! mapset(:Goal, +List:list(term), -Set:ordset(term)) is det.
@@ -146,8 +146,8 @@ mapset(Goal, List, Set):-
   sort(NewList, Set).
 
 
-%! nth0_call(:Goal, +Index:nonneg, +Argument) .
-%! nth0_call(+Options:list(nvpair), :Goal, +Index:nonneg, +Argument) .
+%! nth0_call(:Goal, +Index:nonneg, +Arg) .
+%! nth0_call(+Opts, :Goal, +Index:nonneg, +Arg) .
 % The following options are supported:
 %   * `minus(+UseMinus:boolean)`
 %     When `true` (default `false`), uses nth0_minus/4

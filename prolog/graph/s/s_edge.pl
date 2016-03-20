@@ -36,8 +36,8 @@
 %
 % Notice that for reflexive edges the same endpoint is returned twice.
 
-s_edge_endpoint(E, Head):- s_edge_head(E, Head).
-s_edge_endpoint(E, Tail):- s_edge_head(E, Tail).
+s_edge_endpoint(E, Head) :- s_edge_head(E, Head).
+s_edge_endpoint(E, Tail) :- s_edge_head(E, Tail).
 
 
 
@@ -45,14 +45,14 @@ s_edge_endpoint(E, Tail):- s_edge_head(E, Tail).
 %! s_edge_head(+Edge:pair, -Head) is det.
 % The head of a directed edge is the vertex the edge is "pointing to".
 
-s_edge_head(E, Head):- pair_value(E, Head).
+s_edge_head(E, Head) :- pair_value(E, Head).
 
 
 
 %! s_edge_string(+Edge:pair, -String:string)// is det.
 
-s_edge_string(E, String):- string_phrase(s_edge_string(E), String).
-s_edge_string(V-W) --> pl_term(V), " <---> ", pl_term(W).
+s_edge_string(E, String) :- string_phrase(s_edge_string(E), String).
+s_edge_string(V-W) --> term(V), " <---> ", term(W).
 
 
 
@@ -60,14 +60,14 @@ s_edge_string(V-W) --> pl_term(V), " <---> ", pl_term(W).
 %! s_edge_tail(+Edge:pair, -Tail) is det.
 % The tail of a directed edge is the vertex the edge is "pointing from".
 
-s_edge_tail(E, Tail):- pair_key(E, Tail).
+s_edge_tail(E, Tail) :- pair_key(E, Tail).
 
 
 
 %! s_edges_vertices(+Edges:list(pair), -Vertices:ordset) is det.
 % Returns the vertices that occur in the given edges.
 
-s_edges_vertices(Es, Vs):-
+s_edges_vertices(Es, Vs) :-
   pairs_keys_values(Es, Vs1a, Vs2a),
   list_to_ord_set(Vs1a, Vs1b),
   list_to_ord_set(Vs2a, Vs2b),

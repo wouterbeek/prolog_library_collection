@@ -32,7 +32,4 @@ ordset_closure(S1a, S2a, Mod):-
 
 pair_term(X-Y, leq(X,Y)).
 
-leq(leq(X,Y)) -->
-  pl_term(X),
-  " ≤ ",
-  pl_term(Y).
+leq(leq(X,Y)) --> term(X), " ≤ ", term(Y).

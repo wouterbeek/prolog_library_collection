@@ -74,8 +74,6 @@
     nl//0,
     nonblank//0,
     number//0,
-    nvpair//1,             % +Pair
-    nvpair//2,             % :Name_0, :Value_0
     opt//2,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
     parsing//0,
@@ -101,7 +99,7 @@
     tab//1,                % +Indent:nonneg
     tab//2,                % +Indent:nonneg, :Dcg_0
     tab_nl//2,             % +Indent:nonneg, :Dcg_0
-    thousands_integer//1   % +Integer:integer
+    thousands//1           % +Integer:integer
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -190,7 +188,6 @@ My favorite collection of DCG rules.
     def(3, -, +, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
-    nvpair(//, //, ?, ?),
     opt(//, ?, ?),
     opt(3, ?, ?, ?),
     quoted(//, ?, ?),
@@ -763,17 +760,6 @@ number --> number(_).
 
 
 
-%! nvpair(+Pair:pair)// is det.
-
-nvpair(N-V) --> nvpair(pl_term(N), pl_term(V)).
-
-
-%! nvpair(:Name_0, :Value_0)// is det.
-
-nvpair(Name_0, Value_0) --> Name_0, ": ", Value_0.
-
-
-
 %! opt(:Dcg_0)// .
 
 opt(Dcg_0) --> Dcg_0, !.
@@ -974,8 +960,8 @@ tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
 
 
 
-%! thousands_integer(+I)// is det.
+%! thousands(+I)// is det.
 
-thousands_integer(I) -->
+thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).

@@ -1,9 +1,8 @@
 :- module(
   dcg_table,
   [
-    dcg_table//1, % +Rows:list(compound)
-    dcg_table//2 % +Rows:list(compound)
-                 % +Options:list(compound)
+    dcg_table//1, % +Rows
+    dcg_table//2  % +Rows, +Opts
   ]
 ).
 
@@ -49,16 +48,17 @@ is_meta(cell).
 
 
 
-%! dcg_table(+Rows:list(compound))// is det.
-%! dcg_table(+Rows:list(compound), +Options:list(compound))// is det.
+%! dcg_table(+Rows)// is det.
+%! dcg_table(+Rows, +Opts)// is det.
 
 dcg_table(L) -->
   dcg_table(L, []).
+
 dcg_table(Rows1, Opts0) -->
   {
     meta_options(is_meta, Opts0, Opts),
     option(caption(Caption_0), Opts, _),
-    option(cell(Cell_1), Opts, pl_term),
+    option(cell(Cell_1), Opts, term),
     option(indexed(Ind), Opts, false),
     option(maximum_number_of_rows(Max), Opts, inf),
     %%%%add_sum_row(Rows1, Rows2, Opts),
