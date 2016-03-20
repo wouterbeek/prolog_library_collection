@@ -225,7 +225,8 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(version(Major-Minor), Opts),
       string_list_concat([Major,Minor], ":", Version),
       maplist(http_header0, Lines, Pairs),
-      group_pairs_by_key(Pairs, Groups),
+      keysort(Pairs, SortedPairs),
+      group_pairs_by_key(SortedPairs, Groups),
       D0 = D1.put(_{
         'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri},
         'llo:final_iri': _{'@type': 'xsd:anyURI', '@value': FinalIri},
