@@ -35,7 +35,7 @@ write_fact(Term):-
 
 write_term(Term):-
   replace_blobs(Term, AtomBlobs),
-  write_term(AtomBlobs, [quoted(true)]).
+  write_term(AtomBlobs, [numbervars(true),quoted(true)]).
 
 %! replace_blobs(Term0, Term) is det.
 % Copy Term0 to Term, replacing non-text blobs.
