@@ -4,6 +4,7 @@
     atom_ending_in/3, % +Atom:atom
                       % +Suffix:atom
                       % -NewAtom:atom
+    atom_prefix/2, % ?Prefix, +Atom
     atom_splits/3, % +Splits:list(atom)
                    % +Atom:atom
                    % -Subatoms:list(atom)
@@ -93,7 +94,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2018/10
+@version 2015/07-2015/10, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -116,6 +117,13 @@ atom_ending_in(A, Suffix, A):-
   atom_concat(_, Suffix, A), !.
 atom_ending_in(A0, Suffix, A):-
   atom_concat(A0, Suffix, A).
+
+
+
+%! atom_prefix(?Prefix, +Atom)
+
+atom_prefix(Prefix, Atom) :-
+  atom_concat(Prefix, _, Atom).
 
 
 
