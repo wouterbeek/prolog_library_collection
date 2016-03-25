@@ -53,6 +53,7 @@
     dcg_call_cp//4,        % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call_cp//5,        % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call_cp//6,        % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_goal//1,           % :Goal_0
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
     dcg_once//1,           % :Dcg_0
     dcg_string//2,         % :Dcg_1, ?S
@@ -179,6 +180,7 @@ My favorite collection of DCG rules.
     dcg_call_cp(5, ?, ?, ?, ?, ?),
     dcg_call_cp(6, ?, ?, ?, ?, ?, ?),
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_goal(0, ?, ?),
     dcg_max_width(3, +, -),
     dcg_once(//, ?, ?),
     dcg_string(3, ?, ?, ?),
@@ -593,6 +595,14 @@ dcg_call_cp(Dcg_4, A1, A2, A3, A4, X, Y):-
 dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
   copy_term(Dcg_5, Dcg__5),
   call(Dcg__5, A1, A2, A3, A4, A5, X, Y).
+
+
+
+%! dcg_goal(:Goal_0)// is det.
+
+dcg_goal(Goal_0) -->
+  {with_output_to(codes(Cs), Goal_0)},
+  Cs.
 
 
 
