@@ -1,18 +1,13 @@
 :- module(
   dir_ext,
   [
-    append_directories/3, % +Dir1:atom
-                          % +Dir2:atom
-                          % -Dir3:atom
-    current_directory/1, % ?Directory:atom
-    directory_files/3, % +Directory:atom
-                       % -AbsoluteFiles:list(atom)
-                       % +Options:list(compound)
-    directory_subdirectories/2, % ?Directory:atom
-                                % ?Subdirectories:list(atom)
-    run_in_working_directory/2, % :Goal_0
-                                % +Directory:atom
-    working_directory/1 % ?Directory:atom
+    append_dirs/2,   % +Dirs, -Dir
+    append_dirs/3,   % +Dir1, +Dir2, -Dir
+    current_dir/1,   % ?Dir
+    dir_subdirs/2,   % ?Dir, ?Subdirs
+    direct_subdir/2, % +Dir, -Subdir
+    run_in_dir/2,    % :Goal_0, +Dir
+    wd/1             % ?Dir
   ]
 ).
 :- reexport(library(filesex)).
@@ -22,7 +17,7 @@
 Extensions for handling directory files in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/11, 2016/01
+@version 2015/08-2015/09, 2015/11, 2016/01, 2016/03
 */
 
 :- use_module(library(apply)).
@@ -30,163 +25,87 @@ Extensions for handling directory files in SWI-Prolog.
 :- use_module(library(option)).
 :- use_module(library(yall)).
 
-:- meta_predicate(run_in_working_directory(0,+)).
-
-:- predicate_options(directory_files/3, 3, [
-     extensions(+list(atom)),
-     include_directories(+boolean),
-     include_self(+boolean),
-     recursive(+boolean)
-   ]).
+:- meta_predicate
+    run_in_dir(0, +).
 
 
 
 
 
-%! append_directories(+Dir1:atom, +Dir2:atom, -Dir3:atom) is det.
+%! append_dirs(+Dirs, -Dir) is det.
+
+append_dirs([], '/') :- !.
+append_dirs([Dir], Dir) :- !.
+append_dirs([H|T], Dir) :-
+  append_dirs0(H, T, Dir).
+
+append_dirs0(Dir, [], Dir) :- !.
+append_dirs0(Dir1, [H|T], Dir) :-
+  append_dirs(Dir1, H, Dir2),
+  append_dirs0(Dir2, T, Dir).
+
+
+%! append_dirs(+Dir1, +Dir2, -Dir) is det.
 % Returns the directory name obtained by concatenating
 % the given directory names.
 %
 % Does *not* ensure that any of the directories exist.
 
-append_directories(Dir1, Dir2, Dir3) :-
-  directory_subdirectories(Dir1, Subdirs1),
-  directory_subdirectories(Dir2, Subdirs2),
+append_dirs(Dir1, Dir2, Dir3) :-
+  dir_subdirs(Dir1, Subdirs1),
+  dir_subdirs(Dir2, Subdirs2),
   append(Subdirs1, Subdirs2, Subdirs3),
-  directory_subdirectories(Dir3, Subdirs3).
+  dir_subdirs(Dir3, Subdirs3).
 
 
 
-%! current_directory(+Directory:atom) is semidet.
-%! current_directory(-Directory:atom) is det.
+%! current_dir(+Dir) is semidet.
+%! current_dir(-Dir) is det.
 
-current_directory(Dir) :-
+current_dir(Dir) :-
   absolute_file_name(., Dir, [file_type(directory)]).
 
 
 
-%! directory_files(
-%!   +Directory:atom,
-%!   -AbsoluteFiles:list(atom),
-%!   +Options:list(compound)
-%! ) is det.
-% Variant of directory_files/2 that returns absolute file names
-% instead of relative ones and excludes non-file entries.
-%
-% The following options are supported:
-%   * extensions(+FileTypes:list(atom))
-%     A list of atomic file types that are used as a filter.
-%     Default is no fitering on file extensions.
-%   * include_directories(+IncludeDirectories:boolean)
-%     Whether (sub)directories are included or not.
-%     Default is `true`.
-%   * include_self(+IncludeSelf:boolean)
-%     Whether or not the enclosing directory is included.
-%     Default is `false`.
-%   * recursive(+Recursive:boolean)
-%     Whether subdirectories are searched recursively.
-%     Default is `false`.
-
-directory_files(Dir, Files3, Opts1) :-
-  % Note that the list of files is *not* ordered!
-  directory_files(Dir, New1),
-
-  % Remove `.` and `..`.
-  exclude(nonfile_entry, New1, New2),
-
-  % Make the file names absolute.
-  maplist(directory_file_path(Dir), New2, New3),
-
-  partition(exists_directory, New3, NewDirs, NewFiles1),
-
-  % Filter based on a list of file types, if given.
-  (   option(extensions(Exts), Opts1)
-  ->  include(file_name_extension0(Exts), NewFiles1, NewFiles2)
-  ;   NewFiles2 = NewFiles1
-  ),
-
-  % Make sure the `include_self` option is excluded from
-  % the processing of subdirectories.
-  select_option(include_self(IncludeSelf), Opts1, Opts2, false),
-
-  % Include directories and files from deeper recursion levels.
-  (   option(recursive(true), Opts2, false)
-  ->  maplist(
-        [NewDir,NewFiles]>>directory_files(NewDir, NewFiles, Opts2),
-        NewDirs,
-        NewFiless
-      ),
-      append([NewFiles2|NewFiless], Files1)
-  ;   Files1 = NewFiles2
-  ),
-
-  % Include directories from this recursion level.
-  (   option(include_directories(true), Opts2, true)
-  ->  append(Files1, NewDirs, Files2)
-  ;   Files2 = Files1
-  ),
-
-  % Include the parent directory.
-  (   IncludeSelf == true
-  ->  Files3 = [Dir|Files2]
-  ;   Files3 = Files2
-  ).
-file_name_extension0(Exts, File) :-
-  file_name_extension(_, Ext, File),
-  memberchk(Ext, Exts).
-
-
-
-%! directory_subdirectories(+Dir:atom, +Subdirs:list(atom)) is semidet.
-%! directory_subdirectories(+Dir:atom, -Subdirs:list(atom)) is det.
-%! directory_subdirectories(-Dir:atom, +Subdirs:list(atom)) is det.
-% Relates a directory name to its subdirectory names.
-%
-% Occurrences of `..` in Dir are resolved.
+%! dir_subdirs(+Dir, -Subdirs) is det.
+%! dir_subdirs(-Dir, +Subdirs) is det.
+% Occurrences of `.` and `..` in Dir are resolved.
 %
 % For absolute directory names the first subdirectory name is the empty atom.
 
-directory_subdirectories(Dir, Subdirs) :-
-  nonvar(Dir), !,
-  atomic_list_concat(Subdirs0, /, Dir),
-  resolve_double_dots(Subdirs0, Subdirs).
-directory_subdirectories(Dir, Subdirs0) :-
-  nonvar(Subdirs0), !,
-  resolve_double_dots(Subdirs0, Subdirs),
-  atomic_list_concat(Subdirs, /, Dir).
-directory_subdirectories(_, _) :-
-  instantiation_error(_).
+dir_subdirs(Dir, Subdirs2) :-
+  ground(Dir), !,
+  atomic_list_concat(Subdirs1, /, Dir),
+  resolve_subdirs(Subdirs1, Subdirs2).
+dir_subdirs(Dir, Subdirs1) :-
+  resolve_subdirs(Subdirs1, Subdirs2),
+  atomic_list_concat(Subdirs2, /, Dir).
 
 
 
-%! resolve_double_dots(
-%!   +Subdirs:list(atom),
-%!   -ResoledSubdirs:list(atom)
-%! ) is det.
+% direct_subdir(+Dir, -Subdir) is nondet.
 
-resolve_double_dots([], []).
-resolve_double_dots([_,'..'|T1], T2) :-
-  resolve_double_dots(T1, T2).
-resolve_double_dots([H|T1], [H|T2]) :-
-  resolve_double_dots(T1, T2).
+direct_subdir(Dir1, Dir2) :-
+  directory_files(Dir1, Subdirs),
+  member(Subdir, Subdirs),
+  \+ is_dummy_file(Subdir),
+  directory_file_path(Dir1, Subdir, Dir2).
 
 
 
-%! run_in_working_directory(:Goal_0, +Directory:atom) is det.
+%! run_in_dir(:Goal_0, +Dir) is det.
 
-run_in_working_directory(Goal_0, Dir) :-
-  working_directory(OldDir, Dir),
+run_in_dir(Goal_0, Dir) :-
+  working_directory(Dir0, Dir),
   Goal_0,
-  working_directory(Dir, OldDir).
+  working_directory(Dir, Dir0).
 
 
 
-%! working_directory(+Directory:atom) is semidet.
-%! working_directory(-Directory:atom) is det.
-% Wrapper around working_directory/2 that only allows
-% the current working directory to be read.
+%! wd(+Dir) is semidet.
+%! wd(-Dir) is det.
 
-working_directory(Dir) :-
+wd(Dir) :-
   working_directory(Dir, Dir).
 
 
@@ -195,8 +114,20 @@ working_directory(Dir) :-
 
 % HELPERS %
 
-%! nonfile_entry(+Entry:atom) is semidet.
-%! nonfile_entry(-Entry:atom) is multi.
+%! is_dummy_file(+File) is semidet.
 
-nonfile_entry(.).
-nonfile_entry('..').
+is_dummy_file(.).
+is_dummy_file(..).
+
+
+
+%! resolve_subdirs(+Subdirs, -ResoledSubdirs) is det.
+
+resolve_subdirs([], []) :- !.
+resolve_subdirs([''], []) :- !.
+resolve_subdirs([.|T1], T2) :- !,
+  resolve_subdirs(T1, T2).
+resolve_subdirs([_,..|T1], T2) :- !,
+  resolve_subdirs(T1, T2).
+resolve_subdirs([H|T1], [H|T2]) :-
+  resolve_subdirs(T1, T2).
