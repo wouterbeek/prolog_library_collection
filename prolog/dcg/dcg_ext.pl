@@ -89,6 +89,8 @@
     rest//0,
     rest//1,               % -Rest:list(code)
     section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
+    seplist//2,            % :Goal_3, +L
+    seplist//3,            % :Goal_3, :Sep_2, +L
     skip_line//0,
     str//1,                % +S
     string//0,
@@ -121,7 +123,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/02
+@version 2015/11-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -196,12 +198,14 @@ My favorite collection of DCG rules.
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
     section(+, +, //, ?, ?),
+    seplist(3, +, ?, ?),
+    seplist(3, //, +, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
     tab_nl(+, //, ?, ?).
 
-:- setting(tab_size, integer, 2,
+:- setting(tab_size, integer, 4,
      'The number of spaces that go into one tab.'
    ).
 
@@ -879,6 +883,23 @@ rest(X, X, []).
 %! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
 section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
+
+
+
+%! seplist(:Goal_3, +L)// is det.
+%! seplist(:Goal_3, :Sep_2, +L)// is det.
+
+seplist(Goal_3, L) -->
+  seplist(Goal_3, ", ", L).
+
+
+seplist(_, _, []) --> !, [].
+seplist(Goal_3, _, [H]) --> !,
+  call(Goal_3, H).
+seplist(Goal_3, Sep_2, [H1,H2|T]) -->
+  call(Goal_3, H1),
+  Sep_2,
+  seplist(Goal_3, Sep_2, [H2|T]).
 
 
 
