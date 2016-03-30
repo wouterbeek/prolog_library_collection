@@ -53,6 +53,7 @@
     dcg_call_cp//4,        % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call_cp//5,        % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call_cp//6,        % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_goal//1,           % :Goal_0
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
     dcg_once//1,           % :Dcg_0
     dcg_string//2,         % :Dcg_1, ?S
@@ -88,6 +89,8 @@
     rest//0,
     rest//1,               % -Rest:list(code)
     section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
+    seplist//2,            % :Goal_3, +L
+    seplist//3,            % :Goal_3, :Sep_2, +L
     skip_line//0,
     str//1,                % +S
     string//0,
@@ -120,7 +123,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/02
+@version 2015/11-2016/03
 */
 
 :- use_module(library(aggregate)).
@@ -179,6 +182,7 @@ My favorite collection of DCG rules.
     dcg_call_cp(5, ?, ?, ?, ?, ?),
     dcg_call_cp(6, ?, ?, ?, ?, ?, ?),
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_goal(0, ?, ?),
     dcg_max_width(3, +, -),
     dcg_once(//, ?, ?),
     dcg_string(3, ?, ?, ?),
@@ -194,12 +198,14 @@ My favorite collection of DCG rules.
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
     section(+, +, //, ?, ?),
+    seplist(3, +, ?, ?),
+    seplist(3, //, +, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
     tab_nl(+, //, ?, ?).
 
-:- setting(tab_size, integer, 2,
+:- setting(tab_size, integer, 4,
      'The number of spaces that go into one tab.'
    ).
 
@@ -596,6 +602,14 @@ dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
 
 
 
+%! dcg_goal(:Goal_0)// is det.
+
+dcg_goal(Goal_0) -->
+  {with_output_to(codes(Cs), Goal_0)},
+  Cs.
+
+
+
 %! dcg_max_width(:Dcg_1, +Args, -MaxWidth:nonneg) is det.
 
 dcg_max_width(Dcg_1, Args, MaxW):-
@@ -869,6 +883,23 @@ rest(X, X, []).
 %! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
 
 section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
+
+
+
+%! seplist(:Goal_3, +L)// is det.
+%! seplist(:Goal_3, :Sep_2, +L)// is det.
+
+seplist(Goal_3, L) -->
+  seplist(Goal_3, ", ", L).
+
+
+seplist(_, _, []) --> !, [].
+seplist(Goal_3, _, [H]) --> !,
+  call(Goal_3, H).
+seplist(Goal_3, Sep_2, [H1,H2|T]) -->
+  call(Goal_3, H1),
+  Sep_2,
+  seplist(Goal_3, Sep_2, [H2|T]).
 
 
 

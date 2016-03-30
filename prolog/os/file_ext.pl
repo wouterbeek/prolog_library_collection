@@ -24,7 +24,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/02
+@version 2015/07-2015/11, 2016/01-2016/03
 */
 
 :- use_module(library(apply)).
@@ -37,6 +37,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(os/os_ext)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
+:- use_module(library(readutil)).
 
 
 
