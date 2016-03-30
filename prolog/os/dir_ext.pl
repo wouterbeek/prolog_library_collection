@@ -1,13 +1,13 @@
 :- module(
   dir_ext,
   [
-    append_dirs/2,   % +Dirs, -Dir
-    append_dirs/3,   % +Dir1, +Dir2, -Dir
-    current_dir/1,   % ?Dir
-    dir_subdirs/2,   % ?Dir, ?Subdirs
-    direct_subdir/2, % +Dir, -Subdir
-    run_in_dir/2,    % :Goal_0, +Dir
-    wd/1             % ?Dir
+    append_dirs/2, % +Dirs, -Dir
+    append_dirs/3, % +Dir1, +Dir2, -Dir
+    current_dir/1, % ?Dir
+    dir_file/2,    % +Dir, -File
+    dir_subdirs/2, % ?Dir, ?Subdirs
+    run_in_dir/2,  % :Goal_0, +Dir
+    wd/1           % ?Dir
   ]
 ).
 :- reexport(library(filesex)).
@@ -67,6 +67,16 @@ current_dir(Dir) :-
 
 
 
+% dir_file(+Dir, -File) is nondet.
+
+dir_file(Dir, File) :-
+  directory_files(Dir, Files0),
+  member(File0, Files0),
+  \+ is_dummy_file(File0),
+  directory_file_path(Dir, File0, File).
+
+
+
 %! dir_subdirs(+Dir, -Subdirs) is det.
 %! dir_subdirs(-Dir, +Subdirs) is det.
 % Occurrences of `.` and `..` in Dir are resolved.
@@ -80,16 +90,6 @@ dir_subdirs(Dir, Subdirs2) :-
 dir_subdirs(Dir, Subdirs1) :-
   resolve_subdirs(Subdirs1, Subdirs2),
   atomic_list_concat(Subdirs2, /, Dir).
-
-
-
-% direct_subdir(+Dir, -Subdir) is nondet.
-
-direct_subdir(Dir1, Dir2) :-
-  directory_files(Dir1, Subdirs),
-  member(Subdir, Subdirs),
-  \+ is_dummy_file(Subdir),
-  directory_file_path(Dir1, Subdir, Dir2).
 
 
 
