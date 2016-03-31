@@ -6,7 +6,7 @@
 Initialize locations for serving HTML resources.
 
 @author Wouter Beek
-@version 2015/08, 2016/02
+@version 2015/08, 2016/02, 2016/04
 */
 
 :- use_module(library(http/http_dispatch)).
@@ -27,6 +27,7 @@ http:location(fonts, root(fonts), []).
 http:location(icon,  root(icon),  []).
 http:location(img,   root(img),   []).
 http:location(js,    root(js),    []).
+http:location(mp3,   root(mp3),   []).
 http:location(pdf,   root(pdf),   []).
 
 user:prolog_file_type(htm,  html).
@@ -37,6 +38,7 @@ user:file_search_path(fonts, library(resource/fonts)).
 user:file_search_path(icon,  library(resource/icon)).
 user:file_search_path(img,   library(resource/img)).
 user:file_search_path(js,    library(resource/js)).
+user:file_search_path(mp3,   library(resource/mp3)).
 user:file_search_path(pdf,   library(resource/pdf)).
 
 :- http_handler(css(.),   serve_files_in_directory(css),   [prefix]).
@@ -44,4 +46,5 @@ user:file_search_path(pdf,   library(resource/pdf)).
 :- http_handler(icon(.),  serve_files_in_directory(icon),  [prefix]).
 :- http_handler(img(.),   serve_files_in_directory(img),   [prefix]).
 :- http_handler(js(.),    serve_files_in_directory(js),    [prefix]).
+:- http_handler(mp3(.),   serve_files_in_directory(mp3),   [prefix]).
 :- http_handler(pdf(.),   serve_files_in_directory(pdf),   [prefix]).
