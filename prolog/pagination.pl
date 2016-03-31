@@ -1,8 +1,8 @@
 :- module(
-  page,
+  pagination,
   [
-    page/4,             % +Pattern, :Goal_0, +Opts, -Result
-    page_print_result/3 % +Query, +Result, :Goal_1
+    pagination/4,       % +Pattern, :Goal_0, +Opts, -Result
+    pagination_result/3 % +Query, +Result, :Goal_1
   ]
 ).
 
@@ -16,14 +16,14 @@
 :- use_module(library(print_ext)).
 
 :- meta_predicate
-    page(+, 0, +, -),
-    page_print_result(+, +, 1).
+    pagination(+, 0, +, -),
+    pagination_result(+, +, 1).
 
 
 
 
 
-%! page(+Pattern, :Goal_0, +Opts, -Result) is nondet.
+%! pagination(+Pattern, :Goal_0, +Opts, -Result) is nondet.
 % The following options are supported:
 %   - page_size(+nonneg)
 %     Default is 100.
@@ -36,7 +36,7 @@
 %   - page_size
 %   - results
 
-page(Pattern, Goal_0, Opts1, Result) :-
+pagination(Pattern, Goal_0, Opts1, Result) :-
   mod_dict(page_size, Opts1, 100, PageSize, Opts2),
   mod_dict(start_page, Opts2, 1, StartPage, Opts3),
   put_dict(page0, Opts3, 0, Opts4),
@@ -54,9 +54,9 @@ page(Pattern, Goal_0, Opts1, Result) :-
 
 
 
-%! page_print_results(+Query, +Result, :Goal_1) is det.
+%! pagination_result(+Query, +Result, :Goal_1) is det.
 
-page_print_result(Query, Result, Goal_1) :-
+pagination_result(Query, Result, Goal_1) :-
   call(Goal_1, Result.results),
   nl,
   Low is (Result.page - 1) * Result.page_size,

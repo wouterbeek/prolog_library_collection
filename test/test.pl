@@ -129,6 +129,7 @@
   :- use_module(library(os/thread_counter)).
   :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
+:- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 %/pl
   :- use_module(library(pl/pl_term)).
