@@ -136,10 +136,10 @@ iri_field0(scheme).
 % a compound term i.o. an atomic IRI.  This is more optimal in cases where
 % the IRI is build in the called context only to be decomposed inside the call.
 
-iri_comps(
-  uri_components(Scheme,Auth,Path,Search,Frag),
-  uri_components(Scheme,Auth,Path,Search,Frag)
-) :- !.
+iri_comps(Comps1, Comps2) :-
+  ground(Comps1),
+  Comps1 = uri_components(Scheme,Auth,Path,Search,Frag), !,
+  Comps2 = uri_components(Scheme,Auth,Path,Search,Frag).
 iri_comps(Iri, Comps) :-
   uri_components(Iri, Comps).
 
