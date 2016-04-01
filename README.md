@@ -14,9 +14,11 @@ We use the following abbreviations for often occurring variable names:
 | Attr              | Attribute     |
 | C                 | Code          |
 | Char              | Character     |
+| Comp              | Component     |
 | D                 | Digit         |
 | Def               | Default       |
 | E                 | Error         |
+| Exts              | Extensions    |
 | Frac              | Fractional    |
 | H                 | Head          |
 | I                 | Integer       |
@@ -26,6 +28,8 @@ We use the following abbreviations for often occurring variable names:
 | N                 | Number        |
 | Num$X$s           | NumberOf$X$s  |
 | Opt               | Options       |
+| Param             | Parameter     |
+| Req               | Request       |
 | S                 | String        |
 | Sep               | Separator     |
 | T                 | Tail          |

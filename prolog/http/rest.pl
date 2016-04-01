@@ -16,7 +16,7 @@
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_json)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(iri/iri_ext)).
 
 :- html_meta
    rest_call_or_exception(2, +, +),
@@ -67,7 +67,7 @@ rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   http_link_to_id(HandleId, Endpoint),
   (   Local == Endpoint
   ->  call(Plural_2, Method, MTs)
-  ;   uri_path(Res, Local),
+  ;   iri_path(Res, Local),
       call(Exists_1, Res)
   ->  call(Singular_3, Method, MTs, Res)
   ), !.

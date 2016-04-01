@@ -27,7 +27,7 @@
 % The following options are supported:
 %   - page_size(+nonneg)
 %     Default is 100.
-%   - start_page(+nonneg)
+%   - page(+nonneg)
 %     Default is 1.
 %
 % The following keys are in Result:
@@ -38,7 +38,7 @@
 
 pagination(Pattern, Goal_0, Opts1, Result) :-
   mod_dict(page_size, Opts1, 100, PageSize, Opts2),
-  mod_dict(start_page, Opts2, 1, StartPage, Opts3),
+  mod_dict(page, Opts2, 1, StartPage, Opts3),
   put_dict(page0, Opts3, 0, Opts4),
   % NONDET
   findnsols(PageSize, Pattern, Goal_0, Results),

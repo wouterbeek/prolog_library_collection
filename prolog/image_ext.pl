@@ -20,10 +20,10 @@ Support for image files.
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(typecheck)).
-:- use_module(library(uri/uri_ext)).
 
 :- dynamic(user:prolog_file_type/2).
 :- multifile(user:prolog_file_type/2).
@@ -107,5 +107,5 @@ is_image_file(File):-
 
 is_image_iri(Iri):-
   is_iri(Iri),
-  uri_component(Iri, path, Path),
+  iri_comp(Iri, path, Path),
   is_image_file(Path).

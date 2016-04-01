@@ -100,16 +100,8 @@ call_collect_messages(Goal_0, Status, Messages):-
 
 debug_all_files:-
   absolute_file_name(project(.), Dir, [access(read),file_type(directory)]),
-  directory_files(
-    Dir,
-    Files1,
-    [
-      file_types([prolog]),
-      include_directories(false),
-      include_self(false),
-      recursive(true)
-    ]
-  ),
+  directory_file_path(Dir, '*.pl', Wildcard),
+  expand_file_name(Wildcard, Files1),
   exclude(do_not_load, Files1, Files2),
   maplist(use_module0, Files2).
 use_module0(File):-

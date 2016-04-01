@@ -7,6 +7,7 @@
     desc_pairs_values/2,   % +Pairs, -DescendingValues
     group_pairs_by_key/3,  % :Comparator_2, +Pairs, -GroupedPairs
     inverse_pair/2,        % ?Pair, ?InversePair
+    is_pair/1,             % @Term
     is_reflexive_pair/1,   % +Pair
     pair/3,                % ?Pair, ?Key, ?Value
     pair_element/2,        % ?Pair, ?Element
@@ -25,7 +26,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12
+@version 2015/08, 2015/10-2015/12, 2016/04
 */
 
 :- use_module(library(apply)).
@@ -33,8 +34,9 @@ Additional support for dealing with pairs.
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
 
-:- meta_predicate(group_pairs_by_key(2,+,-)).
-:- meta_predicate(same_key(2,+,+,-,-)).
+:- meta_predicate
+    group_pairs_by_key(2, +, -),
+    same_key(2, +, +, -, -).
 
 :- multifile(error:has_type/2).
 error:has_type(pair, _-_).
@@ -97,6 +99,12 @@ same_key(_, _, L, [], L).
 %! inverse_pair(-Pair:pair, +Inverse:pair) is det.
 
 inverse_pair(X-Y, Y-X).
+
+
+
+%! is_pair(@Term) is semidet.
+
+is_pair(_-_).
 
 
 
