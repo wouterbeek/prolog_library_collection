@@ -220,7 +220,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(raw_headers(Lines), Opts),
       (   debugging(open_any2(http(raw)))
       ->  maplist(string_codes, Ss, Lines),
-          forall(member(S, Ss), msg_notification("~s", [S]))
+          forall(member(S, Ss), msg_notification("~s~n", [S]))
       ;   true
       ),
       option(status_code(Status), Opts),

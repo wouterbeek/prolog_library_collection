@@ -49,6 +49,8 @@ append_dirs0(Dir1, [H|T], Dir) :-
 % Returns the directory name obtained by concatenating
 % the given directory names.
 %
+% The empty atom in the first position indicates the root directory.
+%
 % Does *not* ensure that any of the directories exist.
 
 append_dirs(Dir1, Dir2, Dir3) :-
@@ -80,6 +82,8 @@ dir_file(Dir, File) :-
 %! dir_subdirs(+Dir, -Subdirs) is det.
 %! dir_subdirs(-Dir, +Subdirs) is det.
 % Occurrences of `.` and `..` in Dir are resolved.
+%
+% The empty atom in the first position indicates the root directory.
 %
 % For absolute directory names the first subdirectory name is the empty atom.
 

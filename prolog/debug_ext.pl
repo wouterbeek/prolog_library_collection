@@ -30,7 +30,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03
+@version 2015/07-2015/11, 2016/01-2016/04
 */
 
 :- use_module(library(aggregate)).

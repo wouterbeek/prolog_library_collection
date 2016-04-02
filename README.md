@@ -29,6 +29,7 @@ We use the following abbreviations for often occurring variable names:
 | Num$X$s           | NumberOf$X$s  |
 | Opt               | Options       |
 | Param             | Parameter     |
+| Perc              | Percentage    |
 | Req               | Request       |
 | S                 | String        |
 | Sep               | Separator     |
