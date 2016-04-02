@@ -135,7 +135,6 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(pool)).
 :- use_module(library(print_ext)).
-:- use_module(library(progress)).
 :- use_module(library(row_ext)).
 :- use_module(library(service_db)).
 %/set
