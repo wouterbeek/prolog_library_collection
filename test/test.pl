@@ -156,7 +156,7 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 %/svg
-  :- use_module(library(svg/svg_dom)).
+  :- use_module(library(svg/svg_ext)).
 %/tree
   :- use_module(library(tree/l_tree)).
   :- use_module(library(tree/s_tree)).
