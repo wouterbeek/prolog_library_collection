@@ -205,7 +205,7 @@ My favorite collection of DCG rules.
     tab(+, //, ?, ?),
     tab_nl(+, //, ?, ?).
 
-:- setting(tab_size, integer, 4,
+:- setting(tab_size, integer, 8,
      'The number of spaces that go into one tab.'
    ).
 
