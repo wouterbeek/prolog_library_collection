@@ -1,5 +1,6 @@
 :- use_module(library(assoc_ext)).
 :- use_module(library(atom_ext)).
+:- use_module(library(batch)).
 :- use_module(library(char_ext)).
 :- use_module(library(chr_ext)).
 :- use_module(library(cli_ext)).
@@ -90,7 +91,6 @@
   :- use_module(library(iri/rfc3987)).
 :- use_module(library(json_ext)).
 :- use_module(library(list_ext)).
-:- use_module(library(list_script)).
 %/ltag
   :- use_module(library(ltag/ltag_match)).
   :- use_module(library(ltag/rfc3066)).

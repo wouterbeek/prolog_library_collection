@@ -1,12 +1,12 @@
 :- module(
-  list_script,
+  batch,
   [
     process_batch/2, % :Goal_1, +L
     process_batch/3  % :Goal_1, +L, +Opts
   ]
 ).
 
-/** <module> Process batches of items
+/** <module> Batch processing
 
 Runs a given goal for a given batch of items and prints the process
 on a per-item basis.  The process may not succeed for some items.
@@ -18,6 +18,7 @@ cannot be processed.
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug)).
 :- use_module(library(lists)).
 
 :- meta_predicate
@@ -75,11 +76,12 @@ process_batch(Goal_1, L, Opts) :-
 %!   ?Mutex
 %! ) is det.
 
-process_batch(_, N-N, [], [], [], _) :- !.
+process_batch(_, _, [], [], [], _) :- !.
 % One more item gets pushed to DONE!
 process_batch(Goal_1, M1-N, [H|Todo], [H|Done], NotDone, Mutex) :-
   call_with_mutex(Goal_1, H, Mutex), !,
   M2 is M1 + 1,
+  debug(process_batch, "~D/~D", [M2,N]),
   process_batch(Goal_1, M2-N, Todo, Done, NotDone, Mutex).
 % An item could not be processed; pushed to NOT-DONE.
 process_batch(Goal_1, M1-N, [X|Todo], Done, [X|NotDone], Mutex) :-
