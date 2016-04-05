@@ -1,157 +1,99 @@
 :- module(
   list_script,
   [
-    list_script/3 % :Goal_1, +Todo:list, +Opts
+    process_batch/2, % :Goal_1, +L
+    process_batch/3  % :Goal_1, +L, +Opts
   ]
 ).
 
-/** <module> List script
+/** <module> Process batches of items
 
-Runs a given goal for a given list of arguments and prints the process
-on a per-item basis.
-Also keeps track of items that could not be processed.
+Runs a given goal for a given batch of items and prints the process
+on a per-item basis.  The process may not succeed for some items.
+Such is life.  This module at least keeps track of the items that
+cannot be processed.
 
 @author Wouter Beek
-@version 2015/08, 2015/10
+@version 2015/08, 2015/10, 2016/04
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(lists)).
-:- use_module(library(progress)).
-
-:- predicate_options(list_script/3, 3, [
-     message(+atom),
-     notdone(-list),
-     overview(+boolean),
-     skip(+nonneg),
-     with_mutex(+boolean)
-   ]).
 
 :- meta_predicate
-    list_script(1, +, +),
-    list_script(1, +, +, +, -, -, ?).
+    call_with_mutex(1, +, ?),
+    process_batch(1, +),
+    process_batch(1, +, +),
+    process_batch(1, +, +, -, -, ?).
 
 
 
 
 
-%! list_script(:Goal_1, +Todo:list, +Opts) is det.
-% Processes the items in `Todo` using the given goal
-% and places the items either in the `Done` or in the `NotDone` list.
-% The `Done` list can be pre-instantiated.
+%! process_batch(:Goal_1, +L) is det.
+%! process_batch(:Goal_1, +L, +Opts) is det.
+% Process the items in L using the given Goal_1.
+% Place items either in the `Done` or in the `NotDone` list.
 %
 % The following options are supported:
-%   - message(+atom)
-%     Set the message that is displayed upon completing an item.
-%   - notdone(-list)
+%   - failed(-list)
 %     Returns the sublist of items that could not be processed.
-%   - overview(+boolean)
-%     Whether to show an overview afterwards (`false` by default).
 %   - skip(+nonneg)
-%     Skips the first _M_ items in Todo.
+%     Allow a specific number of items from L to skipped.
+%     Default is `0`.
 %   - with_mutex(+atom)
-%     Run the goal for each item inside the given mutex.
+%     Run Goal_1 for each item in L within a specific mutex.
+%   - verbose(+boolean)
+%     Whether to show an overview afterwards.
+%     Default is `false`.
 
-list_script(Goal_1, Todo0, Opts):-
-  length(Todo0, N),
-  option(message(Msg), Opts, 'Processed'),
+process_batch(Goal_1, L) :-
+  process_batch(Goal_1, L, []).
 
-  % Process option `skip`.
-  (   option(skip(M), Opts)
-  ->  length(Skip, M),
-      append(Skip, Todo, Todo0)
-  ;   M = 0,
-      Todo = Todo0
-  ),
 
-  % Process list.
-  option(with_mutex(Mutex), Opts, _VAR),
-  list_script(Goal_1, Msg, counter(M,N), Todo, Done, NotDone, Mutex),
-  
-  % Process option `notdone`.
-  option(notdone(NotDone), Opts, true),
-
-  % Show an overview of processing the list.
-  (   option(overview(true), Opts)
-  ->  debug(list_script, items_done(Done, N)),
-      debug(list_script, items_not_done(NotDone,N))
-  ;   true
+process_batch(Goal_1, L, Opts) :-
+  length(L, N),
+  option(skip(Skip), Opts, 0),
+  length(L1, Skip),
+  append(L1, L2, L),
+  option(with_mutex(Mutex), Opts, _NoMutex),
+  process_batch(Goal_1, Skip-N, L2, Done, NotDone, Mutex),
+  ignore(option(notdone(NotDone), Opts)),
+  (   option(verbose(false), Opts)
+  ->  true
+  ;   length(Done, M),
+      debug(process_batch, progress_bar(M, N))
   ).
 
 
-%! list_script(
+%! process_batch(
 %!   :Goal_1,
-%!   +Message:atom,
 %!   +Counter:pair(nonneg),
-%!   +Todo:list(term),
-%!   -Done:list(term),
-%!   -NotDone:list(term),
-%!   ?Mutex:atom
+%!   +Todo,
+%!   -Done,
+%!   -NotDone,
+%!   ?Mutex
 %! ) is det.
 
-% Nothing to do.
-list_script(_, _, counter(N,N), [], [], [], _):- !.
-% One more TODO item gets pushed to DONE.
-list_script(Goal_1, Msg, counter(M0,N), [X|Todo], [X|Done], NotDone, Mutex):-
-  (   ground(Mutex)
-  ->  with_mutex(Mutex, call(Goal_1, X))
-  ;   call(Goal_1, X)
-  ), !,
-  M is M0 + 1,
-  % Retrieve the current index, based on the previous index.
-  debug(list_script, item_done(counter(M,N), Msg)),
-  list_script(Goal_1, Msg, counter(M,N), Todo, Done, NotDone, Mutex).
-% A TODO item could not be processed; pushed to NOT-DONE.
-list_script(Goal_1, Msg, counter(M0,N), [X|Todo], Done, [X|NotDone], Mutex):-
-  M is M0 + 1,
-  debug(list_script, item_not_done(counter(M,N), Msg)),
-  list_script(Goal_1, Msg, counter(M,N), Todo, Done, NotDone, Mutex).
+process_batch(_, N-N, [], [], [], _) :- !.
+% One more item gets pushed to DONE!
+process_batch(Goal_1, M1-N, [H|Todo], [H|Done], NotDone, Mutex) :-
+  call_with_mutex(Goal_1, H, Mutex), !,
+  M2 is M1 + 1,
+  process_batch(Goal_1, M2-N, Todo, Done, NotDone, Mutex).
+% An item could not be processed; pushed to NOT-DONE.
+process_batch(Goal_1, M1-N, [X|Todo], Done, [X|NotDone], Mutex) :-
+  M2 is M1 + 1,
+  process_batch(Goal_1, M2-N, Todo, Done, NotDone, Mutex).
 
 
 
 
 
-% DEBUG %
+% HELPERS %
 
-counter(counter(M,N)) -->
-  "[", thousands(M), "/", thousands(N), "]".
-
-enumerate_item(X) -->
-  "  - ", term(X).
-
-'enumerate_item*'([H|T]) --> enumerate_item(H), 'enumerate_item*'(T).
-'enumerate_item*'([]) --> "".
-
-item_done(Counter, Msg) -->
-  item_processed(done, Counter, Msg).
-
-item_not_done(Counter, Msg) -->
-  item_processed(not_done, Counter, Msg).
-
-item_processed(Mode, Counter, Msg) -->
-  mode(Mode), " ", counter(Counter), " ", message(Msg).
-
-items_done([], _) --> !, [].
-items_done(L, N) -->
-  items_processed(done, L, N).
-
-items_not_done([], _) --> !, [].
-items_not_done(L, N) -->
-  items_processed(not_done, L, N),
-  'enumerate_item*'(L).
-
-items_processed(Mode, L, N) -->
-  mode(Mode), " ", progress_bar(L, N).
-
-message(Msg) -->
-  atom(Msg).
-
-mode(done) -->
-  atom('[DONE]').
-mode(not_done) -->
-  atom('[NOT-DONE]').
-
-progress_bar(L, N) -->
-  {length(L, M), progress_bar(M, N, Bar)},
-  atom(Bar).
+call_with_mutex(Goal_1, X, Mutex) :-
+  ground(Mutex), !,
+  with_mutex(Mutex, call(Goal_1, X)).
+call_with_mutex(Goal_1, X, _) :-
+  call(Goal_1, X).

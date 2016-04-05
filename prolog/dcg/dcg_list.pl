@@ -1,7 +1,7 @@
 :- module(
   dcg_list,
   [
-    dcg_list//2, % +L, +Opts
+    dcg_list//2, %            +L, +Opts
     dcg_list//3  % :Writer_3, +L, +Opts
   ]
 ).
@@ -11,7 +11,7 @@
 Print numbered and unnumbered lists using DCGs.
 
 @author Wouter Beek
-@version 2015/10, 2016/03
+@version 2015/10, 2016/03-2016/04
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -19,7 +19,7 @@ Print numbered and unnumbered lists using DCGs.
 :- use_module(library(option)).
 
 :- meta_predicate
-    dcg_list(3, +, +, ?, ?).
+    dcg_list(3, +, +, ?, ?),
     dcg_list(3, +, +, +, +, ?, ?).
 
 

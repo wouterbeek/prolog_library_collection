@@ -63,7 +63,7 @@ uri_file_name_nested(Uri, File):-
 %      `dir_dummy`.
 
 uri_file_name_nested(Uri, File, Opts):-
-  current_directory(CurrentDir),
+  current_dir(CurrentDir),
   option(dir(ParentDir0), Opts, CurrentDir),
   uri_components(Uri, uri_components(Scheme,Authority,Path,_,_)),
 
@@ -78,8 +78,8 @@ uri_file_name_nested(Uri, File, Opts):-
   % Use (1) the URI scheme, (2) the URI authority,
   % and (3) the directory-part of the URI path to construct
   % the directory of the URI-based file.
-  directory_subdirectories(PathDir, [''|PathDirs]),
-  directory_subdirectories(UriDir, [Scheme,Authority|PathDirs]),
+  dir_subdirs(PathDir, [''|PathDirs]),
+  dir_subdirs(UriDir, [Scheme,Authority|PathDirs]),
 
   % Resolve the parent directory input to an absolute file name.
   absolute_file_name(

@@ -78,11 +78,13 @@
     opt//2,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
     parsing//0,
+    perc//1,               % +Perc:between(0.0,1.0)
     pos/2,                 % +N:nonneg, -Ds:list(between(0,9))
     pos/3,                 % +N:nonneg, +Base, -Ds:list(between(0,9))
     pos_frac/2,            % +Ds:list(between(0,9)), -FracPart:rational
     pos_sum/2,             % +Ds:list(between(0,9)), -N:nonneg
     pos_sum/3,             % +Ds:list(nonneg), +Base:positive_integer, -N:nonneg
+    progress_bar//2,       % +Processed, +All
     quoted//1,             % :Content_2
     quoted//2,             % :Quote_2, :Content_2
     quoted//3,             % ?Length, :Quote_2, :Content_2
@@ -795,6 +797,15 @@ parsing(H, H):- nonvar(H).
 
 
 
+%! perc(+Perc:between(0.0,1.0))// is det.
+% Generates a human-readable representation of a percentage.
+
+perc(Perc0, Head, Tail) :-
+  Perc is floor(Perc0 * 100),
+  format(codes(Head, Tail), "~d%", [Perc]).
+
+
+
 %! pos(+I:nonneg, -Ds:list(between(0,9))) is det.
 % Wrapper around pois/2 with decimal base.
 
@@ -837,6 +848,32 @@ pos_sum([D|Ds], Base, I1, I):- !,
   I2 is I1 * Base + D,
   pos_sum(Ds, Base, I2, I).
 pos_sum([], _, I, I).
+
+
+
+%! progress_bar(+Processed, +All)// is det.
+
+progress_bar(M, N) -->
+  progress_bar(M, N, 10),
+  ({M =:= N} -> " [done]" ; []).
+
+
+progress_bar(M, N, Width) -->
+  {(N =:= 0 -> Perc = 1.0 ; float_div_zero(M, N, Perc))},
+  perc(Perc),
+  " ",
+  {
+    M0 is M * Width,
+    int_div_zero(M0, N, MChars)
+  },
+  #(MChars, "="),
+  {NChars is Width - MChars},
+  #(NChars, "-"),
+  " (",
+  thousands(M),
+  "/",
+  thousands(N),
+  ")".
 
 
 

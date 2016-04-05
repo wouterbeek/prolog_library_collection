@@ -1,24 +1,31 @@
 :- module(
-  svg_dom,
+  svg_ext,
   [
-    svg_dom/2 % +File:atom
-              % -Dom:list(compound)
+    svg_dom/2 % +File, -Dom
   ]
 ).
 
-/** <module> SVG DOM
+/** <module> SVG extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10, 2016/04
 */
 
 :- use_module(library(sgml)).
 
+:- dynamic
+    user:prolog_file_type/2.
+
+:- multifile
+    user:prolog_file_type/2.
+
+user:prolog_file_type(svg, svg).
 
 
 
 
-%! svg_dom(+File:atom, -Dom:list(compound)) is det.
+
+%! svg_dom(+File, -Dom) is det.
 
 svg_dom(File, Dom):-
   setup_call_cleanup(

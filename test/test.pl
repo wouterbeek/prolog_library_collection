@@ -129,12 +129,12 @@
   :- use_module(library(os/thread_counter)).
   :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
+:- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 %/pl
   :- use_module(library(pl/pl_term)).
 :- use_module(library(pool)).
 :- use_module(library(print_ext)).
-:- use_module(library(progress)).
 :- use_module(library(row_ext)).
 :- use_module(library(service_db)).
 %/set
@@ -155,7 +155,7 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 %/svg
-  :- use_module(library(svg/svg_dom)).
+  :- use_module(library(svg/svg_ext)).
 %/tree
   :- use_module(library(tree/l_tree)).
   :- use_module(library(tree/s_tree)).
