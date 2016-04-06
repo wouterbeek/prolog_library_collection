@@ -59,7 +59,15 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
 pagination_result(Query, Result, Goal_1) :-
   call(Goal_1, Result.results),
   nl,
-  Low is (Result.page - 1) * Result.page_size,
-  High is Low + Result.number_of_results,
   Opts = [fg(green)],
-  ansi_format(Opts, "Showing results ~D -- ~D for query '~a'.~n", [Low,High,Query]).
+  (   Result.results == []
+  ->  ansi_format(Opts, "No results for query '~a'.~n", [Query])
+  ;   Low is (Result.page - 1) * Result.page_size,
+      LowDisplay is Low + 1,
+      High is Low + Result.number_of_results,
+      ansi_format(
+        Opts,
+        "Showing results ~D -- ~D for query '~a'.~n",
+        [LowDisplay,High,Query]
+      )
+  ).
