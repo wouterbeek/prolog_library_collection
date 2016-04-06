@@ -2,10 +2,10 @@
   date_time_file,
   [
     create_date_directory/2, % +Spec, -Dir
-    create_datetime_file/2,  % +Spec, -File
+    create_date_time_file/2, % +Spec, -File
     is_older_file/2,         % +Path1, +Path2
     is_younger_file/2,       % +Path1, +Path2
-    latest_datetime_file/2   % +Spec, -File
+    latest_date_time_file/2  % +Spec, -File
   ]
 ).
 
