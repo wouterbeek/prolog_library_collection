@@ -11,7 +11,6 @@
     iri_query_enc//0
   ]
 ).
-:- reexport(library(uri/uri_ext)).
 
 /** <module> IRI extensions
 
@@ -29,6 +28,7 @@
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(settings)).
+:- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
