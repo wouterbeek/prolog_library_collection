@@ -130,7 +130,7 @@ msg_notification(Format) :-
 
 
 msg_notification(Format, Args) :-
-  ansi_format(user_output, [bold,fg(yellow)], Format, Args).
+  ansi_format(user_output, [fg(green)], Format, Args).
 
 
 
