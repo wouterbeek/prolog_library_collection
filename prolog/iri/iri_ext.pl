@@ -27,6 +27,7 @@
 :- use_module(library(iri/rfc3987)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
+:- use_module(library(pair_ext)). % META
 :- use_module(library(settings)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).

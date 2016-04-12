@@ -1,6 +1,7 @@
 :- module(
   http11,
   [
+    'content-type'//1, % -Mime:dict
     'field-name'//1,   % -Name:string
     'header-field'//1, % -Header:pair
     method//1,         % -Method:string

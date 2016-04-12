@@ -86,9 +86,9 @@ pair_to_pair(TypeMap, N=V1, N-V2) :-
 %! http_header(+Metadata, +Key, -Value) is nondet.
 
 http_header(D, Key, Value) :-
-  get_dict(Key, D, D0s),
-  member(D0, D0s),
-  Value = D0.'llo:value'.
+  get_dict(Key, D, Values),
+  member(Value, Values).
+
 
 
 %! http_link_to_id(+HandleId, -Local) is det.
