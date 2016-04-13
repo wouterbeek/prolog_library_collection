@@ -1,14 +1,11 @@
 :- module(
   cli_ext,
   [
-    check_input/2, % +Mode:oneof([read,write])
-                   % +Input:atom
-    check_path/2, % +Mode:oneof([read,write])
-                  % +Path:atom
-    long_flag/3, % +Flag:atom
-                 % +Value
-                 % -Argument:atom
-    show_help/1 % +OptionSpecification:list(compound)
+    check_input/2, % +Mode:oneof([read,write]), +Input:atom
+    check_path/2,  % +Mode:oneof([read,write]), +Path:atom
+    long_flag/2,   % +Flag:atom,         -Argument:atom
+    long_flag/3,   % +Flag:atom, +Value, -Argument:atom
+    show_help/1    % +OptionSpecification:list(compound)
   ]
 ).
 :- reexport(library(optparse)).
@@ -16,7 +13,7 @@
 /** <module> Command-line interface extensions
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@version 2015/09-2015/10, 2016/04
 */
 
 :- use_module(library(error)).
@@ -50,7 +47,12 @@ check_path(Mode, Path):-
 
 
 
+%! long_flag(+Flag:atom, -Argument:atom) is det.
 %! long_flag(+Flag:atom, +Value, -Argument:atom) is det.
+
+long_flag(Flag, Arg) :-
+  format(atom(Arg), '--~w', [Flag]).
+
 
 long_flag(Flag, Val, Arg):-
   format(atom(Arg), '--~w=~w', [Flag,Val]).

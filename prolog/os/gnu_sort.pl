@@ -35,6 +35,7 @@ Support for calling GNU sort from within Prolog.
 :- predicate_options(gnu_sort/2, 2, [
      buffer_size(+nonneg),
      duplicates(+boolean),
+     numeric(+boolean),
      output(+atom),
      parallel(+positive_integer),
      temporary_directory(+atom),
@@ -64,6 +65,10 @@ gnu_sort_args([buffer_size(Size)|T1], [Arg|T2]) :- !,
   long_flag('buffer-size', Size, Arg),
   gnu_sort_args(T1, T2).
 gnu_sort_args([duplicates(false)|T1], ['--unique'|T2]) :- !,
+  gnu_sort_args(T1, T2).
+gnu_sort_args([numeric(Numeric)|T1], [Arg|T2]) :- !,
+  must_be(boolean, Numeric),
+  long_flag('numeric-sort', Arg),
   gnu_sort_args(T1, T2).
 gnu_sort_args([output(File)|T1], [Arg|T2]) :- !,
   must_be_file(write, File),
