@@ -7,8 +7,9 @@
     iri_comp/3,            % +Iri,  ?N, ?V
     iri_comps/2,           % ?Iri,  ?Comps
     iri_file_extensions/2, % +Iri,  -Exts
-    iri_path/2,            % -Iri,  +Path
-    iri_query_enc//0
+    iri_query_enc//0,
+    iri_to_location/2,     % +Iri, -Loc
+    iri_to_resource/2      % +Iri, -Res
   ]
 ).
 
@@ -154,15 +155,6 @@ iri_file_extensions(Iri, Exts) :-
 
 
 
-%! iri_path(-Iri, +Path) is det.
-
-iri_path(Iri, Path) :-
-  http_absolute_uri(/, Prefix0),
-  atom_concat(Prefix, /, Prefix0),
-  atom_concat(Prefix, Path, Iri).
-
-
-
 %! iri_query_enc// .
 % ```abnf
 % iquery = *( ipchar / iprivate / "/" / "?" )
@@ -189,6 +181,26 @@ iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   iri_query_enc.
 iri_query_enc --> "".
+
+
+
+%! iri_to_location(+Iri, -Loc) is det.
+
+iri_to_location(Iri, Loc) :-
+  uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
+  setting(http:public_scheme, Scheme),
+  setting(http:public_host, Auth),
+  uri_components(Loc, uri_components(Scheme,Auth,Path,Query,Frag)).
+
+
+
+%! iri_to_resource(+Iri, -Res) is det.
+
+iri_to_resource(Iri, Res) :-
+  uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
+  setting(sb:data_scheme, Scheme),
+  setting(sb:data_auth, Auth),
+  uri_components(Res, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 
 

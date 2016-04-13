@@ -1,7 +1,7 @@
 :- module(
   rest,
   [
-    rest_handler/5,   % +Request, +HandleId, :Exists_1, :Singular_3, :Plural_2
+    rest_handler/5,   % +Req, +HandleId, :Exists_1, :Singular_3, :Plural_2
     rest_mediatype/3, % +Method, +MediaTypes, :Plural_2
     rest_mediatype/4  % +Method, +MediaTypes, +Resource, :Singular_3
   ]
@@ -10,7 +10,7 @@
 /** <module> REST
 
 @author Wouter Beek
-@version 2016/02
+@version 2016/02, 2016/04
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
@@ -58,7 +58,7 @@ rest_exception(_, E) :-
   http_status_reply(bad_request(E)).
 
 
-%! rest_handler(+Request, +HandleId, :Exists_1, :Singular_3, Plural_2) is det.
+%! rest_handler(+Req, +HandleId, :Exists_1, :Singular_3, Plural_2) is det.
 
 rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   memberchk(request_uri(Local), Req),
@@ -67,7 +67,7 @@ rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   http_link_to_id(HandleId, Endpoint),
   (   Local == Endpoint
   ->  call(Plural_2, Method, MTs)
-  ;   iri_path(Res, Local),
+  ;   iri_to_resource(Local, Res),
       call(Exists_1, Res)
   ->  call(Singular_3, Method, MTs, Res)
   ), !.
