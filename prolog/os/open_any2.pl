@@ -14,7 +14,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2016/03
+@version 2015/10-2016/04
 */
 
 :- use_module(library(apply)).
@@ -86,6 +86,8 @@ close_any2(Close_0) :-
 % The following options are supported:
 %   * compress(+oneof([deflate,gzip,none]))
 %   * metadata(-dict)
+%   * parse_headers(+boolean)
+%     Default is `false`.
 %   * retry(+positive_integer)
 %   * Passed to open_any/5.
 %
@@ -227,7 +229,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
       option(time(Time), Opts),
       option(version(Major-Minor), Opts),
       string_list_concat([Major,Minor], ":", Version),
-      maplist(http_header0, Lines, Pairs),
+      maplist(http_header0(Opts), Lines, Pairs),
       keysort(Pairs, SortedPairs),
       group_pairs_by_key(SortedPairs, Groups),
       D0 = D1.put(_{
@@ -248,8 +250,12 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   ;   D4 = D3
   ).
 
-http_header0(Line, Key-Value) :-
-  phrase(http_header0(Key, Value), Line).
+http_header0(Opts, Line, Key-Value) :-
+  option(parse_headers(ParseHeaders), Opts),
+  (   ParseHeaders == true
+  ->  phrase('header-field'(Key-Value), Line)
+  ;   phrase(http_header0(Key, Value), Line)
+  ).
 
 http_header0(Key3, Val2) -->
   http11:'field-name'(Key1),
