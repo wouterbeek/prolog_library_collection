@@ -176,7 +176,8 @@ call_on_archive(Source, Goal_2, Opts1) :-
       archive_close(Arch)
     ),
     close_any2(Close_0)
-  ).
+  ),
+  ignore(option(metadata(M), Opts1)).
 
 % Semi-deterministic if an archive entry name is given.
 call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
