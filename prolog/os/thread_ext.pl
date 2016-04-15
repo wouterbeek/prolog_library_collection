@@ -154,7 +154,10 @@ thread(I, Name) -->
     thread_property(Id, alias(Name)),
     thread_property(Id, status(Status))
   },
-  tab_nl(I, pair(Name,Status)).
+  tab(I),
+  atom(Name),
+  ": ",
+  atom(Status).
 
 thread_items(I, [H|T]) -->
   thread(I, H), !,

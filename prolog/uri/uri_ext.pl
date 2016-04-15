@@ -15,6 +15,7 @@
 
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(uri/rfc3986)).
 
 %! uri_optional_query_enc// .
 

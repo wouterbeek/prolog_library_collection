@@ -22,6 +22,7 @@
      '?'//1,
      '+'//2,
      '*'//2,
+     dcg_string//2,
      pos_sum/2
    ]).
 :- use_module(library(dict_ext)).

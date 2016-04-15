@@ -131,7 +131,7 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   % compress a write stream).
   (   (   write_mode(Mode),
           option(compression(Comp), Opts)
-      ->  ZOpts0 = [format(Comp)]
+      ->  ZOpts0 = [format(Comp)],
           M = M0.put(_{compress: Comp})
       ;   read_mode(Mode),
           option(decompress(Decomp), Opts)
@@ -140,7 +140,7 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
       )
   ->  merge_options(ZOpts0, [close_parent(true)], ZOpts),
       zopen(Stream0, Stream, ZOpts),
-      Close_0 = close(Read)
+      Close_0 = close(Stream)
   ;   Stream = Stream0,
       Close_0 = Close0_0
   ),
@@ -195,7 +195,7 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
         status: Status,
         time: Time,
         version: Version
-      }),
+      },
       http_open2(Iri, State, Stream0, Stream, Close_0, M, Ms, Opts)
   ;   throw(E)
   ).
@@ -231,12 +231,12 @@ http_open2(Iri0, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   uri_resolve(State.location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
   (   is_redirect_limit_exceeded(State)
-  ->  throw_max_redirect_error(Iri, Max)
+  ->  throw_max_redirect_error(Iri, State.max_redirects)
   ;   is_redirect_loop(Iri, State)
-  ->  throw_looping_redirect_error(Iri2)
+  ->  throw_looping_redirect_error(Iri)
   ;   true
   ),
-  http_open:redirect_options(Opts0, RedirectOpts),
+  http_open:redirect_options(Opts, RedirectOpts),
   http_open2(Iri, State, Stream, Close_0, Ms, RedirectOpts).
 % Success.
 http_open2(_, _, Stream, Stream, close(Stream), M, [M], _).
@@ -318,8 +318,8 @@ http_parse_headers(Lines, Groups, Opts) :-
 
 http_parse_header(Opts, Line, Key-Value) :-
   option(parse_headers(true), Opts), !,
-  phrase('header-field'(Key-Value), Line)
-http_parse_header(Opts, Line, Key-Value) :-
+  phrase('header-field'(Key-Value), Line).
+http_parse_header(_, Line, Key-Value) :-
   phrase(http_parse_header(Key, Value), Line).
 
 http_parse_header(Key3, Val2) -->
