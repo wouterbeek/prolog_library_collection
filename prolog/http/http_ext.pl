@@ -3,13 +3,16 @@
   [
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -Mediatypes
+    http_auth_error/1,        % +Status
     http_dict/2,              % +Req, -Dict
     http_dict/3,              % +Req, +TypeMap, -Dict
+    http_error/1,             % +Status
     http_header/3,            % +M, +Key, -Value
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
     http_output/2,            % +Req, -Output
     http_read_json_dict/1,    % -Data
+    http_redirect/1,          % +Status
     http_reply_file/1,        % +File
     http_scheme/1,            % ?Scheme
     http_search/3,            % +Req, +Key, -Value
@@ -17,8 +20,7 @@
     http_status_label/2,      % +StatusCode, -Label
     http_status_reply/1,      % +Status
     http_status_reply/2,      % +Req, +Status
-    http_uri/2,               % +Req, -Uri
-    is_http_error/1           % +StatusCode
+    http_uri/2                % +Req, -Uri
   ]
 ).
 :- reexport(library(http/http_path)).
@@ -61,6 +63,12 @@ mediatype_pair(media(MT,_,N,_), N-MT).
 
 
 
+%! http_error(+Status) is semidet.
+
+http_auth_error(401).
+
+
+
 %! http_dict(+Req, -D) is det.
 %! http_dict(+Req, +TypeMap, -D) is det.
 
@@ -80,6 +88,13 @@ http_dict(_, _, _{}).
 
 pair_to_pair(TypeMap, N=V1, N-V2) :-
   (memberchk(N-Goal_2, TypeMap) -> call(Goal_2, V1, V2) ; V2 = V1).
+
+
+
+%! http_error(+Status) is semidet.
+
+http_error(Status):-
+  between(400, 599, Status).
 
 
 
@@ -117,6 +132,13 @@ http_output(Req, Out) :-
 http_read_json_dict(Data) :-
   http_current_request(Req),
   http_read_json_dict(Req, Data).
+
+
+
+%! http_redirect(+Status) is semidet.
+
+http_redirect(Status) :-
+  between(300, 399, Status).
 
 
 
@@ -178,10 +200,3 @@ http_status_reply(Req, Status) :-
 
 http_uri(Req, Uri) :-
   memberchk(request_uri(Uri), Req).
-
-
-
-%! is_http_error(+Status:positive_integer) is semidet.
-
-is_http_error(Status):-
-  between(400, 599, Status).

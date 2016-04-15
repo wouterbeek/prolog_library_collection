@@ -10,6 +10,7 @@
     dict_inc/3,             % +Key, +Dict, -Value
     dict_inc/4,             % +Key, +Dict, +Diff, -Value
     dict_pairs/2,           % ?Dict, ?Pairs
+    dict_prepend/3,         % +Key, +Dict, +Elem
     dict_put_pairs/3,       % +Dict1, +Pairs, -Dict2
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
     dict_tag/3,             % +Dict1, +Tag, ?Dict2
@@ -25,7 +26,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/04
 */
 
 :- use_module(library(apply)).
@@ -98,7 +99,6 @@ dict_inc(Key, Dict) :-
 dict_inc(Key, Dict, Val) :-
   dict_inc(Key, Dict, 1, Val).
 
-
 dict_inc(Key, Dict, Diff, Val2) :-
   get_dict(Key, Dict, Val1),
   Val2 is Val1 + Diff,
@@ -121,6 +121,14 @@ dict_put_pairs(D1, L, D2) :-
   dict_pairs(D1, L1),
   append(L1, L, L2),
   dict_pairs(D2, L2).
+
+
+
+%! dict_prepend(+Key, +Dict, +Elem) is det.
+
+dict_prepend(Key, Dict, H) :-
+  get_dict(Key, Dict, T),
+  nb_set_dict(Key, Dict, [H|T]).
 
 
 

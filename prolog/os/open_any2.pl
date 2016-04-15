@@ -66,7 +66,8 @@ is_meta(http_error).
 :- predicate_options(http_open2/4, 4, [
      http_error(+callable),
      metadata(-dict),
-     retry(+positive_integer)
+     max_redirects(+positive_integer),
+     max_retries(+positive_integer)
    ]).
 
 
@@ -84,12 +85,25 @@ close_any2(Close_0) :-
 %! open_any2(+Source, +Mode, -Stream, -Close_0) is det.
 %! open_any2(+Source, +Mode, -Stream, -Close_0, :Opts) is nondet.
 % The following options are supported:
-%   * compress(+oneof([deflate,gzip,none]))
-%   * metadata(-dict)
+%   * compression(+oneof([deflate,gzip,none]))
+%     Whether or not compression is used on the opened stream.
+%     Default is `none`.
+%   * metadata(-list(dict))
+%     Whether all metadata accrued during the opening of a stream should be
+%     returned.
 %   * parse_headers(+boolean)
+%     Whether HTTP headers are parsed according to HTTP 1.1 grammars.
 %     Default is `false`.
-%   * retry(+positive_integer)
-%   * Passed to open_any/5.
+%   * max_redirects(+positive_integer)
+%     The maximum number of redirects that is followed when opening a stream
+%     over HTTP.
+%     Default is 10.
+%   * max_retries(+positive_integer)
+%     The maximum number of retries that is performed when opening a stream
+%     over HTTP.  A retry is made whenever a 4xx- or 5xx-range HTTP status
+%     code is returned.
+%     Default is 3.
+%   * Other options are passed to open_any/5.
 %
 % @throws existence_error if an HTTP request returns an error code.
 
@@ -97,76 +111,135 @@ open_any2(Source, Mode, Stream, Close_0) :-
   open_any2(Source, Mode, Stream, Close_0, []).
 
 
-open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
-  meta_options(is_meta, Opts1, Opts2),
-  source_type(Source1, Mode, Source2, Type),
-  ignore(option(metadata(D), Opts2)),
-  open_any_options(Type, Opts2, Opts3),
+open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
+  meta_options(is_meta, Opts0, Opts),
+  source_type(Source0, Mode, Source, Type),
+  ignore(option(metadata(M), Opts)),
 
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
-  (   Type == http_iri, Mode == read
-  ->  http_open2(Source2, Stream1, Close1_0, Opts3)
-  ;   open_any(Source2, Mode, Stream1, Close1_0, Opts3)
+  (   Type == http_iri
+  ->  must_be(oneof([read]), Mode),
+      http_open2(Source, Stream0, Close0_0, Ms, Opts),
+      M0 = _{comm: Ms, type: http_iri}
+  ;   open_any(Source, Mode, Stream0, Close0_0, Opts),
+      base_iri(Source, BaseIri, Opts),
+      M0 = _{base_iri: BaseIri, mode: Mode, type: file_iri}
   ),
 
-  % Compression.
+  % Perform compression on the stream (decompress a read stream;
+  % compress a write stream).
   (   (   write_mode(Mode),
-          option(compress(Comp), Opts2)
-      ->  ZOpts1 = [format(Comp)]
+          option(compression(Comp), Opts)
+      ->  ZOpts0 = [format(Comp)]
+          M = M0.put(_{compress: Comp})
       ;   read_mode(Mode),
-          option(decompress(Decomp), Opts2)
-      ->  ZOpts1 = [format(Decomp)]
+          option(decompress(Decomp), Opts)
+      ->  ZOpts0 = [format(Decomp)],
+          M = M0.put(_{decompress: Decomp})
       )
-  ->  merge_options(ZOpts1, [close_parent(true)], ZOpts2),
-      zopen(Stream1, Stream2, ZOpts2),
-      Close2_0 = close(Stream2)
-  ;   Stream2 = Stream1,
-      Close2_0 = Close1_0
+  ->  merge_options(ZOpts0, [close_parent(true)], ZOpts),
+      zopen(Stream0, Stream, ZOpts),
+      Close_0 = close(Read)
+  ;   Stream = Stream0,
+      Close_0 = Close0_0
   ),
-  open_any_metadata(Source2, Mode, Type, Comp, Opts3, D),
-  (   get_dict('llo:status_code', D, Status),
-      is_http_error(Status)
-  ->  existence_error(open_any2, D)
+
+  % Make sure the metadata is accessible even the case of an HTTP error code.
+  (   get_dict(http, M, [M1|_]),
+      get_dict(status, M1, Status),
+      http_error(Status)
+  ->  existence_error(open_any2, M)
   ;   true
   ).
 
 
-%! http_open2(+Iri, +Read, +Close_0, +Opts) is det.
+%! http_open2(+Iri, -Read, -Close_0, -Ms, +Opts) is det.
 
-http_open2(Iri, Read, Close_0, Opts1) :-
-  select_option(retry(N), Opts1, Opts2, 1),
-  http_open2(Iri, Read, 0, N, Close_0, Opts2).
+http_open2(Iri, Stream, Close_0, Ms, Opts) :-
+  option(max_redirect(MaxRedirect), Opts, 5),
+  option(max_retries(MaxRetry), Opts, 1),
+  State = _{
+    max_redirect: MaxRedirect,
+    max_retries: MaxRetry,
+    redirects: 0,
+    retries: 0,
+    visited: []
+  },
+  http_open2(Iri, State, Stream, Close_0, Ms, Opts).
 
 
-http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
-  copy_term(Opts1, Opts2),
-  call_time(catch(http_open(Iri, Read2, Opts2), E, true), Time),
+%! http_open2(+Iri, +State, -Read, -Close_0, -Ms, +Opts) is det.
+
+http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
+  copy_term(Opts0, Opts1),
+  Opts2 = [
+    authenticate(false),
+    cert_verify_hook(cert_accept_any),
+    header(location,Location),
+    raw_headers(Lines),
+    redirect(false),
+    status_code(Status),
+    version(Version)
+  ],
+  merge_options(Opts1, Opts2, Opts3),
+  call_time(catch(http_open(Iri, Stream0, Opts3), E, true), Time),
   (   var(E)
-  ->  option(status_code(Status), Opts2),
-      option(time(Time), Opts2),
-      must_be(ground, Status),
-      (   is_http_error(Status)
-      ->  (   debugging(open_any2(http(error)))
-          ->  option(raw_headers(Headers), Opts2),
-              call_cleanup(
-                http_error_message(Iri, Status, Headers, Read2),
-                close(Read2)
-              )
-          ;   true
-          ),
-          M2 is M1 + 1,
-          (   M2 =:= N
-          ->  Close_0 = true,
-              Opts1 = Opts2
-          ;   http_open2(Iri, Read1, M2, N, Close_0, Opts1)
-          )
-      ;   Read1 = Read2,
-          Close_0 = close(Read1),
-          Opts1 = Opts2
-      )
+  ->  base_iri(Iri, BaseIri, Opts0),
+      deb_http_headers(Lines),
+      http_parse_headers(Lines, Groups, Opts),
+      M = _{
+        base_iri: BaseIri,
+        headers: Groups,
+        location: Location,
+        status: Status,
+        time: Time,
+        version: Version
+      }),
+      http_open2(Iri, State, Stream0, Stream, Close_0, M, Ms, Opts)
   ;   throw(E)
   ).
+
+
+%! http_open2(+Iri, +State, +Stream0, -Stream, -Close_0, +M, -Ms, +Opts) is det.
+
+% Authentication error.
+http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+  http_auth_error(State.status),
+  option(raw_headers(Lines), Opts),
+  http_open:parse_headers(Lines, Headers),
+  http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
+  close(Stream0),
+  http_open2(Iri, State, Stream, Close_0, Ms, AuthOpts).
+% Non-authentication error.
+http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+  http_error(State.status), !,
+  call_cleanup(
+    deb_http_error(Iri, State.status, Stream0, Opts),
+    close(Stream0)
+  ),
+  dict_inc(retries, State),
+  (   State.retries >= State.max_retries
+  ->  Close_0 = true,
+      Ms = []
+  ;   http_open2(Iri, State, Stream, Close_0, Ms, Opts)
+  ).
+% Redirect.
+http_open2(Iri0, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+  http_redirect(State.status), !,
+  close(Stream0),
+  uri_resolve(State.location, Iri0, Iri),
+  dict_prepend(visited, State, Iri),
+  (   is_redirect_limit_exceeded(State)
+  ->  throw_max_redirect_error(Iri, Max)
+  ;   is_redirect_loop(Iri, State)
+  ->  throw_looping_redirect_error(Iri2)
+  ;   true
+  ),
+  http_open:redirect_options(Opts0, RedirectOpts),
+  http_open2(Iri, State, Stream, Close_0, Ms, RedirectOpts).
+% Success.
+http_open2(_, _, Stream, Stream, close(Stream), M, [M], _).
 
 
 
@@ -195,14 +268,37 @@ base_iri(File, BaseIri, Opts) :-
 
 
 
-%! http_error_message(+Iri, +Status, +Lines:list(list(code)), +Read) is det.
+%! deb_http_error is det.
 
-http_error_message(Iri, Status, Lines, Read) :-
+deb_http_error(Iri, Status, Stream, Opts) :-
+  debugging(open_any2(http(error))), !,
+  option(raw_headers(Headers), Opts),
+  http_error_message(Iri, Status, Headers, Stream).
+deb_http_error.
+
+
+
+%! deb_http_headers(+Lines) is det.
+
+deb_http_headers(Lines) :-
+  debugging(open_any2(http(headers))), !,
+  maplist(print_http_header0, Lines).
+deb_http_headers(_).
+
+print_http_header0(Cs) :-
+  string_codes(S, Cs),
+  msg_notification("~s~n", [S]).
+
+
+
+%! http_error_message(+Iri, +Status, +Lines:list(list(code)), +Stream) is det.
+
+http_error_message(Iri, Status, Lines, Stream) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, MHeaders),
   (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
   dcg_with_output_to(string(S1), dict(MHeaders, 2)),
-  read_input_to_string(Read, S2),
+  read_input_to_string(Stream, S2),
   msg_warning(
     "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
     [Status,Label,Iri,S1,S2]
@@ -210,55 +306,23 @@ http_error_message(Iri, Status, Lines, Read) :-
 
 
 
-%! open_any_metadata(+Source, +Mode, +Type, +Compress, +Opts, -Metadata) is det.
+%! http_parse_headers(+Lines, -Groups, +Opts) is det.
 
-open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
-  atomic_list_concat([llo,Type1], :, Type2),
-  D1 = _{'@type': Type2},
-  (   Type1 == file_iri
-  ->  base_iri(Source, BaseIri, Opts),
-      D2 = D1.put(_{'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri}})
-  ;   Type1 == http_iri
-  ->  base_iri(Source, BaseIri, Opts),
-      option(final_url(FinalIri), Opts),
-      option(raw_headers(Lines), Opts),
-      (   debugging(open_any2(http(raw)))
-      ->  maplist(string_codes, Ss, Lines),
-          forall(member(S, Ss), msg_notification("~s~n", [S]))
-      ;   true
-      ),
-      option(status_code(Status), Opts),
-      option(time(Time), Opts),
-      option(version(Major-Minor), Opts),
-      string_list_concat([Major,Minor], ":", Version),
-      maplist(http_header0(Opts), Lines, Pairs),
-      keysort(Pairs, SortedPairs),
-      group_pairs_by_key(SortedPairs, Groups),
-      D0 = D1.put(_{
-        'llo:base_iri': _{'@type': 'xsd:anyURI', '@value': BaseIri},
-        'llo:final_iri': _{'@type': 'xsd:anyURI', '@value': FinalIri},
-        'llo:status_code': Status,
-        'llo:time': Time,
-        'llo:version': Version
-      }),
-      dict_put_pairs(D0, Groups, D2)
-  ;   D2 = D1
-  ),
-  atomic_list_concat([llo,Mode1], :, Mode2),
-  D3 = D2.put(_{'llo:mode': Mode2}),
-  (   write_mode(Mode1),
-      ground(Comp)
-  ->  D4 = D3.put(_{'llo:compression': Comp})
-  ;   D4 = D3
-  ).
+http_parse_headers(Lines, Groups, Opts) :-
+  maplist(http_parse_header(Opts), Lines, Pairs),
+  keysort(Pairs, SortedPairs),
+  group_pairs_by_key(SortedPairs, Groups).
 
-http_header0(Opts, Line, Key-Value) :-
-  (   option(parse_headers(true), Opts)
-  ->  phrase('header-field'(Key-Value), Line)
-  ;   phrase(http_header0(Key, Value), Line)
-  ).
 
-http_header0(Key3, Val2) -->
+%! http_parse_header(+Opts, +Line, -Pair) is det.
+
+http_parse_header(Opts, Line, Key-Value) :-
+  option(parse_headers(true), Opts), !,
+  phrase('header-field'(Key-Value), Line)
+http_parse_header(Opts, Line, Key-Value) :-
+  phrase(http_parse_header(Key, Value), Line).
+
+http_parse_header(Key3, Val2) -->
   http11:'field-name'(Key1),
   ":", http11:'OWS',
   rest(Val1),
@@ -270,19 +334,23 @@ http_header0(Key3, Val2) -->
 
 
 
-%! open_any_options(+Type, +Opts, -OpenOpts) is det.
+%! is_redirect_limit_exceeded(+State) is semidet.
 
-open_any_options(http_iri, Opts1, Opts3) :- !,
-  Opts2 = [
-    cert_verify_hook(cert_accept_any),
-    final_url(_),
-    raw_headers(_),
-    status_code(_),
-    time(_),
-    version(_)
-  ],
-  merge_options(Opts1, Opts2, Opts3).
-open_any_options(_, Opts, Opts).
+is_redirect_limit_exceeded(State) :-
+  State.max_redirects == inf, !,
+  fail.
+is_redirect_limit_exceeded(State) :-
+  length(State.visited, Len),
+  Len > State.max_redirects.
+
+
+
+%! is_redirect_loop(+Iri, +State) is semidet.
+
+is_redirect_loop(Iri, State) :-
+  include(==(Iri), State.visited, Sames),
+  length(Sames, NumSames),
+  NumSames >= 2.
 
 
 
@@ -315,6 +383,31 @@ source_type(Pattern, Mode, Iri, Type) :-
   Opts = [access(Mode),expand(true),file_errors(error),solutions(first)],
   absolute_file_name(Pattern, File, Opts),
   source_type(File, Mode, Iri, Type).
+
+
+
+%! throw_looping_redirect_error(+Iri) is det.
+
+throw_looping_redirect_error(Iri) :-
+  throw(
+    error(
+      permission_error(redirect, http, Iri),
+      context(_, 'Redirection loop')
+    )
+  ).
+
+
+
+%! throw_max_redirect_error(+Iri, +Max) is det.
+
+throw_max_redirect_error(Iri, Max) :-
+  format(atom(Comment), "max_redirect (~w) limit exceeded", [Max]),
+  throw(
+    error(
+      permission_error(redirect, http, Iri),
+      context(_, Comment)
+    )
+  ).
 
 
 
