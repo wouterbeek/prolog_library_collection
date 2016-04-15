@@ -96,6 +96,7 @@ close_any2(Close_0) :-
 open_any2(Source, Mode, Stream, Close_0) :-
   open_any2(Source, Mode, Stream, Close_0, []).
 
+
 open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
   meta_options(is_meta, Opts1, Opts2),
   source_type(Source1, Mode, Source2, Type),
@@ -136,6 +137,7 @@ open_any2(Source1, Mode, Stream2, Close2_0, Opts1) :-
 http_open2(Iri, Read, Close_0, Opts1) :-
   select_option(retry(N), Opts1, Opts2, 1),
   http_open2(Iri, Read, 0, N, Close_0, Opts2).
+
 
 http_open2(Iri, Read1, M1, N, Close_0, Opts1) :-
   copy_term(Opts1, Opts2),
@@ -251,8 +253,7 @@ open_any_metadata(Source, Mode1, Type1, Comp, Opts, D4) :-
   ).
 
 http_header0(Opts, Line, Key-Value) :-
-  option(parse_headers(ParseHeaders), Opts),
-  (   ParseHeaders == true
+  (   option(parse_headers(true), Opts)
   ->  phrase('header-field'(Key-Value), Line)
   ;   phrase(http_header0(Key, Value), Line)
   ).
