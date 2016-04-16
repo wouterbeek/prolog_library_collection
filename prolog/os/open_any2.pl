@@ -147,8 +147,7 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
 
   % Make sure the metadata is accessible even the case of an HTTP error code.
   (   get_dict(http, M, [M1|_]),
-      get_dict(status, M1, Status),
-      http_error(Status)
+      http_error(M1.status)
   ->  existence_error(open_any2, M)
   ;   true
   ).
@@ -157,10 +156,10 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
 %! http_open2(+Iri, -Read, -Close_0, -Ms, +Opts) is det.
 
 http_open2(Iri, Stream, Close_0, Ms, Opts) :-
-  option(max_redirect(MaxRedirect), Opts, 5),
+  option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
   State = _{
-    max_redirect: MaxRedirect,
+    max_redirects: MaxRedirect,
     max_retries: MaxRetry,
     redirects: 0,
     retries: 0,
@@ -205,7 +204,7 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
 
 % Authentication error.
 http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_auth_error(State.status),
+  http_auth_error(M.status),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
@@ -213,9 +212,9 @@ http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_open2(Iri, State, Stream, Close_0, Ms, AuthOpts).
 % Non-authentication error.
 http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_error(State.status), !,
+  http_error(M.status), !,
   call_cleanup(
-    deb_http_error(Iri, State.status, Stream0, Opts),
+    deb_http_error(Iri, M.status, Stream0, Opts),
     close(Stream0)
   ),
   dict_inc(retries, State),
@@ -226,9 +225,9 @@ http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   ).
 % Redirect.
 http_open2(Iri0, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_redirect(State.status), !,
+  http_redirect(M.status), !,
   close(Stream0),
-  uri_resolve(State.location, Iri0, Iri),
+  uri_resolve(M.location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
   (   is_redirect_limit_exceeded(State)
   ->  throw_max_redirect_error(Iri, State.max_redirects)
