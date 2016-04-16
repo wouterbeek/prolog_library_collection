@@ -121,10 +121,10 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   (   Type == http_iri
   ->  must_be(oneof([read]), Mode),
       http_open2(Source, Stream0, Close0_0, Ms, Opts),
-      M0 = _{comm: Ms, '@type': http_iri}
+      M0 = _{'llo:http_communication': Ms, '@type': 'llo:HttpIri'}
   ;   open_any(Source, Mode, Stream0, Close0_0, Opts),
       base_iri(Source, BaseIri, Opts),
-      M0 = _{base_iri: BaseIri, mode: Mode, '@type': file_iri}
+      M0 = _{'llo:base_iri': BaseIri, 'llo:mode': Mode, '@type': 'llo:FileIri'}
   ),
 
   % Perform compression on the stream (decompress a read stream;
@@ -133,8 +133,8 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   compression(Mode, Comp, Stream0, Stream, M0, M, Close0_0, Close_0),
 
   % Make sure the metadata is accessible even the case of an HTTP error code.
-  (   get_dict(http, M, [M1|_]),
-      http_error(M1.status)
+  (   get_dict('llo:http_communication', M, [M1|_]),
+      http_error(M1.'llo:status')
   ->  existence_error(open_any2, M)
   ;   true
   ).
@@ -175,11 +175,11 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
       deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
       M = _{
-        base_iri: BaseIri,
-        headers: Groups,
-        status: Status,
-        time: Time,
-        version: Version
+        'llo:base_iri': BaseIri,
+        'llo:headers': Groups,
+        'llo:status': Status,
+        'llo:time': Time,
+        'llo:version': Version
       },
       http_open2(Iri, State, Location, Stream0, Stream, Close_0, M, Ms, Opts0)
   ;   throw(E)
@@ -194,17 +194,17 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
 
 % Authentication error.
 http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_auth_error(M.status),
+  http_auth_error(M.'llo:status'),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(Stream0),
   http_open2(Iri, State, Stream, Close_0, Ms, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_error(M.status), !,
+http_open2(Iri, State, _, Stream0, Stream, Close_0, M, Ms, Opts) :-
+  http_error(M.'llo:status'), !,
   call_cleanup(
-    deb_http_error(Iri, M.status, Stream0, Opts),
+    deb_http_error(Iri, M.'llo:status', Stream0, Opts),
     close(Stream0)
   ),
   dict_inc(retries, State),
@@ -215,7 +215,7 @@ http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   ).
 % Redirect.
 http_open2(Iri0, State, Location, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
-  http_redirect(M.status), !,
+  http_redirect(M.'llo:status'), !,
   close(Stream0),
   uri_resolve(Location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
@@ -272,14 +272,14 @@ compression(Mode, Comp, Stream0, Stream, M0, M) :-
   ->  Stream0 = Stream
   ;   zopen(Stream0, Stream, [close_parent(true),format(Comp)])
   ),
-  M = M0.put(_{compress: Comp}).
+  M = M0.put(_{'llo:compress': Comp}).
 compression(Mode, Comp, Stream0, Stream, M0, M) :-
   read_mode(Mode), !,
   (   Comp == none
   ->  Stream0 = Stream
   ;   zopen(Stream0, Stream, [close_parent(true),format(Comp)])
   ),
-  M = M0.put(_{decompress: Comp}).
+  M = M0.put(_{'llo:decompress': Comp}).
 
 
 

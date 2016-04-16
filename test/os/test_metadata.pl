@@ -13,17 +13,12 @@
 */
 
 :- use_module(library(debug_ext)).
-:- use_module(library(gui_tracer)).
 :- use_module(library(lodapi/lodapi_document)).
 :- use_module(library(lodapi/lodapi_metadata)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
-:- use_module(library(swi_ide)).
 :- use_module(library(yall)).
-
-:- guitracer.
-:- prolog_ide(debug_monitor).
 
 :- debug(http(parse)).
 
@@ -55,7 +50,7 @@ test_open_any2(Source):-
 
 % HELPERS %
 
-test_source('https://www.dropbox.com/s/okzyej25j2aypkg/BEL2RDFexample.owl?dl=1').
+%test_source('https://www.dropbox.com/s/okzyej25j2aypkg/BEL2RDFexample.owl?dl=1').
 test_source(Source):-
   document(Doc),
   metadata(Doc, llo:url, Source).

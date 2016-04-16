@@ -98,11 +98,13 @@ http_error(Status):-
 
 
 
-%! http_header(+Metadata, +Key, -Value) is nondet.
+%! http_header(+M, +Key, -Value) is nondet.
 
-http_header(D, Key, Value) :-
-  get_dict(Key, D, Values),
-  member(Value, Values).
+http_header(M, Key, Val) :-
+  get_dict('llo:http_communication', M, [M1|_]),
+  get_dict('llo:headers', M1, Headers),
+  member(Key-Vals, Headers),
+  member(Val, Vals).
 
 
 
