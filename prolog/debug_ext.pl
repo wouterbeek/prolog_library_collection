@@ -121,15 +121,14 @@ do_not_load0(dcg_unicode).
 %! debug_collect_messages(:Goal_0) is det.
 
 debug_collect_messages(Goal_0):-
-  call_collect_messages(Goal_0, Status, Es),
-  process_warnings(Es),
+  call_collect_messages(Goal_0, Status, Warns),
+  process_warnings(Warns),
   process_status(Status),
   (   Status == true
   ->  true
   ;   Status == false
   ->  false
-  ;   trace,
-      debug_collect_messages(Goal_0)
+  ;   print_error(Status)
   ).
 
 
