@@ -121,29 +121,16 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   (   Type == http_iri
   ->  must_be(oneof([read]), Mode),
       http_open2(Source, Stream0, Close0_0, Ms, Opts),
-      M0 = _{comm: Ms, type: http_iri}
+      M0 = _{comm: Ms, '@type': http_iri}
   ;   open_any(Source, Mode, Stream0, Close0_0, Opts),
       base_iri(Source, BaseIri, Opts),
-      M0 = _{base_iri: BaseIri, mode: Mode, type: file_iri}
+      M0 = _{base_iri: BaseIri, mode: Mode, '@type': file_iri}
   ),
 
   % Perform compression on the stream (decompress a read stream;
   % compress a write stream).
-  (   (   write_mode(Mode),
-          option(compression(Comp), Opts)
-      ->  ZOpts0 = [format(Comp)],
-          M = M0.put(_{compress: Comp})
-      ;   read_mode(Mode),
-          option(decompress(Decomp), Opts)
-      ->  ZOpts0 = [format(Decomp)],
-          M = M0.put(_{decompress: Decomp})
-      )
-  ->  merge_options(ZOpts0, [close_parent(true)], ZOpts),
-      zopen(Stream0, Stream, ZOpts),
-      Close_0 = close(Stream)
-  ;   Stream = Stream0,
-      Close_0 = Close0_0
-  ),
+  option(compression(Comp), Opts, none),
+  compression(Mode, Comp, Stream0, Stream, M0, M, Close0_0, Close_0),
 
   % Make sure the metadata is accessible even the case of an HTTP error code.
   (   get_dict(http, M, [M1|_]),
@@ -186,24 +173,27 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
   (   var(E)
   ->  base_iri(Iri, BaseIri, Opts0),
       deb_http_headers(Lines),
-      http_parse_headers(Lines, Groups, Opts),
+      http_parse_headers(Lines, Groups, Opts0),
       M = _{
         base_iri: BaseIri,
         headers: Groups,
-        location: Location,
         status: Status,
         time: Time,
         version: Version
       },
-      http_open2(Iri, State, Stream0, Stream, Close_0, M, Ms, Opts)
+      http_open2(Iri, State, Location, Stream0, Stream, Close_0, M, Ms, Opts0)
   ;   throw(E)
   ).
 
 
-%! http_open2(+Iri, +State, +Stream0, -Stream, -Close_0, +M, -Ms, +Opts) is det.
+%! http_open2(
+%!   +Iri, +State, +Location,
+%!   +Stream0, -Stream, -Close_0,
+%!   +M, -Ms, +Opts
+%! ) is det.
 
 % Authentication error.
-http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_auth_error(M.status),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
@@ -211,7 +201,7 @@ http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   close(Stream0),
   http_open2(Iri, State, Stream, Close_0, Ms, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_error(M.status), !,
   call_cleanup(
     deb_http_error(Iri, M.status, Stream0, Opts),
@@ -224,10 +214,10 @@ http_open2(Iri, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   ;   http_open2(Iri, State, Stream, Close_0, Ms, Opts)
   ).
 % Redirect.
-http_open2(Iri0, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
+http_open2(Iri0, State, Location, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_redirect(M.status), !,
   close(Stream0),
-  uri_resolve(M.location, Iri0, Iri),
+  uri_resolve(Location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
   (   is_redirect_limit_exceeded(State)
   ->  throw_max_redirect_error(Iri, State.max_redirects)
@@ -238,7 +228,7 @@ http_open2(Iri0, State, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_open:redirect_options(Opts, RedirectOpts),
   http_open2(Iri, State, Stream, Close_0, Ms, RedirectOpts).
 % Success.
-http_open2(_, _, Stream, Stream, close(Stream), M, [M], _).
+http_open2(_, _, _, Stream, Stream, close(Stream), M, [M], _).
 
 
 
@@ -267,13 +257,39 @@ base_iri(File, BaseIri, Opts) :-
 
 
 
+%! compression(+Mode, +Compression, +Stream0, -Stream, +M0, -M, +Close0_0, -Close_0) is det.
+
+compression(Mode, Comp, Stream0, Stream, M0, M, Close0_0, Close_0) :-
+  compression(Mode, Comp, Stream0, Stream, M0, M),
+  (Stream0 == Stream -> Close0_0 = Close_0 ; Close_0 = close(Stream)).
+
+
+%! compression(+Mode, +Compression, +Stream0, -Stream, +M0, -M) is det.
+
+compression(Mode, Comp, Stream0, Stream, M0, M) :-
+  write_mode(Mode), !,
+  (   Comp == none
+  ->  Stream0 = Stream
+  ;   zopen(Stream0, Stream, [close_parent(true),format(Comp)])
+  ),
+  M = M0.put(_{compress: Comp}).
+compression(Mode, Comp, Stream0, Stream, M0, M) :-
+  read_mode(Mode), !,
+  (   Comp == none
+  ->  Stream0 = Stream
+  ;   zopen(Stream0, Stream, [close_parent(true),format(Comp)])
+  ),
+  M = M0.put(_{decompress: Comp}).
+
+
+
 %! deb_http_error is det.
 
 deb_http_error(Iri, Status, Stream, Opts) :-
   debugging(open_any2(http(error))), !,
   option(raw_headers(Headers), Opts),
   http_error_message(Iri, Status, Headers, Stream).
-deb_http_error.
+deb_http_error(_, _, _, _).
 
 
 
