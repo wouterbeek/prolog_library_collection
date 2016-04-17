@@ -7,7 +7,8 @@
     merge_options/2,        % +Optss:list(list), -Opts:list
     option_components/3,    % ?Opt, ?Name, ?Value
     option_has_var_value/1, % +Opt
-    option_pair/2           % ?Opt, ?Pair
+    option_pair/2,          % ?Opt, ?Pair
+    remove_option/3         % +Opts1, +Opt, -Opts2
   ]
 ).
 :- reexport(library(option)).
@@ -15,7 +16,7 @@
 /** <module> Opt extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2016/01
+@version 2015/07, 2015/10-2016/01, 2016/04
 */
 
 :- use_module(library(apply)).
@@ -88,3 +89,13 @@ option_has_var_value(Opt) :-
 
 option_pair(Opt, N-V) :-
   Opt =.. [N,V].
+
+
+
+%! remove_option(+Opts1, +Opt, -Opts2) is det.
+
+remove_option([], _, []) :- !.
+remove_option([Opt|T1], Opt, T2) :- !,
+  remove_option(T1, Opt, T2).
+remove_option([H|T1], Opt, [H|T2]) :-
+  remove_option(T1, Opt, T2).
