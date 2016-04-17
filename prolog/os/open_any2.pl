@@ -206,7 +206,7 @@ http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   close(Stream0),
   http_open2(Iri, State, Stream, Close_0, Ms, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, Stream0, Stream, Close_0, M, Ms, Opts) :-
+http_open2(Iri, State, _, Stream0, Stream, Close_0, M, [M|Ms], Opts) :-
   http_error(M.'llo:status'), !,
   call_cleanup(
     deb_http_error(Iri, M.'llo:status', Stream0, Opts),
@@ -215,7 +215,7 @@ http_open2(Iri, State, _, Stream0, Stream, Close_0, M, Ms, Opts) :-
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  Close_0 = true,
-      Ms = [M]
+      Ms = []
   ;   http_open2(Iri, State, Stream, Close_0, Ms, Opts)
   ).
 % Redirect.

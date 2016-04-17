@@ -99,11 +99,12 @@ http_error(Status):-
 
 
 
-%! http_get_dict(+Key, +M, -Value) is nondet.
+%! http_get_dict(+Key, +Ms, -Value) is nondet.
 
 http_get_dict(Key, M, Val) :-
-  get_dict('llo:http_communication', M, [M1|_]),
-  get_dict(Key, M1, Val).
+  get_dict('llo:http_communication', M, Ms), 
+  last(Ms, M0),
+  get_dict(Key, M0, Val).
 
 
 
