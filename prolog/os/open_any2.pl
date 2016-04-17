@@ -23,6 +23,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(http/http_cookie)). % HTTP cookie support.
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_open)). % HTTP support.
@@ -389,15 +390,16 @@ source_type(stream(Stream), _,    Stream, stream  ) :- !.
 source_type(string(S),      _,    S,      string  ) :- !.
 source_type(Stream,         _,    Stream, stream  ) :- is_stream(Stream), !.
 source_type(Iri,            _,    Iri,    file_iri) :- is_file_iri(Iri), !.
-source_type(Iri,            _,    Iri,    http_iri) :- is_http_iri(Iri), !.
+source_type(Iri,            _,    Iri,    http_iri) :-
+  is_iri(Iri), !,
+  uri_components(Iri, uri_components(Scheme,_,_,_,_)),
+  (memberchk(Scheme, [http,https]) -> true  ; type_error(http_iri, Iri)).
 source_type(File,           _,    Iri,    file_iri) :-
   atom(File),
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
-source_type(Pattern, Mode, Iri, Type) :-
-  Opts = [access(Mode),expand(true),file_errors(error),solutions(first)],
-  absolute_file_name(Pattern, File, Opts),
-  source_type(File, Mode, Iri, Type).
+source_type(Source, _, _, _) :-
+  existence_error(source_sink, Source).
 
 
 
