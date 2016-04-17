@@ -7,6 +7,7 @@
     http_dict/2,              % +Req, -Dict
     http_dict/3,              % +Req, +TypeMap, -Dict
     http_error/1,             % +Status
+    http_get_dict/3,          % +Key, +Dict, -Value
     http_header/3,            % +M, +Key, -Value
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
@@ -98,11 +99,18 @@ http_error(Status):-
 
 
 
+%! http_get_dict(+Key, +M, -Value) is nondet.
+
+http_get_dict(Key, M, Val) :-
+  get_dict('llo:http_communication', M, [M1|_]),
+  get_dict(Key, M1, Val).
+
+
+
 %! http_header(+M, +Key, -Value) is nondet.
 
 http_header(M, Key, Val) :-
-  get_dict('llo:http_communication', M, [M1|_]),
-  get_dict('llo:headers', M1, Headers),
+  http_get_dict('llo:headers', M, Headers),
   member(Key-Vals, Headers),
   member(Val, Vals).
 

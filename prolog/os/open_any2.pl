@@ -124,8 +124,11 @@ open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
       http_open2(Source, Stream0, Close0_0, Ms, Opts),
       M0 = _{'llo:http_communication': Ms, '@type': 'llo:HttpIri'}
   ;   open_any(Source, Mode, Stream0, Close0_0, Opts),
-      base_iri(Source, BaseIri, Opts),
-      M0 = _{'llo:base_iri': BaseIri, 'llo:mode': Mode, '@type': 'llo:FileIri'}
+      M00 = _{'llo:mode': Mode, '@type': 'llo:FileIri'},
+      (   base_iri(Source, BaseIri, Opts)
+      ->  M0 = M00.put(_{'llo:base_iri': BaseIri})
+      ;   M0 = M00
+      )
   ),
 
   % Perform compression on the stream (decompress a read stream;
@@ -245,6 +248,10 @@ http_open2(_, _, _, Stream, Stream, close(Stream), M, [M], _).
 % Overruled by option.
 base_iri(_, BaseIri, Opts) :-
   option(base_iri(BaseIri), Opts), !.
+% Fail for streams.
+base_iri(Stream, _, _) :-
+  is_stream(Stream), !,
+  fail.
 % The IRI that is read from, sans the fragment component.
 base_iri(Iri, BaseIri, _) :-
   is_iri(Iri), !,
