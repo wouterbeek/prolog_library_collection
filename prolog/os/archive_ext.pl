@@ -15,7 +15,7 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01-2016/03
+@version 2015/09-2015/11, 2016/01-2016/04
 */
 
 :- use_module(library(debug_ext)).
@@ -30,20 +30,6 @@
     call_on_archive_entry0(+, +, 2, +, +),
     call_on_archive_entry_nondet0(+, +, 2, +, +).
 
-:- predicate_options(archive_info/2, 2, [
-     indent(+nonneg),
-     pass_to(call_on_archive/3, 3)
-   ]).
-:- predicate_options(call_on_archive/3, 3, [
-     archive_entry(+atom),
-     pass_to(call_on_archive_entry0/5, 3),
-     pass_to(open_any2/5, 5),
-     pass_to(archive_open/3, 3)
-   ]).
-:- predicate_options(call_on_archive_entry0/5, 3, [
-     pass_to(archive_data_stream/3, 3)
-   ]).
-
 
 
 
@@ -52,26 +38,22 @@
 
 % The raw archive entry's path is the empty path.
 archive_entry_path([H], '') :-
-  is_unarchived(H), !.
+  is_unarchived0(H), !.
 % A non-raw archive entry: add its name to the path.
 archive_entry_path([H|T1], EntryPath2) :-
   archive_entry_path(T1, EntryPath1),
   directory_file_path(EntryPath1, H.'llo:name', EntryPath2).
 
+
 % Succeeds if dictionary M describes a leaf node in a compression tree.
 % A leaf node in a compression tree describes an unarchived or raw file.
-is_unarchived(M) :-
+is_unarchived0(M) :-
   M.'llo:name' == "data",
   M.'llo:format' == "raw", !.
 
 
 
 %! archive_extract(+Source) is det.
-
-archive_extract(Source) :-
-  archive_extract(Source, _).
-
-
 %! archive_extract(+Source, ?Directory) is det.
 % Extracts the given file into the given directory.
 %
@@ -80,11 +62,16 @@ archive_extract(Source) :-
 % @throws instantiation_error When File is a variable.
 % @throws type_error When `Source` is neither an absolute file name nor a URL.
 
+archive_extract(Source) :-
+  archive_extract(Source, _).
+
+
 archive_extract(Source, Dir) :-
   (var(Dir) -> file_directory_name(Source, Dir) ; true),
-  call_on_archive(Source, archive_extract_entry(Dir)).
+  call_on_archive(Source, archive_extract_entry0(Dir)).
 
-archive_extract_entry(Dir, M, Read) :-
+
+archive_extract_entry0(Dir, M, Read) :-
   directory_file_path(Dir, M.'llo:archive_entry', Path),
   setup_call_cleanup(
     open_any2(Path, write, Write, Close_0),
@@ -148,6 +135,7 @@ archive_extract_entry(Dir, M, Read) :-
 archive_info(Source) :-
   archive_info(Source, []).
 
+
 archive_info(Source, Opts) :-
   call_on_archive(Source, [M,_]>>print_dict(M, Opts), Opts).
 
@@ -155,29 +143,37 @@ archive_info(Source, Opts) :-
 
 %! call_on_archive(+Source, :Goal_2) is det.
 %! call_on_archive(+Source, :Goal_2, +Opts) is det.
-% Goal_2 called on a metadata dictionary and a read stream (in that order).
+% The following call is made: `call(Goal_2, M, In)`.
+%
+% Options are passed to
+%   * open_any2/5
+%   * archive_open/3
+%   * archive_data_stream/3
 %
 % @throws existence_error if an HTTP request returns an error code.
 
 call_on_archive(Source, Goal_2) :-
   call_on_archive(Source, Goal_2, []).
 
-call_on_archive(Source, Goal_2, Opts1) :-
-  option(archive_entry(Entry), Opts1, _),
+
+call_on_archive(Source, Goal_2, Opts) :-
+  % This allows the calling context to request one specific entity.
+  option(archive_entry(Entry), Opts, _),
+  merge_options([metadata(M)], Opts, OpenOpts),
   % Archive options that cannot be overridden.
-  merge_options([close_parent(false)], Opts1, Opts2),
+  merge_options([close_parent(false)], Opts, ArchOpts1),
   % Archive options that can be overridden.
-  merge_options(Opts2, [filter(all),format(all),format(raw)], Opts3),
+  merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
   setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, [metadata(M)|Opts1]),
+    open_any2(Source, read, Read, Close_0, OpenOpts),
     setup_call_cleanup(
-      archive_open(Read, Arch, Opts3),
-      call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts1),
+      archive_open(Read, Arch, ArchOpts2),
+      call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts),
       archive_close(Arch)
     ),
     close_any2(Close_0)
-  ),
-  ignore(option(metadata(M), Opts1)).
+  ).
+
 
 % Semi-deterministic if an archive entry name is given.
 call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
@@ -186,6 +182,7 @@ call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
 % Non-deterministic if no archive entry name is given.
 call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
   call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M, Opts).
+
 
 call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M1, Opts1) :-
   merge_options([meta_data(MEntry1)], Opts1, Opts2),
