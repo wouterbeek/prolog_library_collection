@@ -115,31 +115,33 @@ open_any2(Source, Mode, Stream, Close_0) :-
 open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
   meta_options(is_meta, Opts0, Opts),
   source_type(Source0, Mode, Source, Type),
-  ignore(option(metadata(M), Opts)),
-
+  ignore(option(metadata(M3), Opts)),
+  
+  % Base IRI
+  (   base_iri(Source, BaseIri, Opts)
+  ->  M1 = _{'llo:base_iri': BaseIri}
+  ;   M1 = _{}
+  ),
+  
   % We want more support for opening an HTTP IRI stream
   % than what `library(http/http_open)` provides.
   (   Type == http_iri
   ->  must_be(oneof([read]), Mode),
       http_open2(Source, Stream0, Close0_0, Ms, Opts),
-      M0 = _{'llo:http_communication': Ms, '@type': 'llo:HttpIri'}
+      M2 = M1.put(_{'llo:http_communication': Ms, '@type': 'llo:HttpIri'})
   ;   open_any(Source, Mode, Stream0, Close0_0, Opts),
-      M00 = _{'llo:mode': Mode, '@type': 'llo:FileIri'},
-      (   base_iri(Source, BaseIri, Opts)
-      ->  M0 = M00.put(_{'llo:base_iri': BaseIri})
-      ;   M0 = M00
-      )
+      M2 = M1.put(_{'llo:mode': Mode, '@type': 'llo:FileIri'})
   ),
 
   % Perform compression on the stream (decompress a read stream;
   % compress a write stream).
   option(compression(Comp), Opts, none),
-  compression(Mode, Comp, Stream0, Stream, M0, M, Close0_0, Close_0),
+  compression(Mode, Comp, Stream0, Stream, M2, M3, Close0_0, Close_0),
 
   % Make sure the metadata is accessible even the case of an HTTP error code.
-  (   get_dict('llo:http_communication', M, [M1|_]),
-      http_error(M1.'llo:status')
-  ->  existence_error(open_any2, M)
+  (   http_get_dict('llo:status', M3, Status),
+      http_error(Status)
+  ->  existence_error(open_any2, M3)
   ;   true
   ).
 
@@ -175,12 +177,11 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
   merge_options(Opts1, Opts2, Opts3),
   call_time(catch(http_open(Iri, Stream0, Opts3), E, true), Time),
   (   var(E)
-  ->  base_iri(Iri, BaseIri, Opts0),
-      deb_http_headers(Lines),
+  ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
       M = _{
-        'llo:base_iri': BaseIri,
         'llo:headers': Groups,
+        'llo:iri': Iri,
         'llo:status': Status,
         'llo:time': Time,
         'llo:version': Version
