@@ -2,16 +2,14 @@
   bibtex,
   [
     bibtex_load/2, % +Source, -Entries
-    bibtex_load/3 % +Source
-                  % -Entries:list(compound)
-                  % +Options:list(compound)
+    bibtex_load/3  % +Source, -Entries, +Opts
   ]
 ).
 
 /** <module> BibTeX parsing
 
 @author Wouter Beek
-@version 2015/12-2016/01, 2016/02
+@version 2015/12-2016/01, 2016/02, 2016/04
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -19,8 +17,11 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
 
-:- dynamic(user:prolog_file_type/2).
-:- multifile(user:prolog_file_type/2).
+:- dynamic
+    user:prolog_file_type/2.
+
+:- multifile
+    user:prolog_file_type/2.
 
 user:prolog_file_type(bib, bibtex).
 
@@ -28,25 +29,18 @@ user:prolog_file_type(bib, bibtex).
 
 
 
-%! bibtex_load(+Source, -Entries:list(compound)) is det.
-% Wrapper around bibtex_load/3 with default options.
+%! bibtex_load(+Source, -Entries) is det.
+%! bibtex_load(+Source, -Entries, +Opts) is det.
 
 bibtex_load(Source, Entries):-
   bibtex_load(Source, Entries, []).
 
 
-%! bibtex_load(
-%!   +Source,
-%!   -Entries:list(compound),
-%!   +Options:list(compound)
-%! ) is det.
+bibtex_load(Source, L, Opts):-
+  call_on_stream(Source, bibtex_load0(L), Opts).
 
-bibtex_load(Source, Entries, Opts):-
-  setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, Opts),
-    phrase_from_stream(Read, bibtex(Entries)),
-    close_any2(Close_0)
-  ).
+bibtex_load0(L, _, In) :-
+  phrase_from_stream(In, bibtex(L)).
 
 
 
@@ -55,8 +49,7 @@ bibtex([])    --> blanks.
 
 entry(entry(Class,Name,Pairs)) -->
   class(Class), "{", blanks, name(Name), blanks, ",", blanks,
-  pairs(Pairs), blanks,
-  "}".
+  pairs(Pairs), blanks, "}".
 
 pairs([H|T]) --> pair(H), !, (blanks, "," -> pairs(T) ; {T = []}).
 pairs([])    --> "".

@@ -5,9 +5,7 @@
     archive_extract/1,    % +Source
     archive_extract/2,    % +Source, ?Directory
     archive_info/1,       % +Source
-    archive_info/2,       % +Source, +Opts
-    call_on_archive/2,    % +Source, :Goal_2
-    call_on_archive/3     % +Source, :Goal_2, +Opts
+    archive_info/2        % +Source, +Opts
   ]
 ).
 :- reexport(library(archive)).
@@ -23,12 +21,6 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
 :- use_module(library(yall)).
-
-:- meta_predicate
-    call_on_archive(+, 2),
-    call_on_archive(+, 2, +),
-    call_on_archive_entry0(+, +, 2, +, +),
-    call_on_archive_entry_nondet0(+, +, 2, +, +).
 
 
 
@@ -54,7 +46,7 @@ is_unarchived0(M) :-
 
 
 %! archive_extract(+Source) is det.
-%! archive_extract(+Source, ?Directory) is det.
+%! archive_extract(+Source, +Dir) is det.
 % Extracts the given file into the given directory.
 %
 % In case no directory is given, the directory of the given source is used.
@@ -63,21 +55,19 @@ is_unarchived0(M) :-
 % @throws type_error When `Source` is neither an absolute file name nor a URL.
 
 archive_extract(Source) :-
-  archive_extract(Source, _).
+  file_directory_name(Source, Dir),
+  archive_extract(Source, Dir).
 
 
 archive_extract(Source, Dir) :-
-  (var(Dir) -> file_directory_name(Source, Dir) ; true),
-  call_on_archive(Source, archive_extract_entry0(Dir)).
+  call_on_stream(Source, copy_stream_data1(Dir)).
 
+copy_stream_data1(Dir, MIn, In) :-
+  directory_file_path(Dir, MIn.'llo:archive_entry', Sink),
+  call_to_stream(Sink, copy_stream_data2(In)).
 
-archive_extract_entry0(Dir, M, Read) :-
-  directory_file_path(Dir, M.'llo:archive_entry', Path),
-  setup_call_cleanup(
-    open_any2(Path, write, Write, Close_0),
-    copy_stream_data(Read, Write),
-    close_any2(Close_0)
-  ).
+copy_stream_data2(In, _, Out) :-
+  copy_stream_data(In, Out).
 
 
 
@@ -137,86 +127,4 @@ archive_info(Source) :-
 
 
 archive_info(Source, Opts) :-
-  call_on_archive(Source, [M,_]>>print_dict(M, Opts), Opts).
-
-
-
-%! call_on_archive(+Source, :Goal_2) is det.
-%! call_on_archive(+Source, :Goal_2, +Opts) is det.
-% The following call is made: `call(Goal_2, M, In)`.
-%
-% Options are passed to
-%   * open_any2/5
-%   * archive_open/3
-%   * archive_data_stream/3
-%
-% @throws existence_error if an HTTP request returns an error code.
-
-call_on_archive(Source, Goal_2) :-
-  call_on_archive(Source, Goal_2, []).
-
-
-call_on_archive(Source, Goal_2, Opts) :-
-  % This allows the calling context to request one specific entity.
-  option(archive_entry(Entry), Opts, _),
-  merge_options([metadata(M)], Opts, OpenOpts),
-  % Archive options that cannot be overridden.
-  merge_options([close_parent(false)], Opts, ArchOpts1),
-  % Archive options that can be overridden.
-  merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
-  setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, OpenOpts),
-    setup_call_cleanup(
-      archive_open(Read, Arch, ArchOpts2),
-      call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts),
-      archive_close(Arch)
-    ),
-    close_any2(Close_0)
-  ).
-
-
-% Semi-deterministic if an archive entry name is given.
-call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
-  nonvar(Entry), !,
-  call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M, Opts), !.
-% Non-deterministic if no archive entry name is given.
-call_on_archive_entry0(Arch, Entry, Goal_2, M, Opts) :-
-  call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M, Opts).
-
-
-call_on_archive_entry_nondet0(Arch, Entry, Goal_2, M1, Opts1) :-
-  merge_options([meta_data(MEntry1)], Opts1, Opts2),
-  archive_data_stream(Arch, Read, Opts2),
-  maplist(jsonld_metadata, MEntry1, MEntry2),
-  (   MEntry2 = [MEntryH|_],
-      atom_string(Entry, MEntryH.'llo:name')
-  ->  M2 = M1.put(_{'llo:archive_entry': _{'@list': MEntry2}}),
-      call_cleanup(call(Goal_2, M2, Read), close(Read))
-  ;   close(Read),
-      fail
-  ).
-
-jsonld_metadata(
-  archive_meta_data{
-    filetype: Filetype1,
-    filters: Filters1,
-    format: Format1,
-    mtime: Mtime,
-    name: Name1,
-    size: Size
-  },
-  _{
-    '@type': 'llo:ArchiveEntry',
-    'llo:filetype': Filetype2,
-    'llo:filters': Filters2,
-    'llo:format': Format2,
-    'llo:mtime': Mtime,
-    'llo:name': Name2,
-    'llo:size': Size
-  }
-) :-
-  maplist(
-    atom_string,
-    [Filetype1,Format1,Name1|Filters1],
-    [Filetype2,Format2,Name2|Filters2]
-  ).
+  call_on_stream(Source, [M,_]>>print_dict(M, Opts), Opts).

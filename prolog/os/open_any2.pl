@@ -1,11 +1,17 @@
 :- module(
   open_any2,
   [
-    close_any2/1, % +Close_0
-    open_any2/4,  % +Source, +Mode, -Stream, -Close_0
-    open_any2/5,  % +Source, +Mode, -Stream, -Close_0, :Opts
-    read_mode/1,  % ?Mode
-    write_mode/1  % ?Mode
+    close_any2/3,       % +Close_0, +M1,     -M2
+    open_any2/5,        % +Source,  +Mode,   -Stream, -Close_0, -M
+    open_any2/6,        % +Source,  +Mode,   -Stream, -Close_0, -M, +Opts
+    read_mode/1,        % ?Mode
+    call_on_stream/2,   % +Source,           :Goal_2
+    call_on_stream/3,   % +Source,           :Goal_2, +Opts
+    call_onto_stream/3, % +Source,  +Sink,   :Goal_4
+    call_onto_stream/4, % +Source,  +Sink,   :Goal_4, +Opts
+    call_to_stream/2,   %           +Sink,   :Goal_2
+    call_to_stream/3,   %           +Sink,   :Goal_2, +Opts
+    write_mode/1        % ?Mode
   ]
 ).
 
@@ -18,6 +24,7 @@ Wrapper around library(iostream)'s open_any/5.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(archive)).
 :- use_module(library(debug_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
@@ -52,39 +59,150 @@ Wrapper around library(iostream)'s open_any/5.
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 :- meta_predicate
-    close_any2(+),
-    open_any2(+,+,-,-),
-    open_any2(+,+,-,-,:).
-
-is_meta(http_error).
-
-:- predicate_options(open_any2/5, 5, [
-     metadata(-dict),
-     pass_to(http_open2/4, 4),
-     pass_to(open_any/5, 5),
-     pass_to(zopen/3, 3)
-   ]).
-:- predicate_options(http_open2/4, 4, [
-     http_error(+callable),
-     metadata(-dict),
-     max_redirects(+positive_integer),
-     max_retries(+positive_integer)
-   ]).
+    call_on_stream(+, 2),
+    call_on_stream(+, 2, +),
+    call_on_stream_entry0(+, +, 2, +, +),
+    call_on_stream_entry_nondet0(+, +, 2, +, +),
+    call_onto_stream(+, +, 4),
+    call_onto_stream(+, +, 4, +),
+    call_to_stream(+, 2),
+    call_to_stream(+, 2, +).
 
 
 
 
 
-%! close_any2(+Close_0) is det.
-% Synonym of close_any/1 for consistency.
+%! call_on_stream(+Source, :Goal_2) is det.
+%! call_on_stream(+Source, :Goal_2, +Opts) is det.
+% The following call is made: `call(Goal_2, M, In)`.
+%
+% The following options are supported:
+%   - metadata(-dict)
+%   - Other options are passed to:
+%       - archive_data_stream/3
+%       - archive_open/3
+%       - open_any2/5
 
-close_any2(Close_0) :-
-  close_any(Close_0).
+call_on_stream(Source, Goal_2) :-
+  call_on_stream(Source, Goal_2, []).
+
+
+call_on_stream(Source, Goal_2, InOpts) :-
+  % This allows the calling context to request one specific entity.
+  option(archive_entry(Entry), InOpts, _),
+  % Archive options that cannot be overridden.
+  merge_options([close_parent(false)], InOpts, ArchOpts1),
+  % Archive options that can be overridden.
+  merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
+  setup_call_cleanup(
+    open_any2(Source, read, Read, Close_0, MIn0, InOpts),
+    setup_call_cleanup(
+      archive_open(Read, Arch, ArchOpts2),
+      call_on_stream_entry0(Arch, Entry, Goal_2, MIn0, InOpts),
+      archive_close(Arch)
+    ),
+    close_any2(Close_0, MIn0, MIn)
+  ),
+  ignore(option(metadata(MIn), InOpts)).
+
+
+% Semi-deterministic if an archive entry name is given.
+call_on_stream_entry0(Arch, Entry, Goal_2, MIn, Opts) :-
+  nonvar(Entry), !,
+  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn, Opts), !.
+% Non-deterministic if no archive entry name is given.
+call_on_stream_entry0(Arch, Entry, Goal_2, MIn, Opts) :-
+  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn, Opts).
+
+
+call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn0, Opts0) :-
+  merge_options([meta_data(MEntries0)], Opts0, Opts),
+  archive_data_stream(Arch, In, Opts),
+  maplist(archive_entry_metadata0, MEntries0, MEntries),
+  (   MEntries = [MEntry|_],
+      atom_string(Entry, MEntry.'llo:name')
+  ->  MIn = MIn0.put(_{'llo:archive_entry': _{'@list': MEntry}}),
+      call_cleanup(call(Goal_2, MIn, In), close(In))
+  ;   close(In),
+      fail
+  ).
+
+
+archive_entry_metadata0(
+  archive_meta_data{
+    filetype: Filetype0,
+    filters: Filters0,
+    format: Format0,
+    mtime: Mtime,
+    name: Name0,
+    size: Size
+  },
+  _{
+    '@type': 'llo:ArchiveEntry',
+    'llo:filetype': Filetype,
+    'llo:filters': Filters,
+    'llo:format': Format,
+    'llo:mtime': Mtime,
+    'llo:name': Name,
+    'llo:size': Size
+  }
+) :-
+  maplist(atom_string,
+    [Filetype0,Format0,Name0|Filters0],
+    [Filetype,Format,Name|Filters]
+  ).
 
 
 
-%! open_any2(+Source, +Mode, -Stream, -Close_0) is det.
-%! open_any2(+Source, +Mode, -Stream, -Close_0, :Opts) is nondet.
+%! call_onto_stream(+Source, +Sink, :Goal_4) is det.
+%! call_onto_stream(+Source, +Sink, :Goal_4, +Opts) is det.
+
+call_onto_stream(Source, Sink, Goal_4) :-
+  call_onto_stream(Source, Sink, Goal_4, []).
+
+
+call_onto_stream(Source, Sink, Goal_4, InOpts) :-
+  remove_option(InOpts, metadata(_), OutOpts),
+  call_on_stream(Source, call_onto_stream0(Sink, Goal_4, OutOpts), InOpts).
+
+
+call_onto_stream0(Sink, Mod:Goal_4, Opts, MIn, In) :-
+  Goal_2 =.. [Goal_4,MIn,In],
+  call_to_stream(Sink, Mod:Goal_2, Opts).
+  
+
+
+%! call_to_stream(+Sink, :Goal_2) is det.
+%! call_to_stream(+Sink, :Goal_2, +Opts) is det.
+
+call_to_stream(Sink, Goal_2) :-
+  call_to_stream(Sink, Goal_2, []).
+
+
+call_to_stream(Sink, Goal_2, Opts) :-
+  setup_call_cleanup(
+    open_any2(Sink, write, Out, Close_0, MOut0, Opts),
+    call(Goal_2, MOut0, Out),
+    close_any2(Close_0, MOut0, MOut)
+  ),
+  ignore(option(metadata(MOut), Opts)).
+
+
+
+%! close_any2(+Close_0, +M1, -M2) is det.
+
+close_any2(Close_0, M1, M2) :-
+  close_any(Close_0),
+  (   Close_0 = stream(Stream)
+  ->  stream_metadata(Stream, MStream),
+      M2 = M1.put(MStream)
+  ;   M2 = M1
+  ).
+
+
+
+%! open_any2(+Source, +Mode, -Stream, -Close_0, -M) is det.
+%! open_any2(+Source, +Mode, -Stream, -Close_0, -M, +Opts) is nondet.
 % The following options are supported:
 %   * compression(+oneof([deflate,gzip,none]))
 %     Whether or not compression is used on the opened stream.
@@ -108,12 +226,11 @@ close_any2(Close_0) :-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-open_any2(Source, Mode, Stream, Close_0) :-
-  open_any2(Source, Mode, Stream, Close_0, []).
+open_any2(Source, Mode, Stream, Close_0, M) :-
+  open_any2(Source, Mode, Stream, Close_0, M, []).
 
 
-open_any2(Source0, Mode, Stream, Close_0, Opts0) :-
-  meta_options(is_meta, Opts0, Opts),
+open_any2(Source0, Mode, Stream, Close_0, M3, Opts) :-
   source_type(Source0, Mode, Source, Type),
   ignore(option(metadata(M3), Opts)),
   
@@ -408,6 +525,27 @@ source_type(File,           _,    Iri,    file_iri) :-
   uri_file_name(Iri, File).
 source_type(Source, _, _, _) :-
   existence_error(source_sink, Source).
+
+
+
+%! stream_metadata(+Stream, -M) is det.
+
+stream_metadata(Stream, M):-
+  findall(
+    Pair,
+    (stream_property(Stream, Prop), property_pair0(Prop, Pair)),
+    Pairs
+  ),
+  dict_pairs(M, Pairs).
+
+property_pair0(Prop, Pair):-
+  Prop =.. [Key|Vals],
+  property_pair0(Key, Vals, Pair).
+
+property_pair0(position, [Pos], Key-Val):- !,
+  stream_position_data(Key, Pos, Val).
+property_pair0(Key, [], Key-true):- !.
+property_pair0(Key, [Val], Key-Val).
 
 
 

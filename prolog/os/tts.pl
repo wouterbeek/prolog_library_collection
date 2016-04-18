@@ -1,9 +1,8 @@
 :- module(
   tts,
   [
-    tts/1, % +Line:string
-    tts_to_file/2, % +Lines:list(string)
-                   % +File:atom
+    tts/1,             % +Line
+    write_tts/2,       % +Sink, +Lines
     test_tts_to_file/1 % +Poem:oneof(["Biden","One Art"])
   ]
 ).
@@ -11,7 +10,7 @@
 /** <module> Text-to-Speech (TTS)
 
 @author Wouter Beek
-@version 2015/10, 2015/12
+@version 2015/10, 2015/12, 2016/04
 */
 
 :- use_module(library(apply)).
@@ -23,8 +22,11 @@
 :- use_module(library(os/process_ext)).
 :- use_module(library(uri)).
 
-:- dynamic(user:module_uses/2).
-:- multifile(user:module_uses/2).
+:- dynamic
+    user:module_uses/2.
+
+:- multifile
+    user:module_uses/2.
 
 user:module_uses(tts, program(espeak)).
 
@@ -32,49 +34,53 @@ user:module_uses(tts, program(espeak)).
 
 
 
-%! tts(+Message:string) is det.
+%! tts(+Line) is det.
 % Uses the external program /espeak/ in order to turn the given
 % text message into speech.
 %
 % @throws existence_error if Program does not exist.
 
-tts(Msg):-
-  tts(Msg, espeak).
+tts(Line):-
+  tts(Line, espeak).
 
 
-%! tts(+Message:string, +Program:atom) is det.
+%! tts(+Line, +Program) is det.
 % @throws existence_error if Program does not exist.
 
-tts(Msg, Prog):-
+tts(Line, Prog):-
   exists_program(Prog), !,
-  run_process(Prog, ['--',Msg], [detached(false),program(Prog)]).
+  run_process(Prog, ['--',Line], [detached(false),program(Prog)]).
 tts(_, Prog):-
   existence_error(program, Prog).
 
 
 
-%! tts_to_file(+Lines:list(string), +File:atom) is det.
+%! write_tts(+Lines, +Sink) is det.
 % Uses the limited but free TTS feature of Google Translate.
 %
 % The lines must be sufficiently small (exact upper limit?).
 %
 % The lines must not contain non-ASCII characters (why not?).
 
-tts_to_file(L, File):-
-  setup_call_cleanup(
-    open_any2(File, write, Sink, Close_0, [type(binary)]),
-    maplist(string_to_mp3(Sink), L),
-    close_any2(Close_0)
-  ).
+write_tts(Sink, Lines):-
+  call_to_stream(Sink, write_tts0(Lines)).
 
-string_to_mp3(Sink, S):-
+write_tts0(Lines, _, Out) :-
+  maplist(string_to_mp3(Out), Lines).
+
+
+
+string_to_mp3(Out, S):-
   google_tts_link(S, Iri),
-  http_get(Iri, copy_stream_data0(Sink)).
-copy_stream_data0(Sink, _, Source):-
-  copy_stream_data(Source, Sink).
+  http_get(Iri, copy_stream_data0(Out)).
+
+copy_stream_data0(Out, _, In):-
+  copy_stream_data(In, Out).
+
 
 google_tts_link(S, Iri):-
   google_tts_link("UTF-8", "en", S, Iri).
+
 
 google_tts_link(Enc, Lang, Line, Iri):-
   string_phrase(space_to_plus, Line, NormLine),
@@ -133,7 +139,7 @@ test("Biden", "buy a shotgun, buy a double-barreled shotgun.").
 
 
 test_tts_to_file(Poem):-
-  findall(S, test(Poem, S), Ss),
+  findall(Line, test(Poem, Line), Lines),
   atom_string(Base, Poem),
   absolute_file_name(Base, File, [access(write),extensions([mp3])]),
-  tts_to_file(Ss, File).
+  write_tts(File, Lines).

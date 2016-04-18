@@ -1,7 +1,6 @@
 :- module(
   test_metadata,
   [
-    test_call_on_archive/0,
     test_open_any2/0
   ]
 ).
@@ -26,23 +25,16 @@
 
 
 
-test_call_on_archive:-
-  test_source(Source),
-  call_collect_messages(call_on_archive(Source, [D,_]>>print_dict(D))).
-
-
-
 test_open_any2:-
   test_source(Source),
   debug_collect_messages(test_open_any2(Source)).
 
 
 test_open_any2(Source):-
-  setup_call_cleanup(
-    open_any2(Source, read, _, Close_0, [metadata(M)]),
-    (print_dict(M), nl),
-    close_any2(Close_0)
-  ).
+  call_on_stream(Source, print_dict0).
+
+print_dict0(MIn, In) :-
+  print_dict(MIn), nl.
 
 
 

@@ -19,7 +19,7 @@ Support for downloading files and datastructures over HTTP(S).
 @author Wouter Beek
 @tbd We cannot use library(lambda) because this copies the goal term,
      not returning the DOM argument.  Maybe yall can be used?
-@version 2015/07-2015/11, 2016/01
+@version 2015/07-2015/11, 2016/01, 2016/04
 */
 
 :- use_module(library(atom_ext)).
@@ -33,21 +33,6 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 :- use_module(library(uri)).
-
-:- predicate_options(file_download/3, 3, [
-     freshness_lifetime(+or([between(0.0,inf),oneof([inf])])),
-     pass_to(http_get/3, 3)
-   ]).
-:- predicate_options(html_download/3, 3, [
-     pass_to(load_html/3, 3)
-   ]).
-:- predicate_options(json_download/3, 3, [
-     pass_to(http_get/3, 3),
-     pass_to(json_read_dict/3, 3)
-   ]).
-:- predicate_options(xml_download/3, 3, [
-     pass_to(load_xml/3, 3)
-   ]).
 
 
 
@@ -86,12 +71,12 @@ file_download(Iri, _, _):-
   \+ uri_is_global(Iri), !,
   type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Iri, File0, Opts1):-
+file_download(Iri, File0, Opts):-
   iri_normalized(Iri, NormIri),
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
-  merge_options([metadata(M)], Opts1, Opts2),
-  http_get(Iri, write_stream_to_file0(TmpFile), Opts2),
+  call_onto_stream(Iri, TmpFile, copy_stream_data0, Opts),
+  ignore(option(metadata(M), Opts)),
   (   nonvar(File0)
   ->  File = File0
   ;   (file_name(M, File0) -> true ; File0 = Hash),
@@ -99,8 +84,8 @@ file_download(Iri, File0, Opts1):-
   ),
   rename_file(TmpFile, File).
 
-write_stream_to_file0(File, _, Read):-
-  write_stream_to_file(Read, File).
+copy_stream_data0(_, In, _, Out):-
+  copy_stream_data(In, Out).
 
 
 

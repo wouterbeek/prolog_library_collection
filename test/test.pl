@@ -113,7 +113,6 @@
 :- use_module(library(option_ext)).
 %/os
   :- use_module(library(os/archive_ext)).
-  :- use_module(library(os/call_on_stream)).
   :- use_module(library(os/compress_ext)).
   :- use_module(library(os/date_time_file)).
   :- use_module(library(os/dir_ext)).
