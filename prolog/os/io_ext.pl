@@ -1,13 +1,12 @@
 :- module(
   io_ext,
   [
-    print_input/2,          % +Source, +Opts
-    read_input_to_atom/2,   % +Source, -Content
-    read_input_to_codes/2,  % +Source, -Content
-    read_input_to_string/2, % +Source, -Content
-    write_output_to_atom/2, % :Goal_1, -Content
-    write_stream_to_file/2, % +Sink,   +File
-    write_stream_to_file/3  % +Sink,   +File, +Opts
+    read_input_to_atom/2,   % +Source, -A
+    read_input_to_codes/2,  % +Source, -Cs
+    read_input_to_string/2, % +Source, -S
+    write_output_to_atom/2, % :Goal_1, -A
+    write_stream_to_file/2, % +Source, +Sink
+    write_stream_to_file/3  % +Source, +Sink, +Opts
   ]
 ).
 :- reexport(library(readutil)).
@@ -27,21 +26,6 @@ Predicates that extend the swipl builtin I/O predicates operating on streams.
     write_output_to_atom(1, -).
 
 
-
-
-
-%! print_input(+Source, +Opts) is det.
-
-print_input(Source, Opts) :-
-  forall(read_input_to_line(Source, Cs), print_line(Cs, Opts)).
-
-
-
-%! print_line(+Cs, +Opts) is det.
-
-print_line(Cs, Opts) :-
-  (option(indent(I), Opts) -> tab(I) ; true),
-  format("~s~n", [Cs]).
 
 
 
@@ -81,7 +65,7 @@ read_input_to_string(Source, S) :-
 
 
 
-%! write_output_to_atom(:Goal_1, -Atom) is det.
+%! write_output_to_atom(:Goal_1, -A) is det.
 % Is called as `call(Goal_1, Out)`.
 
 write_output_to_atom(Goal_1, A) :-
@@ -100,8 +84,8 @@ write_output_to_atom(Goal_1, A) :-
 
 
 
-%! write_stream_to_file(+Sink, +File) is det.
-%! write_stream_to_file(+Sink, +File, +Opts) is det.
+%! write_stream_to_file(+Source, +Sink) is det.
+%! write_stream_to_file(+Source, +Sink, +Opts) is det.
 
 write_stream_to_file(Source, Sink) :-
   write_stream_to_file(Source, Sink, []).

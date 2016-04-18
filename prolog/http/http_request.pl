@@ -1,7 +1,6 @@
 :- module(
   http_request,
   [
-    http_default_success/2, % +MIn, +In
     http_get/1,             % +Iri
     http_get/2,             % +Iri,             :Success_2
     http_get/3,             % +Iri,             :Success_2, +Opts
