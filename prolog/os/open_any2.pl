@@ -58,19 +58,6 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 
 is_meta(http_error).
 
-:- predicate_options(open_any2/5, 5, [
-     metadata(-dict),
-     pass_to(http_open2/4, 4),
-     pass_to(open_any/5, 5),
-     pass_to(zopen/3, 3)
-   ]).
-:- predicate_options(http_open2/4, 4, [
-     http_error(+callable),
-     metadata(-dict),
-     max_redirects(+positive_integer),
-     max_retries(+positive_integer)
-   ]).
-
 
 
 
@@ -402,8 +389,9 @@ source_type(Iri,            _,    Iri,    http_iri) :-
   is_iri(Iri), !,
   uri_components(Iri, uri_components(Scheme,_,_,_,_)),
   (memberchk(Scheme, [http,https]) -> true  ; type_error(http_iri, Iri)).
-source_type(File,           _,    Iri,    file_iri) :-
-  atom(File),
+source_type(File0,          Mode, Iri,    file_iri) :-
+  atom(File0),
+  absolute_file_name(File0, File, [access(Mode)]),
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
 source_type(Source, _, _, _) :-
