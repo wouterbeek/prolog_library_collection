@@ -70,12 +70,12 @@ file_download(Iri, _, _) :-
   \+ uri_is_global(Iri), !,
   type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Iri, File0, Opts) :-
+file_download(Iri, File0, Opts0) :-
   iri_normalized(Iri, NormIri),
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
+  merge_options([metadata(M)], Opts0, Opts),
   call_onto_stream(Iri, TmpFile, copy_stream_data0, Opts),
-  ignore(option(metadata(M), Opts)),
   (   nonvar(File0)
   ->  File = File0
   ;   (file_name(M, File0) -> true ; File0 = Hash),

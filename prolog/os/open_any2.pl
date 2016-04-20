@@ -192,12 +192,12 @@ call_to_stream(Sink, Goal_2, Opts) :-
 %! close_any2(+Close_0, +M1, -M2) is det.
 
 close_any2(Close_0, M1, M2) :-
-  close_any(Close_0),
-  (   Close_0 = stream(Stream)
+  (   Close_0 = close(Stream)
   ->  stream_metadata(Stream, MStream),
       M2 = M1.put(MStream)
   ;   M2 = M1
-  ).
+  ),
+  close_any(Close_0).
 
 
 

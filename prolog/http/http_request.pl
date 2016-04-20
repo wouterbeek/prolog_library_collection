@@ -1,12 +1,12 @@
 :- module(
   http_request,
   [
-    http_get/1,             % +Iri
-    http_get/2,             % +Iri,             :Success_2
-    http_get/3,             % +Iri,             :Success_2, +Opts
-    http_post/2,            % +Iri, +Data
-    http_post/3,            % +Iri, +Data,      :Success_2
-    http_post/4             % +Iri, +Data,      :Success_2, +Opts
+    http_get/1,  % +Iri
+    http_get/2,  % +Iri,             :Success_2
+    http_get/3,  % +Iri,             :Success_2, +Opts
+    http_post/2, % +Iri, +Data
+    http_post/3, % +Iri, +Data,      :Success_2
+    http_post/4  % +Iri, +Data,      :Success_2, +Opts
   ]
 ).
 
@@ -16,7 +16,7 @@ Higher-level HTTP requests build on top of library(http/http_open),
 posing an alternative to library(http/http_client).
 
 @author Wouter Beek
-@version 2015/07-2015/08, 2015/11, 2016/01-2016/02, 2016/04
+@version 2016/04
 */
 
 :- use_module(library(apply)).
@@ -31,16 +31,6 @@ posing an alternative to library(http/http_client).
     http_get(+, 2, +),
     http_post(+, +, 2),
     http_post(+, +, 2, +).
-
-
-
-
-
-%! http_default_success(+MIn, +In) is det.
-
-http_default_success(MIn, In) :-
-  print_dict(MIn),
-  copy_stream_data(In, user_output).
 
 
 
@@ -77,3 +67,15 @@ http_post(Iri, Data, Success_2) :-
 http_post(Iri, Data, Success_2, Opts0) :-
   merge_options([method(post),post(Data)], Opts0, Opts),
   call_on_stream(Iri, Success_2, Opts).
+
+
+
+
+
+% HELPERS %
+
+%! http_default_success(+MIn, +In) is det.
+
+http_default_success(MIn, In) :-
+  print_dict(MIn),
+  copy_stream_data(In, user_output).
