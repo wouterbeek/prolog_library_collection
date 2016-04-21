@@ -119,13 +119,13 @@ call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts0) :-
   merge_options([meta_data(MEntries1)], Opts0, Opts),
   archive_data_stream(Arch, In, Opts),
   maplist(archive_entry_metadata0, MEntries1, MEntries2),
-  (   MEntries2 = [MEntry1|_],
-      atom_string(Entry, MEntry1.'llo:name')
+  (   MEntries2 = [H1|T],
+      atom_string(Entry, H1.'llo:name')
   ->  call_cleanup(
         call(Goal_2, M1, In),
-        close_any2(close(In), MEntry1, MEntry2)
+        close_any2(close(In), H1, H2)
       ),
-      M2 = M1.put(_{'llo:archive_entry': _{'@list': MEntry2}})
+      M2 = M1.put(_{'llo:archive_entry': [H2|T]})
   ;   close(In),
       fail
   ).
@@ -536,21 +536,17 @@ source_type(Source, _, _, _) :-
 %! stream_metadata(+Stream, -M) is det.
 
 stream_metadata(Stream, M):-
-  findall(
-    Pair,
-    (stream_property(Stream, Prop), property_pair0(Prop, Pair)),
-    Pairs
-  ),
-  dict_pairs(M, Pairs).
-
-property_pair0(Prop, Pair):-
-  Prop =.. [Key|Vals],
-  property_pair0(Key, Vals, Pair).
-
-property_pair0(position, [Pos], Key-Val):- !,
-  stream_position_data(Key, Pos, Val).
-property_pair0(Key, [], Key-true):- !.
-property_pair0(Key, [Val], Key-Val).
+  stream_property(Stream, position(Pos)),
+  stream_position_data(byte_count, Pos, NumBytes),
+  stream_position_data(char_count, Pos, NumChars),
+  stream_position_data(line_count, Pos, NumLines),
+  stream_property(Stream, newline(Newline)),
+  M = _{
+    'llo:byte_count': NumBytes,
+    'llo:char_count': NumChars,
+    'llo:line_count': NumLines,
+    'llo:newline': Newline
+  }.
 
 
 
