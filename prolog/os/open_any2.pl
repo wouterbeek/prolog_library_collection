@@ -215,9 +215,6 @@ close_any2(Close_0, M1, M2) :-
 %   * compression(+oneof([deflate,gzip,none]))
 %     Whether or not compression is used on the opened stream.
 %     Default is `none`.
-%   * metadata(-list(dict))
-%     Whether all metadata accrued during the opening of a stream should be
-%     returned.
 %   * parse_headers(+boolean)
 %     Whether HTTP headers are parsed according to HTTP 1.1 grammars.
 %     Default is `false`.
@@ -240,7 +237,6 @@ open_any2(Source, Mode, Stream, Close_0, M) :-
 
 open_any2(Source0, Mode, Stream, Close_0, M3, Opts) :-
   source_type(Source0, Mode, Source, Type),
-  ignore(option(metadata(M3), Opts)),
   
   % Base IRI
   (   base_iri(Source, BaseIri, Opts)
