@@ -28,6 +28,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(http/json)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 :- use_module(library(uri)).

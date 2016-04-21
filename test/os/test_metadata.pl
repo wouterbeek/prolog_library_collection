@@ -33,7 +33,7 @@ test_open_any2:-
 test_open_any2(Source):-
   call_on_stream(Source, print_dict0).
 
-print_dict0(MIn, In) :-
+print_dict0(MIn, _) :-
   print_dict(MIn), nl.
 
 

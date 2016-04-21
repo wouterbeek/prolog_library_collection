@@ -61,8 +61,8 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 :- meta_predicate
     call_on_stream(+, 2),
     call_on_stream(+, 2, +),
-    call_on_stream_entry0(+, +, 2, +, +),
-    call_on_stream_entry_nondet0(+, +, 2, +, +),
+    call_on_stream_entry0(+, +, 2, +, -, +),
+    call_on_stream_entry_nondet0(+, +, 2, +, -, +),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +),
     call_to_stream(+, 2),
@@ -95,37 +95,37 @@ call_on_stream(Source, Goal_2, InOpts) :-
   % Archive options that can be overridden.
   merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
   setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, MIn0, InOpts),
+    open_any2(Source, read, Read, Close_0, M1, InOpts),
     setup_call_cleanup(
       archive_open(Read, Arch, ArchOpts2),
-      call_on_stream_entry0(Arch, Entry, Goal_2, MIn0, InOpts),
+      call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, InOpts),
       archive_close(Arch)
     ),
-    close_any2(Close_0, MIn0, MIn)
+    close_any2(Close_0, M2, M3)
   ),
-  ignore(option(metadata(MIn), InOpts)).
+  ignore(option(metadata(M3), InOpts)).
 
 
 % Semi-deterministic if an archive entry name is given.
-call_on_stream_entry0(Arch, Entry, Goal_2, MIn, Opts) :-
+call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, Opts) :-
   nonvar(Entry), !,
-  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn, Opts), !.
+  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts), !.
 % Non-deterministic if no archive entry name is given.
-call_on_stream_entry0(Arch, Entry, Goal_2, MIn, Opts) :-
-  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn, Opts).
+call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, Opts) :-
+  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts).
 
 
-call_on_stream_entry_nondet0(Arch, Entry, Goal_2, MIn1, Opts0) :-
+call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts0) :-
   merge_options([meta_data(MEntries1)], Opts0, Opts),
   archive_data_stream(Arch, In, Opts),
   maplist(archive_entry_metadata0, MEntries1, MEntries2),
   (   MEntries2 = [MEntry1|_],
       atom_string(Entry, MEntry1.'llo:name')
   ->  call_cleanup(
-        call(Goal_2, MIn, In),
+        call(Goal_2, M1, In),
         close_any2(close(In), MEntry1, MEntry2)
       ),
-      MIn2 = MIn1.put(_{'llo:archive_entry': _{'@list': MEntry2}})
+      M2 = M1.put(_{'llo:archive_entry': _{'@list': MEntry2}})
   ;   close(In),
       fail
   ).
