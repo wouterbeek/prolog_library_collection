@@ -29,10 +29,10 @@ Support for natural language dictionaries.
 :- use_module(library(random)).
 :- use_module(library(readutil)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
-:- persistent(word(language:string,index:nonneg,word:string,something:string)).
-
-cert_verify(_, _, _, _, _):- !.
+:- persistent
+   word(language:string,index:nonneg,word:string,something:string).
 
 
 
@@ -58,14 +58,13 @@ nlp_word(Lang, Word, Something):-
 
 % INITIALIZATION %
 
-%! nlp_dict_assert(+Lang, +Metadata, +In) is det.
+nlp_dict_assert(Lang, In):-
+  nlp_dict_assert(Lang, 0, In).
 
-nlp_dict_assert(Lang, _, In):-
-  nlp_dict_assert0(Lang, 0, In).
 
-nlp_dict_assert0(_, _, In):-
+nlp_dict_assert(_, _, In):-
   at_end_of_stream(In), !.
-nlp_dict_assert0(Lang, N1, In):-
+nlp_dict_assert(Lang, N1, In):-
   read_line_to_codes(In, Cs),
 
   % Parse and assert a single entry in the dictionary.
@@ -73,7 +72,7 @@ nlp_dict_assert0(Lang, N1, In):-
   succ(N1, N2),
   assert_word(Lang, N2, Word, Something),
 
-  nlp_dict_assert0(Lang, N2, In).
+  nlp_dict_assert(Lang, N2, In).
 
 
 
@@ -89,7 +88,11 @@ nlp_dict_download(Lang):-
   atomic_list_concat([dictionaries,Local], /, Entry),
 
   % Assert the words that appear in the dictionary.
-  call_on_stream(Iri, nlp_dict_assert(Lang), [archive_entry(Entry)]).
+  call_on_stream(
+    Iri,
+    [In,_,_]>>nlp_dict_assert(Lang, In),
+    [archive_entry(Entry)]
+  ).
 
 
 

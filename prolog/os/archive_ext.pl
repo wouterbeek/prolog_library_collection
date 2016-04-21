@@ -60,14 +60,11 @@ archive_extract(Source) :-
 
 
 archive_extract(Source, Dir) :-
-  call_on_stream(Source, copy_stream_data1(Dir)).
+  call_on_stream(Source, [In,M,_]>>copy_stream_data0(Dir, In, M)).
 
-copy_stream_data1(Dir, MIn, In) :-
-  directory_file_path(Dir, MIn.'llo:archive_entry', Sink),
-  call_to_stream(Sink, copy_stream_data2(In)).
-
-copy_stream_data2(In, _, Out) :-
-  copy_stream_data(In, Out).
+copy_stream_data0(Dir, In, M) :-
+  directory_file_path(Dir, M.'llo:archive_entry', Sink),
+  call_to_stream(Sink, [Out,_,_]>>copy_stream_data(In, Out)).
 
 
 
@@ -127,4 +124,4 @@ archive_info(Source) :-
 
 
 archive_info(Source, Opts) :-
-  call_on_stream(Source, [M,_]>>print_dict(M, Opts), Opts).
+  call_on_stream(Source, [_,M,_]>>print_dict(M, Opts), Opts).

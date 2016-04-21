@@ -32,6 +32,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
 
 
@@ -76,16 +77,18 @@ file_download(Iri, File0, Opts0) :-
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
   merge_options([metadata(M)], Opts0, Opts),
-  call_onto_stream(Iri, TmpFile, copy_stream_data0, Opts),
+  call_onto_stream(
+    Iri,
+    TmpFile,
+    [In,_,_,Out,_,_]>>copy_stream_data(In, Out),
+    Opts
+  ),
   (   nonvar(File0)
   ->  File = File0
   ;   (file_name(M, File0) -> true ; File0 = Hash),
       absolute_file_name(File0, File, [access(write)])
   ),
   rename_file(TmpFile, File).
-
-copy_stream_data0(_, In, _, Out) :-
-  copy_stream_data(In, Out).
 
 
 
@@ -97,11 +100,8 @@ html_download(Source, Dom) :-
 
 
 html_download(Source, Dom, Opts) :-
-  http_get(Source, load_html0(Dom0, Opts)),
-  clean_dom(Dom0, Dom).
-
-load_html0(Dom, Opts, _, Read) :-
-  load_html(Read, Dom, Opts).
+  http_get(Source, [In,_,_]>>load_html(In, DirtyDom, Opts)),
+  clean_dom(DirtyDom, Dom).
 
 
 
@@ -112,12 +112,13 @@ json_download(Source, Json) :-
   json_download(Source, Json, []).
 
 
-json_download(Source, Json, Opts0) :-
-  merge_options([request_header('Accept','application/json')], Opts0, Opts),
-  http_get(Source, json_read_dict0(Json, Opts0), Opts).
-
-json_read_dict0(Json, Opts, _, In) :-
-  json_read_dict(In, Json, Opts).
+json_download(Source, Json, JsonOpts) :-
+  merge_options(
+    [request_header('Accept','application/json')],
+    JsonOpts,
+    HttpOpts
+  ),
+  http_get(Source, [In,_,_]>>json_read_dict(In, Json, JsonOpts), HttpOpts).
 
 
 
@@ -131,10 +132,7 @@ xml_download(Source, Dom) :-
 
 
 xml_download(Source, Dom, Opts) :-
-  http_get(Source, load_xml0(Dom, Opts)).
-
-load_xml0(Dom, Opts, _, In) :-
-  load_xml(In, Dom, Opts).
+  http_get(Source, [In,_,_]>>load_xml(In, Dom, Opts)).
 
 
 

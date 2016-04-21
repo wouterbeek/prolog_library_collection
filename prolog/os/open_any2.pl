@@ -5,12 +5,12 @@
     open_any2/5,        % +Source,  +Mode,   -Stream, -Close_0, -M
     open_any2/6,        % +Source,  +Mode,   -Stream, -Close_0, -M, +Opts
     read_mode/1,        % ?Mode
-    call_on_stream/2,   % +Source,           :Goal_2
-    call_on_stream/3,   % +Source,           :Goal_2, +Opts
-    call_onto_stream/3, % +Source,  +Sink,   :Goal_4
-    call_onto_stream/4, % +Source,  +Sink,   :Goal_4, +Opts
-    call_to_stream/2,   %           +Sink,   :Goal_2
-    call_to_stream/3,   %           +Sink,   :Goal_2, +Opts
+    call_on_stream/2,   % +Source,           :Goal_3
+    call_on_stream/3,   % +Source,           :Goal_3, +Opts
+    call_onto_stream/3, % +Source,  +Sink,   :Goal_6
+    call_onto_stream/4, % +Source,  +Sink,   :Goal_6, +Opts
+    call_to_stream/2,   %           +Sink,   :Goal_3
+    call_to_stream/3,   %           +Sink,   :Goal_3, +Opts
     write_mode/1        % ?Mode
   ]
 ).
@@ -59,22 +59,22 @@ Wrapper around library(iostream)'s open_any/5.
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 :- meta_predicate
-    call_on_stream(+, 2),
-    call_on_stream(+, 2, +),
-    call_on_stream_entry0(+, +, 2, +, -, +),
-    call_on_stream_entry_nondet0(+, +, 2, +, -, +),
-    call_onto_stream(+, +, 4),
-    call_onto_stream(+, +, 4, +),
-    call_to_stream(+, 2),
-    call_to_stream(+, 2, +).
+    call_on_stream(+, 3),
+    call_on_stream(+, 3, +),
+    call_on_stream1(+, +, 3, +, -, +),
+    call_on_stream2(+, +, 3, +, -, +),
+    call_onto_stream(+, +, 6),
+    call_onto_stream(+, +, 6, +),
+    call_to_stream(+, 3),
+    call_to_stream(+, 3, +).
 
 
 
 
 
-%! call_on_stream(+Source, :Goal_2) is det.
-%! call_on_stream(+Source, :Goal_2, +Opts) is det.
-% The following call is made: `call(Goal_2, M, In)`.
+%! call_on_stream(+Source, :Goal_3) is det.
+%! call_on_stream(+Source, :Goal_3, +Opts) is det.
+% The following call is made: `call(Goal_3, M, In)`.
 %
 % The following options are supported:
 %   - metadata(-dict)
@@ -83,50 +83,50 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 %       - archive_open/3
 %       - open_any2/5
 
-call_on_stream(Source, Goal_2) :-
-  call_on_stream(Source, Goal_2, []).
+call_on_stream(Source, Goal_3) :-
+  call_on_stream(Source, Goal_3, []).
 
 
-call_on_stream(Source, Goal_2, InOpts) :-
+call_on_stream(Source, Goal_3, Opts) :-
   % This allows the calling context to request one specific entity.
-  option(archive_entry(Entry), InOpts, _),
+  option(archive_entry(Entry), Opts, _),
   % Archive options that cannot be overridden.
-  merge_options([close_parent(false)], InOpts, ArchOpts1),
+  merge_options([close_parent(false)], Opts, ArchOpts1),
   % Archive options that can be overridden.
   merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
   setup_call_cleanup(
-    open_any2(Source, read, Read, Close_0, M1, InOpts),
+    open_any2(Source, read, In1, Close_0, M1, Opts),
     setup_call_cleanup(
-      archive_open(Read, Arch, ArchOpts2),
-      call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, InOpts),
+      archive_open(In1, Arch, ArchOpts2),
+      call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts),
       archive_close(Arch)
     ),
-    close_any2(Close_0, M2, M3)
+    close_any2(Close_0, M3, M4)
   ),
-  ignore(option(metadata(M3), InOpts)).
+  ignore(option(metadata(M4), Opts)).
 
 
 % Semi-deterministic if an archive entry name is given.
-call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, Opts) :-
+call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
   nonvar(Entry), !,
-  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts), !.
+  call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts), !.
 % Non-deterministic if no archive entry name is given.
-call_on_stream_entry0(Arch, Entry, Goal_2, M1, M2, Opts) :-
-  call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts).
+call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
+  call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts).
 
 
-call_on_stream_entry_nondet0(Arch, Entry, Goal_2, M1, M2, Opts0) :-
+call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts0) :-
   merge_options([meta_data(MEntries1)], Opts0, Opts),
-  archive_data_stream(Arch, In, Opts),
+  archive_data_stream(Arch, In2, Opts),
   maplist(archive_entry_metadata0, MEntries1, MEntries2),
   (   MEntries2 = [H1|T],
       atom_string(Entry, H1.'llo:name')
   ->  call_cleanup(
-        call(Goal_2, M1, In),
-        close_any2(close(In), H1, H2)
+        call(Goal_3, In2, M1, M2),
+        close_any2(close(In2), H1, H2)
       ),
-      M2 = M1.put(_{'llo:archive_entry': [H2|T]})
-  ;   close(In),
+      M3 = M2.put(_{'llo:archive_entry': [H2|T]})
+  ;   close(In2),
       fail
   ).
 
@@ -157,43 +157,43 @@ archive_entry_metadata0(
 
 
 
-%! call_onto_stream(+Source, +Sink, :Goal_4) is det.
-%! call_onto_stream(+Source, +Sink, :Goal_4, +Opts) is det.
+%! call_onto_stream(+Source, +Sink, :Goal_6) is det.
+%! call_onto_stream(+Source, +Sink, :Goal_6, +Opts) is det.
 
-call_onto_stream(Source, Sink, Goal_4) :-
-  call_onto_stream(Source, Sink, Goal_4, []).
+call_onto_stream(Source, Sink, Goal_6) :-
+  call_onto_stream(Source, Sink, Goal_6, []).
 
 
-call_onto_stream(Source, Sink, Goal_4, InOpts) :-
+call_onto_stream(Source, Sink, Goal_6, InOpts) :-
   remove_option(InOpts, metadata(_), OutOpts),
-  call_on_stream(Source, call_onto_stream0(Sink, Goal_4, OutOpts), InOpts).
+  call_on_stream(Source, call_onto_stream0(Sink, Goal_6, OutOpts), InOpts).
 
 
-call_onto_stream0(Sink, Mod:Goal_4, Opts, MIn, In) :-
-  Goal_2 =.. [Goal_4,MIn,In],
-  call_to_stream(Sink, Mod:Goal_2, Opts).
+call_onto_stream0(Sink, Mod:Goal_6, Opts, In, M1, M2) :-
+  Goal_3 =.. [Goal_6,In,M1,M2],
+  call_to_stream(Sink, Mod:Goal_3, Opts).
   
 
 
-%! call_to_stream(+Sink, :Goal_2) is det.
-%! call_to_stream(+Sink, :Goal_2, +Opts) is det.
+%! call_to_stream(+Sink, :Goal_3) is det.
+%! call_to_stream(+Sink, :Goal_3, +Opts) is det.
 % The following options are supported:
 %   * metadata(-dict)
 %   * mode(+oneof([append,write]))
 %     Default is `write`.
 
-call_to_stream(Sink, Goal_2) :-
-  call_to_stream(Sink, Goal_2, []).
+call_to_stream(Sink, Goal_3) :-
+  call_to_stream(Sink, Goal_3, []).
 
 
-call_to_stream(Sink, Goal_2, Opts) :-
+call_to_stream(Sink, Goal_3, Opts) :-
   option(mode(Mode), Opts, write),
   setup_call_cleanup(
-    open_any2(Sink, Mode, Out, Close_0, MOut0, Opts),
-    call(Goal_2, MOut0, Out),
-    close_any2(Close_0, MOut0, MOut)
+    open_any2(Sink, Mode, Out, Close_0, M1, Opts),
+    call(Goal_3, Out, M1, M2),
+    close_any2(Close_0, M2, M3)
   ),
-  ignore(option(metadata(MOut), Opts)).
+  ignore(option(metadata(M3), Opts)).
 
 
 

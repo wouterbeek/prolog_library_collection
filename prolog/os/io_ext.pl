@@ -21,6 +21,7 @@ Predicates that extend the swipl builtin I/O predicates operating on streams.
 
 :- use_module(library(os/open_any2)).
 :- use_module(library(readutil)).
+:- use_module(library(yall)).
 
 :- meta_predicate
     write_output_to_atom(1, -).
@@ -40,20 +41,14 @@ read_input_to_atom(Source, A) :-
 %! read_input_to_codes(+Source, -Cs) is det.
 
 read_input_to_codes(Source, Cs) :-
-  call_on_stream(Source, read_input_to_codes0(Cs)).
-
-read_input_to_codes0(Cs, _, In) :-
-  read_stream_to_codes(In, Cs).
+  call_on_stream(Source, [In,_,_]>>read_stream_to_codes(In, Cs)).
 
 
 
 %! read_input_to_line(+Source, -Cs) is nondet.
 
 read_input_to_line(Source, Cs) :-
-  call_on_stream(Source, read_input_to_line0(Cs)).
-
-read_input_to_line0(Cs, _, In) :-
-  read_line_to_codes(In, Cs).
+  call_on_stream(Source, [In,_,_]>>read_input_to_line(In, Cs)).
 
 
 
@@ -93,7 +88,9 @@ write_stream_to_file(Source, Sink) :-
 
 write_stream_to_file(Source, Sink, Opts0) :-
   merge_options([type(binary)], Opts0, Opts),
-  call_onto_stream(Source, Sink, write_stream_to_file0, Opts).
-
-write_stream_to_file0(_, In, _, Out) :-
-  copy_stream_data(In, Out).
+  call_onto_stream(
+    Source,
+    Sink,
+    [In,_,_,Out,_,_]>>copy_stream_data(In, Out),
+    Opts
+  ).

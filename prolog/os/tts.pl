@@ -21,6 +21,7 @@
 :- use_module(library(os/open_any2)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
 :- dynamic
     user:module_uses/2.
@@ -63,19 +64,16 @@ tts(_, Prog):-
 % The lines must not contain non-ASCII characters (why not?).
 
 write_tts(Sink, Lines):-
-  call_to_stream(Sink, write_tts0(Lines)).
+  call_to_stream(Sink, [Out,_,_]>>write_tts0(Lines, Out)).
 
-write_tts0(Lines, _, Out) :-
+write_tts0(Lines, Out) :-
   maplist(string_to_mp3(Out), Lines).
 
 
 
 string_to_mp3(Out, S):-
   google_tts_link(S, Iri),
-  http_get(Iri, copy_stream_data0(Out)).
-
-copy_stream_data0(Out, _, In):-
-  copy_stream_data(In, Out).
+  http_get(Iri, [In,_,_]>>copy_stream_data(In, Out)).
 
 
 google_tts_link(S, Iri):-

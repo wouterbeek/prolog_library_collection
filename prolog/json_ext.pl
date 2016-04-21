@@ -20,6 +20,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(http/json)).
 :- use_module(library(os/open_any2)).
+:- use_module(library(yall)).
 
 
 
@@ -52,10 +53,7 @@ json_read_any(Source, D):-
 
 
 json_read_any(Source, D, Opts):-
-  call_on_stream(Source, json_read_any0(D, Opts), Opts).
-
-json_read_any0(D, Opts, _, In) :-
-  json_read_dict(In, D, Opts).
+  call_on_stream(Source, [In,_,_]>>json_read_dict(In, D, Opts), Opts).
 
 
 
@@ -68,7 +66,4 @@ json_write_any(Sink, D):-
 
 
 json_write_any(Sink, D, Opts):-
-  call_to_stream(Sink, json_write_any0(D, Opts), Opts).
-
-json_write_any0(D, Opts, _, Out) :-
-  json_write_dict(Out, D, Opts).
+  call_to_stream(Sink, [Out,_,_]>>json_write_dict(Out, D, Opts), Opts).

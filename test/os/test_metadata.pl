@@ -8,7 +8,7 @@
 /* <module> Test metadata
 
 @author Wouter Beek
-@version 2015/11-2015/12
+@version 2015/11-2015/12, 2016/04
 */
 
 :- use_module(library(debug_ext)).
@@ -31,11 +31,12 @@ test_open_any2:-
 
 
 test_open_any2(Source):-
-  call_on_stream(Source, copy_stream_data0, [metadata(M)]),
+  call_on_stream(
+    Source,
+    [In,_,_]>>copy_stream_data(In, user_output),
+    [metadata(M)]
+  ),
   print_dict(M), nl.
-
-copy_stream_data0(_, In) :-
-  copy_stream_data(In, user_output).
 
 
 

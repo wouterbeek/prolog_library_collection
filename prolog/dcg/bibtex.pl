@@ -16,6 +16,7 @@
 :- use_module(library(lists)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(pure_input)).
+:- use_module(library(yall)).
 
 :- dynamic
     user:prolog_file_type/2.
@@ -37,10 +38,7 @@ bibtex_load(Source, Entries):-
 
 
 bibtex_load(Source, L, Opts):-
-  call_on_stream(Source, bibtex_load0(L), Opts).
-
-bibtex_load0(L, _, In) :-
-  phrase_from_stream(In, bibtex(L)).
+  call_on_stream(Source, [In,_,_]>>phrase_from_stream(In, bibtex(L)), Opts).
 
 
 
