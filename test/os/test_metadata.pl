@@ -34,7 +34,8 @@ test_open_any2(Source):-
   call_on_stream(Source, print_dict0, [metadata(M)]),
   print_dict(M), nl.
 
-print_dict0(MIn, _) :-
+print_dict0(MIn, In) :-
+  copy_stream_data(In, user_output),
   print_dict(MIn), nl.
 
 
