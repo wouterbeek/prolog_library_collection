@@ -3,9 +3,9 @@
   [
     alphanum//1, % -Code:code
     extension//1, % -Extension:list(string)
-    langtag//1, % -LanguageTag:list(string)
-    language//1, % -LanguageTag:list(string)
-    'Language-Tag'//1, % -LanguageTag:list(string)
+    langtag//1, % -LTag:list(string)
+    language//1, % -LTag:list(string)
+    'Language-Tag'//1, % -LTag:list(string)
     region//1, % -Region:string
     script//1, % -Script:string
     variant//1 % -Variant:string
@@ -44,12 +44,14 @@ The comment for singleton//1 swaps upper and lowercase letters.
 :- use_module(library(pio)).
 :- use_module(library(yall)).
 
-iana(Dicts):- memo(init_iana(Dicts)).
-init_iana(Dicts):-
+iana(Ds):-
+  memo(init_iana(Ds)).
+
+init_iana(Ds):-
   FileOpts = [access(read),extensions([iana])],
   absolute_file_name(language_subtag_registry, File, FileOpts),
   phrase_from_file('record-jar'(_, Records), File),
-  maplist([Record,Dict]>>create_dict(Record, record, Dict), Records, Dicts).
+  maplist([Record,D]>>create_dict(Record, record, D), Records, Ds).
 
 
 
@@ -85,7 +87,7 @@ sep_extlang(S) --> "-", #(3, 'ALPHA', Cs), {string_codes(S, Cs)}.
 
 
 
-%! grandfathered(-LanguageTag:list(string))// is det.
+%! grandfathered(-LTag:list(string))// is det.
 % ```abnf
 % grandfathered = 1*3ALPHA 1*2("-" (2*8alphanum))
 %               ; grandfathered registration
@@ -101,7 +103,7 @@ sep_grandfathered(S) -->
 
 
 
-%! langtag(-LanguageTag:list(string))// is det.
+%! langtag(-LTag:list(string))// is det.
 % ```abnf
 % langtag = language
 %           ["-" script]
@@ -124,7 +126,7 @@ sep_variant(S) --> "-", variant(S).
 
 
 
-%! language(-Language:list(string))// is det.
+%! language(-LTag:list(string))// is det.
 % ```abnf
 % language = 2*3ALPHA        ; shortest ISO 639 code
 %            ["-" extlang]   ; sometimes followed by extended language subtags
@@ -140,7 +142,7 @@ language([H]) --> 'm*n'(5, 8, 'ALPHA', Cs), {string_codes(H, Cs)}.
 
 
 
-%! 'Language-Tag'(-LanguageTag:list(string))// .
+%! 'Language-Tag'(-LTag:list(string))// .
 % ```abnf
 % Language-Tag = langtag         ; normal language tags
 %              / privateuse      ; private use tag

@@ -436,7 +436,7 @@ print_http_header0(Cs) :-
 
 
 
-%! http_error_message(+Iri, +Status, +Lines:list(list(code)), +Stream) is det.
+%! http_error_message(+Iri, +Status, +Lines, +Stream) is det.
 
 http_error_message(Iri, Status, Lines, Stream) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),

@@ -10,6 +10,7 @@ We use the following abbreviations for often occurring variable names:
 | **Variable name** | **Expansion** |
 |:-----------------:|:-------------:|
 | A                 | Atom          |
+| Abs               | Absolute      |
 | Arg               | Argument      |
 | Attr              | Attribute     |
 | C                 | Code          |
@@ -23,6 +24,7 @@ We use the following abbreviations for often occurring variable names:
 | H                 | Head          |
 | I                 | Integer       |
 | L                 | List          |
+| Lang              | Language      |
 | Max               | Maximum       |
 | Min               | Minimum       |
 | N                 | Number        |

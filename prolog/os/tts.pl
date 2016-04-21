@@ -64,7 +64,7 @@ tts(_, Prog):-
 % The lines must not contain non-ASCII characters (why not?).
 
 write_tts(Sink, Lines):-
-  call_to_stream(Sink, [Out,_,_]>>write_tts0(Lines, Out)).
+  call_to_stream(Sink, {Lines}/[Out,M,M]>>write_tts0(Lines, Out)).
 
 write_tts0(Lines, Out) :-
   maplist(string_to_mp3(Out), Lines).
@@ -73,7 +73,7 @@ write_tts0(Lines, Out) :-
 
 string_to_mp3(Out, S):-
   google_tts_link(S, Iri),
-  http_get(Iri, [In,_,_]>>copy_stream_data(In, Out)).
+  http_get(Iri, {Out}/[In,M,M]>>copy_stream_data(In, Out)).
 
 
 google_tts_link(S, Iri):-

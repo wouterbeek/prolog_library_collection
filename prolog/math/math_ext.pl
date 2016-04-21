@@ -2,7 +2,7 @@
   math_ext,
   [
     absolute/2, % ?Number:number
-                % ?Absolute:number
+                % ?Abs:number
     average/2, % +Numbers:list(number)
                % -Average:number
     between_float/3, % ?Low:float
@@ -21,12 +21,12 @@
     clpfd_between/3, % ?Low:integer
                      % ?High:integer
                      % ?Integer:integer
-    clpfd_copysign/3, % ?Absolute:nonneg
+    clpfd_copysign/3, % ?Abs:nonneg
                       % ?Sign:integer
                       % ?Integer:integer
-    combinations/3, % +NumberOfObjects:integer
+    combinations/3, % +NumObjects:integer
                     % +CombinationLength:integer
-                    % -NumberOfCombinations:integer
+                    % -NumCombinations:integer
     decimal_parts/3, % ?Decimal:compound
                      % ?Integer:integer
                      % ?Fraction:compound
@@ -64,13 +64,13 @@
     number_length/3, % +Number:number
                      % +Radix:integer
                      % -Length:integer
-    permutations/2, % +NumberOfObjects, -NumberOfPermutations
+    permutations/2, % +NumObjects, -NumPermutations
     permutations/3, % +NumbersOfObjects:list(integer)
                     % +PermutationLength:integer
-                    % -NumberOfPermutations:integer
-    permutations/3, % +NumberOfObjects:integer
+                    % -NumPermutations:integer
+    permutations/3, % +NumObjects:integer
                     % +PermutationLength:integer
-                    % -NumberOfPermutations:integer
+                    % -NumPermutations:integer
     plus_float/3, % ?X, ?Y, ?Z
     pred/2, % +X:integer
             % -Y:integer
@@ -130,10 +130,10 @@ X = -6.
 
 
 
-%! absolute(+Number:number, +Absolute:number) is semidet.
-%! absolute(+Number:number, -Absolute:number) is det.
-%! absolute(-Number:number, +Absolute:number) is multi.
-% Succeeds if Absolute is the absolute value of Number.
+%! absolute(+Number:number, +Abs:number) is semidet.
+%! absolute(+Number:number, -Abs:number) is det.
+%! absolute(-Number:number, +Abs:number) is multi.
+% Succeeds if Abs is the absolute value of Number.
 %
 % @throws instantiation_error
 % @throws type_error
@@ -276,7 +276,7 @@ clpfd_between(Low, High, N):-
 
 
 
-%! clpfd_copysign(?Absolute:nonneg, Sign:integer, ?Integer:integer) .
+%! clpfd_copysign(?Abs:nonneg, Sign:integer, ?Integer:integer) .
 
 clpfd_copysign(Abs, Sg, N):-
   clpfd:make_propagator(clpfd_copysign(Abs, Sg, N), Prop),
@@ -308,9 +308,9 @@ clpfd:run_propagator(clpfd_copysign(Abs, Sg, N), MState):-
 
 
 %! combinations(
-%!   +NumberOfObjects:integer,
+%!   +NumObjects:integer,
 %!   +CombinationLength:integer,
-%!   -NumberOfCombinations:integer
+%!   -NumCombinations:integer
 %! ) is det.
 % Returns the number of combinations from the given objects and
 % of the given size.
@@ -575,33 +575,33 @@ number_length(_N, _Radix, 1):- !.
 
 %! permutations(
 %!   +NumbersOfObjects:list(integer),
-%!   -NumberOfPermutations:integer
+%!   -NumPermutations:integer
 %! ) is det.
 %! permutations(
-%!   +NumberOfObjects:integer,
-%!   -NumberOfPermutations:integer
+%!   +NumObjects:integer,
+%!   -NumPermutations:integer
 %! ) is det.
 % Returns the number of permutations that can be created with
 % the given number of distinct objects.
 %
 % @see permutations/3
 
-permutations(NumbersOfObjects, NumberOfPermutations):-
+permutations(NumbersOfObjects, NumPermutations):-
   is_list(NumbersOfObjects), !,
-  sum_list(NumbersOfObjects, NumberOfObjects),
-  permutations(NumbersOfObjects, NumberOfObjects, NumberOfPermutations).
-permutations(NumberOfObjects, NumberOfPermutations):-
-  permutations([NumberOfObjects], NumberOfPermutations).
+  sum_list(NumbersOfObjects, NumObjects),
+  permutations(NumbersOfObjects, NumObjects, NumPermutations).
+permutations(NumObjects, NumPermutations):-
+  permutations([NumObjects], NumPermutations).
 
 %! permutations(
 %!   +NumbersOfObjects:list(integer),
 %!   +PermutationLength:integer,
-%!   -NumberOfPermutations:integer
+%!   -NumPermutations:integer
 %! ) is det.
 %! permutations(
-%!   +NumberOfObjects:integer,
+%!   +NumObjects:integer,
 %!   +PermutationLength:integer,
-%!   -NumberOfPermutations:integer
+%!   -NumPermutations:integer
 %! ) is det.
 % Returns the number of permutations that can be created with
 % the given numbers of distinct objects and that have (exactly)
@@ -616,29 +616,29 @@ permutations(NumberOfObjects, NumberOfPermutations):-
 %      objects in a certain group.
 % @arg PermutationLength The (exact) number of objects that occur
 %      in a permutation.
-% @arg NumberOfPermutations The number of permutations that can be created.
+% @arg NumPermutations The number of permutations that can be created.
 
-permutations(NumbersOfObjects, PermutationLength, NumberOfPermutations):-
+permutations(NumbersOfObjects, PermutationLength, NumPermutations):-
   is_list(NumbersOfObjects), !,
 
   % The objects.
-  sum_list(NumbersOfObjects, NumberOfObjects),
-  factorial(NumberOfObjects, F1),
+  sum_list(NumbersOfObjects, NumObjects),
+  factorial(NumObjects, F1),
 
   % The length compensation.
-  Compensation is NumberOfObjects - PermutationLength,
+  Compensation is NumObjects - PermutationLength,
   factorial(Compensation, F3),
 
   % The groups.
   maplist(factorial, NumbersOfObjects, F2s),
   foldl([Y,X,Z]>>(Z is X * Y), [F3|F2s], 1, F23),
 
-  NumberOfPermutations is F1 / F23.
-permutations(NumberOfObjects, PermutationLength, NumberOfPermutations):-
-  factorial(NumberOfObjects, F1),
-  Compensation is NumberOfObjects - PermutationLength,
+  NumPermutations is F1 / F23.
+permutations(NumObjects, PermutationLength, NumPermutations):-
+  factorial(NumObjects, F1),
+  Compensation is NumObjects - PermutationLength,
   factorial(Compensation, F2),
-  NumberOfPermutations is F1 / F2.
+  NumPermutations is F1 / F2.
 
 
 

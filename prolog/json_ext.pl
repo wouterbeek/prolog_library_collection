@@ -53,7 +53,7 @@ json_read_any(Source, D):-
 
 
 json_read_any(Source, D, Opts):-
-  call_on_stream(Source, [In,_,_]>>json_read_dict(In, D, Opts), Opts).
+  call_on_stream(Source, {D,Opts}/[In,M,M]>>json_read_dict(In, D, Opts), Opts).
 
 
 
@@ -66,4 +66,8 @@ json_write_any(Sink, D):-
 
 
 json_write_any(Sink, D, Opts):-
-  call_to_stream(Sink, [Out,_,_]>>json_write_dict(Out, D, Opts), Opts).
+  call_to_stream(
+    Sink,
+    {D,Opts}/[Out,M,M]>>json_write_dict(Out, D, Opts),
+    Opts
+  ).

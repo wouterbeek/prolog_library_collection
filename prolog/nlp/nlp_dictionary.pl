@@ -90,7 +90,7 @@ nlp_dict_download(Lang):-
   % Assert the words that appear in the dictionary.
   call_on_stream(
     Iri,
-    [In,_,_]>>nlp_dict_assert(Lang, In),
+    {Lang}/[In,M,M]>>nlp_dict_assert(Lang, In),
     [archive_entry(Entry)]
   ).
 

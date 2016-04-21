@@ -111,7 +111,7 @@ s_degree_test(G, V, Degree, fail):-
 
 s_degree_sequence(G, DegreeSeq):-
   s_vertices(G, Vs),
-  maplist([V,Degree]>>s_degree(G, V, Degree), Vs, VDegrees),
+  maplist({G}/[V,Degree]>>s_degree(G, V, Degree), Vs, VDegrees),
   sort(0, @>=, VDegrees, DegreeSeq).
 
 :- begin_tests('s_degree_sequence/2').

@@ -41,14 +41,14 @@ read_input_to_atom(Source, A) :-
 %! read_input_to_codes(+Source, -Cs) is det.
 
 read_input_to_codes(Source, Cs) :-
-  call_on_stream(Source, [In,_,_]>>read_stream_to_codes(In, Cs)).
+  call_on_stream(Source, {Cs}/[In,M,M]>>read_stream_to_codes(In, Cs)).
 
 
 
 %! read_input_to_line(+Source, -Cs) is nondet.
 
 read_input_to_line(Source, Cs) :-
-  call_on_stream(Source, [In,_,_]>>read_input_to_line(In, Cs)).
+  call_on_stream(Source, {Cs}/[In,M,M]>>read_input_to_line(In, Cs)).
 
 
 
@@ -91,6 +91,6 @@ write_stream_to_file(Source, Sink, Opts0) :-
   call_onto_stream(
     Source,
     Sink,
-    [In,_,_,Out,_,_]>>copy_stream_data(In, Out),
+    [In,MIn,MIn,Out,MOut,MOut]>>copy_stream_data(In, Out),
     Opts
   ).

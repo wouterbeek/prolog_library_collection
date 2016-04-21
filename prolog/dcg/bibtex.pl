@@ -38,7 +38,11 @@ bibtex_load(Source, Entries):-
 
 
 bibtex_load(Source, L, Opts):-
-  call_on_stream(Source, [In,_,_]>>phrase_from_stream(In, bibtex(L)), Opts).
+  call_on_stream(
+    Source,
+    {L}/[In,M,M]>>phrase_from_stream(In, bibtex(L)),
+    Opts
+  ).
 
 
 

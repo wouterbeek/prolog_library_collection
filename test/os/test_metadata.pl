@@ -33,7 +33,7 @@ test_open_any2:-
 test_open_any2(Source):-
   call_on_stream(
     Source,
-    [In,_,_]>>copy_stream_data(In, user_output),
+    [In,M,M]>>copy_stream_data(In, user_output),
     [metadata(M)]
   ),
   print_dict(M), nl.

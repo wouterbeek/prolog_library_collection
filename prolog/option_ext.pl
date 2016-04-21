@@ -34,7 +34,7 @@
 
 flatten_option(Opt, Opts) :-
   option_components(Opt, N, Vs),
-  maplist([V,Opt]>>option_components(Opt, N, V), Vs, Opts).
+  maplist({N}/[V,Opt]>>option_components(Opt, N, V), Vs, Opts).
 
 
 

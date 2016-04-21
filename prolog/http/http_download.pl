@@ -80,7 +80,7 @@ file_download(Iri, File0, Opts0) :-
   call_onto_stream(
     Iri,
     TmpFile,
-    [In,_,_,Out,_,_]>>copy_stream_data(In, Out),
+    [In,MIn,MIn,Out,MOut,MOut]>>copy_stream_data(In, Out),
     Opts
   ),
   (   nonvar(File0)
@@ -100,7 +100,7 @@ html_download(Source, Dom) :-
 
 
 html_download(Source, Dom, Opts) :-
-  http_get(Source, [In,_,_]>>load_html(In, DirtyDom, Opts)),
+  http_get(Source, {DirtyDom,Opts}/[In,M,M]>>load_html(In, DirtyDom, Opts)),
   clean_dom(DirtyDom, Dom).
 
 
@@ -118,7 +118,11 @@ json_download(Source, Json, JsonOpts) :-
     JsonOpts,
     HttpOpts
   ),
-  http_get(Source, [In,_,_]>>json_read_dict(In, Json, JsonOpts), HttpOpts).
+  http_get(
+    Source,
+    {Json,JsonOpts}/[In,M,M]>>json_read_dict(In, Json, JsonOpts),
+    HttpOpts
+  ).
 
 
 
@@ -132,7 +136,7 @@ xml_download(Source, Dom) :-
 
 
 xml_download(Source, Dom, Opts) :-
-  http_get(Source, [In,_,_]>>load_xml(In, Dom, Opts)).
+  http_get(Source, {Dom,Opts}/[In,M,M]>>load_xml(In, Dom, Opts)).
 
 
 
