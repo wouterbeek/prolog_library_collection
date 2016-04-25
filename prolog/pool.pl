@@ -1,19 +1,20 @@
 :- module(
   pool,
   [
-    add_resource/2,   % +Pool, +Resource
-    add_worker/3,     % +Pool, :Goal_1, +Opts
+    add_resource/2,   % +Pool, +Res
+    add_worker/2,     % +Pool, :Goal_2
+    add_worker/3,     % +Pool, :Goal_2, +Opts
     pool/1,           % ?Pool
     print_pool/1,     % ?Pool
     print_pools/0,
-    remove_resource/2 % +Pool, -Resource
+    remove_resource/2 % +Pool, -Res
   ]
 ).
 
 /** <module> Pool
 
 @author Wouter Beek
-@version 2015/12, 2016/02
+@version 2015/12, 2016/02, 2016/04
 */
 
 :- use_module(library(aggregate)).
@@ -22,18 +23,13 @@
 :- use_module(library(print_ext)).
 :- use_module(library(solution_sequences)).
 
-%:- debug(pool(add)).
+:- meta_predicate
+    add_worker(+, 2),
+    add_worker(+, 2, +),
+    pool_worker(+, 2, +).
 
-:- meta_predicate(add_worker(+,2,+)).
-:- meta_predicate(pool_worker(+,2,+)).
 
-:- predicate_options(add_worker/3, 3, [
-     alias(-atom),
-     pass_to(pool_worker/3, 3)
-   ]).
-:- predicate_options(pool_worker/3, 3, [
-     wait(+nonneg)
-   ]).
+
 
 
 %! pool(?Pool, ?Term) is nondet.
@@ -54,7 +50,7 @@
 
 
 
-%! add_resource(+Pool, +Resource) is det.
+%! add_resource(+Pool, +Res) is det.
 
 add_resource(Pool, X):-
   with_mutex(pool, add_resource0(Pool, X)).
@@ -74,14 +70,19 @@ add_resource0(Pool, X):-
 
 
 
-%! add_worker(+Pool, :Goal_2, +Options:list(compound)) is det.
-% Options are passed to pool_worker/3.
+%! add_worker(+Pool, :Goal_2) is det.
+%! add_worker(+Pool, :Goal_2, +Opts) is det.
+% Options are passed to pool_worker/3 and thread_create/3.
+
+add_worker(Pool, Goal_2):-
+  add_worker(Pool, Goal_2, []).
+
 
 add_worker(Pool, Goal_2, Opts):-
   flag(Pool, N, N + 1),
   format(atom(Alias), "~w_~d", [Pool,N]),
   ignore(option(alias(Alias), Opts)),
-  thread_create(pool_worker(Pool, Goal_2, Opts), _, [detached(true)]).
+  thread_create(pool_worker(Pool, Goal_2, Opts), _, Opts).
 
 
 
@@ -90,13 +91,17 @@ add_worker(Pool, Goal_2, Opts):-
 
 pool(Pool):-
   distinct(Pool, pool0(Pool)).
-pool0(Pool):- pool(Pool, _).
-pool0(Pool):- pooling(Pool, _).
-pool0(Pool):- pooled(Pool, _).
+
+pool0(Pool):-
+  pool(Pool, _).
+pool0(Pool):-
+  pooling(Pool, _).
+pool0(Pool):-
+  pooled(Pool, _).
 
 
 
-%! pool_worker(+Pool, :Goal_2, +Options:list(compound)) is det.
+%! pool_worker(+Pool, :Goal_2, +Opts) is det.
 % The following options are supported:
 %   * wait(+nonneg)
 %     Default is `1'.
@@ -109,10 +114,17 @@ pool_worker(Pool, Goal_2, Opts):-
     assert(pooled(Pool,X)),
     maplist(add_resource0(Pool), Ys)
   )),
+  debug(pool(worker), "Worker finished resource ~a", [X]),
+  (   Ys == []
+  ->  true
+  ;   length(Ys, NumYs),
+      debug(pool(worker), "Worker added ~D resources", [NumYs])
+  ),
   pool_worker(Pool, Goal_2, Opts).
 pool_worker(Pool, Goal_2, Opts):-
   option(wait(N), Opts, 1),
   sleep(N),
+  debug(pool(worker), "Worker ZZZ", []),
   pool_worker(Pool, Goal_2, Opts).
 
 
@@ -142,7 +154,10 @@ print_pools.
 
 
 
-%! remove_resource(+Pool, -Resource) is det.
+%! remove_resource(+Pool, -Res) is det.
 
 remove_resource(Pool, Res):-
-  with_mutex(pool, (retract(pool(Pool,Res)), assert(pooling(Pool,Res)))).
+  with_mutex(pool, (
+    retract(pool(Pool,Res)),
+    assert(pooling(Pool,Res))
+  )).

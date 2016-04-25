@@ -9,7 +9,6 @@
     call_on_stream/3,   % +Source,           :Goal_3, +Opts
     call_onto_stream/3, % +Source,  +Sink,   :Goal_6
     call_onto_stream/4, % +Source,  +Sink,   :Goal_6, +Opts
-    call_to_file/2,     %           +Sink,   :Goal_1
     call_to_stream/2,   %           +Sink,   :Goal_3
     call_to_stream/3,   %           +Sink,   :Goal_3, +Opts
     write_mode/1        % ?Mode
@@ -66,7 +65,6 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
     call_on_stream2(+, +, 3, +, -, +),
     call_onto_stream(+, +, 6),
     call_onto_stream(+, +, 6, +),
-    call_to_file(+, 1),
     call_to_stream(+, 3),
     call_to_stream(+, 3, +).
 
@@ -175,16 +173,6 @@ call_onto_stream0(Sink, Mod:Goal_6, Opts, In, M1, M2) :-
   Goal_3 =.. [Goal_6,In,M1,M2],
   call_to_stream(Sink, Mod:Goal_3, Opts).
   
-
-
-%! call_to_file(+Sink, :Goal_1) is det.
-
-call_to_file(Sink, Goal_1) :-
-  call_to_stream(
-    Sink,
-    {Goal_1}/[Out,M,M]>>with_output_to(Out, Goal_1)
-  ).
-
 
 
 %! call_to_stream(+Sink, :Goal_3) is det.
