@@ -100,10 +100,13 @@ call_on_stream(Source, Goal_3, Opts) :-
     open_any2(Source, read, In1, Close_0, M1, Opts),
     setup_call_cleanup(
       archive_open(In1, Arch, ArchOpts2),
-      call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts),
+      call_on_stream1(Arch, Entry, Goal_3, M1, M2, Opts),
       archive_close(Arch)
     ),
-    close_any2(Close_0, M3, M4)
+    (
+      (var(M2) -> M3 = M1 ; M3 = M2),
+      close_any2(Close_0, M3, M4)
+    )
   ),
   ignore(option(metadata(M4), Opts)).
 
