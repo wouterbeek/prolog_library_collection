@@ -34,10 +34,6 @@
     intermittent_thread(0, 0, +),
     intermittent_thread(0, 0, +, +).
 
-:- predicate_options(intermittent_thread/5, 5, [
-     pass_to(thread_create/3, 3)
-   ]).
-
 
 
 
