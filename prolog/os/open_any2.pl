@@ -120,17 +120,19 @@ call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
 
 call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts0) :-
   merge_options([meta_data(MEntries1)], Opts0, Opts),
-  archive_data_stream(Arch, In2, Opts),
-  maplist(archive_entry_metadata0, MEntries1, MEntries2),
-  (   MEntries2 = [H1|T],
-      atom_string(Entry, H1.'llo:name')
-  ->  call_cleanup(
-        call(Goal_3, In2, M1, M2),
-        close_any2(close(In2), H1, H2)
-      ),
-      M3 = M2.put(_{'llo:archive_entry': [H2|T]})
-  ;   close(In2),
-      fail
+  (   archive_data_stream(Arch, In2, Opts)
+  ->  maplist(archive_entry_metadata0, MEntries1, MEntries2),
+      (   MEntries2 = [H1|T],
+          atom_string(Entry, H1.'llo:name')
+      ->  call_cleanup(
+            call(Goal_3, In2, M1, M2),
+            close_any2(close(In2), H1, H2)
+          ),
+          M3 = M2.put(_{'llo:archive_entry': [H2|T]})
+      ;   close(In2),
+          fail
+      )
+  ;   throw(error(no_content(Arch),_))
   ).
 
 
