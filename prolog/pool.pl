@@ -114,7 +114,7 @@ pool_worker(Pool, Goal_2, Opts):-
     assert(pooled(Pool,X)),
     maplist(add_resource0(Pool), Ys)
   )),
-  debug(pool(worker), "Worker finished resource ~a", [X]),
+  debug(pool(worker), "Worker finished resource ~w", [X]),
   (   Ys == []
   ->  true
   ;   length(Ys, NumYs),
