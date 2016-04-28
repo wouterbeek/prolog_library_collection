@@ -37,13 +37,6 @@ Generates tables for text-based display.
 is_meta(caption).
 is_meta(cell).
 
-:- predicate_options(dcg_table//2, 2, [
-     caption(+callable),
-     cell(+callable),
-     indexed(+boolean),
-     maximum_number_of_rows(+positive_integer)
-   ]).
-
 
 
 
@@ -53,6 +46,7 @@ is_meta(cell).
 
 dcg_table(L) -->
   dcg_table(L, []).
+
 
 dcg_table(Rows1, Opts0) -->
   {
@@ -71,20 +65,20 @@ dcg_table(Rows1, Opts0) -->
   dcg_table_line(Pos3).
 
 
-add_sum_row(Rows1, Rows2, Opts):-
+add_sum_row(Rows1, Rows2, Opts) :-
   option(sum_col(Cols0), Opts, []),
   sort(Cols0, Cols),
   number_of_columns(Rows1, Last),
   add_sum_row0(1, Last, Rows1, Cols, Row),
   append(Rows1, [Row], Rows2).
 
-add_sum_row0(Last, Last, _, _, []):- !.
-add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]):- !,
+add_sum_row0(Last, Last, _, _, []) :- !.
+add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]) :- !,
   maplist(nth0(Col1), Rows, Vals),
   sum_list(Vals, Sum),
   Col2 is Col1 + 1,
   add_sum_row0(Col2, Last, Rows, Cols, T).
-add_sum_row0(Col1, Last, Rows, Cols, [_|T]):-
+add_sum_row0(Col1, Last, Rows, Cols, [_|T]) :-
   Col2 is Col1 + 1,
   add_sum_row0(Col2, Last, Rows, Cols, T).
 
@@ -258,7 +252,7 @@ cell_border --> "│ ".
 
 %! column_widths(:Cell_1, +Rows:list, -Widths:list(nonneg)) is det.
 
-column_widths(Cell_1, Rows, MaxWs):-
+column_widths(Cell_1, Rows, MaxWs) :-
   rows_to_cols(Rows, Cols),
   maplist(dcg_max_width(Cell_1), Cols, MaxWs).
 
@@ -269,14 +263,14 @@ column_widths(Cell_1, Rows, MaxWs):-
 next_position_row(
   pos(Col,row(_,Row2,Last),Ws,Len),
   pos(Col,row(Row2,Row3,Last),Ws,Len)
-):-
+) :-
   succ(Row2, Row3).
 
 
 
 %! number_of_columns(+Rows:list(compound), -NumberOfColumns:nonneg) is det.
 
-number_of_columns([H0|_], Len):-
+number_of_columns([H0|_], Len) :-
   row_list(H0, H),
   length(H, Len).
 
@@ -284,27 +278,27 @@ number_of_columns([H0|_], Len):-
 
 %! number_of_rows(+Rows:list(compound), -NumberOfRows:nonneg) is det.
 
-number_of_rows(L, Len):-
+number_of_rows(L, Len) :-
   length(L, Len).
 
 
 
 %! row_list(+Row:compound, -List:list) is det.
 
-row_list(head(L), L):- !.
+row_list(head(L), L) :- !.
 row_list(L, L).
 
 
 
 %! rows_to_cols(+Rows:list(compound), -Columns:list) is det.
 
-rows_to_cols(Rows, Cols):-
+rows_to_cols(Rows, Cols) :-
   number_of_columns(Rows, N),
   repeating_list([], N, Cols0),
   rows_to_cols(Rows, Cols0, Cols).
 
-rows_to_cols([], Sol, Sol):- !.
-rows_to_cols([H10|T1], L1, Sol):-
+rows_to_cols([], Sol, Sol) :- !.
+rows_to_cols([H10|T1], L1, Sol) :-
   row_list(H10, H1),
   maplist(add_head, H1, L1, L2),
   rows_to_cols(T1, L2, Sol).
@@ -315,8 +309,8 @@ add_head(H, T, [H|T]).
 
 %! table_position(:Cell_1, +Rows:list, -Position:compound) is det.
 
-table_position(Cell_1, L, pos(col(0,1,Cols),row(0,1,Rows),Ws,Len)):-
-  number_of_columns(L, Cols),
-  number_of_rows(L, Rows),
-  column_widths(Cell_1, L, Ws),
-  sum_list([1,Cols,Cols,Cols|Ws], Len).
+table_position(Cell_1, Rows, pos(col(0,1,NumCols),row(0,1,NumRows),Ws,Len)) :-
+  number_of_columns(Rows, NumCols),
+  number_of_rows(Rows, NumRows),
+  column_widths(Cell_1, Rows, Ws),
+  sum_list([1,NumCols,NumCols,NumCols|Ws], Len).

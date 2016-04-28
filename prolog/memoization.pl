@@ -9,7 +9,7 @@
 /** <module> Memoization
 
 @author Wouter Beek
-@version 2015/08
+@version 2015/08, 2016/04
 */
 
 :- meta_predicate(memo(0)).
@@ -28,10 +28,11 @@
 % There are no restrictions on the determinism of the goal.
 
 memo(Goal_0):-
-  memo0(Goal_0), !.
-memo(Goal_0):-
+  \+ memo0(Goal_0), !,
   call(Goal_0),
   assertz(memo0(Goal_0)).
+memo(Goal_0):-
+  memo0(Goal_0).
 
 
 
