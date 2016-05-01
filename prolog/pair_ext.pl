@@ -15,8 +15,10 @@
     pair_has_var_key/1,    % +Pair
     pair_has_var_value/1,  % +Pair
     pair_list/2,           % ?Pair, ?List
+    pair_row/2,            % ?Pair, ?Row
     pair_value/2,          % +Pair, ?Value
-    pairs_to_set/2         % +Pairs, -Elements
+    pairs_to_set/2,        % +Pairs, -Elements
+    sum_value/2            % +Pair, -Sum
   ]
 ).
 :- reexport(library(pairs)).
@@ -77,11 +79,7 @@ desc_pairs_values(L1, L3) :- desc_pairs(L1, L2), pairs_values(L2, L3).
 
 
 
-%! group_pairs_by_key(
-%!   :Comparator_2,
-%!   +Pairs:list(pair),
-%!   -GroupedPairs:list(pair)
-%! ) is det.
+%! group_pairs_by_key(:Comparator_2, +Pairs, -GroupedPairs) is det.
 
 group_pairs_by_key(_, [], []):- !.
 group_pairs_by_key(Comp, [M-N|T0], [M-[N|TN]|T]):-
@@ -95,8 +93,8 @@ same_key(_, _, L, [], L).
 
 
 
-%! inverse_pair(+Pair:pair, -Inverse:pair) is det.
-%! inverse_pair(-Pair:pair, +Inverse:pair) is det.
+%! inverse_pair(+Pair, -Inverse) is det.
+%! inverse_pair(-Pair, +Inverse) is det.
 
 inverse_pair(X-Y, Y-X).
 
@@ -108,22 +106,22 @@ is_pair(_-_).
 
 
 
-%! is_reflexive_pair(+Pair:pair) is semidet.
+%! is_reflexive_pair(+Pair) is semidet.
 
 is_reflexive_pair(Pair):- pair(Pair, X, X).
 
 
 
-%! pair(+Pair:pair, +X, +Y) is semidet.
-%! pair(+Pair:pair, -X, -Y) is det.
-%! pair(-Pair:pair, +X, +Y) is det.
+%! pair(+Pair, +X, +Y) is semidet.
+%! pair(+Pair, -X, -Y) is det.
+%! pair(-Pair, +X, +Y) is det.
 
 pair(X-Y, X, Y).
 
 
 
-%! pair_element(+Pair:pair, +Element) is semidet.
-%! pair_element(+Pair:pair, -Element) is multi.
+%! pair_element(+Pair, +Element) is semidet.
+%! pair_element(+Pair, -Element) is multi.
 % Succeeds if Element occurs in Pair.
 
 pair_element(X-_, X).
@@ -131,41 +129,49 @@ pair_element(X-Y, Y):- X \== Y.
 
 
 
-%! pair_has_var_key(+Pair:pair) is semidet.
+%! pair_has_var_key(+Pair) is semidet.
 
 pair_has_var_key(K-_):- var(K).
 
 
 
-%! pair_has_var_value(+Pair:pair) is semidet.
+%! pair_has_var_value(+Pair) is semidet.
 
 pair_has_var_value(_-V):- var(V).
 
 
 
-%! pair_key(+Pair:pair, +First) is semidet.
-%! pair_key(+Pair:pair, -First) is det.
+%! pair_key(+Pair, +First) is semidet.
+%! pair_key(+Pair, -First) is det.
 
 pair_key(X-_, X).
 
 
 
-%! pair_list(+Pair:pair, +List:list) is semidet.
-%! pair_list(+Pair:pair, -List:list) is det.
-%! pair_list(-Pair:pair, +List:list) is det.
+%! pair_list(+Pair, +List) is semidet.
+%! pair_list(+Pair, -List) is det.
+%! pair_list(-Pair, +List) is det.
 
 pair_list(X-Y, [X,Y]).
 
 
 
-%! pair_value(+Pair:pair, +Second) is semidet.
-%! pair_value(+Pair:pair, -Second) is det.
+%! pair_row(+Pair, +Row) is semidet.
+%! pair_row(+Pair, -Row) is det.
+%! pair_row(-Pair, +Row) is det.
+
+pair_row(X-Y, row(X,Y)).
+
+
+
+%! pair_value(+Pair, +Second) is semidet.
+%! pair_value(+Pair, -Second) is det.
 
 pair_value(_-X, X).
 
 
 
-%! pairs_to_set(+Pairs:list(pair), -Set:ordset) is det.
+%! pairs_to_set(+Pairs, -Set) is det.
 % Returns the set of elements that occur in the given pairs.
 %
 % ### Example
@@ -182,3 +188,10 @@ pairs_to_set(Pairs, Set):-
   pairs_keys_values(Pairs, Keys, Vals),
   maplist(list_to_ord_set, [Keys,Vals], [SKeys,SVals]),
   ord_union(SKeys, SVals, Set).
+
+
+
+%! sum_value(+Pair, -Value) is det.
+
+sum_value(Key-Vals, Key-Val) :-
+  sum_list(Vals, Val).
