@@ -2,9 +2,10 @@
   print_ext,
   [
     ansi_format/4,      % +Sink, +Attrs, +Format, +Args
+    error_kind/1,       % +Kind
     formatln/1,         % +Format
     formatln/2,         % +Format, +Args
-    formatln/3,         % +Write, +Format, +Args
+    formatln/3,         % +Out, +Format, +Args
     indent/1,           % +NumSpaces
     msg_notification/1, % +Format
     msg_notification/2, % +Format, +Args
@@ -29,7 +30,7 @@
 Additional predicates for printing.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11, 2016/01-2016/03
+@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -42,10 +43,6 @@ Additional predicates for printing.
     verbose(0),
     verbose(0,+),
     verbose(0,+,+).
-
-:- predicate_options(print_table/2, 2, [
-     pass_to(dcg_table/4, 2)
-   ]).
 
 :- setting(screen_width, integer, 80,
      'The default width of the screen in number of characters.'
@@ -93,9 +90,16 @@ ansi_format(Sink, Attrs, Format, Args) :-
 
 
 
+%! error_kind(+Kind) is semidet.
+
+error_kind(warning).
+error_kind(error).
+
+
+
 %! formatln(+Format) is det.
 %! formatln(+Format, +Args) is det.
-%! formatln(+Write, +Format, +Args) is det.
+%! formatln(+Out, +Format, +Args) is det.
 % Variants of format/[1-3] with a newline appended.
 
 formatln(Format) :-
@@ -104,9 +108,9 @@ formatln(Format) :-
 formatln(Format, Args) :-
   format(Format, Args), nl.
 
-formatln(Write, Format, Args) :-
-  format(Write, Format, Args),
-  nl(Write).
+formatln(Out, Format, Args) :-
+  format(Out, Format, Args),
+  nl(Out).
 
 
 
