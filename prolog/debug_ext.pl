@@ -13,14 +13,9 @@
     debug_verbose/3,            % +Flag, :Goal_0, +Format
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
-    dmon/0,
     if_debug/2,                 % ?Flag, :Goal_0
     number_of_open_files/1,     % -N
-    pof/1,                      % :Goal_0
-    pofa/0,
-    pofz/0,
-    print_error/1,              % +Error:compound
-    tmon/0
+    print_error/1               % +Error:compound
   ]
 ).
 :- reexport(library(debug)).
@@ -30,7 +25,7 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/04
+@version 2015/07-2015/11, 2016/01-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -43,7 +38,6 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(os/dir_ext)).
 :- use_module(library(portray_text)).
 :- use_module(library(print_ext)).
-:- use_module(library(swi_ide)).
 :- use_module(library(thread)).
 
 :- meta_predicate
@@ -59,8 +53,7 @@ Tools that ease debugging SWI-Prolog programs.
     debug_verbose(?,0,+),
     debug_verbose(?,0,+,+),
     debug_with_output_to(?,0),
-    if_debug(?,0),
-    pof(0).
+    if_debug(?,0).
 
 
 
@@ -206,10 +199,6 @@ debug_with_output_to(Flag, Goal_0):-
 
 
 
-dmon:- prolog_ide(debug_monitor).
-
-
-
 %! if_debug(?Flag, :Goal_0) is det.
 % Calls the given goal only if the given flag is an active debugging topic.
 % Succeeds if Flag is uninstantiated.
@@ -229,22 +218,10 @@ number_of_open_files(N):-
 
 
 
-%! pof(:Goal_0) is det.
-
-pof(Goal_0):- pofa, Goal_0, pofz.
-pofa:- number_of_open_files(N), format(user_output, "<~D|", [N]).
-pofz:- number_of_open_files(N), format(user_output, "|~D>~n", [N]).
-
-
-
 %! print_error(+Error:compound) is det.
 
 print_error(exception(E)):- !, print_error(E).
 print_error(E):- print_message(error, E).
-
-
-
-tmon:- prolog_ide(thread_monitor).
 
 
 
