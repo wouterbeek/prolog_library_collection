@@ -1,18 +1,10 @@
 :- module(
   closure,
   [
-    closure/3, % :Goal_2
-               % +From
-               % -To
-    closure_set/3, % :Goal_2
-                   % +From
-                   % -Closure:ordset
-    closure0/3, % :Goal_2
-                % +From
-                % -To
-    closure0_set/3 % :Goal_2
-                   % +From
-                   % -Closure:ordset
+    closure/3,     % :Goal_2, +From, -To
+    closure_set/3, % :Goal_2, +From, -Closure
+    closure0/3,    % :Goal_2, +From, -To
+    closure0_set/3 % :Goal_2, +From, -Closure
   ]
 ).
 
@@ -20,22 +12,23 @@
 
 Closures come in handy in many Prolog programs!
 
-@author Wouter Beek
-        I have merely collected these predicates, they are
-        created by others. See the predicate documentations
-        for the original authors and pointers to related content.
-@version 2014/11, 2015/10
+I have merely collected these predicates, they are
+created by others. See the predicate documentations
+for the original authors and pointers to related content.
+
+@version 2015/10, 2016/05
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(dif)).
 
-:- meta_predicate(closure(2,+,-)).
-:- meta_predicate(closure_set(2,+,-)).
-:- meta_predicate(closure0(2,+,-)).
-:- meta_predicate(closure0(2,+,-,+)).
-:- meta_predicate(closure0_set(2,+,-)).
+:- meta_predicate
+    closure(2, +, -),
+    closure_set(2, +, -),
+    closure0(2, +, -),
+    closure0(2, +, -, +),
+    closure0_set(2, +, -).
 
 
 
@@ -56,7 +49,7 @@ closure(Goal_2, X0, X):-
 
 
 
-%! closure_set(:Goal_2, +Element, -Closure:ordset) is det.
+%! closure_set(:Goal_2, +Element, -Closure) is det.
 
 closure_set(Goal_2, X1, S):-
   aggregate_all(set(X2), closure(Goal_2, X1, X2), S).
@@ -79,11 +72,11 @@ closure0(_, X, X, _).
 closure0(Goal_2, X1, X, Hist):-
   call(Goal_2, X1, X2),
   maplist(dif(X2), Hist),
-  closure0(Goal_2, X2, X, [X1|Hist]).
+  closure0(Goal_2, X2, X, [X2|Hist]).
 
 
 
-%! closure0_set(:Goal_2, +Element, -Closure:ordset) is det.
+%! closure0_set(:Goal_2, +Element, -Closure) is det.
 
 closure0_set(Goal_2, X1, S):-
   aggregate_all(set(X2), closure0(Goal_2, X1, X2), S).

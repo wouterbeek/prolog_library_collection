@@ -1,10 +1,7 @@
 :- module(
   graph_closure,
   [
-    graph_closure/4 % +Set:ordset
-                    % :V2Ns_2
-                    % -Closure:ordset
-                    % +Options:list(compound)
+    graph_closure/4 % +Set, :V2Ns_2, -ClosedSet, +Opts
   ]
 ).
 
@@ -13,30 +10,22 @@
 Graph closures.
 
 @author Wouter Beek
-@version 2015/10
+@version 2015/10, 2016/05
 */
 
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 
-:- meta_predicate(graph_closure(+,2,-,+)).
-:- meta_predicate(graph_closure(+,+,2,+,-)).
-
-:- predicate_options(graph_closure/4, 4, [
-     traversal(+oneof([breadth,depth]))
-   ]).
+:- meta_predicate
+    graph_closure(+, 2, -, +),
+    graph_closure(+, +, 2, +, -).
 
 
 
 
 
-%! graph_closure(
-%!   +Set:ordset,
-%!   :V2Ns_2,
-%!   -Closure:ordset,
-%!   +Options:list(compound)
-%! ) is det.
+%! graph_closure(+Set, :V2Ns_2, -ClosedSet, +Opts) is det.
 % Closes a set of objects under a given predicate expressing a relation
 % between those objects.
 %
@@ -48,12 +37,13 @@ graph_closure([H|T], V2Ns_2, Sol, Opts):-
   option(traversal(Trav), Opts),
   graph_closure(Trav, [H|T], V2Ns_2, [H], Sol).
 
+
 %! graph_closure(
 %!   +Traversal:oneof([breadth,depth]),
-%!   +Set:ordset,
+%!   +Set,
 %!   :V2Ns_2,
-%!   +CurrentSet:ordset,
-%!   -Closure:ordset
+%!   +CurrentSet,
+%!   -ClosedSet
 %! ) is det.
 
 graph_closure(_, [], _, Sol, Sol):- !.
