@@ -84,7 +84,7 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 %! dict_has_key(+Key, +Dict) is semidet.
 
 dict_has_key(Key, Dict) :-
-  get_dict(Key, Dict, _).
+  catch(get_dict(Key, Dict, _), _, fail).
 
 
 
@@ -155,7 +155,8 @@ dict_tag(Dict1, Tag, Dict2):-
 %! get_dict(+Key, +Dict, -Value, +Default) is det.
 
 get_dict(K, D, V, _) :-
-  get_dict(K, D, V), !.
+  dict_has_key(K, D), !,
+  get_dict(K, D, V).
 get_dict(_, _, Def, Def).
 
 
@@ -198,4 +199,4 @@ mod_dict(Key, Dict1, Val, Dict2) :-
 
 mod_dict(Key, Dict1, _, Val, Dict2) :-
   mod_dict(Key, Dict1, Val, Dict2), !.
-mod_dict(_, Dict, Def, Def, Dict). 
+mod_dict(_, Dict, Def, Def, Dict).
