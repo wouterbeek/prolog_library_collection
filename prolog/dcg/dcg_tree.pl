@@ -22,6 +22,8 @@ is_meta(node_writer).
 
 
 
+
+
 %! dcg_tree(+Tree)// is det.
 %! dcg_tree(+Tree, +Opts)// is det.
 % The following options are supported:
@@ -29,6 +31,7 @@ is_meta(node_writer).
 
 dcg_tree(Tree) -->
   dcg_tree(Tree, []).
+
 
 dcg_tree(Tree, Opts1) -->
   {meta_options(is_meta, Opts1, Opts2)},
@@ -40,7 +43,7 @@ dcg_tree(Tree, Opts1) -->
 dcg_tree0(t(Node,Trees), InvPath, Opts) -->
   {(Trees = [] -> Leaf = true ; Leaf = false)},
   {option(node_writer(NodeWriter_4), Opts, default_node_writer)},
-  dcg_call(NodeWriter_4, [Node|InvPath], Leaf), nl,
+  dcg_call(NodeWriter_4, [Node|InvPath], Leaf),
   ({Leaf == true} -> "" ; dcg_trees0(Trees, [Node|InvPath], Opts)).
 
 
@@ -55,9 +58,11 @@ default_node_writer([Node|InvPath], _) -->
   indent_path(InvPath),
   atom(Node), nl.
 
+
 indent_path(Path) -->
   {length(Path, Len)},
   ({Len =:= 0} -> "" ; {Tabs is Len - 1}, tabby(Tabs), "├ ").
+
 
 tabby(0)  --> !, "".
 tabby(N1) --> "│ ", {N2 is N1 - 1}, tabby(N2).
