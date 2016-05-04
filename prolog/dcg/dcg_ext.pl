@@ -125,7 +125,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03
+@version 2015/11-2016/03, 2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -550,17 +550,22 @@ dcg_between(Begin_0, Dcg_0, End_0) -->
 dcg_call(Dcg_0, X, Y):-
   call(Dcg_0, X, Y).
 
+
 dcg_call(Dcg_1, A1, X, Y):-
   call(Dcg_1, A1, X, Y).
+
 
 dcg_call(Dcg_2, A1, A2, X, Y):-
   call(Dcg_2, A1, A2, X, Y).
 
+
 dcg_call(Dcg_3, A1, A2, A3, X, Y):-
   call(Dcg_3, A1, A2, A3, X, Y).
 
+
 dcg_call(Dcg_4, A1, A2, A3, A4, X, Y):-
   call(Dcg_4, A1, A2, A3, A4, X, Y).
+
 
 dcg_call(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
   call(Dcg_5, A1, A2, A3, A4, A5, X, Y).
@@ -582,21 +587,26 @@ dcg_call_cp(Dcg_0, X, Y):-
   copy_term(Dcg_0, Dcg__0),
   call(Dcg__0, X, Y).
 
+
 dcg_call_cp(Dcg_1, A1, X, Y):-
   copy_term(Dcg_1, Dcg__1),
   call(Dcg__1, A1, X, Y).
+
 
 dcg_call_cp(Dcg_2, A1, A2, X, Y):-
   copy_term(Dcg_2, Dcg__2),
   call(Dcg__2, A1, A2, X, Y).
 
+
 dcg_call_cp(Dcg_3, A1, A2, A3, X, Y):-
   copy_term(Dcg_3, Dcg__3),
   call(Dcg__3, A1, A2, A3, X, Y).
 
+
 dcg_call_cp(Dcg_4, A1, A2, A3, A4, X, Y):-
   copy_term(Dcg_4, Dcg__4),
   call(Dcg__4, A1, A2, A3, A4, X, Y).
+
 
 dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
   copy_term(Dcg_5, Dcg__5),
@@ -671,12 +681,14 @@ dcg_with_output_to(Sink, Dcg_0):-
 
 
 
-%! debug(+Topic, :Dcg_0) is det.
-% Write the first generation of Dcg_0 as a debug message with given Topic.
+%! debug(+Flag, :Dcg_0) is det.
+% Write the first generation of Dcg_0 as a debug message with given Flag.
 
-debug(Topic, Dcg_0):-
+debug(Flag, Dcg_0):-
+  debugging(Flag), !,
   string_phrase(Dcg_0, S),
-  debug(Topic, "~s", [S]).
+  debug(Flag, "~s", [S]).
+debug(_, _).
 
 
 
