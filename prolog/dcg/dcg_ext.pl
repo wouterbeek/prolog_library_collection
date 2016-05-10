@@ -71,7 +71,6 @@
     indent//1,             % +Indent:nonneg
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
-    iri//1,                % +Iri
     nl//0,
     nonblank//0,
     number//0,
@@ -759,12 +758,6 @@ indent(I, Dcg_0) --> indent(I), Dcg_0.
 %! indent_nl(+Indent:nonneg, :Dcg_0)// is det.
 
 indent_nl(I, Dcg_0) --> indent(I, Dcg_0), nl.
-
-
-
-%! iri(+Iri)// is det.
-
-iri(Iri) --> "<", atom(Iri), ">".
 
 
 
