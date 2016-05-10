@@ -1,15 +1,16 @@
 :- module(
   dcg_tree,
   [
-    dcg_tree//1, % +Tree
-    dcg_tree//2  % +Tree, :Opts
+    dcg_tree//1,       % +Tree
+    dcg_tree//2,       % +Tree, :Opts
+    dcg_tree_indent//1 % +Len
   ]
 ).
 
 /** <module> DCG Trees
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/02, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -55,14 +56,27 @@ dcg_trees0([H|T], InvPath, Opts) -->
 
 
 default_node_writer([Node|InvPath], _) -->
-  indent_path(InvPath),
+  dcg_indent_path(InvPath),
   atom(Node), nl.
 
 
-indent_path(Path) -->
+dcg_indent_path(Path) -->
   {length(Path, Len)},
-  ({Len =:= 0} -> "" ; {Tabs is Len - 1}, tabby(Tabs), "├ ").
+  dcg_tree_indent(Len).
 
 
-tabby(0)  --> !, "".
-tabby(N1) --> "│ ", {N2 is N1 - 1}, tabby(N2).
+dcg_tree_indent(Len) -->
+  {Len =:= 0}, !,
+  "".
+dcg_tree_indent(Len) -->
+  {Tabs is Len - 1},
+  tree_pre_indent(Tabs),
+  "├ ".
+
+
+tree_pre_indent(0)  --> !,
+  "".
+tree_pre_indent(N1) -->
+  "│ ",
+  {N2 is N1 - 1},
+  tree_pre_indent(N2).

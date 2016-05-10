@@ -75,7 +75,7 @@
     nl//0,
     nonblank//0,
     number//0,
-    opt//2,                % :Dcg_0
+    opt//1,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
     parsing//0,
     perc//1,               % +Perc:between(0.0,1.0)

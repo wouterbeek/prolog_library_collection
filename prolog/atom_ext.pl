@@ -1,56 +1,34 @@
 :- module(
   atom_ext,
   [
-    atom_ending_in/3, % +Atom:atom
-                      % +Suffix:atom
-                      % -NewAtom:atom
-    atom_lower/2,     % +Atom, -Lower
-    atom_prefix/2, % ?Prefix, +Atom
-    atom_splits/3, % +Splits:list(atom)
-                   % +Atom:atom
-                   % -Subatoms:list(atom)
-    atom_to_term/2, % +Atom:atom
-                    % -Term:term
-    atom_truncate/3, % +Atom:atom
-                     % +MaximumLength:integer
-                     % -TruncatedAtom:atom
-    capitalize_atom/2, % +Atom:atom
-                       % -Capitalized:atom
-    codes_atom/2, % ?Codes:list(nonneg)
-                  % ?Atom:atom
-    common_atom_prefix/3, % +Atom1:atom
-                          % +Atom2:atom
-                          % -Prefix:atom
-    empty_atom/1, % ?Empty:atom
-    first_split/3, % +Atom:atom
-                   % +Split:atom
-                   % -FirstSubatom:atom
-    format_integer/3, % +Integer:integer
-                      % +Length:integer
-                      % -Atom:atom
-    new_atom/2, % +Old:atom
-                % -New:atom
-    repeating_atom/3, % +SubAtom:atom
-                      % +Repeats:integer
-                      % -Atom:atom
-    split_atom_length/3, % +Atom:atom
-                         % +Length:integer
-                         % -Subatoms:list(atom)
-    strip_atom/2, % +In:atom
-                  % -Out:atom
-    strip_atom/3, % +Strips:list(atom)
-                  % +In:atom
-                  % -Out:atom
-    strip_atom_begin/3, % +Strips:list(atom)
-                        % +In:atom
-                        % -Out:atom
-    strip_atom_end/3 % +Strips:list(atom)
-                     % +In:atom
-                     % -Out:atom
+    atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
+    atom_postfix/2,       % +Atom,   ?Sub
+    atom_postfix/3,       % +Atom,   ?Len,     ?Sub
+    atom_prefix/2,        % +Atom,   ?Sub
+    atom_prefix/3,        % +Atom,   ?Len,     ?Sub
+    atom_to_term/2,       % +Atom,   -Term
+    atom_truncate/3,      % +Atom,   +MaxLen,  -Truncated
+    capitalize_atom/2,    % +Atom,   -Capitalized
+    codes_atom/2,         % ?Cs,     ?Atom
+    common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
+    empty_atom/1,         % ?Empty
+    format_integer/3,     % +I,      +Len,     -Atom
+    new_atom/2,           % +Old,    -New
+    repeating_atom/3,     % +Sub,    +Repeats, -Atom
+    split_atom_length/3,  % +Atom,   +Len,     -Subs
+    strip_atom/2,         % +Atom,   -NewAtom
+    strip_atom/3,         % +PadChars, +Atom,  -NewAtom
+    strip_atom_begin/3,   % +PadChars, +Atom,  -NewAtom
+    strip_atom_end/3      % +PadChars, +Atom,  -NewAtom
   ]
 ).
+:- reexport(
+  library(dialect/ifprolog),
+  [
+    lower_upper/2 % ?Lower, ?Upper
+  ]).
 
-/** <module> Atom: Extensions
+/** <module> Atom extensions
 
 Predicates for manipulating atoms.
 
@@ -74,19 +52,10 @@ atom_phrase(
 )
 ```
 
-# Split
-
-`atomic_list_concat(-,+,+)` performs atom splitting
- according to a single given separator.
-
-For using multiple splits at once, use atom_splits/3.
-
-For splitting by a set length, use atom_split_length/3.
-
 # Strip
 
 Stripping atoms of an arbitrary number of subatoms can be done using
- strip_atom/3, strip_atom_begin/3, and strip_atom_end/3.
+strip_atom/3, strip_atom_begin/3, and strip_atom_end/3.
 
 # Titlecase
 
@@ -95,7 +64,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/04
+@version 2015/07-2015/10, 2016/03-2016/05
 */
 
 :- use_module(library(apply)).
@@ -103,109 +72,95 @@ Titlecase atoms can be created using upcase_atom/2.
 :- use_module(library(char_ext)).
 :- use_module(library(typecheck)).
 
+:- redefine_system_predicate(atom_prefix(_,_)).
 
 
 
 
-%! atom_ending_in(+Atom:atom, +Suffix:atom, -NewAtom:atom) is det.
-% Succeeds if NewAtom is the same as Atom and has given Suffix.
+
+%! atom_ending_in(+Atom, +Suffix, -NewAtom) is det.
+% Make sure that NewAtom is similar to Atom and ends in Suffix.
+%
 % If Atom already ends in Suffix then NewAtom == Atom.
 %
 % This can for instance be used to ensure that an atom
 % ends with a forward slash in the process of building file paths.
 
-atom_ending_in(A, Suffix, A):-
+atom_ending_in(A, Suffix, A) :-
   atom_concat(_, Suffix, A), !.
-atom_ending_in(A0, Suffix, A):-
+atom_ending_in(A0, Suffix, A) :-
   atom_concat(A0, Suffix, A).
 
 
 
-%! atom_lower(+Atom, -Lower) is det.
+%! atom_postfix(+Atom,       -Sub) is multi.
+%! atom_postfix(+Atom, ?Len, -Sub) is multi.
 
-atom_lower(A1, A2) :-
-  atom_string(A1, S1),
-  string_lower(S1, S2),
-  atom_string(A2, S2).
-
+atom_postfix(Atom, Sub) :-
+  atom_postfix(Atom, _, Sub).
 
 
-%! atom_prefix(?Prefix, +Atom)
+atom_postfix(Atom, Len, Sub) :-
+  atom_codes(Atom, Cs),
+  append(_, SubCs, Cs),
+  length(SubCs, Len),
+  atom_codes(Sub, SubCs).
 
-atom_prefix(Prefix, Atom) :-
-  atom_concat(Prefix, _, Atom).
+
+
+%! atom_prefix(+Atom,       -Sub) is multi.
+%! atom_prefix(+Atom, ?Len, -Sub) is multi.
+
+atom_prefix(Atom, Sub) :-
+  atom_prefix(Atom, _, Sub).
+
+
+atom_prefix(Atom, Len, Sub) :-
+  atom_codes(Atom, Cs),
+  append(SubCs, _, Cs),
+  length(SubCs, Len),
+  atom_codes(Sub, SubCs).
 
 
 
-%! atom_splits(+Splits:list(atom), +Atom:atom, -Subatoms:list(atom)) is det.
-% Returns the given atom split up in two, according to the given split.
-% The first split does not include the split atom, making this method
-% exclusive.
+%! atom_to_term(+Atom, -Term) is det.
+% Return the Term described by the Atom.
 %
-% @arg Splits Atoms where the main atom with be split.
-%        Notice that the order in which the splits appear is significant.
-% @arg Atom The original, unsplit atom.
-% @arg Subatoms The results of splitting.
+% @see Wrapper around atom_to_term/3 that omits the variable bindings.
 
-atom_splits(Splits, Atom1, [H|T]):-
-  member(Split, Splits),
-  atom_concat(H, Temp, Atom1),
-  atom_concat(Split, Atom2, Temp),
-  atom_splits(Splits, Atom2, T).
-atom_splits(_, Subatom, [Subatom]).
+atom_to_term(Atom, Term) :-
+  atom_to_term(Atom, Term, _).
 
 
 
-%! atom_to_term(+Atom:atom, -Term:term) is det.
-% Returns the term described by the atom.
-%
-% @arg Atom An atom.
-% @arg Term A term.
-% @see Wrapper around atom_to_term/3, omitting the bindings.
-
-atom_to_term(Atom, Term):-
-  atom_to_term(Atom, Term, _Bindings).
-
-
-
-%! atom_truncate(
-%!   +Atom:atom,
-%!   +MaxLength:or([oneof([inf]),positive_integer]),
-%!   -TruncatedAtom:atom
-%! ) is det.
-% Returns the truncated version of the given atom.
-% Truncated atoms end in `...` to indicate its truncated nature.
-% The maximum length indicates the exact maximum.
+%! atom_truncate(+Atom, +MaxLen, -Truncated) is det.
+% Return a truncated version of the given atom.  Truncated atoms end in `…`.
+% MaxLen is the exact maximum lenght of the truncated atom.
 % Truncation will always result in an atom which has at most `MaxLength`.
 %
-% @arg Atom The original atom.
-% @arg MaxLength The maximum allowed length of an atom.
-%      For values smaller than or equal to 5 the original atom is returned.
-%      With value `inf` the original atom is always returned.
-% @arg TruncatedAtom The truncated atom.
+% MaxLen must at least be 1.  If MaxLen is `inf` then the original atom is
+% returned.
 %
 % @throws type_error
 
 % The maximum allowed length is too short to be used with truncation.
-atom_truncate(A, inf, A):- !.
-atom_truncate(A, Max, A):-
-  must_be(positive_integer, Max),
-  Max =< 5, !.
+atom_truncate(Atom, inf, Atom) :- !.
 % The atom does not have to be truncated, it is not that long.
-atom_truncate(A, Max, A):-
-  atom_length(A, AL),
-  AL =< Max, !.
+atom_truncate(Atom, MaxLen, Atom) :-
+  must_be(positive_integer, MaxLen),
+  atom_length(Atom, Len),
+  Len =< MaxLen, !.
 % The atom exceeds the maximum length, it is truncated.
 % For this purpose the displayed length of the atom is
-%  the maximum length minus 4 (but never less than 3).
-atom_truncate(A1, Max, A3):-
-  TruncatedL is Max - 3,
-  sub_atom(A1, 0, TruncatedL, _, A2),
-  atom_concat(A2, ..., A3).
+% the maximum length minus 4 (but never less than 3).
+atom_truncate(Atom, MaxLen, Trunc) :-
+  Len is MaxLen - 1,
+  atom_prefix(Atom, Len, Sub),
+  atom_concat(Sub, …, Trunc).
 
 
 
-%! capitalize_atom(+Atom:atom, -Capitalized:atom) is det.
+%! capitalize_atom(+Atom, -Capitalized) is det.
 % Succeeds if Capitalized is a copy of Atom where the first character
 % is in upper case.
 %
@@ -213,59 +168,45 @@ atom_truncate(A1, Max, A3):-
 % Capitalized is a plain copy of Atom.
 
 capitalize_atom('', '').
-capitalize_atom(A1, A2):-
+capitalize_atom(A1, A2) :-
   atom_codes(A1, [H1|T]),
   to_upper(H1, H2),
   atom_codes(A2, [H2|T]).
 
 
 
-%! codes_atom(+Codes:list(nonneg), +Atom:atom) is semidet.
-%! codes_atom(+Codes:list(nonneg), -Atom:atom) is det.
-%! codes_atom(-Codes:list(nonneg), +Atom:atom) is det.
-% Variant of atom_codes/2.
+%! codes_atom(+Cs, +A) is semidet.
+%! codes_atom(+Cs, -A) is det.
+%! codes_atom(-Cs, +A) is det.
+% Positional variant of atom_codes/2.
 
-codes_atom(Cs, A):-
+codes_atom(Cs, A) :-
   atom_codes(A, Cs).
 
 
 
-%! common_atom_prefix(+Atom1:atom, +Atom2:atom, -Prefix:atom) is semidet.
-%! common_atom_prefix(+Atom1:atom, +Atom2:atom, -Prefix:atom) is nondet.
+%! common_atom_prefix(+Atom1, +Atom2, +Sub) is semidet.
+%! common_atom_prefix(+Atom1, +Atom2, -Sub) is nondet.
 % Returns the longest common prefix of the given two atoms.
 
-common_atom_prefix(Atom1, Atom2, Prefix):-
-  maplist(atom_codes, [Atom1,Atom2], [Codes1,Codes2]),
-  common_list_prefix(Codes1, Codes2, PrefixCodes),
-  atom_codes(Prefix, PrefixCodes).
+common_atom_prefix(Atom1, Atom2, Sub) :-
+  maplist(atom_codes, [Atom1,Atom2], [Cs1,Cs2]),
+  common_list_prefix(Cs1, Cs2, SubCs),
+  atom_codes(Sub, SubCs).
 
 
 
-%! empty_atom(+Empty:atom) is semidet.
-%! empty_atom(-Empty:atom) is det.
+%! empty_atom(+Empty) is semidet.
+%! empty_atom(-Empty) is det.
 % Succeeds only on the empty atom.
 
 empty_atom('').
 
 
 
-%! first_split(+Atom:atom, +Split:atom, -FirstSubatom:atom) is nondet.
-% Returns the first split.
-% For the first result this is behaviorally equivalent to:
-% ```prolog
-% atomic_list_concat(Subatoms, Split, Atom),
-% Subatoms = [FirstSubatom|_]
-% ```
-
-first_split(Atom, Split, FirstSubatom):-
-  atom_concat(Subatom, _, Atom),
-  atom_concat(FirstSubatom, Split, Subatom).
-
-
-
 %! format_integer(+Integer:integer, +Length:integer, -Atom:atom) is det.
 % Returns a formatted representation of the given integer
-%  that is exactly the given number of characters long.
+% that is exactly the given number of characters long.
 %
 % Fails in case the length of the formatted integer exceeds the given length.
 %
@@ -276,7 +217,7 @@ first_split(Atom, Split, FirstSubatom):-
 % @tbd See whether this can be done using format/2 tab stops,
 %      http://www.swi-prolog.org/pldoc/doc_for?object=format/2.
 
-format_integer(I, L, Out):-
+format_integer(I, L, Out) :-
   atom_length(I, IL),
   ZeroLength is L - IL,
   repeating_atom('0', ZeroLength, Zeros),
@@ -292,30 +233,26 @@ format_integer(I, L, Out):-
 % This predicate comes in handy when creating unique identifiers
 % based on a given base name, e.g. for threads, RDF graphs, files, etc.
 
-new_atom(A1, A2):-
-  atomic_list_concat(Splits, '_', A1), % split
-  reverse(Splits, [LastSplit|RestSplits]),
+new_atom(A1, A2) :-
+  atomic_list_concat(Comps, '_', A1), % split
+  reverse(Comps, [LastSplit|RestComps]),
   (   atom_number(LastSplit, OldNumber)
   ->  NewNumber is OldNumber + 1,
       atom_number(NewLastSplit, NewNumber),
-      reverse([NewLastSplit|RestSplits], NewSplits)
-  ;   reverse(['1',LastSplit|RestSplits], NewSplits)
+      reverse([NewLastSplit|RestComps], NewComps)
+  ;   reverse(['1',LastSplit|RestComps], NewComps)
   ),
-  atomic_list_concat(NewSplits, '_', A2).
+  atomic_list_concat(NewComps, '_', A2).
 
 
 
-%! repeating_atom(+SubAtom:atom, +Repeats:integer, -Atom:atom) is det.
+%! repeating_atom(+SubAtom, +Repeats, -Atom) is det.
 % Returns the atom that is the repetition of the given subatom
-%  for the given number of times.
-%
-% @arg SubAtom An atom, the element that gets repeated.
-% @arg Repeats A integer, the number of repeats of the subatom.
-% @arg Atom An atom, the result of repeating the given atom.
+% for the given number of times.
 
-repeating_atom(_SubAtom, 0, ''):- !.
-repeating_atom(SubAtom, 1, SubAtom):- !.
-repeating_atom(SubAtom, Repeats, Atom):-
+repeating_atom(_SubAtom, 0, '') :- !.
+repeating_atom(SubAtom, 1, SubAtom) :- !.
+repeating_atom(SubAtom, Repeats, Atom) :-
   Repeats > 1,
   NewRepeats is Repeats - 1,
   repeating_atom(SubAtom, NewRepeats, Atom1),
@@ -323,22 +260,18 @@ repeating_atom(SubAtom, Repeats, Atom):-
 
 
 
-%! split_atom_length(
-%!   +Atom:atom,
-%!   +Length:nonneg,
-%!   -Subatoms:list(atom)
-%! ) is nondet.
-% Splits atoms by length.
+%! split_atom_length(+Atom, +Len, -Subs) is nondet.
+% Split Atom by length.
 % The last subatom is allowed to have a shorter length.
 %
 % If `Length` is zero this predicate does not terminate.
 % This is the correct behavior, since there is an infinite number of
-%  empty subatoms in each atom.
+% empty subatoms in each atom.
 %
-% @throws domain_error When `Length` is less than zero.
+% @throws domain_error When Len is less than zero.
 
-split_atom_length('', _, []):- !.
-split_atom_length(A1, L, [H|T]):-
+split_atom_length('', _, []) :- !.
+split_atom_length(A1, L, [H|T]) :-
   sub_atom(A1, 0, L, _, H), !,
   atom_concat(H, A2, A1),
   split_atom_length(A2, L, T).
@@ -346,34 +279,34 @@ split_atom_length(A, _, [A]).
 
 
 
-%! strip_atom(+In:atom, -Out:atom) is det.
+%! strip_atom(+Atom, -Sub) is det.
+%! strip_atom(+PadChars, +Atom, -Sub) is det.
+%! strip_atom_begin(+PadChars, +Atom, -Sub) is det.
+%! strip_atom_end(+PadChars, +Atom, -Sub) is det.
+% Return Atom with any occurrens of PadChars remove from the front and/or back.
+%
+% Notice that the order in which the PadChars occur is significant.
+%
+% The default PadChars are space, newline and horizontal tab.
 
-strip_atom(A1, A2):-
+strip_atom(A1, A2) :-
   strip_atom([' ','\n','\t'], A1, A2).
 
-%! strip_atom(+Strips:list(atom), +In:atom, -Out:atom) is det.
-%! strip_atom_begin(+Strips:list(atom), +In:atom, -Out:atom) is det.
-%! strip_atom_end(+Strips:list(atom), +In:atom, -Out:atom) is det.
-% Strips the given atom's front and/or back for the given character.
-%
-% Notice that the order in which the strip atoms occur is significant.
-%
-% @arg Strips A list of atoms that will be stripped.
-% @arg In The non-strippped atom
-% @arg Out The stripped atom.
 
-strip_atom(Strips, A1, A3):-
-  strip_atom_begin(Strips, A1, A2),
-  strip_atom_end(Strips, A2, A3).
+strip_atom(PadChars, A1, A3) :-
+  strip_atom_begin(PadChars, A1, A2),
+  strip_atom_end(PadChars, A2, A3).
 
-strip_atom_begin(Strips, A1, A3):-
-  member(Strip, Strips),
-  atom_concat(Strip, A2, A1), !,
-  strip_atom_begin(Strips, A2, A3).
+
+strip_atom_begin(PadChars, A1, A3) :-
+  member(PadChar, PadChars),
+  atom_concat(PadChar, A2, A1), !,
+  strip_atom_begin(PadChars, A2, A3).
 strip_atom_begin(_, A, A).
 
-strip_atom_end(Strips, A1, A3):-
-  member(Strip, Strips),
-  atom_concat(A2, Strip, A1), !,
-  strip_atom_end(Strips, A2, A3).
+
+strip_atom_end(PadChars, A1, A3) :-
+  member(PadChar, PadChars),
+  atom_concat(A2, PadChar, A1), !,
+  strip_atom_end(PadChars, A2, A3).
 strip_atom_end(_, A, A).

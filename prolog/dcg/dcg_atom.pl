@@ -15,7 +15,7 @@
 Grammar rules for processing atoms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10, 2015/12
+@version 2015/08, 2015/10, 2015/12, 2016/05
 */
 
 :- use_module(library(atom_ext)).
@@ -72,10 +72,18 @@ atom_ellipsis(A, Ellipsis) -->
 
 
 
-%! atom_lower(?A)// .
+%! atom_lower(+A)// is det.
+%! atom_lower(+A)// is det.
+% Generate/parse a lower-case atom, i.e. one consisting of all characters
+% except for uppercase letters.
 
-atom_lower(A) --> *(code_lower, Cs), {atom_codes(A, Cs)}.
-atom_lower(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_lower, Cs).
+atom_lower(A) -->
+  *(code_lower, Cs),
+  {atom_codes(A, Cs)}.
+atom_lower(A) -->
+  {nonvar(A), !,
+   atom_codes(A, Cs)},
+  *(code_lower, Cs).
 
 
 
