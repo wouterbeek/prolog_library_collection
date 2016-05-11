@@ -142,6 +142,7 @@ stream_position(stream(_,Row,Col,_)) -->
 
 term(T) --> term(T, 0).
 
+
 term(D, I) --> {is_dict(D)}, !, dict(D, I).
 term(L, I) --> {is_list(L)}, !, list0(L, I).
 term(T, I) --> tab(I), simple_term(T).

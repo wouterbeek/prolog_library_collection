@@ -1,19 +1,20 @@
 :- module(
   json_ext,
   [
-    atom_json_dict/2, % ?A, ?D
-    atomize_json/2,   % +D, -AtomizedD
-    json_read_any/2,  % +Source, -D
-    json_read_any/3,  % +Source, -D, +Opts
-    json_write_any/2, % +Sink,   +D
-    json_write_any/3  % +Sink,   +D, +Opts
+    atom_json_dict/2,   % ?A,      ?D
+    atomize_json/2,     % +D,      -AtomizedD
+    json_read_any/2,    % +Source, -D
+    json_read_any/3,    % +Source, -D, +Opts
+    json_var_to_null/2, % +Term,   -NullifiedTerm
+    json_write_any/2,   % +Sink,   +D
+    json_write_any/3    % +Sink,   +D, +Opts
   ]
 ).
 
 /** <module> JSON extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01, 2016/03-2016/04
+@version 2015/09-2015/11, 2016/01, 2016/03-2016/05
 */
 
 :- use_module(library(apply)).
@@ -54,6 +55,18 @@ json_read_any(Source, D):-
 
 json_read_any(Source, D, Opts):-
   call_on_stream(Source, {D,Opts}/[In,M,M]>>json_read_dict(In, D, Opts), Opts).
+
+
+
+%! json_var_to_null(+Term, -NullifiedTerm) is det.
+% Maps Prolog terms to themselves unless they are variables,
+% in which case they are mapped to the atom `null`.
+%
+% The is used for exporting seedpoints, where Prolog variables
+% have no equivalent in JSON.
+
+json_var_to_null(X, null) :- var(X), !.
+json_var_to_null(X, X).
 
 
 
