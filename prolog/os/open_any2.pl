@@ -298,19 +298,20 @@ http_open2(Iri, State, Stream, Close_0, Ms, Opts0) :-
     raw_headers(Lines),
     redirect(false),
     status_code(Status),
-    version(Version)
+    version(Major-Minor)
   ],
   merge_options(Opts1, Opts2, Opts3),
   call_time(catch(http_open(Iri, Stream0, Opts3), E, true), Time),
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
+      dict_pairs(Headers, Groups),
       M = _{
-        'llo:headers': Groups,
+        'llo:headers': Headers,
         'llo:iri': Iri,
         'llo:status': Status,
         'llo:time': Time,
-        'llo:version': Version
+        'llo:version': _{'llo:major': Major, 'llo:minor': Minor}
       },
       http_open2(Iri, State, Location, Stream0, Stream, Close_0, M, Ms, Opts0)
   ;   throw(E)
