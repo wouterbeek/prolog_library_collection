@@ -33,6 +33,7 @@ Additional predicates for printing.
 @version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05
 */
 
+:- use_module(library(check_installation), []).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_table)).
@@ -92,8 +93,8 @@ ansi_format(Sink, Attrs, Format, Args) :-
 
 %! error_kind(+Kind) is semidet.
 
-error_kind(warning).
-error_kind(error).
+error_kind(Kind) :-
+  check_installation:error_kind(Kind).
 
 
 
