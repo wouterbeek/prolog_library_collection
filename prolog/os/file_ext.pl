@@ -7,6 +7,7 @@
     file_extensions/2,       % +File, -Extensions
     file_name/2,             % +Metadata, -File
     file_paths/2,            % +File, -Paths
+    file_size/2,             % +File, -Size
     is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
     is_fresh_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
     is_stale_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
@@ -24,7 +25,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05
 */
 
 :- use_module(library(apply)).
@@ -113,6 +114,14 @@ file_name(M, Name) :-
 
 file_paths(File, Paths) :-
   atomic_list_concat(Paths, /, File).
+
+
+
+%! file_size(+File, -Size) is det.
+% @see Sane name for size_file/2.
+
+file_size(File, Size) :-
+  size_file(File, Size).
 
 
 
