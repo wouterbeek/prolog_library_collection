@@ -102,7 +102,7 @@ http_error(Status):-
 %! http_get_dict(+Key, +Ms, -Value) is nondet.
 
 http_get_dict(Key, M, Val) :-
-  get_dict('llo:http_communication', M, Ms), 
+  get_dict('llo:http_communication', M, Ms),
   last(Ms, M0),
   get_dict(Key, M0, Val).
 
@@ -112,7 +112,7 @@ http_get_dict(Key, M, Val) :-
 
 http_header(M, Key, Val) :-
   http_get_dict('llo:headers', M, Headers),
-  member(Key-Vals, Headers),
+  get_dict(Key, Headers, Vals),
   member(Val, Vals).
 
 
