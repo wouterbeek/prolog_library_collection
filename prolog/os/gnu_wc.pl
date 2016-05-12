@@ -1,15 +1,14 @@
 :- module(
   gnu_wc,
   [
-    file_lines/2, % +File, -NunLines
-    wc/4          % +File, -NumLines, -NumWords, -NumBytes
+    wc/4 % +File, -NumLines, -NumWords, -NumBytes
   ]
 ).
 
 /** <module> GNU word count
 
 @author Wouter Beek
-@version 2015/08, 2015/10, 2016/03
+@version 2015/08, 2015/10, 2016/03, 2016/05
 */
 
 :- use_module(library(dcg/basics)).
@@ -17,13 +16,6 @@
 :- use_module(library(os/process_ext)).
 
 
-
-
-
-%! file_lines(+File, -NoLines) is det.
-
-file_lines(File, N):-
-  wc(File, N, _, _).
 
 
 

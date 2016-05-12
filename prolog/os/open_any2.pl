@@ -11,6 +11,7 @@
     call_onto_stream/4, % +Source,  +Sink,   :Goal_6, +Opts
     call_to_stream/2,   %           +Sink,   :Goal_3
     call_to_stream/3,   %           +Sink,   :Goal_3, +Opts
+    source_numlines/2,  % +Source,  -NumLines
     write_mode/1        % ?Mode
   ]
 ).
@@ -20,7 +21,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2016/04
+@version 2015/10-2016/05
 */
 
 :- use_module(library(apply)).
@@ -42,6 +43,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(os/io_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(readutil)).
 :- use_module(library(ssl)). % SSL support.
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
@@ -511,6 +513,28 @@ is_redirect_loop(Iri, State) :-
 %   - read
 
 read_mode(read).
+
+
+
+%! source_numlines(+Source, -NumLines) is det.
+
+source_numlines(Source, N) :-
+  catch(
+    call_on_stream(Source, {N}/[In,M,M]>>stream_numlines(In, N)),
+    error(no_content(_),_),
+    N = 0
+  ).
+
+stream_numlines(In, N) :-
+  stream_numlines(In, 0, N).
+
+stream_numlines(In, M1, N) :-
+  read_line_to_codes(In, Cs),
+  (   Cs == end_of_file
+  ->  N = M1
+  ;   M2 is M1 + 1,
+      stream_numlines(In, M2, N)
+  ).
 
 
 
