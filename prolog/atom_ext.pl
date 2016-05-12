@@ -4,7 +4,6 @@
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
     atom_postfix/2,       % +Atom,   ?Sub
     atom_postfix/3,       % +Atom,   ?Len,     ?Sub
-    atom_prefix/2,        % +Atom,   ?Sub
     atom_prefix/3,        % +Atom,   ?Len,     ?Sub
     atom_to_term/2,       % +Atom,   -Term
     atom_truncate/3,      % +Atom,   +MaxLen,  -Truncated
@@ -72,8 +71,6 @@ Titlecase atoms can be created using upcase_atom/2.
 :- use_module(library(char_ext)).
 :- use_module(library(typecheck)).
 
-:- redefine_system_predicate(atom_prefix(_,_)).
-
 
 
 
@@ -108,12 +105,7 @@ atom_postfix(Atom, Len, Sub) :-
 
 
 
-%! atom_prefix(+Atom,       -Sub) is multi.
 %! atom_prefix(+Atom, ?Len, -Sub) is multi.
-
-atom_prefix(Atom, Sub) :-
-  atom_prefix(Atom, _, Sub).
-
 
 atom_prefix(Atom, Len, Sub) :-
   atom_codes(Atom, Cs),
