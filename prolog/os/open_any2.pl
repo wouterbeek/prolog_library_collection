@@ -112,11 +112,14 @@ call_on_stream(Source, Goal_3, Opts) :-
   ignore(option(metadata(M4), Opts)).
 
 
+archive_format(Format) :-
+  archive_format(Format, _).
+
 archive_format('7zip',  true ).
 archive_format(ar,      true ).
 archive_format(cab,     true ).
 archive_format(cpio,    true ).
-archive_format(empty,   false).
+archive_format(empty,   true ).
 archive_format(gnutar,  true ).
 archive_format(iso9660, true ).
 archive_format(lha,     true ).
