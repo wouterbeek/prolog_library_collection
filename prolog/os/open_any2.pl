@@ -93,9 +93,10 @@ call_on_stream(Source, Goal_3, Opts) :-
   % This allows the calling context to request one specific entity.
   option(archive_entry(Entry), Opts, _),
   % Archive options that cannot be overridden.
-  merge_options([close_parent(false)], Opts, ArchOpts1),
+  findall(format(Format), archive_format(Format, true), FormatOpts),
+  merge_options([close_parent(false)|FormatOpts], Opts, ArchOpts1),
   % Archive options that can be overridden.
-  merge_options(ArchOpts1, [filter(all),format(all),format(raw)], ArchOpts2),
+  merge_options(ArchOpts1, [filter(all)], ArchOpts2),
   setup_call_cleanup(
     open_any2(Source, read, In1, Close_0, M1, Opts),
     setup_call_cleanup(
@@ -111,6 +112,22 @@ call_on_stream(Source, Goal_3, Opts) :-
   ignore(option(metadata(M4), Opts)).
 
 
+archive_format('7zip',  true ).
+archive_format(ar,      true ).
+archive_format(cab,     true ).
+archive_format(cpio,    true ).
+archive_format(empty,   false).
+archive_format(gnutar,  true ).
+archive_format(iso9660, true ).
+archive_format(lha,     true ).
+archive_format(mtree,   false).
+archive_format(rar,     true ).
+archive_format(raw,     true ).
+archive_format(tar,     true ).
+archive_format(xar,     true ).
+archive_format(zip,     true ).
+
+    
 % Semi-deterministic if an archive entry name is given.
 call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
   nonvar(Entry), !,
