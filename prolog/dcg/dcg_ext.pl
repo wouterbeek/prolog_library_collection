@@ -78,6 +78,7 @@
     opt//2,                % :Dcg_1, ?Arg
     parsing//0,
     perc//1,               % +Perc:between(0.0,1.0)
+    perc_fixed//1,         % +Perc:between(0.0,1.0)
     pos/2,                 % +N:nonneg, -Ds:list(between(0,9))
     pos/3,                 % +N:nonneg, +Base, -Ds:list(between(0,9))
     pos_frac/2,            % +Ds:list(between(0,9)), -FracPart:rational
@@ -809,6 +810,13 @@ perc(Perc0, Head, Tail) :-
   Perc is floor(Perc0 * 100),
   format(codes(Head, Tail), "~d%", [Perc]).
 
+
+
+%! perc_fixed(+Perc:between(0.0,1.0))// is det.
+
+perc_fixed(Perc) -->
+  ({Perc < 0.1} -> "  " ; {Perc < 1.0} -> " " ; ""),
+  perc(Perc).
 
 
 %! pos(+I:nonneg, -Ds:list(between(0,9))) is det.

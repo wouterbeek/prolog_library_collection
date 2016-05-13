@@ -188,6 +188,7 @@ dcg_table_row(Type, pos(Col,Row,Ws,Len), Cell_1, L) -->
 %!   :Cell_1,
 %!   +Row:list
 %! )// is det.
+
 dcg_table_row(Type, Pos, [W|Ws], Cell_1, [H|T]) --> !,
   cell_border,
   dcg_table_cell(Type, W, Cell_1, H),
