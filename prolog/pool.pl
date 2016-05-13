@@ -125,7 +125,7 @@ pool_worker(Pool, Goal_2, Opts):-
   option(wait(N), Opts, 1),
   sleep(N),
   debug(pool(worker), "Worker ZZZ", []),
-  pool_worker(Pool, Goal_2, Opts).
+  thread_exit(this_worker_is_done(Goal_2,Pool)).
 
 
 
