@@ -3,6 +3,7 @@
   [
     codes_string/2,       % ?Cs, ?S
     string_list_concat/3, % ?Ss, ?Sep, ?S
+    string_to_term/2,     % +S, -Term
     string_truncate/3     % +S, +Max, -TruncatedS
   ]
 ).
@@ -17,10 +18,11 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02
+@version 2015/08, 2016/02, 2016/05
 */
 
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(error)).
 
 
@@ -36,6 +38,7 @@ codes_string(Cs, S):-
   string_codes(S, Cs).
 
 
+
 %! string_list_concat(+Ss, +Sep, +S) is semidet.
 %! string_list_concat(+Ss, +Sep, -S) is det.
 %! string_list_concat(-Ss, +Sep, +S) is det.
@@ -49,6 +52,14 @@ string_list_concat(Ss, Sep, S):-
   maplist(atom_string, [Sep0,A], [Sep,S]),
   atomic_list_concat(As, Sep0, A),
   maplist(atom_string, As, Ss).
+
+
+
+%! string_to_term(+S, -Term) is det.
+
+string_to_term(S, Term) :-
+  atom_string(A, S),
+  atom_to_term(A, Term).
 
 
 
