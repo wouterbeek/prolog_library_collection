@@ -118,7 +118,7 @@ directive_value_code(C) --> 'VCHAR'(C).
   {dict_pairs(D, policy, [H|T])}.
 
 % A directive token must be preceded by a separator.
-directive_tokens(H|T) --> sep, 'directive-token'(H), !, directive_tokens(T).
+directive_tokens([H|T]) --> sep, 'directive-token'(H), !, directive_tokens(T).
 % Allow consecutive separators.
 directive_tokens(L)   --> +(sep), !, directive_tokens(L).
 directive_tokens([])  --> "".
