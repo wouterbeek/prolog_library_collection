@@ -248,12 +248,12 @@ close_any2(Close_0, M1, M2) :-
 %   * max_redirects(+positive_integer)
 %     The maximum number of redirects that is followed when opening a stream
 %     over HTTP.
-%     Default is 10.
+%     Default is 5.
 %   * max_retries(+positive_integer)
 %     The maximum number of retries that is performed when opening a stream
 %     over HTTP.  A retry is made whenever a 4xx- or 5xx-range HTTP status
 %     code is returned.
-%     Default is 3.
+%     Default is 1.
 %   * Other options are passed to open_any/5.
 %
 % @throws existence_error if an HTTP request returns an error code.
