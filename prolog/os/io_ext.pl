@@ -4,6 +4,7 @@
     read_input_to_atom/2,   % +Source, -A
     read_input_to_codes/2,  % +Source, -Cs
     read_input_to_string/2, % +Source, -S
+    read_line_to_atom/2,    % +Source, -A
     write_output_to_atom/2, % :Goal_1, -A
     write_stream_to_file/2, % +Source, +Sink
     write_stream_to_file/3  % +Source, +Sink, +Opts
@@ -16,7 +17,7 @@
 Predicates that extend the swipl builtin I/O predicates operating on streams.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11, 2016/01-2016/02, 2016/04
+@version 2015/08, 2015/10-2015/11, 2016/01-2016/02, 2016/04-2016/05
 */
 
 :- use_module(library(os/open_any2)).
@@ -57,6 +58,14 @@ read_input_to_line(Source, Cs) :-
 read_input_to_string(Source, S) :-
   read_input_to_codes(Source, Cs),
   string_codes(S, Cs).
+
+
+
+%! read_line_to_atom(+Source, -A) is det.
+
+read_line_to_atom(Source, A) :-
+  read_line_to_codes(Source, Cs),
+  atom_codes(A, Cs).
 
 
 
