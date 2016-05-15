@@ -4,6 +4,7 @@
     'content-type'//1, % -Mime:dict
     'field-name'//1,   % -Name:string
     'header-field'//1, % -Header:pair
+    'media-type'//1,   % -MediaType
     method//1,         % -Method:string
     'OWS'//0,
     'rfc850-date'//1   % -Date:dict

@@ -134,7 +134,7 @@ sep_link_param(D) --> 'OWS', ";", 'OWS', 'link-param'(D).
 
 %! 'media-type'(-MediaType:dict)// is det.
 % ```abnf
-% media-type     = type-name "/" subtype-name
+% media-type = type-name "/" subtype-name
 % ```
 
 'media-type'(_{'@type': 'llo:MediaType', 'llo:type': Type, 'llo:subtype': Subtype}) -->
