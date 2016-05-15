@@ -2,14 +2,14 @@
   pagination,
   [
     pagination/4,       % +Pattern, :Goal_0, +Opts, -Result
-    pagination_result/3 % +Query, +Result, :Goal_1
+    pagination_result/2 % +Result, :Goal_1
   ]
 ).
 
 /** <module> Pagination
 
 @author Wouter Beek
-@verson 2016/03
+@verson 2016/03, 2016/05
 */
 
 :- use_module(library(dict_ext)).
@@ -17,7 +17,7 @@
 
 :- meta_predicate
     pagination(+, 0, +, -),
-    pagination_result(+, +, 1).
+    pagination_result(+, 1).
 
 
 
@@ -54,20 +54,20 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
 
 
 
-%! pagination_result(+Query, +Result, :Goal_1) is det.
+%! pagination_result(+Result, :Goal_1) is det.
 
-pagination_result(Query, Result, Goal_1) :-
+pagination_result(Result, Goal_1) :-
   call(Goal_1, Result.results),
   nl,
   Opts = [fg(green)],
   (   Result.results == []
-  ->  ansi_format(Opts, "No results for query '~a'.~n", [Query])
+  ->  ansi_format(Opts, "No results for query.~n", [])
   ;   Low is (Result.page - 1) * Result.page_size,
       LowDisplay is Low + 1,
       High is Low + Result.number_of_results,
       ansi_format(
         Opts,
-        "Showing results ~D -- ~D for query '~a'.~n",
-        [LowDisplay,High,Query]
+        "Showing results ~D -- ~D for query.~n",
+        [LowDisplay,High]
       )
   ).
