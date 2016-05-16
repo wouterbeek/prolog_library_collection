@@ -32,13 +32,16 @@ We use the following abbreviations for often occurring variable names:
 | Comp              | Component      |
 | D                 | Digit          |
 | Def               | Default        |
+| Descr             | Description    |
 | E                 | Error          |
-| Exts              | Extensions     |
+| Ext               | Extension      |
 | Frac              | Fractional     |
 | H                 | Head           |
 | I                 | Integer        |
 | L                 | List           |
 | Lang              | Language       |
+| Lbl               | Label          |
+| LTag              | Language tag   |
 | Max               | Maximum        |
 | Min               | Minimum        |
 | N                 | Number         |

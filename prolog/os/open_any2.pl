@@ -48,6 +48,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(uuid_ext)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
@@ -63,8 +64,8 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 :- meta_predicate
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream1(+, +, 3, +, -, +),
-    call_on_stream2(+, +, 3, +, -, +),
+    call_on_stream1(+, +, 3, +, -, +, +),
+    call_on_stream2(+, +, 3, +, -, +, +),
     call_onto_stream(+, +, 6),
     call_onto_stream(+, +, 6, +),
     call_to_stream(+, 3),
@@ -101,7 +102,10 @@ call_on_stream(Source, Goal_3, Opts) :-
     open_any2(Source, read, In1, Close_0, M1, Opts),
     setup_call_cleanup(
       archive_open(In1, Arch, ArchOpts2),
-      call_on_stream1(Arch, Entry, Goal_3, M1, M2, Opts),
+      (
+        uuid_no_hyphen(Uuid),
+        call_on_stream1(Arch, Entry, Goal_3, M1, M2, Uuid, Opts)
+      ),
       archive_close(Arch)
     ),
     (
@@ -132,30 +136,35 @@ archive_format(zip,     true ).
 
     
 % Semi-deterministic if an archive entry name is given.
-call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
+call_on_stream1(Arch, Entry, Goal_3, M1, M2, Uuid, Opts) :-
   nonvar(Entry), !,
-  call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts), !.
+  call_on_stream2(Arch, Entry, Goal_3, M1, M2, Uuid, Opts), !.
 % Non-deterministic if no archive entry name is given.
-call_on_stream1(Arch, Entry, Goal_3, M1, M3, Opts) :-
-  call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts).
+call_on_stream1(Arch, Entry, Goal_3, M1, M2, Uuid, Opts) :-
+  call_on_stream2(Arch, Entry, Goal_3, M1, M2, Uuid, Opts).
 
 
-call_on_stream2(Arch, Entry, Goal_3, M1, M3, Opts0) :-
-  merge_options([meta_data(MEntries1)], Opts0, Opts),
-  (   archive_data_stream(Arch, In2, Opts)
-  ->  maplist(archive_entry_metadata0, MEntries1, MEntries2),
-      (   MEntries2 = [H1|T],
-          atom_string(Entry, H1.'llo:name')
-      ->  call_cleanup(
-            call(Goal_3, In2, M1, M2),
-            close_any2(close(In2), H1, H2)
-          ),
-          M3 = M2.put(_{'llo:archive_entry': [H2|T]})
-      ;   close(In2),
-          fail
+call_on_stream2(Arch, Entry, Goal_3, M1, M4, Uuid, Opts0) :-
+  merge_options([meta_data(MEntryPath0)], Opts0, Opts),
+  % NONDET.
+  nb_setval(Uuid, empty),
+  archive_data_stream(Arch, In2, Opts),
+  nb_delete(Uuid),
+  maplist(archive_entry_metadata0, MEntryPath0, MEntryPath),
+  (   MEntryPath = [MEntry|_],
+      atom_string(Entry, MEntry.'llo:name')
+  ->  M2 = M1.put(_{'llo:archive_entry': MEntryPath}),
+      call_cleanup(
+        call(Goal_3, In2, M2, M3),
+        close_any2(close(In2), M3, M4)
       )
-  ;   throw(error(no_content(Arch),_))
+  ;   close(In2),
+      fail
   ).
+call_on_stream2(Arch, _, _, _, _, Uuid, _) :-
+  nb_current(Uuid, empty),
+  nb_delete(Uuid),
+  throw(error(no_content(Arch),_)).
 
 
 archive_entry_metadata0(

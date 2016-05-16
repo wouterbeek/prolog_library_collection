@@ -1,13 +1,14 @@
 :- module(
   dir_ext,
   [
-    append_dirs/2, % +Dirs, -Dir
-    append_dirs/3, % +Dir1, +Dir2, -Dir
-    current_dir/1, % ?Dir
-    dir_file/2,    % +Dir, -File
-    dir_subdirs/2, % ?Dir, ?Subdirs
-    run_in_dir/2,  % :Goal_0, +Dir
-    wd/1           % ?Dir
+    append_dirs/2,        % +Dirs, -Dir
+    append_dirs/3,        % +Dir1, +Dir2, -Dir
+    current_dir/1,        % ?Dir
+    dir_file/2,           % +Dir, -File
+    dir_file_recursive/2, % +Dir, -File
+    dir_subdirs/2,        % ?Dir, ?Subdirs
+    run_in_dir/2,         % :Goal_0, +Dir
+    wd/1                  % ?Dir
   ]
 ).
 :- reexport(library(filesex)).
@@ -17,7 +18,7 @@
 Extensions for handling directory files in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/08-2015/09, 2015/11, 2016/01, 2016/03
+@version 2015/08-2015/09, 2015/11, 2016/01, 2016/03, 2016/05
 */
 
 :- use_module(library(apply)).
@@ -76,6 +77,17 @@ dir_file(Dir, File) :-
   member(File0, Files0),
   \+ is_dummy_file(File0),
   directory_file_path(Dir, File0, File).
+
+
+
+%! dir_file_recursive(+Dir, -File) is nondet.
+
+dir_file_recursive(Dir, File) :-
+  dir_file(Dir, File0),
+  (   exists_directory(File0)
+  ->  dir_file_recursive(File0, File)
+  ;   File = File0
+  ).
 
 
 

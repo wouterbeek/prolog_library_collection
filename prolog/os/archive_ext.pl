@@ -1,11 +1,13 @@
 :- module(
   archive_ext,
   [
-    archive_entry_path/2, % +ArchiveEntry, -Path
-    archive_extract/1,    % +Source
-    archive_extract/2,    % +Source, ?Directory
-    archive_info/1,       % +Source
-    archive_info/2        % +Source, +Opts
+    archive_entry_path/2,     % +ArchiveEntry, -Path
+    archive_extract/1,        % +Source
+    archive_extract/2,        % +Source, ?Directory
+    archive_file_extension/1, % ?Ext
+    archive_info/1,           % +Source
+    archive_info/2,           % +Source, +Opts
+    is_archive_file_name/1    % +File
   ]
 ).
 :- reexport(library(archive)).
@@ -13,11 +15,12 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01-2016/04
+@version 2015/09-2015/11, 2016/01-2016/05
 */
 
 :- use_module(library(debug_ext)).
 :- use_module(library(http/http_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
 :- use_module(library(yall)).
@@ -65,6 +68,19 @@ archive_extract(Source, Dir) :-
 copy_stream_data0(Dir, In, M) :-
   directory_file_path(Dir, M.'llo:archive_entry', Sink),
   call_to_stream(Sink, {In}/[Out,M,M]>>copy_stream_data(In, Out)).
+
+
+
+%! archive_file_extension(+Ext) is semidet.
+%! archive_file_extension(-Ext) is multi.
+%
+% Often occurring file extensions for archvies.
+
+archive_file_extension(cab).
+archive_file_extension(rar).
+archive_file_extension(tar).
+archive_file_extension(xar).
+archive_file_extension(zip).
 
 
 
@@ -125,3 +141,13 @@ archive_info(Source) :-
 
 archive_info(Source, Opts) :-
   call_on_stream(Source, {Opts}/[_,M,M]>>print_dict(M, Opts), Opts).
+
+
+
+%! is_archive_file_name(+File) is semidet.
+%
+% Succeeds if File is a common way of naming an archive file.
+
+is_archive_file_name(File) :-
+  file_extension(File, Ext),
+  archive_file_extension(Ext).

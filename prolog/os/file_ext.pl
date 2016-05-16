@@ -4,7 +4,9 @@
     create_file/1,           % +File
     create_file_directory/1, % +File
     file_age/2,              % +File, -Age:float
-    file_extensions/2,       % +File, -Extensions
+    file_change_extension/3, % +From, +Ext, 
+    file_extension/2,        % +File, -Ext
+    file_extensions/2,       % +File, -Exts
     file_name/2,             % +Metadata, -File
     file_paths/2,            % +File, -Paths
     file_size/2,             % +File, -Size
@@ -75,7 +77,22 @@ file_age(File, Age) :-
 
 
 
-%! file_extensions(+File, -Extensions:list(atom)) is det.
+%! file_change_extension(+From, +Ext, -To) is det.
+
+file_change_extension(From, Ext, To) :-
+  file_name_extension(Base, _, From),
+  file_name_extension(Base, Ext, To).
+
+
+
+%! file_extension(+File, -Ext) is semidet.
+
+file_extension(File, Ext) :-
+  file_name_extension(_, Ext, File).
+
+
+
+%! file_extensions(+File, -Exts) is det.
 
 file_extensions(File, Exts) :-
   file_paths(File, Paths),
