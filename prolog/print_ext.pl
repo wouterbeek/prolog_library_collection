@@ -169,13 +169,11 @@ msg_warning(Format, Args) :-
 %! print_dict(+Dict, +Opts) is det.
 
 print_dict(D) :-
-  print_dict(D, []).
+  print_dict(D, _{out: user_output}).
 
 
 print_dict(D, Opts) :-
-  option(indent(I), Opts, 1),
-  option(out(Out), Opts, current_output),
-  dcg_with_output_to(Out, dict(D, I)),
+  dcg_with_output_to(Opts.out, dict(D, Opts)),
   nl.
 
 

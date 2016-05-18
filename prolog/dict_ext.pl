@@ -7,20 +7,22 @@
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
     dict_has_key/2,         % +Key, +D
     dict_inc/2,             % +Key, +D
-    dict_inc/3,             % +Key, +D, -Value
-    dict_inc/4,             % +Key, +D, +Diff, -Value
+    dict_inc/3,             % +Key, +D, -Val
+    dict_inc/4,             % +Key, +D, +Diff, -Val
     dict_pairs/2,           % ?D, ?Pairs
     dict_prepend/3,         % +Key, +D, +Elem
+    dict_put_default/4,     % +Key, D1, +Def, +D2
     dict_put_pairs/3,       % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
+    dict_set/3,             % +Key, D, +Val
     dict_sum/2,             % +Ds, -D
     dict_sum/3,             % +D1, +D2, -D3
     dict_tag/3,             % +D1, +Tag, ?D2
-    get_dict/4,             % +Key, +D, -Value, +Default
+    get_dict/4,             % +Key, +D, -Val, +Def
     is_empty_dict/1,        % @Term
     merge_dict/3,           % +D1, +D2, -D3
-    mod_dict/4,             % +Key, +D1,           -Value, -D2
-    mod_dict/5              % +Key, +D1, +Default, -Value, -D2
+    mod_dict/4,             % +Key, +D1,           -Val, -D2
+    mod_dict/5              % +Key, +D1, +Def, -Val, -D2
   ]
 ).
 :- reexport(library(dicts)).
@@ -28,7 +30,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03-2016/04
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/05
 */
 
 :- use_module(library(apply)).
@@ -92,8 +94,8 @@ dict_has_key(Key, D) :-
 
 
 %! dict_inc(+Key, +D) is det.
-%! dict_inc(+Key, +D, -Value) is det.
-%! dict_inc(+Key, +D, +Diff, -Value) is det.
+%! dict_inc(+Key, +D, -Val) is det.
+%! dict_inc(+Key, +D, +Diff, -Val) is det.
 
 dict_inc(Key, D) :-
   dict_inc(Key, D, _).
@@ -118,6 +120,15 @@ dict_pairs(D, L):-
 
 
 
+%! dict_put_default(+Key, +D1, +Def, -D2) is det.
+
+dict_put_default(Key, D, _, D) :-
+  dict_has_key(Key, D), !.
+dict_put_default(Key, D1, Def, D2) :-
+  D2 = D1.put(Key, Def).
+
+
+
 %! dict_put_pairs(+D1, +Pairs, -D2) is det.
 
 dict_put_pairs(D1, L, D2) :-
@@ -132,6 +143,13 @@ dict_put_pairs(D1, L, D2) :-
 dict_prepend(Key, D, H) :-
   get_dict(Key, D, T),
   nb_set_dict(Key, D, [H|T]).
+
+
+
+%! dict_set(+Key, +D, +Val) is det.
+
+dict_set(Key, D, Val) :-
+  nb_set_dict(Key, D, Val).
 
 
 
@@ -183,7 +201,7 @@ dict_tag(D1, Tag, D2):-
 
 
 
-%! get_dict(+Key, +D, -Value, +Default) is det.
+%! get_dict(+Key, +D, -Val, +Def) is det.
 
 get_dict(K, D, V, _) :-
   dict_has_key(K, D), !,
@@ -219,14 +237,14 @@ key_in_keys0(Keys, Key-_) :- memberchk(Key, Keys).
 
 
 
-%! mod_dict(+Key, +D1, -Value, -D2) is det.
+%! mod_dict(+Key, +D1, -Val, -D2) is det.
 
 mod_dict(Key, D1, Val, D2) :-
   dict_has_key(Key, D1),
   del_dict(Key, D1, Val, D2).
 
 
-%! mod_dict(+Key, +D1, +Default, -Value, -D2) is det.
+%! mod_dict(+Key, +D1, +Def, -Val, -D2) is det.
 
 mod_dict(Key, D1, _, Val, D2) :-
   mod_dict(Key, D1, Val, D2), !.

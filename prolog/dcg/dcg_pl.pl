@@ -2,11 +2,11 @@
   dcg_pl,
   [
     date_time//1,       % +DT
-    dict//2,            % +Dict, +Indent
+    dict//2,            % +Dict, +Opts
     predicate//1,       % +Predicate
     stream_position//1, % +Pos
     term//1,            % @Term
-    term//2             % @Term, +Indent
+    term//2             % @Term, +Opts
   ]
 ).
 
@@ -15,7 +15,7 @@
 DCG rules for printing terms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/02
+@version 2015/08, 2015/10-2015/12, 2016/02, 2016/05
 */
 
 :- use_module(library(date_time/date_time)).
@@ -40,43 +40,55 @@ date_time(DT, X, Y):-
 
 
 
-dict(D, I1) -->
+%! dict(+D, +Opts)// is det.
+
+dict(D, Opts0) -->
+  {dict_put_default(indent, Opts0, 0, Opts)},
   {dict_pairs(D, _, L)},
-  % An empty dictionary does not use lucious spacing.
-  (   {is_empty_term(D)}
-  ->  tab(I1), "{}"
-  ;   % A singleton dictionary does not use lucious spacing if
-      % its member is singleton.
+  {I = Opts.indent},
+  (   % Empty dictionaries do not use lucious spacing.
+      {is_empty_term(D)}
+  ->  tab(I), "{}"
+  ;   % Singleton dictionaries do not use lucious spacing if
+      % the member is singleton.
       {is_singleton_term(D)}
-  ->  tab(I1), "{", {L = [Key-Val]}, dict_entry(Key-Val, 1), tab(1), "}"
-  ;   tab(I1), "{", nl,
-      {I2 is I1 + 1},
-      term_entries(dict_entry, L, I2),
-      tab(I1), "}"
+  ->  tab(I),
+      "{",
+      {L = [Key-Val]},
+      {EntryOpts = Opts.put(_{indent: 0})},
+      dict_entry(Key-Val, EntryOpts),
+      "}"
+  ;   tab(I), "{", nl,
+      {dict_inc(indent, Opts)},
+      term_entries(dict_entry, L, Opts),
+      tab(I), "}"
   ).
 
 
 
-%! dict_entry(+Pair, +Indent)// is det.
+%! dict_entry(+Pair, +Opts)// is det.
 
-dict_entry(Key-Val, I1) -->
-  tab(I1),
-  term(Key),
-  ": ",
+dict_entry(Key-Val, Opts1) -->
+  tab(Opts1.indent), term(Key), ": ",
   % Newline and additional indentation before dictionary or list values
   % that are non-empty and non-singleton.
   (   {(is_empty_term(Val) ; is_singleton_term(Val))}
-  ->  {I2 = 0}
-  ;   {succ(I1, I2)}, nl
+  ->  {I = 0}
+  ;   {I is Opts1.indent + 1}
   ),
-  term(Val, I2).
+  {Opts2 = Opts1.put(_{indent: I})},
+  term(Val, Opts2).
 
 
 
 %! is_empty_term(@Term) is semidet.
 
-is_empty_term(D):- is_dict(D), !, is_empty_dict(D).
-is_empty_term(L):- is_list(L), !, empty_list(L).
+is_empty_term(D):-
+  is_dict(D), !,
+  is_empty_dict(D).
+is_empty_term(L):-
+  is_list(L), !,
+  empty_list(L).
 
 
 
@@ -95,18 +107,19 @@ is_singleton_term(_).
 
 
 
-list0(L, I1) -->
+list0(L, Opts) -->
   (   % The empty list does not use lusious spacing.
       {is_empty_term(L)}
-  ->  tab(I1), list(L)
+  ->  tab(Opts.indent), list(L)
   ;   % A singleton list does not use lucious spacing
       % if its member is singleton.
       {is_singleton_term(L)}
-  ->  tab(I1), list(L)
-  ;   tab(I1), "[", nl,
-      {I2 is I1 + 1},
-      term_entries(term, L, I2),
-      tab(I1), "]"
+  ->  tab(Opts.indent), list(L)
+  ;   tab(Opts.indent), "[", nl,
+      {dict_inc(indent, Opts)},
+      term_entries(term, L, Opts),
+      {dict_dec(indent, Opts)},
+      tab(Opts.indent), "]"
   ).
 
 
@@ -138,24 +151,25 @@ stream_position(stream(_,Row,Col,_)) -->
 
 
 %! term(@Term)// is det.
-%! term(@Term, +Indent)// is det.
+%! term(@Term, +Opts)// is det.
 
-term(T) --> term(T, 0).
-
-
-term(D, I) --> {is_dict(D)}, !, dict(D, I).
-term(L, I) --> {is_list(L)}, !, list0(L, I).
-term(T, I) --> tab(I), simple_term(T).
+term(T) -->
+  term(T, _{indent: 0}).
 
 
+term(D, Opts) --> {is_dict(D)}, !, dict(D, Opts).
+term(L, Opts) --> {is_list(L)}, !, list0(L, Opts).
+term(T, Opts) --> tab(Opts.indent), simple_term(T).
 
-%! term_entries(:Goal_4, +Entries, +Indent)// is det.
+
+
+%! term_entries(:Goal_4, +Entries, +Opts)// is det.
 
 term_entries(_, [], _) --> !, "".
-term_entries(Goal_4, [H], I) --> !,
-  dcg_call(Goal_4, H, I),
+term_entries(Goal_4, [H], Opts) --> !,
+  dcg_call(Goal_4, H, Opts),
   nl.
-term_entries(Goal_4, [H|T], I) -->
-  dcg_call(Goal_4, H, I),
+term_entries(Goal_4, [H|T], Opts) -->
+  dcg_call(Goal_4, H, Opts),
   ",", nl,
-  term_entries(Goal_4, T, I).
+  term_entries(Goal_4, T, Opts).
