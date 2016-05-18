@@ -1,8 +1,9 @@
 :- module(
   assoc_ext,
   [
+    add_dict_to_assoc/3,    % +Assoc1, +D, -Assoc2
     get_assoc_ord_member/3, % +Key, +Assoc, ?Value
-    print_assoc/1, % +Assoc
+    print_assoc/1,          % +Assoc
     put_assoc_ord_member/4  % +Key, +OldAssoc, +Value, -NewAssoc
   ]
 ).
@@ -13,17 +14,36 @@
 An association list with multiple values per key, using ordered sets.
 
 @author Wouter Beek
-@version 2015/10-2016/02
+@version 2015/10-2016/02, 2016/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_tree)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
 :- use_module(library(tree/s_tree)).
 
+
+
+
+%! add_dict_to_assoc(+Assoc1, +Dict, -Assoc2) is det.
+
+add_dict_to_assoc(Assoc1, D, Assoc2) :-
+  dict_pairs(D, Pairs),
+  add_pairs_to_assoc(Assoc1, Pairs, Assoc2).
+
+
+add_pairs_to_assoc(Assoc, [], Assoc) :- !.
+add_pairs_to_assoc(Assoc1, [Key-Val|T], Assoc3) :-
+  (   get_assoc(Key, Assoc1, Val1)
+  ->  Val2 is Val1 + Val
+  ;   Val2 = 0
+  ),
+  put_assoc(Key, Assoc1, Val2, Assoc2),
+  add_pairs_to_assoc(Assoc2, T, Assoc3).
 
 
 

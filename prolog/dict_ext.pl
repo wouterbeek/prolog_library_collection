@@ -13,6 +13,7 @@
     dict_prepend/3,         % +Key, +D, +Elem
     dict_put_pairs/3,       % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
+    dict_sum/2,             % +Ds, -D
     dict_sum/3,             % +D1, +D2, -D3
     dict_tag/3,             % +D1, +Tag, ?D2
     get_dict/4,             % +Key, +D, -Value, +Default
@@ -163,8 +164,8 @@ dict_sum(D1, D2, D3) :-
 
 
 pairs_sum([], Pairs, Pairs) :- !.
-pairs_sum([Key-Val1|T1], L2a, [Key-Val3|T3]) :- !,
-  selectchk(Key-Val2, L2a, L2b),
+pairs_sum([Key-Val1|T1], L2a, [Key-Val3|T3]) :-
+  selectchk(Key-Val2, L2a, L2b), !,
   Val3 is Val1 + Val2,
   pairs_sum(T1, L2b, T3).
 pairs_sum([Key-Val|T1], L2, [Key-Val|T3]) :-
