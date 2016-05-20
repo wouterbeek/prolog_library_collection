@@ -17,7 +17,6 @@ Extensions to SWI-Prolog's library archive.
 @version 2014/04, 2014/06-2014/08, 2014/10, 2015/02, 2015/09, 2016/03
 */
 
-:- use_module(library(archive)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(hash_ext)).

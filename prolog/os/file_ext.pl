@@ -4,10 +4,9 @@
     create_file/1,           % +File
     create_file_directory/1, % +File
     file_age/2,              % +File, -Age:float
-    file_change_extension/3, % +From, +Ext, 
+    file_change_extension/3, % +File1, +Ext, File2
     file_extension/2,        % +File, -Ext
     file_extensions/2,       % +File, -Exts
-    file_name/2,             % +Metadata, -File
     file_paths/2,            % +File, -Paths
     file_size/2,             % +File, -Size
     is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
@@ -15,6 +14,7 @@
     is_stale_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
     is_stale_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
     latest_file/2,           % +Files, -LatestFile
+    metadata_file_name/2,    % +M, -File
     thread_file/2,           % +File, -ThreadFile
     touch/1,                 % +File
     root_prefix/1            % ?Prefix
@@ -101,32 +101,6 @@ file_extensions(File, Exts) :-
 
 
 
-%! file_name(+Metadata, -Name) is det.
-
-file_name(M, Name) :-
-  % The Content-Disposition HTTP header may contain the intended file name.
-  http_header(M, 'llo:content-disposition', ContentDisposition),
-  get_dict(ContentDisposition, filename, Base0),
-
-  % An archive may add an entry path to the archive file path.
-  (   get_dict(M, 'llo:archive_entry', ArchiveEntry),
-      archive_entry_path(ArchiveEntry, ArchiveEntryPath)
-  ->  directory_file_path(Base0, ArchiveEntryPath, Base)
-  ;   Base = Base0
-  ),
-
-  % The Content-Type HTTP header may hint at a file extension.
-  % @tbd Implement common file extensions for MIME types.
-  %(   http_header(M, 'content-type', ContentType)
-  %    mime_ext(ContentType.type, ContentType.subtype, Ext),
-  %    \+ file_name_extension(_, Ext, Base)
-  %->  file_name_extension(Base, Ext, Name)
-  %;   Name = Base
-  %),
-  Name = Base.
-
-
-
 %! file_paths(+File, -Paths:list(atom)) is det.
 
 file_paths(File, Paths) :-
@@ -198,6 +172,34 @@ latest_file([H|T], Time1-File1, Latest) :-
       File2 = File1
   ),
   latest_file(T, Time2-File2, Latest).
+
+
+
+%! metadata_file_name(+M, -Name) is det.
+%
+% Extract a file name from source metadata.
+
+metadata_file_name(M, Name) :-
+  % The Content-Disposition HTTP header may contain the intended file name.
+  http_header(M, 'llo:content-disposition', ContentDisposition),
+  get_dict(ContentDisposition, filename, Base0),
+
+  % An archive may add an entry path to the archive file path.
+  (   get_dict(M, 'llo:entry_path', MEntryPath),
+      archive_entry_path0(MEntryPath, Path)
+  ->  directory_file_path(Base0, Path, Base)
+  ;   Base = Base0
+  ),
+
+  % The Content-Type HTTP header may hint at a file extension.
+  % @tbd Implement common file extensions for MIME types.
+  %(   http_header(M, 'content-type', ContentType)
+  %    mime_ext(ContentType.type, ContentType.subtype, Ext),
+  %    \+ file_name_extension(_, Ext, Base)
+  %->  file_name_extension(Base, Ext, Name)
+  %;   Name = Base
+  %),
+  Name = Base.
 
 
 

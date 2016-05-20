@@ -16,7 +16,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11-2015/12, 2016/04
+@version 2015/11-2015/12, 2016/04-2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -185,16 +185,26 @@ iri_query_enc --> "".
 
 
 %! iri_to_location(+Iri, -Loc) is det.
+%
+% Data IRIs are converted to their public locations.  Non-data IRIs
+% are their public locations.
 
 iri_to_location(Iri, Loc) :-
-  uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
-  setting(http:public_scheme, Scheme),
-  setting(http:public_host, Auth),
-  uri_components(Loc, uri_components(Scheme,Auth,Path,Query,Frag)).
+  setting(sb:data_scheme, Scheme1),
+  setting(sb:data_auth, Auth1),
+  uri_components(Iri, uri_components(Scheme1,Auth1,Path,Query,Frag)), !,
+  setting(http:public_scheme, Scheme2),
+  setting(http:public_host, Host2),
+  setting(http:public_port, Port2),
+  uri_authority_components(Auth2, uri_authority(_,_,Host2,Port2)),
+  uri_components(Loc, uri_components(Scheme2,Auth2,Path,Query,Frag)).
+iri_to_location(Loc, Loc).
 
 
 
 %! iri_to_resource(+Iri, -Res) is det.
+%
+% Converts public IRIs to data resource identifiers.
 
 iri_to_resource(Iri, Res) :-
   uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
