@@ -195,10 +195,15 @@ iri_to_location(Iri, Loc) :-
   uri_components(Iri, uri_components(Scheme1,Auth1,Path,Query,Frag)), !,
   setting(http:public_scheme, Scheme2),
   setting(http:public_host, Host2),
-  setting(http:public_port, Port2),
+  setting(http:public_port, Port0),
+  correct_for_default_port(Scheme2, Port0, Port2),
   uri_authority_components(Auth2, uri_authority(_,_,Host2,Port2)),
   uri_components(Loc, uri_components(Scheme2,Auth2,Path,Query,Frag)).
 iri_to_location(Loc, Loc).
+
+correct_for_default_port(http, 80, _) :- !.
+correct_for_default_port(https, 443, _) :- !.
+correct_for_default_port(_, Port, Port).
 
 
 
