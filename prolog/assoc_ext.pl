@@ -3,6 +3,7 @@
   [
     add_dict_to_assoc/3,    % +Assoc1, +D, -Assoc2
     get_assoc_ord_member/3, % +Key, +Assoc, ?Value
+    inc_assoc/3,            % +Assoc1, +Key, -Assoc2
     print_assoc/1,          % +Assoc
     put_assoc_ord_member/4  % +Key, +OldAssoc, +Value, -NewAssoc
   ]
@@ -40,7 +41,7 @@ add_pairs_to_assoc(Assoc, [], Assoc) :- !.
 add_pairs_to_assoc(Assoc1, [Key-Val|T], Assoc3) :-
   (   get_assoc(Key, Assoc1, Val1)
   ->  Val2 is Val1 + Val
-  ;   Val2 = 0
+  ;   Val2 = Val
   ),
   put_assoc(Key, Assoc1, Val2, Assoc2),
   add_pairs_to_assoc(Assoc2, T, Assoc3).
@@ -70,6 +71,14 @@ get_assoc_ord_member(Key, Assoc, Val):-
   % Use ord_memberchk/2 when instantiation is `(+,+,+)'
   % and use member/2 when instantiation is `(+,+,-)'.
   (nonvar(Val) -> ord_memberchk(Val, Set) ; member(Val, Set)).
+
+
+
+%! inc_assoc(+Assoc1, +Key, -Assoc2) is det.
+
+inc_assoc(A1, Key, A2) :-
+  (get_assoc(Key, A1, Val1) -> Val2 is Val1 + 1 ; Val2 = 1),
+  put_assoc(Key, A1, Val2, A2).
 
 
 
