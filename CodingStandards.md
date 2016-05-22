@@ -46,6 +46,7 @@ We use the following abbreviations for often occurring variable names:
 | Min               | Minimum        |
 | N                 | Number         |
 | Num$X$s           | NumberOf$X$s   |
+| Op                | Operator       |
 | Opt               | Options        |
 | Param             | Parameter      |
 | Perc              | Percentage     |

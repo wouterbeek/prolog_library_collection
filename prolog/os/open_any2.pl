@@ -148,7 +148,7 @@ call_on_stream2(Arch, EntryName, Goal_3, M1, M4, Uuid, Opts0) :-
   merge_options([meta_data(MEntryPath0)], Opts0, Opts),
   % NONDET.
   nb_setval(Uuid, empty),
-  archive_data_stream(Arch, In2, Opts),
+  archive_data_stream(Arch, In2, Opts), !,
   nb_delete(Uuid),
   maplist(archive_entry_metadata0, MEntryPath0, MEntryPath),
   (   MEntryPath = [MEntry|_],

@@ -39,7 +39,7 @@
 Predicates for distinguishing different types/kinds of graphs.
 
 @author Wouter Beek
-@version 2015/10, 2015/12, 2016/03
+@version 2015/10, 2015/12, 2016/03, 2016/05
 */
 
 :- use_module(library(apply)).
@@ -61,36 +61,36 @@ Predicates for distinguishing different types/kinds of graphs.
 %! s_bipartite(+Graph:ugraph, +Vertices:ordset, +Vertices2:ordset) is semidet.
 %! s_bipartite(+Graph:ugraph, -Vertices:ordset, -Vertices2:ordset) is nondet.
 
-s_bipartite(G, Vs1, Vs2):-
+s_bipartite(G, Vs1, Vs2) :-
   s_edges(G, Es),
   s_bipartite(Es, [], Vs1, [], Vs2).
 
 s_bipartite([], Vs1, Vs1, Vs2, Vs2).
 % Inconsistent 1: Both belong to set 1.
-s_bipartite([V-W|_], L1, _, _, _):-
+s_bipartite([V-W|_], L1, _, _, _) :-
   member(V, W, L1), !,
   fail.
 % Inconsistent 2: Both belong to set 2.
-s_bipartite([V-W|_], _, _, L2, _):-
+s_bipartite([V-W|_], _, _, L2, _) :-
   member(V, W, L2), !,
   fail.
 % V was already fitted: fit W accordingly.
-s_bipartite([V-W|Es], L1, Vs1, L2, Vs2):-
+s_bipartite([V-W|Es], L1, Vs1, L2, Vs2) :-
   member(V, L1), !,
   ord_add_element(L2, W, NewL2),
   s_bipartite(Es, L1, Vs1, NewL2, Vs2).
 % W was already fitted: fit V accordingly.
-s_bipartite([V-W|Es], L1, Vs1, L2, Vs2):-
+s_bipartite([V-W|Es], L1, Vs1, L2, Vs2) :-
   member(W, L2), !,
   ord_add_element(L1, V, NewL1),
   s_bipartite(Es, NewL1, Vs1, L2, Vs2).
 % Both V and W have to be fitted.
 % This can be done in two ways.
-s_bipartite([V-W|Es], L1, Vs1, L2, Vs2):-
+s_bipartite([V-W|Es], L1, Vs1, L2, Vs2) :-
   ord_add_element(L1, V, NewL1),
   ord_add_element(L2, W, NewL2),
   s_bipartite(Es, NewL1, Vs1, NewL2, Vs2).
-s_bipartite([V-W|Es], L1, Vs1, L2, Vs2):-
+s_bipartite([V-W|Es], L1, Vs1, L2, Vs2) :-
   ord_add_element(L2, V, NewL2),
   ord_add_element(L1, W, NewL1),
   s_bipartite(Es, NewL1, Vs1, NewL2, Vs2).
@@ -100,7 +100,7 @@ s_bipartite([V-W|Es], L1, Vs1, L2, Vs2):-
 %! s_complete_graph(+Graph:ugraph) is semidet.
 % Complete graphs and connected graphs are the same thing.
 
-s_complete_graph(G):-
+s_complete_graph(G) :-
   s_connected_graph(G).
 
 
@@ -113,7 +113,7 @@ s_complete_graph(G):-
 % *Definition*: Two vertices are connected if there is a path between them.
 % So vertice connectedness is just path existence.
 
-s_connected_graph(G):-
+s_connected_graph(G) :-
   s_vertices(G, Vs),
   forall(
     member(V, W, Vs),
@@ -129,17 +129,17 @@ s_connected_graph(G):-
 %
 % *Definition*: A cubic graph is a 3-regular graph.
 
-s_cubic_graph(G):-
+s_cubic_graph(G) :-
   s_regular_graph(G, 3).
 
 
 
 %! s_cyclic_graph(+Graph:ugraph) is semidet.
 
-s_cyclic_graph(G):-
+s_cyclic_graph(G) :-
   s_cyclic_graph(G, _).
 /* Alternative implementation:
-s_cyclic_graph(G):-
+s_cyclic_graph(G) :-
   once(
     traverse(
       G,
@@ -157,7 +157,7 @@ s_cyclic_graph(G):-
 % A *cyclic* graph is a graph for which every vertex has the same degree.
 % The number of vertices is called the order of the cyclic graph.
 
-s_cyclic_graph(G, Order):-
+s_cyclic_graph(G, Order) :-
   s_degree_sequence(G, [H|T]),
   repeating_list(H, Order, [H|T]).
 
@@ -166,7 +166,7 @@ s_cyclic_graph(G, Order):-
 test(
   's_cyclic_graph(+,-) is semidet. TRUE',
   [forall(s_cyclic_graph_test(GName,Order,true))]
-):-
+) :-
   s_test_graph(GName, G),
   s_cyclic_graph(G, Order).
 
@@ -185,7 +185,7 @@ s_cyclic_graph_test(cycle(1), 4, true).
 % intention of the programmer, since an directed graph may have symmetric
 % closure of its edges merely by chance.
 
-s_directed_graph(G):-
+s_directed_graph(G) :-
   s_edge(G, V-W),
   \+ s_edge(G, W-V).
 
@@ -210,19 +210,20 @@ s_empty_graph([]).
 % $d_i^* = d_{i + 1} - 1, \text{for} i = 1, \ldots, d_1
 %          d_{i + 1}, \text{otherwise}$
 
-s_graphic_graph(G):-
+s_graphic_graph(G) :-
   s_degree_sequence(G, Seq),
   graphic_sequence(Seq).
 
 %! graphic_sequence(+Sequence:list(nonneg)) is semidet.
 % Succeeds is Sequence is a graphic sequence.
 
-graphic_sequence(Seq):-
+graphic_sequence(Seq) :-
   inflist(0, Seq), !.
-graphic_sequence([H | T]):-
-  length(T, LT),
-  H =< LT,
-  length_cut(T, H, T1, T2),
+graphic_sequence([H|T]) :-
+  length(T, Len),
+  H =< Len,
+  length(T1, Len),
+  append(T1, T2, T),
   maplist(succ, NewT1, T1),
   append(NewT1, T2, NewT_),
   sort(1, @>=, NewT_, NewT),
@@ -241,7 +242,7 @@ graphic_sequence([H | T]):-
 % @arg N The number of vertices.
 % @arg Harary An undirected Harary graph.
 
-s_harary(K, N, H):-
+s_harary(K, N, H) :-
   is_even(K), !,
   VLast is N - 1,
   numlist(0, VLast, Vs),
@@ -257,17 +258,17 @@ s_harary(K, N, H):-
     ),
     H
   ).
-s_harary(K, N, H):-
+s_harary(K, N, H) :-
   is_even(N), !,
   NewK is K - 1,
   s_harary(NewK, N, G),
   s_harary(G, =, N, H).
-s_harary(K, N, H):-
+s_harary(K, N, H) :-
   NewK is K - 1,
   s_harary(NewK, N, G),
   s_harary(G, pred, N, H).
 
-s_harary(G, P_2, N, H):-
+s_harary(G, P_2, N, H) :-
   call(P_2, N, NewN),
   findall(
     V-Ns,
@@ -292,10 +293,10 @@ s_harary(G, P_2, N, H):-
 % This method works on a off-by-zero basis.
 % We return the numbers in a sorted order.
 
-cyclic_numlist(Low, High, _CycleLength, NumList):-
+cyclic_numlist(Low, High, _CycleLength, NumList) :-
   Low < High, !,
   numlist(Low, High, NumList).
-cyclic_numlist(Low, High, CycleLength, NumList):-
+cyclic_numlist(Low, High, CycleLength, NumList) :-
   Top is CycleLength - 1,
   numlist(Low, Top, HigherNumList),
   numlist(0, High, LowerNumList),
@@ -323,7 +324,7 @@ cyclic_numlist(Low, High, CycleLength, NumList):-
 % @tbd Allow a comparator argument, so that vertices that do not compare
 %      with < are allowed as well.
 
-s_line_graph(G, LineG):-
+s_line_graph(G, LineG) :-
   s_edges(G, Es),
   findall(
     V/W-Ns,
@@ -354,14 +355,14 @@ s_line_graph(G, LineG):-
 % A *regular* graph is a graph with a (single) degree,
 % i.e., every vertex has the same degree.
 
-s_regular_graph(G):-
+s_regular_graph(G) :-
   s_regular_graph(G, _).
 
 
 %! s_regular_graph(+Graph:ugraph, -K:nonneg) is semidet.
 % Returns the degree of the given graph, if it is regular.
 
-s_regular_graph(G, K):-
+s_regular_graph(G, K) :-
   s_degree(G, K).
 
 :- begin_tests('s_regular_graph/1').
@@ -369,13 +370,13 @@ s_regular_graph(G, K):-
 test(
   's_regular_graph(+) is semidet. TRUE',
   [forall(s_test_graph(regular(_),G))]
-):-
+) :-
   s_regular_graph(G).
 
 test(
   's_regular_graph(+) is semidet. FAIL',
   [fail,forall(s_test_graph(nonregular(_),G))]
-):-
+) :-
   s_regular_graph(G).
 
 :- end_tests('s_regular_graph/1').
@@ -388,7 +389,7 @@ test(
 %
 % @tbd We cannot represent doubly occurring/weighted edges/arcs yet.
 
-s_simple_graph(G):-
+s_simple_graph(G) :-
   s_undirected_graph(G),
   \+ s_cyclic_graph(G).
 
@@ -396,13 +397,13 @@ s_simple_graph(G):-
 
 %! s_star_graph(+Graph:ugraph) is semidet.
 
-s_star_graph(G):-
+s_star_graph(G) :-
   s_star_graph(G, _).
 
 %! s_star_graph(+Graph:ugraph, +Order:nonneg) is semidet.
 %! s_star_graph(+Graph:ugraph, -Order:nonneg) is semidet.
 
-s_star_graph(G, Order):-
+s_star_graph(G, Order) :-
   s_order(G, Order),
   s_degree_sequence(G, [Order|T]),
   inflist(1, [Order|T]).
@@ -417,7 +418,7 @@ s_star_graph(G, Order):-
 %
 % Strict graphs and simple graphs are the same thing.
 
-s_strict_graph(G):-
+s_strict_graph(G) :-
   s_simple_graph(G).
 
 
@@ -428,7 +429,7 @@ s_strict_graph(G):-
 % *Definition*: A directed graph is **strongly connected** if
 %               all pairs of vertices are connected via a directed path.
 
-s_strongly_connected_graph(G):-
+s_strongly_connected_graph(G) :-
   s_vertices(G, Vs),
   forall(
     member(V, W, Vs),
@@ -445,7 +446,7 @@ s_strongly_connected_graph(G):-
 % is the directed graph that is obtained by
 % replacing all directed edges of *G* with undirected edges.
 
-s_underlying_graph(G, UG):-
+s_underlying_graph(G, UG) :-
   s_graph_components(G, Vs, Es1),
   maplist(inv_pair0, Es1, Es2),
   append(Es1, Es2, Es3),
@@ -467,7 +468,7 @@ inv_pair0(X-Y, Y-X).
 % intention of the programmer, since a directed graph may have symmetric
 % closure of its edges as well.
 
-s_undirected_graph(G):-
+s_undirected_graph(G) :-
   \+ s_directed_graph(G).
 
 
@@ -477,6 +478,6 @@ s_undirected_graph(G):-
 %
 % *Definition*: A weakly connected digraph has a connected underlying graph.
 
-s_weakly_connected_graph(G):-
+s_weakly_connected_graph(G) :-
   s_underlying_graph(G, UG),
   s_connected_graph(UG).
