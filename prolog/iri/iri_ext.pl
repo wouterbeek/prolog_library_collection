@@ -34,6 +34,9 @@
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
+:- setting(iri:data_auth, atom, '', 'HTTP authority of data IRIs').
+:- setting(iri:data_scheme, atom, http, 'HTTP scheme for data IRIs').
+
 :- meta_predicate
     iri_change_query_comps0(+, 2, -),
     iri_change_query_comps00(2, +, -),
@@ -190,8 +193,8 @@ iri_query_enc --> "".
 % are their public locations.
 
 iri_to_location(Iri, Loc) :-
-  setting(sb:data_scheme, Scheme1),
-  setting(sb:data_auth, Auth1),
+  setting(iri:data_scheme, Scheme1),
+  setting(iri:data_auth, Auth1),
   uri_components(Iri, uri_components(Scheme1,Auth1,Path,Query,Frag)), !,
   setting(http:public_scheme, Scheme2),
   setting(http:public_host, Host2),
@@ -213,8 +216,8 @@ correct_for_default_port(_, Port, Port).
 
 iri_to_resource(Iri, Res) :-
   uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
-  setting(sb:data_scheme, Scheme),
-  setting(sb:data_auth, Auth),
+  setting(iri:data_scheme, Scheme),
+  setting(iri:data_auth, Auth),
   uri_components(Res, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 
