@@ -134,7 +134,6 @@
   :- use_module(library(pl/pl_term)).
 :- use_module(library(pool)).
 :- use_module(library(print_ext)).
-:- use_module(library(row_ext)).
 :- use_module(library(service_db)).
 %/set
   :- use_module(library(set/direct_subset)).
@@ -153,6 +152,8 @@
   :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
+%/stat
+:- use_module(library(stat/r_ext)).
 %/svg
   :- use_module(library(svg/svg_ext)).
 %/tree
