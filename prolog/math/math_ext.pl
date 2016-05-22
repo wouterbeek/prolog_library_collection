@@ -53,6 +53,7 @@
     max/3, % +X:number
            % +Y:number
            % ?Maximum:number
+    min_max_range/3, % +Min, +Max, -Range
     minus/3, % ?X:number
              % ?Y:number
              % ?Z:number
@@ -113,7 +114,7 @@ X = -6.
 ---
 
 @Author Wouter Beek
-@version 2015/07, 2015/10-2015/11, 2016/01
+@version 2015/07, 2015/10-2015/11, 2016/01, 2016/05
 */
 
 :- use_module(library(apply)).
@@ -483,6 +484,18 @@ log(Base, X, Y):-
 
 max(X, Y, Z):-
   Z is max(X,Y).
+
+
+
+%! min_max_range(+Min, +Max, -Range) is det.
+% Range is of the form `range(Begin,End,Step)`.
+
+min_max_range(Min, Max, range(Begin,End,Step)) :-
+  Min =< Max,
+  Diff is Max - Min,
+  Step is 10 ** ceil(log10(Diff / 100)),
+  Begin is floor(Min / Step) * Step,
+  End is ceil(Max / Step) * Step.
 
 
 
