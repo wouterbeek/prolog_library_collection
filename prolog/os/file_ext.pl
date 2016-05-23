@@ -15,6 +15,7 @@
     is_stale_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
     latest_file/2,           % +Files, -LatestFile
     metadata_file_name/2,    % +M, -File
+    thread_file/1,           % -ThreadFile
     thread_file/2,           % +File, -ThreadFile
     touch/1,                 % +File
     root_prefix/1            % ?Prefix
@@ -41,6 +42,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
+:- use_module(library(uuid_ext)).
 
 
 
@@ -215,8 +217,15 @@ root_prefix('C:\\').
 
 
 
+%! thread_file(-ThreadFile) is det.
 %! thread_file(+File, -ThreadFile) is det.
+%
 % Returns a thread-specific file name based on the given file name.
+
+thread_file(File) :-
+  uuid_no_hyphen(Base),
+  thread_file(Base, File).
+
 
 thread_file(Base, File) :-
   thread_name(Thread),

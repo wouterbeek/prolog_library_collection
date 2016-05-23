@@ -2,6 +2,8 @@
   xml_dom,
   [
     atom_to_xml_dom/2,  % +Atom, -Dom
+    xml_clean_file/1,   % +File
+    xml_clean_file/2,   % +File, +Opts
     xml_dom_as_atom//1, % +Dom
     xml_serve_dom/1     % +Dom
   ]
@@ -10,16 +12,19 @@
 /** <module> XML DOM
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2016/03
+@version 2015/07, 2015/10, 2016/03, 2016/05
 */
 
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_request)).
 :- use_module(library(memfile)).
+:- use_module(library(os/file_ext)).
+:- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
+:- use_module(library(yall)).
 
 
 
@@ -37,6 +42,48 @@ atom_to_xml_dom(A, Dom):-
     ),
     free_memory_file(Handle)
   ).
+
+
+
+%! xml_clean_file(+File) is det.
+%! xml_clean_file(+File, +Opts) is det.
+%
+% Inserts newlines in XML files that contain very long lines.
+%
+% Line feed is code 10.  Carriage return is code 13.
+
+xml_clean_file(File) :-
+  xml_clean_file(File, []).
+
+
+xml_clean_file(File, Opts) :-
+  thread_file(TmpFile),
+  call_onto_stream(
+    File,
+    TmpFile,
+    [In,MIn,MIn,Out,MOut,MOut]>>xml_clean_stream(In, Out),
+    Opts
+  ),
+  rename_file(TmpFile, File).
+
+xml_clean_stream(In, _) :-
+  at_end_of_stream(In), !.
+% Add newlines between elements.
+xml_clean_stream(In, Out) :-
+  peek_string(In, 2, "><"), !,
+  get_char(In, '>'), get_char(In, '<'),
+  put_char(Out, '>'), put_char(Out, '\n'), put_char(Out, '<'),
+  xml_clean_stream(In, Out).
+% Replace DOS newlines with Unix newlines.
+xml_clean_stream(In, Out) :-
+  peek_string(In, 2, "\r\n"), !,
+  get_char(In, '\r'), get_char(In, '\n'),
+  put_char(Out, '\n'),
+  xml_clean_stream(In, Out).
+xml_clean_stream(In, Out) :-
+  get_code(In, C),
+  put_code(Out, C),
+  xml_clean_stream(In, Out).
 
 
 
