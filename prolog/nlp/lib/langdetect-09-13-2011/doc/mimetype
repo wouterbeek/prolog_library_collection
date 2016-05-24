@@ -1,0 +1,5 @@
+#!/bin/bash
+
+find -name '*.html' -exec svn propset svn:mime-type 'text/html' -R {} \;
+find -name '*.css' -exec svn propset svn:mime-type 'text/css' -R {} \;
+

@@ -50,7 +50,7 @@ attached_thread(Goal_0) :-
 %! create_thread(:Goal_0) is det.
 
 create_thread(Goal_0) :-
-  create_thread(Goal_0, _, []).
+  thread_create(Goal_0, _, []).
 
 
 

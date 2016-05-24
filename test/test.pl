@@ -107,9 +107,12 @@
   :- use_module(library(math/rational_ext)).
 :- use_module(library(memoization)).
 %/nlp
+  :- use_module(library(nlp/dbpedia_spotlight)).
+  :- use_module(library(nlp/detect_language)).
   :- use_module(library(nlp/nlp_dictionary)).
   :- use_module(library(nlp/nlp_emoticon)).
   :- use_module(library(nlp/nlp_grammar)).
+  :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(option_ext)).
 %/os
   :- use_module(library(os/archive_ext)).
