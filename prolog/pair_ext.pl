@@ -14,8 +14,9 @@
     pair_has_var_key/1,    % +Pair
     pair_has_var_value/1,  % +Pair
     pair_inv/2,            % ?Pair, ?InvPair
+    pair_inv_list/2,       % ?Pair, ?InvL
     pair_inv_row/2,        % ?Pair, ?InvRow
-    pair_list/2,           % ?Pair, ?List
+    pair_list/2,           % ?Pair, ?L
     pair_row/2,            % ?Pair, ?Row
     pair_value/2,          % +Pair, ?Value
     pairs_to_set/2,        % +Pairs, -Elements
@@ -143,11 +144,19 @@ pair_inv(X-Y, Y-X).
 
 
 
+%! pair_inv_list(+Pair, +InvL) is semidet.
+%! pair_inv_list(+Pair, -InvL) is det.
+%! pair_inv_list(-Pair, +InvL) is det.
+
+pair_inv_list(X-Y, [Y,X]).
+
+
+
 %! pair_inv_row(+Pair, +InvRow) is semidet.
 %! pair_inv_row(+Pair, -InvRow) is det.
 %! pair_inv_row(-Pair, +InvRow) is det.
 
-pair_inv_row(X-Y, [Y,X]).
+pair_inv_row(X-Y, row(Y,X)).
 
 
 
