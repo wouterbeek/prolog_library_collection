@@ -40,11 +40,12 @@
     selectchk_eq/3,         % +X, +Whole, -Part
     shorter/3,              % +Comparator_2, +L1, +L2
     singleton_list/2,       % ?X, ?L
-    split_list_by_number_of_sublists/3, % +L, +NumLs, -Ls
-    split_list_by_size/3,   % +L, +SizeOfSublists, -Ls
     split_list_exclusive/3, % +L, +Split, -Ls
-    split_over_member/4,    % +L, -Before, ?X, -After
-    split_nth0_member/5,    % +L, -Before, ?I, ?X, -After
+    split_list_member/4,    % +L, -Before, ?X, -After
+    split_list_nth0/5,      % +L, -Before, ?I, ?X, -After
+    split_list_nth1/5,      % +L, -Before, ?I, ?X, -After
+    split_list_number/3,    % +L, +NumLs, -Ls
+    split_list_size/3,      % +L, +SizeOfSublists, -Ls
     strict_sublist/2,       % ?Part, +Whole
     sublist/2               % ?Part, +Whole
   ]
@@ -605,34 +606,6 @@ singleton_list(X, [X]).
 
 
 
-%! split_list_by_number_of_sublists(+L, +NumSublists, -Sublists) is det.
-
-split_list_by_number_of_sublists(L, NumSublists, Sublists) :-
-  length(L, Len),
-  Len > NumSublists, !,
-  succ(ReducedNumSublists, NumSublists),
-  SizeOfSublists is Len div ReducedNumSublists,
-  split_list_by_size(L, SizeOfSublists, Sublists).
-split_list_by_number_of_sublists(L, _, L).
-
-
-
-%! split_list_by_size(+L, +MaxLen, -Ls) is det.
-% Splits the given list into lists of maximally the given length.
-
-% The last sublists is exactly of the requested size.
-% The empty list indicates this.
-split_list_by_size([], _SizeOfSublists, []) :- !.
-% The main case: use length/2 and append/3 to extract the list
-% prefix that is one of the sublist results.
-split_list_by_size(List, SizeOfSublists, [Sublist | Sublists]) :-
-  length(Sublist, SizeOfSublists),
-  append(Sublist, NewList, List), !,
-  split_list_by_size(NewList, SizeOfSublists, Sublists).
-% The last sublist is not exactly of the requested size. Give back
-% what remains.
-split_list_by_size(LastSublist, _SizeOfSublists, [LastSublist]).
-
 %! split_list_exclusive(+List, +Split, -Chunks(list)) is det.
 
 split_list_exclusive(List, Split, Chunks) :-
@@ -655,23 +628,63 @@ split_list_exclusive([Part | List], Split, Chunk, Chunks) :-
 
 
 
-%! split_over_member(+L, -Before, ?X, -After) is nondet.
+%! split_list_member(+L, -Before, ?X, -After) is nondet.
+%
+% Split L into members that appear Before and After one particular
+% member X.
 
-split_over_member([H|T], [], H, T).
-split_over_member([H|T], [H|T1], X, L2) :-
-  split_over_member(T, T1, X, L2).
+split_list_member([H|T], [], H, T).
+split_list_member([H|T], [H|T1], X, L2) :-
+  split_list_member(T, T1, X, L2).
 
 
 
-%! split_nth0_member(+L, -Before, ?I, ?X, -After) is nondet.
+%! split_list_nth0(+L, -Before, ?I, ?X, -After) is nondet.
+%! split_list_nth1(+L, -Before, ?I, ?X, -After) is nondet.
+%
+% Split L into members that appear Before and After one particular
+% member X that appears at index I.  The index is either count-by-zero
+% or count-by-one.
 
-split_nth0_member(L, L1, N, X, L2) :-
-  split_nth0_member(L, L1, 0, N, X, L2).
+split_list_nth0(L, L1, N, X, L2) :-
+  split_list_nth(L, L1, 0, N, X, L2).
 
-split_nth0_member([H|T], [], N, N, H, T).
-split_nth0_member([H|T], [H|T1], M1, N, X, L2) :-
-  succ(M1, M2),
-  split_nth0_member(T, T1, M2, N, X, L2).
+
+split_list_nth1(L, L1, N, X, L2) :-
+  split_list_nth(L, L1, 1, N, X, L2).
+
+
+split_list_nth([H|T], [], N, N, H, T).
+split_list_nth([H|T], [H|T1], M1, N, X, L2) :-
+  M2 is M1 + 1,
+  split_list_nth(T, T1, M2, N, X, L2).
+
+
+
+%! split_list_number(+L, +NumLs, -Ls) is det.
+
+split_list_number(L, NumLs, Ls) :-
+  length(L, Len),
+  SizeL is ceil(Len / NumLs),
+  split_list_size(L, SizeL, Ls).
+
+
+
+%! split_list_size(+L, +MaxLen, -Ls) is det.
+% Splits the given list into lists of maximally the given length.
+
+% The last sublists is exactly of the requested size.
+% The empty list indicates this.
+split_list_size([], _SizeOfSublists, []) :- !.
+% The main case: use length/2 and append/3 to extract the list
+% prefix that is one of the sublist results.
+split_list_size(List, SizeOfSublists, [Sublist | Sublists]) :-
+  length(Sublist, SizeOfSublists),
+  append(Sublist, NewList, List), !,
+  split_list_size(NewList, SizeOfSublists, Sublists).
+% The last sublist is not exactly of the requested size. Give back
+% what remains.
+split_list_size(LastSublist, _SizeOfSublists, [LastSublist]).
 
 
 

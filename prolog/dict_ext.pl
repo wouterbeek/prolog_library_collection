@@ -5,6 +5,9 @@
     create_dict/3,          % +Pairs, +Tag, -D
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedD
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
+    dict_dec/2,             % +Key, +D
+    dict_dec/3,             % +Key, +D, -Val
+    dict_dec/4,             % +Key, +D, +Diff, -Val
     dict_has_key/2,         % +Key, +D
     dict_inc/2,             % +Key, +D
     dict_inc/3,             % +Key, +D, -Val
@@ -86,6 +89,25 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 
 
 
+%! dict_dec(+Key, +D) is det.
+%! dict_dec(+Key, +D, -Val) is det.
+%! dict_dec(+Key, +D, +Diff, -Val) is det.
+
+dict_dec(Key, D) :-
+  dict_dec(Key, D, _).
+
+
+dict_dec(Key, D, Val) :-
+  dict_dec(Key, D, 1, Val).
+
+
+dict_dec(Key, D, Diff, Val2) :-
+  get_dict(Key, D, Val1),
+  Val2 is Val1 - Diff,
+  nb_set_dict(Key, D, Val2).
+
+
+
 %! dict_has_key(+Key, +D) is semidet.
 
 dict_has_key(Key, D) :-
@@ -103,6 +125,7 @@ dict_inc(Key, D) :-
 
 dict_inc(Key, D, Val) :-
   dict_inc(Key, D, 1, Val).
+
 
 dict_inc(Key, D, Diff, Val2) :-
   get_dict(Key, D, Val1),

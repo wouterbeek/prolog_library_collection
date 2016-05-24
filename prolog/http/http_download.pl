@@ -85,7 +85,7 @@ file_download(Iri, File0, Opts0) :-
   ),
   (   nonvar(File0)
   ->  File = File0
-  ;   (file_name(M, File0) -> true ; File0 = Hash),
+  ;   (metadata_file_name(M, File0) -> true ; File0 = Hash),
       absolute_file_name(File0, File, [access(write)])
   ),
   rename_file(TmpFile, File).

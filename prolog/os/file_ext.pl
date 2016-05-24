@@ -188,7 +188,7 @@ metadata_file_name(M, Name) :-
 
   % An archive may add an entry path to the archive file path.
   (   get_dict(M, 'llo:entry_path', MEntryPath),
-      archive_entry_path0(MEntryPath, Path)
+      file_entry_path(MEntryPath, Path)
   ->  directory_file_path(Base0, Path, Base)
   ;   Base = Base0
   ),

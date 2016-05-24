@@ -194,9 +194,9 @@ context_objects(context(Obj_1,_,_), Os):-
 direct_subconcept(Cs, A, B):-
   sort_concepts(Cs, SortedCs),
   % NONDET
-  split_member(SortedCs, _, A, AfterA),
+  split_list_member(SortedCs, _, A, AfterA),
   % NONDET
-  split_member(AfterA, BetweenAB, B, _),
+  split_list_member(AfterA, BetweenAB, B, _),
   is_strict_subconcept(A, B),
   \+ (
     member(C, BetweenAB),

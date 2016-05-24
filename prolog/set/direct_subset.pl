@@ -24,8 +24,8 @@
 
 direct_subset(Sets, A, B):-
   % NONDET
-  split_member(Sets, _, A, AfterA),
+  split_list_member(Sets, _, A, AfterA),
   % NONDET
-  split_member(AfterA, BetweenAB, B, _),
+  split_list_member(AfterA, BetweenAB, B, _),
   strict_subset(A, B),
   \+ (member(C, BetweenAB), strict_subset(A, C), strict_subset(C, B)).

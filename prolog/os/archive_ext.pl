@@ -4,6 +4,7 @@
     archive_extract2/2,       % +File, -File2
     archive_extract2/3,       % +File, +EntryName, -File2
     archive_file_extension/1, % ?Ext
+    file_entry_path/2,        % +MEntryPath, -File2
     file_entry_path/3,        % +File1, +MEntryPath, -File2
     is_archive_file_name/1,   % +File
     print_archive/1,          % +Source
@@ -82,7 +83,12 @@ is_archive_file_name(File) :-
 
 
 
+%! file_entry_path(+MEntryPath, -File) is det.
 %! file_entry_path(+File1, +MEntryPath, -File2) is det.
+
+file_entry_path(MEntryPath, File) :-
+  file_entry_path('', MEntryPath, File).
+
 
 file_entry_path(File1, MEntryPath0, File2) :-
   exclude(is_unarchived, MEntryPath0, MEntryPath),
