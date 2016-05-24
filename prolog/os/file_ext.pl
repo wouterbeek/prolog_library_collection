@@ -80,6 +80,9 @@ file_age(File, Age) :-
 
 
 %! file_change_extension(+From, +Ext, -To) is det.
+%
+% To is like From but has file extension Ext.  Also succeeds if From
+% has no file extension.
 
 file_change_extension(From, Ext, To) :-
   file_name_extension(Base, _, From),

@@ -6,7 +6,6 @@
     desc_pairs/2,          % +Pairs, -DescendingPairs
     desc_pairs_values/2,   % +Pairs, -DescendingValues
     group_pairs_by_key/3,  % :Comparator_2, +Pairs, -GroupedPairs
-    inverse_pair/2,        % ?Pair, ?InversePair
     is_pair/1,             % @Term
     is_reflexive_pair/1,   % +Pair
     pair/3,                % ?Pair, ?Key, ?Value
@@ -14,6 +13,8 @@
     pair_key/2,            % +Pair, ?Key
     pair_has_var_key/1,    % +Pair
     pair_has_var_value/1,  % +Pair
+    pair_inv/2,            % ?Pair, ?InvPair
+    pair_inv_row/2,        % ?Pair, ?InvRow
     pair_list/2,           % ?Pair, ?List
     pair_row/2,            % ?Pair, ?Row
     pair_value/2,          % +Pair, ?Value
@@ -93,13 +94,6 @@ same_key(_, _, L, [], L).
 
 
 
-%! inverse_pair(+Pair, -Inverse) is det.
-%! inverse_pair(-Pair, +Inverse) is det.
-
-inverse_pair(X-Y, Y-X).
-
-
-
 %! is_pair(@Term) is semidet.
 
 is_pair(_-_).
@@ -138,6 +132,22 @@ pair_has_var_key(K-_):- var(K).
 %! pair_has_var_value(+Pair) is semidet.
 
 pair_has_var_value(_-V):- var(V).
+
+
+
+%! pair_inv(+Pair, +InvPair) is semidet.
+%! pair_inv(+Pair, -InvPair) is det.
+%! pair_inv(-Pair, +InvPair) is det.
+
+pair_inv(X-Y, Y-X).
+
+
+
+%! pair_inv_row(+Pair, +InvRow) is semidet.
+%! pair_inv_row(+Pair, -InvRow) is det.
+%! pair_inv_row(-Pair, +InvRow) is det.
+
+pair_inv_row(X-Y, [Y,X]).
 
 
 
