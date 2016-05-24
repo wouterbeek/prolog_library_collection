@@ -202,10 +202,12 @@ call_onto_stream(Source, Sink, Goal_6, InOpts) :-
   call_on_stream(Source, call_onto_stream0(Sink, Goal_6, OutOpts), InOpts).
 
 
-call_onto_stream0(Sink, Mod:Goal_6, Opts, In, M1, M2) :-
-  Goal_3 =.. [Goal_6,In,M1,M2],
+call_onto_stream0(Sink, Mod:Goal_6, Opts, In, MIn1, MIn2) :-
+  Goal_6 =.. Comps1,
+  append(Comps1, [In,MIn1,MIn2], Comps2),
+  Goal_3 =.. Comps2,
   call_to_stream(Sink, Mod:Goal_3, Opts).
-  
+
 
 
 %! call_to_stream(+Sink, :Goal_3) is det.
