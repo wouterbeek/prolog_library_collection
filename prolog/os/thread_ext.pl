@@ -2,6 +2,7 @@
   thread_ext,
   [
     attached_thread/1,           % :Goal_0
+    create_thread/1,             % :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads
     detached_thread/1,           % :Goal_0
     intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
@@ -19,7 +20,7 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01-2016/03
+@version 2015/10, 2016/01-2016/03, 2016/05
 */
 
 :- use_module(library(aggregate)).
@@ -29,6 +30,7 @@
 
 :- meta_predicate
     attached_thread(0),
+    create_thread(0),
     detached_thread(0),
     intermittent_goal(0, 0, +),
     intermittent_thread(0, 0, +),
@@ -42,6 +44,13 @@
 
 attached_thread(Goal_0) :-
   thread_create(Goal_0, _, []).
+
+
+
+%! create_thread(:Goal_0) is det.
+
+create_thread(Goal_0) :-
+  create_thread(Goal_0, _, []).
 
 
 
