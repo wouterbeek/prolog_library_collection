@@ -289,8 +289,13 @@ s_edges(G, Es):- s_edges_vertices(Es, Vs), s_graph_components(G, Vs, Es).
 %! ) is det.
 % Decomposes/composes a graph into/based in its vertices and edges.
 
-s_graph_components(G, Vs, Es):- nonvar(G), !, s_vertices(G, Vs), s_edges(G, Es).
-s_graph_components(G, Vs, Es):- vertices_edges_to_ugraph0(Vs, Es, G).
+s_graph_components(G, Vs, Es):-
+  var(G), !,
+  (var(Vs) -> s_edges_vertices(Es, Vs) ; true),
+  vertices_edges_to_ugraph0(Vs, Es, G).
+s_graph_components(G, Vs, Es):-
+  s_vertices(G, Vs),
+  s_edges(G, Es).
 
 
 

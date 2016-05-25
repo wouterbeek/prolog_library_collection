@@ -17,6 +17,8 @@
     print_dict/2,       % +Dict, +Opts
     print_table/1,      % +Rows
     print_table/2,      % +Rows, :Opts
+    print_tree/1,       % +Tree
+    print_tree/2,       % +Tree, :Opts
     tab/0,
     verbose/1,          % :Goal_0
     verbose/2,          % :Goal_0, +Format
@@ -37,6 +39,7 @@ Additional predicates for printing.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_table)).
+:- use_module(library(dcg/dcg_tree)).
 :- use_module(library(settings)).
 
 :- meta_predicate
@@ -190,7 +193,20 @@ print_table(Rows, Opts) :-
 
 
 
+%! print_tree(+Tree) is det.
+%! print_tree(+Tree, :Opts) is det.
+
+print_tree(Tree) :-
+  print_tree(Tree, []).
+
+
+print_tree(Tree, Opts) :-
+  dcg_with_output_to(current_output, dcg_tree(Tree, Opts)).
+
+
+
 %! tab is det.
+%
 % Wrapper around tab/1 that prints a single horizontal tab character.
 
 tab:-

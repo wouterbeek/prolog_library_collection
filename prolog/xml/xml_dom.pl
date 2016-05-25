@@ -2,6 +2,7 @@
   xml_dom,
   [
     atom_to_xml_dom/2,  % +Atom, -Dom
+    atom_to_xml_dom/3,  % +Atom, -Dom, +Opts
     xml_clean_file/1,   % +File
     xml_clean_file/2,   % +File, +Opts
     xml_dom_as_atom//1, % +Dom
@@ -30,14 +31,19 @@
 
 
 
-%! atom_to_xml_dom(+Atom, Dom) is det.
+%! atom_to_xml_dom(+Atom, -Dom) is det.
+%! atom_to_xml_dom(+Atom, -Dom, +Opts) is det.
 
-atom_to_xml_dom(A, Dom):-
+atom_to_xml_dom(A, Dom) :-
+  atom_to_xml_dom(A, Dom, []).
+
+
+atom_to_xml_dom(A, Dom, Opts) :-
   setup_call_cleanup(
     atom_to_memory_file(A, Handle),
     setup_call_cleanup(
       open_memory_file(Handle, read, Read),
-      load_xml(Read, Dom, []),
+      load_xml(Read, Dom, Opts),
       close(Read)
     ),
     free_memory_file(Handle)

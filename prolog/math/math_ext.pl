@@ -53,6 +53,7 @@
     max/3, % +X:number
            % +Y:number
            % ?Maximum:number
+    median/2, % +Ms, -N
     min_max_range/3, % +Min, +Max, -Range
     minus/3, % ?X:number
              % ?Y:number
@@ -485,6 +486,21 @@ log(Base, X, Y):-
 max(X, Y, Z):-
   Z is max(X,Y).
 
+
+
+%! median(+Ms, -N) is det.
+
+median(Ms, N) :-
+  length(Ms, Len),
+  I is Len // 2,
+  (   is_odd(Len)
+  ->  nth1(I, Ms, N)
+  ;   I1 is I - 1,
+      I2 is I + 1,
+      nth1(I1, Ms, N1),
+      nth1(I2, Ms, N2),
+      N is (N1 + N2) / 2
+  ).
 
 
 %! min_max_range(+Min, +Max, -Range) is det.

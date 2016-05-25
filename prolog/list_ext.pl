@@ -18,6 +18,9 @@
     list_intersperse/3,     % +L1, +Sep, -L2
     list_replace/3,         % +L1, +Replacements:list(pair), -L2
     list_row/2,             % ?L, ?Row
+    list_split/2,           % ?L, ?X
+    list_split/3,           % ?L, ?X, ?Y
+    list_split/4,           % ?L, ?X, ?Y, ?Z
     list_truncate/3,        % +L1, +Max, -L2
     member/3,               % ?X, ?Y, ?L
     member_default/3,       % ?X, +L, +Def
@@ -337,6 +340,26 @@ list_replace([H|T1], Maps, [H|T2]) :-
 
 list_row(L, Row) :-
   Row =.. [row|L].
+
+
+
+%! list_split(+L, +X) is semidet
+%! list_split(+L, -X) is det
+%! list_split(-L, +X) is det
+%! list_split(+L, +X, +Y) is semidet
+%! list_split(+L, -X, -Y) is det
+%! list_split(-L, +X, +Y) is det
+%! list_split(+L, +X, +Y, +Z) is semidet
+%! list_split(+L, -X, -Y, -Z) is det
+%! list_split(-L, +X, +Y, +Z) is det
+
+list_split([X], X).
+
+
+list_split([X,Y], X, Y).
+
+
+list_split([X,Y,Z], X, Y, Z).
 
 
 

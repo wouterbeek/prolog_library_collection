@@ -60,7 +60,7 @@ r_plot(Rows, File, Opts) :-
   option(max(Max), Opts, 15),
   option(xlabel(XLbl), Opts, "X"),
   option(ylabel(YLbl), Opts, "Y"),
-  maplist(split0, Rows, Xs0, Ys),
+  maplist(list_split, Rows, Xs0, Ys),
   maplist([X0,X]>>rdf_print_term(X0, _{out: string(X)}), Xs0, Xs),
   absolute_file_name(test, File, [access(write),extensions([svg])]),
   <- svg(+File),
@@ -104,12 +104,10 @@ discretize(Rows, Max, Xs, Ys) :-
 discretize0([], _, [], []) :- !.
 discretize0(L1, N, [XLbl|T2], [YSum|T3]) :-
   (length(L1a, N), append(L1a, L1b, L1) -> true ; L1a = L1, L1b = []),
-  maplist(split0, L1a, Xs, Ys),
+  maplist(list_split, L1a, Xs, Ys),
   interval_label(Xs, XLbl),
   sum_list(Ys, YSum),
   discretize0(L1b, N, T2, T3).
-
-split0([X,Y], X, Y).
 
 
 

@@ -97,10 +97,6 @@ error:has_type(between_float(L,U), X) :-
 error:has_type(iri, T) :-
   atom(T),
   uri_is_global(T).
-% nonpos/1
-error:has_type(nonpos, T) :-
-  integer(T),
-  T =< 0.
 % or/1
 error:has_type(or(Types), T) :-
   member(Type, Types),
