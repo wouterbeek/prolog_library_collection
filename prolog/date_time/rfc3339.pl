@@ -205,4 +205,4 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %
 % @bug The comment is sticter than the grammar rule.
 
-'time-second'(S) --> '#'(2, digit, Ds), {pos_sum(Ds, S), between(0, 60, S)}.
+'time-second'(S) --> #(2, digit, Ds), {pos_sum(Ds, S), between(0, 60, S)}.

@@ -909,7 +909,7 @@ quoted(Quote_2, Goal_2) -->
 
 quoted(N, Quote_2, Content_2) -->
   {quote(Quote_2)},
-  dcg_between('#'(N, Quote_2), Content_2).
+  dcg_between(#(N, Quote_2), Content_2).
 
 quote(_:Quote) :- var(Quote), quote_goal(Quote).
 
