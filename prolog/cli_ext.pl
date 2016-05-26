@@ -5,7 +5,9 @@
     check_path/2,  % +Mode:oneof([read,write]), +Path:atom
     long_flag/2,   % +Flag:atom,         -Argument:atom
     long_flag/3,   % +Flag:atom, +Value, -Argument:atom
-    show_help/1    % +OptionSpecification:list(compound)
+    show_help/1,   % +OptionSpecification:list(compound)
+    user_input/1,  % +Msg
+    user_input/2   % +Msg, :Dcg_0
   ]
 ).
 :- reexport(library(optparse)).
@@ -13,11 +15,14 @@
 /** <module> Command-line interface extensions
 
 @author Wouter Beek
-@version 2015/09-2015/10, 2016/04
+@version 2015/09-2015/10, 2016/04-2016/05
 */
 
 :- use_module(library(error)).
 :- use_module(library(typecheck)).
+
+:- meta_predicate
+    user_input(+,//).
 
 
 
@@ -65,3 +70,25 @@ show_help(OptSpec):-
   opt_help(OptSpec, Help),
   format(user_output, '~a\n', [Help]),
   halt.
+
+
+
+%! user_input(+Msg) is semidet.
+%! user_input(+Msg, :Dcg_0) is det.
+
+user_input(Msg) :-
+  user_input(Msg, yn(true)).
+
+
+user_input(Msg, Dcg_0):-
+  repeat,
+  format(user_output, "~s~n", [Msg]),
+  read_line_to_codes(user_input, Cs),
+  (   once(phrase(Dcg_0, Cs))
+  ->  !
+  ;   fail
+  ).
+
+
+yn(true) --> "y".
+yn(false) --> "n".

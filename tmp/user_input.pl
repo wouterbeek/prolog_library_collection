@@ -115,19 +115,6 @@ input_password(Codes) -->
 
 
 
-%! user_input(+Message:atom, :LegalAnswer, -Answer) is det.
-
-user_input(Msg, Legal, Answer):-
-  repeat,
-  format(user_output, '~w\n', [Msg]),
-  read_line_to_codes(user_input, Codes),
-  (   once(phrase(dcg_call_cp(Legal, Answer), Codes))
-  ->  !
-  ;   fail
-  ).
-
-
-
 %! user_interaction(
 %!   +ActionDescription:string,
 %!   :Goal,
