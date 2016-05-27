@@ -1,16 +1,17 @@
 :- module(
   rest,
   [
+    rest_handler/4,   % +Req, +HandleId, :Exists_1, :Singular_3
     rest_handler/5,   % +Req, +HandleId, :Exists_1, :Singular_3, :Plural_2
     rest_mediatype/3, % +Method, +MediaTypes, :Plural_2
-    rest_mediatype/4  % +Method, +MediaTypes, +Resource, :Singular_3
+    rest_mediatype/4  % +Method, +MediaTypes, +Res, :Singular_3
   ]
 ).
 
 /** <module> REST
 
 @author Wouter Beek
-@version 2016/02, 2016/04
+@version 2016/02, 2016/04-2016/05
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
@@ -21,6 +22,7 @@
 :- html_meta
    rest_call_or_exception(2, +, +),
    rest_call_or_exception(3, +, +, +),
+   rest_handler(+, +, 1, 3),
    rest_handler(+, +, 1, 3, 2),
    rest_mediatype(+, +, 2),
    rest_mediatype(+, +, +, 3).
@@ -30,19 +32,18 @@
 
 
 %! rest_call_or_exception(:Plural_2, +Method, +MediaType) is det.
+%! rest_call_or_exception(:Singular_3, +Method, +MediaType, +Res) is det.
 
 rest_call_or_exception(Plural_2, Method, MT) :-
   catch(call(Plural_2, Method, MT), E, rest_exception(MT, E)).
 
-
-%! rest_call_or_exception(:Singular_3, +Method, +MediaType, +Resource) is det.
 
 rest_call_or_exception(Singular_3, Method, MT, Res) :-
   catch(call(Singular_3, Method, MT, Res), E, rest_exception(MT, E)).
 
 
 
-%! rest_exception(+MediaType, +Exception) is det.
+%! rest_exception(+MediaType, +E) is det.
 
 rest_exception(_, E) :-
   var(E), !.
@@ -58,7 +59,20 @@ rest_exception(_, E) :-
   http_status_reply(bad_request(E)).
 
 
+
+%! rest_handler(+Req, +HandleId, :Exists_1, :Singular_3) is det.
 %! rest_handler(+Req, +HandleId, :Exists_1, :Singular_3, Plural_2) is det.
+
+rest_handler(Req, _, Exists_1, Singular_3) :-
+  memberchk(request_uri(Res), Req),
+  http_accept(Req, MTs),
+  http_method(Req, Method),
+  call(Exists_1, Res),
+  call(Singular_3, Method, MTs, Res), !.
+rest_handler(Req, _, _, _) :-
+  memberchk(request_uri(Res), Req),
+  http_status_reply(Req, not_found(Res)).
+
 
 rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   memberchk(request_uri(Local), Req),
