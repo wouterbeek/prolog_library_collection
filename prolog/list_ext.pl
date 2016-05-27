@@ -343,15 +343,15 @@ list_row(L, Row) :-
 
 
 
-%! list_split(+L, +X) is semidet
-%! list_split(+L, -X) is det
-%! list_split(-L, +X) is det
-%! list_split(+L, +X, +Y) is semidet
-%! list_split(+L, -X, -Y) is det
-%! list_split(-L, +X, +Y) is det
-%! list_split(+L, +X, +Y, +Z) is semidet
-%! list_split(+L, -X, -Y, -Z) is det
-%! list_split(-L, +X, +Y, +Z) is det
+%! list_split(+L, +X) is semidet.
+%! list_split(+L, -X) is det.
+%! list_split(-L, +X) is det.
+%! list_split(+L, +X, +Y) is semidet.
+%! list_split(+L, -X, -Y) is det.
+%! list_split(-L, +X, +Y) is det.
+%! list_split(+L, +X, +Y, +Z) is semidet.
+%! list_split(+L, -X, -Y, -Z) is det.
+%! list_split(-L, +X, +Y, +Z) is det.
 
 list_split([X], X).
 
@@ -629,7 +629,7 @@ singleton_list(X, [X]).
 
 
 
-%! split_list_exclusive(+List, +Split, -Chunks(list)) is det.
+%! split_list_exclusive(+List, +Split, -Chunks) is det.
 
 split_list_exclusive(List, Split, Chunks) :-
   split_list_exclusive(List, Split, [], Chunks).
