@@ -943,13 +943,13 @@ seplist(Goal_3, L) -->
   seplist(Goal_3, ", ", L).
 
 
-seplist(_, _, []) --> !, [].
-seplist(Goal_3, _, [H]) --> !,
-  call(Goal_3, H).
 seplist(Goal_3, Sep_2, [H1,H2|T]) -->
   call(Goal_3, H1),
-  Sep_2,
+  Sep_2, !,
   seplist(Goal_3, Sep_2, [H2|T]).
+seplist(Goal_3, _, [H]) -->
+  call(Goal_3, H), !.
+seplist(_, _, []) --> !, [].
 
 
 
