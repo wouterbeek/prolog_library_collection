@@ -5,8 +5,6 @@
     file_download/3, % +Source, ?File, +Opts
     html_download/2, % +Source, -Dom
     html_download/3, % +Source, -Dom,  +Opts
-    json_download/2, % +Source, -Json
-    json_download/3, % +Source, -Json, +Opts
     xml_download/2,  % +Source, -Dom
     xml_download/3   % +Source, -Dom,  +Opts
   ]
@@ -25,7 +23,6 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_request)).
-:- use_module(library(http/json)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io_ext)).
 :- use_module(library(os/open_any2)).
@@ -102,27 +99,6 @@ html_download(Source, Dom) :-
 html_download(Source, Dom, Opts) :-
   http_get(Source, {DirtyDom,Opts}/[In,M,M]>>load_html(In, DirtyDom, Opts)),
   clean_dom(DirtyDom, Dom).
-
-
-
-%! json_download(+Source, -Json) is det.
-%! json_download(+Source, -Json, +Opts) is det.
-
-json_download(Source, Json) :-
-  json_download(Source, Json, []).
-
-
-json_download(Source, Json, JsonOpts) :-
-  merge_options(
-    [request_header('Accept','application/json')],
-    JsonOpts,
-    HttpOpts
-  ),
-  http_get(
-    Source,
-    {Json,JsonOpts}/[In,M,M]>>json_read_dict(In, Json, JsonOpts),
-    HttpOpts
-  ).
 
 
 

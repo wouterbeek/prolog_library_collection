@@ -53,8 +53,13 @@ json_read_any(Source, D):-
   json_read_any(Source, D, []).
 
 
-json_read_any(Source, D, Opts):-
-  call_on_stream(Source, {D,Opts}/[In,M,M]>>json_read_dict(In, D, Opts), Opts).
+json_read_any(Source, D, Opts1) :-
+  merge_options([request_header('Accept'='application/json')], Opts1, Opts2),
+  call_on_stream(
+    Source,
+    {D,Opts2}/[In,M,M]>>json_read_dict(In, D, Opts2),
+    Opts2
+  ).
 
 
 
