@@ -6,7 +6,8 @@
     http_get/3,  % +Iri,        :Goal_3, +Opts
     http_post/2, % +Iri, +Data
     http_post/3, % +Iri, +Data, :Goal_3
-    http_post/4  % +Iri, +Data, :Goal_3, +Opts
+    http_post/4, % +Iri, +Data, :Goal_3, +Opts
+    http_retry_until_success/1 % :Goal_0
   ]
 ).
 
@@ -16,7 +17,7 @@ Higher-level HTTP requests build on top of library(http/http_open),
 posing an alternative to library(http/http_client).
 
 @author Wouter Beek
-@version 2016/04
+@version 2016/04, 2016/06
 */
 
 :- use_module(library(apply)).
@@ -30,7 +31,8 @@ posing an alternative to library(http/http_client).
     http_get(+, 3),
     http_get(+, 3, +),
     http_post(+, +, 3),
-    http_post(+, +, 3, +).
+    http_post(+, +, 3, +),
+    http_retry_until_success(0).
 
 
 
@@ -68,6 +70,25 @@ http_post(Iri, Data, Goal_3, Opts0) :-
   merge_options([method(post),post(Data)], Opts0, Opts),
   call_on_stream(Iri, Goal_3, Opts).
 
+
+
+%! http_retry_until_success(0) is det.
+
+http_retry_until_success(Goal_0) :-
+  catch(Goal_0, E, true),
+  (   var(E)
+  ->  true
+  ;   E = error(existence_error(_,M),_),
+      http_get_dict('llo:status', M, Status),
+      (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
+  ->  debug(bgt(scrape), "Status: ~D (~s)", [Status,Lbl]),
+      sleep(10),
+      http_retry_until_success(Goal_0)
+  ;   E = error(socket_error('Try Again'), _)
+  ->  debug(bgt(scrape), "TCP Try Again", []),
+      sleep(10),
+      http_retry_until_success(Goal_0)
+  ).
 
 
 

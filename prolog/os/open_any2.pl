@@ -477,12 +477,12 @@ print_http_header0(Cs) :-
 http_error_message(Iri, Status, Lines, Stream) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, MHeaders),
-  (http_status_label(Status, Label) -> true ; Label = 'NO LABEL'),
+  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
   dcg_with_output_to(string(S1), dict(MHeaders, 2)),
   read_input_to_string(Stream, S2),
   msg_warning(
-    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
-    [Status,Label,Iri,S1,S2]
+    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
+    [Status,Lbl,Iri,S1,S2]
   ).
 
 
