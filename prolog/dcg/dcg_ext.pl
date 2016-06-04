@@ -36,6 +36,7 @@
     bit//1,                % ?I:between(0,1)
     bracketed//1,          % :Dcg_0
     bracketed//2,          % ?Type:oneof([angular,curly,round,square,ungular]), :Dcg_0
+    bs//0,
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
     dcg_atom//2,           % :Dcg_1, ?A
@@ -104,7 +105,8 @@
     tab//1,                % +Indent:nonneg
     tab//2,                % +Indent:nonneg, :Dcg_0
     tab_nl//2,             % +Indent:nonneg, :Dcg_0
-    thousands//1           % +Integer:integer
+    thousands//1,          % +Integer:integer
+    ws//0
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
@@ -125,7 +127,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05
+@version 2015/11-2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(aggregate)).
@@ -292,29 +294,40 @@ My favorite collection of DCG rules.
 %! 'm*n'(?Low, ?High, :Dcg_1, -Args1)// is det.
 %! 'm*n'(?Low, ?High, :Dcg_2, -Args1, -Args2)// is det.
 
-'m*n'(Low, High, Dcg_0) --> 'm*n__'(Low, High, 0, Dcg_0).
+'m*n'(Low, High, Dcg_0) -->
+  'm*n__'(Low, High, 0, Dcg_0).
+
+'m*n__'(Low, _, Count, _) -->
+  {(var(Low) -> true ; Low =< Count)}.
 'm*n__'(Low, High, Count1, Dcg_0) -->
   {(var(High) -> true ; Count1 < High)},
   Dcg_0, !,
   {Count2 is Count1 + 1},
   'm*n__'(Low, High, Count2, Dcg_0).
-'m*n__'(Low, _, Count, _) --> {(var(Low) -> true ; Low =< Count)}.
 
-'m*n'(Low, High, Dcg_1, L1) --> 'm*n__'(Low, High, 0, Dcg_1, L1).
+
+'m*n'(Low, High, Dcg_1, L1) -->
+  'm*n__'(Low, High, 0, Dcg_1, L1).
+
+'m*n__'(Low, _, Count, _, []) -->
+  {(var(Low) -> true ; Low =< Count)}.
 'm*n__'(Low, High, Count1, Dcg_1, [H1|T1]) -->
   {(var(High) -> true ; Count1 < High)},
   dcg_call(Dcg_1, H1), !,
   {Count2 is Count1 + 1},
   'm*n__'(Low, High, Count2, Dcg_1, T1).
-'m*n__'(Low, _, Count, _, []) --> {(var(Low) -> true ; Low =< Count)}.
 
-'m*n'(Low, High, Dcg_2, L1, L2) --> 'm*n__'(Low, High, 0, Dcg_2, L1, L2).
+
+'m*n'(Low, High, Dcg_2, L1, L2) -->
+  'm*n__'(Low, High, 0, Dcg_2, L1, L2).
+
+'m*n__'(Low, _, Count, _, [], []) -->
+  {(var(Low) -> true ; Low =< Count)}.
 'm*n__'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
   {(var(High) -> true ; Count1 < High)},
   dcg_call(Dcg_2, H1, H2), !,
   {Count2 is Count1 + 1},
   'm*n__'(Low, High, Count2, Dcg_2, T1, T2).
-'m*n__'(Low, _, Count, _, [], []) --> {(var(Low) -> true ; Low =< Count)}.
 
 
 
@@ -455,6 +468,20 @@ bracketed0(Type, Dcg_0) -->
     Dcg_0,
     closing_bracket(Type, _)
   ).
+
+
+
+%! bs// is nondet.
+%
+% “Blankspace”
+%
+% Parses as blank//0; generates as space.
+
+bs -->
+  parsing, !,
+  blank.
+bs -->
+  " ".
 
 
 
@@ -1050,3 +1077,19 @@ tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
 thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).
+
+
+
+%! ws// is nondet.
+%
+% “Whitespace”
+%
+% Parses as white//0; generate as space.
+%
+% @see bs//0
+
+ws -->
+  parsing, !,
+  white.
+ws -->
+  " ".
