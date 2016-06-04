@@ -40,6 +40,8 @@
 %/fca
   :- use_module(library(fca/fca)).
 :- use_module(library(flag_ext)).
+% /geo
+  :- use_module(library(geo/wkt)).
 %/graph
   :- use_module(library(graph/betweenness)).
   :- use_module(library(graph/graph_closure)).

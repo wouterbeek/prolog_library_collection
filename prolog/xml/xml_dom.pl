@@ -13,13 +13,14 @@
 /** <module> XML DOM
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2016/03, 2016/05
+@version 2015/07, 2015/10, 2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_request)).
 :- use_module(library(memfile)).
+:- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(semweb/rdf11), []).
@@ -33,18 +34,22 @@
 
 %! atom_to_xml_dom(+Atom, -Dom) is det.
 %! atom_to_xml_dom(+Atom, -Dom, +Opts) is det.
+%
+% Uses option `dialect(xml)` unless option `dialect/1` is explicitly
+% specified.  This allows the dialect to be set to `xmlns`.
 
 atom_to_xml_dom(A, Dom) :-
   atom_to_xml_dom(A, Dom, []).
 
 
-atom_to_xml_dom(A, Dom, Opts) :-
+atom_to_xml_dom(A, Dom, Opts1) :-
+  merge_options([dialect(xml)], Opts1, Opts2),
   setup_call_cleanup(
     atom_to_memory_file(A, Handle),
     setup_call_cleanup(
-      open_memory_file(Handle, read, Read),
-      load_xml(Read, Dom, Opts),
-      close(Read)
+      open_memory_file(Handle, read, In),
+      load_structure(In, Dom, Opts2),
+      close(In)
     ),
     free_memory_file(Handle)
   ).
