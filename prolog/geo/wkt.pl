@@ -127,7 +127,7 @@ linestring_text_body(ZM, L) -->
 linestring_text_representation(ZM1, linestring(L)) -->
   "LINESTRING ",
   z_m(ZM1, ZM2),
-  linestring text body(ZM2, L).
+  linestring_text_body(ZM2, L).
 
 
 
