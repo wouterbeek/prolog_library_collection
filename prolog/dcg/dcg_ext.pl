@@ -161,9 +161,12 @@ My favorite collection of DCG rules.
     'm*n'(?, ?, //, ?, ?),
     'm*n'(?, ?, 3, -, ?, ?),
     'm*n'(?, ?, 4, -, -, ?, ?),
-    'm*n__'(?, ?, +, //, ?, ?),
-    'm*n__'(?, ?, +, 3, -, ?, ?),
-    'm*n__'(?, ?, +, 4, -, -, ?, ?),
+    'm*n__g'(?, ?, +, //, ?, ?),
+    'm*n__g'(?, ?, +, 3, -, ?, ?),
+    'm*n__g'(?, ?, +, 4, -, -, ?, ?),
+    'm*n__p'(?, ?, +, //, ?, ?),
+    'm*n__p'(?, ?, +, 3, -, ?, ?),
+    'm*n__p'(?, ?, +, 4, -, -, ?, ?),
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
     bracketed(//, ?, ?),
@@ -295,39 +298,72 @@ My favorite collection of DCG rules.
 %! 'm*n'(?Low, ?High, :Dcg_2, -Args1, -Args2)// is det.
 
 'm*n'(Low, High, Dcg_0) -->
-  'm*n__'(Low, High, 0, Dcg_0).
+  parsing, !,
+  'm*n__p'(Low, High, 0, Dcg_0).
+'m*n'(Low, High, Dcg_0) -->
+  'm*n__g'(Low, High, 0, Dcg_0).
 
-'m*n__'(Low, _, Count, _) -->
+'m*n__g'(Low, _, Count, _) -->
   {(var(Low) -> true ; Low =< Count)}.
-'m*n__'(Low, High, Count1, Dcg_0) -->
+'m*n__g'(Low, High, Count1, Dcg_0) -->
   {(var(High) -> true ; Count1 < High)},
   Dcg_0, !,
   {Count2 is Count1 + 1},
-  'm*n__'(Low, High, Count2, Dcg_0).
+  'm*n__g'(Low, High, Count2, Dcg_0).
+
+'m*n__p'(Low, High, Count1, Dcg_0) -->
+  {(var(High) -> true ; Count1 < High)},
+  Dcg_0, !,
+  {Count2 is Count1 + 1},
+  'm*n__p'(Low, High, Count2, Dcg_0).
+'m*n__p'(Low, _, Count, _) -->
+  {(var(Low) -> true ; Low =< Count)}.
 
 
 'm*n'(Low, High, Dcg_1, L1) -->
-  'm*n__'(Low, High, 0, Dcg_1, L1).
+  parsing, !,
+  'm*n__p'(Low, High, 0, Dcg_1, L1).
+'m*n'(Low, High, Dcg_1, L1) -->
+  'm*n__g'(Low, High, 0, Dcg_1, L1).
 
-'m*n__'(Low, _, Count, _, []) -->
+'m*n__g'(Low, _, Count, _, []) -->
   {(var(Low) -> true ; Low =< Count)}.
-'m*n__'(Low, High, Count1, Dcg_1, [H1|T1]) -->
+'m*n__g'(Low, High, Count1, Dcg_1, [H1|T1]) -->
   {(var(High) -> true ; Count1 < High)},
   dcg_call(Dcg_1, H1), !,
   {Count2 is Count1 + 1},
-  'm*n__'(Low, High, Count2, Dcg_1, T1).
+  'm*n__g'(Low, High, Count2, Dcg_1, T1).
+
+'m*n__p'(Low, High, Count1, Dcg_1, [H1|T1]) -->
+  {(var(High) -> true ; Count1 < High)},
+  dcg_call(Dcg_1, H1), !,
+  {Count2 is Count1 + 1},
+  'm*n__p'(Low, High, Count2, Dcg_1, T1).
+'m*n__p'(Low, _, Count, _, []) -->
+  {(var(Low) -> true ; Low =< Count)}.
 
 
 'm*n'(Low, High, Dcg_2, L1, L2) -->
-  'm*n__'(Low, High, 0, Dcg_2, L1, L2).
+  parsing, !,
+  'm*n__p'(Low, High, 0, Dcg_2, L1, L2).
+'m*n'(Low, High, Dcg_2, L1, L2) -->
+  'm*n__g'(Low, High, 0, Dcg_2, L1, L2).
 
-'m*n__'(Low, _, Count, _, [], []) -->
+'m*n__g'(Low, _, Count, _, [], []) -->
   {(var(Low) -> true ; Low =< Count)}.
-'m*n__'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
+'m*n__g'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
   {(var(High) -> true ; Count1 < High)},
   dcg_call(Dcg_2, H1, H2), !,
   {Count2 is Count1 + 1},
-  'm*n__'(Low, High, Count2, Dcg_2, T1, T2).
+  'm*n__g'(Low, High, Count2, Dcg_2, T1, T2).
+
+'m*n__p'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
+  {(var(High) -> true ; Count1 < High)},
+  dcg_call(Dcg_2, H1, H2), !,
+  {Count2 is Count1 + 1},
+  'm*n__p'(Low, High, Count2, Dcg_2, T1, T2).
+'m*n__p'(Low, _, Count, _, [], []) -->
+  {(var(Low) -> true ; Low =< Count)}.
 
 
 
