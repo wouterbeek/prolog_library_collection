@@ -345,9 +345,9 @@ empty_set([]) --> "EMPTY".
 m(N) --> number(N).
 
 
-point(zm, [X,Y,Z,M]) --> point(z, [X,Y,Z]), +(ws), m(M), !.
-point(z, [X,Y,Z]) --> point(none, [X,Y]), +(ws), z(Z), !.
-point(m, [X,Y,M]) --> point(none, [X,Y]), +(ws), m(M), !.
+%point(zm, [X,Y,Z,M]) --> point(z, [X,Y,Z]), +(ws), m(M), !.
+%point(z, [X,Y,Z]) --> point(none, [X,Y]), +(ws), z(Z), !.
+%point(m, [X,Y,M]) --> point(none, [X,Y]), +(ws), m(M), !.
 point(_, [X,Y]) --> x(X), +(ws), y(Y).
 
 
