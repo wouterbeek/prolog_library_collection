@@ -2,6 +2,7 @@
   thread_ext,
   [
     attached_thread/1,           % :Goal_0
+    call_on_wildcard/2,          % :Goal_1, +Opts
     create_thread/1,             % :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads
     detached_thread/1,           % :Goal_0
@@ -20,16 +21,18 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01-2016/03, 2016/05
+@version 2015/10, 2016/01-2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(stream_ext)).
 
 :- meta_predicate
     attached_thread(0),
+    call_on_wildcard(1, +),
     create_thread(0),
     detached_thread(0),
     intermittent_goal(0, 0, +),
@@ -44,6 +47,25 @@
 
 attached_thread(Goal_0) :-
   thread_create(Goal_0, _, []).
+
+
+
+%! call_on_wildcard(:Goal_1, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * wildcard(+atom) The Wildcard path that, through expansion,
+%   denotes a list of files to which Goal_1 is applied.
+%
+%   * concurrent(+positive_integer) The number of thread that are used
+%   in parallel processing multiple files.
+
+call_on_wildcard(Goal_1, Opts) :-
+  expand_file_name(Opts.wildcard, L),
+  (   get_dict(concurrent, Opts, true)
+  ->  concurrent_maplist(Goal_1, L)
+  ;   maplist(Goal_1, L)
+  ).
 
 
 

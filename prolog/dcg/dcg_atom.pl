@@ -15,7 +15,7 @@
 Grammar rules for processing atoms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10, 2015/12, 2016/05
+@version 2015/08, 2015/10, 2015/12, 2016/05-2016/06
 */
 
 :- use_module(library(atom_ext)).
@@ -82,7 +82,7 @@ atom_lower(A) -->
   {atom_codes(A, Cs)}.
 atom_lower(A) -->
   {nonvar(A), !,
-   atom_codes(A, Cs)},
+  atom_codes(A, Cs)},
   *(code_lower, Cs).
 
 

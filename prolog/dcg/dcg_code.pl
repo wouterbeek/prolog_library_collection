@@ -5,19 +5,19 @@
                      % +High:code
     between_code//3, % +Low:code
                      % +High:code
-                     % ?Code:code
+                     % ?C
     between_code_radix//2, % +RadixLow:compound
                            % +RadixHigh:compound
     between_code_radix//3, % +RadixLow:compound
                            % +RadixHigh:compound
-                           % -Code:code
-    code//1, % ?Code:code
-    code_ci//1, % ?Code:code
-    code_lower//1, % ?Code:code
+                           % -C
+    code//1, % ?C
+    code_ci//1, % ?C
+    code_lower//1, % ?C
     code_radix//1, % ?RadixCode:compound
     code_radix//2, % ?RadixCode:compound
-                   % -Code:code
-    code_upper//1 % ?Code:code
+                   % -C
+    code_upper//1 % ?C
   ]
 ).
 
@@ -26,10 +26,11 @@
 DCG support for entering character codes.
 
 @author Wouter Beek
-@version 2015/07-2015/08
+@version 2015/07-2015/08, 2016/06
 */
 
 :- use_module(library(code_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(math/radconv)).
 
@@ -38,7 +39,7 @@ DCG support for entering character codes.
 
 
 %! between_code(+Low:code, +High:code)// .
-%! between_code(+Low:code, +High:code, ?Code:code)// .
+%! between_code(+Low:code, +High:code, ?C)// .
 
 between_code(Low, High) -->
   between_code(Low, High, _).
@@ -50,7 +51,7 @@ between_code(Low, High, C) -->
 
 
 %! between_code_radix(+Low:compound, +High:compound)// .
-%! between_code_radix(+Low:compound, +High:compound, -Code:code)// .
+%! between_code_radix(+Low:compound, +High:compound, -C)// .
 % Parses or generates a code between the given numbers.
 
 between_code_radix(Low, High) -->
@@ -67,7 +68,7 @@ between_code_radix(Low1, High1, C) -->
 
 
 
-%! code(?Code:code)// .
+%! code(?C)// .
 % Useful in meta-predicates.
 
 code(C) -->
@@ -140,6 +141,7 @@ code_ci(C) -->
 
 %! code_lower(+Code:nonneg)// is det.
 %! code_lower(-Code:nonneg)// is nondet.
+%
 % Parses letters and returns their lower-case character code.
 %
 % ```prolog
@@ -160,21 +162,18 @@ code_ci(C) -->
 % Cs = "a".
 % ```
 
+code_lower(Lower) -->
+  parsing, !,
+  [C],
+  {code_type(C, upper(Lower))}.
 code_lower(C) -->
-  {var(C)}, !,
-  (   letter_lowercase(C)
-  ->  ""
-  ;   letter_uppercase(C0)
-  ->  {to_lower(C0, C)}
-  ).
-code_lower(C) -->
-  {to_lower(C, C0)},
-  letter_lowercase(C0).
+  {to_lower(C, Lower)},
+  [Lower].
 
 
 
 %! code_radix(+RadixCode:compound)// .
-%! code_radix(+RadixCode:compound, -Code:code)// .
+%! code_radix(+RadixCode:compound, -C)// .
 % Emits a single code and allows the code to be represented
 % in one of the following bases:
 %   - bin(+nonneg)

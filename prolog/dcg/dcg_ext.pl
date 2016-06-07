@@ -1022,7 +1022,9 @@ seplist(_, _, []) --> !, [].
 
 %! skip_line// is det.
 
-skip_line --> ..., eol, !.
+skip_line -->
+  ...,
+  eol, !.
 
 
 
@@ -1037,11 +1039,13 @@ str(S) -->
 %! string// .
 % Wrapper around string//1.
 
-string --> string(_).
+string -->
+  string(_).
 
 
 
 %! string_phrase(:Dcg_0, ?S)// is nondet.
+%! string_phrase(:Dcg_0, +S1, ?S2)// is nondet.
 
 string_phrase(Dcg_0, S):-
   var(S), !,
@@ -1052,8 +1056,6 @@ string_phrase(Dcg_0, S):-
   string_codes(S, Cs),
   phrase(Dcg_0, Cs).
 
-
-%! string_phrase(:Dcg_0, +S1, ?S2)// is nondet.
 
 string_phrase(Dcg_0, S1, S2):-
   must_be(string, S1),
@@ -1066,18 +1068,19 @@ string_phrase(Dcg_0, S1, S2):-
 %! string_without(+EndCodes:list(code))// .
 % Wrapper around string_without//2.
 
-string_without(End) --> string_without(End, _).
+string_without(End) -->
+  string_without(End, _).
 
 
 
 %! sum_pos(+N:nonneg, -Ds:list(between(0,9))) is det.
-% Wrapper around sum_pos/3 with decimal base.
+%! sum_pos(+N:nonneg, +Base:nonneg, -Ds:list(between(0,9))) is det.
+%
+% The default Base is decimal.
 
 sum_pos(I, Ds):-
   sum_pos(I, 10, Ds).
 
-
-%! sum_pos(+N:nonneg, +Base:nonneg, -Ds:list(between(0,9))) is det.
 
 sum_pos(I, Base, Ds):-
   sum_pos0(I, Base, Ds0),
@@ -1092,11 +1095,10 @@ sum_pos0(I1, Base, [H|T]):-
 
 
 %! tab(+Indent:nonneg)// is det.
+%! tab(+Indent:nonneg, :Dcg_2)// is det.
 
 tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
 
-
-%! tab(+Indent:nonneg, :Dcg_2)// is det.
 
 tab(I, Dcg_0) --> tab(I), Dcg_0.
 
