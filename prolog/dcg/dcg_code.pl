@@ -1,23 +1,16 @@
 :- module(
   dcg_code,
   [
-    between_code//2, % +Low:code
-                     % +High:code
-    between_code//3, % +Low:code
-                     % +High:code
-                     % ?C
-    between_code_radix//2, % +RadixLow:compound
-                           % +RadixHigh:compound
-    between_code_radix//3, % +RadixLow:compound
-                           % +RadixHigh:compound
-                           % -C
-    code//1, % ?C
-    code_ci//1, % ?C
-    code_lower//1, % ?C
-    code_radix//1, % ?RadixCode:compound
-    code_radix//2, % ?RadixCode:compound
-                   % -C
-    code_upper//1 % ?C
+    between_code//2,     % +Low, +High
+    between_code//3,     % +Low, +High, ?C
+    between_code_rad//2, % +RadLow, +RadHigh
+    between_code_rad//3, % +RadLow, +RadHigh, -C
+    code//1,             % ?C
+    code_ci//1,          % ?C
+    code_lower//1,       % ?C
+    code_rad//1,         % ?RadC
+    code_rad//2,         % ?RadC, -C
+    code_upper//1        % ?C
   ]
 ).
 
@@ -38,11 +31,12 @@ DCG support for entering character codes.
 
 
 
-%! between_code(+Low:code, +High:code)// .
-%! between_code(+Low:code, +High:code, ?C)// .
+%! between_code(+Low, +High)// .
+%! between_code(+Low, +High, ?C)// .
 
 between_code(Low, High) -->
   between_code(Low, High, _).
+
 
 between_code(Low, High, C) -->
   [C],
@@ -50,25 +44,28 @@ between_code(Low, High, C) -->
 
 
 
-%! between_code_radix(+Low:compound, +High:compound)// .
-%! between_code_radix(+Low:compound, +High:compound, -C)// .
+%! between_code_rad(+Low, +High)// .
+%! between_code_rad(+Low, +High, -C)// .
+%
 % Parses or generates a code between the given numbers.
 
-between_code_radix(Low, High) -->
-  between_code_radix(Low, High, _).
+between_code_rad(Low, High) -->
+  between_code_rad(Low, High, _).
 
-between_code_radix(dec(Low), dec(High), C) --> !,
+
+between_code_rad(dec(Low), dec(High), C) --> !,
   between_code(Low, High, C).
-between_code_radix(Low1, High1, C) -->
+between_code_rad(Low1, High1, C) -->
   {
     radconv(Low1, dec(Low2)),
     radconv(High1, dec(High2))
   },
-  between_code_radix(dec(Low2), dec(High2), C).
+  between_code_rad(dec(Low2), dec(High2), C).
 
 
 
 %! code(?C)// .
+%
 % Useful in meta-predicates.
 
 code(C) -->
@@ -76,8 +73,8 @@ code(C) -->
 
 
 
-%! code_ci(+Code:nonneg)// is multi.
-%! code_ci(-Code:nonneg)// is nondet.
+%! code_ci(+C)// is multi.
+%! code_ci(-C)// is nondet.
 % Writes case-insensitive variants of the given code.
 % Generates the upper- and lowercase variants of a given letter
 % (in no particular order).
@@ -139,8 +136,8 @@ code_ci(C) -->
 
 
 
-%! code_lower(+Code:nonneg)// is det.
-%! code_lower(-Code:nonneg)// is nondet.
+%! code_lower(+C)// is det.
+%! code_lower(-C)// is nondet.
 %
 % Parses letters and returns their lower-case character code.
 %
@@ -172,30 +169,36 @@ code_lower(C) -->
 
 
 
-%! code_radix(+RadixCode:compound)// .
-%! code_radix(+RadixCode:compound, -C)// .
-% Emits a single code and allows the code to be represented
-% in one of the following bases:
-%   - bin(+nonneg)
-%   - dec(+nonneg)
-%   - hex(+atom)
-%   - oct(+nonneg)
+%! code_rad(+RadC)// .
+%! code_rad(+RadC, -C)// .
+%
+% Emits a single code and allows the code to be represented in one of
+% the following bases:
+%
+%   * bin(+nonneg)
+%
+%   * dec(+nonneg)
+%
+%   * hex(+atom)
+%
+%   * oct(+nonneg)
 
-code_radix(RadixCode) -->
-  code_radix(RadixCode, _).
+code_rad(RadC) -->
+  code_rad(RadC, _).
 
-code_radix(RadixCode, C) -->
-  {var(RadixCode)}, !,
+
+code_rad(RadC, C) -->
+  {var(RadC)}, !,
   [C],
-  {radconv(RadixCode, dec(C))}.
-code_radix(RadixCode, C) -->
-  {radconv(RadixCode, dec(C))},
+  {radconv(RadC, dec(C))}.
+code_rad(RadC, C) -->
+  {radconv(RadC, dec(C))},
   [C].
 
 
 
-%! code_upper(+Code:nonneg)// is det.
-%! code_upper(-Code:nonneg)// is nondet.
+%! code_upper(+C)// is det.
+%! code_upper(-C)// is nondet.
 % Parses upper-case letters and returns their lower- and upper-case
 % character code (in that order).
 %
@@ -217,13 +220,10 @@ code_radix(RadixCode, C) -->
 % Cs = "A".
 % ```
 
+code_upper(Upper) -->
+  parsing, !,
+  [C],
+  {code_type(C, upper(Upper))}.
 code_upper(C) -->
-  {var(C)}, !,
-  (   letter_uppercase(C)
-  ->  ""
-  ;   letter_lowercase(C0)
-  ->  {to_upper(C0, C)}
-  ).
-code_upper(C) -->
-  {to_upper(C, C0)},
-  letter_uppercase(C0).
+  {to_upper(C, Upper)},
+  [Upper].

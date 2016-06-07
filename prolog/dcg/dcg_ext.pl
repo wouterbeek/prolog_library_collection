@@ -69,6 +69,7 @@
     frac_pos/2,            % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
     generate_as_digits//2, % +N:nonneg, +NoDs
     generate_as_digits//3, % +N:nonneg, +Base:positive_integer, +NoDs
+    generating//0,
     indent//1,             % +Indent:nonneg
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
@@ -808,6 +809,16 @@ generate_as_digits(N1, Base, M1) -->
 
 
 
+%! generating// is semidet.
+%
+% Succeeds if currently generating a list of codes (rather than
+% parsing a list of codes).
+
+generating(X, Y):-
+  \+ parsing(X, Y).
+
+
+
 %! indent(+Indent:nonneg)// is det.
 
 indent(0) --> !, "".
@@ -859,10 +870,12 @@ opt(_, _) --> [].
 
 
 %! parsing// is semidet.
-% Succeeds if currently parsing a list of codes
-% (rather than generating a list of codes).
+%
+% Succeeds if currently parsing a list of codes (rather than
+% generating a list of codes).
 
-parsing(H, H):- nonvar(H).
+parsing(H, H):-
+  nonvar(H).
 
 
 

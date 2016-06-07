@@ -1,12 +1,13 @@
 :- module(
   dcg_atom,
   [
-    atom_capitalize//0,
-    atom_ci//1,         % ?A
-    atom_ellipsis//2,   % +A, +Ellipsis:positive_integer
-    atom_lower//1,      % ?A
-    atom_title//1,      % ?A
-    atom_upper//1       % ?A
+    atom_ci//1,        % ?A
+    atom_ellipsis//2,  % +A, +Ellipsis:positive_integer
+    atom_lower//1,     % ?A
+    atom_lowercase//0,
+    atom_title//1,     % ?A
+    atom_upper//1,     % ?A
+    atom_uppercase//0
   ]
 ).
 
@@ -30,14 +31,8 @@ Grammar rules for processing atoms.
 
 
 
-%! atom_capitalize// .
-
-atom_capitalize, [Up] --> [Low], {code_type(Up, to_upper(Low))}, !, rest.
-atom_capitalize       --> "".
-
-
-
 %! atom_ci(?A)// .
+%
 % ```prolog
 % ?- phrase(atom_ci(http), Cs).
 % Cs = "HTTP" ;
@@ -59,8 +54,13 @@ atom_capitalize       --> "".
 % false.
 % ```
 
-atom_ci(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_ci, Cs).
-atom_ci(A) --> *(code_ci, Cs), {atom_codes(A, Cs)}.
+atom_ci(A) -->
+  parsing, !,
+  *(code_ci, Cs),
+  {atom_codes(A, Cs)}.
+atom_ci(A) -->
+  {atom_codes(A, Cs)},
+  *(code_ci, Cs).
 
 
 
@@ -72,37 +72,62 @@ atom_ellipsis(A, Ellipsis) -->
 
 
 
-%! atom_lower(+A)// is det.
-%! atom_lower(+A)// is det.
-% Generate/parse a lower-case atom, i.e. one consisting of all characters
-% except for uppercase letters.
+%! atom_lower(?A)// .
+%
+% Generate/parse a lower-case atom, i.e. one consisting of all
+% characters except for uppercase letters.
 
 atom_lower(A) -->
+  parsing, !,
   *(code_lower, Cs),
   {atom_codes(A, Cs)}.
 atom_lower(A) -->
-  {nonvar(A), !,
-  atom_codes(A, Cs)},
+  {atom_codes(A, Cs)},
   *(code_lower, Cs).
+
+
+
+%! atom_lowercase// .
+
+atom_lowercase, [Low] -->
+  [Up],
+  {code_type(Low, to_lower(Up))}, !,
+  rest.
+atom_lowercase --> "".
 
 
 
 %! atom_title(?A) // .
 
 atom_title(A) -->
-  {var(A)}, !,
+  generating, !,
+  {atom_codes(A, [C|Cs])},
+  hialpha(C),
+  *(lowalpha, Cs).
+atom_title(A) -->
   hialpha(C),
   *(lowalpha, Cs),
   {atom_codes(A, [C|Cs])}.
 atom_title('') --> !, "".
-atom_title(A) -->
-  {atom_codes(A, [C|Cs])},
-  hialpha(C),
-  *(lowalpha, Cs).
 
 
 
 %! atom_upper(?A)// .
 
-atom_upper(A) --> *(code_upper, Cs), {atom_codes(A, Cs)}.
-atom_upper(A) --> {nonvar(A), !, atom_codes(A, Cs)}, *(code_upper, Cs).
+atom_upper(A) -->
+  parsing, !,
+  *(code_upper, Cs),
+  {atom_codes(A, Cs)}.
+atom_upper(A) -->
+  {atom_codes(A, Cs)},
+  *(code_upper, Cs).
+
+
+
+%! atom_uppercase// is det.
+
+atom_uppercase, [Up] -->
+  [Low],
+  {code_type(Up, to_upper(Low))}, !,
+  rest.
+atom_uppercase --> "".
