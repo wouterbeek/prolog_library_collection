@@ -687,6 +687,9 @@ dcg_goal(Goal_0) -->
 
 
 %! dcg_max_width(:Dcg_1, +Args, -MaxWidth:nonneg) is det.
+%
+% MaxWidth is the number of longest string that is the result of
+% printing all Args with the DCG_1 rule.
 
 dcg_max_width(Dcg_1, Args, MaxW):-
   aggregate_all(
