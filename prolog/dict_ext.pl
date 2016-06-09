@@ -5,6 +5,8 @@
     create_dict/3,          % +Pairs, +Tag, -D
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedD
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
+    dict_call_pairs/2,      % :Goal_1, +D
+    dict_call_pairs/3,      % :Goal_2, +D1, -D2
     dict_dec/2,             % +Key, +D
     dict_dec/3,             % +Key, +D, -Val
     dict_dec/4,             % +Key, +D, +Diff, -Val
@@ -14,6 +16,7 @@
     dict_inc/4,             % +Key, +D, +Diff, -Val
     dict_pairs/2,           % ?D, ?Pairs
     dict_prepend/3,         % +Key, +D, +Elem
+    dict_put/3,             % +D1, +D2, -D3
     dict_put_default/4,     % +Key, D1, +Def, +D2
     dict_put_pairs/3,       % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
@@ -24,7 +27,7 @@
     get_dict/4,             % +Key, +D, -Val, +Def
     is_empty_dict/1,        % @Term
     merge_dict/3,           % +D1, +D2, -D3
-    mod_dict/4,             % +Key, +D1,           -Val, -D2
+    mod_dict/4,             % +Key, +D1,       -Val, -D2
     mod_dict/5              % +Key, +D1, +Def, -Val, -D2
   ]
 ).
@@ -33,7 +36,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03-2016/05
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/06
 */
 
 :- use_module(library(apply)).
@@ -41,6 +44,10 @@
 :- use_module(library(list_ext)).
 :- use_module(library(pairs)).
 :- use_module(library(yall)).
+
+:- meta_predicate
+    dict_call_pairs(1, +),
+    dict_call_pairs(2, +, -).
 
 
 
@@ -86,6 +93,21 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs),
   dict_pairs(D, Tag, GroupedPairs).
+
+
+
+%! dict_call_pairs(:Goal_1, +D) is det.
+%! dict_call_pairs(:Goal_2, +D1, -D2) is det.
+
+dict_call_pairs(Goal_1, D) :-
+  dict_pairs(D, Pairs),
+  call(Goal_1, Pairs).
+
+
+dict_call_pairs(Goal_2, D1, D2) :-
+  dict_pairs(D1, Pairs1),
+  maplist(Goal_2, Pairs1, Pairs2),
+  dict_pairs(D2, Pairs2).
 
 
 
@@ -167,6 +189,12 @@ dict_prepend(Key, D, H) :-
   get_dict(Key, D, T),
   nb_set_dict(Key, D, [H|T]).
 
+
+
+%! dict_put(+D1, +D2, -D3) is det.
+
+dict_put(D1, D2, D3) :-
+  D3 = D1.put(D2).
 
 
 %! dict_set(+Key, +D, +Val) is det.
