@@ -72,7 +72,7 @@ http_post(Iri, Data, Goal_3, Opts0) :-
 
 
 
-%! http_retry_until_success(0) is det.
+%! http_retry_until_success(:Goal_0) is det.
 
 http_retry_until_success(Goal_0) :-
   catch(Goal_0, E, true),
