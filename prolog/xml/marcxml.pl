@@ -16,18 +16,12 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(dict_ext)).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(xpath)).
-
-:- dynamic
-    marcxml:field_property/3,
-    marcxml:field_subfield_property/4.
-
-:- multifile
-    marcxml:field_property/3,
-    marcxml:field_subfield_property/4.
 
 
 
@@ -36,13 +30,19 @@
 %! marcxml_controlfield(+Dom, +Field, -Val) is nondet.
 
 marcxml_controlfield(Dom, Field, Val) :-
-  xpath(Dom, //'marc:controlfield'(@tag=Field,text), Val),
-  Val \== ''.
+  xpath(Dom, //'marc:controlfield'(@tag=Field,text), Val).
 
 
 
 %! marcxml_datafield(+Dom, +Field, +Subfield, -Val) is nondet.
-%! marcxml_datafield(+Dom, +Field, -Indicator1, -Indicator2, +Subfield, -Val) is nondet.
+%! marcxml_datafield(
+%!   +Dom,
+%!   +Field,
+%!   -Indicator1,
+%!   -Indicator2,
+%!   +Subfield,
+%!   -Val
+%! ) is nondet.
 
 marcxml_datafield(Dom, Field, Subfield, Val) :-
   marcxml_datafield(Dom, Field, _, _, Subfield, Val).
@@ -63,17 +63,13 @@ marcxml_datafield0(Dom, Field, Datafield) :-
 %! marcxml_profile(+Dom, -D) is det.
 
 marcxml_profile(Dom, D) :-
-  findall(
-    Field-Val,
-    (
-      marcxml_controlfield(Dom, Field, Val),
-      (   marcxml:field_property(_, Field, _)
-      ->  true
-      ;   msg_warning("[MARCXML] Unrecognized field: ~w~n", [Field])
-      )
-    ),
-    Pairs1
+  aggregate_all(
+    set(Field-Val),
+    marcxml_controlfield(Dom, Field, Val),
+    Pairs1a
   ),
+  group_pairs_by_key(Pairs1a, Pairs1b),
+  maplist(flatten_singleton_value, Pairs1b, Pairs1c),
   aggregate_all(set(Field), marcxml_datafield0(Dom, Field, _), Fields),
   findall(
     Field-D,
@@ -83,30 +79,28 @@ marcxml_profile(Dom, D) :-
     ),
     Pairs2
   ),
-  append(Pairs1, Pairs2, Pairs),
+  append(Pairs1c, Pairs2, Pairs),
   dict_pairs(D, Pairs).
 
 marcxml_profile0(Dom, Field, D) :-
-  findall(
-    Subfield-Val,
+  aggregate_all(
+    set(Subfield-Val),
     (
       marcxml_datafield(Dom, Field, Subfield, Val),
-      (   marcxml:field_subfield_property(_, Field, Subfield, _)
-      ->  true
-      ;   msg_warning(
-            "[MARCXML] Unrecognized field&subfield: ~w ~w~n",
-            [Field,Subfield]
-          )
-      )
+      (Vals = [Val] -> true ; Val = Vals)
     ),
-    Pairs
+    Pairs1
   ),
-  dict_pairs(D, Pairs).
+  group_pairs_by_key(Pairs1, Pairs2),
+  maplist(flatten_singleton_value, Pairs2, Pairs3),
+  dict_pairs(D, Pairs3).
+
+flatten_singleton_value(Key-[Val], Key-Val) :- !.
+flatten_singleton_value(Pair, Pair).
 
 
 
 %! marcxml_subfield(+Dom, +Subfield, -Val) is semidet.
 
 marcxml_subfield(Dom, Subfield, Val) :-
-  xpath(Dom, //'marc:subfield'(@code=Subfield,text), Val),
-  Val \== ''.
+  xpath(Dom, //'marc:subfield'(@code=Subfield,text), Val).
