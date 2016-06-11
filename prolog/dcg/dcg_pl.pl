@@ -52,15 +52,15 @@ dict(D, Opts0) -->
   ;   % Singleton dictionaries do not use lucious spacing if
       % the member is singleton.
       {is_singleton_term(D)}
-  ->  tab(I),
-      "{",
+  ->  tab(I), "{ ",
       {L = [Key-Val]},
       {EntryOpts = Opts.put(_{indent: 0})},
       dict_entry(Key-Val, EntryOpts),
-      "}"
-  ;   tab(I), "{", nl,
-      {dict_inc(indent, Opts)},
-      term_entries(dict_entry, L, Opts),
+      " }"
+  ;   "{", nl,
+      {EntryI is Opts.indent + 1},
+      {EntryOpts = Opts.put(_{indent: EntryI})},
+      term_entries(dict_entry, L, EntryOpts),
       tab(I), "}"
   ).
 
@@ -74,7 +74,7 @@ dict_entry(Key-Val, Opts1) -->
   % that are non-empty and non-singleton.
   (   {(is_empty_term(Val) ; is_singleton_term(Val))}
   ->  {I = 0}
-  ;   {I is Opts1.indent + 1}
+  ;   {I is Opts1.indent}
   ),
   {Opts2 = Opts1.put(_{indent: I})},
   term(Val, Opts2).
@@ -108,18 +108,19 @@ is_singleton_term(_).
 
 
 list0(L, Opts) -->
+  {I = Opts.indent},
   (   % The empty list does not use lusious spacing.
       {is_empty_term(L)}
-  ->  tab(Opts.indent), list(L)
+  ->  tab(I), list(L)
   ;   % A singleton list does not use lucious spacing
       % if its member is singleton.
       {is_singleton_term(L)}
-  ->  tab(Opts.indent), list(L)
-  ;   tab(Opts.indent), "[", nl,
+  ->  tab(I), list(L)
+  ;   "[", nl,
       {dict_inc(indent, Opts)},
       term_entries(term, L, Opts),
       {dict_dec(indent, Opts)},
-      tab(Opts.indent), "]"
+      tab(I), "]"
   ).
 
 
