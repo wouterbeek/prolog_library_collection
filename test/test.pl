@@ -176,6 +176,7 @@
   :- use_module(library(url/rfc1738)).
 :- use_module(library(uuid_ext)).
 %/xml
+  :- use_module(library(xml/marcxml)).
   :- use_module(library(xml/xml_dom)).
   :- use_module(library(xml/xml10_code)).
   :- use_module(library(xml/xml11_code)).
