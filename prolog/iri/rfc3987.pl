@@ -1,15 +1,15 @@
 :- module(
   rfc3987,
   [
-    'absolute-IRI'//1, % -AbsoluteIri:dict
-    ipchar//1, % ?Code:code
-    iprivate//1, % ?Code:code
-    iquery_code//1, % ?Code:code
-    ireg_name_code//1, % ?Code:code
-    'IRI'//1, % -Iri:dict
-    'IRI-reference'//1, % -IriReference:dict
-    iunreserved//1, % ?Code:code
-    iuserinfo_code//1 % ?Code:code
+    'absolute-IRI'//1,  % -AbsoluteIri:dict
+    ipchar//1,          % ?C
+    iprivate//1,        % ?C
+    iquery_code//1,     % ?C
+    ireg_name_code//1,  % ?C
+    'IRI'//1,           % -Iri:dict
+    'IRI-reference'//1, % -IriRef:dict
+    iunreserved//1,     % ?C
+    iuserinfo_code//1   % ?C
   ]
 ).
 
@@ -214,7 +214,7 @@ ipath(L) --> 'ipath-empty'(L).
 
 
 
-%! ipchar(-Code:code)// .
+%! ipchar(-C)// .
 % ```abnf
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
@@ -227,14 +227,14 @@ ipchar(C)   --> 'pct-encoded'(C).
 
 
 
-%! iprivate(-Code:code)// .
+%! iprivate(-C)// .
 % ```abnf
 % iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
 % ```
 
-iprivate(C) --> between_code_radix(hex('E000'),   hex('F8FF'),   C).
-iprivate(C) --> between_code_radix(hex('F0000'),  hex('FFFFD'),  C).
-iprivate(C) --> between_code_radix(hex('100000'), hex('10FFFD'), C).
+iprivate(C) --> between_code_rad(hex('E000'),   hex('F8FF'),   C).
+iprivate(C) --> between_code_rad(hex('F0000'),  hex('FFFFD'),  C).
+iprivate(C) --> between_code_rad(hex('100000'), hex('10FFFD'), C).
 
 
 
@@ -301,7 +301,7 @@ ireg_name_code(C) --> 'pct-encoded'(C).
 
 
 
-%! 'IRI-reference'(-IriReference:dict)// is det.
+%! 'IRI-reference'(-IriRef:dict)// is det.
 % There are two types of IRI reference: (1) IRI, (2) IRI relative reference.
 %
 % ```abnf
@@ -365,7 +365,7 @@ isegment_nz_nc_code(0'@) --> "@".
 
 
 
-%! iunreserved(-Code:code)// .
+%! iunreserved(-C)// .
 % ```abnf
 % iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
 % ```
@@ -388,7 +388,7 @@ iuserinfo_code(C) -->   'pct-encoded'(C).
 
 
 
-%! ucschar(-Code:code)// .
+%! ucschar(-C)// .
 % ```abnf
 % ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
 %         / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
@@ -398,23 +398,23 @@ iuserinfo_code(C) -->   'pct-encoded'(C).
 %         / %xD0000-DFFFD / %xE1000-EFFFD
 % ```
 
-ucschar(C) --> between_code_radix(hex('A0'),    hex('D7FF'),  C).
-ucschar(C) --> between_code_radix(hex('F900'),  hex('FDCF'),  C).
-ucschar(C) --> between_code_radix(hex('FDF0'),  hex('FFEF'),  C).
-ucschar(C) --> between_code_radix(hex('10000'), hex('1FFFD'), C).
-ucschar(C) --> between_code_radix(hex('20000'), hex('2FFFD'), C).
-ucschar(C) --> between_code_radix(hex('30000'), hex('3FFFD'), C).
-ucschar(C) --> between_code_radix(hex('40000'), hex('4FFFD'), C).
-ucschar(C) --> between_code_radix(hex('50000'), hex('5FFFD'), C).
-ucschar(C) --> between_code_radix(hex('60000'), hex('6FFFD'), C).
-ucschar(C) --> between_code_radix(hex('70000'), hex('7FFFD'), C).
-ucschar(C) --> between_code_radix(hex('80000'), hex('8FFFD'), C).
-ucschar(C) --> between_code_radix(hex('90000'), hex('9FFFD'), C).
-ucschar(C) --> between_code_radix(hex('A0000'), hex('AFFFD'), C).
-ucschar(C) --> between_code_radix(hex('B0000'), hex('BFFFD'), C).
-ucschar(C) --> between_code_radix(hex('C0000'), hex('CFFFD'), C).
-ucschar(C) --> between_code_radix(hex('D0000'), hex('DFFFD'), C).
-ucschar(C) --> between_code_radix(hex('E1000'), hex('EFFFD'), C).
+ucschar(C) --> between_code_rad(hex('A0'),    hex('D7FF'),  C).
+ucschar(C) --> between_code_rad(hex('F900'),  hex('FDCF'),  C).
+ucschar(C) --> between_code_rad(hex('FDF0'),  hex('FFEF'),  C).
+ucschar(C) --> between_code_rad(hex('10000'), hex('1FFFD'), C).
+ucschar(C) --> between_code_rad(hex('20000'), hex('2FFFD'), C).
+ucschar(C) --> between_code_rad(hex('30000'), hex('3FFFD'), C).
+ucschar(C) --> between_code_rad(hex('40000'), hex('4FFFD'), C).
+ucschar(C) --> between_code_rad(hex('50000'), hex('5FFFD'), C).
+ucschar(C) --> between_code_rad(hex('60000'), hex('6FFFD'), C).
+ucschar(C) --> between_code_rad(hex('70000'), hex('7FFFD'), C).
+ucschar(C) --> between_code_rad(hex('80000'), hex('8FFFD'), C).
+ucschar(C) --> between_code_rad(hex('90000'), hex('9FFFD'), C).
+ucschar(C) --> between_code_rad(hex('A0000'), hex('AFFFD'), C).
+ucschar(C) --> between_code_rad(hex('B0000'), hex('BFFFD'), C).
+ucschar(C) --> between_code_rad(hex('C0000'), hex('CFFFD'), C).
+ucschar(C) --> between_code_rad(hex('D0000'), hex('DFFFD'), C).
+ucschar(C) --> between_code_rad(hex('E1000'), hex('EFFFD'), C).
 
 
 

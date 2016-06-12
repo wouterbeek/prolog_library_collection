@@ -2,7 +2,8 @@
   xml10_code,
   [
     'Char'//1, % ?Code:code
-    'S'//0
+    'S'//0,
+    xml_pipe//0
   ]
 ).
 
@@ -11,7 +12,7 @@
 @author Wouter Beek
 @compat XML 1.0.5
 @see http://www.w3.org/TR/2008/REC-xml-20081126/
-@version 2015/11
+@version 2015/11, 2016/06
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -90,3 +91,10 @@ s --> [0x20].
 s --> [0x9].
 s --> [0xD].
 s --> [0xA].
+
+
+
+xml_pipe -->
+  ?('S'),
+  "|",
+  ?('S').
