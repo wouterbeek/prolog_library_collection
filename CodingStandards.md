@@ -44,6 +44,7 @@ We use the following abbreviations for often occurring variable names:
 | LTag              | Language tag   |
 | Max               | Maximum        |
 | Min               | Minimum        |
+| MT                | Mediatype      |
 | N                 | Number         |
 | Num$X$s           | NumberOf$X$s   |
 | Op                | Operator       |
@@ -56,3 +57,4 @@ We use the following abbreviations for often occurring variable names:
 | Sep               | Separator      |
 | T                 | Tail           |
 | Trans             | Transformation |
+| Val               | Value          |

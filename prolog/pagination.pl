@@ -1,6 +1,7 @@
 :- module(
   pagination,
   [
+    pagination/3,       % +Pattern, :Goal_0, -Result
     pagination/4,       % +Pattern, :Goal_0, +Opts, -Result
     pagination_result/2 % +Result, :Goal_1
   ]
@@ -9,13 +10,14 @@
 /** <module> Pagination
 
 @author Wouter Beek
-@verson 2016/03, 2016/05
+@verson 2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(dict_ext)).
 :- use_module(library(print_ext)).
 
 :- meta_predicate
+    pagination(+, 0, -),
     pagination(+, 0, +, -),
     pagination_result(+, 1).
 
@@ -23,18 +25,24 @@
 
 
 
+%! pagination(+Pattern, :Goal_0, -Result) is nondet.
 %! pagination(+Pattern, :Goal_0, +Opts, -Result) is nondet.
+%
 % The following options are supported:
-%   - page_size(+nonneg)
-%     Default is 100.
-%   - page(+nonneg)
-%     Default is 1.
+%
+%   * page_size(+nonneg) Default is 100.
+%
+%   * page(+nonneg) Default is 1.
 %
 % The following keys are in Result:
 %   - number_of_results
 %   - page
 %   - page_size
 %   - results
+
+pagination(Pattern, Goal_0, Result) :-
+  pagination(Pattern, Goal_0, _{}, Result).
+
 
 pagination(Pattern, Goal_0, Opts1, Result) :-
   mod_dict(page_size, Opts1, 100, PageSize, Opts2),

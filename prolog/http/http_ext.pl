@@ -2,40 +2,39 @@
   http_ext,
   [
     http_absolute_location/2, % +Spec, -Path
-    http_accept/2,            % +Req, -Mediatypes
+    http_accept/2,            % +Req, -MTs
     http_auth_error/1,        % +Status
-    http_dict/2,              % +Req, -Dict
-    http_dict/3,              % +Req, +TypeMap, -Dict
     http_error/1,             % +Status
-    http_get_dict/3,          % +Key, +Dict, -Value
-    http_header/3,            % +M, +Key, -Value
+    http_get_dict/3,          % +Key, +D, -Val
+    http_header/3,            % +M, +Key, -Val
+    http_iri/2,               % +Req, -iri
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
     http_output/2,            % +Req, -Output
+    http_query/2,             % +Req, -D
+    http_query/3,             % +Req, +Key, -Val
     http_read_json_dict/1,    % -Data
     http_redirect/1,          % +Status
     http_reply_file/1,        % +File
     http_scheme/1,            % ?Scheme
-    http_search/3,            % +Req, +Key, -Value
-    http_search_pl/3,         % +Req, +Key, -Value
-    http_status_label/2,      % +StatusCode, -Label
+    http_status_label/2,      % +StatusCode, -Lbl
     http_status_reply/1,      % +Status
-    http_status_reply/2,      % +Req, +Status
-    http_uri/2                % +Req, -Uri
+    http_status_reply/2       % +Req, +Status
   ]
 ).
-:- reexport(library(http/http_path)).
 
 /** <module> HTTP receive
 
 Support for extracting information from HTTP requests/received messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04
+@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06
 */
 
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).
@@ -54,7 +53,7 @@ http_absolute_location(Spec, Path) :-
 
 
 
-%! http_accept(+Req, -Mediatypes) is det.
+%! http_accept(+Req, -MTs) is det.
 
 http_accept(Req, MTs) :-
   (memberchk(accept(L), Req) -> true ; L = []),
@@ -70,28 +69,6 @@ http_auth_error(401).
 
 
 
-%! http_dict(+Req, -D) is det.
-%! http_dict(+Req, +TypeMap, -D) is det.
-
-http_dict(Req, D) :-
-  http_dict(Req, [], D).
-
-
-http_dict(Req, TypeMap, D) :-
-  memberchk(request_uri(Iri1), Req),
-  % @tbd IRI mask
-  uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
-  uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)),
-  (memberchk(search(T1), Req) -> true ; T1 = []),
-  maplist(pair_to_pair(TypeMap), T1, T2),
-  dict_pairs(D, _, [iri-Iri2|T2]).
-http_dict(_, _, _{}).
-
-pair_to_pair(TypeMap, N=V1, N-V2) :-
-  (memberchk(N-Goal_2, TypeMap) -> call(Goal_2, V1, V2) ; V2 = V1).
-
-
-
 %! http_error(+Status) is semidet.
 
 http_error(Status):-
@@ -99,7 +76,7 @@ http_error(Status):-
 
 
 
-%! http_get_dict(+Key, +Ms, -Value) is nondet.
+%! http_get_dict(+Key, +Ms, -Val) is nondet.
 
 http_get_dict(Key, M, Val) :-
   get_dict('llo:http_communication', M, Ms),
@@ -108,12 +85,21 @@ http_get_dict(Key, M, Val) :-
 
 
 
-%! http_header(+M, +Key, -Value) is nondet.
+%! http_header(+M, +Key, -Val) is nondet.
 
 http_header(M, Key, Val) :-
   http_get_dict('llo:headers', M, Headers),
   get_dict(Key, Headers, Vals),
   member(Val, Vals).
+
+
+
+%! http_iri(+Req, -Iri) is det.
+
+http_iri(Req, Iri2) :-
+  memberchk(request_uri(Iri1), Req),
+  uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
 
 
 
@@ -135,6 +121,24 @@ http_method(Req, M) :-
 
 http_output(Req, Out) :-
   memberchk(pool(client(_,_,_,Out)), Req).
+
+
+
+%! http_query(+Req, -D) is det.
+
+http_query(Req, D) :-
+  http_iri(Req, Iri),
+  findall(Key-Val, http_query(Req, Key, Val), Pairs),
+  dict_pairs(D, [iri-Iri|Pairs]).
+
+
+
+%! http_query(+Req, +Key, -Val) is det.
+
+http_query(Req, Key, Val) :-
+  memberchk(search(L), Req),
+  memberchk(Key=Val0, L),
+  atom_to_term(Val0, Val).
 
 
 
@@ -169,22 +173,6 @@ http_scheme(https).
 
 
 
-%! http_search(+Req, +Key, -Value) is det.
-
-http_search(Req, Key, Val) :-
-  memberchk(search(L), Req),
-  memberchk(Key=Val, L).
-
-
-
-%! http_search_pl(+Req, +Key, -Value) is det.
-
-http_search_pl(Req, Key, Val) :-
-  http_search(Req, Key, Atom),
-  term_to_atom(Val, Atom).
-
-
-
 %! http_status_label(+Code:between(100,599), -Label:atom) is det.
 
 http_status_label(Code, Label):-
@@ -204,10 +192,3 @@ http_status_reply(Status) :-
 http_status_reply(Req, Status) :-
   http_output(Req, Out),
   http_status_reply(Status, Out, [], _).
-
-
-
-%! http_uri(+Req, -Uri) is det.
-
-http_uri(Req, Uri) :-
-  memberchk(request_uri(Uri), Req).
