@@ -10,6 +10,7 @@
     dict_dec/2,             % +Key, +D
     dict_dec/3,             % +Key, +D, -Val
     dict_dec/4,             % +Key, +D, +Diff, -Val
+    dict_get/3,             % +Key, +D, -Val
     dict_has_key/2,         % +Key, +D
     dict_inc/2,             % +Key, +D
     dict_inc/3,             % +Key, +D, -Val
@@ -127,6 +128,13 @@ dict_dec(Key, D, Diff, Val2) :-
   get_dict(Key, D, Val1),
   Val2 is Val1 - Diff,
   nb_set_dict(Key, D, Val2).
+
+
+
+%! dict_get(+Key, +D, -Val) is semidet.
+
+dict_get(Key, D, Val) :-
+  get_dict(Key, D, Val).
 
 
 
