@@ -7,7 +7,8 @@
     http_post/2, % +Iri, +Data
     http_post/3, % +Iri, +Data, :Goal_3
     http_post/4, % +Iri, +Data, :Goal_3, +Opts
-    http_retry_until_success/1 % :Goal_0
+    http_retry_until_success/1, % :Goal_0
+    http_retry_until_success/2  % :Goal_0, +Timeout
   ]
 ).
 
@@ -32,7 +33,8 @@ posing an alternative to library(http/http_client).
     http_get(+, 3, +),
     http_post(+, +, 3),
     http_post(+, +, 3, +),
-    http_retry_until_success(0).
+    http_retry_until_success(0),
+    http_retry_until_success(0, +).
 
 
 
@@ -73,22 +75,37 @@ http_post(Iri, Data, Goal_3, Opts0) :-
 
 
 %! http_retry_until_success(:Goal_0) is det.
+%! http_retry_until_success(:Goal_0, +Timeout) is det.
+%
+% Retry Goal_0 that uses HTTP communication until the HTTP
+% communication succeeds.
+%
+% Timeout is the number of seconds in between consecutive calls of
+% Goal_0.  The default timeout is 10 seconds.
 
 http_retry_until_success(Goal_0) :-
+  http_retry_until_success(Goal_0, 10).
+
+
+http_retry_until_success(Goal_0, Timeout) :-
   catch(Goal_0, E, true),
-  (   var(E)
+  (   % HTTP success status code
+      var(E)
   ->  true
-  ;   E = error(existence_error(_,M),_),
+  ;   % HTTP error status code
+      E = error(existence_error(_,M),_),
       http_get_dict('llo:status', M, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
   ->  debug(bgt(scrape), "Status: ~D (~s)", [Status,Lbl]),
-      sleep(10),
+      sleep(Timeout),
       http_retry_until_success(Goal_0)
-  ;   E = error(socket_error('Try Again'), _)
+  ;   % TCP error (Try Again)
+      E = error(socket_error('Try Again'), _)
   ->  debug(bgt(scrape), "TCP Try Again", []),
-      sleep(10),
+      sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).
+
 
 
 
