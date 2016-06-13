@@ -57,7 +57,11 @@ error:has_type(date, time(H,Mi,S)):-
 
 %! call_time(:Goal_0, -Seconds:float) is det.
 
-call_time(Goal_0, N):- get_time(X), Goal_0, get_time(Y), N is Y - X.
+call_time(Goal_0, N):-
+  get_time(X),
+  Goal_0,
+  get_time(Y),
+  N is Y - X.
 
 
 

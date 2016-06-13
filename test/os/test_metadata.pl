@@ -12,8 +12,8 @@
 */
 
 :- use_module(library(debug_ext)).
-:- use_module(library(lodapi/lodapi_document)).
-:- use_module(library(lodapi/lodapi_metadata)).
+:- use_module(library(lodapi/lodapi_doc)).
+:- use_module(library(lodapi/lodapi_meta)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/open_any2)).
 :- use_module(library(print_ext)).
