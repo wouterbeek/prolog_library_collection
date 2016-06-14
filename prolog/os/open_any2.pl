@@ -583,8 +583,7 @@ source_type(Iri,            _,    Iri,    http_iri) :-
   uri_components(Iri, uri_components(Scheme,_,_,_,_)),
   (memberchk(Scheme, [http,https]) -> true  ; type_error(http_iri, Iri)).
 source_type(File0,          Mode, Iri,    file_iri) :-
-  atom(File0),
-  absolute_file_name(File0, File, [access(Mode)]),
+  absolute_file_name(File0, File, [access(Mode),file_errors(fail)]),
   is_absolute_file_name(File), !,
   uri_file_name(Iri, File).
 source_type(Source, _, _, _) :-

@@ -197,17 +197,19 @@ empty_atom('').
 
 
 %! format_integer(+Integer:integer, +Length:integer, -Atom:atom) is det.
-% Returns a formatted representation of the given integer
-% that is exactly the given number of characters long.
 %
-% Fails in case the length of the formatted integer exceeds the given length.
+% Returns a formatted representation of the given integer that is
+% exactly the given number of characters long.
+%
+% Fails in case the length of the formatted integer exceeds the given
+% length.
 %
 % @arg Integer The integer value that is to be formatted.
 % @arg Length The exact character length of the formatted integer atom.
 % @arg Atom The formatted version of the integer value.
 %
 % @tbd See whether this can be done using format/2 tab stops,
-%      http://www.swi-prolog.org/pldoc/doc_for?object=format/2.
+% http://www.swi-prolog.org/pldoc/doc_for?object=format/2.
 
 format_integer(I, L, Out) :-
   atom_length(I, IL),
