@@ -1020,11 +1020,8 @@ section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
 
 seplist(Dcg_0, Sep_0) -->
   Dcg_0,
-  Sep_0,
-  seplist(Dcg_0, Sep_0).
-seplist(Dcg_0, _) -->
-  Dcg_0, !.
-seplist(_, _) --> !, [].
+  (Sep_0 -> seplist(Dcg_0, Sep_0) ; "").
+seplist(_, _) --> !, "".
 
 
 % The first clause cannot contain a cut after the separator, because
