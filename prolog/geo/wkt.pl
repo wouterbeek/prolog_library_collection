@@ -30,7 +30,7 @@ circularstring_text(ZM, Points) -->
   "(", +(ws), seplist(point(ZM), +(ws), Points), +(ws), ")".
 
 
-circularstring_text_representation(ZM1, circularstring(Points)) -->
+circularstring_text_representation(ZM1, circularString(Points)) -->
   "CIRCULARSTRING", +(ws),
   z_m(ZM1, ZM2),
   circularstring_text(ZM2, Points).
@@ -55,7 +55,7 @@ compoundcurve_text(ZM, L) -->
 
 
 
-compoundcurve_text_representation(ZM1, compoundcurve(L)) -->
+compoundcurve_text_representation(ZM1, compoundCurve(L)) -->
   "COMPOUNDCURVE", +(ws),
   z_m(ZM1, ZM2),
   compoundcurve_text(ZM2, L).
@@ -89,7 +89,7 @@ curvepolygon_text_body(ZM, L) -->
   curvepolygon_text(ZM, L).
 
 
-curvepolygon_text_representation(ZM1, curvepolygon(L)) -->
+curvepolygon_text_representation(ZM1, curvePolygon(L)) -->
   "CURVEPOLYGON", +(ws),
   z_m(ZM1, ZM2),
   curvepolygon_text_body(ZM2, L), !.
@@ -106,7 +106,7 @@ geometrycollection_text(ZM, Compounds) -->
   seplist(wkt_representation(ZM), +(ws), Compounds), +(ws), ")".
 
 
-geometrycollection_text_representation(ZM1, geometrycollection(Compounds)) -->
+geometrycollection_text_representation(ZM1, geometryCollection(Compounds)) -->
   "GEOMETRYCOLLECTION", +(ws),
   z_m(ZM1, ZM2),
   geometrycollection_text(ZM2, Compounds).
@@ -123,7 +123,7 @@ linestring_text_body(ZM, Points) -->
   linestring_text(ZM, Points).
 
 
-linestring_text_representation(ZM1, linestring(Points)) -->
+linestring_text_representation(ZM1, lineString(Points)) -->
   "LINESTRING", +(ws),
   z_m(ZM1, ZM2),
   linestring_text_body(ZM2, Points).
@@ -136,7 +136,7 @@ multicurve_text(ZM, L) -->
   "(", +(ws), seplist(curve_text(ZM), +(ws), L), +(ws), ")".
 
 
-multicurve_text_representation(ZM1, multicurve(L)) -->
+multicurve_text_representation(ZM1, multiCurve(L)) -->
   "MULTICURVE", +(ws),
   z_m(ZM1, ZM2),
   multicurve_text(ZM2, L), !.
@@ -151,7 +151,7 @@ multilinestring_text(ZM, Pointss) -->
   "(", +(ws), seplist(linestring_text_body(ZM), +(ws), Pointss), +(ws), ")".
 
 
-multilinestring_text_representation(ZM1, multilinestring(Pointss)) -->
+multilinestring_text_representation(ZM1, multiLineString(Pointss)) -->
   "MULTILINESTRING", +(ws),
   z_m(ZM1, ZM2),
   multilinestring_text(ZM2, Pointss).
@@ -164,7 +164,7 @@ multipoint_text(ZM, Points) -->
   "(", +(ws), seplist(point_text(ZM), +(ws), Points), +(ws), ")".
 
 
-multipoint_text_representation(ZM1, multipoint(Points)) -->
+multipoint_text_representation(ZM1, multiPoint(Points)) -->
   "MULTIPOINT", +(ws),
   z_m(ZM1, ZM2),
   multipoint_text(ZM2, Points).
@@ -177,7 +177,7 @@ multipolygon_text(ZM, L) -->
   "(", +(ws), seplist(polygon_text_body(ZM), +(ws), L), +(ws), ")".
 
 
-multipolygon_text_representation(ZM1, multipolygon(L)) -->
+multipolygon_text_representation(ZM1, multiPolygon(L)) -->
   "MULTIPOLYGON", +(ws),
   z_m(ZM1, ZM2),
   multipolygon_text(ZM2, L).
@@ -190,7 +190,7 @@ multisurface_text(ZM, L) -->
   "(", +(ws), seplist(surface_text(ZM), +(ws), L), +(ws), ")".
 
 
-multisurface_text_representation(ZM1, multisurface(L)) -->
+multisurface_text_representation(ZM1, multiSurface(L)) -->
  "MULTISURFACE", +(ws),
  z_m(ZM1, ZM2),
  multisurface_text(ZM2, L), !.
@@ -239,7 +239,7 @@ polyhedralsurface_text(ZM, Pointsss) -->
   "(", +(ws), seplist(polygon_text_body(ZM), +(ws), Pointsss), +(ws), ")".
 
 
-polyhedralsurface_text_representation(ZM1, polyhedralsurface(Pointsss)) -->
+polyhedralsurface_text_representation(ZM1, polyhedralSurface(Pointsss)) -->
   "POLYHEDRALSURFACE", +(ws),
   z_m(ZM1, ZM2),
   polyhedralsurface_text(ZM2, Pointsss).
@@ -262,7 +262,7 @@ single_curve_text(ZM, CircularString) -->
 
 
 
-surface_text(ZM, curvepolygon(L)) -->
+surface_text(ZM, curvePolygon(L)) -->
   "CURVEPOLYGON",
   curvepolygon_text_body(ZM, L), !.
 surface_text(ZM, Pointss) -->
@@ -329,10 +329,10 @@ empty_set([]) --> "EMPTY".
 m(N) --> number(N).
 
 
-%point(zm, [X,Y,Z,M]) --> point(z, [X,Y,Z]), +(ws), m(M), !.
-%point(z, [X,Y,Z]) --> point(none, [X,Y]), +(ws), z(Z), !.
-%point(m, [X,Y,M]) --> point(none, [X,Y]), +(ws), m(M), !.
-point(_, point(X,Y)) --> x(X), +(ws), y(Y).
+%point(zm, point([X,Y,Z,M])) --> point(z, [X,Y,Z]), +(ws), m(M), !.
+%point(z, point([X,Y,Z])) --> point(none, [X,Y]), +(ws), z(Z), !.
+%point(m, point([X,Y,M])) --> point(none, [X,Y]), +(ws), m(M), !.
+point(_, point([X,Y])) --> x(X), +(ws), y(Y).
 
 
 x(N) --> number(N).

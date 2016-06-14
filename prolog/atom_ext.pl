@@ -12,6 +12,7 @@
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
     empty_atom/1,         % ?Empty
     format_integer/3,     % +I,      +Len,     -Atom
+    lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
     repeating_atom/3,     % +Sub,    +Repeats, -Atom
     split_atom_length/3,  % +Atom,   +Len,     -Subs
@@ -216,6 +217,21 @@ format_integer(I, L, Out) :-
   ZeroLength is L - IL,
   repeating_atom('0', ZeroLength, Zeros),
   atomic_concat(Zeros, I, Out).
+
+
+
+%! lowercase_atom(+Atom, -Lowercased) is det.
+% Succeeds if Lowercased is a copy of Atom where the first character
+% is in upper case.
+%
+% If the first character of Atom is already in upper case then
+% Lowercased is a plain copy of Atom.
+
+lowercase_atom('', '').
+lowercase_atom(A1, A2) :-
+  atom_codes(A1, [H1|T]),
+  to_lower(H1, H2),
+  atom_codes(A2, [H2|T]).
 
 
 
