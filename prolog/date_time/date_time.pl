@@ -174,21 +174,31 @@ stamp_to_date_time(TS, DT) :-
 
 %! something_to_date_time(+Something, -DT) is det.
 
-% Notation 1: Reduced date/time notation.
+% Reduced date/time notation.
 something_to_date_time(
   date_time(Y,Mo,Da,H,Mi,S),
   date_time(Y,Mo,Da,H,Mi,S,0)
 ) :- !.
-% Notation 2: Normal date/time notation.
+% Month-day notation.
+something_to_date_time(
+  month_day(Mo,Da),
+  date_time(_,Mo,Da,_,_,_,0)
+) :- !.
+% Year-month notation.
+something_to_date_time(
+  year_month(Y,Mo),
+  date_time(Y,Mo,_,_,_,_,0)
+) :- !.
+% Normal date/time notation.
 something_to_date_time(DT, DT) :-
   is_date_time(DT), !.
-% Notation 3: Normal date notation.
-% Notation 4: Reduced date notation.
-% Notation 5: Time notation.
+% Normal date notation.
+% Reduced date notation.
+% Time notation.
 something_to_date_time(D, DT) :-
   is_date(D), !,
   date_to_date_time(D, DT).
-% Notation 6: Float notation.
+% Float notation.
 something_to_date_time(Stamp, DT) :-
   float(Stamp), !,
   stamp_to_date_time(Stamp, DT).
