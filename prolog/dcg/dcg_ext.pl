@@ -93,8 +93,8 @@
     rest//0,
     rest//1,               % -Rest:list(code)
     section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
-    seplist//2,            % :Dcg_1, +L
-    seplist//3,            % :Dcg_1, :Sep_2, +L
+    seplist//2,            % :Dcg_0, :Sep_0
+    seplist//3,            % :Dcg_1, :Sep_0, +L
     skip_line//0,
     str//1,                % +S
     string//0,
@@ -206,7 +206,7 @@ My favorite collection of DCG rules.
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
     section(+, +, //, ?, ?),
-    seplist(3, +, ?, ?),
+    seplist(//, //, ?, ?),
     seplist(3, //, +, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
@@ -1015,21 +1015,26 @@ section(I, Msg, Dcg_0) --> tab_nl(I, atom(Msg)), Dcg_0.
 
 
 
-%! seplist(:Dcg_1, +L)// is det.
-%! seplist(:Dcg_1, :Sep_2, +L)// is det.
+%! seplist(:Dcg_0, :Sep_0)// is det.
+%! seplist(:Dcg_1, :Sep_0, +L)// is det.
 
-seplist(Dcg_1, L) -->
-  seplist(Dcg_1, ", ", L).
+seplist(Dcg_0, Sep_0) -->
+  Dcg_0,
+  Sep_0,
+  seplist(Dcg_0, Sep_0).
+seplist(Dcg_0, _) -->
+  Dcg_0, !.
+seplist(_, _) --> !, [].
 
 
 % The first clause cannot contain a cut after the separator, because
 % the separator may also appear after the separated list.  For
 % example, "a b " could no longer be parsed if the separator was a
 % space.
-seplist(Dcg_1, Sep_2, [H1,H2|T]) -->
+seplist(Dcg_1, Sep_0, [H1,H2|T]) -->
   call(Dcg_1, H1),
-  Sep_2,
-  seplist(Dcg_1, Sep_2, [H2|T]).
+  Sep_0,
+  seplist(Dcg_1, Sep_0, [H2|T]).
 seplist(Dcg_1, _, [H]) -->
   call(Dcg_1, H), !.
 seplist(_, _, []) --> !, [].
