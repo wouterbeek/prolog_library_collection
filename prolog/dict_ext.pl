@@ -11,6 +11,7 @@
     dict_dec/3,             % +Key, +D, -Val
     dict_dec/4,             % +Key, +D, +Diff, -Val
     dict_get/3,             % +Key, +D, -Val
+    dict_get/4,             % +Key, +D, +Def, -Val
     dict_has_key/2,         % +Key, +D
     dict_inc/2,             % +Key, +D
     dict_inc/3,             % +Key, +D, -Val
@@ -132,9 +133,14 @@ dict_dec(Key, D, Diff, Val2) :-
 
 
 %! dict_get(+Key, +D, -Val) is semidet.
+%! dict_get(+Key, +D, +Def, -Val) is semidet.
 
 dict_get(Key, D, Val) :-
   get_dict(Key, D, Val).
+
+dict_get(Key, D, _, Val) :-
+  dict_get(Key, D, Val), !.
+dict_get(_, _, Def, Def).
 
 
 

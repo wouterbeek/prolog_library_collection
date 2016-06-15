@@ -1,6 +1,7 @@
 :- module(
   rest,
   [
+    rest_handler/3,   % +Req, +HandleId, :Goal_3
     rest_handler/4,   % +Req, +HandleId, :Exists_1, :Singular_3
     rest_handler/5,   % +Req, +HandleId, :Exists_1, :Singular_3, :Plural_2
     rest_mediatype/3, % +Method, +MediaTypes, :Plural_2
@@ -11,17 +12,19 @@
 /** <module> REST
 
 @author Wouter Beek
-@version 2016/02, 2016/04-2016/05
+@version 2016/02, 2016/04-2016/06
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_json)).
 :- use_module(library(iri/iri_ext)).
+:- use_module(library(true)).
 
 :- html_meta
    rest_call_or_exception(2, +, +),
    rest_call_or_exception(3, +, +, +),
+   rest_handler(+, +, 3),
    rest_handler(+, +, 1, 3),
    rest_handler(+, +, 1, 3, 2),
    rest_mediatype(+, +, 2),
@@ -60,8 +63,13 @@ rest_exception(_, E) :-
 
 
 
+%! rest_handler(+Req, +HandleId, :Goal_3) is det.
 %! rest_handler(+Req, +HandleId, :Exists_1, :Singular_3) is det.
 %! rest_handler(+Req, +HandleId, :Exists_1, :Singular_3, Plural_2) is det.
+
+rest_handler(Req, HandleId, Goal_3) :-
+  rest_handler(Req, HandleId, true, Goal_3).
+
 
 rest_handler(Req, _, Exists_1, Singular_3) :-
   memberchk(request_uri(Res), Req),
