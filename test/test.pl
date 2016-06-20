@@ -73,6 +73,7 @@
   :- use_module(library(http/http_reply)).
   :- use_module(library(http/http_request)).
   :- use_module(library(http/http_server)).
+  :- use_module(library(http/http_user)).
   :- use_module(library(http/ie_headers)).
   :- use_module(library(http/rest)).
   :- use_module(library(http/rfc1034)).
