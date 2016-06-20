@@ -43,7 +43,7 @@ date_time(DT, X, Y):-
 %! dict(+D, +Opts)// is det.
 
 dict(D, Opts0) -->
-  {dict_put_default(indent, Opts0, 0, Opts)},
+  {dict_put_def(indent, Opts0, 0, Opts)},
   {dict_pairs(D, _, L)},
   {I = Opts.indent},
   (   % Empty dictionaries do not use lucious spacing.

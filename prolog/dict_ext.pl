@@ -19,7 +19,7 @@
     dict_pairs/2,           % ?D, ?Pairs
     dict_prepend/3,         % +Key, +D, +Elem
     dict_put/3,             % +D1, +D2, -D3
-    dict_put_default/4,     % +Key, D1, +Def, +D2
+    dict_put_def/4,         % +Key, D1, +Def, +D2
     dict_put_pairs/3,       % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
     dict_set/3,             % +Key, D, +Val
@@ -179,11 +179,11 @@ dict_pairs(D, L):-
 
 
 
-%! dict_put_default(+Key, +D1, +Def, -D2) is det.
+%! dict_put_def(+Key, +D1, +Def, -D2) is det.
 
-dict_put_default(Key, D, _, D) :-
+dict_put_def(Key, D, _, D) :-
   dict_has_key(Key, D), !.
-dict_put_default(Key, D1, Def, D2) :-
+dict_put_def(Key, D1, Def, D2) :-
   D2 = D1.put(Key, Def).
 
 

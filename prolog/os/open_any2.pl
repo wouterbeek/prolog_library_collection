@@ -212,10 +212,12 @@ call_onto_stream0(Sink, Mod:Goal_6, Opts, In, MIn1, MIn2) :-
 
 %! call_to_stream(+Sink, :Goal_3) is det.
 %! call_to_stream(+Sink, :Goal_3, +Opts) is det.
+%
 % The following options are supported:
+%
 %   * metadata(-dict)
-%   * mode(+oneof([append,write]))
-%     Default is `write`.
+%
+%   * mode(+oneof([append,write])) Default is `write`.
 
 call_to_stream(Sink, Goal_3) :-
   call_to_stream(Sink, Goal_3, []).
