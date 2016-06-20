@@ -47,10 +47,10 @@ concrete Web Service the following two things must be defined:
    current_site_user(user:atom,openid:atom),
    stay_signed_in(openid:atom,cookie:atom,peer:atom,time:integer,expires:integer).
 
-:- http_handler(root(login), user_login, []).
-:- http_handler(root(logout), user_logout, []).
+:- http_handler(root(login), login, []).
+:- http_handler(root(logout), logout, []).
 
-:- debug(html(user_login)).
+:- debug(http(login)).
 
 :- multifile
     google_client:create_user/1,
@@ -104,7 +104,7 @@ google_login(User, Profile) :-
   ->  true
   ;   retractall_current_site_user(_, OpenId),
       assert_current_site_user(User, OpenId),
-      debug(html(user_login), "User ~w logged in using ~w", [User,OpenId])
+      debug(http(login), "User ~w logged in using ~w", [User,OpenId])
   ),
 
   http_session_retractall(openid(_)),
@@ -112,7 +112,7 @@ google_login(User, Profile) :-
 
   http_current_request(Req),
   (   true(Profile.client_data.stay)
-  ->  debug(html(user_login), "User remained signed in using ~p", [OpenId]),
+  ->  debug(http(login), "User remained signed in using ~p", [OpenId]),
       http_openid:openid_hook(stay_signed_in(OpenId))
   ;   true
   ),
@@ -132,7 +132,7 @@ true(yes).
 current_user(User) :-
   openid_logged_in(OpenId),
   current_site_user(User, OpenId),
-  debug(html(user_login), "Current user ~w is using ~w", [User,OpenId]).
+  debug(http(login), "Current user ~w is using ~w", [User,OpenId]).
 
 
 
@@ -144,9 +144,9 @@ has_current_user :-
 
 
 
-%! user_login(+Request) is det.
+%! login(+Request) is det.
 
-user_login(Req) :-
+login(Req) :-
   http_parameters(Req, [
     'openid.return_to'(ReturnTo, [default(/)]),
     stay(Stay, [default(false)])
@@ -168,9 +168,9 @@ login_link(Link) :-
 
 
 
-%! user_logout(+Req) is det.
+%! logout(+Req) is det.
 
-user_logout(Req) :-
+logout(Req) :-
   openid_logged_in(OpenId), !,
   openid_logout(OpenId),
   http_parameters(Req, ['openid.return_to'(ReturnTo, [default(/)])]),
@@ -207,7 +207,7 @@ http_openid:openid_hook(stay_signed_in(OpenId)) :-
   Expires is Now + 31 * 24 * 60 * 60,   % 31 days from now.
   assert_stay_signed_in(OpenId, Cookie, Peer, Now, Expires),
   http_session_option(path(Path)),
-  debug(html(user_login), "Created stay-signed-in for ~q", [OpenId]),
+  debug(http(login), "Created stay-signed-in for ~q", [OpenId]),
   http_timestamp(Expires, RFC1123),
   stay_login_cookie(CookieName),
   format(
@@ -235,7 +235,7 @@ http_openid:openid_hook(logged_in(OpenId)) :-
   stay_signed_in(OpenId, Cookie, _, _, _), !,
   http_open_session(_, []),
   http_session_assert(openid(OpenId)),
-  debug(html(user_login), "Granted stay-signed-in for ~q", [OpenId]).
+  debug(http(login), "Granted stay-signed-in for ~q", [OpenId]).
 % See
 % https://developers.google.com/accounts/docs/OpenID#shutdown-timetable
 http_openid:openid_hook(
