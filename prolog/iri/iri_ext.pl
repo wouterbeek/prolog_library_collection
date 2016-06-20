@@ -218,6 +218,7 @@ iri_to_resource(Iri, Res) :-
   uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
   setting(iri:data_scheme, Scheme),
   setting(iri:data_auth, Auth),
+  format(user_output, "~w~n", [Scheme-Auth-Path]),
   uri_components(Res, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 

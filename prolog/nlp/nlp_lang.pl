@@ -10,14 +10,15 @@
 /** <module> NLP: Language setting
 
 @author Wouter Beek
-@version 2016/02, 2016/04
+@version 2016/02, 2016/04, 2016/06
 */
 
 :- use_module(library(lists)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(settings)).
 
-:- setting(user:lrange, list(atom), ['en-US'], '').
+:- setting(nlp:lrange, list(atom), ['en-US'], '').
+
 
 
 
@@ -25,7 +26,7 @@
 %! current_lrange(-LRange) is det.
 
 current_lrange(LRange) :-
-  user:setting(lrange, LRange).
+  nlp:setting(lrange, LRange).
 
 
 
