@@ -21,7 +21,7 @@
 Wrapper around library(iostream)'s open_any/5.
 
 @author Wouter Beek
-@version 2015/10-2016/05
+@version 2015/10-2016/06
 */
 
 :- use_module(library(apply)).
@@ -36,6 +36,7 @@ Wrapper around library(iostream)'s open_any/5.
 :- use_module(library(http/http_open)). % HTTP support.
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support.
 :- use_module(library(http/http11)).
+:- use_module(library(option)).
 :- use_module(library(option_ext)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(iostream)).
@@ -80,7 +81,13 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 % The following call is made: `call(Goal_3, M, In)`.
 %
 % The following options are supported:
+%
+%   - throw_when_empty(+boolean) Whether the predicate should throw an
+%   exception if there is no (more) content in Source.  Default is
+%   `false`.
+%
 %   - metadata(-dict)
+%
 %   - Other options are passed to:
 %       - archive_data_stream/3
 %       - archive_open/3
@@ -104,7 +111,11 @@ call_on_stream(Source, Goal_3, Opts) :-
       archive_open(In1, Arch, ArchOpts2),
       (
         uuid_no_hyphen(Uuid),
-        call_on_stream1(Arch, EntryName, Goal_3, M1, M2, Uuid, Opts)
+        catch(
+          call_on_stream1(Arch, EntryName, Goal_3, M1, M2, Uuid, Opts),
+          E,
+          (option(throw_when_empty(true), Opts, false) -> throw(E) ; fail)
+        )
       ),
       archive_close(Arch)
     ),
@@ -144,7 +155,7 @@ call_on_stream1(Arch, EntryName, Goal_3, M1, M2, Uuid, Opts) :-
   call_on_stream2(Arch, EntryName, Goal_3, M1, M2, Uuid, Opts).
 
 
-call_on_stream2(Arch, EntryName, Goal_3, M1, M4, Uuid, Opts0) :-
+call_on_stream2(Arch, EntryName, Goal_3, M1, M5, Uuid, Opts0) :-
   merge_options([meta_data(MEntryPath0)], Opts0, Opts),
   % NONDET.
   nb_setval(Uuid, empty),
@@ -154,7 +165,13 @@ call_on_stream2(Arch, EntryName, Goal_3, M1, M4, Uuid, Opts0) :-
   (   MEntryPath = [MEntry|_],
       atom_string(EntryName, MEntry.'llo:name')
   ->  M2 = M1.put(_{'llo:entry_path': MEntryPath}),
-      call_cleanup(call(Goal_3, In2, M2, M3), close_any2(close(In2), M3, M4))
+      call_cleanup(
+        call(Goal_3, In2, M2, M3),
+        (
+          (var(M3) -> M4 = M1 ; M4 = M3),
+          close_any2(close(In2), M4, M5)
+        )
+      )
   ;   close(In2),
       fail
   ).

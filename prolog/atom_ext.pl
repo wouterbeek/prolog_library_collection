@@ -11,6 +11,7 @@
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
     empty_atom/1,         % ?Empty
+    ensure_atom/2,        % +Term,   -Atom
     format_integer/3,     % +I,      +Len,     -Atom
     lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
@@ -64,7 +65,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/05
+@version 2015/07-2015/10, 2016/03-2016/06
 */
 
 :- use_module(library(apply)).
@@ -194,6 +195,15 @@ common_atom_prefix(Atom1, Atom2, Sub) :-
 % Succeeds only on the empty atom.
 
 empty_atom('').
+
+
+
+%! ensure_atom(+Term, -Atom) is det.
+
+ensure_atom(A, A) :- atom(A), !.
+ensure_atom(N, A) :- number(N), !, atom_number(A, N).
+ensure_atom(S, A) :- string(S), !, atom_string(A, S).
+ensure_atom(T, A) :- term_to_atom(T, A).
 
 
 

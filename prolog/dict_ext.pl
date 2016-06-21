@@ -27,6 +27,7 @@
     dict_sum/3,             % +D1, +D2, -D3
     dict_tag/3,             % +D1, +Tag, ?D2
     get_dict/4,             % +Key, +D, -Val, +Def
+    get_dict_path/3,        % -Keys, +D, -Val
     is_empty_dict/1,        % @Term
     merge_dict/3,           % +D1, +D2, -D3
     mod_dict/4,             % +Key, +D1,       -Val, -D2
@@ -272,6 +273,19 @@ get_dict(K, D, V, _) :-
   dict_has_key(K, D), !,
   get_dict(K, D, V).
 get_dict(_, _, Def, Def).
+
+
+
+%! get_dict_path(-Keys, +D, -Val) is nondet.
+
+get_dict_path(L, D, Val) :-
+  get_dict(H, D, Val0),
+  (   is_dict(Val0)
+  ->  get_dict_path(T, Val0, Val),
+      L = [H|T]
+  ;   Val = Val0,
+      L = [H]
+  ).
 
 
 
