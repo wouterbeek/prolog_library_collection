@@ -128,29 +128,23 @@ atom_to_term(Atom, Term) :-
 
 
 %! atom_truncate(+Atom, +MaxLen, -Truncated) is det.
-% Return a truncated version of the given atom.  Truncated atoms end in `…`.
-% MaxLen is the exact maximum lenght of the truncated atom.
-% Truncation will always result in an atom which has at most `MaxLength`.
 %
-% MaxLen must at least be 1.  If MaxLen is `inf` then the original atom is
-% returned.
+% Return a truncated version of the given atom.  MaxLen is the exact
+% maximum lenght of the truncated atom.  Truncation will always result
+% in an atom which has at most `MaxLength`.
+%
+% MaxLen must at least be 1.  If MaxLen is `inf` then the original
+% atom is returned.
 %
 % @throws type_error
 
-% The maximum allowed length is too short to be used with truncation.
-atom_truncate(Atom, inf, Atom) :- !.
-% The atom does not have to be truncated, it is not that long.
-atom_truncate(Atom, MaxLen, Atom) :-
-  must_be(positive_integer, MaxLen),
-  atom_length(Atom, Len),
-  Len =< MaxLen, !.
-% The atom exceeds the maximum length, it is truncated.
-% For this purpose the displayed length of the atom is
-% the maximum length minus 4 (but never less than 3).
-atom_truncate(Atom, MaxLen, Trunc) :-
-  Len is MaxLen - 1,
-  atom_prefix(Atom, Len, Sub),
-  atom_concat(Sub, …, Trunc).
+atom_truncate(A, inf, A) :- !.
+atom_truncate(A, Max, A) :-
+  must_be(positive_integer, Max),
+  atom_length(A, Len),
+  Len =< Max, !.
+atom_truncate(A, Max, Prefix) :-
+  atom_prefix(A, Max, Prefix).
 
 
 

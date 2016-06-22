@@ -24,6 +24,7 @@
     'm*n'//3,              % ?Low, ?High, :Dcg_0
     'm*n'//4,              % ?Low, ?High, :Dcg_1, -Args1
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
+    atom_ellipsis//2,      % +A, +Max
     atom_phrase/2,         % :Dcg_0, ?A
     atom_phrase/3,         % :Dcg_0, +A1, ?A2
     between//2,            % +Low:integer, +High:integer
@@ -97,6 +98,7 @@
     seplist//3,            % :Dcg_1, :Sep_0, +L
     skip_line//0,
     str//1,                % +S
+    str_ellipsis//2,       % +S, +Max
     string//0,
     string_phrase/2,       % :Dcg_0, ?S
     string_phrase/3,       % :Dcg_0, +S1, ?S2
@@ -132,6 +134,7 @@ My favorite collection of DCG rules.
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(error)).
@@ -139,6 +142,7 @@ My favorite collection of DCG rules.
 :- use_module(library(math/math_ext)).
 :- use_module(library(math/radconv)).
 :- use_module(library(settings)).
+:- use_module(library(string_ext)).
 
 :- meta_predicate
     ?(//, ?, ?),
@@ -365,6 +369,18 @@ My favorite collection of DCG rules.
   'm*n__p'(Low, High, Count2, Dcg_2, T1, T2).
 'm*n__p'(Low, _, Count, _, [], []) -->
   {(var(Low) -> true ; Low =< Count)}.
+
+
+
+%! atom_ellipsis(+A, +Max)// .
+
+atom_ellipsis(A1, Max) -->
+  {
+    Len is Max - 1,
+    atom_truncate(A1, Len, A2)
+  },
+  atom(A2),
+  ({A1 == A2} -> "" ; "…").
 
 
 
@@ -1051,6 +1067,18 @@ skip_line -->
 str(S) -->
   {string_codes(S, Cs)},
   Cs.
+
+
+
+%! str_ellipsis(+S, +Max)// is det.
+
+str_ellipsis(S1, Max) -->
+  {
+    Len is Max - 1,
+    string_truncate(S1, Len, S2)
+  },
+  str(S2),
+  ({S1 == S2} -> "" ; "…").
 
 
 

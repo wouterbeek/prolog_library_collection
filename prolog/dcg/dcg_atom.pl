@@ -2,7 +2,6 @@
   dcg_atom,
   [
     atom_ci//1,        % ?A
-    atom_ellipsis//2,  % +A, +Ellipsis:positive_integer
     atom_lower//1,     % ?A
     atom_lowercase//0,
     atom_title//1,     % ?A
@@ -19,7 +18,6 @@ Grammar rules for processing atoms.
 @version 2015/08, 2015/10, 2015/12, 2016/05-2016/06
 */
 
-:- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(url/rfc1738), [
@@ -61,14 +59,6 @@ atom_ci(A) -->
 atom_ci(A) -->
   {atom_codes(A, Cs)},
   *(code_ci, Cs).
-
-
-
-%! atom_ellipsis(+A, +Ellipsis:positive_integer)// .
-
-atom_ellipsis(A, Ellipsis) -->
-  {atom_truncate(A, Ellipsis, A0)},
-  atom(A0).
 
 
 
