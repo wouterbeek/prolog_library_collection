@@ -10,9 +10,9 @@
     capitalize_atom/2,    % +Atom,   -Capitalized
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
-    empty_atom/1,         % ?Empty
     ensure_atom/2,        % +Term,   -Atom
     format_integer/3,     % +I,      +Len,     -Atom
+    is_empty_atom/1,      % +Empty
     lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
     repeating_atom/3,     % +Sub,    +Repeats, -Atom
@@ -69,6 +69,7 @@ Titlecase atoms can be created using upcase_atom/2.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(char_ext)).
 :- use_module(library(typecheck)).
@@ -184,14 +185,6 @@ common_atom_prefix(Atom1, Atom2, Sub) :-
 
 
 
-%! empty_atom(+Empty) is semidet.
-%! empty_atom(-Empty) is det.
-% Succeeds only on the empty atom.
-
-empty_atom('').
-
-
-
 %! ensure_atom(+Term, -Atom) is det.
 
 ensure_atom(A, A) :- atom(A), !.
@@ -221,6 +214,15 @@ format_integer(I, L, Out) :-
   ZeroLength is L - IL,
   repeating_atom('0', ZeroLength, Zeros),
   atomic_concat(Zeros, I, Out).
+
+
+
+%! is_empty_atom(+Empty) is semidet.
+% Succeeds only on the empty atom.
+
+is_empty_atom(A) :-
+  atom(A),
+  atom_phrase(blanks, A).
 
 
 

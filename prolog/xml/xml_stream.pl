@@ -36,7 +36,10 @@ xml_stream_record(Source, RecordNames, Goal_1) :-
 xml_stream_record0(In) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
-    sgml_parse(Parser, [source(In),call(begin,on_begin)]),
+    (
+      set_sgml_parser(Parser, space(remove)),
+      sgml_parse(Parser, [source(In),call(begin,on_begin)])
+    ),
     free_sgml_parser(Parser)
   ).
 
@@ -46,4 +49,4 @@ on_begin(Elem, Attr, Parser) :-
   b_getval(xml_stream_record_names, RecordNames),
   memberchk(Elem, RecordNames), !,
   sgml_parse(Parser, [document(Content),parse(content)]),
-  call(Goal_1, element(Elem, Attr, Content)).
+  call(Goal_1, [element(Elem, Attr, Content)]).
