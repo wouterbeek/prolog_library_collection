@@ -29,7 +29,7 @@
     get_dict/4,             % +Key, +D, -Val, +Def
     get_dict_path/3,        % -Keys, +D, -Val
     is_empty_dict/1,        % @Term
-    merge_dict/3,           % +D1, +D2, -D3
+    merge_dicts/3,          % +D1, +D2, -D3
     mod_dict/4,             % +Key, +D1,       -Val, -D2
     mod_dict/5              % +Key, +D1, +Def, -Val, -D2
   ]
@@ -298,12 +298,12 @@ is_empty_dict(D):-
 
 
 
-%! merge_dict(+D1, +D2, -D3) is det.
+%! merge_dicts(+D1, +D2, -D3) is det.
 % Merges two dictionaries into one new dictionary.
 % If D1 and D2 contain the same key then the value from D2 is used.
 % If D1 and D2 do not have the same tag then the tag of D2 is used.
 
-merge_dict(D1, D2, D3):-
+merge_dicts(D1, D2, D3):-
   dict_pairs(D1, Tag1, Ps1),
   dict_pairs(D2, Tag2, Ps2),
   dict_keys(D2, Keys2),

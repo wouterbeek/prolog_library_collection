@@ -197,6 +197,7 @@
   :- use_module(library(xml/xml_pi)).
   :- use_module(library(xml/xml_prolog)).
   :- use_module(library(xml/xml_standalone)).
+  :- use_module(library(xml/xml_stream)).
   :- use_module(library(xml/xml10_code)).
   :- use_module(library(xml/xml11_code)).
 %/xpath
