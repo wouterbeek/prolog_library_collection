@@ -2,7 +2,8 @@
   thread_ext,
   [
     attached_thread/1,           % :Goal_0
-    call_on_wildcard/2,          % :Goal_1, +Opts
+    call_on_wildcard/2,          % +Wildcard, :Goal_1
+    call_on_wildcard/3,          % +Wildcard, :Goal_1, +Opts
     create_thread/1,             % :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads
     detached_thread/1,           % :Goal_0
@@ -25,6 +26,7 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(print_ext)).
@@ -32,7 +34,8 @@
 
 :- meta_predicate
     attached_thread(0),
-    call_on_wildcard(1, +),
+    call_on_wildcard(+, 1),
+    call_on_wildcard(+, 1, +),
     create_thread(0),
     detached_thread(0),
     intermittent_goal(0, 0, +),
@@ -50,21 +53,29 @@ attached_thread(Goal_0) :-
 
 
 
-%! call_on_wildcard(:Goal_1, +Opts) is det.
+%! call_on_wildcard(+Wildcard, :Goal_1) is det.
+%! call_on_wildcard(+Wildcard, :Goal_1, +Opts) is det.
 %
 % The following options are supported:
-%
-%   * wildcard(+atom) The Wildcard path that, through expansion,
-%   denotes a list of files to which Goal_1 is applied.
 %
 %   * concurrent(+positive_integer) The number of thread that are used
 %   in parallel processing multiple files.
 
-call_on_wildcard(Goal_1, Opts) :-
-  expand_file_name(Opts.wildcard, L),
+call_on_wildcard(Wildcard0, Goal_1) :-
+  call_on_wildcard(Wildcard0, Goal_1, _{}).
+
+
+call_on_wildcard(Wildcard0, Goal_1, Opts) :-
+  (   dict_get(search_path, Opts, Search)
+  ->  Spec =.. [Search,.],
+      absolute_file_name(Spec, Prefix),
+      directory_file_path(Prefix, Wildcard0, Wildcard)
+  ;   Wildcard = Wildcard0
+  ),
+  expand_file_name(Wildcard, Files),
   (   get_dict(concurrent, Opts, true)
-  ->  concurrent_maplist(Goal_1, L)
-  ;   maplist(Goal_1, L)
+  ->  concurrent_maplist(Goal_1, Files)
+  ;   maplist(Goal_1, Files)
   ).
 
 
