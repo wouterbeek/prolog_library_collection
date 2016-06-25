@@ -235,6 +235,8 @@ call_onto_stream0(Sink, Mod:Goal_6, Opts, In, MIn1, MIn2) :-
 %   * metadata(-dict)
 %
 %   * mode(+oneof([append,write])) Default is `write`.
+%
+%   * Other options are passed to open_any2/6.
 
 call_to_stream(Sink, Goal_3) :-
   call_to_stream(Sink, Goal_3, []).
