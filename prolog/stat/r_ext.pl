@@ -22,8 +22,8 @@
 :- use_module(library(option)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(real)).
-:- use_module(library(rdf/rdf_print)).
 :- use_module(library(yall)).
+:- use_module(library(z/z_print)).
 
 
 
@@ -61,7 +61,7 @@ r_plot(Rows, File, Opts) :-
   option(xlabel(XLbl), Opts, "X"),
   option(ylabel(YLbl), Opts, "Y"),
   maplist(list_split, Rows, Xs0, Ys),
-  maplist([X0,X]>>rdf_print_term(X0, _{out: string(X)}), Xs0, Xs),
+  maplist([X0,X]>>z_print_term(X0, _{out: string(X)}), Xs0, Xs),
   absolute_file_name(test, File, [access(write),extensions([svg])]),
   <- svg(+File),
   <- barplot(
