@@ -2,6 +2,7 @@
   date_time,
   [
     call_time/2,             % :Goal_0, -Seconds
+    call_time/3,             % :Goal_0, +N, -Seconds
     date_time_masks/3,       % +Masks, +DT, -MaskedDT
     date_to_date_time/2,     % +D, -DT
     date_time_to_date/2,     % +DT, -D
@@ -25,7 +26,8 @@ Support predicates for dealing with date and time representations.
 :- use_module(library(error)).
 
 :- meta_predicate
-    call_time(0, -).
+    call_time(0, -),
+    call_time(0, +, -).
 
 % Prolog date/3
 error:has_type(date, date(Y,Mo,D)):-
@@ -56,12 +58,17 @@ error:has_type(date, time(H,Mi,S)):-
 
 
 %! call_time(:Goal_0, -Seconds:float) is det.
+%! call_time(:Goal_0, +N, -Seconds:float) is det.
 
 call_time(Goal_0, N):-
-  get_time(X),
-  Goal_0,
-  get_time(Y),
-  N is Y - X.
+  call_time(Goal_0, 1, N).
+
+
+call_time(Goal_0, M, N):-
+  get_time(Begin),
+  forall(between(1, M, _), Goal_0),
+  get_time(End),
+  N is (End - Begin) / M.
 
 
 
