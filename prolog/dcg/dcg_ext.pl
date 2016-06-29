@@ -998,9 +998,12 @@ quoted(Quote_2, Goal_2) -->
 
 
 %! quoted(?Length:positive_integer, :Quote_2, :Content_0)// .
+%
 % Typical values for Quote_0 are:
-%   - double_quote//0
-%   - single_quote//0
+%
+%   * double_quote//0
+%
+%   * single_quote//0
 
 quoted(N, Quote_2, Content_2) -->
   {quote(Quote_2)},
@@ -1014,12 +1017,12 @@ quote_goal(single_quote).
 
 
 %! rest// is det.
+%! rest(-Rest:list(code))// is det.
+%
 % Same as `rest --> "".'
 
 rest(X, X).
 
-
-%! rest(-Rest:list(code))// is det.
 
 rest(X, X, []).
 
