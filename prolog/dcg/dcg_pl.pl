@@ -136,7 +136,7 @@ predicate(Mod:Pred/Arity) -->
 
 simple_term(I)    --> {integer(I)},     !, thousands(I).
 simple_term(F)    --> {float(F)},       !, float(F).
-simple_term(S)    --> {string(S)},      !, "\"", atom(S), "\"".
+simple_term(S)    --> {string(S)},      !, atom(S).
 simple_term(A)    --> {atom(A)},        !, atom(A).
 simple_term(DT)   -->                      date_time(DT), !.
 simple_term(Comp) --> {compound(Comp)}, !, {term_to_atom(Comp, A)}, atom(A).

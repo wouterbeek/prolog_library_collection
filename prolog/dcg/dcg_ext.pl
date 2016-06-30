@@ -38,6 +38,7 @@
     bracketed//1,          % :Dcg_0
     bracketed//2,          % ?Type:oneof([angular,curly,round,square,ungular]), :Dcg_0
     bs//0,
+    dcg/1,                 % :Dcg_0
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
     dcg_atom//2,           % :Dcg_1, ?A
@@ -177,6 +178,7 @@ My favorite collection of DCG rules.
     bracketed(//, ?, ?),
     bracketed(+, //, ?, ?),
     bracketed0(+, //, ?, ?),
+    dcg(//),
     dcg_apply(//,+, ?, ?),
     dcg_apply_cp(//, +, ?, ?),
     dcg_atom(3, ?, ?, ?),
@@ -535,6 +537,13 @@ bs -->
   blank.
 bs -->
   " ".
+
+
+
+%! dcg(:Dcg_0) is det.
+
+dcg(Dcg_0) :-
+  dcg_with_output_to(user_output, Dcg_0).
 
 
 
