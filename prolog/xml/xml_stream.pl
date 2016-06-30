@@ -13,7 +13,6 @@
 
 :- use_module(library(os/open_any2)).
 :- use_module(library(sgml)).
-:- use_module(library(yall)).
 
 :- meta_predicate
     xml_stream_record(+, +, 2).
@@ -30,10 +29,10 @@
 xml_stream_record(Source, RecordNames, Goal_1) :-
   b_setval(xml_stream_goal, Goal_1),
   b_setval(xml_stream_record_names, RecordNames),
-  call_on_stream(Source, [In,M,M]>>xml_stream_record0(In)).
+  call_on_stream(Source, xml_stream_record0).
 
 
-xml_stream_record0(In) :-
+xml_stream_record0(In, M, M) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
