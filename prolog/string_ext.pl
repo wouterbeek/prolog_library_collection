@@ -4,6 +4,7 @@
     codes_string/2,       % ?Cs, ?S
     string_list_concat/3, % ?Ss, ?Sep, ?S
     string_to_term/2,     % +S, -Term
+    string_replace/4,     % +S1, +Sub1, -Sub2, -S2
     string_truncate/3     % +S, +Max, -TruncatedS
   ]
 ).
@@ -18,7 +19,7 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/05
+@version 2015/08, 2016/02, 2016/05-2016/06
 */
 
 :- use_module(library(apply)).
@@ -52,6 +53,14 @@ string_list_concat(Ss, Sep, S):-
   maplist(atom_string, [Sep0,A], [Sep,S]),
   atomic_list_concat(As, Sep0, A),
   maplist(atom_string, As, Ss).
+
+
+
+%! string_replace(+S1, +Sub1, -Sub2, -S2) is det.
+
+string_replace(S1, Sub1, Sub2, S2) :-
+  string_list_concat(L, Sub1, S1),
+  string_list_concat(L, Sub2, S2).
 
 
 
