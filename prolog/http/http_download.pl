@@ -22,7 +22,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(error)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_ext)).
-:- use_module(library(http/http_request)).
+:- use_module(library(http/http_io)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(option)).

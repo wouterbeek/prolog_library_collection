@@ -55,14 +55,13 @@ $ curl --data "text=De apen zijn terug&confidence=0" -H "Accept: application/jso
 
 @author Wouter Beek
 @compat [DBpedia Spotlight Web Service](http://dbpedia-spotlight.github.io/demo/)
-@version 2015/08, 2016/05
+@version 2015/08, 2016/05, 2016/07
 */
 
 :- use_module(library(apply)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_open)).
-:- use_module(library(http/http_request)).
+:- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -86,27 +85,29 @@ $ curl --data "text=De apen zijn terug&confidence=0" -H "Accept: application/jso
 % the JSON output of the DBpedia Spotlight Web Service.
 %
 % The following options are supported:
-%   * `concepts(-ordset(iri))`
-%     Returns the annotation concepts.
-%   * `confidence(+float)`
-%     Default is 0.5.
-%   * `disambiguator(+oneof(['Default','Document']))`
-%     Default is `'Default'`.
-%   * `language(?atom)`
-%     The natural language in which Text occurs as an expression
-%     and relative to which annotations are made.
-%     If not given, the natural language is assessed algorithmically.
-%   * `output(+oneof([element,list]))
-%     Whether only the top annotation should be returned (`element`, default)
-%     or a list of alternative annotations (`list`).
-%   * `policy(+oneof([whitelist]))`
-%     Default is `'whitelist'`.
-%   * `spotter(+oneof(['Default']))`
-%     Default is `'Default'`.
-%   * `support(+integer)`
-%     Set the minimum? *prominence* of the retrieved entities.  This is
-%     measured as the number of in-links in Wikipedia.
-%     Default is 0.
+%
+%   * `concepts(-ordset(iri))` Returns the annotation concepts.
+%
+%   * `confidence(+float)` Default is 0.5.
+%
+%   * `disambiguator(+oneof(['Default','Document']))` Default is
+%   `'Default'`.
+%
+%   * `language(?atom)` The natural language in which Text occurs as
+%   an expression and relative to which annotations are made.  If not
+%   given, the natural language is assessed algorithmically.
+%
+%   * `output(+oneof([element,list])) Whether only the top annotation
+%   should be returned (`element`, default) or a list of alternative
+%   annotations (`list`).
+%
+%   * `policy(+oneof([whitelist]))` Default is `'whitelist'`.
+%
+%   * `spotter(+oneof(['Default']))` Default is `'Default'`.
+%
+%   * `support(+integer)` Set the minimum? *prominence* of the
+%   retrieved entities.  This is measured as the number of in-links in
+%   Wikipedia.  Default is 0.
 %
 % @tbd Add support for `types` query string option.
 % @tbd Add support for `sparql` query string option.
@@ -182,14 +183,14 @@ annotate(Txt, Anns, Opts) :-
   http_post(
     Iri,
     codes('application/x-www-form-urlencoded',Body),
-    {Txt,Anns,Opts}/[In,M,M]>>http_reply0(In, Txt, Anns, Opts),
+    callback0(Txt, Anns, Opts),
     [request_header('Accept'='application/json')]
   ), !.
 annotate(_, _, _) :-
   print_message(error, service_offline(dbpedia_spotlight)).
 
 
-http_reply0(In, Txt, Anns, Opts) :-
+callback0(Txt, Anns, Opts, In, Meta, Meta) :-
   json_read_dict(In, Anns, [tag(annotations)]),
   (debugging(dbpedia_spotlight) -> print_dict(Anns) ; true), %DEB
 

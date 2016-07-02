@@ -16,7 +16,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
-:- use_module(library(http/http_request)).
+:- use_module(library(http/http_io)).
 :- use_module(library(os/external_program)).
 :- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
@@ -61,12 +61,12 @@ tts(_, Prog):-
 % The lines must not contain non-ASCII characters (why not?).
 
 write_tts(Sink, Lines):-
-  call_to_stream(Sink, maplist(line_to_mp3, Lines)).
+  call_to_stream(Sink, [Out]>>maplist(line_to_mp3(Out), Lines)).
 
 
-line_to_mp3(Line):-
+line_to_mp3(Out, Line):-
   google_tts_link(Line, Iri),
-  http_get(Iri, [In,M,M]>>copy_stream_data(In, current_output)).
+  http_get(Iri, [In,Meta,Meta]>>copy_stream_data(In, Out)).
 
 
 google_tts_link(Line, Iri):-
