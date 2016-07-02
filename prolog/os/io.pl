@@ -13,7 +13,6 @@
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Opts1, +Opts2
     call_to_string/2,        % :Goal_1, -Str
     read_line_to_atom/2,     % +In, -A
-    read_line_to_string/2,   % +In, -Str
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
     read_stream_to_string/2, % +In, -Str
@@ -289,14 +288,6 @@ close_any(Close, Meta1, Meta2) :-
 read_line_to_atom(In, A) :-
   read_line_to_codes(In, Cs),
   atom_codes(A, Cs).
-
-
-
-%! read_line_to_string(+In, -Str) is det.
-
-read_line_to_string(In, Str) :-
-  read_line_to_codes(In, Cs),
-  string_codes(Str, Cs).
 
 
 
