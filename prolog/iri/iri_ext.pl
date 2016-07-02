@@ -8,6 +8,7 @@
     iri_comps/2,           % ?Iri,  ?Comps
     iri_file_extensions/2, % +Iri,  -Exts
     iri_query_enc//0,
+    iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
     iri_to_resource/2      % +Iri, -Res
   ]
@@ -16,7 +17,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11-2015/12, 2016/04-2016/05
+@version 2015/11-2015/12, 2016/04-2016/05, 2016-07
 */
 
 :- use_module(library(aggregate)).
@@ -24,6 +25,7 @@
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(default)).
 :- use_module(library(error)).
+:- use_module(library(fileutils)).
 :- use_module(library(http/http_path)).
 :- use_module(library(iri/rfc3987)).
 :- use_module(library(option)).
@@ -154,7 +156,7 @@ iri_comps(Iri, Comps) :-
 
 iri_file_extensions(Iri, Exts) :-
   iri_comp(Iri, path, Path),
-  file_extensions(Path, Exts).
+  findall(Ext, file_extension(Path, Ext), Exts).
 
 
 
@@ -184,6 +186,17 @@ iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   iri_query_enc.
 iri_query_enc --> "".
+
+
+
+%! iri_remove_fragment(+Iri, -BaseIri) is det.
+%
+% The base IRI is the eventual IRI that is being read from, wtihout
+% the fragment component.
+
+iri_remove_fragment(Iri, BaseIri) :-
+  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
+  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 

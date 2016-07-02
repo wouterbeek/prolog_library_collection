@@ -12,7 +12,7 @@
 */
 
 :- use_module(library(dcg/basics)).
-:- use_module(library(os/io_ext)).
+:- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
 
 
@@ -24,9 +24,11 @@
 wc(File, N1, N2, N3) :-
   run_process(wc, [file(File)], [output_goal(parse_wc0(N1,N2,N3))]).
 
-parse_wc0(N1, N2, N3, Read):-
-  read_input_to_codes(Read, Cs),
+
+parse_wc0(N1, N2, N3, In):-
+  read_stream_to_codes(In, Cs),
   phrase(wc0(N1, N2, N3), Cs, _).
+
 
 % Example:
 % ```bash

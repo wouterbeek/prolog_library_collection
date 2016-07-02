@@ -2,12 +2,8 @@
   nlp_dictionary,
   [
     nlp_dict_init/0,
-    nlp_random_word/3, % +Language:string
-                       % -Word:string
-                       % -Something:string
-    nlp_word/3 % ?Language:string
-               % ?Word:string
-               % ?Something:string
+    nlp_random_word/3, % +Lang, -Word, -Something
+    nlp_word/3         % ?Lang, ?Word, ?Something
   ]
 ).
 
@@ -40,7 +36,7 @@ Support for natural language dictionaries.
 
 %! nlp_random_word(+Language:string, -Word:string, -Something:string) is det.
 
-nlp_random_word(Lang, Word, Something):-
+nlp_random_word(Lang, Word, Something) :-
   aggregate_all(count, word(Lang, _, Word, _), NumberOfWords),
   random_between(1, NumberOfWords, M),
   word(Lang, M, Word, Something).
@@ -49,7 +45,7 @@ nlp_random_word(Lang, Word, Something):-
 
 %! nlp_word(?Language:string, ?Word:string, ?Something:string) is nondet.
 
-nlp_word(Lang, Word, Something):-
+nlp_word(Lang, Word, Something) :-
   word(Lang, _, Word, Something).
 
 
@@ -58,13 +54,13 @@ nlp_word(Lang, Word, Something):-
 
 % INITIALIZATION %
 
-nlp_dict_assert(Lang, In):-
+nlp_dict_assert(Lang, In) :-
   nlp_dict_assert(Lang, 0, In).
 
 
-nlp_dict_assert(_, _, In):-
+nlp_dict_assert(_, _, In) :-
   at_end_of_stream(In), !.
-nlp_dict_assert(Lang, N1, In):-
+nlp_dict_assert(Lang, N1, In) :-
   read_line_to_codes(In, Cs),
 
   % Parse and assert a single entry in the dictionary.
@@ -80,7 +76,7 @@ nlp_dict_assert(Lang, N1, In):-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-nlp_dict_download(Lang):-
+nlp_dict_download(Lang) :-
   nlp_dict_iri(Lang, Iri),
 
   % Construct the entry path that is to be extracted from the archive.
@@ -90,7 +86,7 @@ nlp_dict_download(Lang):-
   % Assert the words that appear in the dictionary.
   call_on_stream(
     Iri,
-    {Lang}/[In,M,M]>>nlp_dict_assert(Lang, In),
+    {Lang}/[In,Meta,Meta]>>nlp_dict_assert(Lang, In),
     [archive_entry(Entry)]
   ).
 
@@ -98,7 +94,7 @@ nlp_dict_download(Lang):-
 
 %! nlp_dict_file(+Language:string, -File:atom) is det.
 
-nlp_dict_file(Lang, File):-
+nlp_dict_file(Lang, File) :-
   absolute_file_name(Lang, File, [access(write),extensions([dic])]).
 
 
@@ -117,7 +113,7 @@ nlp_dict_init:-
 %
 % @throws existence_error if an HTTP request returns an error code.
 
-nlp_dict_init(Lang):-
+nlp_dict_init(Lang) :-
   nlp_dict_file(Lang, File),
   (exists_file(File) -> true ; touch(File)),
   db_attach(File, []),
@@ -128,7 +124,7 @@ nlp_dict_init(Lang):-
 
 %! nlp_dict_iri(?Language:string, -Iri:atom) is nondet.
 
-nlp_dict_iri("en-US", Iri):-
+nlp_dict_iri("en-US", Iri) :-
   atomic_list_concat(
     [
       '',
@@ -151,7 +147,7 @@ nlp_dict_iri("en-US", Iri):-
 %! nlp_dict_lang(+Language:string) is semidet.
 %! nlp_dict_lang(-Language:string) is multi.
 
-nlp_dict_lang(Lang):-
+nlp_dict_lang(Lang) :-
   nlp_dict_iri(Lang, _).
 
 
@@ -161,11 +157,11 @@ nlp_dict_lang(Lang):-
 % @throws existence_error if an HTTP request returns an error code.
 
 % The persistent store is still fresh.
-nlp_dict_update(Lang, Age):-
+nlp_dict_update(Lang, Age) :-
   once(word(Lang, _, _, _)),
   Age < 8640000, !.
 % The persistent store has become stale, so refresh it.
-nlp_dict_update(Lang, _):-
+nlp_dict_update(Lang, _) :-
   retractall_word(Lang, _, _, _),
   nlp_dict_download(Lang).
 

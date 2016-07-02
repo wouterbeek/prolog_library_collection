@@ -24,8 +24,7 @@ Support for downloading files and datastructures over HTTP(S).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_request)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/io_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 :- use_module(library(uri)).
@@ -37,15 +36,17 @@ Support for downloading files and datastructures over HTTP(S).
 
 %! file_download(+Iri, ?File) is det.
 %! file_download(+Iri, ?File, +Opts) is det.
-% Downloads the contents stored at the given URI to either
-% the a File with either a given file name or
-% a file name that is created based on the URI.
+%
+% Downloads the contents stored at the given URI to either the a File
+% with either a given file name or a file name that is created based
+% on the URI.
 %
 % The following options are supported:
-%   * freshness_lifetime(+or([between(0.0,inf),oneof([inf])]))
-%     Sets whether -- and if so, when -- files that were downloaded
-%     in the past are redownloaded and overwritten.
-%     Default is `inf`.
+%
+%   * freshness_lifetime(+or([between(0.0,inf),oneof([inf])])) Sets
+%   whether -- and if so, when -- files that were downloaded in the
+%   past are redownloaded and overwritten.  Default is `inf`.
+%
 %   * Other options are passed to http_get/3.
 %
 % @throws type_error if Iri is not an absolute URI.
@@ -74,12 +75,7 @@ file_download(Iri, File0, Opts0) :-
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
   merge_options([metadata(M)], Opts0, Opts),
-  call_onto_stream(
-    Iri,
-    TmpFile,
-    [In,MIn,MIn,Out,MOut,MOut]>>copy_stream_data(In, Out),
-    Opts
-  ),
+  call_onto_stream(Iri, TmpFile, [In,Meta,Meta,Out]>>copy_stream_data, Opts),
   (   nonvar(File0)
   ->  File = File0
   ;   (metadata_file_name(M, File0) -> true ; File0 = Hash),
@@ -97,7 +93,10 @@ html_download(Source, Dom) :-
 
 
 html_download(Source, Dom, Opts) :-
-  http_get(Source, {DirtyDom,Opts}/[In,M,M]>>load_html(In, DirtyDom, Opts)),
+  http_get(
+    Source,
+    {DirtyDom,Opts}/[In,Meta,Meta]>>load_html(In, DirtyDom, Opts)
+  ),
   clean_dom(DirtyDom, Dom).
 
 
@@ -112,7 +111,7 @@ xml_download(Source, Dom) :-
 
 
 xml_download(Source, Dom, Opts) :-
-  http_get(Source, {Dom,Opts}/[In,M,M]>>load_xml(In, Dom, Opts)).
+  http_get(Source, {Dom,Opts}/[In,Meta,Meta]>>load_xml(In, Dom, Opts)).
 
 
 

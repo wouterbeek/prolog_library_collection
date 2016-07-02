@@ -17,11 +17,10 @@ compressed or not.
 @version 2016/05
 */
 
+:- use_module(library(fileutils)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(os/dir_ext)).
-:- use_module(library(os/file_ext)).
-:- use_module(library(os/open_any2)).
-:- use_module(library(yall)).
+:- use_module(library(os/io)).
 
 
 
@@ -31,7 +30,7 @@ compressed or not.
 
 dir_file_entry(Dir, file_entry(File,Entry)) :-
   dir_file_recursive(Dir, File),
-  call_on_stream(File, [_,M,M]>>true, [entry_name(Entry)]).
+  call_on_stream(File, true, [entry_name(Entry)]).
 
 
 
@@ -51,7 +50,7 @@ file_entry_file(file_entry(File1,Entry), Ext, File2) :-
 % FileEntry.
 
 file_entry_extension(file_entry(File,Entry), Ext) :-
-  is_archive_file_name(File), !,
+  is_archive_file(File), !,
   file_extension(Entry, Ext).
 file_entry_extension(file_entry(File,_), Ext) :-
   file_extension(File, Ext).

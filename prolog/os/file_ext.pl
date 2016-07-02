@@ -1,12 +1,11 @@
 :- module(
   file_ext,
   [
+    count_numlines/2,        % +Source, -NumLines
     create_file/1,           % +File
     create_file_directory/1, % +File
     file_age/2,              % +File, -Age:float
     file_change_extension/3, % +File1, +Ext, File2
-    file_extension/2,        % +File, -Ext
-    file_extensions/2,       % +File, -Exts
     file_paths/2,            % +File, -Paths
     file_size/2,             % +File, -Size
     is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
@@ -14,7 +13,6 @@
     is_stale_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
     is_stale_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
     latest_file/2,           % +Files, -LatestFile
-    metadata_file_name/2,    % +M, -File
     thread_file/1,           % -ThreadFile
     thread_file/2,           % +File, -ThreadFile
     touch/1,                 % +File
@@ -28,7 +26,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/06
 */
 
 :- use_module(library(apply)).
@@ -45,6 +43,30 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(uuid_ext)).
 
 
+
+
+
+%! count_numlines(+Source, -NumLines) is det.
+
+count_numlines(Source, N) :-
+  catch(
+    call_on_stream(Source, count_numlines_stream0(N)),
+    error(no_content(_),_),
+    N = 0
+  ).
+
+
+count_numlines_stream0(N, In, Meta, Meta) :-
+  count_numlines_stream0(N, 0, In).
+
+
+count_numlines_stream0(N, M1, In) :-
+  read_line_to_codes(In, Cs),
+  (   Cs == end_of_file
+  ->  N = M1
+  ;   M2 is M1 + 1,
+      count_numlines_stream0(In, M2, N)
+  ).
 
 
 
@@ -87,22 +109,6 @@ file_age(File, Age) :-
 file_change_extension(From, Ext, To) :-
   file_name_extension(Base, _, From),
   file_name_extension(Base, Ext, To).
-
-
-
-%! file_extension(+File, -Ext) is semidet.
-
-file_extension(File, Ext) :-
-  file_name_extension(_, Ext, File).
-
-
-
-%! file_extensions(+File, -Exts) is det.
-
-file_extensions(File, Exts) :-
-  file_paths(File, Paths),
-  last(Paths, Path),
-  atomic_list_concat([_|Exts], ., Path).
 
 
 
@@ -177,34 +183,6 @@ latest_file([H|T], Time1-File1, Latest) :-
       File2 = File1
   ),
   latest_file(T, Time2-File2, Latest).
-
-
-
-%! metadata_file_name(+M, -Name) is det.
-%
-% Extract a file name from source metadata.
-
-metadata_file_name(M, Name) :-
-  % The Content-Disposition HTTP header may contain the intended file name.
-  http_header(M, 'llo:content-disposition', ContentDisposition),
-  get_dict(ContentDisposition, filename, Base0),
-
-  % An archive may add an entry path to the archive file path.
-  (   get_dict(M, 'llo:entry_path', MEntryPath),
-      file_entry_path(MEntryPath, Path)
-  ->  directory_file_path(Base0, Path, Base)
-  ;   Base = Base0
-  ),
-
-  % The Content-Type HTTP header may hint at a file extension.
-  % @tbd Implement common file extensions for MIME types.
-  %(   http_header(M, 'content-type', ContentType)
-  %    mime_ext(ContentType.type, ContentType.subtype, Ext),
-  %    \+ file_name_extension(_, Ext, Base)
-  %->  file_name_extension(Base, Ext, Name)
-  %;   Name = Base
-  %),
-  Name = Base.
 
 
 

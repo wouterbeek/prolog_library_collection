@@ -3,10 +3,6 @@
   [
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
-    http_auth_error/1,        % +Status
-    http_error/1,             % +Status
-    http_get_dict/3,          % +Key, +D, -Val
-    http_header/3,            % +M, +Key, -Val
     http_iri/2,               % +Req, -iri
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
@@ -16,11 +12,7 @@
     http_query/2,             % +Req, -D
     http_query/3,             % +Req, +Key, -Val
     http_read_json_dict/1,    % -Data
-    http_redirect/1,          % +Status
     http_reply_file/1,        % +File
-    http_scheme/1,            % ?Scheme
-    http_status_label/2,      % +StatusCode, -Lbl
-    http_status_reply/1,      % +Status
     http_status_reply/2       % +Req, +Status
   ]
 ).
@@ -63,37 +55,6 @@ http_accept(Req, MTs) :-
   maplist(mediatype_pair, L, Pairs),
   desc_pairs_values(Pairs, MTs).
 mediatype_pair(media(MT,_,N,_), N-MT).
-
-
-
-%! http_error(+Status) is semidet.
-
-http_auth_error(401).
-
-
-
-%! http_error(+Status) is semidet.
-
-http_error(Status):-
-  between(400, 599, Status).
-
-
-
-%! http_get_dict(+Key, +Ms, -Val) is nondet.
-
-http_get_dict(Key, M, Val) :-
-  get_dict('llo:http_communication', M, Ms),
-  last(Ms, M0),
-  get_dict(Key, M0, Val).
-
-
-
-%! http_header(+M, +Key, -Val) is nondet.
-
-http_header(M, Key, Val) :-
-  http_get_dict('llo:headers', M, Headers),
-  get_dict(Key, Headers, Vals),
-  member(Val, Vals).
 
 
 
@@ -165,34 +126,11 @@ http_read_json_dict(Data) :-
 
 
 
-%! http_redirect(+Status) is semidet.
-
-http_redirect(Status) :-
-  between(300, 399, Status).
-
-
-
 %! http_reply_file(+File) is det.
 
 http_reply_file(File) :-
   http_current_request(Req),
   http_reply_file(File, [], Req).
-
-
-
-%! http_scheme(+Scheme:atom) is semidet.
-%! http_scheme(-Scheme:atom) is multi.
-
-http_scheme(http).
-http_scheme(https).
-
-
-
-%! http_status_label(+Code:between(100,599), -Label:atom) is det.
-
-http_status_label(Code, Label):-
-  http_header:status_number_fact(Fact, Code),
-  atom_phrase(http_header:status_comment(Fact), Label).
 
 
 

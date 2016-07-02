@@ -11,7 +11,7 @@
 @version 2016/06
 */
 
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(sgml)).
 
 :- meta_predicate
@@ -29,21 +29,21 @@
 xml_stream_record(Source, RecordNames, Goal_1) :-
   b_setval(xml_stream_goal, Goal_1),
   b_setval(xml_stream_record_names, RecordNames),
-  call_on_stream(Source, xml_stream_record0).
+  call_on_stream(Source, xml_stream_record_stream0).
 
 
-xml_stream_record0(In, M, M) :-
+xml_stream_record_stream0(In, Meta, Meta) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
       set_sgml_parser(Parser, space(remove)),
-      sgml_parse(Parser, [source(In),call(begin,on_begin)])
+      sgml_parse(Parser, [source(In),call(begin,on_begin0)])
     ),
     free_sgml_parser(Parser)
   ).
 
 
-on_begin(Elem, Attr, Parser) :-
+on_begin0(Elem, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
   b_getval(xml_stream_record_names, RecordNames),
   memberchk(Elem, RecordNames), !,

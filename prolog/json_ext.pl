@@ -20,7 +20,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/json)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(yall)).
 
 
@@ -57,7 +57,7 @@ json_read_any(Source, D, Opts1) :-
   merge_options([request_header('Accept'='application/json')], Opts1, Opts2),
   call_on_stream(
     Source,
-    {D,Opts2}/[In,M,M]>>json_read_dict(In, D, Opts2),
+    {D,Opts2}/[In,Meta,Meta]>>json_read_dict(In, D, Opts2),
     Opts2
   ).
 
@@ -84,8 +84,4 @@ json_write_any(Sink, D):-
 
 
 json_write_any(Sink, D, Opts):-
-  call_to_stream(
-    Sink,
-    {D,Opts}/[Out,M,M]>>json_write_dict(Out, D, Opts),
-    Opts
-  ).
+  call_to_stream(Sink, json_write_dict(current_output, D, Opts), Opts).

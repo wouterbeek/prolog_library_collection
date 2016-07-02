@@ -14,7 +14,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(pure_input)).
 :- use_module(library(yall)).
 
@@ -40,7 +40,7 @@ bibtex_load(Source, Entries):-
 bibtex_load(Source, L, Opts):-
   call_on_stream(
     Source,
-    {L}/[In,M,M]>>phrase_from_stream(In, bibtex(L)),
+    {L}/[In,Meta,Meta]>>phrase_from_stream(In, bibtex(L)),
     Opts
   ).
 

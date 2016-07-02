@@ -10,7 +10,7 @@
 /** <module> Text-to-Speech (TTS)
 
 @author Wouter Beek
-@version 2015/10, 2015/12, 2016/04
+@version 2015/10, 2015/12, 2016/04, 2016/07
 */
 
 :- use_module(library(apply)).
@@ -18,13 +18,10 @@
 :- use_module(library(error)).
 :- use_module(library(http/http_request)).
 :- use_module(library(os/external_program)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
-
-:- dynamic
-    user:module_uses/2.
 
 :- multifile
     user:module_uses/2.
@@ -36,17 +33,16 @@ user:module_uses(tts, program(espeak)).
 
 
 %! tts(+Line) is det.
-% Uses the external program /espeak/ in order to turn the given
-% text message into speech.
+%! tts(+Line, +Program) is det.
+%
+% Uses the external program /espeak/ in order to turn the given text
+% message into speech.
 %
 % @throws existence_error if Program does not exist.
 
 tts(Line):-
   tts(Line, espeak).
 
-
-%! tts(+Line, +Program) is det.
-% @throws existence_error if Program does not exist.
 
 tts(Line, Prog):-
   exists_program(Prog), !,
@@ -57,6 +53,7 @@ tts(_, Prog):-
 
 
 %! write_tts(+Lines, +Sink) is det.
+%
 % Uses the limited but free TTS feature of Google Translate.
 %
 % The lines must be sufficiently small (exact upper limit?).
@@ -64,20 +61,16 @@ tts(_, Prog):-
 % The lines must not contain non-ASCII characters (why not?).
 
 write_tts(Sink, Lines):-
-  call_to_stream(Sink, {Lines}/[Out,M,M]>>write_tts0(Lines, Out)).
-
-write_tts0(Lines, Out) :-
-  maplist(string_to_mp3(Out), Lines).
+  call_to_stream(Sink, maplist(line_to_mp3, Lines)).
 
 
+line_to_mp3(Line):-
+  google_tts_link(Line, Iri),
+  http_get(Iri, [In,M,M]>>copy_stream_data(In, current_output)).
 
-string_to_mp3(Out, S):-
-  google_tts_link(S, Iri),
-  http_get(Iri, {Out}/[In,M,M]>>copy_stream_data(In, Out)).
 
-
-google_tts_link(S, Iri):-
-  google_tts_link("UTF-8", "en", S, Iri).
+google_tts_link(Line, Iri):-
+  google_tts_link("UTF-8", "en", Line, Iri).
 
 
 google_tts_link(Enc, Lang, Line, Iri):-

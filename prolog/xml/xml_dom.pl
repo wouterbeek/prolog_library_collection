@@ -24,7 +24,7 @@
 :- use_module(library(memfile)).
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
@@ -71,15 +71,15 @@ xml_clean_file(File) :-
 
 xml_clean_file(File, Opts) :-
   thread_file(TmpFile),
-  call_onto_stream(
-    File,
-    TmpFile,
-    [In,MIn,MIn,Out,MOut,MOut]>>xml_clean_stream(In, Out),
-    Opts
-  ),
+  call_onto_stream(File, TmpFile, xml_clean_stream0, Opts),
   rename_file(TmpFile, File).
 
-xml_clean_stream(In, _) :-
+
+xml_clean_stream0(In, Out, Meta, Meta) :-
+  xml_clean_stream0(In, Out).
+
+
+xml_clean_stream0(In, _) :-
   at_end_of_stream(In), !.
 % Add newlines between elements.
 xml_clean_stream(In, Out) :-

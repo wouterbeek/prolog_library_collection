@@ -18,7 +18,7 @@
 */
 
 :- use_module(library(option)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(yall)).
 
 
@@ -27,7 +27,11 @@
 
 %! csv_to_file(+Sink, +Rows) is det.
 %! csv_to_file(+Sink, +Rows, +Opts) is det.
-% Options are passed to call_to_stream/3 and csv_to_stream/3.
+%
+% Options are passed to:
+%
+%   * call_to_stream/3
+%   * csv_to_stream/3
 
 csv_to_file(Sink, Rows) :-
   csv_to_file(Sink, Rows, []).
@@ -36,7 +40,7 @@ csv_to_file(Sink, Rows) :-
 csv_to_file(Sink, Rows, Opts) :-
   call_to_stream(
     Sink,
-    {Rows,Opts}/[Out,M,M]>>csv_write_stream(Out, Rows, Opts),
+    {Rows,Opts}/[Out]>>csv_write_stream(Out, Rows, Opts),
     Opts
   ).
 

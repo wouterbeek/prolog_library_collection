@@ -21,7 +21,7 @@ This module is a wrapper around the external library
 :- use_module(library(dcg/dcg_file)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
-:- use_module(library(os/open_any2)).
+:- use_module(library(os/io)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(yall)).
 
@@ -51,7 +51,7 @@ detect_languages(Txt, Langs):-
     [access(read),file_type(directory)]
   ),
   setup_call_cleanup(
-    call_to_stream(File, [Out,M,M]>>write(Out, Txt)),
+    call_to_stream(File, {Txt}/[Out]>>write(Out, Txt)),
     run_jar(
       Jar,
       ['--detectlang','-d',file(Dir),file(File)],
