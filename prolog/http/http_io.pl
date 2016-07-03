@@ -15,7 +15,8 @@
     http_status_is_auth_error/1, % +Status
     http_status_is_error/1,      % +Status
     http_status_is_redirect/1,   % +Status
-    http_status_label/2          % +Status, -Lbl
+    http_status_label/2,         % +Status, -Lbl
+    http_throw_bad_request/1     % :Goal_0
   ]
 ).
 
@@ -67,7 +68,8 @@ The following additional options are supported:
     http_post(+, +, 1),
     http_post(+, +, 1, +),
     http_retry_until_success(0),
-    http_retry_until_success(0, +).
+    http_retry_until_success(0, +),
+    http_throw_bad_request(0).
 
 :- multifile
     iostream:open_hook/6.
@@ -409,9 +411,24 @@ http_throw_looping_redirect_error(Iri) :-
 
 
 
+%! http_throw_bad_request(:Goal_0) is det.
+
+http_throw_bad_request(Goal_0) :-
+  catch(Goal_0, E, true),
+  (   var(E)
+  ->  true
+  ;   message_to_string(E, Msg),
+      Code = 400,
+      http_status_label(Code, Lbl),
+      format(string(Status), "~d (~s)", [Code,Lbl]),
+      reply_json_dict(_{error: Msg, status: Status}, [status(Code)])
+  ).
+
+
+
 %! http_throw_max_redirect_error(+Iri, +Max) is det.
 
-htttp_throw_max_redirect_error(Iri, Max) :-
+http_throw_max_redirect_error(Iri, Max) :-
   format(atom(Comment), "max_redirect (~w) limit exceeded", [Max]),
   throw(
     error(
