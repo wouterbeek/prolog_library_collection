@@ -13,6 +13,7 @@
     http_query/3,             % +Req, +Key, -Val
     http_read_json_dict/1,    % -Data
     http_reply_file/1,        % +File
+    http_status_reply/1,      % +Status
     http_status_reply/2       % +Req, +Status
   ]
 ).
@@ -22,7 +23,7 @@
 Support for extracting information from HTTP requests/received messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06
+@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/07
 */
 
 :- use_module(library(apply)).

@@ -92,6 +92,7 @@ dict_pair(Key1-Val1, Key2-Val2):-
 create_grouped_sorted_dict(Pairs, D):-
   create_grouped_sorted_dict(Pairs, _, D).
 
+
 create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs),
