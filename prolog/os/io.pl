@@ -16,7 +16,6 @@
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
     read_stream_to_string/2, % +In, -Str
-    stream_compression/2,    % +Stream1, -Stream2
     stream_metadata/2,       % +Stream, -Meta
     write_mode/1             % ?Mode
   ]
@@ -30,12 +29,13 @@
 */
 
 :- use_module(library(iostream)).
+:- use_module(library(os/archive_ext)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream0(+, +, 3, -, +),
+    call_on_stream0(+, +, 3, +, -, +),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +),
     call_onto_stream0(+, 4, +, +, +, -),
@@ -84,27 +84,30 @@ call_on_stream(Source, Goal_3, Opts) :-
     open_any(Source, read, In1, Close, Opts),
     setup_call_cleanup(
       archive_open(In1, Arch, ArchOpts2),
-      % Semi-deterministic if an archive entry name is given.
-      (   nonvar(EntryName)
-      ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta1, Opts))
-      ;   call_on_stream0(Arch, EntryName, Goal_3, Meta1, Opts)
+      (
+        source_metadata(Source, Meta1),
+        % Semi-deterministic if an archive entry name is given.
+        (   nonvar(EntryName)
+        ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta2, Opts))
+        ;   call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta2, Opts)
+        )
       ),
       archive_close(Arch)
     ),
-    close_any(Close, Meta1, Meta2)
+    close_any(Close, Meta2, Meta3)
   ),
-  ignore(option(metadata(Meta2), Opts)).
+  ignore(option(metadata(Meta3), Opts)).
 
 
-call_on_stream0(Arch, EntryName, Goal_3, Meta3, Opts1) :-
+call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, Opts1) :-
   merge_options([meta_data(MetaPath)], Opts1, Opts2),
   archive_data_stream(Arch, In2, Opts2), !,
   (   MetaPath = [MetaEntry|_],
       EntryName = MetaEntry.name
-  ->  Meta1 = _{path: MetaPath},
+  ->  Meta2 = Meta1.put(_{path: MetaPath}),
       call_cleanup(
-        call(Goal_3, Meta1, Meta2, In2),
-        close_any(close(In2), Meta2, Meta3)
+        call(Goal_3, In2, Meta2, Meta3),
+        close_any(close(In2), Meta3, Meta4)
       )
   ;   close(In2),
       fail
@@ -200,14 +203,11 @@ call_to_stream(Sink, Goal_1, Opts) :-
   option(mode(Mode), Opts, append),
   setup_call_cleanup(
     (
-      open_any(Sink, Mode, Out1, Close, Opts),
-      (   option(compression(true), Opts, true)
-      ->  write_stream_compression(Out1, Out2)
-      ;   Out2 = Out1
-      )
+      open_any(Sink, Mode, Out1, Close1, Opts),
+      write_stream_compression(Out1, Close1, Mode, Out2, Close2, Opts)
     ),
     call(Goal_1, Out2),
-    close_any(Close, Meta)
+    close_any(Close2, Meta)
   ),
   ignore(option(metadata(Meta), Opts)).
 
@@ -237,25 +237,19 @@ call_to_streams(Sink1, Sink2, Goal_2, Opts1, Opts2) :-
   option(mode(Mode2), Opts2, append),
   setup_call_cleanup(
     (
-      open_any(Sink1, Mode1, Out1a, Close1, Opts1),
-      compression0(Out1a, Out1b, Opts1),
-      open_any(Sink2, Mode2, Out2a, Close2, Opts2),
-      compression0(Out2a, Out2b, Opts2)
+      open_any(Sink1, Mode1, Out1a, Close1a, Opts1),
+      write_stream_compression(Out1a, Close1a, Mode1, Out1b, Close1b, Opts1),
+      open_any(Sink2, Mode2, Out2a, Close2a, Opts2),
+      write_stream_compression(Out2a, Close2a, Mode2, Out2b, Close2b, Opts2)
     ),
     call(Goal_2, Out1b, Out2b),
     (
-      close_any(Close1, Meta1),
-      close_any(Close2, Meta2)
+      close_any(Close1b, Meta1),
+      close_any(Close2b, Meta2)
     )
   ),
   ignore(option(metadata(Meta1), Opts1)),
   ignore(option(metadata(Meta2), Opts2)).
-
-
-compression0(Out1, Out2, Opts) :-
-  option(compression(true), Opts, true), !,
-  write_stream_compression(Out1, Out2).
-compression0(Out, Out, _).
 
 
 
@@ -318,10 +312,15 @@ read_stream_to_string(In, S) :-
 
 
 
-%! stream_compression(+Stream1, -Stream2) is det.
+%! source_metadata(+Source, -Meta) is det.
 
-stream_compression(Stream1, Stream2) :-
-  zopen(Stream1, Stream2, [close_parent(true),format(gzip)]).
+source_metadata(Source, _{base_iri: Iri}) :-
+  atom(Source), !,
+  uri_file_name(Iri, Source).
+source_metadata(Comp, Meta) :-
+  compound(Comp), !,
+  absolute_file_name(Comp, Path),
+  source_metadata(Path, Meta).
 
 
 
@@ -365,3 +364,13 @@ stream_metadata(Stream, Meta):-
 
 write_mode(append).
 write_mode(write).
+
+
+
+%! write_stream_compression(+Out1, +Close1, +Mode, -Out2, -Close2, +Opts) is det.
+
+write_stream_compression(Out1, _, Mode, Out2, close(Out2), Opts) :-
+  write_mode(Mode),
+  option(compression(true), Opts, true), !,
+  zopen(Out1, Out2, [close_parent(true),format(gzip)]).
+write_stream_compression(Out, Close, _, Out, Close, _).

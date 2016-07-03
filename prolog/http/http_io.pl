@@ -45,7 +45,9 @@ The following additional options are supported:
 */
 
 :- use_module(library(apply)).
+:- use_module(library(date_time/date_time)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).     % HTTP cookie support
 :- use_module(library(http/http_io)).         % Extend open hook
 :- use_module(library(http/http_json)).       % JSON support
@@ -56,6 +58,7 @@ The following additional options are supported:
 :- use_module(library(option)).
 :- use_module(library(print_ext)).
 :- use_module(library(ssl)).                  % SSL support
+:- use_module(library(typecheck)).
 :- use_module(library(uri)).
 
 :- meta_predicate
@@ -187,6 +190,7 @@ http_is_scheme(https).
 
 
 iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
+  is_http_iri(Iri), !,
   option(max_redirects(MaxRedirect), Opts1, 5),
   option(max_retries(MaxRetry), Opts1, 1),
   State = _{
@@ -247,7 +251,7 @@ http_open1(Iri, State, In3, Close2_0, Metas, Opts0) :-
 
 % Authentication error.
 http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
-  http_auth_error(Meta.status),
+  http_status_is_auth_error(Meta.status),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
@@ -255,7 +259,7 @@ http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
   http_open1(Iri, State, In2, Close_0, Metas, AuthOpts).
 % Non-authentication error.
 http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
-  http_error(Meta.status), !,
+  http_status_is_error(Meta.status), !,
   call_cleanup(
     deb_http_error(Iri, Meta.status, In1, Opts),
     close(In1)
