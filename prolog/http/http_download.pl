@@ -75,7 +75,12 @@ file_download(Iri, File0, Opts0) :-
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
   merge_options([metadata(M)], Opts0, Opts),
-  call_onto_stream(Iri, TmpFile, [In,Meta,Meta,Out]>>copy_stream_data, Opts),
+  call_onto_stream(
+    Iri,
+    TmpFile,
+    [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
+    Opts
+  ),
   (   nonvar(File0)
   ->  File = File0
   ;   (metadata_file_name(M, File0) -> true ; File0 = Hash),
