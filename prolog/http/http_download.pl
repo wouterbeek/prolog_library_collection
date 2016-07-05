@@ -74,7 +74,7 @@ file_download(Iri, File0, Opts0) :-
   iri_normalized(Iri, NormIri),
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
-  merge_options([metadata(M)], Opts0, Opts),
+  merge_options([metadata(Meta)], Opts0, Opts),
   call_onto_stream(
     Iri,
     TmpFile,
@@ -83,7 +83,7 @@ file_download(Iri, File0, Opts0) :-
   ),
   (   nonvar(File0)
   ->  File = File0
-  ;   (metadata_file_name(M, File0) -> true ; File0 = Hash),
+  ;   gtrace, (metadata_file_name(Meta, File0) -> true ; File0 = Hash),
       absolute_file_name(File0, File, [access(write)])
   ),
   rename_file(TmpFile, File).

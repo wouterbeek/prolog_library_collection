@@ -47,6 +47,7 @@ The following additional options are supported:
 
 :- use_module(library(apply)).
 :- use_module(library(date_time/date_time)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).     % HTTP cookie support
@@ -56,17 +57,20 @@ The following additional options are supported:
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support
 :- use_module(library(http/http11)).
 :- use_module(library(iri/iri_ext)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(ssl)).                  % SSL support
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
+:- use_module(library(yall)).
 
 :- meta_predicate
-    http_get(+, 1),
-    http_get(+, 1, +),
-    http_post(+, +, 1),
-    http_post(+, +, 1, +),
+    http_get(+, 3),
+    http_get(+, 3, +),
+    http_post(+, +, 3),
+    http_post(+, +, 3, +),
     http_retry_until_success(0),
     http_retry_until_success(0, +),
     http_throw_bad_request(0).
@@ -107,10 +111,10 @@ deb_http_header(Line) :-
 
 
 
-%! http_default_success(+In, +M1, -M2) is det.
+%! http_default_success(+In, +Meta1, -Meta2) is det.
 
-http_default_success(In, M, _) :-
-  print_dict(M),
+http_default_success(In, Meta, Meta) :-
+  print_dict(Meta),
   copy_stream_data(In, user_output).
 
 
@@ -122,8 +126,10 @@ http_default_success(In, M, _) :-
 http_get(Iri) :-
   http_get(Iri, http_default_success).
 
+
 http_get(Iri, Goal_3) :-
   http_get(Iri, Goal_3, []).
+
 
 http_get(Iri, Goal_3, Opts0) :-
   merge_options([method(get)], Opts0, Opts),
@@ -138,7 +144,7 @@ http_error_msg(Iri, Status, Lines, In) :-
   create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
   dcg_with_output_to(string(Str1), dict(MetaHeaders, 2)),
-  read_input_to_string(In, Str2),
+  read_stream_to_string(In, Str2),
   msg_warning(
     "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
     [Status,Lbl,Iri,Str1,Str2]
@@ -219,7 +225,7 @@ iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
   merge_options([meta(Meta)], Opts1, Opts2).
 
 
-http_open1(Iri, State, In3, Close2_0, Metas, Opts0) :-
+http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
   copy_term(Opts0, Opts1),
   Opts2 = [
     authenticate(false),
@@ -236,19 +242,16 @@ http_open1(Iri, State, In3, Close2_0, Metas, Opts0) :-
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
       dict_pairs(Headers, Groups),
-      Meta = _{
+      Meta0 = _{
         headers: Headers,
         iri: Iri,
         status: Status,
         time: Time,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, State, Location, In1, In2, Close1_0, Meta, Metas, Opts0)
+      http_open2(Iri, State, Location, In1, In2, Close_0, Meta0, Metas, Opts0)
   ;   throw(E)
-  ),
-  merge_options(Opts0, [mode(read)], Opts4),
-  stream_compression(In2, In3, Opts4),
-  (In2 == In3 -> Close2_0 = Close1_0 ; Close2_0 = close(In3)).
+  ).
 
 
 % Authentication error.
@@ -274,7 +277,7 @@ http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
   ).
 % Redirect.
 http_open2(Iri0, State, Location, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
-  http_redirect(Meta.status), !,
+  http_status_is_redirect(Meta.status), !,
   close(In1),
   uri_resolve(Location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
@@ -356,8 +359,8 @@ http_retry_until_success(Goal_0, Timeout) :-
       var(E)
   ->  true
   ;   % HTTP error status code
-      E = error(existence_error(_,M),_),
-      http_get_dict(status, M, Status),
+      E = error(existence_error(_,Meta),_),
+      http_get_dict(status, Meta, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
   ->  debug(bgt(scrape), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
