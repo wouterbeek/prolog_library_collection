@@ -7,6 +7,10 @@
     iri_comp/3,            % +Iri,  ?N, ?V
     iri_comps/2,           % ?Iri,  ?Comps
     iri_file_extensions/2, % +Iri,  -Exts
+    iri_here/1,            % -Iri
+    iri_here/2,            % +PathComps, -Iri
+    iri_here/3,            % +PathComps, +QueryComps, -Iri
+    iri_here/4,            % +PathComps, +QueryComps, +Frag, -Iri
     iri_query_enc//0,
     iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
@@ -160,7 +164,38 @@ iri_file_extensions(Iri, Exts) :-
 
 
 
+%! iri_here(-Iri) is det.
+%! iri_here(+PathComps, -Iri) is det.
+%! iri_here(+PathComps, +QueryComps, -Iri) is det.
+%! iri_here(+PathComps, +QueryComps, +Frag, -Iri) is det.
+%
+% Creates IRIs on the current host, if any.
+
+iri_here(Iri) :-
+  iri_here(/, Iri).
+
+
+iri_here(PathComps, Iri) :-
+  iri_here(PathComps, [], Iri).
+
+
+iri_here(PathComps, QueryComps, Iri) :-
+  iri_here(PathComps, QueryComps, _, Iri).
+
+
+iri_here(PathComps, QueryComps, Frag, Iri) :-
+  setting(http:public_scheme, Scheme),
+  setting(http:public_host, Auth),
+  %setting(http:public_port, Port),
+  %uri_authority_components(Auth, uri_authority(_,_,Host,Port)),
+  atomic_list_concat([''|PathComps], /, Path),
+  uri_query_components(Query, QueryComps),
+  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,Frag)).
+
+
+
 %! iri_query_enc// .
+%
 % ```abnf
 % iquery = *( ipchar / iprivate / "/" / "?" )
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
@@ -211,7 +246,9 @@ iri_to_location(Iri, Loc) :-
   uri_components(Iri, uri_components(Scheme1,Auth1,Path,Query,Frag)), !,
   setting(http:public_scheme, Scheme2),
   setting(http:public_host, Host2),
-  (   Scheme1 == Scheme2,
+  (   % Data location and public location are the same.  Assume the
+      % default port.
+      Scheme1 == Scheme2,
       Auth1 == Host2
   ->  uri_components(_,_,Path,Query,Frag)
   ;   setting(http:public_port, Port0),
