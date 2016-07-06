@@ -53,12 +53,12 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
   mod_dict(page, Opts2, 1, StartPage, Opts3),
   put_dict(page0, Opts3, 0, Opts4),
   mod_dict(results_key, Opts4, results, ResultsKey, Opts5),
-  flag(aap, _, 0),%%%%
+  %%%%flag(aap, _, 0),%DEB
   % NONDET
   findnsols(PageSize, Pattern, Goal_0, Results),
   length(Results, NumResults),
-  flag(aap, N, N + 1),%%%%
-  (N =:= 36 -> gtrace ; true),%%%%
+  %%%%flag(aap, N, N + 1),%DEB
+  %%%%(N =:= 36 -> gtrace ; true),%DEB
   dict_inc(page0, Opts4),
   (   % No more results.
       NumResults =:= 0
