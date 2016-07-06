@@ -1,8 +1,8 @@
 :- module(
   html_dom,
   [
-    atom_to_html_dom/2, % +Atom, -Dom
-    atom_to_html_dom/2, % +Atom, -Dom, +Opts
+    atom_to_html_dom/2, % +A, -Dom
+    atom_to_html_dom/2, % +A, -Dom, +Opts
     html_insert_dom//1  % +Dom
   ]
 ).
