@@ -15,6 +15,14 @@
 
 :- use_module(library(dict_ext)).
 :- use_module(library(print_ext)).
+:- use_module(library(settings)).
+
+:- setting(
+     def_page_size,
+     positive_integer,
+     20,
+     "The default number of results per page."
+   ).
 
 :- meta_predicate
     pagination(+, 0, -),
@@ -34,10 +42,6 @@
 %
 %   * page(+nonneg) Default is 1.
 %
-%   * results_key(+atom) Allows the results key to be set.  This is
-%   used to generate GeoJSON, where the results key must be
-%   `features`.  Default is `results`.
-%
 % The following keys are in Result:
 %   * number_of_results
 %   * page
@@ -49,10 +53,10 @@ pagination(Pattern, Goal_0, Result) :-
 
 
 pagination(Pattern, Goal_0, Opts1, Result) :-
-  mod_dict(page_size, Opts1, 100, PageSize, Opts2),
+  setting(def_page_size, DefPageSize),
+  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
   mod_dict(page, Opts2, 1, StartPage, Opts3),
   put_dict(page0, Opts3, 0, Opts4),
-  mod_dict(results_key, Opts4, results, ResultsKey, Opts5),
   %%%%flag(aap, _, 0),%DEB
   % NONDET
   findnsols(PageSize, Pattern, Goal_0, Results),
@@ -70,9 +74,9 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
   ),
   dict_pairs(Result, [
     number_of_results-NumResults,
-    page-Opts5.page0,
+    page-Opts4.page0,
     page_size-PageSize,
-    ResultsKey-Results
+    results-Results
   ]).
 
 
