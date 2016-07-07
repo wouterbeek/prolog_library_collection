@@ -172,7 +172,6 @@
   :- use_module(library(uri/uri_file_name)).
 %/url
   :- use_module(library(url/rfc1738)).
-:- use_module(library(uuid_ext)).
 %/xml
   :- use_module(library(xml/marcxml)).
   :- use_module(library(xml/xml_attr_decl)).
