@@ -59,9 +59,14 @@ error:has_type(date, time(H,Mi,S)):-
 
 %! call_time(:Goal_0, -Seconds:float) is det.
 %! call_time(:Goal_0, +N, -Seconds:float) is det.
+%
+% call_time/2 preserves variable bindings but call_time/3 does not.
 
 call_time(Goal_0, N):-
-  call_time(Goal_0, 1, N).
+  get_time(Begin),
+  Goal_0,
+  get_time(End),
+  N is End - Begin.
 
 
 call_time(Goal_0, M, N):-

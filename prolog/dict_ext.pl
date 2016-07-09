@@ -26,9 +26,9 @@
     dict_sum/2,             % +Ds, -D
     dict_sum/3,             % +D1, +D2, -D3
     dict_tag/3,             % +D1, +Tag, ?D2
+    empty_dict/1,           % ?Dict
     get_dict/4,             % +Key, +D, -Val, +Def
     get_dict_path/3,        % -Keys, +D, -Val
-    is_empty_dict/1,        % @Term
     merge_dicts/3,          % +D1, +D2, -D3
     mod_dict/4,             % +Key, +D1,       -Val, -D2
     mod_dict/5              % +Key, +D1, +Def, -Val, -D2
@@ -268,6 +268,12 @@ dict_tag(D1, Tag, D2):-
 
 
 
+%! empty_dict(@Term) is semidet.
+
+empty_dict(_{}).
+
+
+
 %! get_dict(+Key, +D, -Val, +Def) is det.
 
 get_dict(K, D, V, _) :-
@@ -287,15 +293,6 @@ get_dict_path(L, D, Val) :-
   ;   Val = Val0,
       L = [H]
   ).
-
-
-
-%! is_empty_dict(@Term) is semidet.
-
-is_empty_dict(D):-
-  is_dict(D),
-  dict_pairs(D, _, L),
-  empty_list(L).
 
 
 

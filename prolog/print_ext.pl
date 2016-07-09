@@ -14,7 +14,8 @@
     msg_warning/1,      % +Format
     msg_warning/2,      % +Format, +Args
     print_dict/1,       % +Dict
-    print_dict/2,       % +Dict, +Opts
+    print_dict/2,       % :Dcg_1, +Dict
+    print_dict/3,       % :Dcg_1, +Dict, +Opts
     print_table/1,      % +Rows
     print_table/2,      % +Rows, :Opts
     print_tree/1,       % +Tree
@@ -43,6 +44,8 @@ Additional predicates for printing.
 :- use_module(library(settings)).
 
 :- meta_predicate
+    print_dict(3, +),
+    print_dict(3, +, +),
     print_table(+, :),
     verbose(0),
     verbose(0,+),
@@ -169,14 +172,19 @@ msg_warning(Format, Args) :-
 
 
 %! print_dict(+Dict) is det.
-%! print_dict(+Dict, +Opts) is det.
+%! print_dict(:Dcg_1, +Dict) is det.
+%! print_dict(:Dcg_1, +Dict, +Opts) is det.
 
-print_dict(D) :-
-  print_dict(D, _{out: user_output}).
+print_dict(Dict) :-
+  print_dict(pl_term, Dict).
 
 
-print_dict(D, Opts) :-
-  dcg_with_output_to(Opts.out, dict(D, Opts)),
+print_dict(Dcg_1, Dict) :-
+  print_dict(Dcg_1, Dict, _{out: user_output, indent: 0}).
+
+
+print_dict(Dcg_1, Dict, Opts) :-
+  dcg_with_output_to(Opts.out, dcg_dict(Dcg_1, Dict, Opts.indent)),
   nl.
 
 

@@ -18,7 +18,6 @@
   :- use_module(library(dcg/dcg_atom)).
   :- use_module(library(dcg/dcg_char)).
   :- use_module(library(dcg/dcg_code)).
-  :- use_module(library(dcg/dcg_collection)).
   :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_list)).

@@ -1,6 +1,7 @@
 :- module(
   http_io,
   [
+    http_fail_on_exception/1,    % :Goal_0
     http_get/1,                  % +Iri
     http_get/2,                  % +Iri, :Goal_3
     http_get/3,                  % +Iri, :Goal_3, +Opts
@@ -67,6 +68,7 @@ The following additional options are supported:
 :- use_module(library(yall)).
 
 :- meta_predicate
+    http_fail_on_exception(0),
     http_get(+, 3),
     http_get(+, 3, +),
     http_post(+, +, 3),
@@ -90,7 +92,7 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 %! deb_http_error(+Iri, +Status, +In, +Opts) is det.
 
 deb_http_error(Iri, Status, In, Opts) :-
-  debugging(open_any(http(error))), !,
+  debugging(http_io(error)), !,
   option(raw_headers(Headers), Opts),
   http_error_msg(Iri, Status, Headers, In).
 deb_http_error(_, _, _, _).
@@ -100,7 +102,7 @@ deb_http_error(_, _, _, _).
 %! deb_http_headers(+Lines) is det.
 
 deb_http_headers(Lines) :-
-  debugging(io(http(headers))), !,
+  debugging(http_io(headers)), !,
   maplist(deb_http_header, Lines).
 deb_http_headers(_).
 
@@ -116,6 +118,21 @@ deb_http_header(Line) :-
 http_default_success(In, Meta, Meta) :-
   print_dict(Meta),
   copy_stream_data(In, user_output).
+
+
+
+%! http_error_msg(+Iri, +Status, +Lines, +In) is det.
+
+http_error_msg(Iri, Status, Lines, In) :-
+  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
+  create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
+  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
+  dcg_with_output_to(string(Str1), dict(MetaHeaders, 2)),
+  read_stream_to_string(In, Str2),
+  msg_warning(
+    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
+    [Status,Lbl,Iri,Str1,Str2]
+  ).
 
 
 
@@ -137,17 +154,15 @@ http_get(Iri, Goal_3, Opts0) :-
 
 
 
-%! http_error_msg(+Iri, +Status, +Lines, +In) is det.
+%! http_fail_on_exception(:Goal_0) is det.
 
-http_error_msg(Iri, Status, Lines, In) :-
-  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
-  create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
-  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  dcg_with_output_to(string(Str1), dict(MetaHeaders, 2)),
-  read_stream_to_string(In, Str2),
-  msg_warning(
-    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
-    [Status,Lbl,Iri,Str1,Str2]
+http_fail_on_exception(Goal_0) :-
+  catch(Goal_0, E, true),
+  (   var(E)
+  ->  true
+  ;   message_to_string(E, Msg),
+      format(user_error, "~s~n", [Msg]),
+      fail
   ).
 
 
@@ -362,12 +377,12 @@ http_retry_until_success(Goal_0, Timeout) :-
       E = error(existence_error(_,Meta),_),
       http_get_dict(status, Meta, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
-  ->  debug(bgt(scrape), "Status: ~D (~s)", [Status,Lbl]),
+  ->  debug(http_io(error), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ;   % TCP error (Try Again)
       E = error(socket_error('Try Again'), _)
-  ->  debug(bgt(scrape), "TCP Try Again", []),
+  ->  debug(http_io(error), "TCP Try Again", []),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).

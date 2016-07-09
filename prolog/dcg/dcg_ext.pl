@@ -56,7 +56,13 @@
     dcg_call_cp//4,        % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call_cp//5,        % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call_cp//6,        % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_dict//1,           % +Dict
+    dcg_dict//2,           % :Dcg_1, +Dict
+    dcg_dict//3,           % :Dcg_1, +Dict, +I
     dcg_goal//1,           % :Goal_0
+    dcg_list//1,           % +L
+    dcg_list//2,           % :Dcg_1, +L
+    dcg_list//3,           % :Dcg_1, +L, +I
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
     dcg_once//1,           % :Dcg_0
     dcg_string//2,         % :Dcg_1, ?S
@@ -80,6 +86,7 @@
     number//0,
     opt//1,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
+    pair//2,               % :Dcg_0, :Dcg_0
     parsing//0,
     perc//1,               % +Perc:between(0.0,1.0)
     perc_fixed//1,         % +Perc:between(0.0,1.0)
@@ -89,6 +96,7 @@
     pos_sum/2,             % +Ds:list(between(0,9)), -N:nonneg
     pos_sum/3,             % +Ds:list(nonneg), +Base:positive_integer, -N:nonneg
     progress_bar//2,       % +Processed, +All
+    quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
     quoted//1,             % :Content_2
     quoted//2,             % :Quote_2, :Content_2
     quoted//3,             % ?Length, :Quote_2, :Content_2
@@ -97,6 +105,8 @@
     section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
     seplist//2,            % :Dcg_0, :Sep_0
     seplist//3,            % :Dcg_1, :Sep_0, +L
+    set//1,                % +L
+    set//2,                % :Dcg_1, +L
     skip_line//0,
     str//1,                % +S
     str_ellipsis//2,       % +S, +Max
@@ -110,6 +120,9 @@
     tab//2,                % +Indent:nonneg, :Dcg_0
     tab_nl//2,             % +Indent:nonneg, :Dcg_0
     thousands//1,          % +Integer:integer
+    triple//3,             % :DcgX_0, :DcgY_0, :DcgZ_0
+    tuple//1,              % +L
+    tuple//2,              % :Dcg_1, +L
     ws//0
   ]
 ).
@@ -131,15 +144,17 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05-2016/06
+@version 2015/11-2016/03, 2016/05-2016/07
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
+:- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(lists)).
+:- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(math/radconv)).
 :- use_module(library(settings)).
@@ -196,7 +211,11 @@ My favorite collection of DCG rules.
     dcg_call_cp(5, ?, ?, ?, ?, ?),
     dcg_call_cp(6, ?, ?, ?, ?, ?, ?),
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_dict(3, +, ?, ?),
+    dcg_dict(3, +, +, ?, ?),
     dcg_goal(0, ?, ?),
+    dcg_list(3, +, ?, ?),
+    dcg_list(3, +, +, ?, ?),
     dcg_max_width(3, +, -),
     dcg_once(//, ?, ?),
     dcg_string(3, ?, ?, ?),
@@ -208,16 +227,21 @@ My favorite collection of DCG rules.
     indent_nl(+, //, ?, ?),
     opt(//, ?, ?),
     opt(3, ?, ?, ?),
+    pair(//, //, ?, ?),
+    quad(//, //, //, //, ?, ?),
     quoted(//, ?, ?),
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
     section(+, +, //, ?, ?),
     seplist(//, //, ?, ?),
     seplist(3, //, +, ?, ?),
+    set(3, +, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
-    tab_nl(+, //, ?, ?).
+    tab_nl(+, //, ?, ?),
+    triple(//, //, //, ?, ?),
+    tuple(3, +, ?, ?).
 
 :- setting(tab_size, integer, 8,
      'The number of spaces that go into one tab.'
@@ -703,11 +727,143 @@ dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
 
 
 
+%! dcg_dict(+Dict)// is det.
+%! dcg_dict(:Dcg_1, +Dict)// is det.
+%! dcg_dict(:Dcg_1, +Dict, +I)// is det.
+
+dcg_dict(Dict) -->
+  dcg_dict(pl_term, Dict).
+
+
+dcg_dict(Dcg_1, Dict) -->
+  dcg_dict(Dcg_1, Dict, 0).
+
+
+
+dcg_dict(Dcg_1, Dict, I1) -->
+  {dict_pairs(Dict, Pairs)},
+  (   % Empty terms do not use lucious spacing.
+      {is_empty_term0(Dict)}
+  ->  tab(I1), "{}"
+  ;   % Singleton term do not use lucious spacing if the member is
+      % singleton.
+      {is_singleton_term0(Dict)}
+  ->  tab(I1), "{ ",
+      {Pairs = [Key-Val]},
+      dcg_entry0(Dcg_1, Key-Val, 0),
+      " }"
+  ;   "{", nl,
+      {I2 is I1 + 1},
+      dcg_entries0(Dcg_1, Pairs, I2),
+      tab(I1), "}"
+  ).
+
+
+dcg_dict_or_list0(Dcg_1, Val, Opts) -->
+  {is_dict(Val)}, !,
+  dcg_dict(Dcg_1, Val, Opts).
+dcg_dict_or_list0(Dcg_1, Val, Opts) -->
+  {is_list(Val)}, !,
+  dcg_list(Dcg_1, Val, Opts).
+
+
+dcg_entries0(Dcg_1, [H1,H2|T], I) --> !,
+  dcg_entry0(Dcg_1, H1, I),
+  ",", nl,
+  dcg_entries0(Dcg_1, [H2|T], I).
+dcg_entries0(Dcg_1, [H], I) --> !,
+  dcg_entry0(Dcg_1, H, I),
+  nl.
+dcg_entries0(_, [], _) --> !, "".
+
+
+dcg_entry0(Dcg_1, Key-Val, I1) --> !,
+  tab(I1),
+  dcg_call(Dcg_1, Key), ": ",
+  (   {is_dict_or_list0(Val)}
+  ->  % Newline and additional indentation before dictionary or list
+      % values that are non-empty and non-singleton.
+      ({(is_empty_or_singleton_term0(Val))} -> {I2 = 0} ; {I2 is I1 + 1}),
+      dcg_dict_or_list0(Dcg_1, Val, I2)
+  ;   dcg_call(Dcg_1, Val)
+  ).
+dcg_entry0(Dcg_1, Elem, I) -->
+  tab(I),
+  dcg_dict_or_list0(Dcg_1, Elem, I), !.
+dcg_entry0(Dcg_1, Elem, I) -->
+  tab(I),
+  dcg_call(Dcg_1, Elem).
+
+
+is_dict_or_list0(Term) :-
+  is_dict(Term).
+is_dict_or_list0(Term) :-
+  is_list(Term).
+
+
+is_empty_term0(Dict):-
+  is_dict(Dict), !,
+  empty_dict(Dict).
+is_empty_term0(L):-
+  is_list(L), !,
+  empty_list(L).
+
+
+is_empty_or_singleton_term0(Term) :-
+  is_empty_term0(Term).
+is_empty_or_singleton_term0(Term) :-
+  is_singleton_term0(Term).
+
+
+is_singleton_term0(Dict):-
+  is_dict(Dict), !,
+  dict_pairs(Dict, Pairs),
+  Pairs = [_-Val],
+  is_singleton_term0(Val).
+is_singleton_term0(L):-
+  is_list(L), !,
+  singleton_list(Elem, L),
+  is_singleton_term0(Elem).
+is_singleton_term0(_).
+
+
+
 %! dcg_goal(:Goal_0)// is det.
 
 dcg_goal(Goal_0) -->
   {with_output_to(codes(Cs), Goal_0)},
   Cs.
+
+
+
+%! dcg_list(+L)// is det.
+%! dcg_list(:Dcg_1, +L)// is det.
+%! dcg_list(:Dcg_1, +L, +I)// is det.
+
+dcg_list(L) -->
+  dcg_list(pl_term, L).
+
+
+dcg_list(Dcg_1, L) -->
+  dcg_list(Dcg_1, L, 0).
+
+
+dcg_list(_, L, _) -->
+  {empty_list(L)}, !,
+  "[]".
+dcg_list(Dcg_1, L, _) -->
+  {
+    singleton_list(Elem, L),
+    is_singleton_term0(Elem)
+  }, !,
+  "[ ",
+  dcg_entry0(Dcg_1, Elem, 0),
+  " ]".
+dcg_list(Dcg_1, L, I1) -->
+  "[", nl,
+  {I2 is I1 + 1},
+  dcg_entries0(Dcg_1, L, I2),
+  tab(I1), "]".
 
 
 
@@ -787,7 +943,7 @@ debug(_, _).
 %! def(:Dcg_1, -Arg, +Def)// .
 
 def(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
-def(_, Def, Def) --> [].
+def(_, Def, Def) --> "".
 
 
 
@@ -827,7 +983,7 @@ generate_as_digits(N, M) -->
 
 %! generate_as_digits(+N:nonneg, +Base:positive_integer, +NoDs)// is det.
 
-generate_as_digits(_, _, 0) --> !, [].
+generate_as_digits(_, _, 0) --> !, "".
 generate_as_digits(N1, Base, M1) -->
   {M2 is M1 - 1},
   {D is N1 // Base ^ M2},
@@ -887,13 +1043,20 @@ number --> number(_).
 %! opt(:Dcg_0)// .
 
 opt(Dcg_0) --> Dcg_0, !.
-opt(_) --> [].
+opt(_) --> "".
 
 
 %! opt(:Dcg_1, ?Arg)// .
 
 opt(Dcg_1, Arg) --> dcg_call(Dcg_1, Arg), !.
-opt(_, _) --> [].
+opt(_, _) --> "".
+
+
+
+%! pair(:DcgX_0, :DcgY_0)// is det.
+
+pair(DcgX_0, DcgY_0) -->
+  "〈", DcgX_0, ",", DcgY_0, "〉".
 
 
 
@@ -972,7 +1135,7 @@ pos_sum([], _, I, I).
 
 progress_bar(M, N) -->
   progress_bar(M, N, 10),
-  ({M =:= N} -> " [done]" ; []).
+  ({M =:= N} -> " [done]" ; "").
 
 
 progress_bar(M, N, Width) -->
@@ -991,6 +1154,13 @@ progress_bar(M, N, Width) -->
   "/",
   thousands(N),
   ")".
+
+
+
+%! quad(:DcgX_0, :DcgY_0, :DcgZ_0, :Q_2)// is det.
+
+quad(DcgX_0, DcgY_0, DcgZ_0, Q_2) -->
+  "〈", DcgX_0, ",", DcgY_0, ",", DcgZ_0, ",", Q_2, "〉".
 
 
 
@@ -1057,12 +1227,24 @@ seplist(_, _) --> !, "".
 % example, "a b " could no longer be parsed if the separator was a
 % space.
 seplist(Dcg_1, Sep_0, [H1,H2|T]) -->
-  call(Dcg_1, H1),
+  dcg_call(Dcg_1, H1),
   Sep_0,
   seplist(Dcg_1, Sep_0, [H2|T]).
 seplist(Dcg_1, _, [H]) -->
-  call(Dcg_1, H), !.
-seplist(_, _, []) --> !, [].
+  dcg_call(Dcg_1, H), !.
+seplist(_, _, []) --> !, "".
+
+
+
+%! set(+L)// is det.
+%! set(:Dcg_1, +L)// is det.
+
+set(L) -->
+  set(pl_term, L).
+
+
+set(Dcg_1, L) -->
+  "{", seplist(Dcg_1, L), "}".
 
 
 
@@ -1173,6 +1355,27 @@ tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
 thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).
+
+
+
+%! triple(:DcgX_0, :DcgY_0, :DcgZ_0)// is det.
+% Wrapper around triple//4 using the default writer.
+
+triple(DcgX_0, DcgY_0, DcgZ_0) -->
+  "〈", DcgX_0, ",", DcgY_0, ",", DcgZ_0, "〉".
+
+
+
+%! tuple(+L)// is det.
+%! tuple(:Dcg_1, +L)// is det.
+% Prints a tuple.
+
+tuple(L) -->
+  tuple(pl_term, L).
+
+
+tuple(Dcg_1, L) -->
+  "〈", seplist(Dcg_1, L), "〉".
 
 
 
