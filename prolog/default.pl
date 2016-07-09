@@ -1,8 +1,8 @@
 :- module(
   default,
   [
-    defgoal/2, % :DefGoal_1, ?Value
-    defval/2   % +Def, ?Value
+    defgoal/2, % :DefGoal_1, ?Val
+    defval/2   % +DefVal, ?Val
   ]
 ).
 
@@ -19,7 +19,7 @@
 
 
 
-%! defgoal(:DefGoal_1, ?Value) is det.
+%! defgoal(:DefGoal_1, ?Val) is det.
 % Runs the given goal, whenever the given value is uninstantiated.
 % The given goal is assumed to be unary and deterministic, always
 % returning an instantiation for `Value`.
@@ -36,14 +36,14 @@
 %   ...
 % ```
 
-defgoal(_, X) :-
-  ground(X), !.
-defgoal(Goal_1, X) :-
-  once(call(Goal_1, X)).
+defgoal(_, Val) :-
+  ground(Val), !.
+defgoal(DefGoal_1, Val) :-
+  once(call(DefGoal_1, Val)).
 
 
 
-%! defval(+Def, ?Value) is det.
+%! defval(+DefVal, ?Val) is det.
 % Returns either the given value or the default value, in case there
 % is no value given.
 %
@@ -59,6 +59,6 @@ defgoal(Goal_1, X) :-
 % once(call(Ordering, L1, L2))
 % ```
 
-defval(_, X):-
-  nonvar(X), !.
-defval(X, X).
+defval(_, Val):-
+  nonvar(Val), !.
+defval(Val, Val).

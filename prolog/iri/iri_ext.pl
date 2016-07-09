@@ -92,7 +92,7 @@ append_atoms0(L, Q1, Q2) :-
 
 iri_change_comp(Iri1, Key, Val, Iri2) :-
   uri_components(Iri1, Comps1),
-  uri_data(Key, Comps1, Val, Comps2),
+  uri_data_compatibility(Key, Comps1, Val, Comps2),
   uri_components(Iri2, Comps2).
 
 
@@ -110,11 +110,11 @@ iri_change_comp(Iri1, Key, Val, Iri2) :-
 iri_comp(Iri, Key, Val) :-
   iri_field0(Key), !,
   iri_comps(Iri, Comps),
-  uri_data(Key, Comps, Val).
+  uri_data_compatibility(Key, Comps, Val).
 iri_comp(Iri, Key, Val) :-
   auth_field0(Key), !,
   iri_comps(Iri, IriComps),
-  uri_data(authority, IriComps, Auth),
+  uri_data_compatibility(authority, IriComps, Auth),
   uri_authority_components(Auth, AuthComps),
   uri_authority_data(Key, AuthComps, Val).
 iri_comp(_, Key0, _) :-
@@ -309,3 +309,20 @@ iri_change_query_comps00(Goal_2, Q1, Q2) :-
   uri_query_components(Q1, Pairs1),
   call(Goal_2, Pairs1, Pairs2),
   uri_query_components(Q2, Pairs2).
+
+
+
+uri_data_compatibility(Key, Comps, Val) :-
+  Key == query, !,
+  uri_data(search, Comps, Val).
+uri_data_compatibility(Key, Comps, Val) :-
+  uri_data(Key0, Comps, Val),
+  (Key0 == search -> Key = query ; Key = Key0).
+
+
+
+uri_data_compatibility(Key, Comps1, Val, Comps2) :-
+  Key == query, !,
+  uri_data(search, Comps1, Val, Comps2).
+uri_data_compatibility(Key, Comps1, Val, Comps2) :-
+  uri_data(Key, Comps1, Val, Comps2).
