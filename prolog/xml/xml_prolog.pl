@@ -27,6 +27,7 @@ Grammar for the XML prolog.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
 :- use_module(library(xml/xml_comment)).
@@ -74,9 +75,9 @@ Grammar for the XML prolog.
   '*'('EncName_char', T).
 
 'EncName_char'(Code) --> ascii_alpha_numeric(Code).
-'EncName_char'(Code) --> dot(Code).
-'EncName_char'(Code) --> underscore(Code).
-'EncName_char'(Code) --> hyphen(Code).
+'EncName_char'(0'.) --> ".".
+'EncName_char'(0'_) --> "_".
+'EncName_char'(0'-) --> "-".
 
 
 

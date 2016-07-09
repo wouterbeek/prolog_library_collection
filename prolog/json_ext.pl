@@ -90,7 +90,7 @@ json_write_any(Sink, Dict):-
 
 
 json_write_any(Sink, Dict, Opts):-
-  call_to_stream(Sink, json_write_dict(current_output, Dict, Opts), Opts).
+  call_to_stream(Sink, [Out]>>json_write_dict(Out, Dict, Opts), Opts).
 
 
 

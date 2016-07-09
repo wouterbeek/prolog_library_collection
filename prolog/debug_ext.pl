@@ -3,7 +3,6 @@
   [
     call_collect_messages/1,    % :Goal_0
     call_collect_messages/3,    % :Goal_0, -Status, -Messages
-    debug_all_files/0,
     debug_collect_messages/1,   % :Goal_0
     debug_concurrent_maplist/3, % +Flag, :Goal_1, +Args1
     debug_concurrent_maplist/4, % +Flag, :Goal_2, +Args1, +Args2
@@ -85,26 +84,6 @@ process_warnings(Es):- maplist(print_error, Es).
 
 call_collect_messages(Goal_0, Status, Messages):-
   check_installation:run_collect_messages(Goal_0, Status, Messages).
-
-
-
-%! debug_all_files is det.
-% Loads all subdirectories and Prolog files contained in those directories.
-
-debug_all_files:-
-  absolute_file_name(project(.), Dir, [access(read),file_type(directory)]),
-  directory_file_path(Dir, '*.pl', Wildcard),
-  expand_file_name(Wildcard, Files1),
-  exclude(do_not_load, Files1, Files2),
-  maplist(use_module0, Files2).
-use_module0(File):-
-  print_message(informational, loading_module(File)),
-  use_module(File).
-
-do_not_load(File1):-
-  file_base_name(File1, File2),
-  file_name_extension(File3, pl, File2),
-  do_not_load0(File3).
 
 
 

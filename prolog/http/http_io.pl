@@ -127,7 +127,7 @@ http_error_msg(Iri, Status, Lines, In) :-
   maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
   create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  dcg_with_output_to(string(Str1), dict(MetaHeaders, 2)),
+  dcg_with_output_to(string(Str1), pl_dict(MetaHeaders, _{indent: 2})),
   read_stream_to_string(In, Str2),
   msg_warning(
     "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",

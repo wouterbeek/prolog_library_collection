@@ -52,7 +52,7 @@ s_edge_head(E, Head) :- pair_value(E, Head).
 %! s_edge_string(+Edge:pair, -String:string)// is det.
 
 s_edge_string(E, String) :- string_phrase(s_edge_string(E), String).
-s_edge_string(V-W) --> term(V), " <---> ", term(W).
+s_edge_string(V-W) --> pl_term(V), " <---> ", pl_term(W).
 
 
 

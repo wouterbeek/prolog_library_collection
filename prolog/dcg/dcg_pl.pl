@@ -47,7 +47,7 @@ pl_dict(Dict) -->
 
 
 pl_dict(Dict, Opts) -->
-  dcg_dict(term, Dict, Opts).
+  dcg_dict(pl_term, Dict, Opts).
 
 
 
@@ -59,7 +59,7 @@ pl_list(L) -->
 
 
 pl_list(L, Opts) -->
-  dcg_list(term, L, Opts).
+  dcg_list(pl_term, L, Opts).
 
 
 
@@ -85,7 +85,7 @@ pl_term(Term) -->
 
 
 pl_term(Term, Opts) -->
-  pl_term0(term, Term, Opts).
+  pl_term0(pl_term, Term, Opts).
 
 
 pl_term0(Dcg_1, Dict, Opts) -->

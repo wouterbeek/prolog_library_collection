@@ -250,7 +250,7 @@ iri_to_location(Iri, Loc) :-
       % default port.
       Scheme1 == Scheme2,
       Auth1 == Host2
-  ->  uri_components(_,_,Path,Query,Frag)
+  ->  uri_components(Loc, uri_components(_,_,Path,Query,Frag))
   ;   setting(http:public_port, Port0),
       correct_for_default_port(Scheme2, Port0, Port2),
       uri_authority_components(Auth2, uri_authority(_,_,Host2,Port2)),

@@ -92,7 +92,7 @@ image_file_extension(Ext) :-
 % its file name extension.
 
 is_image_file(File) :-
-  file_extension(File, ext),
+  file_extension(File, Ext),
   image_file_extension(Ext).
 
 

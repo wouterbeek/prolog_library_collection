@@ -1,8 +1,14 @@
 :- module(
   dcg_cli,
   [
-    ansi_str//2, % +Modifiers, +Str
-    bold//1      % +Str
+    ansi_str//2,  % +Modifiers, +Str
+    bold//1,      % +Str
+    enumerate//1, % +L
+    enumerate//2, % :Dcg_1, +L
+    enumerate//3, % :Dcg_1, +L, +Opts
+    itemize//1,   % +L
+    itemize//2,   % :Dcg_1, +L
+    itemize//3    % :Dcg_1, +L, +Opts
   ]
 ).
 
@@ -13,6 +19,14 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_pl)).
+:- use_module(library(dict_ext)).
+
+:- meta_predicate
+    enumerate(3, +, ?, ?),
+    enumerate(3, +, +, ?, ?),
+    itemize(3, +, ?, ?),
+    itemize(3, +, +, ?, ?).
 
 
 
@@ -74,3 +88,74 @@ ansi_str(Modifiers, Str) -->
 
 bold(Str) -->
   ansi_str([1], Str).
+
+
+
+%! enumerate(+L)// is det.
+%! enumerate(:Dcg_1, +L)// is det.
+%! enumerate(:Dcg_1, +L, +Opts)// is det.
+%
+% The following options are supported:
+%
+%   * first_item(+nonneg) The number of the first list item.  Default
+%   is 1.
+%
+%   * indent(+nonneg) Default is 0.
+
+enumerate(L) -->
+  enumerate(pl_term, L).
+
+
+enumerate(Dcg_1, L) -->
+  enumerate(Dcg_1, L, _{}).
+
+
+enumerate(Dcg_1, L, Opts1) -->
+  {
+    del_dict(first_item, Opts1, First, Opts2),
+    put_dict(item_number, Opts2, First, Opts3)
+  },
+  enumerate_or_itemize0(enumerate, Dcg_1, L, Opts3).
+
+
+
+%! itemize(+L)// is det.
+%! itemize(:Dcg_1, +L)// is det.
+%! itemize(:Dcg_1, +L, +Opts)// is det.
+%
+% The following options are supported:
+%
+%   * indent(+nonneg) Default is 0.
+
+itemize(L) -->
+  itemize(pl_term, L).
+
+
+itemize(Dcg_1, L) -->
+  itemize(Dcg_1, L, _{}).
+
+
+itemize(Dcg_1, L, Opts) -->
+  enumerate_or_itemize0(itemize, Dcg_1, L, Opts).
+
+
+
+
+
+% HELPERS %
+
+enumerate_or_itemize0(_, _, [], _) --> !, "".
+enumerate_or_itemize0(Mode, Dcg_1, [H|T], Opts) -->
+  tab(Opts.indent),
+  enumerate_or_itemize_prefix0(Mode, Opts),
+  {dict_inc(item_number, Opts)},
+  dcg_call_cp(Dcg_1, H),
+  nl,
+  enumerate_or_itemize0(Mode, Dcg_1, T, Opts).
+
+
+enumerate_or_itemize_prefix0(enumerate, Opts) --> !,
+  thousands(Opts.item_number),
+  ". ".
+enumerate_or_itemize_prefix0(itemize, _) -->
+  "* ".
