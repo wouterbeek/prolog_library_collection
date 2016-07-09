@@ -39,7 +39,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03-2016/06
+@version 2015/08-2015/11, 2016/01, 2016/03-2016/07
 */
 
 :- use_module(library(apply)).
@@ -95,8 +95,13 @@ create_grouped_sorted_dict(Pairs, D):-
 
 create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, GroupedPairs),
-  dict_pairs(D, Tag, GroupedPairs).
+  group_pairs_by_key(SortedPairs, GroupedPairs1),
+  maplist(unpack_singleton0, GroupedPairs1, GroupedPairs2),
+  dict_pairs(D, Tag, GroupedPairs2).
+
+
+unpack_singleton0(Key-[Val], Key-Val) :- !.
+unpack_singleton0(Key-Vals, Key-Vals).
 
 
 
