@@ -3,8 +3,8 @@
   [
     iri_add_query_comp/3,  % +Iri1, +Comp,  -Iri2
     iri_add_query_comps/3, % +Iri1, +Comps, -Iri2
-    iri_change_comp/4,     % +Iri1, +N, +V, -Iri2
-    iri_comp/3,            % +Iri,  ?N, ?V
+    iri_change_comp/4,     % +Iri1, +Key, +Val, -Iri2
+    iri_comp/3,            % +Iri,  ?Key, ?Val
     iri_comps/2,           % ?Iri,  ?Comps
     iri_file_extensions/2, % +Iri,  -Exts
     iri_here/1,            % -Iri
@@ -69,10 +69,10 @@ iri_add_query_comps(Iri1, Comps, Iri3) :-
   iri_change_query0(Iri2, append_atoms0(Atoms), Iri3).
 
 merge_pairs0([], L, L) :- !.
-merge_pairs0([N-_|T1], L2a, [N-V2|T3]) :-
-  selectchk(N-V2, L2a, L2b), !,
+merge_pairs0([Key-_|T1], L2a, [Key-Val2|T3]) :-
+  selectchk(Key-Val2, L2a, L2b), !,
   merge_pairs0(T1, L2b, T3).
-merge_pairs0([N-V|T1], L2, [N-V|T3]) :-
+merge_pairs0([Key-Val|T1], L2, [Key-Val|T3]) :-
   merge_pairs0(T1, L2, T3).
 
 append_atoms0(L, Q1, Q2) :-
@@ -80,59 +80,59 @@ append_atoms0(L, Q1, Q2) :-
 
 
 
-%! iri_change_comp(+Iri1, +N, +V, -Iri2) is det.
-% The following values for Field are supported:
-%   - `authority'
-%   - `fragment'
-%   - `path'
-%   - `query'
-%   - `scheme'
+%! iri_change_comp(+Iri1, +Key, +Val, -Iri2) is det.
+%
+% The following Keys are supported:
+%
+%   * `authority'
+%   * `fragment'
+%   * `path'
+%   * `query'
+%   * `scheme'
 
-iri_change_comp(Iri1, N, V, Iri2) :-
-  iri_comps(Iri1, Comps1),
-  iri_change_comp0(N, Comps1, V, Comps2),
-  iri_comps(Iri2, Comps2).
-
-iri_change_comp0(authority, uri_components(S,_,P,Q,F), A, uri_components(S,A,P,Q,F)).
-iri_change_comp0(fragment,  uri_components(S,A,P,Q,_), F, uri_components(S,A,P,Q,F)).
-iri_change_comp0(path,      uri_components(S,A,_,Q,F), P, uri_components(S,A,P,Q,F)).
-iri_change_comp0(query,     uri_components(S,A,P,_,F), Q, uri_components(S,A,P,Q,F)).
-iri_change_comp0(scheme,    uri_components(_,A,P,Q,F), S, uri_components(S,A,P,Q,F)).
+iri_change_comp(Iri1, Key, Val, Iri2) :-
+  uri_components(Iri1, Comps1),
+  uri_data(Key, Comps1, Val, Comps2),
+  uri_components(Iri2, Comps2).
 
 
 
-%! iri_comp(+Iri, +N, +V) is semidet.
-%! iri_comp(+Iri, +N, -V) is det.
-%! iri_comp(+Iri, -N, -V) is multi.
+%! iri_comp(+Iri, +Key, +Val) is semidet.
+%! iri_comp(+Iri, +Key, -Val) is det.
+%! iri_comp(+Iri, -Key, -Val) is multi.
+%
 % Abbreviates multiple predicates from `library(uri)`:
 %   - uri_authority_components/2
 %   - uri_authority_data/3
 %   - uri_components/2
 %   - uri_data/3
 
-iri_comp(Iri, N, V) :-
-  iri_field0(N), !,
+iri_comp(Iri, Key, Val) :-
+  iri_field0(Key), !,
   iri_comps(Iri, Comps),
-  uri_data(N, Comps, V).
-iri_comp(Iri, N, V) :-
-  auth_field0(N), !,
+  uri_data(Key, Comps, Val).
+iri_comp(Iri, Key, Val) :-
+  auth_field0(Key), !,
   iri_comps(Iri, IriComps),
   uri_data(authority, IriComps, Auth),
   uri_authority_components(Auth, AuthComps),
-  uri_authority_data(N, AuthComps, V).
-iri_comp(_, N0, _) :-
-  aggregate_all(set(N), iri_field(N), Ns),
-  type_error(oneof(Ns), N0).
+  uri_authority_data(Key, AuthComps, Val).
+iri_comp(_, Key0, _) :-
+  aggregate_all(set(Key), iri_field(Key), Keys),
+  type_error(oneof(Keys), Key0).
 
-iri_field(N) :-
-  auth_field0(N).
-iri_field(N) :-
-  iri_field0(N).
+
+iri_field(Key) :-
+  auth_field0(Key).
+iri_field(Key) :-
+  iri_field0(Key).
+
 
 auth_field0(host).
 auth_field0(password).
 auth_field0(port).
 auth_field0(user).
+
 
 iri_field0(authority).
 iri_field0(fragment).

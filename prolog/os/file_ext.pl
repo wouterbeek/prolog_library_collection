@@ -40,7 +40,7 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
-:- use_module(library(uuid_ext)).
+:- use_module(library(uuid)).
 
 
 
@@ -204,7 +204,7 @@ root_prefix('C:\\').
 % Returns a thread-specific file name based on the given file name.
 
 thread_file(File) :-
-  uuid_no_hyphen(Base),
+  uuid(Base),
   thread_file(Base, File).
 
 
