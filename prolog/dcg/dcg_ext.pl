@@ -398,8 +398,12 @@ My favorite collection of DCG rules.
 
 
 
-%! atom_ellipsis(+A, +Max)// .
+%! atom_ellipsis(+A, +Max:or([nonneg,oneof([inf])]))// is det.
+%
+% Max is the maximum length of atom.
 
+atom_ellipsis(A, inf) --> !,
+  atom(A).
 atom_ellipsis(A1, Max) -->
   {
     Len is Max - 1,
