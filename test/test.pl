@@ -1,6 +1,7 @@
 :- use_module(library(assoc_ext)).
 :- use_module(library(atom_ext)).
 :- use_module(library(batch)).
+:- use_module(library(call_ext)).
 :- use_module(library(char_ext)).
 :- use_module(library(chr_ext)).
 :- use_module(library(cli_ext)).
@@ -13,10 +14,9 @@
   :- use_module(library(date_time/rfc3339)).
 :- use_module(library(db_ext)).
 %/dcg
-  :- use_module(library(dcg/bibtex)).
-  :- use_module(library(dcg/dcg_ascii)).
   :- use_module(library(dcg/dcg_atom)).
   :- use_module(library(dcg/dcg_char)).
+  :- use_module(library(dcg/dcg_cli)).
   :- use_module(library(dcg/dcg_code)).
   :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
@@ -124,6 +124,7 @@
   :- use_module(library(os/file_ext)).
   :- use_module(library(os/gnu_plot)).
   :- use_module(library(os/gnu_sort)).
+  :- use_module(library(os/gnu_wc)).
   :- use_module(library(os/io)).
   :- use_module(library(os/os_ext)).
   :- use_module(library(os/pdf)).
@@ -152,10 +153,10 @@
   :- use_module(library(set/transitive_closure)).
 %/sgml
   :- use_module(library(sgml/sgml_ext)).
-:- use_module(library(stream_ext)).
-:- use_module(library(string_ext)).
 %/stat
 :- use_module(library(stat/r_ext)).
+:- use_module(library(stream_ext)).
+:- use_module(library(string_ext)).
 %/svg
   :- use_module(library(svg/svg_ext)).
 %/tree

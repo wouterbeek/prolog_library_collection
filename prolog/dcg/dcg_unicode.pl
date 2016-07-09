@@ -61,7 +61,6 @@
     zero_width_non_joiner//1  % ?C
   ]
 ).
-:- reexport(library(dcg/dcg_ascii)).
 
 /** <module> DCG Unicode
 

@@ -54,9 +54,9 @@ Note that a SystemLiteral can be parsed without scanning for markup.
 'Reference0'(Version, Quote, Name) -->
   'Reference'(Version, Name),
   {
-    (   Quote == double_quote
+    (   Quote == "\""
     ->  \+ sub_atom(Name, _, 1, _, '"')
-    ;   Quote == single_quote
+    ;   Quote == "'"
     ->  \+ sub_atom(Name, _, 1, _, '\'')
     ),
     \+ sub_atom(Name,_, 1, _, '<'),
@@ -87,9 +87,9 @@ Note that a SystemLiteral can be parsed without scanning for markup.
   ;   'Reference'(Version, Reference)
   ),
   {
-    (   Quote == double_quote
+    (   Quote == "\""
     ->  \+ sub_atom(Reference, _, 1, _, '"')
-    ;   Quote == single_quote
+    ;   Quote == "'"
     ->  \+ sub_atom(Reference, _, 1, _, '\'')
     ),
     \+ sub_atom(Reference, _, 1, _, '%'),
@@ -148,7 +148,7 @@ Note that a SystemLiteral can be parsed without scanning for markup.
 
 'PubidChar0'(Quote, C) -->
   'PubidChar'(C),
-  {(  Quote == single_quote
+  {(  Quote == "'"
   ->  C =\= 39
   )}.
 
@@ -167,8 +167,4 @@ Note that a SystemLiteral can be parsed without scanning for markup.
 
 'SystemLiteral0'(Quote, C) -->
   [C],
-  {(  Quote == double_quote
-  ->  C =\= 34
-  ;   Quote == single_quote
-  ->  C =\= 39
-  )}.
+  {(Quote == "\"" -> C =\= 34 ; Quote == "'" -> C =\= 39)}.

@@ -13,13 +13,7 @@
 
 :- use_module(library(option)).
 
-:- use_module(plc(dcg/dcg_ascii)).
 :- use_module(plc(dcg/dcg_char)).
-
-:- predicate_options(roman_digit/2, 2, [
-  case(+oneof([lower,upper])),
-  subtractive_notation(+boolean)
-]).
 
 
 
@@ -102,4 +96,3 @@ roman_digit(9,   true, Case) --> char_case(i, Case), char_case(x, Case).
 roman_digit(5,   _,    Case) --> char_case(v, Case).
 roman_digit(4,   true, Case) --> char_case(i, Case), char_case(v, Case).
 roman_digit(1,   _,    Case) --> char_case(i, Case).
-

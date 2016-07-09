@@ -106,9 +106,6 @@ do_not_load(File1):-
   file_name_extension(File3, pl, File2),
   do_not_load0(File3).
 
-do_not_load0(dcg_ascii).
-do_not_load0(dcg_unicode).
-
 
 
 %! debug_collect_messages(:Goal_0) is det.
