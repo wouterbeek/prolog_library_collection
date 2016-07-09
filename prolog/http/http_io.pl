@@ -92,8 +92,8 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 %! deb_http_error(+Iri, +Status, +In, +Opts) is det.
 
 deb_http_error(Iri, Status, In, Opts) :-
-  debugging(http_io(error)), !,
-  option(raw_headers(Headers), Opts),
+  debugging(http_io(error)),
+  option(raw_headers(Headers), Opts), !,
   http_error_msg(Iri, Status, Headers, In).
 deb_http_error(_, _, _, _).
 
@@ -231,8 +231,7 @@ iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
   Meta = _{base_iri: BaseIri, http_communication: MetaHttps},
   % Make sure the metadata is accessible even in case of an HTTP error
   % code.
-  (   MetaHttps = [Meta0|_],
-      http_get_dict(status, Meta0, Status),
+  (   http_get_dict(status, Meta, Status),
       http_status_is_error(Status)
   ->  existence_error(http_open, Meta)
   ;   true
