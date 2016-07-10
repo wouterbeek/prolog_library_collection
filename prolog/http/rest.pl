@@ -72,9 +72,10 @@ rest_handler(Req, HandleId, Goal_3) :-
 
 
 rest_handler(Req, _, Exists_1, Singular_3) :-
-  memberchk(request_uri(Res), Req),
+  memberchk(request_uri(Local), Req),
   http_accept(Req, MTs),
   http_method(Req, Method),
+  iri_to_resource(Local, Res),
   call(Exists_1, Res),
   call(Singular_3, Method, MTs, Res), !.
 rest_handler(Req, _, _, _) :-
