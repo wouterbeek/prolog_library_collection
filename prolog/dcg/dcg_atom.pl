@@ -3,7 +3,6 @@
   [
     atom_ci//1,        % ?A
     atom_lower//1,     % ?A
-    atom_lowercase//0,
     atom_title//1,     % ?A
     atom_upper//1,     % ?A
     atom_uppercase//0
@@ -74,16 +73,6 @@ atom_lower(A) -->
 atom_lower(A) -->
   {atom_codes(A, Cs)},
   *(code_lower, Cs).
-
-
-
-%! atom_lowercase// .
-
-atom_lowercase, [Low] -->
-  [Up],
-  {code_type(Low, to_lower(Up))}, !,
-  rest.
-atom_lowercase --> "".
 
 
 

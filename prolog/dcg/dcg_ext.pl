@@ -81,6 +81,7 @@
     indent//1,             % +Indent:nonneg
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
+    lowercase//0,
     nl//0,
     nonblank//0,
     number//0,
@@ -1021,6 +1022,16 @@ indent(I, Dcg_0) --> indent(I), Dcg_0.
 %! indent_nl(+Indent:nonneg, :Dcg_0)// is det.
 
 indent_nl(I, Dcg_0) --> indent(I, Dcg_0), nl.
+
+
+
+%! lowercase// .
+
+lowercase, [Low] -->
+  [Up],
+  {code_type(Low, to_lower(Up))}, !,
+  rest.
+lowercase --> "".
 
 
 
