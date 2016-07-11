@@ -63,6 +63,7 @@ The following additional options are supported:
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(ssl)).                  % SSL support
+:- use_module(library(time)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
@@ -251,7 +252,12 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
     version(Major-Minor)
   ],
   merge_options(Opts1, Opts2, Opts3),
-  call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS),
+  (   option(timeout(Timeout), Opts0)
+  ->  call_with_time_limit(Timeout,
+        call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
+      )
+  ;   call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
+  ),
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
