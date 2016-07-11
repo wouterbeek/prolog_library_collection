@@ -251,7 +251,7 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
     version(Major-Minor)
   ],
   merge_options(Opts1, Opts2, Opts3),
-  call_time(catch(http_open(Iri, In1, Opts3), E, true), Time),
+  call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS),
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups, Opts0),
@@ -260,7 +260,7 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
         headers: Headers,
         iri: Iri,
         status: Status,
-        time: Time,
+        time: TS,
         version: _{major: Major, minor: Minor}
       },
       http_open2(Iri, State, Location, In1, In2, Close_0, Meta0, Metas, Opts0)
