@@ -101,7 +101,11 @@ call_on_stream(Source, Goal_3, Opts) :-
 
 call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, Opts1) :-
   merge_options([meta_data(MetaPath)], Opts1, Opts2),
-  archive_data_stream(Arch, In2, Opts2), !,
+  archive_data_stream(Arch, In2, Opts2),
+  % Even though the first input stream `In1` used UTF-8 encoding, the
+  % streams that come out an any archive are `octet`.  This is
+  % corrected here.
+  set_stream(In2, encoding(utf8)),
   (   MetaPath = [MetaEntry|_],
       EntryName = MetaEntry.name
   ->  Meta2 = Meta1.put(_{path: MetaPath}),
