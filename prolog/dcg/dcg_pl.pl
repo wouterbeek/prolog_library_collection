@@ -34,7 +34,7 @@ DCG rules for printing terms.
 %! pl_date_time(+DT)// is det.
 
 pl_date_time(DT, X, Y):-
-  date_time_to_pl(DT, D),
+  'date_time_to_dt-pl'(DT, D),
   format_time(codes(X,Y), "%FT%T%z", D).
 
 

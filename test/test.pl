@@ -174,26 +174,7 @@
   :- use_module(library(url/rfc1738)).
 %/xml
   :- use_module(library(xml/marcxml)).
-  :- use_module(library(xml/xml_attr_decl)).
-  :- use_module(library(xml/xml_cdata)).
-  :- use_module(library(xml/xml_char_data)).
-  :- use_module(library(xml/xml_char_ref)).
-  :- use_module(library(xml/xml_comment)).
-  :- use_module(library(xml/xml_conditional)).
-  :- use_module(library(xml/xml_document)).
   :- use_module(library(xml/xml_dom)).
-  :- use_module(library(xml/xml_dtd)).
-  :- use_module(library(xml/xml_element)).
-  :- use_module(library(xml/xml_element_type_decl)).
-  :- use_module(library(xml/xml_entity_decl)).
-  :- use_module(library(xml/xml_entity_ref)).
-  :- use_module(library(xml/xml_external_subset)).
-  :- use_module(library(xml/xml_literal)).
-  :- use_module(library(xml/xml_name_token)).
-  :- use_module(library(xml/xml_notation_decl)).
-  :- use_module(library(xml/xml_pi)).
-  :- use_module(library(xml/xml_prolog)).
-  :- use_module(library(xml/xml_standalone)).
   :- use_module(library(xml/xml_stream)).
   :- use_module(library(xml/xml10_code)).
   :- use_module(library(xml/xml11_code)).
