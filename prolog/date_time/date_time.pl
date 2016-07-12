@@ -7,7 +7,7 @@
     'dt-pl_to_date_time'/2,   % +Pl, -DT
     'date_time_to_dt-pl'/2,   % +DT, -Pl
     'dt-rdf_to_date_time'/2,  % +Rdf, -DT
-    'get_dt-pl'/1,            % -DT
+    get_date_time/1,          % -DT
     'is_dt-pl'/1,             % @Term
     'is_dt-rdf'/1,            % @Term
     is_date_time/1,           % @Term
@@ -222,9 +222,9 @@ date_time_masks([H|T], DT1, DT3) :-
 
 
 
-%! 'get_dt-pl'(-DT) is det.
+%! get_date_time(-DT) is det.
 
-'get_dt-pl'(DT):-
+get_date_time(DT):-
   get_time(TS),
   timestamp_to_date_time(TS, DT).
 
