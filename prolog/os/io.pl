@@ -4,7 +4,9 @@
     call_on_stream/2,        % +Source, :Goal_3
     call_on_stream/3,        % +Source, :Goal_3, +Opts
     call_onto_stream/3,      % +Source, +Sink, :Goal_4
-    call_onto_stream/4,      % +Source, +Sink, :Goal_4, +Opts
+    call_onto_stream/5,      % +Source, +Sink, :Goal_4, +Opts1, +Opts2
+    call_onto_streams/4,     % +Source, +Sink1, +Sink2, :Goal_5
+    call_onto_streams/7,     % +Source, +Sink1, +Sink2, :Goal_5, +InOpts, +OutOpts1, +OutOpts2
     call_to_atom/2,          % :Goal_1, -A
     call_to_codes/2,         % :Goal_1, -Cs
     call_to_stream/2,        % +Sink, :Goal_1
@@ -12,6 +14,8 @@
     call_to_streams/3,       % +Sink1, +Sink2, :Goal_2
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Opts1, +Opts2
     call_to_string/2,        % :Goal_1, -Str
+    close_any/2,             % +Close, -Meta
+    close_any/3,             % +Close, +Meta1, -Meta2
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
@@ -37,8 +41,11 @@
     call_on_stream(+, 3, +),
     call_on_stream0(+, +, 3, +, -, +),
     call_onto_stream(+, +, 4),
-    call_onto_stream(+, +, 4, +),
+    call_onto_stream(+, +, 4, +, +),
     call_onto_stream0(+, 4, +, +, +, -),
+    call_onto_streams(+, +, +, 5),
+    call_onto_streams(+, +, +, 5, +, +, +),
+    call_onto_streams0(+, +, 5, +, +, +, +, -),
     call_to_atom(1, -),
     call_to_codes(1, -),
     call_to_stream(+, 1),
@@ -120,21 +127,21 @@ call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, Opts1) :-
 
 
 %! call_onto_stream(+Source, +Sink, :Goal_4) is det.
-%! call_onto_stream(+Source, +Sink, :Goal_4, +Opts) is det.
+%! call_onto_stream(+Source, +Sink, :Goal_4, +Opts1, +Opts2) is det.
 %
 % The following call is made: `call(Goal_4, In, Meta1, Meta2, Out)`.
 %
 % Options are passed to:
 %
 %   * call_on_stream/3
+%
 %   * call_to_stream/3
 
 call_onto_stream(Source, Sink, Goal_4) :-
-  call_onto_stream(Source, Sink, Goal_4, []).
+  call_onto_stream(Source, Sink, Goal_4, [], []).
 
 
-call_onto_stream(Source, Sink, Goal_4, InOpts) :-
-  select_option(metadata(_), InOpts, OutOpts),
+call_onto_stream(Source, Sink, Goal_4, InOpts, OutOpts) :-
   call_on_stream(Source, call_onto_stream0(Sink, Goal_4, OutOpts), InOpts).
 
 
@@ -144,6 +151,26 @@ call_onto_stream0(Sink, Goal_4, OutOpts, In, Meta1, Meta2) :-
   append(Comps0, [Meta1,Meta2], Comps2),
   Goal_1 =.. Comps2,
   call_to_stream(Sink, Goal_1, OutOpts).
+
+
+
+%! call_onto_streams(+Source, +Sink1, +Sink2, :Goal_5) is det.
+%! call_onto_streams(+Source, +Sink1, +Sink2, :Goal_5, +InOpts, +OutOpts1, +OutOpts2) is det.
+
+call_onto_streams(Source, Sink1, Sink2, Goal_5) :-
+  call_onto_streams(Source, Sink1, Sink2, Goal_5, [], [], []).
+
+
+call_onto_streams(Source, Sink1, Sink2, Goal_5, InOpts, OutOpts1, OutOpts2) :-
+  call_on_stream(Source, call_onto_streams0(Sink1, Sink2, Goal_5, OutOpts1, OutOpts2), InOpts).
+
+
+call_onto_streams0(Sink1, Sink2, Goal_5, OutOpts1, OutOpts2, In, Meta1, Meta2) :-
+  Goal_5 =.. Comps1,
+  append(Comps0, [In,Meta1,Meta2], Comps1),
+  append(Comps0, [Meta1,Meta2], Comps2),
+  Goal_2 =.. Comps2,
+  call_to_streams(Sink1, Sink2, Goal_2, OutOpts1, OutOpts2).
 
 
 
