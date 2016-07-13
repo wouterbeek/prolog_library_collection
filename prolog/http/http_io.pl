@@ -184,8 +184,10 @@ http_get_dict(Key, Meta, Val) :-
 http_header(Key, Meta, Val) :-
   http_get_dict(headers, Meta, Headers),
   downcase_atom(Key, KeyNorm),
-  get_dict(KeyNorm, Headers, Vals),
-  member(Val, Vals).
+  get_dict(KeyNorm, Headers, Dicts),
+  member(Dict, Dicts),
+  dict_pairs(Dict, valid_http_header, Pairs),
+  memberchk(value-Val, Pairs).
 
 
 

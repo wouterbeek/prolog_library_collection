@@ -302,13 +302,13 @@ accept_language_value(D2) -->
 
 
 
-%! age(-Age:dict)// is det.
+%! age(-N)// is det.
 %
 % ```abnf
 % Age = delta-seconds
 % ```
 
-age(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+age(N) -->
   'delta-seconds'(N).
 
 
@@ -323,24 +323,20 @@ allow(L) --> '*#'(method, L).
 
 
 
-%! 'asctime-date'(-D)// is det.
+%! 'asctime-date'(-DT)// is det.
 %
 % ```abnf
 % asctime-date = day-name SP date3 SP time-of-day SP year
 % ```
 
-'asctime-date'(_{'@type': Type, '@value': Lex}) -->
+'asctime-date'(date_time(Y,Mo,D,H,Mi,S,0)) -->
   'day-name'(D),
   'SP',
   date3(Mo, D),
   'SP',
   'time-of-day'(H, Mi, S),
   'SP',
-  year(Y),
-  {
-    rdf_equal(xsd:dateTime, Type),
-    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
-  }.
+  year(Y).
 
 
 
@@ -625,13 +621,13 @@ comment_codes2([])    --> "".
 
 
 
-%! 'complete-length'(-Len:dict)// is det.
+%! 'complete-length'(-N:positiveInteger)// is det.
 %
 % ```abnf
 % complete-length = 1*DIGIT
 % ```
 
-'complete-length'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+'complete-length'(N) -->
   +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
@@ -692,7 +688,7 @@ connection(L) --> +#('connection-option', L).
 % Content-Length = 1*DIGIT
 % ```
 
-'content-length'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+'content-length'(N) -->
   +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
@@ -871,7 +867,7 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % delay-seconds = 1*DIGIT
 % ```
 
-'delay-seconds'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+'delay-seconds'(N) -->
   +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
@@ -1128,7 +1124,7 @@ from(D) --> mailbox(D).
 'header-field'(Key-D) -->
   'field-name'(Key0), {atom_string(Key, Key0)},
   ":", 'OWS',
-  rest(Cs), {gtrace,'field-value'(Cs, Key, D)}.
+  rest(Cs), {'field-value'(Cs, Key, D)}.
 
 
 
@@ -1140,8 +1136,8 @@ from(D) --> mailbox(D).
 
 host(D2) -->
   'uri-host'(UriHost),
-  {D1 = _{'@type': 'Host', uri_host: UriHost}},
-  (":" -> port(Port), {D2 = D1.put(_{port: Port})} ; {D2 = D1}).
+  {D1 = host{uri_host: UriHost}},
+  (":" -> port(Port), {dict_put(port, D1, Port, D2)} ; {D2 = D1}).
 
 
 
@@ -1223,7 +1219,7 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 
 
 
-%! 'IMF-fixdate'(-D)// is det.
+%! 'IMF-fixdate'(-DT)// is det.
 %
 % ```abnf
 % IMF-fixdate = day-name "," SP date1 SP time-of-day SP GMT
@@ -1231,15 +1227,11 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 %             ; see Section 3.3 of [RFC5322]
 % ```
 
-'IMF-fixdate'(_{'@type': Type, '@value': Lex}) -->
+'IMF-fixdate'(date_time(Y,Mo,D,H,Mi,S,0)) -->
   'day-name'(_DayInWeek), ",", 'SP',
   date1(Y, Mo, D), 'SP',
   'time-of-day'(H, Mi, S), 'SP',
-  'GMT',
-  {
-    rdf_equal(xsd:dateTime, Type),
-    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
-  }.
+  'GMT'.
 
 
 
@@ -1291,7 +1283,7 @@ location(D) --> 'URI-reference'(D).
 % Max-Forwards = 1*DIGIT
 % ```
 
-'max-forwards'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+'max-forwards'(N) -->
   +('DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
@@ -1305,7 +1297,7 @@ location(D) --> 'URI-reference'(D).
 %               ) *( OWS ";" OWS parameter )
 % ```
 
-'media-range'(_{parameters: Parameters,subtype: Subtype,type: Type}) -->
+'media-range'(media_range{parameters: Parameters, subtype: Subtype, type: Type}) -->
   (   "*/*"
   ->  {Subtype = "*", Type = "*"}
   ;   type(Type), "/*"
@@ -1323,9 +1315,9 @@ location(D) --> 'URI-reference'(D).
 % ```
 
 'media-type'(D2) -->
-  {D1 = _{subtype:Subtype,type:Type}},
+  {D1 = media_type{subtype:Subtype,type:Type}},
   type(Type), "/", subtype(Subtype),
-  (+(sep_parameter, L) -> {D2 = D1.put(_{parameters: L})} ; {D2 = D1}).
+  (+(sep_parameter, L) -> {put_dict(parameters, D1, L, D2)} ; {D2 = D1}).
 
 sep_parameter(Parameter) --> 'OWS', ";", 'OWS', parameter(Parameter).
 
@@ -1514,7 +1506,7 @@ month(12) --> atom_ci('Dec').
 % parameter = token "=" ( token | quoted-string )
 % ```
 
-parameter(_{key: Key, value: Val}) -->
+parameter(parameter{key: Key, value: Val}) -->
   token(Key), "=", (token(Val), ! ; 'quoted-string'(Val)).
 
 
@@ -1527,7 +1519,7 @@ parameter(_{key: Key, value: Val}) -->
 
 'partial-URI'(D2) -->
   'relative-part'(D1),
-  ("?" -> query(Query), {D2 = D1.put(_{query: Query})} ; {D2 = D1}).
+  ("?" -> query(Query), {put_dict(query, D1, Query, D2)} ; {D2 = D1}).
 
 
 
@@ -1563,7 +1555,7 @@ product(D2) -->
   {D1 = product{name: Name}},
   (   "/"
   ->  'product-version'(Version),
-      {D2 = D1.put(_{version: Version})}
+      {put_dict(version, D1, Version, D2)}
   ;   {D2 = D1}
   ).
 
@@ -1610,7 +1602,7 @@ protocol(D2) -->
   {D1 = protocol{name: Name}},
   (   "/"
   ->  'protocol-version'(Version),
-      {D2 = D1.put(_{version: Version})}
+      {put_dict(version, D1, Version, D2)}
   ;   {D2 = D1}
   ).
 
@@ -1785,13 +1777,13 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
 
 
 
-%! 'rfc850-date'(-Date:dict)// is det.
+%! 'rfc850-date'(-DT)// is det.
 %
 % ```abnf
 % rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
 % ```
 
-'rfc850-date'(_{'@type': Type, '@value': Lex}) -->
+'rfc850-date'(date_time(Y,Mo,D,H,Mi,S,0)) -->
   'day-name-l'(D),
   ",",
   'SP',
@@ -1799,11 +1791,7 @@ referer(D) --> ('absolute-URI'(D), ! ; 'partial-URI'(D)).
   'SP',
   'time-of-day'(H, Mi, S),
   'SP',
-  'GMT',
-  {
-    rdf_equal(xsd:dateTime, Type),
-    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
-  }.
+  'GMT'.
 
 
 
@@ -1849,14 +1837,14 @@ subtype(S) --> token(S).
 
 
 
-%! 'suffix-byte-range-spec'(-Val:dict)// is det.
+%! 'suffix-byte-range-spec'(-N)// is det.
 %
 % ```abnf
 % suffix-byte-range-spec = "-" suffix-length
 % ```
 
-'suffix-byte-range-spec'(_{'@type': 'xsd:negativeInteger', '@value': N2}) -->
-  "-", 'suffix-length'(N1), {N2 is -N1}.
+'suffix-byte-range-spec'(N) -->
+  "-", 'suffix-length'(N0), {N is -N0}.
 
 
 
@@ -1880,11 +1868,11 @@ subtype(S) --> token(S).
 't-codings'(D2) -->
   'transfer-coding'(TransferCoding),
   {D1 = tcoding{transfer_coding: TransferCoding}},
-  ('t-ranking'(Rank) -> {D2 = D1.put(_{'t-ranking': Rank})} ; {D2 = D1}).
+  ('t-ranking'(Rank) -> {put_dict('t-ranking', D1, Rank, D2)} ; {D2 = D1}).
 
 
 
-%! 't-ranking'(-Rank:dict)// is det.
+%! 't-ranking'(-Rank:float)// is det.
 %
 % ```abnf
 % t-ranking = OWS ";" OWS "q=" rank
@@ -1892,7 +1880,7 @@ subtype(S) --> token(S).
 %
 % @tbd Define an XSD for the range [0.0,1.0].
 
-'t-ranking'(_{'@type': 'xsd:decimal', '@value': Rank}) -->
+'t-ranking'(Rank) -->
   'OWS', ";", 'OWS', atom_ci('q='), rank(Rank).
 
 
@@ -2129,13 +2117,13 @@ via_component(D2) -->
 
 
 
-%! 'warn-code'(-WarningCode:dict)// is det.
+%! 'warn-code'(-N:between(0,999))// is det.
 %
 % ```abnf
 % warn-code = 3DIGIT
 % ```
 
-'warn-code'(_{'@type': 'xsd:nonNegativeInteger', '@value': N}) -->
+'warn-code'(N) -->
   #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
 
 
@@ -2211,7 +2199,7 @@ weak --> "W/".
 % weight = OWS ";" OWS "q=" qvalue
 % ```
 
-weight(_{'@type': 'xsd:double', '@value': N}) -->
+weight(N) -->
   'OWS', ";", 'OWS', atom_ci('q='), qvalue(N).
 
 
