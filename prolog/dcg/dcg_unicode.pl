@@ -12,6 +12,7 @@
     closing_bracket//1,       % ?C
     closing_bracket//2,       % ?Type:oneof([angular,curly,round,square,ungular])
                               % ?C
+    ellipsis//0,
     entails//0,		      
     entails//1,               % ?C
     equivalence//0,	      
@@ -116,6 +117,10 @@ closing_bracket --> closing_bracket(_).
 closing_bracket(C) --> closing_bracket(_, C).
 closing_bracket(Type, C) --> ascii_closing_bracket(Type, C).
 closing_bracket(uangular, 12297) --> [12297].
+
+
+
+ellipsis --> "…".
 
 
 

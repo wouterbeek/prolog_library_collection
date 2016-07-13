@@ -411,7 +411,7 @@ atom_ellipsis(A1, Max) -->
     atom_truncate(A1, Len, A2)
   },
   atom(A2),
-  ({A1 == A2} -> "" ; "…").
+  ({A1 == A2} -> "" ; ellipsis).
 
 
 
