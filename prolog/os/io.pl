@@ -82,20 +82,22 @@ call_on_stream(Source, Goal_3) :-
 call_on_stream(Source, Goal_3, Opts) :-
   % This allows the calling context to request one specific entity.
   option(entry_name(EntryName), Opts, _),
-  % Open any options that cannot be overridden.
-  merge_options([metadata(Meta1)], Opts, OpenOpts),
   % Archive options that cannot be overridden.
   findall(format(Format), archive_format(Format, true), FormatOpts),
   merge_options([close_parent(false)|FormatOpts], Opts, ArchOpts1),
   % Archive options that can be overridden.
   merge_options(ArchOpts1, [filter(all)], ArchOpts2),
+  merge_options([metadata(Meta1)], Opts, OpenOpts),
   setup_call_cleanup(
     open_any(Source, read, In1, Close, OpenOpts),
     setup_call_cleanup(
       archive_open(In1, Arch, ArchOpts2),
       (
-        source_base_iri(Source, BaseIri),
-	put_dict(base_iri, Meta1, BaseIri, Meta2),
+        (var(Meta1) -> Meta1 = _{} ; true),
+        (   source_base_iri(Source, BaseIri)
+        ->  put_dict(base_iri, Meta1, BaseIri, Meta2)
+        ;   Meta2 = Meta1
+        ),
         % Semi-deterministic if an archive entry name is given.
         (   nonvar(EntryName)
         ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, Opts))
@@ -148,12 +150,12 @@ call_onto_stream(Source, Sink, Goal_4, InOpts, OutOpts) :-
   call_on_stream(Source, call_onto_stream0(Sink, Goal_4, OutOpts), InOpts).
 
 
-call_onto_stream0(Sink, Goal_4, OutOpts, In, Meta1, Meta2) :-
+call_onto_stream0(Sink, Mod:Goal_4, OutOpts, In, Meta1, Meta2) :-
   Goal_4 =.. Comps1,
-  append(Comps0, [In,Meta1,Meta2], Comps1),
-  append(Comps0, [Meta1,Meta2], Comps2),
+  append(Comps1, [In,Meta1,Meta2], Comps2),
+  %%%%append(Comps0, [Meta1,Meta2], Comps2),
   Goal_1 =.. Comps2,
-  call_to_stream(Sink, Goal_1, OutOpts).
+  call_to_stream(Sink, Mod:Goal_1, OutOpts).
 
 
 
@@ -168,12 +170,12 @@ call_onto_streams(Source, Sink1, Sink2, Goal_5, InOpts, OutOpts1, OutOpts2) :-
   call_on_stream(Source, call_onto_streams0(Sink1, Sink2, Goal_5, OutOpts1, OutOpts2), InOpts).
 
 
-call_onto_streams0(Sink1, Sink2, Goal_5, OutOpts1, OutOpts2, In, Meta1, Meta2) :-
+call_onto_streams0(Sink1, Sink2, Mod:Goal_5, OutOpts1, OutOpts2, In, Meta1, Meta2) :-
   Goal_5 =.. Comps1,
-  append(Comps0, [In,Meta1,Meta2], Comps1),
-  append(Comps0, [Meta1,Meta2], Comps2),
+  append(Comps1, [In,Meta1,Meta2], Comps2),
+  %%%%append(Comps0, [Meta1,Meta2], Comps2),
   Goal_2 =.. Comps2,
-  call_to_streams(Sink1, Sink2, Goal_2, OutOpts1, OutOpts2).
+  call_to_streams(Sink1, Sink2, Mod:Goal_2, OutOpts1, OutOpts2).
 
 
 
