@@ -16,11 +16,11 @@ This module is designed to work with an arbitrary database for storing
 the users of a Web Service.  In order to use this module for a
 concrete Web Service the following two things must be defined:
 
-  - google_client:create_user_hook(+Profile, -User) should create a
+  * google_client:create_user_hook(+Profile, -User) should create a
   new user entry in the database based on the given Google Profile and
   return the resulting record identifier User.
 
-  - google_client:current_user_hook(+Profile, -User) should retrieve
+  * google_client:current_user_hook(+Profile, -User) should retrieve
   the user from the database that matches the given Google Profile, if
   any.
 
