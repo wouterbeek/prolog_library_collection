@@ -15,10 +15,8 @@
 :- use_module(library(db_ext)).
 %/dcg
   :- use_module(library(dcg/dcg_ascii)).
-  :- use_module(library(dcg/dcg_atom)).
   :- use_module(library(dcg/dcg_char)).
   :- use_module(library(dcg/dcg_cli)).
-  :- use_module(library(dcg/dcg_code)).
   :- use_module(library(dcg/dcg_ext)).
   :- use_module(library(dcg/dcg_file)).
   :- use_module(library(dcg/dcg_option)).

@@ -13,7 +13,6 @@
 @version 2015/08, 2015/10-2016/04
 */
 
-:- use_module(library(dcg/dcg_code)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(uri/rfc3986)).
 

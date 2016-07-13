@@ -82,28 +82,31 @@ call_on_stream(Source, Goal_3) :-
 call_on_stream(Source, Goal_3, Opts) :-
   % This allows the calling context to request one specific entity.
   option(entry_name(EntryName), Opts, _),
+  % Open any options that cannot be overridden.
+  merge_options([metadata(Meta1)], Opts, OpenOpts),
   % Archive options that cannot be overridden.
   findall(format(Format), archive_format(Format, true), FormatOpts),
   merge_options([close_parent(false)|FormatOpts], Opts, ArchOpts1),
   % Archive options that can be overridden.
   merge_options(ArchOpts1, [filter(all)], ArchOpts2),
   setup_call_cleanup(
-    open_any(Source, read, In1, Close, Opts),
+    open_any(Source, read, In1, Close, OpenOpts),
     setup_call_cleanup(
       archive_open(In1, Arch, ArchOpts2),
       (
-        source_metadata(Source, Meta1),
+        source_base_iri(Source, BaseIri),
+	put_dict(base_iri, Meta1, BaseIri, Meta2),
         % Semi-deterministic if an archive entry name is given.
         (   nonvar(EntryName)
-        ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta2, Opts))
-        ;   call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta2, Opts)
+        ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, Opts))
+        ;   call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, Opts)
         )
       ),
       archive_close(Arch)
     ),
-    close_any(Close, Meta2, Meta3)
+    close_any(Close, Meta3, Meta4)
   ),
-  ignore(option(metadata(Meta3), Opts)).
+  ignore(option(metadata(Meta4), Opts)).
 
 
 call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, Opts1) :-
@@ -343,15 +346,15 @@ read_stream_to_string(In, S) :-
 
 
 
-%! source_metadata(+Source, -Meta) is det.
+%! source_base_iri(+Source, -Base) is det.
 
-source_metadata(Source, _{base_iri: Iri}) :-
+source_base_iri(Source, Iri) :-
   atom(Source), !,
   uri_file_name(Iri, Source).
-source_metadata(Comp, Meta) :-
+source_base_iri(Comp, Iri) :-
   compound(Comp), !,
   absolute_file_name(Comp, Path),
-  source_metadata(Path, Meta).
+  source_base_iri(Path, Iri).
 
 
 

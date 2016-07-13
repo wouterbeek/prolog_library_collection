@@ -13,7 +13,6 @@
 @version 2015/12
 */
 
-:- use_module(library(dcg/dcg_atom)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(html/html_dcg), [
      'MediaDesc'//1 % -MediaDescriptions:list(string)

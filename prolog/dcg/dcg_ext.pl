@@ -24,20 +24,35 @@
     'm*n'//3,              % ?Low, ?High, :Dcg_0
     'm*n'//4,              % ?Low, ?High, :Dcg_1, -Args1
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
+    atom_ci//1,            % ?A
     atom_ellipsis//2,      % +A, +Max
+    atom_lower//1,         % ?A
     atom_phrase/2,         % :Dcg_0, ?A
     atom_phrase/3,         % :Dcg_0, +A1, ?A2
-    between//2,            % +Low:integer, +High:integer
-    between//3,            % +Low:integer, +High:integer, ?Value:integer
+    atom_title//1,         % ?A
+    atom_upper//1,         % ?A
+    atom_uppercase//0,
+    between_code//2,       % +Low, +High
+    between_code//3,       % +Low, +High, ?C
+    between_code_rad//2,   % +RadLow, +RadHigh
+    between_code_rad//3,   % +RadLow, +RadHigh, -C
     between_digit//2,      % +Low:hex, +High:hex
     between_digit//3,      % +Low:hex, +High:hex, -Weight:between(0,15)
     between_digit//4,      % +Low:hex, +High:hex, -Weight:between(0,15), -Code:code
+    between_int//2,        % +Low:integer, +High:integer
+    between_int//3,        % +Low:integer, +High:integer, ?Value:integer
     between_radix//2,      % +Low:compound, +High:compound
     between_radix//3,      % +Low:compound, +High:compound, ?Value:compound
     bit//1,                % ?I:between(0,1)
     bracketed//1,          % :Dcg_0
     bracketed//2,          % ?Type:oneof([angular,curly,round,square,ungular]), :Dcg_0
     bs//0,
+    code//1,               % ?C
+    code_ci//1,            % ?C
+    code_lower//1,         % ?C
+    code_rad//1,           % ?RadC
+    code_rad//2,           % ?RadC, -C
+    code_upper//1,         % ?C
     dcg/1,                 % :Dcg_0
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
@@ -151,6 +166,7 @@ My favorite collection of DCG rules.
 :- use_module(library(aggregate)).
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
 :- use_module(library(dict_ext)).
@@ -160,6 +176,10 @@ My favorite collection of DCG rules.
 :- use_module(library(math/radconv)).
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
+:- use_module(library(url/rfc1738), [
+     hialpha//1, % ?C
+     lowalpha//1 % ?C
+   ]).
 
 :- meta_predicate
     ?(//, ?, ?),
@@ -339,13 +359,13 @@ My favorite collection of DCG rules.
   {(var(Low) -> true ; Low =< Count)}.
 'm*n__g'(Low, High, Count1, Dcg_0) -->
   {(var(High) -> true ; Count1 < High)},
-  Dcg_0, !,
+  dcg_call(Dcg_0),
   {Count2 is Count1 + 1},
   'm*n__g'(Low, High, Count2, Dcg_0).
 
 'm*n__p'(Low, High, Count1, Dcg_0) -->
   {(var(High) -> true ; Count1 < High)},
-  Dcg_0, !,
+  dcg_call(Dcg_0),
   {Count2 is Count1 + 1},
   'm*n__p'(Low, High, Count2, Dcg_0).
 'm*n__p'(Low, _, Count, _) -->
@@ -362,13 +382,13 @@ My favorite collection of DCG rules.
   {(var(Low) -> true ; Low =< Count)}.
 'm*n__g'(Low, High, Count1, Dcg_1, [H1|T1]) -->
   {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1), !,
+  dcg_call(Dcg_1, H1),
   {Count2 is Count1 + 1},
   'm*n__g'(Low, High, Count2, Dcg_1, T1).
 
 'm*n__p'(Low, High, Count1, Dcg_1, [H1|T1]) -->
   {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1), !,
+  dcg_call(Dcg_1, H1),
   {Count2 is Count1 + 1},
   'm*n__p'(Low, High, Count2, Dcg_1, T1).
 'm*n__p'(Low, _, Count, _, []) -->
@@ -385,17 +405,50 @@ My favorite collection of DCG rules.
   {(var(Low) -> true ; Low =< Count)}.
 'm*n__g'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
   {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_2, H1, H2), !,
+  dcg_call(Dcg_2, H1, H2),
   {Count2 is Count1 + 1},
   'm*n__g'(Low, High, Count2, Dcg_2, T1, T2).
 
 'm*n__p'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
   {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_2, H1, H2), !,
+  dcg_call(Dcg_2, H1, H2),
   {Count2 is Count1 + 1},
   'm*n__p'(Low, High, Count2, Dcg_2, T1, T2).
 'm*n__p'(Low, _, Count, _, [], []) -->
   {(var(Low) -> true ; Low =< Count)}.
+
+
+
+%! atom_ci(?A)// .
+%
+% ```prolog
+% ?- phrase(atom_ci(http), Cs).
+% Cs = "HTTP" ;
+% Cs = "HTTp" ;
+% Cs = "HTtP" ;
+% Cs = "HTtp" ;
+% Cs = "HtTP" ;
+% Cs = "HtTp" ;
+% Cs = "HttP" ;
+% Cs = "Http" ;
+% Cs = "hTTP" ;
+% Cs = "hTTp" ;
+% Cs = "hTtP" ;
+% Cs = "hTtp" ;
+% Cs = "htTP" ;
+% Cs = "htTp" ;
+% Cs = "httP" ;
+% Cs = "http" ;
+% false.
+% ```
+
+atom_ci(A) -->
+  parsing, !,
+  *(code_ci, Cs),
+  {atom_codes(A, Cs)}.
+atom_ci(A) -->
+  {atom_codes(A, Cs)},
+  *(code_ci, Cs).
 
 
 
@@ -412,6 +465,21 @@ atom_ellipsis(A1, Max) -->
   },
   atom(A2),
   ({A1 == A2} -> "" ; ellipsis).
+
+
+
+%! atom_lower(?A)// .
+%
+% Generate/parse a lower-case atom, i.e. one consisting of all
+% characters except for uppercase letters.
+
+atom_lower(A) -->
+  parsing, !,
+  *(code_lower, Cs),
+  {atom_codes(A, Cs)}.
+atom_lower(A) -->
+  {atom_codes(A, Cs)},
+  *(code_lower, Cs).
 
 
 
@@ -441,12 +509,73 @@ atom_phrase(Dcg_0, A1, A2):-
 
 
 
-%! between(+Low:integer, +High:integer)// .
-%! between(+Low:integer, +High:integer, ?Value:integer)// .
-% Consume integers between the given lower and higher bounds.
+%! atom_title(?A) // .
 
-between(Low, High) --> between(Low, High, _).
-between(Low, High, N) --> integer(N), {between(Low, High, N)}.
+atom_title(A) -->
+  generating, !,
+  {atom_codes(A, [C|Cs])},
+  hialpha(C),
+  *(lowalpha, Cs).
+atom_title(A) -->
+  hialpha(C),
+  *(lowalpha, Cs),
+  {atom_codes(A, [C|Cs])}.
+atom_title('') --> !, "".
+
+
+
+%! atom_upper(?A)// .
+
+atom_upper(A) -->
+  parsing, !,
+  *(code_upper, Cs),
+  {atom_codes(A, Cs)}.
+atom_upper(A) -->
+  {atom_codes(A, Cs)},
+  *(code_upper, Cs).
+
+
+
+%! atom_uppercase// is det.
+
+atom_uppercase, [Up] -->
+  [Low],
+  {code_type(Up, to_upper(Low))}, !,
+  rest.
+atom_uppercase --> "".
+
+
+
+%! between_code(+Low, +High)// .
+%! between_code(+Low, +High, ?C)// .
+
+between_code(Low, High) -->
+  between_code(Low, High, _).
+
+
+between_code(Low, High, C) -->
+  [C],
+  {between(Low, High, C)}.
+
+
+
+%! between_code_rad(+Low, +High)// .
+%! between_code_rad(+Low, +High, -C)// .
+%
+% Parses or generates a code between the given numbers.
+
+between_code_rad(Low, High) -->
+  between_code_rad(Low, High, _).
+
+
+between_code_rad(dec(Low), dec(High), C) --> !,
+  between_code(Low, High, C).
+between_code_rad(Low1, High1, C) -->
+  {
+    radconv(Low1, dec(Low2)),
+    radconv(High1, dec(High2))
+  },
+  between_code_rad(dec(Low2), dec(High2), C).
 
 
 
@@ -465,6 +594,21 @@ between(Low, High, N) --> integer(N), {between(Low, High, N)}.
 between_digit(Low, High) --> between_digit(Low, High, _).
 between_digit(Low, High, W) --> between_digit(Low, High, W, _).
 between_digit(Low, High, W, C) --> hexadecimal_digit(W, C), {between(Low, High, W)}.
+
+
+
+%! between_int(+Low:integer, +High:integer)// .
+%! between_int(+Low:integer, +High:integer, ?Value:integer)// .
+%
+% Consume integers between the given lower and higher bounds.
+
+between_int(Low, High) -->
+  between_int(Low, High, _).
+
+
+between_int(Low, High, N) -->
+  integer(N),
+  {between(Low, High, N)}.
 
 
 
@@ -566,6 +710,172 @@ bs -->
   blank.
 bs -->
   " ".
+
+
+
+%! code(?C)// .
+%
+% Useful in meta-predicates.
+
+code(C) -->
+  [C].
+
+
+
+%! code_ci(+C)// is multi.
+%! code_ci(-C)// is nondet.
+% Writes case-insensitive variants of the given code.
+% Generates the upper- and lowercase variants of a given letter
+% (in no particular order).
+%
+% ```prolog
+% ?- phrase(code_ci(66), Cs).
+% Cs = "b" ;
+% Cs = "B".
+% ?- phrase(code_ci(98), Cs).
+% Cs = "B" ;
+% Cs = "b".
+%
+% ```
+%
+% Parses letters returning the chracter codes of their
+% lower- and upper-case variants (in no particular order).
+%
+% ```prolog
+% ?- phrase(code_ci(X), `b`).
+% X = 66 ;
+% X = 98.
+% ?- phrase(code_ci(X), `B`).
+% X = 98 ;
+% X = 66.
+% ```
+%
+% This can be used to process all case-variants of a given string.
+%
+% ```prolog
+% ?- phrase(*(code_ci, `http`, []), Cs).
+% Cs = "HTTP" ;
+% Cs = "HTTp" ;
+% Cs = "HTtP" ;
+% Cs = "HTtp" ;
+% Cs = "HtTP" ;
+% Cs = "HtTp" ;
+% Cs = "HttP" ;
+% Cs = "Http" ;
+% Cs = "hTTP" ;
+% Cs = "hTTp" ;
+% Cs = "hTtP" ;
+% Cs = "hTtp" ;
+% Cs = "htTP" ;
+% Cs = "htTp" ;
+% Cs = "httP" ;
+% Cs = "http" ;
+% false.
+% ```
+%
+% The latter comes close to using atom_ci//1.
+
+code_ci(C) -->
+  {var(C)}, !,
+  [C0],
+  {code_ci(C0, C)}.
+code_ci(C) -->
+  {code_ci(C, C0)},
+  [C0].
+
+
+
+%! code_lower(+C)// is det.
+%! code_lower(-C)// is nondet.
+%
+% Parses letters and returns their lower-case character code.
+%
+% ```prolog
+% ?- phrase(code_lower(X), `A`).
+% X = 97.
+% ?- phrase(code_lower(X), `a`).
+% X = 97.
+% ```
+%
+% Generates the lower-case letter that is identical to the given
+% lower-case letter or that is the lower-case variant of the given
+% upper-case letter.
+%
+% ```prolog
+% ?- phrase(code_lower(65), Cs).
+% Cs = "a".
+% ?- phrase(code_lower(97), Cs).
+% Cs = "a".
+% ```
+
+code_lower(Lower) -->
+  parsing, !,
+  [C],
+  {code_type(C, upper(Lower))}.
+code_lower(C) -->
+  {to_lower(C, Lower)},
+  [Lower].
+
+
+
+%! code_rad(+RadC)// .
+%! code_rad(+RadC, -C)// .
+%
+% Emits a single code and allows the code to be represented in one of
+% the following bases:
+%
+%   * bin(+nonneg)
+%
+%   * dec(+nonneg)
+%
+%   * hex(+atom)
+%
+%   * oct(+nonneg)
+
+code_rad(RadC) -->
+  code_rad(RadC, _).
+
+
+code_rad(RadC, C) -->
+  {var(RadC)}, !,
+  [C],
+  {radconv(RadC, dec(C))}.
+code_rad(RadC, C) -->
+  {radconv(RadC, dec(C))},
+  [C].
+
+
+
+%! code_upper(+C)// is det.
+%! code_upper(-C)// is nondet.
+% Parses upper-case letters and returns their lower- and upper-case
+% character code (in that order).
+%
+% ```prolog
+% ?- phrase(code_upper(X), `A`).
+% X = 65 ;
+% ?- phrase(code_upper(X), `a`).
+% X = 65.
+% ```
+%
+% Generates the upper-case letter that is identical to the given
+% upper-case letter or that is the upper-case version of the given
+% lower-case letter.
+%
+% ```prolog
+% ?- phrase(code_upper(65), Cs).
+% Cs = "A".
+% ?- phrase(code_upper(97), Cs).
+% Cs = "A".
+% ```
+
+code_upper(Upper) -->
+  parsing, !,
+  [C],
+  {code_type(C, upper(Upper))}.
+code_upper(C) -->
+  {to_upper(C, Upper)},
+  [Upper].
 
 
 

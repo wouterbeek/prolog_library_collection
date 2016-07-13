@@ -39,6 +39,8 @@ The following additional options are supported:
   whenever a 4xx- or 5xx-range HTTP status code is returned.  Default
   is 1.
 
+  * metadata(-dict)
+
   * parse_headers(+boolean) Whether HTTP headers are parsed according
   to HTTP 1.1 grammars.  Default is `false`.
 
@@ -181,7 +183,8 @@ http_get_dict(Key, Meta, Val) :-
 
 http_header(Key, Meta, Val) :-
   http_get_dict(headers, Meta, Headers),
-  get_dict(Key, Headers, Vals),
+  downcase_atom(Key, KeyNorm),
+  get_dict(KeyNorm, Headers, Vals),
   member(Val, Vals).
 
 
@@ -213,10 +216,11 @@ http_is_scheme(https).
 
 
 
-iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
+iostream:open_hook(Iri, read, In, Close_0, Opts, Opts) :-
   is_http_iri(Iri), !,
-  option(max_redirects(MaxRedirect), Opts1, 5),
-  option(max_retries(MaxRetry), Opts1, 1),
+  ignore(option(metadata(Meta), Opts)),
+  option(max_redirects(MaxRedirect), Opts, 5),
+  option(max_retries(MaxRetry), Opts, 1),
   State = _{
     max_redirects: MaxRedirect,
     max_retries: MaxRetry,
@@ -224,8 +228,8 @@ iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
     retries: 0,
     visited: []
   },
-  http_open1(Iri, State, In, Close_0, MetaHttps, Opts1),
-  (   option(base_iri(BaseIri), Opts1)
+  http_open1(Iri, State, In, Close_0, MetaHttps, Opts),
+  (   option(base_iri(BaseIri), Opts)
   ->  true
   ;   iri_remove_fragment(Iri, BaseIri)
   ),
@@ -236,8 +240,7 @@ iostream:open_hook(Iri, read, In, Close_0, Opts1, Opts2) :-
       http_status_is_error(Status)
   ->  existence_error(http_open, Meta)
   ;   true
-  ),
-  merge_options([meta(Meta)], Opts1, Opts2).
+  ).
 
 
 http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
@@ -260,7 +263,7 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
   ),
   (   var(E)
   ->  deb_http_headers(Lines),
-      http_parse_headers(Lines, Groups, Opts0),
+      http_parse_headers(Lines, Groups),
       dict_pairs(Headers, Groups),
       Meta0 = _{
         headers: Headers,
@@ -315,30 +318,29 @@ http_open2(_, _, _, In, In, close(In), Meta, [Meta], _).
 
 
 
-%! http_parse_headers(+Lines, -Groups, +Opts) is det.
+%! http_parse_headers(+Lines, -Groups) is det.
 
-http_parse_headers(Lines, Groups, Opts) :-
-  maplist(http_parse_header1(Opts), Lines, Pairs),
+http_parse_headers(Lines, Groups) :-
+  gtrace,
+  maplist(http_parse_header0, Lines, Pairs),
   keysort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, Groups).
 
 
-http_parse_header1(Opts, Line, Key-Val) :-
-  option(parse_headers(true), Opts), !,
+http_parse_header0(Line, Key-Val) :-
   phrase('header-field'(Key-Val), Line).
-http_parse_header1(_, Line, Key-Val) :-
-  phrase(http_parse_header2(Key, Val), Line).
+  %%%%phrase(http_parse_header_simplified(Key, Val), Line).
 
 
-http_parse_header2(Key, Val) -->
-  http11:'field-name'(Key0),
-  ":",
-  http11:'OWS',
-  rest(Val0),
-  {
-    atom_codes(Key, Key0),
-    string_codes(Val, Val0)
-  }.
+%%%%http_parse_header_simplified(Key, Val) -->
+%%%%  http11:'field-name'(Key0),
+%%%%  ":",
+%%%%  http11:'OWS',
+%%%%  rest(Val0),
+%%%%  {
+%%%%    atom_codes(Key, Key0),
+%%%%    string_codes(Val, Val0)
+%%%%  }.
 
 
 
