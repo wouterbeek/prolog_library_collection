@@ -961,28 +961,28 @@ expect("100-continue") --> atom_ci('100-continue').
 % field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
-'field-content'(Mod:Key_3, D) -->
+'field-content'(Mod:Key_3, Dict) -->
   (   {current_predicate(Key_3/3)}
   ->  (   % Valid value.
           dcg_call(Mod:Key_3, Val),
           'OWS',
           % This should fail in case only /part/ of the HTTP header is parsed.
           eos
-      ->  {D = valid_http_header{value: Val}}
+      ->  {Dict = valid_http_header{value: Val}}
       ;   % Empty value.
           phrase('obs-fold')
-      ->  {D = empty_http_header{}}
+      ->  {Dict = empty_http_header{}}
       ;    % Buggy value.
           rest(Cs),
           {
-            D = invalid_http_header{},
+            Dict = invalid_http_header{},
             debug(http(parse), "Buggy HTTP header ~a: ~s", [Key_3,Cs])
           }
       )
   ;   % Unknown unknown key.
       rest(Cs),
       {
-        D = unknown_http_header{},
+        Dict = unknown_http_header{},
         (   known_unknown(Key_3)
         ->  true
         ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key_3,Cs])

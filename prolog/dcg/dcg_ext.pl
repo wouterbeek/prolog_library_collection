@@ -443,12 +443,12 @@ My favorite collection of DCG rules.
 % ```
 
 atom_ci(A) -->
-  parsing, !,
-  *(code_ci, Cs),
-  {atom_codes(A, Cs)}.
-atom_ci(A) -->
+  {ground(A)}, !,
   {atom_codes(A, Cs)},
   *(code_ci, Cs).
+atom_ci(A) -->
+  *(code_ci, Cs),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -474,12 +474,12 @@ atom_ellipsis(A1, Max) -->
 % characters except for uppercase letters.
 
 atom_lower(A) -->
-  parsing, !,
-  *(code_lower, Cs),
-  {atom_codes(A, Cs)}.
-atom_lower(A) -->
+  {ground(A)}, !,
   {atom_codes(A, Cs)},
   *(code_lower, Cs).
+atom_lower(A) -->
+  *(code_lower, Cs),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -527,12 +527,12 @@ atom_title('') --> !, "".
 %! atom_upper(?A)// .
 
 atom_upper(A) -->
-  parsing, !,
-  *(code_upper, Cs),
-  {atom_codes(A, Cs)}.
-atom_upper(A) -->
+  {ground(A)}, !,
   {atom_codes(A, Cs)},
   *(code_upper, Cs).
+atom_upper(A) -->
+  *(code_upper, Cs),
+  {atom_codes(A, Cs)}.
 
 
 
@@ -808,13 +808,13 @@ code_ci(C) -->
 % Cs = "a".
 % ```
 
-code_lower(Lower) -->
-  parsing, !,
-  [C],
-  {code_type(C, upper(Lower))}.
 code_lower(C) -->
+  {ground(C)}, !,
   {to_lower(C, Lower)},
   [Lower].
+code_lower(Lower) -->
+  [C],
+  {code_type(C, upper(Lower))}.
 
 
 
@@ -869,13 +869,13 @@ code_rad(RadC, C) -->
 % Cs = "A".
 % ```
 
-code_upper(Upper) -->
-  parsing, !,
-  [C],
-  {code_type(C, upper(Upper))}.
 code_upper(C) -->
+  {ground(C)}, !,
   {to_upper(C, Upper)},
   [Upper].
+code_upper(Upper) -->
+  [C],
+  {code_type(C, upper(Upper))}.
 
 
 

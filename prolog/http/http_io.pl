@@ -329,7 +329,7 @@ http_parse_headers(Lines, Groups) :-
 
 
 http_parse_header0(Line, Key-Val) :-
-  phrase('header-field'(Key-Val), Line).
+  once(phrase('header-field'(Key-Val), Line)).
   %%%%phrase(http_parse_header_simplified(Key, Val), Line).
 
 
