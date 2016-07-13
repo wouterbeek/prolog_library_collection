@@ -105,7 +105,9 @@ http_URL(D4) -->
 % LWS = [CRLF] 1*( SP | HT )
 % ```
 
-'LWS' --> ?('CRLF'), +(('SP' ; 'HT')).
+'LWS' --> ?('CRLF'), +(sp_or_ht0).
+sp_or_ht0 --> 'SP'.
+sp_or_ht0 --> 'HT'.
 
 
 

@@ -118,5 +118,5 @@ pl_simple_term0(Comp) -->
   {term_to_atom(Comp, A)},
   atom(A).
 pl_simple_term0(X) -->
-  {gtrace},
+  {gtrace}, %DEB
   pl_simple_term0(X).

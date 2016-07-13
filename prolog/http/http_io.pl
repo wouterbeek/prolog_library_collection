@@ -321,7 +321,6 @@ http_open2(_, _, _, In, In, close(In), Meta, [Meta], _).
 %! http_parse_headers(+Lines, -Groups) is det.
 
 http_parse_headers(Lines, Groups) :-
-  gtrace,
   maplist(http_parse_header0, Lines, Pairs),
   keysort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, Groups).
