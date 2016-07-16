@@ -1,17 +1,17 @@
 :- module(
   thread_counter,
   [
-    create_thread_counter/1,    % +Name
-    delete_thread_counter/1,    % +Name
-    delete_thread_counter/2,    % +Name, -Value
+    create_thread_counter/1, % +Name
+    delete_thread_counter/1, % +Name
+    delete_thread_counter/2, % +Name, -Value
     delete_thread_counters/0,
-    exists_thread_counter/1,    % +Name
-    increment_thread_counter/1, % +Name
-    increment_thread_counter/2, % +Name, -Count
-    increment_thread_counter/3, % +Name, +Diff, -Count
-    reset_thread_counter/1,     % +Name
-    reset_thread_counter/2,     % +Name, -Count
-    thread_counter/2            % ?Name, ?Count
+    exists_thread_counter/1, % +Name
+    inc_thread_counter/1,    % +Name
+    inc_thread_counter/2,    % +Name, -Count
+    inc_thread_counter/3,    % +Name, +Diff, -Count
+    reset_thread_counter/1,  % +Name
+    reset_thread_counter/2,  % +Name, -Count
+    thread_counter/2         % ?Name, ?Count
   ]
 ).
 
@@ -77,15 +77,15 @@ exists_thread_counter(Name):-
 
 
 
-increment_thread_counter(Name):-
-  increment_thread_counter(Name, 1, _).
+inc_thread_counter(Name):-
+  inc_thread_counter(Name, 1, _).
 
 
-increment_thread_counter(Name, Y):-
-  increment_thread_counter(Name, 1, Y).
+inc_thread_counter(Name, Y):-
+  inc_thread_counter(Name, 1, Y).
 
 
-increment_thread_counter(Name, Diff, Y):-
+inc_thread_counter(Name, Diff, Y):-
   (   retract(thread_counter(Name,X))
   ->  Y is X + Diff
   ;   Y = 1
