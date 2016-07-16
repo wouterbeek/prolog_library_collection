@@ -52,7 +52,7 @@ dcg_table(Rows1, Opts0) -->
   {
     meta_options(is_meta, Opts0, Opts),
     option(caption(Caption_0), Opts, _),
-    option(cell(Cell_1), Opts, term),
+    option(cell(Cell_1), Opts, pl_term),
     option(indexed(Ind), Opts, false),
     option(maximum_number_of_rows(Max), Opts, inf),
     %%%%add_sum_row(Rows1, Rows2, Opts),
