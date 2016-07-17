@@ -11,9 +11,11 @@
 
 Support for calling GNU sort from within Prolog.
 
-* gnu_sort/2 is the low-level version, performing a one-to-one mapping
-  from Prolog options to CLI flags.
-* sort_file/2 is the high-level version that simplifies the GNU Sort API.
+  - gnu_sort/2 is the low-level version, performing a one-to-one
+    mapping from Prolog options to CLI flags.
+
+  - sort_file/2 is the high-level version that simplifies the GNU Sort
+    API.
 
 @author Wouter Beek
 @version 2015/08-2015/10, 2016/01
@@ -26,39 +28,41 @@ Support for calling GNU sort from within Prolog.
 :- use_module(library(os/thread_ext)).
 :- use_module(library(typecheck)).
 
-:- predicate_options(determine_sort_buffer_size/3, 3, [
-     max_sort_buffer_size(+float)
-   ]).
-:- predicate_options(determine_sort_buffer_threads/3, 3, [
-     max_sort_threads(+nonneg)
-   ]).
-:- predicate_options(gnu_sort/2, 2, [
-     buffer_size(+nonneg),
-     duplicates(+boolean),
-     numeric(+boolean),
-     output(+atom),
-     parallel(+positive_integer),
-     temporary_directory(+atom),
-     utf8(+boolean)
-   ]).
-:- predicate_options(sort_file/2, 2, [
-     sort_dir(+atom),
-     pass_to(determine_sort_buffer_size/3, 3),
-     pass_to(determine_sort_buffer_threads/3, 3)
-   ]).
-
 
 
 
 
 %! gnu_sort(+File, +Opts) is det.
+%
+% The following options are supported:
+%
+%   - buffer_size(+float) What's the unit?
+%
+%   - duplicates(+boolean) Whether duplicates are allowed in the
+%   result.  Default is `true`.
+%
+%   - numeric(+boolean) Whether numberic sort is performed.  Default
+%   is `false`.
+%
+%   - output(+atom) The name of the output file.
+%
+%   - temporary_directory(+atom) The directory that is used for
+%   temporary sort results.  By default this is the directory of the
+%   source file.
+%
+%   - threads(+positive_integer) The number of threads that is used.
+%   Default is 1.
+%
+%   - utf8(+boolean) Whether the environemtn is set to UTF-8 encoding.
+%   Default is `true`.
 
 gnu_sort(File, Opts) :-
   must_be_file(read, File),
   % The UTF-8 encoding option is handled by an environment variable.
-  (option(utf8(true), Opts) -> Env = [] ; Env = ['LC_ALL'='C']),
+  (option(utf8(true), Opts, true) -> Env = [] ; Env = ['LC_ALL'='C']),
   gnu_sort_args(Opts, Args),
   run_process(sort, [file(File)|Args], [env(Env),program('GNU sort')]).
+
 
 gnu_sort_args([], []).
 gnu_sort_args([buffer_size(Size)|T1], [Arg|T2]) :- !,
@@ -74,7 +78,7 @@ gnu_sort_args([output(File)|T1], [Arg|T2]) :- !,
   must_be_file(write, File),
   long_flag(output, File, Arg),
   gnu_sort_args(T1, T2).
-gnu_sort_args([parallel(Threads)|T1], [Arg|T2]) :- !,
+gnu_sort_args([threads(Threads)|T1], [Arg|T2]) :- !,
   long_flag(parallel, Threads, Arg),
   gnu_sort_args(T1, T2).
 gnu_sort_args([temporary_directory(Dir)|T1], [Arg|T2]) :- !,
@@ -88,15 +92,18 @@ gnu_sort_args([_|T1], L2) :-
 
 %! sort_file(+File) is det.
 %! sort_file(+File, +Opts) is det.
+%
 % The following options are supported:
-%   * max_sort_buffer_size(+float)
-%     The maximum size of the sort buffer in Gigabytes.
-%     Default is 1.0 GB.
-%   * sort_dir(+atom)
-%     The directory that is used for disk-based sorting.
+%
+%   - max_sort_buffer_size(+float) The maximum size of the sort buffer
+%   in Gigabytes.  Default is 1.0 GB.
+%
+%   - sort_dir(+atom) The directory that is used for disk-based
+%   sorting.
 
 sort_file(File) :-
   sort_file(File, []).
+
 
 sort_file(File, Opts) :-
   % Determine the directory that is used for disk-based sorting.
@@ -116,8 +123,8 @@ sort_file(File, Opts) :-
       buffer_size(BufferSize),
       duplicates(false),
       output(File),
-      parallel(Threads),
       temporary_directory(Dir),
+      threads(Threads),
       utf8(true)
     ]
   ).
@@ -125,10 +132,11 @@ sort_file(File, Opts) :-
 
 
 %! determine_sort_buffer_size(+File, -BufferSize:nonneg, +Opts) is det.
+%
 % The following options are supported:
-%   * max_sort_buffer_size(+float)
-%     The maximum size of the buffer used for sorting.
-%     Default is `1.0'.
+%
+%   - max_sort_buffer_size(+float) The maximum size of the buffer used
+%   for sorting.  Default is `1.0'.
 
 determine_sort_buffer_size(File, BufferSize, Opts) :-
   calc_sort_buffer_size(File, Calc),
@@ -140,10 +148,12 @@ determine_sort_buffer_size(File, BufferSize, Opts) :-
 
 
 %! determine_sort_buffer_threads(+BufferSize:nonneg, -Threads:nonneg, +Opts) is det.
+%
 % The following options are supported:
-%   * max_sort_threads(+nonneg)
-%     The maximum number of threads that is allowed to be used.
-%     Default is the value of `current_prolog_flag(cpu_count, X)'.
+%
+%   - max_sort_threads(+nonneg) The maximum number of threads that is
+%   allowed to be used.  Default is the value of
+%   `current_prolog_flag(cpu_count, X)'.
 
 determine_sort_threads(BufferSize, Threads, Opts) :-
   calc_sort_threads(BufferSize, Calc),
@@ -155,8 +165,9 @@ determine_sort_threads(BufferSize, Threads, Opts) :-
 
 
 %! calc_sort_threads(+BufferSize:nonneg, -Threads:nonneg) is det.
-% Heuristically determine the number of threads to use for sorting
-% a file with the given BufferSize.
+%
+% Heuristically determine the number of threads to use for sorting a
+% file with the given BufferSize.
 
 % x > 6 GB
 calc_sort_threads(BufferSize, 3) :-
@@ -170,6 +181,7 @@ calc_sort_threads(_, 1).
 
 
 %! calc_sort_buffer_size(+File, -BufferSize:nonneg) is det.
+%
 % Determines the BufferSize that will be used for sorting File
 % according to a simple heuristic.
 
