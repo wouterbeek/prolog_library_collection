@@ -201,9 +201,9 @@ date_time_masks([H|T], DT1, DT3) :-
 %      less than 60.
 %
 %   2. In Prolog `Off` represents the offset relative to UTC in
-%   *seconds* as an integer, where positive values are west of
-%   Greenwich.  In XSD `Off` represents the offset relative to UTC in
-%   *minutes* as an integer between -840 and 840 inclusive.
+%      *seconds* as an integer, where positive values are west of
+%      Greenwich.  In XSD `Off` represents the offset relative to UTC
+%      in *minutes* as an integer between -840 and 840 inclusive.
 
 'dt-pl_to_date_time'(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)):- !.
 'dt-pl_to_date_time'(date(Y,Mo,D,H,Mi,S,Off1,_,_), date_time(Y,Mo,D,H,Mi,S,Off2)):-

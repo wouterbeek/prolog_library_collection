@@ -2097,7 +2097,7 @@ via_component(D2) -->
 
 
 
-%! 'warn-agent'(-Agent:dict)// is det.
+%! 'warn-agent'(-Agent)// is det.
 %
 % ```abnf
 % warn-agent = ( uri-host [ ":" port ] ) | pseudonym
@@ -2107,13 +2107,11 @@ via_component(D2) -->
 % ```
 
 'warn-agent'(D2) -->
-  (   'uri-host'(UriHost),
-      (":" -> port(Port), {D1 = _{port: Port}} ; {D1 = _{}})
-  ->  {put_dict(uri_host, D1, UriHost, D2)}
-  ;   pseudonym(Pseudonym)
-  ->  {put_dict(pseudonym, D1, Pseudonym, D2)}
-  ).
-
+  'uri-host'(UriHost),
+  (":" -> port(Port), {D1 = _{port: Port}} ; {D1 = _{}}), !,
+  {put_dict(uri_host, D1, UriHost, D2)}.
+'warn-agent'(Pseudonym) -->
+  pseudonym(Pseudonym).
 
 
 
