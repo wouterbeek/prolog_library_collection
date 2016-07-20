@@ -9,6 +9,7 @@
     is_pair/1,             % @Term
     is_reflexive_pair/1,   % +Pair
     pair/3,                % ?Pair, ?Key, ?Value
+    pair_edge/2,           % ?Pair, ?Edge
     pair_element/2,        % ?Pair, ?Element
     pair_key/2,            % +Pair, ?Key
     pair_has_var_key/1,    % +Pair
@@ -30,7 +31,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/04
+@version 2015/08, 2015/10-2015/12, 2016/04, 2016/07
 */
 
 :- use_module(library(apply)).
@@ -112,6 +113,13 @@ is_reflexive_pair(Pair):- pair(Pair, X, X).
 %! pair(-Pair, +X, +Y) is det.
 
 pair(X-Y, X, Y).
+
+
+
+%! pair_edge(+Pair, -Edge) is det.
+%! pair_edge(-Pair, +Edge) is det.
+
+pair_edge(X-Y, edge(X,Y)).
 
 
 

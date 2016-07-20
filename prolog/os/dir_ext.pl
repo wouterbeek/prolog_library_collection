@@ -7,6 +7,7 @@
     dir_file/2,           % +Dir, -File
     dir_file_recursive/2, % +Dir, -File
     dir_subdirs/2,        % ?Dir, ?Subdirs
+    is_dummy_file/1,      % +File
     run_in_dir/2,         % :Goal_0, +Dir
     wd/1                  % ?Dir
   ]
@@ -109,6 +110,13 @@ dir_subdirs(Dir, Subdirs1) :-
 
 
 
+%! is_dummy_file(+File) is semidet.
+
+is_dummy_file(.).
+is_dummy_file(..).
+
+
+
 %! run_in_dir(:Goal_0, +Dir) is det.
 
 run_in_dir(Goal_0, Dir) :-
@@ -129,13 +137,6 @@ wd(Dir) :-
 
 
 % HELPERS %
-
-%! is_dummy_file(+File) is semidet.
-
-is_dummy_file(.).
-is_dummy_file(..).
-
-
 
 %! resolve_subdirs(+Subdirs, -ResoledSubdirs) is det.
 

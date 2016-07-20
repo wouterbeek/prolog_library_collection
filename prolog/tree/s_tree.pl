@@ -1,13 +1,13 @@
 :- module(
   s_tree,
   [
-    edges_to_root/2,          % +Es, -Root
-    edges_to_tree/2,          % +Es, -Tree
+    pairs_to_root/2,          % +Pairs, -Root
+    pairs_to_tree/2,          % +Pairs, -Tree
     is_s_tree/1,              % @Term
-    paths_to_trees/2,         % +AllSubPaths:list(list), -Tree
+    paths_to_trees/2,         % +AllSubpaths:list(list), -Tree
     print_tree/1,             % +Tree
     print_tree/2,             % +Tree, :Opts
-    some_subpaths_to_trees/2, % +SomeSubPaths:list(list), -Tree
+    some_subpaths_to_trees/2, % +SomeSubpaths:list(list), -Tree
     tree_to_graph/2,          % +Tree, -Graph
     tree_depth/2,             % +Tree, -Depth
     tree_to_leaf_coord/2      % +Tree, -Coord:list(nonneg)
@@ -21,10 +21,12 @@ Tree datastructure.
 ### Tree representation
 
 Trees are represented in the following way:
-  - Leaf nodes are presented as `t(Node, [])` for unlabeled
-    or as `t(Node, _, [])` for labeled trees.
-  - Non-leaf nodes are represented as `t(Node, SubTrees)` for unlabeled
-    or as `t(Node, Label, SubTrees)` for labeled trees.
+
+  - Leaf nodes are presented as `t(Node, [])` for unlabeled or as
+    `t(Node, _, [])` for labeled trees.
+
+  - Non-leaf nodes are represented as `t(Node, SubTrees)` for
+    unlabeled or as `t(Node, Label, SubTrees)` for labeled trees.
 
 A simple example:
 
@@ -32,7 +34,8 @@ A simple example:
 t(a, [t(b, []), t(c, [])])
 ```
 
-The above corresponds to the following hierarchical tree visualization.
+The above corresponds to the following hierarchical tree
+visualization.
 
 ```
 a
@@ -41,7 +44,7 @@ a
 ```
 
 @author Wouter Beek
-@version 2016/01-2016/02
+@version 2016/01-2016/02, 2016/07
 */
 
 :- use_module(library(aggregate)).
@@ -59,44 +62,41 @@ a
 
 is_meta(node_writer).
 
-:- predicate_options(print_tree/2, 2, [
-     output(+stream),
-     pass_to(dcg_tree//2, 2)
-   ]).
 
 
 
 
+%! pairs_to_root(+Pairs, -Root) is semidet.
 
-%! edges_to_root(+Edges:list(compound), -Root:term) is semidet.
-
-edges_to_root(Es, Root):-
-  member(Root-_, Es),
-  \+ member(_-Root, Es),
+pairs_to_root(Pairs, Root):-
+  member(Root-_, Pairs),
+  \+ member(_-Root, Pairs),
   % The root is unique.
   \+ (
-    member(SecondRoot-_, Es),
-    \+ member(_-SecondRoot, Es),
+    member(SecondRoot-_, Pairs),
+    \+ member(_-SecondRoot, Pairs),
     SecondRoot \== Root
   ), !.
 
 
 
-%! edges_to_tree(+Edges:list(compound), -Tree:compound) is det.
+%! pairs_to_tree(+Pairs, -Tree) is det.
 
-edges_to_tree([], []):- !.
-edges_to_tree(Es, Tree):-
-  edges_to_root(Es, Root),
-  edges_to_tree(Root, Tree, Es, []).
+pairs_to_tree([], []):- !.
+pairs_to_tree(Pairs, Tree):-
+  pairs_to_root(Pairs, Root),
+  pairs_to_tree(Root, Tree, Pairs, []).
 
-edges_to_tree(Parent, t(Parent,SubTrees), Es1, Es3):-
-  edges_to_children(Parent, Children, Es1, Es2),
-  foldl(edges_to_tree, Children, SubTrees, Es2, Es3).
 
-edges_to_children(Parent, [H|T], Es1, Es3):-
-  selectchk(edge(Parent,_,H), Es1, Es2), !,
-  edges_to_children(Parent, T, Es2, Es3).
-edges_to_children(_, [], Es, Es).
+pairs_to_tree(Parent, t(Parent,SubTrees), Pairs1, Pairs3):-
+  pairs_to_children(Parent, Children, Pairs1, Pairs2),
+  foldl(pairs_to_tree, Children, SubTrees, Pairs2, Pairs3).
+
+
+pairs_to_children(Parent, [H|T], Pairs1, Pairs3):-
+  selectchk(Parent-H, Pairs1, Pairs2), !,
+  pairs_to_children(Parent, T, Pairs2, Pairs3).
+pairs_to_children(_, [], Pairs, Pairs).
 
 
 
@@ -160,6 +160,7 @@ paths_to_trees(Ls1, Trees):-
 print_tree(Tree) :-
   print_tree(Tree, []).
 
+
 print_tree(Tree, Opts1) :-
   meta_options(is_meta, Opts1, Opts2),
   option(output(Sink), Opts2, current_output),
@@ -167,44 +168,56 @@ print_tree(Tree, Opts1) :-
 
 
 
-some_subpaths_to_trees(SomeSubPaths, Trees):-
+some_subpaths_to_trees(SomeSubpaths, Trees):-
   aggregate_all(
-    set(SubPath),
+    set(Subpath),
     (
-      member(SomeSubPath, SomeSubPaths),
-      sublist(SubPath, SomeSubPath),
-      SubPath \== SomeSubPath
+      member(SomeSubpath, SomeSubpaths),
+      sublist(Subpath, SomeSubpath),
+      Subpath \== SomeSubpath
     ),
-    AllSubPaths
+    AllSubpaths
   ),
-  paths_to_trees(AllSubPaths, Trees).
+  paths_to_trees(AllSubpaths, Trees).
 
 
 
 %! tree_to_graph(+Tree, -Graph) is det.
 
 tree_to_graph(Tree, Graph) :-
-  tree_to_edges(Tree, Es),
-  s_edges_vertices(Es, Vs),
+  tree_to_pairs(Tree, Pairs),
+  pairs_to_set(Pairs, Vs),
+  maplist(pair_edge, Pairs, Es),
   Graph = graph(Vs, Es).
 
-tree_to_edges(t(X,Ts), Es) :-
-  findall([X-Y|Es], (member(t(Y,Ts0), Ts), tree_to_edges(t(Y,Ts0), Es)), Ess),
-  append(Ess, Es).
+
+
+%! tree_to_pairs(+Tree, -Pairs) is det.
+
+tree_to_pairs(t(Root,Trees), Pairs) :-
+  findall(
+    [Root-Y|Pairs],
+    (
+      member(t(Y,Subtrees), Trees),
+      tree_to_pairs(t(Y,Subtrees), Pairs)
+    ),
+    Pairss
+  ),
+  append(Pairss, Pairs).
 
 
 
-%! tree_depth(+Tree:compound, -Depth:nonneg) is det.
+%! tree_depth(+Tree, -Depth) is det.
 
 tree_depth(_-[], 0):- !.
-tree_depth(_-SubTs, D):-
-  maplist(tree_depth, SubTs, Ds),
-  max_list(Ds, MaxD),
-  D is MaxD + 1.
+tree_depth(_-Subtrees, Depth):-
+  maplist(tree_depth, Subtrees, Depths),
+  max_list(Depths, MaxDepth),
+  Depth is MaxDepth + 1.
 
 
 
-%! tree_to_leaf_coord(+Tree:compound, -Coord:list(nonneg)) is nondet.
+%! tree_to_leaf_coord(+Tree, -Coord:list(nonneg)) is nondet.
 
 tree_to_leaf_coord(_-[], []):- !.
 tree_to_leaf_coord(_-SubTs, [I|Is]):-
