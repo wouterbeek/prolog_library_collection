@@ -116,11 +116,12 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 
 
 call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, SourceOpts1) :-
-  merge_options([meta_data(Path)], SourceOpts1, SourceOpts2),
+  merge_options([meta_data(Path0)], SourceOpts1, SourceOpts2),
   archive_data_stream(Arch, In2, SourceOpts2),
   % Even though the first input stream `In1` used UTF-8 encoding, the
   % streams that come out an any archive are `octet`.  This is
   % corrected here.
+  append(Path, [_], Path0),
   set_stream(In2, encoding(utf8)),
   (   Path = [Entry|_],
       EntryName = Entry.name
