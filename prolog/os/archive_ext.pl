@@ -25,6 +25,7 @@
 :- use_module(library(http/http_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
+:- use_module(library(true)).
 :- use_module(library(yall)).
 
 
@@ -162,8 +163,4 @@ print_archive(Source) :-
 
 
 print_archive(Source, Opts) :-
-  call_on_stream(Source, print_entry_path0, Opts).
-
-
-print_entry_path0(_, Meta, Meta) :-
-  maplist([EntryMeta]>>print_dict(EntryMeta), Meta.entry_path).
+  call_on_stream(Source, [_,Meta,Meta]>>print_dict(Meta), Opts).

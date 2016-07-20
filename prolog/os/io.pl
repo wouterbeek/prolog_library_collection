@@ -34,6 +34,7 @@
 @version 2016/07
 */
 
+:- use_module(library(debug)).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(zlib)).
@@ -104,8 +105,10 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
         ),
         % Semi-deterministic if an archive entry name is given.
         (   nonvar(EntryName)
-        ->  once(call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, SourceOpts))
-        ;   call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, SourceOpts)
+        ->  once(
+              call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, ArchOpts2)
+            )
+        ;   call_on_stream0(Arch, EntryName, Goal_3, Meta2, Meta3, ArchOpts2)
         )
       ),
       archive_close(Arch)
@@ -115,23 +118,66 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(Meta4), SourceOpts)).
 
 
-call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, SourceOpts1) :-
-  merge_options([meta_data(Path0)], SourceOpts1, SourceOpts2),
-  archive_data_stream(Arch, In2, SourceOpts2),
+call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, Opts) :-
+  archive_data_stream0(Arch, In2, MetaPath, Opts),
   % Even though the first input stream `In1` used UTF-8 encoding, the
   % streams that come out an any archive are `octet`.  This is
   % corrected here.
-  append(Path, [_], Path0),
   set_stream(In2, encoding(utf8)),
-  (   Path = [Entry|_],
-      EntryName = Entry.name
-  ->  put_dict(entry_path, Meta1, Path, Meta2),
+  (   MetaPath = [MetaEntry|_],
+      EntryName = MetaEntry.name
+  ->  put_dict(entry_path, Meta1, MetaPath, Meta2),
       call_cleanup(
         call(Goal_3, In2, Meta2, Meta3),
         close_any(close(In2), Meta3, Meta4)
       )
   ;   close(In2),
       fail
+  ).
+
+
+archive_data_stream0(Arch, In, MetaPath, Opts) :-
+  archive_data_stream0(Arch, In, MetaPath, [], Opts).
+
+archive_data_stream0(Arch, In, L, T2, Opts) :-
+  archive_property(Arch, filter(Filters)),
+  debug(io, "Archive ~w with filters ~w.", [Arch,Filters]),
+  repeat,
+  (   archive_next_header(Arch, EntryName),
+      debug(io, "Archive ~w holds entry ~w.", [Arch,EntryName])
+  ->  create_entry_meta0(Arch, Filters, EntryName, H),
+      (   H.filetype == file
+      ->  archive_open_entry(Arch, In0),
+          (   EntryName == data,
+              H.format == raw
+          ->  % This is the last entry in this nested branch.  We
+              % therefore close the choicepoint created by repeat/0.
+              % Not closing this choicepoint would cause
+              % archive_next_header/2 to throw an exception.
+              !,
+              L = T2,
+              In = In0
+          ;   L = [H|T1],
+              open_substream0(In0, In, T1, T2, Opts)
+          )
+      ;   fail
+      )
+  ;   !,
+      fail
+  ).
+
+
+create_entry_meta0(Arch, Filters, Name, Meta) :-
+  findall(Property, archive_header_property(Arch, Property), Properties),
+  dict_create(Meta, _, [filters(Filters),name(Name)|Properties]).
+
+
+open_substream0(In1, In2, T1, T2, Opts0) :-
+  merge_options(Opts0, [close_parent(true)], Opts),
+  setup_call_cleanup(
+    archive_open(stream(In1), Arch, Opts),
+    archive_data_stream0(Arch, In2, T1, T2, Opts),
+    archive_close(Arch)
   ).
 
 
