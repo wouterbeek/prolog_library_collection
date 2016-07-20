@@ -162,8 +162,8 @@ print_archive(Source) :-
 
 
 print_archive(Source, Opts) :-
-  call_on_stream(Source, print_entry_path0(Opts), Opts).
+  call_on_stream(Source, print_entry_path0, Opts).
 
 
-print_entry_path0(Opts, _, Meta, Meta) :-
-  maplist({Opts}/[EntryMeta]>>print_dict(EntryMeta, Opts), Meta.entry_path).
+print_entry_path0(_, Meta, Meta) :-
+  maplist([EntryMeta]>>print_dict(EntryMeta), Meta.entry_path).

@@ -125,7 +125,7 @@ call_on_stream0(Arch, EntryName, Goal_3, Meta1, Meta4, SourceOpts1) :-
   set_stream(In2, encoding(utf8)),
   (   Path = [Entry|_],
       EntryName = Entry.name
-  ->  put_dict(path, Meta1, Path, Meta2),
+  ->  put_dict(entry_path, Meta1, Path, Meta2),
       call_cleanup(
         call(Goal_3, In2, Meta2, Meta3),
         close_any(close(In2), Meta3, Meta4)
