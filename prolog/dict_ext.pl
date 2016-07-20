@@ -7,6 +7,7 @@
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
     dict_call_pairs/2,      % :Goal_1, +D
     dict_call_pairs/3,      % :Goal_2, +D1, -D2
+    dict_create/2,          % -Dict, +Opts
     dict_dec/2,             % +Key, +D
     dict_dec/3,             % +Key, +D, -Val
     dict_dec/4,             % +Key, +D, +Diff, -Val
@@ -117,6 +118,13 @@ dict_call_pairs(Goal_2, D1, D2) :-
   dict_pairs(D1, Pairs1),
   maplist(Goal_2, Pairs1, Pairs2),
   dict_pairs(D2, Pairs2).
+
+
+
+%! dict_create(-Dict, +Opts) is det.
+
+dict_create(Dict, Opts) :-
+  dict_create(Dict, _, Opts).
 
 
 

@@ -7,6 +7,8 @@
     file_entry_path/2,        % +MetaPath, -File2
     file_entry_path/3,        % +File1, +MetaPath, -File2
     is_archive_file/1,        % +File
+    open_archive_by_file/3,   % +File, -Path, -In
+    open_archive_by_stream/3, % +In0, -Path, -In
     print_archive/1,          % +Source
     print_archive/2           % +Source, +Opts
   ]
@@ -21,6 +23,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(fileutils)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(os/io)).
@@ -106,6 +109,48 @@ is_unarchived0(MetaEntry) :-
 
 
 file_entry_path_comp0(MetaEntry, MetaEntry.name).
+
+
+
+%! open_archive_by_file(+File, -Path, -In) is nondet.
+
+open_archive_by_file(File, L, In) :-
+  open(File, read, In0, [type(binary)]),
+  open_archive_by_stream(In0, L, In).
+
+
+
+%! open_archive_by_stream(+In0, -Path, -In) is nondet.
+
+open_archive_by_stream(In0, L, In) :-
+  findall(format(Format), archive_format(Format, true), Formats),
+  setup_call_cleanup(
+    archive_open(stream(In0), Arch, [close_parent(true),filter(all)|Formats]),
+    open_archive0(Arch, L, In),
+    archive_close(Arch)
+  ).
+
+
+open_archive0(Arch, [H|T], In) :-
+  archive_property(Arch, filter(Filters)),
+  repeat,
+  (   archive_next_header(Arch, Name)
+  ->  findall(Property, archive_header_property(Arch, Property), Properties),
+      dict_create(H, [filters(Filters),name(Name)|Properties]),
+      (   memberchk(filetype(file), Properties)
+      ->  archive_open_entry(Arch, In0),
+          (   Name == data,
+              memberchk(format(raw), Properties)
+          ->  !,
+              In = In0,
+              T = []
+          ;   open_archive_by_stream(In0, T, In)
+          )
+      ;   fail
+      )
+  ;   !,
+      fail
+  ).
 
 
 
