@@ -259,11 +259,7 @@ http_open1(Iri, State, In2, Close, Metas, Opts0) :-
     Time,
     call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
   ),
-  (   debugging(io)
-  ->  option(method(Method0), Opts3, get),
-      upcase_atom(Method0, Method),
-      debug(io, "[OPEN] HTTP GET ~w", [Method])
-  ),
+  debug(io, "R> ~a → ~w", [Iri,In1]),
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),

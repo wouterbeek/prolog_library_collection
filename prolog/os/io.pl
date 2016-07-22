@@ -41,11 +41,11 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    call_on_archive0(+, +, +, 3, +, -),
+    call_on_archive0(+, +, +, +, 3, +, -),
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream0(+, 3, +, -),
-    call_on_stream0(+, +, +, 3, +, -),
+    call_on_stream0(+, +, 3, +, -),
+    call_on_stream0(+, +, +, +, 3, +, -),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +, +),
     call_onto_stream0(+, 4, +, +, +, -),
@@ -107,31 +107,32 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ->  put_dict(base_iri, Meta1, BaseIri, Meta2)
   ;   Meta2 = Meta1
   ),
-  call_on_stream0(In, Goal_3, Meta2, Meta3),
+  option(entry_name(Name0), SourceOpts, _),
+  call_on_stream0(In, Name0, Goal_3, Meta2, Meta3),
   ignore(option(metadata(Meta3), SourceOpts)).
 
 
-call_on_stream0(In, Goal_3, Meta1, Meta2) :-
-  call_on_stream0(0, [], In, Goal_3, Meta1, Meta2).
+call_on_stream0(In, Name0, Goal_3, Meta1, Meta2) :-
+  call_on_stream0(1, [], In, Name0, Goal_3, Meta1, Meta2).
 
 
-call_on_stream0(N1, L, In0, Goal_3, Meta1, Meta2) :-
+call_on_stream0(N1, L, In0, Name0, Goal_3, Meta1, Meta2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   N2 is N1 + 1,
   setup_call_cleanup(
     (
       archive_open(stream(In0), Arch, [filter(all)|Formats]),
-      indent_debug(N1, io, "> ~w → ~w", [In0,Arch])
+      indent_debug(N1, io, "R> ~w → ~w", [In0,Arch])
     ),
-    call_on_archive0(N2, L, Arch, Goal_3, Meta1, Meta2),
+    call_on_archive0(N2, L, Arch, Name0, Goal_3, Meta1, Meta2),
     (
       archive_close(Arch),
-      indent_debug(N1, io, "< ~w", [Arch])
+      indent_debug(N1, io, "<R ~w", [Arch])
     )
   ).
 
 
-call_on_archive0(N1, T, Arch, Goal_3, Meta1, Meta4) :-
+call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, Name)
@@ -139,17 +140,22 @@ call_on_archive0(N1, T, Arch, Goal_3, Meta1, Meta4) :-
       dict_create(H, [filters(Filters),name(Name)|Properties]),
       (   memberchk(filetype(file), Properties)
       ->  archive_open_entry(Arch, In),
-          indent_debug(N1, io, "> ~w → ~w", [Arch,In]),
+          indent_debug(N1, io, "R> ~w → ~a → ~w", [Arch,Name,In]),
           % Archive entries are always encoded as octet.  We change
           % this to UTF-8.
           set_stream(In, encoding(utf8)),
           (   Name == data,
               memberchk(format(raw), Properties)
-          ->  !,
-	      put_dict(entry_path, Meta1, T, Meta2),
+          ->  % This is the last entry in this nested branch.  We
+              % therefore close the choicepoint created by repeat/0.
+              % Not closing this choicepoint would cause
+              % archive_next_header/2 to throw an exception.
+              !,
+              put_dict(entry_path, Meta1, T, Meta2),
               call(Goal_3, In, Meta2, Meta3)
-          ;   N2 is N1 + 1,
-              call_on_stream0(N2, [H|T], In, Goal_3, Meta1, Meta3)
+          ;   (Name == Name0 -> ! ; true),
+              N2 is N1 + 1,
+              call_on_stream0(N2, [H|T], In, Name0, Goal_3, Meta1, Meta3)
           ),
           close_any2(N1, close(In), Meta3, Meta4)
       ;   fail
@@ -332,14 +338,17 @@ close_any2(Close, Meta) :-
 
 
 close_any2(N, Close, Meta1, Meta2) :-
-  (   Close = close(Stream)
-  ->  stream_metadata(Stream, StreamMeta),
-      Meta2 = Meta1.put(StreamMeta)
-  ;   Meta2 = Meta1
-  ),
-  close_any(Close),
-  (Close = close(Out) -> true ; Out = Close),
-  indent_debug(N, io, "< ~w", [Out]).
+  close_stream0(Close, Stream),
+  stream_metadata(Stream, StreamMeta),
+  Meta2 = Meta1.put(StreamMeta),
+  stream_property(Stream, mode(Mode)),
+  close(Stream),
+  (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
+  indent_debug(N, io, "<~s ~w", [M,Stream]).
+
+
+close_stream0(close(Stream), Stream) :- !.
+close_stream0(Stream, Stream).
 
 
 
@@ -350,7 +359,9 @@ open_any2(Iri, read, In, Close, Opts) :-
   http_io:http_open_any(Iri, In0, Close0, Opts),
   iostream:input_options(In0, In, Close0, Close, Opts).
 open_any2(Spec, Mode, Stream, Close, Opts) :-
-  open_any(Spec, Mode, Stream, Close, Opts).
+  open_any(Spec, Mode, Stream, Close, Opts),
+  (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
+  debug(io, "~s> ~w → ~w", [M,Spec,Stream]).
 
 
 
