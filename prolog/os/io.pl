@@ -16,8 +16,6 @@
     call_to_streams/4,       % +Sink1, +Sink2, :Goal_2, +SinkOpts
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
-    close_any/2,             % +Close, -Meta
-    close_any/3,             % +Close, +Meta1, -Meta2
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
@@ -34,15 +32,20 @@
 @version 2016/07
 */
 
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
+:- use_module(library(dict_ext)).
+:- use_module(library(http/http_io), []).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
+:- use_module(library(typecheck)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
+    call_on_archive0(+, +, +, 3, +, -),
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream0(+, +, 3, +, -),
+    call_on_stream0(+, 3, +, -),
+    call_on_stream0(+, +, +, 3, +, -),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +, +),
     call_onto_stream0(+, 4, +, +, +, -),
@@ -52,12 +55,24 @@
     call_onto_streams0(+, +, 5, +, +, +, +, -),
     call_to_atom(1, -),
     call_to_codes(1, -),
+    call_to_something(1, +, -),
     call_to_stream(+, 1),
     call_to_stream(+, 1, +),
+    call_to_stream0(+, 1, +),
     call_to_streams(+, +, 2),
     call_to_streams(+, +, 2, +),
     call_to_streams(+, +, 2, +, +),
+    call_to_streams0(+, +, 2, +, +),
     call_to_string(1, +).
+
+:- multifile
+    error:has_type/2.
+
+error:has_type(read_mode, T) :-
+  error:has_type(oneof([read]), T).
+
+error:has_type(write_mode, T) :-
+  error:has_type(oneof([append,write]), T).
 
 
 
@@ -76,47 +91,70 @@
 %
 %   * Other options are passed to:
 %
-%       * archive_data_stream/3
 %       * archive_open/3
-%       * open_any/5
+%
+%       * open_any2/5
 
 call_on_stream(Source, Goal_3) :-
   call_on_stream(Source, Goal_3, []).
 
 
 call_on_stream(Source, Goal_3, SourceOpts) :-
-  % This allows the calling context to request one specific entity.
-  option(entry_name(EntryName), SourceOpts, _),
   merge_options([metadata(Meta1)], SourceOpts, OpenOpts),
-  open_any(Source, read, In, _, OpenOpts),
+  open_any2(Source, read, In, _, OpenOpts),
   (var(Meta1) -> Meta1 = _{} ; true),
   (   source_base_iri(Source, BaseIri)
   ->  put_dict(base_iri, Meta1, BaseIri, Meta2)
   ;   Meta2 = Meta1
   ),
-  % Semi-deterministic if an archive entry name is given.
-  (   nonvar(EntryName)
-  ->  once(call_on_stream0(In, EntryName, Goal_3, Meta2, Meta3))
-  ;   call_on_stream0(In, EntryName, Goal_3, Meta2, Meta3)
-  ),
+  call_on_stream0(In, Goal_3, Meta2, Meta3),
   ignore(option(metadata(Meta3), SourceOpts)).
 
 
-call_on_stream0(In1, EntryName, Goal_3, Meta1, Meta4) :-
-  % NONDET
-  open_archive_by_stream(In1, Path, In2),
-  % Even though the first input stream `In1` used UTF-8 encoding, the
-  % streams that come out of archives are `octet`.  This is corrected
-  % here.
-  set_stream(In2, encoding(utf8)),
-  (   Path = [Entry|_],
-      EntryName = Entry.name
-  ->  put_dict(entry_path, Meta1, Path, Meta2),
-      call_cleanup(
-        call(Goal_3, In2, Meta2, Meta3),
-        close_any(close(In2), Meta3, Meta4)
+call_on_stream0(In, Goal_3, Meta1, Meta2) :-
+  call_on_stream0(0, [], In, Goal_3, Meta1, Meta2).
+
+
+call_on_stream0(N1, L, In0, Goal_3, Meta1, Meta2) :-
+  findall(format(Format), archive_format(Format, true), Formats),
+  N2 is N1 + 1,
+  setup_call_cleanup(
+    (
+      archive_open(stream(In0), Arch, [filter(all)|Formats]),
+      indent_debug(N1, io, "> ~w → ~w", [In0,Arch])
+    ),
+    call_on_archive0(N2, L, Arch, Goal_3, Meta1, Meta2),
+    (
+      archive_close(Arch),
+      indent_debug(N1, io, "< ~w", [Arch])
+    )
+  ).
+
+
+call_on_archive0(N1, T, Arch, Goal_3, Meta1, Meta4) :-
+  archive_property(Arch, filter(Filters)),
+  repeat,
+  (   archive_next_header(Arch, Name)
+  ->  findall(Property, archive_header_property(Arch, Property), Properties),
+      dict_create(H, [filters(Filters),name(Name)|Properties]),
+      (   memberchk(filetype(file), Properties)
+      ->  archive_open_entry(Arch, In),
+          indent_debug(N1, io, "> ~w → ~w", [Arch,In]),
+          % Archive entries are always encoded as octet.  We change
+          % this to UTF-8.
+          set_stream(In, encoding(utf8)),
+          (   Name == data,
+              memberchk(format(raw), Properties)
+          ->  !,
+	      put_dict(entry_path, Meta1, T, Meta2),
+              call(Goal_3, In, Meta2, Meta3)
+          ;   N2 is N1 + 1,
+              call_on_stream0(N2, [H|T], In, Goal_3, Meta1, Meta3)
+          ),
+          close_any2(N1, close(In), Meta3, Meta4)
+      ;   fail
       )
-  ;   close(In2),
+  ;   !,
       fail
   ).
 
@@ -142,10 +180,7 @@ call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
 
 
 call_onto_stream0(Sink, Mod:Goal_4, SinkOpts, In, Meta1, Meta2) :-
-  Goal_4 =.. Comps1,
-  append(Comps1, [In,Meta1,Meta2], Comps2),
-  %%%%append(Comps0, [Meta1,Meta2], Comps2),
-  Goal_1 =.. Comps2,
+  goal_manipulation(Goal_4, [In,Meta1,Meta2], Goal_1),
   call_to_stream(Sink, Mod:Goal_1, SinkOpts).
 
 
@@ -166,49 +201,23 @@ call_onto_streams(Source, Sink1, Sink2, Goal_5, SourceOpts, Sink1Opts, Sink2Opts
   call_on_stream(Source, call_onto_streams0(Sink1, Sink2, Goal_5, Sink1Opts, Sink2Opts), SourceOpts).
 
 
-call_onto_streams0(Sink1, Sink2, Mod:Goal_5, Sink1Opts, Sink2Opts, In, Meta1, Meta2) :-
-  Goal_5 =.. Comps1,
-  append(Comps1, [In,Meta1,Meta2], Comps2),
-  %%%%append(Comps0, [Meta1,Meta2], Comps2),
-  Goal_2 =.. Comps2,
-  call_to_streams(Sink1, Sink2, Mod:Goal_2, Sink1Opts, Sink2Opts).
+call_onto_streams0(Sink1, Sink2, Goal_5, Sink1Opts, Sink2Opts, In, Meta1, Meta2) :-
+  goal_manipulation(Goal_5, [In,Meta1,Meta2], Goal_2),
+  call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts).
 
 
 
 %! call_to_atom(:Goal_1, -A) is det.
 
 call_to_atom(Goal_1, A) :-
-  call_to_something0(Goal_1, atom, A).
+  call_to_something(Goal_1, atom, A).
 
 
 
 %! call_to_codes(:Goal_1, -Cs) is det.
 
 call_to_codes(Goal_1, Cs) :-
-  call_to_something0(Goal_1, codes, Cs).
-
-
-call_to_something0(Goal_1, Type, Result) :-
-  setup_call_cleanup(
-    new_memory_file(Handle),
-    (
-      setup_call_cleanup(
-        open_memory_file(Handle, write, Out),
-        call(Goal_1, Out),
-        close(Out)
-      ),
-      memory_file_to_something0(Handle, Type, Result)
-    ),
-    free_memory_file(Handle)
-  ).
-
-
-memory_file_to_something0(Handle, atom, A) :- !,
-  memory_file_to_atom(Handle, A).
-memory_file_to_something0(Handle, codes, Cs) :- !,
-  memory_file_to_codes(Handle, Cs).
-memory_file_to_something0(Handle, string, Str) :- !,
-  memory_file_to_string(Handle, Str).
+  call_to_something(Goal_1, codes, Cs).
 
 
 
@@ -224,7 +233,7 @@ memory_file_to_something0(Handle, string, Str) :- !,
 %
 %   * mode(+oneof([append,write])) The default is `append`.
 %
-%   * Other options are passed to open_any/5.
+%   * Other options are passed to open_any2/5.
 
 call_to_stream(Sink, Goal_1) :-
   call_to_stream(Sink, Goal_1, []).
@@ -232,15 +241,24 @@ call_to_stream(Sink, Goal_1) :-
 
 call_to_stream(Sink, Goal_1, SinkOpts) :-
   option(mode(Mode), SinkOpts, append),
+  must_be(write_mode, Mode),
   setup_call_cleanup(
-    (
-      open_any(Sink, Mode, Out1, Close1, SinkOpts),
-      write_stream_compression(Out1, Close1, Mode, Out2, Close2, SinkOpts)
-    ),
-    call(Goal_1, Out2),
-    close_any(Close2, Meta)
+    open_any2(Sink, Mode, Out, Close, SinkOpts),
+    call_to_stream0(Out, Goal_1, SinkOpts),
+    close_any2(Close, Meta)
   ),
   ignore(option(metadata(Meta), SinkOpts)).
+
+
+call_to_stream0(Out1a, Goal_1, SinkOpts) :-
+  (   option(compression(true), SinkOpts, true)
+  ->  setup_call_cleanup(
+        zopen(Out1a, Out1b, [close_parent(false),format(gzip)]),
+        call(Goal_1, Out1b),
+        close(Out1b)
+      )
+  ;   call(Goal_1, Out1a)
+  ).
 
 
 
@@ -257,8 +275,7 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
 %
 %   * mode(+oneof([append,write])) The default is `append`.
 %
-%   * Other options are passed to open_any/5.
-
+%   * Other options are passed to open_any2/5.
 
 call_to_streams(Sink1, Sink2, Goal_2) :-
   call_to_streams(Sink1, Sink2, Goal_2, [], []).
@@ -272,44 +289,68 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode1), Sink1Opts, append),
   option(mode(Mode2), Sink2Opts, append),
   setup_call_cleanup(
-    (
-      open_any(Sink1, Mode1, Out1a, Close1a, Sink1Opts),
-      write_stream_compression(Out1a, Close1a, Mode1, Out1b, Close1b, Sink1Opts),
-      open_any(Sink2, Mode2, Out2a, Close2a, Sink2Opts),
-      write_stream_compression(Out2a, Close2a, Mode2, Out2b, Close2b, Sink2Opts)
+    open_any2(Sink1, Mode1, Out1, Close1, Sink1Opts),
+    setup_call_cleanup(
+      open_any2(Sink2, Mode2, Out2, Close2, Sink2Opts),
+      call_to_stream0(Out1, Out2, Goal_2, Sink1Opts, Sink2Opts),
+      close_any2(Close1, Meta1)
     ),
-    call(Goal_2, Out1b, Out2b),
-    (
-      close_any(Close1b, Meta1),
-      close_any(Close2b, Meta2)
-    )
+    close_any2(Close2, Meta2)
   ),
   ignore(option(metadata(Meta1), Sink1Opts)),
   ignore(option(metadata(Meta2), Sink2Opts)).
+
+
+call_to_streams0(Out1a, Out2, Goal_2, Sink1Opts, Sink2Opts) :-
+  option(compression(true), Sink1Opts, true), !,
+  setup_call_cleanup(
+    zopen(Out1a, Out1b, [close_parent(false),format(gzip)]),
+    (
+      goal_manipulation(Goal_2, [Out1b], Goal_1),
+      call_to_stream0(Out2, Goal_1, Sink2Opts)
+    ),
+    close(Out1b)
+  ).
+call_to_streams0(Out1, Out2, Goal_2, _, Sink2Opts) :-
+  goal_manipulation(Goal_2, [Out1], Goal_1),
+  call_to_stream0(Out2, Goal_1, Sink2Opts).
 
 
 
 %! call_to_string(:Goal_1, -Str) is det.
 
 call_to_string(Goal_1, Str) :-
-  call_to_something0(Goal_1, string, Str).
+  call_to_something(Goal_1, string, Str).
 
 
 
-%! close_any(+Close, -Meta) is det.
-%! close_any(+Close, +Meta1, -Meta2) is det.
+%! close_any2(+Close, -Meta) is det.
+%! close_any2(+N, +Close, +Meta1, -Meta2) is det.
 
-close_any(Close, Meta) :-
-  close_any(Close, _{}, Meta).
+close_any2(Close, Meta) :-
+  close_any2(0, Close, _{}, Meta).
 
 
-close_any(Close, Meta1, Meta2) :-
+close_any2(N, Close, Meta1, Meta2) :-
   (   Close = close(Stream)
   ->  stream_metadata(Stream, StreamMeta),
       Meta2 = Meta1.put(StreamMeta)
   ;   Meta2 = Meta1
   ),
-  close_any(Close).
+  close_any(Close),
+  (Close = close(Out) -> true ; Out = Close),
+  indent_debug(N, io, "< ~w", [Out]).
+
+
+
+%! open_any2(+Spec, +Mode, -Stream, -Close, +Opts) is det.
+
+open_any2(Iri, read, In, Close, Opts) :-
+  is_http_iri(Iri), !,
+  http_io:http_open_any(Iri, In0, Close0, Opts),
+  iostream:input_options(In0, In, Close0, Close, Opts).
+open_any2(Spec, Mode, Stream, Close, Opts) :-
+  open_any(Spec, Mode, Stream, Close, Opts).
 
 
 
@@ -403,10 +444,42 @@ write_mode(write).
 
 
 
-%! write_stream_compression(+Out1, +Close1, +Mode, -Out2, -Close2, +Opts) is det.
 
-write_stream_compression(Out1, _, Mode, Out2, close(Out2), Opts) :-
-  write_mode(Mode),
-  option(compression(true), Opts, true), !,
-  zopen(Out1, Out2, [close_parent(true),format(gzip)]).
-write_stream_compression(Out, Close, _, Out, Close, _).
+
+% HELPERS %
+
+%! call_to_something(:Goal_1, +Type, -Result) is det.
+
+call_to_something(Goal_1, Type, Result) :-
+  setup_call_cleanup(
+    new_memory_file(Handle),
+    (
+      setup_call_cleanup(
+        open_memory_file(Handle, write, Out),
+        call(Goal_1, Out),
+        close(Out)
+      ),
+      memory_file_to_something(Handle, Type, Result)
+    ),
+    free_memory_file(Handle)
+  ).
+
+
+
+%! goal_manipulation(+Goal_M, +Args, -Goal_N) is det.
+
+goal_manipulation(Mod:Goal_M, Args, Mod:Goal_N) :-
+  Goal_M =.. Comps1,
+  append(Comps1, Args, Comps2),
+  Goal_N =.. Comps2.
+
+
+
+%! memory_file_to_something(+Handle, +Type:oneof([atom,codes,string]), -Result) is det.
+
+memory_file_to_something(Handle, atom, A) :- !,
+  memory_file_to_atom(Handle, A).
+memory_file_to_something(Handle, codes, Cs) :- !,
+  memory_file_to_codes(Handle, Cs).
+memory_file_to_something(Handle, string, Str) :- !,
+  memory_file_to_string(Handle, Str).

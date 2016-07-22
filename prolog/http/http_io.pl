@@ -49,12 +49,12 @@ The following additional options are supported:
 */
 
 :- use_module(library(apply)).
+:- use_module(library(call_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).     % HTTP cookie support
-:- use_module(library(http/http_io)).         % Extend open hook
 :- use_module(library(http/http_json)).       % JSON support
 :- use_module(library(http/http_open)).       % HTTP support
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support
@@ -66,7 +66,6 @@ The following additional options are supported:
 :- use_module(library(print_ext)).
 :- use_module(library(ssl)).                  % SSL support
 :- use_module(library(time)).
-:- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
@@ -79,9 +78,6 @@ The following additional options are supported:
     http_retry_until_success(0),
     http_retry_until_success(0, +),
     http_throw_bad_request(0).
-
-:- multifile
-    iostream:open_hook/6.
 
 :- public
     ssl_verify/5.
@@ -218,8 +214,9 @@ http_is_scheme(https).
 
 
 
-iostream:open_hook(Iri, read, In, Close_0, Opts, Opts) :-
-  is_http_iri(Iri), !,
+%! http_open_any(+Iri, -In, -Close, +Opts) is det.
+
+http_open_any(Iri, In, Close, Opts) :-
   ignore(option(metadata(Meta), Opts)),
   option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
@@ -230,7 +227,7 @@ iostream:open_hook(Iri, read, In, Close_0, Opts, Opts) :-
     retries: 0,
     visited: []
   },
-  http_open1(Iri, State, In, Close_0, MetaHttps, Opts),
+  http_open1(Iri, State, In, Close, MetaHttps, Opts),
   (   option(base_iri(BaseIri), Opts)
   ->  true
   ;   iri_remove_fragment(Iri, BaseIri)
@@ -245,7 +242,7 @@ iostream:open_hook(Iri, read, In, Close_0, Opts, Opts) :-
   ).
 
 
-http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
+http_open1(Iri, State, In2, Close, Metas, Opts0) :-
   copy_term(Opts0, Opts1),
   Opts2 = [
     authenticate(false),
@@ -257,11 +254,15 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
     version(Major-Minor)
   ],
   merge_options(Opts1, Opts2, Opts3),
-  (   option(timeout(Timeout), Opts0)
-  ->  call_with_time_limit(Timeout,
-        call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
-      )
-  ;   call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
+  option(timeout(Time), Opts0, inf),
+  call_timeout(
+    Time,
+    call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
+  ),
+  (   debugging(io)
+  ->  option(method(Method0), Opts3, get),
+      upcase_atom(Method0, Method),
+      debug(io, "[OPEN] HTTP GET ~w", [Method])
   ),
   (   var(E)
   ->  deb_http_headers(Lines),
@@ -274,21 +275,21 @@ http_open1(Iri, State, In2, Close_0, Metas, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, State, Location, In1, In2, Close_0, Meta0, Metas, Opts0)
+      http_open2(Iri, State, Location, In1, In2, Close, Meta0, Metas, Opts0)
   ;   throw(E)
   ).
 
 
 % Authentication error.
-http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
+http_open2(Iri, State, _, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
   http_status_is_auth_error(Meta.status),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
-  http_open1(Iri, State, In2, Close_0, Metas, AuthOpts).
+  http_open1(Iri, State, In2, Close, Metas, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
+http_open2(Iri, State, _, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
   http_status_is_error(Meta.status), !,
   call_cleanup(
     deb_http_error(Iri, Meta.status, In1, Opts),
@@ -296,12 +297,12 @@ http_open2(Iri, State, _, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
   ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
-  ->  Close_0 = true,
+  ->  Close = true,
       Metas = []
-  ;   http_open1(Iri, State, In2, Close_0, Metas, Opts)
+  ;   http_open1(Iri, State, In2, Close, Metas, Opts)
   ).
 % Redirect.
-http_open2(Iri0, State, Location, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :-
+http_open2(Iri0, State, Location, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
   http_status_is_redirect(Meta.status), !,
   close(In1),
   uri_resolve(Location, Iri0, Iri),
@@ -313,7 +314,7 @@ http_open2(Iri0, State, Location, In1, In2, Close_0, Meta, [Meta|Metas], Opts) :
   ;   true
   ),
   http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Iri, State, In2, Close_0, Metas, RedirectOpts).
+  http_open1(Iri, State, In2, Close, Metas, RedirectOpts).
 % Success.
 http_open2(_, _, _, In, In, close(In), Meta, [Meta], _).
 

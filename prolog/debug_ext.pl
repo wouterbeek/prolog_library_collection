@@ -13,7 +13,8 @@
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
-    number_of_open_files/1,     % -N
+    indent_debug/4,             % +NumTabs, +Flag, +Format, +Args
+    number_of_open_files/1,     % -NunOpenFiles
     print_error/1               % +Error:compound
   ]
 ).
@@ -24,11 +25,12 @@
 Tools that ease debugging SWI-Prolog programs.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/05
+@version 2015/07-2015/11, 2016/01-2016/05, 2016/07
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(check_installation)). % Private predicates.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
@@ -170,8 +172,8 @@ debug_verbose(Flag, Goal_0, Fragment, Args):-
 %! debug_with_output_to(?Flag, :Goal_0) is det.
 
 debug_with_output_to(Flag, Goal_0):-
-  with_output_to(atom(A), Goal_0),
-  debug(Flag, '~a', [A]).
+  with_output_to(string(Str), Goal_0),
+  debug(Flag, "~a", [Str]).
 
 
 
@@ -187,7 +189,18 @@ if_debug(_, Goal_0):- call(Goal_0).
 
 
 
-%! number_of_open_files(-N:nonneg) is det.
+%! indent_debug(+NumTabs, +Flag, +Format, +Args) is det.
+
+indent_debug(NumTabs, Flag, Format, Args) :-
+  format(atom(A0), Format, Args),
+  NumSpaces is NumTabs * 4,
+  repeating_atom(' ', NumSpaces, Prefix),
+  atom_concat(Prefix, A0, A),
+  debug(Flag, "~a", [A]).
+
+
+
+%! number_of_open_files(-NumOpenFiles) is det.
 
 number_of_open_files(N):-
   aggregate_all(count, (member(X, [input,output]), stream_property(_, X)), N).
