@@ -94,6 +94,9 @@ error:has_type(write_mode, T) :-
 %       * archive_open/3
 %
 %       * open_any2/5
+%
+% @tbd Support paths of entry names (option entry_name/1) for nested
+% archives.
 
 call_on_stream(Source, Goal_3) :-
   call_on_stream(Source, Goal_3, []).
@@ -136,7 +139,14 @@ call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, Name)
-  ->  findall(Property, archive_header_property(Arch, Property), Properties),
+  ->  % If the entry name is `data` then proceed.  If the entry name
+      % is uninstantiated then proceed.  If the entry name is
+      % instantiated and occurs in the current archive header then red
+      % cut.  If entry name is instantiated and does not occur in the
+      % current archive header then fail (repeat/0 will iterate to the
+      % next archive header).
+      (Name == data -> true ; var(Name0) -> true ; Name == Name0 -> ! ; fail),
+      findall(Property, archive_header_property(Arch, Property), Properties),
       dict_create(H, [filters(Filters),name(Name)|Properties]),
       (   memberchk(filetype(file), Properties)
       ->  archive_open_entry(Arch, In),
@@ -153,8 +163,7 @@ call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
               !,
               put_dict(entry_path, Meta1, T, Meta2),
               call(Goal_3, In, Meta2, Meta3)
-          ;   (Name == Name0 -> ! ; true),
-              N2 is N1 + 1,
+          ;   N2 is N1 + 1,
               call_on_stream0(N2, [H|T], In, Name0, Goal_3, Meta1, Meta3)
           ),
           close_any2(N1, close(In), Meta3, Meta4)
@@ -392,11 +401,11 @@ read_stream_to_atom(In, A) :-
 
 
 
-%! read_stream_to_string(+In, -S) is det.
+%! read_stream_to_string(+In, -Str) is det.
 
-read_stream_to_string(In, S) :-
+read_stream_to_string(In, Str) :-
   read_stream_to_codes(In, Cs),
-  string_codes(S, Cs).
+  string_codes(Str, Cs).
 
 
 

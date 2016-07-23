@@ -21,9 +21,11 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(archive)).
 :- use_module(library(debug)).
 :- use_module(library(fileutils)).
 :- use_module(library(http/http_ext)).
+:- use_module(library(lists)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(true)).
@@ -36,13 +38,8 @@
 %! archive_entry(+File, -Entry) is nondet.
 
 archive_entry(File, Entry) :-
-  call_on_stream(File, archive_entry0(Entry)).
-
-
-archive_entry0(Entry, _, Meta, Meta) :-
-  PathMeta = Meta.entry_path,
-  last(PathMeta, EntryMeta),
-  Entry = EntryMeta.name.
+  archive_entries(File, Entries),
+  member(Entry, Entries).
 
 
 

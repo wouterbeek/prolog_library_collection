@@ -7,6 +7,7 @@
     debug_concurrent_maplist/3, % +Flag, :Goal_1, +Args1
     debug_concurrent_maplist/4, % +Flag, :Goal_2, +Args1, +Args2
     debug_concurrent_maplist/5, % +Flag, :Goal_3, +Args1, +Args2, +Args3
+    debug_peek_string/2,        % +Flag, +In
     debug_maplist/3,            % +Flag, :Goal_1, +Args1
     debug_verbose/2,            % +Flag, :Goal_0
     debug_verbose/3,            % +Flag, :Goal_0, +Format
@@ -147,6 +148,15 @@ debug_maplist0(Flag, Goal_1, [H|T], Len1, Len) :-
   (Len1 mod 100 =:= 0 -> debug(Flag, "~D out of ~D calls.", [Len1,Len]) ; true),
   Len2 is Len1 + 1,
   debug_maplist0(Flag, Goal_1, T, Len2, Len).
+
+
+
+%! debug_peek_string(+Flag, +In) is det.
+
+debug_peek_string(Flag, In) :-
+  debugging(Flag), !,
+  peek_string(In, 1000, Str),
+  debug(Flag, "~s", [Str]).
 
 
 
