@@ -1,9 +1,9 @@
 :- module(
   file_entry,
   [
-    dir_file_entry/2,      % +Dir, -FileEntry
-    file_entry_file/3,     % +FileEntry, +Ext, -File
-    file_entry_extension/2 % +FileEntry, ?Ext
+    directory_file_entry/2, % +Dir, -FileEntry
+    file_entry_file/3,      % +FileEntry, +Ext, -File
+    file_entry_extension/2  % +FileEntry, ?Ext
   ]
 ).
 
@@ -19,17 +19,17 @@ compressed or not.
 
 :- use_module(library(fileutils)).
 :- use_module(library(os/archive_ext)).
-:- use_module(library(os/dir_ext)).
+:- use_module(library(os/directory_ext)).
 :- use_module(library(os/io)).
 
 
 
 
 
-%! dir_file_entry(+Dir, -FileEntry) is nondet.
+%! directory_file_entry(+Dir, -FileEntry) is nondet.
 
-dir_file_entry(Dir, file_entry(File,Entry)) :-
-  dir_file_recursive(Dir, File),
+directory_file_entry(Dir, file_entry(File,Entry)) :-
+  directory_file_recursive(Dir, File),
   call_on_stream(File, true, [entry_name(Entry)]).
 
 

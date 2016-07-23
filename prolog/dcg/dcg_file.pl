@@ -71,18 +71,18 @@ root_prefix -->
 
 % HELPERS %
 
-dir_char(C)   --> alphadigit(C).
-dir_char(0'.) --> ".".
-dir_char(0'-) --> "-".
-dir_char(0'+) --> "+".
-dir_char(0'_) --> "_".
+directory_char(C)   --> alphadigit(C).
+directory_char(0'.) --> ".".
+directory_char(0'-) --> "-".
+directory_char(0'+) --> "+".
+directory_char(0'_) --> "_".
 
 
 :- if(os(unix)).
-dir_sep --> "/".
+directory_sep --> "/".
 :- endif.
 :- if(os(windows)).
-dir_sep --> "\\".
+directory_sep --> "\\".
 :- endif.
 
 
@@ -90,11 +90,11 @@ local_file_char(C)   --> alphadigit(C).
 local_file_char(0'.) --> ".".
 
 
-path_segment(S) --> *(dir_char, Cs), {string_codes(S, Cs)}.
+path_segment(S) --> *(directory_char, Cs), {string_codes(S, Cs)}.
 
 
 path_segments([H|T]) --> path_segment(H), *(sep_path_segment, T).
 path_segments([])    --> "".
 
 
-sep_path_segment(X) --> dir_sep, path_segment(X).
+sep_path_segment(X) --> directory_sep, path_segment(X).

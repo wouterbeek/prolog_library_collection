@@ -1,6 +1,7 @@
 :- module(
   archive_ext,
   [
+    archive_entry/2,          % +File, -Entry
     archive_file_extension/1, % ?Ext
     archive_format/1,         % ?Format
     archive_format/2,         % ?Format, ?Supported
@@ -29,6 +30,19 @@
 :- use_module(library(yall)).
 
 
+
+
+
+%! archive_entry(+File, -Entry) is nondet.
+
+archive_entry(File, Entry) :-
+  call_on_stream(File, archive_entry0(Entry)).
+
+
+archive_entry0(Entry, _, Meta, Meta) :-
+  PathMeta = Meta.entry_path,
+  last(PathMeta, EntryMeta),
+  Entry = EntryMeta.name.
 
 
 
