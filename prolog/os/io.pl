@@ -48,7 +48,6 @@ The following debug flags are used:
     call_on_archive0(+, +, +, 3, +, -),
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream0(+, +, 3, +, -),
     call_on_stream0(+, +, +, 3, +, -),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +, +),
@@ -112,24 +111,25 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   option(entry_name(Entry0), SourceOpts, _),
   setup_call_cleanup(
     open_any2(Source, read, In, _, OpenOpts),
-    call_on_stream0(In, Entry0, Goal_3, Meta2, Meta3),
+    call_on_stream0([], In, Entry0, Goal_3, Meta2, Meta3),
     close_any2(In, Meta3, Meta4)
   ),
   ignore(option(metadata(Meta4), SourceOpts)).
 
 
-call_on_stream0(In, Entry0, Goal_3, Meta1, Meta2) :-
-  call_on_stream0([], In, Entry0, Goal_3, Meta1, Meta2).
-
-
-call_on_stream0(L, In0, Entry0, Goal_3, Meta1, Meta2) :-
+call_on_stream0([H|T], In, _, Goal_3, Meta1, Meta3) :-
+  H.format == raw,
+  H.name == data, !,
+  put_dict(entry_path, Meta1, T, Meta2),
+  call(Goal_3, In, Meta2, Meta3).
+call_on_stream0(Path, In0, Entry0, Goal_3, Meta1, Meta2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
     (
       archive_open(stream(In0), Arch, [filter(all)|Formats]),
       indent_debug(in, io, "R> ~w → ~w", [In0,Arch])
     ),
-    call_on_archive0(L, Arch, Entry0, Goal_3, Meta1, Meta2),
+    call_on_archive0(Path, Arch, Entry0, Goal_3, Meta1, Meta2),
     (
       archive_close(Arch),
       indent_debug(out, io, "<R ~w", [Arch])
@@ -137,37 +137,47 @@ call_on_stream0(L, In0, Entry0, Goal_3, Meta1, Meta2) :-
   ).
 
 
-call_on_archive0(T, Arch, Entry0, Goal_3, Meta1, Meta4) :-
+call_on_archive0(T, Arch, Entry0, Goal_3, Meta1, Meta3) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, Entry)
-  ->  % If the entry name is `data` then proceed.  If the entry name
-      % is uninstantiated then proceed.  If the entry name is
-      % instantiated and occurs in the current archive header then red
-      % cut.  If entry name is instantiated and does not occur in the
+  ->  findall(Property, archive_header_property(Arch, Property), Properties),
+      dict_create(H, [filters(Filters),name(Entry)|Properties]),
+      % If the entry name is `data` then proceed.  If the entry name
+      % is uninstantiated then proceed.  If entry name is instantiated and does not occur in the
       % current archive header then fail (repeat/0 will iterate to the
       % next archive header).
-      (Entry == data -> true ; var(Entry0) -> true ; Entry == Entry0 -> ! ; fail),
-      findall(Property, archive_header_property(Arch, Property), Properties),
-      dict_create(H, [filters(Filters),name(Entry)|Properties]),
+      (   % This is the last entry in this nested branch.  We
+          % therefore close the choicepoint created by repeat/0.  Not
+          % closing this choicepoint would cause archive_next_header/2
+          % to throw an exception.
+          Entry == data,
+          H.format == raw
+      ->  !
+      ;   % If the given entry name occurs in the current archive
+          % header then red cut, because we are in the correct entry
+          % branch.
+          Entry == Entry0
+      ->  !
+      ;   % If the given entry name did not match the current archive
+          % header then fail, because we are in the wrong entry
+          % branch.
+          var(Entry0)
+      ),
       (   memberchk(filetype(file), Properties)
-      ->  archive_open_entry(Arch, In),
-          indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In]),
-          % Archive entries are always encoded as octet.  We change
-          % this to UTF-8.
-          set_stream(In, encoding(utf8)),
-          (   Entry == data,
-              memberchk(format(raw), Properties)
-          ->  % This is the last entry in this nested branch.  We
-              % therefore close the choicepoint created by repeat/0.
-              % Not closing this choicepoint would cause
-              % archive_next_header/2 to throw an exception.
-              !,
-              put_dict(entry_path, Meta1, T, Meta2),
-              call(Goal_3, In, Meta2, Meta3)
-          ;   call_on_stream0([H|T], In, Entry0, Goal_3, Meta1, Meta3)
-          ),
-          close_any2(close(In), Meta3, Meta4)
+      ->  setup_call_cleanup(
+            (
+              archive_open_entry(Arch, In),
+              indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In])
+            ),
+            (
+              % Archive entries are always encoded as octet.  We
+              % change this to UTF-8.
+              set_stream(In, encoding(utf8)),
+              call_on_stream0([H|T], In, Entry0, Goal_3, Meta1, Meta2)
+            ),
+            close_any2(In, Meta2, Meta3)
+          )
       ;   fail
       )
   ;   !,
