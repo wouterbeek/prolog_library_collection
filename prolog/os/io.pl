@@ -126,11 +126,11 @@ call_on_stream0(Path, In0, Entry0, Goal_3, Meta1, Meta2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
     (
-      archive_open(stream(In0), Arch, [filter(all)|Formats]),
+      archive_open(stream(In0), Arch, [close_parent(false),filter(all)|Formats]),
       indent_debug(in, io, "R> ~w → ~w", [In0,Arch])
     ),
     call_on_archive0(Path, Arch, Entry0, Goal_3, Meta1, Meta2),
-    (
+    ( % @tbd THIS SEEMS TO BE SKIPPED SOMETIMES!
       archive_close(Arch),
       indent_debug(out, io, "<R ~w", [Arch])
     )
