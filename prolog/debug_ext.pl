@@ -14,7 +14,9 @@
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
-    indent_debug/4,             % +NumTabs, +Flag, +Format, +Args
+    indent_debug/2,             % +Flag, +Format
+    indent_debug/3,             % +Flag, +Format, +Args
+    indent_debug/4,             % +Diff, +Flag, +Format, +Args
     number_of_open_files/1,     % -NunOpenFiles
     print_error/1               % +Error:compound
   ]
@@ -57,42 +59,44 @@ Tools that ease debugging SWI-Prolog programs.
     debug_with_output_to(?,0),
     if_debug(?,0).
 
+:- thread_local
+   debug_indent/1.
+
 
 
 
 
 %! call_collect_messages(:Goal_0) is det.
+%! call_collect_messages(:Goal_0, -Status, -Messages) is det.
 
-call_collect_messages(Goal_0):-
+call_collect_messages(Goal_0) :-
   call_collect_messages(Goal_0, Status, Es),
   process_warnings(Es),
   process_status(Status).
 
-process_status(true):- !.
-process_status(fail):- !, fail.
-process_status(E):- print_error(E).
 
-process_warnings([]):- !.
-process_warnings(Es):- maplist(print_error, Es).
-%process_warnings(Es):-
+call_collect_messages(Goal_0, Status, Messages) :-
+  check_installation:run_collect_messages(Goal_0, Status, Messages).
+
+
+process_warnings([]) :- !.
+process_warnings(Es) :-
+  maplist(print_error, Es).
+%process_warnings(Es) :-
 %  length(Es, N),
 %  (N =:= 0 -> true ; print_message(warnings, number_of_warnings(N))).
 
 
-%! call_collect_messages(
-%!   :Goal_0,
-%!   -Status:compound,
-%!   -Messages:list(compound)
-%! ) is det.
-
-call_collect_messages(Goal_0, Status, Messages):-
-  check_installation:run_collect_messages(Goal_0, Status, Messages).
+process_status(true) :- !.
+process_status(fail) :- !, fail.
+process_status(E) :-
+  print_error(E).
 
 
 
 %! debug_collect_messages(:Goal_0) is det.
 
-debug_collect_messages(Goal_0):-
+debug_collect_messages(Goal_0) :-
   call_collect_messages(Goal_0, Status, Warns),
   process_warnings(Warns),
   process_status(Status),
@@ -107,28 +111,28 @@ debug_collect_messages(Goal_0):-
 
 %! debug_concurrent_maplist(+Flag, :Goal_1, +Args1) is det.
 
-debug_concurrent_maplist(Flag, Goal_1, Args1):-
+debug_concurrent_maplist(Flag, Goal_1, Args1) :-
   debugging(Flag), !,
   maplist(Goal_1, Args1).
-debug_concurrent_maplist(_, Goal_1, Args1):-
+debug_concurrent_maplist(_, Goal_1, Args1) :-
   concurrent_maplist(Goal_1, Args1).
 
 
 %! debug_concurrent_maplist(+Flag, :Goal_2, +Args1, +Args2) is det.
 
-debug_concurrent_maplist(Flag, Goal_2, Args1, Args2):-
+debug_concurrent_maplist(Flag, Goal_2, Args1, Args2) :-
   debugging(Flag), !,
   maplist(Goal_2, Args1, Args2).
-debug_concurrent_maplist(_, Goal_2, Args1, Args2):-
+debug_concurrent_maplist(_, Goal_2, Args1, Args2) :-
   concurrent_maplist(Goal_2, Args1, Args2).
 
 
 %! debug_concurrent_maplist(+Flag, :Goal_3, +Args1, +Args2, +Args3) is det.
 
-debug_concurrent_maplist(Flag, Goal_3, Args1, Args2, Args3):-
+debug_concurrent_maplist(Flag, Goal_3, Args1, Args2, Args3) :-
   debugging(Flag), !,
   maplist(Goal_3, Args1, Args2, Args3).
-debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3):-
+debug_concurrent_maplist(_, Goal_3, Args1, Args2, Args3) :-
   concurrent_maplist(Goal_3, Args1, Args2, Args3).
 
 
@@ -162,26 +166,26 @@ debug_peek_string(Flag, In) :-
 
 %! debug_verbose(+Flag, :Goal_0) is det.
 
-debug_verbose(Flag, Goal_0):-
+debug_verbose(Flag, Goal_0) :-
   debug_with_output_to(Flag, verbose(Goal_0)).
 
 
 %! debug_verbose(+Flag, :Goal_0, +Fragment) is det.
 
-debug_verbose(Flag, Goal_0, Fragment):-
+debug_verbose(Flag, Goal_0, Fragment) :-
   debug_with_output_to(Flag, verbose(Goal_0, Fragment)).
 
 
 %! debug_verbose(+Flag, :Goal_0, +Fragment, +Args) is det.
 
-debug_verbose(Flag, Goal_0, Fragment, Args):-
+debug_verbose(Flag, Goal_0, Fragment, Args) :-
   debug_with_output_to(Flag, verbose(Goal_0, Fragment, Args)).
 
 
 
 %! debug_with_output_to(?Flag, :Goal_0) is det.
 
-debug_with_output_to(Flag, Goal_0):-
+debug_with_output_to(Flag, Goal_0) :-
   with_output_to(string(Str), Goal_0),
   debug(Flag, "~a", [Str]).
 
@@ -193,15 +197,25 @@ debug_with_output_to(Flag, Goal_0):-
 %
 % @see library(debug)
 
-if_debug(Flag, _):-   var(Flag), !.
-if_debug(Flag, _):-   \+ debugging(Flag), !.
-if_debug(_, Goal_0):- call(Goal_0).
+if_debug(Flag, _) :-
+  var(Flag), !.
+if_debug(Flag, _) :-
+  \+ debugging(Flag), !.
+if_debug(_, Goal_0) :-
+  call(Goal_0).
 
 
 
-%! indent_debug(+NumTabs, +Flag, +Format, +Args) is det.
+%! indent_debug(+Flag, +Format) is det.
+%! indent_debug(+Flag, +Format, +Args) is det.
+%! indent_debug(+Diff, +Flag, +Format, +Args) is det.
 
-indent_debug(NumTabs, Flag, Format, Args) :-
+indent_debug(Flag, Format) :-
+  indent_debug(Flag, Format, []).
+
+
+indent_debug(Flag, Format, Args) :-
+  (debug_indent(NumTabs) -> true ; NumTabs = 0),
   format(atom(A0), Format, Args),
   NumSpaces is NumTabs * 4,
   repeating_atom(' ', NumSpaces, Prefix),
@@ -209,18 +223,27 @@ indent_debug(NumTabs, Flag, Format, Args) :-
   debug(Flag, "~a", [A]).
 
 
+indent_debug(Diff, Flag, Format, Args) :-
+  (retract(debug_indent(NumTabs1)) -> true ; NumTabs1 = 0),
+  NumTabs2 is NumTabs1 + Diff,
+  assert(debug_indent(NumTabs2)),
+  indent_debug(Flag, Format, Args).
+
+
 
 %! number_of_open_files(-NumOpenFiles) is det.
 
-number_of_open_files(N):-
+number_of_open_files(N) :-
   aggregate_all(count, (member(X, [input,output]), stream_property(_, X)), N).
 
 
 
 %! print_error(+Error:compound) is det.
 
-print_error(exception(E)):- !, print_error(E).
-print_error(E):- print_message(error, E).
+print_error(exception(E)) :- !,
+  print_error(E).
+print_error(E) :-
+  print_message(error, E).
 
 
 

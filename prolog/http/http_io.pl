@@ -44,6 +44,14 @@ The following additional options are supported:
   * parse_headers(+boolean) Whether HTTP headers are parsed according
   to HTTP 1.1 grammars.  Default is `false`.
 
+The following debug flags are used:
+
+  * http(error)
+
+  * http(headers)
+
+  * io
+
 @author Wouter Beek
 @version 2016/07
 */
@@ -52,7 +60,7 @@ The following additional options are supported:
 :- use_module(library(call_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).     % HTTP cookie support
 :- use_module(library(http/http_json)).       % JSON support
@@ -91,7 +99,7 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 %! deb_http_error(+Iri, +Status, +In, +Opts) is det.
 
 deb_http_error(Iri, Status, In, Opts) :-
-  debugging(http_io(error)),
+  debugging(http(error)),
   option(raw_headers(Headers), Opts), !,
   http_error_msg(Iri, Status, Headers, In).
 deb_http_error(_, _, _, _).
@@ -101,7 +109,7 @@ deb_http_error(_, _, _, _).
 %! deb_http_headers(+Lines) is det.
 
 deb_http_headers(Lines) :-
-  debugging(http_io(headers)), !,
+  debugging(http(headers)), !,
   maplist(deb_http_header, Lines).
 deb_http_headers(_).
 
@@ -259,7 +267,7 @@ http_open1(Iri, State, In2, Close, Metas, Opts0) :-
     Time,
     call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
   ),
-  debug(io, "R> ~a → ~w", [Iri,In1]),
+  indent_debug(1, io, "R> ~a → ~w", [Iri,In1]),
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),
@@ -382,12 +390,12 @@ http_retry_until_success(Goal_0, Timeout) :-
       E = error(existence_error(_,Meta),_),
       http_get_dict(status, Meta, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
-  ->  debug(http_io(error), "Status: ~D (~s)", [Status,Lbl]),
+  ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ;   % TCP error (Try Again)
       E = error(socket_error('Try Again'), _)
-  ->  debug(http_io(error), "TCP Try Again", []),
+  ->  indent_debug(http(error), "TCP Try Again"),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).

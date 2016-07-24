@@ -27,6 +27,10 @@
 
 /** <module> I/O
 
+The following debug flags are used:
+
+  * io
+
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
 @version 2016/07
@@ -41,11 +45,11 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    call_on_archive0(+, +, +, +, 3, +, -),
+    call_on_archive0(+, +, +, 3, +, -),
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
     call_on_stream0(+, +, 3, +, -),
-    call_on_stream0(+, +, +, +, 3, +, -),
+    call_on_stream0(+, +, +, 3, +, -),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +, +),
     call_onto_stream0(+, 4, +, +, +, -),
@@ -116,26 +120,25 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 
 
 call_on_stream0(In, Name0, Goal_3, Meta1, Meta2) :-
-  call_on_stream0(1, [], In, Name0, Goal_3, Meta1, Meta2).
+  call_on_stream0([], In, Name0, Goal_3, Meta1, Meta2).
 
 
-call_on_stream0(N1, L, In0, Name0, Goal_3, Meta1, Meta2) :-
+call_on_stream0(L, In0, Name0, Goal_3, Meta1, Meta2) :-
   findall(format(Format), archive_format(Format, true), Formats),
-  N2 is N1 + 1,
   setup_call_cleanup(
     (
       archive_open(stream(In0), Arch, [filter(all)|Formats]),
-      indent_debug(N1, io, "R> ~w → ~w", [In0,Arch])
+      indent_debug(1, io, "R> ~w → ~w", [In0,Arch])
     ),
-    call_on_archive0(N2, L, Arch, Name0, Goal_3, Meta1, Meta2),
+    call_on_archive0(L, Arch, Name0, Goal_3, Meta1, Meta2),
     (
       archive_close(Arch),
-      indent_debug(N1, io, "<R ~w", [Arch])
+      indent_debug(-1, io, "<R ~w", [Arch])
     )
   ).
 
 
-call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
+call_on_archive0(T, Arch, Name0, Goal_3, Meta1, Meta4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, Name)
@@ -150,7 +153,7 @@ call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
       dict_create(H, [filters(Filters),name(Name)|Properties]),
       (   memberchk(filetype(file), Properties)
       ->  archive_open_entry(Arch, In),
-          indent_debug(N1, io, "R> ~w → ~a → ~w", [Arch,Name,In]),
+          indent_debug(1, io, "R> ~w → ~a → ~w", [Arch,Name,In]),
           % Archive entries are always encoded as octet.  We change
           % this to UTF-8.
           set_stream(In, encoding(utf8)),
@@ -163,10 +166,9 @@ call_on_archive0(N1, T, Arch, Name0, Goal_3, Meta1, Meta4) :-
               !,
               put_dict(entry_path, Meta1, T, Meta2),
               call(Goal_3, In, Meta2, Meta3)
-          ;   N2 is N1 + 1,
-              call_on_stream0(N2, [H|T], In, Name0, Goal_3, Meta1, Meta3)
+          ;   call_on_stream0([H|T], In, Name0, Goal_3, Meta1, Meta3)
           ),
-          close_any2(N1, close(In), Meta3, Meta4)
+          close_any2(close(In), Meta3, Meta4)
       ;   fail
       )
   ;   !,
@@ -340,20 +342,20 @@ call_to_string(Goal_1, Str) :-
 
 
 %! close_any2(+Close, -Meta) is det.
-%! close_any2(+N, +Close, +Meta1, -Meta2) is det.
+%! close_any2(+Close, +Meta1, -Meta2) is det.
 
 close_any2(Close, Meta) :-
-  close_any2(0, Close, _{}, Meta).
+  close_any2(Close, _{}, Meta).
 
 
-close_any2(N, Close, Meta1, Meta2) :-
+close_any2(Close, Meta1, Meta2) :-
   close_stream0(Close, Stream),
   stream_metadata(Stream, StreamMeta),
   Meta2 = Meta1.put(StreamMeta),
   stream_property(Stream, mode(Mode)),
   close(Stream),
   (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-  indent_debug(N, io, "<~s ~w", [M,Stream]).
+  indent_debug(-1, io, "<~s ~w", [M,Stream]).
 
 
 close_stream0(close(Stream), Stream) :- !.
