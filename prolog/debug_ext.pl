@@ -27,6 +27,8 @@
 
 Tools that ease debugging SWI-Prolog programs.
 
+⏱
+
 @author Wouter Beek
 @version 2015/07-2015/11, 2016/01-2016/05, 2016/07
 */
@@ -223,11 +225,18 @@ indent_debug(Flag, Format, Args) :-
   debug(Flag, "~a", [A]).
 
 
-indent_debug(Diff, Flag, Format, Args) :-
+indent_debug(in, Flag, Format, Args) :- !,
+  indent_debug(Flag, Format, Args),
+  update_indent_debug0(1).
+indent_debug(out, Flag, Format, Args) :- !,
+  update_indent_debug0(-1),
+  indent_debug(Flag, Format, Args).
+
+
+update_indent_debug0(Diff) :-
   (retract(debug_indent(NumTabs1)) -> true ; NumTabs1 = 0),
   NumTabs2 is NumTabs1 + Diff,
-  assert(debug_indent(NumTabs2)),
-  indent_debug(Flag, Format, Args).
+  assert(debug_indent(NumTabs2)).
 
 
 

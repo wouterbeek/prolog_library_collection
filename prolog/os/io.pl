@@ -108,56 +108,55 @@ call_on_stream(Source, Goal_3) :-
 
 call_on_stream(Source, Goal_3, SourceOpts) :-
   merge_options([metadata(Meta1)], SourceOpts, OpenOpts),
-  open_any2(Source, read, In, _, OpenOpts),
-  (var(Meta1) -> Meta1 = _{} ; true),
-  (   source_base_iri(Source, BaseIri)
-  ->  put_dict(base_iri, Meta1, BaseIri, Meta2)
-  ;   Meta2 = Meta1
+  set_base_iri(Meta1, Source, Meta2),
+  option(entry_name(Entry0), SourceOpts, _),
+  setup_call_cleanup(
+    open_any2(Source, read, In, _, OpenOpts),
+    call_on_stream0(In, Entry0, Goal_3, Meta2, Meta3),
+    close_any2(In, Meta3, Meta4)
   ),
-  option(entry_name(Name0), SourceOpts, _),
-  call_on_stream0(In, Name0, Goal_3, Meta2, Meta3),
-  ignore(option(metadata(Meta3), SourceOpts)).
+  ignore(option(metadata(Meta4), SourceOpts)).
 
 
-call_on_stream0(In, Name0, Goal_3, Meta1, Meta2) :-
-  call_on_stream0([], In, Name0, Goal_3, Meta1, Meta2).
+call_on_stream0(In, Entry0, Goal_3, Meta1, Meta2) :-
+  call_on_stream0([], In, Entry0, Goal_3, Meta1, Meta2).
 
 
-call_on_stream0(L, In0, Name0, Goal_3, Meta1, Meta2) :-
+call_on_stream0(L, In0, Entry0, Goal_3, Meta1, Meta2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
     (
       archive_open(stream(In0), Arch, [filter(all)|Formats]),
-      indent_debug(1, io, "R> ~w → ~w", [In0,Arch])
+      indent_debug(in, io, "R> ~w → ~w", [In0,Arch])
     ),
-    call_on_archive0(L, Arch, Name0, Goal_3, Meta1, Meta2),
+    call_on_archive0(L, Arch, Entry0, Goal_3, Meta1, Meta2),
     (
       archive_close(Arch),
-      indent_debug(-1, io, "<R ~w", [Arch])
+      indent_debug(out, io, "<R ~w", [Arch])
     )
   ).
 
 
-call_on_archive0(T, Arch, Name0, Goal_3, Meta1, Meta4) :-
+call_on_archive0(T, Arch, Entry0, Goal_3, Meta1, Meta4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
-  (   archive_next_header(Arch, Name)
+  (   archive_next_header(Arch, Entry)
   ->  % If the entry name is `data` then proceed.  If the entry name
       % is uninstantiated then proceed.  If the entry name is
       % instantiated and occurs in the current archive header then red
       % cut.  If entry name is instantiated and does not occur in the
       % current archive header then fail (repeat/0 will iterate to the
       % next archive header).
-      (Name == data -> true ; var(Name0) -> true ; Name == Name0 -> ! ; fail),
+      (Entry == data -> true ; var(Entry0) -> true ; Entry == Entry0 -> ! ; fail),
       findall(Property, archive_header_property(Arch, Property), Properties),
-      dict_create(H, [filters(Filters),name(Name)|Properties]),
+      dict_create(H, [filters(Filters),name(Entry)|Properties]),
       (   memberchk(filetype(file), Properties)
       ->  archive_open_entry(Arch, In),
-          indent_debug(1, io, "R> ~w → ~a → ~w", [Arch,Name,In]),
+          indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In]),
           % Archive entries are always encoded as octet.  We change
           % this to UTF-8.
           set_stream(In, encoding(utf8)),
-          (   Name == data,
+          (   Entry == data,
               memberchk(format(raw), Properties)
           ->  % This is the last entry in this nested branch.  We
               % therefore close the choicepoint created by repeat/0.
@@ -166,7 +165,7 @@ call_on_archive0(T, Arch, Name0, Goal_3, Meta1, Meta4) :-
               !,
               put_dict(entry_path, Meta1, T, Meta2),
               call(Goal_3, In, Meta2, Meta3)
-          ;   call_on_stream0([H|T], In, Name0, Goal_3, Meta1, Meta3)
+          ;   call_on_stream0([H|T], In, Entry0, Goal_3, Meta1, Meta3)
           ),
           close_any2(close(In), Meta3, Meta4)
       ;   fail
@@ -355,7 +354,7 @@ close_any2(Close, Meta1, Meta2) :-
   stream_property(Stream, mode(Mode)),
   close(Stream),
   (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-  indent_debug(-1, io, "<~s ~w", [M,Stream]).
+  indent_debug(out, io, "<~s ~w", [M,Stream]).
 
 
 close_stream0(close(Stream), Stream) :- !.
@@ -372,7 +371,7 @@ open_any2(Iri, read, In, Close, Opts) :-
 open_any2(Spec, Mode, Stream, Close, Opts) :-
   open_any(Spec, Mode, Stream, Close, Opts),
   (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-  debug(io, "~s> ~w → ~w", [M,Spec,Stream]).
+  indent_debug(in, io, "~s> ~w → ~w", [M,Spec,Stream]).
 
 
 
@@ -505,3 +504,14 @@ memory_file_to_something(Handle, codes, Cs) :- !,
   memory_file_to_codes(Handle, Cs).
 memory_file_to_something(Handle, string, Str) :- !,
   memory_file_to_string(Handle, Str).
+
+
+
+%! set_base_iri(+Meta1, +Source, -Meta2) is det.
+
+set_base_iri(Meta1, Source, Meta2) :-
+  (var(Meta1) -> Meta1 = _{} ; true),
+  (   source_base_iri(Source, BaseIri)
+  ->  put_dict(base_iri, Meta1, BaseIri, Meta2)
+  ;   Meta2 = Meta1
+  ).
