@@ -80,9 +80,10 @@ pairs_to_root(Pairs, Root):-
 
 
 
-%! pairs_to_tree(+Pairs, -Tree) is det.
+%! pairs_to_tree(+Pairs, -Tree) is semidet.
+%
+% Fails when there are no pairs.
 
-pairs_to_tree([], []):- !.
 pairs_to_tree(Pairs, Tree):-
   pairs_to_root(Pairs, Root),
   pairs_to_tree(Root, Tree, Pairs, []).

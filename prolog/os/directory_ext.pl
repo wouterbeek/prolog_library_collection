@@ -3,6 +3,7 @@
   [
     append_directories/2,       % +Dirs, -Dir
     append_directories/3,       % +Dir1, +Dir2, -Dir
+    create_directory/1,         % +Dir
     current_directory/1,        % ?Dir
     directory_file/2,           % +Dir, -File
     directory_file_recursive/2, % +Dir, -File
@@ -61,6 +62,15 @@ append_directories(Dir1, Dir2, Dir3) :-
   directory_subdirectories(Dir2, Subdirs2),
   append(Subdirs1, Subdirs2, Subdirs3),
   directory_subdirectories(Dir3, Subdirs3).
+
+
+
+%! create_directory(+Dir) is det.
+
+create_directory(Dir) :-
+  exists_directory(Dir), !.
+create_directory(Dir) :-
+  make_directory(Dir).
 
 
 
