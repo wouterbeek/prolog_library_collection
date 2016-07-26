@@ -9,17 +9,19 @@
 /** <module> DCG Trees
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/05
+@version 2016/01-2016/02, 2016/05, 2016/07
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 
+is_meta(label_writer).
 is_meta(node_writer).
 
 :- meta_predicate
-    dcg_tree(+, :, ?, ?).
+    dcg_tree(+, :, ?, ?),
+    default_node_writer(3, +, +, ?, ?).
 
 
 
@@ -29,6 +31,9 @@ is_meta(node_writer).
 %! dcg_tree(+Tree, +Opts)// is det.
 %
 % The following options are supported:
+%
+%   * label_writer(+callable)
+%
 %   * node_writer(+callable)
 
 dcg_tree(Tree) -->
@@ -43,8 +48,11 @@ dcg_tree(Tree, Opts1) -->
 %! dcg_tree0(+Tree, +InvPath, +IsLast, +Opts)// is det.
 
 dcg_tree0(t(Node,Trees), InvPath, IsLast, Opts) -->
-  {(Trees = [] -> IsLeaf = true ; IsLeaf = false)},
-  {option(node_writer(NodeWriter_4), Opts, default_node_writer)},
+  {
+    (Trees = [] -> IsLeaf = true ; IsLeaf = false),
+    option(label_writer(LblWriter_3), Opts, atom),
+    option(node_writer(NodeWriter_4), Opts, default_node_writer(LblWriter_3))
+  },
   dcg_call(NodeWriter_4, [Node-IsLast|InvPath], IsLeaf),
   ({IsLeaf == true} -> "" ; dcg_trees0(Trees, [Node-IsLast|InvPath], Opts)).
 
@@ -57,10 +65,10 @@ dcg_trees0([H|T], InvPath, Opts) -->
   ({IsLast == true} ->  "" ; dcg_trees0(T, InvPath, Opts)).
 
 
-default_node_writer(InvPath, _) -->
+default_node_writer(LblWriter_3, InvPath, _) -->
   dcg_tree_indent(InvPath),
   {first(InvPath, Node-_)},
-  atom(Node), nl.
+  dcg_call(LblWriter_3, Node), nl.
 
 
 dcg_tree_indent([_]) --> !, "".
