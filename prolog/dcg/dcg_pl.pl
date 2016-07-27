@@ -113,10 +113,6 @@ pl_simple_term0(A) -->
   atom(A).
 pl_simple_term0(DT) -->
   pl_date_time(DT), !.
-pl_simple_term0(Comp) -->
-  {compound(Comp)}, !,
-  {term_to_atom(Comp, A)},
+pl_simple_term0(Term) -->
+  {term_to_atom(Term, A)},
   atom(A).
-pl_simple_term0(X) -->
-  {gtrace}, %DEB
-  pl_simple_term0(X).

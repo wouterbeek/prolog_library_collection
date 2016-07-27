@@ -389,6 +389,18 @@ close_any2(Stream, H1, H2) :-
 
 
 %! open_any2(+Spec, +Mode, -Stream, -Path, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * metadata(-dict)
+%
+%     * file(atom)
+%
+%   * Other options are passed to:
+%
+%     * open_any/5
+%
+%     * http_io:http_open_any/4
 
 open_any2(Iri, read, In, L, Opts) :-
   is_http_iri(Iri), !,

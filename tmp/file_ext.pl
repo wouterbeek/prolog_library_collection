@@ -207,18 +207,6 @@ create_file(Spec, Base, FileKind, Path) :-
 
 
 
-%! create_file_link(+File:atom, +Dir:atom) is det.
-% Create a symbolic link pointing to File in Dir.
-%
-% The symbolic link has the same file base name and file extension
-% as the file linked to.
-
-create_file_link(File, Dir) :-
-  file_alternative(File, Dir, _, _, Link),
-  link_file(File, Link, symbolic).
-
-
-
 %! file_alternative(
 %!   +FromPath:atom,
 %!   ?ToDirectory:atom,

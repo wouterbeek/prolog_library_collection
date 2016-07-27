@@ -4,6 +4,7 @@
     count_numlines/2,        % +Source, -NumLines
     create_file/1,           % +File
     create_file_directory/1, % +File
+    create_file_link/2,      % +File, +Dir
     file_age/2,              % +File, -Age:float
     file_change_extension/3, % +File1, +Ext, File2
     file_paths/2,            % +File, -Paths
@@ -26,7 +27,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/06
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/07
 */
 
 :- use_module(library(apply)).
@@ -89,6 +90,19 @@ create_file(File) :-
 create_file_directory(Path) :-
   (exists_directory(Path) -> Dir = Path ; directory_file_path(Dir, _, Path)),
   make_directory_path(Dir).
+
+
+
+%! create_file_link(+File, +Dir) is det.
+%
+% Create a symbolic link pointing to File in Dir.
+%
+% The symbolic link has the same name as the file linked to.
+
+create_file_link(Path, Dir) :-
+  directory_file_path(_, File, Path),
+  directory_file_path(Dir, File, Link),
+  (exists_file(Link) -> true ; link_file(Path, Link, symbolic)).
 
 
 
