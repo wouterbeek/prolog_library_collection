@@ -304,7 +304,8 @@ call_to_compressed_stream(Out1, Goal_1, H1, H2, SinkOpts) :-
     ),
     call(Goal_1, Out2),
     (
-      close(Out2)
+      close(Out2),
+      indent_debug(out, io, "<ZW ~w", [Out2])
     )
   ).
 call_to_compressed_stream(Out, Goal_1, H, H, _) :-
