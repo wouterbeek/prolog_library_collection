@@ -96,49 +96,15 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 
 
 
-%! deb_http_error(+Iri, +Status, +In, +Opts) is det.
+%! http_fail_on_exception(:Goal_0) is det.
 
-deb_http_error(Iri, Status, In, Opts) :-
-  debugging(http(error)),
-  option(raw_headers(Headers), Opts), !,
-  http_error_msg(Iri, Status, Headers, In).
-deb_http_error(_, _, _, _).
-
-
-
-%! deb_http_headers(+Lines) is det.
-
-deb_http_headers(Lines) :-
-  debugging(http(headers)), !,
-  maplist(deb_http_header, Lines).
-deb_http_headers(_).
-
-
-deb_http_header(Line) :-
-  string_codes(Str, Line),
-  msg_notification("~s~n", [Str]).
-
-
-
-%! http_default_success(+In, +Meta1, -Meta2) is det.
-
-http_default_success(In, Meta, Meta) :-
-  print_dict(Meta),
-  copy_stream_data(In, user_output).
-
-
-
-%! http_error_msg(+Iri, +Status, +Lines, +In) is det.
-
-http_error_msg(Iri, Status, Lines, In) :-
-  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
-  create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
-  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  dcg_with_output_to(string(Str1), pl_dict(MetaHeaders, _{indent: 2})),
-  peek_string(In, 1000, Str2),
-  msg_warning(
-    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
-    [Status,Lbl,Iri,Str1,Str2]
+http_fail_on_exception(Goal_0) :-
+  catch(Goal_0, E, true),
+  (   var(E)
+  ->  true
+  ;   message_to_string(E, Msg),
+      format(user_error, "~s~n", [Msg]),
+      fail
   ).
 
 
@@ -158,19 +124,6 @@ http_get(Iri, Goal_3) :-
 http_get(Iri, Goal_3, Opts0) :-
   merge_options([method(get)], Opts0, Opts),
   call_on_stream(Iri, Goal_3, Opts).
-
-
-
-%! http_fail_on_exception(:Goal_0) is det.
-
-http_fail_on_exception(Goal_0) :-
-  catch(Goal_0, E, true),
-  (   var(E)
-  ->  true
-  ;   message_to_string(E, Msg),
-      format(user_error, "~s~n", [Msg]),
-      fail
-  ).
 
 
 
@@ -195,26 +148,6 @@ http_header(Key, Meta, Val) :-
 
 
 
-%! http_is_redirect_limit_exceeded(+State) is semidet.
-
-http_is_redirect_limit_exceeded(State) :-
-  State.max_redirects == inf, !,
-  fail.
-http_is_redirect_limit_exceeded(State) :-
-  length(State.visited, Len),
-  Len > State.max_redirects.
-
-
-
-%! http_is_redirect_loop(+Iri, +State) is semidet.
-
-http_is_redirect_loop(Iri, State) :-
-  include(==(Iri), State.visited, L),
-  length(L, Len),
-  Len >= 2.
-
-
-
 %! http_is_scheme(+Scheme) is semidet.
 
 http_is_scheme(http).
@@ -222,10 +155,31 @@ http_is_scheme(https).
 
 
 
-%! http_open_any(+Iri, -In, -Close, +Opts) is det.
+%! http_open_any(+Iri, -In, -Path, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * max_redirects(+nonneg) Default is 5.
+%
+%   * max_retries(+nonneg) Default is 1.
+%
+%   * metadata(-list(dict)) Contains the following keys:
+%
+%     * headers(list(list(code)))
+%
+%     * iri(atom)
+%
+%     * status(between(100,599))
+%
+%     * time(float)
+%
+%     * version(dict) Contains the following keys:
+%
+%       * major(nonneg)
+%
+%       * minor(nonneg)
 
-http_open_any(Iri, In, Close, Opts) :-
-  ignore(option(metadata(Meta), Opts)),
+http_open_any(Iri, In, [H|T], Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
   State = _{
@@ -235,22 +189,17 @@ http_open_any(Iri, In, Close, Opts) :-
     retries: 0,
     visited: []
   },
-  http_open1(Iri, State, In, Close, MetaHttps, Opts),
-  (   option(base_iri(BaseIri), Opts)
-  ->  true
-  ;   iri_remove_fragment(Iri, BaseIri)
-  ),
-  Meta = _{base_iri: BaseIri, http_communication: MetaHttps},
+  http_open1(Iri, State, In, [H|T], Opts),
   % Make sure the metadata is accessible even in case of an HTTP error
   % code.
-  (   http_get_dict(status, Meta, Status),
+  (   http_get_dict(status, H, Status),
       http_status_is_error(Status)
-  ->  existence_error(http_open, Meta)
+  ->  existence_error(http_open, [H|T])
   ;   true
   ).
 
 
-http_open1(Iri, State, In2, Close, Metas, Opts0) :-
+http_open1(Iri, State, In2, [H|T], Opts0) :-
   copy_term(Opts0, Opts1),
   Opts2 = [
     authenticate(false),
@@ -272,42 +221,41 @@ http_open1(Iri, State, In2, Close, Metas, Opts0) :-
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),
       dict_pairs(Headers, Groups),
-      Meta0 = _{
+      H = _{
         headers: Headers,
         iri: Iri,
         status: Status,
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, State, Location, In1, In2, Close, Meta0, Metas, Opts0)
+      http_open2(Iri, State, Location, In1, [H|T], In2, Opts0)
   ;   throw(E)
   ).
 
 
 % Authentication error.
-http_open2(Iri, State, _, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
-  http_status_is_auth_error(Meta.status),
+http_open2(Iri, State, _, In1, [H|T], In2, Opts) :-
+  http_status_is_auth_error(H.status),
   option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
-  http_open1(Iri, State, In2, Close, Metas, AuthOpts).
+  http_open1(Iri, State, In2, T, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
-  http_status_is_error(Meta.status), !,
+http_open2(Iri, State, _, In1, [H|T], In2, Opts) :-
+  http_status_is_error(H.status), !,
   call_cleanup(
-    deb_http_error(Iri, Meta.status, In1, Opts),
+    deb_http_error(Iri, H.status, In1, Opts),
     close(In1)
   ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
-  ->  Close = true,
-      Metas = []
-  ;   http_open1(Iri, State, In2, Close, Metas, Opts)
+  ->  T = []
+  ;   http_open1(Iri, State, In2, T, Opts)
   ).
 % Redirect.
-http_open2(Iri0, State, Location, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
-  http_status_is_redirect(Meta.status), !,
+http_open2(Iri0, State, Location, In1, [H|T], In2, Opts) :-
+  http_status_is_redirect(H.status), !,
   close(In1),
   uri_resolve(Location, Iri0, Iri),
   dict_prepend(visited, State, Iri),
@@ -318,35 +266,9 @@ http_open2(Iri0, State, Location, In1, In2, Close, Meta, [Meta|Metas], Opts) :-
   ;   true
   ),
   http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Iri, State, In2, Close, Metas, RedirectOpts).
+  http_open1(Iri, State, In2, T, RedirectOpts).
 % Success.
-http_open2(_, _, _, In, In, close(In), Meta, [Meta], _).
-
-
-
-
-%! http_parse_headers(+Lines, -Groups) is det.
-
-http_parse_headers(Lines, Groups) :-
-  maplist(http_parse_header0, Lines, Pairs),
-  keysort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, Groups).
-
-
-http_parse_header0(Line, Key-Val) :-
-  once(phrase('header-field'(Key-Val), Line)).
-  %%%%phrase(http_parse_header_simplified(Key, Val), Line).
-
-
-%%%%http_parse_header_simplified(Key, Val) -->
-%%%%  http11:'field-name'(Key0),
-%%%%  ":",
-%%%%  http11:'OWS',
-%%%%  rest(Val0),
-%%%%  {
-%%%%    atom_codes(Key, Key0),
-%%%%    string_codes(Val, Val0)
-%%%%  }.
+http_open2(_, _, _, In, [], In, _).
 
 
 
@@ -387,8 +309,8 @@ http_retry_until_success(Goal_0, Timeout) :-
       var(E)
   ->  true
   ;   % HTTP error status code
-      E = error(existence_error(_,Meta),_),
-      http_get_dict(status, Meta, Status),
+      E = error(existence_error(_,[H|_]),_),
+      http_get_dict(status, H, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
   ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
@@ -399,14 +321,6 @@ http_retry_until_success(Goal_0, Timeout) :-
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).
-
-
-
-%! http_status_label(+Code:between(100,599), -Lbl) is det.
-
-http_status_label(Code, Lbl):-
-  http_header:status_number_fact(Fact, Code),
-  string_phrase(http_header:status_comment(Fact), Lbl).
 
 
 
@@ -430,15 +344,11 @@ http_status_is_redirect(Status) :-
 
 
 
-%! http_throw_looping_redirect_error(+Iri) is det.
+%! http_status_label(+Code:between(100,599), -Lbl) is det.
 
-http_throw_looping_redirect_error(Iri) :-
-  throw(
-    error(
-      permission_error(redirect, http, Iri),
-      context(_, 'Redirection loop')
-    )
-  ).
+http_status_label(Code, Lbl):-
+  http_header:status_number_fact(Fact, Code),
+  string_phrase(http_header:status_comment(Fact), Lbl).
 
 
 
@@ -453,6 +363,114 @@ http_throw_bad_request(Goal_0) :-
       http_status_label(Code, Lbl),
       format(string(Status), "~d (~s)", [Code,Lbl]),
       reply_json_dict(_{error: Msg, status: Status}, [status(Code)])
+  ).
+
+
+
+
+
+% HELPERS %
+
+%! deb_http_error(+Iri, +Status, +In, +Opts) is det.
+
+deb_http_error(Iri, Status, In, Opts) :-
+  debugging(http(error)),
+  option(raw_headers(Headers), Opts), !,
+  http_error_msg(Iri, Status, Headers, In).
+deb_http_error(_, _, _, _).
+
+
+
+%! deb_http_headers(+Lines) is det.
+
+deb_http_headers(Lines) :-
+  debugging(http(headers)), !,
+  maplist(deb_http_header, Lines).
+deb_http_headers(_).
+
+
+deb_http_header(Line) :-
+  string_codes(Str, Line),
+  msg_notification("~s~n", [Str]).
+
+
+
+%! http_default_success(+In, +Path1, -Path2) is det.
+
+http_default_success(In, L, L) :-
+  maplist(print_dict, L),
+  copy_stream_data(In, user_output).
+
+
+
+%! http_error_msg(+Iri, +Status, +Lines, +In) is det.
+
+http_error_msg(Iri, Status, Lines, In) :-
+  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
+  create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
+  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
+  dcg_with_output_to(string(Str1), pl_dict(MetaHeaders, _{indent: 2})),
+  peek_string(In, 1000, Str2),
+  msg_warning(
+    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
+    [Status,Lbl,Iri,Str1,Str2]
+  ).
+
+
+
+%! http_is_redirect_limit_exceeded(+State) is semidet.
+
+http_is_redirect_limit_exceeded(State) :-
+  State.max_redirects == inf, !,
+  fail.
+http_is_redirect_limit_exceeded(State) :-
+  length(State.visited, Len),
+  Len > State.max_redirects.
+
+
+
+%! http_is_redirect_loop(+Iri, +State) is semidet.
+
+http_is_redirect_loop(Iri, State) :-
+  include(==(Iri), State.visited, L),
+  length(L, Len),
+  Len >= 2.
+
+
+
+%! http_parse_headers(+Lines, -Groups) is det.
+
+http_parse_headers(Lines, Groups) :-
+  maplist(http_parse_header0, Lines, Pairs),
+  keysort(Pairs, SortedPairs),
+  group_pairs_by_key(SortedPairs, Groups).
+
+
+http_parse_header0(Line, Key-Val) :-
+  once(phrase('header-field'(Key-Val), Line)).
+  %%%%phrase(http_parse_header_simplified(Key, Val), Line).
+
+
+%%%%http_parse_header_simplified(Key, Val) -->
+%%%%  http11:'field-name'(Key0),
+%%%%  ":",
+%%%%  http11:'OWS',
+%%%%  rest(Val0),
+%%%%  {
+%%%%    atom_codes(Key, Key0),
+%%%%    string_codes(Val, Val0)
+%%%%  }.
+
+
+
+%! http_throw_looping_redirect_error(+Iri) is det.
+
+http_throw_looping_redirect_error(Iri) :-
+  throw(
+    error(
+      permission_error(redirect, http, Iri),
+      context(_, 'Redirection loop')
+    )
   ).
 
 
