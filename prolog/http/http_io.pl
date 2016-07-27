@@ -268,7 +268,7 @@ http_open2(Iri0, State, Location, In1, [H|T], In2, Opts) :-
   http_open:redirect_options(Opts, RedirectOpts),
   http_open1(Iri, State, In2, T, RedirectOpts).
 % Success.
-http_open2(_, _, _, In, [], In, _).
+http_open2(_, _, _, In, [_], In, _).
 
 
 
