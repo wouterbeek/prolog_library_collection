@@ -18,8 +18,9 @@ Support for image files.
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(fileutils)).
 :- use_module(library(iri/iri_ext)).
+:- use_module(library(lists)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/process_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(typecheck)).
@@ -92,8 +93,11 @@ image_file_extension(Ext) :-
 % its file name extension.
 
 is_image_file(File) :-
-  file_extension(File, Ext),
-  image_file_extension(Ext).
+  file_extensions(File, Exts),
+  once((
+    member(Ext, Exts),
+    image_file_extension(Ext)
+  )).
 
 
 

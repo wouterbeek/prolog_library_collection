@@ -23,9 +23,9 @@
 :- use_module(library(apply)).
 :- use_module(library(archive)).
 :- use_module(library(debug)).
-:- use_module(library(fileutils)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(true)).
@@ -89,8 +89,11 @@ archive_format(zip,     true ).
 % Succeeds if File is a common way of naming an archive file.
 
 is_archive_file(File) :-
-  file_extension(File, Ext),
-  archive_file_extension(Ext).
+  file_extensions(File, Exts),
+  once((
+    member(Ext, Exts),
+    archive_file_extension(Ext)
+  )).
 
 
 

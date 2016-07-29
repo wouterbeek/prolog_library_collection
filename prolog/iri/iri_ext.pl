@@ -29,7 +29,6 @@
 :- use_module(library(dcg/rfc2234)).
 :- use_module(library(default)).
 :- use_module(library(error)).
-:- use_module(library(fileutils)).
 :- use_module(library(http/http_path)).
 :- use_module(library(iri/rfc3987)).
 :- use_module(library(option)).
@@ -160,7 +159,7 @@ iri_comps(Iri, Comps) :-
 
 iri_file_extensions(Iri, Exts) :-
   iri_comp(Iri, path, Path),
-  findall(Ext, file_extension(Path, Ext), Exts).
+  file_extensions(Path, Exts).
 
 
 

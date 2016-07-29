@@ -30,6 +30,7 @@
     empty_dict/1,           % ?Dict
     get_dict/4,             % +Key, +D, -Val, +Def
     get_dict_path/3,        % -Keys, +D, -Val
+    get_dicts/3,            % +Key, +Ds, -Val
     merge_dicts/3,          % +D1, +D2, -D3
     mod_dict/4,             % +Key, +D1,       -Val, -D2
     mod_dict/5              % +Key, +D1, +Def, -Val, -D2
@@ -306,6 +307,14 @@ get_dict_path(L, D, Val) :-
   ;   Val = Val0,
       L = [H]
   ).
+
+
+
+%! get_dicts(+Key, +Ds, -Val) is nondet.
+
+get_dicts(Key, Ds, Val) :-
+  member(D, Ds),
+  get_dict(Key, D, Val).
 
 
 

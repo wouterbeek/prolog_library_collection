@@ -7,6 +7,7 @@
     create_file_link/2,      % +File, +Dir
     file_age/2,              % +File, -Age:float
     file_change_extension/3, % +File1, +Ext, File2
+    file_extensions/2,       % +File, -Exts
     file_paths/2,            % +File, -Paths
     file_size/2,             % +File, -Size
     is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
@@ -123,6 +124,13 @@ file_age(File, Age) :-
 file_change_extension(From, Ext, To) :-
   file_name_extension(Base, _, From),
   file_name_extension(Base, Ext, To).
+
+
+
+%! file_extensions(+File, -Exts) is det.
+
+file_extensions(File, Exts) :-
+  atomic_list_concat([_|Exts], ., File).
 
 
 
