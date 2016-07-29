@@ -5,8 +5,7 @@
     http_get/1,                  % +Iri
     http_get/2,                  % +Iri, :Goal_3
     http_get/3,                  % +Iri, :Goal_3, +Opts
-    http_get_dict/3,             % +Key, +Meta, -Val
-    http_header/3,               % +Key, +Meta, -Val
+    http_header/3,               % +Key, +Path, -Val
     http_is_scheme/1,            % ?Scheme
     http_post/2,                 % +Iri, +Data
     http_post/3,                 % +Iri, +Data, :Goal_3
@@ -127,19 +126,10 @@ http_get(Iri, Goal_3, Opts0) :-
 
 
 
-%! http_get_dict(+Key, +Meta, -Val) is nondet.
+%! http_header(+Key, +Path, -Val) is nondet.
 
-http_get_dict(Key, Meta, Val) :-
-  get_dict(http_communication, Meta, Metas),
-  last(Metas, Meta0),
-  get_dict(Key, Meta0, Val).
-
-
-
-%! http_header(+Key, +Meta, -Val) is nondet.
-
-http_header(Key, Meta, Val) :-
-  http_get_dict(headers, Meta, Headers),
+http_header(Key, Path, Val) :-
+  http_get_dict(headers, Path, Headers),
   downcase_atom(Key, KeyNorm),
   get_dict(KeyNorm, Headers, Dicts),
   member(Dict, Dicts),
@@ -378,6 +368,14 @@ deb_http_error(Iri, Status, In, Opts) :-
   option(raw_headers(Headers), Opts), !,
   http_error_msg(Iri, Status, Headers, In).
 deb_http_error(_, _, _, _).
+
+
+
+%! http_get_dict(+Key, +Path, -Val) is nondet.
+
+http_get_dict(Key, Path, Val) :-
+  Path = [_,Entry|_],
+  get_dict(Key, Entry, Val).
 
 
 
