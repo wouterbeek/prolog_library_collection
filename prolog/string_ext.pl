@@ -1,11 +1,13 @@
 :- module(
   string_ext,
   [
-    codes_string/2,       % ?Cs, ?S
-    string_list_concat/3, % ?Ss, ?Sep, ?S
-    string_to_term/2,     % +S, -Term
-    string_replace/4,     % +S1, +Sub1, -Sub2, -S2
-    string_truncate/3     % +S, +Max, -TruncatedS
+    codes_string/2,       % ?Cs, ?Str
+    lowercase_string/2,   % +Str1, -Str2
+    string_atom/2,        % ?Str, ?A
+    string_list_concat/3, % ?Strs, ?Sep, ?Str
+    string_to_term/2,     % +Str, -Term
+    string_replace/4,     % +Str1, +SubStr1, -SubStr2, -Str2
+    string_truncate/3     % +Str, +Max, -TruncatedStr
   ]
 ).
 
@@ -19,7 +21,7 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/05-2016/06
+@version 2015/08, 2016/02, 2016/05-2016/07
 */
 
 :- use_module(library(apply)).
@@ -30,62 +32,79 @@ Non-native string representations in Prolog:
 
 
 
-%! codes_string(+Cs, +S) is semidet.
-%! codes_string(+Cs, -S) is det.
-%! codes_string(-Cs, +S) is det.
+%! codes_string(+Cs, +Str) is semidet.
+%! codes_string(+Cs, -Str) is det.
+%! codes_string(-Cs, +Str) is det.
 % Variant of the built-in string_codes/2.
 
-codes_string(Cs, S):-
-  string_codes(S, Cs).
+codes_string(Cs, Str):-
+  string_codes(Str, Cs).
 
 
 
-%! string_list_concat(+Ss, +Sep, +S) is semidet.
-%! string_list_concat(+Ss, +Sep, -S) is det.
-%! string_list_concat(-Ss, +Sep, +S) is det.
+%! lowercase_string(+Str1, -Str2) is det.
 
-string_list_concat(Ss, Sep, S):-
-  var(S), !,
-  maplist(atom_string, [Sep0|As], [Sep|Ss]),
+lowercase_string(Str1, Str2) :-
+  string_atom(Str1, A1),
+  lowercase_atom(A1, A2),
+  atom_string(A2, Str2).
+
+
+
+%! string_atom(+Str, -A) is det.
+%! string_atom(-Str, +A) is det.
+
+string_atom(Str, A) :-
+  atom_string(A, Str).
+
+
+
+%! string_list_concat(+Strs, +Sep, +Str) is semidet.
+%! string_list_concat(+Strs, +Sep, -Str) is det.
+%! string_list_concat(-Strs, +Sep, +Str) is det.
+
+string_list_concat(Strs, Sep, Str):-
+  var(Str), !,
+  maplist(atom_string, [Sep0|As], [Sep|Strs]),
   atomic_list_concat(As, Sep0, A),
-  atom_string(A, S).
-string_list_concat(Ss, Sep, S):-
-  maplist(atom_string, [Sep0,A], [Sep,S]),
+  atom_string(A, Str).
+string_list_concat(Strs, Sep, Str):-
+  maplist(atom_string, [Sep0,A], [Sep,Str]),
   atomic_list_concat(As, Sep0, A),
-  maplist(atom_string, As, Ss).
+  maplist(atom_string, As, Strs).
 
 
 
-%! string_replace(+S1, +Sub1, -Sub2, -S2) is det.
+%! string_replace(+Str1, +SubStr1, -SubStr2, -Str2) is det.
 
-string_replace(S1, Sub1, Sub2, S2) :-
-  string_list_concat(L, Sub1, S1),
-  string_list_concat(L, Sub2, S2).
+string_replace(Str1, SubStr1, SubStr2, Str2) :-
+  string_list_concat(L, SubStr1, Str1),
+  string_list_concat(L, SubStr2, Str2).
 
 
 
-%! string_to_term(+S, -Term) is det.
+%! string_to_term(+Str, -Term) is det.
 
-string_to_term(S, Term) :-
-  atom_string(A, S),
+string_to_term(Str, Term) :-
+  atom_string(A, Str),
   atom_to_term(A, Term).
 
 
 
-%! string_truncate(+S, +Max, -TruncatedS) is det.
+%! string_truncate(+Str, +Max, -TruncatedStr) is det.
 
-string_truncate(S, inf, S):- !.
-string_truncate(S, Max, S):-
+string_truncate(Str, inf, Str):- !.
+string_truncate(Str, Max, Str):-
   must_be(positive_integer, Max),
   Max =< 5, !.
 % The string does not have to be truncated, it is not that long.
-string_truncate(S, Max, S):-
-  string_length(S, Len),
+string_truncate(Str, Max, Str):-
+  string_length(Str, Len),
   Len =< Max, !.
 % The string exceeds the maximum length, it is truncated.
 % For this purpose the displayed length of the string is
 %  the maximum length minus 4 (but never less than 3).
-string_truncate(S1, Max, S3):-
+string_truncate(Str1, Max, Str3):-
   TruncatedLen is Max - 3,
-  sub_string(S1, 0, TruncatedLen, _, S2),
-  string_concat(S2, "...", S3).
+  sub_string(Str1, 0, TruncatedLen, _, Str2),
+  string_concat(Str2, "...", Str3).
