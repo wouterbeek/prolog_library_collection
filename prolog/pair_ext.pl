@@ -1,27 +1,28 @@
 :- module(
   pair_ext,
   [
-    asc_pairs/2,           % +Pairs, -AscendingPairs
-    asc_pairs_values/2,    % +Pairs, -AscendingValues
-    desc_pairs/2,          % +Pairs, -DescendingPairs
-    desc_pairs_values/2,   % +Pairs, -DescendingValues
-    group_pairs_by_key/3,  % :Comparator_2, +Pairs, -GroupedPairs
-    is_pair/1,             % @Term
-    is_reflexive_pair/1,   % +Pair
-    pair/3,                % ?Pair, ?Key, ?Value
-    pair_edge/2,           % ?Pair, ?Edge
-    pair_element/2,        % ?Pair, ?Element
-    pair_key/2,            % +Pair, ?Key
-    pair_has_var_key/1,    % +Pair
-    pair_has_var_value/1,  % +Pair
-    pair_inv/2,            % ?Pair, ?InvPair
-    pair_inv_list/2,       % ?Pair, ?InvL
-    pair_inv_row/2,        % ?Pair, ?InvRow
-    pair_list/2,           % ?Pair, ?L
-    pair_row/2,            % ?Pair, ?Row
-    pair_value/2,          % +Pair, ?Value
-    pairs_to_set/2,        % +Pairs, -Elements
-    sum_value/2            % +Pair, -Sum
+    asc_pairs/2,              % +Pairs, -AscendingPairs
+    asc_pairs_values/2,       % +Pairs, -AscendingValues
+    desc_pairs/2,             % +Pairs, -DescendingPairs
+    desc_pairs_values/2,      % +Pairs, -DescendingValues
+    group_pairs_by_key/3,     % :Comparator_2, +Pairs, -GroupedPairs
+    is_pair/1,                % @Term
+    is_reflexive_pair/1,      % +Pair
+    pair/3,                   % ?Pair, ?Key, ?Value
+    pair_edge/2,              % ?Pair, ?Edge
+    pair_element/2,           % ?Pair, ?Element
+    pair_flatten_singleton/2, % +Pair1, -Pair2
+    pair_key/2,               % +Pair, ?Key
+    pair_has_var_key/1,       % +Pair
+    pair_has_var_value/1,     % +Pair
+    pair_inv/2,               % ?Pair, ?InvPair
+    pair_inv_list/2,          % ?Pair, ?InvL
+    pair_inv_row/2,           % ?Pair, ?InvRow
+    pair_list/2,              % ?Pair, ?L
+    pair_row/2,               % ?Pair, ?Row
+    pair_value/2,             % +Pair, ?Value
+    pairs_to_set/2,           % +Pairs, -Elements
+    sum_value/2               % +Pair, -Sum
   ]
 ).
 :- reexport(library(pairs)).
@@ -129,6 +130,13 @@ pair_edge(X-Y, edge(X,Y)).
 
 pair_element(X-_, X).
 pair_element(X-Y, Y):- X \== Y.
+
+
+
+%! pair_flatten_singleton(+Pair1, -Pair2) is det.
+
+pair_flatten_singleton(Key-[Val], Key-Val) :- !.
+pair_flatten_singleton(Key-Vals, Key-Vals).
 
 
 

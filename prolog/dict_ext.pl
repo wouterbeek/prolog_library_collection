@@ -47,7 +47,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(list_ext)).
-:- use_module(library(pairs)).
+:- use_module(library(pair_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -98,12 +98,8 @@ create_grouped_sorted_dict(Pairs, D):-
 create_grouped_sorted_dict(Pairs, Tag, D):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs1),
-  maplist(unpack_singleton0, GroupedPairs1, GroupedPairs2),
+  maplist(pair_flatten_singleton, GroupedPairs1, GroupedPairs2),
   dict_pairs(D, Tag, GroupedPairs2).
-
-
-unpack_singleton0(Key-[Val], Key-Val) :- !.
-unpack_singleton0(Key-Vals, Key-Vals).
 
 
 

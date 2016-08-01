@@ -3,6 +3,7 @@
   [
     atom_json_dict/2,   % ?A, ?Dict
     atomize_json/2,     % +Dict, -AtomizedDict
+    json_escape/2,      % +Str1, -Str2
     json_read_any/2,    % +Source, -Dict
     json_read_any/3,    % +Source, -Dict, +Opts
     json_var_to_null/2, % +Term, -NullifiedTerm
@@ -20,6 +21,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/json)).
 :- use_module(library(os/io)).
@@ -44,6 +46,33 @@ atomize_json(L1, L2):-
   maplist(atomize_json, L1, L2).
 atomize_json(Dict1, Dict2):-
   atomize_dict(Dict1, Dict2).
+
+
+
+%! json_escape(+Str1, -Str2) is det.
+%
+% Use backslash escapes for:
+%
+%   - beep
+%   - double quote
+%   - forward slash
+%   - horizontal tab
+%   - newline
+%   - form feed
+%   - return
+
+json_escape(Str1, Str2) :-
+  string_phrase(json_escape_codes, Str1, Str2).
+
+
+json_escape_codes, [0'\\,C]   --> [0'\\,C], !, json_escape_codes.
+json_escape_codes, "\\\""     --> "\"",     !, json_escape_codes.
+json_escape_codes, [0'\\,0'/] --> [0'/],    !, json_escape_codes.
+json_escape_codes, "\\b"      --> [7],      !, json_escape_codes.
+json_escape_codes, "\\t"      --> [9],      !, json_escape_codes.
+json_escape_codes, "\\n"      --> [10],     !, json_escape_codes.
+json_escape_codes, "\\f"      --> [12],     !, json_escape_codes.
+json_escape_codes, "\\r"      --> [13],     !, json_escape_codes.
 
 
 
