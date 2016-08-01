@@ -135,4 +135,4 @@ interval_label(L) -->
   interval_label(Last),
   "]".
 interval_label(Term) -->
-  dcg_print_term(Term).
+  dcg_q_print_term(Term).

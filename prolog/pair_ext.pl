@@ -22,7 +22,8 @@
     pair_row/2,               % ?Pair, ?Row
     pair_value/2,             % +Pair, ?Value
     pairs_to_set/2,           % +Pairs, -Elements
-    sum_value/2               % +Pair, -Sum
+    sum_keys/2,               % +Pairs, -Sum
+    sum_value/2               % +Pair1, -Pair2
   ]
 ).
 :- reexport(library(pairs)).
@@ -32,7 +33,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/04, 2016/07
+@version 2015/08, 2015/10-2015/12, 2016/04, 2016/07-2016/08
 */
 
 :- use_module(library(apply)).
@@ -226,7 +227,14 @@ pairs_to_set(Pairs, Set):-
 
 
 
-%! sum_value(+Pair, -Value) is det.
+%! sum_keys(+Pairs, -Sum) is det.
+
+sum_keys(Pairs, Sum) :-
+  pairs_keys(Pairs, Keys),
+  sum_list(Keys, Sum).
+
+
+%! sum_value(+Pair1, -Pair2) is det.
 
 sum_value(Key-Vals, Key-Val) :-
   sum_list(Vals, Val).
