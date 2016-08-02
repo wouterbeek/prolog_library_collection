@@ -93,7 +93,7 @@ pl_term0(Dcg_1, Dict, Opts) -->
   dcg_dict(Dcg_1, Dict, Opts).
 pl_term0(Dcg_1, L, Opts) -->
   {is_list(L)}, !,
-  dcg_list(Dcg_1, L, Opts).
+  dcg_list(Dcg_1, L, Opts.indent).
 pl_term0(_, Term, Opts) -->
   tab(Opts.indent),
   pl_simple_term0(Term).
