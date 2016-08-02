@@ -19,6 +19,7 @@
     pair_inv_list/2,          % ?Pair, ?InvL
     pair_inv_row/2,           % ?Pair, ?InvRow
     pair_list/2,              % ?Pair, ?L
+    pair_option/2,            % ?Pair, ?Opt
     pair_row/2,               % ?Pair, ?Row
     pair_value/2,             % +Pair, ?Value
     pairs_to_set/2,           % +Pairs, -Elements
@@ -189,6 +190,14 @@ pair_key(X-_, X).
 %! pair_list(-Pair, +List) is det.
 
 pair_list(X-Y, [X,Y]).
+
+
+
+%! pair_option(+Pair, -Opt) is det.
+%! pair_option(-Pair, +Opt) is det.
+
+pair_option(Key-Val, Opt) :-
+  Opt =.. [Key,Val].
 
 
 
