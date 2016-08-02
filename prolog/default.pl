@@ -1,16 +1,19 @@
 :- module(
   default,
   [
-    defgoal/2, % :DefGoal_1, ?Val
-    defval/2   % +DefVal, ?Val
+    defgoal/2,    % :DefGoal_1,  ?Val
+    defsetting/2, % +DefSetting, ?Val
+    defval/2      % +DefVal,     ?Val
   ]
 ).
 
 /** <module> Default
 
 @author Wouter Beek
-@version 2015/07, 2015/11, 2016/05
+@version 2015/07, 2015/11, 2016/05, 2016/08
 */
+
+:- use_module(library(settings)).
 
 :- meta_predicate
     defgoal(1, ?).
@@ -20,6 +23,7 @@
 
 
 %! defgoal(:DefGoal_1, ?Val) is det.
+%
 % Runs the given goal, whenever the given value is uninstantiated.
 % The given goal is assumed to be unary and deterministic, always
 % returning an instantiation for `Value`.
@@ -43,7 +47,17 @@ defgoal(DefGoal_1, Val) :-
 
 
 
+%! defsetting(+SettingName, ?Val) is det.
+
+defsetting(_, Val) :-
+  ground(Val), !.
+defsetting(Name, Val) :-
+  setting(Name, Val).
+
+
+
 %! defval(+DefVal, ?Val) is det.
+%
 % Returns either the given value or the default value, in case there
 % is no value given.
 %

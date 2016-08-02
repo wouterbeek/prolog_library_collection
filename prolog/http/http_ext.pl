@@ -8,9 +8,6 @@
     http_method/2,            % +Req, -Method
     http_output/1,            % -Output
     http_output/2,            % +Req, -Output
-    http_query/1,             % -D
-    http_query/2,             % +Req, -D
-    http_query/3,             % +Req, +Key, -Val
     http_read_json_dict/1,    % -Data
     http_reply_file/1,        % +File
     http_status_reply/1,      % +Status
@@ -55,6 +52,8 @@ http_accept(Req, MTs) :-
   (memberchk(accept(L), Req) -> true ; L = []),
   maplist(mediatype_pair, L, Pairs),
   desc_pairs_values(Pairs, MTs).
+
+
 mediatype_pair(media(MT,_,N,_), N-MT).
 
 
@@ -92,30 +91,6 @@ http_output(Out) :-
 
 http_output(Req, Out) :-
   memberchk(pool(client(_,_,_,Out)), Req).
-
-
-
-%! http_query(-D) is det.
-%! http_query(+Req, -D) is det.
-
-http_query(D) :-
-  http_current_request(Req),
-  http_query(Req, D).
-
-
-http_query(Req, D) :-
-  http_iri(Req, Iri),
-  findall(Key-Val, http_query(Req, Key, Val), Pairs),
-  dict_pairs(D, [iri-Iri|Pairs]).
-
-
-
-%! http_query(+Req, +Key, -Val) is det.
-
-http_query(Req, Key, Val) :-
-  memberchk(search(L), Req),
-  member(Key=Val0, L),
-  atom_to_term(Val0, Val).
 
 
 

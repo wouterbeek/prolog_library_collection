@@ -3,6 +3,7 @@
   [
     pagination/3,       % +Pattern, :Goal_0, -Result
     pagination/4,       % +Pattern, :Goal_0, +Opts, -Result
+    pagination_empty/2, % +Opts, -Result
     pagination_result/2 % +Result, :Goal_1
   ]
 ).
@@ -10,7 +11,7 @@
 /** <module> Pagination
 
 @author Wouter Beek
-@verson 2016/03, 2016/05-2016/07
+@verson 2016/03, 2016/05-2016/08
 */
 
 :- use_module(library(dict_ext)).
@@ -78,6 +79,13 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
     page_size-PageSize,
     results-Results
   ]).
+
+
+
+%! pagination_empty(+Opts, -Result) is det.
+
+pagination_empty(Opts, Result) :-
+  pagination(_, fail, Opts, Result).
 
 
 
