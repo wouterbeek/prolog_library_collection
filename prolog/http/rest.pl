@@ -65,7 +65,7 @@ rest_exception(_, E) :-
 rest_handler(Req, Plural_2) :-
   http_accept(Req, MTs),
   http_method(Req, Method),
-  call(Plural_2, Method, MTs), !.
+  rest_handler_mediatype(Plural_2, Method, MTs), !.
 rest_handler(Req, _) :-
   rest_not_found(Req).
 
@@ -79,7 +79,7 @@ rest_handler(Req, HandleId, Exists_1, Singular_3, Plural_2) :-
   ->  rest_handler_mediatype(Plural_2, Method, MTs)
   ;   iri_to_resource(Local, Res),
       call(Exists_1, Res)
-  ->  call(Singular_3, Method, MTs, Res)
+  ->  rest_handler_mediatype(Singular_3, Method, MTs, Res)
   ), !.
 rest_handler(Req, _, _, _, _) :-
   rest_not_found(Req).
