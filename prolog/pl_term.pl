@@ -2,7 +2,7 @@
   pl_term,
   [
     write_fact/1, % @Term
-    write_term/1 % @Term
+    write_term/1  % @Term
   ]
 ).
 
