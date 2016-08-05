@@ -10,6 +10,15 @@
 
 /** <module> Pagination
 
+Generic support for pagination.
+
+```prolog
+?- pagination(N, between(1, 1000000, N), _{page: 856}, Results).
+Results = _G120{number_of_results:20, page:856, page_size:20, results:[17101, 17102, 17103, 17104, 17105, 17106, 17107, 17108|...]} ;
+Results = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 17122, 17123, 17124, 17125, 17126, 17127, 17128|...]} ;
+Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17142, 17143, 17144, 17145, 17146, 17147, 17148|...]} 
+```
+
 @author Wouter Beek
 @verson 2016/03, 2016/05-2016/08
 */
@@ -58,17 +67,14 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
   mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
   mod_dict(page, Opts2, 1, StartPage, Opts3),
   put_dict(page0, Opts3, 0, Opts4),
-  %%%%flag(aap, _, 0),%DEB
   % NONDET
   findnsols(PageSize, Pattern, Goal_0, Results),
   length(Results, NumResults),
-  %%%%flag(aap, N, N + 1),%DEB
-  %%%%(N =:= 36 -> gtrace ; true),%DEB
   dict_inc(page0, Opts4),
   (   % No more results.
       NumResults =:= 0
   ->  true
-  ;   % The start page or a page after the start page.
+  ;   % Skip pages that are before the start page.
       Opts4.page0 >= StartPage
   ->  true
   ;   false
