@@ -151,8 +151,6 @@
   :- use_module(library(set/transitive_closure)).
 %/sgml
   :- use_module(library(sgml/sgml_ext)).
-%/stat
-:- use_module(library(stat/r_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 %/svg
