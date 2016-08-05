@@ -128,7 +128,7 @@ thread_alias(ThreadAlias):-
   atom_concat('t', _, ThreadAlias).
 thread_alias(ThreadAlias):-
   flag(thread_alias, ID, ID + 1),
-  format_integer(ID, 2, ID1),
+  integer_padding(ID, 2, ID1),
   format(atom(ThreadAlias), 't~w', [ID1]).
 
 thread_end(ThreadAlias):-

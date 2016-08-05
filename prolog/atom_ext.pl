@@ -11,7 +11,8 @@
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
     ensure_atom/2,        % +Term,   -Atom
-    format_integer/3,     % +I,      +Len,     -Atom
+    integer_padding/3,    % +I, +Len, -Atom
+    integer_padding/4,    % +I, +Len, +PadChar, -Atom
     is_empty_atom/1,      % +Empty
     lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
@@ -65,7 +66,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/06
+@version 2015/07-2015/10, 2016/03-2016/06, 2016/08
 */
 
 :- use_module(library(apply)).
@@ -194,7 +195,8 @@ ensure_atom(T, A) :- term_to_atom(T, A).
 
 
 
-%! format_integer(+Integer:integer, +Length:integer, -Atom:atom) is det.
+%! integer_padding(+I, +Len, -A) is det.
+%! integer_padding(+I, +Len, +PadChar, -A) is det.
 %
 % Returns a formatted representation of the given integer that is
 % exactly the given number of characters long.
@@ -202,17 +204,17 @@ ensure_atom(T, A) :- term_to_atom(T, A).
 % Fails in case the length of the formatted integer exceeds the given
 % length.
 %
-% @arg Integer The integer value that is to be formatted.
-% @arg Length The exact character length of the formatted integer atom.
-% @arg Atom The formatted version of the integer value.
-%
 % @tbd See whether this can be done using format/2 tab stops,
 % http://www.swi-prolog.org/pldoc/doc_for?object=format/2.
 
-format_integer(I, L, Out) :-
+integer_padding(I, L, Out) :-
+  integer_padding(I, L, '0', Out).
+
+
+integer_padding(I, L, PadChar, Out) :-
   atom_length(I, IL),
   ZeroLength is L - IL,
-  repeating_atom('0', ZeroLength, Zeros),
+  repeating_atom(PadChar, ZeroLength, Zeros),
   atomic_concat(Zeros, I, Out).
 
 
