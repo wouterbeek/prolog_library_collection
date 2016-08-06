@@ -109,7 +109,7 @@ error:has_type(write_mode, T) :-
 %
 %       * archive_open/3
 %
-%       * open_any2/5
+%       * open_any2/6
 %
 % @tbd Support paths of entry names (option entry_name/1) for nested
 % archives.
@@ -121,9 +121,9 @@ call_on_stream(Source, Goal_3) :-
 call_on_stream(Source, Goal_3, SourceOpts) :-
   option(entry_name(Entry0), SourceOpts, _),
   setup_call_cleanup(
-    open_any2(Source, read, In, [H1|T], SourceOpts),
+    open_any2(Source, read, In, Close_0, [H1|T], SourceOpts),
     call_on_stream0(In, Entry0, Goal_3, [H1|T], L1),
-    close_any2(In, H1, H2)
+    close_any2(Close_0, H1, H2)
   ),
   append(L1, [H2|T], L2),
   ignore(option(metadata(L2), SourceOpts)).
@@ -187,10 +187,10 @@ call_on_archive0(Arch, Entry0, Goal_3, T, L2) :-
               set_stream(In, encoding(utf8)),
               call_on_stream0(In, Entry0, Goal_3, [H1|T], L1)
             ),
-	    (
-	      append(L1, [H2|T], L2),
-              close_any2(In, H1, H2)
-	    )
+            (
+              append(L1, [H2|T], L2),
+              close_any2(close(In), H1, H2)
+            )
           )
       ;   fail
       )
@@ -277,7 +277,7 @@ call_to_codes(Goal_1, Cs) :-
 %
 %   * mode(+oneof([append,write])) The default is `append`.
 %
-%   * Other options are passed to open_any2/5.
+%   * Other options are passed to open_any2/6.
 
 call_to_stream(Sink, Goal_1) :-
   call_to_stream(Sink, Goal_1, []).
@@ -287,9 +287,9 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
   option(mode(Mode), SinkOpts, append),
   must_be(write_mode, Mode),
   setup_call_cleanup(
-    open_any2(Sink, Mode, Out, [H1|T], SinkOpts),
+    open_any2(Sink, Mode, Out, Close_0, [H1|T], SinkOpts),
     call_to_compressed_stream(Out, Goal_1, H1, H2, SinkOpts),
-    close_any2(Out, H2, H3)
+    close_any2(Close_0, H2, H3)
   ),
   ignore(option(metadata([H3|T]), SinkOpts)).
 
@@ -326,7 +326,7 @@ call_to_compressed_stream(Out, Goal_1, H, H, _) :-
 %
 %   * mode(+oneof([append,write])) The default is `append`.
 %
-%   * Other options are passed to open_any2/5.
+%   * Other options are passed to open_any2/6.
 
 call_to_streams(Sink1, Sink2, Goal_2) :-
   call_to_streams(Sink1, Sink2, Goal_2, [], []).
@@ -340,13 +340,13 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode1), Sink1Opts, append),
   option(mode(Mode2), Sink2Opts, append),
   setup_call_cleanup(
-    open_any2(Sink1, Mode1, Out1, [H1a|T1], Sink1Opts),
+    open_any2(Sink1, Mode1, Out1, Close1_0, [H1a|T1], Sink1Opts),
     setup_call_cleanup(
-      open_any2(Sink2, Mode2, Out2, [H2a|T2], Sink2Opts),
+      open_any2(Sink2, Mode2, Out2, Close2_0, [H2a|T2], Sink2Opts),
       call_to_streams0(Out1, Out2, Goal_2, H1a, H1b, Sink1Opts, H2a, H2b, Sink2Opts),
-      close_any2(Out1, H2b, H2c)
+      close_any2(Close1_0, H2b, H2c)
     ),
-    close_any2(Out2, H1b, H1c)
+    close_any2(Close2_0, H1b, H1c)
   ),
   ignore(option(metadata1([H1c|T1]), Sink1Opts)),
   ignore(option(metadata2([H2c|T2]), Sink2Opts)).
@@ -377,19 +377,20 @@ call_to_string(Goal_1, Str) :-
 
 
 
-%! close_any2(+Stream, +H1, -H2) is det.
+%! close_any2(+Close_0, +H1, -H2) is det.
 
-close_any2(Stream, H1, H2) :-
+close_any2(close(Stream), H1, H2) :- !,
   stream_metadata(Stream, H0),
   H2 = H1.put(H0),
   stream_property(Stream, mode(Mode)),
   close(Stream),
   (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
   indent_debug(out, io, "<~s ~w", [M,Stream]).
+close_any2(true, H, H).
 
 
 
-%! open_any2(+Spec, +Mode, -Stream, -Path, +Opts) is det.
+%! open_any2(+Spec, +Mode, -Stream, -Close_0, -Path, +Opts) is det.
 %
 % The following options are supported:
 %
@@ -403,13 +404,19 @@ close_any2(Stream, H1, H2) :-
 %
 %     * http_io:http_open_any/4
 
-open_any2(Iri, read, In, L, Opts) :-
+open_any2(Iri, read, In, close(In), L, Opts) :-
   is_http_iri(Iri), !,
   http_io:http_open_any(Iri, In, L, Opts).
-open_any2(Spec, Mode, Stream, [H], Opts) :-
+open_any2(Spec, Mode, Stream, Close_0, [H2], Opts) :-
   open_any(Spec, Mode, Stream, _, Opts),
-  absolute_file_name(Spec, File),
-  H =_{file: File, mode: Mode},
+  (   Spec == Stream
+  ->  Close_0 = true,
+      H1 = _{stream: Stream}
+  ;   absolute_file_name(Spec, File),
+      Close_0 = close(Stream),
+      H1 = _{file: File}
+  ),
+  put_dict(mode, H1, Mode, H2),
   (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
   indent_debug(in, io, "~s> ~w → ~w", [M,Spec,Stream]).
 
