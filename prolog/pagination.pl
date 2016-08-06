@@ -1,10 +1,14 @@
 :- module(
   pagination,
   [
-    pagination/3,       % +Pattern, :Goal_0, -Result
-    pagination/4,       % +Pattern, :Goal_0, +Opts, -Result
-    pagination_empty/2, % +Opts, -Result
-    pagination_result/2 % +Result, :Goal_1
+    pagination/3,              % +Pattern, :Goal_0, -Result
+    pagination/4,              % +Pattern, :Goal_0, +Opts, -Result
+    pagination_at_end/1,       % +Result
+    pagination_empty/2,        % +Opts, -Result
+    pagination_next/2,         % +Result, -Next
+    pagination_prev/2,         % +Result, -Prev
+    pagination_range/2,        % +Result, -Range
+    pagination_result/2        % +Result, :Goal_1
   ]
 ).
 
@@ -27,17 +31,17 @@ Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
 
+:- meta_predicate
+    pagination(+, 0, -),
+    pagination(+, 0, +, -),
+    pagination_result(+, 1).
+
 :- setting(
      def_page_size,
      positive_integer,
      20,
      "The default number of results per page."
    ).
-
-:- meta_predicate
-    pagination(+, 0, -),
-    pagination(+, 0, +, -),
-    pagination_result(+, 1).
 
 
 
@@ -79,19 +83,65 @@ pagination(Pattern, Goal_0, Opts1, Result) :-
   ->  true
   ;   false
   ),
-  dict_pairs(Result, [
-    number_of_results-NumResults,
-    page-Opts4.page0,
-    page_size-PageSize,
-    results-Results
-  ]).
+  Result0 = _{
+    number_of_results: NumResults,
+    page: Opts4.page0,
+    page_size: PageSize,
+    results: Results
+  },
+  merge_dicts(Opts3, Result0, Result).
+
+
+
+%! pagination_at_end(+Result) is semidet.
+%
+% Succeeds if pagination Results are at the last page.
+
+pagination_at_end(Result) :-
+  Result.number_of_results < Result.page_size.
 
 
 
 %! pagination_empty(+Opts, -Result) is det.
+%
+% Returns a pagination Result dictionary with empty results.
 
 pagination_empty(Opts, Result) :-
   pagination(_, fail, Opts, Result).
+
+
+
+%! pagination_next(+Result, -Next) is det.
+%
+% Returns the next page for the given pagination Result.  Fails
+% silently when there is no next page.
+
+pagination_next(Result, Next) :-
+  \+ pagination_at_end(Result),
+  Next is Result.page + 1.
+
+
+
+%! pagination_prev(+Result, -Prev) is semidet.
+%
+% Returns the next page for the given pagination Result.  Fails
+% silently when there is no previous page.
+
+pagination_prev(Result, Prev) :-
+  Prev is Result.page - 1,
+  Prev > 0.
+
+
+
+%! pagination_range(+Result, -Range) is det.
+%
+% Returns the range spanned by the given pagination Result.
+
+pagination_range(Result, 0-0) :-
+  Result.number_of_results =:= 0, !.
+pagination_range(Result, Low-High) :-
+  Low is (Result.page - 1) * Result.page_size + 1,
+  High is Low + Result.number_of_results - 1.
 
 
 
