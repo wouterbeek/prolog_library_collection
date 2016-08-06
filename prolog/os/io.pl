@@ -414,11 +414,11 @@ open_any2(Spec, Mode, Stream, Close_0, [H2], Opts) :-
       H1 = _{stream: Stream}
   ;   absolute_file_name(Spec, File),
       Close_0 = close(Stream),
-      H1 = _{file: File}
+      H1 = _{file: File},
+      (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
+      indent_debug(in, io, "~s> ~w → ~w", [M,Spec,Stream])
   ),
-  put_dict(mode, H1, Mode, H2),
-  (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-  indent_debug(in, io, "~s> ~w → ~w", [M,Spec,Stream]).
+  put_dict(mode, H1, Mode, H2).
 
 
 

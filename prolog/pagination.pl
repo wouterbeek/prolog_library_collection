@@ -5,6 +5,8 @@
     pagination/4,              % +Pattern, :Goal_0, +Opts, -Result
     pagination_at_end/1,       % +Result
     pagination_empty/2,        % +Opts, -Result
+    pagination_first/2,        % +Result, -First
+    pagination_last/2,         % +Result, -Last
     pagination_next/2,         % +Result, -Next
     pagination_prev/2,         % +Result, -Prev
     pagination_range/2,        % +Result, -Range
@@ -111,7 +113,27 @@ pagination_empty(Opts, Result) :-
 
 
 
-%! pagination_next(+Result, -Next) is det.
+%! pagination_first(+Result, -First) is semidet.
+%
+% Returns the first page for the given pagination Result.  Fails
+% silently when there is not a single page.
+
+pagination_first(Result, 1) :-
+  Result.number_of_results > 0.
+
+
+
+%! pagination_last(+Result, -Last) is semidet.
+%
+% Returns the last page for the given pagination Result.  Fails
+% silently when there is not a single page.
+
+pagination_last(Result, Last) :-
+  Last is ceil(Result.number_of_results / Result.page_size).
+
+
+
+%! pagination_next(+Result, -Next) is semidet.
 %
 % Returns the next page for the given pagination Result.  Fails
 % silently when there is no next page.

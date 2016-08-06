@@ -133,18 +133,18 @@ link(L) -->
 
 
 
-%! 'link-extension'(-Key, -Val)// is det.
+%! 'link-extension'(-Pair)// is det.
 %
 % ```abnf
 % link-extension = ( parmname [ "=" ( ptoken | quoted-string ) ] )
 %                 | ( ext-name-star "=" ext-value )
 % ```
 
-'link-extension'(Key, Val) -->
+'link-extension'(Key-Val) -->
   'ext-name-star'(Key), !,
   "=",
   'ext-value'(Val).
-'link-extension'(Key, Val) -->
+'link-extension'(Key-Val) -->
   parmname(Key),
   (   "="
   ->  (   ptoken(Val), !
@@ -155,7 +155,7 @@ link(L) -->
 
 
 
-%! 'link-param'(-Key, -Val)// is det.
+%! 'link-param'(-Pair)// is det.
 % ```abnf
 % link-param = ( ( "rel" "=" relation-types )
 %              | ( "anchor" "=" <"> URI-Reference <"> )
@@ -168,25 +168,25 @@ link(L) -->
 %              | ( link-extension ) )
 % ```
 
-'link-param'("rel", L) -->
+'link-param'(rel-L) -->
   atom_ci(rel),
   "=", !,
   'relation-types'(L).
-'link-param'("anchor", Uri) -->
+'link-param'(anchor-Uri) -->
   atom_ci(anchor),
   "=", !,
   "\"",
   'URI-Reference'(Uri),
   "\"".
-'link-param'("rev", L) -->
+'link-param'(rev-L) -->
   atom_ci(rev),
   "=", !,
   'relation-types'(L).
-'link-param'("hreflang", LTag) -->
+'link-param'(hreflang-LTag) -->
   atom_ci(hreflang),
   "=", !,
   'Language-Tag'(LTag).
-'link-param'("media", L) -->
+'link-param'(media-L) -->
   atom_ci(media),
   "=", !,
   (   'MediaDesc'(L)
@@ -194,22 +194,22 @@ link(L) -->
       'MediaDesc'(L),
       "\""
   ), !.
-'link-param'("title", S) -->
+'link-param'(title-S) -->
   atom_ci(title),
   "=", !,
   'quoted-string'(S).
-'link-param'("title*", S) -->
+'link-param'('title*'-S) -->
   atom_ci('title*'),
   "=", !,
   'ext-value'(S).
-'link-param'("type", D) -->
+'link-param'(type-D) -->
   atom_ci(type),
   "=", !,
   (   'media-type'(D)
   ;   'quoted-mt'(D)
   ), !.
-'link-param'(S, X) -->
-  'link-extension'(S, X).
+'link-param'(Pair) -->
+  'link-extension'(Pair).
 
 
 
