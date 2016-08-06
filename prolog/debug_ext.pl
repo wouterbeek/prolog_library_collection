@@ -17,6 +17,7 @@
     indent_debug/2,             % +Flag, +Format
     indent_debug/3,             % +Flag, +Format, +Args
     indent_debug/4,             % +Diff, +Flag, +Format, +Args
+    indent_debug_call/3,        % +Flag, +Format, :Goal_0
     number_of_open_files/1,     % -NunOpenFiles
     print_error/1               % +Error:compound
   ]
@@ -59,7 +60,8 @@ Tools that ease debugging SWI-Prolog programs.
     debug_verbose(?,0,+),
     debug_verbose(?,0,+,+),
     debug_with_output_to(?,0),
-    if_debug(?,0).
+    if_debug(?,0),
+    indent_debug_call(+, +, 0).
 
 :- thread_local
    debug_indent/1.
@@ -217,26 +219,42 @@ indent_debug(Flag, Format) :-
 
 
 indent_debug(Flag, Format, Args) :-
+  debugging(Flag), !,
   (debug_indent(NumTabs) -> true ; NumTabs = 0),
   format(atom(A0), Format, Args),
   NumSpaces is NumTabs * 4,
   repeating_atom(' ', NumSpaces, Prefix),
   atom_concat(Prefix, A0, A),
   debug(Flag, "~a", [A]).
+indent_debug(_, _, _).
 
 
-indent_debug(in, Flag, Format, Args) :- !,
+indent_debug(in, Flag, Format0, Args) :-
+  debugging(Flag), !,
+  string_concat("> ", Format0, Format),
   indent_debug(Flag, Format, Args),
   update_indent_debug0(1).
-indent_debug(out, Flag, Format, Args) :- !,
+indent_debug(out, Flag, Format0, Args) :-
+  debugging(Flag), !,
   update_indent_debug0(-1),
+  string_concat("< ", Format0, Format),
   indent_debug(Flag, Format, Args).
+indent_debug(_, _, _, _).
 
 
 update_indent_debug0(Diff) :-
   (retract(debug_indent(NumTabs1)) -> true ; NumTabs1 = 0),
   NumTabs2 is NumTabs1 + Diff,
   assert(debug_indent(NumTabs2)).
+
+
+
+%! indent_debug_call(+Flag, +Format, :Goal_0) is det.
+
+indent_debug_call(Flag, Format, Goal_0) :-
+  indent_debug(in, Flag, Format, []),
+  call(Goal_0),
+  indent_debug(out, Flag, Format, []).
 
 
 
