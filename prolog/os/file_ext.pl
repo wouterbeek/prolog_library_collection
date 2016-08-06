@@ -8,6 +8,8 @@
     file_age/2,              % +File, -Age:float
     file_change_extension/3, % +File1, +Ext, File2
     file_extensions/2,       % +File, -Exts
+    file_name/2,             % ?File, ?Name
+    file_name_extensions/3,  % ?File, ?Name, ?Exts
     file_paths/2,            % +File, -Paths
     file_size/2,             % +File, -Size
     is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
@@ -130,7 +132,23 @@ file_change_extension(From, Ext, To) :-
 %! file_extensions(+File, -Exts) is det.
 
 file_extensions(File, Exts) :-
-  atomic_list_concat([_|Exts], ., File).
+  file_name_extensions(File, _, Exts).
+
+
+
+%! file_name(+File, -Name) is det.
+%! file_name(-File, +Name) is det.
+
+file_name(File, Name) :-
+  file_name_extensions(File, Name, _).
+
+
+
+%! file_name_extensions(+File, -Name, -Exts) is det.
+%! file_name_extensions(-File, +Name, +Exts) is det.
+
+file_name_extensions(File, Name, Exts) :-
+  atomic_list_concat([Name|Exts], ., File).
 
 
 
