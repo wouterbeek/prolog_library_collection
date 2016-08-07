@@ -1,12 +1,8 @@
 :- module(
   http_pagination,
   [
-    http_pagination_link_first/1, % +Result
-    http_pagination_link_last/1,  % +Result
-    http_pagination_link_next/1,  % +Result
-    http_pagination_link_prev/1,  % +Result
+    http_pagination_links/1,      % +Result
     pagination_first_iri/2,       % +Result, -First
-    pagination_last_iri/2,        % +Result, -Last
     pagination_next_iri/2,        % +Result, -Next
     pagination_prev_iri/2         % +Result, -Prev
   ]
@@ -39,17 +35,6 @@ http_pagination_link_first(Result) :-
 
 
 
-%! http_pagination_link_last(+Result) is semidet.
-%
-% Fails silently if there is not a single page.
-
-http_pagination_link_last(Result) :-
-  pagination_page_iri(Result, 1, Last),
-  http_absolute_uri(Last, Target),
-  format('Link: <~a>; rel="last"~n', [Target]).
-
-
-
 %! http_pagination_link_next(+Result) is semidet.
 %
 % Fails silently if there is not next page.
@@ -72,6 +57,15 @@ http_pagination_link_prev(Result) :-
 
 
 
+%! http_pagination_links(+Result) is det.
+
+http_pagination_links(Result) :-
+  ignore(http_pagination_link_first(Result)),
+  ignore(http_pagination_link_prev(Result)),
+  ignore(http_pagination_link_next(Result)).
+
+
+
 %! pagination_first_iri(+Result, -Iri) is semidet.
 %
 % Fails silently when there is not a single page.
@@ -79,16 +73,6 @@ http_pagination_link_prev(Result) :-
 pagination_first_iri(Result, Iri) :-
   pagination_first(Result, First),
   pagination_page_iri(Result, First, Iri).
-
-
-
-%! pagination_last_iri(+Result, -Iri) is semidet.
-%
-% Fails silently when there is not a single page.
-
-pagination_last_iri(Result, Iri) :-
-  pagination_last(Result, Last),
-  pagination_page_iri(Result, Last, Iri).
 
 
 
