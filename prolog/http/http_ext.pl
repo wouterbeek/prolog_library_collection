@@ -3,6 +3,8 @@
   [
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
+    http_content_type/1,      % +MT
+    http_end_of_header/0,
     http_iri/2,               % +Req, -iri
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
@@ -81,6 +83,20 @@ http_accept(Req, MTs) :-
 
 
 mediatype_pair(media(MT,_,N,_), N-MT).
+
+
+
+%! http_content_type(+MT) is det.
+
+http_content_type(Type/Subtype) :-
+  format("Content-Type: ~a/~a; charset=UTF-8~n", [Type,Subtype]).
+
+
+
+%! http_end_of_header is det.
+
+http_end_of_header :-
+  format("~n").
 
 
 
