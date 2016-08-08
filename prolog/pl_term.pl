@@ -1,6 +1,7 @@
 :- module(
   pl_term,
   [
+    n_ary_term/3, % +Pred, +Args, -Comp
     write_fact/1, % @Term
     write_term/1  % @Term
   ]
@@ -11,12 +12,24 @@
 Additional support for handling Prolog terms.
 
 @author Wouter Beek
-@version 2015/07, 2015/10
+@version 2015/07, 2015/10, 2016/08
 */
 
 :- use_module(library(apply)).
 
 
+
+
+
+%! n_ary_term(+Pred, +Args, -Comp) is det.
+
+n_ary_term(Pred, [H], Comp) :- !,
+  Comp =.. [Pred,H].
+n_ary_term(Pred, [H1,H2], Comp) :- !,
+  Comp =.. [Pred,H1,H2].
+n_ary_term(Pred, [H|T], Comp) :- !,
+  n_ary_term(Pred, T, Comp0),
+  Comp =.. [Pred,H,Comp0].
 
 
 
