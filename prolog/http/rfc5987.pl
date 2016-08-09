@@ -84,7 +84,7 @@ charset(Charset)      --> 'mime-charset'(Charset).
 
 
 %! 'ext-parameter'(-Parameter:dict)// is det.
-% Extended paramter.
+% Extended parameter.
 %
 % ```abnf
 % ext-parameter = parmname "*" LWSP "=" LWSP ext-value
