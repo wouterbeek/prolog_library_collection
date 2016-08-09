@@ -5,6 +5,7 @@
     create_file/1,           % +File
     create_file_directory/1, % +File
     create_file_link/2,      % +File, +Dir
+    delete_file_msg/1,       % +File
     file_age/2,              % +File, -Age:float
     file_change_extension/3, % +File1, +Ext, File2
     file_extensions/2,       % +File, -Exts
@@ -30,7 +31,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/07
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/08
 */
 
 :- use_module(library(apply)).
@@ -106,6 +107,20 @@ create_file_link(Path, Dir) :-
   directory_file_path(_, File, Path),
   directory_file_path(Dir, File, Link),
   (exists_file(Link) -> true ; link_file(Path, Link, symbolic)).
+
+
+
+%! delete_file_msg(+File) is det.
+
+delete_file_msg(File) :-
+  print_message(informational, delete_file(File)),
+  delete_file(File).
+
+:- multifile
+    prolog:message//1.
+
+prolog:message(delete_file(File)) -->
+  ["Deleting file ~a."-[File]].
 
 
 
