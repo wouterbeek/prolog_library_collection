@@ -42,7 +42,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(lists)).
-:- use_module(library(os/directory_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(portray_text)).
 :- use_module(library(print_ext)).
 :- use_module(library(thread)).

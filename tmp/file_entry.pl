@@ -19,7 +19,7 @@ compressed or not.
 
 :- use_module(library(fileutils)).
 :- use_module(library(os/archive_ext)).
-:- use_module(library(os/directory_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
 
 

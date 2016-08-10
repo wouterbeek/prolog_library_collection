@@ -1,27 +1,40 @@
 :- module(
   file_ext,
   [
-    count_numlines/2,        % +Source, -NumLines
-    create_file/1,           % +File
-    create_file_directory/1, % +File
-    create_file_link/2,      % +File, +Dir
-    delete_file_msg/1,       % +File
-    file_age/2,              % +File, -Age:float
-    file_change_extension/3, % +File1, +Ext, File2
-    file_extensions/2,       % +File, -Exts
-    file_name/2,             % ?File, ?Name
-    file_name_extensions/3,  % ?File, ?Name, ?Exts
-    file_paths/2,            % +File, -Paths
-    file_size/2,             % +File, -Size
-    is_fresh_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
-    is_fresh_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
-    is_stale_age/2,          % +Age:between(0.0,inf), +FreshnessLifetime:between(0.0,inf)
-    is_stale_file/2,         % +File, +FreshnessLifetime:between(0.0,inf)
-    latest_file/2,           % +Files, -LatestFile
-    thread_file/1,           % -ThreadFile
-    thread_file/2,           % +File, -ThreadFile
-    touch/1,                 % +File
-    root_prefix/1            % ?Prefix
+    append_directories/2,       % +Dirs, -Dir
+    append_directories/3,       % +Dir1, +Dir2, -Dir
+    count_numlines/2,           % +Source, -NumLines
+    create_directory/1,         % +Dir
+    create_file/1,              % +File
+    create_file_directory/1,    % +File
+    create_file_link/2,         % +File, +Dir
+    current_directory/1,        % ?Dir
+    delete_directory_msg/1,     % +Dir
+    delete_directory_contents_msg/1, % +Dir
+    delete_file_msg/1,          % +File
+    directory_file/2,           % +Dir, -File
+    directory_path/2,           % +Dir, -Path
+    directory_path_recursive/2, % +Dir, -Path
+    directory_subdirectories/2, % ?Dir, ?Subdirs
+    file_age/2,                 % +File, -Age:float
+    file_change_extension/3,    % +File1, +Ext, File2
+    file_extensions/2,          % +File, -Exts
+    file_name/2,                % ?File, ?Name
+    file_name_extensions/3,     % ?File, ?Name, ?Exts
+    file_paths/2,               % +File, -Paths
+    file_size/2,                % +File, -Size
+    is_fresh_age/2,             % +Age, +FreshnessLifetime
+    is_fresh_file/2,            % +File, +FreshnessLifetime
+    is_stale_age/2,             % +Age, +FreshnessLifetime
+    is_stale_file/2,            % +File, +FreshnessLifetime
+    latest_file/2,              % +Files, -LatestFile
+    root_prefix/1,              % ?Prefix
+    run_in_directory/2,         % :Goal_0, +Dir
+    thread_file/1,              % -ThreadFile
+    thread_file/2,              % +File, -ThreadFile
+    touch/1,                    % +File
+    wd/1,                       % ?Dir
+    wildcard_file/2             % +Wildcard, -File
   ]
 ).
 :- reexport(library(filesex)).
@@ -40,14 +53,47 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/archive_ext)).
-:- use_module(library(os/directory_ext)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(os/os_ext)).
 :- use_module(library(os/thread_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(uuid)).
 
+:- meta_predicate
+    run_in_directory(0, +).
 
+
+
+
+
+%! append_directories(+Dirs, -Dir) is det.
+
+append_directories([], '/') :- !.
+append_directories([Dir], Dir) :- !.
+append_directories([H|T], Dir) :-
+  append_directories0(H, T, Dir).
+
+append_directories0(Dir, [], Dir) :- !.
+append_directories0(Dir1, [H|T], Dir) :-
+  append_directories(Dir1, H, Dir2),
+  append_directories0(Dir2, T, Dir).
+
+
+%! append_directories(+Dir1, +Dir2, -Dir) is det.
+%
+% Returns the directory name obtained by concatenating the given
+% directory names.
+%
+% The empty atom in the first position indicates the root directory.
+%
+% Does *not* ensure that any of the directories exist.
+
+append_directories(Dir1, Dir2, Dir3) :-
+  directory_subdirectories(Dir1, Subdirs1),
+  directory_subdirectories(Dir2, Subdirs2),
+  append(Subdirs1, Subdirs2, Subdirs3),
+  directory_subdirectories(Dir3, Subdirs3).
 
 
 
@@ -75,6 +121,15 @@ count_numlines_stream0(N, M1, In) :-
 
 
 
+%! create_directory(+Dir) is det.
+
+create_directory(Dir) :-
+  exists_directory(Dir), !.
+create_directory(Dir) :-
+  make_directory(Dir).
+
+
+
 %! create_file(+File) is det.
 % @throws type_error
 
@@ -88,7 +143,7 @@ create_file(File) :-
 
 
 
-%! create_file_directory(+Path:atom) is det.
+%! create_file_directory(+Path) is det.
 % Ensures that the directory structure for the given file exists.
 
 create_file_directory(Path) :-
@@ -110,17 +165,86 @@ create_file_link(Path, Dir) :-
 
 
 
+%! current_directory(+Dir) is semidet.
+%! current_directory(-Dir) is det.
+
+current_directory(Dir) :-
+  absolute_file_name(., Dir, [file_type(directory)]).
+
+
+
+%! delete_directory_msg(+Dir) is det.
+
+delete_directory_msg(Dir) :-
+  print_message(informational, delete_directory(Dir)),
+  delete_directory_and_contents(Dir).
+
+
+
+%! delete_directory_contents_msg(+Dir) is det.
+
+delete_directory_contents_msg(Dir) :-
+  print_message(informational, delete_directory_contents(Dir)),
+  delete_directory_contents(Dir).
+
+
+
 %! delete_file_msg(+File) is det.
 
 delete_file_msg(File) :-
   print_message(informational, delete_file(File)),
   delete_file(File).
 
-:- multifile
-    prolog:message//1.
 
-prolog:message(delete_file(File)) -->
-  ["Deleting file ~a."-[File]].
+
+% directory_file(+Dir, -File) is nondet.
+%
+% Non-deterministic variant of directory_files/2 that skips dummy
+% files.
+
+directory_file(Dir, File) :-
+  directory_files(Dir, Files),
+  member(File, Files),
+  \+ is_dummy_file(File).
+
+
+
+%! directory_path(+Dir, -Path) is nondet.
+
+directory_path(Dir, Path) :-
+  directory_file(Dir, File),
+  directory_file_path(Dir, File, Path).
+
+
+
+%! directory_path_recursive(+Dir, -Path) is nondet.
+
+directory_path_recursive(Dir, Path) :-
+  directory_path(Dir, Path0),
+  (   exists_directory(Path0)
+  ->  directory_path_recursive(Path0, Path)
+  ;   Path = Path0
+  ).
+
+
+
+%! directory_subdirectories(+Dir, -Subdirs) is det.
+%! directory_subdirectories(-Dir, +Subdirs) is det.
+%
+% Occurrences of `.` and `..` in Dir are resolved.
+%
+% The empty atom in the first position indicates the root directory.
+%
+% For absolute directory names the first subdirectory name is the
+% empty atom.
+
+directory_subdirectories(Dir, Subdirs2) :-
+  ground(Dir), !,
+  atomic_list_concat(Subdirs1, /, Dir),
+  resolve_subdirectories(Subdirs1, Subdirs2).
+directory_subdirectories(Dir, Subdirs1) :-
+  resolve_subdirectories(Subdirs1, Subdirs2),
+  atomic_list_concat(Subdirs2, /, Dir).
 
 
 
@@ -220,7 +344,7 @@ is_stale_file(File, FreshnessLifetime) :-
 
 
 
-%! latest_file(+Files:list(atom), -Latest:atom) is det.
+%! latest_file(+Files:list(atom), -Latest) is det.
 % Returns the most recently created or altered file from within a list of
 % files.
 
@@ -241,8 +365,8 @@ latest_file([H|T], Time1-File1, Latest) :-
 
 
 
-%! root_prefix(+Prefix:atom) is semidet.
-%! root_prefix(-Prefix:atom) is multi.
+%! root_prefix(+Prefix) is semidet.
+%! root_prefix(-Prefix) is multi.
 
 :- if(os(unix)).
 root_prefix(/).
@@ -250,6 +374,15 @@ root_prefix(/).
 :- if(os(windows)).
 root_prefix('C:\\').
 :- endif.
+
+
+
+%! run_in_directory(:Goal_0, +Dir) is det.
+
+run_in_directory(Goal_0, Dir) :-
+  working_directory(Dir0, Dir),
+  Goal_0,
+  working_directory(Dir, Dir0).
 
 
 
@@ -273,3 +406,59 @@ thread_file(Base, File) :-
 
 touch(File) :-
   setup_call_cleanup(open(File, write, Write), true, close(Write)).
+
+
+
+%! wd(+Dir) is semidet.
+%! wd(-Dir) is det.
+
+wd(Dir) :-
+  working_directory(Dir, Dir).
+
+
+
+%! wildcard_file(+Wildcard, -File) is nondet.
+
+wildcard_file(Wildcard, File) :-
+  expand_file_name(Wildcard, Files),
+  member(File, Files).
+
+
+
+
+
+% HELPERS %
+
+%! is_dummy_file(+File) is semidet.
+
+is_dummy_file(.).
+is_dummy_file(..).
+
+
+
+%! resolve_subdirectories(+Subdirs, -ResoledSubdirs) is det.
+
+resolve_subdirectories([], []) :- !.
+resolve_subdirectories([''], []) :- !.
+resolve_subdirectories([.|T1], T2) :- !,
+  resolve_subdirectories(T1, T2).
+resolve_subdirectories([_,..|T1], T2) :- !,
+  resolve_subdirectories(T1, T2).
+resolve_subdirectories([H|T1], [H|T2]) :-
+  resolve_subdirectories(T1, T2).
+
+
+
+
+
+% MESSAGES %
+
+:- multifile
+    prolog:message//1.
+
+prolog:message(delete_directory(Dir)) -->
+  ["Deleting directory ~a."-[Dir]].
+prolog:message(delete_directory_contents(Dir)) -->
+  ["Deleting contents of directory ~a."-[Dir]].
+prolog:message(delete_file(File)) -->
+  ["Deleting file ~a."-[File]].
