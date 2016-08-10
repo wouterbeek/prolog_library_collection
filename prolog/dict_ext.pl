@@ -236,7 +236,10 @@ dict_remove_uninstantiated(D1, D2):-
   dict_pairs(D1, Tag, L1),
   exclude(var_val, L1, L2),
   dict_pairs(D2, Tag, L2).
-var_val(_-Val):- var(Val).
+
+
+var_val(_-Val):-
+  var(Val).
 
 
 
@@ -328,7 +331,9 @@ merge_dicts(D1, D2, D3):-
   (Tag1 = Tag2 -> true ; Tag3 = Tag2),
   dict_pairs(D3, Tag3, Ps3).
 
-key_in_keys0(Keys, Key-_) :- memberchk(Key, Keys).
+
+key_in_keys0(Keys, Key-_) :-
+  memberchk(Key, Keys).
 
 
 
