@@ -520,6 +520,7 @@ min_max_range(Min, Max, range(Begin,End,Step)) :-
 %! minus(+X:number, -Y:number, +Z:number) is det.
 %! minus(-X:number, +Y:number, +Z:number) is det.
 
+minus(inf, _, inf) :- !.
 minus(X, Y, Z):-
   nonvar(X), nonvar(Y), !,
   Z is X - Y.

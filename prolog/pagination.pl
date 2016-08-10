@@ -73,37 +73,29 @@ pagination(Pattern, Goal_0, Result) :-
   pagination(Pattern, Goal_0, _{}, Result).
 
 
-pagination(Pattern, Goal_0, Opts1, Result) :-
-  page_size_options0(Opts1, PageSize, Opts2),
+pagination(Pattern, Goal_0, Opts1, Result2) :-
+  setting(def_page_size, DefPageSize),
+  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
+  mod_dict(page, Opts2, 1, StartPage, Opts3),
+  put_dict(page0, Opts3, 0, Opts4),
   findnsols(PageSize, Pattern, Goal_0, Results),
-  pagination_result0(PageSize, Results, Result, Opts2).
-
-
-pagination_result0(PageSize, Results, Result2, Opts1) :-
+  dict_inc(page0, Opts4),
   length(Results, NumResults),
-  mod_dict(page, Opts1, 1, StartPage, Opts2),
-  put_dict(page0, Opts2, 0, Opts3),
-  dict_inc(page0, Opts3),
   (   % No more results.
       NumResults =:= 0
   ->  true
   ;   % Skip pages that are before the start page.
-      Opts3.page0 >= StartPage
+      Opts4.page0 >= StartPage
   ->  true
   ;   false
   ),
   Result1 = _{
     number_of_results: NumResults,
-    page: Opts3.page0,
+    page: Opts4.page0,
     page_size: PageSize,
     results: Results
   },
-  merge_dicts(Opts3, Result1, Result2).
-
-
-page_size_options0(Opts1, PageSize, Opts2) :-
-  setting(def_page_size, DefPageSize),
-  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2).
+  merge_dicts(Opts4, Result1, Result2).
 
 
 
@@ -201,7 +193,10 @@ pagination_result(Result, Goal_1) :-
 %   - total_number_of_results(+nonneg)
 
 pagination_total(AllGoal_2, SomeGoal_2, Opts1, Result2) :-
-  page_size_options0(Opts1, PageSize, Opts2),
+  setting(def_page_size, DefPageSize),
+  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
+  mod_dict(page, Opts2, 1, StartPage, Opts3),
+  put_dict(page0, Opts3, 0, Opts4),
   call(AllGoal_2, AllResults, TotalNumResults),
   findnsols(
     PageSize,
@@ -209,5 +204,21 @@ pagination_total(AllGoal_2, SomeGoal_2, Opts1, Result2) :-
     call(SomeGoal_2, AllResults, SomeResult),
     Results
   ),
-  pagination_result0(PageSize, Results, Result1, Opts2),
-  put_dict(total_number_of_results, Result1, TotalNumResults, Result2).
+  dict_inc(page0, Opts4),
+  length(Results, NumResults),
+  (   % No more results.
+      NumResults =:= 0
+  ->  true
+  ;   % Skip pages that are before the start page.
+      Opts4.page0 >= StartPage
+  ->  true
+  ;   false
+  ),
+  Result1 = _{
+    number_of_results: NumResults,
+    page: Opts4.page0,
+    page_size: PageSize,
+    results: Results,
+    total_number_of_results: TotalNumResults
+  },
+  merge_dicts(Opts4, Result1, Result2).

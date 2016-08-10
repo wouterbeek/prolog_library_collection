@@ -160,7 +160,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05-2016/07
+@version 2015/11-2016/03, 2016/05-2016/08
 */
 
 :- use_module(library(aggregate)).
@@ -1595,7 +1595,7 @@ str(S) -->
 
 str_ellipsis(S1, Max) -->
   {
-    Len is Max - 1,
+    minus(Max, 1, Len),
     string_truncate(S1, Len, S2)
   },
   str(S2),
