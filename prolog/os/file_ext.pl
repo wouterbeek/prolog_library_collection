@@ -190,10 +190,15 @@ delete_directory_contents_msg(Dir) :-
 
 
 %! delete_file_msg(+File) is det.
+%
+% Succeed silently if File does not exist and print a message when
+% it does exist and is deleted.
 
 delete_file_msg(File) :-
+  exists_file(File), !,
   print_message(informational, delete_file(File)),
   delete_file(File).
+delete_file_msg(_).
 
 
 
