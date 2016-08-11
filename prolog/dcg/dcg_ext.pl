@@ -32,6 +32,7 @@
     atom_title//1,         % ?A
     atom_upper//1,         % ?A
     atom_uppercase//0,
+    atom_uppercase//1,     % +A
     between_code//2,       % +Low, +High
     between_code//3,       % +Low, +High, ?C
     between_code_rad//2,   % +RadLow, +RadHigh
@@ -537,12 +538,24 @@ atom_upper(A) -->
 
 
 %! atom_uppercase// is det.
+%! atom_uppercase(+A)// is det.
 
 atom_uppercase, [Up] -->
   [Low],
   {code_type(Up, to_upper(Low))}, !,
   rest.
 atom_uppercase --> "".
+
+
+atom_uppercase(A) -->
+  {atom_codes(A, Cs)},
+  atom_uppercase_codes(Cs).
+
+
+atom_uppercase_codes([]) --> !, [].
+atom_uppercase_codes([H|T]) -->
+  code_upper(H),
+  *(code, T).
 
 
 
@@ -848,6 +861,7 @@ code_rad(RadC, C) -->
 
 %! code_upper(+C)// is det.
 %! code_upper(-C)// is nondet.
+%
 % Parses upper-case letters and returns their lower- and upper-case
 % character code (in that order).
 %

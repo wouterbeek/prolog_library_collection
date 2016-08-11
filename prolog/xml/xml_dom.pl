@@ -148,5 +148,5 @@ xml_serve_dom(Dom) :-
   % The User Agent needs to know the content type and encoding.
   % If the UTF-8 encoding is not given here explicitly,
   % Prolog throws an IO exception on `format(XML)`.
-  format("Content-type: application/xml; charset=utf-8~n~n"),
+  format("Content-Type: application/xml; charset=utf-8~n~n"),
   format(A).

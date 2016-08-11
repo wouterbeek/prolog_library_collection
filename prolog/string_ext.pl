@@ -1,13 +1,15 @@
 :- module(
   string_ext,
   [
+    capitalize_string/2,  % +Str1, -Str2
     codes_string/2,       % ?Cs, ?Str
     lowercase_string/2,   % +Str1, -Str2
     string_atom/2,        % ?Str, ?A
     string_list_concat/3, % ?Strs, ?Sep, ?Str
     string_to_term/2,     % +Str, -Term
     string_replace/4,     % +Str1, +SubStr1, -SubStr2, -Str2
-    string_truncate/3     % +Str, +Max, -TruncatedStr
+    string_truncate/3,    % +Str, +Max, -TruncatedStr
+    uppercase_string/2    % +Str1, -Str2
   ]
 ).
 
@@ -21,7 +23,7 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/05-2016/07
+@version 2015/08, 2016/02, 2016/05-2016/08
 */
 
 :- use_module(library(apply)).
@@ -29,6 +31,16 @@ Non-native string representations in Prolog:
 :- use_module(library(error)).
 
 
+
+
+
+%! capitalize_string(+Str1, -Str2) is det.
+
+capitalize_string("", "").
+capitalize_string(Str1, Str2) :-
+  string_codes(Str1, [H1|T]),
+  to_upper(H1, H2),
+  string_codes(Str2, [H2|T]).
 
 
 
@@ -108,3 +120,13 @@ string_truncate(Str1, Max, Str3):-
   TruncatedLen is Max - 3,
   sub_string(Str1, 0, TruncatedLen, _, Str2),
   string_concat(Str2, "...", Str3).
+
+
+
+%! uppercase_string(+Str1, -Str2) is det.
+
+uppercase_string("", "").
+uppercase_string(Str1, Str2) :-
+  string_codes(Str1, Cs1),
+  maplist(to_upper, Cs1, Cs2),
+  string_codes(Str2, Cs2).

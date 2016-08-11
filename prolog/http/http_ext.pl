@@ -32,6 +32,7 @@ Support for extracting information from HTTP requests/received messages.
 :- use_module(library(error)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_io)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
