@@ -1,16 +1,15 @@
 :- module(
   pagination,
   [
-    pagination/3,        % +Pattern, :Goal_0, -Result
-    pagination/4,        % +Pattern, :Goal_0, +Opts, -Result
-    pagination_at_end/1, % +Result
-    pagination_empty/2,  % +Opts, -Result
-    pagination_first/2,  % +Result, -First
-    pagination_next/2,   % +Result, -Next
-    pagination_prev/2,   % +Result, -Prev
-    pagination_range/2,  % +Result, -Range
-    pagination_result/2, % +Result, :Goal_1
-    pagination_total/4   % :AllGoal_2, :SomeGoal_2, +Opts, -Result
+    http_pagination_links/1, % +Result
+    pagination/3,            % +Pattern, :Goal_0, -Result
+    pagination/4,            % +Pattern, :Goal_0, +Opts, -Result
+    pagination_at_end/1,     % +Result
+    pagination_empty/2,      % +Opts, -Result
+    pagination_page/3,       % +Result, -Rel, -Page
+    pagination_range/2,      % +Result, -Range
+    pagination_result/2,     % +Result, :Goal_1
+    pagination_total/4       % :AllGoal_2, :SomeGoal_2, +Opts, -Result
   ]
 ).
 
@@ -30,8 +29,11 @@ Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_path)).
+:- use_module(library(iri/iri_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
+:- use_module(library(uri)).
 
 :- meta_predicate
     pagination(+, 0, -),
@@ -47,6 +49,29 @@ Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17
    ).
 
 
+
+
+
+%! http_pagination_links(+Result) is semidet.
+
+http_pagination_links(Result) :-
+  pagination_iris(Result, Rels, Iris),
+  format("Link: "),
+  http_pagination_links0(Rels, Iris),
+  nl.
+
+
+http_pagination_links0([], []) :- !.
+http_pagination_links0([Rel], [Iri]) :- !,
+  http_pagination_link0(Rel, Iri).
+http_pagination_links0([Rel|Rels], [Iri|Iris]) :- !,
+  http_pagination_link0(Rel, Iri),
+  format(", "),
+  http_pagination_links0(Rels, Iris).
+
+
+http_pagination_link0(Rel, Iri) :-
+  format('<~a>; rel="~a"', [Iri,Rel]).
 
 
 
@@ -120,35 +145,35 @@ pagination_empty(Opts, Result) :-
 
 
 
-%! pagination_first(+Result, -First) is semidet.
+%! pagination_iris(+Result, -Rels, -Iris) is det.
 %
-% Returns the first page for the given pagination Result.  Fails
-% silently when there is not a single page.
+% Returns the Page for the given pagination Result.  Fails silently
+% when there are no pages with relation Rel.
 
-pagination_first(Result, 1) :-
+pagination_iris(Result, Rels, Iris) :-
+  findall(Rel-Iri, pagination_iri(Result, Rel, Iri), Pairs),
+  pairs_keys_values(Pairs, Rels, Iris).
+
+
+pagination_iri(Result, Rel, Iri) :-
+  pagination_page(Result, Rel, Page),
+  get_dict(query, Result, Query0, []),
+  uri_query_components(Query, [page(Page)|Query0]),
+  iri_change_comp(Result.iri, query, Query, Spec),
+  http_absolute_uri(Spec, Iri).
+
+
+pagination_page(Result, first, 1) :-
   Result.number_of_results > 0.
-
-
-
-%! pagination_next(+Result, -Next) is semidet.
-%
-% Returns the next page for the given pagination Result.  Fails
-% silently when there is no next page.
-
-pagination_next(Result, Next) :-
+pagination_page(Result, last, Page) :-
+  get_dict(total_number_of_results, Result, TotalNumResults),
+  Page is ceil(TotalNumResults / Result.page_size).
+pagination_page(Result, next, Page) :-
   \+ pagination_at_end(Result),
-  Next is Result.page + 1.
-
-
-
-%! pagination_prev(+Result, -Prev) is semidet.
-%
-% Returns the next page for the given pagination Result.  Fails
-% silently when there is no previous page.
-
-pagination_prev(Result, Prev) :-
-  Prev is Result.page - 1,
-  Prev > 0.
+  Page is Result.page + 1.
+pagination_page(Result, prev, Page) :-
+  Page is Result.page - 1,
+  Page > 0.
 
 
 
