@@ -71,6 +71,8 @@ DCG rules that encode characters from the UNICODE standard.
 @version 2015/07-2015/09. 2016/02
 */
 
+:- use_module(library(dcg/dcg_ascii)).
+
 
 
 

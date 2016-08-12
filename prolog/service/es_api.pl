@@ -5,13 +5,47 @@
     es_check/0,
     es_count/1, % +PathComps
     es_get/1,   % +PathComps
-    es_search/2 % +PathComps, +Pattern
+    es_search/2 % +PathComps, +Search
   ]
 ).
 
 /** <module> Elastic Search API
 
 A typical use of PathComps is [Index,Type,Doc].
+
+# Query DSL
+
+```swi
+_{
+  query:
+    _{
+      match: _{
+        <KEY>: "<PATTERN>"
+    }
+  }
+}
+```
+
+```swi
+_{
+  query: _{
+    filtered: _{
+      filter: {
+        range: {
+          age: {
+            gt: 30
+          }
+        }
+      },
+      query: {
+        match: {
+          last_name: "smith"
+        }
+      }
+    }
+  }
+}
+```
 
 @author Wouter Beek
 @version 2016/08
@@ -106,17 +140,30 @@ es_get(PathComps, Dict) :-
 
 
 
-%! es_search(+PathComps, +Pattern) is nondet.
-%! es_search(+PathComps, +Pattern, -Dict) is nondet.
+%! es_search(+PathComps, +Search) is nondet.
+%! es_search(+PathComps, +Search, -Dict) is nondet.
 
-es_search(PathComps, Pattern) :-
-  es_search(PathComps, Pattern, Dict),
+es_search(PathComps, Search) :-
+  es_search(PathComps, Search, Dict),
   print_dict(Dict).
 
 
-es_search(PathComps1, Pattern, Dict) :-
+es_search(PathComps1, Search, Dict) :-
   append(PathComps1, ['_search'], PathComps2),
-  es_get(PathComps2, [q(Pattern)], Dict).
+  (   % Query DSL
+      is_dict(Search)
+  ->  es_post(PathComps2, Search, Dict)
+  ;   % Simple Search
+      format_simple_search_string(Search, Str),
+      es_get(PathComps2, [q(Str)], Dict)
+  ).
+
+
+format_simple_search_string(Comp, Str) :-
+  compound(Comp), !,
+  Comp =.. [Key,Val],
+  format(string(Str), "~a:~s", [Key,Val]).
+format_simple_search_string(Str, Str).
 
 
 

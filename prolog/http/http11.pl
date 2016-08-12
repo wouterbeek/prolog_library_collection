@@ -201,7 +201,7 @@ accept_value0(D2) -->
   {D1 = accept_value{media_range: MediaRange}},
   'media-range'(MediaRange),
   (   'accept-params'(Params)
-  ->  {dict_put(parameters, D1, Params, D2)}
+  ->  {put_dict(parameters, D1, Params, D2)}
   ;   {D2 = D1}
   ).
 
@@ -1137,7 +1137,7 @@ from(D) --> mailbox(D).
 host(D2) -->
   'uri-host'(UriHost),
   {D1 = host{uri_host: UriHost}},
-  (":" -> port(Port), {dict_put(port, D1, Port, D2)} ; {D2 = D1}).
+  (":" -> port(Port), {put_dict(port, D1, Port, D2)} ; {D2 = D1}).
 
 
 
@@ -2175,7 +2175,7 @@ warning(L) --> +#('warning-value', L).
   },
   (   'SP'
   ->  'warn-date'(WarnDate),
-      {dict_put(warning_date, D1, WarnDate, D2)}
+      {put_dict(warning_date, D1, WarnDate, D2)}
   ;   {D2 = D1}
   ).
 

@@ -167,6 +167,7 @@ My favorite collection of DCG rules.
 :- use_module(library(aggregate)).
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(dcg/dcg_ascii)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(dcg/dcg_unicode)).
@@ -604,9 +605,13 @@ between_code_rad(Low1, High1, C) -->
 %
 % This supports digits of hexadecimal radix.
 
-between_digit(Low, High) --> between_digit(Low, High, _).
-between_digit(Low, High, W) --> between_digit(Low, High, W, _).
-between_digit(Low, High, W, C) --> hexadecimal_digit(W, C), {between(Low, High, W)}.
+between_digit(Low, High) -->
+  between_digit(Low, High, _).
+between_digit(Low, High, W) -->
+  between_digit(Low, High, W, _).
+between_digit(Low, High, W, C) -->
+  hexadecimal_digit(W, C),
+  {between(Low, High, W)}.
 
 
 
