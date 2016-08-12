@@ -52,13 +52,14 @@ The following debug flags are used:
   * io
 
 @author Wouter Beek
-@version 2016/07
+@version 2016/07-2016/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_pl)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_cookie)).     % HTTP cookie support
@@ -182,9 +183,9 @@ http_open_any(Iri, In, [H|T], Opts) :-
   http_open1(Iri, State, In, [H|T], Opts),
   % Make sure the metadata is accessible even in case of an HTTP error
   % code.
-  (   http_get_dict(status, H, Status),
+  (   get_dict(status, H, Status),
       http_status_is_error(Status)
-  ->  existence_error(http_open, [H|T])
+  ->  existence_error(http_open(Status), [H|T])
   ;   true
   ).
 
@@ -218,24 +219,23 @@ http_open1(Iri, State, In2, [H|T], Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, State, Location, In1, [H|T], In2, Opts0)
+      http_open2(Iri, State, Location, Lines, In1, [H|T], In2, Opts0)
   ;   throw(E)
   ).
 
 
 % Authentication error.
-http_open2(Iri, State, _, In1, [H|T], In2, Opts) :-
+http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_auth_error(H.status),
-  option(raw_headers(Lines), Opts),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
   http_open1(Iri, State, In2, T, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, In1, [H|T], In2, Opts) :-
+http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
   call_cleanup(
-    deb_http_error(Iri, H.status, In1, Opts),
+    if_debug(http(error), http_error_msg(Iri, H.status, Lines, In1)),
     close(In1)
   ),
   dict_inc(retries, State),
@@ -244,7 +244,7 @@ http_open2(Iri, State, _, In1, [H|T], In2, Opts) :-
   ;   http_open1(Iri, State, In2, T, Opts)
   ).
 % Redirect.
-http_open2(Iri0, State, Location, In1, [H|T], In2, Opts) :-
+http_open2(Iri0, State, Location, _, In1, [H|T], In2, Opts) :-
   http_status_is_redirect(H.status), !,
   close(In1),
   uri_resolve(Location, Iri0, Iri),
@@ -258,7 +258,7 @@ http_open2(Iri0, State, Location, In1, [H|T], In2, Opts) :-
   http_open:redirect_options(Opts, RedirectOpts),
   http_open1(Iri, State, In2, T, RedirectOpts).
 % Success.
-http_open2(_, _, _, In, [_], In, _).
+http_open2(_, _, _, _, In, [_], In, _).
 
 
 
@@ -361,16 +361,6 @@ http_throw_bad_request(Goal_0) :-
 
 % HELPERS %
 
-%! deb_http_error(+Iri, +Status, +In, +Opts) is det.
-
-deb_http_error(Iri, Status, In, Opts) :-
-  debugging(http(error)),
-  option(raw_headers(Headers), Opts), !,
-  http_error_msg(Iri, Status, Headers, In).
-deb_http_error(_, _, _, _).
-
-
-
 %! http_get_dict(+Key, +Path, -Val) is nondet.
 
 http_get_dict(Key, Path, Val) :-
@@ -410,7 +400,7 @@ http_error_msg(Iri, Status, Lines, In) :-
   dcg_with_output_to(string(Str1), pl_dict(MetaHeaders, _{indent: 2})),
   peek_string(In, 1000, Str2),
   msg_warning(
-    "HTTP ERROR:~n  Response:~n    ~d (sa)~n  Final IRI:~n    ~a~n  Parsed headers:~n~s~nMessage content:~n~s~n",
+    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n    ~s~n  Message content:~n    ~s~n",
     [Status,Lbl,Iri,Str1,Str2]
   ).
 

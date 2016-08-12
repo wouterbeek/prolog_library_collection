@@ -43,11 +43,11 @@ pl_date_time(DT, X, Y):-
 %! pl_dict(+Dict, +Opts)// is det.
 
 pl_dict(Dict) -->
-  pl_dict(Dict, []).
+  pl_dict(Dict, _{}).
 
 
 pl_dict(Dict, Opts) -->
-  dcg_dict(pl_term, Dict, Opts).
+  pl_term(Dict, Opts).
 
 
 
@@ -90,7 +90,7 @@ pl_term(Term, Opts) -->
 
 pl_term0(Dcg_1, Dict, Opts) -->
   {is_dict(Dict)}, !,
-  dcg_dict(Dcg_1, Dict, Opts).
+  dcg_dict(Dcg_1, Dict, Opts.indent).
 pl_term0(Dcg_1, L, Opts) -->
   {is_list(L)}, !,
   dcg_list(Dcg_1, L, Opts.indent).

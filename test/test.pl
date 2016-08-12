@@ -134,7 +134,8 @@
 :- use_module(library(pl_term)).
 :- use_module(library(pool)).
 :- use_module(library(print_ext)).
-:- use_module(library(service_db)).
+%/service
+  :- use_module(library(service/es_api)).
 %/set
   :- use_module(library(set/direct_subset)).
   :- use_module(library(set/equiv)).
