@@ -6,7 +6,8 @@
     pagination/4,            % +Pattern, :Goal_0, +Opts, -Result
     pagination_at_end/1,     % +Result
     pagination_empty/2,      % +Opts, -Result
-    pagination_page/3,       % +Result, -Rel, -Page
+    pagination_iri/3,        % +Result, ?Rel, -Iri
+    pagination_page/3,       % +Result, ?Rel, -Page
     pagination_range/2,      % +Result, -Range
     pagination_result/2,     % +Result, :Goal_1
     pagination_total/4       % :AllGoal_2, :SomeGoal_2, +Opts, -Result
@@ -145,6 +146,18 @@ pagination_empty(Opts, Result) :-
 
 
 
+%! pagination_iri(+Result, +Rel, -Iri) is semidet.
+%! pagination_iri(+Result, -Rel, -Iri) is nondet.
+
+pagination_iri(Result, Rel, Iri) :-
+  pagination_page(Result, Rel, Page),
+  get_dict(query, Result, Query0, []),
+  uri_query_components(Query, [page(Page)|Query0]),
+  iri_change_comp(Result.iri, query, Query, Spec),
+  http_absolute_uri(Spec, Iri).
+
+
+
 %! pagination_iris(+Result, -Rels, -Iris) is det.
 %
 % Returns the Page for the given pagination Result.  Fails silently
@@ -155,13 +168,9 @@ pagination_iris(Result, Rels, Iris) :-
   pairs_keys_values(Pairs, Rels, Iris).
 
 
-pagination_iri(Result, Rel, Iri) :-
-  pagination_page(Result, Rel, Page),
-  get_dict(query, Result, Query0, []),
-  uri_query_components(Query, [page(Page)|Query0]),
-  iri_change_comp(Result.iri, query, Query, Spec),
-  http_absolute_uri(Spec, Iri).
 
+%! pagination_page(+Result, +Rel, -Iri) is semidet.
+%! pagination_page(+Result, -Rel, -Iri) is nondet.
 
 pagination_page(Result, first, 1) :-
   Result.number_of_results > 0.

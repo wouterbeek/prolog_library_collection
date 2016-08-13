@@ -11,16 +11,15 @@
 
 /** <module> Elastic Search API
 
-A typical use of PathComps is [Index,Type,Doc].
+A typical use of PathComps is [<INDEX>,<TYPE>,<DOC>].
 
 # Query DSL
 
 ```swi
 _{
-  query:
-    _{
-      match: _{
-        <KEY>: "<PATTERN>"
+  query: _{
+    match: _{
+      <KEY>: "<PATTERN>"
     }
   }
 }

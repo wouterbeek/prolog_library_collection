@@ -5,7 +5,8 @@
     call_or_fail/1,      % :Goal_0
     call_timeout/2,      % +Time, :Goal_0
     concurrent_n_sols/3, % +N, :Select_1, :Goal_1
-    forall/1             % :Goal_0
+    forall/1,            % :Goal_0
+    var_goal/1           % @Term
   ]
 ).
 
@@ -60,7 +61,15 @@ call_timeout(Time, Goal_0) :-
 %! concurrent_n_sols(+N, :Select_1, :Goal_1) is det.
 
 concurrent_n_sols(N, Select_1, Mod:Goal_1) :-
-  findnsols(N, Mod:Goal_0, (call(Select_1, X), Goal_0 =.. [Goal_1,X]), Goals),
+  findnsols(
+    N,
+    Mod:Goal_0,
+    (
+      call(Select_1, X),
+      Goal_0 =.. [Goal_1,X]
+    ),
+    Goals
+  ),
   concurrent(N, Goals, []).
 
 
@@ -69,3 +78,12 @@ concurrent_n_sols(N, Select_1, Mod:Goal_1) :-
 
 forall(Goal_0) :-
   forall(Goal_0, true).
+
+
+
+%! var_goal(@Term) is semidet.
+%
+% Succeeds for a variable or a module prefixes variable.
+
+var_goal(X) :- var(X), !.
+var_goal(_:X) :- var(X).
