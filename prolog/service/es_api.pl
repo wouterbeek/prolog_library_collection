@@ -1,11 +1,28 @@
 :- module(
   es_api,
   [
-    es_add/2,   % +PathComps, +Data
-    es_check/0,
-    es_count/1, % +PathComps
-    es_get/1,   % +PathComps
-    es_search/2 % +PathComps, +Search
+    es_change/3,   % +PathComps, +Data,             -Dict
+    es_change/4,   % +PathComps, +Data,   +Version, -Dict
+    es_change_p/2, % +PathComps, +Data
+    es_change_p/3, % +PathComps, +Data,   +Version
+    es_check/1,    %                                -Dict
+    es_check_p/0,
+    es_count/2,    % +PathComps,                    -Dict
+    es_count_p/1,  % +PathComps
+    es_create/3,   % +PathComps, +Data,             -Dict
+    es_create_p/2, % +PathComps, +Data
+    es_exists/1,   % +PathComps
+    es_get/2,      % +PathComps,                    -Dict
+    es_get/3,      % +PathComps, +Keys,             -Dict
+    es_get_p/1,    % +PathComps
+    es_get_p/2,    % +PathComps, +Keys
+    es_health/1,   %                                -Dict
+    es_health_p/0,
+    es_rm/1,       % +PathComps
+    es_search/3,   % +PathComps, +Search,           -Dict
+    es_search_p/2, % +PathComps, +Search
+    es_update/3,   % +PathComps, +Data,             -Dict
+    es_update_p/2  % +PathComps, +Data
   ]
 ).
 
@@ -13,10 +30,38 @@
 
 A typical use of PathComps is [<INDEX>,<TYPE>,<DOC>].
 
+# Settings
+
+```swi
+_{
+  settings : _{
+    number_of_shards : 3,
+    number_of_replicas : 1
+  }
+}
+```
+
 # Query DSL
 
 ```swi
 _{
+  aggs: _{
+    <NAME>: _{
+      terms: _{
+        field: "<KEY>"
+      }
+    }
+  }
+}
+```
+
+```swi
+_{
+  highlight: _{
+    fields: {
+      <KEY>: _{}
+    }
+  },
   query: _{
     match: _{
       <KEY>: "<PATTERN>"
@@ -31,14 +76,14 @@ _{
     filtered: _{
       filter: {
         range: {
-          age: {
-            gt: 30
+          <KEY>: {
+            gt: <NONNEG>
           }
         }
       },
       query: {
-        match: {
-          last_name: "smith"
+        match_phrase: {
+          <KEY>: "<X> <Y>"
         }
       }
     }
@@ -73,39 +118,59 @@ _{
 
 
 
-%! es_add(+PathComps, +Data) is det.
-%! es_add(+PathComps, +Data, -Dict) is det.
+%! es_change(+PathComps, +Data, -Dict) is det.
+%! es_change(+PathComps, +Data, +Version, -Dict) is det.
+%! es_change_p(+PathComps, +Data) is det.
+%! es_change_p(+PathComps, +Data, +Version) is det.
 %
-% ```bash
-% curl -XPUT 'http://localhost:9200/twitter/user/kimchy' -d \
-% '{ "name" : "Shay Banon" }'
-% ```
+% Dict contains the following keys:
+%
+%   - '_id'(-atom)
+%
+%   - '_index'(-atom)
+%
+%   - '_type'(-atom)
+%
+%   - '_version'(-positive_integer)
+%
+%   - created(-boolean)
+%
+% Create a new document or change an existing document.
 
-es_add(PathComps, Data):-
-  es_add(PathComps, Data, Dict),
+es_change([Index,Type,Id], Data, Dict):-
+  es_put0([Index,Type,Id], Data, Dict).
+
+
+es_change([Index,Type,Id], Data, Version, Dict):-
+  es_put0([Index,Type,Id], Data, [version(Version)], Dict).
+
+
+es_change_p(PathComps, Data):-
+  es_change(PathComps, Data, Dict),
   print_dict(Dict).
 
 
-es_add(PathComps, Data, Dict):-
-  es_post(PathComps, Data, Dict).
+es_change_p(PathComps, Data, Version):-
+  es_change(PathComps, Data, Version, Dict),
+  print_dict(Dict).
 
 
 
-%! es_check is det.
 %! es_check(-Dict) is det.
+%! es_check_p is det.
 
-es_check :-
+es_check(Dict) :-
+  es_get0([], Dict).
+
+
+es_check_p :-
   es_check(Dict),
   print_dict(Dict).
 
 
-es_check(Dict) :-
-  es_get([], [], Dict).
 
-
-
-%! es_count(+PathComps) is det.
 %! es_count(+PathComps, -Dict) is det.
+%! es_count_p(+PathComps) is det.
 %
 % ```bash
 % curl -XGET 'http://localhost:9200/_count?pretty' -d '
@@ -115,46 +180,114 @@ es_check(Dict) :-
 %     }
 % }
 
-es_count(PathComps) :-
+es_count(PathComps1, Dict) :-
+  append(PathComps1, ['_count'], PathComps2),
+  es_get0(PathComps2, Dict).
+  
+
+es_count_p(PathComps) :-
   es_count(PathComps, Dict),
   print_dict(Dict).
 
 
-es_count(PathComps1, Dict) :-
-  append(PathComps1, ['_count'], PathComps2),
-  es_get(PathComps2, [], Dict).
-  
+
+%! es_create(+PathComps, +Data, -Dict) is det.
+%! es_create_p(+PathComps, +Data) is det.
+%
+% Create a new document.
+
+es_create([Index,Type], Data, Dict) :- !,
+  es_post0([Index,Type], Data, Dict).
+es_create([Index,Type,Id], Data, Dict) :-
+  es_put0([Index,Type,Id,'_create'], Data, Dict).
 
 
-%! es_get(+PathComps) is det.
+es_create_p(PathComps, Data) :-
+  es_create(PathComps, Data, Dict),
+  print_dict(Dict).
+
+
+
+%! es_exists(+PathComps) is semidet.
+
+es_exists(PathComps) :-
+  es_head0(PathComps).
+
+
+
 %! es_get(+PathComps, -Dict) is det.
+%! es_get(+PathComps, +Keys, -Dict) is det.
+%! es_get_p(+PathComps) is det.
+%! es_get_p(+PathComps, +Keys) is det.
+%
+% Dict contains the following keys:
+%
+%   - '_id'(-atom)
+%
+%   - '_index'(-atom)
+%
+%   - '_source'(-dict)
+%
+%   - '_type'(-atom)
+%
+%   - '_version'(-positive_integer)
+%
+%   - found(-boolean)
+%
+% Keys, if present, filters the keys returned in '_source'.
 
-es_get(PathComps) :-
+es_get(PathComps, Dict) :-
+  es_get0(PathComps, Dict).
+
+
+es_get(PathComps, Keys, Dict) :-
+  atomic_list_concat(Keys, ',', Search),
+  es_get0(PathComps, ['_source'(Search)], Dict).
+
+
+es_get_p(PathComps) :-
   es_get(PathComps, Dict),
   print_dict(Dict).
 
 
-es_get(PathComps, Dict) :-
-  es_get(PathComps, [], Dict).
-
-
-
-%! es_search(+PathComps, +Search) is nondet.
-%! es_search(+PathComps, +Search, -Dict) is nondet.
-
-es_search(PathComps, Search) :-
-  es_search(PathComps, Search, Dict),
+es_get_p(PathComps, Keys) :-
+  es_get(PathComps, Keys, Dict),
   print_dict(Dict).
 
+
+
+%! es_health(-Dict) is det.
+%! es_health_p is det.
+
+es_health(Dict) :-
+  es_get0(['_cluster',health], Dict).
+
+
+es_health_p :-
+  es_health(Dict),
+  print_dict(Dict).
+
+
+
+%! es_rm(+PathComps) is det.
+
+es_rm([Index,Type,Id]) :-
+  es_iri0([Index,Type,Id], Iri),
+  http_delete(Iri).
+
+
+
+%! es_search(+PathComps, +Search, -Dict) is nondet.
+%! es_search_p(+PathComps, +Search) is nondet.
 
 es_search(PathComps1, Search, Dict) :-
   append(PathComps1, ['_search'], PathComps2),
   (   % Query DSL
       is_dict(Search)
-  ->  es_post(PathComps2, Search, Dict)
+  ->  es_post0(PathComps2, Search, Dict)
   ;   % Simple Search
       format_simple_search_string(Search, Str),
-      es_get(PathComps2, [q(Str)], Dict)
+      es_get0(PathComps2, [q(Str)], Dict)
   ).
 
 
@@ -165,27 +298,71 @@ format_simple_search_string(Comp, Str) :-
 format_simple_search_string(Str, Str).
 
 
+es_search_p(PathComps, Search) :-
+  es_search(PathComps, Search, Dict),
+  print_dict(Dict).
+
+
+
+%! es_update(+PathComps, +Data, -Dict) is det.
+%! es_update_p(+PathComps, +Data) is det.
+%
+% Data can be:
+%
+%  - _{doc: <DICT>}
+%
+%  - _{script: 'ctx._source.<KEY>+=<INT>'}
+%
+%  - _{
+%      script: 'ctx._source.<KEY>+=new_tag',
+%      params: _{new_tag : <VAL>}
+%    }
+%
+%  - _{upsert: <DICT>, ...}
+
+es_update([Index,Type,Id], Data, Dict) :-
+  es_post0([Index,Type,Id,'_update'], Data, Dict).
+
+
+es_update_p([Index,Type,Id], Data) :-
+  es_update([Index,Type,Id], Data, Dict),
+  print_dict(Dict).
+
+
 
 
 
 % HELPERS %
 
-%! es_get(+PathComps, +QueryComps, -Dict) is det.
+%! es_get0(+PathComps, -Dict) is det.
+%! es_get0(+PathComps, +QueryComps, -Dict) is det.
 
-es_get(PathComps, QueryComps, Dict) :-
-  es_iri(PathComps, QueryComps, Iri),
-  call_or_fail(
-    http_get(
-      Iri,
-      {Dict}/[In,M,M]>>json_read_dict(In, Dict)
-    )
-  ).
+es_get0(PathComps, Dict) :-
+  es_get0(PathComps, [], Dict).
 
 
+es_get0(PathComps, QueryComps, Dict) :-
+  es_iri0(PathComps, QueryComps, Iri),
+  call_or_fail(http_get(Iri, {Dict}/[In,M,M]>>json_read_dict(In, Dict))).
 
-%! es_iri(+PathComps, +QueryComps, -Iri) is det.
 
-es_iri(PathComps, QueryComps, Iri) :-
+
+%! es_head0(+PathComps) is semidet.
+
+es_head0(PathComps) :-
+  es_iri0(PathComps, Iri),
+  call_or_fail(http_head(Iri)).
+
+
+
+%! es_iri0(+PathComps, -Iri) is det.
+%! es_iri0(+PathComps, +QueryComps, -Iri) is det.
+
+es_iri0(PathComps, Iri) :-
+  es_iri0(PathComps, [], Iri).
+
+
+es_iri0(PathComps, QueryComps, Iri) :-
   setting(endpoint_scheme, Scheme),
   setting(endpoint_host, Host),
   setting(endpoint_port,Port),
@@ -196,12 +373,31 @@ es_iri(PathComps, QueryComps, Iri) :-
 
 
 
-%! es_post(+PathComps, +Data, -Dict) is det.
+%! es_post0(+PathComps, +Data, -Dict) is det.
 
-es_post(PathComps, Data, Dict) :-
-  es_iri(PathComps, [], Iri),
+es_post0(PathComps, Data, Dict) :-
+  es_iri0(PathComps, Iri),
   call_or_fail(
     http_post(
+      Iri,
+      json(Data),
+      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+      [request_header('Accept'='application/json')]
+    )
+  ).
+
+
+%! es_put0(+PathComps, +Data, -Dict) is det.
+%! es_put0(+PathComps, +Data, +QueryComps, -Dict) is det.
+
+es_put0(PathComps, Data, Dict) :-
+  es_put0(PathComps, Data, [], Dict).
+
+
+es_put0(PathComps, Data, QueryComps, Dict) :-
+  es_iri0(PathComps, QueryComps, Iri),
+  call_or_fail(
+    http_put(
       Iri,
       json(Data),
       {Dict}/[In,M,M]>>json_read_dict(In, Dict),

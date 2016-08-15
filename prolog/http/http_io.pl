@@ -1,15 +1,23 @@
 :- module(
   http_io,
   [
+    http_delete/1,               % +Iri
+    http_delete/2,               % +Iri, :Goal_3
+    http_delete/3,               % +Iri, :Goal_3, +Opts
     http_fail_on_exception/1,    % :Goal_0
     http_get/1,                  % +Iri
     http_get/2,                  % +Iri, :Goal_3
     http_get/3,                  % +Iri, :Goal_3, +Opts
+    http_head/1,                 % +Iri
+    http_head/2,                 % +Iri, +Opts
     http_header/3,               % +Key, +Path, -Val
     http_is_scheme/1,            % ?Scheme
     http_post/2,                 % +Iri, +Data
     http_post/3,                 % +Iri, +Data, :Goal_3
     http_post/4,                 % +Iri, +Data, :Goal_3, +Opts
+    http_put/2,                  % +Iri, +Data
+    http_put/3,                  % +Iri, +Data, :Goal_3
+    http_put/4,                  % +Iri, +Data, :Goal_3, +Opts
     http_retry_until_success/1,  % :Goal_0
     http_retry_until_success/2,  % :Goal_0, +Timeout
     http_status_is_auth_error/1, % +Status
@@ -78,11 +86,15 @@ The following debug flags are used:
 :- use_module(library(yall)).
 
 :- meta_predicate
+    http_delete(+, 3),
+    http_delete(+, 3, +),
     http_fail_on_exception(0),
     http_get(+, 3),
     http_get(+, 3, +),
     http_post(+, +, 3),
     http_post(+, +, 3, +),
+    http_put(+, +, 3),
+    http_put(+, +, 3, +),
     http_retry_until_success(0),
     http_retry_until_success(0, +),
     http_throw_bad_request(0).
@@ -93,6 +105,24 @@ The following debug flags are used:
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 
+
+
+
+%! http_delete(+Iri) is semidet.
+%! http_delete(+Iri, :Goal_3) is semidet.
+%! http_delete(+Iri, :Goal_3, +Opts) is semidet.
+
+http_delete(Iri) :-
+  http_delete(Iri, http_default_success).
+
+
+http_delete(Iri, Goal_3) :-
+  http_delete(Iri, Goal_3, []).
+
+
+http_delete(Iri, Goal_3, Opts0) :-
+  merge_options(Opts0, [method(delete)], Opts),
+  call_on_stream(Iri, Goal_3, Opts).
 
 
 
@@ -124,6 +154,19 @@ http_get(Iri, Goal_3) :-
 http_get(Iri, Goal_3, Opts0) :-
   merge_options([method(get)], Opts0, Opts),
   call_on_stream(Iri, Goal_3, Opts).
+
+
+
+%! http_head(+Iri) is semidet.
+%! http_head(+Iri, +Opts) is semidet.
+
+http_head(Iri) :-
+  http_head(Iri, []).
+
+
+http_head(Iri, Opts0) :-
+  merge_options(Opts0, [method(head)], Opts),
+  call_on_stream(Iri, _, Opts).
 
 
 
@@ -276,6 +319,24 @@ http_post(Iri, Data, Goal_3) :-
 
 http_post(Iri, Data, Goal_3, Opts0) :-
   merge_options([method(post),post(Data)], Opts0, Opts),
+  call_on_stream(Iri, Goal_3, Opts).
+
+
+
+%! http_put(+Iri, +Data:compound) is det.
+%! http_put(+Iri, +Data:compound, :Goal_3) is det.
+%! http_put(+Iri, +Data:compound, :Goal_3, +Opts) is det.
+
+http_put(Iri, Data) :-
+  http_put(Iri, Data, http_default_success).
+
+
+http_put(Iri, Data, Goal_3) :-
+  http_put(Iri, Data, Goal_3, []).
+
+
+http_put(Iri, Data, Goal_3, Opts0) :-
+  merge_options([method(put),post(Data)], Opts0, Opts),
   call_on_stream(Iri, Goal_3, Opts).
 
 
