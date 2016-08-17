@@ -183,12 +183,7 @@ call_on_archive0(Arch, Entry0, Goal_3, T, L2) :-
               archive_open_entry(Arch, In),
               indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In])
             ),
-            (
-              % Archive entries are always encoded as octet.  We
-              % change this to UTF-8.
-              set_stream(In, encoding(utf8)),
-              call_on_stream0(In, Entry0, Goal_3, [H1|T], L1)
-            ),
+            call_on_stream0(In, Entry0, Goal_3, [H1|T], L1),
             (
               append(L1, [H2|T], L2),
               close_any2(close(In), H1, H2)

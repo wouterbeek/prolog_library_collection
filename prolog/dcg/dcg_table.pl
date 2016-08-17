@@ -110,7 +110,7 @@ dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
 
 dcg_table_cell(Type, Width, Cell_1, X) --> !,
   {
-    dcg_with_output_to(codes(Cs), dcg_call_cp(Cell_1, X)),
+    once(dcg_with_output_to(codes(Cs), dcg_call_cp(Cell_1, X))),
     length(Cs, CellLen),
     SpareLen0 is Width - CellLen + 1,
     SpareLen is max(0,SpareLen0)
