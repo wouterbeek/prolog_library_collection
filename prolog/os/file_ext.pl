@@ -13,8 +13,10 @@
     delete_directory_contents_msg/1, % +Dir
     delete_file_msg/1,          % +File
     directory_file/2,           % +Dir, -File
+    directory_is_empty/1,       % +Dir
     directory_path/2,           % +Dir, -Path
     directory_path_recursive/2, % +Dir, -Path
+    directory_recursive/2,      % +Dir, -Subdir
     directory_subdirectories/2, % ?Dir, ?Subdirs
     file_age/2,                 % +File, -Age:float
     file_change_extension/3,    % +File1, +Ext, File2
@@ -215,6 +217,13 @@ directory_file(Dir, File) :-
 
 
 
+%! directory_is_empty(+Dir) is semidet.
+
+directory_is_empty(Dir) :-
+  \+ directory_file(Dir, _).
+
+
+
 %! directory_path(+Dir, -Path) is nondet.
 
 directory_path(Dir, Path) :-
@@ -230,6 +239,17 @@ directory_path_recursive(Dir, Path) :-
   (   exists_directory(Path0)
   ->  directory_path_recursive(Path0, Path)
   ;   Path = Path0
+  ).
+
+
+
+%! directory_recursive(+Dir, -Subdir) is det.
+
+directory_recursive(Dir, Subdir) :-
+  directory_path(Dir, Subdir0),
+  (   directory_recursive(Subdir0, Subdir)
+  ->  exists_directory(Subdir0)
+  ;   Subdir = Subdir0
   ).
 
 
