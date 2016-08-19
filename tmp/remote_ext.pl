@@ -3,7 +3,6 @@
   [
     clear_remote_directory/1, % +RemoteDirectory:compound
     exists_remote_file/1, % +RemoteFile:compound
-    make_remote_directory/1, % +RemoteDirectory:compound
     make_remote_directory_path/1, % +RemoteDirectory:compound
     remote_open/3, % +RemoteFile:compound
                    % +Mode:oneof([append,read,write])
@@ -49,15 +48,6 @@ clear_remote_directory(remote_file(User,Machine,Dir)):-
 exists_remote_file(remote_file(User,Machine,File)):-
   atomic_list_concat([User,Machine], '@', UserMachine),
   atomic_list_concat([ssh,UserMachine,ls,File], ' ', Command),
-  handle_process(sh, ['-c',Command], [program(Command)]).
-
-
-
-%! make_remote_directory(+RemoteDirectory:compound) is det.
-
-make_remote_directory(remote_file(User,Machine,Dir)):-
-  atomic_list_concat([User,Machine], '@', UserMachine),
-  atomic_list_concat([ssh,UserMachine,mkdir,Dir], ' ', Command),
   handle_process(sh, ['-c',Command], [program(Command)]).
 
 

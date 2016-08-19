@@ -11,6 +11,7 @@
     'is_dt-pl'/1,             % @Term
     'is_dt-rdf'/1,            % @Term
     is_date_time/1,           % @Term
+    print_timestamp/1,        % :Goal_0
     something_to_date_time/2, % +Something, -DT
     timestamp_to_date_time/2  % +TS, -DT
   ]
@@ -45,7 +46,7 @@ predicates that only work with date_time/7.  This is a huge
 time-saver!
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07
+@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08
 */
 
 :- use_module(library(apply)).
@@ -53,7 +54,8 @@ time-saver!
 
 :- meta_predicate
     call_timestamp(0, -),
-    call_timestamp(0, +, -).
+    call_timestamp(0, +, -),
+    print_timestamp(0).
 
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
@@ -248,6 +250,14 @@ is_date_time(T) :-
 
 'is_dt-rdf'(T) :-
   is_of_type('dt-rdf', T).
+
+
+
+%! print_timestamp(:Goal_0) is det.
+
+print_timestamp(Goal_0) :-
+  call_timestamp(Goal_0, Time),
+  format(user_output, "~w~n", [Time]).
 
 
 

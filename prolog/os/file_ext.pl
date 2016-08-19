@@ -247,8 +247,8 @@ directory_path_recursive(Dir, Path) :-
 
 directory_recursive(Dir, Subdir) :-
   directory_path(Dir, Subdir0),
+  exists_directory(Subdir0),
   (   directory_recursive(Subdir0, Subdir)
-  ->  exists_directory(Subdir0)
   ;   Subdir = Subdir0
   ).
 
