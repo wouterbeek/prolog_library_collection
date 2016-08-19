@@ -1,9 +1,10 @@
 :- module(
   rocks_ext,
   [
-    rocks/3,        % +Db, ?Key, ?Val
-    rocks_num/3,    % +Db, ?Key, ?Val
-    rocks_put_num/3 % +Db, +Key, +Val
+    rocks/3,           % +Db, ?Key, ?Val
+    rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
+    rocks_num/3,       % +Db, ?Key, ?Val
+    rocks_put_num/3    % +Db, +Key, +Val
   ]
 ).
 
@@ -26,6 +27,13 @@ rocks(Db, Key, Val) :-
   rocks_get(Db, Key, Val).
 rocks(Db, Key, Val) :-
   rocks_enum(Db, Key, Val).
+
+
+
+%! rocks_merge_sum(+Mode, +Key, +Left, +Right, -Result) is det.
+
+rocks_merge_sum(partial, _, X, Y, Z) :-
+  Z is X + Y.
 
 
 
