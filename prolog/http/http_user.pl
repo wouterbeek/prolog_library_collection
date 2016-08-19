@@ -163,7 +163,7 @@ login(Req) :-
 
 login_link(Link) :-
   http_current_request(Req),
-  http_iri(Req, Iri),
+  http_base_iri(Req, Iri),
   http_link_to_id(login, ['openid.return_to'(Iri)], Link).
 
 
@@ -190,7 +190,7 @@ logout_back_link(Link) :-
 
 logout_link(Link) :-
   http_current_request(Req),
-  http_iri(Req, Iri),
+  http_base_iri(Req, Iri),
   http_link_to_id(logout, ['openid.return_to'(Iri)], Link).
 
 

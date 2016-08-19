@@ -3,9 +3,12 @@
   [
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
+    http_base_iri/2,          % +Req, -iri
     http_content_type/1,      % +MT
     http_end_of_header/0,
-    http_iri/2,               % +Req, -iri
+    http_iri/2,               % +Req, -Iri
+    http_iri_media_type/2,    % +Req, -MT
+    http_iri_query/2,         % +Iri, -Comp
     http_link_to_id/2,        % +HandleId, -Local
     http_method/2,            % +Req, -Method
     http_output/1,            % -Output
@@ -87,6 +90,15 @@ mediatype_pair(media(MT,_,N,_), N-MT).
 
 
 
+%! http_base_iri(+Req, -Iri) is det.
+
+http_base_iri(Req, Iri2) :-
+  http_iri(Req, Iri1),
+  uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
+
+
+
 %! http_content_type(+MT) is det.
 
 http_content_type(Type/Subtype) :-
@@ -103,11 +115,25 @@ http_end_of_header :-
 
 %! http_iri(+Req, -Iri) is det.
 
-http_iri(Req, Iri2) :-
-  memberchk(request_uri(Iri1), Req),
-  uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
-  uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
+http_iri(Req, Iri) :-
+  memberchk(request_uri(Iri), Req).
 
+
+
+%! http_iri_media_type(+Req, -MT) is semidet.
+
+http_iri_media_type(Req, MT) :-
+  http_iri(Req, Iri),
+  http_iri_query(Iri, mt(MT)).
+
+
+
+%! http_iri_query(+Iri, -Comp) is nondet.
+
+http_iri_query(Iri, Comp) :-
+  uri_components(Iri, uri_components(_,_,_,Query,_)),
+  uri_query_components(Query, Comps),
+  member(Comp, Comps).
 
 
 %! http_link_to_id(+HandleId, -Local) is det.

@@ -63,6 +63,7 @@ rest_exception_media_type(Req, MT, existence_error(http_parameter,Key)) :- !,
 %
 % @tbd Add body for 405 code in multiple media types.
 
+% Media type accepted, on to application-specific reply.
 rest_media_type(_, MTs, Goal_1) :-
   member(MT, MTs),
   call(Goal_1, MT), !.
@@ -85,9 +86,10 @@ rest_method(Req, Methods, Goal_3) :-
 rest_method(Req, options, Methods1, _) :- !,
   sort([head,options|Methods1], Methods2),
   reply_http_message(Req, 200, ['Allow'-Methods2]).
+% Method accepted, on to media types.
 rest_method(Req, Method, Methods, Goal_3) :-
   memberchk(Method, Methods), !,
-  http_accept(Req, MTs),
+  (http_iri_media_type(Req, MT) -> MTs = [MT] ; http_accept(Req, MTs)),
   catch(call(Goal_3, Req, Method, MTs), E, rest_exception(Req, MTs, E)).
 % 405 “Method Not Allowed”
 rest_method(Req, _, _, _) :-
