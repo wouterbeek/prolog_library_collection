@@ -18,7 +18,7 @@
 DCG rules for printing terms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/02, 2016/05, 2016/07
+@version 2015/08, 2015/10-2015/12, 2016/02, 2016/05, 2016/07-2016/08
 */
 
 :- use_module(library(date_time/date_time)).
@@ -26,6 +26,13 @@ DCG rules for printing terms.
 :- use_module(library(dict_ext)).
 :- use_module(library(list_ext)).
 :- use_module(library(typecheck)).
+
+:- multifile
+    dcg:dcg_hook//1.
+
+dcg:dcg_hook(dict(Term)) --> pl_dict(Term).
+dcg:dcg_hook(list(Term)) --> pl_list(Term).
+dcg:dcg_hooK(term(Term)) --> pl_term(Term).
 
 
 

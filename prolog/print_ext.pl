@@ -191,13 +191,22 @@ print_dict(Dcg_1, Dict, Opts) :-
 
 %! print_table(+Rows) is det.
 %! print_table(+Rows, :Opts) is det.
+%
+% The following options are supported:
+%
+%   - out(+stream)
+%
+%   - Other options are passed to dcg_table//2.
+%
+% @tbd Cell writer should be a hook.
 
 print_table(Rows) :-
   print_table(Rows, []).
 
 
 print_table(Rows, Opts) :-
-  dcg_with_output_to(current_output, dcg_table(Rows, Opts)).
+  option(out(Out), Opts, current_output),
+  dcg_with_output_to(Out, dcg_table(Rows, Opts)).
 
 
 

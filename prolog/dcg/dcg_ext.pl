@@ -266,6 +266,11 @@ My favorite collection of DCG rules.
     triple(//, //, //, ?, ?),
     tuple(3, +, ?, ?).
 
+:- multifile
+   dcg:dcg_hook//1.
+
+dcg:dcg_hook(perc(Term)) --> perc_fixed(Term).
+
 :- setting(tab_size, integer, 2,
      'The number of spaces that go into one tab.'
    ).
@@ -1415,6 +1420,7 @@ parsing(H, H):-
 
 
 %! perc(+Perc:between(0.0,1.0))// is det.
+%
 % Generates a human-readable representation of a percentage.
 
 perc(Perc0, Head, Tail) :-
@@ -1424,6 +1430,8 @@ perc(Perc0, Head, Tail) :-
 
 
 %! perc_fixed(+Perc:between(0.0,1.0))// is det.
+%
+% Fixed-width variant of perc//1.
 
 perc_fixed(Perc) -->
   ({Perc < 0.1} -> "  " ; {Perc < 1.0} -> " " ; ""),
