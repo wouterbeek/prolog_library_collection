@@ -10,7 +10,7 @@
     create_file_link/2,         % +File, +Dir
     current_directory/1,        % ?Dir
     delete_directory_msg/1,     % +Dir
-    delete_directory_contents_msg/1, % +Dir
+    delete_directory_and_contents_msg/1, % +Dir
     delete_file_msg/1,          % +File
     directory_file/2,           % +Dir, -File
     directory_is_empty/1,       % +Dir
@@ -179,16 +179,20 @@ current_directory(Dir) :-
 %! delete_directory_msg(+Dir) is det.
 
 delete_directory_msg(Dir) :-
+  exists_directory(Dir), !,
   print_message(informational, delete_directory(Dir)),
+  delete_directory(Dir).
+delete_directory_msg(_).
+
+
+
+%! delete_directory_and_contents_msg(+Dir) is det.
+
+delete_directory_and_contents_msg(Dir) :-
+  exists_directory(Dir), !,
+  print_message(informational, delete_directory_and_contents(Dir)),
   delete_directory_and_contents(Dir).
-
-
-
-%! delete_directory_contents_msg(+Dir) is det.
-
-delete_directory_contents_msg(Dir) :-
-  print_message(informational, delete_directory_contents(Dir)),
-  delete_directory_contents(Dir).
+delete_directory_and_contents_msg(_).
 
 
 
@@ -484,7 +488,7 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 prolog:message(delete_directory(Dir)) -->
   ["Deleting directory ~a."-[Dir]].
-prolog:message(delete_directory_contents(Dir)) -->
+prolog:message(delete_directory_and_contents(Dir)) -->
   ["Deleting contents of directory ~a."-[Dir]].
 prolog:message(delete_file(File)) -->
   ["Deleting file ~a."-[File]].
