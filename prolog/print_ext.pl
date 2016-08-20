@@ -33,7 +33,7 @@
 Additional predicates for printing.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05
+@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05, 2016/08
 */
 
 :- use_module(library(check_installation), []).
@@ -46,13 +46,15 @@ Additional predicates for printing.
 :- meta_predicate
     print_dict(3, +),
     print_dict(3, +, +),
-    print_table(+, :),
     verbose(0),
-    verbose(0,+),
-    verbose(0,+,+).
+    verbose(0, +),
+    verbose(0, +, +).
 
-:- setting(screen_width, integer, 80,
-     'The default width of the screen in number of characters.'
+:- setting(
+     screen_width,
+     integer,
+     80,
+     "The default width of the screen in number of characters."
    ).
 
 
@@ -60,7 +62,9 @@ Additional predicates for printing.
 
 
 %! ansi_format(+Sink, +Attrs, +Format, +Args) is det.
+%
 % The following attributes are supported:
+%
 %   - bg(+atom)
 %   - blink(slow)
 %   - blink(rapid)

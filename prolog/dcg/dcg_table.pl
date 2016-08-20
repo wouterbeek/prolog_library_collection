@@ -2,7 +2,7 @@
   dcg_table,
   [
     dcg_table//1, % +Rows
-    dcg_table//2  % +Rows, +Opts
+    dcg_table//2  % +Rows, :Opts
   ]
 ).
 
@@ -11,7 +11,7 @@
 Generates tables for text-based display.
 
 @author Wouter Beek
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/08
 */
 
 :- use_module(library(apply)).
@@ -24,7 +24,6 @@ Generates tables for text-based display.
 
 :- meta_predicate
     column_widths(1, +, -),
-    dcg_table(+, :, ?, ?),
     dcg_table_caption(+, 0, ?, ?),
     dcg_table_cell(+, +, 1, +, ?, ?),
     dcg_table_cell_content(+, //, ?, ?),
@@ -45,7 +44,7 @@ is_meta(cell).
 
 
 %! dcg_table(+Rows)// is det.
-%! dcg_table(+Rows, +Opts)// is det.
+%! dcg_table(+Rows, :Opts)// is det.
 
 dcg_table(L) -->
   dcg_table(L, []).
@@ -75,6 +74,7 @@ add_sum_row(Rows1, Rows2, Opts) :-
   add_sum_row0(1, Last, Rows1, Cols, Row),
   append(Rows1, [Row], Rows2).
 
+
 add_sum_row0(Last, Last, _, _, []) :- !.
 add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]) :- !,
   maplist(nth0(Col1), Rows, Vals),
@@ -87,12 +87,16 @@ add_sum_row0(Col1, Last, Rows, Cols, [_|T]) :-
 
 
 
-%! dcg_table_caption(+Position:compound, :Caption_0)// is det.
+%! dcg_table_caption(+Pos, :Caption_0)// is det.
+%
 % Generates the table caption.
 
 dcg_table_caption(_, Caption_0) -->
-  {strip_module(Caption_0, _, BareCaption_0), var(BareCaption_0)}, !,
-  "".
+  {
+    strip_module(Caption_0, _, BareCaption_0),
+    var(BareCaption_0)
+  }, !,
+  [].
 dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
   {
     dcg_width(Caption_0, CaptionLen),
@@ -104,8 +108,8 @@ dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
 
 
 %! dcg_table_cell(
-%!   +Type:oneof(["data","header"]),
-%!   +ColumnWidth:positive_integer,
+%!   +Type:oneof([data,header]),
+%!   +ColWidth:positive_integer,
 %!   :Cell_1,
 %!   +Element
 %! )// is det.
@@ -123,30 +127,27 @@ dcg_table_cell(Type, Width, Cell_1, X) --> !,
 
 
 
-%! dcg_table_cell_content(
-%!   +Type:oneof(["data","header"]),
-%!   +Codes:list(code)
-%! )// is det.
+%! dcg_table_cell_content(+Type:oneof([data,header]), +Cs)// is det.
 % @tbd Use bold face for header content.
 
-dcg_table_cell_content("data", Cs) --> !, Cs.
-dcg_table_cell_content("header", Cs) --> Cs.
+dcg_table_cell_content(data, Cs) --> !, Cs.
+dcg_table_cell_content(header, Cs) --> Cs.
 
 
 
 %! dcg_table_data_rows(
 %!   +Indexed:boolean,
-%!   +StartPosition:compound,
-%!   +MaximumNumberOfRows:positive_integer,
+%!   +StartPos,
+%!   +MaxNumRows:positive_integer,
 %!   :Cell_1,
-%!   +Rows:list(list),
-%!   -EndPosition:compound
+%!   +Rows,
+%!   -EndPos
 %! )// is det.
 
 dcg_table_data_rows(Ind, Pos1, Max, Cell_1, [H|T], Pos3) -->
   {Pos1 = pos(_,row(Row1,_,_),_,_), Row1 \== Max}, !,
   {(Ind == true -> L = [Row1|H] ; L = H)},
-  dcg_table_row("data", Pos1, Cell_1, L),
+  dcg_table_row(data, Pos1, Cell_1, L),
   {next_position_row(Pos1, Pos2)},
   dcg_table_data_rows(Ind, Pos2, Max, Cell_1, T, Pos3).
 dcg_table_data_rows(_, Pos, _, _, _, Pos) --> "".
@@ -155,18 +156,25 @@ dcg_table_data_rows(_, Pos, _, _, _, Pos) --> "".
 
 %! dcg_table_header_row(
 %!   +Indexed:boolean,
-%!   +StartPosition:compound,
-%!   +Rows:list,
+%!   +StartPos,
+%!   +Rows,
 %!   :Cell_1,
-%!   -EndPosition:compound,
-%!   -DataRows:list
+%!   -EndPos,
+%!   -DataRows
 %! )// is det.
 
-dcg_table_header_row(Indexed, Pos1, [head(Row0)|Rows], Cell_1, Pos2, Rows) --> !,
+dcg_table_header_row(
+  Indexed,
+  Pos1,
+  [head(Row0)|Rows],
+  Cell_1,
+  Pos2,
+  Rows
+) --> !,
   % If the indexed option is set, then include a first header cell
   % indicating the index number column.
   {(Indexed == true ->  Row = ["#"|Row0] ; Row = Row0)},
-  dcg_table_row("header", Pos1, Cell_1, Row),
+  dcg_table_row(header, Pos1, Cell_1, Row),
   {next_position_row(Pos1, Pos2)},
   dcg_table_line(Pos2).
 dcg_table_header_row(_, Pos, Rows, _, Pos, Rows) --> "".
@@ -174,23 +182,22 @@ dcg_table_header_row(_, Pos, Rows, _, Pos, Rows) --> "".
 
 
 %! dcg_table_row(
-%!   +Type:oneof(["data","header"]),
-%!   +Position:compound,
+%!   +Type:oneof([data,header]),
+%!   +Pos,
 %!   :Cell_1,
-%!   +Row:list
+%!   +Row
+%! )// is det.
+%! dcg_table_row(
+%!   +Type:oneof([data,header]),
+%!   +Pos,
+%!   +ColWidths:list(positive_integer),
+%!   :Cell_1,
+%!   +Row
 %! )// is det.
 
 dcg_table_row(Type, pos(Col,Row,Ws,Len), Cell_1, L) -->
   dcg_table_row(Type, pos(Col,Row,Ws,Len), Ws, Cell_1, L).
 
-
-%! dcg_table_row(
-%!   +Type:oneof(["data","header"]),
-%!   +Position:compound,
-%!   +ColumnWidths:list(positive_integer),
-%!   :Cell_1,
-%!   +Row:list
-%! )// is det.
 
 dcg_table_row(Type, Pos, [W|Ws], Cell_1, [H|T]) --> !,
   cell_border,
@@ -204,7 +211,7 @@ dcg_table_row(_, _, _, _, []) -->
 
 % LINE %
 
-%! dcg_table_line(+Position:compound)// is det.
+%! dcg_table_line(+Pos)// is det.
 
 dcg_table_line(Pos) -->
   dcg_table_start_of_line(Pos),
@@ -214,7 +221,7 @@ dcg_table_line(Pos) -->
 
 
 
-%! dcg_table_end_of_line(+Position:compound)// is det.
+%! dcg_table_end_of_line(+Pos)// is det.
 
 dcg_table_end_of_line(pos(_,row(0,1,_),_,_)) --> !, "┐".
 dcg_table_end_of_line(pos(_,row(Last,_,Last),_,_)) --> !, "┘".
@@ -222,8 +229,9 @@ dcg_table_end_of_line(_) --> "┤".
 
 
 
-%! dcg_table_middle_of_line(+Position:compound)// is det.
+%! dcg_table_middle_of_line(+Pos)// is det.
 
+dcg_table_middle_of_line(pos(_,_,[],_)) --> !, [].
 dcg_table_middle_of_line(pos(_,_,[H],_)) --> !,
   {H0 is H + 2},
   #(H0, bar), !.
@@ -232,11 +240,10 @@ dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),[H|T],Len)) -->
   #(H0, bar), !,
   ({Row2 =:= 1} -> "┬" ; {Row1 =:= Last} -> "┴" ; "┼"),
   dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),T,Len)).
-bar --> "─".
 
 
 
-%! dcg_table_start_of_line(+Position:compound)// is det.
+%! dcg_table_start_of_line(+Pos)// is det.
 
 dcg_table_start_of_line(pos(_,row(0,1,_),_,_)) --> !, "┌".
 dcg_table_start_of_line(pos(_,row(Last,_,Last),_,_)) --> !, "└".
@@ -248,13 +255,19 @@ dcg_table_start_of_line(_) --> "├".
 
 % HELPERS %
 
+%! bar// is det.
+
+bar --> "─".
+
+
+
 %! cell_border// is det.
 
 cell_border --> "│ ".
 
 
 
-%! column_widths(:Cell_1, +Rows:list, -Widths:list(nonneg)) is det.
+%! column_widths(:Cell_1, +Rows, -Widths) is det.
 
 column_widths(Cell_1, Rows, MaxWs) :-
   rows_to_cols(Rows, Cols),
@@ -262,7 +275,7 @@ column_widths(Cell_1, Rows, MaxWs) :-
 
 
 
-%! next_position_row(+Position:compound, -NextPosition:compound) is det.
+%! next_position_row(+Pos, -NextPos) is det.
 
 next_position_row(
   pos(Col,row(_,Row2,Last),Ws,Len),
@@ -272,29 +285,30 @@ next_position_row(
 
 
 
-%! number_of_columns(+Rows:list(compound), -NumberOfColumns:nonneg) is det.
+%! number_of_columns(+Rows, -NumCols) is det.
 
+number_of_columns([], 0) :- !.
 number_of_columns([H0|_], Len) :-
   row_list(H0, H),
   length(H, Len).
 
 
 
-%! number_of_rows(+Rows:list(compound), -NumberOfRows:nonneg) is det.
+%! number_of_rows(+Rows, -NumRows) is det.
 
 number_of_rows(L, Len) :-
   length(L, Len).
 
 
 
-%! row_list(+Row:compound, -List:list) is det.
+%! row_list(+Row, -List) is det.
 
 row_list(head(L), L) :- !.
 row_list(L, L).
 
 
 
-%! rows_to_cols(+Rows:list(compound), -Columns:list) is det.
+%! rows_to_cols(+Rows, -Cols) is det.
 
 rows_to_cols(Rows, Cols) :-
   number_of_columns(Rows, N),
@@ -311,7 +325,7 @@ add_head(H, T, [H|T]).
 
 
 
-%! table_position(:Cell_1, +Rows:list, -Position:compound) is det.
+%! table_position(:Cell_1, +Rows, -Pos) is det.
 
 table_position(Cell_1, Rows, pos(col(0,1,NumCols),row(0,1,NumRows),Ws,Len)) :-
   number_of_columns(Rows, NumCols),
