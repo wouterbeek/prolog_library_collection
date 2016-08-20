@@ -257,6 +257,7 @@ iri_to_location(Iri, Loc) :-
   ).
 iri_to_location(Loc, Loc).
 
+
 correct_for_default_port(http, 80, _) :- !.
 correct_for_default_port(https, 443, _) :- !.
 correct_for_default_port(_, Port, Port).

@@ -167,7 +167,7 @@ nlp_dict_update(Lang, _) :-
 
 
 
-%! word_entry(-Word:string, -Something:string)// is det.
+%! word_entry(-Word, -Str)// is det.
 
 word_entry(Word, Something) -->
   word_part(Word0), !,

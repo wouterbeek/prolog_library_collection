@@ -3,26 +3,27 @@
   [
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
-    http_base_iri/2,          % +Req, -iri
+    http_base_location_iri/2, % +Req, -iri
     http_content_type/1,      % +MT
     http_end_of_header/0,
-    http_iri/2,               % +Req, -Iri
-    http_iri_media_type/2,    % +Req, -MT
     http_iri_query/2,         % +Iri, -Comp
     http_link_to_id/2,        % +HandleId, -Local
+    http_location_iri/2,      % +Req, -Location
     http_method/2,            % +Req, -Method
     http_output/1,            % -Output
     http_output/2,            % +Req, -Output
     http_read_json_dict/1,    % -Data
+    http_relative_iri/2,      % +Req, -Iri
     http_reply_file/1,        % +File
-    http_status_reply/1,      % +Status
+    http_resource_iri/2,      % +Req, -Iri
     http_status_reply/2       % +Req, +Status
   ]
 ).
 
 /** <module> HTTP receive
 
-Support for extracting information from HTTP requests/received messages.
+Support for extracting information from HTTP requests/received
+messages.
 
 @author Wouter Beek
 @version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/08
@@ -42,6 +43,7 @@ Support for extracting information from HTTP requests/received messages.
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
+:- use_module(library(iri/iri_ext)).
 
 % Extend the support for HTTP parameter handing with:
 %
@@ -90,10 +92,10 @@ mediatype_pair(media(MT,_,N,_), N-MT).
 
 
 
-%! http_base_iri(+Req, -Iri) is det.
+%! http_base_location_iri(+Req, -Iri) is det.
 
-http_base_iri(Req, Iri2) :-
-  http_iri(Req, Iri1),
+http_base_location_iri(Req, Iri2) :-
+  http_location_iri(Req, Iri1),
   uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
 
@@ -113,26 +115,11 @@ http_end_of_header :-
 
 
 
-%! http_iri(+Req, -Iri) is det.
-
-http_iri(Req, Iri) :-
-  memberchk(request_uri(Iri), Req).
-
-
-
-%! http_iri_media_type(+Req, -MT) is semidet.
-
-http_iri_media_type(Req, MT) :-
-  http_iri(Req, Iri),
-  http_iri_query(Iri, mt(MT)).
-
-
-
 %! http_iri_query(+Iri, -Comp) is nondet.
 
 http_iri_query(Iri, Comp) :-
   uri_components(Iri, uri_components(_,_,_,Query,_)),
-  uri_query_components(Query, Comps),
+  (var(Query) -> Comps = [] ; uri_query_components(Query, Comps)),
   member(Comp, Comps).
 
 
@@ -140,6 +127,14 @@ http_iri_query(Iri, Comp) :-
 
 http_link_to_id(HandleId, Local) :-
   http_link_to_id(HandleId, [], Local).
+
+
+
+%! http_location_iri(+Req, -Iri) is det.
+
+http_location_iri(Req, Loc) :-
+  http_relative_iri(Req, Iri),
+  iri_to_location(Iri, Loc).
 
 
 
@@ -171,6 +166,13 @@ http_read_json_dict(Data) :-
 
 
 
+%! http_relative_iri(+Req, -Iri) is det.
+
+http_relative_iri(Req, Iri) :-
+  memberchk(request_uri(Iri), Req).
+
+
+
 %! http_reply_file(+File) is det.
 
 http_reply_file(File) :-
@@ -179,13 +181,15 @@ http_reply_file(File) :-
 
 
 
-%! http_status_reply(+Status) is det.
+%! http_resource_iri(+Req, -Res) is det.
+
+http_resource_iri(Req, Res) :-
+  http_relative_iri(Req, Iri),
+  iri_to_resource(Iri, Res).
+
+
+
 %! http_status_reply(+Req, +Status) is det.
-
-http_status_reply(Status) :-
-  http_current_request(Req),
-  http_status_reply(Req, Status).
-
 
 http_status_reply(Req, Status) :-
   http_output(Req, Out),
