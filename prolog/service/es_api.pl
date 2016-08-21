@@ -405,12 +405,10 @@ es_update_pp([Index,Type,Id], Data) :-
 
 es_delete0(PathComps, Status, Dict) :-
   es_iri0(PathComps, Iri),
-  call_or_fail(
-    http_delete(
-      Iri,
-      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-      [metadata([H|T]),request_header('Accept'='application/json')]
-    )
+  http_delete(
+    Iri,
+    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+    [metadata([H|T]),request_header('Accept'='application/json')]
   ),
   maplist(print_dict, [H|T]),
   Status = H.status.
@@ -426,12 +424,10 @@ es_get0(PathComps, Status, Dict) :-
 
 es_get0(PathComps, QueryComps, Status, Dict) :-
   es_iri0(PathComps, QueryComps, Iri),
-  call_or_fail(
-    http_get(
-      Iri,
-      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-      [metadata([H|T]),request_header('Accept'='application/json')]
-    )
+  http_get(
+    Iri,
+    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+    [metadata([H|T]),request_header('Accept'='application/json')]
   ),
   maplist(print_dict, [H|T]),
   Status = H.status.
@@ -442,11 +438,9 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
 
 es_head0(PathComps, Status) :-
   es_iri0(PathComps, Iri),
-  call_or_fail(
-    http_head(
-      Iri,
-      [metadata([H|T]),request_header('Accept'='application/json')]
-    )
+  http_head(
+    Iri,
+    [metadata([H|T]),request_header('Accept'='application/json')]
   ),
   maplist(print_dict, [H|T]),
   Status = H.status.
@@ -475,13 +469,11 @@ es_iri0(PathComps, QueryComps, Iri) :-
 
 es_post0(PathComps, Data, Status, Dict) :-
   es_iri0(PathComps, Iri),
-  call_or_fail(
-    http_post(
-      Iri,
-      json(Data),
-      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-      [metadata([H|T]),request_header('Accept'='application/json')]
-    )
+  http_post(
+    Iri,
+    json(Data),
+    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+    [metadata([H|T]),request_header('Accept'='application/json')]
   ),
   maplist(print_dict, [H|T]),
   Status = H.status.
