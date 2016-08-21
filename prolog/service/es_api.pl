@@ -1,34 +1,35 @@
 :- module(
   es_api,
   [
-    es_check/1,     %                                -Dict
+    es_check/1,         %                                -Dict
     es_check_pp/0,
-    es_count/1,     % +PathComps
-    es_count/2,     % +PathComps,                    -Dict
+    es_count/1,         % +PathComps
+    es_count/2,         % +PathComps,                    -Dict
     es_count_pp/0,
-    es_count_pp/1,  % +PathComps
-    es_create/3,    % +PathComps, +Data,             -Dict
-    es_create_pp/2, % +PathComps, +Data
-    es_exists/1,    % +PathComps
-    es_get/2,       % +PathComps,                    -Dict
-    es_get/3,       % +PathComps, +Keys,             -Dict
-    es_get_pp/1,    % +PathComps
-    es_get_pp/2,    % +PathComps, +Keys
-    es_health/1,    %                                -Dict
+    es_count_pp/1,      % +PathComps
+    es_create/3,        % +PathComps, +Data,             -Dict
+    es_create_pp/2,     % +PathComps, +Data
+    es_exists/1,        % +PathComps
+    es_get/2,           % +PathComps,                    -Dict
+    es_get/3,           % +PathComps, +Keys,             -Dict
+    es_get_pp/1,        % +PathComps
+    es_get_pp/2,        % +PathComps, +Keys
+    es_health/1,        %                                -Dict
     es_health_pp/0,
-    es_rm/2,        % +PathComps,                    -Dict
-    es_rm_pp/1,     % +PathComps
-    es_search/2,    % +PathComps,                    -Dict
-    es_search/3,    % +PathComps, +Search,           -Dict
-    es_search_pp/1, % +PathComps
-    es_search_pp/2, % +PathComps, +Search
-    es_setting/3,   % +Index, +Key, ?Val
-    es_stat/1,      %                                -Dict
-    es_stat/2,      % +PathComps,                    -Dict
+    es_result_source/2, % +Result, -Source
+    es_rm/2,            % +PathComps,                    -Dict
+    es_rm_pp/1,         % +PathComps
+    es_search/2,        % +PathComps,                    -Dict
+    es_search/3,        % +PathComps, +Search,           -Dict
+    es_search_pp/1,     % +PathComps
+    es_search_pp/2,     % +PathComps, +Search
+    es_setting/3,       % +Index, +Key, ?Val
+    es_stat/1,          %                                -Dict
+    es_stat/2,          % +PathComps,                    -Dict
     es_stat_pp/0,
-    es_stat_pp/1,   % +PathComps
-    es_update/3,    % +PathComps, +Data,             -Dict
-    es_update_pp/2  % +PathComps, +Data
+    es_stat_pp/1,       % +PathComps
+    es_update/3,        % +PathComps, +Data,             -Dict
+    es_update_pp/2      % +PathComps, +Data
   ]
 ).
 
@@ -247,6 +248,15 @@ es_health(Dict) :-
 es_health_pp :-
   es_health(Dict),
   print_dict(Dict).
+
+
+
+%! es_result_source(+Result, -Source) is nondet.
+
+es_result_source(Result, Source) :-
+  member(Dict, Result.hits.hits),
+  atom_string(Id, Dict.'_id'),
+  dict_tag(Dict.'_source', Id, Source).
 
 
 

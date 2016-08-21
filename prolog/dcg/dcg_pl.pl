@@ -30,9 +30,7 @@ DCG rules for printing terms.
 :- multifile
     dcg:dcg_hook//1.
 
-dcg:dcg_hook(dict(Term)) --> pl_dict(Term).
-dcg:dcg_hook(list(Term)) --> pl_list(Term).
-dcg:dcg_hooK(term(Term)) --> pl_term(Term).
+dcg:dcg_hook(Term) --> pl_term(Term).
 
 
 
@@ -120,6 +118,3 @@ pl_simple_term0(A) -->
   atom(A).
 pl_simple_term0(DT) -->
   pl_date_time(DT), !.
-pl_simple_term0(Term) -->
-  {term_to_atom(Term, A)},
-  atom(A).

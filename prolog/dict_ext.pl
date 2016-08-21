@@ -26,6 +26,7 @@
     dict_set/3,             % +Key, D, +Val
     dict_sum/2,             % +Ds, -D
     dict_sum/3,             % +D1, +D2, -D3
+    dict_tag/2,             % +Dict, -Tag
     dict_tag/3,             % +D1, +Tag, ?D2
     empty_dict/1,           % ?Dict
     get_dict/4,             % +Key, +D, -Val, +Def
@@ -271,8 +272,15 @@ pairs_sum([Key-Val|T1], L2, [Key-Val|T3]) :-
 
 
 
+%! dict_tag(+Dict, -Tag) is det.
+
+dict_tag(Dict, Tag) :-
+  dict_pairs(Dict, Tag, _).
+
+
 %! dict_tag(+D1, +Tag, +D2) is semidet.
 %! dict_tag(+D1, +Tag, -D2) is det.
+%
 % Converts between dictionaries that differ only in their outer tag name.
 
 dict_tag(D1, Tag, D2):-
