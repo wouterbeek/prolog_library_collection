@@ -128,12 +128,18 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(L3), SourceOpts)).
 
 
+% No input stream, e.g., HTTP status code 409.
+call_on_stream0(In, _, _, L, L) :-
+  var(In), !.
+% Empty input stream.
 call_on_stream0(In, _, _, L, L) :-
   at_end_of_stream(In), !.
+% Data input stream.
 call_on_stream0(In, _, Goal_3, [H|T], L) :-
   get_dict(format, H, raw),
   get_dict(name, H, data), !,
   call(Goal_3, In, [H|T], L).
+% Compressed and/or packaged input stream.
 call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(

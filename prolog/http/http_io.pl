@@ -214,7 +214,7 @@ http_is_scheme(https).
 %
 %       * minor(nonneg)
 
-http_open_any(Iri, In, [H|T], Opts) :-
+http_open_any(Iri, In, Path, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
   State = _{
@@ -224,14 +224,7 @@ http_open_any(Iri, In, [H|T], Opts) :-
     retries: 0,
     visited: []
   },
-  http_open1(Iri, State, In, [H|T], Opts),
-  % Make sure the metadata is accessible even in case of an HTTP error
-  % code.
-  (   get_dict(status, H, Status),
-      http_status_is_error(Status)
-  ->  existence_error(http_open(Status), [H|T])
-  ;   true
-  ).
+  http_open1(Iri, State, In, Path, Opts).
 
 
 http_open1(Iri, State, In2, [H|T], Opts0) :-
@@ -276,15 +269,12 @@ http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   close(In1),
   http_open1(Iri, State, In2, T, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
+http_open2(Iri, State, _, _, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
-  call_cleanup(
-    if_debug(http(error), http_error_msg(Iri, H.status, Lines, In1)),
-    close(In1)
-  ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
-  ->  T = []
+  ->  In1 = In2,
+      T = []
   ;   http_open1(Iri, State, In2, T, Opts)
   ).
 % Redirect.
@@ -406,12 +396,15 @@ http_status_label(Code, Lbl):-
 
 %! http_status_must_be(+Status, +MustBe) is det.
 %
+% MustBe is a list of HTTP status codes.
+%
 % @throws `http_status(Status,MustBe)`
 
 http_status_must_be(Status, MustBe) :-
-  Status =:= MustBe, !.
+  member(N, MustBe),
+  Status =:= N, !.
 http_status_must_be(Status, MustBe) :-
-  throw(http_status(Status,MustBe)).
+  throw(http_status(Status, MustBe)).
 
 
 
@@ -434,11 +427,11 @@ http_throw_bad_request(Goal_0) :-
 
 % HELPERS %
 
-%! http_get_dict(+Key, +Path, -Val) is nondet.
+%! http_get_dict(+Key, +Path, -Val) is semidet.
 
 http_get_dict(Key, Path, Val) :-
-  Path = [_,Entry|_],
-  get_dict(Key, Entry, Val).
+  member(Entry, Path),
+  get_dict(Key, Entry, Val), !.
 
 
 

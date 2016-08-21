@@ -1,10 +1,6 @@
 :- module(
   es_api,
   [
-    es_change/3,    % +PathComps, +Data,             -Dict
-    es_change/4,    % +PathComps, +Data,   +Version, -Dict
-    es_change_pp/2, % +PathComps, +Data
-    es_change_pp/3, % +PathComps, +Data,   +Version
     es_check/1,     %                                -Dict
     es_check_pp/0,
     es_count/1,     % +PathComps
@@ -20,9 +16,17 @@
     es_get_pp/2,    % +PathComps, +Keys
     es_health/1,    %                                -Dict
     es_health_pp/0,
-    es_rm/1,        % +PathComps
+    es_rm/2,        % +PathComps,                    -Dict
+    es_rm_pp/1,     % +PathComps
+    es_search/2,    % +PathComps,                    -Dict
     es_search/3,    % +PathComps, +Search,           -Dict
+    es_search_pp/1, % +PathComps
     es_search_pp/2, % +PathComps, +Search
+    es_setting/3,   % +Index, +Key, ?Val
+    es_stat/1,      %                                -Dict
+    es_stat/2,      % +PathComps,                    -Dict
+    es_stat_pp/0,
+    es_stat_pp/1,   % +PathComps
     es_update/3,    % +PathComps, +Data,             -Dict
     es_update_pp/2  % +PathComps, +Data
   ]
@@ -31,17 +35,6 @@
 /** <module> Elastic Search API
 
 A typical use of PathComps is [<INDEX>,<TYPE>,<DOC>].
-
-# Settings
-
-```swi
-_{
-  settings : _{
-    number_of_shards : 3,
-    number_of_replicas : 1
-  }
-}
-```
 
 # Query DSL
 
@@ -60,7 +53,7 @@ _{
 ```swi
 _{
   highlight: _{
-    fields: {
+    fields: _{
       <KEY>: _{}
     }
   },
@@ -76,15 +69,15 @@ _{
 _{
   query: _{
     filtered: _{
-      filter: {
-        range: {
-          <KEY>: {
+      filter: _{
+        range: _{
+          <KEY>: _{
             gt: <NONNEG>
           }
         }
       },
-      query: {
-        match_phrase: {
+      query: _{
+        match_phrase: _{
           <KEY>: "<X> <Y>"
         }
       }
@@ -100,6 +93,7 @@ _{
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
@@ -121,52 +115,12 @@ _{
 
 
 
-%! es_change(+PathComps, +Data, -Dict) is det.
-%! es_change(+PathComps, +Data, +Version, -Dict) is det.
-%! es_change_pp(+PathComps, +Data) is det.
-%! es_change_pp(+PathComps, +Data, +Version) is det.
-%
-% Dict contains the following keys:
-%
-%   - '_id'(-atom)
-%
-%   - '_index'(-atom)
-%
-%   - '_type'(-atom)
-%
-%   - '_version'(-positive_integer)
-%
-%   - created(-boolean)
-%
-% Create a new document or change an existing document.
-
-es_change([Index,Type,Id], Data, Dict):-
-  es_put0([Index,Type,Id], Data, Status, Dict),
-  http_status_must_be(Status, 200).
-
-
-es_change([Index,Type,Id], Data, Version, Dict):-
-  es_put0([Index,Type,Id], Data, [version(Version)], Status, Dict),
-  http_status_must_be(Status, 200).
-
-
-es_change_pp(PathComps, Data):-
-  es_change(PathComps, Data, Dict),
-  print_dict(Dict).
-
-
-es_change_pp(PathComps, Data, Version):-
-  es_change(PathComps, Data, Version, Dict),
-  print_dict(Dict).
-
-
-
 %! es_check(-Dict) is det.
 %! es_check_pp is det.
 
 es_check(Dict) :-
   es_get0([], Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 es_check_pp :-
@@ -195,7 +149,7 @@ es_count(Dict) :-
 es_count(PathComps1, Dict) :-
   append(PathComps1, ['_count'], PathComps2),
   es_get0(PathComps2, Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
   
 
 es_count_pp :-
@@ -213,13 +167,16 @@ es_count_pp(PathComps) :-
 %! es_create_pp(+PathComps, +Data) is det.
 %
 % Create a new document.
+%
+% Succeeds if a document with given Id already exists.
 
 es_create([Index,Type], Data, Dict) :- !,
+  % The POST method auto-generated an ElasticSearch Id.
   es_post0([Index,Type], Data, Status, Dict),
-  http_status_must_be(Status, 201).
+  http_status_must_be(Status, [201]).
 es_create([Index,Type,Id], Data, Dict) :-
   es_put0([Index,Type,Id,'_create'], Data, Status, Dict),
-  http_status_must_be(Status, 201).
+  http_status_must_be(Status, [201,409]).
 
 
 es_create_pp(PathComps, Data) :-
@@ -232,7 +189,7 @@ es_create_pp(PathComps, Data) :-
 
 es_exists(PathComps) :-
   es_head0(PathComps, Status),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 
@@ -259,13 +216,13 @@ es_exists(PathComps) :-
 
 es_get(PathComps, Dict) :-
   es_get0(PathComps, Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 es_get(PathComps, Keys, Dict) :-
   atomic_list_concat(Keys, ',', Search),
   es_get0(PathComps, ['_source'(Search)], Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 es_get_pp(PathComps) :-
@@ -284,7 +241,7 @@ es_get_pp(PathComps, Keys) :-
 
 es_health(Dict) :-
   es_get0(['_cluster',health], Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 es_health_pp :-
@@ -293,16 +250,30 @@ es_health_pp :-
 
 
 
-%! es_rm(+PathComps) is det.
+%! es_rm(+PathComps, -Dict) is det.
+%! es_rm_pp(+PathComps) is det.
 
-es_rm(PathComps) :-
-  es_delete0(PathComps, Status),
-  http_status_must_be(Status, 200).
+es_rm(PathComps, Dict) :-
+  es_delete0(PathComps, Status, Dict),
+  http_status_must_be(Status, [200]).
+
+
+es_rm_pp(PathComps) :-
+  es_rm(PathComps, Dict),
+  print_dict(Dict).
 
 
 
+%! es_search(+PathComps, -Dict) is nondet.
 %! es_search(+PathComps, +Search, -Dict) is nondet.
+%! es_search_pp(+PathComps) is nondet.
 %! es_search_pp(+PathComps, +Search) is nondet.
+
+es_search(PathComps1, Dict) :-
+  append(PathComps1, ['_search'], PathComps2),
+  es_get0(PathComps2, Status, Dict),
+  http_status_must_be(Status, [200]).
+
 
 es_search(PathComps1, Search, Dict) :-
   append(PathComps1, ['_search'], PathComps2),
@@ -313,14 +284,19 @@ es_search(PathComps1, Search, Dict) :-
       format_simple_search_string(Search, Str),
       es_get0(PathComps2, [q(Str)], Status, Dict)
   ),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 format_simple_search_string(Comp, Str) :-
   compound(Comp), !,
   Comp =.. [Key,Val],
-  format(string(Str), "~a:~s", [Key,Val]).
+  format(string(Str), "~a:~w", [Key,Val]).
 format_simple_search_string(Str, Str).
+
+
+es_search_pp(PathComps) :-
+  es_search(PathComps, Dict),
+  print_dict(Dict).
 
 
 es_search_pp(PathComps, Search) :-
@@ -329,25 +305,90 @@ es_search_pp(PathComps, Search) :-
 
 
 
+%! es_setting(+Index, +Key, +Val) is det.
+%! es_setting(+Index, +Key, -Val) is det.
+%
+% Get and set settings.
+%
+% The following keys are supported:
+%
+%   - number_of_shards(nonneg)
+%
+%   - number_of_replicas(nonneg)
+%
+% @tbd Get a setting.
+
+es_setting(Index, Key, Val) :-
+  ground(Val), !,
+  dict_pairs(Data, [Key-Val]),
+  es_put0([Index,'_settings'], Data, Status, Dict),
+  Dict.acknowledged == true,
+  http_status_must_be(Status, [200]).
+
+
+
+%! es_stat(-Dict) is det.
+%! es_stat(+PathComps, -Dict) is det.
+%! es_stat_pp is det.
+%! es_stat_pp(+PathComps) is det.
+
+es_stat(Dict) :-
+  es_stat([], Dict).
+
+
+es_stat(PathComps1, Dict) :-
+  append(PathComps1, ['_stats'], PathComps2),
+  es_get0(PathComps2, Status, Dict),
+  http_status_must_be(Status, [200]).
+
+
+es_stat_pp :-
+  es_stat(Dict),
+  print_dict(Dict).
+
+
+es_stat_pp(PathComps) :-
+  es_stat(PathComps, Dict),
+  print_dict(Dict).
+
+
+
 %! es_update(+PathComps, +Data, -Dict) is det.
 %! es_update_pp(+PathComps, +Data) is det.
 %
-% Data can be:
+% # Examples of Data
 %
-%  - _{doc: <DICT>}
+% Merge `Dict` with the existing document:
 %
-%  - _{script: 'ctx._source.<KEY>+=<INT>'}
+% ```swi
+% _{doc: Dict}
+% ```
 %
-%  - _{
-%      script: 'ctx._source.<KEY>+=new_tag',
-%      params: _{new_tag : <VAL>}
-%    }
+% Groovy script [?]:
 %
-%  - _{upsert: <DICT>, ...}
+% ```swi
+% _{script: 'ctx._source.<KEY>+=<INT>'}
+% ```
+%
+% Groovy script with parameters [?]:
+%
+% ```swi
+% _{
+%   script: 'ctx._source.<KEY>+=new_tag',
+%   params: _{new_tag : Val}
+% }
+% ```
+%
+% Dict is the document that is inserted when the document does not yet
+% exist:
+%
+% ```swi
+% _{script: ..., upsert: Dict}
+% ```
 
 es_update([Index,Type,Id], Data, Dict) :-
   es_post0([Index,Type,Id,'_update'], Data, Status, Dict),
-  http_status_must_be(Status, 200).
+  http_status_must_be(Status, [200]).
 
 
 es_update_pp([Index,Type,Id], Data) :-
@@ -360,11 +401,17 @@ es_update_pp([Index,Type,Id], Data) :-
 
 % HELPERS %
 
-%! es_delete0(+PathComps, -Status) is det.
+%! es_delete0(+PathComps, -Status, -Dict) is det.
 
-es_delete0(PathComps, Status) :-
+es_delete0(PathComps, Status, Dict) :-
   es_iri0(PathComps, Iri),
-  http_delete(Iri, true, [metadata([H|T])]),
+  call_or_fail(
+    http_delete(
+      Iri,
+      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+      [metadata([H|T]),request_header('Accept'='application/json')]
+    )
+  ),
   maplist(print_dict, [H|T]),
   Status = H.status.
 
@@ -383,7 +430,7 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
     http_get(
       Iri,
       {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-      [metadata([H|T])]
+      [metadata([H|T]),request_header('Accept'='application/json')]
     )
   ),
   maplist(print_dict, [H|T]),
@@ -395,7 +442,12 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
 
 es_head0(PathComps, Status) :-
   es_iri0(PathComps, Iri),
-  call_or_fail(http_head(Iri, [metadata([H|T])])),
+  call_or_fail(
+    http_head(
+      Iri,
+      [metadata([H|T]),request_header('Accept'='application/json')]
+    )
+  ),
   maplist(print_dict, [H|T]),
   Status = H.status.
 
@@ -445,13 +497,11 @@ es_put0(PathComps, Data, Status, Dict) :-
 
 es_put0(PathComps, Data, QueryComps, Status, Dict) :-
   es_iri0(PathComps, QueryComps, Iri),
-  call_or_fail(
-    http_put(
-      Iri,
-      json(Data),
-      {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-      [metadata([H|T]),request_header('Accept'='application/json')]
-    )
+  http_put(
+    Iri,
+    json(Data),
+    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
+    [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|T]),
+  maplist(print_dict, [H|_]),
   Status = H.status.
