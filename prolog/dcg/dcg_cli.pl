@@ -15,7 +15,7 @@
 /** <module> DCG CLI
 
 @author Wouter Beek
-@version 2016/06
+@version 2016/06, 2016/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -27,6 +27,11 @@
     enumerate(3, +, +, ?, ?),
     itemize(3, +, ?, ?),
     itemize(3, +, +, ?, ?).
+
+:- multifile
+    dcg:dcg_hook//1.
+
+dcg:dcg_hook(bold(Term)) --> bold(Term).
 
 
 

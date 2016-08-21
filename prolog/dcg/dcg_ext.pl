@@ -267,7 +267,7 @@ My favorite collection of DCG rules.
     tuple(3, +, ?, ?).
 
 :- multifile
-   dcg:dcg_hook//1.
+    dcg:dcg_hook//1.
 
 dcg:dcg_hook(perc(Term)) --> perc_fixed(Term).
 

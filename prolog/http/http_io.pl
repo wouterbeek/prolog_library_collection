@@ -81,6 +81,7 @@ The following debug flags are used:
 :- use_module(library(option)).
 :- use_module(library(os/io)).
 :- use_module(library(print_ext)).
+:- use_module(library(settings)).
 :- use_module(library(ssl)).                  % SSL support
 :- use_module(library(time)).
 :- use_module(library(uri)).
@@ -104,6 +105,13 @@ The following debug flags are used:
     ssl_verify/5.
 
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
+
+:- setting(
+     user_agent,
+     string,
+     "SWI-Prolog",
+     "The HTTP User Agent."
+   ).
 
 
 
@@ -229,6 +237,7 @@ http_open_any(Iri, In, Path, Opts) :-
 
 http_open1(Iri, State, In2, Path, Opts0) :-
   copy_term(Opts0, Opts1),
+  setting(user_agent, UA),
   Opts2 = [
     authenticate(false),
     cert_verify_hook(cert_accept_any),
@@ -236,6 +245,7 @@ http_open1(Iri, State, In2, Path, Opts0) :-
     raw_headers(Lines),
     redirect(false),
     status_code(Status),
+    user_agent(UA),
     version(Major-Minor)
   ],
   merge_options(Opts1, Opts2, Opts3),
