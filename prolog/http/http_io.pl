@@ -227,7 +227,7 @@ http_open_any(Iri, In, Path, Opts) :-
   http_open1(Iri, State, In, Path, Opts).
 
 
-http_open1(Iri, State, In2, [H|T], Opts0) :-
+http_open1(Iri, State, In2, Path, Opts0) :-
   copy_term(Opts0, Opts1),
   Opts2 = [
     authenticate(false),
@@ -245,6 +245,7 @@ http_open1(Iri, State, In2, [H|T], Opts0) :-
     call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
   ),
   indent_debug(in, io, "R> ~a → ~w", [Iri,In1]),
+  % @tbd Remove throw/1?
   (   var(E)
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),
@@ -258,7 +259,8 @@ http_open1(Iri, State, In2, [H|T], Opts0) :-
       },
       http_open2(Iri, State, Location, Lines, In1, [H|T], In2, Opts0)
   ;   throw(E)
-  ).
+  ),
+  reverse([H|T], Path).
 
 
 % Authentication error.

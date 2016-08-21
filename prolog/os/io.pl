@@ -278,7 +278,7 @@ call_to_codes(Goal_1, Cs) :-
 %
 %     * mode(oneof([append,write]))
 %
-%   * mode(+oneof([append,write])) The default is `append`.
+%   * mode(+oneof([append,write])) The default is `write`.
 %
 %   * Other options are passed to open_any2/6.
 
@@ -287,7 +287,7 @@ call_to_stream(Sink, Goal_1) :-
 
 
 call_to_stream(Sink, Goal_1, SinkOpts) :-
-  option(mode(Mode), SinkOpts, append),
+  option(mode(Mode), SinkOpts, write),
   must_be(write_mode, Mode),
   setup_call_cleanup(
     open_any2(Sink, Mode, Out, Close_0, L1, SinkOpts),
@@ -298,8 +298,8 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
 
 
 call_to_compressed_stream(Out1, Goal_1, [H1|T], [H2|T], SinkOpts) :-
-  put_dict(compression, H1, gzip, H2),
   option(compression(true), SinkOpts, true), !,
+  put_dict(compression, H1, gzip, H2),
   setup_call_cleanup(
     (
       zopen(Out1, Out2, [close_parent(false),format(gzip)]),
@@ -327,7 +327,7 @@ call_to_compressed_stream(Out, Goal_1, L, L, _) :-
 %
 %   * metadata(-dict)
 %
-%   * mode(+oneof([append,write])) The default is `append`.
+%   * mode(+oneof([append,write])) The default is `write`.
 %
 %   * Other options are passed to open_any2/6.
 
@@ -340,8 +340,8 @@ call_to_streams(Sink1, Sink2, Goal_2, SinkOpts) :-
 
 
 call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
-  option(mode(Mode1), Sink1Opts, append),
-  option(mode(Mode2), Sink2Opts, append),
+  option(mode(Mode1), Sink1Opts, write),
+  option(mode(Mode2), Sink2Opts, write),
   setup_call_cleanup(
     open_any2(Sink1, Mode1, Out1, Close1_0, L1a, Sink1Opts),
     setup_call_cleanup(
@@ -355,8 +355,7 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   ignore(option(metadata2(L3b), Sink2Opts)).
 
 
-call_to_streams0(Out1a, Out2, Goal_2, L1a, L2a, Sink1Opts, L1b, L2b, Sink2Opts) :-
-  option(compression(true), Sink1Opts, true), !,
+call_to_streams0(Out1a, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts) :-
   call_to_compressed_stream(
     Out1a,
     {Out2,Goal_2,L1a,L2a,Sink2Opts}/[Out1b]>>(
@@ -367,9 +366,6 @@ call_to_streams0(Out1a, Out2, Goal_2, L1a, L2a, Sink1Opts, L1b, L2b, Sink2Opts) 
     L2b,
     Sink1Opts
   ).
-call_to_streams0(Out1, Out2, Goal_2, L1a, L1a, _, L2a, L2b, Sink2Opts) :-
-  goal_manipulation(Goal_2, [Out1], Goal_1),
-  call_to_compressed_stream(Out2, Goal_1, L2a, L2b, Sink2Opts).
 
 
 

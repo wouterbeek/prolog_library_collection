@@ -102,24 +102,25 @@ append_directories(Dir1, Dir2, Dir3) :-
 
 %! count_numlines(+Source, -NumLines) is det.
 
-count_numlines(Source, N) :-
-  catch(
-    call_on_stream(Source, count_numlines_stream0(N)),
-    error(no_content(_),_),
-    N = 0
-  ).
+count_numlines(Source, NumLines) :-
+  call_on_stream(
+    Source,
+    count_numlines_stream0(NumLines),
+    [metadata(Path)]
+  ),
+  writeln(Path).
 
 
-count_numlines_stream0(N, In, Meta, Meta) :-
-  count_numlines_stream0(N, 0, In).
+count_numlines_stream0(NumLines, In, L, L) :-
+  count_numlines_stream0(In, 0, NumLines).
 
 
-count_numlines_stream0(N, M1, In) :-
+count_numlines_stream0(In, M1, NumLines) :-
   read_line_to_codes(In, Cs),
   (   Cs == end_of_file
-  ->  N = M1
+  ->  NumLines = M1
   ;   M2 is M1 + 1,
-      count_numlines_stream0(In, M2, N)
+      count_numlines_stream0(In, M2, NumLines)
   ).
 
 
