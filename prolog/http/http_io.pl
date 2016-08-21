@@ -24,6 +24,7 @@
     http_status_is_error/1,      % +Status
     http_status_is_redirect/1,   % +Status
     http_status_label/2,         % +Status, -Lbl
+    http_status_must_be/2,       % +Status, +MustBe
     http_throw_bad_request/1     % :Goal_0
   ]
 ).
@@ -400,6 +401,17 @@ http_status_is_redirect(Status) :-
 http_status_label(Code, Lbl):-
   http_header:status_number_fact(Fact, Code),
   string_phrase(http_header:status_comment(Fact), Lbl).
+
+
+
+%! http_status_must_be(+Status, +MustBe) is det.
+%
+% @throws `http_status(Status,MustBe)`
+
+http_status_must_be(Status, MustBe) :-
+  Status =:= MustBe, !.
+http_status_must_be(Status, MustBe) :-
+  throw(http_status(Status,MustBe)).
 
 
 

@@ -72,11 +72,11 @@ The following debug flags are used:
 :- multifile
     error:has_type/2.
 
-error:has_type(read_mode, T) :-
-  error:has_type(oneof([read]), T).
+error:has_type(read_mode, Term) :-
+  error:has_type(oneof([read]), Term).
 
-error:has_type(write_mode, T) :-
-  error:has_type(oneof([append,write]), T).
+error:has_type(write_mode, Term) :-
+  error:has_type(oneof([append,write]), Term).
 
 
 
@@ -121,12 +121,11 @@ call_on_stream(Source, Goal_3) :-
 call_on_stream(Source, Goal_3, SourceOpts) :-
   option(entry_name(Entry0), SourceOpts, _),
   setup_call_cleanup(
-    open_any2(Source, read, In, Close_0, [H1|T], SourceOpts),
-    call_on_stream0(In, Entry0, Goal_3, [H1|T], L1),
-    close_any2(Close_0, H1, H2)
+    open_any2(Source, read, In, Close_0, L1, SourceOpts),
+    call_on_stream0(In, Entry0, Goal_3, L1, L2),
+    close_any2(Close_0, L2, L3)
   ),
-  append(L1, [H2|T], L2),
-  ignore(option(metadata(L2), SourceOpts)).
+  ignore(option(metadata(L3), SourceOpts)).
 
 
 call_on_stream0(In, _, _, L, L) :-
@@ -150,12 +149,12 @@ call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
   ).
 
 
-call_on_archive0(Arch, Entry0, Goal_3, T, L2) :-
+call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, Entry)
   ->  findall(Property, archive_header_property(Arch, Property), Properties),
-      dict_create(H1, [filters(Filters),name(Entry)|Properties]),
+      dict_create(H0, [filters(Filters),name(Entry)|Properties]),
       % If the entry name is `data` then proceed.  If the entry name
       % is uninstantiated then proceed.  If entry name is instantiated and does not occur in the
       % current archive header then fail (repeat/0 will iterate to the
@@ -165,17 +164,21 @@ call_on_archive0(Arch, Entry0, Goal_3, T, L2) :-
           % closing this choicepoint would cause archive_next_header/2
           % to throw an exception.
           Entry == data,
-          H1.format == raw
-      ->  !
-      ;   % If the given entry name occurs in the current archive
-          % header then red cut, because we are in the correct entry
-          % branch.
-          Entry == Entry0
-      ->  !
-      ;   % If the given entry name did not match the current archive
-          % header then fail, because we are in the wrong entry
-          % branch.
-          var(Entry0)
+          H0.format == raw
+      ->  !,
+          H2 = H1.put(H0),
+          L2 = [H2|T1]
+      ;   L2 = [H0,H1|T1],
+          (   % If the given entry name occurs in the current archive
+              % header then red cut, because we are in the correct entry
+              % branch.
+              Entry == Entry0
+          ->  !
+          ;   % If the given entry name did not match the current archive
+              % header then fail, because we are in the wrong entry
+              % branch.
+              var(Entry0)
+          )
       ),
       (   memberchk(filetype(file), Properties)
       ->  setup_call_cleanup(
@@ -183,11 +186,8 @@ call_on_archive0(Arch, Entry0, Goal_3, T, L2) :-
               archive_open_entry(Arch, In),
               indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In])
             ),
-            call_on_stream0(In, Entry0, Goal_3, [H1|T], L1),
-            (
-              append(L1, [H2|T], L2),
-              close_any2(close(In), H1, H2)
-            )
+            call_on_stream0(In, Entry0, Goal_3, L2, L3),
+            close_any2(close(In), L3, L4)
           )
       ;   fail
       )
@@ -216,9 +216,9 @@ call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
   call_on_stream(Source, call_onto_stream0(Sink, Goal_4, SinkOpts), SourceOpts).
 
 
-call_onto_stream0(Sink, Mod:Goal_4, SinkOpts, In, L1, L2) :-
+call_onto_stream0(Sink, Goal_4, SinkOpts, In, L1, L2) :-
   goal_manipulation(Goal_4, [In,L1,L2], Goal_1),
-  call_to_stream(Sink, Mod:Goal_1, SinkOpts).
+  call_to_stream(Sink, Goal_1, SinkOpts).
 
 
 
@@ -284,14 +284,14 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
   option(mode(Mode), SinkOpts, append),
   must_be(write_mode, Mode),
   setup_call_cleanup(
-    open_any2(Sink, Mode, Out, Close_0, [H1|T], SinkOpts),
-    call_to_compressed_stream(Out, Goal_1, H1, H2, SinkOpts),
-    close_any2(Close_0, H2, H3)
+    open_any2(Sink, Mode, Out, Close_0, L1, SinkOpts),
+    call_to_compressed_stream(Out, Goal_1, L1, L2, SinkOpts),
+    close_any2(Close_0, L2, L3)
   ),
-  ignore(option(metadata([H3|T]), SinkOpts)).
+  ignore(option(metadata(L3), SinkOpts)).
 
 
-call_to_compressed_stream(Out1, Goal_1, H1, H2, SinkOpts) :-
+call_to_compressed_stream(Out1, Goal_1, [H1|T], [H2|T], SinkOpts) :-
   put_dict(compression, H1, gzip, H2),
   option(compression(true), SinkOpts, true), !,
   setup_call_cleanup(
@@ -305,7 +305,7 @@ call_to_compressed_stream(Out1, Goal_1, H1, H2, SinkOpts) :-
       indent_debug(out, io, "<ZW ~w", [Out2])
     )
   ).
-call_to_compressed_stream(Out, Goal_1, H, H, _) :-
+call_to_compressed_stream(Out, Goal_1, L, L, _) :-
   call(Goal_1, Out).
 
 
@@ -337,33 +337,33 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode1), Sink1Opts, append),
   option(mode(Mode2), Sink2Opts, append),
   setup_call_cleanup(
-    open_any2(Sink1, Mode1, Out1, Close1_0, [H1a|T1], Sink1Opts),
+    open_any2(Sink1, Mode1, Out1, Close1_0, L1a, Sink1Opts),
     setup_call_cleanup(
-      open_any2(Sink2, Mode2, Out2, Close2_0, [H2a|T2], Sink2Opts),
-      call_to_streams0(Out1, Out2, Goal_2, H1a, H1b, Sink1Opts, H2a, H2b, Sink2Opts),
-      close_any2(Close1_0, H2b, H2c)
+      open_any2(Sink2, Mode2, Out2, Close2_0, L1b, Sink2Opts),
+      call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
+      close_any2(Close1_0, L2b, L3b)
     ),
-    close_any2(Close2_0, H1b, H1c)
+    close_any2(Close2_0, L2a, L3a)
   ),
-  ignore(option(metadata1([H1c|T1]), Sink1Opts)),
-  ignore(option(metadata2([H2c|T2]), Sink2Opts)).
+  ignore(option(metadata1(L3a), Sink1Opts)),
+  ignore(option(metadata2(L3b), Sink2Opts)).
 
 
-call_to_streams0(Out1a, Out2, Goal_2, H1a, H1b, Sink1Opts, H2a, H2b, Sink2Opts) :-
+call_to_streams0(Out1a, Out2, Goal_2, L1a, L2a, Sink1Opts, L1b, L2b, Sink2Opts) :-
   option(compression(true), Sink1Opts, true), !,
   call_to_compressed_stream(
     Out1a,
-    {Out2,Goal_2,H2a,H2b,Sink2Opts}/[Out1b]>>(
+    {Out2,Goal_2,L1a,L2a,Sink2Opts}/[Out1b]>>(
       goal_manipulation(Goal_2, [Out1b], Goal_1),
-      call_to_compressed_stream(Out2, Goal_1, H2a, H2b, Sink2Opts)
+      call_to_compressed_stream(Out2, Goal_1, L1a, L2a, Sink2Opts)
     ),
-    H1a,
-    H1b,
+    L1b,
+    L2b,
     Sink1Opts
   ).
-call_to_streams0(Out1, Out2, Goal_2, H1, H1, _, H2a, H2b, Sink2Opts) :-
+call_to_streams0(Out1, Out2, Goal_2, L1a, L1a, _, L2a, L2b, Sink2Opts) :-
   goal_manipulation(Goal_2, [Out1], Goal_1),
-  call_to_compressed_stream(Out2, Goal_1, H2a, H2b, Sink2Opts).
+  call_to_compressed_stream(Out2, Goal_1, L2a, L2b, Sink2Opts).
 
 
 
@@ -374,16 +374,16 @@ call_to_string(Goal_1, Str) :-
 
 
 
-%! close_any2(+Close_0, +H1, -H2) is det.
+%! close_any2(+Close_0, +L1, -L2) is det.
 
-close_any2(close(Stream), H1, H2) :- !,
+close_any2(close(Stream), [H1|T], [H2|T]) :- !,
   stream_metadata(Stream, H0),
   H2 = H1.put(H0),
   stream_property(Stream, mode(Mode)),
   close(Stream),
-  (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-  indent_debug(out, io, "<~s ~w", [M,Stream]).
-close_any2(true, H, H).
+  (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+  indent_debug(out, io, "<~s ~w", [Lbl,Stream]).
+close_any2(true, L, L).
 
 
 
@@ -412,8 +412,8 @@ open_any2(Spec, Mode, Stream, Close_0, [H2], Opts) :-
   ;   absolute_file_name(Spec, File),
       Close_0 = close(Stream),
       H1 = _{file: File},
-      (read_mode(Mode) -> M = "R" ; write_mode(Mode) -> M = "W"),
-      indent_debug(in, io, "~s> ~w → ~w", [M,Spec,Stream])
+      (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+      indent_debug(in, io, "~s> ~w → ~w", [Lbl,Spec,Stream])
   ),
   put_dict(mode, H1, Mode, H2).
 
