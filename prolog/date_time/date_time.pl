@@ -84,7 +84,7 @@ error:has_type('dt-pl', time(H,Mi,S)):-
 error:has_type('dt-rdf', date(Y,Mo,D)) :-
   error:has_type('dt-pl', date(Y,Mo,D)).
 % RDF11 date_time/6
-error:has_type('dt-rdf', date(Y,Mo,D,H,Mi,S)) :-
+error:has_type('dt-rdf', date_time(Y,Mo,D,H,Mi,S)) :-
   error:has_type('dt-rdf', date(Y,Mo,D)),
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
