@@ -151,10 +151,10 @@ pagination_empty(Opts, Result) :-
 
 pagination_iri(Result, Rel, Iri) :-
   pagination_page(Result, Rel, Page),
-  get_dict(query, Result, Query0, []),
-  uri_query_components(Query, [page(Page)|Query0]),
-  iri_change_comp(Result.iri, query, Query, Spec),
-  http_absolute_uri(Spec, Iri).
+  get_dict(query, Result, QueryComps, []),
+  uri_query_components(Query, [page(Page)|QueryComps]),
+  uri_components(Result.iri, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 
