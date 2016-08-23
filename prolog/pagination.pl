@@ -114,7 +114,7 @@ pagination(Pattern, Goal_0, Opts1, Result2) :-
       Opts4.page0 >= StartPage
   ->  true
   ;   false
-  ),
+  ), !,
   Result1 = _{
     number_of_results: NumResults,
     page: Opts4.page0,
@@ -122,6 +122,8 @@ pagination(Pattern, Goal_0, Opts1, Result2) :-
     results: Results
   },
   merge_dicts(Opts4, Result1, Result2).
+pagination(_, _, Opts, Result) :-
+  pagination_empty(Opts, Result).
 
 
 
