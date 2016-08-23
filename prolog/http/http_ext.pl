@@ -33,41 +33,15 @@ messages.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(error)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(iri/iri_ext)).
-
-% Extend the support for HTTP parameter handing with:
-%
-%   - nonpos
-%   - term
-
-:- multifile
-    http:convert_parameter/3.
-
-http:convert_parameter(term, Atom, Term) :- !,
-  atom_to_term(Atom, Term).
-% @note This replaces some of the functionality of
-% library(http/http_parameters), which duplicates the type-checking
-% code.
-http:convert_parameter(Type, Atom, Term) :-
-  integer_type(Type), !,
-  http_parameters:to_number(Atom, Term),
-  is_of_type(Type, Term).
-
-integer_type(integer).
-integer_type(negative_integer).
-integer_type(nonneg).
-integer_type(nonpos).
-integer_type(positive_integer).
 
 
 
