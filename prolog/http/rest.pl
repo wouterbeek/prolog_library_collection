@@ -17,6 +17,7 @@
 
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_ext)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_write)).
 :- use_module(library(http/json)).
 :- use_module(library(iri/iri_ext)).
@@ -90,7 +91,8 @@ rest_media_type(Req, MTs, HandleId, Singular_2) :-
   member(MT, MTs),
   (   http_link_to_id(HandleId, Iri)
   ->  reply_http_message(Req, 404)
-  ;   call(Singular_2, Iri, MT)
+  ;   iri_to_resource(Iri, Res),
+      call(Singular_2, Res, MT)
   ), !.
 % 406 “Not Acceptable”
 rest_media_type(Req, _, _, _) :-
@@ -103,7 +105,8 @@ rest_media_type(Req, MTs, Plural_1, HandleId, Singular_2) :-
   member(MT, MTs),
   (   http_link_to_id(HandleId, Iri)
   ->  call(Plural_1, MT)
-  ;   call(Singular_2, Iri, MT)
+  ;   iri_to_resource(Iri, Res),
+      call(Singular_2, Res, MT)
   ), !.
 % 406 “Not Acceptable”
 rest_media_type(Req, _, _, _, _) :-

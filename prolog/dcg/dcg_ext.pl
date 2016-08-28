@@ -269,7 +269,12 @@ My favorite collection of DCG rules.
 :- multifile
     dcg:dcg_hook//1.
 
-dcg:dcg_hook(perc(Term)) --> perc_fixed(Term).
+dcg:dcg_hook(perc(Term)) -->
+  perc_fixed(Term).
+dcg:dcg_hook(set(L)) -->
+  set(L).
+dcg:dcg_hook(thousands(N)) -->
+  thousands(N).
 
 :- setting(tab_size, integer, 2,
      'The number of spaces that go into one tab.'
