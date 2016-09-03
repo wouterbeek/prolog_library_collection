@@ -2,17 +2,18 @@
   rest,
   [
     rest_exception/2,  % +MTs, +E
-    rest_media_type/3, % +Req, +MTs, :Plural_1
-    rest_media_type/4, % +Req, +MTs, +HandleId, Singular_2
-    rest_media_type/5, % +Req, +MTs, Plural_1, +HandleId, Singular_2
-    rest_method/3      % +Req, +Methods, :Goal_3
+    rest_exception/3,  % +Req, +MTs, +E
+    rest_media_type/3, % +Req, +MTs, :Goal_1
+    rest_method/3,     % +Req, +Methods, :Plural_3
+    rest_method/4,     % +Req, +Methods, +HandleId, :Signular_4
+    rest_method/5      % +Req, +Methods, :Plural_3, +HandleId, :Signular_4
   ]
 ).
 
 /** <module> REST
 
 @author Wouter Beek
-@version 2016/02, 2016/04-2016/06, 2016/08
+@version 2016/02, 2016/04-2016/06, 2016/08-2016/09
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
@@ -25,21 +26,21 @@
 
 :- html_meta
    rest_media_type(+, +, 1),
-   rest_media_type(+, +, +, 2),
-   rest_media_type(+, +, 1, +, 2),
    rest_method(+, +, 3),
-   rest_method(+, +, +, 3).
+   rest_method(+, +, +, 4),
+   rest_method(+, +, 3, +, 4),
+   rest_method(+, +, +, 3, +, 4).
 
 
 
 
 
-%! rest_exception(+MT, +E) is det.
+%! rest_exception(+MTs, +E) is det.
 %! rest_exception(+Req, +MTs, +E) is det.
 
-rest_exception(MT, E) :-
+rest_exception(MTs, E) :-
   http_current_request(Req),
-  rest_exception(Req, [MT], E).
+  rest_exception(Req, MTs, E).
 
 
 rest_exception(Req, MTs, error(E,_)) :- !,
@@ -70,72 +71,58 @@ rest_exception_media_type(Req, MT, existence_error(http_parameter,Key)) :- !,
 
 
 
-%! rest_media_type(+Req, +MTs, :Plural_1) is det.
-%! rest_media_type(+Req, +MTs, +HandleId, :Singular_2) is det.
-%! rest_media_type(+Req, +MTs, :Plural_1, +HandleId, :Singular_2) is det.
+%! rest_media_type(+Req, +MTs, :Goal_1) is det.
 %
 % @tbd Add body for 405 code in multiple media types.
 
 % Media type accepted, on to application-specific reply.
-rest_media_type(_, MTs, Plural_1) :-
+rest_media_type(_, MTs, Goal_1) :-
   member(MT, MTs),
-  call(Plural_1, MT), !.
+  call(Goal_1, MT), !.
 % 406 “Not Acceptable”
 rest_media_type(Req, _, _) :-
   reply_http_message(Req, 406).
 
 
-% Media type accepted, on to application-specific reply.
-rest_media_type(Req, MTs, HandleId, Singular_2) :-
-  http_relative_iri(Req, Iri),
-  member(MT, MTs),
-  (   http_link_to_id(HandleId, Iri)
-  ->  reply_http_message(Req, 404)
-  ;   iri_to_resource(Iri, Res),
-      call(Singular_2, Res, MT)
-  ), !.
-% 406 “Not Acceptable”
-rest_media_type(Req, _, _, _) :-
-  reply_http_message(Req, 406).
 
-
-% Media type accepted, on to application-specific reply.
-rest_media_type(Req, MTs, Plural_1, HandleId, Singular_2) :-
-  http_relative_iri(Req, Iri),
-  member(MT, MTs),
-  (   http_link_to_id(HandleId, Iri)
-  ->  call(Plural_1, MT)
-  ;   iri_to_resource(Iri, Res),
-      call(Singular_2, Res, MT)
-  ), !.
-% 406 “Not Acceptable”
-rest_media_type(Req, _, _, _, _) :-
-  reply_http_message(Req, 406).
-
-
-
-%! rest_method(+Req, +Methods, :Goal_3) is det.
+%! rest_method(+Req, +Methods, :Plural_3) is det.
+%! rest_method(+Req, +Methods, +HandleId, :Singular_4) is det.
+%! rest_method(+Req, +Methods, :Plural_3, +HandleId, :Singular_4) is det.
 %
 % @tbd Return info for 405 status code.
 
-rest_method(Req, Methods, Goal_3) :-
+rest_method(Req, Methods, Plural_3) :-
+  rest_method(Req, Methods, Plural_3, _, _).
+
+
+rest_method(Req, Methods, HandleId, Singular_4) :-
+  rest_method(Req, Methods, _, HandleId, Singular_4).
+
+
+rest_method(Req, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(method(Method), Req),
-  rest_method(Req, Method, Methods, Goal_3).
+  rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4).
 
 
 % “OPTIONS”
-rest_method(Req, options, Methods1, _) :- !,
+rest_method(Req, options, Methods1, _, _, _) :- !,
   sort([head,options|Methods1], Methods2),
   reply_http_message(Req, 200, ['Allow'-Methods2]).
 % Method accepted, on to media types.
-rest_method(Req, Method, Methods, Goal_3) :-
+rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(Method, Methods), !,
-  (   http_location_iri(Req, Iri),
-      http_iri_query(Iri, format(MT))
+  http_relative_iri(Req, Iri1),
+  (   http_iri_query(Iri1, format(MT))
   ->  MTs = [MT]
   ;   http_accept(Req, MTs)
   ),
-  catch(call(Goal_3, Req, Method, MTs), E, rest_exception(Req, MTs, E)).
+  (   ground(HandleId),
+      http_link_to_id(HandleId, Iri2),
+      Iri1 \== Iri2
+  ->  iri_to_resource(Iri2, Res),
+      call(Singular_4, Res, Req, Method, MTs)
+  ;   call(Plural_3, Req, Method, MTs)  
+  ).
 % 405 “Method Not Allowed”
-rest_method(Req, _, _, _) :-
+rest_method(Req, _, _, _, _, _) :-
   reply_http_message(Req, 405).

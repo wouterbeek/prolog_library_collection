@@ -1,16 +1,16 @@
 :- module(
   pagination,
   [
-    http_pagination_links/1, % +Result
-    pagination/3,            % +Pattern, :Goal_0, -Result
-    pagination/4,            % +Pattern, :Goal_0, +Opts, -Result
-    pagination_at_end/1,     % +Result
-    pagination_empty/2,      % +Opts, -Result
-    pagination_iri/3,        % +Result, ?Rel, -Iri
-    pagination_page/3,       % +Result, ?Rel, -Page
-    pagination_range/2,      % +Result, -Range
-    pagination_result/2,     % +Result, :Goal_1
-    pagination_total/4       % :AllGoal_2, :SomeGoal_2, +Opts, -Result
+    http_pagination_links/1, % +Pagination
+    pagination/3,            % +Pattern, :Goal_0, -Pagination
+    pagination/4,            % +Pattern, :Goal_0, +Opts, -Pagination
+    pagination_at_end/1,     % +Pagination
+    pagination_empty/2,      % +Opts, -Pagination
+    pagination_iri/3,        % +Pagination, ?Rel, -Iri
+    pagination_page/3,       % +Pagination, ?Rel, -Page
+    pagination_range/2,      % +Pagination, -Range
+    pagination_result/2,     % +Pagination, :Goal_1
+    pagination_total/4       % :AllGoal_2, :SomeGoal_2, +Opts, -Pagination
   ]
 ).
 
@@ -19,14 +19,14 @@
 Generic support for pagination.
 
 ```prolog
-?- pagination(N, between(1, 1000000, N), _{page: 856}, Results).
-Results = _G120{number_of_results:20, page:856, page_size:20, results:[17101, 17102, 17103, 17104, 17105, 17106, 17107, 17108|...]} ;
-Results = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 17122, 17123, 17124, 17125, 17126, 17127, 17128|...]} ;
-Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17142, 17143, 17144, 17145, 17146, 17147, 17148|...]} 
+?- pagination(N, between(1, 1000000, N), _{page: 856}, Paginations).
+Paginations = _G120{number_of_results:20, page:856, page_size:20, results:[17101, 17102, 17103, 17104, 17105, 17106, 17107, 17108|...]} ;
+Paginations = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 17122, 17123, 17124, 17125, 17126, 17127, 17128|...]} ;
+Paginations = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17142, 17143, 17144, 17145, 17146, 17147, 17148|...]} 
 ```
 
 @author Wouter Beek
-@verson 2016/03, 2016/05-2016/08
+@verson 2016/03, 2016/05-2016/09
 */
 
 :- use_module(library(dict_ext)).
@@ -53,10 +53,10 @@ Results = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17
 
 
 
-%! http_pagination_links(+Result) is semidet.
+%! http_pagination_links(+Pagination) is semidet.
 
-http_pagination_links(Result) :-
-  pagination_iris(Result, Rels, Iris),
+http_pagination_links(Pagination) :-
+  pagination_iris(Pagination, Rels, Iris),
   format("Link: "),
   http_pagination_links0(Rels, Iris),
   nl.
@@ -76,8 +76,8 @@ http_pagination_link0(Rel, Iri) :-
 
 
 
-%! pagination(+Pattern, :Goal_0, -Result) is nondet.
-%! pagination(+Pattern, :Goal_0, +Opts, -Result) is nondet.
+%! pagination(+Pattern, :Goal_0, -Pagination) is nondet.
+%! pagination(+Pattern, :Goal_0, +Opts, -Pagination) is nondet.
 %
 % The following options are supported:
 %
@@ -85,9 +85,9 @@ http_pagination_link0(Rel, Iri) :-
 %
 %   - page(+nonneg) Default is 1.
 %
-% The following keys are in Result:
+% The following keys are in Pagination:
 %
-%   - number_of_results(nonneg)
+%   - number_of_results(nonneg)  The page_size or less.
 %
 %   - page(positive_integer)
 %
@@ -95,11 +95,11 @@ http_pagination_link0(Rel, Iri) :-
 %
 %   - results(nonneg)
 
-pagination(Pattern, Goal_0, Result) :-
-  pagination(Pattern, Goal_0, _{}, Result).
+pagination(Pattern, Goal_0, Pagination) :-
+  pagination(Pattern, Goal_0, _{}, Pagination).
 
 
-pagination(Pattern, Goal_0, Opts1, Result2) :-
+pagination(Pattern, Goal_0, Opts1, Pagination2) :-
   setting(def_page_size, DefPageSize),
   mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
   mod_dict(page, Opts2, 1, StartPage, Opts3),
@@ -115,102 +115,102 @@ pagination(Pattern, Goal_0, Opts1, Result2) :-
   ->  true
   ;   false
   ), !,
-  Result1 = _{
+  Pagination1 = _{
     number_of_results: NumResults,
     page: Opts4.page0,
     page_size: PageSize,
     results: Results
   },
-  merge_dicts(Opts4, Result1, Result2).
-pagination(_, _, Opts, Result) :-
-  pagination_empty(Opts, Result).
+  merge_dicts(Opts4, Pagination1, Pagination2).
+pagination(_, _, Opts, Pagination) :-
+  pagination_empty(Opts, Pagination).
 
 
 
-%! pagination_at_end(+Result) is semidet.
+%! pagination_at_end(+Pagination) is semidet.
 %
-% Succeeds if pagination Results are at the last page.
+% Succeeds if pagination Paginations are at the last page.
 %
 % @note Since we do not know the total number of results, the last
 %       page may be empty.
 
-pagination_at_end(Result) :-
-  Result.number_of_results < Result.page_size.
+pagination_at_end(Pagination) :-
+  Pagination.number_of_results < Pagination.page_size.
 
 
 
-%! pagination_empty(+Opts, -Result) is det.
+%! pagination_empty(+Opts, -Pagination) is det.
 %
-% Returns a pagination Result dictionary with empty results.
+% Returns a pagination Pagination dictionary with empty results.
 
-pagination_empty(Opts, Result) :-
-  pagination(_, fail, Opts, Result).
+pagination_empty(Opts, Pagination) :-
+  pagination(_, fail, Opts, Pagination).
 
 
 
-%! pagination_iri(+Result, +Rel, -Iri) is semidet.
-%! pagination_iri(+Result, -Rel, -Iri) is nondet.
+%! pagination_iri(+Pagination, +Rel, -Iri) is semidet.
+%! pagination_iri(+Pagination, -Rel, -Iri) is nondet.
 
-pagination_iri(Result, Rel, Iri) :-
-  pagination_page(Result, Rel, Page),
-  get_dict(query, Result, QueryComps, []),
+pagination_iri(Pagination, Rel, Iri) :-
+  pagination_page(Pagination, Rel, Page),
+  get_dict(query, Pagination, QueryComps, []),
   uri_query_components(Query, [page(Page)|QueryComps]),
-  uri_components(Result.iri, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Pagination.iri, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 
-%! pagination_iris(+Result, -Rels, -Iris) is det.
+%! pagination_iris(+Pagination, -Rels, -Iris) is det.
 %
-% Returns the Page for the given pagination Result.  Fails silently
-% when there are no pages with relation Rel.
+% Returns the Page for the given pagination Pagination.  Fails
+% silently when there are no pages with relation Rel.
 
-pagination_iris(Result, Rels, Iris) :-
-  findall(Rel-Iri, pagination_iri(Result, Rel, Iri), Pairs),
+pagination_iris(Pagination, Rels, Iris) :-
+  findall(Rel-Iri, pagination_iri(Pagination, Rel, Iri), Pairs),
   pairs_keys_values(Pairs, Rels, Iris).
 
 
 
-%! pagination_page(+Result, +Rel, -Iri) is semidet.
-%! pagination_page(+Result, -Rel, -Iri) is nondet.
+%! pagination_page(+Pagination, +Rel, -Iri) is semidet.
+%! pagination_page(+Pagination, -Rel, -Iri) is nondet.
 
-pagination_page(Result, first, 1) :-
-  Result.number_of_results > 0.
-pagination_page(Result, last, Page) :-
-  get_dict(total_number_of_results, Result, TotalNumResults),
-  Page is ceil(TotalNumResults / Result.page_size).
-pagination_page(Result, next, Page) :-
-  \+ pagination_at_end(Result),
-  Page is Result.page + 1.
-pagination_page(Result, prev, Page) :-
-  Page is Result.page - 1,
+pagination_page(Pagination, first, 1) :-
+  Pagination.number_of_results > 0.
+pagination_page(Pagination, last, Page) :-
+  get_dict(total_number_of_results, Pagination, TotalNumResults),
+  Page is ceil(TotalNumResults / Pagination.page_size).
+pagination_page(Pagination, next, Page) :-
+  \+ pagination_at_end(Pagination),
+  Page is Pagination.page + 1.
+pagination_page(Pagination, prev, Page) :-
+  Page is Pagination.page - 1,
   Page > 0.
 
 
 
-%! pagination_range(+Result, -Range) is det.
+%! pagination_range(+Pagination, -Range) is det.
 %
-% Returns the range spanned by the given pagination Result.
+% Returns the range spanned by the given pagination Pagination.
 
-pagination_range(Result, 0-0) :-
-  Result.number_of_results =:= 0, !.
-pagination_range(Result, Low-High) :-
-  Low is (Result.page - 1) * Result.page_size + 1,
-  High is Low + Result.number_of_results - 1.
+pagination_range(Pagination, 0-0) :-
+  Pagination.number_of_results =:= 0, !.
+pagination_range(Pagination, Low-High) :-
+  Low is (Pagination.page - 1) * Pagination.page_size + 1,
+  High is Low + Pagination.number_of_results - 1.
 
 
 
-%! pagination_result(+Result, :Goal_1) is det.
+%! pagination_result(+Pagination, :Goal_1) is det.
 
-pagination_result(Result, Goal_1) :-
-  call(Goal_1, Result.results),
+pagination_result(Pagination, Goal_1) :-
+  call(Goal_1, Pagination.results),
   nl,
   Opts = [fg(green)],
-  (   Result.results == []
+  (   Pagination.results == []
   ->  ansi_format(Opts, "No results for query.~n", [])
-  ;   Low is (Result.page - 1) * Result.page_size,
+  ;   Low is (Pagination.page - 1) * Pagination.page_size,
       LowDisplay is Low + 1,
-      High is Low + Result.number_of_results,
+      High is Low + Pagination.number_of_results,
       ansi_format(
         Opts,
         "Showing results ~D -- ~D for query.~n",
@@ -220,15 +220,15 @@ pagination_result(Result, Goal_1) :-
 
 
 
-%! pagination_total(:AllGoal_2, :SomeGoal_2, +Opts, -Result) is nondet.
+%! pagination_total(:AllGoal_2, :SomeGoal_2, +Opts, -Pagination) is nondet.
 %
 % The same options as pagination/4.
 %
-% The same keys as Result of pagination/4, plus:
+% The same keys as Pagination of pagination/4, plus:
 %
 %   - total_number_of_results(+nonneg)
 
-pagination_total(AllGoal_2, SomeGoal_2, Opts1, Result2) :-
+pagination_total(AllGoal_2, SomeGoal_2, Opts1, Pagination2) :-
   setting(def_page_size, DefPageSize),
   mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
   mod_dict(page, Opts2, 1, StartPage, Opts3),
@@ -250,11 +250,11 @@ pagination_total(AllGoal_2, SomeGoal_2, Opts1, Result2) :-
   ->  true
   ;   false
   ),
-  Result1 = _{
+  Pagination1 = _{
     number_of_results: NumResults,
     page: Opts4.page0,
     page_size: PageSize,
     results: Results,
     total_number_of_results: TotalNumResults
   },
-  merge_dicts(Opts4, Result1, Result2).
+  merge_dicts(Opts4, Pagination1, Pagination2).
