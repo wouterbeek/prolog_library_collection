@@ -102,24 +102,25 @@ pagination(Pattern, Goal_0, Pagination) :-
 
 pagination(Pattern, Goal_0, PageOpts1, Pagination2) :-
   pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts2),
+  put_dict(page0, PageOpts2, 0, PageOpts3),
   findnsols(PageSize, Pattern, Goal_0, Results),
-  dict_inc(page0, PageOpts2),
+  dict_inc(page0, PageOpts3),
   length(Results, NumResults),
   (   % No more results.
       NumResults =:= 0
   ->  true
   ;   % Skip pages that are before the start page.
-      PageOpts2.page0 >= StartPage
+      PageOpts3.page0 >= StartPage
   ->  true
   ;   false
   ), !,
   Pagination1 = _{
     number_of_results: NumResults,
-    page: PageOpts2.page0,
+    page: PageOpts3.page0,
     page_size: PageSize,
     results: Results
   },
-  merge_dicts(PageOpts2, Pagination1, Pagination2).
+  merge_dicts(PageOpts3, Pagination1, Pagination2).
 pagination(_, _, PageOpts, Pagination) :-
   pagination_empty(PageOpts, Pagination).
 
@@ -165,11 +166,10 @@ pagination_iri(Pagination, Rel, Iri) :-
 %!   -PageOpts2
 %! ) is det.
 
-pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts4) :-
+pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts3) :-
   mod_dict(page, PageOpts1, 1, StartPage, PageOpts2),
   setting(def_page_size, DefPageSize),
-  mod_dict(page_size, PageOpts2, DefPageSize, PageSize, PageOpts3),
-  put_dict(page0, PageOpts3, 0, PageOpts4).
+  mod_dict(page_size, PageOpts2, DefPageSize, PageSize, PageOpts3).
 
 
 
@@ -243,6 +243,7 @@ pagination_result(Pagination, Goal_1) :-
 
 pagination_total(AllGoal_2, SomeGoal_2, PageOpts1, Pagination2) :-
   pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts2),
+  put_dict(page0, PageOpts2, 0, PageOpts3),
   call(AllGoal_2, AllResults, TotalNumResults),
   findnsols(
     PageSize,
@@ -250,21 +251,21 @@ pagination_total(AllGoal_2, SomeGoal_2, PageOpts1, Pagination2) :-
     call(SomeGoal_2, AllResults, SomeResult),
     Results
   ),
-  dict_inc(page0, PageOpts2),
+  dict_inc(page0, PageOpts3),
   length(Results, NumResults),
   (   % No more results.
       NumResults =:= 0
   ->  true
   ;   % Skip pages that are before the start page.
-      PageOpts2.page0 >= StartPage
+      PageOpts3.page0 >= StartPage
   ->  true
   ;   false
   ),
   Pagination1 = _{
     number_of_results: NumResults,
-    page: PageOpts2.page0,
+    page: PageOpts3.page0,
     page_size: PageSize,
     results: Results,
     total_number_of_results: TotalNumResults
   },
-  merge_dicts(PageOpts2, Pagination1, Pagination2).
+  merge_dicts(PageOpts3, Pagination1, Pagination2).

@@ -33,12 +33,12 @@ The following debug flags are used:
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
-@version 2016/07
+@version 2016/07-2016/09
 */
 
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_io), []).
+:- use_module(library(http/http_io)).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(typecheck)).
@@ -128,7 +128,7 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(L3), SourceOpts)).
 
 
-% No input stream, e.g., HTTP status code 409.
+% HTTP error status code may result in no stream at all.
 call_on_stream0(In, _, _, L, L) :-
   var(In), !.
 % Empty input stream.

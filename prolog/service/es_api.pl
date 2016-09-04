@@ -10,13 +10,12 @@
     es_create/3,        % +PathComps, +Data, -Dict
     es_create_pp/2,     % +PathComps, +Data
     es_exists/1,        % +PathComps
-    es_get/2,           % +PathComps, -Dict
-    es_get/3,           % +PathComps, +Keys, -Dict
+    es_get/2,           % +PathComps, -Result
+    es_get/3,           % +PathComps, +Keys, -Result
     es_get_pp/1,        % +PathComps
     es_get_pp/2,        % +PathComps, +Keys
     es_health/1,        % -Dict
     es_health_pp/0,
-    es_result_source/2, % +Hit, -Dict
     es_rm/2,            % +PathComps, -Dict
     es_rm_pp/1,         % +PathComps
     es_search/2,        % +PathComps, -Pagination
@@ -195,12 +194,12 @@ es_exists(PathComps) :-
 
 
 
-%! es_get(+PathComps, -Dict) is det.
-%! es_get(+PathComps, +Keys, -Dict) is det.
+%! es_get(+PathComps, -Result) is det.
+%! es_get(+PathComps, +Keys, -Result) is det.
 %! es_get_pp(+PathComps) is det.
 %! es_get_pp(+PathComps, +Keys) is det.
 %
-% Dict contains the following keys:
+% Result contains the following keys:
 %
 %   - '_id'(-atom)
 %
@@ -216,25 +215,29 @@ es_exists(PathComps) :-
 %
 % Keys, if present, filters the keys returned in '_source'.
 
-es_get(PathComps, Dict) :-
-  es_get0(PathComps, Status, Dict),
-  http_status_must_be(Status, [200]).
+es_get(PathComps, Result) :-
+  es_get(PathComps, _VAR, Result).
 
 
-es_get(PathComps, Keys, Dict) :-
-  atomic_list_concat(Keys, ',', Search),
-  es_get0(PathComps, ['_source'(Search)], Status, Dict),
+es_get(PathComps, Keys, Result) :-
+  (   var(Keys)
+  ->  QueryComps = []
+  ;   atomic_list_concat(Keys, ',', Search),
+      QueryComps = ['_source'(Search)]
+  ),
+  es_get0(PathComps, QueryComps, Status, Dict),
+  es_dict_to_result0(Dict, Result),
   http_status_must_be(Status, [200]).
 
 
 es_get_pp(PathComps) :-
-  es_get(PathComps, Dict),
-  print_dict(Dict).
+  es_get(PathComps, Result),
+  print_dict(Result).
 
 
 es_get_pp(PathComps, Keys) :-
-  es_get(PathComps, Keys, Dict),
-  print_dict(Dict).
+  es_get(PathComps, Keys, Result),
+  print_dict(Result).
 
 
 
@@ -249,14 +252,6 @@ es_health(Dict) :-
 es_health_pp :-
   es_health(Dict),
   print_dict(Dict).
-
-
-
-%! es_result_source(+Hit, -Dict) is det.
-
-es_result_source(Hit, Dict) :-
-  atom_string(Id, Hit.'_id'),
-  dict_tag(Hit.'_source', Id, Dict).
 
 
 
@@ -284,7 +279,9 @@ es_search(PathComps, Pagination) :-
 
 
 es_search(PathComps1, Search, PageOpts1, Pagination2) :-
-  pagination_init_options(PageOpts1, Page, PageSize, PageOpts2),
+  pagination_init_options(PageOpts1, FirstPage, PageSize, PageOpts2),
+  % NONDET
+  between(FirstPage, inf, Page),
   From is (Page - 1) * PageSize,
   QueryComps1 = [from(From),size(PageSize)],
   append(PathComps1, ['_search'], PathComps2),
@@ -299,7 +296,18 @@ es_search(PathComps1, Search, PageOpts1, Pagination2) :-
       ),
       es_get0(PathComps2, QueryComps2, Status, Dict)
   ),
-  es_search_result_to_pagination0(Dict, Page, PageSize, Pagination1),
+  Hits = Dict.hits,
+  maplist(es_dict_to_result0, Hits.hits, Results),
+  length(Results, NumResults),
+  % Remove choicepoints when there are no more results.
+  (NumResults =:= 0 -> !, true ; true),
+  Pagination1 = _{
+    number_of_results: NumResults,
+    page: Page,
+    page_size: PageSize,
+    results: Results,
+    total_number_of_results: Hits.total
+  },
   merge_dicts(PageOpts2, Pagination1, Pagination2),
   http_status_must_be(Status, [200]).
 
@@ -309,19 +317,6 @@ format_simple_search_string0(Comp, Str) :-
   Comp =.. [Key,Val],
   format(string(Str), "~a:~w", [Key,Val]).
 format_simple_search_string0(Str, Str).
-
-
-es_search_result_to_pagination0(Dict, Page, PageSize, Pagination) :-
-  Hits = Dict.hits,
-  maplist(es_result_source, Hits.hits, Results),
-  length(Results, NumResults),
-  Pagination = _{
-    number_of_results: NumResults,
-    page: Page,
-    page_size: PageSize,
-    results: Results,
-    total_number_of_results: Hits.total
-  }.
 
 
 es_search_pp(PathComps) :-
@@ -440,6 +435,14 @@ es_delete0(PathComps, Status, Dict) :-
     [metadata([H|_]),request_header('Accept'='application/json')]
   ),
   Status = H.status.
+
+
+
+%! es_dict_to_result0(+Dict, -Result) is det.
+
+es_dict_to_result0(Dict, Result) :-
+  atom_string(Id, Dict.'_id'),
+  dict_tag(Dict.'_source', Id, Result).
 
 
 

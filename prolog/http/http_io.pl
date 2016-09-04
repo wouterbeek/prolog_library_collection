@@ -283,6 +283,7 @@ http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
 % Non-authentication error.
 http_open2(Iri, State, _, _, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
+  copy_stream_data(In1, user_error),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
@@ -365,7 +366,7 @@ http_retry_until_success(Goal_0, Timeout) :-
   ;   % HTTP error status code
       E = error(existence_error(_,[H|_]),_),
       http_get_dict(status, H, Status),
-      (http_status_label(Status, Lbl) -> true ; Lbl = 'NO LABEL')
+      (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
   ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)

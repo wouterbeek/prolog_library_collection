@@ -119,7 +119,7 @@ rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   (   ground(HandleId),
       http_link_to_id(HandleId, Iri2),
       Iri1 \== Iri2
-  ->  iri_to_resource(Iri2, Res),
+  ->  http_resource_iri(Req, Res),
       call(Singular_4, Res, Req, Method, MTs)
   ;   call(Plural_3, Req, Method, MTs)  
   ).
