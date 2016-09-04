@@ -269,10 +269,10 @@ correct_for_default_port(_, Port, Port).
 % Converts public IRIs to data resource identifiers.
 
 iri_to_resource(Iri, Res) :-
-  uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
+  uri_components(Iri, uri_components(_,_,Path,_,_)),
   setting(iri:data_scheme, Scheme),
   setting(iri:data_auth, Auth),
-  uri_components(Res, uri_components(Scheme,Auth,Path,Query,Frag)).
+  uri_components(Res, uri_components(Scheme,Auth,Path,_,_)).
 
 
 
