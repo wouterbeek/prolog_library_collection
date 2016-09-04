@@ -1,36 +1,35 @@
 :- module(
   es_api,
   [
-    es_check/1,             % -Dict
+    es_check/1,         % -Dict
     es_check_pp/0,
-    es_count/1,             % +PathComps
-    es_count/2,             % +PathComps, -Dict
+    es_count/1,         % +PathComps
+    es_count/2,         % +PathComps, -Dict
     es_count_pp/0,
-    es_count_pp/1,          % +PathComps
-    es_create/3,            % +PathComps, +Data, -Dict
-    es_create_pp/2,         % +PathComps, +Data
-    es_exists/1,            % +PathComps
-    es_get/2,               % +PathComps, -Dict
-    es_get/3,               % +PathComps, +Keys, -Dict
-    es_get_pp/1,            % +PathComps
-    es_get_pp/2,            % +PathComps, +Keys
-    es_health/1,            % -Dict
+    es_count_pp/1,      % +PathComps
+    es_create/3,        % +PathComps, +Data, -Dict
+    es_create_pp/2,     % +PathComps, +Data
+    es_exists/1,        % +PathComps
+    es_get/2,           % +PathComps, -Dict
+    es_get/3,           % +PathComps, +Keys, -Dict
+    es_get_pp/1,        % +PathComps
+    es_get_pp/2,        % +PathComps, +Keys
+    es_health/1,        % -Dict
     es_health_pp/0,
-    es_result_pagination/2, % +Result, -Pagination
-    es_result_source/2,     % +Hit, -Dict
-    es_rm/2,                % +PathComps, -Dict
-    es_rm_pp/1,             % +PathComps
-    es_search/2,            % +PathComps, -Dict
-    es_search/3,            % +PathComps, +Search, -Dict
-    es_search_pp/1,         % +PathComps
-    es_search_pp/2,         % +PathComps, +Search
-    es_setting/3,           % +Index, +Key, ?Val
-    es_stat/1,              % -Dict
-    es_stat/2,              % +PathComps, -Dict
+    es_result_source/2, % +Hit, -Dict
+    es_rm/2,            % +PathComps, -Dict
+    es_rm_pp/1,         % +PathComps
+    es_search/2,        % +PathComps, -Dict
+    es_search/3,        % +PathComps, +Search, -Dict
+    es_search_pp/1,     % +PathComps
+    es_search_pp/2,     % +PathComps, +Search
+    es_setting/3,       % +Index, +Key, ?Val
+    es_stat/1,          % -Dict
+    es_stat/2,          % +PathComps, -Dict
     es_stat_pp/0,
-    es_stat_pp/1,           % +PathComps
-    es_update/3,            % +PathComps, +Data, -Dict
-    es_update_pp/2          % +PathComps, +Data
+    es_stat_pp/1,       % +PathComps
+    es_update/3,        % +PathComps, +Data, -Dict
+    es_update_pp/2      % +PathComps, +Data
   ]
 ).
 
@@ -99,6 +98,7 @@ _{
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
+:- use_module(library(pagination), []).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
 :- use_module(library(true)).
@@ -121,7 +121,7 @@ _{
 %! es_check_pp is det.
 
 es_check(Dict) :-
-  es_get0([], Status, Dict),
+  es_get0(Status, Dict),
   http_status_must_be(Status, [200]).
 
 
@@ -252,22 +252,6 @@ es_health_pp :-
 
 
 
-%! es_result_pagination(+Result, -Pagination) is nondet.
-
-es_result_pagination(Result, Pagination) :-
-  Hits = Result.hits,
-  maplist(es_result_source, Hits.hits, Results),
-  length(Results, NumResults),
-  Pagination = _{
-    number_of_results: NumResults,
-    page: 1,
-    page_size: 10,
-    results: Hits.hits,
-    total_number_of_results: Hits.total
-  }.
-
-
-
 %! es_result_source(+Hit, -Dict) is det.
 
 es_result_source(Hit, Dict) :-
@@ -290,44 +274,74 @@ es_rm_pp(PathComps) :-
 
 
 
-%! es_search(+PathComps, -Dict) is nondet.
-%! es_search(+PathComps, +Search, -Dict) is nondet.
+%! es_search(+PathComps, -Pagination) is nondet.
+%! es_search(+PathComps, +PageOpts, -Pagination) is nondet.
+%! es_search(+PathComps, +Search, +PageOpts, -Pagination) is nondet.
 %! es_search_pp(+PathComps) is nondet.
-%! es_search_pp(+PathComps, +Search) is nondet.
+%! es_search_pp(+PathComps, +PageOpts) is nondet.
+%! es_search_pp(+PathComps, +Search, +PageOpts) is nondet.
 
-es_search(PathComps1, Dict) :-
-  append(PathComps1, ['_search'], PathComps2),
-  es_get0(PathComps2, Status, Dict),
-  http_status_must_be(Status, [200]).
+es_search(PathComps, Pagination) :-
+  es_search(PathComps, _{}, Pagination).
 
 
-es_search(PathComps1, Search, Dict) :-
+es_search(PathComps, PageOpts, Pagination) :-
+  es_search(PathComps, _VAR, PageOpts, Pagination).
+
+
+es_search(PathComps1, Search, PageOpts, Pagination) :-
+  dict_get(page, PageOpts, 0, Page),
+  setting(pagination:def_page_size, DefPageSize),
+  dict_get(page_size, PageOpts, DefPageSize, PageSize),
+  QueryComps1 = [from(Page),size(PageSize)],
   append(PathComps1, ['_search'], PathComps2),
   (   % Query DSL
       is_dict(Search)
-  ->  es_post0(PathComps2, Search, Status, Dict)
+  ->  es_post0(PathComps2, QueryComps1, Search, Status, Dict)
   ;   % Simple Search
-      format_simple_search_string(Search, Str),
-      es_get0(PathComps2, [q(Str)], Status, Dict)
+      (   var(Search)
+      ->  QueryComps2 = QueryComps1
+      ;   format_simple_search_string0(Search, Str),
+          QueryComps2 = [q(Str)|QueryComps1]
+      ),
+      es_get0(PathComps2, QueryComps2, Status, Dict)
   ),
+  es_search_result_to_pagination0(Dict, Pagination),
   http_status_must_be(Status, [200]).
 
 
-format_simple_search_string(Comp, Str) :-
+format_simple_search_string0(Comp, Str) :-
   compound(Comp), !,
   Comp =.. [Key,Val],
   format(string(Str), "~a:~w", [Key,Val]).
-format_simple_search_string(Str, Str).
+format_simple_search_string0(Str, Str).
+
+
+es_search_result_to_pagination0(Dict, Pagination) :-
+  Hits = Dict.hits,
+  maplist(es_result_source, Hits.hits, Results),
+  length(Results, NumResults),
+  Pagination = _{
+    number_of_results: NumResults,
+    page: 1,
+    page_size: 10,
+    results: Hits.hits,
+    total_number_of_results: Hits.total
+  }.
 
 
 es_search_pp(PathComps) :-
-  es_search(PathComps, Dict),
-  print_dict(Dict).
+  es_search_pp(PathComps, _{}).
 
 
-es_search_pp(PathComps, Search) :-
-  es_search(PathComps, Search, Dict),
-  print_dict(Dict).
+es_search_pp(PathComps, PageOpts) :-
+  es_search(PathComps, PageOpts, Pagination),
+  print_dict(Pagination).
+
+
+es_search_pp(PathComps, Search, PageOpts) :-
+  es_search(PathComps, Search, PageOpts, Pagination),
+  print_dict(Pagination).
 
 
 
@@ -434,15 +448,19 @@ es_delete0(PathComps, Status, Dict) :-
   http_delete(
     Iri,
     {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|T]),request_header('Accept'='application/json')]
+    [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|T]),
   Status = H.status.
 
 
 
+%! es_get0(-Status, -Dict) is det.
 %! es_get0(+PathComps, -Status, -Dict) is det.
 %! es_get0(+PathComps, +QueryComps, -Status, -Dict) is det.
+
+es_get0(Status, Dict) :-
+  es_get0([], Status, Dict).
+
 
 es_get0(PathComps, Status, Dict) :-
   es_get0(PathComps, [], Status, Dict).
@@ -453,9 +471,8 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
   http_get(
     Iri,
     {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|T]),request_header('Accept'='application/json')]
+    [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|T]),
   Status = H.status.
 
 
@@ -466,9 +483,8 @@ es_head0(PathComps, Status) :-
   es_iri0(PathComps, Iri),
   http_head(
     Iri,
-    [metadata([H|T]),request_header('Accept'='application/json')]
+    [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|T]),
   Status = H.status.
 
 
@@ -492,34 +508,32 @@ es_iri0(PathComps, QueryComps, Iri) :-
 
 
 %! es_post0(+PathComps, +Data, -Status, -Dict) is det.
+%! es_post0(+PathComps, +QueryComps, +Data, -Status, -Dict) is det.
 
 es_post0(PathComps, Data, Status, Dict) :-
-  es_iri0(PathComps, Iri),
+  es_post0(PathComps, [], Data, Status, Dict).
+
+
+es_post0(PathComps, QueryComps, Data, Status, Dict) :-
+  es_iri0(PathComps, QueryComps, Iri),
   http_post(
     Iri,
     json(Data),
     {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|T]),request_header('Accept'='application/json')]
+    [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|T]),
   Status = H.status.
 
 
 
 %! es_put0(+PathComps, +Data, -Status, -Dict) is det.
-%! es_put0(+PathComps, +Data, +QueryComps, -Status, -Dict) is det.
 
 es_put0(PathComps, Data, Status, Dict) :-
-  es_put0(PathComps, Data, [], Status, Dict).
-
-
-es_put0(PathComps, Data, QueryComps, Status, Dict) :-
-  es_iri0(PathComps, QueryComps, Iri),
+  es_iri0(PathComps, Iri),
   http_put(
     Iri,
     json(Data),
     {Dict}/[In,M,M]>>json_read_dict(In, Dict),
     [metadata([H|_]),request_header('Accept'='application/json')]
   ),
-  maplist(print_dict, [H|_]),
   Status = H.status.
