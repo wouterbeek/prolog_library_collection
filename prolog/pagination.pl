@@ -1,16 +1,17 @@
 :- module(
   pagination,
   [
-    http_pagination_links/1, % +Pagination
-    pagination/3,            % +Pattern, :Goal_0, -Pagination
-    pagination/4,            % +Pattern, :Goal_0, +Opts, -Pagination
-    pagination_at_end/1,     % +Pagination
-    pagination_empty/2,      % +Opts, -Pagination
-    pagination_iri/3,        % +Pagination, ?Rel, -Iri
-    pagination_page/3,       % +Pagination, ?Rel, -Page
-    pagination_range/2,      % +Pagination, -Range
-    pagination_result/2,     % +Pagination, :Goal_1
-    pagination_total/4       % :AllGoal_2, :SomeGoal_2, +Opts, -Pagination
+    http_pagination_links/1,   % +Pagination
+    pagination/3,              % +Pattern, :Goal_0, -Pagination
+    pagination/4,              % +Pattern, :Goal_0, +PageOpts, -Pagination
+    pagination_at_end/1,       % +Pagination
+    pagination_empty/2,        % +PageOpts, -Pagination
+    pagination_init_options/4, % +PageOpts1, -StartPage, -PageSize, -PageOpts2
+    pagination_iri/3,          % +Pagination, ?Rel, -Iri
+    pagination_page/3,         % +Pagination, ?Rel, -Page
+    pagination_range/2,        % +Pagination, -Range
+    pagination_result/2,       % +Pagination, :Goal_1
+    pagination_total/4         % :AllGoal_2, :SomeGoal_2, +PageOpts, -Pagination
   ]
 ).
 
@@ -77,7 +78,7 @@ http_pagination_link0(Rel, Iri) :-
 
 
 %! pagination(+Pattern, :Goal_0, -Pagination) is nondet.
-%! pagination(+Pattern, :Goal_0, +Opts, -Pagination) is nondet.
+%! pagination(+Pattern, :Goal_0, +PageOpts, -Pagination) is nondet.
 %
 % The following options are supported:
 %
@@ -99,31 +100,28 @@ pagination(Pattern, Goal_0, Pagination) :-
   pagination(Pattern, Goal_0, _{}, Pagination).
 
 
-pagination(Pattern, Goal_0, Opts1, Pagination2) :-
-  setting(def_page_size, DefPageSize),
-  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
-  mod_dict(page, Opts2, 1, StartPage, Opts3),
-  put_dict(page0, Opts3, 0, Opts4),
+pagination(Pattern, Goal_0, PageOpts1, Pagination2) :-
+  pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts2),
   findnsols(PageSize, Pattern, Goal_0, Results),
-  dict_inc(page0, Opts4),
+  dict_inc(page0, PageOpts2),
   length(Results, NumResults),
   (   % No more results.
       NumResults =:= 0
   ->  true
   ;   % Skip pages that are before the start page.
-      Opts4.page0 >= StartPage
+      PageOpts2.page0 >= StartPage
   ->  true
   ;   false
   ), !,
   Pagination1 = _{
     number_of_results: NumResults,
-    page: Opts4.page0,
+    page: PageOpts2.page0,
     page_size: PageSize,
     results: Results
   },
-  merge_dicts(Opts4, Pagination1, Pagination2).
-pagination(_, _, Opts, Pagination) :-
-  pagination_empty(Opts, Pagination).
+  merge_dicts(PageOpts2, Pagination1, Pagination2).
+pagination(_, _, PageOpts, Pagination) :-
+  pagination_empty(PageOpts, Pagination).
 
 
 
@@ -139,12 +137,12 @@ pagination_at_end(Pagination) :-
 
 
 
-%! pagination_empty(+Opts, -Pagination) is det.
+%! pagination_empty(+PageOpts, -Pagination) is det.
 %
 % Returns a pagination Pagination dictionary with empty results.
 
-pagination_empty(Opts, Pagination) :-
-  pagination(_, fail, Opts, Pagination).
+pagination_empty(PageOpts, Pagination) :-
+  pagination(_, fail, PageOpts, Pagination).
 
 
 
@@ -157,6 +155,21 @@ pagination_iri(Pagination, Rel, Iri) :-
   uri_query_components(Query, [page(Page)|QueryComps]),
   uri_components(Pagination.iri, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).
+
+
+
+%! pagination_init_options(
+%!   +PageOpts1,
+%!   -StartPage,
+%!   -PageSize,
+%!   -PageOpts2
+%! ) is det.
+
+pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts4) :-
+  mod_dict(page, PageOpts1, 1, StartPage, PageOpts2),
+  setting(def_page_size, DefPageSize),
+  mod_dict(page_size, PageOpts2, DefPageSize, PageSize, PageOpts3),
+  put_dict(page0, PageOpts3, 0, PageOpts4).
 
 
 
@@ -220,7 +233,7 @@ pagination_result(Pagination, Goal_1) :-
 
 
 
-%! pagination_total(:AllGoal_2, :SomeGoal_2, +Opts, -Pagination) is nondet.
+%! pagination_total(:AllGoal_2, :SomeGoal_2, +PageOpts, -Pagination) is nondet.
 %
 % The same options as pagination/4.
 %
@@ -228,11 +241,8 @@ pagination_result(Pagination, Goal_1) :-
 %
 %   - total_number_of_results(+nonneg)
 
-pagination_total(AllGoal_2, SomeGoal_2, Opts1, Pagination2) :-
-  setting(def_page_size, DefPageSize),
-  mod_dict(page_size, Opts1, DefPageSize, PageSize, Opts2),
-  mod_dict(page, Opts2, 1, StartPage, Opts3),
-  put_dict(page0, Opts3, 0, Opts4),
+pagination_total(AllGoal_2, SomeGoal_2, PageOpts1, Pagination2) :-
+  pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts2),
   call(AllGoal_2, AllResults, TotalNumResults),
   findnsols(
     PageSize,
@@ -240,21 +250,21 @@ pagination_total(AllGoal_2, SomeGoal_2, Opts1, Pagination2) :-
     call(SomeGoal_2, AllResults, SomeResult),
     Results
   ),
-  dict_inc(page0, Opts4),
+  dict_inc(page0, PageOpts2),
   length(Results, NumResults),
   (   % No more results.
       NumResults =:= 0
   ->  true
   ;   % Skip pages that are before the start page.
-      Opts4.page0 >= StartPage
+      PageOpts2.page0 >= StartPage
   ->  true
   ;   false
   ),
   Pagination1 = _{
     number_of_results: NumResults,
-    page: Opts4.page0,
+    page: PageOpts2.page0,
     page_size: PageSize,
     results: Results,
     total_number_of_results: TotalNumResults
   },
-  merge_dicts(Opts4, Pagination1, Pagination2).
+  merge_dicts(PageOpts2, Pagination1, Pagination2).
