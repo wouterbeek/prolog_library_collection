@@ -19,10 +19,10 @@
     es_result_source/2, % +Hit, -Dict
     es_rm/2,            % +PathComps, -Dict
     es_rm_pp/1,         % +PathComps
-    es_search/2,        % +PathComps, -Dict
-    es_search/3,        % +PathComps, +Search, -Dict
+    es_search/2,        % +PathComps, -Pagination
+    es_search/4,        % +PathComps, +Search, +PageOpts, -Pagination
     es_search_pp/1,     % +PathComps
-    es_search_pp/2,     % +PathComps, +Search
+    es_search_pp/3,     % +PathComps, +Search, +PageOpts
     es_setting/3,       % +Index, +Key, ?Val
     es_stat/1,          % -Dict
     es_stat/2,          % +PathComps, -Dict
@@ -98,7 +98,7 @@ _{
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
-:- use_module(library(pagination), []).
+:- use_module(library(pagination)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
 :- use_module(library(true)).
@@ -275,25 +275,18 @@ es_rm_pp(PathComps) :-
 
 
 %! es_search(+PathComps, -Pagination) is nondet.
-%! es_search(+PathComps, +PageOpts, -Pagination) is nondet.
 %! es_search(+PathComps, +Search, +PageOpts, -Pagination) is nondet.
 %! es_search_pp(+PathComps) is nondet.
-%! es_search_pp(+PathComps, +PageOpts) is nondet.
 %! es_search_pp(+PathComps, +Search, +PageOpts) is nondet.
 
 es_search(PathComps, Pagination) :-
-  es_search(PathComps, _{}, Pagination).
+  es_search(PathComps, _VAR, _{}, Pagination).
 
 
-es_search(PathComps, PageOpts, Pagination) :-
-  es_search(PathComps, _VAR, PageOpts, Pagination).
-
-
-es_search(PathComps1, Search, PageOpts, Pagination) :-
-  dict_get(page, PageOpts, 0, Page),
-  setting(pagination:def_page_size, DefPageSize),
-  dict_get(page_size, PageOpts, DefPageSize, PageSize),
-  QueryComps1 = [from(Page),size(PageSize)],
+es_search(PathComps1, Search, PageOpts1, Pagination2) :-
+  pagination_init_options(PageOpts1, Page, PageSize, PageOpts2),
+  From is (Page - 1) * PageSize,
+  QueryComps1 = [from(From),size(PageSize)],
   append(PathComps1, ['_search'], PathComps2),
   (   % Query DSL
       is_dict(Search)
@@ -306,7 +299,8 @@ es_search(PathComps1, Search, PageOpts, Pagination) :-
       ),
       es_get0(PathComps2, QueryComps2, Status, Dict)
   ),
-  es_search_result_to_pagination0(Dict, Pagination),
+  es_search_result_to_pagination0(Dict, Page, PageSize, Pagination1),
+  merge_dicts(PageOpts2, Pagination1, Pagination2),
   http_status_must_be(Status, [200]).
 
 
@@ -317,26 +311,21 @@ format_simple_search_string0(Comp, Str) :-
 format_simple_search_string0(Str, Str).
 
 
-es_search_result_to_pagination0(Dict, Pagination) :-
+es_search_result_to_pagination0(Dict, Page, PageSize, Pagination) :-
   Hits = Dict.hits,
   maplist(es_result_source, Hits.hits, Results),
   length(Results, NumResults),
   Pagination = _{
     number_of_results: NumResults,
-    page: 1,
-    page_size: 10,
-    results: Hits.hits,
+    page: Page,
+    page_size: PageSize,
+    results: Results,
     total_number_of_results: Hits.total
   }.
 
 
 es_search_pp(PathComps) :-
-  es_search_pp(PathComps, _{}).
-
-
-es_search_pp(PathComps, PageOpts) :-
-  es_search(PathComps, PageOpts, Pagination),
-  print_dict(Pagination).
+  es_search_pp(PathComps, _VAR, _{}).
 
 
 es_search_pp(PathComps, Search, PageOpts) :-
