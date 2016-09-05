@@ -20,7 +20,6 @@
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
     read_stream_to_string/2, % +In, -Str
-    stream_metadata/2,       % +Stream, -Meta
     write_mode/1             % ?Mode
   ]
 ).
@@ -379,7 +378,7 @@ call_to_string(Goal_1, Str) :-
 %! close_any2(+Close_0, +L1, -L2) is det.
 
 close_any2(close(Stream), [H1|T], [H2|T]) :- !,
-  stream_metadata(Stream, H0),
+  stream_metadata(Stream, H1, H0),
   H2 = H1.put(H0),
   stream_property(Stream, mode(Mode)),
   close(Stream),
@@ -456,35 +455,6 @@ read_stream_to_string(In, Str) :-
 
 
 
-%! stream_metadata(+Stream, -Meta) is det.
-%
-% Succeeds if Meta is a dictionary that contains the metadata
-% properties of Stream.  The following metadata properties are
-% included:
-%
-%   * byte_count(nonneg)
-%
-%   * char_count(nonneg)
-%
-%   * line_count(nonneg)
-%
-%   * newline(oneof([dos,posix]))
-
-stream_metadata(Stream, Meta):-
-  stream_property(Stream, position(Pos)),
-  stream_position_data(byte_count, Pos, NumBytes),
-  stream_position_data(char_count, Pos, NumChars),
-  stream_position_data(line_count, Pos, NumLines),
-  stream_property(Stream, newline(Newline)),
-  Meta = _{
-    byte_count: NumBytes,
-    char_count: NumChars,
-    line_count: NumLines,
-    newline: Newline
-  }.
-
-
-
 %! write_mode(+Mode) is semidet.
 %! write_mode(-Mode) is multi.
 %
@@ -530,7 +500,11 @@ goal_manipulation(Mod:Goal_M, Args, Mod:Goal_N) :-
 
 
 
-%! memory_file_to_something(+Handle, +Type:oneof([atom,codes,string]), -Result) is det.
+%! memory_file_to_something(
+%!   +Handle,
+%!   +Type:oneof([atom,codes,string]),
+%!   -Result
+%! ) is det.
 
 memory_file_to_something(Handle, atom, A) :- !,
   memory_file_to_atom(Handle, A).
@@ -538,3 +512,45 @@ memory_file_to_something(Handle, codes, Cs) :- !,
   memory_file_to_codes(Handle, Cs).
 memory_file_to_something(Handle, string, Str) :- !,
   memory_file_to_string(Handle, Str).
+
+
+
+
+
+
+%! stream_metadata(+Stream, +Meta1, -Meta2) is det.
+%
+% Succeeds if Meta is a dictionary that contains the metadata
+% properties of Stream.  The following metadata properties are
+% included:
+%
+%   * byte_count(nonneg)
+%
+%   * char_count(nonneg)
+%
+%   * line_count(nonneg)
+%
+%   * newline(oneof([dos,posix]))
+
+stream_metadata(Stream, Meta1, Meta2):-
+  stream_property(Stream, position(Pos)),
+  
+  get_dict(byte_count, Meta1, 0, NumBytes1),
+  stream_position_data(byte_count, Pos, NumBytes2),
+  NumBytes3 is NumBytes2 - NumBytes1,
+  
+  get_dict(char_count, Meta1, 0, NumChars1),
+  stream_position_data(char_count, Pos, NumChars2),
+  NumChars3 is NumChars2 - NumChars1,
+  
+  get_dict(line_count, Meta1, 0, NumLines1),
+  stream_position_data(line_count, Pos, NumLines),
+  NumLines3 is NumLines2 - NumLines1,
+  
+  stream_property(Stream, newline(Newline)),
+  Meta2 = _{
+    byte_count: NumBytes3,
+    char_count: NumChars,
+    line_count: NumLines,
+    newline: Newline
+  }.
