@@ -152,7 +152,7 @@ pagination_empty(PageOpts, Pagination) :-
 
 pagination_iri(Pagination, Rel, Iri) :-
   pagination_page(Pagination, Rel, Page),
-  get_dict(query, Pagination, QueryComps, []),
+  dict_get(query, Pagination, [], QueryComps),
   uri_query_components(Query, [page(Page)|QueryComps]),
   uri_components(Pagination.iri, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).

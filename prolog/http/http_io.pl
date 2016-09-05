@@ -61,7 +61,7 @@ The following debug flags are used:
   * io
 
 @author Wouter Beek
-@version 2016/07-2016/08
+@version 2016/07-2016/09
 */
 
 :- use_module(library(apply)).
@@ -260,15 +260,14 @@ http_open1(Iri, State, In2, Path, Opts0) :-
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),
       dict_pairs(Headers, Groups),
-      gtrace,
-      stream_property(In1, position(Pos)),
-      stream_position_data(byte_count, Pos, NumBytes),
-      stream_position_data(char_count, Pos, NumChars),
-      stream_position_data(line_count, Pos, NumLines),
+      %%%%stream_property(In1, position(Pos)),
+      %%%%stream_position_data(byte_count, Pos, NumBytes),
+      %%%%stream_position_data(char_count, Pos, NumChars),
+      %%%%stream_position_data(line_count, Pos, NumLines),
       H = _{
-        header_byte_count: NumBytes,
-        header_char_count: NumChars,
-        header_line_count: NumLines,
+        %%%%header_byte_count: NumBytes,
+        %%%%header_char_count: NumChars,
+        %%%%header_line_count: NumLines,
         headers: Headers,
         iri: Iri,
         status: Status,

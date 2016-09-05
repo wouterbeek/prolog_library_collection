@@ -37,6 +37,7 @@ The following debug flags are used:
 
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
@@ -122,7 +123,7 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   setup_call_cleanup(
     open_any2(Source, read, In, Close_0, L1, SourceOpts),
     call_on_stream0(In, Entry0, Goal_3, L1, L2),
-    close_any2(Close_0, L2, L3)
+    close_any2(Close_0, L2, L3, SourceOpts)
   ),
   ignore(option(metadata(L3), SourceOpts)).
 
@@ -192,7 +193,7 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
               indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In])
             ),
             call_on_stream0(In, Entry0, Goal_3, L2, L3),
-            close_any2(close(In), L3, L4)
+            close_any2(close(In), L3, L4, [])
           )
       ;   fail
       )
@@ -291,7 +292,7 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
   setup_call_cleanup(
     open_any2(Sink, Mode, Out, Close_0, L1, SinkOpts),
     call_to_compressed_stream(Out, Goal_1, L1, L2, SinkOpts),
-    close_any2(Close_0, L2, L3)
+    close_any2(Close_0, L2, L3, SinkOpts)
   ),
   ignore(option(metadata(L3), SinkOpts)).
 
@@ -346,9 +347,9 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
     setup_call_cleanup(
       open_any2(Sink2, Mode2, Out2, Close2_0, L1b, Sink2Opts),
       call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
-      close_any2(Close1_0, L2b, L3b)
+      close_any2(Close1_0, L2b, L3b, Sink2Opts)
     ),
-    close_any2(Close2_0, L2a, L3a)
+    close_any2(Close2_0, L2a, L3a, Sink1Opts)
   ),
   ignore(option(metadata1(L3a), Sink1Opts)),
   ignore(option(metadata2(L3b), Sink2Opts)).
@@ -375,22 +376,71 @@ call_to_string(Goal_1, Str) :-
 
 
 
-%! close_any2(+Close_0, +L1, -L2) is det.
+%! close_any2(+Close_0, +L1, -L2, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * The following hash options are supported:
+%
+%     * md5(-atom)
+%
+%     * sha1(-atom)
+%
+%     * sha224(-atom)
+%
+%     * sha256(-atom)
+%
+%     * sha384(-atom)
+%
+%     * sha512(-atom)
 
-close_any2(close(Stream), [H1|T], [H2|T]) :- !,
+close_any2(close(Stream), [H1|T], [H2|T], Opts) :- !,
   stream_metadata(Stream, H1, H0),
   H2 = H1.put(H0),
   stream_property(Stream, mode(Mode)),
+  close_any2_hash(Stream, Opts),
   close(Stream),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
   indent_debug(out, io, "<~s ~w", [Lbl,Stream]).
-close_any2(true, L, L).
+close_any2(true, L, L, _).
+
+
+close_any2_hash(Stream, Opts) :-
+  (   option(md5(Hash), Opts)
+  ->  true
+  ;   option(sha1(Hash), Opts)
+  ->  true
+  ;   option(sha224(Hash), Opts)
+  ->  true
+  ;   option(sha256(Hash), Opts)
+  ->  true
+  ;   option(sha384(Hash), Opts)
+  ->  true
+  ;   option(sha512(Hash), Opts)
+  ->  true
+  ), !,
+  stream_hash(Stream, Hash).
+close_any2_hash(_, _).
 
 
 
 %! open_any2(+Spec, +Mode, -Stream, -Close_0, -Path, +Opts) is det.
 %
 % The following options are supported:
+%
+%   * The following hash options are supported:
+%
+%     * md5(--atom)
+%
+%     * sha1(--atom)
+%
+%     * sha224(--atom)
+%
+%     * sha256(--atom)
+%
+%     * sha384(--atom)
+%
+%     * sha512(--atom)
 %
 %   * metadata(-dict)
 %
@@ -402,21 +452,43 @@ close_any2(true, L, L).
 %
 %     * http_io:http_open_any/4
 
-open_any2(Iri, read, In, close(In), L, Opts) :-
-  is_http_iri(Iri), !,
-  http_io:http_open_any(Iri, In, L, Opts).
-open_any2(Spec, Mode, Stream, Close_0, [H2], Opts) :-
-  open_any(Spec, Mode, Stream, _, Opts),
-  (   Spec == Stream
-  ->  Close_0 = true,
-      H1 = _{stream: Stream}
-  ;   absolute_file_name(Spec, File),
-      Close_0 = close(Stream),
-      H1 = _{file: File},
-      (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-      indent_debug(in, io, "~s> ~w → ~w", [Lbl,Spec,Stream])
+open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
+  (   is_http_iri(Spec)
+  ->  Mode = read,
+      http_io:http_open_any(Spec, Stream1, L, Opts),
+      Close_0 = close(Stream1)
+  ;   open_any(Spec, Mode, Stream1, _, Opts),
+      (   Spec == Stream1
+      ->  Close_0 = true,
+          H1 = _{stream: Stream1}
+      ;   absolute_file_name(Spec, File),
+          Close_0 = close(Stream1),
+          H1 = _{file: File},
+          (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+          indent_debug(in, io, "~s> ~w → ~w", [Lbl,Spec,Stream1])
+      ),
+      put_dict(mode, H1, Mode, H2),
+      L = [H2]
   ),
-  put_dict(mode, H1, Mode, H2).
+  open_any2_hash(Stream1, Stream2, Opts).
+
+
+open_any2_hash(Stream1, Stream2, Opts) :-
+  (   option(md5(_), Opts)
+  ->  Alg = md5
+  ;   option(sha1(_), Opts)
+  ->  Alg = sha1
+  ;   option(sha224(_), Opts)
+  ->  Alg = sha224
+  ;   option(sha256(_), Opts)
+  ->  Alg = sha256
+  ;   option(sha384(_), Opts)
+  ->  Alg = sha384
+  ;   option(sha512(_), Opts)
+  ->  Alg = sha512
+  ), !,
+  open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
+open_any2_hash(Stream, Stream, _).
 
 
 
@@ -535,15 +607,15 @@ memory_file_to_something(Handle, string, Str) :- !,
 stream_metadata(Stream, Meta1, Meta2) :-
   stream_property(Stream, position(Pos)),
   
-  get_dict(byte_count, Meta1, 0, NumBytes1),
+  dict_get(header_byte_count, Meta1, 0, NumBytes1),
   stream_position_data(byte_count, Pos, NumBytes2),
   NumBytes3 is NumBytes2 - NumBytes1,
   
-  get_dict(char_count, Meta1, 0, NumChars1),
+  dict_get(header_char_count, Meta1, 0, NumChars1),
   stream_position_data(char_count, Pos, NumChars2),
   NumChars3 is NumChars2 - NumChars1,
   
-  get_dict(line_count, Meta1, 0, NumLines1),
+  dict_get(header_line_count, Meta1, 0, NumLines1),
   stream_position_data(line_count, Pos, NumLines2),
   NumLines3 is NumLines2 - NumLines1,
   
