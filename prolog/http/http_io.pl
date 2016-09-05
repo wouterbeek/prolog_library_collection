@@ -260,6 +260,7 @@ http_open1(Iri, State, In2, Path, Opts0) :-
   ->  deb_http_headers(Lines),
       http_parse_headers(Lines, Groups),
       dict_pairs(Headers, Groups),
+      gtrace,
       stream_property(In1, position(Pos)),
       stream_position_data(byte_count, Pos, NumBytes),
       stream_position_data(char_count, Pos, NumChars),

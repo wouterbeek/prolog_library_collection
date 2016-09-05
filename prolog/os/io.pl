@@ -532,7 +532,7 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %   * newline(oneof([dos,posix]))
 
-stream_metadata(Stream, Meta1, Meta2):-
+stream_metadata(Stream, Meta1, Meta2) :-
   stream_property(Stream, position(Pos)),
   
   get_dict(byte_count, Meta1, 0, NumBytes1),
@@ -544,13 +544,13 @@ stream_metadata(Stream, Meta1, Meta2):-
   NumChars3 is NumChars2 - NumChars1,
   
   get_dict(line_count, Meta1, 0, NumLines1),
-  stream_position_data(line_count, Pos, NumLines),
+  stream_position_data(line_count, Pos, NumLines2),
   NumLines3 is NumLines2 - NumLines1,
   
   stream_property(Stream, newline(Newline)),
   Meta2 = _{
     byte_count: NumBytes3,
-    char_count: NumChars,
-    line_count: NumLines,
+    char_count: NumChars3,
+    line_count: NumLines3,
     newline: Newline
   }.
