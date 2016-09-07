@@ -3,14 +3,38 @@
   [
     rest_exception/2,  % +MTs, +E
     rest_exception/3,  % +Req, +MTs, +E
-    rest_media_type/3, % +Req, +MTs, :Goal_1
+    rest_media_type/4, % +Req, +Method, +MTs, :Goal_2
     rest_method/3,     % +Req, +Methods, :Plural_3
-    rest_method/4,     % +Req, +Methods, +HandleId, :Signular_4
-    rest_method/5      % +Req, +Methods, :Plural_3, +HandleId, :Signular_4
+    rest_method/4,     % +Req, +Methods, +HandleId, :Singular_4
+    rest_method/5      % +Req, +Methods, :Plural_3, +HandleId, :Singular_4
   ]
 ).
 
 /** <module> REST
+
+There are two phases in handling REST requests:
+
+  1. rest_method/[3-5] where we can answer an OPTIONS reply or
+     determine the method and throw an error if that method is not
+     supported.
+
+     The following two calls are made:
+     
+       - call(Singular_4, Res, Req, Method, MTs)
+
+       - call(Plural_3, Req, Method, MTs)
+
+     This allows additional errors (e.g., authentication) that are
+     method-specific to be thrown while still holding on to all media
+     types to take media type preferences into account.
+
+  2. rest_method_type/3 where we have covered all method-specific
+     errors (for which we need the full list of media types) and where
+     we can now make calls for specific media types.
+
+     The following call is made:
+     
+       - call(Goal_2, Method, MT)
 
 @author Wouter Beek
 @version 2016/02, 2016/04-2016/06, 2016/08-2016/09
@@ -25,7 +49,7 @@
 :- use_module(library(lists)).
 
 :- html_meta
-   rest_media_type(+, +, 1),
+   rest_media_type(+, +, +, 2),
    rest_method(+, +, 3),
    rest_method(+, +, +, 4),
    rest_method(+, +, 3, +, 4),
@@ -71,17 +95,17 @@ rest_exception_media_type(Req, MT, existence_error(http_parameter,Key)) :- !,
 
 
 
-%! rest_media_type(+Req, +MTs, :Goal_1) is det.
+%! rest_media_type(+Req, +Method, +MTs, :Goal_2) is det.
 %
 % @tbd Add body for 405 code in multiple media types.
 
 % Media type accepted, on to application-specific reply.
-rest_media_type(_, MTs, Goal_1) :-
+rest_media_type(_, Method, MTs, Goal_2) :-
   member(MT, MTs),
-  call(Goal_1, MT), !.
+  call(Goal_2, Method, MT), !.
 % 406 “Not Acceptable”
-rest_media_type(Req, _, _) :-
-  reply_http_message(Req, 406).
+rest_media_type(Req, _, MTs, _) :-
+  rest_exception(Req, MTs, 406).
 
 
 
