@@ -15,7 +15,7 @@
 :- use_module(library(sgml)).
 
 :- meta_predicate
-    xml_stream_record(+, +, 2).
+    xml_stream_record(+, +, 1).
 
 
 
