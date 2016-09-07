@@ -71,7 +71,7 @@ xml_clean_file(File) :-
 
 xml_clean_file(File, Opts) :-
   thread_file(TmpFile),
-  call_onto_stream(File, TmpFile, xml_clean_stream0, Opts),
+  call_onto_stream(File, TmpFile, xml_clean_stream0, Opts, Opts),
   rename_file(TmpFile, File).
 
 

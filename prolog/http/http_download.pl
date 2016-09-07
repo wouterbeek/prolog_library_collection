@@ -34,8 +34,8 @@ Support for downloading files and datastructures over HTTP(S).
 
 
 
-%! file_download(+Iri, ?File) is det.
-%! file_download(+Iri, ?File, +Opts) is det.
+%! file_download(+Iri, +File) is det.
+%! file_download(+Iri, +File, +Opts) is det.
 %
 % Downloads the contents stored at the given URI to either the a File
 % with either a given file name or a file name that is created based
@@ -70,21 +70,16 @@ file_download(Iri, _, _) :-
   \+ uri_is_global(Iri), !,
   type_error(absolute_uri, Iri).
 % A file name is given.
-file_download(Iri, File0, Opts0) :-
+file_download(Iri, File, Opts) :-
   iri_normalized(Iri, NormIri),
   md5(NormIri, Hash),
   thread_file(Hash, TmpFile),
-  merge_options([metadata(Meta)], Opts0, Opts),
   call_onto_stream(
     Iri,
     TmpFile,
     [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
+    [metadata(Meta)|Opts],
     Opts
-  ),
-  (   nonvar(File0)
-  ->  File = File0
-  ;   (metadata_file_name(Meta, File0) -> true ; File0 = Hash),
-      absolute_file_name(File0, File, [access(write)])
   ),
   rename_file(TmpFile, File).
 
