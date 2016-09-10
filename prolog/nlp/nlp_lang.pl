@@ -24,6 +24,51 @@
 :- multifile
     nlp:lstring/3.
 
+nlp:lstring(en, article, "Article").
+nlp:lstring(nl, article, "Artikel").
+nlp:lstring(en, articles, "Articles").
+nlp:lstring(nl, articles, "Artikelen").
+nlp:lstring(en, articles_tagged_with, "Articles tagged with").
+nlp:lstring(nl, articles_tagged_with, "Artikelen met tag").
+nlp:lstring(en, author, "Author").
+nlp:lstring(nl, author, "Auteur").
+nlp:lstring(en, commented_on, "Commented on").
+nlp:lstring(nl, commented_on, "Gereageerd op").
+nlp:lstring(en, comments, "Comments").
+nlp:lstring(nl, comments, "Reacties").
+nlp:lstring(en, designed_using, "Designed using").
+nlp:lstring(nl, designed_using, "Ontwikkeld met").
+nlp:lstring(en, en, "English").
+nlp:lstring(nl, en, "Engels").
+nlp:lstring(en, follow, "Follow").
+nlp:lstring(nl, follow, "Volg").
+nlp:lstring(en, follow_us_on_twitter, "Follow us on Twitter").
+nlp:lstring(nl, follow_us_on_twitter, "Volg ons op Twitter").
+nlp:lstring(en, like_us_on_facebook, "Like us on Facebook").
+nlp:lstring(nl, like_us_on_facebook, "Like ons op Facebook").
+nlp:lstring(en, nl, "Dutch").
+nlp:lstring(nl, nl, "Nederlands").
+nlp:lstring(en, on, "on").
+nlp:lstring(nl, on, "op").
+nlp:lstring(en, overview, "Overview").
+nlp:lstring(nl, overview, "Overzicht").
+nlp:lstring(en, read_more, "Read more").
+nlp:lstring(nl, read_more, "Lees meer").
+nlp:lstring(en, tag, "Tag").
+nlp:lstring(nl, tag, "Tag").
+nlp:lstring(en, tags, "Tags").
+nlp:lstring(nl, tags, "Tags").
+nlp:lstring(en, tweet_to, "Tweet to").
+nlp:lstring(nl, tweet_to, "Tweet naar").
+nlp:lstring(en, tweets_by, "Tweets by").
+nlp:lstring(nl, tweets_by, "Tweets van").
+nlp:lstring(en, view_all_posts_tagged_with, "View all posts tagged with").
+nlp:lstring(nl, view_all_posts_tagged_with, "Zie alle posts met tag").
+nlp:lstring(en, votes, "votes").
+nlp:lstring(nl, votes, "stemmen").
+nlp:lstring(en, written_by, "Written by").
+nlp:lstring(nl, written_by, "Geschreven door").
+
 
 
 
