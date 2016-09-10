@@ -3,21 +3,26 @@
   [
     current_lrange/1, % -LRange
     current_ltag/1,   % -LTag
-    current_ltag/2    % +LTags, -LTag
+    current_ltag/2,   % +LTags, -LTag
+    lstring/2         % +Name, -Str
   ]
 ).
 
 /** <module> NLP: Language setting
 
 @author Wouter Beek
-@version 2016/02, 2016/04, 2016/06
+@version 2016/02, 2016/04, 2016/06, 2016/09
 */
 
+:- use_module(library(http/html_write)).
 :- use_module(library(lists)).
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(settings)).
 
 :- setting(nlp:lrange, list(atom), ['en-US'], '').
+
+:- multifile
+    nlp:lstring/3.
 
 
 
@@ -58,3 +63,11 @@ longest_to_shortest_prefix0(L, L).
 longest_to_shortest_prefix0(Prefix, L1) :-
   append(L2, [_], L1),
   longest_to_shortest_prefix0(Prefix, L2).
+
+
+
+%! lstring(+Name, -Str) is det.
+
+lstring(Name, Str) :-
+  current_ltag(LTag),
+  nlp:lstring(LTag, Name, Str).
