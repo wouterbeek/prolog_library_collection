@@ -12,8 +12,6 @@
                    % +Name:atom
                    % +Type:atom
                    % -File:atom
-    create_file_link/2, % +File:atom
-                        % +Dir:atom
     file_alternative/5, % +FromPath:atom
                         % ?Dir:atom
                         % ?Name:atom

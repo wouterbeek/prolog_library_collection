@@ -1446,7 +1446,8 @@ perc_fixed(Perc) -->
 %! pos(+I:nonneg, -Ds:list(between(0,9))) is det.
 % Wrapper around pois/2 with decimal base.
 
-pos(I, Ds):- pos(I, 10, Ds).
+pos(I, Ds):-
+  pos(I, 10, Ds).
 
 
 %! pos(+I:nonneg, +Base:positive_integer, -Ds:list(between(0,9))) is det.

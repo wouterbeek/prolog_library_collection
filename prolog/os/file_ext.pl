@@ -7,7 +7,7 @@
     create_directory/1,         % +Dir
     create_file/1,              % +File
     create_file_directory/1,    % +File
-    create_file_link/2,         % +File, +Dir
+    create_file_link/2,         % +From, +To
     current_directory/1,        % ?Dir
     delete_directory_msg/1,     % +Dir
     delete_directory_and_contents_msg/1, % +Dir
@@ -46,7 +46,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/08
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/09
 */
 
 :- use_module(library(apply)).
@@ -156,16 +156,16 @@ create_file_directory(Path) :-
 
 
 
-%! create_file_link(+File, +Dir) is det.
+%! create_file_link(+From, +To) is det.
 %
-% Create a symbolic link pointing to File in Dir.
-%
-% The symbolic link has the same name as the file linked to.
+% Create a symbolic link pointing from file From in to file To.
 
-create_file_link(Path, Dir) :-
-  directory_file_path(_, File, Path),
-  directory_file_path(Dir, File, Link),
-  (exists_file(Link) -> true ; link_file(Path, Link, symbolic)).
+create_file_link(From, _) :-
+  exists_file(From), !.
+create_file_link(From, To) :-
+  create_file_directory(From),
+  create_file_directory(To),
+  link_file(To, From, symbolic).
 
 
 
