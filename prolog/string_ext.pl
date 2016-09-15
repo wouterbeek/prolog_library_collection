@@ -5,6 +5,7 @@
     codes_string/2,       % ?Cs, ?Str
     lowercase_string/2,   % +Str1, -Str2
     string_atom/2,        % ?Str, ?A
+    string_list_concat/2, % +Strs, -Str
     string_list_concat/3, % ?Strs, ?Sep, ?Str
     string_to_term/2,     % +Str, -Term
     string_replace/4,     % +Str1, +SubStr1, -SubStr2, -Str2
@@ -23,7 +24,7 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/05-2016/08
+@version 2015/08, 2016/02, 2016/05-2016/09
 */
 
 :- use_module(library(apply)).
@@ -71,15 +72,20 @@ string_atom(Str, A) :-
 
 
 
+%! string_list_concat(+Strs, +Str) is semidet.
+%! string_list_concat(+Strs, -Str) is det.
 %! string_list_concat(+Strs, +Sep, +Str) is semidet.
 %! string_list_concat(+Strs, +Sep, -Str) is det.
 %! string_list_concat(-Strs, +Sep, +Str) is det.
 
+string_list_concat(Strs, Str) :-
+  atomics_to_string(Strs, Str).
+
+
 string_list_concat(Strs, Sep, Str):-
-  var(Str), !,
-  maplist(atom_string, [Sep0|As], [Sep|Strs]),
-  atomic_list_concat(As, Sep0, A),
-  atom_string(A, Str).
+  ground(Strs),
+  ground(Sep), !,
+  atomics_to_string(Strs, Sep, Str).
 string_list_concat(Strs, Sep, Str):-
   maplist(atom_string, [Sep0,A], [Sep,Str]),
   atomic_list_concat(As, Sep0, A),

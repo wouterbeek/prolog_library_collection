@@ -1,35 +1,22 @@
 :- module(
   user_input,
   [
-    input_directory_name/3, % +Message:string
-                            % +Local:atom
-                            % -Path:atom
-    input_file_path_name/3, % +Message:string
-                            % +PrefixPath:atom
-                            % -Path:atom
-    input_local_file_name/3, % +Message:string
-                             % +PrefixDir:atom
-                             % -Path:atom
-    input_password/2, % +Message:string
-                      % -UnencryptedPassword:list(code)
-    user_input/3, % +Message:atom
-                  % :LegalAnswer
-                  % -Answer
-    user_interaction/5 % +Action:atom
-                       % :Goal
-                       % +Headers:list(atom)
-                       % +Tuples:list(list)
-                       % +Opts
+    input_directory_name/3,  % +Msg, +Local, -Path
+    input_file_path_name/3,  % +Msg, +PrefixPath, -Path
+    input_local_file_name/3, % +Msg, +PrefixDir, -Path
+    input_password/2,        % +Msg, -UnencryptedPassword:list(code)
+    user_input/3,            % +Msg, :LegalAnswer_0, -Answer
+    user_interaction/5       % +Action, :Goal_0, +Headers, +Tuples, +Opts
   ]
 ).
 
 /** <module> User input
 
-Handles user input and sequences in which user input is needed continuously
-(called "user interaction").
+Handles user input and sequences in which user input is needed
+continuously (i.e., user interaction).
 
 @author Wouter Beek
-@version 2013/10-2013/12, 2014/11-2014/12
+@version 2013/10-2013/12, 2014/11-2014/12, 2016/09
 */
 
 :- use_module(library(filesex)).
@@ -37,22 +24,24 @@ Handles user input and sequences in which user input is needed continuously
 :- use_module(library(option)).
 :- use_module(library(readutil)).
 
-:- meta_predicate(user_input(+,3,+)).
-:- meta_predicate(user_interaction(+,+,:,+,+)).
-:- meta_predicate(user_interaction(+,+,:,+,+,+,+)).
-:- meta_predicate(user_interaction(+,+,+,:,+,+,+,+)).
+:- meta_predicate
+    user_input(+, 3, +),
+    user_interaction(+, +, :, +, +),
+    user_interaction(+, +, :, +, +, +, +),
+    user_interaction(+, +, +, :, +, +, +, +).
 
 
 
 
 
-%! input_directory_name(+Message:string, +Local:atom, -Path:atom) is det.
+%! input_directory_name(+Msg, +Local, -Path) is det.
+%
 % Allow the user to specify a directory for the given local file name.
 
-input_directory_name(Msg0, Local, Path):-
+input_directory_name(Msg0, Local, Path) :-
   format(
     string(Msg),
-    '~s\nEnter the directory holding file ~w.',
+    "~s~nEnter the directory holding file ‘~a’.",
     [Msg0,Local]
   ),
   repeat,
@@ -64,33 +53,34 @@ input_directory_name(Msg0, Local, Path):-
 
 
 
-%! input_file_path_name(+Message:string, +Prefix:atom, -Path:atom) is det.
-% Allows the user to enter a path relative to the given directory prefix.
-% The user can specify a local file name with or without
+%! input_file_path_name(+Msg, +Prefix, -Path) is det.
+%
+% Allows the user to enter a path relative to the given directory
+% prefix.  The user can specify a local file name with or without
 % prefixed subdirectories.
 %
 % Prefix is an absolute path representing a directory.
 
-input_file_path_name(Msg, Prefix, Path):-
+input_file_path_name(Msg, Prefix, Path) :-
   repeat,
   user_input(Msg, input_file_path_name, Postfix),
-
-  % Postfix is not allowed to contain `..` segments since
-  % Path could end up ouside of Prefix.
+  % Postfix is not allowed to contain `..` segments since Path could
+  % end up ouside of Prefix.
   (   sub_atom(Postfix, _, 2, _, '..')
   ->  fail
   ;   !
   ),
-
   relative_file_name(Path, Prefix, Postfix).
 
 
 
-%! input_local_file_name(+Message:string, +Directory:atom, -Path:atom) is det.
+%! input_local_file_name(+Msg, +Dir, -Path) is det.
+%
 % Allows the user to enter a path relative to the given Directory.
-% The user can ony specify the local file name (i.e., no subdirectories).
+% The user can ony specify the local file name (i.e., no
+% subdirectories).
 
-input_local_file_name(Msg, Dir, Path):-
+input_local_file_name(Msg, Dir, Path) :-
   repeat,
   user_input(Msg, input_local_file_name, Local),
   (   directory_file_path(Dir, Local, Path)
@@ -100,73 +90,69 @@ input_local_file_name(Msg, Dir, Path):-
 
 
 
-%! input_password(+Message:string, -UnencryptedPassword:list(nonneg)) is det.
+%! input_password(+Msg, -UnencryptedPassword:list(code)) is det.
 
-input_password(Msg0, UnencryptedPassword):-
+input_password(Msg0, UnencryptedPassword) :-
   format(
     string(Msg),
-    '~s\nThe input_password must consist of 7 or more ASCII graphic characters.',
+    "~s~nThe password must consist of 7 or more ASCII graphic characters.",
     [Msg0]
   ),
   user_input(Msg, input_password, UnencryptedPassword).
 
-input_password(Codes) -->
-  'm*'(7, graphic, Codes, []).
+
+input_password(Cs) -->
+  'm*'(7, graphic, Cs, []).
 
 
 
+%! user_interaction(+ActionDesc, :Goal_0, +Headers, +Tuples, +Opts) is det.
 %! user_interaction(
-%!   +ActionDescription:string,
-%!   :Goal,
-%!   +Headers:list(atom),
-%!   +Tuples:list,
+%!   +ActionDesc,
+%!   :Goal_0,
+%!   +TupleIndex,
+%!   +NumTuples,
+%!   +Headers,
+%!   +Tuples,
 %!   +Opts
 %! ) is det.
-% The generic predicate for executing arbitray Prolog goals for arbitrary
-% sequences of Prolog terms under user-interaction.
 %
-% One of the use cases is cleaning a database, where a list of =Tuples=
-% has been identified for removal by =Goal=, but a user is required to
-% assent to each removal action.
+% The generic predicate for executing arbitray Prolog goals for
+% arbitrary sequences of Prolog terms under user-interaction.
+%
+% One of the use cases is cleaning a database, where a list of
+% `Tuples` has been identified for removal by Goal_0, but a user is
+% required to assent to each removal action.
 %
 % Receiving input from the user does not work in threads!
 %
 % The following options are supported:
-%   * `answer(+Answer:oneof(['A',n,q,y]]))`
 %
-% @arg ActionDescription A string describing the action performed by Goal.
+%   * answer(+oneof(['A',n,q,y]]))
+%
+% @arg ActionDesc A string describing the action performed by Goal_0.
+%
 % @arg Goal An arbitrary Prolog goal that takes the number of elements
 %      in each tuple as the number of arguments.
+%
 % @arg Headers A list of atoms describing the entries in each tuple.
-%      The number of headers and the number of elements in each
-%      tuple are assumed to be the same.
-% @arg Tuples A list of tuples. These are the element lists for which goal
-%      is executed after user-confirmation.
-% @arg Opts A list of name-value pairs.
+%      The number of headers and the number of elements in each tuple
+%      are assumed to be the same.
+%
+% @arg Tuples A list of tuples. These are the element lists for which
+%      Goal_0 is executed after user-confirmation.
 
-user_interaction(Act, G, Hs, Ts, Opts):-
-  length(Ts, NumberOfTs),
-  user_interaction(Act, G, 1, NumberOfTs, Hs, Ts, Opts).
+user_interaction(ActDesc, G, Hs, Tuples, Opts) :-
+  length(Tuples, NumTuples),
+  user_interaction(ActDesc, G, 1, NumTuples, Hs, Tuples, Opts).
 
 
-%! user_interaction(
-%!   +ActionDescription:string,
-%!   :Goal,
-%!   +IndexOfTuple:positive_integer,
-%!   +NumberOfTuples:positive_integer,
-%!   +Headers:list(atom),
-%!   +Tuples:list,
-%!   +Opts
-%! ) is det.
-% The following options are supported:
-%   * `answer(+Answer:oneof(['A',n,q,y]]))`
-
-user_interaction(Act, _, _, _, _, [], _):-
-  format(user_output, '\n-----\nDONE! <~s>\n-----\n', [Act]), !.
-user_interaction(Act, G, I, L, Hs, Ts, Opts):-
+user_interaction(Act, _, _, _, _, [], _) :-
+  format(user_output, "~n-----~nDONE! <~s>~n-----~n", [Act]), !.
+user_interaction(Act, G, I, L, Hs, Ts, Opts) :-
   option(answer(UserAtom), Opts), !,
   user_interaction(UserAtom, Act, G, I, L, Hs, Ts, Opts).
-user_interaction(Act, G, I, L, Hs, Ts, Opts):-
+user_interaction(Act, G, I, L, Hs, Ts, Opts) :-
   % Construct the message.
   nth1(I, Ts, T),
   findall(
@@ -174,12 +160,12 @@ user_interaction(Act, G, I, L, Hs, Ts, Opts):-
     (
       nth0(J, Hs, H),
       nth0(J, T, Element),
-      format(string(HeaderedElement), '~w: <~w>', [H,Element])
+      format(string(HeaderedElement), "~w: <~w>", [H,Element])
     ),
     HeaderedElements
   ),
-  string_list_concat(HeaderedElements, '\n\t', MsgTail),
-  format(string(Msg), '[~w/~w] ~s\n\t~w\n(y/n/q)\n?: ', [I,L,Act,MsgTail]),
+  atomics_to_string(HeaderedElements, "~n~t", MsgTail),
+  format(string(Msg), "[~w/~w] ~s~n~t~w~n(y/n/q)~n?: ", [I,L,Act,MsgTail]),
 
   % Ask for legal user input.
   user_input(Msg, legal_user_interaction, Answer),
@@ -200,7 +186,7 @@ user_interaction(Act, G, I, L, Hs, Ts, Opts):-
 %! ) is det.
 
 % User choice: all.
-user_interaction('A', _, G, I1, L, _, Ts, _):- !,
+user_interaction('A', _, G, I1, L, _, Ts, _) :- !,
   forall(
     between(I1, L, J),
     (
@@ -209,13 +195,13 @@ user_interaction('A', _, G, I1, L, _, Ts, _):- !,
     )
   ).
 % User choice: no.
-user_interaction(n, Act, G, I1, L, Hs, Ts, Opts):- !,
+user_interaction(n, Act, G, I1, L, Hs, Ts, Opts) :- !,
   I2 is I1 + 1,
   user_interaction(Act, G, I2, L, Hs, Ts, Opts).
 % User choice: quit.
-user_interaction(q, _, _, _, _, _, _, _):- !.
+user_interaction(q, _, _, _, _, _, _, _) :- !.
 % User choice: yes.
-user_interaction(y, Act, G, I1, L, Hs, Ts, Opts):- !,
+user_interaction(y, Act, G, I1, L, Hs, Ts, Opts) :- !,
   nth1(I1, Ts, T),
   apply(G, T),
   I2 is I1 + 1,

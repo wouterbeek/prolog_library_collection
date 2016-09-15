@@ -39,7 +39,7 @@ emoticon(M) -->
   eyes(M3),
   nose(M4),
   mouth(M5),
-  {string_list_concat([M1,M2,M3,M4,M5], " ", M)}.
+  {atomics_to_string([M1,M2,M3,M4,M5], " ", M)}.
 emoticon("darned if I know, half the time they confuse me too") --> ... .
 
 

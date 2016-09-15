@@ -37,7 +37,7 @@ create_date_directory(Spec, Dir):-
   format_time(atom(Mo), "%m", TS),
   format_time(atom(Y), "%Y", TS),
   absolute_file_name(Spec, PrefixDir, [access(write),file_type(directory)]),
-  string_list_concat([Y,Mo,D], "/", PostfixDir),
+  atomics_to_string([Y,Mo,D], "/", PostfixDir),
   directory_file_path(PrefixDir, PostfixDir, Dir),
   make_directory_path(Dir).
 
@@ -51,7 +51,7 @@ create_date_time_file(Spec, File):-
   format_time(string(H), "%H", TS),
   format_time(string(Mi), "%M", TS),
   format_time(string(S), "%S", TS),
-  string_list_concat([H,Mi,S], "_", Local),
+  atomics_to_string([H,Mi,S], "_", Local),
   directory_file_path(Dir, Local, File).
 
 
