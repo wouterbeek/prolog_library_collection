@@ -10,6 +10,7 @@
     directly_before/3,      % ?After, ?Before, ?L
     element_cut/4,          % +L, +X, -L1, -L2
     empty_list/1,           % ?L
+    ensure_list/2,          % +Term, -L
     first/2,                % +L, ?First
     first_duplicate/2,      % ?FirstDuplicate, +L
     inflist/2,              % +X, -L
@@ -60,7 +61,7 @@
 Extensions to the set of list predicates in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/11, 2016/05
+@version 2015/07, 2015/10-2015/11, 2016/05, 2016/09
 */
 
 :- use_module(library(apply)).
@@ -194,6 +195,14 @@ element_cut([OtherElement | L], Element, [OtherElement | L1], L2) :-
 %! empty_list(@Term) is semidet.
 
 empty_list([]).
+
+
+
+%! ensure_list(+Term, -L) is det.
+
+ensure_list(L, L) :-
+  is_list(L), !.
+ensure_list(Term, [Term]).
 
 
 
