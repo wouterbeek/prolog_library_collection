@@ -25,6 +25,7 @@
     file_name_extensions/3,     % ?File, ?Name, ?Exts
     file_paths/2,               % +File, -Paths
     file_size/2,                % +File, -Size
+    is_dummy_file/1,            % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
     is_fresh_file/2,            % +File, +FreshnessLifetime
     is_stale_age/2,             % +Age, +FreshnessLifetime
@@ -337,6 +338,13 @@ file_size(File, Size) :-
 
 
 
+%! is_dummy_file(+File) is semidet.
+
+is_dummy_file(.).
+is_dummy_file(..).
+
+
+
 %! is_fresh_age(
 %!   +Age:between(0.0,inf),
 %!   +FreshnessLifetime:between(0.0,inf)
@@ -459,13 +467,6 @@ wildcard_file(Wildcard, File) :-
 
 
 % HELPERS %
-
-%! is_dummy_file(+File) is semidet.
-
-is_dummy_file(.).
-is_dummy_file(..).
-
-
 
 %! resolve_subdirectories(+Subdirs, -ResoledSubdirs) is det.
 

@@ -1,9 +1,11 @@
 :- module(
   pl_term,
   [
-    n_ary_term/3, % +Pred, +Args, -Comp
-    write_fact/1, % @Term
-    write_term/1  % @Term
+    git_version/1, % -Version
+    n_ary_term/3,  % +Pred, +Args, -Comp
+    pl_version/1,  % -Version
+    write_fact/1,  % @Term
+    write_term/1   % @Term
   ]
 ).
 
@@ -12,7 +14,7 @@
 Additional support for handling Prolog terms.
 
 @author Wouter Beek
-@version 2015/07, 2015/10, 2016/08
+@version 2015/07, 2015/10, 2016/08-2016/09
 */
 
 :- use_module(library(apply)).
@@ -21,7 +23,16 @@ Additional support for handling Prolog terms.
 
 
 
+%! git_version(-Version) is det.
+
+git_version(Version) :-
+  current_prolog_flag(version_git, Version).
+
+
+
 %! n_ary_term(+Pred, +Args, -Comp) is det.
+%
+% Builds an $n$-ary term out of a binary predicate Pred.
 
 n_ary_term(Pred, [H], Comp) :- !,
   Comp =.. [Pred,H].
@@ -30,6 +41,14 @@ n_ary_term(Pred, [H1,H2], Comp) :- !,
 n_ary_term(Pred, [H|T], Comp) :- !,
   n_ary_term(Pred, T, Comp0),
   Comp =.. [Pred,H,Comp0].
+
+
+
+%! pl_version(-Version) is det.
+
+pl_version(Version) :-
+  current_prolog_flag(version_data, swi(Major, Minor, Patch, _)),
+  Version = pl_version{major: Major, minor: Minor, patch: Patch}.
 
 
 
