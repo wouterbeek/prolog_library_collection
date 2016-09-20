@@ -1,6 +1,7 @@
 :- module(
   atom_ext,
   [
+    atom_ellipsis/3,      % +Atom,   ?Len,     ?Ellipsis
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
     atom_postfix/2,       % +Atom,   ?Sub
     atom_postfix/3,       % +Atom,   ?Len,     ?Sub
@@ -66,7 +67,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/06, 2016/08
+@version 2015/07-2015/10, 2016/03-2016/06, 2016/08-2016/09
 */
 
 :- use_module(library(apply)).
@@ -76,6 +77,36 @@ Titlecase atoms can be created using upcase_atom/2.
 :- use_module(library(typecheck)).
 
 
+
+
+
+%! atom_ellipsis(+Atom, +Len, +Ellipsis) is semidet.
+%! atom_ellipsis(+Atom, +Len, -Ellipsis) is semidet.
+%! atom_ellipsis(+Atom, -Len, -Ellipsis) is nondet.
+%
+% ```
+% ?- atom_ellipsis(monkey, N, X).
+% N = 2,
+% X = 'm…' ;
+% N = 3,
+% X = 'mo…' ;
+% N = 4,
+% X = 'mon…' ;
+% N = 5,
+% X = 'monk…' ;
+% N = 6,
+% X = monkey.
+% ```
+
+atom_ellipsis(Atom, ELen, Ellipsis) :-
+  atom_length(Atom, Len),
+  between(2, Len, ELen),
+  (   ELen =:= Len
+  ->  Ellipsis = Atom
+  ;   TLen is ELen - 1,
+      atom_truncate(Atom, TLen, Truncated),
+      atomic_concat(Truncated, "…", Ellipsis)
+  ).
 
 
 
@@ -109,13 +140,17 @@ atom_postfix(Atom, Len, Sub) :-
 
 
 
-%! atom_prefix(+Atom, ?Len, -Sub) is multi.
+%! atom_prefix(+Atom, +Len, +Sub) is semidet.
+%! atom_prefix(+Atom, +Len, -Sub) is semidet.
+%! atom_prefix(+Atom, -Len, +Sub) is semidet.
+%! atom_prefix(+Atom, -Len, -Sub) is multi.
+%
+% Sub is the prefix of Atom that has length Len.
+%
+% Fails in case Len is higher than the length of Atom.
 
 atom_prefix(Atom, Len, Sub) :-
-  atom_codes(Atom, Cs),
-  append(SubCs, _, Cs),
-  length(SubCs, Len),
-  atom_codes(Sub, SubCs).
+  sub_atom(Atom, 0, Len, _, Sub).
 
 
 
@@ -135,18 +170,21 @@ atom_to_term(Atom, Term) :-
 % maximum lenght of the truncated atom.  Truncation will always result
 % in an atom which has at most `MaxLength`.
 %
-% MaxLen must at least be 1.  If MaxLen is `inf` then the original
-% atom is returned.
+% @param MaxLen must be a non-negative integer or `inf`.  When `inf`
+%        the original atom is returned without truncation.
+%
+% @see atom_ellipsis/3 for returning a truncated atom with ellipsis
+%      sign.
 %
 % @throws type_error
 
 atom_truncate(A, inf, A) :- !.
-atom_truncate(A, Max, A) :-
-  must_be(positive_integer, Max),
+atom_truncate(A, MaxLen, A) :-
+  must_be(nonneg, MaxLen),
   atom_length(A, Len),
-  Len =< Max, !.
-atom_truncate(A, Max, Prefix) :-
-  atom_prefix(A, Max, Prefix).
+  Len =< MaxLen, !.
+atom_truncate(A, MaxLen, Prefix) :-
+  atom_prefix(A, MaxLen, Prefix).
 
 
 

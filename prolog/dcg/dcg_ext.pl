@@ -464,19 +464,13 @@ atom_ci(A) -->
 
 
 
-%! atom_ellipsis(+A, +Max:or([nonneg,oneof([inf])]))// is det.
+%! atom_ellipsis(+A, +MaxLen:or([nonneg,oneof([inf])]))// is det.
 %
-% Max is the maximum length of atom.
+% MaxLen is the maximum length of the ellipsed atom A.
 
-atom_ellipsis(A, inf) --> !,
-  atom(A).
-atom_ellipsis(A1, Max) -->
-  {
-    Len is Max - 1,
-    atom_truncate(A1, Len, A2)
-  },
-  atom(A2),
-  ({A1 == A2} -> "" ; ellipsis).
+atom_ellipsis(A, Len) -->
+  {atom_ellipsis(A, Len, Ellipsed)},
+  atom(Ellipsed).
 
 
 
@@ -1620,23 +1614,19 @@ skip_line -->
 
 
 
-%! str(+String)// is det.
+%! str(+Str)// is det.
 
-str(S) -->
-  {string_codes(S, Cs)},
+str(Str) -->
+  {string_codes(Str, Cs)},
   Cs.
 
 
 
-%! str_ellipsis(+S, +Max)// is det.
+%! str_ellipsis(+Str, +MaxLen)// is det.
 
-str_ellipsis(S1, Max) -->
-  {
-    minus(Max, 1, Len),
-    string_truncate(S1, Len, S2)
-  },
-  str(S2),
-  ({S1 == S2} -> "" ; "…").
+str_ellipsis(Str, MaxLen) -->
+  {string_ellipsis(Str, MaxLen, Ellipsis)},
+  str(Ellipsis).
 
 
 

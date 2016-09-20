@@ -5,11 +5,13 @@
     codes_string/2,       % ?Cs, ?Str
     lowercase_string/2,   % +Str1, -Str2
     string_atom/2,        % ?Str, ?A
+    string_ellipsis/3,    % +Str, ?MaxLen, -Ellipsis
     string_list_concat/2, % +Strs, -Str
     string_list_concat/3, % ?Strs, ?Sep, ?Str
+    string_prefix/3,      % +Str, ?Len, ?Sub
     string_to_term/2,     % +Str, -Term
     string_replace/4,     % +Str1, +SubStr1, -SubStr2, -Str2
-    string_truncate/3,    % +Str, +Max, -TruncatedStr
+    string_truncate/3,    % +Str,  +Max, -Truncated
     uppercase_string/2    % +Str1, -Str2
   ]
 ).
@@ -72,6 +74,36 @@ string_atom(Str, A) :-
 
 
 
+%! string_ellipsis(+String, +Len, +Ellipsis) is semidet.
+%! string_ellipsis(+String, +Len, -Ellipsis) is semidet.
+%! string_ellipsis(+String, -Len, -Ellipsis) is nondet.
+%
+% ```
+% ?- string_ellipsis("monkey", N, X).
+% N = 2,
+% X = "m…" ;
+% N = 3,
+% X = "mo…" ;
+% N = 4,
+% X = "mon…" ;
+% N = 5,
+% X = "monk…" ;
+% N = 6,
+% X = "monkey".
+% ```
+
+string_ellipsis(String, ELen, Ellipsis) :-
+  string_length(String, Len),
+  between(2, Len, ELen),
+  (   ELen =:= Len
+  ->  Ellipsis = String
+  ;   TLen is ELen - 1,
+      string_truncate(String, TLen, Truncated),
+      string_concat(Truncated, "…", Ellipsis)
+  ).
+
+
+
 %! string_list_concat(+Strs, +Str) is semidet.
 %! string_list_concat(+Strs, -Str) is det.
 %! string_list_concat(+Strs, +Sep, +Str) is semidet.
@@ -93,6 +125,20 @@ string_list_concat(Strs, Sep, Str):-
 
 
 
+%! string_prefix(+Str, +Len, +Sub) is semidet.
+%! string_prefix(+Str, +Len, -Sub) is semidet.
+%! string_prefix(+Str, -Len, +Sub) is semidet.
+%! string_prefix(+Str, -Len, -Sub) is multi.
+%
+% Sub is the prefix of string Str that has length Len.
+%
+% Fails in case Len is higher than the length of string Str.
+
+string_prefix(Str, Len, Sub) :-
+  sub_string(Str, 0, Len, _, Sub).
+
+
+
 %! string_replace(+Str1, +SubStr1, -SubStr2, -Str2) is det.
 
 string_replace(Str1, SubStr1, SubStr2, Str2) :-
@@ -109,23 +155,17 @@ string_to_term(Str, Term) :-
 
 
 
-%! string_truncate(+Str, +Max, -TruncatedStr) is det.
+%! string_truncate(+Str, +Max, -Truncated) is det.
+%
+% @see string_ellipsis
 
-string_truncate(Str, inf, Str):- !.
-string_truncate(Str, Max, Str):-
-  must_be(positive_integer, Max),
-  Max =< 5, !.
-% The string does not have to be truncated, it is not that long.
-string_truncate(Str, Max, Str):-
+string_truncate(Str, inf, Str) :- !.
+string_truncate(Str, MaxLen, Str) :-
+  must_be(nonneg, MaxLen),
   string_length(Str, Len),
-  Len =< Max, !.
-% The string exceeds the maximum length, it is truncated.
-% For this purpose the displayed length of the string is
-%  the maximum length minus 4 (but never less than 3).
-string_truncate(Str1, Max, Str3):-
-  TruncatedLen is Max - 3,
-  sub_string(Str1, 0, TruncatedLen, _, Str2),
-  string_concat(Str2, "...", Str3).
+  Len =< MaxLen, !.
+string_truncate(Str, MaxLen, Prefix) :-
+  string_prefix(Str, MaxLen, Prefix).
 
 
 
