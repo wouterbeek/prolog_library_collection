@@ -16,7 +16,8 @@
     http_relative_iri/2,      % +Req, -Iri
     http_reply_file/1,        % +File
     http_resource_iri/2,      % +Req, -Iri
-    http_status_reply/2       % +Req, +Status
+    http_status_reply/2,      % +Req, +Status
+    is_empty_get_request/1    % +Req
   ]
 ).
 
@@ -168,3 +169,16 @@ http_resource_iri(Req, Res) :-
 http_status_reply(Req, Status) :-
   http_output(Req, Out),
   http_status_reply(Status, Out, [], _).
+
+
+
+%! is_empty_get_request(+Req) is semidet.
+%
+% Succeeds iff HTTP request Req is a GET request with no parameter.
+
+is_empty_get_request(Req) :-
+  option(request_uri(URI), Req),
+  uri_components(URI, Components),
+  uri_data(search, Components, Search),
+  var(Search),
+  option(method(get), Req).
