@@ -7,18 +7,20 @@
     merge_options/2,        % +Optss:list(list), -Opts:list
     option_components/3,    % ?Opt, ?Name, ?Value
     option_has_var_value/1, % +Opt
-    option_pair/2           % ?Opt, ?Pair
+    option_pair/2,          % ?Opt, ?Pair
+    required_option/2       % ?Opt, +Opts
   ]
 ).
 :- reexport(library(option)).
 
-/** <module> Opt extensions
+/** <module> Option extensions
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2016/01, 2016/04
+@version 2015/07, 2015/10-2016/01, 2016/04, 2016/09
 */
 
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -88,3 +90,13 @@ option_has_var_value(Opt) :-
 
 option_pair(Opt, N-V) :-
   Opt =.. [N,V].
+
+
+
+%! required_option(?Opt, +Opts) is det.
+
+required_option(Opt, Opts) :-
+  option(Opt, Opts), !.
+required_option(Opt, _) :-
+  functor(Opt, Name, _),
+  existence_error(option, Name).

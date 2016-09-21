@@ -41,18 +41,12 @@ Registry.
 
 
 
-%! basic_filtering(
-%!   +LanguagePriorityList:list(atom),
-%!   +LanguageTag:atom
-%! ) is semidet.
-% Succeeds if the LanguagePriorityList matches the LanguageTag according to
-% the basic filtering algorithm described in RFC 4647,
+%! basic_filtering(+LPriorityList, +LTag) is semidet.
+%
+% Succeeds if the LanguagePriorityList matches the LanguageTag
+% according to the basic filtering algorithm described in RFC 4647,
 % i.e., if the former is a case-insensitive prefix of the latter,
 % while also treating the `*` sign as a wildcard.
-%
-% @arg LanguagePriorityList A list of atoms that parse according to
-%      'language-range'//1.
-% @arg LanguageTag ...
 %
 % @compat RFC 4647
 
@@ -173,9 +167,11 @@ lookup(L1a, L2):-
 
 % HELPERS %
 
-%! subtag_match(+RangeSubtag:atom, +Subtag:atom) is semidet.
+%! subtag_match(+RangeSubtag, +Subtag) is semidet.
+%
 % Two subtags match if either they are the same when compared
-% case-insensitively or the language range's subtag is the wildcard `*`
+% case-insensitively or the language range's subtag is the wildcard
+% `*`
 
 subtag_match(*, _):- !.
 subtag_match(X1, X2):-
