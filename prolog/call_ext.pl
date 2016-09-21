@@ -1,6 +1,8 @@
 :- module(
   call_ext,
   [
+    call_det/1,          % :Goal_0
+    call_det/2,          % :Goal_0, -IsDet
     call_n_sol/3,        % +N, :Select_1, :Goal_1
     call_n_times/2,      % +N, :Goal_0
     call_or_fail/1,      % :Goal_0
@@ -14,7 +16,7 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04, 2016/07-2016/08
+@version 2016/04, 2016/07-2016/09
 */
 
 :- use_module(library(lists)).
@@ -22,6 +24,8 @@
 :- use_module(library(time)).
 
 :- meta_predicate
+    call_det(0),
+    call_det(0, -),
     call_n_sol(+, 1, 1),
     call_n_times(+, 0),
     call_or_fail(0),
@@ -30,6 +34,19 @@
     forall(0).
 
 
+
+
+
+%! call_det(:Goal_0) is semidet.
+%! call_det(:Goal_0, -IsDet) is det.
+
+call_det(Goal_0) :-
+  call_det(Goal_0, true).
+
+
+call_det(Goal_0, Det) :-
+  call(Goal_0),
+  deterministic(Det).
 
 
 
