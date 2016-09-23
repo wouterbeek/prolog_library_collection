@@ -57,22 +57,22 @@ Paginations = _G147{number_of_results:20, page:858, page_size:20, results:[17141
 %! http_pagination_links(+Pagination) is semidet.
 
 http_pagination_links(Pagination) :-
-  pagination_iris(Pagination, Rels, Iris),
+  pagination_iris(Pagination, Pairs),
   format("Link: "),
-  http_pagination_links0(Rels, Iris),
+  http_pagination_links0(Pairs),
   nl.
 
 
-http_pagination_links0([], []) :- !.
-http_pagination_links0([Rel], [Iri]) :- !,
-  http_pagination_link0(Rel, Iri).
-http_pagination_links0([Rel|Rels], [Iri|Iris]) :- !,
-  http_pagination_link0(Rel, Iri),
+http_pagination_links0([]) :- !.
+http_pagination_links0([H]) :- !,
+  http_pagination_link0(H).
+http_pagination_links0([H|T]) :- !,
+  http_pagination_link0(H),
   format(", "),
-  http_pagination_links0(Rels, Iris).
+  http_pagination_links0(T).
 
 
-http_pagination_link0(Rel, Iri) :-
+http_pagination_link0(Rel-Iri) :-
   format('<~a>; rel="~a"', [Iri,Rel]).
 
 
@@ -173,14 +173,15 @@ pagination_init_options(PageOpts1, StartPage, PageSize, PageOpts3) :-
 
 
 
-%! pagination_iris(+Pagination, -Rels, -Iris) is det.
+%! pagination_iris(+Pagination, -Pairs) is det.
 %
 % Returns the Page for the given pagination Pagination.  Fails
 % silently when there are no pages with relation Rel.
+%
+% @param Pairs are of the form `Rel-Iri`.
 
-pagination_iris(Pagination, Rels, Iris) :-
-  findall(Rel-Iri, pagination_iri(Pagination, Rel, Iri), Pairs),
-  pairs_keys_values(Pairs, Rels, Iris).
+pagination_iris(Pagination, Pairs) :-
+  findall(Rel-Iri, pagination_iri(Pagination, Rel, Iri), Pairs).
 
 
 
