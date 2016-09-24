@@ -44,6 +44,7 @@
     selectchk_eq/3,         % +X, +Whole, -Part
     shorter/3,              % +Comparator_2, +L1, +L2
     singleton_list/2,       % ?X, ?L
+    sort_by_length/2,       % +ListOfLists, -ByLen
     split_list_exclusive/3, % +L, +Split, -Ls
     split_list_member/4,    % +L, -Before, ?X, -After
     split_list_nth0/5,      % +L, -Before, ?I, ?X, -After
@@ -67,6 +68,7 @@ Extensions to the set of list predicates in SWI-Prolog.
 :- use_module(library(apply)).
 :- use_module(library(closure)).
 :- use_module(library(error)).
+:- use_module(library(pair_ext)).
 :- use_module(library(typecheck)).
 
 
@@ -635,6 +637,14 @@ shorter(Order, L1, L2) :-
 %! singleton_list(-X, +L) is det.
 
 singleton_list(X, [X]).
+
+
+
+%! sort_by_length(+ListOfLists, -ByLen) is det.
+
+sort_by_length(ListOfLists, ByLen) :-
+  map_list_to_pairs(length, ListOfLists, Pairs),
+  asc_pairs_values(Pairs, ByLen).
 
 
 

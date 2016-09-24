@@ -60,28 +60,34 @@ error:has_type(pair(Type1,Type2), X-Y):-
 %! asc_pairs(+Pairs, -AscendingPairs) is det.
 % Sort Pairs in ascending order.
 
-asc_pairs(L1, L2) :- keysort(L1, L2).
+asc_pairs(L1, L2) :-
+  keysort(L1, L2).
 
 
 
 %! asc_pairs_values(+Pairs, -AscendingValues) is det.
 % Sort the valus of Pairs in ascending order.
 
-asc_pairs_values(L1, L3) :- asc_pairs(L1, L2), pairs_values(L2, L3).
+asc_pairs_values(L1, L3) :-
+  asc_pairs(L1, L2),
+  pairs_values(L2, L3).
 
 
 
 %! desc_pairs(+Pairs, -AscendingPairs) is det.
 % Sort Pairs in descending order.
 
-desc_pairs(L1, L2) :- sort(1, @>=, L1, L2).
+desc_pairs(L1, L2) :-
+  sort(1, @>=, L1, L2).
 
 
 
 %! desc_pairs_values(+Pairs, -DescendingValues) is det.
 % Sort the values of Pairs in descending order.
 
-desc_pairs_values(L1, L3) :- desc_pairs(L1, L2), pairs_values(L2, L3).
+desc_pairs_values(L1, L3) :-
+  desc_pairs(L1, L2),
+  pairs_values(L2, L3).
 
 
 
@@ -91,6 +97,7 @@ group_pairs_by_key(_, [], []):- !.
 group_pairs_by_key(Comp, [M-N|T0], [M-[N|TN]|T]):-
   same_key(Comp, M, T0, TN, T1),
   group_pairs_by_key(Comp, T1, T).
+
 
 same_key(Comp, M0, [M-N|T0], [N|TN], T):-
   call(Comp, M0, M), !,
