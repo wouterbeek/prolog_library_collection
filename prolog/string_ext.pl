@@ -8,6 +8,7 @@
     string_ellipsis/3,    % +Str, ?MaxLen, -Ellipsis
     string_list_concat/2, % +Strs, -Str
     string_list_concat/3, % ?Strs, ?Sep, ?Str
+    string_or_strings/2,  % +StrOrStrs, -Str
     string_prefix/3,      % +Str, ?Len, ?Sub
     string_to_term/2,     % +Str, -Term
     string_replace/4,     % +Str1, +SubStr1, -SubStr2, -Str2
@@ -122,6 +123,15 @@ string_list_concat(Strs, Sep, Str):-
   maplist(atom_string, [Sep0,A], [Sep,Str]),
   atomic_list_concat(As, Sep0, A),
   maplist(atom_string, As, Strs).
+
+
+
+%! string_or_strings(+StrOrStrs, -Str) is det.
+
+string_or_strings(Strs, Str) :-
+  is_list(Strs), !,
+  atomics_to_string(Strs, Str).
+string_or_strings(Str, Str).
 
 
 
