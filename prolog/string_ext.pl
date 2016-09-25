@@ -93,14 +93,18 @@ string_atom(Str, A) :-
 % X = "monkey".
 % ```
 
-string_ellipsis(String, ELen, Ellipsis) :-
-  string_length(String, Len),
-  between(2, Len, ELen),
-  (   ELen =:= Len
-  ->  Ellipsis = String
-  ;   TLen is ELen - 1,
-      string_truncate(String, TLen, Truncated),
-      string_concat(Truncated, "…", Ellipsis)
+string_ellipsis(Str, ELen, Ellipsis) :-
+  string_length(Str, Len),
+  (   ELen == inf
+  ->  Ellipsis = Str
+  ;   between(2, Len, ELen)
+  *-> (   ELen =:= Len
+      ->  Ellipsis = Str
+      ;   TLen is ELen - 1,
+          string_truncate(Str, TLen, Truncated),
+          string_concat(Truncated, "…", Ellipsis)
+      )
+  ;   Ellipsis = Str
   ).
 
 

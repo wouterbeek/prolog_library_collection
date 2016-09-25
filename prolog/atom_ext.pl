@@ -100,7 +100,9 @@ Titlecase atoms can be created using upcase_atom/2.
 
 atom_ellipsis(Atom, ELen, Ellipsis) :-
   atom_length(Atom, Len),
-  (   between(2, Len, ELen)
+  (   ELen = inf
+  ->  Ellipsis = Atom
+  ;   between(2, Len, ELen)
   *-> (   ELen =:= Len
       ->  Ellipsis = Atom
       ;   TLen is ELen - 1,
