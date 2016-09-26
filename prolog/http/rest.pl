@@ -69,9 +69,14 @@ rest_exception(MTs, E) :-
 
 rest_exception(Req, MTs, error(E,_)) :- !,
   rest_exception(Req, MTs, E).
+% The exception reply can be returned in an acceptable media type.
 rest_exception(Req, MTs, E) :-
   member(MT, MTs),
   rest_exception_media_type(Req, MT, E), !.
+% The exception reply cannot be returned in an acceptable media type,
+% so just pick one.
+rest_exception(Req, _, E) :-
+  once(rest_exception_media_type(Req, _, E)).
 
 
 
