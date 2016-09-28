@@ -57,7 +57,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 @author Wouter Beek
 @compat RFC 5988
 @see https://tools.ietf.org/html/rfc5988
-@version 2015/12, 2016/08
+@version 2015/12, 2016/08-2016/09
 */
 
 :- use_module(library(apply)).
@@ -105,9 +105,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 %                                ; allowed in between.
 % ```
 
-'ext-name-star'(S) -->
-  parmname(S),
-  "*".
+'ext-name-star'(Str) --> parmname(Str), "*".
 
 
 
@@ -117,8 +115,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 % ext-rel-type = URI
 % ```
 
-'ext-rel-type'(D) -->
-  'URI'(D).
+'ext-rel-type'(D) --> 'URI'(D).
 
 
 
@@ -128,8 +125,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 % Link = "Link" ":" #link-value
 % ```
 
-link(L) -->
-  *#('link-value', L).
+link(L) --> *#('link-value', L).
 
 
 
@@ -251,12 +247,13 @@ sep_link_param(Pair) -->
 
 
 
-%! 'media-type'(-MediaType:dict)// is det.
+%! 'media-type'(-MT)// is det.
+%
 % ```abnf
 % media-type = type-name "/" subtype-name
 % ```
 
-'media-type'(media_type{type: Type, subtype: Subtype}) -->
+'media-type'(media_type(Type,Subtype,[])) -->
   'type-name'(Type),
   "/",
   'subtype-name'(Subtype).
@@ -269,9 +266,9 @@ sep_link_param(Pair) -->
 % ptoken = 1*ptokenchar
 % ```
 
-ptoken(S) -->
+ptoken(Str) -->
   +(ptokenchar, Cs),
-  {string_codes(S, Cs)}.
+  {string_codes(Str, Cs)}.
 
 
 
@@ -318,27 +315,26 @@ ptokenchar(0'~) --> "~".
 
 
 
-%! 'quoted-mt'(-MediaType:dict)// is det.
+%! 'quoted-mt'(-MT)// is det.
+%
 % ```abnf
 % quoted-mt = <"> media-type <">
 % ```
 
-'quoted-mt'(D) -->
-  "\"",
-  'media-type'(D),
-  "\"".
+'quoted-mt'(MT) --> "\"", 'media-type'(MT), "\"".
 
 
 
 %! 'reg-rel-type'(-Val)// .
+%
 % ```abnf
 % reg-rel-type   = LOALPHA *( LOALPHA | DIGIT | "." | "-" )
 % ```
 
-'reg-rel-type'(S) -->
+'reg-rel-type'(Str) -->
   'LOALPHA'(H),
   *(reg_rel_type_code, T),
-  {string_codes(S, [H|T])}.
+  {string_codes(Str, [H|T])}.
 
 
 reg_rel_type_code(C)   --> 'LOALPHA'(C).
@@ -349,6 +345,7 @@ reg_rel_type_code(0'-) --> "-".
 
 
 %! 'relation-type'(-Val)// is det.
+%
 % ```abnf
 % relation-type  = reg-rel-type | ext-rel-type
 % ```
@@ -374,6 +371,7 @@ reg_rel_type_code(0'-) --> "-".
   "\"".
 'relation-types'([H]) -->
   'relation-type'(H).
+
 
 sep_relation_type(X) -->
   +('SP'),
