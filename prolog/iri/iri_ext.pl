@@ -15,7 +15,7 @@
     iri_query_enc//0,
     iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
-    iri_to_resource/2      % +Iri, -Res
+    iri_to_resource/4      % +Iri, -Res, -Query, -Frag
   ]
 ).
 
@@ -301,12 +301,12 @@ correct_for_default_port(_, Port, Port).
 
 
 
-%! iri_to_resource(+Iri, -Res) is det.
+%! iri_to_resource(+Iri, -Res, -Query, -Frag) is det.
 %
 % Converts public IRIs to data resource identifiers.
 
-iri_to_resource(Iri, Res) :-
-  uri_components(Iri, uri_components(_,_,Path,_,_)),
+iri_to_resource(Iri, Res, Query, Frag) :-
+  uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
   setting(iri:data_scheme, Scheme),
   setting(iri:data_auth, Auth),
   uri_components(Res, uri_components(Scheme,Auth,Path,_,_)).

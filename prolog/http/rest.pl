@@ -141,16 +141,18 @@ rest_method(Req, options, Methods1, _, _, _) :- !,
 rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(Method, Methods), !,
   http_relative_iri(Req, Iri1),
+  % Allow the media type to be set through a customized IRI query
+  % component.
   (   http_iri_query(Iri1, format(MT))
   ->  MTs = [MT]
   ;   http_accept(Req, MTs)
   ),
+  iri_to_resource(Iri1, Res, _, _),
   (   ground(HandleId),
       http_link_to_id(HandleId, Iri2),
-      Iri1 \== Iri2
-  ->  http_resource_iri(Req, Res),
-      call(Singular_4, Res, Req, Method, MTs)
-  ;   call(Plural_3, Req, Method, MTs)  
+      \+ iri_to_resource(Iri2, Res, _, _)
+  ->  call(Singular_4, Res, Req, Method, MTs)
+  ;   call(Plural_3, Req, Method, MTs)
   ).
 % 405 “Method Not Allowed”
 rest_method(Req, _, _, _, _, _) :-

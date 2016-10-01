@@ -15,7 +15,7 @@
     http_read_json_dict/1,    % -Data
     http_relative_iri/2,      % +Req, -Iri
     http_reply_file/1,        % +File
-    http_resource_iri/2,      % +Req, -Iri
+    http_resource_iri/4,      % +Req, -Iri, -Query, -Frag
     http_status_reply/2,      % +Req, +Status
     is_empty_get_request/1    % +Req
   ]
@@ -156,11 +156,11 @@ http_reply_file(File) :-
 
 
 
-%! http_resource_iri(+Req, -Res) is det.
+%! http_resource_iri(+Req, -Res, -Query, -Frag) is det.
 
-http_resource_iri(Req, Res) :-
+http_resource_iri(Req, Res, Query, Frag) :-
   http_relative_iri(Req, Iri),
-  iri_to_resource(Iri, Res).
+  iri_to_resource(Iri, Res, Query, Frag).
 
 
 

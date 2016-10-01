@@ -5,6 +5,7 @@
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
     atom_postfix/2,       % +Atom,   ?Sub
     atom_postfix/3,       % +Atom,   ?Len,     ?Sub
+   %atom_prefix/2,        % +Atom,   ?Sub
     atom_prefix/3,        % +Atom,   ?Len,     ?Sub
     atom_to_term/2,       % +Atom,   -Term
     atom_truncate/3,      % +Atom,   +MaxLen,  -Truncated
@@ -67,7 +68,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/06, 2016/08-2016/09
+@version 2015/07-2015/10, 2016/03-2016/06, 2016/08-2016/10
 */
 
 :- use_module(library(apply)).
