@@ -107,13 +107,13 @@ pagination(Pattern, Goal_0, PageOpts1, Pagination2) :-
   dict_inc(page0, PageOpts3),
   length(Results, NumResults),
   (   % No more results.
-      NumResults =:= 0
-  ->  true
+      NumResults < PageSize
+  ->  !, true
   ;   % Skip pages that are before the start page.
       PageOpts3.page0 >= StartPage
   ->  true
   ;   false
-  ), !,
+  ),
   Pagination1 = _{
     number_of_results: NumResults,
     page: PageOpts3.page0,
