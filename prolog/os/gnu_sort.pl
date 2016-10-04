@@ -22,6 +22,7 @@ Support for calling GNU sort from within Prolog.
 */
 
 :- use_module(library(cli_ext)).
+:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(option)).
 :- use_module(library(os/process_ext)).

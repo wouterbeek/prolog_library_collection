@@ -162,6 +162,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- use_module(library(http/rfc6266)).
 :- use_module(library(http/rfc6797)).
 :- use_module(library(http/rfc7034)).
+:- use_module(library(lists)).
 :- use_module(library(ltag/rfc4647), [
      'language-range'//1 % -LRange:list(string)
    ]).

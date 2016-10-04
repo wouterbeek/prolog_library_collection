@@ -92,7 +92,6 @@ _{
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
-:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
@@ -103,10 +102,6 @@ _{
 :- use_module(library(true)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
-
-:- debug(http(error)).
-:- debug(http(receive_reply)).
-:- debug(http(send_request)).
 
 :- setting(endpoint_host, atom, localhost, "").
 :- setting(endpoint_port, positive_integer, 9200, "").

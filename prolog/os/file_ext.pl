@@ -162,7 +162,7 @@ create_file_directory(Path) :-
 % Create a symbolic link pointing from file From in to file To.
 
 create_file_link(From, To) :-
-  exists_file(From), !,
+  exists_file(To), !,
   create_file_directory(From),
   create_file_directory(To),
   link_file(To, From, symbolic).
