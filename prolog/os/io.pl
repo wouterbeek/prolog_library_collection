@@ -592,7 +592,7 @@ memory_file_to_something(Handle, string, Str) :- !,
 
 %! stream_metadata(+Stream, +Meta1, -Meta2) is det.
 %
-% Succeeds if Meta is a dictionary that contains the metadata
+% Succeeds if Meta2 is a dictionary that contains the metadata
 % properties of Stream.  The following metadata properties are
 % included:
 %
@@ -614,7 +614,7 @@ stream_metadata(Stream, Meta1, Meta2) :-
   dict_get(header_char_count, Meta1, 0, NumChars1),
   stream_position_data(char_count, Pos, NumChars2),
   NumChars3 is NumChars2 - NumChars1,
-  
+
   dict_get(header_line_count, Meta1, 0, NumLines1),
   stream_position_data(line_count, Pos, NumLines2),
   NumLines3 is NumLines2 - NumLines1,
