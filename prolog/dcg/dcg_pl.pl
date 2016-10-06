@@ -18,7 +18,7 @@
 DCG rules for printing terms.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/02, 2016/05, 2016/07-2016/08
+@version 2015/08, 2015/10-2015/12, 2016/02, 2016/05, 2016/07-2016/08, 2016/11
 */
 
 :- use_module(library(date_time/date_time)).
@@ -30,7 +30,20 @@ DCG rules for printing terms.
 :- multifile
     dcg:dcg_hook//1.
 
-dcg:dcg_hook(Term) --> pl_term(Term).
+dcg:dcg_hook(I) -->
+  {integer(I)}, !,
+  thousands(I).
+dcg:dcg_hook(F) -->
+  {float(F)}, !,
+  float(F).
+dcg:dcg_hook(S) -->
+  {string(S)}, !,
+  atom(S).
+dcg:dcg_hook(A) -->
+  {atom(A)}, !,
+  atom(A).
+dcg:dcg_hook(DT) -->
+  pl_date_time(DT), !.
 
 
 
@@ -101,20 +114,4 @@ pl_term0(Dcg_1, L, Opts) -->
   dcg_list(Dcg_1, L, Opts.indent).
 pl_term0(_, Term, Opts) -->
   tab(Opts.indent),
-  pl_simple_term0(Term).
-
-
-pl_simple_term0(I) -->
-  {integer(I)}, !,
-  thousands(I).
-pl_simple_term0(F) -->
-  {float(F)}, !,
-  float(F).
-pl_simple_term0(S) -->
-  {string(S)}, !,
-  atom(S).
-pl_simple_term0(A) -->
-  {atom(A)}, !,
-  atom(A).
-pl_simple_term0(DT) -->
-  pl_date_time(DT), !.
+  dcg:dcg_hook(Term).

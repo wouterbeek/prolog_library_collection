@@ -31,7 +31,8 @@
 :- multifile
     dcg:dcg_hook//1.
 
-dcg:dcg_hook(bold(Term)) --> bold(Term).
+dcg:dcg_hook(bold(Term)) -->
+  bold(Term).
 
 
 
