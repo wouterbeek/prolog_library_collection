@@ -8,8 +8,6 @@
     codes/1,             % @Term
     is_file_iri/1,       % @Term
     is_http_iri/1,       % @Term
-    is_iri/1,            % @Term
-    is_uri/1,            % @Term
     must_be_directory/1, % +Dir
     must_be_file/2,      % +Mode:oneof([append,read,write]), +File
     negative_float/1,    % @Term
@@ -72,11 +70,11 @@ Predicates used for parsing and checking value-type conformance.
 ---
 
 @author Wouter Beek
-@version 2015/07, 2015/09-2015/11, 2016/03
+@version 2015/07, 2015/09-2015/11, 2016/03, 2016/10
 */
 
 :- use_module(library(error)).
-:- use_module(library(uri)).
+:- use_module(library(iri/iri_ext)).
 
 :- multifile
     error:has_type/2.
@@ -93,10 +91,6 @@ error:has_type(between_float(L,U), X) :-
   number(X),
   (number(L) -> X >= L ; true),
   (number(U) -> X =< L ; true).
-% IRI
-error:has_type(iri, T) :-
-  atom(T),
-  uri_is_global(T).
 % or/1
 error:has_type(or(Types), T) :-
   member(Type, Types),
@@ -152,23 +146,9 @@ is_file_iri(Iri) :-
 %! is_http_iri(@Term) is semidet.
 
 is_http_iri(Iri) :-
-  is_iri(Iri),
-  uri_components(Iri, uri_components(Scheme,_,_,_,_)),
+  uri_is_global(Iri),
+  iri_comp(Iri, scheme, Scheme),
   memberchk(Scheme, [http,https]).
-
-
-
-%! is_iri(@Term) is semidet.
-
-is_iri(T) :-
-  error:has_type(iri, T).
-
-
-
-%! is_uri(@Term) is semidet.
-
-is_uri(T) :-
-  is_iri(T).
 
 
 

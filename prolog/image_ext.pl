@@ -105,6 +105,6 @@ is_image_file(File) :-
 % Succeeds if the given Iri is commonly understood to denote an image file.
 
 is_image_iri(Iri) :-
-  is_iri(Iri),
+  uri_is_global(Iri),
   iri_comp(Iri, path, Path),
   is_image_file(Path).

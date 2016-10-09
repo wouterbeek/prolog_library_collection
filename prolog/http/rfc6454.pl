@@ -80,7 +80,7 @@ has_same_origin(
 ) :-
   maplist(==, [Scheme1,Host1,Port1], [Scheme2,Host2,Port2]), !.
 has_same_origin(X1, Y1) :-
-  maplist(is_iri, [X1,Y1]), !,
+  maplist(uri_is_global, [X1,Y1]), !,
   maplist(origin, [X1,Y1], [X2,Y2]),
   has_same_origin(X2, Y2).
 

@@ -19,7 +19,7 @@
 */
 
 :- use_module(library(error)).
-:- use_module(library(typecheck)).
+:- use_module(library(uri)).
 
 :- meta_predicate
     user_input(+,//).
@@ -31,7 +31,7 @@
 %! check_input(+Mode:oneof([read,write]), +Path:atom) is det.
 
 check_input(read, Iri):-
-  is_iri(Iri), !.
+  uri_is_global(Iri), !.
 check_input(Mode, Path):-
   check_path(Mode, Path).
 

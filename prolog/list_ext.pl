@@ -62,7 +62,7 @@
 Extensions to the set of list predicates in SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/11, 2016/05, 2016/09
+@version 2015/07, 2015/10-2015/11, 2016/05, 2016/09-2016/10
 */
 
 :- use_module(library(apply)).
@@ -374,12 +374,14 @@ list_split([X,Y,Z], X, Y, Z).
 
 
 
-%! list_truncate(+Whole, +Max, -Part) is det.
+%! list_truncate(+Whole, +Max:or([oneof([inf]),nonneg]), -Part) is det.
 %
 % Returns the truncated version of the given list.  The maximum length
 % indicates the exact maximum.  Truncation will always result in a
 % list which contains at most `Max` elements.
 
+% Special value `inf`.
+list_truncate(L, inf, L):- !.
 % The list does not have to be truncated, it is not that long.
 list_truncate(L, Max, L) :-
   length(L, Len),

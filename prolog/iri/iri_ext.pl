@@ -12,6 +12,8 @@
     iri_here/2,            % +PathComps, -Iri
     iri_here/3,            % +PathComps, +QueryComps, -Iri
     iri_here/4,            % +PathComps, +QueryComps, +Frag, -Iri
+    iri_prefix/1,          % -Prefix
+    iri_prefix/2,          % -Scheme, -Auth
     iri_query_enc//0,
     iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
@@ -22,7 +24,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11-2015/12, 2016/04-2016/05, 2016/07, 2016/09
+@version 2015/11-2015/12, 2016/04-2016/05, 2016/07, 2016/09-2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -41,8 +43,8 @@
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
-:- setting(iri:data_auth, atom, '', 'HTTP authority of data IRIs').
-:- setting(iri:data_scheme, atom, http, 'HTTP scheme for data IRIs').
+:- setting(iri:data_auth, atom, '', "The HTTP authority for data IRIs.").
+:- setting(iri:data_scheme, atom, http, "The HTTP scheme for data IRIs.").
 
 :- meta_predicate
     iri_change_query_comps0(+, 2, -),
@@ -230,6 +232,23 @@ iri_here(PathComps, QueryComps, Frag, Iri) :-
 
 
 
+%! iri_prefix(-Prefix) is det.
+%! iri_prefix(-Scheme, -Auth) is det.
+%
+% The common data IRI prefix based on settings `iri:data_scheme` and
+% `iri:data_auth`.
+
+iri_prefix(Prefix) :-
+  iri_prefix(Scheme, Auth),
+  uri_components(Prefix, uri_components(Scheme,Auth,_,_,_)).
+
+
+iri_prefix(Scheme, Auth) :-
+  setting(iri:data_scheme, Scheme),
+  setting(iri:data_auth, Auth).
+
+
+
 %! iri_query_enc// .
 %
 % ```abnf
@@ -277,8 +296,7 @@ iri_remove_fragment(Iri, BaseIri) :-
 % are their public locations.
 
 iri_to_location(Iri, Loc) :-
-  setting(iri:data_scheme, Scheme1),
-  setting(iri:data_auth, Auth1),
+  iri_prefix(Scheme1, Auth1),
   uri_components(Iri, uri_components(Scheme1,Auth1,Path,Query,Frag)), !,
   setting(http:public_scheme, Scheme2),
   setting(http:public_host, Host2),
@@ -307,8 +325,7 @@ correct_for_default_port(_, Port, Port).
 
 iri_to_resource(Iri, Res, Query, Frag) :-
   uri_components(Iri, uri_components(_,_,Path,Query,Frag)),
-  setting(iri:data_scheme, Scheme),
-  setting(iri:data_auth, Auth),
+  iri_prefix(Scheme, Auth),
   uri_components(Res, uri_components(Scheme,Auth,Path,_,_)).
 
 

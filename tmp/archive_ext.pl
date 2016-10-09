@@ -23,6 +23,7 @@ Extensions to SWI-Prolog's library archive.
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(uri)).
 :- use_module(library(zlib)).
 
 :- thread_local
@@ -68,7 +69,7 @@ source_directory_name(File, Dir):-
   is_absolute_file_name(File), !,
   file_directory_name(File, Dir).
 source_directory_name(Iri, Dir):-
-  is_iri(Iri), !,
+  uri_is_global(Iri), !,
   md5(Iri, Md5),
   absolute_file_name(Md5, Dir),
   make_directory_path(Dir).
