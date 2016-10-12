@@ -1706,6 +1706,8 @@ tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
 
 %! thousands(+I)// is det.
 
+thousands(inf) --> !,
+  "∞".
 thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).
