@@ -27,7 +27,7 @@ Support for extracting information from HTTP requests/received
 messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/08
+@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/10
 */
 
 :- use_module(library(apply)).

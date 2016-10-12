@@ -1,6 +1,7 @@
 :- module(
   file_ext,
   [
+    absolute_directory_name/3,  % +Spec, +Mode, -Dir
     append_directories/2,       % +Dirs, -Dir
     append_directories/3,       % +Dir1, +Dir2, -Dir
     count_numlines/2,           % +Source, -NumLines
@@ -47,7 +48,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/09
+@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/10
 */
 
 :- use_module(library(apply)).
@@ -68,6 +69,13 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
     run_in_directory(0, +).
 
 
+
+
+
+%! absolute_directory_name(+Spec, +Mode, -Dir) is semidet.
+
+absolute_directory_name(Spec, Mode, Dir) :-
+  absolute_file_name(Spec, Dir, [access(Mode),file_type(directory)]).
 
 
 

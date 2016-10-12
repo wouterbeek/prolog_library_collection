@@ -146,6 +146,7 @@ is_file_iri(Iri) :-
 %! is_http_iri(@Term) is semidet.
 
 is_http_iri(Iri) :-
+  atom(Iri),
   uri_is_global(Iri),
   iri_comp(Iri, scheme, Scheme),
   memberchk(Scheme, [http,https]).
