@@ -197,10 +197,12 @@ thread(I, Name) -->
   ": ",
   atom(Status).
 
+
 thread_items(I, [H|T]) -->
   thread(I, H), !,
   thread_items(I, T).
 thread_items(_, []) --> [].
+
 
 threads(I1, L) -->
   {succ(I1, I2)},

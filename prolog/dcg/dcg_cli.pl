@@ -8,14 +8,17 @@
     enumerate//3, % :Dcg_1, +L, +Opts
     itemize//1,   % +L
     itemize//2,   % :Dcg_1, +L
-    itemize//3    % :Dcg_1, +L, +Opts
+    itemize//3,   % :Dcg_1, +L, +Opts
+    section//1,   % :Header_0
+    section//2,   % +Header_0, :Content_0
+    section//3    % +Indent, +Header_0, :Content_0
   ]
 ).
 
 /** <module> DCG CLI
 
 @author Wouter Beek
-@version 2016/06, 2016/08
+@version 2016/06, 2016/08, 2016/10
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -26,7 +29,10 @@
     enumerate(3, +, ?, ?),
     enumerate(3, +, +, ?, ?),
     itemize(3, +, ?, ?),
-    itemize(3, +, +, ?, ?).
+    itemize(3, +, +, ?, ?),
+    section(//, ?, ?),
+    section(//, //, ?, ?),
+    section(+, //, //, ?, ?).
 
 :- multifile
     dcg:dcg_hook//1.
@@ -143,6 +149,24 @@ itemize(Dcg_1, L) -->
 
 itemize(Dcg_1, L, Opts) -->
   enumerate_or_itemize0(itemize, Dcg_1, L, Opts).
+
+
+
+%! section(:Header_0)// is det.
+%! section(:Header_0, :Content_0)// is det.
+%! section(+Indent, :Header_0, :Content_0)// is det.
+
+section(Header_0) -->
+  Header_0, ":", nl.
+
+
+section(Header_0, Content_0) -->
+  section(0, Header_0, Content_0).
+
+
+section(I, Header_0, Content_0) -->
+  tab_nl(I, Header_0),
+  Content_0.
 
 
 

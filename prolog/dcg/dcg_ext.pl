@@ -84,6 +84,7 @@
     dcg_string//2,         % :Dcg_1, ?S
     dcg_tab//0,
     dcg_width/2,           % :Dcg_0, -Width
+    dcg_with_output_to/1,  % :Dcg_0
     dcg_with_output_to/2,  % +Sink, :Dcg_0
     debug/2,               % +Topic, :Dcg_0
     def//3,                % :Dcg_1, -Arg, +Def
@@ -114,12 +115,11 @@
     pos_sum/3,             % +Ds:list(nonneg), +Base:positive_integer, -N:nonneg
     progress_bar//2,       % +Processed, +All
     quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
-    quoted//1,             % :Content_2
-    quoted//2,             % :Quote_2, :Content_2
-    quoted//3,             % ?Length, :Quote_2, :Content_2
+    quoted//1,             % :Content_0
+    quoted//2,             % :Quote_0, :Content_0
+    quoted//3,             % ?Length, :Quote_0, :Content_0
     rest//0,
     rest//1,               % -Rest:list(code)
-    section//3,            % +Indent:nonneg, +Message:string, :Dcg_0
     seplist//2,            % :Dcg_0, :Sep_0
     seplist//3,            % :Dcg_1, :Sep_0, +L
     set//1,                % +L
@@ -243,6 +243,7 @@ My favorite collection of DCG rules.
     dcg_once(//, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
+    dcg_with_output_to(//),
     dcg_with_output_to(+, //),
     debug(+, //),
     def(3, -, +, ?, ?),
@@ -255,7 +256,6 @@ My favorite collection of DCG rules.
     quoted(//, ?, ?),
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
-    section(+, +, //, ?, ?),
     seplist(//, //, ?, ?),
     seplist(3, //, +, ?, ?),
     set(3, +, ?, ?),
@@ -905,7 +905,7 @@ code_upper(Upper) -->
 %! dcg(:Dcg_0) is det.
 
 dcg(Dcg_0) :-
-  dcg_with_output_to(user_output, Dcg_0).
+  dcg_with_output_to(current_output, Dcg_0).
 
 
 
@@ -1259,7 +1259,12 @@ dcg_width(Dcg_0, W):-
 
 
 
+%! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
+
+dcg_with_output_to(Dcg_0):-
+  dcg_with_output_to(current_output, Dcg_0).
+
 
 dcg_with_output_to(Sink, Dcg_0):-
   phrase(Dcg_0, Cs),
@@ -1509,26 +1514,26 @@ progress_bar(M, N, Width) -->
 
 
 
-%! quad(:DcgX_0, :DcgY_0, :DcgZ_0, :Q_2)// is det.
+%! quad(:DcgX_0, :DcgY_0, :DcgZ_0, :Q_0)// is det.
 
-quad(DcgX_0, DcgY_0, DcgZ_0, Q_2) -->
-  "〈", DcgX_0, ",", DcgY_0, ",", DcgZ_0, ",", Q_2, "〉".
-
-
-
-%! quoted(:Content_2)// .
-
-quoted(Goal_2) -->
-  quoted("\"", Goal_2).
+quad(DcgX_0, DcgY_0, DcgZ_0, Q_0) -->
+  "〈", DcgX_0, ",", DcgY_0, ",", DcgZ_0, ",", Q_0, "〉".
 
 
-%! quoted(:Quote_2, :Content_2)// .
 
-quoted(Quote_2, Goal_2) -->
-  quoted(1, Quote_2, Goal_2).
+%! quoted(:Content_0)// .
+
+quoted(Content_0) -->
+  quoted("\"", Content_0).
 
 
-%! quoted(?Length:positive_integer, :Quote_2, :Content_0)// .
+%! quoted(:Quote_0, :Content_0)// .
+
+quoted(Quote_0, Content_0) -->
+  quoted(1, Quote_0, Content_0).
+
+
+%! quoted(?Length:positive_integer, :Quote_0, :Content_0)// .
 %
 % Typical values for Quote_0 are:
 %
@@ -1536,9 +1541,9 @@ quoted(Quote_2, Goal_2) -->
 %
 %   * "'"
 
-quoted(N, Quote_2, Content_2) -->
-  {quote(Quote_2)},
-  dcg_between(#(N, Quote_2), Content_2).
+quoted(N, Quote_0, Content_0) -->
+  {quote(Quote_0)},
+  dcg_between(#(N, Quote_0), Content_0).
 
 quote(_:Quote) :-
   var(Quote),
@@ -1558,14 +1563,6 @@ rest(X, X).
 
 
 rest(X, X, []).
-
-
-
-%! section(+Indent:nonneg, +Message:string, :Dcg_0)// is det.
-
-section(I, Msg, Dcg_0) -->
-  tab_nl(I, atom(Msg)),
-  Dcg_0.
 
 
 
@@ -1689,7 +1686,7 @@ sum_pos0(I1, Base, [H|T]):-
 
 
 %! tab(+Indent:nonneg)// is det.
-%! tab(+Indent:nonneg, :Dcg_2)// is det.
+%! tab(+Indent:nonneg, :Dcg_0)// is det.
 
 tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
 
