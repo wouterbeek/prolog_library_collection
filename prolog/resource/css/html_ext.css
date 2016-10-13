@@ -1,0 +1,607 @@
+a,
+a:active,
+a:focus,
+a:hover,
+a:visited {
+  text-decoration: none;
+}
+
+body {
+  color: black;
+  font-size: 150%;
+  line-height: 1.6em;
+  overflow-x: hidden;
+  padding-top: 60px;
+}
+
+code, pre {
+  background: #f8f8ff;
+  font-family: monospace;
+}
+
+h1, h3, h4, h5, h6 {
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+h2 {
+  margin-bottom: 0px;
+  margin-top: 20px;
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+li, p {
+    line-height: 1.6em;
+    margin: 0;
+    text-align: justify;
+}
+
+.inline {
+  display: inline-block;
+}
+
+/* Concept */
+.concept {
+  font-style: italic;
+}
+
+/* Todo items */
+
+.todo {
+  color: red;
+}
+
+
+
+/* Quoted text */
+
+/* Quotes are styled uniformly.  Use the `q` tag to mark them up. */
+q:before {
+  content: open-quote;
+}
+q:after {
+  content: close-quote;
+}
+
+
+
+/* User menu */
+
+@media (min-width: 760px) {
+  #user-menu {
+    margin-right: 5px;
+  }
+}
+@media (max-width: 760px) {
+  #user-menu {
+    text-align: center;
+  }
+}
+
+#user-menu a {
+  padding-bottom: 7px;
+  padding-top: 7px;
+}
+
+#user-menu img {
+  height: 35px;
+  margin-right: 10px;
+  width: 35px;
+}
+
+
+
+/* User page: Header */
+
+article > header img {
+  border-radius: 100px;
+  height: 200px;
+  width: 200px;
+}
+[property="foaf:mbox"] {
+  display: block;
+}
+li[typeof="sbo:Author"] {
+  vertical-align: middle;
+}
+li[typeof="sbo:Author"] img {
+  border-radius: 150px;
+  height: 150px;
+  width: 150px;
+}
+
+
+
+/* Map */
+
+html,
+body,
+.container-with-map,
+.container-with-map .main,
+.container-with-map .main .row,
+.container-with-map .main .row .col,
+#mapid {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+#mapid {
+  cursor: crosshair;
+}
+
+/* Hide Leaflet ‘watermark’. */
+.leaflet-control-attribution{
+  display: none !important;
+}
+
+path.leaflet-interactive:hover {
+  fill: black;
+}
+
+.ttip[about] {
+  background-color: #ffea79;
+  cursor: pointer;
+}
+
+.qtip {
+  max-width: 1000px;
+}
+
+
+
+/* In-line separators */
+
+/* Extra horizontal spacing for the pipe symbol. */
+.pipe, .space {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+
+
+/* Navigation bar */
+
+.navbar-nav {
+  margin: 0px;
+}
+
+.navbar-right {
+  margin-right: 0px;
+}
+
+
+
+/* Navigation bar: Brand */
+
+.navbar-brand {
+  color: #337ab7 !important;
+  font-weight: bold;
+  padding: 5px;
+}
+
+.nav-brand a img {
+  max-height: 30px;
+}
+
+
+
+/* Social buttons */
+
+ul.social-btns {
+  margin-bottom: 0px !important;
+  padding-left: 0px !important;
+}
+
+li.social-btn {
+  display: inline-block;
+  line-height: 1;
+  padding: 10px;
+  position: relative;
+}
+
+li.social-btn a img {
+  max-height: 30px;
+  max-width: 30px;
+}
+
+
+
+/* Navigation bar: Navigation menu */
+
+nav .container-fluid {
+  padding-right: 0;
+}
+
+/* Center menu items on mobile. */
+@media (max-width: 750px) {
+  nav ul li {
+    text-align: center;
+  }
+}
+/* Display menus horizontally i.o. vertically. */
+@media (min-width: 750px) {
+  nav ul li {
+    display: inline-block;
+    line-height: 1;
+    position: relative;
+  }
+}
+
+nav ul li a,
+nav ul li a:active,
+nav ul li a:focus,
+nav ul li a:visited {
+  color: black;
+}
+
+nav ul li.selected {
+  font-weight: bold;
+}
+
+
+
+/* Deck of cards */
+
+/*.deck {
+  max-width: 750px;
+  width: 85%
+}*/
+
+.card {
+  display: table;
+  margin-bottom: 15px;
+}
+
+/*
+.card .left {
+  float: left;
+}
+
+.card .left img {
+  border-radius: 45px;
+  height: 90px;
+  width: 90px;
+}
+*/
+
+/*.card .right {
+  float: right;
+  margin-left: 25px;
+  vertical-align: middle;
+} */ 
+
+.card .right h1 {
+  font-size: 1.5em;
+  font-weight: 400;
+  margin-bottom: 5px;
+  margin-top: 0px;
+}
+@media (max-width: 750px) {
+  .card .right h1 {
+    margin-top: 10px;
+  }
+}
+
+.card .right p {
+  color: black;
+  line-height: 1.3em;
+  margin-bottom: 5px;
+  text-align: justify;
+}
+
+.card .right footer ol,
+.card .right footer ul {
+  display: inline;
+  margin-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.card .right footer ol li ,
+.card .right footer ul li {
+  display: inline;
+  line-height: 1;
+  position: relative;
+}
+
+/* Links in card footers are grey. */
+/* It is a good idea to define a different color for hovered links. */
+.card .right footer,
+.card .right footer a,
+.card .right footer a:active,
+.card .right footer a:focus,
+.card .right footer a:visited {
+  color: #777;
+}
+
+.card .right footer ol li:not(:last-child):after,
+.card .right footer ul li:not(:last-child):after {
+  content: ",";
+}
+
+
+
+/* Figure */
+
+figure {
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+}
+
+
+
+/* Article: Header */
+
+article header {
+  margin-bottom: 15px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5px;
+  text-align: center;
+}
+
+article header h1 {
+  font-size: 250%;
+  line-height: 1.2em;
+  text-align: center;
+}
+
+
+
+/* Article: Header: Metadata. */
+
+article > header > .metadata {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 500px;
+}
+/* Article metadata is grey. */
+/* It is a good idea to define a different color for hovered links for
+   your site. */
+article > header > .metadata,
+article > header > .metadata a,
+article > header > .metadata a:visited {
+  color: #777;
+}
+
+article .metadata ol,
+article .metadata ul {
+  display: inline;
+  margin-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+article .metadata ol li,
+article .metadata ul li {
+  display: inline;
+  line-height: 1;
+  position: relative;
+}
+article .metadata ol li:not(:last-child):after,
+article .metadata ul li:not(:last-child):after {
+  content: ",";
+}
+
+
+
+/* Article: Section */
+
+article section {
+  margin: auto;
+  max-width: 800px;
+  width: 80%
+}
+
+
+
+/* Article: Counters before headings. */
+
+article {
+  counter-reset: h2;
+}
+article h2 {
+  counter-increment: h2;
+  counter-reset: h3;
+  text-align: center;
+}
+article h2:before {
+  content: counter(h2) ". ";
+}
+article h3 {
+  counter-increment: h3;
+  text-align: center;
+}
+article h3:before {
+  content: counter(h2) "." counter(h3) " ";
+}
+article section {
+  margin: auto;
+  max-width: 750px;
+}
+
+
+
+/* Article: Textual content */
+
+article [property="sioc:content"] {
+  margin: auto;
+  max-width: 550px;
+}
+
+article [property="sioc:content"] p {
+  margin-bottom: 10px;
+}
+
+
+
+/* Article: First letter */
+
+[property="sioc:content"] > p:first-of-type:first-letter {
+  float: left;
+  font-size: 550%;
+  line-height: 0.8;
+  margin-right: 5px;
+}
+
+
+
+/* Grid */
+
+#grid h1 {
+  text-align: center;
+}
+
+
+
+/* Main */
+
+div.main {
+  margin-bottom: 15px;
+}
+
+
+
+/* Footer */
+
+footer.main {
+  background-color: #f8f8f8;
+  border-top: 1px solid #e7e7e7;
+  margin-left: 15px;
+  margin-right: 15px;
+  padding-bottom: 30px;
+  padding-top: 30px;
+}
+footer.main h1 {
+  font-size: 150%;
+  margin-top: 0px;
+  text-transform: uppercase;
+}
+footer.main ul {
+  list-style: outside none none;
+  margin: 0;
+  padding: 0;
+}
+footer.main ul li {
+  padding: 0 0 8px;
+  text-transform: capitalize;
+}
+
+
+
+/* Streamer */
+
+.streamer {
+  font-size: 1.7em;
+  line-height: 1.2em;
+}
+
+.streamer:before {
+  content: open-quote;
+}
+
+.streamer:after {
+  content: close-quote;
+}
+
+@media (max-width: 750px) {
+  .streamer {
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+}
+@media (min-width: 750px) {
+  .streamer {
+    float: left;
+    margin-left: -90px;
+    margin-right: 10px;
+    width: 250px;
+  }
+}
+
+
+
+/* Comments */
+
+/* Display a content-wide border above the comments section. */
+.comments {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-style: solid;
+  border-width: 1px 0 0 0;
+  margin: 0 auto;
+  width: 550px;
+}
+
+
+
+/* Comments: Existing ones */
+
+.votes {
+  margin-left: 100px;
+}
+
+.vote-amount {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.comment-image {
+  margin-left: 440px;
+}
+
+.comment-image .user-image img {
+  border-radius: 30px;
+  height: 60px;
+  width: 60px;
+}
+
+.comment-content {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #444444;
+  float: left;
+  line-height: 1.8em;
+  min-height: 60px;
+  width: 460px;
+}
+
+
+
+/* Comments: New ones */
+
+#add-a-new-comment, .comment-header {
+  font-size: 90%;
+}
+
+#create-comment-content textarea {
+  height: 60px;
+  width: 520px;
+}
+
+#create-comment-content {
+  float: left;
+}
+
+/* Toolbars appear to the right. */
+#create-comment-toolbar, .edit-comment-toolbar {
+  float: right;
+}
+
+/* Toolbar buttons all have the same size. */
+#create-comment-button, #cancel-comment-button,
+.update-comment-button, .delete-comment-button,
+.vote-down, .vote-up {
+  height: 30px;
+  width: 30px;
+}
+
+/* Toolbar buttons that appear on the next line. */
+#cancel-comment-button, .delete-comment-button {
+  clear: both;
+  display: block;
+}
