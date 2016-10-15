@@ -1,17 +1,15 @@
 :- module(
   rfc1738,
   [
-    alpha//1, % ?Code:code
+    alpha//1,      % ?Code:code
     alphadigit//1, % ?Code:code
-    digit//1, % ?Weight
-    digit//2, % ?Weight:between(0,9)
-              % ?Code:code
-    escape//1, % ?Code:code
-    hex//1, % ?Weight
-    hex//2, % ?Weight:between(0,15)
-            % ?Code:code
-    hialpha//1, % ?Code:code
-    lowalpha//1 % ?Code:code
+    digit//1,      % ?Weight
+    digit//2,      % ?Weight:between(0,9), ?Code:code
+    escape//1,     % ?Code:code
+    hex//1,        % ?Weight
+    hex//2,        % ?Weight:between(0,15), ?Code:code
+    hialpha//1,    % ?Code:code
+    lowalpha//1    % ?Code:code
   ]
 ).
 

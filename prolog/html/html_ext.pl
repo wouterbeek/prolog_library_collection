@@ -3119,7 +3119,8 @@ upload_form(Spec) -->
     [enctype='multipart/form-data',method=post],
     [
       \input_file(filename, [size=50], [label("File")]),
-      \input_text(base_iri, [size=50], [label("Graph")]),
+      \input_text(dataset, [size=75], [label("Dataset")]),
+      \input_text(graph, [size=75], [label("Graph")]),
       \input_boolean(force, true),
       \submit_button("Upload")
     ]

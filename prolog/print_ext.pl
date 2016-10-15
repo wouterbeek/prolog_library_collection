@@ -33,7 +33,7 @@
 Additional predicates for printing.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05, 2016/08
+@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05, 2016/08, 2016/10
 */
 
 :- use_module(library(check_installation), []).
@@ -42,6 +42,8 @@ Additional predicates for printing.
 :- use_module(library(dcg/dcg_table)).
 :- use_module(library(dcg/dcg_tree)).
 :- use_module(library(settings)).
+
+is_meta(node_writer).
 
 :- meta_predicate
     print_dict(3, +),
@@ -221,8 +223,10 @@ print_tree(Tree) :-
   print_tree(Tree, []).
 
 
-print_tree(Tree, Opts) :-
-  dcg_with_output_to(current_output, dcg_tree(Tree, Opts)).
+print_tree(Tree, Opts1) :-
+  meta_options(is_meta, Opts1, Opts2),
+  option(output(Sink), Opts2, current_output),
+  dcg_with_output_to(Sink, dcg_tree(Tree, Opts2)).
 
 
 

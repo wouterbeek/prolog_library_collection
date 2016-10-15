@@ -5,8 +5,6 @@
     pairs_to_tree/2,          % +Pairs, -Tree
     is_s_tree/1,              % @Term
     paths_to_trees/2,         % +AllSubpaths:list(list), -Tree
-    print_tree/1,             % +Tree
-    print_tree/2,             % +Tree, :Opts
     some_subpaths_to_trees/2, % +SomeSubpaths:list(list), -Tree
     tree_to_graph/2,          % +Tree, -Graph
     tree_depth/2,             % +Tree, -Depth
@@ -44,7 +42,7 @@ a
 ```
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/07
+@version 2016/01-2016/02, 2016/07, 2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -56,11 +54,6 @@ a
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).
-
-:- meta_predicate
-    print_tree(+, :).
-
-is_meta(node_writer).
 
 
 
@@ -155,19 +148,7 @@ paths_to_trees(Ls1, Trees):-
 
 
 
-%! print_tree(+Tree) is det.
-%! print_tree(+Tree, +Opts) is det.
-
-print_tree(Tree) :-
-  print_tree(Tree, []).
-
-
-print_tree(Tree, Opts1) :-
-  meta_options(is_meta, Opts1, Opts2),
-  option(output(Sink), Opts2, current_output),
-  dcg_with_output_to(Sink, dcg_tree(Tree, Opts2)).
-
-
+%! some_subpaths_to_trees(+SomeSubpaths, -Trees) is det.
 
 some_subpaths_to_trees(SomeSubpaths, Trees):-
   aggregate_all(
