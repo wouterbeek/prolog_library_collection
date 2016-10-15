@@ -3121,7 +3121,6 @@ upload_form(Spec) -->
       \input_file(filename, [size=50], [label("File")]),
       \input_text(dataset, [size=75], [label("Dataset")]),
       \input_text(graph, [size=75], [label("Graph")]),
-      \input_boolean(force, true),
       \submit_button("Upload")
     ]
   ).

@@ -269,8 +269,10 @@ call_to_codes(Goal_1, Cs) :-
 %
 % The following options are supported:
 %
-%   * compression(+boolean) Whether gzip file compression should be
-%   used.  The default is `true`.
+%   * compression(+boolean)
+%
+%     Whether gzip file compression should be used.  The default is
+%     `true`.
 %
 %   * metadata(-dict)
 %
@@ -278,7 +280,9 @@ call_to_codes(Goal_1, Cs) :-
 %
 %     * mode(oneof([append,write]))
 %
-%   * mode(+oneof([append,write])) The default is `write`.
+%   * mode(+oneof([append,write]))
+%
+%     The default is `write`.
 %
 %   * Other options are passed to open_any2/6.
 
