@@ -4,7 +4,6 @@
     http_delete/1,               % +Iri
     http_delete/2,               % +Iri, :Goal_3
     http_delete/3,               % +Iri, :Goal_3, +Opts
-    http_fail_on_exception/1,    % :Goal_0
     http_get/1,                  % +Iri
     http_get/2,                  % +Iri, :Goal_3
     http_get/3,                  % +Iri, :Goal_3, +Opts
@@ -90,7 +89,6 @@ The following debug flags are used:
 :- meta_predicate
     http_delete(+, 3),
     http_delete(+, 3, +),
-    http_fail_on_exception(0),
     http_get(+, 3),
     http_get(+, 3, +),
     http_post(+, +, 3),
@@ -132,19 +130,6 @@ http_delete(Iri, Goal_3) :-
 http_delete(Iri, Goal_3, Opts0) :-
   merge_options(Opts0, [method(delete)], Opts),
   call_on_stream(Iri, Goal_3, Opts).
-
-
-
-%! http_fail_on_exception(:Goal_0) is det.
-
-http_fail_on_exception(Goal_0) :-
-  catch(Goal_0, E, true),
-  (   var(E)
-  ->  true
-  ;   message_to_string(E, Msg),
-      format(user_error, "~s~n", [Msg]),
-      fail
-  ).
 
 
 

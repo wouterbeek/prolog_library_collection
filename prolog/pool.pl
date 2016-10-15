@@ -23,28 +23,27 @@
 :- use_module(library(print_ext)).
 :- use_module(library(solution_sequences)).
 
-:- meta_predicate
-    add_worker(+, 2),
-    add_worker(+, 2, +),
-    pool_worker(+, 2, +).
-
-
-
-
-
 %! pool(?Pool, ?Term) is nondet.
+%
 % Currently in pool pending processing.
 
 %! pooling(?Pool, ?Term) is nondet.
+%
 % Currently being processed.
 
 %! pooled(?Pool, ?Term) is nondet.
+%
 % Previously processed.
 
 :- dynamic
     pool/2,
     pooling/2,
     pooled/2.
+
+:- meta_predicate
+    add_worker(+, 2),
+    add_worker(+, 2, +),
+    pool_worker(+, 2, +).
 
 
 
