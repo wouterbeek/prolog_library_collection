@@ -1,6 +1,7 @@
 :- module(
   atom_ext,
   [
+    atom_after_char/3,    % +Atom,   +Char,    -Rest
     atom_ellipsis/3,      % +Atom,   ?Len,     ?Ellipsis
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
     atom_postfix/2,       % +Atom,   ?Sub
@@ -78,6 +79,20 @@ Titlecase atoms can be created using upcase_atom/2.
 :- use_module(library(typecheck)).
 
 
+
+
+
+%! atom_after_char(+Atom, +Char, -Rest) is det.
+
+atom_after_char(Atom, Char, Rest) :-
+  State = last(-),
+  (   sub_atom(Atom, _, _, L, Char),
+      nb_setarg(1, State, L),
+      fail
+  ;   arg(1, State, L),
+      L \== (-)
+  ),
+  sub_atom(Atom, _, L, 0, Rest).
 
 
 

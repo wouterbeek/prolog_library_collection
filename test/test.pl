@@ -131,7 +131,7 @@
   :- use_module(library(os/tts)).
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
-:- use_module(library(pl_term)).
+:- use_module(library(pl_ext)).
 :- use_module(library(pool)).
 :- use_module(library(print_ext)).
 %/service

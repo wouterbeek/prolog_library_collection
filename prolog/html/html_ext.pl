@@ -267,7 +267,7 @@ html({|html||...|}).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
-:- use_module(library(pl_term)).
+:- use_module(library(pl_ext)).
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
