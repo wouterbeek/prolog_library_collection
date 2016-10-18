@@ -1524,7 +1524,7 @@ quad(DcgX_0, DcgY_0, DcgZ_0, Q_0) -->
 %! quoted(:Content_0)// .
 
 quoted(Content_0) -->
-  quoted("\"", Content_0).
+  quoted(str("\""), Content_0).
 
 
 %! quoted(:Quote_0, :Content_0)// .
@@ -1537,20 +1537,12 @@ quoted(Quote_0, Content_0) -->
 %
 % Typical values for Quote_0 are:
 %
-%   * "\""
+%   * str("\"")
 %
-%   * "'"
+%   * str("'")
 
 quoted(N, Quote_0, Content_0) -->
-  {quote(Quote_0)},
   dcg_between(#(N, Quote_0), Content_0).
-
-quote(_:Quote) :-
-  var(Quote),
-  quote_goal(Quote).
-
-quote_goal("\"").
-quote_goal("'").
 
 
 

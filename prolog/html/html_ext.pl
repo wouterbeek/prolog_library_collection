@@ -10,7 +10,7 @@
     card//2,                 % :Left_0, :Right_0
     card//3,                 % +Attrs, :Left_0, :Right_0
     caret//0,
-    center_logo//0,
+    center_logo//1,          % +Spec
     code_link//1,            % +Iri
     collapse_content//2,     % +Id, :Content_0
     collapse_link//2,        % +Id, :Link_0
@@ -633,17 +633,17 @@ caret -->
 
 
 
-%! center_logo// is det.
+%! center_logo(+Spec)// is det.
 %
 % Generates a full-width SVG logo, typically directly beneath the
 % navigation bar.
 
-center_logo -->
+center_logo(Spec) -->
   html(
     div(class=row,
       div(class=[col,'col-md-12'],
         a([href='/',id=logo],
-          \image(img('logo.svg'), [class='center-block'])
+          \image(Spec, [class='center-block'])
         )
       )
     )
