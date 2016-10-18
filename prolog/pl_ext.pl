@@ -52,7 +52,7 @@ check_pl_version(
   version(Major,Minor,Patch)
 ) :-
   (   Major > MinMajor
-  ;   Major =:= MinMajor
+  ;   Major =:= MinMajor,
       (   Minor > MinMinor
       ;   Minor =:= MinMinor,
           Patch >= MinPatch
@@ -139,7 +139,7 @@ replace_blobs(Term, Term).
 :- multifile
     prolog:message/3.
 
-prolog:message(min_pl_version(MinVersion,Version)) -->
+prolog:message(min_pl_version(MinVersions,Version)) -->
   "This program requires SWI-Prolog ",
   versions(MinVersions), ".", nl,
   "while you are running version ",
