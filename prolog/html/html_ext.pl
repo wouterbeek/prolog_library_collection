@@ -500,9 +500,21 @@ html({|html||...|}).
     user_menu(2, 2, ?, ?).
 
 %! html:author(?Name) is nondet.
+
 %! html:menu_item(?Major, ?Name, ?Lbl) is nondet.
+%
+% Adds a top-level menu item to the menu.  The menu item has a rank
+% Major, an internal Name and a user-visible label Lbl.
+
 %! html:menu_item(?Name, ?Minor, ?Spec, ?Lbl) is nondet.
+%
+% Adds a menu-item under a top-level menu item with the given internal
+% Name.  Minor denotes the rank within the top-level menu item.  Spec
+% denotes the HTTP handler that fires when this menu item is clicked.
+% Lbl is a user-visible label.
+
 %! html:html_hook(@Term)// is det.
+
 %! html:html_hook(+Opts, @Term)// is det.
 
 :- multifile
@@ -3132,7 +3144,7 @@ upload_form(Spec) -->
 user_menu(UserName_2, UserImg_2) -->
   {
     % @hack
-    user_api:current_user(User), !,
+    user_db:current_user(User), !,
     logout_link(Link)
   },
   html(
