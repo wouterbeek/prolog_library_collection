@@ -90,6 +90,7 @@
     def//3,                % :Dcg_1, -Arg, +Def
     digit_code//1,         % ?C
     done//0,
+    dq//1,                 % :Dcg_0
     eol//0,
     frac_pos/2,            % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
     generate_as_digits//2, % +N:nonneg, +NoDs
@@ -125,7 +126,9 @@
     set//1,                % +L
     set//2,                % :Dcg_1, +L
     skip_line//0,
+    sq//1,                 % :Dcg_0
     str//1,                % +S
+    str_ci//1,             % ?Str
     str_ellipsis//2,       % +S, +Max
     string//0,
     string_phrase/2,       % :Dcg_0, ?S
@@ -161,7 +164,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05-2016/08
+@version 2015/11-2016/03, 2016/05-2016/10
 */
 
 :- use_module(library(aggregate)).
@@ -247,6 +250,7 @@ My favorite collection of DCG rules.
     dcg_with_output_to(+, //),
     debug(+, //),
     def(3, -, +, ?, ?),
+    dq(//, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
     opt(//, ?, ?),
@@ -259,6 +263,7 @@ My favorite collection of DCG rules.
     seplist(//, //, ?, ?),
     seplist(3, //, +, ?, ?),
     set(3, +, ?, ?),
+    sq(//, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
@@ -273,6 +278,8 @@ dcg:dcg_hook(perc(Term)) -->
   perc_fixed(Term).
 dcg:dcg_hook(set(L)) -->
   set(L).
+dcg:dcg_hook(string(Str)) -->
+  str(Str).
 dcg:dcg_hook(thousands(N)) -->
   thousands(N).
 
@@ -1303,6 +1310,15 @@ done(_, _).
 
 
 
+%! dq(:Dcg_0)// is det.
+
+dq(Dcg_0) -->
+  "‘",
+  Dcg_0,
+  "’".
+
+
+
 %! eol// .
 
 eol --> "\n".
@@ -1603,11 +1619,32 @@ skip_line -->
 
 
 
+%! sq(:Dcg_0)// is det.
+
+sq(Dcg_0) -->
+  "‘",
+  Dcg_0,
+  "’".
+
+
+
 %! str(+Str)// is det.
 
 str(Str) -->
   {string_codes(Str, Cs)},
   Cs.
+
+
+
+%! str_ci(?Str)// .
+
+str_ci(Str) -->
+  {ground(Str)}, !,
+  {string_codes(Str, Cs)},
+  *(code_ci, Cs).
+str_ci(Str) -->
+  *(code_ci, Cs),
+  {string_codes(Str, Cs)}.
 
 
 

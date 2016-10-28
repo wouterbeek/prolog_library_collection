@@ -15,9 +15,10 @@
 /** <module> Command-line interface extensions
 
 @author Wouter Beek
-@version 2015/09-2015/10, 2016/04-2016/05
+@version 2015/09-2015/10, 2016/04-2016/05, 2016/10
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(uri)).
 
@@ -30,9 +31,9 @@
 
 %! check_input(+Mode:oneof([read,write]), +Path:atom) is det.
 
-check_input(read, Iri):-
+check_input(read, Iri) :-
   uri_is_global(Iri), !.
-check_input(Mode, Path):-
+check_input(Mode, Path) :-
   check_path(Mode, Path).
 
 
@@ -41,7 +42,7 @@ check_input(Mode, Path):-
 % @throws existence_error
 % @throws premission_error
 
-check_path(Mode, Path):-
+check_path(Mode, Path) :-
   file_directory_name(Path, Dir),
   (   \+ exists_directory(Dir)
   ->  existence_error(file, Dir)
@@ -59,14 +60,14 @@ long_flag(Flag, Arg) :-
   format(atom(Arg), '--~w', [Flag]).
 
 
-long_flag(Flag, Val, Arg):-
+long_flag(Flag, Val, Arg) :-
   format(atom(Arg), '--~w=~w', [Flag,Val]).
 
 
 
 %! show_help(+OptionSpecification:list(compound)) is det.
 
-show_help(OptSpec):-
+show_help(OptSpec) :-
   opt_help(OptSpec, Help),
   format(user_output, '~a\n', [Help]),
   halt.
@@ -80,7 +81,7 @@ user_input(Msg) :-
   user_input(Msg, yn(true)).
 
 
-user_input(Msg, Dcg_0):-
+user_input(Msg, Dcg_0) :-
   repeat,
   format(user_output, "~s~n", [Msg]),
   read_line_to_codes(user_input, Cs),
@@ -90,5 +91,7 @@ user_input(Msg, Dcg_0):-
   ).
 
 
-yn(true) --> "y".
-yn(false) --> "n".
+yn(true) --> str_ci("y").
+yn(true) --> str_ci("yes").
+yn(false) --> str_ci("n").
+yn(false) --> str_ci("no").
