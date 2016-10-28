@@ -493,11 +493,11 @@ atom_lower(A) -->
 % @throws instantiation_error
 % @throws type_error
 
-atom_phrase(Dcg_0, A):-
+atom_phrase(Dcg_0, A) :-
   var(A), !,
   phrase(Dcg_0, Cs),
   atom_codes(A, Cs).
-atom_phrase(Dcg_0, A):-
+atom_phrase(Dcg_0, A) :-
   must_be(atom, A),
   atom_codes(A, Cs),
   phrase(Dcg_0, Cs).
@@ -507,7 +507,7 @@ atom_phrase(Dcg_0, A):-
 % @throws instantiation_error
 % @throws type_error
 
-atom_phrase(Dcg_0, A1, A2):-
+atom_phrase(Dcg_0, A1, A2) :-
   must_be(atom, A1),
   atom_codes(A1, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
@@ -912,7 +912,7 @@ dcg(Dcg_0) :-
 %! dcg_apply(:Dcg, +Args)// .
 % Variant of apply/2 for DCGs.
 
-dcg_apply(Dcg, Args1, X, Y):-
+dcg_apply(Dcg, Args1, X, Y) :-
   append(Args1, [X,Y], Args2),
   apply(Dcg, Args2).
 
@@ -921,7 +921,7 @@ dcg_apply(Dcg, Args1, X, Y):-
 %! dcg_apply_cp(:Dcg, +Args)// .
 % Variant of dcg_apply/2 where copies of Dcg are called.
 
-dcg_apply_cp(Dcg, Args1, X, Y):-
+dcg_apply_cp(Dcg, Args1, X, Y) :-
   copy_term(Dcg, Dcg_),
   append(Args1, [X,Y], Args2),
   apply(Dcg_, Args2).
@@ -998,27 +998,27 @@ dcg_between(Begin_0, Dcg_0, End_0) -->
 %
 % This is a DCG-based  variant of call//[1-5].
 
-dcg_call(Dcg_0, X, Y):-
+dcg_call(Dcg_0, X, Y) :-
   call(Dcg_0, X, Y).
 
 
-dcg_call(Dcg_1, A1, X, Y):-
+dcg_call(Dcg_1, A1, X, Y) :-
   call(Dcg_1, A1, X, Y).
 
 
-dcg_call(Dcg_2, A1, A2, X, Y):-
+dcg_call(Dcg_2, A1, A2, X, Y) :-
   call(Dcg_2, A1, A2, X, Y).
 
 
-dcg_call(Dcg_3, A1, A2, A3, X, Y):-
+dcg_call(Dcg_3, A1, A2, A3, X, Y) :-
   call(Dcg_3, A1, A2, A3, X, Y).
 
 
-dcg_call(Dcg_4, A1, A2, A3, A4, X, Y):-
+dcg_call(Dcg_4, A1, A2, A3, A4, X, Y) :-
   call(Dcg_4, A1, A2, A3, A4, X, Y).
 
 
-dcg_call(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
+dcg_call(Dcg_5, A1, A2, A3, A4, A5, X, Y) :-
   call(Dcg_5, A1, A2, A3, A4, A5, X, Y).
 
 
@@ -1034,32 +1034,32 @@ dcg_call(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
 % dcg_call_cp//1 is included for consistency, even though
 % it is operationally equivalent to dcg_call//1.
 
-dcg_call_cp(Dcg_0, X, Y):-
+dcg_call_cp(Dcg_0, X, Y) :-
   copy_term(Dcg_0, Dcg__0),
   call(Dcg__0, X, Y).
 
 
-dcg_call_cp(Dcg_1, A1, X, Y):-
+dcg_call_cp(Dcg_1, A1, X, Y) :-
   copy_term(Dcg_1, Dcg__1),
   call(Dcg__1, A1, X, Y).
 
 
-dcg_call_cp(Dcg_2, A1, A2, X, Y):-
+dcg_call_cp(Dcg_2, A1, A2, X, Y) :-
   copy_term(Dcg_2, Dcg__2),
   call(Dcg__2, A1, A2, X, Y).
 
 
-dcg_call_cp(Dcg_3, A1, A2, A3, X, Y):-
+dcg_call_cp(Dcg_3, A1, A2, A3, X, Y) :-
   copy_term(Dcg_3, Dcg__3),
   call(Dcg__3, A1, A2, A3, X, Y).
 
 
-dcg_call_cp(Dcg_4, A1, A2, A3, A4, X, Y):-
+dcg_call_cp(Dcg_4, A1, A2, A3, A4, X, Y) :-
   copy_term(Dcg_4, Dcg__4),
   call(Dcg__4, A1, A2, A3, A4, X, Y).
 
 
-dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y):-
+dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y) :-
   copy_term(Dcg_5, Dcg__5),
   call(Dcg__5, A1, A2, A3, A4, A5, X, Y).
 
@@ -1139,10 +1139,10 @@ is_dict_or_list0(Term) :-
   is_list(Term).
 
 
-is_empty_term0(Dict):-
+is_empty_term0(Dict) :-
   is_dict(Dict), !,
   empty_dict(Dict).
-is_empty_term0(L):-
+is_empty_term0(L) :-
   is_list(L), !,
   empty_list(L).
 
@@ -1153,12 +1153,12 @@ is_empty_or_singleton_term0(Term) :-
   is_singleton_term0(Term).
 
 
-is_singleton_term0(Dict):-
+is_singleton_term0(Dict) :-
   is_dict(Dict), !,
   dict_pairs(Dict, Pairs),
   Pairs = [_-Val],
   is_singleton_term0(Val).
-is_singleton_term0(L):-
+is_singleton_term0(L) :-
   is_list(L), !,
   singleton_list(Elem, L),
   is_singleton_term0(Elem).
@@ -1210,7 +1210,7 @@ dcg_list(Dcg_1, L, I1) -->
 % MaxWidth is the number of longest string that is the result of
 % printing all Args with the DCG_1 rule.
 
-dcg_max_width(Dcg_1, Args, MaxW):-
+dcg_max_width(Dcg_1, Args, MaxW) :-
   aggregate_all(
     max(W),
     (
@@ -1225,7 +1225,7 @@ dcg_max_width(Dcg_1, Args, MaxW):-
 %! dcg_once(:Dcg_0)// .
 % Calls the given DCG at most one time.
 
-dcg_once(Dcg_0, X, Y):-
+dcg_once(Dcg_0, X, Y) :-
   once(phrase(Dcg_0, X, Y)).
 
 
@@ -1253,7 +1253,7 @@ dcg_tab --> tab(1).
 
 %! dcg_width(:Dcg_0, -Width:nonneg) is det.
 
-dcg_width(Dcg_0, W):-
+dcg_width(Dcg_0, W) :-
   dcg_with_output_to(codes(Cs), Dcg_0),
   length(Cs, W).
 
@@ -1262,11 +1262,11 @@ dcg_width(Dcg_0, W):-
 %! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
 
-dcg_with_output_to(Dcg_0):-
+dcg_with_output_to(Dcg_0) :-
   dcg_with_output_to(current_output, Dcg_0).
 
 
-dcg_with_output_to(Sink, Dcg_0):-
+dcg_with_output_to(Sink, Dcg_0) :-
   phrase(Dcg_0, Cs),
   with_output_to(Sink, put_codes(Cs)).
 
@@ -1275,7 +1275,7 @@ dcg_with_output_to(Sink, Dcg_0):-
 %! debug(+Flag, :Dcg_0) is det.
 % Write the first generation of Dcg_0 as a debug message with given Flag.
 
-debug(Flag, Dcg_0):-
+debug(Flag, Dcg_0) :-
   debugging(Flag), !,
   string_phrase(Dcg_0, S),
   debug(Flag, "~s", [S]).
@@ -1312,7 +1312,7 @@ eol --> "\r\n".
 
 %! frac_pos(+Fractional:between(0.0,1.0), -Ds:list(between(0,9))) is det.
 
-frac_pos(Frac, Ds):-
+frac_pos(Frac, Ds) :-
   fractional_integer(Frac, I),
   sum_pos(I, Ds).
 
@@ -1341,7 +1341,7 @@ generate_as_digits(N1, Base, M1) -->
 % Succeeds if currently generating a list of codes (rather than
 % parsing a list of codes).
 
-generating(X, Y):-
+generating(X, Y) :-
   \+ parsing(X, Y).
 
 
@@ -1418,7 +1418,7 @@ pair(DcgX_0, DcgY_0) -->
 % Succeeds if currently parsing a list of codes (rather than
 % generating a list of codes).
 
-parsing(H, H):-
+parsing(H, H) :-
   nonvar(H).
 
 
@@ -1445,19 +1445,19 @@ perc_fixed(Perc) -->
 %! pos(+I:nonneg, -Ds:list(between(0,9))) is det.
 % Wrapper around pois/2 with decimal base.
 
-pos(I, Ds):-
+pos(I, Ds) :-
   pos(I, 10, Ds).
 
 
 %! pos(+I:nonneg, +Base:positive_integer, -Ds:list(between(0,9))) is det.
 
-pos(I, Base, Ds):-
+pos(I, Base, Ds) :-
   pos_rev(I, Base, Ds0),
   reverse(Ds0, Ds).
 
-pos_rev(I, Base, [I]):-
+pos_rev(I, Base, [I]) :-
   I < Base, !.
-pos_rev(I1, Base, [H|T]):-
+pos_rev(I1, Base, [H|T]) :-
   H is I1 mod Base,
   I2 is I1 // Base,
   pos_rev(I2, Base, T).
@@ -1467,7 +1467,7 @@ pos_rev(I1, Base, [H|T]):-
 %! pos_frac(+Ds:list(between(0,9)), -FractionalPart:rational) is det.
 % Positional fractional.
 
-pos_frac(Ds, Frac):-
+pos_frac(Ds, Frac) :-
   aggregate_all(sum(Rat), (nth1(I, Ds, D), Rat is D rdiv (10 ^ I)), Frac).
 
 
@@ -1475,13 +1475,13 @@ pos_frac(Ds, Frac):-
 %! pos_sum(+Ds:list(between(0,9)), -I:nonneg) is det.
 % Positional summation.
 
-pos_sum(Ds, I):- pos_sum(Ds, 10, I).
+pos_sum(Ds, I) :- pos_sum(Ds, 10, I).
 
 
 %! pos_sum(+Ds:list(between(0,9)), +Base:positive_integer, -I:nonneg) is det.
 
-pos_sum(Ds, Base, I):- pos_sum(Ds, Base, 0, I).
-pos_sum([D|Ds], Base, I1, I):- !,
+pos_sum(Ds, Base, I) :- pos_sum(Ds, Base, 0, I).
+pos_sum([D|Ds], Base, I1, I) :- !,
   I2 is I1 * Base + D,
   pos_sum(Ds, Base, I2, I).
 pos_sum([], _, I, I).
@@ -1630,17 +1630,17 @@ string -->
 %! string_phrase(:Dcg_0, ?S)// is nondet.
 %! string_phrase(:Dcg_0, +S1, ?S2)// is nondet.
 
-string_phrase(Dcg_0, S):-
+string_phrase(Dcg_0, S) :-
   var(S), !,
   phrase(Dcg_0, Cs),
   string_codes(S, Cs).
-string_phrase(Dcg_0, S):-
+string_phrase(Dcg_0, S) :-
   must_be(string, S),
   string_codes(S, Cs),
   phrase(Dcg_0, Cs).
 
 
-string_phrase(Dcg_0, S1, S2):-
+string_phrase(Dcg_0, S1, S2) :-
   must_be(string, S1),
   string_codes(S1, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
@@ -1661,16 +1661,16 @@ string_without(End) -->
 %
 % The default Base is decimal.
 
-sum_pos(I, Ds):-
+sum_pos(I, Ds) :-
   sum_pos(I, 10, Ds).
 
 
-sum_pos(I, Base, Ds):-
+sum_pos(I, Base, Ds) :-
   sum_pos0(I, Base, Ds0),
   reverse(Ds0, Ds).
 
-sum_pos0(0, _, []):- !.
-sum_pos0(I1, Base, [H|T]):-
+sum_pos0(0, _, []) :- !.
+sum_pos0(I1, Base, [H|T]) :-
   H is I1 mod Base,
   I2 is I1 // Base,
   sum_pos0(I2, Base, T).

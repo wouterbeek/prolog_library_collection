@@ -45,6 +45,16 @@ is_meta(cell).
 
 %! dcg_table(+Rows)// is det.
 %! dcg_table(+Rows, :Opts)// is det.
+%
+% The following options are supported:
+%
+%   * caption(+callable)
+%
+%   * cell(+callable)
+%
+%   * indexed(+boolean)
+%
+%   * maximum_number_of_rows(+nonneg)
 
 dcg_table(L) -->
   dcg_table(L, []).

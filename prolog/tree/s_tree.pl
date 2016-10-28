@@ -1,6 +1,7 @@
 :- module(
   s_tree,
   [
+    merge_tree/2,             % +Tree1, -Tree2
     pairs_to_root/2,          % +Pairs, -Root
     pairs_to_tree/2,          % +Pairs, -Tree
     is_s_tree/1,              % @Term
@@ -56,6 +57,22 @@ a
 :- use_module(library(pairs)).
 
 
+
+
+
+%! merge_tree(+Tree1, -Tree2) is det.
+
+merge_tree(t(Node,Trees1), t(Node,Trees2)) :-
+  partition(has_node(Node), Trees1, NodeTrees1, OtherTrees1),
+  maplist(merge_tree, NodeTrees1, NodeTrees2),
+  maplist(merge_tree, OtherTrees1, OtherTrees2),
+  maplist(flatten_tree, NodeTrees2, Subtreess),
+  append(Subtreess, Subtrees),
+  append(Subtrees, OtherTrees2, Trees2).
+
+flatten_tree(t(_,Trees), Trees).
+
+has_node(Node, t(Node,_)).
 
 
 
