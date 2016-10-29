@@ -73,6 +73,7 @@
     html_hook//1,            % +Term
     html_hook//2,            % +Opts, +Term
     html_http_error_page/2,  % +Style, +Req
+    html_lstring//1,         % +Name
     html_maplist//2,         % :ItemWriter_1, +Args1
     html_maplist//3,         % :ItemWriter_1, +Args1, +Args2
     html_pair//1,            % +Pair
@@ -126,7 +127,6 @@
     linkedin_share//0,
     list//1,                 % +Args
     list//2,                 % :ItemWriter_1, +Args
-    lstring//1,              % +Name
     mail_link//1,            % +Mail
     menu//0,
     merge_attrs/3,           % +Attrs1, +Attrs2, -Attrs3
@@ -808,7 +808,7 @@ definition_list_item(ItemWriter_1, def(Definiens,Definiendum)) -->
 developed_with -->
   html(
     div(class='developed-with', [
-      \lstring(developed_with),
+      \html_lstring(developed_with),
       " ",
       \pl_link,
       "."
@@ -1182,7 +1182,7 @@ fb_follow_img -->
 
 
 fb_follow_img(User) -->
-  {lstring(like_us_on_facebook, Str)},
+  {lstring(like_us_on_x, ["Facebook"], Str)},
   tooltip(Str, \fb_follow0(User, \fb_img0)).
 
 
@@ -1196,10 +1196,13 @@ fb_follow_txt -->
 
 
 fb_follow_txt(User) -->
-  {lstring(like_us_on_facebook, Str)},
+  {lstring(like_us_on_x, ["Facebook"], Str)},
   tooltip(
     Str,
-    \fb_follow0(User, [\lstring(follow)," ",User," ",\lstring(op),"Facebook"])
+    \fb_follow0(
+      User,
+      [\html_lstring(follow)," ",User," ",\lstring(op),"Facebook"]
+    )
   ).
 
 
@@ -1564,6 +1567,14 @@ html_http_error_page(Style, Req) :-
     \title(["Error",Title]),
     html(article([header(Title),section(Main)]))
   ).
+
+
+
+%! html_lstring(+Name)// is det.
+
+html_lstring(Name) -->
+  {lstring(Name, Str)},
+  html(Str).
 
 
 
@@ -1995,7 +2006,7 @@ language_menu(LTags) -->
 
 
 language_menu_item(LTag) -->
-  html(option(value=LTag, \lstring(LTag))).
+  html(option(value=LTag, \html_lstring(LTag))).
 
 
 
@@ -2055,14 +2066,6 @@ list(Args) -->
 
 list(ItemWriter_1, Args) -->
   html([&(91),\html_seplist(ItemWriter_1, Args),&(93)]).
-
-
-
-%! lstring(+Name)// is det.
-
-lstring(Name) -->
-  {lstring(Name, Str)},
-  html(Str).
 
 
 
@@ -3031,7 +3034,7 @@ twitter_follow_txt(User) -->
     Str,
     twitter_follow0(
       User,
-      [\lstring(follow)," ",User," ",\lstring(on)," Twitter"]
+      [\html_lstring(follow)," ",User," ",\lstring(on)," Twitter"]
     )
   ).
 
@@ -3071,7 +3074,7 @@ twitter_mention(User) -->
   html(
     a(
       [class='twitter-mention-button','data-show-count'=false,href=Iri],
-      [\lstring(tweet_to)," @",User]
+      [\html_lstring(tweet_to)," @",User]
     )
   ).
 
@@ -3089,7 +3092,7 @@ twitter_profile(User) -->
   {twitter_user_iri(User, Iri)},
   html(
     a([class='twitter-timeline',href=Iri], [
-      \lstring(tweets_by),
+      \html_lstring(tweets_by),
       " ",
       User
     ])

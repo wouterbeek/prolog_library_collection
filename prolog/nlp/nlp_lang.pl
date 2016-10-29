@@ -4,7 +4,8 @@
     current_lrange/1, % -LRange
     current_ltag/1,   % -LTag
     current_ltag/2,   % +LTags, -LTag
-    lstring/2         % +Name, -Str
+    lstring/2,        % +Name, -Str
+    lstring/3         % +Name, +Args, -Str
   ]
 ).
 
@@ -44,6 +45,8 @@ nlp:lstring(en, follow, "Follow").
 nlp:lstring(nl, follow, "Volg").
 nlp:lstring(en, follow_us_on_x, "Follow us on ~s").
 nlp:lstring(nl, follow_us_on_x, "Volg ons op ~s").
+nlp:lstring(en, like_us_on_x, "Like us on ~s").
+nlp:lstring(nl, like_us_on_x, "Like ons op ~s").
 nlp:lstring(en, nl, "Dutch").
 nlp:lstring(nl, nl, "Nederlands").
 nlp:lstring(en, on, "on").
