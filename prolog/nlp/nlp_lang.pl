@@ -42,10 +42,8 @@ nlp:lstring(en, en, "English").
 nlp:lstring(nl, en, "Engels").
 nlp:lstring(en, follow, "Follow").
 nlp:lstring(nl, follow, "Volg").
-nlp:lstring(en, follow_us_on_twitter, "Follow us on Twitter").
-nlp:lstring(nl, follow_us_on_twitter, "Volg ons op Twitter").
-nlp:lstring(en, like_us_on_facebook, "Like us on Facebook").
-nlp:lstring(nl, like_us_on_facebook, "Like ons op Facebook").
+nlp:lstring(en, follow_us_on_x, "Follow us on ~s").
+nlp:lstring(nl, follow_us_on_x, "Volg ons op ~s").
 nlp:lstring(en, nl, "Dutch").
 nlp:lstring(nl, nl, "Nederlands").
 nlp:lstring(en, on, "on").
@@ -54,6 +52,8 @@ nlp:lstring(en, overview, "Overview").
 nlp:lstring(nl, overview, "Overzicht").
 nlp:lstring(en, read_more, "Read more").
 nlp:lstring(nl, read_more, "Lees meer").
+nlp:lstring(en, share_x_on_y, "Share “~s” on ~s.").
+nlp:lstring(nl, share_x_on_y, "Deel “~s” op ~s.").
 nlp:lstring(en, tag, "Tag").
 nlp:lstring(nl, tag, "Tag").
 nlp:lstring(en, tags, "Tags").
@@ -112,7 +112,13 @@ longest_to_shortest_prefix0(Prefix, L1) :-
 
 
 %! lstring(+Name, -Str) is det.
+%! lstring(+Name, +Args, -Str) is det.
 
 lstring(Name, Str) :-
+  lstring(Name, [], Str).
+
+
+lstring(Name, Args, Str) :-
   current_ltag(LTag),
-  nlp:lstring(LTag, Name, Str).
+  nlp:lstring(LTag, Name, Format),
+  format(string(Str), Format, Args).

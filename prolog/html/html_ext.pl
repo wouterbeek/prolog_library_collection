@@ -43,7 +43,6 @@
     fb_follow_img//1,        % +User
     fb_follow_txt//0,
     fb_follow_txt//1,        % +User
-    fb_img//0,
     fb_like//1,              % +Iri
     fb_like//2,              % +Size:oneof([large,small]), +Iri
     fb_share//2,             % +Iri, +Title
@@ -97,6 +96,7 @@
     icon//1,                 % +Name
     icon_button//1,          % +Name
     icon_button//2,          % +Name, +Func
+    idle//1,                 % +Time
     if_then//2,              % :If_0, :Then_0
     if_then_else//3,         % :If_0, :Then_0, :Else_0
     ignore//1,               % :Content_0
@@ -117,6 +117,7 @@
     internal_link//1,        % +Spec
     internal_link//2,        % +Spec, :Content_0
     internal_link//3,        % +Spec, +Attrs, :Content_0
+    ip//1,                   % +Ip
     language_menu//1,        % +LTags
     license//1,              % +Name
     link//1,                 % +Pair
@@ -215,7 +216,6 @@
     twitter_follow_txt//0,
     twitter_follow_txt//1,   % +User
     twitter_grid//2,         % +Iri, +Title
-    twitter_img//0,
     twitter_mention//0,
     twitter_mention//1,      % +User
     twitter_profile//0,
@@ -293,8 +293,8 @@ html({|html||...|}).
    endpoint_link(+, html, ?, ?),
    external_link(+, html, ?, ?),
    external_link(+, +, html, ?, ?),
-   fb_follow(html, ?, ?),
-   fb_follow(+, html, ?, ?),
+   fb_follow0(html, ?, ?),
+   fb_follow0(+, html, ?, ?),
    figure(+, +, html, ?, ?),
    footer_panel(+, html, html, ?, ?),
    footnote_post(+, html, ?, ?),
@@ -350,8 +350,8 @@ html({|html||...|}).
    table_header(html, ?, ?),
    tile(3, +, ?, ?),
    tooltip(+, html, ?, ?),
-   twitter_follow(html, ?, ?),
-   twitter_follow(+, html, ?, ?),
+   twitter_follow0(html, ?, ?),
+   twitter_follow0(+, html, ?, ?),
    unless(0, html, ?, ?),
    unordered_list(html, +, ?, ?),
    unordered_list(+, html, +, ?, ?).
@@ -543,13 +543,8 @@ html({|html||...|}).
      "Twitter profile name."
    ).
 
-% atom
-html:html_hook(A) -->
-  {atom(A)},
-  html(A).
 % string
-html:html_hook(Str) -->
-  {string(Str)},
+html:html_hook(string(Str)) -->
   html(Str).
 % code
 html:html_hook(code(Str)) -->
@@ -566,6 +561,14 @@ html:html_hook(set(L)) -->
 % thousands
 html:html_hook(thousands(N)) -->
   html_thousands(N).
+% atom
+html:html_hook(A) -->
+  {atom(A)},
+  html(A).
+% string
+html:html_hook(Str) -->
+  {string(Str)},
+  html(Str).
 
 
 
@@ -1156,15 +1159,15 @@ fb_comments(Iri) -->
 
 
 
-%! fb_follow(:Content_0)// is det.
-%! fb_follow(+User, :Content_0)// is det.
+%! fb_follow0(:Content_0)// is det.
+%! fb_follow0(+User, :Content_0)// is det.
 
-fb_follow(Content_0) -->
+fb_follow0(Content_0) -->
   {setting(html:fb_profile, User)},
-  fb_follow(User, Content_0).
+  fb_follow0(User, Content_0).
 
 
-fb_follow(User, Content_0) -->
+fb_follow0(User, Content_0) -->
   {fb_user_iri(User, Iri)},
   html(a(href=Iri, Content_0)).
 
@@ -1180,7 +1183,7 @@ fb_follow_img -->
 
 fb_follow_img(User) -->
   {lstring(like_us_on_facebook, Str)},
-  tooltip(Str, \fb_follow(User, \fb_img)).
+  tooltip(Str, \fb_follow0(User, \fb_img0)).
 
 
 
@@ -1193,11 +1196,15 @@ fb_follow_txt -->
 
 
 fb_follow_txt(User) -->
-  fb_follow(User, [\lstring(follow)," ",User," ",\lstring(op),"Facebook"]).
+  {lstring(like_us_on_facebook, Str)},
+  tooltip(
+    Str,
+    \fb_follow0(User, [\lstring(follow)," ",User," ",\lstring(op),"Facebook"])
+  ).
 
 
 
-fb_img -->
+fb_img0 -->
   {http_absolute_location(img('facebook.png'), Loc)},
   html(img([alt="Facebook",src=Loc], [])).
 
@@ -1230,13 +1237,14 @@ fb_like(Size, Iri) -->
 
 fb_share(Iri, Title) -->
   {
+    lstring(share_x_on_y, [Title,"Facebook"], Str),
     uri_query_components(Query, [title=Title,u=Iri]),
     uri_components(
       Url,
       uri_components(http,'www.facebook.com','/share.php',Query,_)
     )
   },
-  html(a([href=Url,target='_blank'], \fb_img)).
+  tooltip(Str, html(a([href=Url,target='_blank'], \fb_img0))).
 
 
 
@@ -1731,7 +1739,6 @@ human_integer(N) -->
   },
   html("~*fG"-[N0,TB]).
 
-
 digits0(Count, 1) :-
   Count < 100, !.
 digits0(_, 0).
@@ -1767,6 +1774,18 @@ icon_button(Name, Func) -->
   html(
     button([class=[btn,'btn-default',glyphicon,Class],title=Title|Attrs], [])
   ).
+
+
+
+%! idle(+Time)// is det.
+
+idle(Time) -->
+  {
+    Secs is round(Time),
+    Min is Secs // 60,
+    Sec is Secs mod 60
+  },
+  html("~`0t~d~2|:~`0t~d~5|"-[Min, Sec]).
 
 
 
@@ -1954,10 +1973,25 @@ internal_link(Spec, Attrs1, Content0_0) -->
 
 
 
+%! ip(+Ip)// is det.
+
+ip(ip(A,B,C,D)) --> !,
+  html("~d.~d.~d.~d"-[A,B,C,D]).
+ip(IP) -->
+  html("~w"-[IP]).
+
+
+
 %! language_menu(+LTags)// is det.
 
 language_menu(LTags) -->
-  navbar_dropdown_menu(_, 'language-menu', "Language", language_menu_item, LTags).
+  navbar_dropdown_menu(
+    _,
+    'language-menu',
+    "Language",
+    language_menu_item,
+    LTags
+  ).
 
 
 language_menu_item(LTag) -->
@@ -2268,16 +2302,13 @@ nowrap(Content_0) -->
 
 
 
-%! number(+Format, +Val)//
+%! number(+Format, +N)// is det.
 %
 % HTML component to emit a number.
 
-number(Val) -->
-  html(["~p"-[Val]]).
-
-number(Fmt, Val) -->
-  number(Val), !,
-  html(Fmt-[Val]).
+number(Fmt, N) -->
+  number(N), !,
+  html(Fmt-[N]).
 
 
 
@@ -2293,13 +2324,7 @@ once(ItemWriter_1, X, Y) :-
 operator(Mod, op(Pred,Type,Name)) -->
   html([
     \nonvar(module_prefix, Mod),
-    "op(",
-    Pred,
-    ",",
-    Type,
-    ",",
-    Name,
-    ")"
+    "op(",Pred,",",Type,",",Name,")"
   ]).
 
 
@@ -2459,6 +2484,7 @@ pipe -->
 
 pl_link -->
   external_link('http://www.swi-prolog.org', "SWI-Prolog").
+
 
 
 %! pl_version// is det.
@@ -2963,15 +2989,15 @@ truncate(Str, MaxLen) -->
 
 
 
-%! twitter_follow(:Content_0)// is det.
-%! twitter_follow(+User, :Content_0)// is det.
+%! twitter_follow0(:Content_0)// is det.
+%! twitter_follow0(+User, :Content_0)// is det.
 
-twitter_follow(Content_0) -->
+twitter_follow0(Content_0) -->
   {setting(html:twitter_profile, User)},
-  twitter_follow(User, Content_0).
+  twitter_follow0(User, Content_0).
 
 
-twitter_follow(User, Content_0) -->
+twitter_follow0(User, Content_0) -->
   {twitter_user_iri(User, Iri)},
   html(a(href=Iri, Content_0)).
 
@@ -2986,8 +3012,8 @@ twitter_follow_img -->
 
 
 twitter_follow_img(User) -->
-  {lstring(follow_us_on_twitter, Str)},
-  tooltip(Str, \twitter_follow(User, \twitter_img)).
+  {lstring(follow_us_on_x, ["Twitter"], Str)},
+  tooltip(Str, \twitter_follow0(User, \twitter_img0)).
 
 
 
@@ -3000,9 +3026,13 @@ twitter_follow_txt -->
 
 
 twitter_follow_txt(User) -->
-  twitter_follow(
-    User,
-    [\lstring(follow)," ",User," ",\lstring(on)," Twitter"]
+  {lstring(follow_us_on_x, ["Twitter"], Str)},
+  tooltip(
+    Str,
+    twitter_follow0(
+      User,
+      [\lstring(follow)," ",User," ",\lstring(on)," Twitter"]
+    )
   ).
 
 
@@ -3014,9 +3044,9 @@ twitter_grid(Iri, Title) -->
 
 
 
-%! twitter_img// is det.
+%! twitter_img0// is det.
 
-twitter_img -->
+twitter_img0 -->
   {http_absolute_location(img('twitter.png'), Loc)},
   html(img([alt="Twitter",src=Loc], [])).
 
@@ -3071,11 +3101,11 @@ twitter_profile(User) -->
 
 twitter_share(Iri, Title) -->
   {
-    % hashtags([])
+    lstring(share_x_on_y, [Title,"Twitter"], Str),
     uri_query_components(Query, [text(Title),url(Iri)]),
     uri_components(Url, uri_components(https,'twitter.com','/share',Query,_))
   },
-  html(a(href=Url, \twitter_img)).
+  tooltip(Str, a(href=Url, \twitter_img0)).
 
 
 

@@ -7,7 +7,7 @@
     long_flag/3,   % +Flag:atom, +Value, -Argument:atom
     show_help/1,   % +OptionSpecification:list(compound)
     user_input/1,  % +Msg
-    user_input/2   % +Msg, :Dcg_0
+    user_input/3   % +Msg, :Dcg_1, ?Success
   ]
 ).
 :- reexport(library(optparse)).
@@ -23,7 +23,7 @@
 :- use_module(library(uri)).
 
 :- meta_predicate
-    user_input(+,//).
+    user_input(+, 3, ?).
 
 
 
@@ -75,23 +75,28 @@ show_help(OptSpec) :-
 
 
 %! user_input(+Msg) is semidet.
-%! user_input(+Msg, :Dcg_0) is det.
+%! user_input(+Msg, :Dcg_1, ?Success) is det.
 
 user_input(Msg) :-
-  user_input(Msg, yn(true)).
+  user_input(Msg, yn, true).
 
 
-user_input(Msg, Dcg_0) :-
+user_input(Msg, Dcg_1, Success) :-
   repeat,
   format(user_output, "~s~n", [Msg]),
   read_line_to_codes(user_input, Cs),
-  (   once(phrase(Dcg_0, Cs))
-  ->  !
+  (   once(phrase(quit, Cs))
+  ->  throw(user_quits)
+  ;   once(phrase(dcg_call(Dcg_1, Val), Cs))
+  ->  !,
+      Val = Success
   ;   fail
   ).
-
 
 yn(true) --> str_ci("y").
 yn(true) --> str_ci("yes").
 yn(false) --> str_ci("n").
 yn(false) --> str_ci("no").
+
+quit --> str_ci("q").
+quit --> str_ci("quit").
