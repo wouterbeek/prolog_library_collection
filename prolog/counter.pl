@@ -22,7 +22,6 @@
 /** <module> Counters
 
 @author Wouter Beek
-@license MIT license
 @version 2015/09-2015/11
 */
 

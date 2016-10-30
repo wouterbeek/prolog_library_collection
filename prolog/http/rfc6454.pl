@@ -16,7 +16,6 @@
 
 @author Wouter Beek
 @compat RFC 6454
-@license MIT License
 @see http://tools.ietf.org/html/rfc6454
 @version 2015/11-2016/01
 */

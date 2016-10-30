@@ -73,6 +73,7 @@
     html_hook//1,            % +Term
     html_hook//2,            % +Opts, +Term
     html_http_error_page/2,  % +Style, +Req
+    html_license//2,         % +Uri, +Lbl
     html_lstring//1,         % +Name
     html_maplist//2,         % :ItemWriter_1, +Args1
     html_maplist//3,         % :ItemWriter_1, +Args1, +Args2
@@ -120,14 +121,14 @@
     internal_link//3,        % +Spec, +Attrs, :Content_0
     ip//1,                   % +Ip
     language_menu//1,        % +LTags
-    license//1,              % +Name
     link//1,                 % +Pair
     link//2,                 % +Attrs, +Pair
     link_button//2,          % +Iri, :Content_0
     linkedin_share//0,
     list//1,                 % +Args
     list//2,                 % :ItemWriter_1, +Args
-    mail_link//1,            % +Mail
+    mail_icon//1,            % +Uri
+    mail_link_and_icon//1,   % +Uri
     menu//0,
     merge_attrs/3,           % +Attrs1, +Attrs2, -Attrs3
     meta//2,                 % +Name, +Content
@@ -136,7 +137,7 @@
     meta_charset//0,
     meta_description//1,     % +Desc
     meta_ie_latest//0,
-    meta_license//1,         % +Name
+    meta_license//1,         % +Uri
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
     navbar_brand_img//2,     % +Local, +Alt
@@ -243,7 +244,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2016/11
+@version 2016/02-2016/10
 */
 
 :- use_module(library(apply)).
@@ -263,6 +264,7 @@ html({|html||...|}).
 :- use_module(library(http/js_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(json_ext)).
+:- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(pagination)).
@@ -1570,6 +1572,13 @@ html_http_error_page(Style, Req) :-
 
 
 
+%! html_license(+Iri, Lbl)// is det.
+
+html_license(Uri, Lbl) -->
+  external_link(Uri, [rel=Uri], Lbl).
+
+
+
 %! html_lstring(+Name)// is det.
 
 html_lstring(Name) -->
@@ -2010,14 +2019,6 @@ language_menu_item(LTag) -->
 
 
 
-%! license(+Name)// is det.
-
-license(Name) -->
-  {license0(Name, Iri, Lbl)},
-  external_link(Iri, [rel=Iri], Lbl).
-
-
-
 %! link(+Pair)// is det.
 %! link(+Attrs, +Pair)// is det.
 %
@@ -2069,11 +2070,17 @@ list(ItemWriter_1, Args) -->
 
 
 
-%! mail_link(+Mail)// is det.
+%! mail_icon(+Uri)// is det.
 
-mail_link(Mail) -->
-  {atomic_list_concat([mailto,Mail], ':', Iri)},
-  external_link(Iri, [property='foaf:mbox'], [\icon(mail)," ",code(Mail)]).
+mail_icon(Uri) -->
+  external_link(Uri, [property='foaf:mbox'], [" ",\icon(mail)]).
+
+
+
+%! mail_link_and_icon(+Uri)// is det.
+
+mail_link_and_icon(Uri) -->
+  external_link(Uri, [property='foaf:mbox'], [\icon(mail)," ",code(Uri)]).
 
 
 
@@ -2175,11 +2182,10 @@ meta_ie_latest -->
 
 
 
-%! meta_license(+Name)// is det.
+%! meta_license(+Uri)// is det.
 
-meta_license(Name) -->
-  {license0(Name, Iri)},
-  link(license-Iri).
+meta_license(Uri) -->
+  link(license-Uri).
 
 
 
@@ -3433,21 +3439,6 @@ http_error(500, title, nl, "Fout in server").
 http_error(500, title, en, "Server error").
 http_error(500, main, nl, "De server heeft een fout gemaakt.").
 http_error(500, main, en, "The server encountered an internal error.").
-
-
-
-%! license0(?Name, ?Iri) is nondet.
-%! license0(?Name, ?Iri, ?Lbl) is nondet.
-
-license0(Name, Iri) :-
-  license0(Name, Iri, _).
-
-
-license0(
-  cc_by,
-  'https://creativecommons.org/licenses/by/4.0/',
-  "Creative Commons Attribution 4.0 International License"
-).
 
 
 

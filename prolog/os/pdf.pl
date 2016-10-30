@@ -11,7 +11,6 @@
 Support for opening PDF files.
 
 @author Wouter Beek
-@license MIT License
 @version 2015/10, 2016/03
 */
 

@@ -102,9 +102,6 @@ article > header img {
   height: 200px;
   width: 200px;
 }
-[property="foaf:mbox"] {
-  display: block;
-}
 li[typeof="sbo:Author"] {
   vertical-align: middle;
 }

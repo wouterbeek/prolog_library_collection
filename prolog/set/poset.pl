@@ -26,7 +26,6 @@ Design decisions:
   * Posets are represented by ugraphs (see [ugraph]).
 
 @author Wouter Beek
-@license MIT license
 @tbd Implement height/2 where the height of an element is the lenght of
      the longest chain from `Element` to a minimal element.
 @version 2015/10 2015/12

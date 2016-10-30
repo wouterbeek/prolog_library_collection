@@ -6,6 +6,7 @@
     date_time_masks/3,        % +Masks, +DT, -MaskedDT
     'dt-pl_to_date_time'/2,   % +Pl, -DT
     'date_time_to_dt-pl'/2,   % +DT, -Pl
+    'date_time_to_dt-rdf'/3,  % +DT, +D, -Rdf
     'dt-rdf_to_date_time'/2,  % +Rdf, -DT
     get_date_time/1,          % -DT
     'is_dt-pl'/1,             % @Term
@@ -13,6 +14,7 @@
     is_date_time/1,           % @Term
     print_timestamp/1,        % :Goal_0
     something_to_date_time/2, % +Something, -DT
+    'something_to_dt-rdf'/3,  % +Something, -DT
     timestamp_to_date_time/2  % +TS, -DT
   ]
 ).
@@ -46,16 +48,20 @@ predicates that only work with date_time/7.  This is a huge
 time-saver!
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08
+@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10
 */
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
     call_timestamp(0, -),
     call_timestamp(0, +, -),
     print_timestamp(0).
+
+:- rdf_meta
+   'date_time_to_dt-rdf'(+, r, -).
 
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
@@ -179,6 +185,19 @@ date_time_masks([H|T], DT1, DT3) :-
 
 
 
+%! 'date_time_to_dt-rdf'(+DT, +D, -Rdf) is det.
+
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)).
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)).
+'date_time_to_dt-rdf'(date_time(_,_,D,_,_,_,_), xsd:gDay, D).
+'date_time_to_dt-rdf'(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo).
+'date_time_to_dt-rdf'(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)).
+'date_time_to_dt-rdf'(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y).
+'date_time_to_dt-rdf'(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)).
+'date_time_to_dt-rdf'(date_time(_,_,_,H,Mi,S,_), xsd:time, time(H,Mi,S)).
+
+
+
 %! 'dt-pl_to_date_time'(+Pl, -DT) is det.
 %
 % Converts the two Prolog date representations to the one XSD
@@ -208,7 +227,7 @@ date_time_masks([H|T], DT1, DT3) :-
 %      in *minutes* as an integer between -840 and 840 inclusive.
 
 'dt-pl_to_date_time'(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)):- !.
-'dt-pl_to_date_time'(date(Y,Mo,D,H,Mi,S,Off1,_,_), date_time(Y,Mo,D,H,Mi,S,Off2)):-
+'dt-pl_to_date_time'(date(Y,Mo,D,H,Mi,S,Off1,_,_), date_time(Y,Mo,D,H,Mi,S,Off2)):- !,
   Off2 is Off1 // 60.
 'dt-pl_to_date_time'(time(H,Mi,S), date_time(_,_,_,H,Mi,S,0)).
 
@@ -216,10 +235,10 @@ date_time_masks([H|T], DT1, DT3) :-
 
 %! 'dt-rdf_to_date_time'(+DT1, -DT2) is det.
 
-'dt-rdf_to_date_time'(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)).
-'dt-rdf_to_date_time'(date_time(Y,Mo,D,H,Mi,S), date_time(Y,Mo,D,H,Mi,S,0)).
-'dt-rdf_to_date_time'(month_day(Mo,D), date_time(_,Mo,D,_,_,_,0)).
-'dt-rdf_to_date_time'(time(H,Mi,S), date_time(_,_,_,H,Mi,S,0)).
+'dt-rdf_to_date_time'(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)) :- !.
+'dt-rdf_to_date_time'(date_time(Y,Mo,D,H,Mi,S), date_time(Y,Mo,D,H,Mi,S,0)) :- !.
+'dt-rdf_to_date_time'(month_day(Mo,D), date_time(_,Mo,D,_,_,_,0)) :- !.
+'dt-rdf_to_date_time'(time(H,Mi,S), date_time(_,_,_,H,Mi,S,0)) :- !.
 'dt-rdf_to_date_time'(year_month(Y,Mo), date_time(Y,Mo,_,_,_,_,0)).
 
 
@@ -277,6 +296,14 @@ something_to_date_time(Pl, DT) :-
 something_to_date_time(TS, DT) :-
   float(TS), !,
   timestamp_to_date_time(TS, DT).
+
+
+
+%! 'something_to_dt-rdf'(+Something, +D, -DT) is det.
+
+'something_to_dt-rdf'(Something, D, Rdf) :-
+  something_to_date_time(Something, DT),
+  'date_time_to_dt-rdf'(DT, D, Rdf).
 
 
 
