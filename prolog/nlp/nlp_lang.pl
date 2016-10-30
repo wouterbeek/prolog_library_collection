@@ -20,7 +20,7 @@
 :- use_module(library(ltag/ltag_match)).
 :- use_module(library(settings)).
 
-:- setting(nlp:lrange, list(atom), ['en-US'], '').
+:- setting(nlp:lrange, list(atom), [en], '').
 
 :- multifile
     nlp:lstring/3.
@@ -45,6 +45,8 @@ nlp:lstring(en, follow, "Follow").
 nlp:lstring(nl, follow, "Volg").
 nlp:lstring(en, follow_us_on_x, "Follow us on ~s").
 nlp:lstring(nl, follow_us_on_x, "Volg ons op ~s").
+nlp:lstring(en, language, "Language").
+nlp:lstring(nl, language, "Taal").
 nlp:lstring(en, like_us_on_x, "Like us on ~s").
 nlp:lstring(nl, like_us_on_x, "Like ons op ~s").
 nlp:lstring(en, nl, "Dutch").

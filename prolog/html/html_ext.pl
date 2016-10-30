@@ -141,8 +141,8 @@
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
     navbar_brand_img//2,     % +Local, +Alt
-    navbar_dropdown_menu//5, % +Action, +Name, +Lbl, :ItemWriter_1, +L
-    navbar_dropdown_menu//6, % +Attrs, +Action, +Name, +Lbl, :ItemWriter_1, +L
+    navbar_dropdown_menu//4, % +Name, +Lbl, :ItemWriter_1, +L
+    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :ItemWriter_1, +L
     nonvar//1,               % :Content_0
     nonvar//2,               % :ItemWriter_1, +Arg1
     nowrap//1,               % :Content_0
@@ -319,8 +319,8 @@ html({|html||...|}).
    internal_link(+, +, html, ?, ?),
    link_button(+, html, ?, ?),
    navbar(html, html, html, ?, ?),
+   navbar_dropdown_menu(+, +, 3, +, ?, ?),
    navbar_dropdown_menu(+, +, +, 3, +, ?, ?),
-   navbar_dropdown_menu(+, +, +, +, 3, +, ?, ?),
    nonvar(html, ?, ?),
    nowrap(html, ?, ?),
    ordered_list(html, +, ?, ?),
@@ -576,6 +576,7 @@ html:html_hook(Str) -->
 
 
 
+
 %! alert(+Mode:oneof([danger,info,success,warning]), :Content_0)// is det.
 
 alert(Mode, Content_0) -->
@@ -674,7 +675,9 @@ code_link(Str0) -->
   {string_or_strings(Str0, Str)},
   html([
     \html_requires(js(clipboard)),
-    \js_script({|javascript(_)||new Clipboard('.btn');|}),
+    \js_script({|javascript(_)||
+new Clipboard('.btn');
+    |}),
     \html_code(Str),
     " ",
     \copy_to_clipboard(Str)
@@ -1425,7 +1428,7 @@ grid(GridWidth, TileWidth, ItemWriter_1, L) -->
     div([id=grid,style=Style], \html_maplist(tile(ItemWriter_1), L)),
     \html_requires(grid),
     \js_script({|javascript(TileWidth)||
-      $('#grid').pinto({gapY: 10, itemWidth: TileWidth});
+$('#grid').pinto({gapY: 10, itemWidth: TileWidth});
     |})
   ]).
 
@@ -2005,17 +2008,28 @@ ip(IP) -->
 %! language_menu(+LTags)// is det.
 
 language_menu(LTags) -->
+  {
+    setting(nlp:lrange, [LTag|_]),
+    lstring(language, Lbl)
+  },
   navbar_dropdown_menu(
-    _,
     'language-menu',
-    "Language",
-    language_menu_item,
+    Lbl,
+    language_menu_item(LTag),
     LTags
-  ).
+  ),
+  js_script({|javascript(_)||
+$( "#language-menu" ).change(function() {
+  var str = "";
+  $("select option:selected").each(function() {
+    $.get("/change_language", {ltag: $(this).val()});
+  });
+});
+  |}).
 
-
-language_menu_item(LTag) -->
-  html(option(value=LTag, \html_lstring(LTag))).
+language_menu_item(LTag0, LTag) -->
+  {(LTag0 == LTag -> T = [selected=selected] ; T = [])},
+  html(option([value=LTag|T], \html_lstring(LTag))).
 
 
 
@@ -2261,24 +2275,17 @@ navbar_brand_img(Spec, Attrs1) -->
 
 
 
-%! navbar_dropdown_menu(+Action, +Name, +Lbl, :ItemWriter_1, +Items)// is det.
-%! navbar_dropdown_menu(+Attrs, +Action, +Name, +Lbl, :ItemWriter_1, +Items)// is det.
+%! navbar_dropdown_menu(+Name, +Lbl, :ItemWriter_1, +Items)// is det.
+%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :ItemWriter_1, +Items)// is det.
 %
 % @tbd What does `role(search)` do?
 
-navbar_dropdown_menu(Action, Name, Lbl, ItemWriter_1, L) -->
-  navbar_dropdown_menu([], Action, Name, Lbl, ItemWriter_1, L).
+navbar_dropdown_menu(Name, Lbl, ItemWriter_1, L) -->
+  navbar_dropdown_menu([], Name, Lbl, ItemWriter_1, L).
 
 
-navbar_dropdown_menu(Attrs1, Action, Name, Lbl, ItemWriter_1, L) -->
-  {
-    (var(Action) -> T = [] ; T = [action=Action]),
-    merge_attrs(
-      Attrs1,
-      [class=['navbar-form'],id=Name,role=search|T],
-      Attrs2
-    )
-  },
+navbar_dropdown_menu(Attrs1, Name, Lbl, ItemWriter_1, L) -->
+  {merge_attrs(Attrs1, [class=['navbar-form'],id=Name,role=search], Attrs2)},
   html(
     form(Attrs2,
       div(class='form-group', [
@@ -2316,7 +2323,7 @@ nowrap(Content_0) -->
 % HTML component to emit a number.
 
 number(Fmt, N) -->
-  number(N), !,
+  {number(N)}, !,
   html(Fmt-[N]).
 
 
