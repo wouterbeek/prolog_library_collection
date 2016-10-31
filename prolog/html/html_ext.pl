@@ -1146,7 +1146,8 @@ external_link_icon(Iri) -->
 % Web browser's tab.
 
 favicon(Spec) -->
-  link([type='image/x-icon'], icon-Spec).
+  {spec_iri(Spec, Iri)},
+  link([type='image/x-icon'], icon-Iri).
 
 
 
