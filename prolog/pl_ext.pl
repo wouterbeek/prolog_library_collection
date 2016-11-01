@@ -1,12 +1,13 @@
 :- module(
   pl_ext,
   [
-    check_pl_version/1, % +MinVersion
-    git_version/1,      % -Version
-    n_ary_term/3,       % +Pred, +Args, -Comp
-    pl_version/1,       % -Version
-    write_fact/1,       % @Term
-    write_term/1        % @Term
+    check_pl_version/1,     % +MinVersion
+    git_version/1,          % -Version
+    n_ary_term/3,           % +Pred, +Args, -Comp
+    pl_version/1,           % -Version
+    term_frequency_pairs/2, % +Terms, -TermFreqPairs
+    write_fact/1,           % @Term
+    write_term/1            % @Term
   ]
 ).
 
@@ -92,6 +93,34 @@ n_ary_term(Pred, [H|T], Comp) :- !,
 
 pl_version(version(Major,Minor,Patch)) :-
   current_prolog_flag(version_data, swi(Major, Minor, Patch, _)).
+
+
+
+
+
+
+%! term_frequency_pairs(+Terms, -TermFreqPairs) is det.
+%
+% TermFrequencyPairs is a list of pairs Term-Count of unique terms
+% Term, together with the number of times their occur in Terms.  Term
+% equivalence is ==/2.  The pairs are sorted according to the standard
+% order of terms.
+
+term_frequency_pairs(Terms, Pairs) :-
+  msort(Terms, Sorted),
+  fpairs(Sorted, Pairs).
+
+fpairs([], []).
+fpairs([H|T0], [H-C|T]) :-
+  % Identical terms appear in sequence, due to msort/2.
+  pick_same(T0, T1, H, 1, C),
+  fpairs(T1, T).
+
+pick_same([H1|T0], L, H, F0, F) :-
+  H == H1, !,
+  F1 is F0 + 1,
+  pick_same(T0, L, H, F1, F).
+pick_same(L, L, _, F, F).
 
 
 

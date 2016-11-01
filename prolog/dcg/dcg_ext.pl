@@ -100,6 +100,8 @@
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
     lowercase//0,
+    must_see//1,           % :Dcg_0
+    must_see_code//2,      % +C, :Skip_0
     nl//0,
     nonblank//0,
     number//0,
@@ -253,6 +255,8 @@ My favorite collection of DCG rules.
     dq(//, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
+    must_see(//, ?, ?),
+    must_see_code(+, //, ?, ?),
     opt(//, ?, ?),
     opt(3, ?, ?, ?),
     pair(//, //, ?, ?),
@@ -1386,6 +1390,28 @@ lowercase, [Low] -->
   {code_type(Low, to_lower(Up))}, !,
   rest.
 lowercase --> "".
+
+
+
+%! must_see(:Dcg_0)// .
+
+must_see(Dcg_0, X, Y) :-
+  call(Dcg_0, X, Y), !.
+must_see(_:Dcg_0, _, _) :-
+  Dcg_0 =.. [Pred|_],
+  format(string(Msg), "‘~a’ expected", [Pred]),
+  syntax_error(Msg).
+
+
+
+%! must_see_code(+C, :Skip_0)// .
+
+must_see_code(C, Skip_0) -->
+  [C], !,
+  Skip_0.
+must_see_code(C, _) -->
+  {char_code(Char, C)},
+  syntax_error(expected(Char)).
 
 
 

@@ -1,7 +1,11 @@
 :- module(
   html_map,
   [
-    map//4,     % +Endpoint, ?CenterPoint, ?Zoom, ?FeatureCollection
+    map//5,     % +QueryEndpoint
+                % +BrowserEndpoint
+                % ?CenterPoint
+                % ?Zoom
+                % ?FeatureCollection
     map_param/2 % ?Key, ?Spec
   ]
 ).
@@ -9,7 +13,7 @@
 /** <module> HTML map
 
 @author Wouter Beek
-@version 2016/05, 2016/09
+@version 2016/05, 2016/09, 2016/11
 */
 
 :- use_module(library(debug)).
@@ -98,9 +102,21 @@ http:http_param(
 
 
 
-%! map(+Endpoint, ?CenterPoint, ?Zoom, ?FeatureCollection)// is det.
+%! map(
+%!   +QueryEndpoint,
+%!   +BrowserEndpoint,
+%!   ?CenterPoint,
+%!   ?Zoom,
+%!   ?FeatureCollection
+%! )// is det.
 
-map(Endpoint, point(Lng,Lat), Zoom, FeatureCollection) -->
+map(
+  QueryEndpoint,
+  BrowserEndpoint,
+  point(Lng,Lat),
+  Zoom,
+  FeatureCollection
+) -->
   {
     defsetting(default_center_lng, Lng),
     defsetting(default_center_lat, Lat),
@@ -110,7 +126,13 @@ map(Endpoint, point(Lng,Lat), Zoom, FeatureCollection) -->
     defval(_{features: [], type: "FeatureCollection"}, FeatureCollection)
   },
   html(div(id=mapid, [])),
-  js_script({|javascript(Endpoint,CenterPoint,Zoom,FeatureCollection)||
+  js_script({|javascript(
+    QueryEndpoint,
+    BrowserEndpoint,
+    CenterPoint,
+    Zoom,
+    FeatureCollection
+  )||
 window.onload = function() {
   var x = $("#mapid");
   var map = L.map("mapid").setView(CenterPoint, Zoom);
@@ -137,7 +159,7 @@ window.onload = function() {
                 layer.bindPopup(feature.properties.popupContent, {"maxWidth": 1000});
               } else if (feature.properties['@id']) {
                 // No popup content.  Just show a ‘more info’ link.
-                var link = '/graph?subject=' + encodeURIComponent(feature.properties['@id']);
+                var link = BrowserEndpoint + '?subject=' + encodeURIComponent(feature.properties['@id']);
                 layer.bindPopup('<a href="' + link + '" target="_self">Link to graph</a>');
               }
             }
@@ -162,7 +184,7 @@ window.onload = function() {
         });
         map.fitBounds(layer.getBounds().pad(0.5), {animate:true});
       },
-      "url": Endpoint
+      "url": QueryEndpoint
     });
   }
   map.on('click', onMapClick);
