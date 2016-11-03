@@ -1,7 +1,8 @@
 :- module(
   html_ext,
   [
-    alert//2,                % +Mode:oneof([danger,info,success,warning]), :Content_0
+    alert//2,                % +Mode:oneof([danger,info,success,warning])
+                             % :Content_0
     anchor//2,               % +Name, :Header_0
     between//2,              % :Outer_0, :Middle_0
     between//3,              % :Begin_0, :Middle_0, :End_0
