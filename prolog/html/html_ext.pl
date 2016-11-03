@@ -69,6 +69,7 @@
     html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
     html_catch//1,           % :Content_0
     html_code//1,            % :Content_0
+    html_dq//1,              % :Content_0
     html_float//1,           % +Float
     html_hook//1,            % +Term
     html_hook//2,            % +Opts, +Term
@@ -88,6 +89,7 @@
     html_seplist//3,         % :ItemWriter_1, :Sep_0, +Args
     html_set//1,             % +Args
     html_set//2,             % :ItemWriter_1, +Args
+    html_sq//1,              % :Content_0
     html_thousands//1,       % +Integer
     html_triple//3,          % +Arg1, +Arg2, +Arg3
     html_triple//4,          % :ItemWriter_1, +Arg1, +Arg2, +Arg3
@@ -159,8 +161,6 @@
     pipe//0,
     pl_link//0,
     pl_version//0,
-    quote//1,                % :Content_0
-    quote//2,                % +Mode:oneof([double,single]), :Content_0
     ref//2,                  % +Label, :Content_0
     reply_raw_file/1,        % +Spec
     reset_button//0,
@@ -244,7 +244,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2016/10
+@version 2016/02-2016/11
 */
 
 :- use_module(library(apply)).
@@ -308,8 +308,10 @@ html({|html||...|}).
    html_bracketed(html, ?, ?),
    html_catch(html, ?, ?),
    html_code(html, ?, ?),
+   html_dq(html, ?, ?),
    html_seplist(html, html, ?, ?),
    html_seplist(3, html, +, ?, ?),
+   html_sq(html, ?, ?),
    html_to_atom(html, -),
    if_then(0, html, ?, ?),
    if_then_else(0, html, html, ?, ?),
@@ -328,8 +330,6 @@ html({|html||...|}).
    panel(+, +, html, ?, ?),
    panel(+, +, +, html, ?, ?),
    panels(html, ?, ?),
-   quote(html, ?, ?),
-   quote(+, html, ?, ?),
    ref(+, html, ?, ?),
    reset_button(html, ?, ?),
    row_1(html, ?, ?),
@@ -1540,6 +1540,13 @@ html_code(Content_0) -->
 
 
 
+%! html_dq(:Content_0)// is det.
+
+html_dq(Content_0) -->
+  html(["“",Content_0,"”"]).
+
+
+
 %! html_float(+Float)// is det.
 
 html_float(Float) -->
@@ -1687,6 +1694,13 @@ html_set(Args) -->
 
 html_set(ItemWriter_1, Args) -->
   html([&(123),\html_seplist(ItemWriter_1, html(","), Args),&(125)]).
+
+
+
+%! html_sq(:Content_0)// is det.
+
+html_sq(Content_0) -->
+  html(["‘",Content_0,"’"]).
 
 
 
@@ -2520,20 +2534,6 @@ pl_version -->
 
 
 
-%! quote(:Content_0)// is det.
-%! quote(+Mode:oneof([double,single]), :Content_0)// is det.
-
-quote(Content_0) -->
-  quote(single, Content_0).
-
-
-quote(double, Content_0) -->
-  html(["“",Content_0,"”"]).
-quote(single, Content_0) -->
-  html(["‘",Content_0,"’"]).
-
-
-
 %! ref(+Label, :Content_0)// is det.
 
 ref(Label, Content_0) -->
@@ -2743,7 +2743,7 @@ search_result(Result, ItemWriter_1) -->
     h1([
       \search_result_number(Result),
       "earch results for search string ",
-      \quote(Result.pattern),
+      \html_sq(Result.pattern),
       ":"
     ]),
     \pagination_result(Result, ItemWriter_1)
@@ -3178,8 +3178,8 @@ upload_form(Spec) -->
     [enctype='multipart/form-data',method=post],
     [
       \input_file(filename, [size=50], [label("File")]),
-      \input_text(dataset, [size=75], [label("Dataset")]),
-      \input_text(graph, [size=75], [label("Graph")]),
+      \input_text(dataset, [size=75], [label("Dataset name:")]),
+      \input_text(graph, [size=75], [label("Graph name:")]),
       \submit_button("Upload")
     ]
   ).
