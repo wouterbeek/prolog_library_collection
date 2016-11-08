@@ -360,13 +360,15 @@ allow(L) --> '*#'(method, L).
 
 
 
-%! 'auth-scheme'(-Scheme:string)// is det.
+%! 'auth-scheme'(-Scheme)// is det.
 %
 % ```abnf
 % auth-scheme = token
 % ```
 
-'auth-scheme'(Str) --> token(Str).
+'auth-scheme'(A) -->
+  token(A).
+
 
 
 %! authorization(-Credentials:dict)// is det.
@@ -375,7 +377,8 @@ allow(L) --> '*#'(method, L).
 % Authorization = credentials
 % ```
 
-authorization(D) --> credentials(D).
+authorization(D) -->
+  credentials(D).
 
 
 
@@ -385,7 +388,8 @@ authorization(D) --> credentials(D).
 % BWS = OWS   ; "bad" whitespace
 % ```
 
-'BWS' --> 'OWS'.
+'BWS' -->
+  'OWS'.
 
 
 
@@ -406,27 +410,29 @@ authorization(D) --> credentials(D).
 
 
 
-%! 'byte-range'(-ByteRange:dict)// is det.
+%! 'byte-range'(-ByteRange:pair)// is det.
 %
 % ```abnf
 % byte-range = first-byte-pos "-" last-byte-pos
 % ```
 
-'byte-range'(
-  byte_range{first_byte_position:First,last_byte_position:Last}
-) -->
-  'first-byte-pos'(First), "-", 'last-byte-pos'(Last).
+'byte-range'(First-Last) -->
+  'first-byte-pos'(First),
+  "-",
+  'last-byte-pos'(Last).
 
 
 
-%! 'byte-range-resp'(-Range:dict, ?Len:dict)// is det.
+%! 'byte-range-resp'(-Range:pair, ?Len)// is det.
 %
 % ```abnf
 % byte-range-resp = byte-range "/" ( complete-length | "*" )
 % ```
 
 'byte-range-resp'(Range, Len) -->
-  'byte-range'(Range), "/", ("*" -> "" ; 'complete-length'(Len)).
+  'byte-range'(Range),
+  "/",
+  ("*" -> "" ; 'complete-length'(Len)).
 
 
 
@@ -436,11 +442,10 @@ authorization(D) --> credentials(D).
 % byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
 % ```
 
-'byte-range-spec'(D2) -->
+'byte-range-spec'(First-Last) -->
   'first-byte-pos'(First),
   "-",
-  {D1 = byte_range_spec{first: First}},
-  ('last-byte-pos'(Last) -> {put_dict(last, D1, Last, D2)} ; {D2 = D1}).
+  ?('last-byte-pos'(Last)).
 
 
 
@@ -453,7 +458,9 @@ authorization(D) --> credentials(D).
 'byte-ranges-specifier'(
   byte_ranges_specifier{byte_range_set:Ranges,bytes_unit:"bytes"}
 ) -->
-  'bytes-unit', "=", 'byte-range-set'(Ranges).
+  'bytes-unit',
+  "=",
+  'byte-range-set'(Ranges).
 
 
 
@@ -463,8 +470,8 @@ authorization(D) --> credentials(D).
 % byte-range-set  = 1#( byte-range-spec | suffix-byte-range-spec )
 % ```
 
-'byte-range-set'(L) --> +#(byte_range_set_part, L).
-
+'byte-range-set'(L) -->
+  +#(byte_range_set_part, L).
 
 byte_range_set_part(D) --> 'byte-range-spec'(D).
 byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
@@ -477,7 +484,8 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 % bytes-unit = "bytes"
 % ```
 
-'bytes-unit' --> atom_ci(bytes).
+'bytes-unit' -->
+  atom_ci(bytes).
 
 
 
@@ -487,7 +495,8 @@ byte_range_set_part(D) --> 'suffix-byte-range-spec'(D).
 % Cache-Control = 1#cache-directive
 % ```
 
-'cache-control'(L) --> +#('cache-directive', L).
+'cache-control'(L) -->
+  +#('cache-directive', L).
 
 
 
@@ -526,13 +535,14 @@ challenge(challenge{authority_scheme:AuthScheme,params:Params}) -->
 
 
 
-%! charset(-Charset:string)// is det.
+%! charset(-Charset)// is det.
 %
 % ```abnf
 % charset = token
 % ```
 
-charset(Str) --> token(Str).
+charset(A) -->
+  token(A).
 
 
 
@@ -557,7 +567,8 @@ chunk(chunk{chunk_data:Cs,chunk_extensions:Exts,chunk_size:Size}) -->
 % chunk-data = 1*OCTET ; a sequence of chunk-size octets
 % ```
 
-'chunk-data'(Cs) --> +('OCTET', Cs).
+'chunk-data'(Cs) -->
+  +('OCTET', Cs).
 
 
 
@@ -567,11 +578,13 @@ chunk(chunk{chunk_data:Cs,chunk_extensions:Exts,chunk_size:Size}) -->
 % chunk-ext = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
 % ```
 
-'chunk-ext'(Exts) --> *(sep_chunk_ext, Exts).
+'chunk-ext'(Exts) -->
+  *(sep_chunk_ext, Exts).
 
 
 sep_chunk_ext(Ext) -->
-  ";", 'chunk-ext-name'(Key),
+  ";",
+  'chunk-ext-name'(Key),
   (   "="
   ->  'chunk-ext-val'(Val),
       {Ext = Key-Val}
@@ -580,20 +593,23 @@ sep_chunk_ext(Ext) -->
 
 
 
-%! 'chunk-ext-name'(-Name:string)// is det.
+%! 'chunk-ext-name'(-Name)// is det.
 %
 % ```abnf
 % chunk-ext-name = token
 % ```
 
-'chunk-ext-name'(Str) --> token(Str).
+'chunk-ext-name'(A) -->
+  token(A).
 
 
 
-%! 'chunk-ext-val'(-Val:string)// is det.
+%! 'chunk-ext-val'(-Val)// is det.
 
-'chunk-ext-val'(Str) --> token(Str), !.
-'chunk-ext-val'(Str) --> 'quoted-string'(Str).
+'chunk-ext-val'(A) -->
+  token(A), !.
+'chunk-ext-val'(A) -->
+  'quoted-string'(A).
 
 
 
@@ -603,19 +619,21 @@ sep_chunk_ext(Ext) -->
 % chunk-size = 1*HEXDIG
 % ```
 
-'chunk-size'(N) --> +('HEXDIG', Ds), {pos_sum(Ds, 16, N)}.
+'chunk-size'(N) -->
+  +('HEXDIG', Ds),
+  {pos_sum(Ds, 16, N)}.
 
 
 
-%! codings(-Enc:string)// is det.
+%! codings(-Enc)// is det.
 %
 % ```abnf
 % codings = content-coding | "identity" | "*"
 % ```
 
-codings(Str)        --> 'content-coding'(Str).
-codings("identity") --> atom_ci(identity).
-codings(_)          --> "*".
+codings(A)        --> 'content-coding'(A).
+codings(identity) --> atom_ci(identity).
+codings(_)        --> "*".
 
 
 
@@ -646,7 +664,9 @@ comment_codes2([])    --> "".
 % complete-length = 1*DIGIT
 % ```
 
-'complete-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'complete-length'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -656,37 +676,41 @@ comment_codes2([])    --> "".
 % 'Connection'(S) --> 1#(connection-option)
 % ```
 
-connection(L) --> +#('connection-option', L).
+connection(L) -->
+  +#('connection-option', L).
 
 
 
-%! 'connection-option'(-ConnectionOpt:string)// .
+%! 'connection-option'(-ConnectionOpt)// .
 %
 % ```abnf
 % connection-option = token
 % ```
 
-'connection-option'(Str) --> token(Str).
+'connection-option'(A) -->
+  token(A).
 
 
 
-%! 'content-coding'(-ContentCoding:string)// is det.
+%! 'content-coding'(-ContentCoding)// is det.
 %
 % ```abnf
 % content-coding = token
 % ```
 
-'content-coding'(Str) --> token(Str).
+'content-coding'(A) -->
+  token(A).
 
 
 
-%! 'content-encoding'(-Encodings:list(string))// is det.
+%! 'content-encoding'(-Encodings:list)// is det.
 %
 % ```abnf
 % Content-Encoding = 1#content-coding
 % ```
 
-'content-encoding'(L) --> +#('content-coding', L).
+'content-encoding'(L) -->
+  +#('content-coding', L).
 
 
 
@@ -696,7 +720,8 @@ connection(L) --> +#('connection-option', L).
 % Content-Language = 1#language-tag
 % ```
 
-'content-language'(L) --> +#('language-tag', L).
+'content-language'(L) -->
+  +#('language-tag', L).
 
 
 
@@ -706,7 +731,9 @@ connection(L) --> +#('connection-option', L).
 % Content-Length = 1*DIGIT
 % ```
 
-'content-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'content-length'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -727,8 +754,10 @@ connection(L) --> +#('connection-option', L).
 % Content-Range = byte-content-range | other-content-range
 % ```
 
-'content-range'(D) --> 'byte-content-range'(D).
-'content-range'(D) --> 'other-content-range'(D).
+'content-range'(D) -->
+  'byte-content-range'(D).
+'content-range'(D) -->
+  'other-content-range'(D).
 
 
 
@@ -738,7 +767,8 @@ connection(L) --> +#('connection-option', L).
 % Content-Type = media-type
 % ```
 
-'content-type'(MT) --> 'media-type'(MT).
+'content-type'(MT) -->
+  'media-type'(MT).
 
 
 
@@ -769,9 +799,10 @@ credentials(_{authority_scheme:AuthScheme,params:Params}) -->
 
 ctext(C) --> 'HTAB'(C).
 ctext(C) --> 'SP'(C).
-ctext(C) --> [C], {(between(0x21, 0x27, C), !
-                  ; between(0x2A, 0x5B, C), !
-                  ; between(0x5D, 0x7E, C))}.
+ctext(C) --> [C], {(  between(0x21, 0x27, C), !
+                  ;   between(0x2A, 0x5B, C), !
+                  ;   between(0x5D, 0x7E, C)
+                  )}.
 ctext(C) --> 'obs-text'(C).
 
 
@@ -782,7 +813,8 @@ ctext(C) --> 'obs-text'(C).
 % Date = HTTP-date
 % ```
 
-date(DT) --> 'HTTP-date'(DT).
+date(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -796,7 +828,12 @@ date(DT) --> 'HTTP-date'(DT).
 % date1 = day SP month SP year   ; e.g., 02 Jun 1982
 % ```
 
-date1(Y, Mo, D) --> day(D), 'SP', month(Mo), 'SP', year(Y).
+date1(Y, Mo, D) -->
+  day(D),
+  'SP',
+  month(Mo),
+  'SP',
+  year(Y).
 
 
 
@@ -813,7 +850,8 @@ date1(Y, Mo, D) --> day(D), 'SP', month(Mo), 'SP', year(Y).
 date2(Y, Mo, D) -->
   day(D), "-",
   month(Mo), "-",
-  #(2, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, Y)}.
 
 
 
@@ -825,7 +863,11 @@ date2(Y, Mo, D) -->
 
 date3(Mo, D) -->
   month(Mo), 'SP',
-  (#(2, 'DIGIT', Ds) -> {pos_sum(Ds, D)} ; 'SP', #(1, 'DIGIT', D)).
+  (   #(2, 'DIGIT', Ds)
+  ->  {pos_sum(Ds, D)}
+  ;   'SP',
+      #(1, 'DIGIT', D)
+  ).
 
 
 
@@ -835,7 +877,9 @@ date3(Mo, D) -->
 % day = 2DIGIT
 % ```
 
-day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
+day(D) -->
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, D)}.
 
 
 
@@ -896,7 +940,9 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % delay-seconds = 1*DIGIT
 % ```
 
-'delay-seconds'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'delay-seconds'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -906,7 +952,9 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % delta-seconds = 1*DIGIT
 % ```
 
-'delta-seconds'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'delta-seconds'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -928,7 +976,8 @@ day(D) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, D)}.
 % Expires = HTTP-date
 % ```
 
-expires(DT) --> 'HTTP-date'(DT).
+expires(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -956,13 +1005,14 @@ etagc(C)    --> 'obs-text'(C).
 
 
 
-%! expect(-Expectation:string)// is det.
+%! expect(-Expectation)// is det.
 %
 % ```abnf
 % Expect = "100-continue"
 % ```
 
-expect("100-continue") --> atom_ci('100-continue').
+expect('100-continue') -->
+  atom_ci('100-continue').
 
 
 
@@ -1078,13 +1128,15 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'field-name'(-Name:string)// is det.
+%! 'field-name'(-Name)// is det.
 %
 % ```abnf
 % field-name = token
 % ```
 
-'field-name'(LowerStr) --> token(Str), {string_lower(Str, LowerStr)}.
+'field-name'(LowerA) -->
+  token(A),
+  {atom_lower(A, LowerA)}.
 
 
 
@@ -1112,13 +1164,15 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
-%! 'first-byte-pos'(-Position:nonneg)// is det.
+%! 'first-byte-pos'(-Pos)// is det.
 %
 % ```abnf
 % first-byte-pos = 1*DIGIT
 % ```
 
-'first-byte-pos'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'first-byte-pos'(Pos) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, Pos)}.
 
 
 
@@ -1128,7 +1182,8 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 % From = mailbox
 % ```
 
-from(D) --> mailbox(D).
+from(D) -->
+  mailbox(D).
 
 
 
@@ -1138,7 +1193,8 @@ from(D) --> mailbox(D).
 % GMT = %x47.4D.54   ; "GMT", case-sensitive
 % ```
 
-'GMT' --> atom_ci('GMT').
+'GMT' -->
+  atom_ci('GMT').
 
 
 
@@ -1149,9 +1205,10 @@ from(D) --> mailbox(D).
 % ```
 
 'header-field'(Key-D) -->
-  'field-name'(Key0), {atom_string(Key, Key0)},
+  'field-name'(Key),
   ":", 'OWS',
-  rest(Cs), {'field-value'(Cs, Key, D)}.
+  rest(Cs),
+  {'field-value'(Cs, Key, D)}.
 
 
 
@@ -1174,7 +1231,9 @@ host(D2) -->
 % hour = 2DIGIT
 % ```
 
-hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+hour(H) -->
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, H)}.
 
 
 
@@ -1184,8 +1243,10 @@ hour(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
 % HTTP-date = IMF-fixdate | obs-date
 % ```
 
-'HTTP-date'(DT) --> 'IMF-fixdate'(DT).
-'HTTP-date'(DT) --> 'obs-date'(DT).
+'HTTP-date'(DT) -->
+  'IMF-fixdate'(DT).
+'HTTP-date'(DT) -->
+  'obs-date'(DT).
 
 
 
@@ -1203,8 +1264,10 @@ http_parse_header(Key, Val, Term) :-
 % If-Match = "*" | 1#entity-tag
 % ```
 
-'if-match'([]) --> "*", !.
-'if-match'(L)  --> +#('entity-tag', L).
+'if-match'([]) -->
+  "*", !.
+'if-match'(L)  -->
+  +#('entity-tag', L).
 
 
 
@@ -1214,7 +1277,8 @@ http_parse_header(Key, Val, Term) :-
 % If-Modified-Since = HTTP-date
 % ```
 
-'if-modified-since'(DT) --> 'HTTP-date'(DT).
+'if-modified-since'(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -1237,8 +1301,10 @@ http_parse_header(Key, Val, Term) :-
 % If-Range = entity-tag | HTTP-date
 % ```
 
-'if-range'(D) --> 'entity-tag'(D), !.
-'if-range'(DT) --> 'HTTP-date'(DT).
+'if-range'(D) -->
+  'entity-tag'(D), !.
+'if-range'(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -1248,7 +1314,8 @@ http_parse_header(Key, Val, Term) :-
 % If-Unmodified-Since = HTTP-date
 % ```
 
-'if-unmodified-since'(DT) --> 'HTTP-date'(DT).
+'if-unmodified-since'(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -1261,9 +1328,13 @@ http_parse_header(Key, Val, Term) :-
 % ```
 
 'IMF-fixdate'(date_time(Y,Mo,D,H,Mi,S,0)) -->
-  'day-name'(_DayInWeek), ",", 'SP',
-  date1(Y, Mo, D), 'SP',
-  'time-of-day'(H, Mi, S), 'SP',
+  'day-name'(_DayInWeek),
+  ",",
+  'SP',
+  date1(Y, Mo, D),
+  'SP',
+  'time-of-day'(H, Mi, S),
+  'SP',
   'GMT'.
 
 
@@ -1274,7 +1345,9 @@ http_parse_header(Key, Val, Term) :-
 % last-byte-pos = 1*DIGIT
 % ```
 
-'last-byte-pos'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'last-byte-pos'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -1286,7 +1359,10 @@ http_parse_header(Key, Val, Term) :-
 %
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
-'last-chunk'(Exts) --> +("0"), 'chunk-ext'(Exts), 'CRLF'.
+'last-chunk'(Exts) -->
+  +("0"),
+  'chunk-ext'(Exts),
+  'CRLF'.
 
 
 
@@ -1296,7 +1372,8 @@ http_parse_header(Key, Val, Term) :-
 % Last-Modified = HTTP-date
 % ```
 
-'last-modified'(DT) --> 'HTTP-date'(DT).
+'last-modified'(DT) -->
+  'HTTP-date'(DT).
 
 
 
@@ -1306,7 +1383,8 @@ http_parse_header(Key, Val, Term) :-
 % Location = URI-reference
 % ```
 
-location(D) --> 'URI-reference'(D).
+location(D) -->
+  'URI-reference'(D).
 
 
 
@@ -1316,7 +1394,9 @@ location(D) --> 'URI-reference'(D).
 % Max-Forwards = 1*DIGIT
 % ```
 
-'max-forwards'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'max-forwards'(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -1349,8 +1429,11 @@ location(D) --> 'URI-reference'(D).
   subtype(Subtype),
   (+(sep_parameter, Params) -> "" ; {Params = []}).
 
-
-sep_parameter(Pair) --> 'OWS', ";", 'OWS', parameter(Pair).
+sep_parameter(Pair) -->
+  'OWS',
+  ";",
+  'OWS',
+  parameter(Pair).
 
 
 
@@ -1360,27 +1443,29 @@ sep_parameter(Pair) --> 'OWS', ";", 'OWS', parameter(Pair).
 % message-body = *OCTET
 % ```
 
-'message-body'(Cs) --> *('OCTET', Cs).
+'message-body'(Cs) -->
+  *('OCTET', Cs).
 
 
 
-%! method(-Method:string)// is det.
+%! method(-Method)// is det.
 %
 % ```abnf
 % method = token
 % ```
 %
 % The following methods are defined by HTTP 1.1:
-%   * CONNECT
-%   * DELETE
-%   * GET
-%   * HEAD
-%   * OPTIONS
-%   * POST
-%   * PUT
-%   * TRACE
+%   - CONNECT
+%   - DELETE
+%   - GET
+%   - HEAD
+%   - OPTIONS
+%   - POST
+%   - PUT
+%   - TRACE
 
-method(Str) --> token(Str).
+method(A) -->
+  token(A).
 
 
 
@@ -1390,7 +1475,9 @@ method(Str) --> token(Str).
 % minute = 2DIGIT
 % ```
 
-minute(H) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, H)}.
+minute(Mi) -->
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, Mi)}.
 
 
 
@@ -1432,8 +1519,10 @@ month(12) --> atom_ci('Dec').
 % obs-date = rfc850-date | asctime-date
 % ```
 
-'obs-date'(DT) --> 'rfc850-date'(DT), !.
-'obs-date'(DT) --> 'asctime-date'(DT).
+'obs-date'(DT) -->
+  'rfc850-date'(DT), !.
+'obs-date'(DT) -->
+  'asctime-date'(DT).
 
 
 
@@ -1443,7 +1532,9 @@ month(12) --> atom_ci('Dec').
 % obs-fold = CRLF 1*( SP | HTAB )   ; obsolete line folding
 % ```
 
-'obs-fold' --> 'CRLF', +(sp_or_htab).
+'obs-fold' -->
+  'CRLF',
+  +(sp_or_htab).
 
 
 
@@ -1457,13 +1548,17 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'opaque-tag'(-OpaqueTag:string)// .
+%! 'opaque-tag'(-OpaqueTag)// .
 %
 % ```abnf
 % opaque-tag = DQUOTE *etagc DQUOTE
 % ```
 
-'opaque-tag'(S) --> 'DQUOTE', *(etagc, Cs), 'DQUOTE', {string_codes(S, Cs)}.
+'opaque-tag'(A) -->
+  'DQUOTE',
+  *(etagc, Cs),
+  'DQUOTE',
+  {atom_codes(A, Cs)}.
 
 
 
@@ -1480,33 +1575,38 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'other-range-resp'(-String:string)// is det.
+%! 'other-range-resp'(-A)// is det.
 %
 % ```abnf
 % other-range-resp = *CHAR
 % ```
 
-'other-range-resp'(Str) --> *('CHAR', Cs), {string_codes(Str, Cs)}.
+'other-range-resp'(A) -->
+  *('CHAR', Cs),
+  {atom_codes(A, Cs)}.
 
 
 
-%! 'other-range-set'(-RangeSet:string)// is det.
+%! 'other-range-set'(-RangeSet)// is det.
 %
 % ```abnf
 % other-range-set = 1*VCHAR
 % ```
 
-'other-range-set'(Str) --> +('VCHAR', Cs), {pos_sum(Cs, Str)}.
+'other-range-set'(A) -->
+  +('VCHAR', Cs),
+  {atom_codes(A, Cs)}.
 
 
 
-%! 'other-range-unit'(-RangeUnit:string)// is det.
+%! 'other-range-unit'(-RangeUnit)// is det.
 %
 % ```abnf
 % other-range-unit = token
 % ```
 
-'other-range-unit'(Str) --> token(Str).
+'other-range-unit'(A) -->
+  token(A).
 
 
 
@@ -1531,7 +1631,8 @@ month(12) --> atom_ci('Dec').
 % OWS = *( SP | HTAB )   ; optional whitespace
 % ```
 
-'OWS' --> *(sp_or_htab).
+'OWS' -->
+  *(sp_or_htab).
 
 
 
@@ -1542,7 +1643,9 @@ month(12) --> atom_ci('Dec').
 % ```
 
 parameter(Key-Val) -->
-  token(Key), "=", (token(Val), ! ; 'quoted-string'(Val)).
+  token(Key),
+  "=",
+  (token(Val), ! ; 'quoted-string'(Val)).
 
 
 
@@ -1564,7 +1667,8 @@ parameter(Key-Val) -->
 % Pragma = 1#pragma-directive
 % ```
 
-pragma(L) --> +#('pragma-directive', L).
+pragma(L) -->
+  +#('pragma-directive', L).
 
 
 
@@ -1574,8 +1678,10 @@ pragma(L) --> +#('pragma-directive', L).
 % pragma-directive = "no-cache" | extension-pragma
 % ```
 
-'pragma-directive'("no-cache") --> atom_ci('no-cache'), !.
-'pragma-directive'(D)          --> 'extension-pragma'(D).
+'pragma-directive'('no-cache') -->
+  atom_ci('no-cache'), !.
+'pragma-directive'(D) -->
+  'extension-pragma'(D).
 
 
 
@@ -1596,13 +1702,14 @@ product(D2) -->
 
 
 
-%! 'product-version'(-Version:string)// is det.
+%! 'product-version'(-Version)// is det.
 %
 % ```abnf
 % product-version = token
 % ```
 
-'product-version'(Str) --> token(Str).
+'product-version'(A) -->
+  token(A).
 
 
 
@@ -1612,7 +1719,8 @@ product(D2) -->
 % Proxy-Authenticate = 1#challenge
 % ```
 
-'proxy-authenticate'(L) --> +#(challenge, L).
+'proxy-authenticate'(L) -->
+  +#(challenge, L).
 
 
 
@@ -1622,7 +1730,8 @@ product(D2) -->
 % Proxy-Authorization = credentials
 % ```
 
-'proxy-authorization'(D) --> credentials(D).
+'proxy-authorization'(D) -->
+  credentials(D).
 
 
 
@@ -1643,33 +1752,36 @@ protocol(D2) -->
 
 
 
-%! 'protocol-name'(-Name:string)// .
+%! 'protocol-name'(-Name)// .
 %
 % ```abnf
 % protocol-name = token
 % ```
 
-'protocol-name'(Str) --> token(Str).
+'protocol-name'(A) -->
+  token(A).
 
 
 
-%! 'protocol-version'(-Version:string)// .
+%! 'protocol-version'(-Version)// .
 %
 % ```abnf
 % protocol-version = token
 % ```
 
-'protocol-version'(Str) --> token(Str).
+'protocol-version'(A) -->
+  token(A).
 
 
 
-%! pseudonym(-Pseudonym:string)// .
+%! pseudonym(-Pseudonym)// .
 %
 % ```abnf
 % pseudonym = token
 % ```
 
-pseudonym(Str) --> token(Str).
+pseudonym(A) -->
+  token(A).
 
 
 
@@ -1699,16 +1811,17 @@ qdtext(C)    --> 'obs-text'(C).
 
 
 
-%! 'quoted-string'(-String:string)// is det.
+%! 'quoted-string'(-A)// is det.
 %
 % ```abnf
 % quoted-string = DQUOTE *( qdtext | quoted-pair ) DQUOTE
 % ```
 
-'quoted-string'(Str) -->
-  'DQUOTE', *(quoted_string_code, Cs), 'DQUOTE',
-  {string_codes(Str, Cs)}.
-
+'quoted-string'(A) -->
+  'DQUOTE',
+  *(quoted_string_code, Cs),
+  'DQUOTE',
+  {atom_codes(A, Cs)}.
 
 quoted_string_code(C) --> qdtext(C).
 quoted_string_code(C) --> 'quoted-pair'(C).
@@ -1740,19 +1853,23 @@ qvalue(1.0) -->
 % Range = byte-ranges-specifier | other-ranges-specifier
 % ```
 
-range(D) --> 'byte-ranges-specifier'(D).
-range(D) --> 'other-ranges-specifier'(D).
+range(D) -->
+  'byte-ranges-specifier'(D).
+range(D) -->
+  'other-ranges-specifier'(D).
 
 
 
-%! 'range-unit'(-Val)// is det.
+%! 'range-unit'(-A)// is det.
 %
 % ```abnf
 % range-unit = bytes-unit | other-range-unit
 % ```
 
-'range-unit'("bytes") --> 'bytes-unit', !.
-'range-unit'(Str)     --> 'other-range-unit'(Str).
+'range-unit'(bytes) -->
+  'bytes-unit', !.
+'range-unit'(A)     -->
+  'other-range-unit'(A).
 
 
 
@@ -1811,8 +1928,10 @@ rank(1.0) -->
 % Referer = absolute-URI | partial-URI
 % ```
 
-referer(D) --> 'absolute-URI'(D).
-referer(D) --> 'partial-URI'(D).
+referer(D) -->
+  'absolute-URI'(D).
+referer(D) -->
+  'partial-URI'(D).
 
 
 
@@ -1822,8 +1941,10 @@ referer(D) --> 'partial-URI'(D).
 % Retry-After = HTTP-date | delay-seconds
 % ```
 
-'retry-after'(DT) --> 'HTTP-date'(DT).
-'retry-after'(D) --> 'delay-seconds'(D).
+'retry-after'(DT) -->
+  'HTTP-date'(DT).
+'retry-after'(D) -->
+  'delay-seconds'(D).
 
 
 
@@ -1851,7 +1972,8 @@ referer(D) --> 'partial-URI'(D).
 % RWS = 1*( SP | HTAB )   ; required whitespace
 % ```
 
-'RWS' --> +(sp_or_htab).
+'RWS' -->
+  +(sp_or_htab).
 
 
 
@@ -1863,47 +1985,56 @@ referer(D) --> 'partial-URI'(D).
 %
 % @tbd Define an XSD for the range [0,99].
 
-second(N) --> #(2, 'DIGIT', Ds), {pos_sum(Ds, N)}.
+second(N) -->
+  #(2, 'DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
-%! server(-Vals:list(string))// is det.
+%! server(-As)// is det.
 %
 % ```abnf
 % Server = product *( RWS ( product | comment ) )
 % ```
 
-server([H|T]) --> product(H), *(sep_product_or_comment, T).
+server([H|T]) -->
+  product(H),
+  *(sep_product_or_comment, T).
 
 
 
-%! subtype(-Subtype:string)// is det.
+%! subtype(-Subtype)// is det.
 %
 % ```abnf
 % subtype = token
 % ```
 
-subtype(Str) --> token(Str).
+subtype(A) -->
+  token(A).
 
 
 
-%! 'suffix-byte-range-spec'(-N)// is det.
+%! 'suffix-byte-range-spec'(-Len)// is det.
 %
 % ```abnf
 % suffix-byte-range-spec = "-" suffix-length
 % ```
 
-'suffix-byte-range-spec'(N) --> "-", 'suffix-length'(N0), {N is -N0}.
+'suffix-byte-range-spec'(Len) -->
+  "-",
+  'suffix-length'(Len).
 
 
 
-%! 'suffix-length'(-Len:nonneg)// is det.
+%! 'suffix-length'(-Len)// is det.
 %
 % ```abnf
 % suffix-length = 1*DIGIT
 % ```
 
-'suffix-length'(N) --> +('DIGIT', Ds), {pos_sum(Ds, N)}.
+'suffix-length'(Len) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, Len)}.
 
 
 
@@ -1913,7 +2044,8 @@ subtype(Str) --> token(Str).
 % t-codings = "trailers" | ( transfer-coding [ t-ranking ] )
 % ```
 
-'t-codings'("trailers") --> atom_ci(trailers).
+'t-codings'(trailers) -->
+  atom_ci(trailers).
 't-codings'(D2) -->
   'transfer-coding'(TransferCoding),
   {D1 = tcoding{transfer_coding: TransferCoding}},
@@ -1930,7 +2062,11 @@ subtype(Str) --> token(Str).
 % @tbd Define an XSD for the range [0.0,1.0].
 
 't-ranking'(Rank) -->
-  'OWS', ";", 'OWS', atom_ci('q='), rank(Rank).
+  'OWS',
+  ";",
+  'OWS',
+  atom_ci('q='),
+  rank(Rank).
 
 
 
@@ -1968,7 +2104,8 @@ tchar(0'~) --> "~".
 % TE = #t-codings
 % ```
 
-te(L) --> '*#'('t-codings', L).
+te(L) -->
+  '*#'('t-codings', L).
 
 
 
@@ -1979,27 +2116,37 @@ te(L) --> '*#'('t-codings', L).
 %             ; 00:00:00 - 23:59:60 (leap second)
 % ```
 
-'time-of-day'(H, Mi, S) --> hour(H), ":", minute(Mi), ":", second(S).
+'time-of-day'(H, Mi, S) -->
+  hour(H),
+  ":",
+  minute(Mi),
+  ":",
+  second(S).
 
 
 
-%! token(-Token:string)// is det.
+%! token(-Token)// is det.
 %
 % ```abnf
 % token = 1*tchar
 % ```
 
-token(Str) --> +(tchar, Cs), {string_codes(Str, Cs)}.
+token(A) -->
+  +(tchar, Cs),
+  {atom_codes(A, Cs)}.
 
 
 
-%! token68(-Token:string)// is det.
+%! token68(-Token)// is det.
 %
 % ```abnf
 % token68 = 1*( ALPHA | DIGIT | "-" | "." | "_" | "~" | "+" | "/" ) *"="
 % ```
 
-token68(Str) --> +(token68_code, Cs), {string_codes(Str, Cs)}, *("=").
+token68(A) -->
+  +(token68_code, Cs),
+  {atom_codes(A, Cs)},
+  *("=").
 
 token68_code(C)   --> 'ALPHA'(C).
 token68_code(C)   --> 'DIGIT'(_, C).
@@ -2018,7 +2165,8 @@ token68_code(0'/) --> "/".
 % Trailer = 1#field-name
 % ```
 
-trailer(L) --> +#('field-name', L).
+trailer(L) -->
+  +#('field-name', L).
 
 
 
@@ -2032,11 +2180,11 @@ trailer(L) --> +#('field-name', L).
 %                 | transfer-extension
 % ```
 
-'transfer-coding'("chunked")  --> atom_ci(chunked), !.
-'transfer-coding'("compress") --> atom_ci(compress), !.
-'transfer-coding'("deflate")  --> atom_ci(deflate), !.
-'transfer-coding'("gzip")     --> atom_ci(gzip), !.
-'transfer-coding'(D)          --> 'transfer-extension'(D).
+'transfer-coding'(chunked)  --> atom_ci(chunked), !.
+'transfer-coding'(compress) --> atom_ci(compress), !.
+'transfer-coding'(deflate)  --> atom_ci(deflate), !.
+'transfer-coding'(gzip)     --> atom_ci(gzip), !.
+'transfer-coding'(D)        --> 'transfer-extension'(D).
 
 
 
@@ -2046,7 +2194,8 @@ trailer(L) --> +#('field-name', L).
 % Transfer-Encoding = 1#transfer-coding
 % ```
 
-'transfer-encoding'(L) --> +#('transfer-coding', L).
+'transfer-encoding'(L) -->
+  +#('transfer-coding', L).
 
 
 
@@ -2061,14 +2210,15 @@ trailer(L) --> +#('field-name', L).
   *(sep_transfer_parameter, Pairs),
   {dict_pairs(Params, Pairs)}.
 
-
 sep_transfer_parameter(Pair) -->
-  'OWS', ";", 'OWS',
+  'OWS',
+  ";",
+  'OWS',
   'transfer-parameter'(Pair).
 
 
 
-%! 'transfer-parameter'(-Param:pair(atom))// is det.
+%! 'transfer-parameter'(-Param:pair)// is det.
 %
 % ```abnf
 % transfer-parameter = token BWS "=" BWS ( token | quoted-string )
@@ -2083,23 +2233,26 @@ sep_transfer_parameter(Pair) -->
 
 
 
-%! type(-Type:string)// .
+%! type(-Type)// .
 %
 % ```abnf
 % type = token
 % ```
 
-type(Str) --> token(Str).
+type(A) -->
+  token(A).
 
 
 
-%! 'unsatisfied-range'(-Range:string, -CompleteLength:dict)// is det.
+%! 'unsatisfied-range'(-Range:string, -Len)// is det.
 %
 % ```abnf
 % unsatisfied-range = "*/" complete-length
 % ```
 
-'unsatisfied-range'("*", Len) --> "*/", 'complete-length'(Len).
+'unsatisfied-range'(_-_, Len) -->
+  "*/",
+  'complete-length'(Len).
 
 
 
@@ -2109,17 +2262,20 @@ type(Str) --> token(Str).
 % upgrade = 1#protocol
 % ```
 
-upgrade(L) --> +#(protocol, L).
+upgrade(L) -->
+  +#(protocol, L).
 
 
 
-%! 'user-agent'(-UserAgent:list(string))// is det.
+%! 'user-agent'(-UserAgent:list)// is det.
 %
 % ```abnf
 % User-Agent = product *( RWS ( product | comment ) )
 % ```
 
-'user-agent'([H|T]) --> product(H), *(sep_product_or_comment, T).
+'user-agent'([H|T]) -->
+  product(H),
+  *(sep_product_or_comment, T).
 
 
 
@@ -2129,7 +2285,10 @@ upgrade(L) --> +#(protocol, L).
 % Vary = "*" | 1#field-name
 % ```
 
-vary(L) --> ("*" -> {L = []} ; +#('field-name', L)).
+vary([]) -->
+  "*", !.
+vary(L) -->
+  +#('field-name', L).
 
 
 
@@ -2139,14 +2298,19 @@ vary(L) --> ("*" -> {L = []} ; +#('field-name', L)).
 % Via = 1#( received-protocol RWS received-by [ RWS comment ] )
 % ```
 
-via(L) --> '+#'(via_component, L).
-
+via(L) -->
+  '+#'(via_component, L).
 
 via_component(D2) -->
   'received-protocol'(ReceivedProtocol),
   'RWS',
   'received-by'(ReceivedBy),
-  {D1 = via_component{received_protocol: ReceivedProtocol, received_by: ReceivedBy}},
+  {
+    D1 = via_component{
+	   received_protocol: ReceivedProtocol,
+	   received_by: ReceivedBy
+	 }
+  },
   ('RWS' -> comment(Z), {D2 = D1.put(comment, Z)} ; {D2 = D1}).
 
 
@@ -2175,7 +2339,9 @@ via_component(D2) -->
 % warn-code = 3DIGIT
 % ```
 
-'warn-code'(N) --> #(3, 'DIGIT', Ds), {pos_sum(Ds, N)}.
+'warn-code'(N) -->
+  #(3, 'DIGIT', Ds),
+  {pos_sum(Ds, N)}.
 
 
 
@@ -2185,17 +2351,21 @@ via_component(D2) -->
 % warn-date = DQUOTE HTTP-date DQUOTE
 % ```
 
-'warn-date'(DT) --> 'DQUOTE', 'HTTP-date'(DT), 'DQUOTE'.
+'warn-date'(DT) -->
+  'DQUOTE',
+  'HTTP-date'(DT),
+  'DQUOTE'.
 
 
 
-%! 'warn-text'(?Txt:string)// is det.
+%! 'warn-text'(-A)// is det.
 %
 % ```abnf
 % warn-text = quoted-string
 % ```
 
-'warn-text'(Str) --> 'quoted-string'(Str).
+'warn-text'(A) -->
+  'quoted-string'(A).
 
 
 
@@ -2205,7 +2375,8 @@ via_component(D2) -->
 % warning = 1#warning-value
 % ```
 
-warning(L) --> +#('warning-value', L).
+warning(L) -->
+  +#('warning-value', L).
 
 
 
@@ -2216,8 +2387,10 @@ warning(L) --> +#('warning-value', L).
 % ```
 
 'warning-value'(D2) -->
-  'warn-code'(WarnCode), 'SP',
-  'warn-agent'(WarnAgent), 'SP',
+  'warn-code'(WarnCode),
+  'SP',
+  'warn-agent'(WarnAgent),
+  'SP',
   'warn-text'(WarnText),
   {
     D1 = warning_value{
@@ -2240,7 +2413,8 @@ warning(L) --> +#('warning-value', L).
 % weak = %x57.2F   ; "W/", case-sensitive
 % ```
 
-weak --> "W/".
+weak -->
+  "W/".
 
 
 
@@ -2251,7 +2425,11 @@ weak --> "W/".
 % ```
 
 weight(N) -->
-  'OWS', ";", 'OWS', atom_ci('q='), qvalue(N).
+  'OWS',
+  ";",
+  'OWS',
+  atom_ci('q='),
+  qvalue(N).
 
 
 
@@ -2261,7 +2439,8 @@ weight(N) -->
 % WWW-Authenticate = 1#challenge
 % ```
 
-'www-authenticate'(L) --> +#(challenge, L).
+'www-authenticate'(L) -->
+  +#(challenge, L).
 
 
 
@@ -2271,7 +2450,9 @@ weight(N) -->
 % year = 4DIGIT
 % ```
 
-year(Y) --> #(4, 'DIGIT', Ds), {pos_sum(Ds, Y)}.
+year(Y) -->
+  #(4, 'DIGIT', Ds),
+  {pos_sum(Ds, Y)}.
 
 
 
@@ -2295,11 +2476,11 @@ optional_weight(1.0).
 
 
 
-%! sep_product_or_comment(-Atom)// is det.
+%! sep_product_or_comment(-A)// is det.
 
-sep_product_or_comment(X) -->
+sep_product_or_comment(A) -->
   'RWS',
-  (product(X), ! ; comment(X)).
+  (product(A), ! ; comment(A)).
 
 
 
