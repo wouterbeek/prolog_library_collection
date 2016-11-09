@@ -13,6 +13,7 @@
     http_output/1,            % -Output
     http_output/2,            % +Req, -Output
     http_read_json_dict/1,    % -Data
+    http_relative_iri/1,      % -Iri
     http_relative_iri/2,      % +Req, -Iri
     http_reply_file/1,        % +File
     http_resource_iri/4,      % +Req, -Iri, -Query, -Frag
@@ -27,7 +28,7 @@ Support for extracting information from HTTP requests/received
 messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/10
+@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/11
 */
 
 :- use_module(library(apply)).
@@ -141,7 +142,13 @@ http_read_json_dict(Data) :-
 
 
 
+%! http_relative_iri(-Iri) is det.
 %! http_relative_iri(+Req, -Iri) is det.
+
+http_relative_iri(Iri) :-
+  http_current_request(Req),
+  http_relative_iri(Req, Iri).
+
 
 http_relative_iri(Req, Iri) :-
   memberchk(request_uri(Iri), Req).

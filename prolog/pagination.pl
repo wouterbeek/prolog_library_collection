@@ -88,7 +88,10 @@ http_pagination_link0(Rel-Iri) :-
 %
 % The following keys are in Pagination:
 %
-%   - number_of_results(nonneg)  The page_size or less.
+%   - number_of_results(nonneg)
+%
+%     The number of results on one page.  This is either identical to
+%     or less than the value of ‘page_size’.
 %
 %   - page(positive_integer)
 %
