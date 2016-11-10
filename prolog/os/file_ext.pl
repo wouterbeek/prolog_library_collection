@@ -350,6 +350,7 @@ file_size(File, Size) :-
 
 is_dummy_file(.).
 is_dummy_file(..).
+is_dummy_file('README.md').
 
 
 

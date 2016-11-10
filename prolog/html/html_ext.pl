@@ -154,8 +154,9 @@
     ordered_list//1,         % +Items
     ordered_list//2,         % :ItemWriter_1, +Items
     ordered_list//3,         % +Attrs, :ItemWriter_1, +Items
-    pagination_links//1,     % +Pagination
-    pagination_result//2,    % +Pagination, :ItemWriter_1
+    pagination_links//1,     % +Result
+    pagination_result//2,    % +Result, :ItemWriter_1
+    pagination_result_nonempty//2, % +Result, :ItemWriter_1
     panel//3,                % +N, +Header, :Content_0
     panel//4,                % +Open:boolean, +N, +Header, :Content_0
     panels//1,               % :Panels_0
@@ -488,6 +489,7 @@ html({|html||...|}).
     nonvar(3, +, ?, ?),
     once(3, ?, ?),
     pagination_result(+, 3, ?, ?),
+    pagination_result_nonempty(+, 3, ?, ?),
     search_result(+, 3, ?, ?),
     table_content(3, +, ?, ?),
     table_data_cell(3, +, ?, ?),
@@ -2380,52 +2382,36 @@ ordered_list(Attrs, ItemWriter_1, L) -->
 
 
 
-%! pagination_links(+Pagination)// is det.
+%! pagination_links(+Result)// is det.
 
-pagination_links(Pagination) -->
-  {pagination:pagination_iris(Pagination, Pairs)},
+pagination_links(Result) -->
+  {pagination:pagination_iris(Result, Pairs)},
   html_maplist(link, Pairs).
 
 
 
-%! pagination_result(+Pagination, :Html_1)// is det.
-%
-% Opts are required because it contains the `iri` based on which the
-% backward/forward request IRIs are build.
-%
-% Pagination contains the following keys: ‘number_of_results’,
-% ‘page’, ‘page_size’.
-%
-% Opts contains the following keys: ‘iri’, ‘query’.
+%! pagination_pager(+Result)// is det.
 
-pagination_result(Pagination, Html_1) -->
-  html_call(Html_1, Pagination.results),
-  pagination_pager(Pagination).
-
-
-
-%! pagination_pager(+Pagination)// is det.
-
-pagination_pager(Pagination) -->
+pagination_pager(Result) -->
   html(
     nav(
       ul(class=pager, [
-        \pagination_pager_prev(Pagination),
+        \pagination_pager_prev(Result),
         " ",
-        \pagination_range(Pagination),
+        \pagination_range(Result),
         " ",
-        \pagination_pager_next(Pagination)
+        \pagination_pager_next(Result)
       ])
     )
   ).
 
 
 
-%! pagination_pager_prev(+Pagination)// is det.
+%! pagination_pager_prev(+Result)// is det.
 
-pagination_pager_prev(Pagination) -->
+pagination_pager_prev(Result) -->
   {
-    (   pagination_iri(Pagination, prev, Prev)
+    (   pagination_iri(Result, prev, Prev)
     ->  AAttrs = [href=Prev],
         LiAttrs = []
     ;   AAttrs = [],
@@ -2436,11 +2422,11 @@ pagination_pager_prev(Pagination) -->
 
 
 
-%! pagination_pager_next(+Pagination)// is det.
+%! pagination_pager_next(+Result)// is det.
 
-pagination_pager_next(Pagination) -->
+pagination_pager_next(Result) -->
   {
-    (   pagination_iri(Pagination, next, Next)
+    (   pagination_iri(Result, next, Next)
     ->  AAttrs = [href=Next],
         LiAttrs = []
     ;   AAttrs = [],
@@ -2451,11 +2437,36 @@ pagination_pager_next(Pagination) -->
 
 
 
-%! pagination_range(+Pagination)// is det.
+%! pagination_range(+Result)// is det.
 
-pagination_range(Pagination) -->
-  {pagination_range(Pagination, Low-High)},
+pagination_range(Result) -->
+  {pagination_range(Result, Low-High)},
   html([\html_thousands(Low)," ⎯⎯⎯ ",\html_thousands(High)]).
+
+
+
+%! pagination_result(+Result, :Html_1)// is det.
+%
+% Opts are required because it contains the `iri` based on which the
+% backward/forward request IRIs are build.
+%
+% Result contains the following keys: ‘number_of_results’,
+% ‘page’, ‘page_size’.
+%
+% Opts contains the following keys: ‘iri’, ‘query’.
+
+pagination_result(Result, Html_1) -->
+  html_call(Html_1, Result.results),
+  pagination_pager(Result).
+
+
+
+%! pagination_result_nonempty(+Result, :Content_1)// is det.
+
+pagination_result_nonempty(Result, _) -->
+  {pagination_is_empty(Result)}, !, [].
+pagination_result_nonempty(Result, Content_1) -->
+  pagination_result(Result, Content_1).
 
 
 
