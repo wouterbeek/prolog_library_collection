@@ -1,14 +1,13 @@
 :- module(
   s_tree,
   [
-    merge_tree/2,             % +Tree1, -Tree2
     pairs_to_root/2,          % +Pairs, -Root
     pairs_to_tree/2,          % +Pairs, -Tree
     is_s_tree/1,              % @Term
     paths_to_trees/2,         % +AllSubpaths:list(list), -Tree
     some_subpaths_to_trees/2, % +SomeSubpaths:list(list), -Tree
-    tree_to_graph/2,          % +Tree, -Graph
     tree_depth/2,             % +Tree, -Depth
+    tree_to_graph/2,          % +Tree, -Graph
     tree_to_leaf_coord/2      % +Tree, -Coord:list(nonneg)
   ]
 ).
@@ -43,7 +42,7 @@ a
 ```
 
 @author Wouter Beek
-@version 2016/01-2016/02, 2016/07, 2016/10
+@version 2016/01-2016/02, 2016/07, 2016/10-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -57,22 +56,6 @@ a
 :- use_module(library(pairs)).
 
 
-
-
-
-%! merge_tree(+Tree1, -Tree2) is det.
-
-merge_tree(t(Node,Trees1), t(Node,Trees2)) :-
-  partition(has_node(Node), Trees1, NodeTrees1, OtherTrees1),
-  maplist(merge_tree, NodeTrees1, NodeTrees2),
-  maplist(merge_tree, OtherTrees1, OtherTrees2),
-  maplist(flatten_tree, NodeTrees2, Subtreess),
-  append(Subtreess, Subtrees),
-  append(Subtrees, OtherTrees2, Trees2).
-
-flatten_tree(t(_,Trees), Trees).
-
-has_node(Node, t(Node,_)).
 
 
 

@@ -1,6 +1,7 @@
 :- module(
   date_time,
   [
+    call_statistics/3,        % :Goal_0, +Key, -DeltaVal
     call_timestamp/2,         % :Goal_0, -TS
     call_timestamp/3,         % :Goal_0, +N, -TS
     date_time_masks/3,        % +Masks, +DT, -MaskedDT
@@ -48,7 +49,7 @@ predicates that only work with date_time/7.  This is a huge
 time-saver!
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10
+@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10-2016/11
 */
 
 :- use_module(library(apply)).
@@ -56,6 +57,7 @@ time-saver!
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
+    call_statistics(0, +, -),
     call_timestamp(0, -),
     call_timestamp(0, +, -),
     print_timestamp(0).
@@ -109,6 +111,20 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 
 
 
+
+
+%! call_statistics(:Goal_0, +Key, -DeltaVal) is det.
+%
+% Key is one of the supported keys of statistics/2.
+
+call_statistics(Goal_0, Key, DeltaVal) :-
+  statistics(Key, Val1),
+  call(Goal_0),
+  statistics(Key, Val2),
+  DeltaVal is Val2 - Val1.
+
+
+
 %! call_timestamp(:Goal_0, -TS) is det.
 %! call_timestamp(:Goal_0, +N, -TS) is det.
 %
@@ -116,7 +132,7 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 
 call_timestamp(Goal_0, TS):-
   get_time(Begin),
-  Goal_0,
+  call(Goal_0),
   get_time(End),
   TS is End - Begin.
 
