@@ -203,13 +203,13 @@ date_time_masks([H|T], DT1, DT3) :-
 
 %! 'date_time_to_dt-rdf'(+DT, +D, -Rdf) is det.
 
-'date_time_to_dt-rdf'(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)).
-'date_time_to_dt-rdf'(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)).
-'date_time_to_dt-rdf'(date_time(_,_,D,_,_,_,_), xsd:gDay, D).
-'date_time_to_dt-rdf'(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo).
-'date_time_to_dt-rdf'(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)).
-'date_time_to_dt-rdf'(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y).
-'date_time_to_dt-rdf'(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)).
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)) :- !.
+'date_time_to_dt-rdf'(date_time(_,_,D,_,_,_,_), xsd:gDay, D) :- !.
+'date_time_to_dt-rdf'(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo) :- !.
+'date_time_to_dt-rdf'(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)) :- !.
+'date_time_to_dt-rdf'(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y) :- !.
+'date_time_to_dt-rdf'(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)) :- !.
 'date_time_to_dt-rdf'(date_time(_,_,_,H,Mi,S,_), xsd:time, time(H,Mi,S)).
 
 
