@@ -61,6 +61,7 @@ archive_filters(_, []).
 
 
 %! source_directory_name(+Source, -Directory) is det.
+%
 % Returns an appropriate directory name for the given source.
 %
 % The source can be either an absolute file name or a URI.
