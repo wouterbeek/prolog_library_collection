@@ -1546,7 +1546,7 @@ html_code(Content_0) -->
 %! html_dq(:Content_0)// is det.
 
 html_dq(Content_0) -->
-  html(["“",Content_0,"”"]).
+  html(["“",\html_call(Content_0),"”"]).
 
 
 
@@ -1703,7 +1703,7 @@ html_set(ItemWriter_1, Args) -->
 %! html_sq(:Content_0)// is det.
 
 html_sq(Content_0) -->
-  html(["‘",Content_0,"’"]).
+  html(["‘",\html_call(Content_0),"’"]).
 
 
 
