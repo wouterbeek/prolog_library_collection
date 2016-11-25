@@ -272,6 +272,7 @@ html({|html||...|}).
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
+:- use_module(library(q/q_term)). %HACK
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
@@ -1546,7 +1547,7 @@ html_code(Content_0) -->
 %! html_dq(:Content_0)// is det.
 
 html_dq(Content_0) -->
-  html(["“",\html_call(Content_0),"”"]).
+  html(["“",Content_0,"”"]).
 
 
 
@@ -1703,7 +1704,7 @@ html_set(ItemWriter_1, Args) -->
 %! html_sq(:Content_0)// is det.
 
 html_sq(Content_0) -->
-  html(["‘",\html_call(Content_0),"’"]).
+  html(["‘",Content_0,"’"]).
 
 
 
@@ -3554,7 +3555,8 @@ raw_page(Spec, Title, Content) :-
 
 spec_iri(link_to_id(HandleId), Iri) :- !,
   http_link_to_id(HandleId, Iri).
-spec_iri(link_to_id(HandleId,Query), Iri) :- !,
+spec_iri(link_to_id(HandleId,Query0), Iri) :- !,
+  maplist(q_query_term, Query0, Query), %HACK
   http_link_to_id(HandleId, Query, Iri).
 spec_iri(Spec, Iri) :-
   http_absolute_location(Spec, Iri).
