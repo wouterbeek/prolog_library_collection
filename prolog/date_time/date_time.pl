@@ -1,9 +1,8 @@
 :- module(
   date_time,
   [
-    call_statistics/3,        % :Goal_0, +Key, -DeltaVal
-    call_timestamp/2,         % :Goal_0, -TS
-    call_timestamp/3,         % :Goal_0, +N, -TS
+    call_statistics/3,        % :Goal_0, +Key, -Delta
+    call_statistics/4,        % :Goal_0, +Key, +NumCalls, -AvgDelta
     date_time_masks/3,        % +Masks, +DT, -MaskedDT
     'dt-pl_to_date_time'/2,   % +Pl, -DT
     'date_time_to_dt-pl'/2,   % +DT, -Pl
@@ -13,7 +12,6 @@
     'is_dt-pl'/1,             % @Term
     'is_dt-rdf'/1,            % @Term
     is_date_time/1,           % @Term
-    print_timestamp/1,        % :Goal_0
     something_to_date_time/2, % +Something, -DT
     'something_to_dt-rdf'/3,  % +Something, -DT
     timestamp_to_date_time/2  % +TS, -DT
@@ -58,9 +56,7 @@ time-saver!
 
 :- meta_predicate
     call_statistics(0, +, -),
-    call_timestamp(0, -),
-    call_timestamp(0, +, -),
-    print_timestamp(0).
+    call_statistics(0, +, +, -).
 
 :- rdf_meta
    'date_time_to_dt-rdf'(+, r, -).
@@ -113,35 +109,27 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 
 
 
-%! call_statistics(:Goal_0, +Key, -DeltaVal) is det.
+%! call_statistics(:Goal_0, +Key, -Delta) is det.
+%! call_statistics(:Goal_0, +Key, +NumCalls, -AvgDelta) is det.
 %
-% Key is one of the supported keys of statistics/2.
+% call_statistics/3 preserves variable bindings but call_statistics/4
+% does not.
 
-call_statistics(Goal_0, Key, DeltaVal) :-
+call_statistics(Goal_0, Key, Delta):-
   statistics(Key, Val1),
   call(Goal_0),
   statistics(Key, Val2),
-  DeltaVal is Val2 - Val1.
+  Delta is Val2 - Val1.
 
 
-
-%! call_timestamp(:Goal_0, -TS) is det.
-%! call_timestamp(:Goal_0, +N, -TS) is det.
-%
-% call_timestamp/2 preserves variable bindings but call_timestamp/3 does not.
-
-call_timestamp(Goal_0, TS):-
-  get_time(Begin),
-  call(Goal_0),
-  get_time(End),
-  TS is End - Begin.
-
-
-call_timestamp(Goal_0, M, TS):-
-  get_time(Begin),
-  forall(between(1, M, _), Goal_0),
-  get_time(End),
-  TS is (End - Begin) / M.
+call_statistics(Goal_0, Key, NumCalls, AvgDelta):-
+  statistics(Key, Val1),
+  forall(
+    between(1, NumCalls, _),
+    (copy_term(Goal_0, GoalCopy_0), call(GoalCopy_0))
+  ),
+  statistics(Key, Val2),
+  AvgDelta is (Val2 - Val1) / NumCalls.
 
 
 
@@ -285,14 +273,6 @@ is_date_time(T) :-
 
 'is_dt-rdf'(T) :-
   is_of_type('dt-rdf', T).
-
-
-
-%! print_timestamp(:Goal_0) is det.
-
-print_timestamp(Goal_0) :-
-  call_timestamp(Goal_0, Time),
-  format(user_output, "~w~n", [Time]).
 
 
 
