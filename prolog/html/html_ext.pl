@@ -1257,7 +1257,7 @@ fb_share(Iri, Title) -->
       uri_components(http,'www.facebook.com','/share.php',Query,_)
     )
   },
-  tooltip(Str, html(a([href=Url,target='_blank'], \fb_img0))).
+  tooltip(Str, a([href=Url,target='_blank'], \fb_img0)).
 
 
 
@@ -3004,7 +3004,7 @@ title(Strs) -->
 
 
 
-%! tooltip(+Str, Content_0)// is det.
+%! tooltip(+Str, :Content_0)// is det.
 
 tooltip(Str, Content_0) -->
   html(span(['data-toggle'=tooltip,title=Str], Content_0)).
