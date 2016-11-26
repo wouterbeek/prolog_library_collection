@@ -4,14 +4,14 @@
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
     http_base_location_iri/2, % +Req, -iri
-    http_content_type/1,      % +MT
-    http_end_of_header/0,
+    http_content_type/2,      % +Req, -MT
     http_iri_query/2,         % +Iri, -Comp
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
     http_method/2,            % +Req, -Method
     http_output/1,            % -Output
     http_output/2,            % +Req, -Output
+    http_read_data/2,         % +Req, -Data
     http_read_json_dict/1,    % -Data
     http_relative_iri/1,      % -Iri
     http_relative_iri/2,      % +Req, -Iri
@@ -35,6 +35,7 @@ messages.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_client), [http_read_data/3]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
@@ -77,17 +78,11 @@ http_base_location_iri(Req, Iri2) :-
 
 
 
-%! http_content_type(+MT) is det.
+%! http_content_type(+Req, -MT) is semidet.
 
-http_content_type(Type/Subtype) :-
-  format("Content-Type: ~a/~a; charset=UTF-8~n", [Type,Subtype]).
-
-
-
-%! http_end_of_header is det.
-
-http_end_of_header :-
-  format("~n").
+http_content_type(Req, Type/Subtype) :-
+  memberchk(content_type(A), Req),
+  http_parse_header('content-type', A, media_type(Type,Subtype,_)).
 
 
 
@@ -131,6 +126,13 @@ http_output(Out) :-
 
 http_output(Req, Out) :-
   memberchk(pool(client(_,_,_,Out)), Req).
+
+
+
+%! http_read_data(+Req, -Data) is det.
+
+http_read_data(Req, Data) :-
+  http_read_data(Req, Data, []).
 
 
 
