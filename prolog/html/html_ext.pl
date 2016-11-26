@@ -1590,7 +1590,7 @@ html_http_error_page(Style, Req) :-
 %! html_license(+Iri, Lbl)// is det.
 
 html_license(Uri, Lbl) -->
-  external_link(Uri, [rel=Uri], Lbl).
+  external_link(Uri, [rel=license], Lbl).
 
 
 
