@@ -39,6 +39,7 @@
     external_link//3,        % +Iri, +Attrs, :Content_0
     external_link_icon//1,   % +Iri
     favicon//1,              % +Spec
+    fb_app_id//0,
     fb_comments//1,          % +Iri
     fb_follow_img//0,
     fb_follow_img//1,        % +User
@@ -530,6 +531,12 @@ html({|html||...|}).
     html:html_hook//1,
     html:html_hook//2.
 
+:- setting(
+     html:fb_app_id,
+     atom,
+     '',
+     "Facebook application identifier."
+   ).
 :- setting(
      html:fb_profile,
      atom,
@@ -1152,6 +1159,14 @@ external_link_icon(Iri) -->
 favicon(Spec) -->
   {spec_iri(Spec, Iri)},
   link([type='image/x-icon'], icon-Iri).
+
+
+
+%! fb_app_id// is det.
+
+fb_app_id -->
+  {setting(html:fb_app_id, Id)},
+  meta('fb:app_id', Id).
 
 
 
