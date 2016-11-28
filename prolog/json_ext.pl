@@ -17,7 +17,7 @@
 /** <module> JSON extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01, 2016/03-2016/05, 2016/07
+@version 2015/09-2015/11, 2016/01, 2016/03-2016/05, 2016/07, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -119,7 +119,11 @@ json_write_any(Sink, Dict):-
 
 
 json_write_any(Sink, Dict, Opts):-
-  call_to_stream(Sink, [Out]>>json_write_dict(Out, Dict, Opts), Opts).
+  call_to_stream(
+    Sink,
+    {Dict,Opts}/[Out]>>json_write_dict(Out, Dict, Opts),
+    Opts
+  ).
 
 
 

@@ -1136,7 +1136,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 'field-name'(LowerA) -->
   token(A),
-  {atom_lower(A, LowerA)}.
+  {downcase_atom(A, LowerA)}.
 
 
 
