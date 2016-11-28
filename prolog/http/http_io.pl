@@ -11,6 +11,8 @@
     http_head/2,                 % +Iri, +Opts
     http_header/3,               % +Key, +Path, -Val
     http_is_scheme/1,            % ?Scheme
+    http_options/1,              % +Iri
+    http_options/2,              % +Iri, +Opts
     http_post/2,                 % +Iri, +Data
     http_post/3,                 % +Iri, +Data, :Goal_3
     http_post/4,                 % +Iri, +Data, :Goal_3, +Opts
@@ -302,6 +304,19 @@ http_open2(Iri0, State, Location, _, In1, [H|T], In2, Opts) :-
   http_open1(Iri, State, In2, T, RedirectOpts).
 % Success.
 http_open2(_, _, _, _, In, [_], In, _).
+
+
+
+%! http_options(+Iri) is semidet.
+%! http_options(+Iri, +Opts) is semidet.
+
+http_options(Iri) :-
+  http_options(Iri, []).
+
+
+http_options(Iri, Opts0) :-
+  merge_options(Opts0, [method(options)], Opts),
+  call_on_stream(Iri, _, Opts).
 
 
 

@@ -456,13 +456,18 @@ close_any2_hash(_, _).
 %
 %     * http_io:http_open_any/4
 
+open_any2(stream(Stream), Mode, Stream, Close_0, Path, Opts) :- !,
+  open_any2(Stream, Mode, Stream, Close_0, Path, Opts).
 open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
   (   is_http_iri(Spec)
   ->  Mode = read,
       http_io:http_open_any(Spec, Stream1, L, Opts),
       Close_0 = close(Stream2)
-  ;   % Allow ‘~’ to be used.
-      expand_file_name(Spec, [ExpandedSpec|_]),
+  ;   (   atom(Spec)
+      ->  % Allow ‘~’ to be used.
+          expand_file_name(Spec, [ExpandedSpec|_])
+      ;   ExpandedSpec = Spec
+      ),
       open_any(ExpandedSpec, Mode, Stream1, _, Opts),
       (   ExpandedSpec == Stream1
       ->  Close_0 = true,
