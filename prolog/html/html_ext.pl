@@ -1222,13 +1222,17 @@ fb_follow_txt -->
 
 fb_follow_txt(User) -->
   {lstring(like_us_on_x, ["Facebook"], Str)},
-  tooltip(
-    Str,
-    \fb_follow0(
-      User,
-      [\html_lstring(follow)," ",User," ",\lstring(op),"Facebook"]
-    )
-  ).
+  tooltip(Str, \fb_follow0(User, fb_txt0(User))).
+
+fb_txt0(User) -->
+  html([
+    \html_lstring(follow),
+    " ",
+    User,
+    " ",
+    \lstring(on),
+    "Facebook"
+  ]).
 
 
 
@@ -3044,7 +3048,7 @@ twitter_follow0(Content_0) -->
 
 twitter_follow0(User, Content_0) -->
   {twitter_user_iri(User, Iri)},
-  html(a(href=Iri, Content_0)).
+  html(a(href=Iri, html_call(Content_0))).
 
 
 
@@ -3072,13 +3076,17 @@ twitter_follow_txt -->
 
 twitter_follow_txt(User) -->
   {lstring(follow_us_on_x, ["Twitter"], Str)},
-  tooltip(
-    Str,
-    twitter_follow0(
-      User,
-      [\html_lstring(follow)," ",User," ",\lstring(on)," Twitter"]
-    )
-  ).
+  tooltip(Str, \twitter_follow0(User, twitter_txt0(User))).
+
+twitter_txt0(User) -->
+  html([
+    \html_lstring(follow),
+    " ",
+    User,
+    " ",
+    \lstring(on),
+    " Twitter"
+  ]).
 
 
 
