@@ -60,7 +60,7 @@ The following debug flags are used:
   * io
 
 @author Wouter Beek
-@version 2016/07-2016/09
+@version 2016/07-2016/09, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -237,7 +237,11 @@ http_open1(Iri, State, In2, Path, Opts0) :-
   option(timeout(Time), Opts0, inf),
   call_timeout(
     Time,
-    call_timestamp(catch(http_open(Iri, In1, Opts3), E, true), TS)
+    call_statistics(
+      catch(http_open(Iri, In1, Opts3), E, true),
+      walltime,
+      TS
+    )
   ),
   indent_debug(in, io, "R> ~a → ~w", [Iri,In1]),
   % @tbd Remove throw/1?

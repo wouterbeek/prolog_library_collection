@@ -129,7 +129,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2016/03, 2016/07, 2016/09
+@version 2015/11-2016/03, 2016/07, 2016/09, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -1136,7 +1136,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 'field-name'(LowerA) -->
   token(A),
-  {atom_lower(A, LowerA)}.
+  {downcase_atom(A, LowerA)}.
 
 
 

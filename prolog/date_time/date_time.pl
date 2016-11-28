@@ -116,20 +116,27 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 % does not.
 
 call_statistics(Goal_0, Key, Delta):-
-  statistics(Key, Val1),
+  statistics(Key, Val1a),
+  fix_val(Val1a, Val1b),
   call(Goal_0),
-  statistics(Key, Val2),
-  Delta is Val2 - Val1.
+  statistics(Key, Val2a),
+  fix_val(Val2a, Val2b),
+  Delta is Val2b - Val1b.
 
 
 call_statistics(Goal_0, Key, NumCalls, AvgDelta):-
-  statistics(Key, Val1),
+  statistics(Key, Val1a),
+  fix_val(Val1a, Val1b),
   forall(
     between(1, NumCalls, _),
     (copy_term(Goal_0, GoalCopy_0), call(GoalCopy_0))
   ),
-  statistics(Key, Val2),
-  AvgDelta is (Val2 - Val1) / NumCalls.
+  statistics(Key, Val2a),
+  fix_val(Val2a, Val2b),
+  AvgDelta is (Val2b - Val1b) / NumCalls.
+
+fix_val([X,_], X) :- !.
+fix_val(X, X).
 
 
 
