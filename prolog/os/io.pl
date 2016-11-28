@@ -461,15 +461,17 @@ open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
   ->  Mode = read,
       http_io:http_open_any(Spec, Stream1, L, Opts),
       Close_0 = close(Stream2)
-  ;   open_any(Spec, Mode, Stream1, _, Opts),
-      (   Spec == Stream1
+  ;   % Allow ‘~’ to be used.
+      expand_file_name(Spec, [ExpandedSpec|_]),
+      open_any(ExpandedSpec, Mode, Stream1, _, Opts),
+      (   ExpandedSpec == Stream1
       ->  Close_0 = true,
           H1 = _{stream: Stream1}
-      ;   absolute_file_name(Spec, File),
+      ;   absolute_file_name(ExpandedSpec, File),
           Close_0 = close(Stream2),
           H1 = _{file: File},
           (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-          indent_debug(in, io, "~s> ~w → ~w", [Lbl,Spec,Stream1])
+          indent_debug(in, io, "~s> ~w → ~w", [Lbl,ExpandedSpec,Stream1])
       ),
       put_dict(mode, H1, Mode, H2),
       L = [H2]

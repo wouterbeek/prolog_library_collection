@@ -43,8 +43,18 @@
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
-:- setting(iri:data_auth, atom, '', "The HTTP authority for data IRIs.").
-:- setting(iri:data_scheme, atom, http, "The HTTP scheme for data IRIs.").
+:- setting(
+     iri:data_auth,
+     atom,
+     'example.org',
+     "The authority component of data IRIs."
+   ).
+:- setting(
+     iri:data_scheme,
+     atom,
+     http,
+     "The scheme of data IRIs."
+   ).
 
 :- meta_predicate
     iri_change_query_comps0(+, 2, -),

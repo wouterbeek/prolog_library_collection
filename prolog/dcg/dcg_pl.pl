@@ -48,7 +48,6 @@ dcg:dcg_hook(DT) -->
 
 
 
-
 %! pl_date_time(+DT)// is det.
 
 pl_date_time(DT, X, Y):-

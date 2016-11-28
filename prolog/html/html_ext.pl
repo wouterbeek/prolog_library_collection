@@ -39,6 +39,7 @@
     external_link//3,        % +Iri, +Attrs, :Content_0
     external_link_icon//1,   % +Iri
     favicon//1,              % +Spec
+    fb_app_id//0,
     fb_comments//1,          % +Iri
     fb_follow_img//0,
     fb_follow_img//1,        % +User
@@ -272,6 +273,7 @@ html({|html||...|}).
 :- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
+:- use_module(library(q/q_term)). %HACK
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
@@ -529,6 +531,12 @@ html({|html||...|}).
     html:html_hook//1,
     html:html_hook//2.
 
+:- setting(
+     html:fb_app_id,
+     atom,
+     '',
+     "Facebook application identifier."
+   ).
 :- setting(
      html:fb_profile,
      atom,
@@ -1154,6 +1162,14 @@ favicon(Spec) -->
 
 
 
+%! fb_app_id// is det.
+
+fb_app_id -->
+  {setting(html:fb_app_id, Id)},
+  meta('fb:app_id', Id).
+
+
+
 %! fb_comments(+Iri)// is det.
 
 fb_comments(Iri) -->
@@ -1206,13 +1222,17 @@ fb_follow_txt -->
 
 fb_follow_txt(User) -->
   {lstring(like_us_on_x, ["Facebook"], Str)},
-  tooltip(
-    Str,
-    \fb_follow0(
-      User,
-      [\html_lstring(follow)," ",User," ",\lstring(op),"Facebook"]
-    )
-  ).
+  tooltip(Str, \fb_follow0(User, fb_txt0(User))).
+
+fb_txt0(User) -->
+  html([
+    \html_lstring(follow),
+    " ",
+    User,
+    " ",
+    \lstring(on),
+    "Facebook"
+  ]).
 
 
 
@@ -1256,7 +1276,7 @@ fb_share(Iri, Title) -->
       uri_components(http,'www.facebook.com','/share.php',Query,_)
     )
   },
-  tooltip(Str, html(a([href=Url,target='_blank'], \fb_img0))).
+  tooltip(Str, a([href=Url,target='_blank'], \fb_img0)).
 
 
 
@@ -1589,7 +1609,7 @@ html_http_error_page(Style, Req) :-
 %! html_license(+Iri, Lbl)// is det.
 
 html_license(Uri, Lbl) -->
-  external_link(Uri, [rel=Uri], Lbl).
+  external_link(Uri, [rel=license], Lbl).
 
 
 
@@ -3003,7 +3023,7 @@ title(Strs) -->
 
 
 
-%! tooltip(+Str, Content_0)// is det.
+%! tooltip(+Str, :Content_0)// is det.
 
 tooltip(Str, Content_0) -->
   html(span(['data-toggle'=tooltip,title=Str], Content_0)).
@@ -3028,7 +3048,7 @@ twitter_follow0(Content_0) -->
 
 twitter_follow0(User, Content_0) -->
   {twitter_user_iri(User, Iri)},
-  html(a(href=Iri, Content_0)).
+  html(a(href=Iri, html_call(Content_0))).
 
 
 
@@ -3056,13 +3076,17 @@ twitter_follow_txt -->
 
 twitter_follow_txt(User) -->
   {lstring(follow_us_on_x, ["Twitter"], Str)},
-  tooltip(
-    Str,
-    twitter_follow0(
-      User,
-      [\html_lstring(follow)," ",User," ",\lstring(on)," Twitter"]
-    )
-  ).
+  tooltip(Str, \twitter_follow0(User, twitter_txt0(User))).
+
+twitter_txt0(User) -->
+  html([
+    \html_lstring(follow),
+    " ",
+    User,
+    " ",
+    \lstring(on),
+    " Twitter"
+  ]).
 
 
 
@@ -3554,7 +3578,8 @@ raw_page(Spec, Title, Content) :-
 
 spec_iri(link_to_id(HandleId), Iri) :- !,
   http_link_to_id(HandleId, Iri).
-spec_iri(link_to_id(HandleId,Query), Iri) :- !,
+spec_iri(link_to_id(HandleId,Query0), Iri) :- !,
+  maplist(q_query_term, Query0, Query), %HACK
   http_link_to_id(HandleId, Query, Iri).
 spec_iri(Spec, Iri) :-
   http_absolute_location(Spec, Iri).

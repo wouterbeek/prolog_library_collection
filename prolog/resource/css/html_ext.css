@@ -392,35 +392,13 @@ article .metadata ul li:not(:last-child):after {
 
 article section {
   margin: auto;
-  max-width: 800px;
+  max-width: 750px;
   width: 80%
 }
 
-
-
-/* Article: Counters before headings. */
-
-article {
-  counter-reset: h2;
-}
-article h2 {
-  counter-increment: h2;
-  counter-reset: h3;
-  text-align: center;
-}
-article h2:before {
-  content: counter(h2) ". ";
-}
+article h2,
 article h3 {
-  counter-increment: h3;
   text-align: center;
-}
-article h3:before {
-  content: counter(h2) "." counter(h3) " ";
-}
-article section {
-  margin: auto;
-  max-width: 750px;
 }
 
 

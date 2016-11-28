@@ -81,8 +81,11 @@
     dcg_list//3,           % :Dcg_1, +L, +I
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
     dcg_once//1,           % :Dcg_0
+    dcg_once//2,           % :Dcg_1, +Arg1
+    dcg_once//3,           % :Dcg_2, +Arg1, +Arg2
     dcg_string//2,         % :Dcg_1, ?S
     dcg_tab//0,
+    dcg_var//2,            % +Map, +Var
     dcg_width/2,           % :Dcg_0, -Width
     dcg_with_output_to/1,  % :Dcg_0
     dcg_with_output_to/2,  % +Sink, :Dcg_0
@@ -166,7 +169,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05-2016/10
+@version 2015/11-2016/03, 2016/05-2016/11
 */
 
 :- use_module(library(aggregate)).
@@ -181,6 +184,7 @@ My favorite collection of DCG rules.
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(math/radconv)).
+:- use_module(library(pair_ext)).
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(url/rfc1738), [
@@ -246,6 +250,8 @@ My favorite collection of DCG rules.
     dcg_list(3, +, +, ?, ?),
     dcg_max_width(3, +, -),
     dcg_once(//, ?, ?),
+    dcg_once(//, +, ?, ?),
+    dcg_once(//, +, +, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
     dcg_with_output_to(//),
@@ -940,20 +946,21 @@ dcg_apply_cp(Dcg, Args1, X, Y) :-
 
 
 %! dcg_atom(:Dcg_1, ?A)// .
-% This meta-DCG rule handles the translation
-% between the word and the character level of parsing/generating.
 %
-% Typically, grammar *A* specifies how words can be formed out of characters.
-% A character is a code, and a word is a list of codes.
-% Grammar *B* specifies how sentences can be built out of words.
-% Now the word is an atom, and the sentences in a list of atoms.
+% This meta-DCG rule handles the translation between the word and the
+% character level of parsing/generating.
 %
-% This means that at some point,
-% words in grammar *A*, i.e. lists of codes,
-% need to be translated to words in grammar *B*, i.e. atoms.
+% Typically, grammar *A* specifies how words can be formed out of
+% characters.  A character is a code, and a word is a list of codes.
+% Grammar *B* specifies how sentences can be built out of words.  Now
+% the word is an atom, and the sentences in a list of atoms.
 %
-% This is where dcg_atom//2 comes in.
-% We illustrate this with a schematic example:
+% This means that at some point, words in grammar *A*, i.e. lists of
+% codes, need to be translated to words in grammar *B*, i.e. atoms.
+%
+% This is where dcg_atom//2 comes in.  We illustrate this with a
+% schematic example:
+%
 % ```prolog
 % sentence([W1,...,Wn]) -->
 %   word2(W1),
@@ -1013,24 +1020,24 @@ dcg_call(Dcg_0, X, Y) :-
   call(Dcg_0, X, Y).
 
 
-dcg_call(Dcg_1, A1, X, Y) :-
-  call(Dcg_1, A1, X, Y).
+dcg_call(Dcg_1, Arg1, X, Y) :-
+  call(Dcg_1, Arg1, X, Y).
 
 
-dcg_call(Dcg_2, A1, A2, X, Y) :-
-  call(Dcg_2, A1, A2, X, Y).
+dcg_call(Dcg_2, Arg1, Arg2, X, Y) :-
+  call(Dcg_2, Arg1, Arg2, X, Y).
 
 
-dcg_call(Dcg_3, A1, A2, A3, X, Y) :-
-  call(Dcg_3, A1, A2, A3, X, Y).
+dcg_call(Dcg_3, Arg1, Arg2, Arg3, X, Y) :-
+  call(Dcg_3, Arg1, Arg2, Arg3, X, Y).
 
 
-dcg_call(Dcg_4, A1, A2, A3, A4, X, Y) :-
-  call(Dcg_4, A1, A2, A3, A4, X, Y).
+dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
+  call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y).
 
 
-dcg_call(Dcg_5, A1, A2, A3, A4, A5, X, Y) :-
-  call(Dcg_5, A1, A2, A3, A4, A5, X, Y).
+dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
+  call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
 
 
 
@@ -1233,11 +1240,22 @@ dcg_max_width(Dcg_1, Args, MaxW) :-
 
 
 
-%! dcg_once(:Dcg_0)// .
+%! dcg_once(:Dcg_0)// is det.
+%! dcg_once(:Dcg_1, +Arg1)// is det.
+%! dcg_once(:Dcg_2, +Arg1, +Arg2)// is det.
+%
 % Calls the given DCG at most one time.
 
 dcg_once(Dcg_0, X, Y) :-
-  once(phrase(Dcg_0, X, Y)).
+  once(dcg_call(Dcg_0, X, Y)).
+
+
+dcg_once(Dcg_1, Arg1, X, Y) :-
+  once(dcg_call(Dcg_1, Arg1, X, Y)).
+
+
+dcg_once(Dcg_2, Arg1, Arg2, X, Y) :-
+  once(dcg_call(Dcg_2, Arg1, Arg2, X, Y)).
 
 
 
@@ -1259,6 +1277,14 @@ dcg_string(Dcg_1, S) -->
 % This is not named tab//0 since that would conflict with the built-in tab/2.
 
 dcg_tab --> tab(1).
+
+
+
+%! dcg_var(+Map, +Var)// is det.
+
+dcg_var(Map, Var) -->
+  {memberchk_eq_key(Var, Map, VarName)},
+  atom(VarName).
 
 
 

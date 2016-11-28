@@ -56,7 +56,7 @@ dcg_tree(Tree, Opts0) -->
 dcg_tree0(t(Node,Trees), InvPath, IsLast, Lbl_1, Node_2) -->
   % Determine whether we are about to print a leaf node or not.
   {(Trees = [] -> IsLeaf = true ; IsLeaf = false)},
-  dcg_call(Node_2, [Node-IsLast|InvPath], IsLeaf),
+  dcg_once(Node_2, [Node-IsLast|InvPath], IsLeaf),
   (   {IsLeaf == true}
   ->  ""
   ;   dcg_trees0(Trees, [Node-IsLast|InvPath], Lbl_1, Node_2)

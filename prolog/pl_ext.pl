@@ -138,15 +138,18 @@ write_fact(Term) :-
 % "terms written with this predicate can always be read back".
 
 write_term(Term) :-
-  replace_blobs(Term, AtomBlobs),
-  write_term(AtomBlobs, [numbervars(true),quoted(true)]).
+  replace_blobs(Term, BloblessTerm),
+  write_term(BloblessTerm, [numbervars(true),quoted(true)]).
 
 
-%! replace_blobs(Term0, Term) is det.
-% Copy Term0 to Term, replacing non-text blobs.
+%! replace_blobs(+Term1, -Term2) is det.
+%
+% Copy Term1 to Term2, replacing non-text blobs.
 % This is required for error messages that may hold streams
 % and other handles to non-readable objects.
 
+replace_blobs(X, X) :-
+  var(X), !.
 replace_blobs([], []) :- !.
 replace_blobs(Blob, Atom) :-
   blob(Blob, Type),

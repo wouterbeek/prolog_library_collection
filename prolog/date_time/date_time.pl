@@ -1,8 +1,8 @@
 :- module(
   date_time,
   [
-    call_timestamp/2,         % :Goal_0, -TS
-    call_timestamp/3,         % :Goal_0, +N, -TS
+    call_statistics/3,        % :Goal_0, +Key, -Delta
+    call_statistics/4,        % :Goal_0, +Key, +NumCalls, -AvgDelta
     date_time_masks/3,        % +Masks, +DT, -MaskedDT
     'dt-pl_to_date_time'/2,   % +Pl, -DT
     'date_time_to_dt-pl'/2,   % +DT, -Pl
@@ -12,7 +12,6 @@
     'is_dt-pl'/1,             % @Term
     'is_dt-rdf'/1,            % @Term
     is_date_time/1,           % @Term
-    print_timestamp/1,        % :Goal_0
     something_to_date_time/2, % +Something, -DT
     'something_to_dt-rdf'/3,  % +Something, -DT
     timestamp_to_date_time/2  % +TS, -DT
@@ -48,7 +47,7 @@ predicates that only work with date_time/7.  This is a huge
 time-saver!
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10
+@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10-2016/11
 */
 
 :- use_module(library(apply)).
@@ -56,9 +55,8 @@ time-saver!
 :- use_module(library(semweb/rdf11)).
 
 :- meta_predicate
-    call_timestamp(0, -),
-    call_timestamp(0, +, -),
-    print_timestamp(0).
+    call_statistics(0, +, -),
+    call_statistics(0, +, +, -).
 
 :- rdf_meta
    'date_time_to_dt-rdf'(+, r, -).
@@ -109,23 +107,29 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 
 
 
-%! call_timestamp(:Goal_0, -TS) is det.
-%! call_timestamp(:Goal_0, +N, -TS) is det.
+
+
+%! call_statistics(:Goal_0, +Key, -Delta) is det.
+%! call_statistics(:Goal_0, +Key, +NumCalls, -AvgDelta) is det.
 %
-% call_timestamp/2 preserves variable bindings but call_timestamp/3 does not.
+% call_statistics/3 preserves variable bindings but call_statistics/4
+% does not.
 
-call_timestamp(Goal_0, TS):-
-  get_time(Begin),
-  Goal_0,
-  get_time(End),
-  TS is End - Begin.
+call_statistics(Goal_0, Key, Delta):-
+  statistics(Key, Val1),
+  call(Goal_0),
+  statistics(Key, Val2),
+  Delta is Val2 - Val1.
 
 
-call_timestamp(Goal_0, M, TS):-
-  get_time(Begin),
-  forall(between(1, M, _), Goal_0),
-  get_time(End),
-  TS is (End - Begin) / M.
+call_statistics(Goal_0, Key, NumCalls, AvgDelta):-
+  statistics(Key, Val1),
+  forall(
+    between(1, NumCalls, _),
+    (copy_term(Goal_0, GoalCopy_0), call(GoalCopy_0))
+  ),
+  statistics(Key, Val2),
+  AvgDelta is (Val2 - Val1) / NumCalls.
 
 
 
@@ -187,13 +191,13 @@ date_time_masks([H|T], DT1, DT3) :-
 
 %! 'date_time_to_dt-rdf'(+DT, +D, -Rdf) is det.
 
-'date_time_to_dt-rdf'(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)).
-'date_time_to_dt-rdf'(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)).
-'date_time_to_dt-rdf'(date_time(_,_,D,_,_,_,_), xsd:gDay, D).
-'date_time_to_dt-rdf'(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo).
-'date_time_to_dt-rdf'(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)).
-'date_time_to_dt-rdf'(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y).
-'date_time_to_dt-rdf'(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)).
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
+'date_time_to_dt-rdf'(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)) :- !.
+'date_time_to_dt-rdf'(date_time(_,_,D,_,_,_,_), xsd:gDay, D) :- !.
+'date_time_to_dt-rdf'(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo) :- !.
+'date_time_to_dt-rdf'(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)) :- !.
+'date_time_to_dt-rdf'(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y) :- !.
+'date_time_to_dt-rdf'(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)) :- !.
 'date_time_to_dt-rdf'(date_time(_,_,_,H,Mi,S,_), xsd:time, time(H,Mi,S)).
 
 
@@ -269,14 +273,6 @@ is_date_time(T) :-
 
 'is_dt-rdf'(T) :-
   is_of_type('dt-rdf', T).
-
-
-
-%! print_timestamp(:Goal_0) is det.
-
-print_timestamp(Goal_0) :-
-  call_timestamp(Goal_0, Time),
-  format(user_output, "~w~n", [Time]).
 
 
 
