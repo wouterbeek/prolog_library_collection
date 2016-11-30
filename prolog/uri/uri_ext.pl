@@ -1,6 +1,8 @@
 :- module(
   uri_ext,
   [
+    auth_comps/2, % -Auth:atom, +Comps:compound
+    uri_comps/2,  % -Uri:atom, +Comps:compound
     uri_optional_query_enc//0,
     uri_query_enc//0
   ]
@@ -9,12 +11,38 @@
 
 /** <module> URI extensions
 
+The following abbreviations are used in variables:
+
+| Auth | Authority  |
+| Comp | Components |
+
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/04
+@version 2015/08, 2015/10-2016/04, 2016/11
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
+
+
+
+
+
+%! auth_comps(-Auth:atom, +Comps:compound) is det.
+
+auth_comps(Auth, auth(User,Host,Port)) :-
+  uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
+
+
+
+%! uri_comps(-Uri:atom, +Comps:compound) is det.
+
+uri_comps(Uri, uri(Scheme,AuthComps,Segments,Query,Frag)) :-
+  auth_comps(Auth, AuthComps),
+  atomic_list_concat([''|Segments], Path),
+  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
+
+
 
 %! uri_optional_query_enc// .
 

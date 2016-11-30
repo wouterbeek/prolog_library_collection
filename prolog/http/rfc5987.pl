@@ -1,27 +1,37 @@
 :- module(
   rfc5987,
   [
-    'attr-char'//1,     % ?Code
-    charset//1,         % -Characterset:string
-    'ext-parameter'//1, % -Parameter:dict
-    'ext-value'//1,     % -Value:dict
-    language//1,        % -LanguageTag:list(string)
-    'mime-charset'//1,  % -CharacterSet:string
-    'mime-charsetc'//1, % ?Code
-    parameter//1,       % -Parameter:dict
-    parmname//1,        % -Name:string
-    'reg-parameter'//1, % -Parameter:dict
-    'value-chars'//1    % -Value:string
+    'attr-char'//1,     % -Code:code
+    charset//1,         % -Charset:atom
+    'ext-parameter'//1, % -Param:dict
+    'ext-value'//1,     % -Val:dict
+    language//1,        % -LTag:list(atom)
+    'mime-charset'//1,  % -Charset:atom
+    'mime-charsetc'//1, % -Code:code
+    parameter//1,       % -Param:dict
+    parmname//1,        % -Name:atom
+    'reg-parameter'//1, % -Param:dict
+    'value-chars'//1    % -Val:atom
   ]
 ).
 
 /** <module> RFC 5987: Character Set and Language Encoding for
              Hypertext Transfer Protocol (HTTP) Header Field Parameters
 
+The following abbreviations are used for variables:
+
+| ExtVal  | ExtendedValue |
+
+The following terms are used:
+
+| ExtVal | ext_val(Charset,LTag,Val) |
+| Param  | pair(Key,Val)             |
+| Val    | ExtVal or atom            |
+
 @author Wouter Beek
 @compat RFC 5987
 @see http://tools.ietf.org/html/rfc5987
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/11
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -34,21 +44,22 @@
      'LWSP'//0
    ]).
 :- use_module(library(http/rfc2616), [
-     'quoted-string'//1, % -String:string
-     token//1            % -Token:string
+     'quoted-string'//1, % -String:atom
+     token//1            % -Token:atom
    ]).
 :- use_module(library(ltag/rfc5646), [
-     'Language-Tag'//1 % ?LanguageTag:list(string)
+     'Language-Tag'//1 % -LTag:list(atom)
    ]).
 :- use_module(library(uri/rfc3986), [
-     'pct-encoded'//1 % ?Code:between(0,255)
+     'pct-encoded'//1 % -Code:between(0,255)
    ]).
 
 
 
 
 
-%! 'attr-char'(?Code)// .
+%! 'attr-char'(-Code:code)// .
+%
 % ```abnf
 % attr-char = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "."
 %           / "^" / "_" / "`" / "|" / "~"
@@ -72,32 +83,35 @@
 
 
 
-%! charset(-Characterset:string)// is det.
+%! charset(-Charset:atom)// is det.
+%
 % ```abnf
 % charset = "UTF-8" / "ISO-8859-1" / mime-charset
 % ```
 
-charset("UTF-8")      --> atom_ci('UTF-8'), !.
-charset("ISO-8859-1") --> atom_ci('ISO-8859-1'), !.
+charset('UTF-8')      --> atom_ci('UTF-8'), !.
+charset('ISO-8859-1') --> atom_ci('ISO-8859-1'), !.
 charset(Charset)      --> 'mime-charset'(Charset).
 
 
 
-%! 'ext-parameter'(-Parameter:dict)// is det.
+%! 'ext-parameter'(-Parameter:pair)// is det.
+%
 % Extended parameter.
 %
 % ```abnf
 % ext-parameter = parmname "*" LWSP "=" LWSP ext-value
 % ```
 
-'ext-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
+'ext-parameter'(Key-Val) -->
   parmname(Key), "*",
   'LWSP', "=", 'LWSP',
-  'ext-value'(Value).
+  'ext-value'(Val).
 
 
 
-%! 'ext-value'(-Value:dict)// is det.
+%! 'ext-value'(-ExtVal:compound)// is det.
+%
 % Extended parameter value.
 %
 % ```abnf
@@ -106,31 +120,40 @@ charset(Charset)      --> 'mime-charset'(Charset).
 %           ; (see [RFC2231], Section 7)
 % ```
 
-'ext-value'(_{'llo:charset': Charset, 'llo:language': Lang, 'llo:value': Value}) -->
+'ext-value'(ext_val(Charset,LTag,Val)) -->
   charset(Charset),
   "'",
-  opt(language, Lang),
+  opt(language, LTag),
   "'",
-  'value-chars'(Value).
+  'value-chars'(Val).
 
 
 
-%! language(-LanguageTag:list(string))// is det.
+%! language(-LTag:list(atom))// is det.
+%
+% ```abnf
+% language = <Language-Tag, defined in [RFC5646], Section 2.1>
+% ```
+                                                               
+language(LTag) -->
+  'Language-Tag'(LTag).
 
-language(L) --> 'Language-Tag'(L).
 
 
-
-%! 'mime-charset'(-Characterset:string)// is det.
+%! 'mime-charset'(-Charset:atom)// is det.
+%
 % ```abnf
 % mime-charset  = 1*mime-charsetc
 % ```
 
-'mime-charset'(S) --> +('mime-charsetc', Cs), {string_codes(S, Cs)}.
+'mime-charset'(Charset) -->
+  +('mime-charsetc', Cs), !,
+  {atom_codes(Charset, Cs)}.
 
 
 
-%! 'mime-charsetc'(?Code)// .
+%! 'mime-charsetc'(-Code:code)// .
+%
 % ```abnf
 % mime-charsetc = ALPHA / DIGIT
 %               / "!" / "#" / "$" / "%" / "&"
@@ -159,53 +182,66 @@ language(L) --> 'Language-Tag'(L).
 
 
 
-%! parameter(-Parameter:dict)// is det.
+%! parameter(-Param:pair)// is det.
+%
 % ```abnf
 % parameter = reg-parameter / ext-parameter
 % ```
 
-parameter(D) --> 'reg-parameter'(D), !.
-parameter(D) --> 'ext-parameter'(D).
+parameter(Param) --> 'reg-parameter'(Param), !.
+parameter(Param) --> 'ext-parameter'(Param).
 
 
 
-%! parmname(-Name:string)// is det.
+%! parmname(-Name:atom)// is det.
+%
 % ```abnf
 % parmname = 1*attr-char
 % ```
 
-parmname(S) --> +('attr-char', Cs), {string_codes(S, Cs)}.
+parmname(Name) -->
+  +('attr-char', Cs), !,
+  {atom_codes(Name, Cs)}.
 
   
 
-%! 'reg-parameter'(-Parameter:dict)// is det.
+%! 'reg-parameter'(-Param:pair(atom))// is det.
+%
 % A regular parameter, as defined in RFC 2616.
 %
 % ```abnf
 % reg-parameter = parmname LWSP "=" LWSP value
 % ```
 
-'reg-parameter'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
-  parmname(Key), 'LWSP', "=", 'LWSP', value(Value).
+'reg-parameter'(Key-Val) -->
+  parmname(Key),
+  'LWSP',
+  "=",
+  'LWSP',
+  value(Val).
 
 
 
-%! value(-Value:string)// is det.
+%! value(-Val:atom)// is det.
+%
 % ```abnf
 % value = token / quoted-string
 % ```
 
-value(S) --> token(S).
-value(S) --> 'quoted-string'(S).
+value(Val) --> token(Val), !.
+value(Val) --> 'quoted-string'(Val).
 
 
 
-%! 'value-chars'(-Value:string)// is det.
+%! 'value-chars'(-Val:atom)// is det.
+%
 % ```abnf
 % value-chars = *( pct-encoded / attr-char )
 % ```
 
-'value-chars'(S) --> *(value_char, Cs), {string_codes(S, Cs)}.
+'value-chars'(Val) -->
+  *(value_char, Cs), !,
+  {atom_codes(Val, Cs)}.
 
 value_char(C) --> 'pct-encoded'(C).
 value_char(C) --> 'attr-char'(C).

@@ -1,7 +1,7 @@
 :- module(
   rfc5988,
   [
-    link//1 % -Links:list(dict)
+    link//1 % -Links:list(pair)
   ]
 ).
 
@@ -57,7 +57,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 @author Wouter Beek
 @compat RFC 5988
 @see https://tools.ietf.org/html/rfc5988
-@version 2015/12, 2016/08-2016/09
+@version 2015/12, 2016/08-2016/09, 2016/11
 */
 
 :- use_module(library(apply)).
@@ -83,21 +83,22 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
      'type-name'//1     % -TypeName
    ]).
 :- use_module(library(http/rfc5987), [
-     'ext-value'//1, % -Val:dict
-     parmname//1     % -Name
+     'ext-value'//1, % -Val:compound
+     parmname//1     % -Name:atom
    ]).
 :- use_module(library(ltag/rfc5646), [
-     'Language-Tag'//1 % -LTag:list(string)
+     'Language-Tag'//1 % -LTag:list(atom)
    ]).
 :- use_module(library(uri/rfc3986), [
-     'URI'//1,                             % -Uri:dict
-     'URI-reference'//1 as 'URI-Reference' % -UriReference:dict
+     'URI'//1,                             % -Uri:compound
+     'URI-reference'//1 as 'URI-Reference' % -UriReference:compound
    ]).
 
 
 
 
-%! 'ext-name-star'(-Name)// is det.
+
+%! 'ext-name-star'(-Name:atom)// is det.
 %
 % ```abnf
 % ext-name-star = parmname "*"   ; reserved for RFC2231-profiled
@@ -105,31 +106,35 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 %                                ; allowed in between.
 % ```
 
-'ext-name-star'(Str) --> parmname(Str), "*".
+'ext-name-star'(Name) -->
+  parmname(Name),
+  "*".
 
 
 
-%! 'ext-rel-type'(-Uri:dict)// is det.
+%! 'ext-rel-type'(-Uri:compound)// is det.
 %
 % ```abnf
 % ext-rel-type = URI
 % ```
 
-'ext-rel-type'(D) --> 'URI'(D).
+'ext-rel-type'(Uri) -->
+  'URI'(Uri).
 
 
 
-%! link(-Links:list(dict))// is det.
+%! link(-Links:list(pair))// is det.
 %
 % ```abnf
 % Link = "Link" ":" #link-value
 % ```
 
-link(L) --> *#('link-value', L).
+link(Links) -->
+  *#('link-value', Links).
 
 
 
-%! 'link-extension'(-Pair)// is det.
+%! 'link-extension'(-Pair:pair(atom))// is det.
 %
 % ```abnf
 % link-extension = ( parmname [ "=" ( ptoken | quoted-string ) ] )
@@ -164,80 +169,76 @@ link(L) --> *#('link-value', L).
 %              | ( link-extension ) )
 % ```
 
-'link-param'(rel-L) -->
+'link-param'(rel-Types) -->
   atom_ci(rel),
   "=", !,
-  'relation-types'(L).
+  'relation-types'(Types).
 'link-param'(anchor-Uri) -->
   atom_ci(anchor),
   "=", !,
   "\"",
   'URI-Reference'(Uri),
   "\"".
-'link-param'(rev-L) -->
+'link-param'(rev-Types) -->
   atom_ci(rev),
   "=", !,
-  'relation-types'(L).
+  'relation-types'(Types).
 'link-param'(hreflang-LTag) -->
   atom_ci(hreflang),
   "=", !,
   'Language-Tag'(LTag).
-'link-param'(media-L) -->
+'link-param'(media-MTs) -->
   atom_ci(media),
   "=", !,
-  (   'MediaDesc'(L)
+  (   'MediaDesc'(MTs)
   ;   "\"",
-      'MediaDesc'(L),
+      'MediaDesc'(MTs),
       "\""
   ), !.
-'link-param'(title-S) -->
+'link-param'(title-Str) -->
   atom_ci(title),
   "=", !,
-  'quoted-string'(S).
-'link-param'('title*'-S) -->
+  'quoted-string'(Str).
+'link-param'('title*'-Title) -->
   atom_ci('title*'),
   "=", !,
-  'ext-value'(S).
-'link-param'(type-D) -->
+  'ext-value'(Title).
+'link-param'(type-MT) -->
   atom_ci(type),
   "=", !,
-  (   'media-type'(D)
-  ;   'quoted-mt'(D)
+  (   'media-type'(MT)
+  ;   'quoted-mt'(MT)
   ), !.
 'link-param'(Pair) -->
   'link-extension'(Pair).
 
 
 
-%! 'link-value'(-Val:dict)// is det.
+%! 'link-value'(-Val)// is det.
 %
 % ```abnf
 % link-value = "<" URI-Reference ">" *( ";" link-param )
 % ```
 
-'link-value'(link_value{params: Params, uri: Ref}) -->
+'link-value'(Ref-Params) -->
   "<",
   'URI-Reference'(Ref),
   ">",
   *(sep_link_param, Pairs),
   {
-    group_pairs_by_key(Pairs, GroupedPairs1),
-    maplist(enforce_max_card, GroupedPairs1, GroupedPairs2),
-    dict_pairs(Params, params, GroupedPairs2)
+    group_pairs_by_key(Pairs, GroupedPairs),
+    maplist(enforce_max_cardinality, GroupedPairs, Params)
   }.
 
-
-enforce_max_card(Key-[Val], Key-Val) :- !.
-enforce_max_card(Key-[Val|_], Key-Val) :-
+enforce_max_cardinality(Key-[Val], Key-Val) :- !.
+enforce_max_cardinality(Key-[Val|_], Key-Val) :-
   at_most_once(Key), !.
-enforce_max_card(Pair, Pair).
-
+enforce_max_cardinality(Pair, Pair).
 
 at_most_once(rel).
 at_most_once(title).
 at_most_once('title*').
 at_most_once(type).
-
 
 sep_link_param(Pair) -->
   'OWS',
@@ -260,19 +261,19 @@ sep_link_param(Pair) -->
 
 
 
-%! ptoken(-Token)// is det.
+%! ptoken(-Token:atom)// is det.
 %
 % ```abnf
 % ptoken = 1*ptokenchar
 % ```
 
-ptoken(Str) -->
-  +(ptokenchar, Cs),
-  {string_codes(Str, Cs)}.
+ptoken(Token) -->
+  +(ptokenchar, Cs), !,
+  {atom_codes(Token, Cs)}.
 
 
 
-%! ptokenchar(?Code)// .
+%! ptokenchar(-Code:code)// .
 %
 % ```abnf
 % ptokenchar = "!" | "#" | "$" | "%" | "&" | "'" | "("
@@ -315,27 +316,29 @@ ptokenchar(0'~) --> "~".
 
 
 
-%! 'quoted-mt'(-MT)// is det.
+%! 'quoted-mt'(-MT:compound)// is det.
 %
 % ```abnf
 % quoted-mt = <"> media-type <">
 % ```
 
-'quoted-mt'(MT) --> "\"", 'media-type'(MT), "\"".
+'quoted-mt'(MT) -->
+  "\"",
+  'media-type'(MT),
+  "\"".
 
 
 
-%! 'reg-rel-type'(-Val)// .
+%! 'reg-rel-type'(-Type:atom)// .
 %
 % ```abnf
 % reg-rel-type   = LOALPHA *( LOALPHA | DIGIT | "." | "-" )
 % ```
 
-'reg-rel-type'(Str) -->
+'reg-rel-type'(Type) -->
   'LOALPHA'(H),
-  *(reg_rel_type_code, T),
-  {string_codes(Str, [H|T])}.
-
+  *(reg_rel_type_code, T), !,
+  {atom_codes(Type, [H|T])}.
 
 reg_rel_type_code(C)   --> 'LOALPHA'(C).
 reg_rel_type_code(C)   --> 'DIGIT'(_, C).
@@ -344,20 +347,21 @@ reg_rel_type_code(0'-) --> "-".
 
 
 
-%! 'relation-type'(-Val)// is det.
+%! 'relation-type'(-Type:atom)// is det.
 %
 % ```abnf
 % relation-type  = reg-rel-type | ext-rel-type
 % ```
 
-'relation-type'(S) -->
-  'reg-rel-type'(S).
-'relation-type'(D) -->
-  'ext-rel-type'(D).
+'relation-type'(Type) -->
+  'reg-rel-type'(Type), !.
+'relation-type'(Type) -->
+  'ext-rel-type'(UriComps),
+  {uri_comps(Type, UriComps)}.
 
 
 
-%! 'relation-types'(-RelationTypes)// is det.
+%! 'relation-types'(-Types:list(atom))// is det.
 %
 % ```abnf
 % relation-types = relation-type
@@ -366,12 +370,11 @@ reg_rel_type_code(0'-) --> "-".
 
 'relation-types'([H|T]) -->
   "\"", !,
-  'relation-type'(H),
-  *(sep_relation_type, T),
+  must_see('relation-type'(H)),
+  *(sep_relation_type, T), !,
   "\"".
 'relation-types'([H]) -->
   'relation-type'(H).
-
 
 sep_relation_type(X) -->
   +('SP'),
