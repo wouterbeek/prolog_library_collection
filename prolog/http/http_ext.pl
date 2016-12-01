@@ -28,7 +28,7 @@ Support for extracting information from HTTP requests/received
 messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/11
+@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/12
 */
 
 :- use_module(library(apply)).
@@ -59,11 +59,15 @@ http_absolute_location(Spec, Path) :-
 
 
 %! http_accept(+Req, -MTs) is det.
+%
+% Matches MTs = [_] in case there is no HTTP Accept header.
 
 http_accept(Req, MTs) :-
-  (memberchk(accept(L), Req) -> true ; L = []),
+  memberchk(accept(L), Req), !,
   maplist(mediatype_pair, L, Pairs),
   desc_pairs_values(Pairs, MTs).
+http_accept(_, [_]).
+
 
 
 mediatype_pair(media(MT,_,N,_), N-MT).

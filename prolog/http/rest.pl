@@ -53,7 +53,7 @@ There are two phases in handling REST requests:
    rest_method(+, +, 3),
    rest_method(+, +, +, 4),
    rest_method(+, +, 3, +, 4),
-   rest_method(+, +, +, 3, +, 4).
+   rest_method0(+, +, +, 3, +, 4).
 
 
 
@@ -130,15 +130,15 @@ rest_method(Req, Methods, HandleId, Singular_4) :-
 
 rest_method(Req, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(method(Method), Req),
-  rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4).
+  rest_method0(Req, Method, Methods, Plural_3, HandleId, Singular_4).
 
 
 % “OPTIONS”
-rest_method(Req, options, Methods1, _, _, _) :- !,
+rest_method0(Req, options, Methods1, _, _, _) :- !,
   sort([head,options|Methods1], Methods2),
   reply_http_message(Req, 200, ['Allow'-Methods2]).
 % Method accepted, on to media types.
-rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
+rest_method0(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(Method, Methods), !,
   http_relative_iri(Req, Iri1),
   http_accept(Req, MTs),
@@ -150,5 +150,5 @@ rest_method(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   ;   call(Plural_3, Req, Method, MTs)
   ).
 % 405 “Method Not Allowed”
-rest_method(Req, _, _, _, _, _) :-
+rest_method0(Req, _, _, _, _, _) :-
   reply_http_message(Req, 405).

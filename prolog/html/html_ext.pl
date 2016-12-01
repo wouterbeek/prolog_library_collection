@@ -10,7 +10,7 @@
     button//2,               % +Attrs, :Content_0
     card//2,                 % :Left_0, :Right_0
     card//3,                 % +Attrs, :Left_0, :Right_0
-    caret//0,
+    html_caret//0,
     center_logo//1,          % +Spec
     code_link//1,            % +Iri
     collapse_content//2,     % +Id, :Content_0
@@ -22,14 +22,14 @@
     date//1,                 % +DT
     deck//2,                 % :Card_1, +Items
     deck//3,                 % +Attrs, :Card_1, +Items
-    default//3,              % :ItemWriter_1, :DefContent_1, +Arg1
+    default//3,              % :Writer_1, :DefContent_1, +Arg1
     definition_list//1,      % +L
-    definition_list//2,      % :ItemWriter_1, +L
-    definition_list//3,      % +Attrs, :ItemWriter_1, +L
+    definition_list//2,      % :Writer_1, +L
+    definition_list//3,      % +Attrs, :Writer_1, +L
     developed_with//0,
     dict//1,                 % +Dict
-    dropdown_menu//3,        % :Top_0, :ItemWriter_1, +Items
-    dropdown_menu//4,        % +Attrs, :Top_0, :ItemWriter_1, +Items
+    dropdown_menu//3,        % :Top_0, :Writer_1, +Items
+    dropdown_menu//4,        % +Attrs, :Top_0, :Writer_1, +Items
     ellipsis//2,             % +Str, +MaxLen
     endpoint_link//1,        % +HandleId
     endpoint_link//2,        % +HandleId, :Content_0
@@ -62,7 +62,7 @@
     git_version//0,
     google_analytics//0,
     google_font//1,          % +Name
-    grid//4,                 % +GridWidth, +TileWidth, :ItemWriter_1, +Args
+    grid//4,                 % +GridWidth, +TileWidth, :Writer_1, +Args
     hamburger//1,            % +Target
     html_bracketed//1,       % :Content_0
     html_call//1,            % :Content_0
@@ -77,26 +77,29 @@
     html_hook//2,            % +Opts, +Term
     html_http_error_page/2,  % +Style, +Req
     html_license//2,         % +Uri, +Lbl
+    html_list//3,            % +Ordered:boolean, :Writer_1, +Args
+    html_list//4,            % +Attrs, +Ordered:boolean, :Writer_1, +Args
     html_lstring//1,         % +Name
-    html_maplist//2,         % :ItemWriter_1, +Args1
-    html_maplist//3,         % :ItemWriter_1, +Args1, +Args2
+    html_maplist//2,         % :Writer_1, +Args1
+    html_maplist//3,         % :Writer_1, +Args1, +Args2
     html_pair//1,            % +Pair
     html_pair//2,            % +Arg1, Arg2
-    html_pair//3,            % :ItemWriter_1, +Arg1, +Arg2
+    html_pair//3,            % :Writer_1, +Arg1, +Arg2
     html_quad//4,            % +Arg1, +Arg2, +Arg3, +Arg4
-    html_quad//5,            % :ItemWriter_1, +Arg1, +Arg2, +Arg3, +Arg4
-    html_select//2,          % :ItemGen_1, :ItemWriter_1
-    html_select//3,          % +Attrs, :ItemGen_1, :ItemWriter_1
+    html_quad//5,            % :Writer_1, +Arg1, +Arg2, +Arg3, +Arg4
+    html_select//2,          % :ItemGen_1, :Writer_1
+    html_select//3,          % +Attrs, :ItemGen_1, :Writer_1
     html_seplist//2,         % :Content_0, :Sep_0
-    html_seplist//3,         % :ItemWriter_1, :Sep_0, +Args
+    html_seplist//3,         % :Writer_1, :Sep_0, +Args
     html_set//1,             % +Args
-    html_set//2,             % :ItemWriter_1, +Args
+    html_set//2,             % :Writer_1, +Args
+    html_space//0,
     html_sq//1,              % :Content_0
     html_thousands//1,       % +Integer
     html_triple//3,          % +Arg1, +Arg2, +Arg3
-    html_triple//4,          % :ItemWriter_1, +Arg1, +Arg2, +Arg3
+    html_triple//4,          % :Writer_1, +Arg1, +Arg2, +Arg3
     html_tuple//1,           % +Arg
-    html_tuple//2,           % :ItemWriter_1, +Args
+    html_tuple//2,           % :Writer_1, +Args
     html_to_atom/2,          % :Content_0, -A
     human_integer//1,        % +N
     icon//1,                 % +Name
@@ -130,7 +133,7 @@
     link_button//2,          % +Iri, :Content_0
     linkedin_share//0,
     list//1,                 % +Args
-    list//2,                 % :ItemWriter_1, +Args
+    list//2,                 % :Writer_1, +Args
     mail_icon//1,            % +Uri
     mail_link_and_icon//1,   % +Uri
     menu//0,
@@ -145,19 +148,19 @@
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
     navbar_brand_img//2,     % +Local, +Alt
-    navbar_dropdown_menu//4, % +Name, +Lbl, :ItemWriter_1, +L
-    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :ItemWriter_1, +L
+    navbar_dropdown_menu//4, % +Name, +Lbl, :Writer_1, +L
+    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Writer_1, +L
     nonvar//1,               % :Content_0
-    nonvar//2,               % :ItemWriter_1, +Arg1
+    nonvar//2,               % :Writer_1, +Arg1
     nowrap//1,               % :Content_0
     number//2,               % +Format, +N
     once//1,                 % :Content_0
     ordered_list//1,         % +Items
-    ordered_list//2,         % :ItemWriter_1, +Items
-    ordered_list//3,         % +Attrs, :ItemWriter_1, +Items
+    ordered_list//2,         % :Writer_1, +Items
+    ordered_list//3,         % +Attrs, :Writer_1, +Items
     pagination_links//1,     % +Result
-    pagination_result//2,    % +Result, :ItemWriter_1
-    pagination_result_nonempty//2, % +Result, :ItemWriter_1
+    pagination_result//2,    % +Result, :Writer_1
+    pagination_result_nonempty//2, % +Result, :Writer_1
     panel//3,                % +N, +Header, :Content_0
     panel//4,                % +Open:boolean, +N, +Header, :Content_0
     panels//1,               % :Panels_0
@@ -193,8 +196,7 @@
                              % :ContentD_0
     search_box//1,           % +Action
     search_box//2,           % +Attrs, +Action
-    search_result//2,        % +Result, :ItemWriter_1
-    space//0,
+    search_result//2,        % +Result, :Writer_1
     streamer//1,             % :Content_0
     submit_button//0,
     submit_button//1,        % :Content_0
@@ -228,8 +230,8 @@
     twitter_tweet//1,        % +Iri
     unless//2,               % :Unless_0, :Then_0
     unordered_list//1,       % +Items
-    unordered_list//2,       % :ItemWriter_1, +Items
-    unordered_list//3,       % +Attrs, :ItemWriter_1, +Items
+    unordered_list//2,       % :Writer_1, +Items
+    unordered_list//3,       % +Attrs, :Writer_1, +Items
     upload_form//1,          % +Spec
     user_menu//2,            % :UserName_2, :UserImg_2
     vote_down//1,            % +Vote:integer
@@ -247,7 +249,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2016/11
+@version 2016/02-2016/12
 */
 
 :- use_module(library(apply)).
@@ -313,6 +315,8 @@ html({|html||...|}).
    html_catch(html, ?, ?),
    html_code(html, ?, ?),
    html_dq(html, ?, ?),
+   html_list(+, 3, +, ?, ?),
+   html_list(+, +, 3, +, ?, ?),
    html_seplist(html, html, ?, ?),
    html_seplist(3, html, +, ?, ?),
    html_sq(html, ?, ?),
@@ -655,13 +659,6 @@ card(Attrs1, Left_0, Right_0) -->
 
 
 
-%! caret// is det.
-
-caret -->
-  html(span(class=caret, [])).
-
-
-
 %! center_logo(+Spec)// is det.
 %
 % Generates a full-width SVG logo, typically directly beneath the
@@ -777,19 +774,19 @@ deck(Attrs1, Card_1, L) -->
 
 
 
-%! default(:ItemWriter_1, :DefContent_1, +Arg1)// is det.
+%! default(:Writer_1, :DefContent_1, +Arg1)// is det.
 
-default(ItemWriter_1, DefContent_1, Arg1) -->
-  (   {var_goal(ItemWriter_1)}
+default(Writer_1, DefContent_1, Arg1) -->
+  (   {var_goal(Writer_1)}
   ->  html_call(DefContent_1, Arg1)
-  ;   html_call(ItemWriter_1, Arg1)
+  ;   html_call(Writer_1, Arg1)
   ).
 
 
 
 %! definition_list(+L)// is det.
-%! definition_list(:ItemWriter_1, +L)// is det.
-%! definition_list(+Attrs, :ItemWriter_1, +L)// is det.
+%! definition_list(:Writer_1, +L)// is det.
+%! definition_list(+Attrs, :Writer_1, +L)// is det.
 %
 % Generates an HTML definition list.  Definition terms are of the form
 % def(Definiens,Definiendum).
@@ -798,25 +795,25 @@ definition_list(L) -->
   definition_list(html, L).
 
 
-definition_list(ItemWriter_1, L) -->
-  definition_list([], ItemWriter_1, L).
+definition_list(Writer_1, L) -->
+  definition_list([], Writer_1, L).
 
 
-definition_list(Attrs, ItemWriter_1, L) -->
+definition_list(Attrs, Writer_1, L) -->
   html(
     dl(Attrs,
-      \html_maplist(definition_list_item(ItemWriter_1), L)
+      \html_maplist(definition_list_item(Writer_1), L)
     )
   ).
 
 
-definition_list_item(ItemWriter_1, L) -->
+definition_list_item(Writer_1, L) -->
   {is_list(L)}, !,
-  definition_list(ItemWriter_1, L).
-definition_list_item(ItemWriter_1, def(Definiens,Definiendum)) -->
+  definition_list(Writer_1, L).
+definition_list_item(Writer_1, def(Definiens,Definiendum)) -->
   html([
-    dt(\html_call(ItemWriter_1, Definiens)),
-    dd(\html_call(ItemWriter_1, Definiendum))
+    dt(\html_call(Writer_1, Definiens)),
+    dd(\html_call(Writer_1, Definiendum))
   ]).
 
 
@@ -846,14 +843,14 @@ dict(Dict) -->
 
 
 
-%! dropdown_menu(:Top_0, :ItemWriter_1, +Items)// is det.
-%! dropdown_menu(+Attrs, :Top_0, :ItemWriter_1, +Items)// is det.
+%! dropdown_menu(:Top_0, :Writer_1, +Items)// is det.
+%! dropdown_menu(+Attrs, :Top_0, :Writer_1, +Items)// is det.
 
-dropdown_menu(Top_0, ItemWriter_1, L) -->
-  dropdown_menu([], Top_0, ItemWriter_1, L).
+dropdown_menu(Top_0, Writer_1, L) -->
+  dropdown_menu([], Top_0, Writer_1, L).
 
 
-dropdown_menu(Attrs1, Top_0, ItemWriter_1, L) -->
+dropdown_menu(Attrs1, Top_0, Writer_1, L) -->
   {merge_attrs(Attrs1, [class=dropdown], Attrs2)},
   html(
     li(Attrs2, [
@@ -865,9 +862,9 @@ dropdown_menu(Attrs1, Top_0, ItemWriter_1, L) -->
         role=button
       ], [
         Top_0,
-        \caret
+        \html_caret
       ]),
-      \unordered_list([class='dropdown-menu'], ItemWriter_1, L)
+      \unordered_list([class='dropdown-menu'], Writer_1, L)
     ])
   ).
 
@@ -1440,16 +1437,16 @@ google_font(Name) -->
 
 
 
-%! grid(+GridWidth, +TileWidth, :ItemWriter_1, +Args)// is det.
+%! grid(+GridWidth, +TileWidth, :Writer_1, +Args)// is det.
 %
 % Generates an HTML grid whose tiles implement widgets.  Widgets are
 % represented by Prolog compound terms.  Widgets are defined outside
 % of this module.
 
-grid(GridWidth, TileWidth, ItemWriter_1, L) -->
+grid(GridWidth, TileWidth, Writer_1, L) -->
   {format(atom(Style), 'margin-top: 10px; max-width: ~dpx;', [GridWidth])},
   html([
-    div([id=grid,style=Style], \html_maplist(tile(ItemWriter_1), L)),
+    div([id=grid,style=Style], \html_maplist(tile(Writer_1), L)),
     \html_requires(grid),
     \js_script({|javascript(TileWidth)||
 $('#grid').pinto({gapY: 10, itemWidth: TileWidth});
@@ -1457,10 +1454,10 @@ $('#grid').pinto({gapY: 10, itemWidth: TileWidth});
   ]).
 
 
-%! tile(:ItemWriter_1, +Arg)// is det.
+%! tile(:Writer_1, +Arg)// is det.
 
-tile(ItemWriter_1, X) -->
-  html(div(\html_call(ItemWriter_1, X))).
+tile(Writer_1, X) -->
+  html(div(\html_call(Writer_1, X))).
 
 
 
@@ -1542,6 +1539,13 @@ html_callable(Mod, Html_2) -->
 
 
 
+%! html_caret// is det.
+
+html_caret -->
+  html(span(class=caret, [])).
+
+
+
 %! html_catch(:Content_0)// is det.
 %
 % Either generates Content_0 or an HTML representation of an exception
@@ -1613,6 +1617,25 @@ html_license(Uri, Lbl) -->
 
 
 
+%! html_list(+Ordered:boolean, :Writer_1, +Args)// is det.
+%! html_list(+Attrs, +Ordered:boolean, :Writer_1, +Args)// is det.
+
+html_list(Ordered, Writer_1, L) -->
+  html_list([], Ordered, Writer_1, L).
+
+html_list(Attrs, false, Writer_1, L) --> !,
+  html(ul(Attrs, \html_maplist(html_list_item(false, Writer_1), L))).
+html_list(Attrs, true, Writer_1, L) -->
+  html(ol(Attrs, \html_maplist(html_list_item(true, Writer_1), L))).
+
+html_list_item(Ordered, Writer_1, L) -->
+  {is_list(L)}, !,
+  html(li(\html_list(Ordered, Writer_1, L))).
+html_list_item(_, Writer_1, X) --> !,
+  html(li(\html_call(Writer_1, X))).
+
+
+
 %! html_lstring(+Name)// is det.
 
 html_lstring(Name) -->
@@ -1621,13 +1644,13 @@ html_lstring(Name) -->
 
 
 
-%! html_maplist(:ItemWriter_1, +Args1) .
-%! html_maplist(:ItemWriter_1, +Args1, +Args2)// is det.
+%! html_maplist(:Writer_1, +Args1) .
+%! html_maplist(:Writer_1, +Args1, +Args2)// is det.
 
 html_maplist(_, []) --> !, [].
-html_maplist(ItemWriter_1, [H|T]) -->
-  html_call(ItemWriter_1, H),
-  html_maplist(ItemWriter_1, T).
+html_maplist(Writer_1, [H|T]) -->
+  html_call(Writer_1, H),
+  html_maplist(Writer_1, T).
 
 
 html_maplist(_, [], []) --> [].
@@ -1639,7 +1662,7 @@ html_maplist(Goal_4, [H1|T1], [H2|T2]) -->
 
 %! html_pair(+Pair)// is det.
 %! html_pair(+Arg1, +Arg2)// is det.
-%! html_pair(:ItemWriter_1, +Arg1, +Arg2)// is det.
+%! html_pair(:Writer_1, +Arg1, +Arg2)// is det.
 %
 % Generates an HTML representation for a pair.
 
@@ -1651,13 +1674,13 @@ html_pair(Arg1, Arg2) -->
   tuple([Arg1,Arg2]).
 
 
-html_pair(ItemWriter_1, Arg1, Arg2) -->
-  tuple(ItemWriter_1, [Arg1,Arg2]).
+html_pair(Writer_1, Arg1, Arg2) -->
+  tuple(Writer_1, [Arg1,Arg2]).
 
 
 
 %! html_quad(+Arg1, +Arg2, +Arg3, +Arg4)// is det.
-%! html_quad(:ItemWriter_1, +Arg1, +Arg2, +Arg3, +Arg4)// is det.
+%! html_quad(:Writer_1, +Arg1, +Arg2, +Arg3, +Arg4)// is det.
 %
 % Generates an HTML representation for a triple.
 
@@ -1665,29 +1688,29 @@ html_quad(Arg1, Arg2, Arg3, Arg4) -->
   html_tuple([Arg1,Arg2,Arg3,Arg4]).
 
 
-html_quad(ItemWriter_1, Arg1, Arg2, Arg3, Arg4) -->
-  html_tuple(ItemWriter_1, [Arg1,Arg2,Arg3,Arg4]).
+html_quad(Writer_1, Arg1, Arg2, Arg3, Arg4) -->
+  html_tuple(Writer_1, [Arg1,Arg2,Arg3,Arg4]).
 
 
 
-%! html_select(:ItemGen_1, :ItemWriter_1)// is det.
-%! html_select(+Attrs, :ItemGen_1, :ItemWriter_1)// is det.
+%! html_select(:ItemGen_1, :Writer_1)// is det.
+%! html_select(+Attrs, :ItemGen_1, :Writer_1)// is det.
 
-html_select(ItemGen_1, ItemWriter_1) -->
-  html_select([], ItemGen_1, ItemWriter_1).
+html_select(ItemGen_1, Writer_1) -->
+  html_select([], ItemGen_1, Writer_1).
 
 
-html_select(Attrs1, ItemGen_1, ItemWriter_1) -->
+html_select(Attrs1, ItemGen_1, Writer_1) -->
   {
     merge_attrs(Attrs1, [class='form-control'], Attrs2),
     findall(Item, call(ItemGen_1, Item), Items)
   },
-  html(select(Attrs2, \html_maplist(ItemWriter_1, Items))).
+  html(select(Attrs2, \html_maplist(Writer_1, Items))).
 
 
 
 %! html_seplist(:Content_0, :Sep_0)// is det.
-%! html_seplist(:ItemWriter_1, :Sep_0, +L)// is det.
+%! html_seplist(:Writer_1, :Sep_0, +L)// is det.
 
 html_seplist(Content_0, Sep_0) -->
   Content_0,
@@ -1699,24 +1722,31 @@ html_seplist(_, _) --> !, [].
 
 
 html_seplist(_, _, []) --> !, [].
-html_seplist(ItemWriter_1, _, [H]) --> !,
-  html_call(ItemWriter_1, H).
-html_seplist(ItemWriter_1, Sep_0, [H1,H2|T]) -->
-  html_call(ItemWriter_1, H1),
+html_seplist(Writer_1, _, [H]) --> !,
+  html_call(Writer_1, H).
+html_seplist(Writer_1, Sep_0, [H1,H2|T]) -->
+  html_call(Writer_1, H1),
   Sep_0,
-  html_seplist(ItemWriter_1, Sep_0, [H2|T]).
+  html_seplist(Writer_1, Sep_0, [H2|T]).
 
 
 
 %! html_set(+Args)// is det.
-%! html_set(:ItemWriter_1, +Args)// is det.
+%! html_set(:Writer_1, +Args)// is det.
 
 html_set(Args) -->
   html_set(html_hook, Args).
 
 
-html_set(ItemWriter_1, Args) -->
-  html([&(123),\html_seplist(ItemWriter_1, html(","), Args),&(125)]).
+html_set(Writer_1, Args) -->
+  html([&(123),\html_seplist(Writer_1, html(","), Args),&(125)]).
+
+
+
+%! html_space// is det.
+
+html_space -->
+  html(span(class=space, [])).
 
 
 
@@ -1745,7 +1775,7 @@ html_thousands(Integer) -->
 
 
 %! html_triple(+Arg1, +Arg2, +Arg3)// is det.
-%! html_triple(:ItemWriter_1, +Arg1, +Arg2, +Arg3)// is det.
+%! html_triple(:Writer_1, +Arg1, +Arg2, +Arg3)// is det.
 %
 % Generates an HTML representation for a triple.
 
@@ -1753,13 +1783,13 @@ html_triple(Arg1, Arg2, Arg3) -->
   html_tuple([Arg1,Arg2,Arg3]).
 
 
-html_triple(ItemWriter_1, Arg1, Arg2, Arg3) -->
-  html_tuple(ItemWriter_1, [Arg1,Arg2,Arg3]).
+html_triple(Writer_1, Arg1, Arg2, Arg3) -->
+  html_tuple(Writer_1, [Arg1,Arg2,Arg3]).
 
 
 
 %! html_tuple(+Args)// is det.
-%! html_tuple(:ItemWriter_1, +Args)// is det.
+%! html_tuple(:Writer_1, +Args)// is det.
 %
 % Generates an HTML representation for a tuple.
 
@@ -1767,8 +1797,8 @@ html_tuple(Args) -->
   html_tuple(html, Args).
 
 
-html_tuple(ItemWriter_1, Args) -->
-  html([&(lang),\html_seplist(ItemWriter_1, html(","), Args),&(rang)]).
+html_tuple(Writer_1, Args) -->
+  html([&(lang),\html_seplist(Writer_1, html(","), Args),&(rang)]).
 
 
 
@@ -2111,14 +2141,14 @@ linkedin_share -->
 
 
 %! list(+Args)// is det.
-%! list(:ItemWriter_1, +Args)// is det.
+%! list(:Writer_1, +Args)// is det.
 
 list(Args) -->
   list(html_hook, Args).
 
 
-list(ItemWriter_1, Args) -->
-  html([&(91),\html_seplist(ItemWriter_1, Args),&(93)]).
+list(Writer_1, Args) -->
+  html([&(91),\html_seplist(Writer_1, Args),&(93)]).
 
 
 
@@ -2313,23 +2343,23 @@ navbar_brand_img(Spec, Attrs1) -->
 
 
 
-%! navbar_dropdown_menu(+Name, +Lbl, :ItemWriter_1, +Items)// is det.
-%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :ItemWriter_1, +Items)// is det.
+%! navbar_dropdown_menu(+Name, +Lbl, :Writer_1, +Items)// is det.
+%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :Writer_1, +Items)// is det.
 %
 % @tbd What does `role(search)` do?
 
-navbar_dropdown_menu(Name, Lbl, ItemWriter_1, L) -->
-  navbar_dropdown_menu([], Name, Lbl, ItemWriter_1, L).
+navbar_dropdown_menu(Name, Lbl, Writer_1, L) -->
+  navbar_dropdown_menu([], Name, Lbl, Writer_1, L).
 
 
-navbar_dropdown_menu(Attrs1, Name, Lbl, ItemWriter_1, L) -->
+navbar_dropdown_menu(Attrs1, Name, Lbl, Writer_1, L) -->
   {merge_attrs(Attrs1, [class=['navbar-form'],id=Name,role=search], Attrs2)},
   html(
     form(Attrs2,
       div(class='form-group', [
         label(for=Name, [Lbl,": "]),
         select([class=['form-control',selectpicker],id=Name],
-          \html_maplist(ItemWriter_1, L)
+          \html_maplist(Writer_1, L)
         )
       ])
     )
@@ -2338,14 +2368,14 @@ navbar_dropdown_menu(Attrs1, Name, Lbl, ItemWriter_1, L) -->
 
 
 %! nonvar(:Content_0)// is det.
-%! nonvar(:ItemWriter_1, +Arg1)// is det.
+%! nonvar(:Writer_1, +Arg1)// is det.
 
 nonvar(Content_0) -->
   ({var_goal(Content_0)} -> [] ; html_call(Content_0)).
 
 
-nonvar(ItemWriter_1, Arg1) -->
-  ({var_goal(ItemWriter_1)} -> [] ; html_call(ItemWriter_1, Arg1)).
+nonvar(Writer_1, Arg1) -->
+  ({var_goal(Writer_1)} -> [] ; html_call(Writer_1, Arg1)).
 
 
 
@@ -2366,10 +2396,10 @@ number(Fmt, N) -->
 
 
 
-%! once(:ItemWriter_1)// is det.
+%! once(:Writer_1)// is det.
 
-once(ItemWriter_1, X, Y) :-
-  once(html_call(ItemWriter_1, X, Y)).
+once(Writer_1, X, Y) :-
+  once(html_call(Writer_1, X, Y)).
 
 
 
@@ -2384,8 +2414,8 @@ operator(Mod, op(Pred,Type,Name)) -->
 
 
 %! ordered_list(+Items)// is det.
-%! ordered_list(:ItemWriter_1, +Items)// is det.
-%! ordered_list(+Attrs, :ItemWriter_1, +Items)// is det.
+%! ordered_list(:Writer_1, +Items)// is det.
+%! ordered_list(+Attrs, :Writer_1, +Items)// is det.
 %
 % Generates an ordered HTML list.
 
@@ -2393,12 +2423,12 @@ ordered_list(L) -->
   ordered_list(html, L).
 
 
-ordered_list(ItemWriter_1, L) -->
-  ordered_list([], ItemWriter_1, L).
+ordered_list(Writer_1, L) -->
+  ordered_list([], Writer_1, L).
 
 
-ordered_list(Attrs, ItemWriter_1, L) -->
-  list(Attrs, true, ItemWriter_1, L).
+ordered_list(Attrs, Writer_1, L) -->
+  html_list(Attrs, true, Writer_1, L).
 
 
 
@@ -2765,12 +2795,12 @@ search_box(Attrs1, Spec) -->
 
 
 
-%! search_result(+Result, :ItemWriter_1)// is det.
+%! search_result(+Result, :Writer_1)// is det.
 %
 % Result must be a regular pagination resul plus the ‘pattern’ key
 % containing the original search term.
 
-search_result(Result, ItemWriter_1) -->
+search_result(Result, Writer_1) -->
   html([
     h1([
       \search_result_number(Result),
@@ -2778,7 +2808,7 @@ search_result(Result, ItemWriter_1) -->
       \html_sq(Result.pattern),
       ":"
     ]),
-    \pagination_result(Result, ItemWriter_1)
+    \pagination_result(Result, Writer_1)
   ]).
 
 
@@ -2787,13 +2817,6 @@ search_result_number(Result) -->
   html([\html_thousands(TotalNumResults)," s"]).
 search_result_number(_) -->
   html("S").
-
-
-
-%! space// is det.
-
-space -->
-  html(span(class=space, [])).
 
 
 
@@ -3186,8 +3209,8 @@ unless(Unless_0, Then_0) -->
 
 
 %! unordered_list(+Items)// is det.
-%! unordered_list(:ItemWriter_1, +Items)// is det.
-%! unordered_list(+Attrs, :ItemWriter_1, +Items)// is det.
+%! unordered_list(:Writer_1, +Items)// is det.
+%! unordered_list(+Attrs, :Writer_1, +Items)// is det.
 %
 % Generates an unordered HTML list.
 
@@ -3195,12 +3218,12 @@ unordered_list(L) -->
   unordered_list(html, L).
 
 
-unordered_list(ItemWriter_1, L) -->
-  unordered_list([], ItemWriter_1, L).
+unordered_list(Writer_1, L) -->
+  unordered_list([], Writer_1, L).
 
 
-unordered_list(Attrs, ItemWriter_1, L) -->
-  list(Attrs, false, ItemWriter_1, L).
+unordered_list(Attrs, Writer_1, L) -->
+  html_list(Attrs, false, Writer_1, L).
 
 
 
@@ -3483,22 +3506,6 @@ http_error(500, title, nl, "Fout in server").
 http_error(500, title, en, "Server error").
 http_error(500, main, nl, "De server heeft een fout gemaakt.").
 http_error(500, main, en, "The server encountered an internal error.").
-
-
-
-%! list(+Attrs, +Ordered:boolean, :ItemWriter_1, +L)// is det.
-
-list(Attrs, false, ItemWriter_1, L) --> !,
-  html(ul(Attrs, \html_maplist(list_item(false, ItemWriter_1), L))).
-list(Attrs, true, ItemWriter_1, L) -->
-  html(ol(Attrs, \html_maplist(list_item(true, ItemWriter_1), L))).
-
-
-list_item(Ordered, ItemWriter_1, L) -->
-  {is_list(L)}, !,
-  html(li(\list(Ordered, ItemWriter_1, L))).
-list_item(_, ItemWriter_1, X) --> !,
-  html(li(\html_call(ItemWriter_1, X))).
 
 
 

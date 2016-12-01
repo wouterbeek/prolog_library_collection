@@ -1,7 +1,7 @@
 :- module(
   rfc5988,
   [
-    link//1 % -Links:list(pair)
+    link//2 % +BaseUri:atom, -LinkValues:list(compound)
   ]
 ).
 
@@ -57,7 +57,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 @author Wouter Beek
 @compat RFC 5988
 @see https://tools.ietf.org/html/rfc5988
-@version 2015/12, 2016/08-2016/09, 2016/11
+@version 2015/12, 2016/08-2016/09, 2016/11-2016/12
 */
 
 :- use_module(library(apply)).
@@ -89,10 +89,12 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 :- use_module(library(ltag/rfc5646), [
      'Language-Tag'//1 % -LTag:list(atom)
    ]).
+:- use_module(library(pair_ext)).
 :- use_module(library(uri/rfc3986), [
-     'URI'//1,                             % -Uri:compound
-     'URI-reference'//1 as 'URI-Reference' % -UriReference:compound
+     'URI'//1,          % -Uri:compound
+     'URI-reference'//1 % -Uri:compound
    ]).
+:- use_module(library(uri/uri_ext)).
 
 
 
@@ -112,29 +114,30 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 
 
 
-%! 'ext-rel-type'(-Uri:compound)// is det.
+%! 'ext-rel-type'(+BaseUri:atom, -RelType:atom)// is det.
 %
 % ```abnf
 % ext-rel-type = URI
 % ```
 
-'ext-rel-type'(Uri) -->
-  'URI'(Uri).
+'ext-rel-type'(BaseUri, RelType) -->
+  'URI'(UriComps),
+  {uri_comps(RelType, BaseUri, UriComps)}.
 
 
 
-%! link(-Links:list(pair))// is det.
+%! link(+BaseUri:atom, -LinkValues:list(compound))// is det.
 %
 % ```abnf
 % Link = "Link" ":" #link-value
 % ```
 
-link(Links) -->
-  *#('link-value', Links).
+link(BaseUri, LinkValues) -->
+  *#('link-value'(BaseUri), LinkValues), !.
 
 
 
-%! 'link-extension'(-Pair:pair(atom))// is det.
+%! 'link-extension'(-LinkParam:pair(atom))// is det.
 %
 % ```abnf
 % link-extension = ( parmname [ "=" ( ptoken | quoted-string ) ] )
@@ -156,7 +159,8 @@ link(Links) -->
 
 
 
-%! 'link-param'(-Pair)// is det.
+%! 'link-param'(+BaseUri, -LinkParam:pair(atom,term))// is det.
+%
 % ```abnf
 % link-param = ( ( "rel" "=" relation-types )
 %              | ( "anchor" "=" <"> URI-Reference <"> )
@@ -169,68 +173,79 @@ link(Links) -->
 %              | ( link-extension ) )
 % ```
 
-'link-param'(rel-Types) -->
+'link-param'(BaseUri, rel-RelTypes) -->
   atom_ci(rel),
   "=", !,
-  'relation-types'(Types).
-'link-param'(anchor-Uri) -->
+  'relation-types'(BaseUri, RelTypes).
+'link-param'(BaseUri, anchor-Uri) -->
   atom_ci(anchor),
   "=", !,
   "\"",
-  'URI-Reference'(Uri),
+  'URI-Reference'(BaseUri, Uri),
   "\"".
-'link-param'(rev-Types) -->
+'link-param'(BaseUri, rev-RelTypes) -->
   atom_ci(rev),
   "=", !,
-  'relation-types'(Types).
-'link-param'(hreflang-LTag) -->
+  'relation-types'(BaseUri, RelTypes).
+'link-param'(_, hreflang-LTag) -->
   atom_ci(hreflang),
   "=", !,
   'Language-Tag'(LTag).
-'link-param'(media-MTs) -->
+'link-param'(_, media-MTs) -->
   atom_ci(media),
   "=", !,
-  (   'MediaDesc'(MTs)
-  ;   "\"",
-      'MediaDesc'(MTs),
-      "\""
-  ), !.
-'link-param'(title-Str) -->
+  ("\"" -> 'MediaDesc'(MTs), "\"" ; 'MediaDesc'(MTs)).
+'link-param'(_, title-Str) -->
   atom_ci(title),
   "=", !,
   'quoted-string'(Str).
-'link-param'('title*'-Title) -->
+'link-param'(_, 'title*'-Title) -->
   atom_ci('title*'),
   "=", !,
   'ext-value'(Title).
-'link-param'(type-MT) -->
+'link-param'(_, type-MT) -->
   atom_ci(type),
   "=", !,
-  (   'media-type'(MT)
-  ;   'quoted-mt'(MT)
-  ), !.
-'link-param'(Pair) -->
-  'link-extension'(Pair).
+  ('media-type'(MT) -> "" ; 'quoted-mt'(MT)).
+'link-param'(_, LinkParam) -->
+  'link-extension'(LinkParam).
 
 
 
-%! 'link-value'(-Val)// is det.
+%! 'link-value'(+BaseUri:atom, -LinkValue:compound)// is det.
+%
+% LinkValue has the form ‘link(Uri,Params)’, where Params is a list of
+% keys value pairs in which the key is the link type.
+%
+% A *link value* is a pair whose key is an atomic URI and whose value
+% is (i) an atom, in case there is only one value, and (ii) a list of
+% atoms in case there are multiple values.
+%
+% The standard sets forth the following restriction on the maximum
+% number of values allows for certain keys: ‘rel’, ‘title’, ‘title*’,
+% and ‘type’ cannot have more than one value.  If a link value with
+% either of those keys happens to have multiple values, the _first_
+% one is given.
 %
 % ```abnf
 % link-value = "<" URI-Reference ">" *( ";" link-param )
 % ```
 
-'link-value'(Ref-Params) -->
+'link-value'(BaseUri, link(Uri,Params)) -->
   "<",
-  'URI-Reference'(Ref),
+  'URI-Reference'(BaseUri, Uri),
   ">",
-  *(sep_link_param, Pairs),
+  *(sep_link_param(BaseUri), Pairs),
   {
     group_pairs_by_key(Pairs, GroupedPairs),
-    maplist(enforce_max_cardinality, GroupedPairs, Params)
+    maplist(pair_merge_value, GroupedPairs, MergedPairs),
+    maplist(enforce_max_cardinality, MergedPairs, Params)
   }.
 
 enforce_max_cardinality(Key-[Val], Key-Val) :- !.
+% The ‘rel’, ‘title’, ‘title*’ and ‘type’ parameters _must not_ appear
+% more than once in a given link-value; occurrences after the first
+% _must_ be ignored by parsers.
 enforce_max_cardinality(Key-[Val|_], Key-Val) :-
   at_most_once(Key), !.
 enforce_max_cardinality(Pair, Pair).
@@ -240,11 +255,11 @@ at_most_once(title).
 at_most_once('title*').
 at_most_once(type).
 
-sep_link_param(Pair) -->
+sep_link_param(BaseUri, LinkParam) -->
   'OWS',
   ";",
   'OWS',
-  'link-param'(Pair).
+  'link-param'(BaseUri, LinkParam).
 
 
 
@@ -273,7 +288,7 @@ ptoken(Token) -->
 
 
 
-%! ptokenchar(-Code:code)// .
+%! ptokenchar(-Code:code)// is det.
 %
 % ```abnf
 % ptokenchar = "!" | "#" | "$" | "%" | "&" | "'" | "("
@@ -329,16 +344,16 @@ ptokenchar(0'~) --> "~".
 
 
 
-%! 'reg-rel-type'(-Type:atom)// .
+%! 'reg-rel-type'(-RelType:atom)// is det.
 %
 % ```abnf
-% reg-rel-type   = LOALPHA *( LOALPHA | DIGIT | "." | "-" )
+% reg-rel-type = LOALPHA *( LOALPHA | DIGIT | "." | "-" )
 % ```
 
-'reg-rel-type'(Type) -->
+'reg-rel-type'(RelType) -->
   'LOALPHA'(H),
   *(reg_rel_type_code, T), !,
-  {atom_codes(Type, [H|T])}.
+  {atom_codes(RelType, [H|T])}.
 
 reg_rel_type_code(C)   --> 'LOALPHA'(C).
 reg_rel_type_code(C)   --> 'DIGIT'(_, C).
@@ -347,35 +362,42 @@ reg_rel_type_code(0'-) --> "-".
 
 
 
-%! 'relation-type'(-Type:atom)// is det.
+%! 'relation-type'(+BaseUri, -RelType:atom)// is det.
 %
 % ```abnf
 % relation-type  = reg-rel-type | ext-rel-type
 % ```
 
-'relation-type'(Type) -->
-  'reg-rel-type'(Type), !.
-'relation-type'(Type) -->
-  'ext-rel-type'(UriComps),
-  {uri_comps(Type, UriComps)}.
+'relation-type'(_, RelType) -->
+  'reg-rel-type'(RelType), !.
+'relation-type'(BaseUri, RelType) -->
+  'ext-rel-type'(BaseUri, RelType).
 
 
 
-%! 'relation-types'(-Types:list(atom))// is det.
+%! 'relation-types'(+BaseUri, -RelTypes:list(atom))// is det.
 %
 % ```abnf
 % relation-types = relation-type
 %                | <"> relation-type *( 1*SP relation-type ) <">
 % ```
 
-'relation-types'([H|T]) -->
+'relation-types'(BaseUri, [H|T]) -->
   "\"", !,
-  must_see('relation-type'(H)),
-  *(sep_relation_type, T), !,
+  must_see('relation-type'(BaseUri, H)),
+  *(sep_relation_type(BaseUri), T), !,
   "\"".
-'relation-types'([H]) -->
-  'relation-type'(H).
+'relation-types'(BaseUri, [H]) -->
+  'relation-type'(BaseUri, H).
 
-sep_relation_type(X) -->
-  +('SP'),
-  'relation-type'(X).
+sep_relation_type(BaseUri, RelType) -->
+  +('SP'), !,
+  'relation-type'(BaseUri, RelType).
+
+
+
+%! 'URI-Reference'(+BaseUri:atom, -Uri:compound)// is det.
+
+'URI-Reference'(BaseUri, Uri) -->
+  'URI-reference'(UriComps),
+  {uri_comps(Uri, BaseUri, UriComps)}.

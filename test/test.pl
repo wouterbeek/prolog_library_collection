@@ -56,9 +56,16 @@
     :- use_module(library(graph/s/s_type)).
 :- use_module(library(hash_ext)).
 %/html
+  :- use_module(library(html/html_date_time)).
+  :- use_module(library(html/html_date_time_human)).
+  :- use_module(library(html/html_date_time_machine)).
   :- use_module(library(html/html_dcg)).
+  :- use_module(library(html/html_doc)).
   :- use_module(library(html/html_dom)).
+  :- use_module(library(html/html_ext)).
+  :- use_module(library(html/html_map)).
   :- use_module(library(html/html_resource)).
+  :- use_module(library(html/qtip2)).
 %/http
   :- use_module(library(http/cors)).
   :- use_module(library(http/csp2)).
@@ -71,6 +78,7 @@
   :- use_module(library(http/http_io)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/http_user)).
+  :- use_module(library(http/http_write)).
   :- use_module(library(http/ie_headers)).
   :- use_module(library(http/rest)).
   :- use_module(library(http/rfc1034)).
@@ -78,8 +86,10 @@
   :- use_module(library(http/rfc2616)).
   :- use_module(library(http/rfc2617)).
   :- use_module(library(http/rfc2965)).
+  :- use_module(library(http/rfc4288)).
   :- use_module(library(http/rfc4790)).
   :- use_module(library(http/rfc5987)).
+  :- use_module(library(http/rfc5988)).
   :- use_module(library(http/rfc6265)).
   :- use_module(library(http/rfc6266)).
   :- use_module(library(http/rfc6454)).
@@ -90,6 +100,7 @@
   :- use_module(library(iri/iri_ext)).
   :- use_module(library(iri/rfc3987)).
 :- use_module(library(json_ext)).
+:- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 %/ltag
   :- use_module(library(ltag/ltag_match)).
@@ -127,6 +138,7 @@
   :- use_module(library(os/os_ext)).
   :- use_module(library(os/pdf)).
   :- use_module(library(os/process_ext)).
+  :- use_module(library(os/remote_ext)).
   :- use_module(library(os/thread_counter)).
   :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
@@ -141,6 +153,7 @@
 %/set
   :- use_module(library(set/direct_subset)).
   :- use_module(library(set/equiv)).
+  :- use_module(library(set/equiv_closure)).
   :- use_module(library(set/intersection)).
   :- use_module(library(set/ordset_closure)).
   :- use_module(library(set/poset)).
@@ -177,4 +190,5 @@
   :- use_module(library(xml/xml10_code)).
   :- use_module(library(xml/xml11_code)).
 %/xpath
+  :- use_module(library(xpath/xpath_ext)).
   :- use_module(library(xpath/xpath_table)).

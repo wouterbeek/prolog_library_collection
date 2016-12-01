@@ -14,9 +14,9 @@ S-representation
 [1]   [1-[2],2-[1,3],3-[]]
 ```
 
-Directed graphs can be notated in S-representation as well.
-It depends on the context whether the S-representation in [2] denotes
-a directed or an undirected graph.
+Directed graphs can be notated in S-representation as well.  It
+depends on the context whether the S-representation in [2] denotes a
+directed or an undirected graph.
 
 ```prolog
 [2]   [1-[2],2-[1,3],3-[2]]
@@ -28,6 +28,7 @@ Graph representation primitives
 -------------------------------
 
 Each graph representation has to implement the following predicates:
+
   - `AddEs_3`
   - `AddVs_3`
   - `DelEs_3`
@@ -48,10 +49,12 @@ Each graph representation has to implement the following predicates:
 Abbreviations
 -------------
 
-Especially when it comes to argument names, this library uses the following
-abbreviations for often-occurring concepts from graph theory:
-   - `AddEs_3`, Function adding edges to a graph
-   - `AddVs_3`, Function adding vertices to a graph
+Especially when it comes to argument names, this library uses the
+following abbreviations for often-occurring concepts from graph
+theory:
+
+  - `AddEs_3`, Function adding edges to a graph
+  - `AddVs_3`, Function adding vertices to a graph
   - `DelEs_3`, Function deleting edges from a graph
   - `DelVs_3`, Function deleting vertices from a graph
   - `E`, Edge

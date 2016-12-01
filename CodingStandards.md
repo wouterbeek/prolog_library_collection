@@ -74,6 +74,8 @@ We use the following abbreviations for often occurring variable names:
 | Param             | Parameter      |
 | Perc              | Percentage     |
 | Pos               | Position       |
+| Rel               | Relation       |
+| RelUri            | RelativeUri    |
 | Req               | Request        |
 | S                 | String         |
 | Sep               | Separator      |

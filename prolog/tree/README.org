@@ -1,34 +1,24 @@
-plTree
-======
+#+TITLE: Support for tree datastructures in SWI-Prolog
+#+AUTHOR: Wouter Beek
 
-Support for tree datastructures in Prolog.
+* Installation
 
-Author: [Wouter Beek](http://www.wouterbeek.com)
-
-
-
-Installation
-------------
-
-```bash
+#+BEGIN_SRC bash
 $ git clone https://github.com/wouterbeek/plTree.git
 $ cd plTree
 $ git submodule update --init
 $ swipl run.pl
-```
+#+END_SRC  
 
+* Example of use
 
-
-Example of use
---------------
-
-```prolog
+#+BEGIN_SRC prolog
 ?- use_module(tree).
 ?- edges_to_tree([a-b,a-c,a-d,b-e], Tree).
 Tree = a-[b-[e-[]], c-[], d-[]].
-```
+#+END_SRC
 
-```prolog
+#+BEGIN_SRC prolog
 ?- use_module(tree_print).
 ?- print_tree(a-[b-[],c-[d-[],e-[]],f-[]], []).
 |- a
@@ -38,4 +28,4 @@ Tree = a-[b-[e-[]], c-[], d-[]].
 |--- e
 |-- f
 true.
-```
+#+END_SRC

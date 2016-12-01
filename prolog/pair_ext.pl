@@ -23,6 +23,7 @@
     pair_inv_list/2,          % ?Pair, ?InvL
     pair_inv_row/2,           % ?Pair, ?InvRow
     pair_list/2,              % ?Pair, ?L
+    pair_merge_value/2,       % +Pair1, -Pair2
     pair_option/2,            % ?Pair, ?Opt
     pair_row/2,               % ?Pair, ?Row
     pair_value/2,             % +Pair, ?Value
@@ -38,7 +39,7 @@
 Additional support for dealing with pairs.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/12, 2016/04, 2016/07-2016/08, 2016/10-2016/11
+@version 2015/08, 2015/10-2015/12, 2016/04, 2016/07-2016/08, 2016/10-2016/12
 */
 
 :- use_module(library(apply)).
@@ -243,6 +244,12 @@ pair_key(X-_, X).
 
 pair_list(X-Y, [X,Y]).
 
+
+
+%! pair_merge_value(+Pair1, -Pair2) is det.
+
+pair_merge_value(Key-Vals, Key-Val) :-
+  ord_union(Vals, Val).
 
 
 %! pair_option(+Pair, -Opt) is det.

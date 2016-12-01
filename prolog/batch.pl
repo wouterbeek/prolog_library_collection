@@ -37,16 +37,23 @@ cannot be processed.
 % Place items either in the `Done` or in the `NotDone` list.
 %
 % The following options are supported:
+%
 %   - failed(-list)
+%
 %     Returns the sublist of items that could not be processed.
+%
 %   - skip(+nonneg)
-%     Allow a specific number of items from L to skipped.
-%     Default is `0`.
+%
+%     Allow a specific number of items from L to skipped.  Default is
+%     `0`.
+%
 %   - with_mutex(+atom)
+%
 %     Run Goal_1 for each item in L within a specific mutex.
+%
 %   - verbose(+boolean)
-%     Whether to show an overview afterwards.
-%     Default is `false`.
+%
+%     Whether to show an overview afterwards.  Default is `false`.
 
 process_batch(Goal_1, L) :-
   process_batch(Goal_1, L, []).

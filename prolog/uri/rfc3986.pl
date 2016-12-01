@@ -5,7 +5,7 @@
     authority//1, % -Auth:compound
     fragment//1, % -Frag:atom
     host//1, % -Host:atom
-    'IP-literal'//2, % -Version:nonneg, -Address:list(nonneg)
+    'IP-literal'//1, % -Ip:compound
     'IPv4address'//1, % -Address:list(between(0,255))
     'path-abempty'//1, % -Segments:list(atom)
     'pct-encoded'//1, % -Code:between(0,255)
@@ -35,7 +35,7 @@ The following terms are used:
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2015/11-2016/01, 2016/11
+@version 2015/11-2016/01, 2016/11-2016/12
 */
 
 :- use_module(library(apply)).
@@ -209,8 +209,8 @@ h16(N) -->
 % host = IP-literal / IPv4address / reg-name
 % ```
 
-host(ip(Version,Address)) -->
-  'IP-literal'(Version, Address).
+host(Ip) -->
+  'IP-literal'(Ip).
 host(ip(4,Address)) -->
   'IPv4address'(Address).
 host(Name) -->
@@ -218,15 +218,15 @@ host(Name) -->
 
 
 
-%! 'IP-literal'(-Version:nonneg, -Address:compound)// is det.
+%! 'IP-literal'(-Ip:compound)// is det.
 %
 % ```abnf
 % IP-literal = "[" ( IPv6address / IPvFuture  ) "]"
 % ```
 
-'IP-literal'(Version, Address) -->
+'IP-literal'(Ip) -->
   "[",
-  ('IPv6address'(Address) -> Version = 6 ; 'IPvFuture'(Version, Address)),
+  ('IPv6address'(Address) -> {Ip = ip(6,Address)} ; 'IPvFuture'(Ip)),
   "]".
 
 
@@ -277,7 +277,7 @@ host(Name) -->
 
 
 
-%! 'IPvFuture'(-Version:nonneg, -Address:atom)// is det.
+%! 'IPvFuture'(-Ip:compound)// is det.
 %
 % ```abnf
 % IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )

@@ -1617,7 +1617,7 @@ month(12) --> atom_ci('Dec').
 % ```
 
 'OWS' -->
-  *(sp_or_htab).
+  *(sp_or_htab), !.
 
 
 

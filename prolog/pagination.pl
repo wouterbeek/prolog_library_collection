@@ -252,7 +252,7 @@ pagination_result(Result, Goal_1) :-
 pagination_result_nonempty(Result, _) :-
   pagination_is_empty(Result), !.
 pagination_result_nonempty(Result, Goal_1) :-
-  pagination(Result, Goal_1).
+  pagination_result(Result, Goal_1).
 
 
 

@@ -1,3 +1,6 @@
+#+TITLE: HTML support libraries for SWI-Prolog
+#+AUTHOR: Wouter Beek
+
 | *Symbol*              | *HTML entity* |
 |:---------------------:|:-------------:|
 | Equivalence           | `&(equiv)`    |
