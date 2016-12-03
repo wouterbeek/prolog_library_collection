@@ -62,7 +62,7 @@ The following debug flags are used:
   * io
 
 @author Wouter Beek
-@version 2016/07-2016/09, 2016/11
+@version 2016/07-2016/12
 */
 
 :- use_module(library(apply)).
@@ -208,6 +208,11 @@ http_is_scheme(https).
 %       * major(nonneg)
 %
 %       * minor(nonneg)
+%
+%     * verbose(+boolean)
+%
+%       Whether or not the request and reply headers are shows.
+%       Default is `false`.
 
 http_open_any(Iri, In, Path, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
@@ -219,7 +224,9 @@ http_open_any(Iri, In, Path, Opts) :-
     retries: 0,
     visited: []
   },
-  http_open1(Iri, State, In, Path, Opts).
+  option(verbose(Verbose), Opts, false),
+  (Verbose == true -> Flags = [http(send_reply),http(send_request)] ; Flags = []),
+  debug_call(Flags, http_open1(Iri, State, In, Path, Opts)).
 
 
 http_open1(Iri, State, In2, Path, Opts0) :-

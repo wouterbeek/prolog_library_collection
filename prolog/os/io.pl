@@ -148,7 +148,7 @@ call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
       indent_debug(in, io, "R> ~w → ~w", [In,Arch])
     ),
     call_on_archive0(Arch, Entry0, Goal_3, L1, L2),
-    ( % @tbd THIS SEEMS TO BE SKIPPED SOMETIMES!
+    ( % @tbd THIS SEEMS TO BE SKIPPED/NOT PRINTED SOMETIMES!
       archive_close(Arch),
       indent_debug(out, io, "<R ~w", [Arch])
     )

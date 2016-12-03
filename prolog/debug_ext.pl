@@ -3,6 +3,7 @@
   [
     call_collect_messages/1,    % :Goal_0
     call_collect_messages/3,    % :Goal_0, -Status, -Messages
+    call_debug/2,               % +Flags, :Goal_0
     debug_collect_messages/1,   % :Goal_0
     debug_concurrent_maplist/3, % +Flag, :Goal_1, +Args1
     debug_concurrent_maplist/4, % +Flag, :Goal_2, +Args1, +Args2
@@ -28,10 +29,8 @@
 
 Tools that ease debugging SWI-Prolog programs.
 
-⏱
-
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/05, 2016/07
+@version 2015/07-2015/11, 2016/01-2016/05, 2016/07, 2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -49,18 +48,19 @@ Tools that ease debugging SWI-Prolog programs.
 
 :- meta_predicate
     call_collect_messages(0),
-    call_collect_messages(0,-,-),
+    call_collect_messages(0, -, -),
+    call_debug(+, 0),
     debug_collect_messages(0),
-    debug_concurrent_maplist(+,1,+),
-    debug_concurrent_maplist(+,2,+,+),
-    debug_concurrent_maplist(+,3,+,+,+),
+    debug_concurrent_maplist(+, 1, +),
+    debug_concurrent_maplist(+, 2, +, +),
+    debug_concurrent_maplist(+, 3, +, +, +),
     debug_maplist(+, 1, +),
     debug_maplist0(+, 1, +, +, +),
-    debug_verbose(?,0),
-    debug_verbose(?,0,+),
-    debug_verbose(?,0,+,+),
-    debug_with_output_to(?,0),
-    if_debug(?,0),
+    debug_verbose(?, 0),
+    debug_verbose(?, 0, +),
+    debug_verbose(?, 0, +, +),
+    debug_with_output_to(?, 0),
+    if_debug(?, 0),
     indent_debug_call(+, +, 0).
 
 :- thread_local
@@ -95,6 +95,21 @@ process_status(true) :- !.
 process_status(fail) :- !, fail.
 process_status(E) :-
   print_error(E).
+
+
+
+%! call_debug(+Flags, :Goal_0) is det.
+%
+% Calls Goal_0 with the given debug Flags.
+%
+% Debug flags that are already enabled beforehand are not disabled
+% afterwards.
+
+call_debug(Flags, Goal_0) :-
+  exclude(debugging, Flags, NewFlags),
+  maplist(debug, NewFlags),
+  call(Goal_0),
+  maplist(nodebug, NewFlags).
 
 
 
