@@ -1890,7 +1890,7 @@ rank(1.0) -->
 
 
 
-%! 'received-protocol'(-Protocol:or([atom,pair(atom)])))// is det.
+%! 'received-protocol'(-Protocol:or([atom,pair(atom)]))// is det.
 %
 % ```abnf
 % received-protocol = [ protocol-name "/" ] protocol-version
