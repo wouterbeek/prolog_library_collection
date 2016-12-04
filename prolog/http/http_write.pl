@@ -10,7 +10,7 @@
 /* <module> HTTP write
 
 @author Wouter Beek
-@version 2016/08
+@version 2016/08, 2016/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -20,7 +20,12 @@
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 
-:- setting(http:server, list, [], "The server issuing the HTTP replies.").
+:- setting(
+     http:server,
+     list,
+     ['Prolog-Library-Collection'],
+     "The server issuing the HTTP replies."
+).
 
 
 
@@ -41,11 +46,8 @@ reply_http_message(Req, Status, Headers) :-
 reply_http_message(Req, Status, Headers, Body) :-
   setting(http:server, Server),
   http_output(Req, Out),
-  once(
-    atom_phrase(
-      'HTTP-message'(1-1, Status, ['Server'-Server|Headers], Body),
-      A
-    )
+  dcg_with_output_to(atom(A),
+    'HTTP-message'(1-1, Status, ['Server'-Server|Headers], Body)
   ),
   debug(http(write), "~a", [A]),
   format(Out, "~a", [A]).
@@ -71,24 +73,24 @@ reply_http_message(Req, Status, Headers, Body) :-
 
 
 
-'field-value'('Allow', Val) -->
-  'Allow'(Val).
-'field-value'('Content-Type', Val) -->
-  'Content-Type'(Val).
-'field-value'('Server', Val) -->
-  'Server'(Val).
-
-
-
 'header-field'(Key-Val) -->
-  'field-name'(Key), ":", 'OWS',
-  'field-value'(Key, Val), 'CRLF'.
+  'field-name'(Key),
+  ":",
+  'OWS',
+  (   {Key == 'Allow'}
+  ->  'Allow'(Val)
+  ;   {Key == 'Content-Type'}
+  ->  'Content-Type'(Val)
+  ;   {Key == 'Server'}
+  ->  'Server'(Val)
+  ),
+  'CRLF'.
 
 
 
 'HTTP-message'(Version, Status, Headers, Body) -->
   'status-line'(Version, Status),
-  *('header-field', Headers),
+  *('header-field', Headers), !,
   'CRLF',
   Body.
 
@@ -100,46 +102,57 @@ reply_http_message(Req, Status, Headers, Body) :-
 
 
 'HTTP-version'(X-Y) -->
-  'HTTP-name', "/", digit(X), ".", digit(Y).
+  'HTTP-name',
+  "/",
+  digit(X),
+  ".",
+  digit(Y).
 
 
 
 'media-type'(media_type(Type/Subtype,Params)) -->
-  type(Type), "/", subtype(Subtype),
-  *(parameter0, Params).
+  type(Type),
+  "/",
+  subtype(Subtype),
+  *(parameter0, Params), !.
 
 parameter0(Param) -->
-  ";", 'OWS', parameter(Param).
+  ";",
+  'OWS',
+  parameter(Param).
 
 
 
 method(Method1) -->
-  {uppercase_string(Method1, Method2)},
-  str(Method2).
+  {upcase_atom(Method1, Method2)},
+  atom(Method2).
 
 
 
 parameter(Key-Val) -->
-  atom(Key), "=", atom(Val).
+  atom(Key),
+  "=",
+  atom(Val).
 
 
 
 product(Name-Version) --> !,
-  str(Name),
-  "/", 'product-version'(Version).
+  atom(Name),
+  "/",
+  'product-version'(Version).
 product(Name) --> !,
-  str(Name).
+  atom(Name).
 
 
 
 'product-version'(Version) -->
-  str(Version).
+  atom(Version).
 
 
 
 'reason-phrase'(Status) -->
   {http_status_label(Status, Lbl)},
-  str(Lbl).
+  atom(Lbl).
 
 
 

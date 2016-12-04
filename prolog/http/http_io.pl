@@ -193,26 +193,34 @@ http_is_scheme(https).
 %
 %   * max_retries(+nonneg) Default is 1.
 %
-%   * metadata(-list(dict)) Contains the following keys:
+%   * metadata(-list(dict))
 %
-%     * headers(list(list(code)))
+%     Contains the following keys:
 %
-%     * iri(atom)
+%       * headers(list(list(code)))
 %
-%     * status(between(100,599))
+%       * iri(atom)
 %
-%     * time(float)
+%       * status(between(100,599))
 %
-%     * verbose(+boolean)
+%       * time(float)
 %
-%       Whether or not the request and reply headers are shows.
-%       Default is `false`.
+%       * version(dict)
 %
-%     * version(dict) Contains the following keys:
+%         Contains the following keys:
 %
-%       * major(nonneg)
+%           * major(nonneg)
 %
-%       * minor(nonneg)
+%           * minor(nonneg)
+%
+%   * method(+oneof([delete,get,head,options,post,put])
+%
+%     Default is `true`.
+%
+%   * verbose(+boolean)
+%
+%     Whether or not the request and reply headers are shows.  Default
+%     is `false`.
 
 http_open_any(Iri, In, Path, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
@@ -226,15 +234,17 @@ http_open_any(Iri, In, Path, Opts) :-
   },
   option(verbose(Verbose), Opts, false),
   (Verbose == true -> Flags = [http(send_reply),http(send_request)] ; Flags = []),
-  debug_call(Flags, http_open1(Iri, State, In, Path, Opts)).
+  option(method(Method), Opts, get),
+  debug_call(Flags, http_open1(Iri, Method, State, In, Path, Opts)).
 
-http_open1(Iri, State, In2, Path, Opts0) :-
+http_open1(Iri, Method, State, In2, Path, Opts0) :-
   copy_term(Opts0, Opts1),
   setting(user_agent, UA),
   Opts2 = [
     authenticate(false),
     cert_verify_hook(cert_accept_any),
     header(location,Location),
+    method(Method),
     raw_headers(Lines),
     redirect(false),
     status_code(Status),
@@ -255,7 +265,10 @@ http_open1(Iri, State, In2, Path, Opts0) :-
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
-      (debugging(http_io) -> http_msg(user_output, Iri, Status, Lines) ; true),
+      (   debugging(http_io)
+      ->  http_msg(user_output, Iri, Method, Status, Lines)
+      ;   true
+      ),
       %%%%stream_property(In1, position(Pos)),
       %%%%stream_position_data(byte_count, Pos, NumBytes),
       %%%%stream_position_data(char_count, Pos, NumChars),
@@ -270,30 +283,30 @@ http_open1(Iri, State, In2, Path, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, State, Location, Lines, In1, [H|T], In2, Opts0)
+      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0)
   ;   throw(E)
   ),
   reverse([H|T], Path).
 
 % Authentication error.
-http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
+http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_auth_error(H.status),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
-  http_open1(Iri, State, In2, T, AuthOpts).
+  http_open1(Iri, Method, State, In2, T, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
+http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
-  http_error_msg(Iri, H.status, Lines, In1),
+  http_error_msg(Iri, Method, H.status, Lines, In1),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
       T = []
-  ;   http_open1(Iri, State, In2, T, Opts)
+  ;   http_open1(Iri, Method, State, In2, T, Opts)
   ).
 % Redirect.
-http_open2(Iri0, State, Location, _, In1, [H|T], In2, Opts) :-
+http_open2(Iri0, Method, State, Location, _, In1, [H|T], In2, Opts) :-
   http_status_is_redirect(H.status), !,
   close(In1),
   uri_resolve(Location, Iri0, Iri),
@@ -305,9 +318,9 @@ http_open2(Iri0, State, Location, _, In1, [H|T], In2, Opts) :-
   ;   true
   ),
   http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Iri, State, In2, T, RedirectOpts).
+  http_open1(Iri, Method, State, In2, T, RedirectOpts).
 % Success.
-http_open2(_, _, _, _, In, [_], In, _).
+http_open2(_, _, _, _, _, In, [_], In, _).
 
 
 
@@ -457,14 +470,6 @@ http_throw_bad_request(Goal_0) :-
 
 % HELPERS %
 
-%! http_get_dict(+Key, +Path, -Val) is semidet.
-
-http_get_dict(Key, Path, Val) :-
-  member(Entry, Path),
-  get_dict(Key, Entry, Val), !.
-
-
-
 %! http_default_success(+In, +Path1, -Path2) is det.
 
 http_default_success(In, L, L) :-
@@ -473,13 +478,21 @@ http_default_success(In, L, L) :-
 
 
 
-%! http_error_msg(+Iri, +Status, +Lines, +In) is det.
+%! http_error_msg(+Iri, +Method, +Status, +Lines, +In) is det.
 
-http_error_msg(Iri, Status, Lines, In) :-
+http_error_msg(Iri, Method, Status, Lines, In) :-
   format(user_error, "HTTP ERROR:~n", []),
-  http_msg(user_error, Iri, Status, Lines),
+  http_msg(user_error, Iri, Method, Status, Lines),
   peek_string(In, 1000, Str),
   format(user_error, "  Message content:~n    ~s~n", [Str]).
+
+
+
+%! http_get_dict(+Key, +Path, -Val) is semidet.
+
+http_get_dict(Key, Path, Val) :-
+  member(Entry, Path),
+  get_dict(Key, Entry, Val), !.
 
 
 
@@ -553,18 +566,21 @@ http_merge_headers(Key-Vals, Key-Val) :-
 
 
 
-%! http_msg(+Out, +Lines) is det.
+%! http_msg(+Out, +Iri, +Method, +Status, +Lines) is det.
 
-http_msg(Out, Iri, Status, Lines) :-
+http_msg(Out, Iri, Method, Status, Lines) :-
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  format(Out, "  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Headers:~n", [Status,Lbl,Iri]),
+  format(Out, "  Method:~n    ~a~n", [Method]),
+  format(Out, "  Response:~n    ~d (~a)~n", [Status,Lbl]),
+  format(Out, "  IRI:~n    ~a~n", [Iri]),
+  format(Out, "  Headers:~n", []),
   http_lines_pairs(Lines, Pairs),
   maplist(http_header_msg0(Out), Pairs),
   format(Out, "~n", []).
 
 http_header_msg0(Out, Key-Val) :-
   (http_known(Key) -> true ; gtrace),
-  format(Out, "      ~a: ~a~n", [Key,Val]).
+  format(Out, "    ~a: ~a~n", [Key,Val]).
 
 
 

@@ -1,8 +1,9 @@
 :- module(
   http_cli,
   [
-    default_uri/1, % -Uri:atom
-    http_options/0
+    default_uri/1,  % -Uri:atom
+    curl_options/0,
+    curl_options/1  % +Uri:atom
   ]
 ).
 
@@ -53,6 +54,13 @@ default_uri(Uri) :-
 
 
 
-http_options :-
+%! curl_options is det.
+%! curl_options(+Uri:atom) is det.
+
+curl_options :-
   default_uri(Uri),
-  http_options(Uri).
+  curl_options(Uri).
+
+
+curl_options(Uri) :-
+  http_options(Uri, [verbose(true)]).

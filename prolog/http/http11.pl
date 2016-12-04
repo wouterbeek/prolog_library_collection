@@ -1222,6 +1222,7 @@ http_known(Key) :-
 %! http_known_unknown(+Key) is semidet.
 
 http_known_unknown('cf-ray').
+http_known_unknown('epke-alive').
 http_known_unknown('fastly-debug-digest').
 http_known_unknown('fastly-debug-path').
 http_known_unknown('fastly-debug-ttl').
