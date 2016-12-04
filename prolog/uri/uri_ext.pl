@@ -16,6 +16,7 @@
 @version 2015/08, 2015/10-2016/04, 2016/11-2016/12
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
@@ -26,16 +27,28 @@
 
 %! auth_comps(-Auth:atom, +Comps:compound) is det.
 
-auth_comps(Auth, auth(User,Host,Port)) :-
+auth_comps(Auth, auth(User0,Host0,Port)) :-
+  maplist(catch_empty_atom, [User0,Host0], [User,Host]),
   uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
 
 
 
 %! uri_comps(-Uri:atom, +Comps:compound) is det.
+%
+% Comps is of the form uri(Scheme,Auth,Path,Query,Frag), where:
+%
+%   - Auth if of the form auth(User,Host,Port)
+%
+%   - Path is a list of atomic segments
+%
+%   - Query is a list of unary compound terms denoting key/value
+%     pairs
 
-uri_comps(Uri, uri(Scheme,AuthComps,Segments,Query,Frag)) :-
+uri_comps(Uri, uri(Scheme,AuthComps,Segments,QueryComps,Frag0)) :-
   (ground(AuthComps) -> auth_comps(Auth, AuthComps) ; true),
   atomic_list_concat([''|Segments], /, Path),
+  uri_query_components(Query, QueryComps),
+  catch_empty_atom(Frag0, Frag),
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 
@@ -79,3 +92,12 @@ uri_query_enc, "%", hex(W1), hex(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   uri_query_enc.
 uri_query_enc --> [].
+
+
+
+
+
+% HELPERS %
+
+catch_empty_atom('', _) :- !.
+catch_empty_atom(Val, Val).

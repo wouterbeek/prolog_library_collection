@@ -64,6 +64,7 @@ http_absolute_location(Spec, Path) :-
 
 http_accept(Req, MTs) :-
   memberchk(accept(L), Req), !,
+  \+ (L = [VAR], var(VAR)),
   maplist(mediatype_pair, L, Pairs),
   desc_pairs_values(Pairs, MTs).
 http_accept(_, [_]).

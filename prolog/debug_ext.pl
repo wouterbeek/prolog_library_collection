@@ -3,7 +3,7 @@
   [
     call_collect_messages/1,    % :Goal_0
     call_collect_messages/3,    % :Goal_0, -Status, -Messages
-    call_debug/2,               % +Flags, :Goal_0
+    debug_call/2,               % +Flags, :Goal_0
     debug_collect_messages/1,   % :Goal_0
     debug_concurrent_maplist/3, % +Flag, :Goal_1, +Args1
     debug_concurrent_maplist/4, % +Flag, :Goal_2, +Args1, +Args2
@@ -49,7 +49,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- meta_predicate
     call_collect_messages(0),
     call_collect_messages(0, -, -),
-    call_debug(+, 0),
+    debug_call(+, 0),
     debug_collect_messages(0),
     debug_concurrent_maplist(+, 1, +),
     debug_concurrent_maplist(+, 2, +, +),
@@ -98,14 +98,14 @@ process_status(E) :-
 
 
 
-%! call_debug(+Flags, :Goal_0) is det.
+%! debug_call(+Flags, :Goal_0) is det.
 %
 % Calls Goal_0 with the given debug Flags.
 %
 % Debug flags that are already enabled beforehand are not disabled
 % afterwards.
 
-call_debug(Flags, Goal_0) :-
+debug_call(Flags, Goal_0) :-
   exclude(debugging, Flags, NewFlags),
   maplist(debug, NewFlags),
   call(Goal_0),
@@ -235,7 +235,7 @@ indent_debug(Flag, Format) :-
 
 indent_debug(Flag, Format, Args) :-
   debugging(Flag), !,
-  (debug_indent(NumTabs) -> true ; NumTabs = 0),
+  (debug_indent(NumTabs), NumTabs >= 0 -> true ; NumTabs = 0),
   format(atom(A0), Format, Args),
   NumSpaces is NumTabs * 4,
   repeating_atom(' ', NumSpaces, Prefix),
@@ -260,7 +260,8 @@ indent_debug(_, _, _, _).
 update_indent_debug0(Diff) :-
   (retract(debug_indent(NumTabs1)) -> true ; NumTabs1 = 0),
   NumTabs2 is NumTabs1 + Diff,
-  assert(debug_indent(NumTabs2)).
+  (NumTabs2 < 0 -> NumTabs3 = 0 ; NumTabs3 = NumTabs2),
+  assert(debug_indent(NumTabs3)).
 
 
 

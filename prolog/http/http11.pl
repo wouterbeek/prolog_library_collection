@@ -5,6 +5,7 @@
     'field-name'//1,     % -Name:atom
     'header-field'//1,   % -Header:pair
     http_parse_header/3, % +Key:atom, +Val:atom, -Term:compound
+    http_known/1,        % +Key
     'media-type'//1,     % -MT:compound
     method//1,           % -Method:atom
     'OWS'//0,
@@ -129,7 +130,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2016/03, 2016/07, 2016/09, 2016/11
+@version 2015/11-2016/12
 */
 
 :- use_module(library(apply)).
@@ -185,6 +186,10 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'URI-reference'//1     % -Uri:compound
    ]).
 
+:- discontiguous
+    http_known_known/1,
+    http_known_unknown/1.
+
 :- meta_predicate
     'field-content'(3, -, ?, ?).
 
@@ -198,6 +203,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 % Accept = #( media-range [ accept-params ] )
 % ```
 
+http_known_known(accept).
 accept(MTs) -->
   '*#'(accept_value0, Pairs), !,
   {desc_pairs_values(Pairs, MTs)}.
@@ -214,6 +220,7 @@ accept_value0(Weight-accept_value(MT,Exts)) -->
 % Accept-Charset = 1#( ( charset | "*" ) [ weight ] )
 % ```
 
+http_known_known('accept-charset').
 'accept-charset'(Charsets) -->
   +#(accept_charset_value0, Pairs), !,
   {desc_pairs_values(Pairs, Charsets)}.
@@ -230,6 +237,7 @@ accept_charset_value0(Weight-Charset) -->
 % Accept-Encoding = #( codings [ weight ] )
 % ```
 
+http_known_known('accept-encoding').
 'accept-encoding'(Encodings) -->
   '*#'(accept_encoding_value0, Pairs), !,
   {desc_pairs_values(Pairs, Encodings)}.
@@ -263,6 +271,7 @@ accept_encoding_value0(Weight-Encoding) -->
 % Accept-Language = 1#( language-range [ weight ] )
 % ```
 
+http_known_known('accept-language').
 'accept-language'(LRanges) -->
   +#(accept_language_value, Pairs), !,
   {desc_pairs_values(Pairs, LRanges)}.
@@ -285,13 +294,15 @@ accept_language_value(Weight-LRange) -->
 
 
 
-%! 'accept-ranges'(-AcceptRanges:list(dict))// is det.
+%! 'accept-ranges'(-Ranges:list(dict))// is det.
 %
 % ```abnf
 % Accept-Ranges = acceptable-ranges
 % ```
 
-'accept-ranges'(L) --> 'acceptable-ranges'(L).
+http_known_known('accept-ranges').
+'accept-ranges'(Ranges) -->
+  'acceptable-ranges'(Ranges).
 
 
 
@@ -312,7 +323,9 @@ accept_language_value(Weight-LRange) -->
 % Age = delta-seconds
 % ```
 
-age(N) --> 'delta-seconds'(N).
+http_known_known(age).
+age(N) -->
+  'delta-seconds'(N).
 
 
 
@@ -322,7 +335,9 @@ age(N) --> 'delta-seconds'(N).
 % Allow = #method
 % ```
 
-allow(L) --> '*#'(method, L).
+http_known_known(allow).
+allow(L) -->
+  '*#'(method, L).
 
 
 
@@ -373,6 +388,7 @@ allow(L) --> '*#'(method, L).
 % Authorization = credentials
 % ```
 
+http_known_known(authorization).
 authorization(Credentials) -->
   credentials(Credentials).
 
@@ -485,6 +501,7 @@ byte_range_set_part(Len) --> 'suffix-byte-range-spec'(Len).
 % Cache-Control = 1#cache-directive
 % ```
 
+http_known_known('cache-control').
 'cache-control'(Directives) -->
   +#('cache-directive', Directives).
 
@@ -594,6 +611,10 @@ sep_chunk_ext(Ext) -->
 
 
 %! 'chunk-ext-val'(-Val:atom)// is det.
+%
+% ```abnf
+% chunk-ext-val = token / quoted-string
+% ```
 
 'chunk-ext-val'(Val) -->
   token(Val), !.
@@ -663,6 +684,7 @@ comment_codes2([])    --> "".
 % 'Connection'(S) --> 1#(connection-option)
 % ```
 
+http_known_known(connection).
 connection(Opts) -->
   +#('connection-option', Opts).
 
@@ -696,6 +718,7 @@ connection(Opts) -->
 % Content-Encoding = 1#content-coding
 % ```
 
+http_known_known('content-encoding').
 'content-encoding'(Encodings) -->
   +#('content-coding', Encodings), !.
 
@@ -707,6 +730,7 @@ connection(Opts) -->
 % Content-Language = 1#language-tag
 % ```
 
+http_known_known('content-language').
 'content-language'(LTags) -->
   +#('language-tag', LTags), !.
 
@@ -718,6 +742,7 @@ connection(Opts) -->
 % Content-Length = 1*DIGIT
 % ```
 
+http_known_known('content-length').
 'content-length'(Len) -->
   +('DIGIT', Ds), !,
   {pos_sum(Ds, Len)}.
@@ -730,6 +755,7 @@ connection(Opts) -->
 % Content-Location = absolute-URI | partial-URI
 % ```
 
+http_known_known('content-location').
 'content-location'(Uri) --> 'absolute-URI'(Uri), !.
 'content-location'(Uri) --> 'partial-URI'(Uri).
 
@@ -741,6 +767,7 @@ connection(Opts) -->
 % Content-Range = byte-content-range | other-content-range
 % ```
 
+http_known_known('content-range').
 'content-range'(byte, Range-Len) -->
   'byte-content-range'(Range, Len).
 'content-range'(Unit, Resp) -->
@@ -754,6 +781,7 @@ connection(Opts) -->
 % Content-Type = media-type
 % ```
 
+http_known_known('content-type').
 'content-type'(MT) -->
   'media-type'(MT).
 
@@ -799,6 +827,7 @@ ctext(C) --> 'obs-text'(C).
 % Date = HTTP-date
 % ```
 
+http_known_known(date).
 date(DT) -->
   'HTTP-date'(DT).
 
@@ -962,6 +991,7 @@ day(D) -->
 % Expires = HTTP-date
 % ```
 
+http_known_known(expires).
 expires(DT) -->
   'HTTP-date'(DT).
 
@@ -975,6 +1005,7 @@ expires(DT) -->
 % ETag = "ETag" ":" entity-tag
 % ```
 
+http_known_known(etag).
 etag(EntityTag) -->
   'entity-tag'(EntityTag).
 
@@ -998,6 +1029,7 @@ etagc(C)    --> 'obs-text'(C).
 % Expect = "100-continue"
 % ```
 
+http_known_known(expect).
 expect('100-continue') -->
   atom_ci('100-continue').
 
@@ -1047,71 +1079,12 @@ expect('100-continue') -->
       rest(Cs),
       {
         Dict = unknown_http_header{},
-        (   known_unknown(Key_3)
+        (   http_known_unknown(Key_3)
         ->  true
         ;   debug(http(parse), "No parser for HTTP header ~a: ~s", [Key_3,Cs])
         )
       }
   ).
-known_unknown('cf-ray').
-known_unknown('fuseki-request-id').
-known_unknown(servidor).
-known_unknown('x-acre-source-url').
-known_unknown('x-adblock-key').
-known_unknown('x-backend').
-known_unknown('x-cache').
-known_unknown('x-cache-action').
-known_unknown('x-cache-age').
-known_unknown('x-cache-hits').
-known_unknown('x-cache-lookup').
-known_unknown('x-cache-operation').
-known_unknown('x-cache-rule').
-known_unknown('x-cacheable').
-known_unknown('x-content-type-options'). % Has grammar.  Implemented.
-known_unknown('x-dropbox-http-protocol').
-known_unknown('x-dropbox-request-id').
-known_unknown('x-drupal-cache').
-known_unknown('x-ec-custom-error').
-known_unknown('x-fastly-request-id').
-known_unknown('x-generator').
-known_unknown('x-github-request-id').
-known_unknown('x-goog-generation').
-known_unknown('x-goog-hash').
-known_unknown('x-goog-meta-uploaded-by').
-known_unknown('x-goog-metageneration').
-known_unknown('x-goog-storage').
-known_unknown('x-goog-storage-class').
-known_unknown('x-goog-stored-content-encoding').
-known_unknown('x-goog-stored-content-length').
-known_unknown('x-http-host').
-known_unknown('x-hosted-by').
-known_unknown('x-metaweb-cost').
-known_unknown('x-metaweb-tid').
-known_unknown('x-pad').
-known_unknown('x-pal-host').
-known_unknown('x-pingback').
-known_unknown('x-powered-by').
-known_unknown('x-productontology-limit').
-known_unknown('x-productontology-offset').
-known_unknown('x-productontology-results').
-known_unknown('x-purl').
-known_unknown('x-robots-tag'). % Has grammar.  Implemented.
-known_unknown('x-rack-cache').
-known_unknown('x-request-id').
-known_unknown('x-response-id').
-known_unknown('x-runtime').
-known_unknown('x-served-by').
-known_unknown('x-served-from-cache').
-known_unknown('x-sparql').
-known_unknown('x-sparql-default-graph').
-known_unknown('x-timer').
-known_unknown('x-total-results').
-known_unknown('x-ua-compatible').
-known_unknown('x-uniprot-release').
-known_unknown('x-varnish').
-known_unknown('x-varnish-caching-rule-id').
-known_unknown('x-varnish-header-set-id').
-known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
 
@@ -1169,6 +1142,7 @@ known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 % From = mailbox
 % ```
 
+http_known_known(from).
 from(D) -->
   mailbox(D).
 
@@ -1205,6 +1179,7 @@ from(D) -->
 % Host = uri-host [ ":" port ] ; Section 2.7.1
 % ```
 
+http_known_known(host).
 host(Auth) -->
   'uri-host'(Host),
   (":" -> port(Port) ; ""),
@@ -1235,6 +1210,85 @@ hour(H) -->
 
 
 
+%! http_known(+Key) is semidet.
+
+http_known(Key) :-
+  http_known_known(Key), !.
+http_known(Key) :-
+  http_known_unknown(Key).
+
+
+
+%! http_known_unknown(+Key) is semidet.
+
+http_known_unknown('cf-ray').
+http_known_unknown('fastly-debug-digest').
+http_known_unknown('fastly-debug-path').
+http_known_unknown('fastly-debug-ttl').
+http_known_unknown('fastly-no-shield').
+http_known_unknown('fuseki-request-id').
+http_known_unknown(servidor).
+http_known_unknown('x-acre-source-url').
+http_known_unknown('x-adblock-key').
+http_known_unknown('x-backend').
+http_known_unknown('x-cache').
+http_known_unknown('x-cache-action').
+http_known_unknown('x-cache-age').
+http_known_unknown('x-cache-hits').
+http_known_unknown('x-cache-lookup').
+http_known_unknown('x-cache-operation').
+http_known_unknown('x-cache-rule').
+http_known_unknown('x-cacheable').
+http_known_unknown('x-content-type-options'). % Has grammar.  Implemented.
+http_known_unknown('x-dropbox-http-protocol').
+http_known_unknown('x-dropbox-request-id').
+http_known_unknown('x-drupal-cache').
+http_known_unknown('x-drupal-dynamic-cache').
+http_known_unknown('x-ec-custom-error').
+http_known_unknown('x-fastly-request-id').
+http_known_unknown('x-frame-options').
+http_known_unknown('x-generator').
+http_known_unknown('x-github-request-id').
+http_known_unknown('x-goog-generation').
+http_known_unknown('x-goog-hash').
+http_known_unknown('x-goog-meta-uploaded-by').
+http_known_unknown('x-goog-metageneration').
+http_known_unknown('x-goog-storage').
+http_known_unknown('x-goog-storage-class').
+http_known_unknown('x-goog-stored-content-encoding').
+http_known_unknown('x-goog-stored-content-length').
+http_known_unknown('x-http-host').
+http_known_unknown('x-hosted-by').
+http_known_unknown('x-metaweb-cost').
+http_known_unknown('x-metaweb-tid').
+http_known_unknown('x-pad').
+http_known_unknown('x-pal-host').
+http_known_unknown('x-pingback').
+http_known_unknown('x-powered-by').
+http_known_unknown('x-productontology-limit').
+http_known_unknown('x-productontology-offset').
+http_known_unknown('x-productontology-results').
+http_known_unknown('x-purl').
+http_known_unknown('x-robots-tag'). % Has grammar.  Implemented.
+http_known_unknown('x-rack-cache').
+http_known_unknown('x-request-id').
+http_known_unknown('x-response-id').
+http_known_unknown('x-runtime').
+http_known_unknown('x-served-by').
+http_known_unknown('x-served-from-cache').
+http_known_unknown('x-sparql').
+http_known_unknown('x-sparql-default-graph').
+http_known_unknown('x-timer').
+http_known_unknown('x-total-results').
+http_known_unknown('x-ua-compatible').
+http_known_unknown('x-uniprot-release').
+http_known_unknown('x-varnish').
+http_known_unknown('x-varnish-caching-rule-id').
+http_known_unknown('x-varnish-header-set-id').
+http_known_unknown('x-xss-protection'). % Has grammar.  Implemented.
+
+
+
 %! http_parse_header(+Key, +Val, -Term) is det.
 
 http_parse_header(Key, Val, Term) :-
@@ -1249,6 +1303,7 @@ http_parse_header(Key, Val, Term) :-
 % If-Match = "*" | 1#entity-tag
 % ```
 
+http_known_known('if-match').
 'if-match'([]) -->
   "*", !.
 'if-match'(EntityTags)  -->
@@ -1262,6 +1317,7 @@ http_parse_header(Key, Val, Term) :-
 % If-Modified-Since = HTTP-date
 % ```
 
+http_known_known('if-modified=since').
 'if-modified-since'(DT) -->
   'HTTP-date'(DT).
 
@@ -1273,6 +1329,7 @@ http_parse_header(Key, Val, Term) :-
 % If-None-Match = "*" | 1#entity-tag
 % ```
 
+http_known_known('if-none-match').
 'if-none-match'([]) -->
   "*", !.
 'if-none-match'(EntityTags) -->
@@ -1286,6 +1343,7 @@ http_parse_header(Key, Val, Term) :-
 % If-Range = entity-tag | HTTP-date
 % ```
 
+http_known_known('if-range').
 'if-range'(EntityTag) -->
   'entity-tag'(EntityTag), !.
 'if-range'(DT) -->
@@ -1299,6 +1357,7 @@ http_parse_header(Key, Val, Term) :-
 % If-Unmodified-Since = HTTP-date
 % ```
 
+http_known_known('if-unmodified-since').
 'if-unmodified-since'(DT) -->
   'HTTP-date'(DT).
 
@@ -1357,6 +1416,7 @@ http_parse_header(Key, Val, Term) :-
 % Last-Modified = HTTP-date
 % ```
 
+http_known_known('last-modified').
 'last-modified'(DT) -->
   'HTTP-date'(DT).
 
@@ -1368,6 +1428,7 @@ http_parse_header(Key, Val, Term) :-
 % Location = URI-reference
 % ```
 
+http_known_known(location).
 location(Uri) -->
   'URI-reference'(Uri).
 
@@ -1379,6 +1440,7 @@ location(Uri) -->
 % Max-Forwards = 1*DIGIT
 % ```
 
+http_known_known('max-forwards').
 'max-forwards'(Max) -->
   +('DIGIT', Ds), !,
   {pos_sum(Ds, Max)}.
@@ -1653,6 +1715,7 @@ parameter(Key-Val) -->
 % Pragma = 1#pragma-directive
 % ```
 
+http_known_known(pragma).
 pragma(Pragmas) -->
   +#('pragma-directive', Pragmas).
 
@@ -1700,6 +1763,7 @@ product(Name-Version) -->
 % Proxy-Authenticate = 1#challenge
 % ```
 
+http_known_known('proxy-authenticate').
 'proxy-authenticate'(Challenges) -->
   +#(challenge, Challenges).
 
@@ -1711,6 +1775,7 @@ product(Name-Version) -->
 % Proxy-Authorization = credentials
 % ```
 
+http_known_known('proxy-authorization').
 'proxy-authorization'(Credentials) -->
   credentials(Credentials).
 
@@ -1833,6 +1898,7 @@ qvalue(1.0) -->
 % Range = byte-ranges-specifier | other-ranges-specifier
 % ```
 
+http_known_known(range).
 range(byte, Range) -->
   'byte-ranges-specifier'(Range).
 range(Unit, Set) -->
@@ -1911,6 +1977,7 @@ rank(1.0) -->
 % Referer = absolute-URI | partial-URI
 % ```
 
+http_known_known(referer).
 referer(Uri) -->
   'absolute-URI'(Uri).
 referer(Uri) -->
@@ -1924,6 +1991,7 @@ referer(Uri) -->
 % Retry-After = HTTP-date | delay-seconds
 % ```
 
+http_known_known('retry-after').
 'retry-after'(DT) -->
   'HTTP-date'(DT).
 'retry-after'(D) -->
@@ -1980,6 +2048,7 @@ second(N) -->
 % Server = product *( RWS ( product | comment ) )
 % ```
 
+http_known_known(server).
 server([H|T]) -->
   product(H),
   *(sep_product_or_comment, T), !.
@@ -2087,6 +2156,7 @@ tchar(0'~) --> "~".
 % TE = #t-codings
 % ```
 
+http_known_known(te).
 te(L) -->
   '*#'('t-codings', L).
 
@@ -2115,7 +2185,7 @@ te(L) -->
 % ```
 
 token(A) -->
-  +(tchar, Cs),
+  +(tchar, Cs), !,
   {atom_codes(A, Cs)}.
 
 
@@ -2129,7 +2199,7 @@ token(A) -->
 token68(Token) -->
   +(token68_code, Cs), !,
   {atom_codes(Token, Cs)},
-  *("=").
+  *("="), !.
 
 token68_code(C)   --> 'ALPHA'(C).
 token68_code(C)   --> 'DIGIT'(_, C).
@@ -2148,8 +2218,9 @@ token68_code(0'/) --> "/".
 % Trailer = 1#field-name
 % ```
 
+http_known_known(trailer).
 trailer(L) -->
-  +#('field-name', L).
+  +#('field-name', L), !.
 
 
 
@@ -2177,6 +2248,7 @@ trailer(L) -->
 % Transfer-Encoding = 1#transfer-coding
 % ```
 
+http_known_known('transfer-encoding').
 'transfer-encoding'(L) -->
   +#('transfer-coding', L).
 
@@ -2256,6 +2328,7 @@ upgrade(L) -->
 % User-Agent = product *( RWS ( product | comment ) )
 % ```
 
+http_known_known('user-agent').
 'user-agent'([H|T]) -->
   product(H),
   *(sep_product_or_comment, T).
@@ -2268,6 +2341,7 @@ upgrade(L) -->
 % Vary = "*" | 1#field-name
 % ```
 
+http_known_known(vary).
 vary([]) -->
   "*", !.
 vary(L) -->
@@ -2281,6 +2355,7 @@ vary(L) -->
 % Via = 1#( received-protocol RWS received-by [ RWS comment ] )
 % ```
 
+http_known_known(via).
 via(Vias) -->
   '+#'(via_component, Vias), !.
 
@@ -2405,6 +2480,7 @@ weight(N) -->
 % WWW-Authenticate = 1#challenge
 % ```
 
+http_known_known('www-authenticate').
 'www-authenticate'(Challenges) -->
   +#(challenge, Challenges).
 

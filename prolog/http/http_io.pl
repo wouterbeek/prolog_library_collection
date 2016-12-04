@@ -203,16 +203,16 @@ http_is_scheme(https).
 %
 %     * time(float)
 %
+%     * verbose(+boolean)
+%
+%       Whether or not the request and reply headers are shows.
+%       Default is `false`.
+%
 %     * version(dict) Contains the following keys:
 %
 %       * major(nonneg)
 %
 %       * minor(nonneg)
-%
-%     * verbose(+boolean)
-%
-%       Whether or not the request and reply headers are shows.
-%       Default is `false`.
 
 http_open_any(Iri, In, Path, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
@@ -227,7 +227,6 @@ http_open_any(Iri, In, Path, Opts) :-
   option(verbose(Verbose), Opts, false),
   (Verbose == true -> Flags = [http(send_reply),http(send_request)] ; Flags = []),
   debug_call(Flags, http_open1(Iri, State, In, Path, Opts)).
-
 
 http_open1(Iri, State, In2, Path, Opts0) :-
   copy_term(Opts0, Opts1),
@@ -252,12 +251,11 @@ http_open1(Iri, State, In2, Path, Opts0) :-
       TS
     )
   ),
-  indent_debug(in, io, "R> ~a → ~w", [Iri,In1]),
-  % @tbd Remove throw/1?
-  (   var(E)
-  ->  deb_http_headers(Lines),
-      http_parse_headers(Lines, Groups),
-      dict_pairs(Headers, Groups),
+  indent_debug(in, http_io, "R> ~a → ~w", [Iri,In1]),
+  (   % No exception, so http_open/3 was successful.
+      var(E)
+  ->  http_lines_headers(Lines, Headers),
+      (debugging(http_io) -> http_msg(user_output, Iri, Status, Lines) ; true),
       %%%%stream_property(In1, position(Pos)),
       %%%%stream_position_data(byte_count, Pos, NumBytes),
       %%%%stream_position_data(char_count, Pos, NumChars),
@@ -277,7 +275,6 @@ http_open1(Iri, State, In2, Path, Opts0) :-
   ),
   reverse([H|T], Path).
 
-
 % Authentication error.
 http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_auth_error(H.status),
@@ -286,9 +283,9 @@ http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   close(In1),
   http_open1(Iri, State, In2, T, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, State, _, _, In1, [H|T], In2, Opts) :-
+http_open2(Iri, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
-  copy_stream_data(In1, user_error),
+  http_error_msg(Iri, H.status, Lines, In1),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
@@ -323,7 +320,9 @@ http_options(Iri) :-
 
 http_options(Iri, Opts0) :-
   merge_options(Opts0, [method(options)], Opts),
-  call_on_stream(Iri, _, Opts).
+  call_on_stream(Iri, true0, Opts).
+
+true0(_, Path, Path).
 
 
 
@@ -385,12 +384,12 @@ http_retry_until_success(Goal_0, Timeout) :-
       E = error(existence_error(_,[H|_]),_),
       http_get_dict(status, H, Status),
       (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
-  ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
+  ->  indent_debug(http_io, "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ;   % TCP error (Try Again)
       E = error(socket_error('Try Again'), _)
-  ->  indent_debug(http(error), "TCP Try Again"),
+  ->  indent_debug(http_io, "TCP Try Again"),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).
@@ -466,20 +465,6 @@ http_get_dict(Key, Path, Val) :-
 
 
 
-%! deb_http_headers(+Lines) is det.
-
-deb_http_headers(Lines) :-
-  debugging(http(headers)), !,
-  maplist(deb_http_header, Lines).
-deb_http_headers(_).
-
-
-deb_http_header(Line) :-
-  string_codes(Str, Line),
-  msg_notification("~s~n", [Str]).
-
-
-
 %! http_default_success(+In, +Path1, -Path2) is det.
 
 http_default_success(In, L, L) :-
@@ -491,15 +476,10 @@ http_default_success(In, L, L) :-
 %! http_error_msg(+Iri, +Status, +Lines, +In) is det.
 
 http_error_msg(Iri, Status, Lines, In) :-
-  maplist([Cs,Header]>>phrase('header-field'(Header), Cs), Lines, Headers),
-  create_grouped_sorted_dict(Headers, http_headers, MetaHeaders),
-  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  dcg_with_output_to(string(Str1), pl_dict(MetaHeaders, _{indent: 2})),
-  peek_string(In, 1000, Str2),
-  msg_warning(
-    "HTTP ERROR:~n  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Parsed headers:~n    ~s~n  Message content:~n    ~s~n",
-    [Status,Lbl,Iri,Str1,Str2]
-  ).
+  format(user_error, "HTTP ERROR:~n", []),
+  http_msg(user_error, Iri, Status, Lines),
+  peek_string(In, 1000, Str),
+  format(user_error, "  Message content:~n    ~s~n", [Str]).
 
 
 
@@ -523,28 +503,68 @@ http_is_redirect_loop(Iri, State) :-
 
 
 
-%! http_parse_headers(+Lines, -Groups) is det.
+%! http_lines_pairs(+Lines:list(list(code)), -Pairs:list(pair(atom))) is det.
 
-http_parse_headers(Lines, Groups) :-
+http_lines_pairs(Lines, MergedPairs) :-
   maplist(http_parse_header0, Lines, Pairs),
   keysort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, Groups).
-
+  group_pairs_by_key(SortedPairs, Groups),
+  maplist(http_merge_headers, Groups, MergedPairs).
 
 http_parse_header0(Line, Key-Val) :-
-  once(phrase('header-field'(Key-Val), Line)).
-  %%%%phrase(http_parse_header_simplified(Key, Val), Line).
+  phrase(http_parse_header_simplified0(Key, Val), Line).
+
+http_parse_header_simplified0(Key, Val) -->
+  'field-name'(Key),
+  ":",
+  'OWS',
+  rest(Val0),
+  {atom_codes(Val, Val0)}.
 
 
-%%%%http_parse_header_simplified(Key, Val) -->
-%%%%  http11:'field-name'(Key0),
-%%%%  ":",
-%%%%  http11:'OWS',
-%%%%  rest(Val0),
-%%%%  {
-%%%%    atom_codes(Key, Key0),
-%%%%    string_codes(Val, Val0)
-%%%%  }.
+
+%! http_lines_headers(+Lines, -Headers) is det.
+
+http_lines_headers(Lines, Headers) :-
+  http_lines_pairs(Lines, Pairs),
+  dict_pairs(Headers, Pairs).
+
+
+
+%! http_merge_headers(+Pair1, -Pair2) is det.
+%
+% Succeeds iff the given HTTP Key is separable.
+%
+% “Multiple message-header fields with the same field-name MAY be
+% present in a message if and only if the entire field-value for that
+% header field is defined as a comma-separated list [i.e., #(values)].
+% It MUST be possible to combine the multiple header fields into one
+% "field-name: field-value" pair, without changing the semantics of
+% the message, by appending each subsequent field-value to the first,
+% each separated by a comma.  The order in which header fields with
+% the same field-name are received is therefore significant to the
+% interpretation of the combined field value, and thus a proxy MUST
+% NOT change the order of these field values when a message is
+% forwarded.”
+
+http_merge_headers(Key-[Val], Key-Val) :- !.
+http_merge_headers(Key-Vals, Key-Val) :-
+  atomic_list_concat(Vals, ', ', Val).
+
+
+
+%! http_msg(+Out, +Lines) is det.
+
+http_msg(Out, Iri, Status, Lines) :-
+  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
+  format(Out, "  Response:~n    ~d (~a)~n  Final IRI:~n    ~a~n  Headers:~n", [Status,Lbl,Iri]),
+  http_lines_pairs(Lines, Pairs),
+  maplist(http_header_msg0(Out), Pairs),
+  format(Out, "~n", []).
+
+http_header_msg0(Out, Key-Val) :-
+  (http_known(Key) -> true ; gtrace),
+  format(Out, "      ~a: ~a~n", [Key,Val]).
 
 
 
