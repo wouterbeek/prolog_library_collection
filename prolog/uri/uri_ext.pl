@@ -27,8 +27,7 @@
 
 %! auth_comps(-Auth:atom, +Comps:compound) is det.
 
-auth_comps(Auth, auth(User0,Host0,Port)) :-
-  maplist(catch_empty_atom, [User0,Host0], [User,Host]),
+auth_comps(Auth, auth(User,Host,Port)) :-
   uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
 
 
@@ -44,11 +43,10 @@ auth_comps(Auth, auth(User0,Host0,Port)) :-
 %   - Query is a list of unary compound terms denoting key/value
 %     pairs
 
-uri_comps(Uri, uri(Scheme,AuthComps,Segments,QueryComps,Frag0)) :-
-  (ground(AuthComps) -> auth_comps(Auth, AuthComps) ; true),
+uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
+  (atom(Auth0) -> Auth = Auth0 ; auth_comps(Auth, Auth0)),
   atomic_list_concat([''|Segments], /, Path),
   uri_query_components(Query, QueryComps),
-  catch_empty_atom(Frag0, Frag),
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 
@@ -92,12 +90,3 @@ uri_query_enc, "%", hex(W1), hex(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   uri_query_enc.
 uri_query_enc --> [].
-
-
-
-
-
-% HELPERS %
-
-catch_empty_atom('', _) :- !.
-catch_empty_atom(Val, Val).

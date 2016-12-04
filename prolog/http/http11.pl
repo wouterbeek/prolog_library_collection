@@ -1228,6 +1228,7 @@ http_known_unknown('fastly-debug-path').
 http_known_unknown('fastly-debug-ttl').
 http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
+http_known_unknown(p3p).
 http_known_unknown(servidor).
 http_known_unknown('x-acre-source-url').
 http_known_unknown('x-adblock-key').
@@ -1277,6 +1278,7 @@ http_known_unknown('x-response-id').
 http_known_unknown('x-runtime').
 http_known_unknown('x-served-by').
 http_known_unknown('x-served-from-cache').
+http_known_unknown('x-server').
 http_known_unknown('x-sparql').
 http_known_unknown('x-sparql-default-graph').
 http_known_unknown('x-timer').

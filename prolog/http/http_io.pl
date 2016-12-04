@@ -232,8 +232,10 @@ http_open_any(Iri, In, Path, Opts) :-
     retries: 0,
     visited: []
   },
-  option(verbose(Verbose), Opts, false),
-  (Verbose == true -> Flags = [http(send_reply),http(send_request)] ; Flags = []),
+  (   option(verbose(true), Opts)
+  ->  Flags = [http(send_reply),http(send_request)]
+  ;   Flags = []
+  ),
   option(method(Method), Opts, get),
   debug_call(Flags, http_open1(Iri, Method, State, In, Path, Opts)).
 
@@ -265,7 +267,7 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
-      (   debugging(http_io)
+      (   option(verbose(true), Opts1)
       ->  http_msg(user_output, Iri, Method, Status, Lines)
       ;   true
       ),

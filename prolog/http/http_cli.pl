@@ -28,13 +28,13 @@ constituent components, defining the following settings:
 :- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
 
-:- setting(fragment, atom, '', "The fragment of the default URI.").
+:- setting(fragment, any, _, "The fragment of the default URI.").
 :- setting(host, atom, 'swi-prolog.org', "The host name of the default authority.").
 :- setting(path, list(atom), [], "The path of the default URI.").
-:- setting(port, between(1,9999), 80, "The port of the default authority.").
+:- setting(port, any, _, "The port of the default authority.").
 :- setting(query, list(compound), [], "The query of the default URI.").
 :- setting(scheme, oneof([http,https]), http, "The scheme of the default URI.").
-:- setting(user, atom, '', "The user of the default authority.").
+:- setting(user, any, _, "The user of the default authority.").
 
 
 
