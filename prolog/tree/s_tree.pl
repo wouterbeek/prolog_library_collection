@@ -53,7 +53,7 @@ a
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
-:- use_module(library(pairs)).
+:- use_module(library(pair_ext)).
 
 
 

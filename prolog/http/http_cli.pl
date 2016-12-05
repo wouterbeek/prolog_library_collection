@@ -2,6 +2,11 @@
   http_cli,
   [
     default_uri/1,  % -Uri:atom
+    curl_get/0,
+    curl_get/1,     % +Uri:atom
+    curl_get/2,     % +Uri:atom, +MT:atom
+    curl_head/0,
+    curl_head/1,    % +Uri:atom
     curl_options/0,
     curl_options/1  % +Uri:atom
   ]
@@ -54,8 +59,48 @@ default_uri(Uri) :-
 
 
 
+%! curl_get is det.
+%! curl_get(+Uri:atom) is det.
+
+curl_get :-
+  default_uri(Uri),
+  curl_get(Uri).
+
+
+curl_get(Uri) :-
+  curl_get(Uri, _).
+
+
+curl_get(Uri, MT) :-
+  http_get(Uri, true0, [request_header(accept=MT),verbose(true)]).
+
+true0(In, Path, Path) :-
+  copy_stream_data(In, user_output).
+
+
+
+%! curl_head is det.
+%! curl_head(+Uri:atom) is det.
+
+curl_head :-
+  default_uri(Uri),
+  curl_head(Uri).
+
+
+curl_head(Uri) :-
+  http_head(Uri, [verbose(true)]).
+
+
+
 %! curl_options is det.
 %! curl_options(+Uri:atom) is det.
+%
+% The OPTIONS method requests information about the communication
+% options available for the target resource, at either the origin
+% server or an intervening intermediary.  This method allows a client
+% to determine the options and/or requirements associated with a
+% resource, or the capabilities of a server, without implying a
+% resource action.
 
 curl_options :-
   default_uri(Uri),

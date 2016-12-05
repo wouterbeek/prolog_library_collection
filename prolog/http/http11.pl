@@ -185,6 +185,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'relative-part'//2,    % -Auth:compound, -Segments:list(atom)
      'URI-reference'//1     % -Uri:compound
    ]).
+:- use_module(library(uri/uri_ext)).
 
 :- discontiguous
     http_known_known/1,

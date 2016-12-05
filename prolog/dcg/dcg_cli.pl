@@ -28,6 +28,7 @@
 :- meta_predicate
     enumerate(3, +, ?, ?),
     enumerate(3, +, +, ?, ?),
+    enumerate_or_itemize0(+, 3, +, +, ?, ?),
     itemize(3, +, ?, ?),
     itemize(3, +, +, ?, ?),
     section(//, ?, ?),

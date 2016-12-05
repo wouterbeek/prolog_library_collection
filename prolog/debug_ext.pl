@@ -235,33 +235,50 @@ indent_debug(Flag, Format) :-
 
 indent_debug(Flag, Format, Args) :-
   debugging(Flag), !,
-  (debug_indent(NumTabs), NumTabs >= 0 -> true ; NumTabs = 0),
-  format(atom(A0), Format, Args),
-  NumSpaces is NumTabs * 4,
-  repeating_atom(' ', NumSpaces, Prefix),
-  atom_concat(Prefix, A0, A),
-  debug(Flag, "~a", [A]).
+  indent_debug0(0, Flag, Format, Args).
 indent_debug(_, _, _).
 
 
-indent_debug(in, Flag, Format0, Args) :-
+indent_debug(in, Flag, Format, Args) :-
   debugging(Flag), !,
-  string_concat("> ", Format0, Format),
-  indent_debug(Flag, Format, Args),
+  indent_debug0(1, Flag, Format, Args),
   update_indent_debug0(1).
-indent_debug(out, Flag, Format0, Args) :-
+indent_debug(out, Flag, Format, Args) :-
   debugging(Flag), !,
   update_indent_debug0(-1),
-  string_concat("< ", Format0, Format),
-  indent_debug(Flag, Format, Args).
+  indent_debug0(-1, Flag, Format, Args).
 indent_debug(_, _, _, _).
 
+indent_debug0(Diff, Flag, Format, Args) :-
+  (debug_indent(Indent) -> true ; Indent = 1),
+  format(string(Msg0), Format, Args),
+  dcg_with_output_to(string(Msg), msg(Diff, Indent, Msg0)),
+  debug(Flag, Msg, []).
 
 update_indent_debug0(Diff) :-
-  (retract(debug_indent(NumTabs1)) -> true ; NumTabs1 = 0),
-  NumTabs2 is NumTabs1 + Diff,
-  (NumTabs2 < 0 -> NumTabs3 = 0 ; NumTabs3 = NumTabs2),
-  assert(debug_indent(NumTabs3)).
+  (retract(debug_indent(Indent1)) -> true ; Indent1 = 1),
+  Indent2 is Indent1 + Diff,
+  (Indent2 < 1 -> Indent3 = 1 ; Indent3 = Indent2),
+  assert(debug_indent(Indent3)).
+
+msg(_, 0, Msg) --> !,
+  str(Msg).
+msg(Diff, 1, Msg) --> !,
+  msg_diff1(Diff),
+  "───",
+  str(Msg).
+msg(Diff, N1, Msg) -->
+  ({N1 =:= 1} -> msg_diff2(Diff), "───" ; "│   "),
+  {N2 is N1 - 1},
+  msg(Diff, N2, Msg).
+
+msg_diff1(1) --> "┌".
+msg_diff1(0) --> "─".
+msg_diff1(-1) --> "└".
+
+msg_diff2(1) --> "├".
+msg_diff2(0) --> "└".
+msg_diff2(-1) --> "└".
 
 
 

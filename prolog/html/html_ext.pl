@@ -255,6 +255,7 @@ html({|html||...|}).
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_resource)).
@@ -264,6 +265,7 @@ html({|html||...|}).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_user)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
 :- use_module(library(http/js_write)).
@@ -3249,8 +3251,7 @@ upload_form(Spec) -->
 
 user_menu(UserName_2, UserImg_2) -->
   {
-    % @hack
-    user_db:current_user(User), !,
+    current_user(User), !,
     logout_link(Link)
   },
   html(

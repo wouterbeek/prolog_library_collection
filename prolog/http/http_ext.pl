@@ -63,13 +63,13 @@ http_absolute_location(Spec, Path) :-
 % Matches MTs = [_] in case there is no HTTP Accept header.
 
 http_accept(Req, MTs) :-
-  memberchk(accept(L), Req), !,
-  \+ (L = [VAR], var(VAR)),
-  maplist(mediatype_pair, L, Pairs),
-  desc_pairs_values(Pairs, MTs).
-http_accept(_, [_]).
-
-
+  memberchk(accept(L0), Req),
+  (atom(L0) -> atom_to_term(L0, L, _) ; L = L0),
+  (   var(L)
+  ->  MTs = [_]
+  ;   maplist(mediatype_pair, L, Pairs),
+      desc_pairs_values(Pairs, MTs)
+  ).
 
 mediatype_pair(media(MT,_,N,_), N-MT).
 

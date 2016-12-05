@@ -145,11 +145,11 @@ call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
   setup_call_cleanup(
     (
       archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
-      indent_debug(in, io, "R> ~w → ~w", [In,Arch])
+      indent_debug(in, io, "R» ~w → ~w", [In,Arch])
     ),
     call_on_archive0(Arch, Entry0, Goal_3, L1, L2),
     ( % @tbd THIS SEEMS TO BE SKIPPED/NOT PRINTED SOMETIMES!
-      indent_debug(out, io, "<R ~w", [Arch]),
+      indent_debug(out, io, "«R ~w", [Arch]),
       archive_close(Arch)
     )
   ).
@@ -190,13 +190,11 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
       ->  setup_call_cleanup(
             (
               archive_open_entry(Arch, In),
-              indent_debug(in, io, "R> ~w → ~a → ~w", [Arch,Entry,In])
+              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,Entry,In])
             ),
             call_on_stream0(In, Entry0, Goal_3, L2, L3),
-            (
-              indent_debug(out, io, "<R ~w → ~a → ~w", [Arch,Entry,In]),
-              close_any2(close(In), L3, L4, [])
-            )
+            % close_any2/4 also emits the closing debug message.
+            close_any2(close(In), L3, L4, [])
           )
       ;   fail
       )
@@ -306,15 +304,16 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
 
 call_to_compressed_stream(Out1, Goal_1, [H1|T], [H2|T], SinkOpts) :-
   option(compression(true), SinkOpts, true), !,
-  put_dict(compression, H1, gzip, H2),
+  Format = gzip,
+  put_dict(compression, H1, Format, H2),
   setup_call_cleanup(
     (
-      zopen(Out1, Out2, [close_parent(false),format(gzip)]),
-      indent_debug(in, io, "ZW> ~w → ~w", [Out1,Out2])
+      zopen(Out1, Out2, [close_parent(false),format(Format)]),
+      indent_debug(in, io, "ZW» ~w → ~a → ~w", [Out1,Format,Out2])
     ),
     call(Goal_1, Out2),
     (
-      indent_debug(out, io, "<ZW ~w", [Out2]),
+      indent_debug(out, io, "«ZW ~w", [Out2]),
       close(Out2)
     )
   ).
@@ -408,7 +407,7 @@ close_any2(close(Stream), [H1|T], [H2|T], Opts) :- !,
   close_any2_hash(Stream, Opts),
   close(Stream),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-  indent_debug(out, io, "<~s ~w", [Lbl,Stream]).
+  indent_debug(out, io, "«~s ~w", [Lbl,Stream]).
 close_any2(true, L, L, _).
 
 
@@ -479,7 +478,7 @@ open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
           Close_0 = close(Stream2),
           H1 = _{file: File},
           (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-          indent_debug(in, io, "~s> ~w → ~w", [Lbl,ExpandedSpec,Stream1])
+          indent_debug(in, io, "~s» ~w → ~w", [Lbl,ExpandedSpec,Stream1])
       ),
       put_dict(mode, H1, Mode, H2),
       L = [H2]
