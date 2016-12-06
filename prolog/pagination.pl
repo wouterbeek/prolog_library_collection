@@ -2,7 +2,6 @@
   pagination,
   [
     empty_pagination/2,        % +PageOpts, -Result
-    http_pagination_links/1,   % +Result
     pagination/3,              % +Pattern, :Goal_0, -Result
     pagination/4,              % +Pattern, :Goal_0, +PageOpts, -Result
     pagination_init_options/4, % +PageOpts1, -StartPage, -PageSize, -PageOpts2
@@ -13,7 +12,8 @@
     pagination_range/2,        % +Result, -Range
     pagination_result/2,       % +Result, :Goal_1
     pagination_result_nonempty/2, % +Result, :Goal_1
-    pagination_total/4         % :AllGoal_2, :SomeGoal_2, +PageOpts, -Result
+    pagination_total/4,        % :AllGoal_2, :SomeGoal_2, +PageOpts, -Result
+    reply_pagination_links/1   % +Result
   ]
 ).
 
@@ -63,29 +63,6 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 
 empty_pagination(PageOpts, Result) :-
   pagination(_, fail, PageOpts, Result).
-
-
-
-%! http_pagination_links(+Result) is semidet.
-
-http_pagination_links(Result) :-
-  pagination_iris(Result, Pairs),
-  format("Link: "),
-  http_pagination_links0(Pairs),
-  nl.
-
-
-http_pagination_links0([]) :- !.
-http_pagination_links0([H]) :- !,
-  http_pagination_link0(H).
-http_pagination_links0([H|T]) :- !,
-  http_pagination_link0(H),
-  format(", "),
-  http_pagination_links0(T).
-
-
-http_pagination_link0(Rel-Iri) :-
-  format('<~a>; rel="~a"', [Iri,Rel]).
 
 
 
@@ -292,3 +269,24 @@ pagination_total(AllGoal_2, SomeGoal_2, PageOpts1, Result2) :-
     total_number_of_results: TotalNumResults
   },
   merge_dicts(PageOpts3, Result1, Result2).
+
+
+
+%! reply_pagination_links(+Result) is semidet.
+
+reply_pagination_links(Result) :-
+  pagination_iris(Result, Pairs),
+  format("Link: "),
+  reply_pagination_links0(Pairs),
+  nl.
+
+reply_pagination_links0([]) :- !.
+reply_pagination_links0([H]) :- !,
+  reply_pagination_link0(H).
+reply_pagination_links0([H|T]) :- !,
+  reply_pagination_link0(H),
+  format(", "),
+  reply_pagination_links0(T).
+
+reply_pagination_link0(Rel-Iri) :-
+  format('<~a>; rel="~a"', [Iri,Rel]).

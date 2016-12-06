@@ -32,11 +32,12 @@
 @author Wouter Beek
 @compat RFC 2616
 @see https://tools.ietf.org/html/rfc2616
-@version 2015/12
+@version 2015/12, 2016/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(http/http_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc2396), [
@@ -45,6 +46,7 @@
      port//1,     % -Port:nonneg
      query//1     % -Query:string
    ]).
+:- use_module(library(uri/uri_ext)).
 
 
 

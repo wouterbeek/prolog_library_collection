@@ -4,8 +4,6 @@
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
     http_base_location_iri/2, % +Req, -iri
-    http_content_type/1,      % +MT
-    http_content_type/2,      % +Req, -MT
     http_default_port/2,    % +Scheme, -DefPort
     http_iri_query/2,         % +Iri, -Comp
     http_is_get/1,            % +Method
@@ -21,7 +19,10 @@
     http_reply_file/1,        % +File
     http_resource_iri/4,      % +Req, -Iri, -Query, -Frag
     http_status_reply/2,      % +Req, +Status
-    is_empty_get_request/1    % +Req
+    is_empty_get_request/1,   % +Req
+    reply_content_type/1,     % +MT
+    reply_content_type/2,     % +MT, +Params
+    request_content_type/2    % +Req, -MT
   ]
 ).
 
@@ -85,19 +86,6 @@ http_base_location_iri(Req, Iri2) :-
   http_location_iri(Req, Iri1),
   uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
-
-
-
-%! http_content_type(+MT) is semidet.
-%! http_content_type(+Req, -MT) is semidet.
-
-http_content_type(Type/Subtype) :-
-  format("Content-Type: ~a/~a; charset=UTF-8~n", [Type,Subtype]).
-
-
-http_content_type(Req, Type/Subtype) :-
-  memberchk(content_type(A), Req),
-  http_parse_header('content-type', A, media_type(Type,Subtype,_)).
 
 
 
@@ -221,3 +209,27 @@ is_empty_get_request(Req) :-
   uri_data(search, Components, Search),
   var(Search),
   option(method(get), Req).
+
+
+
+%! reply_content_type(+MT) is semidet.
+%! reply_content_type(+MT, +Params) is semidet.
+%
+% The parameter ‘charset’ with value ‘UTF-8’ is always present.
+
+reply_content_type(MT) :-
+  reply_content_type(MT, []).
+
+
+reply_content_type(Type/Subtype, T) :-
+  sort([charset-'UTF-8'|T], Params),
+  atomic_list_concat(Params, '; ', Params0),
+  format("Content-Type: ~a/~a; ~a~n", [Type,Subtype,Params0]).
+
+
+
+%! request_content_type(+Req, -MT) is semidet.
+
+request_content_type(Req, Type/Subtype) :-
+  memberchk(content_type(A), Req),
+  http_parse_header('content-type', A, media_type(Type,Subtype,_)).
