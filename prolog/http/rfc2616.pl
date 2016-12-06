@@ -51,6 +51,7 @@
 
 
 %! date1(-Y, -Mo, -D)// is det.
+%
 % ```abnf
 % date1 = 2DIGIT SP month SP 4DIGIT
 % ```
@@ -67,6 +68,7 @@ date1(Y, Mo, D) -->
 
 
 %! date2(-Y, -Mo, -D)// is det.
+%
 % ```abnf
 % date2 = 2DIGIT "-" month "-" 2DIGIT
 % ```
@@ -82,93 +84,108 @@ date2(Y, Mo, D) -->
 
 
 
-%! http_URL(-Url:dict)// is det.
+%! http_URL(-Uri:atom)// is det.
+%
 % ```abnf
 % http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
 % ```
 
-http_URL(D4) -->
+http_URL(Uri) -->
   atom_ci('http://'),
+  {Scheme = http},
   host(Host),
-  {D1 = _{'@type': 'llo:URL', 'llo:scheme': "http", 'llo:host': Host}},
-  (":" -> port(Port), {D2 = D1.put(_{'llo:port': Port})} ; {D2 = D1}),
-  (   abs_path(Path)
-  ->  {D3 = D2.put(_{'llo:path': Path})},
-      ("?" -> query(Query), {D4 = D3.put(_{'llo:query': Query})} ; {D4 = D3})
-  ;   {D4 = D2}
-  ).
+  (":" -> port(Port) ; {http_default_port(Scheme, Port)}),
+  (abs_path(Segments) -> ("?" -> query(Query) ; "") ; ""),
+  {uri_comps(Uri, uri(Scheme,auth(_,Host,Port),Segments,Query,_))}.
 
 
 
 %! 'LWS'// .
+%
 % ```abnf
 % LWS = [CRLF] 1*( SP | HT )
 % ```
 
-'LWS' --> ?('CRLF'), +(sp_or_ht0).
+'LWS' -->
+  ?('CRLF'),
+  +(sp_or_ht0), !.
+
 sp_or_ht0 --> 'SP'.
 sp_or_ht0 --> 'HT'.
 
 
 
 %! month(-Month:between(1,12))// is det.
+%
 % ```abnf
 % month = "Jan" | "Feb" | "Mar" | "Apr"
 %       | "May" | "Jun" | "Jul" | "Aug"
 %       | "Sep" | "Oct" | "Nov" | "Dec"
 % ```
 
-month(1)  --> atom_ci('Jan'), !.
-month(2)  --> atom_ci('Feb'), !.
-month(3)  --> atom_ci('Mar'), !.
-month(4)  --> atom_ci('Apr'), !.
-month(5)  --> atom_ci('May'), !.
-month(6)  --> atom_ci('Jun'), !.
-month(7)  --> atom_ci('Jul'), !.
-month(8)  --> atom_ci('Aug'), !.
-month(9)  --> atom_ci('Sep'), !.
+month(1) --> atom_ci('Jan'), !.
+month(2) --> atom_ci('Feb'), !.
+month(3) --> atom_ci('Mar'), !.
+month(4) --> atom_ci('Apr'), !.
+month(5) --> atom_ci('May'), !.
+month(6) --> atom_ci('Jun'), !.
+month(7) --> atom_ci('Jul'), !.
+month(8) --> atom_ci('Aug'), !.
+month(9) --> atom_ci('Sep'), !.
 month(10) --> atom_ci('Oct'), !.
 month(11) --> atom_ci('Nov'), !.
 month(12) --> atom_ci('Dec').
 
 
 
-%! qdtext(?Code)// .
+%! qdtext(?Code:code)// .
+%
 % ```abnf
 % qdtext = <any TEXT except <">>
 % ```
 
-qdtext(C) --> 'TEXT'(C), {C \== 0'"}.   %"
+qdtext(C) -->
+  'TEXT'(C),
+  {C \== 0'"}.
 
 
 
-%! 'quoted-pair'(?Code)// .
+%! 'quoted-pair'(?Code:code)// .
+%
 % ```abnf
 % quoted-pair = "\" CHAR
 % ```
 
-'quoted-pair'(C) --> "\\", 'CHAR'(C).
+'quoted-pair'(C) -->
+  "\\",
+  'CHAR'(C).
 
 
 
-%! 'quoted-string'(-String:string)// is det.
+%! 'quoted-string'(-String:atom)// is det.
+%
 % ```abnf
 % quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
 % ```
 
-'quoted-string'(S) --> "\"", *(quoted_string_code, Cs), {string_codes(S, Cs)}, "\"".
+'quoted-string'(Str) -->
+  "\"",
+  *(quoted_string_code, Cs), !,
+  {atom_codes(Str, Cs)},
+  "\"".
 
 quoted_string_code(C) --> qdtext(C).
 quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'rfc850-date'(-D)// is det.
+%! 'rfc850-date'(-Lit:rdf_literal)// is det.
+%
 % ```abnf
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
 % ```
 
-'rfc850-date'(_{'@type': Type, '@value': Lex}) -->
+'rfc850-date'(Lex^^DatatypeUri) -->
   weekday(D),
   ",",
   'SP',
@@ -178,13 +195,14 @@ quoted_string_code(C) --> 'quoted-pair'(C).
   'SP',
   atom_ci('GMT'),
   {
-    rdf_equal(xsd:dateTime, Type),
-    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), Type, Lex)
+    rdf_equal(xsd:dateTime, DatatypeUri),
+    xsd_time_string(date_time(Y,Mo,D,H,Mi,S), DatatypeUri, Lex)
   }.
 
 
 
-%! 'rfc1123-date'(-Lex:string)// is det.
+%! 'rfc1123-date'(-Lex:atom)// is det.
+%
 % ```abnf
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"
 % ```
@@ -206,34 +224,36 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 %! separators(?Code)// .
+%
 % ```abnf
 % separators = "(" | ")" | "<" | ">" | "@" | "," | ";" | ":" | "\" | <">
 %            | "/" | "[" | "]" | "?" | "=" | "{" | "}" | SP | HT
 % ```
 
-separators(0'()  --> "(".
-separators(0'))  --> ")".
-separators(0'<)  --> "<".
-separators(0'>)  --> ">".
-separators(0'@)  --> "@".
-separators(0',)  --> ",".
-separators(0';)  --> ";".
-separators(0':)  --> ":".
+separators(0'() --> "(".
+separators(0')) --> ")".
+separators(0'<) --> "<".
+separators(0'>) --> ">".
+separators(0'@) --> "@".
+separators(0',) --> ",".
+separators(0';) --> ";".
+separators(0':) --> ":".
 separators(0'\\) --> "\\".
-separators(0'")  --> "\"". %"
-separators(0'/)  --> "/".
-separators(0'[)  --> "[".
-separators(0'])  --> "]".
-separators(0'?)  --> "?".
-separators(0'=)  --> "=".
-separators(0'{)  --> "{".
-separators(0'})  --> "}".
-separators(C)    --> 'SP'(C).
-separators(C)    --> 'HT'(C).
+separators(0'") --> "\"". %"
+separators(0'/) --> "/".
+separators(0'[) --> "[".
+separators(0']) --> "]".
+separators(0'?) --> "?".
+separators(0'=) --> "=".
+separators(0'{) --> "{".
+separators(0'}) --> "}".
+separators(C) --> 'SP'(C).
+separators(C) --> 'HT'(C).
 
 
 
-%! 'TEXT'(?Code)// .
+%! 'TEXT'(?Code:code)// .
+%
 % ```abnf
 % TEXT = <any OCTET except CTLs, but including LWS>
 % ```
@@ -243,6 +263,7 @@ separators(C)    --> 'HT'(C).
 
 
 %! time(-H, -Mi, -S)// is det.
+%
 % ```abnf
 % time = 2DIGIT ":" 2DIGIT ":" 2DIGIT
 % ```
@@ -259,28 +280,37 @@ time(H, Mi, S) -->
 
 
 
-%! token(-Token:string)// is det.
+%! token(-Token:atom)// is det.
 % ```abnf
 % token = 1*<any CHAR except CTLs or separators>
 % ```
 
-token(S) --> +(token_code, Cs), {string_codes(S, Cs)}.
+token(Token) -->
+  +(token_code, Cs), !,
+  {atom_codes(Token, Cs)}.
 
-token_code(C) --> 'CHAR'(C), {\+ 'CTL'(C, _, _), \+ separators(C, _, _)}.
+token_code(C) -->
+  'CHAR'(C),
+  {
+    \+ 'CTL'(C, _, _),
+    \+ separators(C, _, _)
+  }.
 
 
 
-%! value(-Value:string)// is det.
+%! value(-Val:atom)// is det.
+%
 % ```abnf
 % value = token | quoted-string
 % ```
 
-value(S) --> token(S), !.
-value(S) --> 'quoted-string'(S).
+value(Token) --> token(Token), !.
+value(Str) --> 'quoted-string'(Str).
 
 
 
 %! weekday(-Day:between(1,7))// is det.
+%
 % ```abnf
 % weekday = "Monday" | "Tuesday" | "Wednesday"
 %         | "Thursday" | "Friday" | "Saturday" | "Sunday"
@@ -297,6 +327,7 @@ weekday(7) --> atom_ci('Sunday').
 
 
 %! wkday(-Day:between(1,7))// is det.
+%
 % ```abnf
 % wkday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"
 % ```

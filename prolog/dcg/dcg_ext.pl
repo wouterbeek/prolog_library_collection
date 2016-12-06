@@ -936,6 +936,7 @@ dcg_apply(Dcg, Args1, X, Y) :-
 
 
 %! dcg_apply_cp(:Dcg, +Args)// .
+%
 % Variant of dcg_apply/2 where copies of Dcg are called.
 
 dcg_apply_cp(Dcg, Args1, X, Y) :-
@@ -991,12 +992,11 @@ dcg_atom(Dcg_1, A) -->
 
 
 %! dcg_between(:Between_0, :Dcg_0)// .
+%! dcg_between(:Begin_0, :Dcg_0, :End_0)// .
 
 dcg_between(Between_0, Dcg_0) -->
   dcg_between(Between_0, Dcg_0, Between_0).
 
-
-%! dcg_between(:Begin_0, :Dcg_0, :End_0)// .
 
 dcg_between(Begin_0, Dcg_0, End_0) -->
   Begin_0,
@@ -1011,8 +1011,9 @@ dcg_between(Begin_0, Dcg_0, End_0) -->
 %! dcg_call(:Dcg_3, ?Arg1, ?Arg2, ?Arg3)// .
 %! dcg_call(:Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4)// .
 %! dcg_call(:Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5)// .
-% Dcg is called directly (i.e., not copied).
-% This means that multiple calls of the same Dcg may share variables.
+%
+% Dcg is called directly (i.e., not copied).  This means that multiple
+% calls of the same Dcg may share variables.
 %
 % This is a DCG-based  variant of call//[1-5].
 
@@ -1047,10 +1048,11 @@ dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
 %! dcg_call_cp(:Dcg_3, ?Arg1, ?Arg2, ?Arg3)// .
 %! dcg_call_cp(:Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4)// .
 %! dcg_call_cp(:Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5)// .
+%
 % Variant of dcg_call//[0-5] where copies of Dcg are called.
 %
-% dcg_call_cp//1 is included for consistency, even though
-% it is operationally equivalent to dcg_call//1.
+% dcg_call_cp//1 is included for consistency, even though it is
+% operationally equivalent to dcg_call//1.
 
 dcg_call_cp(Dcg_0, X, Y) :-
   copy_term(Dcg_0, Dcg__0),
@@ -1260,6 +1262,7 @@ dcg_once(Dcg_2, Arg1, Arg2, X, Y) :-
 
 
 %! dcg_string(:Dcg_1, ?S)// .
+%
 % @see Variants of dcg_atom//2 that supports SWI7 strings.
 
 dcg_string(Dcg_1, S) -->

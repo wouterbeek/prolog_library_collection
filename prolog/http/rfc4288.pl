@@ -1,8 +1,8 @@
 :- module(
   rfc4288,
   [
-    'subtype-name'//1, % -SubtypeName:string
-    'type-name'//1     % -TypeName:string
+    'subtype-name'//1, % -Subtype:atom
+    'type-name'//1     % -Type:atom
   ]
 ).
 
@@ -16,24 +16,28 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code
-     'DIGIT'//2  % ?Weight:between(0,9), ?Code
+     'ALPHA'//1, % ?Code:code
+     'DIGIT'//2  % ?Weight:between(0,9), ?Code:code
    ]).
 
 
 
 
 
-%! 'reg-name'(-Name:string)// is det.
+%! 'reg-name'(-Name:atom)// is det.
+%
 % ```abnf
 % reg-name = 1*127reg-name-chars
 % ```
 
-'reg-name'(S) --> 'm*n'(1, 127, 'reg-name-chars', Cs), {string_codes(S, Cs)}.
+'reg-name'(Name) -->
+  'm*n'(1, 127, 'reg-name-chars', Cs), !,
+  {atom_codes(Name, Cs)}.
 
 
 
-%! 'reg-name-chars'(?Code)// .
+%! 'reg-name-chars'(?Code:ode)// .
+%
 % ```abnf
 % reg-name-chars = ALPHA / DIGIT / "!"
 %                / "#" / "$" / "&" / "."
@@ -54,18 +58,22 @@
 
 
 
-%! 'subtype-name'(-SubtypeName:string)// is det.
+%! 'subtype-name'(-Subtype:atom)// is det.
+%
 % ```abnf
 % subtype-name = reg-name
 % ```
 
-'subtype-name'(S) --> 'reg-name'(S).
+'subtype-name'(Subtype) -->
+  'reg-name'(Subtype).
 
 
 
-%! 'type-name'(-TypeName:string)// is det.
+%! 'type-name'(-Type:atom)// is det.
+%
 % ```abnf
 % type-name = reg-name
 % ```
 
-'type-name'(S) --> 'reg-name'(S).
+'type-name'(Type) -->
+  'reg-name'(Type).

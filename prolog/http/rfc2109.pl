@@ -1,8 +1,8 @@
 :- module(
   rfc2109,
   [
-    attr//1,        % -Attribute:string
-    'set-cookie'//1 % -Cookies:list(dict)
+    attr//1,        % -Attr:atom
+    'set-cookie'//1 % -Cookies:list(compound)
   ]
 ).
 
@@ -17,34 +17,51 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/dcg_http)).
-:- use_module(library(http/rfc2616), ['LWS'//0,'quoted-string'//1,token//1]).
+:- use_module(library(http/rfc2616), [
+     'LWS'//0,
+     'quoted-string'//1, % -String:atom
+     token//1            % -Token:atom
+   ]).
+
+:- multifile
+    http_known_known/1.
 
 
 
 
 
-%! attr(-Attribute:string)// is det.
+%! attr(-Attr:atom)// is det.
+%
 % ```abnf
 % attr = token
 % ```
 
-attr(S) --> token(S).
+attr(Attr) -->
+  token(Attr).
 
 
 
-%! cookie(-Cookie:dict)// is det.
+%! cookie(-Cookie:compound)// is det.
+%
 % ```abnf
 % cookie = NAME "=" VALUE *(";" cookie-av)
 % ```
 
-cookie(_{'@type': 'llo:cookie', 'llo:key': Key, 'llo:value': Value, 'llo:parameters': L}) -->
-  'NAME'(Key), "=", 'VALUE'(Value), *(sep_cookie_av, L).
+cookie(cookie(Key,Val,Params)) -->
+  'NAME'(Key),
+  "=",
+  'VALUE'(Val),
+  *(sep_cookie_av, Params), !.
 
-sep_cookie_av(D) --> ";", ?('LWS'), 'cookie-av'(D).
+sep_cookie_av(Param) -->
+  ";",
+  ?('LWS'),
+  'cookie-av'(Param).
 
 
 
-%! 'cookie-av'(-Parameter:dict)// is det.
+%! 'cookie-av'(-Param:pair(atom))// is det.
+%
 % ```abnf
 % cookie-av = "Comment" "=" value
 %           | "Domain" "=" value
@@ -54,67 +71,95 @@ sep_cookie_av(D) --> ";", ?('LWS'), 'cookie-av'(D).
 %           | "Version" "=" 1*DIGIT
 % ```
 
-'cookie-av'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
-  cookie_av(Key, Value).
+'cookie-av'(comment-Comment) -->
+  atom_ci('Comment'), !,
+  "=",
+  value(Comment).
+'cookie-av'(domain-Domain) -->
+  atom_ci('Domain'), !,
+  "=",
+  value(Domain).
+'cookie-av'('max-age'-MaxAge) -->
+  atom_ci('Max-age'), !,
+  "=",
+  value(MaxAge).
+'cookie-av'(path-Path) -->
+  atom_ci('Path'), !,
+  "=",
+  value(Path).
+'cookie-av'(secure-true) -->
+  atom_ci('Secure'), !.
+'cookie-av'(version-Version) -->
+  atom_ci('Version'), !,
+  "=",
+  +(digit, Ds), !,
+  {pos_sum(Ds, Version)}.
 
-cookie_av("comment", S)   --> atom_ci('Comment='), !, value(S).
-cookie_av("domain", S)    --> atom_ci('Domain='), !, value(S).
-cookie_av("max-age", S)   --> atom_ci('Max-age='), !, value(S).
-cookie_av("path", S)      --> atom_ci('Path='), !, value(S).
-cookie_av("secure", true) --> atom_ci('Secure'), !.
-cookie_av("version", N)   --> atom_ci('Version='), +(digit, Ds), {pos_sum(Ds, N)}.
 
 
-
-%! cookies(-Cookies:list(dict))// is det.
+%! cookies(-Cookies:list(compound))// is det.
+%
 % ```abnf
 % cookies = 1#cookie
 % ```
 
-cookies(L) --> '+#'(cookie, L).
+cookies(Cookies) -->
+  '+#'(cookie, Cookies), !.
 
 
 
-%! 'NAME'(-Name:string)// is det.
+%! 'NAME'(-Name:atom)// is det.
+%
 % ```abnf
 % NAME = attr
 % ```
 
-'NAME'(S) --> attr(S).
+'NAME'(Name) -->
+  attr(Name).
 
 
 
-%! 'set-cookie'(-Cookies:list(dict))// is det.
+%! 'set-cookie'(-Cookies:list(compound))// is det.
+%
 % ```abnf
 % set-cookie = "Set-Cookie:" cookies
 % ```
 
-'set-cookie'(L) --> cookies(L).
+http_known_known('set-cookie').
+'set-cookie'(Cookies) -->
+  cookies(Cookies).
 
 
 
-%! 'VALUE'(-Value:string)// is det.
+%! 'VALUE'(-Val:atom)// is det.
+%
 % ```abnf
 % VALUE = value
 % ```
 
-'VALUE'(S) --> value(S).
+'VALUE'(Val) -->
+  value(Val).
 
 
 
-%! value(-Value:string)// is det.
+%! value(-Val:atom)// is det.
+%
 % ```abnf
 % value = word
 % ```
 
-value(S) --> word(S).
+value(Val) -->
+  word(Val).
 
 
 
-%! word(-Word:string)// is det.
+%! word(-Word:atom)// is det.
+%
 % ```abnf
 % word = token | quoted-string
 % ```
 
-word(S) --> token(S), !.
-word(S) --> 'quoted-string'(S).
+word(Token) -->
+  token(Token), !.
+word(Str) -->
+  'quoted-string'(Str).

@@ -168,6 +168,7 @@
     pl_link//0,
     pl_version//0,
     ref//2,                  % +Label, :Content_0
+    reply_html_page/4,       % +Method, +Style, :Head, :Body
     reply_raw_file/1,        % +Spec
     reset_button//0,
     reset_button//1,         % :Content_0
@@ -341,6 +342,7 @@ html({|html||...|}).
    panel(+, +, +, html, ?, ?),
    panels(html, ?, ?),
    ref(+, html, ?, ?),
+   reply_html_page(+, +, :, :),
    reset_button(html, ?, ?),
    row_1(html, ?, ?),
    row_1(+, html, ?, ?),
@@ -2603,6 +2605,18 @@ pl_version -->
 ref(Label, Content_0) -->
   {atom_concat('#', Label, Link)},
   html(a(href=Link, Content_0)).
+
+
+
+%! reply_html_page(+Method:oneof([get,head]), +Style, :Head, :Body) is det.
+
+reply_html_page(get, Style, Head, Body) :- !,
+  reply_html_page(head, Style, Head, Body),
+  phrase(page(Style, Head, Body), HTML),
+  print_html(HTML).
+reply_html_page(head, _, _, _) :-
+  html_current_option(content_type(Type)),
+  format('Content-type: ~w~n~n', [Type]).
 
 
 

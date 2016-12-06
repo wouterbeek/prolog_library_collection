@@ -1,7 +1,7 @@
 :- module(
   rfc6797,
   [
-    'strict-transport-security'//1 % -Directives:list(dict)
+    'strict-transport-security'//1 % -Directives:list(pair(atom))
   ]
 ).
 
@@ -10,58 +10,72 @@
 @author Wouter Beek
 @compat RFC 6797
 @see https://tools.ietf.org/html/rfc6797
-@version 2015/11-2016/01
+@version 2015/11-2016/01, 2016/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
-     'quoted-string'//1, % -String:string
-     token//1            % -Token:string
+     'quoted-string'//1, % -String:atom
+     token//1            % -Token:atom
    ]).
 
+:- multifile
+    http_known_known/1.
 
 
 
 
-%! directive(-Directive:dict)// is det.
+
+%! directive(-Directive:pair(atom))// is det.
+%
 % ```abnf
 % directive = directive-name [ "=" directive-value ]
 % ```
 
-directive(D2) -->
-  {D1 = _{'@type': 'llo:directive', 'llo:key': Key}},
+directive(Key-Val) -->
   'directive-name'(Key),
-  ("=" -> 'directive-value'(Value), {D2 = D1.put(_{'llo:value': Value})} ; {D2 = D1}).
+  ("=" -> 'directive-value'(Val) ; {Val = true}).
 
 
 
-%! 'directive-name'(-Name:string)// is det.
+%! 'directive-name'(-Name:atom)// is det.
+%
 % ```abnf
 % directive-name = token
 % ```
 
-'directive-name'(S) --> token(S).
+'directive-name'(Name) -->
+  token(Name).
 
 
 
-%! 'directive-value'(-Value:string)// is det.
+%! 'directive-value'(-Val:atom)// is det.
+%
 % ```abnf
 % directive-value = token | quoted-string
 % ```
 
-'directive-value'(S) --> token(S), !.
-'directive-value'(S) --> 'quoted-string'(S).
+'directive-value'(Val) -->
+  token(Val), !.
+'directive-value'(Val) -->
+  'quoted-string'(Val).
 
 
 
-%! 'strict-transport-security'(-Directives:list(dict))// is det.
+%! 'strict-transport-security'(-Directives:list(compound))// is det.
+%
 % ```abnf
 % Strict-Transport-Security = "Strict-Transport-Security" ":"
 %                             [ directive ]  *( ";" [ directive ] )
 % ```
 
-'strict-transport-security'([H|T]) --> directive(H), !, *(sep_directive, T).
-'strict-transport-security'(L)     --> *(sep_directive, L).
+http_known_known('strict-transport-security').
+'strict-transport-security'(L) -->
+  (directive(H) -> {L = [H|T]} ; {L = T}),
+  *(sep_directive, T), !.
 
-sep_directive(X) --> ";", ?('LWS'), directive(X).
+sep_directive(X) -->
+  ";",
+  ?('LWS'),
+  directive(X).

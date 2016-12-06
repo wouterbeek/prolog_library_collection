@@ -3,14 +3,14 @@
   [
     'attr-char'//1,     % -Code:code
     charset//1,         % -Charset:atom
-    'ext-parameter'//1, % -Param:dict
-    'ext-value'//1,     % -Val:dict
+    'ext-parameter'//1, % -Param:pair(atom)
+    'ext-value'//1,     % -Val:compound
     language//1,        % -LTag:list(atom)
     'mime-charset'//1,  % -Charset:atom
     'mime-charsetc'//1, % -Code:code
-    parameter//1,       % -Param:dict
+    parameter//1,       % -Param:pair
     parmname//1,        % -Name:atom
-    'reg-parameter'//1, % -Param:dict
+    'reg-parameter'//1, % -Param:pair
     'value-chars'//1    % -Val:atom
   ]
 ).
@@ -188,8 +188,10 @@ language(LTag) -->
 % parameter = reg-parameter / ext-parameter
 % ```
 
-parameter(Param) --> 'reg-parameter'(Param), !.
-parameter(Param) --> 'ext-parameter'(Param).
+parameter(Param) -->
+  'reg-parameter'(Param), !.
+parameter(Param) -->
+  'ext-parameter'(Param).
 
 
 
@@ -228,8 +230,10 @@ parmname(Name) -->
 % value = token / quoted-string
 % ```
 
-value(Val) --> token(Val), !.
-value(Val) --> 'quoted-string'(Val).
+value(Val) -->
+  token(Val), !.
+value(Val) -->
+  'quoted-string'(Val).
 
 
 

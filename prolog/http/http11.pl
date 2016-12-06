@@ -194,6 +194,9 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- meta_predicate
     'field-content'(3, -, ?, ?).
 
+:- multifile
+    http_known_known/1.
+
 
 
 

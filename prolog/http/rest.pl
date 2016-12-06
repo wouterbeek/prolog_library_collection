@@ -6,7 +6,8 @@
     rest_media_type/4, % +Req, +Method, +MTs, :Goal_2
     rest_method/3,     % +Req, +Methods, :Plural_3
     rest_method/4,     % +Req, +Methods, +HandleId, :Singular_4
-    rest_method/5      % +Req, +Methods, :Plural_3, +HandleId, :Singular_4
+    rest_method/5,     % +Req, +Methods, :Plural_3, +HandleId, :Singular_4
+    rest_reply/3       % +Method, :Head_0, :Body_0
   ]
 ).
 
@@ -37,7 +38,7 @@ There are two phases in handling REST requests:
        - call(Goal_2, Method, MT)
 
 @author Wouter Beek
-@version 2016/02, 2016/04-2016/06, 2016/08-2016/09
+@version 2016/02-2016/12
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
@@ -53,7 +54,8 @@ There are two phases in handling REST requests:
    rest_method(+, +, 3),
    rest_method(+, +, +, 4),
    rest_method(+, +, 3, +, 4),
-   rest_method0(+, +, +, 3, +, 4).
+   rest_method0(+, +, +, 3, +, 4),
+   rest_reply(+, 0, 0).
 
 
 
@@ -128,15 +130,15 @@ rest_method(Req, Methods, HandleId, Singular_4) :-
   rest_method(Req, Methods, _, HandleId, Singular_4).
 
 
-rest_method(Req, Methods, Plural_3, HandleId, Singular_4) :-
+rest_method(Req, Methods1, Plural_3, HandleId, Singular_4) :-
   memberchk(method(Method), Req),
-  rest_method0(Req, Method, Methods, Plural_3, HandleId, Singular_4).
+  sort([head,options|Methods1], Methods2),
+  rest_method0(Req, Method, Methods2, Plural_3, HandleId, Singular_4).
 
 
 % “OPTIONS”
-rest_method0(Req, options, Methods1, _, _, _) :- !,
-  sort([head,options|Methods1], Methods2),
-  reply_http_message(Req, 200, ['Allow'-Methods2]).
+rest_method0(Req, options, Methods, _, _, _) :- !,
+  reply_http_message(Req, 200, ['Allow'-Methods]).
 % Method accepted, on to media types.
 rest_method0(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
   memberchk(Method, Methods), !,
@@ -152,3 +154,14 @@ rest_method0(Req, Method, Methods, Plural_3, HandleId, Singular_4) :-
 % 405 “Method Not Allowed”
 rest_method0(Req, _, _, _, _, _) :-
   reply_http_message(Req, 405).
+
+
+
+%! rest_reply(+Method, :Head_0, :Body_0) is det.
+
+rest_reply(head, Head_0, _) :-
+  call(Head_0),
+  format("~n").
+rest_reply(get, Head_0, Body_0) :-
+  rest_reply(head, Head_0, Body_0),
+  call(Body_0).

@@ -64,23 +64,23 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_dcg), [
-     'MediaDesc'//1 % -MediaDescriptions:list(string)
+     'MediaDesc'//1 % -MediaDescriptions:list(atom)
    ]).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/http11), [
      'OWS'//0
    ]).
 :- use_module(library(http/rfc2616), [
-     'ALPHA'//1,         % ?Code
-     'DIGIT'//1,         % ?Weight
-     'DIGIT'//2,         % ?Weight:between(0,9), ?Code
-     'LOALPHA'//1,       % ?Code
-     'quoted-string'//1, % -String
+     'ALPHA'//1,         % ?Code:code
+     'DIGIT'//1,         % ?Weight:between(0,9)
+     'DIGIT'//2,         % ?Weight:between(0,9), ?Code:code
+     'LOALPHA'//1,       % ?Code:code
+     'quoted-string'//1, % -String:atom
      'SP'//0
    ]).
 :- use_module(library(http/rfc4288), [
-     'subtype-name'//1, % -SubtypeName
-     'type-name'//1     % -TypeName
+     'subtype-name'//1, % -SubtypeName:atom
+     'type-name'//1     % -TypeName:atom
    ]).
 :- use_module(library(http/rfc5987), [
      'ext-value'//1, % -Val:compound
@@ -95,6 +95,9 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
      'URI-reference'//1 % -Uri:compound
    ]).
 :- use_module(library(uri/uri_ext)).
+
+:- multifile
+    http_known_known/1.
 
 
 
@@ -132,6 +135,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 % Link = "Link" ":" #link-value
 % ```
 
+http_known_known(link).
 link(BaseUri, LinkValues) -->
   *#('link-value'(BaseUri), LinkValues), !.
 
@@ -159,7 +163,7 @@ link(BaseUri, LinkValues) -->
 
 
 
-%! 'link-param'(+BaseUri, -LinkParam:pair(atom,term))// is det.
+%! 'link-param'(+BaseUri:atom, -LinkParam:pair(atom,term))// is det.
 %
 % ```abnf
 % link-param = ( ( "rel" "=" relation-types )
@@ -362,7 +366,7 @@ reg_rel_type_code(0'-) --> "-".
 
 
 
-%! 'relation-type'(+BaseUri, -RelType:atom)// is det.
+%! 'relation-type'(+BaseUri:atom, -RelType:atom)// is det.
 %
 % ```abnf
 % relation-type  = reg-rel-type | ext-rel-type
@@ -375,7 +379,7 @@ reg_rel_type_code(0'-) --> "-".
 
 
 
-%! 'relation-types'(+BaseUri, -RelTypes:list(atom))// is det.
+%! 'relation-types'(+BaseUri:atom, -RelTypes:list(atom))// is det.
 %
 % ```abnf
 % relation-types = relation-type
@@ -396,7 +400,7 @@ sep_relation_type(BaseUri, RelType) -->
 
 
 
-%! 'URI-Reference'(+BaseUri:atom, -Uri:compound)// is det.
+%! 'URI-Reference'(+BaseUri:atom, -Uri:atom)// is det.
 
 'URI-Reference'(BaseUri, Uri) -->
   'URI-reference'(UriComps),

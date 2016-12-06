@@ -1,9 +1,9 @@
 :- module(
   rfc2617,
   [
-    'auth-scheme'//1, % -Scheme:string
-    'auth-param'//1,  % -Parameter:dict
-    challenge//1      % -Challenge:dict
+    'auth-scheme'//1, % -Scheme:atom
+    'auth-param'//1,  % -Param:pair
+    challenge//1      % -Challenge:compound
   ]
 ).
 
@@ -21,37 +21,45 @@
    ]).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616), [
-     'quoted-string'//1, % -String:string
-     token//1            % -Token:string
+     'quoted-string'//1, % -String:atom
+     token//1            % -Token:atom
    ]).
 
 
 
 
 
-%! 'auth-scheme'(-Scheme:string)// is det.
+%! 'auth-scheme'(-Scheme:atom)// is det.
+%
 % ```abnf
 % auth-scheme = token
 % ```
 
-'auth-scheme'(S) --> token(S).
+'auth-scheme'(Scheme) -->
+  token(Scheme).
 
 
 
-%! 'auth-param'(-Parameter:dict)// is det.
+%! 'auth-param'(-Param:pair(atom))// is det.
+%
 % ```abnf
 % auth-param = token "=" ( token | quoted-string )
 % ```
 
-'auth-param'(_{'@type': 'llo:parameter', 'llo:key': Key, 'llo:value': Value}) -->
-  token(Key), "=", (token(Value) ; 'quoted-string'(Value)).
+'auth-param'(Key-Val) -->
+  token(Key),
+  "=",
+  (token(Val) -> "" ; 'quoted-string'(Val)).
 
 
 
-%! challenge(-Challenge:dict)// is det.
+%! challenge(-Challenge:compound)// is det.
+%
 % ```abnf
 % challenge = auth-scheme 1*SP 1#auth-param
 % ```
 
-challenge(_{'@type': 'llo:challenge', 'llo:scheme': Scheme, 'llo:parameters': L}) -->
-  'auth-scheme'(Scheme), +('SP'), +#('auth-param', L).
+challenge(challenge(Scheme,Params)) -->
+  'auth-scheme'(Scheme),
+  +('SP'), !,
+  +#('auth-param', Params), !.

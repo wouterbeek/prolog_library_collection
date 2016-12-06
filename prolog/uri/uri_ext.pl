@@ -36,17 +36,18 @@ auth_comps(Auth, auth(User,Host,Port)) :-
 %
 % Comps is of the form uri(Scheme,Auth,Path,Query,Frag), where:
 %
-%   - Auth if of the form auth(User,Host,Port)
+%   - Auth is of the form auth(User,Host,Port)
 %
-%   - Path is a list of atomic segments
+%   - Path is a list of atomic segments.  Allowed to be
+%     uninstantiated.
 %
 %   - Query is a list of unary compound terms denoting key/value
-%     pairs
+%     pairs.  Allowed to be uninstantiated.
 
 uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
   (atom(Auth0) -> Auth = Auth0 ; auth_comps(Auth, Auth0)),
-  atomic_list_concat([''|Segments], /, Path),
-  uri_query_components(Query, QueryComps),
+  (var(Segments) -> true ; atomic_list_concat([''|Segments], /, Path)),
+  (var(QueryComps) -> true ; uri_query_components(Query, QueryComps)),
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 

@@ -4,8 +4,11 @@
     http_absolute_location/2, % +Spec, -Path
     http_accept/2,            % +Req, -MTs
     http_base_location_iri/2, % +Req, -iri
+    http_content_type/1,      % +MT
     http_content_type/2,      % +Req, -MT
+    http_default_port/2,    % +Scheme, -DefPort
     http_iri_query/2,         % +Iri, -Comp
+    http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
     http_method/2,            % +Req, -Method
@@ -63,13 +66,14 @@ http_absolute_location(Spec, Path) :-
 % Matches MTs = [_] in case there is no HTTP Accept header.
 
 http_accept(Req, MTs) :-
-  memberchk(accept(L0), Req),
+  memberchk(accept(L0), Req), !,
   (atom(L0) -> atom_to_term(L0, L, _) ; L = L0),
   (   var(L)
   ->  MTs = [_]
   ;   maplist(mediatype_pair, L, Pairs),
       desc_pairs_values(Pairs, MTs)
   ).
+http_accept(_, [_]).
 
 mediatype_pair(media(MT,_,N,_), N-MT).
 
@@ -84,11 +88,23 @@ http_base_location_iri(Req, Iri2) :-
 
 
 
+%! http_content_type(+MT) is semidet.
 %! http_content_type(+Req, -MT) is semidet.
+
+http_content_type(Type/Subtype) :-
+  format("Content-Type: ~a/~a; charset=UTF-8~n", [Type,Subtype]).
+
 
 http_content_type(Req, Type/Subtype) :-
   memberchk(content_type(A), Req),
   http_parse_header('content-type', A, media_type(Type,Subtype,_)).
+
+
+
+%! http_default_port(+Scheme, -DefPort) is det.
+
+http_default_port(http, 80).
+http_default_port(https, 443).
 
 
 
@@ -98,6 +114,14 @@ http_iri_query(Iri, Comp) :-
   uri_components(Iri, uri_components(_,_,_,Query,_)),
   (var(Query) -> Comps = [] ; uri_query_components(Query, Comps)),
   member(Comp, Comps).
+
+
+
+%! http_is_get(+Method) is semidet.
+
+http_is_get(get).
+http_is_get(head).
+
 
 
 %! http_link_to_id(+HandleId, -Local) is det.
