@@ -52,6 +52,9 @@
    ]).
 :- use_module(library(uuid)).
 
+:- dynamic
+    http_known_known/1.
+
 :- multifile
     http_known_known/1.
 

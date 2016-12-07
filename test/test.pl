@@ -69,16 +69,17 @@
 %/http
   :- use_module(library(http/cors)).
   :- use_module(library(http/csp2)).
+  :- use_module(library(http/curl)).
   :- use_module(library(http/dcg_http)).
   :- use_module(library(http/google_headers)).
-  :- use_module(library(http/http11)).
-  :- use_module(library(http/http11_test)).
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_ext)).
   :- use_module(library(http/http_io)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/http_user)).
   :- use_module(library(http/http_write)).
+  :- use_module(library(http/http11)).
+  :- use_module(library(http/http11_test)).
   :- use_module(library(http/ie_headers)).
   :- use_module(library(http/rest)).
   :- use_module(library(http/rfc1034)).

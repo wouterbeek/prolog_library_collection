@@ -35,6 +35,9 @@
 :- use_module(library(http/rfc2616)).
 :- use_module(library(http/http11)).
 
+:- dynamic
+    http_known_known/1.
+
 :- multifile
     http_known_known/1.
 

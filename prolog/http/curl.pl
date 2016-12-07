@@ -1,5 +1,5 @@
 :- module(
-  http_cli,
+  curl,
   [
     default_uri/1,  % -Uri:atom
     curl_get/0,
@@ -7,6 +7,7 @@
     curl_get/2,     % +Uri:atom, +MT:atom
     curl_head/0,
     curl_head/1,    % +Uri:atom
+    curl_head/2,    % +Uri:atom, +MT:atom
     curl_options/0,
     curl_options/1  % +Uri:atom
   ]
@@ -81,6 +82,7 @@ true0(In, Path, Path) :-
 
 %! curl_head is det.
 %! curl_head(+Uri:atom) is det.
+%! curl_head(+Uri:atom, +MT:atom) is det.
 
 curl_head :-
   default_uri(Uri),
@@ -88,7 +90,11 @@ curl_head :-
 
 
 curl_head(Uri) :-
-  http_head(Uri, [verbose(true)]).
+  curl_head(Uri, []).
+
+
+curl_head(Uri, MT) :-
+  http_head(Uri, [request_header(accept=MT),verbose(true)]).
 
 
 

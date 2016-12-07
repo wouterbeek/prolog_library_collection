@@ -27,6 +27,9 @@ Takes over the definition and registration of the
      'ext-value'//1 % -Val:compound
    ]).
 
+:- dynamic
+    http_known_known/1.
+
 :- multifile
     http_known_known/1.
 

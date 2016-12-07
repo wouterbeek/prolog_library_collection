@@ -10,8 +10,8 @@
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
     http_method/2,            % +Req, -Method
-    http_output/1,            % -Output
-    http_output/2,            % +Req, -Output
+    http_output/1,            % -Out
+    http_output/2,            % +Req, -Out
     http_read_data/2,         % +Req, -Data
     http_read_json_dict/1,    % -Data
     http_relative_iri/1,      % -Iri
@@ -134,8 +134,8 @@ http_method(Req, M) :-
 
 
 
-%! http_output(-Output) is det.
-%! http_output(+Req, -Output) is det.
+%! http_output(-Out) is det.
+%! http_output(+Req, -Out) is det.
 
 http_output(Out) :-
   http_current_request(Req),
@@ -221,10 +221,14 @@ reply_content_type(MT) :-
   reply_content_type(MT, []).
 
 
-reply_content_type(Type/Subtype, T) :-
-  sort([charset-'UTF-8'|T], Params),
+reply_content_type(Type/Subtype, Pairs0) :-
+  sort([charset-'UTF-8'|Pairs0], Pairs),
+  maplist(pair_param, Pairs, Params),
   atomic_list_concat(Params, '; ', Params0),
   format("Content-Type: ~a/~a; ~a~n", [Type,Subtype,Params0]).
+
+pair_param(Key-Val, A) :-
+  atomic_list_concat([Key,Val], =, A).
 
 
 

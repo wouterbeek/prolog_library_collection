@@ -23,6 +23,9 @@
      token//1
    ]).
 
+:- dynamic
+    http_known_known/1.
+
 :- multifile
     http_known_known/1.
 

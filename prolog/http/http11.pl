@@ -5,7 +5,7 @@
     'field-name'//1,     % -Name:atom
     'header-field'//1,   % -Header:pair
     http_parse_header/3, % +Key:atom, +Val:atom, -Term:compound
-    http_known/1,        % +Key
+    http_known/1,        % ?Key
     'media-type'//1,     % -MT:compound
     method//1,           % -Method:atom
     'OWS'//0,
@@ -187,9 +187,11 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
    ]).
 :- use_module(library(uri/uri_ext)).
 
-:- discontiguous
-    http_known_known/1,
-    http_known_unknown/1.
+%:- discontiguous
+%    http_known_known/1.
+
+:- dynamic
+    http_known_known/1.
 
 :- meta_predicate
     'field-content'(3, -, ?, ?).
@@ -1215,10 +1217,19 @@ hour(H) -->
 
 
 %! http_known(+Key) is semidet.
+%! http_known(-Key) is multi.
 
 http_known(Key) :-
-  http_known_known(Key), !.
+  var(Key), !,
+  http_known0(Key).
 http_known(Key) :-
+  once(http_known0(Key)).
+
+http_known0(Key) :-
+  http_known_known(Key).
+% @bug Dynamic/multifile does not work.
+http_known0(link).
+http_known0(Key) :-
   http_known_unknown(Key).
 
 
