@@ -9,6 +9,7 @@
     json_var_to_null/2, % +Term, -NullifiedTerm
     json_write_any/2,   % +Sink, +Dict
     json_write_any/3,   % +Sink, +Dict, +Opts
+    json_write_dict/1,  % +Dict
     string_json_dict/3, % +Str, -Dict
     string_json_dict/2  % +Str, -Dict, +Opts
   ]
@@ -17,7 +18,7 @@
 /** <module> JSON extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01, 2016/03-2016/05, 2016/07, 2016/11
+@version 2015/09-2015/11, 2016/01, 2016/03-2016/05, 2016/07, 2016/11-2016/12
 */
 
 :- use_module(library(apply)).
@@ -124,6 +125,13 @@ json_write_any(Sink, Dict, Opts):-
     {Dict,Opts}/[Out]>>json_write_dict(Out, Dict, Opts),
     Opts
   ).
+
+
+
+%! json_write_dict(+Dict) is det.
+
+json_write_dict(Dict) :-
+  json_write_dict(current_output, Dict).
 
 
 
