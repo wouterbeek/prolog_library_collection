@@ -56,6 +56,7 @@
     :- use_module(library(graph/s/s_type)).
 :- use_module(library(hash_ext)).
 %/html
+  :- use_module(library(html/html_bibtex)).
   :- use_module(library(html/html_date_time)).
   :- use_module(library(html/html_date_time_human)).
   :- use_module(library(html/html_date_time_machine)).
