@@ -24,12 +24,6 @@
    ]).
 :- use_module(library(http/rfc6454)).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -40,7 +34,6 @@
 % Access-Control-Allow-Credentials: "Access-Control-Allow-Credentials" ":" true
 % ```
 
-http_known_known('access-control-allow-credentials').
 'access-control-allow-credentials'(true) -->
   atom_ci(true).
 
@@ -52,7 +45,6 @@ http_known_known('access-control-allow-credentials').
 % Access-Control-Allow-Headers: "Access-Control-Allow-Headers" ":" #field-name
 % ```
 
-http_known_known('access-control-allow-headers').
 'access-control-allow-headers'(Names) -->
   *#('field-name', Names), !.
 
@@ -64,7 +56,6 @@ http_known_known('access-control-allow-headers').
 % Access-Control-Allow-Methods: "Access-Control-Allow-Methods" ":" #Method
 % ```
 
-http_known_known('access-control-allow-methods').
 'access-control-allow-methods'(Methods) -->
   *#(method, Methods), !.
 
@@ -78,7 +69,6 @@ http_known_known('access-control-allow-methods').
 %                             | "*"
 % ```
 
-http_known_known('access-control-allow-origin').
 'access-control-allow-origin'(Origins) -->
   'origin-list-or-null'(Origins), !.
 'access-control-allow-origin'([_]) -->
@@ -92,6 +82,5 @@ http_known_known('access-control-allow-origin').
 % Access-Control-Request-Method: "Access-Control-Request-Method" ":" Method
 % ```
 
-http_known_known('access-control-request-method').
 'access-control-request-method'(Method) -->
   method(Method).

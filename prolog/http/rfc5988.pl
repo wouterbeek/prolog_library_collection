@@ -96,12 +96,6 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
    ]).
 :- use_module(library(uri/uri_ext)).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -138,7 +132,6 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 % Link = "Link" ":" #link-value
 % ```
 
-http_known_known(link).
 link(BaseUri, LinkValues) -->
   *#('link-value'(BaseUri), LinkValues), !.
 

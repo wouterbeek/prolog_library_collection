@@ -18,9 +18,6 @@
      'LWS'//0
    ]).
 
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -33,7 +30,6 @@
 %
 % @see https://msdn.microsoft.com/library/gg622941%28v=vs.85%29.aspx
 
-http_known_known('x-content-type-options').
 'x-content-type-options'(nosniff) -->
   atom_ci(nosniff).
 
@@ -52,7 +48,6 @@ http_known_known('x-content-type-options').
 % X-Powered-By: PHP/5.4.0
 % ```
 
-http_known_known('x-powered-by').
 'x-powered-by'(A) -->
   ...(Cs),
   {atom_codes(A, Cs)}.
@@ -101,7 +96,6 @@ http_known_known('x-powered-by').
 % @see
 % http://blogs.msdn.com/b/ieinternals/archive/2011/01/31/controlling-the-internet-explorer-xss-filter-with-the-x-xss-protection-http-header.aspx
 
-http_known_known('x-xss-protection').
 'x-xss-protection'(optout) -->
   "0", !.
 'x-xss-protection'(block) -->

@@ -35,12 +35,6 @@
 :- use_module(library(http/rfc2616)).
 :- use_module(library(http/http11)).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -285,7 +279,6 @@ cookie_value_codes(Cs) -->
 % set-cookie-header = "Set-Cookie:" SP set-cookie-string
 % ```
 
-http_known_known('set-cookie').
 'set-cookie'(Cookie) -->
   'set-cookie-string'(Cookie).
 

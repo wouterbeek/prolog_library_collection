@@ -27,12 +27,6 @@ Takes over the definition and registration of the
      'ext-value'//1 % -Val:compound
    ]).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -45,7 +39,6 @@ Takes over the definition and registration of the
 %                       *( ";" disposition-parm )
 % ```
 
-http_known_known('content-disposition').
 'content-disposition'(content_disposition(Type,Params)) -->
   'disposition-type'(Type),
   (+(disposition_param, Params) -> "" ; {Params = []}).

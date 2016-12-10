@@ -23,12 +23,6 @@
      token//1
    ]).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -195,7 +189,6 @@ portnum(Port) -->
 % set-cookie = "Set-Cookie2:" cookies
 % ```
 
-http_known_known('set-cookie2').
 'set-cookie2'(Cookies) -->
   cookies(Cookies).
 

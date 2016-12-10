@@ -23,12 +23,6 @@
      token//1            % -Token:atom
    ]).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -128,7 +122,6 @@ cookies(Cookies) -->
 % set-cookie = "Set-Cookie:" cookies
 % ```
 
-http_known_known('set-cookie').
 'set-cookie'(Cookies) -->
   cookies(Cookies).
 

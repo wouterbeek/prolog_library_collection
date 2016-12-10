@@ -187,14 +187,27 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
    ]).
 :- use_module(library(uri/uri_ext)).
 
-:- dynamic
+:- discontiguous
     http_known_known/1.
+
+http_known_known('access-control-allow-credentials').
+http_known_known('access-control-allow-headers').
+http_known_known('access-control-allow-methods').
+http_known_known('access-control-allow-origin').
+http_known_known('access-control-request-method').
+http_known_known('content-disposition').
+http_known_known(link).
+http_known_known(origin).
+http_known_known('set-cookie').
+http_known_known('set-cookie2').
+http_known_known('strict-transport-security').
+http_known_known('x-content-type-options').
+http_known_known('x-frame-options').
+http_known_known('x-powered-by').
+http_known_known('x-xss-protection').
 
 :- meta_predicate
     'field-content'(3, -, ?, ?).
-
-:- multifile
-    http_known_known/1.
 
 
 
@@ -1121,7 +1134,7 @@ expect('100-continue') -->
 % ```
 
 'field-value'(Cs, Key, D2) :-
-  phrase('field-content'(http11:Key, D1), Cs),
+  phrase('field-content'(Key, D1), Cs),
   string_codes(Raw, Cs),
   put_dict(raw, D1, Raw, D2).
 

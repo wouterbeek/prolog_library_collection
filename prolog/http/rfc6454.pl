@@ -52,12 +52,6 @@
    ]).
 :- use_module(library(uuid)).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -180,7 +174,6 @@ origin(_, Id) :-
 % origin = "Origin:" OWS origin-list-or-null OWS
 % ```
 
-http_known_known(origin).
 origin(Origins) -->
   'OWS',
   'origin-list-or-null'(Origins),

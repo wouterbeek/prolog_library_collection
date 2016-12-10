@@ -20,12 +20,6 @@
      token//1            % -Token:atom
    ]).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -73,7 +67,6 @@ directive(Key-Val) -->
 %                             [ directive ]  *( ";" [ directive ] )
 % ```
 
-http_known_known('strict-transport-security').
 'strict-transport-security'(L) -->
   (directive(H) -> {L = [H|T]} ; {L = T}),
   *(sep_directive, T), !.

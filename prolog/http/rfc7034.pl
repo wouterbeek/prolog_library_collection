@@ -20,12 +20,6 @@
    ]).
 :- use_module(library(http/rfc6454)).
 
-:- dynamic
-    http_known_known/1.
-
-:- multifile
-    http_known_known/1.
-
 
 
 
@@ -55,7 +49,6 @@
 %   * `ALLOW-FROM'
 %     Followed by a serialized-origin [RFC6454].
 
-http_known_known('x-frame-options').
 'x-frame-options'(deny) -->
   atom_ci('DENY').
 'x-frame-options'(sameorigin) -->
