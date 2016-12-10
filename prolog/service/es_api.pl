@@ -68,20 +68,20 @@ _{
 ```swi
 _{
   query: _{
-    filtered: _{
+    bool: _{
+      must: _{
+        match_phrase: _{
+          <KEY>: "<X> <Y>"
+        }
+      },
       filter: _{
         range: _{
           <KEY>: _{
             gt: <NONNEG>
           }
         }
-      },
-      query: _{
-        match_phrase: _{
-          <KEY>: "<X> <Y>"
-        }
       }
-    }
+    },
   }
 }
 ```
@@ -92,6 +92,7 @@ _{
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
@@ -420,6 +421,14 @@ es_update_pp([Index,Type,Id], Data) :-
 
 % HELPERS %
 
+debug_dict(Dict) :-
+  debugging(es_api), !,
+  dcg_with_output_to(string(Msg), dcg_dict(Dict)),
+  debug(es_api, "~s", [Msg]).
+debug_dict(_).
+
+
+
 %! es_delete0(+PathComps, -Status, -Dict) is det.
 
 es_delete0(PathComps, Status, Dict) :-
@@ -503,6 +512,7 @@ es_post0(PathComps, Data, Status, Dict) :-
 
 es_post0(PathComps, QueryComps, Data, Status, Dict) :-
   es_iri0(PathComps, QueryComps, Iri),
+  debug_dict(Data),
   http_post(
     Iri,
     json(Data),
@@ -517,6 +527,7 @@ es_post0(PathComps, QueryComps, Data, Status, Dict) :-
 
 es_put0(PathComps, Data, Status, Dict) :-
   es_iri0(PathComps, Iri),
+  debug_dict(Data),
   http_put(
     Iri,
     json(Data),

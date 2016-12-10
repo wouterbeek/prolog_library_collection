@@ -9,7 +9,6 @@
     http_get/3,                  % +Iri, :Goal_3, +Opts
     http_head/1,                 % +Iri
     http_head/2,                 % +Iri, +Opts
-    http_header/3,               % +Key, +Path, -Val
     http_is_scheme/1,            % ?Scheme
     http_options/1,              % +Iri
     http_options/2,              % +Iri, +Opts
@@ -37,21 +36,23 @@ iostream.
 
 The following additional options are supported:
 
-  * compression(+oneof([deflate,gzip,none])) Whether or not
-  compression is used on the opened stream.  Default is `none`.
+  * compression(+oneof([deflate,gzip,none]))
 
-  * max_redirects(+positive_integer) The maximum number of redirects
-  that is followed when opening a stream over HTTP.  Default is 5.
+    Whether or not compression is used on the opened stream.  Default
+    is `none`.
 
-  * max_retries(+positive_integer) The maximum number of retries that
-  is performed when opening a stream over HTTP.  A retry is made
-  whenever a 4xx- or 5xx-range HTTP status code is returned.  Default
-  is 1.
+  * max_redirects(+positive_integer)
+
+    The maximum number of redirects that is followed when opening a
+    stream over HTTP.  Default is 5.
+
+  * max_retries(+positive_integer)
+
+    The maximum number of retries that is performed when opening a
+    stream over HTTP.  A retry is made whenever a 4xx- or 5xx-range
+    HTTP status code is returned.  Default is 1.
 
   * metadata(-dict)
-
-  * parse_headers(+boolean) Whether HTTP headers are parsed according
-  to HTTP 1.1 grammars.  Default is `false`.
 
 The following debug flags are used:
 
@@ -166,18 +167,6 @@ http_head(Iri, Opts0) :-
 
 
 
-%! http_header(+Key, +Path, -Val) is nondet.
-
-http_header(Key, Path, Val) :-
-  http_get_dict(headers, Path, Headers),
-  downcase_atom(Key, KeyNorm),
-  get_dict(KeyNorm, Headers, Dicts),
-  member(Dict, Dicts),
-  dict_pairs(Dict, valid_http_header, Pairs),
-  memberchk(value-Val, Pairs).
-
-
-
 %! http_is_scheme(+Scheme) is semidet.
 
 http_is_scheme(http).
@@ -263,7 +252,7 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
       TS
     )
   ),
-  indent_debug(in, http_io, "R> ~a → ~w", [Iri,In1]),
+  indent_debug(in, io, "R> ~a → ~w", [Iri,In1]),
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
@@ -285,10 +274,12 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0)
-  ;   throw(E)
-  ),
-  reverse([H|T], Path).
+      debug(http_io, "[ENTRY] ~w", [H]),
+      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0),
+      reverse([H|T], Path)
+  ;   Path = [],
+      throw(E)
+  ).
 
 % Authentication error.
 http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
@@ -397,7 +388,7 @@ http_retry_until_success(Goal_0, Timeout) :-
   ->  true
   ;   % HTTP error status code
       E = error(existence_error(_,[H|_]),_),
-      http_get_dict(status, H, Status),
+      Status = H.status,
       (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
   ->  indent_debug(http_io, "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
@@ -487,14 +478,6 @@ http_error_msg(Iri, Method, Status, Lines, In) :-
   http_msg(user_error, Iri, Method, Status, Lines),
   peek_string(In, 1000, Str),
   format(user_error, "  Message content:~n    ~s~n", [Str]).
-
-
-
-%! http_get_dict(+Key, +Path, -Val) is semidet.
-
-http_get_dict(Key, Path, Val) :-
-  member(Entry, Path),
-  get_dict(Key, Entry, Val), !.
 
 
 

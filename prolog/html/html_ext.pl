@@ -161,8 +161,8 @@
     pagination_links//1,     % +Result
     pagination_result//2,    % +Result, :Writer_1
     pagination_result_nonempty//2, % +Result, :Writer_1
-    panel//3,                % +N, +Header, :Content_0
-    panel//4,                % +Open:boolean, +N, +Header, :Content_0
+    panel//3,                % +In, :Header_0, :Body_0
+    panel//4,                % +Open:boolean, +In, :Header_0, :Body_0
     panels//1,               % :Panels_0
     pipe//0,
     pl_link//0,
@@ -338,8 +338,8 @@ html({|html||...|}).
    nowrap(html, ?, ?),
    ordered_list(html, +, ?, ?),
    ordered_list(+, html, +, ?, ?),
-   panel(+, +, html, ?, ?),
-   panel(+, +, +, html, ?, ?),
+   panel(+, html, html, ?, ?),
+   panel(+, +, html, html, ?, ?),
    panels(html, ?, ?),
    ref(+, html, ?, ?),
    reply_html_page(+, +, :, :),
@@ -2524,19 +2524,19 @@ pagination_result_nonempty(Result, Content_1) -->
 
 
 
-%! panel(+N, +Header, :Content_0)// is det.
-%! panel(+Open:boolean, +N, +Header, :Content_0)// is det.
+%! panel(+Id, :Header_0, :Content_0)// is det.
+%! panel(+Open:boolean, +Id, :Header_0, :Content_0)// is det.
 
-panel(N, Header, Content_0) -->
-  panel(false, N, Header, Content_0).
+panel(Id, Header_0, Content_0) -->
+  panel(false, Id, Header_0, Content_0).
 
 
-panel(Open, N, Header, Content_0) -->
+panel(Open, Id, Header_0, Content_0) -->
   {
     panel_mode(Open, OpenClasses),
-    atomic_list_concat([collapse,N], -, CollapseId),
+    atomic_list_concat([collapse,Id], -, CollapseId),
     atomic_concat(#, CollapseId, CollapseTarget),
-    atomic_list_concat([panel,N], -, PanelId)
+    atomic_list_concat([panel,Id], -, PanelId)
   },
   html(
     div([class=[panel,'panel-default'],id=PanelId], [
@@ -2546,7 +2546,7 @@ panel(Open, N, Header, Content_0) -->
             'data-toggle'=collapse,
             'data-target'=CollapseTarget,
             href=CollapseTarget
-          ], Header)
+          ], Header_0)
         )
       ),
       div([class=[collapse,'panel-collapse'|OpenClasses],id=CollapseId],
@@ -2856,23 +2856,23 @@ submit_button(Content_0) -->
 
 
 %! table(:BodyContent_0)// is det.
-%! table(:HeaderContent_0, :BodyContent_0)// is det.
+%! table(:Header_0, :Body_0)// is det.
 %! table(:CaptionContent_0, :HeaerRow_0, :BodyContent_0)// is det.
 
-table(BodyContent_0) -->
-  table(_, BodyContent_0).
+table(Body_0) -->
+  table(_, Body_0).
 
 
-table(HeaderContent_0, BodyContent_0) -->
-  table(_, HeaderContent_0, BodyContent_0).
+table(Header_0, Body_0) -->
+  table(_, Header_0, Body_0).
 
 
-table(CaptionContent_0, HeaderContent_0, BodyContent_0) -->
+table(Caption_0, Header_0, Body_0) -->
   html(
     table(class=[block,table,'table-condensed','table-striped'], [
-      \table_caption(CaptionContent_0),
-      \table_header(HeaderContent_0),
-      tbody(BodyContent_0)
+      \table_caption(Caption_0),
+      \table_header(Header_0),
+      tbody(Body_0)
     ])
   ).
 
