@@ -187,9 +187,6 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
    ]).
 :- use_module(library(uri/uri_ext)).
 
-%:- discontiguous
-%    http_known_known/1.
-
 :- dynamic
     http_known_known/1.
 
