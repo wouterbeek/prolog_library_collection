@@ -349,13 +349,16 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode1), Sink1Opts, write),
   option(mode(Mode2), Sink2Opts, write),
   setup_call_cleanup(
-    open_any2(Sink1, Mode1, Out1, Close1_0, L1a, Sink1Opts),
-    setup_call_cleanup(
-      open_any2(Sink2, Mode2, Out2, Close2_0, L1b, Sink2Opts),
-      call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
-      close_any2(Close1_0, L2b, L3b, Sink2Opts)
+    (
+      open_any2(Sink1, Mode1, Out1, Close1_0, L1a, Sink1Opts),
+      open_any2(Sink2, Mode2, Out2, Close2_0, L1b, Sink2Opts)
     ),
-    close_any2(Close2_0, L2a, L3a, Sink1Opts)
+    call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
+    (
+      gtrace,
+      close_any2(Close1_0, L2b, L3b, Sink2Opts),
+      close_any2(Close2_0, L2a, L3a, Sink1Opts)
+    )
   ),
   ignore(option(metadata1(L3a), Sink1Opts)),
   ignore(option(metadata2(L3b), Sink2Opts)).

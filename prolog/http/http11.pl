@@ -196,6 +196,9 @@ http_known_known('access-control-allow-methods').
 http_known_known('access-control-allow-origin').
 http_known_known('access-control-request-method').
 http_known_known('content-disposition').
+http_known_known('content-security-policy').
+http_known_known('content-security-policy-report-only').
+http_known_known(csp).
 http_known_known(link).
 http_known_known(origin).
 http_known_known('set-cookie').
@@ -1259,6 +1262,7 @@ http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
 http_known_unknown(p3p).
 http_known_unknown(servidor).
+http_known_unknown(status).
 http_known_unknown(warning).
 http_known_unknown('x-acre-source-url').
 http_known_unknown('x-adblock-key').

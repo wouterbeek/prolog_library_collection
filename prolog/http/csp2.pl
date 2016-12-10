@@ -1,9 +1,9 @@
 :- module(
   csp2,
   [
-    'content-security-policy'//1,             % ?Policies:list(dict)
-    'content-security-policy-report-only'//1, % ?Policies:list(dict)
-    csp//1                                    % -Value:string
+    'content-security-policy'//1,             % ?Policies:list(pair(atom))
+    'content-security-policy-report-only'//1, % ?Policies:list(pair(atom))
+    csp//1                                    % -Value:atom
   ]
 ).
 
@@ -30,73 +30,92 @@
 
 
 
-%! 'content-security-policy'(-Policies:list(dict))// is det.
+%! 'content-security-policy'(-Policies:list(atom))// is det.
+%
 % ```abnf
 % "Content-Security-Policy:" 1#policy-token
 % ```
 
-'content-security-policy'(L) --> '+#'('policy-token', L).
+'content-security-policy'(Policies) -->
+  '+#'('policy-token', Policies), !.
 
 
 
-%! 'content-security-policy-report-only'(-Policies:list(dict))// is det.
+%! 'content-security-policy-report-only'(-Policies:list(atom))// is det.
+%
 % ```abnf
 % "Content-Security-Policy-Report-Only:" 1#policy-token
 % ```
 
-'content-security-policy-report-only'(L) --> '+#'('policy-token', L).
+'content-security-policy-report-only'(Policies) -->
+  '+#'('policy-token', Policies), !.
 
 
 
-%! csp(-Value:string)// is det.
+%! csp(-Value:oneof([active]))// is det.
+%
 % ```abnf
 % "CSP:" csp-header-value
 % ```
 
-csp(S) --> 'csp-header-value'(S).
+csp(S) -->
+  'csp-header-value'(S).
 
 
 
-%! 'csp-header-value'(-Value:string)// is det.
+%! 'csp-header-value'(-Value:oneof([active]))// is det.
+%
 % ```abnf
 % csp-header-value = *WSP "active" *WSP
 % ```
 
-'csp-header-value'("active") --> *('WSP'), atom_ci(active), *('WSP').
+'csp-header-value'(active) -->
+  *('WSP'), !,
+  atom_ci(active),
+  *('WSP'), !.
 
 
 
 %! 'directive-name'(-Name:atom)// is det.
+%
 % ```abnf
 % directive-name = 1*( ALPHA / DIGIT / "-" )
 % ```
 
-'directive-name'(A) --> +(directive_name_code, Cs), {atom_codes(A, Cs)}.
-directive_name_code(C)   --> 'ALPHA'(C).
-directive_name_code(C)   --> 'DIGIT'(_, C).
+'directive-name'(Name) -->
+  +(directive_name_code, Cs), !,
+  {atom_codes(Name, Cs)}.
+
+directive_name_code(C) --> 'ALPHA'(C).
+directive_name_code(C) --> 'DIGIT'(_, C).
 directive_name_code(0'-) --> "-".
 
 
 
-%! 'directive-token'(-Directive:pair)// is det.
+%! 'directive-token'(-Directive:pair(atom))// is det.
+%
 % ```abnf
 % directive-token = *WSP [ directive-name [ WSP directive-value ] ]
 % ```
 %
 % @bug This grammar allows an infinity of empty directive tokens.
 
-'directive-token'(X) -->
-  'directive-name'(N), !,
-  ('WSP' -> 'directive-value'(V), {X = N-V} ; {X = N-true}).
+'directive-token'(Pair) -->
+  'directive-name'(Key),
+  ('WSP' -> 'directive-value'(Val), {Pair = Key-Val} ; {Pair = Key-true}).
 
 
 
-%! 'directive-value'(-Value:string)// is det.
+%! 'directive-value'(-Value:atom)// is det.
+%
 % ```abnf
 % directive-value = *( WSP / <VCHAR except ";" and ","> )
 % ```
 
-'directive-value'(S) --> *(directive_value_code, Cs), {string_codes(S, Cs)}.
+'directive-value'(Val) -->
+  *(directive_value_code, Cs), !,
+  {atom_codes(Val, Cs)}.
+
 directive_value_code(C) --> 'WSP'(C).
 directive_value_code(_) --> ";", !, {fail}.
 directive_value_code(_) --> ",", !, {fail}.
@@ -104,22 +123,29 @@ directive_value_code(C) --> 'VCHAR'(C).
 
 
 
-%! 'policy-token'(-Policy:dict)// is det.
+%! 'policy-token'(-Policy:list(pair(atom)))// is det.
+%
 % ```abnf
 % policy-token = [ directive-token *( ";" [ directive-token ] ) ]
 % ```
 %
 % @bug This grammar allows an infinity of empty policy tokens.
 
-'policy-token'(D) -->
-  'directive-token'(H), !,
-  directive_tokens(T),
-  {dict_pairs(D, policy, [H|T])}.
+'policy-token'([H|T]) -->
+  'directive-token'(H),
+  directive_tokens(T).
 
 % A directive token must be preceded by a separator.
-directive_tokens([H|T]) --> sep, 'directive-token'(H), !, directive_tokens(T).
+directive_tokens([H|T]) -->
+  sep,
+  'directive-token'(H), !,
+  directive_tokens(T).
 % Allow consecutive separators.
-directive_tokens(L)   --> +(sep), !, directive_tokens(L).
-directive_tokens([])  --> "".
+directive_tokens(L) -->
+  +(sep), !,
+  directive_tokens(L).
+directive_tokens([]) --> "".
 
-sep --> ";", *('WSP').
+sep -->
+  ";",
+  *('WSP'), !.
