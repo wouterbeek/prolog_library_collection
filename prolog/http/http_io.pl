@@ -260,14 +260,7 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
       ->  http_msg(user_output, Iri, Method, Status, Lines)
       ;   true
       ),
-      %%%%stream_property(In1, position(Pos)),
-      %%%%stream_position_data(byte_count, Pos, NumBytes),
-      %%%%stream_position_data(char_count, Pos, NumChars),
-      %%%%stream_position_data(line_count, Pos, NumLines),
       H = _{
-        %%%%header_byte_count: NumBytes,
-        %%%%header_char_count: NumChars,
-        %%%%header_line_count: NumLines,
         headers: Headers,
         iri: Iri,
         status: Status,

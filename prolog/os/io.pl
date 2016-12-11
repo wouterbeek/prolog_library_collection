@@ -619,28 +619,15 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %   * newline(oneof([dos,posix]))
 
-%stream_metadata(_, Meta1, Meta2) :-
-%  var(Meta1), !,
-%  Meta2 = Meta1.
-stream_metadata(Stream, Meta1, Meta2) :-
+stream_metadata(Stream, _, Meta) :-
   stream_property(Stream, position(Pos)),
-  
-  dict_get(header_byte_count, Meta1, 0, NumBytes1),
-  stream_position_data(byte_count, Pos, NumBytes2),
-  NumBytes3 is NumBytes2 - NumBytes1,
-  
-  dict_get(header_char_count, Meta1, 0, NumChars1),
-  stream_position_data(char_count, Pos, NumChars2),
-  NumChars3 is NumChars2 - NumChars1,
-
-  dict_get(header_line_count, Meta1, 0, NumLines1),
-  stream_position_data(line_count, Pos, NumLines2),
-  NumLines3 is NumLines2 - NumLines1,
-  
+  stream_position_data(byte_count, Pos, NumBytes),
+  stream_position_data(char_count, Pos, NumChars),
+  stream_position_data(line_count, Pos, NumLines),
   stream_property(Stream, newline(Newline)),
-  Meta2 = _{
-    byte_count: NumBytes3,
-    char_count: NumChars3,
-    line_count: NumLines3,
+  Meta = _{
+    byte_count: NumBytes,
+    char_count: NumChars,
+    line_count: NumLines,
     newline: Newline
   }.
