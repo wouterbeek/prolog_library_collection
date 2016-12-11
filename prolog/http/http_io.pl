@@ -274,7 +274,7 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      debug(http_io, "[ENTRY] ~w", [H]),
+      %%%%debug(http_io, "[ENTRY] ~w", [H]),
       http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0),
       reverse([H|T], Path)
   ;   Path = [],

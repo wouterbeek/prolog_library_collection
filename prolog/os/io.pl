@@ -355,7 +355,6 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
     ),
     call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
     (
-      gtrace,
       close_any2(Close1_0, L2b, L3b, Sink2Opts),
       close_any2(Close2_0, L2a, L3a, Sink1Opts)
     )
@@ -620,6 +619,9 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %   * newline(oneof([dos,posix]))
 
+%stream_metadata(_, Meta1, Meta2) :-
+%  var(Meta1), !,
+%  Meta2 = Meta1.
 stream_metadata(Stream, Meta1, Meta2) :-
   stream_property(Stream, position(Pos)),
   
