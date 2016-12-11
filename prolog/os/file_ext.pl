@@ -28,6 +28,7 @@
     file_paths/2,               % +File, -Paths
     file_size/2,                % +File, -Size
     is_dummy_file/1,            % +File
+    is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
     is_fresh_file/2,            % +File, +FreshnessLifetime
     is_stale_age/2,             % +Age, +FreshnessLifetime
@@ -366,6 +367,13 @@ file_size(File, Size) :-
 is_dummy_file(.).
 is_dummy_file(..).
 is_dummy_file('README.md').
+
+
+
+%! is_file_link(+File) is semidet.
+
+is_file_link(File) :-
+  read_link(File, _, _).
 
 
 
