@@ -194,6 +194,7 @@ http_known_known('access-control-allow-credentials').
 http_known_known('access-control-allow-headers').
 http_known_known('access-control-allow-methods').
 http_known_known('access-control-allow-origin').
+http_known_known('access-control-expose-headers').%@tbd
 http_known_known('access-control-request-method').
 http_known_known('content-disposition').
 http_known_known('content-security-policy').
@@ -1275,6 +1276,7 @@ http_known_unknown('x-cache-lookup').
 http_known_unknown('x-cache-operation').
 http_known_unknown('x-cache-rule').
 http_known_unknown('x-cacheable').
+http_known_unknown('x-cloud-trace-context').
 http_known_unknown('x-content-type-options'). % Has grammar.  Implemented.
 http_known_unknown('x-dropbox-http-protocol').
 http_known_unknown('x-dropbox-request-id').
@@ -1297,8 +1299,10 @@ http_known_unknown('x-http-host').
 http_known_unknown('x-hosted-by').
 http_known_unknown('x-metaweb-cost').
 http_known_unknown('x-metaweb-tid').
+http_known_unknown('x-origin-route').
 http_known_unknown('x-pad').
 http_known_unknown('x-pal-host').
+http_known_unknown('x-permitted-cross-domain-policies').
 http_known_unknown('x-pingback').
 http_known_unknown('x-powered-by').
 http_known_unknown('x-productontology-limit').
@@ -1322,6 +1326,7 @@ http_known_unknown('x-uniprot-release').
 http_known_unknown('x-varnish').
 http_known_unknown('x-varnish-caching-rule-id').
 http_known_unknown('x-varnish-header-set-id').
+http_known_unknown('x-vcap-request-id').
 http_known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 

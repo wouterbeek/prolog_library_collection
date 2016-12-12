@@ -7,6 +7,7 @@
     es_count/2,         % +PathComps, -Dict
     es_count_pp/0,
     es_count_pp/1,      % +PathComps
+    es_create/2,        % +PathComps, +Data
     es_create/3,        % +PathComps, +Data, -Dict
     es_create_pp/2,     % +PathComps, +Data
     es_exists/1,        % +PathComps
@@ -16,6 +17,7 @@
     es_get_pp/2,        % +PathComps, +Keys
     es_health/1,        % -Dict
     es_health_pp/0,
+    es_rm/1,            % +PathComps
     es_rm/2,            % +PathComps, -Dict
     es_rm_pp/1,         % +PathComps
     es_search/2,        % +PathComps, -Pagination
@@ -27,6 +29,7 @@
     es_stat/2,          % +PathComps, -Dict
     es_stat_pp/0,
     es_stat_pp/1,       % +PathComps
+    es_update/2,        % +PathComps, +Data
     es_update/3,        % +PathComps, +Data, -Dict
     es_update_pp/2      % +PathComps, +Data
   ]
@@ -87,7 +90,7 @@ _{
 ```
 
 @author Wouter Beek
-@version 2016/08-2016/09
+@version 2016/08-2016/09, 2016/12
 */
 
 :- use_module(library(apply)).
@@ -160,12 +163,17 @@ es_count_pp(PathComps) :-
 
 
 
+%! es_create(+PathComps, +Data) is det.
 %! es_create(+PathComps, +Data, -Dict) is det.
 %! es_create_pp(+PathComps, +Data) is det.
 %
 % Create a new document.
 %
 % Succeeds if a document with given Id already exists.
+
+es_create(PathComps, Data) :-
+  es_create(PathComps, Data, _).
+
 
 es_create([Index,Type], Data, Dict) :- !,
   % The POST method auto-generated an ElasticSearch Id.
@@ -251,8 +259,13 @@ es_health_pp :-
 
 
 
+%! es_rm(+PathComps) is det.
 %! es_rm(+PathComps, -Dict) is det.
 %! es_rm_pp(+PathComps) is det.
+
+es_rm(PathComps) :-
+  es_rm(PathComps, _).
+
 
 es_rm(PathComps, Dict) :-
   es_delete0(PathComps, Status, Dict),
@@ -373,6 +386,7 @@ es_stat_pp(PathComps) :-
 
 
 
+%! es_update(+PathComps, +Data) is det.
 %! es_update(+PathComps, +Data, -Dict) is det.
 %! es_update_pp(+PathComps, +Data) is det.
 %
@@ -405,6 +419,10 @@ es_stat_pp(PathComps) :-
 % ```swi
 % _{script: ..., upsert: Dict}
 % ```
+
+es_update([Index,Type,Id], Data) :-
+  es_update([Index,Type,Id], Data, _).
+
 
 es_update([Index,Type,Id], Data, Dict) :-
   es_post0([Index,Type,Id,'_update'], Data, Status, Dict),

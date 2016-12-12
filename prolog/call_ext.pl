@@ -10,6 +10,7 @@
     call_timeout/2,      % +Time, :Goal_0
     concurrent_n_sols/3, % +N, :Select_1, :Goal_1
     forall/1,            % :Goal_0
+    retry0/1,            % :Goal_0
     var_goal/1           % @Term
   ]
 ).
@@ -17,12 +18,15 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04, 2016/07-2016/10
+@version 2016/04, 2016/07-2016/10, 2016/12
 */
 
+:- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(thread)).
 :- use_module(library(time)).
+
+:- debug(true).
 
 :- meta_predicate
     call_det(0),
@@ -33,7 +37,8 @@
     call_or_fail(0),
     call_timeout(+, 0),
     concurrent_n_sols(+, 1, 1),
-    forall(0).
+    forall(0),
+    retry0(0).
 
 
 
@@ -118,6 +123,14 @@ concurrent_n_sols(N, Select_1, Mod:Goal_1) :-
 
 forall(Goal_0) :-
   forall(Goal_0, true).
+
+
+
+%! retry0(:Goal_0) is det.
+
+retry0(Goal_0) :-
+  catch(Goal_0, Exception, true),
+  (var(Exception) -> true ; debug(true, "~w", [Exception]), retry0(Goal_0)).
 
 
 
