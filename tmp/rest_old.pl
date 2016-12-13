@@ -34,7 +34,7 @@ rest_call_or_exception(Instance_4, Req, Method, MT, Res) :-
 
 rest_not_found(Req) :-
   memberchk(request_uri(Res), Req),
-  http_status_reply(Req, not_found(Res)).
+  http_status_reply(not_found(Res)).
 
 
 why_not_acceptable(p("No acceptable media type could be served.")).

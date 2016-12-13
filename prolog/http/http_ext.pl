@@ -10,15 +10,12 @@
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
     http_method/2,            % +Req, -Method
-    http_output/1,            % -Out
-    http_output/2,            % +Req, -Out
     http_read_data/2,         % +Req, -Data
     http_read_json_dict/1,    % -Data
     http_relative_iri/1,      % -Iri
     http_relative_iri/2,      % +Req, -Iri
     http_reply_file/1,        % +File
     http_resource_iri/4,      % +Req, -Iri, -Query, -Frag
-    http_status_reply/2,      % +Req, +Status
     is_empty_get_request/1,   % +Req
     reply_content_type/1,     % +MT
     reply_content_type/2,     % +MT, +Params
@@ -134,19 +131,6 @@ http_method(Req, M) :-
 
 
 
-%! http_output(-Out) is det.
-%! http_output(+Req, -Out) is det.
-
-http_output(Out) :-
-  http_current_request(Req),
-  http_output(Req, Out).
-
-
-http_output(Req, Out) :-
-  memberchk(pool(client(_,_,_,Out)), Req).
-
-
-
 %! http_read_data(+Req, -Data) is det.
 
 http_read_data(Req, Data) :-
@@ -188,14 +172,6 @@ http_reply_file(File) :-
 http_resource_iri(Req, Res, Query, Frag) :-
   http_relative_iri(Req, Iri),
   iri_to_resource(Iri, Res, Query, Frag).
-
-
-
-%! http_status_reply(+Req, +Status) is det.
-
-http_status_reply(Req, Status) :-
-  http_output(Req, Out),
-  http_status_reply(Status, Out, [], _).
 
 
 

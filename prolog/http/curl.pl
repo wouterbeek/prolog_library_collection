@@ -73,9 +73,9 @@ curl_get(Uri) :-
 
 
 curl_get(Uri, MT) :-
-  http_get(Uri, true0, [request_header(accept=MT),verbose(true)]).
+  http_get(Uri, print_body0, [request_header(accept=MT),verbose(true)]).
 
-true0(In, Path, Path) :-
+print_body0(In, Path, Path) :-
   copy_stream_data(In, user_output).
 
 

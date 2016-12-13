@@ -1,9 +1,9 @@
 :- module(
   http_write,
   [
-    reply_http_message/2, % +Req, +Status
-    reply_http_message/3, % +Req, +Status, +Headers
-    reply_http_message/4  % +Req, +Status, +Headers, +Body
+    reply_http_message/1, % +Status
+    reply_http_message/2, % +Status, +Headers
+    reply_http_message/3  % +Status, +Headers, +Body
   ]
 ).
 
@@ -31,26 +31,25 @@
 
 
 
-%! reply_http_message(+Req, +Status) is det.
-%! reply_http_message(+Req, +Status, +Headers) is det.
-%! reply_http_message(+Req, +Status, +Headers, +Body) is det.
+%! reply_http_message(+Status) is det.
+%! reply_http_message(+Status, +Headers) is det.
+%! reply_http_message(+Status, +Headers, +Body) is det.
 
-reply_http_message(Req, Status) :-
-  reply_http_message(Req, Status, []).
-
-
-reply_http_message(Req, Status, Headers) :-
-  reply_http_message(Req, Status, Headers, []).
+reply_http_message(Status) :-
+  reply_http_message(Status, []).
 
 
-reply_http_message(Req, Status, Headers, Body) :-
+reply_http_message(Status, Headers) :-
+  reply_http_message(Status, Headers, []).
+
+
+reply_http_message(Status, Headers, Body) :-
   setting(http:server, Server),
-  http_output(Req, Out),
   dcg_with_output_to(atom(A),
     'HTTP-message'(1-1, Status, ['Server'-Server|Headers], Body)
   ),
   debug(http(write), "~a", [A]),
-  format(Out, "~a", [A]).
+  writeln(A).
 
 
 

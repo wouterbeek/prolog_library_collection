@@ -163,7 +163,11 @@ http_head(Iri) :-
 
 http_head(Iri, Opts0) :-
   merge_options(Opts0, [method(head)], Opts),
-  call_on_stream(Iri, _, Opts).
+  call_on_stream(Iri, ensure_empty0, Opts).
+
+ensure_empty0(In, Path, Path) :-
+  copy_stream_data(In, _, Len),
+  assertion(Len =:= 0).
 
 
 
