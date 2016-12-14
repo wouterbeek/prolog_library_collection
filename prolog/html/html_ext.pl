@@ -168,7 +168,6 @@
     pl_link//0,
     pl_version//0,
     ref//2,                  % +Label, :Content_0
-    reply_html_page/4,       % +Method, +Style, :Head, :Body
     reply_raw_file/1,        % +Spec
     reset_button//0,
     reset_button//1,         % :Content_0
@@ -342,7 +341,6 @@ html({|html||...|}).
    panel(+, +, html, html, ?, ?),
    panels(html, ?, ?),
    ref(+, html, ?, ?),
-   reply_html_page(+, +, :, :),
    reset_button(html, ?, ?),
    row_1(html, ?, ?),
    row_1(+, html, ?, ?),
@@ -1607,7 +1605,8 @@ html_http_error_page(Style, Req) :-
   memberchk(status(Status), Req),
   http_error(Status, title, Lang, Title),
   http_error(Status, main, Lang, Main),
-  reply_html_page(Style,
+  reply_html_page(
+    Style,
     \title(["Error",Title]),
     html(article([header(Title),section(Main)]))
   ).
@@ -2176,8 +2175,7 @@ mail_link_and_icon(Uri) -->
 
 menu -->
   {
-    http_current_request(Req),
-    http_base_location_iri(Req, Loc),
+    http_base_location_iri(Loc),
     major_menus(MajorMenus)
   },
   html_maplist(major_menu(Loc), MajorMenus).
@@ -2608,18 +2606,6 @@ ref(Label, Content_0) -->
 
 
 
-%! reply_html_page(+Method:oneof([get,head]), +Style, :Head, :Body) is det.
-
-reply_html_page(get, Style, Head, Body) :- !,
-  reply_html_page(head, Style, Head, Body),
-  phrase(page(Style, Head, Body), HTML),
-  print_html(HTML).
-reply_html_page(head, _, _, _) :-
-  html_current_option(content_type(Type)),
-  format('Content-type: ~w~n~n', [Type]).
-
-
-
 %! reply_raw_file(+Spec) is det.
 %
 % Present an HTML file embedded using the server styling.  This is
@@ -2628,11 +2614,7 @@ reply_html_page(head, _, _, _) :-
 
 reply_raw_file(Spec) :-
   raw_page(Spec, Title, Content),
-  reply_html_page(
-    cp(default),
-    title(Title),
-    Content
-  ).
+  reply_html_page(title(Title), Content).
 
 
 

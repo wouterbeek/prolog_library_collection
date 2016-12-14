@@ -27,7 +27,7 @@ concrete Web Service the following two things must be defined:
     Google Profile, if any.
 
 @author Wouter Beek
-@version 2016/04, 2016/06, 2016/10
+@version 2016/04, 2016/06, 2016/10, 2016/12
 */
 
 :- use_module(library(debug)).
@@ -36,7 +36,6 @@ concrete Web Service the following two things must be defined:
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_openid)).
-:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(http/http_wrapper)).
@@ -112,13 +111,12 @@ google_login(User, Profile) :-
   http_session_retractall(openid(_)),
   http_session_assert(openid(OpenId)),
 
-  http_current_request(Req),
   (   true(Profile.client_data.stay)
   ->  debug(http(login), "User remained signed in using ~p", [OpenId]),
       http_openid:openid_hook(stay_signed_in(OpenId))
   ;   true
   ),
-  http_redirect(moved_temporary, Profile.client_data.return_to, Req).
+  http_redirect(moved_temporary, Profile.client_data.return_to).
 
 google_fake_open_id(Profile, OpenId) :-
   atomic_list_concat(['http://google.com/fake_open_id/',Profile.sub], OpenId).
@@ -146,13 +144,16 @@ has_current_user :-
 
 
 
-%! login(+Request) is det.
+%! login(+Req) is det.
 
 login(Req) :-
-  http_parameters(Req, [
-    'openid.return_to'(ReturnTo, [default(/)]),
-    stay(Stay, [default(false)])
-  ]),
+  http_parameters(
+    Req,
+    [
+      'openid.return_to'(ReturnTo, [default(/)]),
+      stay(Stay, [default(false)])
+    ]
+  ),
   oauth_authenticate(
     Req,
     'google.com',
@@ -164,8 +165,7 @@ login(Req) :-
 %! login_link(-Link) is det.
 
 login_link(Link) :-
-  http_current_request(Req),
-  http_base_location_iri(Req, Iri),
+  http_base_location_iri(Iri),
   http_link_to_id(login, ['openid.return_to'(Iri)], Link).
 
 
@@ -176,23 +176,14 @@ logout(Req) :-
   openid_logged_in(OpenId), !,
   openid_logout(OpenId),
   http_parameters(Req, ['openid.return_to'(ReturnTo, [default(/)])]),
-  http_redirect(moved_temporary, ReturnTo, Req).
-
-
-
-%! logout_back_link(-Link) is det.
-
-logout_back_link(Link) :-
-  http_current_request(Req),
-  http_parameters(Req, ['openid.return_to'(Link, [optional(true)])]).
+  http_redirect(moved_temporary, ReturnTo).
 
 
 
 %! logout_link(-Link) is det.
 
 logout_link(Link) :-
-  http_current_request(Req),
-  http_base_location_iri(Req, Iri),
+  http_base_location_iri(Iri),
   http_link_to_id(logout, ['openid.return_to'(Iri)], Link).
 
 
@@ -204,8 +195,7 @@ http_openid:openid_hook(stay_signed_in(OpenId)) :-
   http_session_cookie(Cookie),
   get_time(Now0),
   Now is round(Now0),
-  http_current_request(Req),
-  http_peer(Req, Peer),
+  http_peer(Peer),
   Expires is Now + 31 * 24 * 60 * 60,   % 31 days from now.
   assert_stay_signed_in(OpenId, Cookie, Peer, Now, Expires),
   http_session_option(path(Path)),
@@ -231,9 +221,7 @@ http_openid:openid_hook(logged_in(OpenId)) :-
   http_in_session(_),
   http_session_data(openid(OpenId)), !.
 http_openid:openid_hook(logged_in(OpenId)) :-
-  http_current_request(Req),
-  memberchk(cookie(Cookies), Req),
-  memberchk(login=Cookie, Cookies),
+  http_cookie(login, Cookie),
   stay_signed_in(OpenId, Cookie, _, _, _), !,
   http_open_session(_, []),
   http_session_assert(openid(OpenId)),

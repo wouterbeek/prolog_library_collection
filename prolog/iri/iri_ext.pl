@@ -17,6 +17,7 @@
     iri_query_enc//0,
     iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
+    iri_to_resource/2,     % +Iri, -Res
     iri_to_resource/4      % +Iri, -Res, -Query, -Frag
   ]
 ).
@@ -24,7 +25,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11-2015/12, 2016/04-2016/05, 2016/07, 2016/09-2016/10
+@version 2015/11-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -329,9 +330,14 @@ correct_for_default_port(_, Port, Port).
 
 
 
+%! iri_to_resource(+Iri, -Res) is det.
 %! iri_to_resource(+Iri, -Res, -Query, -Frag) is det.
 %
 % Converts public IRIs to data resource identifiers.
+
+iri_to_resource(Iri, Res) :-
+  iri_to_resource(Iri, Res, _, _).
+
 
 iri_to_resource(Iri, Res, Query, Frag) :-
   uri_components(Iri, uri_components(_,_,Path,Query,Frag)),

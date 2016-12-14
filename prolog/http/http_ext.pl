@@ -2,24 +2,19 @@
   http_ext,
   [
     http_absolute_location/2, % +Spec, -Path
-    http_accept/2,            % +Req, -MTs
-    http_base_location_iri/2, % +Req, -iri
-    http_default_port/2,    % +Scheme, -DefPort
+    http_base_location_iri/1, % -Iri
+    http_cookie/2,            % +Key, -Cookie
+    http_default_port/2,      % +Scheme, -DefPort
     http_iri_query/2,         % +Iri, -Comp
     http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
-    http_method/2,            % +Req, -Method
-    http_read_data/2,         % +Req, -Data
-    http_read_json_dict/1,    % -Data
-    http_relative_iri/1,      % -Iri
-    http_relative_iri/2,      % +Req, -Iri
+    http_peer/1,              % -PeerIP
+    http_read_data/1,         % -Data
+    http_read_data/2,         % -Data, +Opts
+    http_redirect/2,          % +How, +To
     http_reply_file/1,        % +File
-    http_resource_iri/4,      % +Req, -Iri, -Query, -Frag
-    is_empty_get_request/1,   % +Req
-    reply_content_type/1,     % +MT
-    reply_content_type/2,     % +MT, +Params
-    request_content_type/2    % +Req, -MT
+    is_empty_get_request/1    % +Req
   ]
 ).
 
@@ -29,7 +24,7 @@ Support for extracting information from HTTP requests/received
 messages.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/02, 2016/04, 2016/06-2016/12
+@version 2015/08-2016/12
 */
 
 :- use_module(library(apply)).
@@ -59,30 +54,22 @@ http_absolute_location(Spec, Path) :-
 
 
 
-%! http_accept(+Req, -MTs) is det.
-%
-% Matches MTs = [_] in case there is no HTTP Accept header.
+%! http_base_location_iri(-Iri) is det.
 
-http_accept(Req, MTs) :-
-  memberchk(accept(L0), Req), !,
-  (atom(L0) -> atom_to_term(L0, L, _) ; L = L0),
-  (   var(L)
-  ->  MTs = [_]
-  ;   maplist(mediatype_pair, L, Pairs),
-      desc_pairs_values(Pairs, MTs)
-  ).
-http_accept(_, [_]).
-
-mediatype_pair(media(MT,_,N,_), N-MT).
-
-
-
-%! http_base_location_iri(+Req, -Iri) is det.
-
-http_base_location_iri(Req, Iri2) :-
+http_base_location_iri(Iri2) :-
+  http_current_request(Req),
   http_location_iri(Req, Iri1),
   uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
+
+
+
+%! http_cookie(+Key, -Cookie) is det.
+
+http_cookie(Key, Cookie) :-
+  http_current_request(Req),
+  memberchk(cookie(Cookies), Req),
+  memberchk(Key=Cookie, Cookies).
 
 
 
@@ -119,44 +106,38 @@ http_link_to_id(HandleId, Local) :-
 %! http_location_iri(+Req, -Iri) is det.
 
 http_location_iri(Req, Loc) :-
-  http_relative_iri(Req, Iri),
+  memberchk(request_uri(Iri), Req),
   iri_to_location(Iri, Loc).
 
 
 
-%! http_method(+Req, -Method) is det.
+%! http_peer(-PeerIP) is det.
 
-http_method(Req, M) :-
-  memberchk(method(M), Req).
-
-
-
-%! http_read_data(+Req, -Data) is det.
-
-http_read_data(Req, Data) :-
-  http_read_data(Req, Data, []).
-
-
-
-%! http_read_json_dict(-Data) is det
-
-http_read_json_dict(Data) :-
+http_peer(PeerIP) :-
   http_current_request(Req),
-  http_read_json_dict(Req, Data).
+  http_peer(Req, PeerIP).
 
 
 
-%! http_relative_iri(-Iri) is det.
-%! http_relative_iri(+Req, -Iri) is det.
+%! http_read_data(-Data) is det.
+%! http_read_data(-Data, +Opts) is det.
 
-http_relative_iri(Iri) :-
+http_read_data(Data) :-
+  http_read_data(Data, []).
+
+
+http_read_data(Data, Opts) :-
   http_current_request(Req),
-  http_relative_iri(Req, Iri).
+  http_read_data(Req, Data, Opts).
 
 
-http_relative_iri(Req, Iri) :-
-  memberchk(request_uri(Iri), Req).
 
+%! http_redirect(+How, +To) is det.
+
+http_redirect(How, To) :-
+  http_current_request(Req),
+  http_redirect(How, To, Req).
+  
 
 
 %! http_reply_file(+File) is det.
@@ -167,49 +148,13 @@ http_reply_file(File) :-
 
 
 
-%! http_resource_iri(+Req, -Res, -Query, -Frag) is det.
-
-http_resource_iri(Req, Res, Query, Frag) :-
-  http_relative_iri(Req, Iri),
-  iri_to_resource(Iri, Res, Query, Frag).
-
-
-
 %! is_empty_get_request(+Req) is semidet.
 %
 % Succeeds iff HTTP request Req is a GET request with no parameter.
 
 is_empty_get_request(Req) :-
-  option(request_uri(URI), Req),
-  uri_components(URI, Components),
-  uri_data(search, Components, Search),
+  memberchk(request_uri(Uri), Req),
+  uri_components(Uri, Comps),
+  uri_data(search, Comps, Search),
   var(Search),
   option(method(get), Req).
-
-
-
-%! reply_content_type(+MT) is semidet.
-%! reply_content_type(+MT, +Params) is semidet.
-%
-% The parameter ‘charset’ with value ‘UTF-8’ is always present.
-
-reply_content_type(MT) :-
-  reply_content_type(MT, []).
-
-
-reply_content_type(Type/Subtype, Pairs0) :-
-  sort([charset-'UTF-8'|Pairs0], Pairs),
-  maplist(pair_param, Pairs, Params),
-  atomic_list_concat(Params, '; ', Params0),
-  format("Content-Type: ~a/~a; ~a~n", [Type,Subtype,Params0]).
-
-pair_param(Key-Val, A) :-
-  atomic_list_concat([Key,Val], =, A).
-
-
-
-%! request_content_type(+Req, -MT) is semidet.
-
-request_content_type(Req, Type/Subtype) :-
-  memberchk(content_type(A), Req),
-  http_parse_header('content-type', A, media_type(Type,Subtype,_)).
