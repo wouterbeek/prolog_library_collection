@@ -17,7 +17,7 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01-2016/05, 2016/07
+@version 2015/09-2015/11, 2016/01-2016/05, 2016/07, 2016/12
 */
 
 :- use_module(library(apply)).
@@ -177,4 +177,4 @@ print_archive(Source) :-
 
 
 print_archive(Source, Opts) :-
-  call_on_stream(Source, [_,Meta,Meta]>>print_dict(Meta), Opts).
+  call_on_stream(Source, [_,Path,Path]>>maplist(print_dict, Path), Opts).

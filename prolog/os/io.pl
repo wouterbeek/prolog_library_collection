@@ -162,29 +162,25 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
   ->  findall(Property, archive_header_property(Arch, Property), Properties),
       dict_create(H0, [filters(Filters),name(Entry)|Properties]),
       % If the entry name is `data` then proceed.  If the entry name
-      % is uninstantiated then proceed.  If entry name is instantiated and does not occur in the
-      % current archive header then fail (repeat/0 will iterate to the
-      % next archive header).
+      % is uninstantiated then proceed.  If entry name is instantiated
+      % and does not occur in the current archive header then fail
+      % (repeat/0 will iterate to the next archive header).
       (   % This is the last entry in this nested branch.  We
           % therefore close the choicepoint created by repeat/0.  Not
           % closing this choicepoint would cause archive_next_header/2
           % to throw an exception.
           Entry == data,
           H0.format == raw
-      ->  !,
-          H2 = H1.put(H0),
-          L2 = [H2|T1]
-      ;   L2 = [H0,H1|T1],
-          (   % If the given entry name occurs in the current archive
-              % header then red cut, because we are in the correct entry
-              % branch.
-              Entry == Entry0
-          ->  !
-          ;   % If the given entry name did not match the current archive
-              % header then fail, because we are in the wrong entry
-              % branch.
-              var(Entry0)
-          )
+      ->  !
+      ;   % If the given entry name occurs in the current archive
+          % header then red cut, because we are in the correct entry
+          % branch.
+          Entry == Entry0
+      ->  !
+      ;   % If the given entry name did not match the current archive
+          % header then fail, because we are in the wrong entry
+          % branch.
+          var(Entry0)
       ),
       (   memberchk(filetype(file), Properties)
       ->  setup_call_cleanup(
@@ -192,7 +188,7 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
               archive_open_entry(Arch, In),
               indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,Entry,In])
             ),
-            call_on_stream0(In, Entry0, Goal_3, L2, L3),
+            call_on_stream0(In, Entry0, Goal_3, [H0,H1|T1], L3),
             % close_any2/4 also emits the closing debug message.
             close_any2(close(In), L3, L4, [])
           )

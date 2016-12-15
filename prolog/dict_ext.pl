@@ -24,13 +24,14 @@
     dict_put_pairs/3,       % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
     dict_set/3,             % +Key, D, +Val
-    dict_sum/2,             % +Ds, -D
+    dict_sum/2,             % +Dicts, -D
     dict_sum/3,             % +D1, +D2, -D3
     dict_tag/2,             % +Dict, -Tag
     dict_tag/3,             % +D1, +Tag, ?D2
+    dicts_get/3,            % +Key, +Dicts, -Val
+    dicts_getchk/3,         % +Key, +Dicts, -Val
     empty_dict/1,           % ?Dict
     get_dict_path/3,        % -Keys, +D, -Val
-    get_dicts/3,            % +Key, +Ds, -Val
     merge_dicts/3,          % +D1, +D2, -D3
     mod_dict/4,             % +Key, +D1,       -Val, -D2
     mod_dict/5              % +Key, +D1, +Def, -Val, -D2
@@ -78,8 +79,8 @@ atomize_dict0(X, X).
 %! create_dict(+Pairs, +Tag, -D) is det.
 
 create_dict(Pairs, Tag, D):-
-  maplist(dict_pair, Pairs, Ds),
-  create_grouped_sorted_dict(Ds, Tag, D).
+  maplist(dict_pair, Pairs, Dicts),
+  create_grouped_sorted_dict(Dicts, Tag, D).
 
 
 dict_pair(Key1-Val1, Key2-Val2):-
@@ -244,11 +245,11 @@ var_val(_-Val):-
 
 
 
-%! dict_sum(+Ds, -D) is det.
+%! dict_sum(+Dicts, -D) is det.
 %! dict_sum(+D1, +D2, -D3) is det.
 
-dict_sum(Ds, D) :-
-  dict_sum0(Ds, _{}, D).
+dict_sum(Dicts, D) :-
+  dict_sum0(Dicts, _{}, D).
 
 dict_sum0([], D, D) :- !.
 dict_sum0([D1|T], D2, D4) :-
@@ -289,6 +290,21 @@ dict_tag(D1, Tag, D2):-
 
 
 
+%! dicts_get(+Key, +Dicts, -Val) is nondet.
+
+dicts_get(Key, Dicts, Val) :-
+  member(D, Dicts),
+  get_dict(Key, D, Val).
+
+
+
+%! dicts_getchk(+Key, +Dicts, -Val) is nondet.
+
+dicts_getchk(Key, Dicts, Val) :-
+  once(dicts_get(Key, Dicts, Val)).
+
+
+
 %! empty_dict(@Term) is semidet.
 
 empty_dict(_{}).
@@ -308,16 +324,10 @@ get_dict_path(L, D, Val) :-
 
 
 
-%! get_dicts(+Key, +Ds, -Val) is nondet.
-
-get_dicts(Key, Ds, Val) :-
-  member(D, Ds),
-  get_dict(Key, D, Val).
-
-
-
 %! merge_dicts(+D1, +D2, -D3) is det.
+%
 % Merges two dictionaries into one new dictionary.
+%
 % If D1 and D2 contain the same key then the value from D2 is used.
 % If D1 and D2 do not have the same tag then the tag of D2 is used.
 
