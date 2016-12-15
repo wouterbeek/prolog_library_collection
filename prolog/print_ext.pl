@@ -18,6 +18,8 @@
     print_dict/3,       % :Dcg_1, +Dict, +Opts
     print_table/1,      % +Rows
     print_table/2,      % +Rows, :Opts
+    print_term/1,       % +Term
+    print_term/2,       % +Term, +Opts
     print_tree/1,       % +Tree
     print_tree/2,       % +Tree, :Opts
     tab/0,
@@ -33,7 +35,7 @@
 Additional predicates for printing.
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2015/11, 2016/01-2016/03, 2016/05, 2016/08, 2016/10
+@version 2015/08-2016/12
 */
 
 :- use_module(library(check_installation), []).
@@ -213,6 +215,19 @@ print_table(Rows) :-
 print_table(Rows, Opts) :-
   option(out(Out), Opts, current_output),
   dcg_with_output_to(Out, dcg_table(Rows, Opts)).
+
+
+
+%! print_term(+Term) is det.
+%! print_term(+Term, +Opts) is det.
+
+print_term(Term) :-
+  print_term(Term, []).
+
+
+print_term(Term, Opts) :-
+  option(out(Out), Opts, current_output),
+  dcg_with_output_to(Out, pl_term(Term)).
 
 
 
