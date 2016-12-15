@@ -1,7 +1,6 @@
 :- module(
   curl,
   [
-    default_uri/1,  % -Uri:atom
     curl_get/0,
     curl_get/1,     % +Uri:atom
     curl_get/2,     % +Uri:atom, +MT:atom
@@ -9,7 +8,9 @@
     curl_head/1,    % +Uri:atom
     curl_head/2,    % +Uri:atom, +MT:atom
     curl_options/0,
-    curl_options/1  % +Uri:atom
+    curl_options/1, % +Uri:atom
+    curl_uri/1,     % -Uri:atom
+    curl_uri/2      % -Uri:atom, +Opts
   ]
 ).
 
@@ -46,25 +47,11 @@ constituent components, defining the following settings:
 
 
 
-%! default_uri(-Uri:atom) is det.
-
-default_uri(Uri) :-
-  setting(scheme, Scheme),
-  setting(user, User),
-  setting(host, Host),
-  setting(port, Port),
-  setting(path, Path),
-  setting(query, Query),
-  setting(fragment, Frag),
-  uri_comps(Uri, uri(Scheme,auth(User,Host,Port),Path,Query,Frag)).
-
-
-
 %! curl_get is det.
 %! curl_get(+Uri:atom) is det.
 
 curl_get :-
-  default_uri(Uri),
+  curl_uri(Uri),
   curl_get(Uri).
 
 
@@ -85,7 +72,7 @@ print_body0(In, Path, Path) :-
 %! curl_head(+Uri:atom, +MT:atom) is det.
 
 curl_head :-
-  default_uri(Uri),
+  curl_uri(Uri),
   curl_head(Uri).
 
 
@@ -109,9 +96,39 @@ curl_head(Uri, MT) :-
 % resource action.
 
 curl_options :-
-  default_uri(Uri),
+  curl_uri(Uri),
   curl_options(Uri).
 
 
 curl_options(Uri) :-
   http_options(Uri, [verbose(true)]).
+
+
+
+%! curl_uri(-Uri:atom) is det.
+%! curl_uri(-Uri:atom, +Opts) is det.
+%
+% The following options are supported:
+%
+%   - scheme(+oneof([http,https]))
+%   - user(?atom)
+%   - host(+atom)
+%   - port(?atom)
+%   - path(+list(atom))
+%   - query(+list(compound))
+%   - fragment(?atom)
+
+curl_uri(Uri) :-
+  curl_uri(Uri, []).
+
+
+curl_uri(Uri, Opts) :-
+  (option(scheme(Scheme), Opts) -> true ; setting(scheme, Scheme)),
+  (option(user(User), Opts) -> true ; setting(user, User)),
+  (option(host(Host), Opts) -> true ; setting(host, Host)),
+  (option(port(Port), Opts) -> true ; setting(port, Port)),
+  (option(path(Path), Opts) -> true ; setting(path, Path)),
+  (option(query(Query), Opts) -> true ; setting(query, Query)),
+  (option(fragment(Frag), Opts) -> true ; setting(fragment, Frag)),
+  uri_comps(Uri, uri(Scheme,auth(User,Host,Port),Path,Query,Frag)).
+
