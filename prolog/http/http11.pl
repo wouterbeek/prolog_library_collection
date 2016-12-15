@@ -1299,6 +1299,8 @@ http_known_unknown('x-http-host').
 http_known_unknown('x-hosted-by').
 http_known_unknown('x-metaweb-cost').
 http_known_unknown('x-metaweb-tid').
+http_known_unknown('x-ms-request-id').
+http_known_unknown('x-ms-version').
 http_known_unknown('x-origin-route').
 http_known_unknown('x-pad').
 http_known_unknown('x-pal-host').
