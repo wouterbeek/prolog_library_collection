@@ -488,10 +488,10 @@ es_delete0(PathComps, Status, Dict) :-
   es_iri(PathComps, Iri),
   http_delete(
     Iri,
-    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|_]),request_header('Accept'='application/json')]
+    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
+    [metadata(Path),request_header('Accept'='application/json')]
   ),
-  Status = H.status.
+  dicts_getchk(status, Path, Status).
 
 
 
@@ -539,8 +539,8 @@ es_get_cat0(PathComps, Msg) :-
 
 es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
   es_iri(PathComps, QueryComps, Iri),
-  http_get(Iri, Goal_3, [metadata([H|_])|T]),
-  Status = H.status.
+  http_get(Iri, Goal_3, [metadata(Path)|T]),
+  dicts_getchk(status, Path, Status).
 
 
 
@@ -550,9 +550,9 @@ es_head0(PathComps, Status) :-
   es_iri(PathComps, Iri),
   http_head(
     Iri,
-    [metadata([H|_]),request_header('Accept'='application/json')]
+    [metadata(Path),request_header('Accept'='application/json')]
   ),
-  Status = H.status.
+  dicts_get(status, Path, Status).
 
 
 
@@ -587,10 +587,10 @@ es_post0(PathComps, QueryComps, Data, Status, Dict) :-
   http_post(
     Iri,
     json(Data),
-    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|_]),request_header('Accept'='application/json')]
+    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
+    [metadata(Path),request_header('Accept'='application/json')]
   ),
-  Status = H.status.
+  dicts_getchk(status, Path, Status).
 
 
 
@@ -602,7 +602,7 @@ es_put0(PathComps, Data, Status, Dict) :-
   http_put(
     Iri,
     json(Data),
-    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|_]),request_header('Accept'='application/json')]
+    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
+    [metadata(Path),request_header('Accept'='application/json')]
   ),
-  Status = H.status.
+  dicts_getchk(status, Path, Status).
