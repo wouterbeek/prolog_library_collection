@@ -3,7 +3,7 @@
   [
     es_check/1,         % -Dict
     es_check_pp/0,
-    es_count/1,         % +PathComps
+    es_count/1,         % -Dict
     es_count/2,         % +PathComps, -Dict
     es_count_pp/0,
     es_count_pp/1,      % +PathComps
@@ -16,7 +16,10 @@
     es_get_pp/1,        % +PathComps
     es_get_pp/2,        % +PathComps, +Keys
     es_health/1,        % -Dict
+    es_health_cat/0,
     es_health_pp/0,
+    es_indices_cat/0,
+    es_nodes_cat/0,
     es_rm/1,            % +PathComps
     es_rm/2,            % +PathComps, -Dict
     es_rm_pp/1,         % +PathComps
@@ -90,22 +93,28 @@ _{
 ```
 
 @author Wouter Beek
-@version 2016/08-2016/09, 2016/12
+@version 2016/08-2016/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
+:- use_module(library(os/io)).
 :- use_module(library(pagination)).
 :- use_module(library(print_ext)).
+:- use_module(library(readutil)).
 :- use_module(library(settings)).
 :- use_module(library(true)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
+
+:- meta_predicate
+    es_get0(+, +, +, 3, -).
 
 :- setting(endpoint_host, atom, localhost, "").
 :- setting(endpoint_port, positive_integer, 9200, "").
@@ -129,7 +138,7 @@ es_check_pp :-
 
 
 
-%! es_count(+PathComps) is det.
+%! es_count(-Dict) is det.
 %! es_count(+PathComps, -Dict) is det.
 %! es_count_pp is det.
 %! es_count_pp(+PathComps) is det.
@@ -172,7 +181,8 @@ es_count_pp(PathComps) :-
 % Succeeds if a document with given Id already exists.
 
 es_create(PathComps, Data) :-
-  es_create(PathComps, Data, _).
+  es_create(PathComps, Data, Dict),
+  if_debug(es_api, print_dict(Dict)).
 
 
 es_create([Index,Type], Data, Dict) :- !,
@@ -203,19 +213,19 @@ es_exists(PathComps) :-
 %! es_get_pp(+PathComps) is det.
 %! es_get_pp(+PathComps, +Keys) is det.
 %
+% PathComps must be of the form [Index,Type,Id].
+%
 % Result contains the following keys:
 %
 %   - '_id'(-atom)
 %
 %   - '_index'(-atom)
 %
+%   - '_score'(-float)
+%
 %   - '_source'(-dict)
 %
 %   - '_type'(-atom)
-%
-%   - '_version'(-positive_integer)
-%
-%   - found(-boolean)
 %
 % Keys, if present, filters the keys returned in '_source'.
 
@@ -224,6 +234,7 @@ es_get(PathComps, Result) :-
 
 
 es_get(PathComps, Keys, Result) :-
+  assertion(PathComps = [_Index,_Type,_Id]),
   (   var(Keys)
   ->  QueryComps = []
   ;   atomic_list_concat(Keys, ',', Search),
@@ -246,11 +257,17 @@ es_get_pp(PathComps, Keys) :-
 
 
 %! es_health(-Dict) is det.
+%! es_health_cat is det.
 %! es_health_pp is det.
 
 es_health(Dict) :-
   es_get0(['_cluster',health], Status, Dict),
   http_status_must_be(Status, [200]).
+
+
+es_health_cat :-
+  es_get_cat0([health], Msg),
+  writeln(Msg).
 
 
 es_health_pp :-
@@ -259,12 +276,29 @@ es_health_pp :-
 
 
 
+%! es_indices_cat is det.
+
+es_indices_cat :-
+  es_get_cat0([indices], Msg),
+  writeln(Msg).
+
+
+
+%! es_nodes_cat is det.
+
+es_nodes_cat :-
+  es_get_cat0([nodes], Msg),
+  writeln(Msg).
+
+
+
 %! es_rm(+PathComps) is det.
 %! es_rm(+PathComps, -Dict) is det.
 %! es_rm_pp(+PathComps) is det.
 
 es_rm(PathComps) :-
-  es_rm(PathComps, _).
+  es_rm(PathComps, Dict),
+  if_debug(es_api, print_dict(Dict)).
 
 
 es_rm(PathComps, Dict) :-
@@ -421,7 +455,8 @@ es_stat_pp(PathComps) :-
 % ```
 
 es_update([Index,Type,Id], Data) :-
-  es_update([Index,Type,Id], Data, _).
+  es_update([Index,Type,Id], Data, Dict),
+  if_debug(es_api, print_dict(Dict)).
 
 
 es_update([Index,Type,Id], Data, Dict) :-
@@ -450,7 +485,7 @@ debug_dict(_).
 %! es_delete0(+PathComps, -Status, -Dict) is det.
 
 es_delete0(PathComps, Status, Dict) :-
-  es_iri0(PathComps, Iri),
+  es_iri(PathComps, Iri),
   http_delete(
     Iri,
     {Dict}/[In,M,M]>>json_read_dict(In, Dict),
@@ -471,6 +506,7 @@ es_dict_to_result0(Dict, Result) :-
 %! es_get0(-Status, -Dict) is det.
 %! es_get0(+PathComps, -Status, -Dict) is det.
 %! es_get0(+PathComps, +QueryComps, -Status, -Dict) is det.
+%! es_get_cat0(+PathComps, -Msg) is det.
 
 es_get0(Status, Dict) :-
   es_get0([], Status, Dict).
@@ -481,12 +517,29 @@ es_get0(PathComps, Status, Dict) :-
 
 
 es_get0(PathComps, QueryComps, Status, Dict) :-
-  es_iri0(PathComps, QueryComps, Iri),
-  http_get(
-    Iri,
-    {Dict}/[In,M,M]>>json_read_dict(In, Dict),
-    [metadata([H|_]),request_header('Accept'='application/json')]
+  es_get0(
+    PathComps,
+    QueryComps,
+    [request_header('Accept'='application/json')],
+    {Dict}/[In,Path,Path]>>json_read_dict(In, Dict),
+    Status
+  ).
+
+
+es_get_cat0(PathComps, Msg) :-
+  es_get0(
+    ['_cat'|PathComps],
+    [v(true)],
+    [],
+    {Msg}/[In,Path,Path]>>read_stream_to_string(In, Msg),
+    Status
   ),
+  http_status_must_be(Status, [200]).
+
+
+es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
+  es_iri(PathComps, QueryComps, Iri),
+  http_get(Iri, Goal_3, [metadata([H|_])|T]),
   Status = H.status.
 
 
@@ -494,7 +547,7 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
 %! es_head0(+PathComps, -Status) is semidet.
 
 es_head0(PathComps, Status) :-
-  es_iri0(PathComps, Iri),
+  es_iri(PathComps, Iri),
   http_head(
     Iri,
     [metadata([H|_]),request_header('Accept'='application/json')]
@@ -503,14 +556,14 @@ es_head0(PathComps, Status) :-
 
 
 
-%! es_iri0(+PathComps, -Iri) is det.
-%! es_iri0(+PathComps, +QueryComps, -Iri) is det.
+%! es_iri(+PathComps, -Iri) is det.
+%! es_iri(+PathComps, +QueryComps, -Iri) is det.
 
-es_iri0(PathComps, Iri) :-
-  es_iri0(PathComps, [], Iri).
+es_iri(PathComps, Iri) :-
+  es_iri(PathComps, [], Iri).
 
 
-es_iri0(PathComps, QueryComps, Iri) :-
+es_iri(PathComps, QueryComps, Iri) :-
   setting(endpoint_scheme, Scheme),
   setting(endpoint_host, Host),
   setting(endpoint_port,Port),
@@ -529,7 +582,7 @@ es_post0(PathComps, Data, Status, Dict) :-
 
 
 es_post0(PathComps, QueryComps, Data, Status, Dict) :-
-  es_iri0(PathComps, QueryComps, Iri),
+  es_iri(PathComps, QueryComps, Iri),
   debug_dict(Data),
   http_post(
     Iri,
@@ -544,7 +597,7 @@ es_post0(PathComps, QueryComps, Data, Status, Dict) :-
 %! es_put0(+PathComps, +Data, -Status, -Dict) is det.
 
 es_put0(PathComps, Data, Status, Dict) :-
-  es_iri0(PathComps, Iri),
+  es_iri(PathComps, Iri),
   debug_dict(Data),
   http_put(
     Iri,
