@@ -131,4 +131,3 @@ curl_uri(Uri, Opts) :-
   (option(query(Query), Opts) -> true ; setting(query, Query)),
   (option(fragment(Frag), Opts) -> true ; setting(fragment, Frag)),
   uri_comps(Uri, uri(Scheme,auth(User,Host,Port),Path,Query,Frag)).
-

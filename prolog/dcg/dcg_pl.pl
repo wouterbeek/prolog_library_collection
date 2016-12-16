@@ -113,4 +113,7 @@ pl_term0(Dcg_1, L, Opts) -->
   dcg_list(Dcg_1, L, Opts.indent).
 pl_term0(_, Term, Opts) -->
   tab(Opts.indent),
-  dcg:dcg_hook(Term).
+  dcg:dcg_hook(Term), !.
+pl_term0(_, Term, _) -->
+  {term_to_atom(Term, A)},
+  atom(A).
