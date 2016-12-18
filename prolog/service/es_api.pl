@@ -1,40 +1,27 @@
 :- module(
   es_api,
   [
-    es_check/1,         % -Dict
-    es_check_pp/0,
-    es_count/1,         % -Dict
-    es_count/2,         % +PathComps, -Dict
-    es_count_pp/0,
-    es_count_pp/1,      % +PathComps
-    es_create/2,        % +PathComps, +Data
-    es_create/3,        % +PathComps, +Data, -Dict
-    es_create_pp/2,     % +PathComps, +Data
-    es_exists/1,        % +PathComps
-    es_get/2,           % +PathComps, -Result
-    es_get/3,           % +PathComps, +Keys, -Result
-    es_get_pp/1,        % +PathComps
-    es_get_pp/2,        % +PathComps, +Keys
-    es_health/1,        % -Dict
+    es_check/1,       % -Dict
+    es_count/1,       % -Dict
+    es_count/2,       % +PathComps, -Dict
+    es_create/2,      % +PathComps, +Data
+    es_create/3,      % +PathComps, +Data, -Dict
+    es_exists/1,      % +PathComps
+    es_get/2,         % +PathComps, -Result
+    es_get/3,         % +PathComps, +Keys, -Result
+    es_health/1,      % -Dict
     es_health_cat/0,
-    es_health_pp/0,
     es_indices_cat/0,
     es_nodes_cat/0,
-    es_rm/1,            % +PathComps
-    es_rm/2,            % +PathComps, -Dict
-    es_rm_pp/1,         % +PathComps
-    es_search/2,        % +PathComps, -Pagination
-    es_search/4,        % +PathComps, +Search, +PageOpts, -Pagination
-    es_search_pp/1,     % +PathComps
-    es_search_pp/3,     % +PathComps, +Search, +PageOpts
-    es_setting/3,       % +Index, +Key, ?Val
-    es_stat/1,          % -Dict
-    es_stat/2,          % +PathComps, -Dict
-    es_stat_pp/0,
-    es_stat_pp/1,       % +PathComps
-    es_update/2,        % +PathComps, +Data
-    es_update/3,        % +PathComps, +Data, -Dict
-    es_update_pp/2      % +PathComps, +Data
+    es_rm/1,          % +PathComps
+    es_rm/2,          % +PathComps, -Dict
+    es_search/2,      % +PathComps, -Pagination
+    es_search/4,      % +PathComps, +Search, +PageOpts, -Pagination
+    es_setting/3,     % +Index, +Key, ?Val
+    es_stat/1,        % -Dict
+    es_stat/2,        % +PathComps, -Dict
+    es_update/2,      % +PathComps, +Data
+    es_update/3       % +PathComps, +Data, -Dict
   ]
 ).
 
@@ -125,23 +112,15 @@ _{
 
 
 %! es_check(-Dict) is det.
-%! es_check_pp is det.
 
 es_check(Dict) :-
   es_get0(Status, Dict),
   http_status_must_be(Status, [200]).
 
 
-es_check_pp :-
-  es_check(Dict),
-  print_dict(Dict).
-
-
 
 %! es_count(-Dict) is det.
 %! es_count(+PathComps, -Dict) is det.
-%! es_count_pp is det.
-%! es_count_pp(+PathComps) is det.
 %
 % ```bash
 % curl -XGET 'http://localhost:9200/_count?pretty' -d '
@@ -159,22 +138,11 @@ es_count(PathComps1, Dict) :-
   append(PathComps1, ['_count'], PathComps2),
   es_get0(PathComps2, Status, Dict),
   http_status_must_be(Status, [200]).
-  
-
-es_count_pp :-
-  es_count(Dict),
-  print_dict(Dict).
-
-
-es_count_pp(PathComps) :-
-  es_count(PathComps, Dict),
-  print_dict(Dict).
 
 
 
 %! es_create(+PathComps, +Data) is det.
 %! es_create(+PathComps, +Data, -Dict) is det.
-%! es_create_pp(+PathComps, +Data) is det.
 %
 % Create a new document.
 %
@@ -194,11 +162,6 @@ es_create([Index,Type,Id], Data, Dict) :-
   http_status_must_be(Status, [201,409]).
 
 
-es_create_pp(PathComps, Data) :-
-  es_create(PathComps, Data, Dict),
-  print_dict(Dict).
-
-
 
 %! es_exists(+PathComps) is semidet.
 
@@ -210,8 +173,6 @@ es_exists(PathComps) :-
 
 %! es_get(+PathComps, -Result) is det.
 %! es_get(+PathComps, +Keys, -Result) is det.
-%! es_get_pp(+PathComps) is det.
-%! es_get_pp(+PathComps, +Keys) is det.
 %
 % PathComps must be of the form [Index,Type,Id].
 %
@@ -245,20 +206,9 @@ es_get(PathComps, Keys, Result) :-
   http_status_must_be(Status, [200]).
 
 
-es_get_pp(PathComps) :-
-  es_get(PathComps, Result),
-  print_dict(Result).
-
-
-es_get_pp(PathComps, Keys) :-
-  es_get(PathComps, Keys, Result),
-  print_dict(Result).
-
-
 
 %! es_health(-Dict) is det.
 %! es_health_cat is det.
-%! es_health_pp is det.
 
 es_health(Dict) :-
   es_get0(['_cluster',health], Status, Dict),
@@ -268,11 +218,6 @@ es_health(Dict) :-
 es_health_cat :-
   es_get_cat0([health], Msg),
   writeln(Msg).
-
-
-es_health_pp :-
-  es_health(Dict),
-  print_dict(Dict).
 
 
 
@@ -294,7 +239,6 @@ es_nodes_cat :-
 
 %! es_rm(+PathComps) is det.
 %! es_rm(+PathComps, -Dict) is det.
-%! es_rm_pp(+PathComps) is det.
 
 es_rm(PathComps) :-
   es_rm(PathComps, Dict),
@@ -306,16 +250,9 @@ es_rm(PathComps, Dict) :-
   http_status_must_be(Status, [200]).
 
 
-es_rm_pp(PathComps) :-
-  es_rm(PathComps, Dict),
-  print_dict(Dict).
-
-
 
 %! es_search(+PathComps, -Pagination) is nondet.
 %! es_search(+PathComps, +Search, +PageOpts, -Pagination) is nondet.
-%! es_search_pp(+PathComps) is nondet.
-%! es_search_pp(+PathComps, +Search, +PageOpts) is nondet.
 
 es_search(PathComps, Pagination) :-
   es_search(PathComps, _VAR, _{}, Pagination).
@@ -362,15 +299,6 @@ format_simple_search_string0(Comp, Str) :-
 format_simple_search_string0(Str, Str).
 
 
-es_search_pp(PathComps) :-
-  es_search_pp(PathComps, _VAR, _{}).
-
-
-es_search_pp(PathComps, Search, PageOpts) :-
-  es_search(PathComps, Search, PageOpts, Pagination),
-  print_dict(Pagination).
-
-
 
 %! es_setting(+Index, +Key, +Val) is det.
 %! es_setting(+Index, +Key, -Val) is det.
@@ -396,8 +324,6 @@ es_setting(Index, Key, Val) :-
 
 %! es_stat(-Dict) is det.
 %! es_stat(+PathComps, -Dict) is det.
-%! es_stat_pp is det.
-%! es_stat_pp(+PathComps) is det.
 
 es_stat(Dict) :-
   es_stat([], Dict).
@@ -409,20 +335,9 @@ es_stat(PathComps1, Dict) :-
   http_status_must_be(Status, [200]).
 
 
-es_stat_pp :-
-  es_stat(Dict),
-  print_dict(Dict).
-
-
-es_stat_pp(PathComps) :-
-  es_stat(PathComps, Dict),
-  print_dict(Dict).
-
-
 
 %! es_update(+PathComps, +Data) is det.
 %! es_update(+PathComps, +Data, -Dict) is det.
-%! es_update_pp(+PathComps, +Data) is det.
 %
 % # Examples of Data
 %
@@ -462,11 +377,6 @@ es_update([Index,Type,Id], Data) :-
 es_update([Index,Type,Id], Data, Dict) :-
   es_post0([Index,Type,Id,'_update'], Data, Status, Dict),
   http_status_must_be(Status, [200]).
-
-
-es_update_pp([Index,Type,Id], Data) :-
-  es_update([Index,Type,Id], Data, Dict),
-  print_dict(Dict).
 
 
 

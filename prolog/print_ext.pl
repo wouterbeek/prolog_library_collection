@@ -13,6 +13,7 @@
     msg_success/2,      % +Format, +Args
     msg_warning/1,      % +Format
     msg_warning/2,      % +Format, +Args
+    pp_dict/1,          % :Goal_1
     print_dict/1,       % +Dict
     print_dict/2,       % :Dcg_1, +Dict
     print_dict/3,       % :Dcg_1, +Dict, +Opts
@@ -48,6 +49,7 @@ Additional predicates for printing.
 is_meta(node_writer).
 
 :- meta_predicate
+    pp_dict(1),
     print_dict(3, +),
     print_dict(3, +, +),
     verbose(0),
@@ -115,6 +117,7 @@ error_kind(Kind) :-
 %! formatln(+Format) is det.
 %! formatln(+Format, +Args) is det.
 %! formatln(+Out, +Format, +Args) is det.
+%
 % Variants of format/[1-3] with a newline appended.
 
 formatln(Format) :-
@@ -142,6 +145,7 @@ indent(N1) :-
 
 %! msg_notfication(+Format) is det.
 %! msg_notification(+Format, +Args) is det.
+%
 % Prints a notification message, using ANSI properties.
 
 msg_notification(Format) :-
@@ -155,6 +159,7 @@ msg_notification(Format, Args) :-
 
 %! msg_success(+Format) is det.
 %! msg_success(+Format, +Args) is det.
+%
 % Prints a success message, using ANSI properties.
 
 msg_success(Format) :-
@@ -168,6 +173,7 @@ msg_success(Format, Args) :-
 
 %! msg_warning(+Format) is det.
 %! msg_warning(+Format, +Args) is det.
+%
 % Prints a warnings message, using ANSI properties.
 
 msg_warning(Format) :-
@@ -176,6 +182,16 @@ msg_warning(Format) :-
 
 msg_warning(Format, Args) :-
   ansi_format(user_error, [bold,fg(red)], Format, Args).
+
+
+
+%! pp_dict(:Goal_1) .
+%
+% Print the dictionary argument of the given Goal_1.
+
+pp_dict(Goal_1) :-
+  catch(call(Goal_1, Dict), E, true),
+  (var(E) -> print_term(Dict) ; print_message(warning, E)).
 
 
 
@@ -257,6 +273,7 @@ tab:-
 %! verbose(:Goal_0) is det.
 %! verbose(:Goal_0, +Format) is det.
 %! verbose(:Goal_0, +Format, +Args) is det.
+%
 % Verbose calling of Goal_0.
 
 verbose(Goal_0) :-

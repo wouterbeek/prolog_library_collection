@@ -6,8 +6,19 @@
     call_onto_stream/3,      % +Source, +Sink, :Goal_4
     call_onto_stream/5,      % +Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts
     call_onto_streams/4,     % +Source, +Sink1, +Sink2, :Goal_5
-    call_onto_streams/6,     % +Source, +Sink1, +Sink2, :Goal_5, +SourceOpts, +SinkOpts
-    call_onto_streams/7,     % +Source, +Sink1, +Sink2, :Goal_5, +SourceOpts, +Sink1Opts, +Sink2Opts
+    call_onto_streams/6,     % +Source
+                             % +Sink1
+                             % +Sink2
+                             % :Goal_5
+                             % +SourceOpts
+                             % +SinkOpts
+    call_onto_streams/7,     % +Source
+                             % +Sink1
+                             % +Sink2
+                             % :Goal_5
+                             % +SourceOpts
+                             % +Sink1Opts
+                             % +Sink2Opts
     call_to_atom/2,          % :Goal_1, -A
     call_to_codes/2,         % :Goal_1, -Cs
     call_to_stream/2,        % +Sink, :Goal_1
@@ -32,7 +43,7 @@ The following debug flags are used:
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
-@version 2016/07-2016/09
+@version 2016/07-2016/12
 */
 
 :- use_module(library(debug_ext)).
@@ -119,35 +130,40 @@ call_on_stream(Source, Goal_3) :-
 
 
 call_on_stream(Source, Goal_3, SourceOpts) :-
-  option(entry_name(Entry0), SourceOpts, _),
+  option(entry_name(EntryName), SourceOpts, _),
   setup_call_cleanup(
-    open_any2(Source, read, In, Close_0, L1, SourceOpts),
-    call_on_stream0(In, Entry0, Goal_3, L1, L2),
-    close_any2(Close_0, L2, L3, SourceOpts)
+    open_any2(Source, read, In, Close_0, InPath1, SourceOpts),
+    call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2),
+    close_any2(Close_0, InPath2, InPath3, SourceOpts)
   ),
-  ignore(option(metadata(L3), SourceOpts)).
+  % @bug: InPath3 is now uninstantiated.
+  option(metadata(InPath3), SourceOpts).
 
 
 % HTTP error status code may result in no stream at all.
-call_on_stream0(In, _, _, L, L) :-
+call_on_stream0(In, _, _, InPath, InPath) :-
   var(In), !.
 % Empty input stream.
-call_on_stream0(In, _, _, L, L) :-
+call_on_stream0(In, _, _, InPath, InPath) :-
   at_end_of_stream(In), !.
 % Data input stream.
-call_on_stream0(In, _, Goal_3, [H|T], L) :-
-  get_dict(format, H, raw),
-  get_dict(name, H, data), !,
-  call(Goal_3, In, [H|T], L).
+call_on_stream0(In, _, Goal_3, [InEntry|InPath1], InPath2) :-
+  get_dict(format, InEntry, raw),
+  get_dict(name, InEntry, data), !,
+  call(Goal_3, In, [InEntry|InPath1], InPath2).
 % Compressed and/or packaged input stream.
-call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
+call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
     (
-      archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
+      archive_open(
+        stream(In),
+        Arch,
+        [close_parent(false),filter(all)|Formats]
+      ),
       indent_debug(in, io, "R» ~w → ~w", [In,Arch])
     ),
-    call_on_archive0(Arch, Entry0, Goal_3, L1, L2),
+    call_on_archive0(Arch, EntryName, Goal_3, InPath1, InPath2),
     ( % @tbd THIS SEEMS TO BE SKIPPED/NOT PRINTED SOMETIMES!
       indent_debug(out, io, "«R ~w", [Arch]),
       archive_close(Arch)
@@ -155,12 +171,16 @@ call_on_stream0(In, Entry0, Goal_3, L1, L2) :-
   ).
 
 
-call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
+call_on_archive0(Arch, EntryNameMatch, Goal_3, [InEntry2|InPath1], InPath4) :-
   archive_property(Arch, filter(Filters)),
   repeat,
-  (   archive_next_header(Arch, Entry)
-  ->  findall(Property, archive_header_property(Arch, Property), Properties),
-      dict_create(H0, [filters(Filters),name(Entry)|Properties]),
+  (   archive_next_header(Arch, EntryName)
+  ->  findall(
+        Property,
+        archive_header_property(Arch, Property),
+        Properties
+      ),
+      dict_create(InEntry1, [filters(Filters),name(EntryName)|Properties]),
       % If the entry name is `data` then proceed.  If the entry name
       % is uninstantiated then proceed.  If entry name is instantiated
       % and does not occur in the current archive header then fail
@@ -169,28 +189,34 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
           % therefore close the choicepoint created by repeat/0.  Not
           % closing this choicepoint would cause archive_next_header/2
           % to throw an exception.
-          Entry == data,
-          H0.format == raw
+          EntryName == data,
+          InEntry1.format == raw
       ->  !
       ;   % If the given entry name occurs in the current archive
-          % header then red cut, because we are in the correct entry
+          % header then _red cut_, because we are in the correct entry
           % branch.
-          Entry == Entry0
+          EntryName == EntryNameMatch
       ->  !
       ;   % If the given entry name did not match the current archive
           % header then fail, because we are in the wrong entry
           % branch.
-          var(Entry0)
+          var(EntryNameMatch)
       ),
       (   memberchk(filetype(file), Properties)
       ->  setup_call_cleanup(
             (
               archive_open_entry(Arch, In),
-              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,Entry,In])
+              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,EntryName,In])
             ),
-            call_on_stream0(In, Entry0, Goal_3, [H0,H1|T1], L3),
+            call_on_stream0(
+              In,
+              InEntry1,
+              Goal_3,
+              [InEntry1,InEntry2|InPath1],
+              InPath3
+            ),
             % close_any2/4 also emits the closing debug message.
-            close_any2(close(In), L3, L4, [])
+            close_any2(close(In), InPath3, InPath4, [])
           )
       ;   fail
       )
@@ -203,7 +229,8 @@ call_on_archive0(Arch, Entry0, Goal_3, [H1|T1], L4) :-
 %! call_onto_stream(+Source, +Sink, :Goal_4) is det.
 %! call_onto_stream(+Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts) is det.
 %
-% The following call is made: `call(Goal_4, +In, +Path1, -Path2, +Out)`.
+% The following call is made:
+% `call(Goal_4, +In, +InPath1, -InPath2, +Out)`.
 %
 % Options are passed to:
 %
@@ -216,11 +243,15 @@ call_onto_stream(Source, Sink, Goal_4) :-
 
 
 call_onto_stream(Source, Sink, Goal_4, SourceOpts, SinkOpts) :-
-  call_on_stream(Source, call_onto_stream0(Sink, Goal_4, SinkOpts), SourceOpts).
+  call_on_stream(
+    Source,
+    call_onto_stream0(Sink, Goal_4, SinkOpts),
+    SourceOpts
+  ).
 
 
-call_onto_stream0(Sink, Goal_4, SinkOpts, In, L1, L2) :-
-  goal_manipulation(Goal_4, [In,L1,L2], Goal_1),
+call_onto_stream0(Sink, Goal_4, SinkOpts, In, InPath1, InPath2) :-
+  goal_manipulation(Goal_4, [In,InPath1,InPath2], Goal_1),
   call_to_stream(Sink, Goal_1, SinkOpts).
 
 
@@ -234,15 +265,44 @@ call_onto_streams(Source, Sink1, Sink2, Goal_5) :-
 
 
 call_onto_streams(Source, Sink1, Sink2, Goal_5, SourceOpts, SinkOpts) :-
-  call_onto_streams(Source, Sink1, Sink2, Goal_5, SourceOpts, SinkOpts, SinkOpts).
+  call_onto_streams(
+    Source,
+    Sink1,
+    Sink2,
+    Goal_5,
+    SourceOpts,
+    SinkOpts,
+    SinkOpts
+  ).
 
 
-call_onto_streams(Source, Sink1, Sink2, Goal_5, SourceOpts, Sink1Opts, Sink2Opts) :-
-  call_on_stream(Source, call_onto_streams0(Sink1, Sink2, Goal_5, Sink1Opts, Sink2Opts), SourceOpts).
+call_onto_streams(
+  Source,
+  Sink1,
+  Sink2,
+  Goal_5,
+  SourceOpts,
+  Sink1Opts,
+  Sink2Opts
+) :-
+  call_on_stream(
+    Source,
+    call_onto_streams0(Sink1, Sink2, Goal_5, Sink1Opts, Sink2Opts),
+    SourceOpts
+  ).
 
 
-call_onto_streams0(Sink1, Sink2, Goal_5, Sink1Opts, Sink2Opts, In, L1, L2) :-
-  goal_manipulation(Goal_5, [In,L1,L2], Goal_2),
+call_onto_streams0(
+  Sink1,
+  Sink2,
+  Goal_5,
+  Sink1Opts,
+  Sink2Opts,
+  In,
+  InPath1,
+  InPath2
+) :-
+  goal_manipulation(Goal_5, [In,InPath1,InPath2], Goal_2),
   call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts).
 
 
@@ -291,17 +351,24 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
   option(mode(Mode), SinkOpts, write),
   must_be(write_mode, Mode),
   setup_call_cleanup(
-    open_any2(Sink, Mode, Out, Close_0, L1, SinkOpts),
-    call_to_compressed_stream(Out, Goal_1, L1, L2, SinkOpts),
-    close_any2(Close_0, L2, L3, SinkOpts)
+    open_any2(Sink, Mode, Out, Close_0, OutPath1, SinkOpts),
+    call_to_compressed_stream(Out, Goal_1, OutPath1, OutPath2, SinkOpts),
+    close_any2(Close_0, OutPath2, OutPath3, SinkOpts)
   ),
-  ignore(option(metadata(L3), SinkOpts)).
+  % @bug: OutPath3 is now uninstantiated.
+  ignore(option(metadata(OutPath3), SinkOpts)).
 
 
-call_to_compressed_stream(Out1, Goal_1, [H1|T], [H2|T], SinkOpts) :-
+call_to_compressed_stream(
+  Out1,
+  Goal_1,
+  [OutEntry1|OutPath],
+  [OutEntry2|OutPath],
+  SinkOpts
+) :-
   option(compression(true), SinkOpts, true), !,
   Format = gzip,
-  put_dict(compression, H1, Format, H2),
+  put_dict(compression, OutEntry1, Format, OutEntry2),
   setup_call_cleanup(
     (
       zopen(Out1, Out2, [close_parent(false),format(Format)]),
@@ -313,7 +380,7 @@ call_to_compressed_stream(Out1, Goal_1, [H1|T], [H2|T], SinkOpts) :-
       close(Out2)
     )
   ).
-call_to_compressed_stream(Out, Goal_1, L, L, _) :-
+call_to_compressed_stream(Out, Goal_1, OutPath, OutPath, _) :-
   call(Goal_1, Out).
 
 
@@ -346,28 +413,50 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode2), Sink2Opts, write),
   setup_call_cleanup(
     (
-      open_any2(Sink1, Mode1, Out1, Close1_0, L1a, Sink1Opts),
-      open_any2(Sink2, Mode2, Out2, Close2_0, L1b, Sink2Opts)
+      open_any2(Sink1, Mode1, Out1, Close1_0, OutPath1a, Sink1Opts),
+      open_any2(Sink2, Mode2, Out2, Close2_0, OutPath1b, Sink2Opts)
     ),
-    call_to_streams0(Out1, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts),
+    call_to_streams0(
+      Out1,
+      Out2,
+      Goal_2,
+      OutPath1a,
+      OutPath1b,
+      Sink1Opts,
+      OutPath2a,
+      OutPath2b,
+      Sink2Opts
+    ),
     (
-      close_any2(Close1_0, L2b, L3b, Sink2Opts),
-      close_any2(Close2_0, L2a, L3a, Sink1Opts)
+      close_any2(Close1_0, OutPath2b, OutPath3b, Sink2Opts),
+      close_any2(Close2_0, OutPath2a, OutPath3a, Sink1Opts)
     )
   ),
-  ignore(option(metadata1(L3a), Sink1Opts)),
-  ignore(option(metadata2(L3b), Sink2Opts)).
+  % @bug: OutPath3a is now uninstantiated.
+  % @bug: OutPath3b is now uninstantiated.
+  ignore(option(metadata1(OutPath3a), Sink1Opts)),
+  ignore(option(metadata2(OutPath3b), Sink2Opts)).
 
 
-call_to_streams0(Out1a, Out2, Goal_2, L1a, L1b, Sink1Opts, L2a, L2b, Sink2Opts) :-
+call_to_streams0(
+  Out1a,
+  Out2,
+  Goal_2,
+  OutPath1a,
+  OutPath1b,
+  Sink1Opts,
+  OutPath2a,
+  OutPath2b,
+  Sink2Opts
+) :-
   call_to_compressed_stream(
     Out1a,
-    {Out2,Goal_2,L1a,L2a,Sink2Opts}/[Out1b]>>(
+    {Out2,Goal_2,OutPath1a,OutPath2a,Sink2Opts}/[Out1b]>>(
       goal_manipulation(Goal_2, [Out1b], Goal_1),
-      call_to_compressed_stream(Out2, Goal_1, L1a, L2a, Sink2Opts)
+      call_to_compressed_stream(Out2, Goal_1, OutPath1a, OutPath2a, Sink2Opts)
     ),
-    L1b,
-    L2b,
+    OutPath1b,
+    OutPath2b,
     Sink1Opts
   ).
 
@@ -380,7 +469,7 @@ call_to_string(Goal_1, Str) :-
 
 
 
-%! close_any2(+Close_0, +L1, -L2, +Opts) is det.
+%! close_any2(+Close_0, +Path1, -Path2, +Opts) is det.
 %
 % The following options are supported:
 %
@@ -398,15 +487,14 @@ call_to_string(Goal_1, Str) :-
 %
 %     * sha512(-atom)
 
-close_any2(close(Stream), [H1|T], [H2|T], Opts) :- !,
-  stream_metadata(Stream, H1, H0),
-  H2 = H1.put(H0),
+close_any2(close(Stream), [Entry1|Path], [Entry2|Path], Opts) :- !,
+  stream_metadata(Stream, Entry1, Entry2),
   stream_property(Stream, mode(Mode)),
   close_any2_hash(Stream, Opts),
   close(Stream),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
   indent_debug(out, io, "«~s ~w", [Lbl,Stream]).
-close_any2(true, L, L, _).
+close_any2(true, Path, Path, _).
 
 
 close_any2_hash(Stream, Opts) :-
@@ -601,9 +689,9 @@ memory_file_to_something(Handle, string, Str) :- !,
 
 
 
-%! stream_metadata(+Stream, +Meta1, -Meta2) is det.
+%! stream_metadata(+Stream, +Entry1, -Entry2) is det.
 %
-% Succeeds if Meta2 is a dictionary that contains the metadata
+% Succeeds if Entry2 is a dictionary that contains the metadata
 % properties of Stream.  The following metadata properties are
 % included:
 %
@@ -615,15 +703,19 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %   * newline(oneof([dos,posix]))
 
-stream_metadata(Stream, _, Meta) :-
+stream_metadata(Stream, Entry1, Entry2) :-
   stream_property(Stream, position(Pos)),
   stream_position_data(byte_count, Pos, NumBytes),
   stream_position_data(char_count, Pos, NumChars),
   stream_position_data(line_count, Pos, NumLines),
   stream_property(Stream, newline(Newline)),
-  Meta = _{
-    byte_count: NumBytes,
-    char_count: NumChars,
-    line_count: NumLines,
-    newline: Newline
-  }.
+  merge_dicts(
+    Entry1,
+    _{
+      byte_count: NumBytes,
+      char_count: NumChars,
+      line_count: NumLines,
+      newline: Newline
+    },
+    Entry2
+  ).
