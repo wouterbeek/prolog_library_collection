@@ -210,10 +210,10 @@ http_is_scheme(https).
 %
 %     Default is `true`.
 %
-%   * verbose(+boolean)
+%   * verbose(+oneof([all,error,none]))
 %
-%     Whether or not the request and reply headers are shows.  Default
-%     is `false`.
+%     Whether all, error or no messages are printed.  Default is
+%     `error`.
 
 http_open_any(Iri, In, Path, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
@@ -225,7 +225,7 @@ http_open_any(Iri, In, Path, Opts) :-
     retries: 0,
     visited: []
   },
-  (   option(verbose(true), Opts)
+  (   option(verbose(all), Opts)
   ->  Flags = [http(send_reply),http(send_request)]
   ;   Flags = []
   ),
@@ -260,7 +260,7 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
-      (   option(verbose(true), Opts1)
+      (   option(verbose(all), Opts1)
       ->  http_msg(user_output, Iri, Method, Status, Lines)
       ;   true
       ),
@@ -271,7 +271,6 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      %%%%debug(http_io, "[ENTRY] ~w", [H]),
       http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0),
       reverse([H|T], Path)
   ;   Path = [],
@@ -288,7 +287,10 @@ http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
 % Non-authentication error.
 http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
   http_status_is_error(H.status), !,
-  http_error_msg(Iri, Method, H.status, Lines, In1),
+  (   \+ option(verbose(error), Opts)
+  ->  true
+  ;   http_error_msg(Iri, Method, H.status, Lines, In1)
+  ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,

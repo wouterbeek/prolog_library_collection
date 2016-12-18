@@ -60,7 +60,7 @@ curl_get(Uri) :-
 
 
 curl_get(Uri, MT) :-
-  http_get(Uri, print_body0, [request_header(accept=MT),verbose(true)]).
+  http_get(Uri, print_body0, [request_header(accept=MT),verbose(all)]).
 
 print_body0(In, Path, Path) :-
   copy_stream_data(In, user_output).
@@ -81,7 +81,7 @@ curl_head(Uri) :-
 
 
 curl_head(Uri, MT) :-
-  http_head(Uri, [request_header(accept=MT),verbose(true)]).
+  http_head(Uri, [request_header(accept=MT),verbose(all)]).
 
 
 
@@ -101,7 +101,7 @@ curl_options :-
 
 
 curl_options(Uri) :-
-  http_options(Uri, [verbose(true)]).
+  http_options(Uri, [verbose(all)]).
 
 
 
