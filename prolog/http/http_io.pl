@@ -226,7 +226,7 @@ http_open_any(Iri, In, Path, Opts) :-
     visited: []
   },
   (   option(verbose(all), Opts)
-  ->  Flags = [http(send_reply),http(send_request)]
+  ->  Flags = [http(send_request)]
   ;   Flags = []
   ),
   option(method(Method), Opts, get),
