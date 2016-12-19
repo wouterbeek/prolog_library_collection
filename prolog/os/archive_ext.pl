@@ -75,8 +75,8 @@ archive_format(zip,     true ).
 
 %! archive_path(+Source, -InPath) is nondet.
 
-archive_path(Source, InPath, Path) :-
-  call_on_stream(Source, archive_path0(InPath), [metadata(Path)]).
+archive_path(Source, InPath) :-
+  call_on_stream(Source, archive_path0(InPath)).
 
 archive_path0(InPath, _, InPath, InPath).
 
