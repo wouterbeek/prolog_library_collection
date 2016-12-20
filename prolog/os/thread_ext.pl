@@ -2,6 +2,7 @@
   thread_ext,
   [
     attached_thread/1,           % :Goal_0
+    call_in_thread/2,            % +Alias, :Goal_0
     call_on_wildcard/2,          % +Wildcard, :Goal_1
     call_on_wildcard/3,          % +Wildcard, :Goal_1, +Opts
     create_thread/1,             % :Goal_0
@@ -22,7 +23,7 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10, 2016/01-2016/03, 2016/05-2016/06
+@version 2015/10-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -35,6 +36,7 @@
 
 :- meta_predicate
     attached_thread(0),
+    call_in_thread(+, 0),
     call_on_wildcard(+, 1),
     call_on_wildcard(+, 1, +),
     create_thread(0),
@@ -51,6 +53,14 @@
 
 attached_thread(Goal_0) :-
   thread_create(Goal_0, _, []).
+
+
+
+%! call_in_thread(+Alias, :Goal_0) is det.
+
+call_in_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, Id, [alias(Alias)]),
+  thread_join(Id, true).
 
 
 

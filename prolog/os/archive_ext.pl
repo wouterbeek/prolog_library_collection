@@ -7,7 +7,8 @@
     archive_path/2,           % +Source, -InPath
     file_entry_path/2,        % +MetaPath, -File2
     file_entry_path/3,        % +File1, +MetaPath, -File2
-    is_archive_file/1         % +File
+    is_archive_file/1,        % +File
+    path_entry_name/2         % +Path, -EntryName
   ]
 ).
 :- reexport(library(archive)).
@@ -21,6 +22,7 @@
 :- use_module(library(apply)).
 :- use_module(library(archive)).
 :- use_module(library(debug)).
+:- use_module(library(dict_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
@@ -116,3 +118,17 @@ is_unarchived0(Entry) :-
   Entry.format == "raw", !.
 
 file_entry_path_comp0(Entry, Entry.name).
+
+
+
+%! path_entry_name(+Path, -EntryName) is det.
+%
+% EntryName is the most descriptive entry name associated with the
+% given Path.  This means that it is either the entry name that is
+% given in archive metadata (if available), or the name `data`.
+
+path_entry_name(Path, EntryName) :-
+  dicts_get(name, Path, EntryName),
+  EntryName \== data, !.
+path_entry_name(Path, EntryName) :-
+  dicts_getchk(name, Path, EntryName).

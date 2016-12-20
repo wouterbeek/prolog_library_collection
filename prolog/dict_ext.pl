@@ -165,22 +165,22 @@ dict_has_key(Key, D) :-
 
 
 
-%! dict_inc(+Key, +D) is det.
-%! dict_inc(+Key, +D, -Val) is det.
-%! dict_inc(+Key, +D, +Diff, -Val) is det.
+%! dict_inc(+Key, +Dict) is det.
+%! dict_inc(+Key, +Dict, -Val) is det.
+%! dict_inc(+Key, +Dict, +Diff, -Val) is det.
 
-dict_inc(Key, D) :-
-  dict_inc(Key, D, _).
-
-
-dict_inc(Key, D, Val) :-
-  dict_inc(Key, D, 1, Val).
+dict_inc(Key, Dict) :-
+  dict_inc(Key, Dict, _).
 
 
-dict_inc(Key, D, Diff, Val2) :-
-  get_dict(Key, D, Val1),
+dict_inc(Key, Dict, Val) :-
+  dict_inc(Key, Dict, 1, Val).
+
+
+dict_inc(Key, Dict, Diff, Val2) :-
+  get_dict(Key, Dict, Val1),
   Val2 is Val1 + Diff,
-  nb_set_dict(Key, D, Val2).
+  nb_set_dict(Key, Dict, Val2).
 
 
 

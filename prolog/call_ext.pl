@@ -26,8 +26,6 @@
 :- use_module(library(thread)).
 :- use_module(library(time)).
 
-:- debug(true).
-
 :- meta_predicate
     call_det(0),
     call_det(0, -),

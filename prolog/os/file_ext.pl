@@ -50,11 +50,12 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01-2016/03, 2016/05-2016/10
+@version 2015/07-2016/12
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(error)).
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
@@ -146,6 +147,7 @@ create_directory(Dir) :-
 
 
 %! create_file(+File) is det.
+%
 % @throws type_error
 
 create_file(File) :-
@@ -159,6 +161,7 @@ create_file(File) :-
 
 
 %! create_file_directory(+Path) is det.
+%
 % Ensures that the directory structure for the given file exists.
 
 create_file_directory(Path) :-
@@ -170,13 +173,17 @@ create_file_directory(Path) :-
 %! create_file_link(+From, +To) is det.
 %
 % Create a symbolic link pointing from file From in to file To.
+%
+% @throws existence_error if the linked to file (To) does not exist.
 
+% File link already exists.
+create_file_link(From, _) :-
+  exists_file(From), !.
 create_file_link(From, To) :-
-  exists_file(To), !,
+  (exists_file(To) -> true ; existence_error(file, To)),
   create_file_directory(From),
   create_file_directory(To),
   link_file(To, From, symbolic).
-create_file_link(_, _).
 
 
 
@@ -355,6 +362,7 @@ file_paths(File, Paths) :-
 
 
 %! file_size(+File, -Size) is det.
+%
 % @see Sane name for size_file/2.
 
 file_size(File, Size) :-
@@ -416,8 +424,9 @@ is_stale_file(File, FreshnessLifetime) :-
 
 
 %! latest_file(+Files:list(atom), -Latest) is det.
-% Returns the most recently created or altered file from within a list of
-% files.
+%
+% Returns the most recently created or altered file from within a list
+% of files.
 
 latest_file([H|T], Latest) :-
   time_file(H, Time),
