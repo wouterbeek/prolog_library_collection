@@ -157,6 +157,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/rfc2295)).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc6265)).
 :- use_module(library(http/rfc6266)).
@@ -195,6 +196,7 @@ http_known_known('access-control-allow-methods').
 http_known_known('access-control-allow-origin').
 http_known_known('access-control-expose-headers').%@tbd
 http_known_known('access-control-request-method').
+http_known_known(alternates).
 http_known_known('content-disposition').
 http_known_known('content-security-policy').
 http_known_known('content-security-policy-report-only').
@@ -1320,6 +1322,7 @@ http_known_unknown('x-served-from-cache').
 http_known_unknown('x-server').
 http_known_unknown('x-sparql').
 http_known_unknown('x-sparql-default-graph').
+http_known_unknown('x-sparql-maxrows').
 http_known_unknown('x-timer').
 http_known_unknown('x-total-results').
 http_known_unknown('x-ua-compatible').
@@ -1493,7 +1496,7 @@ http_known_known('max-forwards').
 %               ) *( OWS ";" OWS parameter )
 % ```
 
-'media-range'(media_type(Type,Subtype,Params)) -->
+'media-range'(media(Type/Subtype,Params)) -->
   ("*" -> "/*" ; type(Type), "/", ("*" -> "" ; subtype(Subtype))),
   *(sep_parameter, Params), !.
 
@@ -1505,7 +1508,7 @@ http_known_known('max-forwards').
 % media-type = type "/" subtype *( OWS ";" OWS parameter )
 % ```
 
-'media-type'(media_type(Type,Subtype,Params)) -->
+'media-type'(media(Type/Subtype,Params)) -->
   type(Type),
   "/",
   subtype(Subtype),

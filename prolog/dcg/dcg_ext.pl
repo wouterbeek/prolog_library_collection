@@ -12,9 +12,9 @@
     '+'//1,                % :Dcg_0
     '+'//2,                % :Dcg_1, -Args1
     '+'//3,                % :Dcg_2, -Args1, -Args2
-    '#'//2,                % ?Occurrences, :Dcg_0
-    '#'//3,                % ?Occurrences, :Dcg_1, -Args1
-    '#'//4,                % ?Occurrences, :Dcg_2, -Args1, -Args2
+    %'#'//2,                % ?Occurrences, :Dcg_0
+    %'#'//3,                % ?Occurrences, :Dcg_1, -Args1
+    %'#'//4,                % ?Occurrences, :Dcg_2, -Args1, -Args2
     '*n'//2,               % ?High, :Dcg_0
     '*n'//3,               % ?High, :Dcg_1, -Args1
     '*n'//4,               % ?High, :Dcg_2, -Args1, -Args2
@@ -24,6 +24,9 @@
     'm*n'//3,              % ?Low, ?High, :Dcg_0
     'm*n'//4,              % ?Low, ?High, :Dcg_1, -Args1
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
+    %'m#n'//3,              % ?Low, ?High, :Dcg_0
+    %'m#n'//4,              % ?Low, ?High, :Dcg_1, -Args1
+    %'m#n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_ci//1,            % ?A
     atom_ellipsis//2,      % +A, +Max
     atom_lower//1,         % ?A
@@ -169,7 +172,8 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2016/03, 2016/05-2016/11
+@tbd Integrate 'm#n' into 'm*n', but not without a test suite.
+@version 2015/11-2016/12
 */
 
 :- use_module(library(aggregate)).
@@ -202,9 +206,9 @@ My favorite collection of DCG rules.
     +(//, ?, ?),
     +(3, -, ?, ?),
     +(4, -, -, ?, ?),
-    #(+, //, ?, ?),
-    #(+, 3, -, ?, ?),
-    #(+, 4, -, -, ?, ?),
+    %#(+, //, ?, ?),
+    %#(+, 3, -, ?, ?),
+    %#(+, 4, -, -, ?, ?),
     '*n'(?, //, ?, ?),
     '*n'(?, 3, -, ?, ?),
     '*n'(?, 4, -, -, ?, ?),
@@ -220,6 +224,9 @@ My favorite collection of DCG rules.
     'm*n__p'(?, ?, +, //, ?, ?),
     'm*n__p'(?, ?, +, 3, -, ?, ?),
     'm*n__p'(?, ?, +, 4, -, -, ?, ?),
+    %'m#n'(?, ?, //, ?, ?),
+    %'m#n'(?, ?, 3, -, ?, ?),
+    %'m#n'(?, ?, 4, -, -, ?, ?),
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
     bracketed(//, ?, ?),
@@ -302,15 +309,19 @@ dcg:dcg_hook(thousands(N)) -->
 
 
 %! ...// .
+%
 % Wrapper around ...//1 that does not return the processed codes.
 
-... --> ...(_).
+... -->
+  ...(_).
 
 
 %! ...(-Codes:list(code))// .
+%
 % Wrapper around string//1.
 
-...(Cs) --> string(Cs).
+...(Cs) -->
+  string(Cs).
 
 
 
@@ -338,9 +349,9 @@ dcg:dcg_hook(thousands(N)) -->
 %! #(?Occurrences, :Dcg_1, -Args1)// is det.
 %! #(?Occurrences, :Dcg_2, -Args1, -Args2)// is det.
 
-#(N, Dcg_0) --> 'm*n'(N, N, Dcg_0).
-#(N, Dcg_1, L1) --> 'm*n'(N, N, Dcg_1, L1).
-#(N, Dcg_2, L1, L2) --> 'm*n'(N, N, Dcg_2, L1, L2).
+#(N, Dcg_0) --> 'm#n'(N, N, Dcg_0).
+#(N, Dcg_1, L1) --> 'm#n'(N, N, Dcg_1, L1).
+#(N, Dcg_2, L1, L2) --> 'm#n'(N, N, Dcg_2, L1, L2).
 
 
 

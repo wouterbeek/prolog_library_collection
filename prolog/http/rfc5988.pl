@@ -269,7 +269,7 @@ sep_link_param(BaseUri, LinkParam) -->
 % media-type = type-name "/" subtype-name
 % ```
 
-'media-type'(media_type(Type,Subtype,[])) -->
+'media-type'(media(Type/Subtype,[])) -->
   'type-name'(Type),
   "/",
   'subtype-name'(Subtype).

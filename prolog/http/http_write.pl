@@ -109,7 +109,7 @@ reply_http_message(Status, Headers, Body) :-
 
 
 
-'media-type'(media_type(Type/Subtype,Params)) -->
+'media-type'(media(Type/Subtype,Params)) -->
   type(Type),
   "/",
   subtype(Subtype),

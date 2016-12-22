@@ -1,12 +1,12 @@
 :- module(
   rfc2616,
   [
-    http_URL//1,        % -Url:dict
+    http_URL//1,        % -Uri:compound
     'LWS'//0,
-    'quoted-string'//1, % -String:string
-    'rfc1123-date'//1,  % -Lex:string
-    token//1,           % -Token:string
-    value//1            % -Value:string
+    'quoted-string'//1, % -String:atom
+    'rfc1123-date'//1,  % -Lex:atom
+    token//1,           % -Token:atom
+    value//1            % -Val:atom
   ]
 ).
 :- reexport(library(dcg/rfc2234), [
@@ -14,8 +14,9 @@
      'CHAR'//1,         % ?Code
      'CRLF'//0,
      'CTL'//1,          % ?Code
-     'DIGIT'//1,        % ?Digit
-     'DIGIT'//2,        % ?Digit:between(0,9), ?Code
+     'DIGIT'//1,        % ?Digit:between(0,9)
+     'DIGIT'//2,        % ?Digit:between(0,9)
+                        % ?Code
      'HTAB'//0 as 'HT',
      'HTAB'//1 as 'HT', % ?Code
      'OCTET'//1,        % ?Code
@@ -41,10 +42,10 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc2396), [
-     abs_path//1, % -Path:list(string)
+     abs_path//1, % -Path:list(atom)
      host//1,     % -Host
      port//1,     % -Port:nonneg
-     query//1     % -Query:string
+     query//1     % -Query:atom
    ]).
 :- use_module(library(uri/uri_ext)).
 
@@ -52,7 +53,11 @@
 
 
 
-%! date1(-Y, -Mo, -D)// is det.
+%! date1(
+%!   -Year:between(0,99),
+%!   -Month:between(1,12),
+%!   -Day:between(0,9999)
+%! )// is det.
 %
 % ```abnf
 % date1 = 2DIGIT SP month SP 4DIGIT
@@ -69,7 +74,11 @@ date1(Y, Mo, D) -->
 
 
 
-%! date2(-Y, -Mo, -D)// is det.
+%! date2(
+%!   -Year:between(0,99),
+%!   -Month:between(1,12),
+%!   -Day:between(0,9999)
+%! )// is det.
 %
 % ```abnf
 % date2 = 2DIGIT "-" month "-" 2DIGIT
@@ -86,19 +95,17 @@ date2(Y, Mo, D) -->
 
 
 
-%! http_URL(-Uri:atom)// is det.
+%! http_URL(-Uri:compound)// is det.
 %
 % ```abnf
 % http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
 % ```
 
-http_URL(Uri) -->
+http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
-  {Scheme = http},
   host(Host),
-  (":" -> port(Port) ; {http_default_port(Scheme, Port)}),
-  (abs_path(Segments) -> ("?" -> query(Query) ; "") ; ""),
-  {uri_comps(Uri, uri(Scheme,auth(_,Host,Port),Segments,Query,_))}.
+  (":" -> port(Port) ; {http_default_port(http, Port)}),
+  (abs_path(Segments) -> ("?" -> query(Query) ; "") ; "").
 
 
 
@@ -283,6 +290,7 @@ time(H, Mi, S) -->
 
 
 %! token(-Token:atom)// is det.
+%
 % ```abnf
 % token = 1*<any CHAR except CTLs or separators>
 % ```
@@ -306,8 +314,10 @@ token_code(C) -->
 % value = token | quoted-string
 % ```
 
-value(Token) --> token(Token), !.
-value(Str) --> 'quoted-string'(Str).
+value(Token) -->
+  token(Token), !.
+value(Str) -->
+  'quoted-string'(Str).
 
 
 
