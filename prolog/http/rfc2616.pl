@@ -105,7 +105,7 @@ http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
   host(Host),
   (":" -> port(Port) ; {http_default_port(http, Port)}),
-  (abs_path(Segments) -> ("?" -> query(Query) ; "") ; "").
+  (abs_path(Segments) -> ("?" -> query(QueryComps) ; "") ; "").
 
 
 

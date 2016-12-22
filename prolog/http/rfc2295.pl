@@ -14,8 +14,8 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http11), [
-     charset//1,      % -Charset:atom
-     'media-type'//1, % -MT:compound
+     charset//1,     % -Charset:atom
+     'media-type'//1 % -MT:compound
    ]).
 :- use_module(library(http/rfc1945)).
 :- use_module(library(http/rfc2616), [
@@ -244,9 +244,9 @@ minor(Minor) -->
   "{charset", !,
   charset(Charset),
   "}".
-'variant-attribute'(ltag(L)) -->
+'variant-attribute'(language(LTags)) -->
   "{language", !,
-  +('language-tag+'(L),
+  +('language-tag', LTags),
   "}".
 'variant-attribute'(length(Len)) -->
   "{length", !,
