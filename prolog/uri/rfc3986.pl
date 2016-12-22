@@ -84,7 +84,7 @@ The following terms are used:
 % authoritatively to requests that target the identified resource.
 
 authority(auth(User,Host,Port)) -->
-  (userinfo(User) -> "@" ; ""),
+  (userinfo(User), "@" -> "" ; ""),
   host(Host),
   (":" -> port(Port) ; "").
 
@@ -623,7 +623,7 @@ unreserved(0'~) --> "~".
 % URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'URI'(uri_components(Scheme,Auth,Segments,Query,Frag)) -->
+'URI'(uri(Scheme,Auth,Segments,Query,Frag)) -->
   scheme(Scheme),
   ":",
   'hier-part'(Auth, Segments),

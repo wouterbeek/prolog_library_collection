@@ -4,7 +4,6 @@
     'content-type'//1,   % -Mime:compound
     'field-name'//1,     % -Name:atom
     'header-field'//1,   % -Header:pair
-    http_parse_header/3, % +Key:atom, +Val:atom, -Term:compound
     http_known/1,        % ?Key
     'media-type'//1,     % -MT:compound
     method//1,           % -Method:atom
@@ -1330,14 +1329,6 @@ http_known_unknown('x-varnish-caching-rule-id').
 http_known_unknown('x-varnish-header-set-id').
 http_known_unknown('x-vcap-request-id').
 http_known_unknown('x-xss-protection'). % Has grammar.  Implemented.
-
-
-
-%! http_parse_header(+Key, +Val, -Term) is det.
-
-http_parse_header(Key, Val, Term) :-
-  Dcg_0 =.. [Key,Term],
-  once(atom_phrase(Dcg_0, Val)).
 
 
 

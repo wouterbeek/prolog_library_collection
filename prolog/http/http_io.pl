@@ -214,8 +214,11 @@ http_is_scheme(https).
 %
 %     Whether all, error or no messages are printed.  Default is
 %     `error`.
+%
+% Since InPath returns an entry list that may contain headers from
+% multiple consecutive HTTP replies, option header/1 is not supported.
 
-http_open_any(Iri, In, Path, Opts) :-
+http_open_any(Iri, In, InPath, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
   State = _{
@@ -230,9 +233,9 @@ http_open_any(Iri, In, Path, Opts) :-
   ;   Flags = []
   ),
   option(method(Method), Opts, get),
-  debug_call(Flags, http_open1(Iri, Method, State, In, Path, Opts)).
+  debug_call(Flags, http_open1(Iri, Method, State, In, InPath, Opts)).
 
-http_open1(Iri, Method, State, In2, Path, Opts0) :-
+http_open1(Iri, Method, State, In2, InPath, Opts0) :-
   copy_term(Opts0, Opts1),
   setting(user_agent, UA),
   Opts2 = [
@@ -272,8 +275,8 @@ http_open1(Iri, Method, State, In2, Path, Opts0) :-
         version: _{major: Major, minor: Minor}
       },
       http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0),
-      reverse([H|T], Path)
-  ;   Path = [],
+      reverse([H|T], InPath)
+  ;   InPath = [],
       throw(E)
   ).
 
@@ -327,7 +330,7 @@ http_options(Iri, Opts0) :-
   merge_options(Opts0, [method(options)], Opts),
   call_on_stream(Iri, true0, Opts).
 
-true0(_, Path, Path).
+true0(_, InPath, InPath).
 
 
 
@@ -462,10 +465,10 @@ http_throw_bad_request(Goal_0) :-
 
 % HELPERS %
 
-%! http_default_success(+In, +Path1, -Path2) is det.
+%! http_default_success(+In, +InPath1, -InPath2) is det.
 
-http_default_success(In, L, L) :-
-  maplist(print_dict, L),
+http_default_success(In, InPath, InPath) :-
+  maplist(print_dict, InPath),
   copy_stream_data(In, user_output).
 
 
@@ -503,15 +506,15 @@ http_is_redirect_loop(Iri, State) :-
 %! http_lines_pairs(+Lines:list(list(code)), -Pairs:list(pair(atom))) is det.
 
 http_lines_pairs(Lines, MergedPairs) :-
-  maplist(http_parse_header0, Lines, Pairs),
+  maplist(http_parse_header_pair, Lines, Pairs),
   keysort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, Groups),
   maplist(http_merge_headers, Groups, MergedPairs).
 
-http_parse_header0(Line, Key-Val) :-
-  phrase(http_parse_header_simplified0(Key, Val), Line).
+http_parse_header_pair(Line, Key-Val) :-
+  phrase(http_parse_header_simple(Key, Val), Line).
 
-http_parse_header_simplified0(Key, Val) -->
+http_parse_header_simple(Key, Val) -->
   'field-name'(Key),
   ":",
   'OWS',
