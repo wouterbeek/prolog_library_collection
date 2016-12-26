@@ -252,6 +252,7 @@ My favorite collection of DCG rules.
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
     dcg_dict(3, +, ?, ?),
     dcg_dict(3, +, +, ?, ?),
+    dcg_dict0(3, +, +, ?, ?),
     dcg_goal(0, ?, ?),
     dcg_list(3, +, ?, ?),
     dcg_list(3, +, +, ?, ?),
@@ -300,8 +301,11 @@ dcg:dcg_hook(string(Str)) -->
 dcg:dcg_hook(thousands(N)) -->
   thousands(N).
 
-:- setting(tab_size, integer, 2,
-     'The number of spaces that go into one tab.'
+:- setting(
+     tab_size,
+     integer,
+     2,
+     "The number of spaces that go into one tab."
    ).
 
 
@@ -1105,32 +1109,38 @@ dcg_dict(Dict) -->
 
 
 dcg_dict(Dcg_1, Dict) -->
-  dcg_dict(Dcg_1, Dict, 0).
-
+  dcg_dict(Dcg_1, Dict, 1).
 
 
 dcg_dict(Dcg_1, Dict, I1) -->
+  {I2 is I1 + 1},
+  dcg_dict0(Dcg_1, Dict, I2).
+
+
+dcg_dict0(Dcg_1, Dict, I) -->
   {dict_pairs(Dict, Pairs)},
   (   % Empty terms do not use lucious spacing.
       {is_empty_term0(Dict)}
-  ->  tab(I1), "{}"
+  ->  tab(I),
+      "{}"
   ;   % Singleton term do not use lucious spacing if the member is
       % singleton.
       {is_singleton_term0(Dict)}
-  ->  tab(I1), "{ ",
+  ->  tab(I),
+      "{ ",
       {Pairs = [Key-Val]},
       dcg_entry0(Dcg_1, Key-Val, 0),
       " }"
-  ;   "{", nl,
-      {I2 is I1 + 1},
-      dcg_entries0(Dcg_1, Pairs, I2),
-      tab(I1), "}"
+  ;   "{",
+      nl,
+      dcg_entries0(Dcg_1, Pairs, I),
+      "}"
   ).
 
 
 dcg_dict_or_list0(Dcg_1, Val, Opts) -->
   {is_dict(Val)}, !,
-  dcg_dict(Dcg_1, Val, Opts).
+  dcg_dict0(Dcg_1, Val, Opts).
 dcg_dict_or_list0(Dcg_1, Val, Opts) -->
   {is_list(Val)}, !,
   dcg_list(Dcg_1, Val, Opts).
@@ -1142,8 +1152,11 @@ dcg_entries0(Dcg_1, [H1,H2|T], I) --> !,
   dcg_entries0(Dcg_1, [H2|T], I).
 dcg_entries0(Dcg_1, [H], I) --> !,
   dcg_entry0(Dcg_1, H, I),
-  nl.
-dcg_entries0(_, [], _) --> !, "".
+  nl,
+  dcg_entries0(Dcg_1, [], I).
+dcg_entries0(_, [], I1) --> !,
+  {I2 is I1 - 1},
+  tab(I2).
 
 
 dcg_entry0(Dcg_1, Key-Val, I1) --> !,
@@ -1290,7 +1303,8 @@ dcg_string(Dcg_1, S) -->
 %! dcg_tab// is det.
 % This is not named tab//0 since that would conflict with the built-in tab/2.
 
-dcg_tab --> tab(1).
+dcg_tab -->
+  tab(1).
 
 
 
@@ -1783,16 +1797,25 @@ sum_pos0(I1, Base, [H|T]) :-
 %! tab(+Indent:nonneg)// is det.
 %! tab(+Indent:nonneg, :Dcg_0)// is det.
 
-tab(I) --> {setting(tab_size, N0), N is I * N0}, indent(N).
+tab(I) -->
+  {
+    setting(tab_size, N0),
+    N is I * N0
+  },
+  indent(N).
 
 
-tab(I, Dcg_0) --> tab(I), Dcg_0.
+tab(I, Dcg_0) -->
+  tab(I),
+  Dcg_0.
 
 
 
 %! tab_nl(+Indent:nonneg, :Dcg_0)// is det.
 
-tab_nl(I, Dcg_0) --> tab(I, Dcg_0), nl.
+tab_nl(I, Dcg_0) -->
+  tab(I, Dcg_0),
+  nl.
 
 
 

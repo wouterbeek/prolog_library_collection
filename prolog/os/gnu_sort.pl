@@ -37,25 +37,38 @@ Support for calling GNU sort from within Prolog.
 %
 % The following options are supported:
 %
-%   - buffer_size(+float) What's the unit?
+%   - buffer_size(+nonneg)
 %
-%   - duplicates(+boolean) Whether duplicates are allowed in the
-%   result.  Default is `true`.
+%     The size of the buffer in kilobytes.
 %
-%   - numeric(+boolean) Whether numberic sort is performed.  Default
-%   is `false`.
+%   - duplicates(+boolean)
 %
-%   - output(+atom) The name of the output file.
+%     Whether duplicates are allowed in the result.  Default is
+%     `true`.
 %
-%   - temporary_directory(+atom) The directory that is used for
-%   temporary sort results.  By default this is the directory of the
-%   source file.
+%   - numeric(+boolean)
 %
-%   - threads(+positive_integer) The number of threads that is used.
-%   Default is 1.
+%     Whether numberic sort is performed.  Default is `false`.
 %
-%   - utf8(+boolean) Whether the environemtn is set to UTF-8 encoding.
-%   Default is `true`.
+%   - output(+atom)
+%
+%     The name of the output file.
+%
+%   - temporary_directory(+atom)
+%
+%     The directory that is used for temporary sort results.  By
+%     default this is the directory of the source file.
+%
+%   - threads(+positive_integer)
+%
+%     The number of threads that is used.  Default is the number of
+%     available processors, but not larger than 8.  Larger numbers
+%     have diminishing returns.
+%
+%   - utf8(+boolean)
+%
+%     Whether the environment is set to UTF-8 encoding.  Default is
+%     `true`.
 
 gnu_sort(File, Opts) :-
   must_be_file(read, File),

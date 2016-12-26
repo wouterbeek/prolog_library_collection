@@ -1,40 +1,39 @@
 :- module(
   dict_ext,
   [
-    atomize_dict/2,         % +D, -AtomizedD
-    create_dict/3,          % +Pairs, +Tag, -D
+    atomize_dict/2,        % +D, -AtomizedD
+    create_dict/3,         % +Pairs, +Tag, -D
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedD
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
-    dict_call_pairs/2,      % :Goal_1, +D
-    dict_call_pairs/3,      % :Goal_2, +D1, -D2
-    dict_create/2,          % -Dict, +Opts
-    dict_dec/2,             % +Key, +D
-    dict_dec/3,             % +Key, +D, -Val
-    dict_dec/4,             % +Key, +D, +Diff, -Val
-    dict_get/3,             % +Key, +D, -Val
-    dict_get/4,             % +Key, +D, +Def, -Val
-    dict_has_key/2,         % +Key, +D
-    dict_inc/2,             % +Key, +D
-    dict_inc/3,             % +Key, +D, -Val
-    dict_inc/4,             % +Key, +D, +Diff, -Val
-    dict_pairs/2,           % ?D, ?Pairs
-    dict_prepend/3,         % +Key, +D, +Elem
-    dict_put/3,             % +D1, +D2, -D3
-    dict_put_def/4,         % +Key, D1, +Def, +D2
-    dict_put_pairs/3,       % +D1, +Pairs, -D2
+    del_dict_or_default/5, % +Key, +D1, +Def, -Val, -D2
+    dict_call_pairs/2,     % :Goal_1, +D
+    dict_call_pairs/3,     % :Goal_2, +D1, -D2
+    dict_create/2,         % -Dict, +Opts
+    dict_dec/2,            % +Key, +D
+    dict_dec/3,            % +Key, +D, -Val
+    dict_dec/4,            % +Key, +D, +Diff, -Val
+    dict_get/3,            % +Key, +D, -Val
+    dict_get/4,            % +Key, +D, +Def, -Val
+    dict_has_key/2,        % +Key, +D
+    dict_inc/2,            % +Key, +D
+    dict_inc/3,            % +Key, +D, -Val
+    dict_inc/4,            % +Key, +D, +Diff, -Val
+    dict_pairs/2,          % ?D, ?Pairs
+    dict_prepend/3,        % +Key, +D, +Elem
+    dict_put/3,            % +D1, +D2, -D3
+    dict_put_def/4,        % +Key, D1, +Def, +D2
+    dict_put_pairs/3,      % +D1, +Pairs, -D2
     dict_remove_uninstantiated/2, % +D1, -D2
-    dict_set/3,             % +Key, D, +Val
-    dict_sum/2,             % +Dicts, -D
-    dict_sum/3,             % +D1, +D2, -D3
-    dict_tag/2,             % +Dict, -Tag
-    dict_tag/3,             % +D1, +Tag, ?D2
-    dicts_get/3,            % +Key, +Dicts, -Val
-    dicts_getchk/3,         % +Key, +Dicts, -Val
-    empty_dict/1,           % ?Dict
-    get_dict_path/3,        % -Keys, +D, -Val
-    merge_dicts/3,          % +D1, +D2, -D3
-    mod_dict/4,             % +Key, +D1,       -Val, -D2
-    mod_dict/5              % +Key, +D1, +Def, -Val, -D2
+    dict_set/3,            % +Key, D, +Val
+    dict_sum/2,            % +Dicts, -D
+    dict_sum/3,            % +D1, +D2, -D3
+    dict_tag/2,            % +Dict, -Tag
+    dict_tag/3,            % +D1, +Tag, ?D2
+    dicts_get/3,           % +Key, +Dicts, -Val
+    dicts_getchk/3,        % +Key, +Dicts, -Val
+    empty_dict/1,          % ?Dict
+    get_dict_path/3,       % -Keys, +D, -Val
+    merge_dicts/3          % +D1, +D2, -D3
   ]
 ).
 :- reexport(library(dicts)).
@@ -42,7 +41,7 @@
 /** <module> Dictionary extensions
 
 @author Wouter Beek
-@version 2015/08-2015/11, 2016/01, 2016/03-2016/07
+@version 2015/08-2016/12
 */
 
 :- use_module(library(apply)).
@@ -101,6 +100,18 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
   group_pairs_by_key(SortedPairs, GroupedPairs1),
   maplist(pair_flatten_singleton, GroupedPairs1, GroupedPairs2),
   dict_pairs(D, Tag, GroupedPairs2).
+
+
+
+%! del_dict_or_default(+Key, +Dict1, +Default, -Value, -Dict2) is det.
+%
+% Either delete the Value for Key from Dict1 resulting in Dict2, or
+% return the Default value and leave the dictionary intact.
+
+del_dict_or_default(Key, Dict1, _, Val, Dict2) :-
+  dict_has_key(Key, Dict1), !,
+  del_dict(Key, Dict1, Val, Dict2).
+del_dict_or_default(_, Dict, Def, Def, Dict).
 
 
 
@@ -340,21 +351,5 @@ merge_dicts(D1, D2, D3):-
   (Tag1 = Tag2 -> true ; Tag3 = Tag2),
   dict_pairs(D3, Tag3, Ps3).
 
-
 key_in_keys0(Keys, Key-_) :-
   memberchk(Key, Keys).
-
-
-
-%! mod_dict(+Key, +D1, -Val, -D2) is det.
-
-mod_dict(Key, D1, Val, D2) :-
-  dict_has_key(Key, D1),
-  del_dict(Key, D1, Val, D2).
-
-
-%! mod_dict(+Key, +D1, +Def, -Val, -D2) is det.
-
-mod_dict(Key, D1, _, Val, D2) :-
-  mod_dict(Key, D1, Val, D2), !.
-mod_dict(_, D, Def, Def, D).

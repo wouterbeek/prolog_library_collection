@@ -1,24 +1,3 @@
-:- module(
-  html_tmp,
-  [
-    html_pagination//2, % ?NumPages, +Page
-  ]
-).
-
-/** <module> HTML temporary
-
-HTML generators that are currently unused.
-
-@author Wouter Beek
-@version 2016/09
-*/
-
-:- use_module(library(http/html_write)).
-
-
-
-
-
 %! dropbox_plugin(+Key)// is det.
 
 dropbox_plugin(Key) -->
@@ -107,9 +86,9 @@ var watchDoc = function(el) {
 
 
 
-%! pagination(?NumPages, +Page)// is det.
+%! html_pagination(?NumPages, +Page)// is det.
 
-pagination(NumPages, Page) -->
+html_pagination(NumPages, Page) -->
   {var(NumPages)}, !,
   html(
     nav(
@@ -120,19 +99,19 @@ pagination(NumPages, Page) -->
       ])
     )
   ).
-pagination(NumPages, _Page) -->
+html_pagination(NumPages, _Page) -->
   html(
     nav(
       ul(class=pagination, [
-        \previous_page,
-        \pages(NumPages, 3),
-        \next_page
+        \html_previous_page,
+        \html_pages(NumPages, 3),
+        \html_next_page
       ])
     )
   ).
 
 
-previous_page -->
+html_previous_page -->
   html(
     li(
       a(['aria-label'='Previous',href='#'],
@@ -142,26 +121,26 @@ previous_page -->
   ).
 
 
-pages(NumPages, Width) -->
+html_pages(NumPages, Width) -->
   {NumPages > Width * 2 + 1}, !,
   {NumPages0 is NumPages - Width},
   html([
-    \pages0(0, Width),
+    \html_pages0(0, Width),
     li(a(href='', "…")),
-    \pages0(NumPages0, NumPages)
+    \html_pages0(NumPages0, NumPages)
   ]).
-pages(NumPages, _) -->
-  pages0(0, NumPages).
+html_pages(NumPages, _) -->
+  html_pages0(0, NumPages).
 
 
-pages0(NumPages, NumPages) --> !, [].
-pages0(N1, NumPages) -->
+html_pages0(NumPages, NumPages) --> !, [].
+html_pages0(N1, NumPages) -->
   {N2 is N1 + 1},
   html(li(a(href='#', N1))),
-  pages0(N2, NumPages).
+  html_pages0(N2, NumPages).
 
 
-next_page -->
+html_next_page -->
   html(
     li(
       a(['aria-label'='Next',href='#'],

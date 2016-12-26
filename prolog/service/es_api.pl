@@ -15,8 +15,8 @@
     es_nodes_cat/0,
     es_rm/1,          % +PathComps
     es_rm/2,          % +PathComps, -Dict
-    es_search/2,      % +PathComps, -Pagination
-    es_search/4,      % +PathComps, +Search, +PageOpts, -Pagination
+    es_search/2,      % +PathComps, -Result
+    es_search/4,      % +PathComps, +Search, +PageOpts, -Result
     es_setting/3,     % +Index, +Key, ?Val
     es_stat/1,        % -Dict
     es_stat/2,        % +PathComps, -Dict
@@ -92,7 +92,7 @@ _{
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
 :- use_module(library(os/io)).
-:- use_module(library(pagination)).
+:- use_module(library(pagination/pagination), []).
 :- use_module(library(print_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(settings)).
@@ -251,15 +251,17 @@ es_rm(PathComps, Dict) :-
 
 
 
-%! es_search(+PathComps, -Pagination) is nondet.
-%! es_search(+PathComps, +Search, +PageOpts, -Pagination) is nondet.
+%! es_search(+PathComps, -Result) is nondet.
+%! es_search(+PathComps, +Search, +PageOpts, -Result) is nondet.
+%
+% Result uses pagination.
 
-es_search(PathComps, Pagination) :-
-  es_search(PathComps, _VAR, _{}, Pagination).
+es_search(PathComps, Result) :-
+  es_search(PathComps, _VAR, _{}, Result).
 
 
-es_search(PathComps1, Search, PageOpts1, Pagination2) :-
-  pagination_init_options(PageOpts1, FirstPage, PageSize, PageOpts2),
+es_search(PathComps1, Search, PageOpts1, Result2) :-
+  pagination:pagination_init_options(PageOpts1, FirstPage, PageSize, PageOpts2),
   % NONDET
   between(FirstPage, inf, Page),
   From is (Page - 1) * PageSize,
@@ -281,14 +283,14 @@ es_search(PathComps1, Search, PageOpts1, Pagination2) :-
   length(Results, NumResults),
   % Remove choicepoints when there are no more results.
   (NumResults =:= 0 -> !, true ; true),
-  Pagination1 = _{
+  Result1 = _{
     number_of_results: NumResults,
     page: Page,
     page_size: PageSize,
     results: Results,
     total_number_of_results: Hits.total
   },
-  merge_dicts(PageOpts2, Pagination1, Pagination2),
+  merge_dicts(PageOpts2, Result1, Result2),
   http_status_must_be(Status, [200]).
 
 

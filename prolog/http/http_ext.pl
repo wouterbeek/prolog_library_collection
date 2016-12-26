@@ -10,8 +10,6 @@
     http_link_to_id/2,        % +HandleId, -Local
     http_location_iri/2,      % +Req, -Location
     http_peer/1,              % -PeerIP
-    http_read_data/1,         % -Data
-    http_read_data/2,         % -Data, +Opts
     http_redirect/2,          % +How, +To
     http_reply_file/1,        % +File
     is_empty_get_request/1    % +Req
@@ -31,7 +29,6 @@ messages.
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_client), [http_read_data/3]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
@@ -116,19 +113,6 @@ http_location_iri(Req, Loc) :-
 http_peer(PeerIP) :-
   http_current_request(Req),
   http_peer(Req, PeerIP).
-
-
-
-%! http_read_data(-Data) is det.
-%! http_read_data(-Data, +Opts) is det.
-
-http_read_data(Data) :-
-  http_read_data(Data, []).
-
-
-http_read_data(Data, Opts) :-
-  http_current_request(Req),
-  http_read_data(Req, Data, Opts).
 
 
 

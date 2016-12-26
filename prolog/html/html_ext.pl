@@ -2,41 +2,41 @@
   html_ext,
   [
     alert//2,                % +Mode:oneof([danger,info,success,warning])
-                             % :Content_0
+                             % :Html_0
     anchor//2,               % +Name, :Header_0
     between//2,              % :Outer_0, :Middle_0
     between//3,              % :Begin_0, :Middle_0, :End_0
-    button//1,               % :Content_0
-    button//2,               % +Attrs, :Content_0
+    button//1,               % :Html_0
+    button//2,               % +Attrs, :Html_0
     card//2,                 % :Left_0, :Right_0
     card//3,                 % +Attrs, :Left_0, :Right_0
     html_caret//0,
     center_logo//1,          % +Spec
     code_link//1,            % +Iri
-    collapse_content//2,     % +Id, :Content_0
+    collapse_content//2,     % +Id, :Html_0
     collapse_link//2,        % +Id, :Link_0
     copy_to_clipboard//1,    % +Txt
     data_link//1,            % +Iri
-    data_link//2,            % +Iri, :Content_0
-    data_link//3,            % +Iri, +Attrs, :Content_0
+    data_link//2,            % +Iri, :Html_0
+    data_link//3,            % +Iri, +Attrs, :Html_0
     date//1,                 % +DT
     deck//2,                 % :Card_1, +Items
     deck//3,                 % +Attrs, :Card_1, +Items
-    default//3,              % :Writer_1, :DefContent_1, +Arg1
+    default//3,              % :Html_1, :DefHtml_1, +Arg1
     definition_list//1,      % +L
-    definition_list//2,      % :Writer_1, +L
-    definition_list//3,      % +Attrs, :Writer_1, +L
+    definition_list//2,      % :Html_1, +L
+    definition_list//3,      % +Attrs, :Html_1, +L
     developed_with//0,
     dict//1,                 % +Dict
-    dropdown_menu//3,        % :Top_0, :Writer_1, +Items
-    dropdown_menu//4,        % +Attrs, :Top_0, :Writer_1, +Items
+    dropdown_menu//3,        % :Top_0, :Html_1, +Items
+    dropdown_menu//4,        % +Attrs, :Top_0, :Html_1, +Items
     ellipsis//2,             % +Str, +MaxLen
     endpoint_link//1,        % +HandleId
-    endpoint_link//2,        % +HandleId, :Content_0
+    endpoint_link//2,        % +HandleId, :Html_0
     error//1,                % +E
     external_link//1,        % +Iri
-    external_link//2,        % +Iri, :Content_0
-    external_link//3,        % +Iri, +Attrs, :Content_0
+    external_link//2,        % +Iri, :Html_0
+    external_link//3,        % +Iri, +Attrs, :Html_0
     external_link_icon//1,   % +Iri
     favicon//1,              % +Spec
     fb_app_id//0,
@@ -53,54 +53,54 @@
     file_name//1,            % +File
     flag_icon//1,            % +LTag
     footer_panel//3,         % +Spec, :Top, :Bottom
-    footnote_post//2,        % +State, :Content_0
-    footnote_receive//2,     % +N, :Content_0
-    form//2,                 % +Spec, :Content_0
-    form//3,                 % +Spec, +Attrs, :Content_0
+    footnote_post//2,        % +State, :Html_0
+    footnote_receive//2,     % +N, :Html_0
+    form//2,                 % +Spec, :Html_0
+    form//3,                 % +Spec, +Attrs, :Html_0
     form_submit_button//0,
-    form_submit_button//1,   % :Content_0
+    form_submit_button//1,   % :Html_0
     git_version//0,
     google_analytics//0,
     google_font//1,          % +Name
-    grid//4,                 % +GridWidth, +TileWidth, :Writer_1, +Args
+    grid//4,                 % +GridWidth, +TileWidth, :Html_1, +Args
     hamburger//1,            % +Target
-    html_bracketed//1,       % :Content_0
-    html_call//1,            % :Content_0
+    html_bracketed//1,       % :Html_0
+    html_call//1,            % :Html_0
     html_call//2,            % :Html_1, +Arg1
     html_call//3,            % :Html_2, +Arg1, +Arg2
     html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
-    html_catch//1,           % :Content_0
-    html_code//1,            % :Content_0
-    html_dq//1,              % :Content_0
+    html_catch//1,           % :Html_0
+    html_code//1,            % :Html_0
+    html_dq//1,              % :Html_0
     html_float//1,           % +Float
     html_hook//1,            % +Term
     html_hook//2,            % +Opts, +Term
     html_http_error_page/2,  % +Style, +Req
     html_license//2,         % +Uri, +Lbl
-    html_list//3,            % +Ordered:boolean, :Writer_1, +Args
-    html_list//4,            % +Attrs, +Ordered:boolean, :Writer_1, +Args
+    html_list//3,            % +Ordered:boolean, :Html_1, +Args
+    html_list//4,            % +Attrs, +Ordered:boolean, :Html_1, +Args
     html_lstring//1,         % +Name
-    html_maplist//2,         % :Writer_1, +Args1
-    html_maplist//3,         % :Writer_1, +Args1, +Args2
+    html_maplist//2,         % :Html_1, +Args1
+    html_maplist//3,         % :Html_1, +Args1, +Args2
     html_pair//1,            % +Pair
     html_pair//2,            % +Arg1, Arg2
-    html_pair//3,            % :Writer_1, +Arg1, +Arg2
+    html_pair//3,            % :Html_1, +Arg1, +Arg2
     html_quad//4,            % +Arg1, +Arg2, +Arg3, +Arg4
-    html_quad//5,            % :Writer_1, +Arg1, +Arg2, +Arg3, +Arg4
-    html_select//2,          % :ItemGen_1, :Writer_1
-    html_select//3,          % +Attrs, :ItemGen_1, :Writer_1
-    html_seplist//2,         % :Content_0, :Sep_0
-    html_seplist//3,         % :Writer_1, :Sep_0, +Args
+    html_quad//5,            % :Html_1, +Arg1, +Arg2, +Arg3, +Arg4
+    html_select//2,          % :ItemGen_1, :Html_1
+    html_select//3,          % +Attrs, :ItemGen_1, :Html_1
+    html_seplist//2,         % :Html_0, :Sep_0
+    html_seplist//3,         % :Html_1, :Sep_0, +Args
     html_set//1,             % +Args
-    html_set//2,             % :Writer_1, +Args
+    html_set//2,             % :Html_1, +Args
     html_space//0,
-    html_sq//1,              % :Content_0
+    html_sq//1,              % :Html_0
     html_thousands//1,       % +Integer
     html_triple//3,          % +Arg1, +Arg2, +Arg3
-    html_triple//4,          % :Writer_1, +Arg1, +Arg2, +Arg3
+    html_triple//4,          % :Html_1, +Arg1, +Arg2, +Arg3
     html_tuple//1,           % +Arg
-    html_tuple//2,           % :Writer_1, +Args
-    html_to_atom/2,          % :Content_0, -A
+    html_tuple//2,           % :Html_1, +Args
+    html_to_atom/2,          % :Html_0, -A
     human_integer//1,        % +N
     icon//1,                 % +Name
     icon_button//1,          % +Name
@@ -108,10 +108,10 @@
     idle//1,                 % +Time
     if_then//2,              % :If_0, :Then_0
     if_then_else//3,         % :If_0, :Then_0, :Else_0
-    ignore//1,               % :Content_0
+    ignore//1,               % :Html_0
     image//1,                % +Spec
     image//2,                % +Spec, +Attrs
-    image_header//2,         % +Img, :Content_0
+    image_header//2,         % +Img, :Html_0
     input_boolean//1,        % +Name
     input_checkbox//2,       % +Name, +Attrs
     input_file//2,           % +Name, +Attrs
@@ -124,16 +124,16 @@
     input_text//3,           % +Name, +Attrs, +Opts
     insert_raw_body//1,      % +Spec
     internal_link//1,        % +Spec
-    internal_link//2,        % +Spec, :Content_0
-    internal_link//3,        % +Spec, +Attrs, :Content_0
+    internal_link//2,        % +Spec, :Html_0
+    internal_link//3,        % +Spec, +Attrs, :Html_0
     ip//1,                   % +Ip
     language_menu//1,        % +LTags
     link//1,                 % +Pair
     link//2,                 % +Attrs, +Pair
-    link_button//2,          % +Iri, :Content_0
+    link_button//2,          % +Iri, :Html_0
     linkedin_share//0,
     list//1,                 % +Args
-    list//2,                 % :Writer_1, +Args
+    list//2,                 % :Html_1, +Args
     mail_icon//1,            % +Uri
     mail_link_and_icon//1,   % +Uri
     menu//0,
@@ -148,29 +148,26 @@
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
     navbar_brand_img//2,     % +Local, +Alt
-    navbar_dropdown_menu//4, % +Name, +Lbl, :Writer_1, +L
-    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Writer_1, +L
-    nonvar//1,               % :Content_0
-    nonvar//2,               % :Writer_1, +Arg1
-    nowrap//1,               % :Content_0
+    navbar_dropdown_menu//4, % +Name, +Lbl, :Html_1, +L
+    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
+    nonvar//1,               % :Html_0
+    nonvar//2,               % :Html_1, +Arg1
+    nowrap//1,               % :Html_0
     number//2,               % +Format, +N
-    once//1,                 % :Content_0
+    once//1,                 % :Html_0
     ordered_list//1,         % +Items
-    ordered_list//2,         % :Writer_1, +Items
-    ordered_list//3,         % +Attrs, :Writer_1, +Items
-    pagination_links//1,     % +Result
-    pagination_result//2,    % +Result, :Writer_1
-    pagination_result_nonempty//2, % +Result, :Writer_1
+    ordered_list//2,         % :Html_1, +Items
+    ordered_list//3,         % +Attrs, :Html_1, +Items
     panel//3,                % +In, :Header_0, :Body_0
     panel//4,                % +Open:boolean, +In, :Header_0, :Body_0
     panels//1,               % :Panels_0
     pipe//0,
     pl_link//0,
     pl_version//0,
-    ref//2,                  % +Label, :Content_0
+    ref//2,                  % +Label, :Html_0
     reply_raw_file/1,        % +Spec
     reset_button//0,
-    reset_button//1,         % :Content_0
+    reset_button//1,         % :Html_0
     row_1//1,                % :ContentA_0
     row_1//2,                % +WidthsA, :ContentA_0
     row_1//3,                % +Attrs, +WidthsA, :ContentA_0
@@ -196,26 +193,26 @@
                              % :ContentD_0
     search_box//1,           % +Action
     search_box//2,           % +Attrs, +Action
-    search_result//2,        % +Result, :Writer_1
-    streamer//1,             % :Content_0
+    search_result//2,        % +Result, :Html_1
+    streamer//1,             % :Html_0
     submit_button//0,
-    submit_button//1,        % :Content_0
-    table//1,                % :BodyContent_0
-    table//2,                % :HeaderContent_0, :BodyContent_0
-    table//3,                % :CaptionContent_0, :HeaderContent_0, :BodyContent_0
-    table_caption//1,        % :Content_0
+    submit_button//1,        % :Html_0
+    table//1,                % :BodyHtml_0
+    table//2,                % :HeaderHtml_0, :BodyHtml_0
+    table//3,                % :CaptionHtml_0, :HeaderHtml_0, :BodyHtml_0
+    table_caption//1,        % :Html_0
     table_content//2,        % :Cell_1, +Rows
     table_data_row//1,       % +Row
-    table_data_row//2,       % :CellWriter_1, +Row
+    table_data_row//2,       % :CellHtml_1, +Row
     table_header_row//1,     % +Row
-    table_header_row//2,     % :CellWriter_1, +Row
+    table_header_row//2,     % :CellHtml_1, +Row
     table_tree//1,           % +Tree
-    table_tree//2,           % :CellWriter_1, +Tree
+    table_tree//2,           % :CellHtml_1, +Tree
     table_trees//1,          % +Trees
-    table_trees//2,          % :CellWriter_1, +Trees
+    table_trees//2,          % :CellHtml_1, +Trees
     term//1,                 % @Term
     title//1,                % +Strs
-    tooltip//2,              % +Str, :Content_0
+    tooltip//2,              % +Str, :Html_0
     truncate//2,             % +Str, +Max
     twitter_follow_img//0,
     twitter_follow_img//1,   % +User
@@ -230,8 +227,8 @@
     twitter_tweet//1,        % +Iri
     unless//2,               % :Unless_0, :Then_0
     unordered_list//1,       % +Items
-    unordered_list//2,       % :Writer_1, +Items
-    unordered_list//3,       % +Attrs, :Writer_1, +Items
+    unordered_list//2,       % :Html_1, +Items
+    unordered_list//3,       % +Attrs, :Html_1, +Items
     upload_form//1,          % +Spec
     user_menu//2,            % :UserName_2, :UserImg_2
     vote_down//1,            % +Vote:integer
@@ -274,7 +271,6 @@ html({|html||...|}).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(q/q_term)). %HACK
@@ -496,8 +492,6 @@ html({|html||...|}).
     list(3, +, ?, ?),
     nonvar(3, +, ?, ?),
     once(3, ?, ?),
-    pagination_result(+, 3, ?, ?),
-    pagination_result_nonempty(+, 3, ?, ?),
     search_result(+, 3, ?, ?),
     table_content(3, +, ?, ?),
     table_data_cell(3, +, ?, ?),
@@ -594,11 +588,11 @@ html:html_hook(Str) -->
 
 
 
-%! alert(+Mode:oneof([danger,info,success,warning]), :Content_0)// is det.
+%! alert(+Mode:oneof([danger,info,success,warning]), :Html_0)// is det.
 
-alert(Mode, Content_0) -->
+alert(Mode, Html_0) -->
   {atomic_list_concat([alert,Mode], -, C)},
-  html(div([class=[alert,C],role=alert], Content_0)).
+  html(div([class=[alert,C],role=alert], Html_0)).
 
 
 
@@ -623,17 +617,17 @@ between(Begin_0, Middle_0, End_0) -->
 
 
 
-%! button(:Content_0)// is det.
-%! button(+Attrs, :Content_0)// is det.
+%! button(:Html_0)// is det.
+%! button(+Attrs, :Html_0)// is det.
 
 
-button(Content_0) -->
-  button([], Content_0).
+button(Html_0) -->
+  button([], Html_0).
 
 
-button(Attrs1, Content_0) -->
+button(Attrs1, Html_0) -->
   {merge_attrs([class=[btn,'btn-default'],type=button], Attrs1, Attrs2)},
-  html(button(Attrs2, Content_0)).
+  html(button(Attrs2, Html_0)).
 
 
 
@@ -695,12 +689,12 @@ new Clipboard('.btn');
 
 
 
-%! collapse_content(+Id, :Content_0)// is det.
+%! collapse_content(+Id, :Html_0)// is det.
 
-collapse_content(Id, Content_0) -->
+collapse_content(Id, Html_0) -->
   html(
     div([class=collapse,id=Id],
-      div(class=[card,'card-block'], Content_0)
+      div(class=[card,'card-block'], Html_0)
     )
   ).
 
@@ -735,23 +729,23 @@ copy_to_clipboard(Txt) -->
 
 
 %! data_link(+Iri)// is det.
-%! data_link(+Iri, :Content_0)// is det.
-%! data_link(+Iri, +Attrs, :Content_0)// is det.
+%! data_link(+Iri, :Html_0)// is det.
+%! data_link(+Iri, +Attrs, :Html_0)// is det.
 
 data_link(Iri) -->
   data_link(Iri, \icon(internal_link)).
 
 
-data_link(Iri, Content_0) -->
-  data_link(Iri, [], Content_0).
+data_link(Iri, Html_0) -->
+  data_link(Iri, [], Html_0).
 
 
-data_link(Iri, Attrs1, Content_0) -->
+data_link(Iri, Attrs1, Html_0) -->
   {
     iri_to_location(Iri, Loc),
     merge_attrs([href=Loc], Attrs1, Attrs2)
   },
-  html(a(Attrs2, Content_0)).
+  html(a(Attrs2, Html_0)).
 
 
 
@@ -776,19 +770,19 @@ deck(Attrs1, Card_1, L) -->
 
 
 
-%! default(:Writer_1, :DefContent_1, +Arg1)// is det.
+%! default(:Html_1, :DefHtml_1, +Arg1)// is det.
 
-default(Writer_1, DefContent_1, Arg1) -->
-  (   {var_goal(Writer_1)}
-  ->  html_call(DefContent_1, Arg1)
-  ;   html_call(Writer_1, Arg1)
+default(Html_1, DefHtml_1, Arg1) -->
+  (   {var_goal(Html_1)}
+  ->  html_call(DefHtml_1, Arg1)
+  ;   html_call(Html_1, Arg1)
   ).
 
 
 
 %! definition_list(+L)// is det.
-%! definition_list(:Writer_1, +L)// is det.
-%! definition_list(+Attrs, :Writer_1, +L)// is det.
+%! definition_list(:Html_1, +L)// is det.
+%! definition_list(+Attrs, :Html_1, +L)// is det.
 %
 % Generates an HTML definition list.  Definition terms are of the form
 % def(Definiens,Definiendum).
@@ -797,25 +791,25 @@ definition_list(L) -->
   definition_list(html, L).
 
 
-definition_list(Writer_1, L) -->
-  definition_list([], Writer_1, L).
+definition_list(Html_1, L) -->
+  definition_list([], Html_1, L).
 
 
-definition_list(Attrs, Writer_1, L) -->
+definition_list(Attrs, Html_1, L) -->
   html(
     dl(Attrs,
-      \html_maplist(definition_list_item(Writer_1), L)
+      \html_maplist(definition_list_item(Html_1), L)
     )
   ).
 
 
-definition_list_item(Writer_1, L) -->
+definition_list_item(Html_1, L) -->
   {is_list(L)}, !,
-  definition_list(Writer_1, L).
-definition_list_item(Writer_1, def(Definiens,Definiendum)) -->
+  definition_list(Html_1, L).
+definition_list_item(Html_1, def(Definiens,Definiendum)) -->
   html([
-    dt(\html_call(Writer_1, Definiens)),
-    dd(\html_call(Writer_1, Definiendum))
+    dt(\html_call(Html_1, Definiens)),
+    dd(\html_call(Html_1, Definiendum))
   ]).
 
 
@@ -845,14 +839,14 @@ dict(Dict) -->
 
 
 
-%! dropdown_menu(:Top_0, :Writer_1, +Items)// is det.
-%! dropdown_menu(+Attrs, :Top_0, :Writer_1, +Items)// is det.
+%! dropdown_menu(:Top_0, :Html_1, +Items)// is det.
+%! dropdown_menu(+Attrs, :Top_0, :Html_1, +Items)// is det.
 
-dropdown_menu(Top_0, Writer_1, L) -->
-  dropdown_menu([], Top_0, Writer_1, L).
+dropdown_menu(Top_0, Html_1, L) -->
+  dropdown_menu([], Top_0, Html_1, L).
 
 
-dropdown_menu(Attrs1, Top_0, Writer_1, L) -->
+dropdown_menu(Attrs1, Top_0, Html_1, L) -->
   {merge_attrs(Attrs1, [class=dropdown], Attrs2)},
   html(
     li(Attrs2, [
@@ -866,7 +860,7 @@ dropdown_menu(Attrs1, Top_0, Writer_1, L) -->
         Top_0,
         \html_caret
       ]),
-      \unordered_list([class='dropdown-menu'], Writer_1, L)
+      \unordered_list([class='dropdown-menu'], Html_1, L)
     ])
   ).
 
@@ -881,16 +875,16 @@ ellipsis(Str, MaxLen) -->
 
 
 %! endpoint_link(+HandleId)// is det.
-%! endpoint_link(+HandleId, :Content_0)// is det.
+%! endpoint_link(+HandleId, :Html_0)// is det.
 
 endpoint_link(HandleId) -->
   {http_link_to_id(HandleId, Iri)},
   internal_link(Iri, code(Iri)).
 
 
-endpoint_link(HandleId, Content_0) -->
+endpoint_link(HandleId, Html_0) -->
   {http_link_to_id(HandleId, Iri)},
-  internal_link(Iri, Content_0).
+  internal_link(Iri, Html_0).
 
 
 
@@ -1121,8 +1115,8 @@ error_stream(Stream) -->
 
 
 %! external_link(+Iri)// is det.
-%! external_link(+Iri, :Content_0)// is det.
-%! external_link(+Iri, +Attrs, :Content_0)// is det.
+%! external_link(+Iri, :Html_0)// is det.
+%! external_link(+Iri, +Attrs, :Html_0)// is det.
 %
 % Generates an HTML link to an external resource.
 %
@@ -1133,13 +1127,13 @@ external_link(Iri) -->
   external_link(Iri, Iri).
 
 
-external_link(Iri, Content_0) -->
-  external_link(Iri, [], Content_0).
+external_link(Iri, Html_0) -->
+  external_link(Iri, [], Html_0).
 
 
-external_link(Iri, Attrs1, Content_0) -->
+external_link(Iri, Attrs1, Html_0) -->
   {merge_attrs(Attrs1, [href=Iri,target='_blank'], Attrs2)},
-  html(a(Attrs2, Content_0)).
+  html(a(Attrs2, Html_0)).
 
 
 
@@ -1183,17 +1177,17 @@ fb_comments(Iri) -->
 
 
 
-%! fb_follow0(:Content_0)// is det.
-%! fb_follow0(+User, :Content_0)// is det.
+%! fb_follow0(:Html_0)// is det.
+%! fb_follow0(+User, :Html_0)// is det.
 
-fb_follow0(Content_0) -->
+fb_follow0(Html_0) -->
   {setting(html:fb_profile, User)},
-  fb_follow0(User, Content_0).
+  fb_follow0(User, Html_0).
 
 
-fb_follow0(User, Content_0) -->
+fb_follow0(User, Html_0) -->
   {fb_user_iri(User, Iri)},
-  html(a(href=Iri, Content_0)).
+  html(a(href=Iri, Html_0)).
 
 
 
@@ -1341,9 +1335,9 @@ footer_panel(Spec, Top_0, Bottom_0) -->
 
 
 
-%! footnote_post(+State, :Content_0)// is det.
+%! footnote_post(+State, :Html_0)// is det.
 
-footnote_post(State, Content_0) -->
+footnote_post(State, Html_0) -->
   {
     dict_inc(footnote, State, N),
     format(atom(Ref), "ref~d", [N]),
@@ -1351,48 +1345,48 @@ footnote_post(State, Content_0) -->
   },
   html([
     sup(id=Ref, a(href=Note, ["[",N,"]"])),
-    \html_post(footnote, \footnote_receive(N, Content_0))
+    \html_post(footnote, \footnote_receive(N, Html_0))
   ]).
 
 
 
-%! footnote_receive(+N, :Content_0)// is det.
+%! footnote_receive(+N, :Html_0)// is det.
 
-footnote_receive(N, Content_0) -->
+footnote_receive(N, Html_0) -->
   {
     format(atom(Ref), "#ref~d", [N]),
     format(atom(Note), "node~d", [N])
   },
-  html(li(id=Note, [a(href=Ref, "^"), " ", Content_0])).
+  html(li(id=Note, [a(href=Ref, "^"), " ", Html_0])).
 
 
 
-%! form(+Spec, :Content_0)// is det.
-%! form(+Spec, +Attrs, :Content_0)// is det.
+%! form(+Spec, :Html_0)// is det.
+%! form(+Spec, +Attrs, :Html_0)// is det.
 
-form(Spec, Content_0) -->
-  form(Spec, [], Content_0).
+form(Spec, Html_0) -->
+  form(Spec, [], Html_0).
 
 
-form(Spec, Attrs1, Content_0) -->
+form(Spec, Attrs1, Html_0) -->
   {
     spec_iri(Spec, Iri),
     merge_attrs([method=get], Attrs1, Attrs2),
     merge_attrs(Attrs2, [action=Iri], Attrs3)
   },
-  html(form(Attrs3, Content_0)).
+  html(form(Attrs3, Html_0)).
 
 
 
 %! form_submit_button// is det.
-%! form_submit_button(:Content_0)// is det.
+%! form_submit_button(:Html_0)// is det.
 
 form_submit_button -->
   form_submit_button("Submit").
 
 
-form_submit_button(Content_0) -->
-  form_button0([type=submit], Content_0).
+form_submit_button(Html_0) -->
+  form_button0([type=submit], Html_0).
 
 
 
@@ -1439,16 +1433,16 @@ google_font(Name) -->
 
 
 
-%! grid(+GridWidth, +TileWidth, :Writer_1, +Args)// is det.
+%! grid(+GridWidth, +TileWidth, :Html_1, +Args)// is det.
 %
 % Generates an HTML grid whose tiles implement widgets.  Widgets are
 % represented by Prolog compound terms.  Widgets are defined outside
 % of this module.
 
-grid(GridWidth, TileWidth, Writer_1, L) -->
+grid(GridWidth, TileWidth, Html_1, L) -->
   {format(atom(Style), 'margin-top: 10px; max-width: ~dpx;', [GridWidth])},
   html([
-    div([id=grid,style=Style], \html_maplist(tile(Writer_1), L)),
+    div([id=grid,style=Style], \html_maplist(tile(Html_1), L)),
     \html_requires(grid),
     \js_script({|javascript(TileWidth)||
 $('#grid').pinto({gapY: 10, itemWidth: TileWidth});
@@ -1456,10 +1450,10 @@ $('#grid').pinto({gapY: 10, itemWidth: TileWidth});
   ]).
 
 
-%! tile(:Writer_1, +Arg)// is det.
+%! tile(:Html_1, +Arg)// is det.
 
-tile(Writer_1, X) -->
-  html(div(\html_call(Writer_1, X))).
+tile(Html_1, X) -->
+  html(div(\html_call(Html_1, X))).
 
 
 
@@ -1504,20 +1498,20 @@ how(_, How) -->
 
 
 
-%! html_bracketed(:Content_0)// is det.
+%! html_bracketed(:Html_0)// is det.
 
-html_bracketed(Content_0) -->
-  html(["(",Content_0,")"]).
+html_bracketed(Html_0) -->
+  html(["(",Html_0,")"]).
 
 
 
-%! html_call(:Content_0)// is det.
+%! html_call(:Html_0)// is det.
 %! html_call(:Html_1, +Arg1)// is det.
 %! html_call(:Html_4, +Arg1, +Arg2)// is det.
 %! html_call(:Html_5, +Arg1, +Arg2, +Arg3)// is det.
 
-html_call(Content_0, X, Y) :-
-  call(Content_0, X, Y).
+html_call(Html_0, X, Y) :-
+  call(Html_0, X, Y).
 
 
 html_call(Html_1, Arg1, X, Y) :-
@@ -1548,31 +1542,31 @@ html_caret -->
 
 
 
-%! html_catch(:Content_0)// is det.
+%! html_catch(:Html_0)// is det.
 %
-% Either generates Content_0 or an HTML representation of an exception
-% thrown by Content_0.
+% Either generates Html_0 or an HTML representation of an exception
+% thrown by Html_0.
 
-html_catch(Content_0, X, Y) :-
+html_catch(Html_0, X, Y) :-
   catch(
-    call(Content_0, X, Y),
+    call(Html_0, X, Y),
     E,
     call(error(exception(E)), X, Y)
   ).
 
 
 
-%! html_code(:Content_0)// is det.
+%! html_code(:Html_0)// is det.
 
-html_code(Content_0) -->
-  html(code(Content_0)).
+html_code(Html_0) -->
+  html(code(Html_0)).
 
 
 
-%! html_dq(:Content_0)// is det.
+%! html_dq(:Html_0)// is det.
 
-html_dq(Content_0) -->
-  html(["“",Content_0,"”"]).
+html_dq(Html_0) -->
+  html(["“",Html_0,"”"]).
 
 
 
@@ -1620,22 +1614,22 @@ html_license(Uri, Lbl) -->
 
 
 
-%! html_list(+Ordered:boolean, :Writer_1, +Args)// is det.
-%! html_list(+Attrs, +Ordered:boolean, :Writer_1, +Args)// is det.
+%! html_list(+Ordered:boolean, :Html_1, +Args)// is det.
+%! html_list(+Attrs, +Ordered:boolean, :Html_1, +Args)// is det.
 
-html_list(Ordered, Writer_1, L) -->
-  html_list([], Ordered, Writer_1, L).
+html_list(Ordered, Html_1, L) -->
+  html_list([], Ordered, Html_1, L).
 
-html_list(Attrs, false, Writer_1, L) --> !,
-  html(ul(Attrs, \html_maplist(html_list_item(false, Writer_1), L))).
-html_list(Attrs, true, Writer_1, L) -->
-  html(ol(Attrs, \html_maplist(html_list_item(true, Writer_1), L))).
+html_list(Attrs, false, Html_1, L) --> !,
+  html(ul(Attrs, \html_maplist(html_list_item(false, Html_1), L))).
+html_list(Attrs, true, Html_1, L) -->
+  html(ol(Attrs, \html_maplist(html_list_item(true, Html_1), L))).
 
-html_list_item(Ordered, Writer_1, L) -->
+html_list_item(Ordered, Html_1, L) -->
   {is_list(L)}, !,
-  html(li(\html_list(Ordered, Writer_1, L))).
-html_list_item(_, Writer_1, X) --> !,
-  html(li(\html_call(Writer_1, X))).
+  html(li(\html_list(Ordered, Html_1, L))).
+html_list_item(_, Html_1, X) --> !,
+  html(li(\html_call(Html_1, X))).
 
 
 
@@ -1647,13 +1641,13 @@ html_lstring(Name) -->
 
 
 
-%! html_maplist(:Writer_1, +Args1) .
-%! html_maplist(:Writer_1, +Args1, +Args2)// is det.
+%! html_maplist(:Html_1, +Args1) .
+%! html_maplist(:Html_1, +Args1, +Args2)// is det.
 
 html_maplist(_, []) --> !, [].
-html_maplist(Writer_1, [H|T]) -->
-  html_call(Writer_1, H),
-  html_maplist(Writer_1, T).
+html_maplist(Html_1, [H|T]) -->
+  html_call(Html_1, H),
+  html_maplist(Html_1, T).
 
 
 html_maplist(_, [], []) --> [].
@@ -1665,7 +1659,7 @@ html_maplist(Goal_4, [H1|T1], [H2|T2]) -->
 
 %! html_pair(+Pair)// is det.
 %! html_pair(+Arg1, +Arg2)// is det.
-%! html_pair(:Writer_1, +Arg1, +Arg2)// is det.
+%! html_pair(:Html_1, +Arg1, +Arg2)// is det.
 %
 % Generates an HTML representation for a pair.
 
@@ -1677,13 +1671,13 @@ html_pair(Arg1, Arg2) -->
   tuple([Arg1,Arg2]).
 
 
-html_pair(Writer_1, Arg1, Arg2) -->
-  tuple(Writer_1, [Arg1,Arg2]).
+html_pair(Html_1, Arg1, Arg2) -->
+  tuple(Html_1, [Arg1,Arg2]).
 
 
 
 %! html_quad(+Arg1, +Arg2, +Arg3, +Arg4)// is det.
-%! html_quad(:Writer_1, +Arg1, +Arg2, +Arg3, +Arg4)// is det.
+%! html_quad(:Html_1, +Arg1, +Arg2, +Arg3, +Arg4)// is det.
 %
 % Generates an HTML representation for a triple.
 
@@ -1691,58 +1685,58 @@ html_quad(Arg1, Arg2, Arg3, Arg4) -->
   html_tuple([Arg1,Arg2,Arg3,Arg4]).
 
 
-html_quad(Writer_1, Arg1, Arg2, Arg3, Arg4) -->
-  html_tuple(Writer_1, [Arg1,Arg2,Arg3,Arg4]).
+html_quad(Html_1, Arg1, Arg2, Arg3, Arg4) -->
+  html_tuple(Html_1, [Arg1,Arg2,Arg3,Arg4]).
 
 
 
-%! html_select(:ItemGen_1, :Writer_1)// is det.
-%! html_select(+Attrs, :ItemGen_1, :Writer_1)// is det.
+%! html_select(:ItemGen_1, :Html_1)// is det.
+%! html_select(+Attrs, :ItemGen_1, :Html_1)// is det.
 
-html_select(ItemGen_1, Writer_1) -->
-  html_select([], ItemGen_1, Writer_1).
+html_select(ItemGen_1, Html_1) -->
+  html_select([], ItemGen_1, Html_1).
 
 
-html_select(Attrs1, ItemGen_1, Writer_1) -->
+html_select(Attrs1, ItemGen_1, Html_1) -->
   {
     merge_attrs(Attrs1, [class='form-control'], Attrs2),
     findall(Item, call(ItemGen_1, Item), Items)
   },
-  html(select(Attrs2, \html_maplist(Writer_1, Items))).
+  html(select(Attrs2, \html_maplist(Html_1, Items))).
 
 
 
-%! html_seplist(:Content_0, :Sep_0)// is det.
-%! html_seplist(:Writer_1, :Sep_0, +L)// is det.
+%! html_seplist(:Html_0, :Sep_0)// is det.
+%! html_seplist(:Html_1, :Sep_0, +L)// is det.
 
-html_seplist(Content_0, Sep_0) -->
-  Content_0,
+html_seplist(Html_0, Sep_0) -->
+  Html_0,
   Sep_0,
-  html_seplist(Content_0, Sep_0).
-html_seplist(Content_0, _) --> !,
-  Content_0.
+  html_seplist(Html_0, Sep_0).
+html_seplist(Html_0, _) --> !,
+  Html_0.
 html_seplist(_, _) --> !, [].
 
 
 html_seplist(_, _, []) --> !, [].
-html_seplist(Writer_1, _, [H]) --> !,
-  html_call(Writer_1, H).
-html_seplist(Writer_1, Sep_0, [H1,H2|T]) -->
-  html_call(Writer_1, H1),
+html_seplist(Html_1, _, [H]) --> !,
+  html_call(Html_1, H).
+html_seplist(Html_1, Sep_0, [H1,H2|T]) -->
+  html_call(Html_1, H1),
   Sep_0,
-  html_seplist(Writer_1, Sep_0, [H2|T]).
+  html_seplist(Html_1, Sep_0, [H2|T]).
 
 
 
 %! html_set(+Args)// is det.
-%! html_set(:Writer_1, +Args)// is det.
+%! html_set(:Html_1, +Args)// is det.
 
 html_set(Args) -->
   html_set(html_hook, Args).
 
 
-html_set(Writer_1, Args) -->
-  html([&(123),\html_seplist(Writer_1, html(","), Args),&(125)]).
+html_set(Html_1, Args) -->
+  html([&(123),\html_seplist(Html_1, html(","), Args),&(125)]).
 
 
 
@@ -1753,17 +1747,17 @@ html_space -->
 
 
 
-%! html_sq(:Content_0)// is det.
+%! html_sq(:Html_0)// is det.
 
-html_sq(Content_0) -->
-  html(["‘",Content_0,"’"]).
+html_sq(Html_0) -->
+  html(["‘",Html_0,"’"]).
 
 
 
-%! html_to_atom(:Content_0, -A) is det.
+%! html_to_atom(:Html_0, -A) is det.
 
-html_to_atom(Content_0, A) :-
-  phrase(html(Content_0), Tokens),
+html_to_atom(Html_0, A) :-
+  phrase(html(Html_0), Tokens),
   with_output_to(atom(A), print_html(Tokens)).
 
 
@@ -1778,7 +1772,7 @@ html_thousands(Integer) -->
 
 
 %! html_triple(+Arg1, +Arg2, +Arg3)// is det.
-%! html_triple(:Writer_1, +Arg1, +Arg2, +Arg3)// is det.
+%! html_triple(:Html_1, +Arg1, +Arg2, +Arg3)// is det.
 %
 % Generates an HTML representation for a triple.
 
@@ -1786,13 +1780,13 @@ html_triple(Arg1, Arg2, Arg3) -->
   html_tuple([Arg1,Arg2,Arg3]).
 
 
-html_triple(Writer_1, Arg1, Arg2, Arg3) -->
-  html_tuple(Writer_1, [Arg1,Arg2,Arg3]).
+html_triple(Html_1, Arg1, Arg2, Arg3) -->
+  html_tuple(Html_1, [Arg1,Arg2,Arg3]).
 
 
 
 %! html_tuple(+Args)// is det.
-%! html_tuple(:Writer_1, +Args)// is det.
+%! html_tuple(:Html_1, +Args)// is det.
 %
 % Generates an HTML representation for a tuple.
 
@@ -1800,8 +1794,8 @@ html_tuple(Args) -->
   html_tuple(html, Args).
 
 
-html_tuple(Writer_1, Args) -->
-  html([&(lang),\html_seplist(Writer_1, html(","), Args),&(rang)]).
+html_tuple(Html_1, Args) -->
+  html([&(lang),\html_seplist(Html_1, html(","), Args),&(rang)]).
 
 
 
@@ -1897,10 +1891,10 @@ if_then_else(If_0, Then_0, Else_0) -->
 
 
 
-%! ignore(:Content_0)// is det.
+%! ignore(:Html_0)// is det.
 
-ignore(Content_0) -->
-  html_call(Content_0), !.
+ignore(Html_0) -->
+  html_call(Html_0), !.
 ignore(_) --> [].
 
 
@@ -1921,9 +1915,9 @@ image(Spec, Attrs1) -->
 
 
 
-%! image_header(+Iri, :Content_0)// is det.
+%! image_header(+Iri, :Html_0)// is det.
 
-image_header(Iri, Content_0) -->
+image_header(Iri, Html_0) -->
   {
     format(atom(Img0), 'url("~a")', [Iri]),
     atomic_list_concat(
@@ -1943,7 +1937,7 @@ image_header(Iri, Content_0) -->
       BackgroundImg
     )
   },
-  html(header(style=BackgroundImg, Content_0)).
+  html(header(style=BackgroundImg, Html_0)).
 
 
 
@@ -2046,24 +2040,24 @@ insert_raw_body(Spec) -->
 
 
 %! internal_link(+Spec)// is det.
-%! internal_link(+Spec, :Content_0)// is det.
-%! internal_link(+Spec, +Attrs, :Content_0)// is det.
+%! internal_link(+Spec, :Html_0)// is det.
+%! internal_link(+Spec, +Attrs, :Html_0)// is det.
 
 internal_link(Spec) -->
   internal_link(Spec, _).
 
 
-internal_link(Spec, Content_0) -->
-  internal_link(Spec, [], Content_0).
+internal_link(Spec, Html_0) -->
+  internal_link(Spec, [], Html_0).
 
 
 internal_link(Spec, Attrs1, Content0_0) -->
   {
     spec_iri(Spec, Iri),
     merge_attrs(Attrs1, [href=Iri], Attrs2),
-    (var_goal(Content0_0) -> Content_0 = Iri ; Content_0 = Content0_0)
+    (var_goal(Content0_0) -> Html_0 = Iri ; Html_0 = Content0_0)
   },
-  html(a(Attrs2, Content_0)).
+  html(a(Attrs2, Html_0)).
 
 
 
@@ -2122,12 +2116,12 @@ link(Attrs1, Rel-Spec) -->
 
 
 
-%! link_button(+Iri, :Content_0)// is det.
+%! link_button(+Iri, :Html_0)// is det.
 %
 % Generate an HTML link that looks like a button.
 
-link_button(Iri, Content_0) -->
-  html(a([class=[btn,'btn-default'],href=Iri], Content_0)).
+link_button(Iri, Html_0) -->
+  html(a([class=[btn,'btn-default'],href=Iri], Html_0)).
 
 
 
@@ -2144,14 +2138,14 @@ linkedin_share -->
 
 
 %! list(+Args)// is det.
-%! list(:Writer_1, +Args)// is det.
+%! list(:Html_1, +Args)// is det.
 
 list(Args) -->
   list(html_hook, Args).
 
 
-list(Writer_1, Args) -->
-  html([&(91),\html_seplist(Writer_1, Args),&(93)]).
+list(Html_1, Args) -->
+  html([&(91),\html_seplist(Html_1, Args),&(93)]).
 
 
 
@@ -2318,8 +2312,8 @@ navbar(Brand_0, Menu_0, Right_0) -->
   ]).
 
 
-navbar_menu(Content_0) -->
-  html(ul(class=[nav,'navbar-nav'], Content_0)).
+navbar_menu(Html_0) -->
+  html(ul(class=[nav,'navbar-nav'], Html_0)).
 
 
 navbar_resize -->
@@ -2345,23 +2339,23 @@ navbar_brand_img(Spec, Attrs1) -->
 
 
 
-%! navbar_dropdown_menu(+Name, +Lbl, :Writer_1, +Items)// is det.
-%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :Writer_1, +Items)// is det.
+%! navbar_dropdown_menu(+Name, +Lbl, :Html_1, +Items)// is det.
+%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :Html_1, +Items)// is det.
 %
 % @tbd What does `role(search)` do?
 
-navbar_dropdown_menu(Name, Lbl, Writer_1, L) -->
-  navbar_dropdown_menu([], Name, Lbl, Writer_1, L).
+navbar_dropdown_menu(Name, Lbl, Html_1, L) -->
+  navbar_dropdown_menu([], Name, Lbl, Html_1, L).
 
 
-navbar_dropdown_menu(Attrs1, Name, Lbl, Writer_1, L) -->
+navbar_dropdown_menu(Attrs1, Name, Lbl, Html_1, L) -->
   {merge_attrs(Attrs1, [class=['navbar-form'],id=Name,role=search], Attrs2)},
   html(
     form(Attrs2,
       div(class='form-group', [
         label(for=Name, [Lbl,": "]),
         select([class=['form-control',selectpicker],id=Name],
-          \html_maplist(Writer_1, L)
+          \html_maplist(Html_1, L)
         )
       ])
     )
@@ -2369,22 +2363,22 @@ navbar_dropdown_menu(Attrs1, Name, Lbl, Writer_1, L) -->
 
 
 
-%! nonvar(:Content_0)// is det.
-%! nonvar(:Writer_1, +Arg1)// is det.
+%! nonvar(:Html_0)// is det.
+%! nonvar(:Html_1, +Arg1)// is det.
 
-nonvar(Content_0) -->
-  ({var_goal(Content_0)} -> [] ; html_call(Content_0)).
-
-
-nonvar(Writer_1, Arg1) -->
-  ({var_goal(Writer_1)} -> [] ; html_call(Writer_1, Arg1)).
+nonvar(Html_0) -->
+  ({var_goal(Html_0)} -> [] ; html_call(Html_0)).
 
 
+nonvar(Html_1, Arg1) -->
+  ({var_goal(Html_1)} -> [] ; html_call(Html_1, Arg1)).
 
-%! nowrap(:Content_0)// is det.
 
-nowrap(Content_0) -->
-  html(span(style='white-space: nowrap;', Content_0)).
+
+%! nowrap(:Html_0)// is det.
+
+nowrap(Html_0) -->
+  html(span(style='white-space: nowrap;', Html_0)).
 
 
 
@@ -2398,10 +2392,10 @@ number(Fmt, N) -->
 
 
 
-%! once(:Writer_1)// is det.
+%! once(:Html_1)// is det.
 
-once(Writer_1, X, Y) :-
-  once(html_call(Writer_1, X, Y)).
+once(Html_1, X, Y) :-
+  once(html_call(Html_1, X, Y)).
 
 
 
@@ -2416,8 +2410,8 @@ operator(Mod, op(Pred,Type,Name)) -->
 
 
 %! ordered_list(+Items)// is det.
-%! ordered_list(:Writer_1, +Items)// is det.
-%! ordered_list(+Attrs, :Writer_1, +Items)// is det.
+%! ordered_list(:Html_1, +Items)// is det.
+%! ordered_list(+Attrs, :Html_1, +Items)// is det.
 %
 % Generates an ordered HTML list.
 
@@ -2425,111 +2419,23 @@ ordered_list(L) -->
   ordered_list(html, L).
 
 
-ordered_list(Writer_1, L) -->
-  ordered_list([], Writer_1, L).
+ordered_list(Html_1, L) -->
+  ordered_list([], Html_1, L).
 
 
-ordered_list(Attrs, Writer_1, L) -->
-  html_list(Attrs, true, Writer_1, L).
-
-
-
-%! pagination_links(+Result)// is det.
-
-pagination_links(Result) -->
-  {pagination:pagination_iris(Result, Pairs)},
-  html_maplist(link, Pairs).
+ordered_list(Attrs, Html_1, L) -->
+  html_list(Attrs, true, Html_1, L).
 
 
 
-%! pagination_pager(+Result)// is det.
+%! panel(+Id, :Header_0, :Html_0)// is det.
+%! panel(+Open:boolean, +Id, :Header_0, :Html_0)// is det.
 
-pagination_pager(Result) -->
-  html(
-    nav(
-      ul(class=pager, [
-        \pagination_pager_prev(Result),
-        " ",
-        \pagination_range(Result),
-        " ",
-        \pagination_pager_next(Result)
-      ])
-    )
-  ).
+panel(Id, Header_0, Html_0) -->
+  panel(false, Id, Header_0, Html_0).
 
 
-
-%! pagination_pager_prev(+Result)// is det.
-
-pagination_pager_prev(Result) -->
-  {
-    (   pagination_iri(Result, prev, Prev)
-    ->  AAttrs = [href=Prev],
-        LiAttrs = []
-    ;   AAttrs = [],
-        LiAttrs = [class=disabled]
-    )
-  },
-  html(li(LiAttrs, a(AAttrs, "Previous"))).
-
-
-
-%! pagination_pager_next(+Result)// is det.
-
-pagination_pager_next(Result) -->
-  {
-    (   pagination_iri(Result, next, Next)
-    ->  AAttrs = [href=Next],
-        LiAttrs = []
-    ;   AAttrs = [],
-        LiAttrs = [class=disabled]
-    )
-  },
-  html(li(LiAttrs, a(AAttrs, "Next"))).
-
-
-
-%! pagination_range(+Result)// is det.
-
-pagination_range(Result) -->
-  {pagination_range(Result, Low-High)},
-  html([\html_thousands(Low)," ⎯⎯⎯ ",\html_thousands(High)]).
-
-
-
-%! pagination_result(+Result, :Html_1)// is det.
-%
-% Opts are required because it contains the `iri` based on which the
-% backward/forward request IRIs are build.
-%
-% Result contains the following keys: ‘number_of_results’,
-% ‘page’, ‘page_size’.
-%
-% Opts contains the following keys: ‘iri’, ‘query’.
-
-pagination_result(Result, Html_1) -->
-  html_call(Html_1, Result.results),
-  pagination_pager(Result).
-
-
-
-%! pagination_result_nonempty(+Result, :Content_1)// is det.
-
-pagination_result_nonempty(Result, _) -->
-  {pagination_is_empty(Result)}, !, [].
-pagination_result_nonempty(Result, Content_1) -->
-  pagination_result(Result, Content_1).
-
-
-
-%! panel(+Id, :Header_0, :Content_0)// is det.
-%! panel(+Open:boolean, +Id, :Header_0, :Content_0)// is det.
-
-panel(Id, Header_0, Content_0) -->
-  panel(false, Id, Header_0, Content_0).
-
-
-panel(Open, Id, Header_0, Content_0) -->
+panel(Open, Id, Header_0, Html_0) -->
   {
     panel_mode(Open, OpenClasses),
     atomic_list_concat([collapse,Id], -, CollapseId),
@@ -2548,7 +2454,7 @@ panel(Open, Id, Header_0, Content_0) -->
         )
       ),
       div([class=[collapse,'panel-collapse'|OpenClasses],id=CollapseId],
-        div(class='panel-body', Content_0)
+        div(class='panel-body', Html_0)
       )
     ])
   ).
@@ -2598,11 +2504,11 @@ pl_version -->
 
 
 
-%! ref(+Label, :Content_0)// is det.
+%! ref(+Label, :Html_0)// is det.
 
-ref(Label, Content_0) -->
+ref(Label, Html_0) -->
   {atom_concat('#', Label, Link)},
-  html(a(href=Link, Content_0)).
+  html(a(href=Link, Html_0)).
 
 
 
@@ -2619,14 +2525,14 @@ reply_raw_file(Spec) :-
 
 
 %! reset_button// is det.
-%! reset_button(:Content_0)// is det.
+%! reset_button(:Html_0)// is det.
 
 reset_button -->
   reset_button("Reset").
 
 
-reset_button(Content_0) -->
-  form_button0([type=reset], Content_0).
+reset_button(Html_0) -->
+  form_button0([type=reset], Html_0).
 
 
 
@@ -2793,12 +2699,12 @@ search_box(Attrs1, Spec) -->
 
 
 
-%! search_result(+Result, :Writer_1)// is det.
+%! search_result(+Result, :Html_1)// is det.
 %
 % Result must be a regular pagination resul plus the ‘pattern’ key
 % containing the original search term.
 
-search_result(Result, Writer_1) -->
+search_result(Result, Html_1) -->
   html([
     h1([
       \search_result_number(Result),
@@ -2806,40 +2712,40 @@ search_result(Result, Writer_1) -->
       \html_sq(Result.pattern),
       ":"
     ]),
-    \pagination_result(Result, Writer_1)
+    \html_pagination_result(Result, Html_1)
   ]).
 
 
 search_result_number(Result) -->
   {get_dict(total_number_of_results, Result, TotalNumResults)}, !,
-  html([\html_thousands(TotalNumResults)," s"]).
+  html("~:D s"-[TotalNumResults]).
 search_result_number(_) -->
   html("S").
 
 
 
-%! streamer(:Content_0)// is det.
+%! streamer(:Html_0)// is det.
 
-streamer(Content_0) -->
-  html(div(class=streamer, Content_0)).
+streamer(Html_0) -->
+  html(div(class=streamer, Html_0)).
 
 
 
 %! submit_button// is det.
-%! submit_button(:Content_0)// is det.
+%! submit_button(:Html_0)// is det.
 
 submit_button -->
   submit_button("Submit").
 
 
-submit_button(Content_0) -->
-  button([type=submit], Content_0).
+submit_button(Html_0) -->
+  button([type=submit], Html_0).
 
 
 
-%! table(:BodyContent_0)// is det.
+%! table(:BodyHtml_0)// is det.
 %! table(:Header_0, :Body_0)// is det.
-%! table(:CaptionContent_0, :HeaerRow_0, :BodyContent_0)// is det.
+%! table(:CaptionHtml_0, :HeaerRow_0, :BodyHtml_0)// is det.
 
 table(Body_0) -->
   table(_, Body_0).
@@ -2860,123 +2766,123 @@ table(Caption_0, Header_0, Body_0) -->
 
 
 
-%! table_caption(:Content_0)// is det.
+%! table_caption(:Html_0)// is det.
 
-table_caption(Content_0) -->
-  {var_goal(Content_0)}, !, [].
-table_caption(Content_0) -->
-  html(Content_0).
+table_caption(Html_0) -->
+  {var_goal(Html_0)}, !, [].
+table_caption(Html_0) -->
+  html(Html_0).
 
 
 
 %! table_data_cell(+Term)// is det.
-%! table_data_cell(:CellWriter_1, +Term)// is det.
+%! table_data_cell(:CellHtml_1, +Term)// is det.
 
 table_data_cell(Term) -->
   table_data_cell(html_hook, Term).
 
 
-table_data_cell(CellWriter_1, Term) -->
-  html(td(\html_call(CellWriter_1, Term))).
+table_data_cell(CellHtml_1, Term) -->
+  html(td(\html_call(CellHtml_1, Term))).
 
 
 
 %! table_data_row(+Row)// is det.
-%! table_data_row(:CellWriter_1, +Row)// is det.
+%! table_data_row(:CellHtml_1, +Row)// is det.
 
 table_data_row(Row) -->
   table_data_row(html_hook, Row).
 
 
-table_data_row(CellWriter_1, Row) -->
-  html(tr(\html_maplist(table_data_cell(CellWriter_1), Row))).
+table_data_row(CellHtml_1, Row) -->
+  html(tr(\html_maplist(table_data_cell(CellHtml_1), Row))).
 
 
 
-%! table_header(:HeaderContent_0)// is det.
+%! table_header(:HeaderHtml_0)// is det.
 
-table_header(HeaderContent_0) -->
-  {var_goal(HeaderContent_0)}, !, [].
-table_header(HeaderContent_0) -->
-  html(thead(HeaderContent_0)).
+table_header(HeaderHtml_0) -->
+  {var_goal(HeaderHtml_0)}, !, [].
+table_header(HeaderHtml_0) -->
+  html(thead(HeaderHtml_0)).
 
 
 
-%! table_header_cell(:CellWriter_1, +Term)// is det.
+%! table_header_cell(:CellHtml_1, +Term)// is det.
 
-table_header_cell(CellWriter_1, Term) -->
-  html(th(\html_call(CellWriter_1, Term))).
+table_header_cell(CellHtml_1, Term) -->
+  html(th(\html_call(CellHtml_1, Term))).
 
 
 
 %! table_header_row(+Row)// is det.
-%! table_header_row(:CellWriter_1, +Row)// is det.
+%! table_header_row(:CellHtml_1, +Row)// is det.
 
 table_header_row(Row) -->
   table_header_row(html_hook, Row).
 
 
-table_header_row(CellWriter_1, Row) -->
-  html(tr(\html_maplist(table_header_cell(CellWriter_1), Row))).
+table_header_row(CellHtml_1, Row) -->
+  html(tr(\html_maplist(table_header_cell(CellHtml_1), Row))).
 
 
 
 %! table_tree(+Tree)// is det.
-%! table_tree(:CellWriter_1, +Tree)// is det.
+%! table_tree(:CellHtml_1, +Tree)// is det.
 
 table_tree(Tree) -->
   table_tree(html_hook, Tree).
 
 
-table_tree(CellWriter_1, Tree) -->
-  table_tree(false, CellWriter_1, Tree).
+table_tree(CellHtml_1, Tree) -->
+  table_tree(false, CellHtml_1, Tree).
 
 
-table_tree(false, CellWriter_1, t(Node,SubTrees)) --> !,
+table_tree(false, CellHtml_1, t(Node,SubTrees)) --> !,
   html(
     tr([
-      \table_tree_cell(true, CellWriter_1, Node, SubTrees),
-      \table_trees(true, CellWriter_1, SubTrees)
+      \table_tree_cell(true, CellHtml_1, Node, SubTrees),
+      \table_trees(true, CellHtml_1, SubTrees)
     ])
   ).
-table_tree(true, CellWriter_1, t(Node,SubTrees)) --> !,
-  table_tree_cell(true, CellWriter_1, Node, SubTrees),
-  table_trees(true, CellWriter_1, SubTrees).
-table_tree(_, CellWriter_1, H) -->
-  html(td(\html_call(CellWriter_1, H))).
+table_tree(true, CellHtml_1, t(Node,SubTrees)) --> !,
+  table_tree_cell(true, CellHtml_1, Node, SubTrees),
+  table_trees(true, CellHtml_1, SubTrees).
+table_tree(_, CellHtml_1, H) -->
+  html(td(\html_call(CellHtml_1, H))).
 
 
 
-table_tree_cell(InRow, CellWriter_1, L, _) -->
+table_tree_cell(InRow, CellHtml_1, L, _) -->
   {is_list(L)}, !,
-  table_trees(InRow, CellWriter_1, L).
-table_tree_cell(_, CellWriter_1, Node, L) -->
+  table_trees(InRow, CellHtml_1, L).
+table_tree_cell(_, CellHtml_1, Node, L) -->
   {length(L, N)},
-  html(td(rowspan(N), \html_call(CellWriter_1, Node))).
+  html(td(rowspan(N), \html_call(CellHtml_1, Node))).
 
 
 
 %! table_trees(+Trees)// is det.
-%! table_trees(:CellWriter_1, +Trees)// is det.
+%! table_trees(:CellHtml_1, +Trees)// is det.
 
 table_trees(Trees) -->
   table_trees(html, Trees).
 
 
-table_trees(CellWriter_1, Trees) -->
-  table_trees(false, CellWriter_1, Trees).
+table_trees(CellHtml_1, Trees) -->
+  table_trees(false, CellHtml_1, Trees).
 
 
-table_trees(InRow, CellWriter_1, [t(Node,[H|T])|Trees]) --> !,
-  table_tree(InRow, CellWriter_1, t(Node,[H|T])),
-  table_trees(false, CellWriter_1, Trees).
-table_trees(InRow, CellWriter_1, [H|T]) -->
+table_trees(InRow, CellHtml_1, [t(Node,[H|T])|Trees]) --> !,
+  table_tree(InRow, CellHtml_1, t(Node,[H|T])),
+  table_trees(false, CellHtml_1, Trees).
+table_trees(InRow, CellHtml_1, [H|T]) -->
   {is_list(H)}, !,
-  html(td(\html_set(CellWriter_1, H))),
-  table_trees(InRow, CellWriter_1, T).
-table_trees(InRow, CellWriter_1, [H|T]) --> !,
-  table_tree(InRow, CellWriter_1, H),
-  table_trees(InRow, CellWriter_1, T).
+  html(td(\html_set(CellHtml_1, H))),
+  table_trees(InRow, CellHtml_1, T).
+table_trees(InRow, CellHtml_1, [H|T]) --> !,
+  table_tree(InRow, CellHtml_1, H),
+  table_trees(InRow, CellHtml_1, T).
 table_trees(_, _, []) --> !, [].
 
 
@@ -3044,10 +2950,10 @@ title(Strs) -->
 
 
 
-%! tooltip(+Str, :Content_0)// is det.
+%! tooltip(+Str, :Html_0)// is det.
 
-tooltip(Str, Content_0) -->
-  html(span(['data-toggle'=tooltip,title=Str], Content_0)).
+tooltip(Str, Html_0) -->
+  html(span(['data-toggle'=tooltip,title=Str], Html_0)).
 
 
 
@@ -3059,17 +2965,17 @@ truncate(Str, MaxLen) -->
 
 
 
-%! twitter_follow0(:Content_0)// is det.
-%! twitter_follow0(+User, :Content_0)// is det.
+%! twitter_follow0(:Html_0)// is det.
+%! twitter_follow0(+User, :Html_0)// is det.
 
-twitter_follow0(Content_0) -->
+twitter_follow0(Html_0) -->
   {setting(html:twitter_profile, User)},
-  twitter_follow0(User, Content_0).
+  twitter_follow0(User, Html_0).
 
 
-twitter_follow0(User, Content_0) -->
+twitter_follow0(User, Html_0) -->
   {twitter_user_iri(User, Iri)},
-  html(a(href=Iri, html_call(Content_0))).
+  html(a(href=Iri, html_call(Html_0))).
 
 
 
@@ -3207,8 +3113,8 @@ unless(Unless_0, Then_0) -->
 
 
 %! unordered_list(+Items)// is det.
-%! unordered_list(:Writer_1, +Items)// is det.
-%! unordered_list(+Attrs, :Writer_1, +Items)// is det.
+%! unordered_list(:Html_1, +Items)// is det.
+%! unordered_list(+Attrs, :Html_1, +Items)// is det.
 %
 % Generates an unordered HTML list.
 
@@ -3216,12 +3122,12 @@ unordered_list(L) -->
   unordered_list(html, L).
 
 
-unordered_list(Writer_1, L) -->
-  unordered_list([], Writer_1, L).
+unordered_list(Html_1, L) -->
+  unordered_list([], Html_1, L).
 
 
-unordered_list(Attrs, Writer_1, L) -->
-  html_list(Attrs, false, Writer_1, L).
+unordered_list(Attrs, Html_1, L) -->
+  html_list(Attrs, false, Html_1, L).
 
 
 
@@ -3353,14 +3259,14 @@ fb_user_iri(User, Iri) :-
 
 
 
-%! form_button0(+Attrs, :Content_0)// is det.
-%! form_button0(+Attrs, :Content_0, +Opts)// is det.
+%! form_button0(+Attrs, :Html_0)// is det.
+%! form_button0(+Attrs, :Html_0, +Opts)// is det.
 
-form_button0(Attrs, Content_0) -->
-  form_button0(Attrs, Content_0, []).
+form_button0(Attrs, Html_0) -->
+  form_button0(Attrs, Html_0, []).
 
 
-form_button0(Attrs, Content_0, Opts) -->
+form_button0(Attrs, Html_0, Opts) -->
   {
     option(widths_a(WidthsA), Opts, 4),
     option(widths_b(WidthsB), Opts, 8),
@@ -3371,7 +3277,7 @@ form_button0(Attrs, Content_0, Opts) -->
   html(
     div(class='form-group',
       div(class=Classes,
-        \button(Attrs, Content_0)
+        \button(Attrs, Html_0)
       )
     )
   ).

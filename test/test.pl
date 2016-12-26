@@ -144,7 +144,10 @@
   :- use_module(library(os/thread_counter)).
   :- use_module(library(os/thread_ext)).
   :- use_module(library(os/tts)).
-:- use_module(library(pagination)).
+:- use_module(library(pagination/pagination)).
+:- use_module(library(pagination/cli_pagination)).
+:- use_module(library(pagination/html_pagination)).
+:- use_module(library(pagination/http_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(pool)).
