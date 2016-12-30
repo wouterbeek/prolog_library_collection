@@ -10,7 +10,7 @@
 /** <module> Content Security Policy Level 2
 
 @author Wouter Beek
-@compat Content Secirity Policy Level 2 W3C Candicate Recommendation
+@compat Content Security Policy Level 2 W3C Candicate Recommendation
 @see http://www.w3.org/TR/CSP2/
 @version 2015/11-2015/12
 */

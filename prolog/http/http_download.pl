@@ -120,8 +120,11 @@ xml_download(Source, Dom, Opts) :-
 % HELPERS %
 
 %! clean_dom(+Dom1, -Dom2) is det.
+%
 % Clean the given DOM tree in the following two ways:
+%
 %   1. Strip all blanks from the beginning and end of all strings.
+%
 %   2. Remove all strings that are empty under (1) from the DOM tree.
 
 clean_dom([H1|T1], L2) :-
