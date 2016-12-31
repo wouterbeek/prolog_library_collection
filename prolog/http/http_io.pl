@@ -235,10 +235,10 @@ http_open_any(Iri, In, InPath, Opts) :-
   option(method(Method), Opts, get),
   debug_call(Flags, http_open1(Iri, Method, State, In, InPath, Opts)).
 
-http_open1(Iri, Method, State, In2, InPath, Opts0) :-
-  copy_term(Opts0, Opts1),
+http_open1(Iri, Method, State, In2, InPath, Opts) :-
+  copy_term(Opts, OldOpts),
   setting(user_agent, UA),
-  Opts2 = [
+  NewOpts = [
     authenticate(false),
     cert_verify_hook(cert_accept_any),
     header(location,Location),
@@ -249,12 +249,12 @@ http_open1(Iri, Method, State, In2, InPath, Opts0) :-
     user_agent(UA),
     version(Major-Minor)
   ],
-  merge_options(Opts1, Opts2, Opts3),
-  option(timeout(Time), Opts0, inf),
+  merge_options(NewOpts, OldOpts, HttpOpts),
+  option(timeout(Time), Opts, inf),
   call_timeout(
     Time,
     call_statistics(
-      catch(http_open(Iri, In1, Opts3), E, true),
+      catch(http_open(Iri, In1, HttpOpts), E, true),
       walltime,
       TS
     )
@@ -263,7 +263,7 @@ http_open1(Iri, Method, State, In2, InPath, Opts0) :-
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
-      (   option(verbose(all), Opts1)
+      (   option(verbose(all), Opts)
       ->  http_msg(user_output, Iri, Method, Status, Lines)
       ;   true
       ),
@@ -274,7 +274,7 @@ http_open1(Iri, Method, State, In2, InPath, Opts0) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts0),
+      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts),
       reverse([H|T], InPath)
   ;   InPath = [],
       throw(E)
