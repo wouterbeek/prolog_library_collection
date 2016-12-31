@@ -584,7 +584,8 @@ open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
           expand_file_name(Spec, [ExpandedSpec|_])
       ;   ExpandedSpec = Spec
       ),
-      open_any(ExpandedSpec, Mode, Stream1, _, Opts),
+      merge_options([type(binary)], Opts, OpenOpts),
+      open_any(ExpandedSpec, Mode, Stream1, _, OpenOpts),
       (   ExpandedSpec == Stream1
       ->  Close_0 = true,
           Entry1 = _{stream: Stream1}
