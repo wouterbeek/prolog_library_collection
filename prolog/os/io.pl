@@ -161,19 +161,13 @@ call_on_stream0(In1, Goal_3, [InEntry|InPath1], InPath2, SourceOpts) :-
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
+    archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
     (
-      archive_open(
-        stream(In),
-        Arch,
-        [close_parent(false),filter(all)|Formats]
-      ),
-      indent_debug(in, io, "R» ~w → ~w", [In,Arch])
+      indent_debug(in, io, "R» ~w → ~w", [In,Arch]),
       call_on_archive0(Arch, Goal_3, InPath1, InPath2, SourceOpts),
+      indent_debug(out, io, "«R ~w", [Arch])
     ),
-    ( % @tbd THIS SEEMS TO BE SKIPPED/NOT PRINTED SOMETIMES!
-      indent_debug(out, io, "«R ~w", [Arch]),
-      archive_close(Arch)
-    )
+    archive_close(Arch)
   ).
 
 
@@ -182,12 +176,8 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, EntryName)
-  ->  findall(
-        Property,
-        archive_header_property(Arch, Property),
-        Properties
-      ),
-      dict_create(InEntry1, [filters(Filters),name(EntryName)|Properties]),
+  ->  findall(Prop, archive_header_property(Arch, Prop), Props),
+      dict_create(InEntry1, [filters(Filters),name(EntryName)|Props]),
       % If the entry name is `data` then proceed.  If the entry name
       % is uninstantiated then proceed.  If entry name is instantiated
       % and does not occur in the current archive header then fail
@@ -209,13 +199,11 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
           % branch.
           var(EntryNameMatch)
       ),
-      (   memberchk(filetype(file), Properties)
+      (   memberchk(filetype(file), Props)
       ->  setup_call_cleanup(
+            archive_open_entry(Arch, In),
             (
-              archive_open_entry(Arch, In),
-              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,EntryName,In])
-            ),
-            (
+              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,EntryName,In]),
               call_on_stream0(
                 In,
                 Goal_3,
@@ -228,9 +216,11 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
             ),
             close_any2(close(In))
           )
-      ;   fail
+      ;   % Skip over non-file entries.
+          fail
       )
-  ;   !,
+  ;   % There are no more entries in this archive.
+      !,
       fail
   ).
 
@@ -383,15 +373,13 @@ call_to_compressed_stream(
   Format = gzip,
   put_dict(compression, OutEntry1, Format, OutEntry2),
   setup_call_cleanup(
+    zopen(Out1, Out2, [close_parent(false),format(Format)]),
     (
-      zopen(Out1, Out2, [close_parent(false),format(Format)]),
-      indent_debug(in, io, "ZW» ~w → ~a → ~w", [Out1,Format,Out2])
+      indent_debug(in, io, "ZW» ~w → ~a → ~w", [Out1,Format,Out2]),
+      call(Goal_1, Out2),
+      indent_debug(out, io, "«ZW ~w", [Out2])
     ),
-    call(Goal_1, Out2),
-    (
-      indent_debug(out, io, "«ZW ~w", [Out2]),
-      close(Out2)
-    )
+    close(Out2)
   ).
 call_to_compressed_stream(Out, Goal_1, OutPath, OutPath, _) :-
   call(Goal_1, Out).
