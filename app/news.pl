@@ -82,7 +82,7 @@ scrape0 :-
 
 
 scrape(Group) :-
-%  thread_create(scrape0(Group), _, [detached(true)]).
+  %thread_create(scrape0(Group), _, [detached(true)]).
 
 %scrape0(Group) :-
   forall(
@@ -91,9 +91,10 @@ scrape(Group) :-
       post_dict(Group, Post, Dict),
       print_dict(Dict),
       assert_post(Dict),
-      sleep(10)
+      sleep(1)
     )
-  ).
+  ),
+  format(user_output, "DONE!~n", []).
 
 
 
@@ -125,23 +126,27 @@ post_dict(Group, Post, Dict) :-
 
 %! post_dom_dict(+Group:uri, +Post:uri, +Post:dom, -Post:dict) is det.
 
-post_dom_dict(Group, Post, Dom, Dict4) :-
-  xpath_chk(Dom, //h1(normalize_space), Subject),
-  xpath_chk(Dom, //map(2)//li(2)/a(1,@href), RelPrev),
-  uri_resolve(RelPrev, Post, Prev),
+post_dom_dict(Group, Post, Dom, Dict5) :-
+  % body
+  xpath_chk(Dom, //pre(@id=body,content), Body),
+  % from
   xpath_chk(Dom, //span(@id=from,content), FromNameDom),
   FromNameDom = [_,FromName0|_],
   atom_concat(FromName, ' <', FromName0),
   xpath_chk(Dom, //span(@id=from)/a(normalize_space), FromEmail),
+  % from_date
   xpath_chk(Dom, //span(@id=date,content), FromDateDom),
   FromDateDom = [_,FromDate0|_],
   once(atom_phrase(nonstandard_date(FromDate), FromDate0)),
+  % id
+  xpath_chk(Dom, //span(@id='message-id',content), IdDom),
+  IdDom = [_,Id|_],
+  % subject
+  xpath_chk(Dom, //h1(normalize_space), Subject),
+  % to_date
   xpath_chk(Dom, //span(@id=received,content), ToDateDom),
   ToDateDom = [_,ToDate0|_],
   once(atom_phrase(nonstandard_date(ToDate), ToDate0)),
-  xpath_chk(Dom, //span(@id='message-id',content), IdDom),
-  IdDom = [_,Id|_],
-  xpath_chk(Dom, //pre(@id=body,content), Body),
   Dict1 = _{
     '@id': Post,
     body: Body,
@@ -149,24 +154,32 @@ post_dom_dict(Group, Post, Dom, Dict4) :-
     from_date: FromDate,
     group: Group,
     id: Id,
-    previous: Prev,
     subject: Subject,
     to_date: ToDate
   },
+  % cc
   (   xpath_chk(Dom, //span(@id=cc)/a(normalize_space), CcEmailAuth)
   ->  atomic_list_concat([mailto,CcEmailAuth], :, CcEmail),
       Dict2 = Dict1.put(_{cc: _{email: CcEmail}})
   ;   Dict2 = Dict1
   ),
-  (   xpath_chk(Dom, //span(@id=to)/a(normalize_space), ToEmailAuth)
-  ->  atomic_list_concat([mailto,ToEmailAuth], :, ToEmail),
-      Dict3 = Dict2.put(_{to: _{email: ToEmail}})
-  ;   Dict3 = Dict2
-  ),
+  % in_reply_to
   (   xpath_chk(Dom, //map(2)//li(2)/a(2,@href), RelInReplyTo)
   ->  uri_resolve(RelInReplyTo, Post, InReplyTo),
-      Dict4 = Dict3.put(_{in_reply_to: InReplyTo})
+      Dict3 = Dict2.put(_{in_reply_to: InReplyTo})
+  ;   Dict3 = Dict2
+  ),
+  % previous
+  (   xpath_chk(Dom, //map(2)//li(2)/a(1,@href), RelPrev)
+  ->  uri_resolve(RelPrev, Post, Prev),
+      Dict4 = Dict3.put(_{previous: Prev})
   ;   Dict4 = Dict3
+  ),
+  % to
+  (   xpath_chk(Dom, //span(@id=to)/a(normalize_space), ToEmailAuth)
+  ->  atomic_list_concat([mailto,ToEmailAuth], :, ToEmail),
+      Dict5 = Dict4.put(_{to: _{email: ToEmail}})
+  ;   Dict5 = Dict4
   ).
 
 
@@ -195,7 +208,6 @@ assert_post(Dict) :-
     from_date: FromDate,
     group: Group,
     id: Id,
-    previous: Prev,
     subject: Subject,
     to_date: ToDate
   } :< Dict,
@@ -206,17 +218,24 @@ assert_post(Dict) :-
   rdf_assert(FromEmail, ex:name, FromName^^xsd:string, G),
   rdf_assert(Post, ex:belongsTo, Group, G),
   rdf_assert(Post, ex:id, Id, G),
-  rdf_assert(Post, ex:previous, Prev, G),
   rdf_assert(Post, ex:subject, Subject^^xsd:string, G),
   rdf_assert(Post, ex:toDate, ToDate^^xsd:dateTime, G),
+  % cc
   (   _{cc: _{email: CcEmail}} :< Dict
   ->  rdf_assert(Post, ex:cc, CcEmail, G)
   ;   true
   ),
+  % in_reply_to
   (   _{in_reply_to: InReplyTo} :< Dict
   ->  rdf_assert(Post, ex:inReplyTo, InReplyTo, G)
   ;   true
   ),
+  % previous
+  (   _{previous: Prev} :< Dict
+  ->  rdf_assert(Post, ex:previous, Prev, G)
+  ;   true
+  ),
+  % to
   (   _{to: _{email: ToEmail}} :< Dict
   ->  rdf_assert(Post, ex:to, ToEmail, G)
   ;   true
