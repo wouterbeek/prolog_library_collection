@@ -28,6 +28,8 @@
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
     copy_stream_data/4,      % -Out, +In, +InPath1, -InPath2
+    process_open/3,          % +Cmd, +In, -Out
+    process_open/4,          % +Cmd, +In, +Args, -Out
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
@@ -53,6 +55,7 @@ The following debug flags are used:
 :- use_module(library(http/http_io)).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
+:- use_module(library(process)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
@@ -660,6 +663,28 @@ read_stream_to_atom(In, A) :-
 read_stream_to_string(In, Str) :-
   read_stream_to_codes(In, Cs),
   string_codes(Str, Cs).
+
+
+
+%! process_open(+Cmd, +In, +Out) is det.
+%! process_open(+Cmd, +In, +Args, +Out) is det.
+
+process_open(Cmd, In1, Out) :-
+  process_open(Cmd, In1, [], Out).
+
+
+process_open(Cmd, In1, Args, Out) :-
+  stream_property(In1, type(Type)),
+  process_create(
+    path(Cmd),
+    Args,
+    [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
+  ),
+  set_stream(In2, type(Type)),
+  copy_stream_data(In1, In2),
+  close(In2),
+  read_string(Err, Msg),
+  (Msg == "" -> true ; msg_warning(Msg)).
 
 
 
