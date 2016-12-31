@@ -9,6 +9,7 @@
     'media-type'//1,   % -MT:compound
     method//1,         % -Method:atom
     'OWS'//0,
+    qvalue//1,         % -Val:between(0.0,1.0)
     'rfc850-date'//1   % -DT:compound
   ]
 ).

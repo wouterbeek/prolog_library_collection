@@ -12,10 +12,11 @@
 @version 2016/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg_ext), except([number//1])).
 :- use_module(library(http/http11), [
-     charset//1,     % -Charset:atom
-     'media-type'//1 % -MT:compound
+     charset//1,      % -Charset:atom
+     'media-type'//1, % -MT:compound
+     qvalue//1        % -Val:between(0.0,1.0)
    ]).
 :- use_module(library(http/rfc1945)).
 :- use_module(library(http/rfc2616), [
@@ -23,8 +24,14 @@
      'LWS'//0,
      token//1            % -Token:atom
    ]).
+:- use_module(library(ltag/rfc5646), [
+     'Language-Tag'//1 as 'language-tag' % -LTag:list(atom)
+   ]).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc3986)).
+:- use_module(library(url/rfc1738), [
+     digit//1 as 'DIGIT' % ?Weight:between(0,9)
+   ]).
 
 
 
@@ -40,7 +47,7 @@
 % negotiable resource.  Responses from resources which do not support
 % transparent content negotiation MAY also use Alternates headers.”
 %
-% ```abnf
+% ```bnf
 % Alternates = "Alternates" ":" variant-list
 % ```
 
@@ -51,7 +58,7 @@ alternates(Alternates) -->
 
 %! 'extension-attribute'(-Attr:compound)// is det.
 %
-% ```abnf
+% ```bnf
 % extension-attribute = "{" extension-name extension-value "}"
 % ```
 
@@ -66,7 +73,7 @@ alternates(Alternates) -->
 
 %! 'extension-list-directive'(-Dir:compound)// is det.
 %
-% ```abnf
+% ```bnf
 % extension-list-directive = token [ "=" ( token | quoted-string ) ]
 % ```
 
@@ -82,7 +89,7 @@ alternates(Alternates) -->
 
 %! 'extension-name'(-Name:atom)// is det.
 %
-% ```abnf
+% ```bnf
 % extension-name = token
 % ```
 
@@ -93,7 +100,7 @@ alternates(Alternates) -->
 
 %! 'extension-specials'(-A:atom)// is det.
 %
-% ```abnf
+% ```bnf
 % extension-specials = <any element of tspecials except <"> and "}">
 % ```
 
@@ -109,7 +116,7 @@ tspecials_except0(C) -->
 
 %! 'extension-value'(-L:list(compound))// is det.
 %
-% ```abnf
+% ```bnf
 % extension-value = *( token | quoted-string | LWS | extension-specials )
 % ```
 
@@ -131,7 +138,7 @@ tspecials_except0(C) -->
 
 %! 'fallback-variant'(-Uri:compound)// .
 %
-% ```abnf
+% ```bnf
 % fallback-variant = "{" <"> URI <"> "}"
 % ```
 
@@ -142,25 +149,185 @@ tspecials_except0(C) -->
 
 
 
+%! 'false-degradation'(-N:float)// .
+%
+% ```bnf
+% false-degradation = short-float
+% ```
+
+'false-degradation'(N) -->
+  'short-float'(N).
+
+
+
+%! 'feature-list'(-Pairs)// .
+%
+% ```bnf
+% feature-list = 1%feature-list-element
+% ```
+
+'feature-list'([H|T]) -->
+  'feature-list-element'(H),
+  'feature-list-element*'(T).
+
+'feature-list-element*'([H|T]) -->
+  whites,
+  'feature-list-element'(H), !,
+  'feature-list-element*'(T).
+'feature-list-element*'([]) --> "".
+
+
+
+%! 'feature-list-element'(-Pair)// .
+%
+% ```bnf
+% feature-list-element = ( fpred | fpred-bag )
+%                        [ ";" [ "+" true-improvement  ]
+%                              [ "-" false-degradation ]
+%                        ]
+% ```
+
+'feature-list-element'(N-L) -->
+  (fpred(H) -> {L = [H]} ; 'fpred-bag'(L)),
+  (   ";"
+  ->  ("+" -> 'true-improvement'(N) ; ""),
+      ("-" -> 'false-degradation'(N0), {N is -N0} ; "")
+  ;   ""
+  ).
+
+
+
+%! fpred(-X)// .
+%
+% ```
+% fpred = [ "!" ] ftag
+%       | ftag ( "=" | "!=" ) tag-value
+%       | ftag "=" "[" numeric-range "]"
+% ```
+
+fpred(not(Tag)) -->
+  "!", !,
+  ftag(Tag).
+fpred(Key=Val) -->
+  ftag(Key),
+  "=",
+  'tag-value'(Val).
+fpred(not(Key=Val)) -->
+  ftag(Key),
+  "!=",
+  'tag-value'(Val).
+fpred(Key=Range) -->
+  ftag(Key),
+  "=[",
+  'numeric-range'(Range),
+  "]".
+fpred(Tag) -->
+  ftag(Tag).
+
+
+
+%! 'fpred-bag'(-L)// .
+%
+% ```bnf
+% fpred-bag = "[" 1%fpred "]"
+% ```
+
+'fpred-bag'(L) -->
+  "[",
+  'fpred+'(L),
+  "]".
+
+'fpred+'([H|T]) -->
+  fpred(H),
+  'fpred*'(T).
+
+'fpred*'([H|T]) -->
+  whites,
+  fpred(H), !,
+  'fpred*'(T).
+'fpred*'([]) --> "".
+
+
+
+%! ftag(-Tag)// .
+%
+% ```bnf
+% ftag = token | quoted-string
+% ```
+
+ftag(Tag) --> token(Tag).
+ftag(Tag) --> 'quoted-string'(Tag).
+
+
+
 %! 'list-directive'(-Dir:compound)// is det.
 %
-% ```abnf
+% ```bnf
 % list-directive = ( "proxy-rvsa" "=" <"> 0#rvsa-version <"> )
 %                | extension-list-directive
 % ````
 
 'list-directive'(proxy_rvsa(Version)) -->
   "proxy-rvsa=\"", !,
-  *(rvsa_version, Version),
+  *('rvsa-version', Version),
   "\"".
 'list-directive'(Dir) -->
   'extension-list-directive'(Dir).
 
 
 
+%! major(-Major:nonneg)// is det.
+%
+% ```bnf
+% major = 1*4DIGIT
+% ```
+
+major(Major) -->
+  'm*n'(1, 4, 'DIGIT', Ds),
+  {pos_sum(Ds, Major)}.
+
+
+
+%! minor(-Minor:nonneg)// is det.
+%
+% ```bnf
+% minor = 1*4DIGIT
+% ```
+
+minor(Minor) -->
+  'm*n'(1, 4, 'DIGIT', Ds),
+  {pos_sum(Ds, Minor)}.
+
+
+
+%! number(-N:nonneg)// .
+%
+% ```bnf
+% number = 1*DIGIT
+% ```
+
+number(N) -->
+  +('DIGIT', Ds),
+  {pos_sum(Ds, N)}.
+
+
+
+%! 'numeric-range'(-Range:pair)// .
+%
+% ```
+% numeric-range = [ number ] "-" [ number ]
+% ```
+
+'numeric-range'(N1-N2) -->
+  ?(number, N1),
+  "-",
+  ?(number, N2).
+
+
+
 %! 'rvsa-version'(-Version:pair(nonneg))// .
 %
-% ```abnf
+% ```bnf
 % rvsa-version = major "." minor
 % ```
 
@@ -171,52 +338,26 @@ tspecials_except0(C) -->
 
 
 
-%! major(-Major:nonneg)// is det.
+%! 'short-float'(-N:float)// .
 %
-% ```abnf
-% major = 1*4DIGIT
+% ```
+% short-float = 1*3DIGIT [ "." 0*3DIGIT ]
 % ```
 
-major(Major) -->
-  'm*n'(1, 4, 'DIGIT', Ds),
-  {pos_num(Ds, Major)}.
-
-
-
-%! minor(-Minor:nonneg)// is det.
-%
-% ```abnf
-% minor = 1*4DIGIT
-% ```
-
-minor(Minor) -->
-  'm*n'(1, 4, 'DIGIT', Ds),
-  {pos_num(Ds, Minor)}.
-
-
-
-%! 'variant-description'(-Variant:compount)// is det.
-%
-% ```abnf
-% variant-description = "{" <"> URI <"> source-quality *variant-attribute"}"
-% ```
-%
-% @bug: Should there be a space before the closing curly bracket to
-%       separate it from the preceding production rule?
-
-'variant-description'(variant(Uri,Q,Attrs)) -->
-  "{\"",
-  'URI'(Uri),
-  "\"",
-  'source-quality'(Q),
-  *(variant_attribute, Attrs),
-  "}".
+'short-float'(N2) -->
+  'm*n'(1, 3, 'DIGIT', Ds1),
+  {pos_sum(Ds1, N1)},
+  ("." -> 'm*n'(0, 3, 'DIGIT', Ds2) ; ""),
+  {
+    pos_frac(Ds2, Frac),
+    N2 is N1 + Frac
+  }.
 
 
 
 %! 'source-quality'// .
 %
-% ```abnf
+% ```bnf
 % source-quality = qvalue
 % ```
 
@@ -225,9 +366,31 @@ minor(Minor) -->
 
 
 
+%! 'tag-value'(-Tag:atom)// .
+%
+% ```bnf
+% tag-value = token | quoted-string
+% ```
+
+'tag-value'(Tag) --> token(Tag).
+'tag-value'(Tag) --> 'quoted-string'(Tag).
+
+
+
+%! 'true-improvement'(-N:float)// .
+%
+% ```bnf
+% true-improvement = short-float
+% ```
+
+'true-improvement'(N) -->
+  'short-float'(N).
+
+
+
 %! 'variant-attribute'(-Attr:compound)// .
 %
-% ```abnf
+% ```bnf
 % variant-attribute = "{" "type" media-type "}"
 %                   | "{" "charset" charset "}"
 %                   | "{" "language"  1#language-tag "}"
@@ -265,9 +428,28 @@ minor(Minor) -->
 
 
 
+%! 'variant-description'(-Variant:compount)// is det.
+%
+% ```bnf
+% variant-description = "{" <"> URI <"> source-quality *variant-attribute"}"
+% ```
+%
+% @bug: Should there be a space before the closing curly bracket to
+%       separate it from the preceding production rule?
+
+'variant-description'(variant(Uri,Q,Attrs)) -->
+  "{\"",
+  'URI'(Uri),
+  "\"",
+  'source-quality'(Q),
+  *('variant-attribute', Attrs),
+  "}".
+
+
+
 %! 'variant-list'(-L:list(compound))// is det.
 %
-% ```abnf
+% ```bnf
 % variant-list = 1#( variant-description | fallback-variant | list-directive )
 % ```
 

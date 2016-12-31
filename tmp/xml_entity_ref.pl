@@ -1,7 +1,6 @@
 :- module(
   xml_entity_ref,
   [
-    'PEReference'//1, % ?ParameterEntityReference:atom
     'Reference'//2 % ?Version:oneof(['1.0','1.1'])
                    % ?Reference:atom
   ]
@@ -25,6 +24,7 @@ An **entity reference** refers to the content of a named entity.
 
 
 %! 'EntityRef'(?EntityReference:atom)// .
+%
 % **Entity Reference**.
 %
 % ```bnf
@@ -40,26 +40,6 @@ An **entity reference** refers to the content of a named entity.
 
 'EntityRef'(Name) -->
   "&",
-  'Name'(Name),
-  ";".
-
-
-
-%! 'PEReference'(?ParameterEntityReference:atom)// .
-% **Parameter Entity Refenrece**.
-%
-% ```bnf
-% PEReference ::= '%' Name ';'
-% ```
-%
-% @compat XML 1.0.5 [69].
-% @compat XML 1.1.2 [69].
-% @tbd [VC: Entity Declared]
-% @tbd [WFC: No Recursion]
-% @tbd [WFC: In DTD]
-
-'PEReference'(Name) -->
-  "%",
   'Name'(Name),
   ";".
 

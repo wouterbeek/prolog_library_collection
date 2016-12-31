@@ -231,8 +231,7 @@ pagination_range(Result, Low-High) :-
 % return the Default value and leave the dictionary intact.
 
 del_dict_or_default(Key, Dict1, _, Val, Dict2) :-
-  dict_has_key(Key, Dict1), !,
-  del_dict(Key, Dict1, Val, Dict2).
+  del_dict(Key, Dict1, Val, Dict2), !.
 del_dict_or_default(_, Dict, Def, Def, Dict).
 
 

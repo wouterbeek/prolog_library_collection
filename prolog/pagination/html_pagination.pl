@@ -14,11 +14,10 @@
 @version 2016/12
 */
 
+:- use_module(library(html/html_ext)).
 :- use_module(library(http/html_write)).
 
 :- meta_predicate
-    html_call(2, ?, ?),
-    html_call(3, +, ?, ?),
     html_pagination_result(+, 3, ?, ?),
     html_pagination_result_nonempty(+, 3, ?, ?).
 
@@ -114,28 +113,3 @@ html_pagination_result_nonempty(Result, _) -->
   {pagination_is_empty(Result)}, !, [].
 html_pagination_result_nonempty(Result, Html_1) -->
   html_pagination_result(Result, Html_1).
-
-
-
-
-
-% HELPERS %
-
-%! html_call(:Html_0)// is det.
-%! html_call(:Html_0, +Arg1)// is det.
-
-html_call(Html_0, X, Y) :-
-  call(Html_0, X, Y).
-
-
-html_call(Html_1, Arg1, X, Y) :-
-  call(Html_1, Arg1, X, Y).
-
-
-
-%! html_maplist(:Html_1, +Args1) .
-
-html_maplist(_, []) --> !, [].
-html_maplist(Html_1, [H|T]) -->
-  html_call(Html_1, H),
-  html_maplist(Html_1, T).

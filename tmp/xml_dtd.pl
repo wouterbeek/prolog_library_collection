@@ -1,9 +1,6 @@
 :- module(
   xml_dtd,
   [
-    'DeclSep'//1, % ?Name:atom
-    doctypedecl//2, % ?Version:oneof(['1.0','1.1'])
-                    % ?DoctypeDeclaration:compound
     markupdecl//2 % ?Version:oneof(['1.0','1.1'])
                   % ?Declaration:compound
   ]
@@ -32,65 +29,8 @@
 
 
 
-%! 'DeclSep'(?Name:atom)// .
-% ```bnf
-% DeclSep ::= PEReference | S
-% ```
-%
-% @compat XML 1.0.5 [28a].
-% @compat XML 1.1.2 [28a].
-% @tbd [WFC: PE Between Declarations]
-
-'DeclSep'(ParameterEntityReference) -->
-  'PEReference'(ParameterEntityReference).
-'DeclSep'(_) -->
-  'S'.
-
-
-
-%! doctypedecl(
-%!   ?Version:oneof(['1.0','1.1']),
-%!   ?DoctypeDeclaration:compound
-%! )// .
-% ```bnf
-% doctypedecl ::= '<!DOCTYPE' S Name (S ExternalID)? S?
-%                 ('[' intSubset ']' S?)? '>'
-% ```
-%
-% @compat XML 1.0.5 [28].
-% @compat XML 1.1.2 [28].
-% @tbd [VC: Root Element Type]
-% @tbd [WFC: External Subset]
-
-doctypedecl(Version, doctype_decl(DoctypeName,ExternalId,Declarations)) -->
-  "<!DOCTYPE",
-  'S',
-  'Name'(DoctypeName),
-  ('S', 'ExternalID'(ExternalId) ; ""),
-  ?('S'),
-  ("[", intSubset(Version, Declarations), "]", ?('S') ; {Declarations = []}).
-
-
-
-%! intSubset(?Version:oneof(['1.0','1.1']), ?Declarations:list(compound))// .
-% ```bnf
-% intSubset ::= (markupdecl | DeclSep)*
-% ```
-%
-% @compat XML 1.0.5 [28b].
-% @compat XML 1.1.2 [28b].
-
-intSubset(Version, [H|T]) -->
-  markupdecl(Version, H),
-  intSubset(Version, T).
-intSubset(Version, [H|T]) -->
-  'DeclSep'(H),
-  intSubset(Version, T).
-intSubset(_, []) --> [].
-
-
-
 %! markupdecl(?Version:oneof(['1.0','1.1']), ?Declaration:compound)// .
+%
 % ```bnf
 % markupdecl ::=   elementdecl
 %                | AttlistDecl

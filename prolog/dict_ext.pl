@@ -109,8 +109,7 @@ create_grouped_sorted_dict(Pairs, Tag, D):-
 % return the Default value and leave the dictionary intact.
 
 del_dict_or_default(Key, Dict1, _, Val, Dict2) :-
-  dict_has_key(Key, Dict1), !,
-  del_dict(Key, Dict1, Val, Dict2).
+  del_dict(Key, Dict1, Val, Dict2), !.
 del_dict_or_default(_, Dict, Def, Def, Dict).
 
 
@@ -172,7 +171,7 @@ dict_get(_, _, Def, Def).
 %! dict_has_key(+Key, +D) is semidet.
 
 dict_has_key(Key, D) :-
-  catch(get_dict(Key, D, _), _, fail).
+  get_dict(Key, D, _).
 
 
 

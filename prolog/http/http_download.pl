@@ -15,7 +15,7 @@
 Support for downloading files and datastructures over HTTP(S).
 
 @author Wouter Beek
-@version 2015/07-2015/11, 2016/01, 2016/04
+@version 2015/07-2015/11, 2016/01, 2016/04, 2016/12
 */
 
 :- use_module(library(atom_ext)).
@@ -77,8 +77,8 @@ file_download(Iri, File, Opts) :-
   call_onto_stream(
     Iri,
     TmpFile,
-    [In,Meta,Meta,Out]>>copy_stream_data(In, Out),
-    [metadata(Meta)|Opts],
+    [In,InPath,InPath,Out]>>copy_stream_data(In, Out),
+    [metadata(InPath)|Opts],
     Opts
   ),
   rename_file(TmpFile, File).
@@ -92,11 +92,12 @@ html_download(Source, Dom) :-
   html_download(Source, Dom, []).
 
 
-html_download(Source, Dom, Opts) :-
-  http_get(
-    Source,
-    {DirtyDom,Opts}/[In,Meta,Meta]>>load_html(In, DirtyDom, Opts)
-  ),
+html_download(Source, Dom, Opts1) :-
+  merge_options([max_errors(0)], Opts1, Opts2),
+  http_get(Source, html_download_stream(Dom, Opts2)).
+
+html_download_stream(Dom, Opts, In, InPath, InPath) :-
+  load_structure(In, DirtyDom, Opts),
   clean_dom(DirtyDom, Dom).
 
 
@@ -111,7 +112,7 @@ xml_download(Source, Dom) :-
 
 
 xml_download(Source, Dom, Opts) :-
-  http_get(Source, {Dom,Opts}/[In,Meta,Meta]>>load_xml(In, Dom, Opts)).
+  http_get(Source, {Dom,Opts}/[In,InPath,InPath]>>load_xml(In, Dom, Opts)).
 
 
 

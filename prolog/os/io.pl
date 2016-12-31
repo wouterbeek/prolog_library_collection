@@ -38,6 +38,7 @@ The following debug flags are used:
 @version 2016/07-2016/12
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(hash_stream)).
@@ -48,6 +49,7 @@ The following debug flags are used:
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
+:- use_module(library(xml/xml_parse)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
@@ -148,18 +150,20 @@ call_on_stream0(In, _, InPath, InPath, _) :-
 call_on_stream0(In, _, InPath, InPath, _) :-
   at_end_of_stream(In), !.
 % Data input stream.
-call_on_stream0(In1, Goal_3, [InEntry|InPath1], InPath2, SourceOpts) :-
-  get_dict(format, InEntry, raw),
-  get_dict(name, InEntry, data), !,
-  peek_string(In1, 10000, Chunk),
+call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
+  get_dict(format, InEntry1, raw),
+  get_dict(name, InEntry1, data), !,
+  peek_string(In1, 4000, Chunk),
   guess_string_encoding(Chunk, DefEnc),
   option(from_encoding(Enc), SourceOpts, DefEnc),
-  (   Enc == 'UTF-8'
+  (   memberchk(Enc, ['ASCII','UTF-8'])
   ->  In2 = In1
   ;   atomic_list_concat([Enc,'UTF-8'], .., Arg),
       process_open(recode, In1, [Arg], In2)
   ),
-  call(Goal_3, In2, [InEntry|InPath1], InPath2).
+  % Store the original encoding.
+  InEntry2 = InEntry1.put(_{encoding: Enc}),
+  call(Goal_3, In2, [InEntry2|InPath1], InPath2).
 % Compressed and/or packaged input stream.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
@@ -549,6 +553,8 @@ copy_stream_data(Out, In, InPath, InPath) :-
 
 %! guess_string_encoding(+Str, -Enc) is det.
 
+guess_string_encoding(Str, Enc) :-
+  string_phrase('XMLDecl'(_, Enc, _), Str).
 guess_string_encoding(Str, Enc3) :-
   open_string(Str, In),
   process_open(uchardet, In, Out),
@@ -735,7 +741,7 @@ open_any2_variant(stream(Stream), Mode, Stream, [Entry], false, _) :- !,
   Entry = _{mode: Mode, type: stream}.
 open_any2_variant(string(Str), read, In, [InEntry], true, _) :- !,
   open_string(Str, In),
-  set_string(In, type(binary)),
+  set_stream(In, type(binary)),
   InEntry = _{mode: read, type: string}.
 open_any2_variant(uri(Uri), read, In, InPath, true, Opts) :- !,
   http_io:http_open_any(Uri, In, InPath, Opts).

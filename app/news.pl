@@ -302,7 +302,7 @@ nonstandard_date(DateTime) -->
   }.
 
 
-
+timezone_label(-2, 0, 0) --> "CEST".
 timezone_label(-10, 0, 0) --> "EST".
 timezone_label(0, 0, 0) --> "GMT".
 timezone_label(7, 0, 0) --> "MST".

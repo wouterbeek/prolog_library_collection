@@ -36,6 +36,7 @@ concrete Web Service the following two things must be defined:
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_openid)).
+:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(http/http_wrapper)).

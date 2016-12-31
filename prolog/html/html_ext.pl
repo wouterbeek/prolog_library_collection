@@ -271,6 +271,7 @@ html({|html||...|}).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 :- use_module(library(nlp/nlp_lang)).
+:- use_module(library(pagination/html_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(q/q_term)). %HACK

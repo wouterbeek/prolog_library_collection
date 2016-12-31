@@ -3,6 +3,7 @@
   [
     http_pagination_header/1, % +Result
     http_pagination_iri/3,    % +Result, ?Rel, -Iri
+    http_pagination_iris/2    % +Result, -Pairs
   ]
 ).
 :- reexport(library(pagination/pagination)).
@@ -13,6 +14,7 @@
 @version 2016/12
 */
 
+:- use_module(library(dict_ext)).
 :- use_module(library(uri)).
 
 

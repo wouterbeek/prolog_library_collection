@@ -16,6 +16,26 @@
 
 
 
+%! 'HT'(?Code)// .
+%
+% ```
+% HT = <US-ASCII HT, horizontal-tab (9)>
+% ```
+
+'HT'(9) --> [9].
+
+
+
+%! 'SP'(?Code)// .
+%
+% ```
+% SP = <US-ASCII SP, space (32)>
+% ```
+
+'SP'(32) --> [32].
+
+
+
 %! tspecials(?Code)// .
 %
 % ```abnf
@@ -42,5 +62,5 @@ tspecials(0'?) --> "?".
 tspecials(0'=) --> "=".
 tspecials(0'{) --> "{".
 tspecials(0'}) --> "}".
-tspecials(C)   --> 'SP'(C).
-tspecials(C)   --> 'HT'(C).
+tspecials(C) --> 'SP'(C).
+tspecials(C) --> 'HT'(C).
