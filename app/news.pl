@@ -20,11 +20,16 @@ http://lists.w3.org/Archives/Public/html-tidy/2016JulSep/0000.html
 
 :- use_module(library(date)).
 :- use_module(library(date_time/date_time)).
+:- use_module(library(debug)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_download)).
 :- use_module(library(print_ext)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(xpath)).
+
+:- debug(io(recode)).
+:- debug(news).
+
 
 
 
@@ -88,9 +93,10 @@ scrape(Group) :-
   forall(
     group_post(Group, Post),
     (
+      debug(news, "~a", [Post]),
       post_dict(Group, Post, Dict),
-      print_dict(Dict),
       assert_post(Dict),
+      debug(news, "~w", Dict.from_date),
       sleep(1)
     )
   ),
@@ -302,6 +308,7 @@ nonstandard_date(DateTime) -->
   }.
 
 
+timezone_label(-1, 0, 0) --> "BST".
 timezone_label(-2, 0, 0) --> "CEST".
 timezone_label(-10, 0, 0) --> "EST".
 timezone_label(0, 0, 0) --> "GMT".

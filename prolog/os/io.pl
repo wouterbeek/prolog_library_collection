@@ -156,12 +156,11 @@ call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
   peek_string(In1, 4000, Chunk),
   guess_string_encoding(Chunk, DefEnc),
   option(from_encoding(Enc), SourceOpts, DefEnc),
-  downcase_atom(Enc, Enc0),
-  (   memberchk(Enc0, [ascii,'utf-8','us-ascii'])
+  downcase_atom(Enc, EncLower),
+  (   memberchk(EncLower, [ascii,'utf-8','us-ascii'])
   ->  In2 = In1
-  ;   atomic_list_concat([Enc0,'utf-8'], .., Arg),
-      debug(io(recode), "~a", [Arg]),
-      process_open(recode, In1, [Arg], In2)
+  ;   debug(io(recode), "~a → utf-8", [EncLower]),
+      process_open(iconv, In1, ['-f',EncLower,'-t','utf-8'], In2)
   ),
   % Store the original encoding.
   InEntry2 = InEntry1.put(_{encoding: Enc}),
@@ -614,13 +613,14 @@ process_open(Cmd, In1, Args, Out) :-
   process_create(
     path(Cmd),
     Args,
-    [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
+    [stdin(pipe(In2)),stdout(pipe(Out))]%%%%|stderr(pipe(Err))]
   ),
   set_stream(In2, type(binary)),
   catch((copy_stream_data(In1, In2), close(In2)), E, true),
-  read_string(Err, Msg),
-  (Msg == "" -> true ; msg_warning(Msg)),
-  var(E).
+  %%%%% @bug This hangs for some reason.
+  %%%%read_stream_to_string(Err, Msg),
+  %%%%(Msg == "" -> true ; msg_warning(Msg)),
+  (var(E) -> true ; print_message(warning, E)).
 
 
 
