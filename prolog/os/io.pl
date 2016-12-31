@@ -6,19 +6,8 @@
     call_onto_stream/3,      % +Source, +Sink, :Goal_4
     call_onto_stream/5,      % +Source, +Sink, :Goal_4, +SourceOpts, +SinkOpts
     call_onto_streams/4,     % +Source, +Sink1, +Sink2, :Goal_5
-    call_onto_streams/6,     % +Source
-                             % +Sink1
-                             % +Sink2
-                             % :Goal_5
-                             % +SourceOpts
-                             % +SinkOpts
-    call_onto_streams/7,     % +Source
-                             % +Sink1
-                             % +Sink2
-                             % :Goal_5
-                             % +SourceOpts
-                             % +Sink1Opts
-                             % +Sink2Opts
+    call_onto_streams/6,     % +Source, +Sink1, +Sink2, :Goal_5, +SourceOpts, +SinkOpts
+    call_onto_streams/7,     % +Source, +Sink1, +Sink2, :Goal_5, +SourceOpts, +Sink1Opts, +Sink2Opts
     call_to_atom/2,          % :Goal_1, -A
     call_to_codes/2,         % :Goal_1, -Cs
     call_to_stream/2,        % +Sink, :Goal_1
