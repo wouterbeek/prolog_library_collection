@@ -637,7 +637,7 @@ yesno(false) --> "no".
 'XMLDecl'(Version, Enc, Standalone) -->
   "<?xml",
   'VersionInfo'(Version),
-  ?('EncodingDecl', Enc),
-  ?('SDDecl'(Standalone)),
-  ?('S'),
+  ('EncodingDecl'(Enc) -> "" ; ""),
+  ('SDDecl'(Standalone) -> "" ; ""),
+  ('S' -> "" ; ""),
   "?>".

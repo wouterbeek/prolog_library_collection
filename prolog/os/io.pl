@@ -156,9 +156,11 @@ call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
   peek_string(In1, 4000, Chunk),
   guess_string_encoding(Chunk, DefEnc),
   option(from_encoding(Enc), SourceOpts, DefEnc),
-  (   memberchk(Enc, ['ASCII','UTF-8'])
+  downcase_atom(Enc, Enc0),
+  (   memberchk(Enc0, [ascii,'utf-8','us-ascii'])
   ->  In2 = In1
-  ;   atomic_list_concat([Enc,'UTF-8'], .., Arg),
+  ;   atomic_list_concat([Enc0,'utf-8'], .., Arg),
+      debug(io(recode), "~a", [Arg]),
       process_open(recode, In1, [Arg], In2)
   ),
   % Store the original encoding.
@@ -170,9 +172,9 @@ call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   setup_call_cleanup(
     archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
     (
-      indent_debug(in, io, "R» ~w → ~w", [In,Arch]),
+      indent_debug(in, io(open), "R» ~w → ~w", [In,Arch]),
       call_on_archive0(Arch, Goal_3, InPath1, InPath2, SourceOpts),
-      indent_debug(out, io, "«R ~w", [Arch])
+      indent_debug(out, io(close), "«R ~w", [Arch])
     ),
     archive_close(Arch)
   ).
@@ -210,7 +212,7 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
       ->  setup_call_cleanup(
             archive_open_entry(Arch, In),
             (
-              indent_debug(in, io, "R» ~w → ~a → ~w", [Arch,EntryName,In]),
+              indent_debug(in, io(open), "R» ~w → ~a → ~w", [Arch,EntryName,In]),
               call_on_stream0(
                 In,
                 Goal_3,
@@ -382,9 +384,9 @@ call_to_compressed_stream(
   setup_call_cleanup(
     zopen(Out1, Out2, [close_parent(false),format(Format)]),
     (
-      indent_debug(in, io, "ZW» ~w → ~a → ~w", [Out1,Format,Out2]),
+      indent_debug(in, io(open), "ZW» ~w → ~a → ~w", [Out1,Format,Out2]),
       call(Goal_1, Out2),
-      indent_debug(out, io, "«ZW ~w", [Out2])
+      indent_debug(out, io(close), "«ZW ~w", [Out2])
     ),
     close(Out2)
   ).
@@ -503,7 +505,7 @@ close_metadata(close(Stream), [Entry1|Path], [Entry2|Path], Opts) :- !,
   stream_property(Stream, mode(Mode)),
   close_metadata_hash(Stream, Opts),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-  indent_debug(out, io, "«~s ~w", [Lbl,Stream]).
+  indent_debug(out, io(close), "«~s ~w", [Lbl,Stream]).
 close_metadata(true, Path, Path, _).
 
 
@@ -554,7 +556,7 @@ copy_stream_data(Out, In, InPath, InPath) :-
 %! guess_string_encoding(+Str, -Enc) is det.
 
 guess_string_encoding(Str, Enc) :-
-  string_phrase('XMLDecl'(_, Enc, _), Str).
+  string_phrase('XMLDecl'(_, Enc, _), Str, _), !.
 guess_string_encoding(Str, Enc3) :-
   open_string(Str, In),
   process_open(uchardet, In, Out),
@@ -615,10 +617,10 @@ process_open(Cmd, In1, Args, Out) :-
     [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
   ),
   set_stream(In2, type(binary)),
-  copy_stream_data(In1, In2),
-  close(In2),
+  catch((copy_stream_data(In1, In2), close(In2)), E, true),
   read_string(Err, Msg),
-  (Msg == "" -> true ; msg_warning(Msg)).
+  (Msg == "" -> true ; msg_warning(Msg)),
+  var(E).
 
 
 
@@ -724,7 +726,7 @@ open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
   open_any2_variant(Spec, Mode, Stream1, Path, ShouldClose, Opts),
   (ShouldClose == true -> Close_0 = close(Stream2) ; Close_0 = true),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-  indent_debug(in, io, "~s» ~w → ~w", [Lbl,Spec,Stream1]),
+  indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1]),
   open_any2_hash(Stream1, Stream2, Opts).
 
 open_any2_variant(file(Spec), Mode, Stream, [Entry], true, Opts) :- !,
