@@ -4,6 +4,7 @@
     capitalize_string/2,  % +Str1, -Str2
     codes_string/2,       % ?Cs, ?Str
     lowercase_string/2,   % +Str1, -Str2
+    read_string/2,        % +In, -Str
     string_atom/2,        % ?Str, ?A
     string_ellipsis/3,    % +Str, ?MaxLen, -Ellipsis
     string_list_concat/2, % +Strs, -Str
@@ -27,7 +28,7 @@ Non-native string representations in Prolog:
   - List of characters
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/05-2016/09
+@version 2015/08, 2016/02, 2016/05-2016/09, 2016/12
 */
 
 :- use_module(library(apply)).
@@ -64,6 +65,13 @@ lowercase_string(Str1, Str2) :-
   string_atom(Str1, A1),
   lowercase_atom(A1, A2),
   atom_string(A2, Str2).
+
+
+
+%! read_string(+In, -Str) is det.
+
+read_string(In, Str) :-
+  read_string(In, _, Str).
 
 
 
