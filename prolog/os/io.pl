@@ -586,10 +586,10 @@ copy_stream_data(Out, In, InPath, InPath) :-
 
 open_any2(stream(Stream), Mode, Stream, Close_0, Path, Opts) :- !,
   open_any2(Stream, Mode, Stream, Close_0, Path, Opts).
-open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
+open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
   (   is_http_iri(Spec)
   ->  Mode = read,
-      http_io:http_open_any(Spec, Stream1, L, Opts),
+      http_io:http_open_any(Spec, Stream1, Path, Opts),
       Close_0 = close(Stream2)
   ;   (   atom(Spec)
       ->  % Allow ‘~’ to be used.
@@ -599,15 +599,15 @@ open_any2(Spec, Mode, Stream2, Close_0, L, Opts) :-
       open_any(ExpandedSpec, Mode, Stream1, _, Opts),
       (   ExpandedSpec == Stream1
       ->  Close_0 = true,
-          H1 = _{stream: Stream1}
+          Entry1 = _{stream: Stream1}
       ;   absolute_file_name(ExpandedSpec, File),
           Close_0 = close(Stream2),
-          H1 = _{file: File},
+          Entry1 = _{file: File},
           (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
           indent_debug(in, io, "~s» ~w → ~w", [Lbl,ExpandedSpec,Stream1])
       ),
-      put_dict(mode, H1, Mode, H2),
-      L = [H2]
+      put_dict(mode, Entry1, Mode, Entry2),
+      Path = [Entry2]
   ),
   open_any2_hash(Stream1, Stream2, Opts).
 
