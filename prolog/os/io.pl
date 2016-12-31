@@ -27,6 +27,7 @@
     call_to_streams/4,       % +Sink1, +Sink2, :Goal_2, +SinkOpts
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
+    copy_stream_data/4,      % -Out, +In, +InPath1, -InPath2
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
@@ -542,6 +543,13 @@ close_metadata_hash(Stream, Opts) :-
   ), !,
   stream_hash(Stream, Hash).
 close_metadata_hash(_, _).
+
+
+
+%! copy_stream_data(-Out, +In, +InPath1, -InPath2) is det.
+
+copy_stream_data(Out, In, InPath, InPath) :-
+  copy_stream_data(In, Out).
 
 
 
