@@ -61,10 +61,10 @@ The following debug flags are used:
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    call_on_archive0(+, +, 3, +, -),
+    call_on_archive0(+, 3, +, -, +),
     call_on_stream(+, 3),
     call_on_stream(+, 3, +),
-    call_on_stream0(+, +, 3, +, -),
+    call_on_stream0(+, 3, +, -, +),
     call_onto_stream(+, +, 4),
     call_onto_stream(+, +, 4, +, +),
     call_onto_stream0(+, 4, +, +, +, -),
@@ -134,11 +134,10 @@ call_on_stream(Source, Goal_3) :-
 
 
 call_on_stream(Source, Goal_3, SourceOpts) :-
-  option(entry_name(EntryName), SourceOpts, _),
   setup_call_cleanup(
     open_any2(Source, read, In, Close_0, InPath1, SourceOpts),
     (
-      call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2),
+      call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts),
       close_metadata(Close_0, InPath2, InPath3, SourceOpts)
     ),
     close_any2(Close_0)
@@ -148,18 +147,18 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 
 
 % HTTP error status code may result in no stream at all.
-call_on_stream0(In, _, _, InPath, InPath) :-
+call_on_stream0(In, _, InPath, InPath, _) :-
   var(In), !.
 % Empty input stream.
-call_on_stream0(In, _, _, InPath, InPath) :-
+call_on_stream0(In, _, InPath, InPath, _) :-
   at_end_of_stream(In), !.
 % Data input stream.
-call_on_stream0(In, _, Goal_3, [InEntry|InPath1], InPath2) :-
+call_on_stream0(In1, Goal_3, [InEntry|InPath1], InPath2, SourceOpts) :-
   get_dict(format, InEntry, raw),
   get_dict(name, InEntry, data), !,
   call(Goal_3, In, [InEntry|InPath1], InPath2).
 % Compressed and/or packaged input stream.
-call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2) :-
+call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
     (
@@ -169,8 +168,8 @@ call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2) :-
         [close_parent(false),filter(all)|Formats]
       ),
       indent_debug(in, io, "R» ~w → ~w", [In,Arch])
+      call_on_archive0(Arch, Goal_3, InPath1, InPath2, SourceOpts),
     ),
-    call_on_archive0(Arch, EntryName, Goal_3, InPath1, InPath2),
     ( % @tbd THIS SEEMS TO BE SKIPPED/NOT PRINTED SOMETIMES!
       indent_debug(out, io, "«R ~w", [Arch]),
       archive_close(Arch)
@@ -178,7 +177,8 @@ call_on_stream0(In, EntryName, Goal_3, InPath1, InPath2) :-
   ).
 
 
-call_on_archive0(Arch, EntryNameMatch, Goal_3, [InEntry2|InPath1], InPath4) :-
+call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
+  option(entry_name(EntryNameMatch), SourceOpts, _),
   archive_property(Arch, filter(Filters)),
   repeat,
   (   archive_next_header(Arch, EntryName)
@@ -218,10 +218,10 @@ call_on_archive0(Arch, EntryNameMatch, Goal_3, [InEntry2|InPath1], InPath4) :-
             (
               call_on_stream0(
                 In,
-                InEntry1,
                 Goal_3,
                 [InEntry1,InEntry2|InPath1],
-                InPath3
+                InPath3,
+                SourceOpts
               ),
               % close_metadata/3 also emits the closing debug message.
               close_metadata(close(In), InPath3, InPath4)
