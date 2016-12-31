@@ -55,6 +55,7 @@ The following debug flags are used:
 :- use_module(library(http/http_io)).
 :- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(process)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
@@ -103,6 +104,11 @@ error:has_type(write_mode, Term) :-
 % The following call is made: `call(Goal_3, In)`.
 %
 % The following options are supported:
+%
+%   * encoding(+atom)
+%
+%     The encoding of the Source.  This is recoded to UTF-8 at the
+%     data/raw entry level.
 %
 %   * entry_name(?atom)
 %
@@ -156,7 +162,13 @@ call_on_stream0(In, _, InPath, InPath, _) :-
 call_on_stream0(In1, Goal_3, [InEntry|InPath1], InPath2, SourceOpts) :-
   get_dict(format, InEntry, raw),
   get_dict(name, InEntry, data), !,
-  call(Goal_3, In, [InEntry|InPath1], InPath2).
+  option(encoding(Enc), SourceOpts, 'UTF-8'),
+  (   Enc == 'UTF-8'
+  ->  In2 = In1
+  ;   atomic_list_concat([Enc,'UTF-8'], .., Arg),
+      process_open(recode, In1, [Arg], In2)
+  ),
+  call(Goal_3, In2, [InEntry|InPath1], InPath2).
 % Compressed and/or packaged input stream.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
