@@ -42,10 +42,10 @@ The following debug flags are used:
 :- use_module(library(dict_ext)).
 :- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
-:- use_module(library(iostream)).
 :- use_module(library(os/archive_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(process)).
+:- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
@@ -94,7 +94,7 @@ error:has_type(write_mode, Term) :-
 %
 % The following options are supported:
 %
-%   * encoding(+atom)
+%   * from_encoding(+atom)
 %
 %     The encoding of the Source.  This is recoded to UTF-8 at the
 %     data/raw entry level.
@@ -151,7 +151,9 @@ call_on_stream0(In, _, InPath, InPath, _) :-
 call_on_stream0(In1, Goal_3, [InEntry|InPath1], InPath2, SourceOpts) :-
   get_dict(format, InEntry, raw),
   get_dict(name, InEntry, data), !,
-  option(encoding(Enc), SourceOpts, 'UTF-8'),
+  peek_string(In1, 10000, Chunk),
+  guess_string_encoding(Chunk, DefEnc),
+  option(from_encoding(Enc), SourceOpts, DefEnc),
   (   Enc == 'UTF-8'
   ->  In2 = In1
   ;   atomic_list_concat([Enc,'UTF-8'], .., Arg),
@@ -172,7 +174,7 @@ call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   ).
 
 
-call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
+call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
   option(entry_name(EntryNameMatch), SourceOpts, _),
   archive_property(Arch, filter(Filters)),
   repeat,
@@ -209,11 +211,11 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath4, SourceOpts) :-
                 In,
                 Goal_3,
                 [InEntry1,InEntry2|InPath1],
-                InPath3,
+                InPath2,
                 SourceOpts
               ),
               % close_metadata/3 also emits the closing debug message.
-              close_metadata(close(In), InPath3, InPath4)
+              close_metadata(close(In), InPath2, InPath3)
             ),
             close_any2(close(In))
           )
@@ -545,79 +547,15 @@ copy_stream_data(Out, In, InPath, InPath) :-
 
 
 
-%! open_any2(+Spec, +Mode, -Stream, -Close_0, -Path, +Opts) is det.
-%
-% The following options are supported:
-%
-%   * The following hash options are supported:
-%
-%     * md5(--atom)
-%
-%     * sha1(--atom)
-%
-%     * sha224(--atom)
-%
-%     * sha256(--atom)
-%
-%     * sha384(--atom)
-%
-%     * sha512(--atom)
-%
-%   * metadata(-dict)
-%
-%     * file(atom)
-%
-%   * Other options are passed to:
-%
-%     * open_any/5
-%
-%     * http_io:http_open_any/4
+%! guess_string_encoding(+Str, -Enc) is det.
 
-open_any2(stream(Stream), Mode, Stream, Close_0, Path, Opts) :- !,
-  open_any2(Stream, Mode, Stream, Close_0, Path, Opts).
-open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
-  (   is_http_iri(Spec)
-  ->  Mode = read,
-      http_io:http_open_any(Spec, Stream1, Path, Opts),
-      Close_0 = close(Stream2)
-  ;   (   atom(Spec)
-      ->  % Allow ‘~’ to be used.
-          expand_file_name(Spec, [ExpandedSpec|_])
-      ;   ExpandedSpec = Spec
-      ),
-      merge_options([type(binary)], Opts, OpenOpts),
-      open_any(ExpandedSpec, Mode, Stream1, _, OpenOpts),
-      (   ExpandedSpec == Stream1
-      ->  Close_0 = true,
-          Entry1 = _{stream: Stream1}
-      ;   absolute_file_name(ExpandedSpec, File),
-          Close_0 = close(Stream2),
-          Entry1 = _{file: File},
-          (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-          indent_debug(in, io, "~s» ~w → ~w", [Lbl,ExpandedSpec,Stream1])
-      ),
-      put_dict(mode, Entry1, Mode, Entry2),
-      Path = [Entry2]
-  ),
-  open_any2_hash(Stream1, Stream2, Opts).
-
-
-open_any2_hash(Stream1, Stream2, Opts) :-
-  (   option(md5(_), Opts)
-  ->  Alg = md5
-  ;   option(sha1(_), Opts)
-  ->  Alg = sha1
-  ;   option(sha224(_), Opts)
-  ->  Alg = sha224
-  ;   option(sha256(_), Opts)
-  ->  Alg = sha256
-  ;   option(sha384(_), Opts)
-  ->  Alg = sha384
-  ;   option(sha512(_), Opts)
-  ->  Alg = sha512
-  ), !,
-  open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
-open_any2_hash(Stream, Stream, _).
+guess_string_encoding(Str, Enc3) :-
+  open_string(Str, In),
+  process_open(uchardet, In, Out),
+  read_string(Out, Enc1),
+  split_string(Enc1, "", "\n", [Enc2|_]),
+  atom_string(Enc3, Enc2),
+  close(Out).
 
 
 
@@ -664,13 +602,13 @@ process_open(Cmd, In1, Out) :-
 
 
 process_open(Cmd, In1, Args, Out) :-
-  stream_property(In1, type(Type)),
+  set_stream(In1, type(binary)),
   process_create(
     path(Cmd),
     Args,
     [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
   ),
-  set_stream(In2, type(Type)),
+  set_stream(In2, type(binary)),
   copy_stream_data(In1, In2),
   close(In2),
   read_string(Err, Msg),
@@ -735,6 +673,104 @@ memory_file_to_something(Handle, codes, Cs) :- !,
   memory_file_to_codes(Handle, Cs).
 memory_file_to_something(Handle, string, Str) :- !,
   memory_file_to_string(Handle, Str).
+
+
+
+%! open_any2(+Spec, +Mode, -Stream, -Close_0, -Path, +Opts) is det.
+%
+% The following specifications are supported:
+%
+%   * file(+compound)
+%
+%   * stream(+stream)
+%
+%   * string(+string)
+%
+%   * uri(+atom)
+%
+% The following options are supported:
+%
+%   * The following hash options are supported:
+%
+%     * md5(--atom)
+%
+%     * sha1(--atom)
+%
+%     * sha224(--atom)
+%
+%     * sha256(--atom)
+%
+%     * sha384(--atom)
+%
+%     * sha512(--atom)
+%
+%   * metadata(-dict)
+%
+%     * file(atom)
+%
+%   * Other options are passed to:
+%
+%     * open_any/5
+%
+%     * http_io:http_open_any/4
+
+open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
+  open_any2_variant(Spec, Mode, Stream1, Path, ShouldClose, Opts),
+  (ShouldClose == true -> Close_0 = close(Stream2) ; Close_0 = true),
+  (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+  indent_debug(in, io, "~s» ~w → ~w", [Lbl,Spec,Stream1]),
+  open_any2_hash(Stream1, Stream2, Opts).
+
+open_any2_variant(file(Spec), Mode, Stream, [Entry], true, Opts) :- !,
+  (   compound(Spec)
+  ->  merge_options([access(Mode)], Opts, PathOpts),
+      absolute_file_name(Spec, File, PathOpts)
+  ;   % Allow ‘~’ to be used.
+      expand_file_name(Spec, [File|_])
+  ),
+  open(File, Mode, Stream, [type(binary)]),
+  Entry = _{mode: Mode, name: File, type: file}.
+open_any2_variant(stream(Stream), Mode, Stream, [Entry], false, _) :- !,
+  stream_property(Stream, mode(Mode)),
+  Entry = _{mode: Mode, type: stream}.
+open_any2_variant(string(Str), read, In, [InEntry], true, _) :- !,
+  open_string(Str, In),
+  set_string(In, type(binary)),
+  InEntry = _{mode: read, type: string}.
+open_any2_variant(uri(Uri), read, In, InPath, true, Opts) :- !,
+  http_io:http_open_any(Uri, In, InPath, Opts).
+% Guess whether the specification is a file, stream or URI (no
+% strings).
+open_any2_variant(Spec1, Mode, Stream, Path, ShouldClose, Opts) :-
+  (   is_stream(Spec1)
+  ->  Spec2 = stream(Spec1)
+  ;   atomic(Spec1)
+  ->  (   uri_file_name(Spec1, Spec2)
+      ->  Spec2 = file(Spec1)
+      ;   is_http_iri(Spec1)
+      ->  Spec2 = uri(Spec1)
+      ;   Spec2 = file(Spec1)
+      )
+  ),
+  open_any2_variant(Spec2, Mode, Stream, Path, ShouldClose, Opts).
+
+open_any2_hash(Stream1, Stream2, Opts) :-
+  (   option(md5(_), Opts)
+  ->  Alg = md5
+  ;   option(sha1(_), Opts)
+  ->  Alg = sha1
+  ;   option(sha224(_), Opts)
+  ->  Alg = sha224
+  ;   option(sha256(_), Opts)
+  ->  Alg = sha256
+  ;   option(sha384(_), Opts)
+  ->  Alg = sha384
+  ;   option(sha512(_), Opts)
+  ->  Alg = sha512
+  ), !,
+  % The parent is closed automatically when the child is closed.
+  open_hash_stream(Stream1, Stream2, [algorithm(Alg),close_parent(true)]).
+open_any2_hash(Stream, Stream, _).
 
 
 
