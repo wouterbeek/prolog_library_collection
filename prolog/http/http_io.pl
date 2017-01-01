@@ -237,7 +237,7 @@ http_open_any(Uri, In, InPath, Opts) :-
   option(method(Method), Opts, get),
   debug_call(Flags, http_open1(Uri, Method, State, In, InPath, Opts)).
 
-http_open1(Uri, Method, State, In2, InPath, Opts) :-
+http_open1(Uri, Method, State, In2, InPath2, Opts) :-
   copy_term(Opts, OldOpts),
   setting(user_agent, UA),
   NewOpts = [
@@ -269,7 +269,7 @@ http_open1(Uri, Method, State, In2, InPath, Opts) :-
       ->  http_msg(user_output, Uri, Method, Status, Lines)
       ;   true
       ),
-      InEntry = _{
+      InEntry1 = _{
         '@id': Uri,
         '@type': uri,
         headers: Headers,
@@ -277,9 +277,19 @@ http_open1(Uri, Method, State, In2, InPath, Opts) :-
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Uri, Method, State, Location, Lines, In1, [InEntry|InPath], In2, Opts),
-      reverse([InEntry|InPath], InPath)
-  ;   InPath = [],
+      http_open2(
+        Uri,
+        Method,
+        State,
+        Location,
+        Lines,
+        In1,
+        [InEntry1|InPath1],
+        In2,
+        Opts
+      ),
+      reverse([InEntry1|InPath1], InPath2)
+  ;   InPath2 = [],
       throw(E)
   ).
 
@@ -304,19 +314,19 @@ http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
   ;   http_open1(Uri, Method, State, In2, InPath, Opts)
   ).
 % Redirect.
-http_open2(Uri0, Method, State, Location, _, In1, [InEntry|InPath], In2, Opts) :-
+http_open2(Uri1, Method, State, Location, _, In1, [InEntry|InPath], In2, Opts) :-
   http_status_is_redirect(InEntry.status), !,
   close(In1),
-  uri_resolve(Location, Uri0, Uri),
-  dict_prepend(visited, State, Uri),
+  uri_resolve(Location, Uri1, Uri2),
+  dict_prepend(visited, State, Uri2),
   (   http_is_redirect_limit_exceeded(State)
-  ->  http_throw_max_redirect_error(Uri, State.max_redirects)
-  ;   http_is_redirect_loop(Uri, State)
-  ->  http_throw_looping_redirect_error(Uri)
+  ->  http_throw_max_redirect_error(Uri2, State.max_redirects)
+  ;   http_is_redirect_loop(Uri2, State)
+  ->  http_throw_looping_redirect_error(Uri2)
   ;   true
   ),
   http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Uri, Method, State, In2, InPath, RedirectOpts).
+  http_open1(Uri2, Method, State, In2, InPath, RedirectOpts).
 % Success.
 http_open2(_, _, _, _, _, In, [_], In, _).
 

@@ -659,7 +659,7 @@ process_open(Cmd, In1, Args, Out) :-
 
 recode_stream(In1, In2, In2, SourceOpts) :-
   option(recode(true), SourceOpts),
-  option(from_encoding(Enc), SourceOpts),
+  option(from_encoding(Enc), SourceOpts, _VAR),
   (var(Enc) -> guess_stream_encoding(In1, Enc) ; true),
   \+ memberchk(Enc, [ascii,'ascii/unknown','utf-8','us-ascii']), !,
   debug(io(recode), "~a → utf-8", [Enc]),

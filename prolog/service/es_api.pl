@@ -397,9 +397,9 @@ debug_dict(_).
 %! es_delete0(+PathComps, -Status, -Dict) is det.
 
 es_delete0(PathComps, Status, Dict) :-
-  es_iri(PathComps, Iri),
+  es_uri(PathComps, Uri),
   http_delete(
-    Iri,
+    Uri,
     {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
     [metadata(Path),request_header('Accept'='application/json')]
   ),
@@ -450,8 +450,8 @@ es_get_cat0(PathComps, Msg) :-
 
 
 es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
-  es_iri(PathComps, QueryComps, Iri),
-  http_get(Iri, Goal_3, [metadata(Path)|T]),
+  es_uri(PathComps, QueryComps, Uri),
+  http_get(Uri, Goal_3, [metadata(Path)|T]),
   dicts_getchk(status, Path, Status).
 
 
@@ -459,30 +459,30 @@ es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
 %! es_head0(+PathComps, -Status) is semidet.
 
 es_head0(PathComps, Status) :-
-  es_iri(PathComps, Iri),
+  es_uri(PathComps, Uri),
   http_head(
-    Iri,
+    Uri,
     [metadata(Path),request_header('Accept'='application/json')]
   ),
   dicts_get(status, Path, Status).
 
 
 
-%! es_iri(+PathComps, -Iri) is det.
-%! es_iri(+PathComps, +QueryComps, -Iri) is det.
+%! es_uri(+PathComps, -Uri) is det.
+%! es_uri(+PathComps, +QueryComps, -Uri) is det.
 
-es_iri(PathComps, Iri) :-
-  es_iri(PathComps, [], Iri).
+es_uri(PathComps, Uri) :-
+  es_uri(PathComps, [], Uri).
 
 
-es_iri(PathComps, QueryComps, Iri) :-
+es_uri(PathComps, QueryComps, Uri) :-
   setting(endpoint_scheme, Scheme),
   setting(endpoint_host, Host),
   setting(endpoint_port,Port),
   uri_authority_components(Auth, uri_authority(_,_,Host,Port)),
   atomic_list_concat([''|PathComps], /, Path),
   uri_query_components(Query, QueryComps),
-  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).
+  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 
@@ -494,10 +494,10 @@ es_post0(PathComps, Data, Status, Dict) :-
 
 
 es_post0(PathComps, QueryComps, Data, Status, Dict) :-
-  es_iri(PathComps, QueryComps, Iri),
+  es_uri(PathComps, QueryComps, Uri),
   debug_dict(Data),
   http_post(
-    Iri,
+    Uri,
     json(Data),
     {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
     [metadata(Path),request_header('Accept'='application/json')]
@@ -509,10 +509,10 @@ es_post0(PathComps, QueryComps, Data, Status, Dict) :-
 %! es_put0(+PathComps, +Data, -Status, -Dict) is det.
 
 es_put0(PathComps, Data, Status, Dict) :-
-  es_iri(PathComps, Iri),
+  es_uri(PathComps, Uri),
   debug_dict(Data),
   http_put(
-    Iri,
+    Uri,
     json(Data),
     {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
     [metadata(Path),request_header('Accept'='application/json')]
