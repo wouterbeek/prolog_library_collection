@@ -17,6 +17,7 @@
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
     copy_stream_data/4,      % -Out, +In, +InPath1, -InPath2
+    open_binary_string/2,    % +Str, -In
     process_open/3,          % +Cmd, +In, -Out
     process_open/4,          % +Cmd, +In, +Args, -Out
     read_line_to_atom/2,     % +In, -A
@@ -132,12 +133,12 @@ call_on_stream(Source, Goal_3) :-
 
 call_on_stream(Source, Goal_3, SourceOpts) :-
   setup_call_cleanup(
-    open_any2(Source, read, In, Close_0, InPath1, SourceOpts),
+    open_any2(Source, read, In, Close, InPath1, SourceOpts),
     (
       call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts),
-      close_metadata(Close_0, InPath2, InPath3, SourceOpts)
+      close_metadata(Close, InPath2, InPath3, SourceOpts)
     ),
-    close_any2(Close_0)
+    close_any2(Close)
   ),
   % @bug: InPath3 is now uninstantiated.
   ignore(option(metadata(InPath3), SourceOpts)).
@@ -158,13 +159,18 @@ call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
   option(from_encoding(Enc), SourceOpts, DefEnc),
   downcase_atom(Enc, EncLower),
   (   memberchk(EncLower, [ascii,'utf-8','us-ascii'])
-  ->  In2 = In1
+  ->  In2 = In1,
+      Close = true
   ;   debug(io(recode), "~a → utf-8", [EncLower]),
-      process_open(iconv, In1, ['-f',EncLower,'-t','utf-8'], In2)
+      process_open(iconv, In1, ['-f',EncLower,'-t','utf-8'], In2),
+      Close = In2
   ),
   % Store the original encoding.
   InEntry2 = InEntry1.put(_{encoding: Enc}),
-  call(Goal_3, In2, [InEntry2|InPath1], InPath2).
+  call_cleanup(
+    call(Goal_3, In2, [InEntry2|InPath1], InPath2),
+    close_any2(Close)
+  ).
 % Compressed and/or packaged input stream.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
@@ -220,9 +226,9 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
                 SourceOpts
               ),
               % close_metadata/3 also emits the closing debug message.
-              close_metadata(close(In), InPath2, InPath3)
+              close_metadata(In, InPath2, InPath3)
             ),
-            close_any2(close(In))
+            close(In)
           )
       ;   % Skip over non-file entries.
           fail
@@ -359,12 +365,12 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
   option(mode(Mode), SinkOpts, write),
   must_be(write_mode, Mode),
   setup_call_cleanup(
-    open_any2(Sink, Mode, Out, Close_0, OutPath1, SinkOpts),
+    open_any2(Sink, Mode, Out, Close, OutPath1, SinkOpts),
     (
       call_to_compressed_stream(Out, Goal_1, OutPath1, OutPath2, SinkOpts),
-      close_metadata(Close_0, OutPath2, OutPath3, SinkOpts)
+      close_metadata(Close, OutPath2, OutPath3, SinkOpts)
     ),
-    close_any2(Close_0)
+    close_any2(Close)
   ),
   % @bug: OutPath3 is now uninstantiated.
   ignore(option(metadata(OutPath3), SinkOpts)).
@@ -422,8 +428,8 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
   option(mode(Mode2), Sink2Opts, write),
   setup_call_cleanup(
     (
-      open_any2(Sink1, Mode1, Out1, Close1_0, OutPath1a, Sink1Opts),
-      open_any2(Sink2, Mode2, Out2, Close2_0, OutPath1b, Sink2Opts)
+      open_any2(Sink1, Mode1, Out1, Close1, OutPath1a, Sink1Opts),
+      open_any2(Sink2, Mode2, Out2, Close2, OutPath1b, Sink2Opts)
     ),
     (
       call_to_streams0(
@@ -437,12 +443,12 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
         OutPath2b,
         Sink2Opts
       ),
-      close_metadata(Close1_0, OutPath2b, OutPath3b, Sink2Opts),
-      close_metadata(Close2_0, OutPath2a, OutPath3a, Sink1Opts)
+      close_metadata(Close1, OutPath2b, OutPath3b, Sink2Opts),
+      close_metadata(Close2, OutPath2a, OutPath3a, Sink1Opts)
     ),
     (
-      close_any2(Close1_0),
-      close_any2(Close2_0)
+      close_any2(Close1),
+      close_any2(Close2)
     )
   ),
   % @bug: OutPath3a is now uninstantiated.
@@ -482,24 +488,17 @@ call_to_string(Goal_1, Str) :-
 
 
 
-%! close_any2(+Close_0) is det.
-
-close_any2(close(Stream)) :- !,
-  close(Stream).
-close_any2(true).
-
-
-
-%! close_medata(+Close_0, +Path1, -Path2) is det.
-%! close_medata(+Close_0, +Path1, -Path2, +Opts) is det.
+%! close_medata(+Close, +Path1, -Path2) is det.
+%! close_medata(+Close, +Path1, -Path2, +Opts) is det.
 %
 % Options are passed to close_metadata_hash/2.
 
-close_metadata(Close_0, Path1, Path2) :-
-  close_metadata(Close_0, Path1, Path2, []).
+close_metadata(Close, Path1, Path2) :-
+  close_metadata(Close, Path1, Path2, []).
 
 
-close_metadata(close(Stream), [Entry1|Path], [Entry2|Path], Opts) :- !,
+close_metadata(Stream, [Entry1|Path], [Entry2|Path], Opts) :-
+  is_stream(Stream), !,
   stream_metadata(Stream, Entry1, Entry2),
   stream_property(Stream, mode(Mode)),
   close_metadata_hash(Stream, Opts),
@@ -557,12 +556,27 @@ copy_stream_data(Out, In, InPath, InPath) :-
 guess_string_encoding(Str, Enc) :-
   string_phrase('XMLDecl'(_, Enc, _), Str, _), !.
 guess_string_encoding(Str, Enc3) :-
+  setup_call_cleanup(
+    open_binary_string(Str, In),
+    setup_call_cleanup(
+      process_open(uchardet, In, Out),
+      (
+        read_string(Out, Enc1),
+        split_string(Enc1, "", "\n", [Enc2|_]),
+        atom_string(Enc3, Enc2)
+      ),
+      close(Out)
+    ),
+    close(In)
+  ).
+
+
+
+%! open_binary_string(+Str, -In) is det.
+
+open_binary_string(Str, In) :-
   open_string(Str, In),
-  process_open(uchardet, In, Out),
-  read_string(Out, Enc1),
-  split_string(Enc1, "", "\n", [Enc2|_]),
-  atom_string(Enc3, Enc2),
-  close(Out).
+  set_stream(In, type(binary)).
 
 
 
@@ -609,18 +623,23 @@ process_open(Cmd, In1, Out) :-
 
 
 process_open(Cmd, In1, Args, Out) :-
-  set_stream(In1, type(binary)),
   process_create(
     path(Cmd),
     Args,
-    [stdin(pipe(In2)),stdout(pipe(Out))]%%%%|stderr(pipe(Err))]
+    [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
   ),
   set_stream(In2, type(binary)),
-  catch((copy_stream_data(In1, In2), close(In2)), E, true),
-  %%%%% @bug This hangs for some reason.
-  %%%%read_stream_to_string(Err, Msg),
-  %%%%(Msg == "" -> true ; msg_warning(Msg)),
-  (var(E) -> true ; print_message(warning, E)).
+  call_cleanup(
+    copy_stream_data(In1, In2),
+    close(In2)
+  ),
+  call_cleanup(
+    (
+      read_stream_to_string(Err, Msg),
+      (Msg == "" -> true ; msg_warning(Msg))
+    ),
+    close(Err)
+  ).
 
 
 
@@ -660,6 +679,14 @@ call_to_something(Goal_1, Type, Result) :-
 
 
 
+%! close_any2(+Close) is det.
+
+close_any2(true) :- !.
+close_any2(Stream) :-
+  close(Stream).
+
+
+
 %! goal_manipulation(+Goal_M, +Args, -Goal_N) is det.
 
 goal_manipulation(Mod:Goal_M, Args, Mod:Goal_N) :-
@@ -684,7 +711,7 @@ memory_file_to_something(Handle, string, Str) :- !,
 
 
 
-%! open_any2(+Spec, +Mode, -Stream, -Close_0, -Path, +Opts) is det.
+%! open_any2(+Spec, +Mode, -Stream, -Close, -Path, +Opts) is det.
 %
 % The following specifications are supported:
 %
@@ -722,14 +749,13 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %     * http_io:http_open_any/4
 
-open_any2(Spec, Mode, Stream2, Close_0, Path, Opts) :-
-  open_any2_variant(Spec, Mode, Stream1, Path, ShouldClose, Opts),
-  (ShouldClose == true -> Close_0 = close(Stream2) ; Close_0 = true),
+open_any2(Spec, Mode, Stream2, Close, Path, Opts) :-
+  open_any2_variant(Spec, Mode, Stream1, Close, Path, Opts),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
   indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1]),
   open_any2_hash(Stream1, Stream2, Opts).
 
-open_any2_variant(file(Spec), Mode, Stream, [Entry], true, Opts) :- !,
+open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
   (   compound(Spec)
   ->  merge_options([access(Mode)], Opts, PathOpts),
       absolute_file_name(Spec, File, PathOpts)
@@ -738,18 +764,17 @@ open_any2_variant(file(Spec), Mode, Stream, [Entry], true, Opts) :- !,
   ),
   open(File, Mode, Stream, [type(binary)]),
   Entry = _{mode: Mode, name: File, type: file}.
-open_any2_variant(stream(Stream), Mode, Stream, [Entry], false, _) :- !,
+open_any2_variant(stream(Stream), Mode, Stream, true, [Entry], _) :- !,
   stream_property(Stream, mode(Mode)),
   Entry = _{mode: Mode, type: stream}.
-open_any2_variant(string(Str), read, In, [InEntry], true, _) :- !,
-  open_string(Str, In),
-  set_stream(In, type(binary)),
+open_any2_variant(string(Str), read, In, In, [InEntry], _) :- !,
+  open_binary_string(Str, In),
   InEntry = _{mode: read, type: string}.
-open_any2_variant(uri(Uri), read, In, InPath, true, Opts) :- !,
+open_any2_variant(uri(Uri), read, In, In, InPath, Opts) :- !,
   http_io:http_open_any(Uri, In, InPath, Opts).
 % Guess whether the specification is a file, stream or URI (no
 % strings).
-open_any2_variant(Spec1, Mode, Stream, Path, ShouldClose, Opts) :-
+open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
   (   is_stream(Spec1)
   ->  Spec2 = stream(Spec1)
   ;   atomic(Spec1)
@@ -760,7 +785,7 @@ open_any2_variant(Spec1, Mode, Stream, Path, ShouldClose, Opts) :-
       ;   Spec2 = file(Spec1)
       )
   ),
-  open_any2_variant(Spec2, Mode, Stream, Path, ShouldClose, Opts).
+  open_any2_variant(Spec2, Mode, Stream, Close, Path, Opts).
 
 open_any2_hash(Stream1, Stream2, Opts) :-
   (   option(md5(_), Opts)
@@ -777,7 +802,7 @@ open_any2_hash(Stream1, Stream2, Opts) :-
   ->  Alg = sha512
   ), !,
   % The parent is closed automatically when the child is closed.
-  open_hash_stream(Stream1, Stream2, [algorithm(Alg),close_parent(true)]).
+  open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
 open_any2_hash(Stream, Stream, _).
 
 
