@@ -16,7 +16,9 @@
     call_to_streams/4,       % +Sink1, +Sink2, :Goal_2, +SinkOpts
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
+    close_any2/1,            % +Close
     copy_stream_data/4,      % -Out, +In, +InPath1, -InPath2
+    guess_stream_encoding/2, % +In, -Enc
     open_binary_string/2,    % +Str, -In
     process_open/3,          % +Cmd, +In, -Out
     process_open/4,          % +Cmd, +In, +Args, -Out
@@ -24,6 +26,7 @@
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
     read_stream_to_string/2, % +In, -Str
+    recode_stream/4,         % +In1, -In2, -Close, +Opts
     write_mode/1             % ?Mode
   ]
 ).
@@ -118,6 +121,12 @@ error:has_type(write_mode, Term) :-
 %
 %     * size(nonneg)
 %
+%   * recode(+boolean)
+%
+%     Whether or not source data streams should be recoded.  Default
+%     is `false`.  Recoding uses the value of option from_encoding/1
+%     when given of is guessed using the external process ‘uchardet’.
+%
 %   * Other options are passed to:
 %
 %       * archive_open/3
@@ -151,24 +160,13 @@ call_on_stream0(In, _, InPath, InPath, _) :-
 call_on_stream0(In, _, InPath, InPath, _) :-
   at_end_of_stream(In), !.
 % Data input stream.
-call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
-  get_dict(format, InEntry1, raw),
-  get_dict(name, InEntry1, data), !,
-  peek_string(In1, 4000, Chunk),
-  guess_string_encoding(Chunk, DefEnc),
-  option(from_encoding(Enc), SourceOpts, DefEnc),
-  downcase_atom(Enc, EncLower),
-  (   memberchk(EncLower, [ascii,'utf-8','us-ascii'])
-  ->  In2 = In1,
-      Close = true
-  ;   debug(io(recode), "~a → utf-8", [EncLower]),
-      process_open(iconv, In1, ['-c','-f',EncLower,'-t','utf-8'], In2),
-      Close = In2
-  ),
-  % Store the original encoding.
-  InEntry2 = InEntry1.put(_{encoding: Enc}),
-  call_cleanup(
-    call(Goal_3, In2, [InEntry2|InPath1], InPath2),
+call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
+  InPath1 = [InEntry|_],
+  get_dict(format, InEntry, raw),
+  get_dict(name, InEntry, data), !,
+  setup_call_cleanup(
+    recode_stream(In1, In2, Close, SourceOpts),
+    call(Goal_3, In2, InPath1, InPath2),
     close_any2(Close)
   ).
 % Compressed and/or packaged input stream.
@@ -551,10 +549,21 @@ copy_stream_data(Out, In, InPath, InPath) :-
 
 
 
-%! guess_string_encoding(+Str, -Enc) is det.
+%! guess_stream_encoding(+In, -Enc) is det.
 
-guess_string_encoding(Str, Enc) :-
-  string_phrase('XMLDecl'(_, Enc, _), Str, _), !.
+guess_stream_encoding(In1, Enc) :-
+  peek_string(In1, 4000, Chunk),
+  guess_string_encoding(Chunk, Enc).
+
+
+
+%! guess_string_encoding(+Str, -Enc) is det.
+%
+% Encoding Enc is converted to lowercase.
+
+guess_string_encoding(Str, Enc2) :-
+  string_phrase('XMLDecl'(_, Enc1, _), Str, _), !,
+  downcase_atom(Enc1, Enc2).
 guess_string_encoding(Str, Enc3) :-
   setup_call_cleanup(
     open_binary_string(Str, In),
@@ -562,13 +571,13 @@ guess_string_encoding(Str, Enc3) :-
       process_open(uchardet, In, Out),
       (
         read_string(Out, Enc1),
-        split_string(Enc1, "", "\n", [Enc2|_]),
-        atom_string(Enc3, Enc2)
+        split_string(Enc1, "", "\n", [Enc2|_])
       ),
       close(Out)
     ),
     close(In)
-  ).
+  ),
+  downcase_atom(Enc2, Enc3).
 
 
 
@@ -643,6 +652,19 @@ process_open(Cmd, In1, Args, Out) :-
   %%%%  ),
   %%%%  close(Err)
   %%%%).
+
+
+
+%! recode_stream(+In1, -In2, -Close, +Opts) is det.
+
+recode_stream(In1, In2, In2, SourceOpts) :-
+  option(recode(true), SourceOpts),
+  option(from_encoding(Enc), SourceOpts),
+  (var(Enc) -> guess_stream_encoding(In1, Enc) ; true),
+  \+ memberchk(Enc, [ascii,'ascii/unknown','utf-8','us-ascii']), !,
+  debug(io(recode), "~a → utf-8", [Enc]),
+  process_open(iconv, In1, ['-c','-f',Enc,'-t','utf-8'], In2).
+recode_stream(In, In, true, _).
 
 
 
@@ -758,37 +780,6 @@ open_any2(Spec, Mode, Stream2, Close, Path, Opts) :-
   indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1]),
   open_any2_hash(Stream1, Stream2, Opts).
 
-open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
-  (   compound(Spec)
-  ->  merge_options([access(Mode)], Opts, PathOpts),
-      absolute_file_name(Spec, File, PathOpts)
-  ;   % Allow ‘~’ to be used.
-      expand_file_name(Spec, [File|_])
-  ),
-  open(File, Mode, Stream, [type(binary)]),
-  Entry = _{mode: Mode, name: File, type: file}.
-open_any2_variant(stream(Stream), Mode, Stream, true, [Entry], _) :- !,
-  stream_property(Stream, mode(Mode)),
-  Entry = _{mode: Mode, type: stream}.
-open_any2_variant(string(Str), read, In, In, [InEntry], _) :- !,
-  open_binary_string(Str, In),
-  InEntry = _{mode: read, type: string}.
-open_any2_variant(uri(Uri), read, In, In, InPath, Opts) :- !,
-  http_io:http_open_any(Uri, In, InPath, Opts).
-% Guess whether the specification is a file, stream or URI (no
-% strings).
-open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
-  (   is_stream(Spec1)
-  ->  Spec2 = stream(Spec1)
-  ;   atomic(Spec1)
-  ->  (   uri_file_name(Spec1, Spec2)
-      ->  Spec2 = file(Spec1)
-      ;   is_http_iri(Spec1)
-      ->  Spec2 = uri(Spec1)
-      ;   Spec2 = file(Spec1)
-      )
-  ),
-  open_any2_variant(Spec2, Mode, Stream, Close, Path, Opts).
 
 open_any2_hash(Stream1, Stream2, Opts) :-
   (   option(md5(_), Opts)
@@ -807,6 +798,40 @@ open_any2_hash(Stream1, Stream2, Opts) :-
   % The parent is closed automatically when the child is closed.
   open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
 open_any2_hash(Stream, Stream, _).
+
+
+open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
+  (   compound(Spec)
+  ->  merge_options([access(Mode)], Opts, PathOpts),
+      absolute_file_name(Spec, File, PathOpts)
+  ;   % Allow ‘~’ to be used.
+      expand_file_name(Spec, [File|_])
+  ),
+  open(File, Mode, Stream, [type(binary)]),
+  Entry = _{'@id': File, '@type': file, mode: Mode}.
+open_any2_variant(stream(Stream), Mode, Stream, true, [Entry], _) :- !,
+  stream_property(Stream, mode(Mode)),
+  Entry = _{'@type': stream, mode: Mode}.
+open_any2_variant(string(Str), read, In, In, [InEntry], _) :- !,
+  open_binary_string(Str, In),
+  InEntry = _{'@type': string, mode: read}.
+open_any2_variant(uri(Uri), read, In, In, InPath, Opts) :- !,
+  http_io:http_open_any(Uri, In, InPath, Opts).
+% Guess whether the specification is a file, stream or URI (no
+% strings).
+open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
+  (   is_stream(Spec1)
+  ->  Spec2 = stream(Spec1)
+  ;   atomic(Spec1)
+  ->  (   uri_file_name(Spec1, Spec2)
+      ->  Spec2 = file(Spec1)
+      ;   is_http_iri(Spec1)
+      ->  Spec2 = uri(Spec1)
+      ;   Spec2 = file(Spec1)
+      )
+  ;   Spec2 = file(Spec1)
+  ),
+  open_any2_variant(Spec2, Mode, Stream, Close, Path, Opts).
 
 
 

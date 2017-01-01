@@ -1,23 +1,23 @@
 :- module(
   http_io,
   [
-    http_delete/1,               % +Iri
-    http_delete/2,               % +Iri, :Goal_3
-    http_delete/3,               % +Iri, :Goal_3, +Opts
-    http_get/1,                  % +Iri
-    http_get/2,                  % +Iri, :Goal_3
-    http_get/3,                  % +Iri, :Goal_3, +Opts
-    http_head/1,                 % +Iri
-    http_head/2,                 % +Iri, +Opts
+    http_delete/1,               % +Uri
+    http_delete/2,               % +Uri, :Goal_3
+    http_delete/3,               % +Uri, :Goal_3, +Opts
+    http_get/1,                  % +Uri
+    http_get/2,                  % +Uri, :Goal_3
+    http_get/3,                  % +Uri, :Goal_3, +Opts
+    http_head/1,                 % +Uri
+    http_head/2,                 % +Uri, +Opts
     http_is_scheme/1,            % ?Scheme
-    http_options/1,              % +Iri
-    http_options/2,              % +Iri, +Opts
-    http_post/2,                 % +Iri, +Data
-    http_post/3,                 % +Iri, +Data, :Goal_3
-    http_post/4,                 % +Iri, +Data, :Goal_3, +Opts
-    http_put/2,                  % +Iri, +Data
-    http_put/3,                  % +Iri, +Data, :Goal_3
-    http_put/4,                  % +Iri, +Data, :Goal_3, +Opts
+    http_options/1,              % +Uri
+    http_options/2,              % +Uri, +Opts
+    http_post/2,                 % +Uri, +Data
+    http_post/3,                 % +Uri, +Data, :Goal_3
+    http_post/4,                 % +Uri, +Data, :Goal_3, +Opts
+    http_put/2,                  % +Uri, +Data
+    http_put/3,                  % +Uri, +Data, :Goal_3
+    http_put/4,                  % +Uri, +Data, :Goal_3, +Opts
     http_retry_until_success/1,  % :Goal_0
     http_retry_until_success/2,  % :Goal_0, +Timeout
     http_status_is_auth_error/1, % +Status
@@ -118,52 +118,52 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 
 
 
-%! http_delete(+Iri) is semidet.
-%! http_delete(+Iri, :Goal_3) is semidet.
-%! http_delete(+Iri, :Goal_3, +Opts) is semidet.
+%! http_delete(+Uri) is semidet.
+%! http_delete(+Uri, :Goal_3) is semidet.
+%! http_delete(+Uri, :Goal_3, +Opts) is semidet.
 
-http_delete(Iri) :-
-  http_delete(Iri, http_default_success).
-
-
-http_delete(Iri, Goal_3) :-
-  http_delete(Iri, Goal_3, []).
+http_delete(Uri) :-
+  http_delete(Uri, http_default_success).
 
 
-http_delete(Iri, Goal_3, Opts0) :-
+http_delete(Uri, Goal_3) :-
+  http_delete(Uri, Goal_3, []).
+
+
+http_delete(Uri, Goal_3, Opts0) :-
   merge_options(Opts0, [method(delete)], Opts),
-  call_on_stream(Iri, Goal_3, Opts).
+  call_on_stream(Uri, Goal_3, Opts).
 
 
 
-%! http_get(+Iri) is det.
-%! http_get(+Iri, :Goal_3) is det.
-%! http_get(+Iri, :Goal_3, +Opts) is det.
+%! http_get(+Uri) is det.
+%! http_get(+Uri, :Goal_3) is det.
+%! http_get(+Uri, :Goal_3, +Opts) is det.
 
-http_get(Iri) :-
-  http_get(Iri, http_default_success).
-
-
-http_get(Iri, Goal_3) :-
-  http_get(Iri, Goal_3, []).
+http_get(Uri) :-
+  http_get(Uri, http_default_success).
 
 
-http_get(Iri, Goal_3, Opts0) :-
+http_get(Uri, Goal_3) :-
+  http_get(Uri, Goal_3, []).
+
+
+http_get(Uri, Goal_3, Opts0) :-
   merge_options([method(get)], Opts0, Opts),
-  call_on_stream(Iri, Goal_3, Opts).
+  call_on_stream(Uri, Goal_3, Opts).
 
 
 
-%! http_head(+Iri) is semidet.
-%! http_head(+Iri, +Opts) is semidet.
+%! http_head(+Uri) is semidet.
+%! http_head(+Uri, +Opts) is semidet.
 
-http_head(Iri) :-
-  http_head(Iri, []).
+http_head(Uri) :-
+  http_head(Uri, []).
 
 
-http_head(Iri, Opts0) :-
+http_head(Uri, Opts0) :-
   merge_options(Opts0, [method(head)], Opts),
-  call_on_stream(Iri, ensure_empty0, Opts).
+  call_on_stream(Uri, ensure_empty0, Opts).
 
 ensure_empty0(In, Path, Path) :-
   copy_stream_data(In, _, Len),
@@ -178,7 +178,7 @@ http_is_scheme(https).
 
 
 
-%! http_open_any(+Iri, -In, -Path, +Opts) is det.
+%! http_open_any(+Uri, -In, -Path, +Opts) is det.
 %
 % The following options are supported:
 %
@@ -190,9 +190,11 @@ http_is_scheme(https).
 %
 %     Contains the following keys:
 %
-%       * headers(list(list(code)))
+%       * '@id'(atom)
 %
-%       * iri(atom)
+%       * '@type'(oneof([uri]))
+%
+%       * headers(list(list(code)))
 %
 %       * status(between(100,599))
 %
@@ -218,7 +220,7 @@ http_is_scheme(https).
 % Since InPath returns an entry list that may contain headers from
 % multiple consecutive HTTP replies, option header/1 is not supported.
 
-http_open_any(Iri, In, InPath, Opts) :-
+http_open_any(Uri, In, InPath, Opts) :-
   option(max_redirects(MaxRedirect), Opts, 5),
   option(max_retries(MaxRetry), Opts, 1),
   State = _{
@@ -233,9 +235,9 @@ http_open_any(Iri, In, InPath, Opts) :-
   ;   Flags = []
   ),
   option(method(Method), Opts, get),
-  debug_call(Flags, http_open1(Iri, Method, State, In, InPath, Opts)).
+  debug_call(Flags, http_open1(Uri, Method, State, In, InPath, Opts)).
 
-http_open1(Iri, Method, State, In2, InPath, Opts) :-
+http_open1(Uri, Method, State, In2, InPath, Opts) :-
   copy_term(Opts, OldOpts),
   setting(user_agent, UA),
   NewOpts = [
@@ -254,119 +256,120 @@ http_open1(Iri, Method, State, In2, InPath, Opts) :-
   call_timeout(
     Time,
     call_statistics(
-      catch(http_open(Iri, In1, HttpOpts), E, true),
+      catch(http_open(Uri, In1, HttpOpts), E, true),
       walltime,
       TS
     )
   ),
-  indent_debug(in, io, "R> ~a → ~w", [Iri,In1]),
+  indent_debug(in, io, "R> ~a → ~w", [Uri,In1]),
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
       (   option(verbose(all), Opts)
-      ->  http_msg(user_output, Iri, Method, Status, Lines)
+      ->  http_msg(user_output, Uri, Method, Status, Lines)
       ;   true
       ),
-      H = _{
+      InEntry = _{
+        '@id': Uri,
+        '@type': uri,
         headers: Headers,
-        iri: Iri,
         status: Status,
         time: TS,
         version: _{major: Major, minor: Minor}
       },
-      http_open2(Iri, Method, State, Location, Lines, In1, [H|T], In2, Opts),
-      reverse([H|T], InPath)
+      http_open2(Uri, Method, State, Location, Lines, In1, [InEntry|InPath], In2, Opts),
+      reverse([InEntry|InPath], InPath)
   ;   InPath = [],
       throw(E)
   ).
 
 % Authentication error.
-http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
-  http_status_is_auth_error(H.status),
+http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
+  http_status_is_auth_error(InEntry.status),
   http_open:parse_headers(Lines, Headers),
-  http:authenticate_client(Iri, auth_reponse(Headers, Opts, AuthOpts)), !,
+  http:authenticate_client(Uri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
-  http_open1(Iri, Method, State, In2, T, AuthOpts).
+  http_open1(Uri, Method, State, In2, InPath, AuthOpts).
 % Non-authentication error.
-http_open2(Iri, Method, State, _, Lines, In1, [H|T], In2, Opts) :-
-  http_status_is_error(H.status), !,
+http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
+  http_status_is_error(InEntry.status), !,
   (   \+ option(verbose(error), Opts)
   ->  true
-  ;   http_error_msg(Iri, Method, H.status, Lines, In1)
+  ;   http_error_msg(Uri, Method, InEntry.status, Lines, In1)
   ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
-      T = []
-  ;   http_open1(Iri, Method, State, In2, T, Opts)
+      InPath = []
+  ;   http_open1(Uri, Method, State, In2, InPath, Opts)
   ).
 % Redirect.
-http_open2(Iri0, Method, State, Location, _, In1, [H|T], In2, Opts) :-
-  http_status_is_redirect(H.status), !,
+http_open2(Uri0, Method, State, Location, _, In1, [InEntry|InPath], In2, Opts) :-
+  http_status_is_redirect(InEntry.status), !,
   close(In1),
-  uri_resolve(Location, Iri0, Iri),
-  dict_prepend(visited, State, Iri),
+  uri_resolve(Location, Uri0, Uri),
+  dict_prepend(visited, State, Uri),
   (   http_is_redirect_limit_exceeded(State)
-  ->  http_throw_max_redirect_error(Iri, State.max_redirects)
-  ;   http_is_redirect_loop(Iri, State)
-  ->  http_throw_looping_redirect_error(Iri)
+  ->  http_throw_max_redirect_error(Uri, State.max_redirects)
+  ;   http_is_redirect_loop(Uri, State)
+  ->  http_throw_looping_redirect_error(Uri)
   ;   true
   ),
   http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Iri, Method, State, In2, T, RedirectOpts).
+  http_open1(Uri, Method, State, In2, InPath, RedirectOpts).
 % Success.
 http_open2(_, _, _, _, _, In, [_], In, _).
 
 
 
-%! http_options(+Iri) is semidet.
-%! http_options(+Iri, +Opts) is semidet.
+%! http_options(+Uri) is semidet.
+%! http_options(+Uri, +Opts) is semidet.
 
-http_options(Iri) :-
-  http_options(Iri, []).
+http_options(Uri) :-
+  http_options(Uri, []).
 
 
-http_options(Iri, Opts0) :-
+http_options(Uri, Opts0) :-
   merge_options(Opts0, [method(options)], Opts),
-  call_on_stream(Iri, true0, Opts).
+  call_on_stream(Uri, true0, Opts).
 
 true0(_, InPath, InPath).
 
 
 
-%! http_post(+Iri, +Data:compound) is det.
-%! http_post(+Iri, +Data:compound, :Goal_3) is det.
-%! http_post(+Iri, +Data:compound, :Goal_3, +Opts) is det.
+%! http_post(+Uri, +Data:compound) is det.
+%! http_post(+Uri, +Data:compound, :Goal_3) is det.
+%! http_post(+Uri, +Data:compound, :Goal_3, +Opts) is det.
 
-http_post(Iri, Data) :-
-  http_post(Iri, Data, http_default_success).
-
-
-http_post(Iri, Data, Goal_3) :-
-  http_post(Iri, Data, Goal_3, []).
+http_post(Uri, Data) :-
+  http_post(Uri, Data, http_default_success).
 
 
-http_post(Iri, Data, Goal_3, Opts0) :-
+http_post(Uri, Data, Goal_3) :-
+  http_post(Uri, Data, Goal_3, []).
+
+
+http_post(Uri, Data, Goal_3, Opts0) :-
   merge_options([method(post),post(Data)], Opts0, Opts),
-  call_on_stream(Iri, Goal_3, Opts).
+  call_on_stream(Uri, Goal_3, Opts).
 
 
 
-%! http_put(+Iri, +Data:compound) is det.
-%! http_put(+Iri, +Data:compound, :Goal_3) is det.
-%! http_put(+Iri, +Data:compound, :Goal_3, +Opts) is det.
+%! http_put(+Uri, +Data:compound) is det.
+%! http_put(+Uri, +Data:compound, :Goal_3) is det.
+%! http_put(+Uri, +Data:compound, :Goal_3, +Opts) is det.
 
-http_put(Iri, Data) :-
-  http_put(Iri, Data, http_default_success).
-
-
-http_put(Iri, Data, Goal_3) :-
-  http_put(Iri, Data, Goal_3, []).
+http_put(Uri, Data) :-
+  http_put(Uri, Data, http_default_success).
 
 
-http_put(Iri, Data, Goal_3, Opts0) :-
+http_put(Uri, Data, Goal_3) :-
+  http_put(Uri, Data, Goal_3, []).
+
+
+http_put(Uri, Data, Goal_3, Opts0) :-
   merge_options([method(put),post(Data)], Opts0, Opts),
-  call_on_stream(Iri, Goal_3, Opts).
+  call_on_stream(Uri, Goal_3, Opts).
 
 
 
@@ -389,8 +392,8 @@ http_retry_until_success(Goal_0, Timeout) :-
       var(E)
   ->  true
   ;   % HTTP error status code
-      E = error(existence_error(_,[H|_]),_),
-      Status = H.status,
+      E = error(existence_error(_,[InEntry|_]),_),
+      Status = InEntry.status,
       (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
   ->  indent_debug(http_io, "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
@@ -473,11 +476,11 @@ http_default_success(In, InPath, InPath) :-
 
 
 
-%! http_error_msg(+Iri, +Method, +Status, +Lines, +In) is det.
+%! http_error_msg(+Uri, +Method, +Status, +Lines, +In) is det.
 
-http_error_msg(Iri, Method, Status, Lines, In) :-
+http_error_msg(Uri, Method, Status, Lines, In) :-
   format(user_error, "HTTP ERROR:~n", []),
-  http_msg(user_error, Iri, Method, Status, Lines),
+  http_msg(user_error, Uri, Method, Status, Lines),
   peek_string(In, 1000, Str),
   format(user_error, "  Message content:~n    ~s~n", [Str]).
 
@@ -494,10 +497,10 @@ http_is_redirect_limit_exceeded(State) :-
 
 
 
-%! http_is_redirect_loop(+Iri, +State) is semidet.
+%! http_is_redirect_loop(+Uri, +State) is semidet.
 
-http_is_redirect_loop(Iri, State) :-
-  include(==(Iri), State.visited, L),
+http_is_redirect_loop(Uri, State) :-
+  include(==(Uri), State.visited, L),
   length(L, Len),
   Len >= 2.
 
@@ -553,13 +556,13 @@ http_merge_headers(Key-Vals, Key-Val) :-
 
 
 
-%! http_msg(+Out, +Iri, +Method, +Status, +Lines) is det.
+%! http_msg(+Out, +Uri, +Method, +Status, +Lines) is det.
 
-http_msg(Out, Iri, Method, Status, Lines) :-
+http_msg(Out, Uri, Method, Status, Lines) :-
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
   format(Out, "  Method:~n    ~a~n", [Method]),
   format(Out, "  Response:~n    ~d (~a)~n", [Status,Lbl]),
-  format(Out, "  IRI:~n    ~a~n", [Iri]),
+  format(Out, "  URI:~n    ~a~n", [Uri]),
   format(Out, "  Headers:~n", []),
   http_lines_pairs(Lines, Pairs),
   maplist(http_header_msg0(Out), Pairs),
@@ -571,25 +574,25 @@ http_header_msg0(Out, Key-Val) :-
 
 
 
-%! http_throw_looping_redirect_error(+Iri) is det.
+%! http_throw_looping_redirect_error(+Uri) is det.
 
-http_throw_looping_redirect_error(Iri) :-
+http_throw_looping_redirect_error(Uri) :-
   throw(
     error(
-      permission_error(redirect, http, Iri),
+      permission_error(redirect, http, Uri),
       context(_, 'Redirection loop')
     )
   ).
 
 
 
-%! http_throw_max_redirect_error(+Iri, +Max) is det.
+%! http_throw_max_redirect_error(+Uri, +Max) is det.
 
-http_throw_max_redirect_error(Iri, Max) :-
+http_throw_max_redirect_error(Uri, Max) :-
   format(atom(Comment), "max_redirect (~w) limit exceeded", [Max]),
   throw(
     error(
-      permission_error(redirect, http, Iri),
+      permission_error(redirect, http, Uri),
       context(_, Comment)
     )
   ).

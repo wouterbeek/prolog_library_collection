@@ -2,8 +2,8 @@
   http_pagination,
   [
     http_pagination_header/1, % +Result
-    http_pagination_iri/3,    % +Result, ?Rel, -Iri
-    http_pagination_iris/2    % +Result, -Pairs
+    http_pagination_uri/3,    % +Result, ?Rel, -Uri
+    http_pagination_uris/2    % +Result, -Pairs
   ]
 ).
 :- reexport(library(pagination/pagination)).
@@ -24,7 +24,7 @@
 %! http_pagination_header(+Result) is semidet.
 
 http_pagination_header(Result) :-
-  http_pagination_iris(Result, Pairs),
+  http_pagination_uris(Result, Pairs),
   format("Link: "),
   http_pagination_header0(Pairs),
   nl.
@@ -37,28 +37,28 @@ http_pagination_header0([H|T]) :- !,
   format(", "),
   http_pagination_header0(T).
 
-http_pagination_header_comp0(Rel-Iri) :-
-  format('<~a>; rel="~a"', [Iri,Rel]).
+http_pagination_header_comp0(Rel-Uri) :-
+  format('<~a>; rel="~a"', [Uri,Rel]).
 
 
 
-%! http_pagination_iri(+Result, +Rel, -Iri) is semidet.
-%! http_pagination_iri(+Result, -Rel, -Iri) is nondet.
+%! http_pagination_uri(+Result, +Rel, -Uri) is semidet.
+%! http_pagination_uri(+Result, -Rel, -Uri) is nondet.
 
-http_pagination_iri(Result, Rel, Iri) :-
+http_pagination_uri(Result, Rel, Uri) :-
   pagination_page(Result, Rel, Page),
   dict_get(query, Result, [], QueryComps),
   uri_query_components(Query, [page(Page)|QueryComps]),
-  uri_components(Result.iri, uri_components(Scheme,Auth,Path,_,_)),
-  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)).
+  uri_components(Result.uri, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 
-%! http_pagination_iris(+Result, -Pairs) is det.
+%! http_pagination_uris(+Result, -Pairs) is det.
 %
 % Returns the Page for the given pagination Result.
 %
-% @param Pairs are of the form `Rel-Iri`.
+% @param Pairs are of the form `Rel-Uri`.
 
-http_pagination_iris(Result, Pairs) :-
-  findall(Rel-Iri, http_pagination_iri(Result, Rel, Iri), Pairs).
+http_pagination_uris(Result, Pairs) :-
+  findall(Rel-Uri, http_pagination_uri(Result, Rel, Uri), Pairs).

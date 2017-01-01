@@ -28,7 +28,7 @@
 %! html_pagination_links(+Result)// is det.
 
 html_pagination_links(Result) -->
-  {http_pagination_iris(Result, Pairs)},
+  {http_pagination_uris(Result, Pairs)},
   html_maplist(link, Pairs).
 
 
@@ -54,7 +54,7 @@ html_pagination_pager(Result) -->
 
 html_pagination_pager_prev(Result) -->
   {
-    (   http_pagination_iri(Result, prev, Prev)
+    (   http_pagination_uri(Result, prev, Prev)
     ->  AAttrs = [href=Prev],
         LiAttrs = []
     ;   AAttrs = [],
@@ -69,7 +69,7 @@ html_pagination_pager_prev(Result) -->
 
 html_pagination_pager_next(Result) -->
   {
-    (   http_pagination_iri(Result, next, Next)
+    (   http_pagination_uri(Result, next, Next)
     ->  AAttrs = [href=Next],
         LiAttrs = []
     ;   AAttrs = [],
@@ -90,13 +90,13 @@ html_pagination_range(Result) -->
 
 %! html_pagination_result(+Result, :Html_1)// is det.
 %
-% Opts are required because it contains the `iri` based on which the
-% backward/forward request IRIs are build.
+% Opts are required because it contains the `uri` based on which the
+% backward/forward request URIs are build.
 %
 % Result contains the following keys: ‘number_of_results’,
 % ‘page’, ‘page_size’.
 %
-% Result must contain the keys ‘iri’ and ‘query’.
+% Result must contain the keys ‘uri’ and ‘query’.
 
 html_pagination_result(Result, Html_1) -->
   html_call(Html_1, Result.results),
