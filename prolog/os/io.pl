@@ -162,7 +162,7 @@ call_on_stream0(In1, Goal_3, [InEntry1|InPath1], InPath2, SourceOpts) :-
   ->  In2 = In1,
       Close = true
   ;   debug(io(recode), "~a → utf-8", [EncLower]),
-      process_open(iconv, In1, ['-f',EncLower,'-t','utf-8'], In2),
+      process_open(iconv, In1, ['-c','-f',EncLower,'-t','utf-8'], In2),
       Close = In2
   ),
   % Store the original encoding.
@@ -626,20 +626,23 @@ process_open(Cmd, In1, Args, Out) :-
   process_create(
     path(Cmd),
     Args,
-    [stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
+    [stdin(pipe(In2)),stdout(pipe(Out))]
+    %%%%[stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
   ),
   set_stream(In2, type(binary)),
   call_cleanup(
     copy_stream_data(In1, In2),
     close(In2)
-  ),
-  call_cleanup(
-    (
-      read_stream_to_string(Err, Msg),
-      (Msg == "" -> true ; msg_warning(Msg))
-    ),
-    close(Err)
   ).
+  % @bug Does not terminate for
+  % http://lists.w3.org/Archives/Public/html-tidy/2011JulSep/0001.html
+  %%%%call_cleanup(
+  %%%%  (
+  %%%%    read_stream_to_string(Err, Msg),
+  %%%%    (Msg == "" -> true ; msg_warning(Msg))
+  %%%%  ),
+  %%%%  close(Err)
+  %%%%).
 
 
 

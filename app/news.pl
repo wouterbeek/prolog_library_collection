@@ -97,7 +97,7 @@ scrape(Group) :-
       post_dict(Group, Post, Dict),
       assert_post(Dict),
       debug(news, "~w", Dict.from_date),
-      sleep(1)
+      sleep(0)
     )
   ),
   format(user_output, "DONE!~n", []).
@@ -317,3 +317,15 @@ timezone_label(0, 0, 0) --> "UTC".
 timezone_label(7, 0, 0) --> "MST".
 timezone_label(7, 0, 0) --> "PDT".
 timezone_label(8, 0, 0) --> "PST".
+timezone_label(H, 0, 0) -->
+  "GMT",
+  inv_sign(H),
+  {H0 is abs(H)},
+  date:hour(H0),
+  ":00".
+
+inv_sign(N) -->
+  {N =< 0}, !,
+  "+".
+inv_sign(_) -->
+  "-".
