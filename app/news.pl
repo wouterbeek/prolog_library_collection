@@ -96,8 +96,7 @@ scrape(Group) :-
       debug(news, "~a", [Post]),
       post_dict(Group, Post, Dict),
       assert_post(Dict),
-      debug(news, "~w", Dict.from_date),
-      sleep(0)
+      debug(news, "~w", Dict.from_date)
     )
   ),
   format(user_output, "DONE!~n", []).
@@ -117,15 +116,22 @@ group_timeframe(BaseUri, AbsUri) :-
 
 
 
-%! post_dict(+Group:uri, +Post:uri, -Post:dict) is det.
+%! post_dict(+Group:uri, +Post:uri, -Post:dict) is semidet.
 %
 % Prints a warning whenever something goes wrong.
+%
+% Fails for messages that are spam or that are too buggy to interpret.
 
 post_dict(Group, Post, Dict) :-
   html_download(Post, Dom),
-  (   post_dom_dict(Group, Post, Dom, Dict)
+  (   xpath_chk(Dom, //div(@class=spam), _)
+  ->  from_date(Dom, FromDate),
+      msg_warning("Post is spam: ~a~n", [Post]),
+      Dict = _{'@id': Post, '@type': spam, from_date: FromDate}
+  ;   post_dom_dict(Group, Post, Dom, Dict)
   ->  true
-  ;   msg_warning("Did not parse post ~a~n", [Post])
+  ;   msg_warning("Post too buggy to parse: ~a~n", [Post]),
+      Dict = _{'@id': Post, '@type': buggy}
   ).
 
 
@@ -140,10 +146,8 @@ post_dom_dict(Group, Post, Dom, Dict5) :-
   FromNameDom = [_,FromName0|_],
   atom_concat(FromName, ' <', FromName0),
   xpath_chk(Dom, //span(@id=from)/a(normalize_space), FromEmail),
-  % from_date
-  xpath_chk(Dom, //span(@id=date,content), FromDateDom),
-  FromDateDom = [_,FromDate0|_],
-  once(atom_phrase(nonstandard_date(FromDate), FromDate0)),
+  % from date
+  from_date(Dom, FromDate),
   % id
   xpath_chk(Dom, //span(@id='message-id',content), IdDom),
   IdDom = [_,Id|_],
@@ -152,7 +156,7 @@ post_dom_dict(Group, Post, Dom, Dict5) :-
   % to_date
   xpath_chk(Dom, //span(@id=received,content), ToDateDom),
   ToDateDom = [_,ToDate0|_],
-  once(atom_phrase(nonstandard_date(ToDate), ToDate0)),
+  once(atom_phrase(nonstandard_date(ToDate), ToDate0, _)),
   Dict1 = _{
     '@id': Post,
     body: Body,
@@ -188,6 +192,11 @@ post_dom_dict(Group, Post, Dom, Dict5) :-
   ;   Dict5 = Dict4
   ).
 
+from_date(Dom, FromDate) :-
+  xpath_chk(Dom, //span(@id=date,content), FromDateDom),
+  FromDateDom = [_,FromDate0|_],
+  once(atom_phrase(nonstandard_date(FromDate), FromDate0, _)).
+
 
 
 %! timeframe_post(+TimeframeUri, -PostUri) is nondet.
@@ -206,6 +215,21 @@ timeframe_post(BaseUri, AbsUri) :-
 
 %! assert_post(+Post:dict) is det.
 
+assert_post(Dict) :-
+  _{'@id': Post, '@type': buggy} :< Dict, !,
+  G = w3c,
+  rdf_assert(Post, rdf:type, ex:'BuddyMessage', G).
+assert_post(Dict) :-
+  _{
+    '@id': Post,
+    '@type': spam,
+    from_date: FromDate,
+    to_date: ToDate
+  } :< Dict, !,
+  G = w3c,
+  rdf_assert(Post, rdf:type, ex:'SpamMessage', G),
+  rdf_assert(Post, ex:fromDate, FromDate^^xsd:dateTime, G),
+  rdf_assert(Post, ex:toDate, ToDate^^xsd:dateTime, G).
 assert_post(Dict) :-
   _{
     '@id': Post,
@@ -289,15 +313,17 @@ month_name(Mo) --> date:month_name(Mo).
 
 nonstandard_date(DateTime) -->
   (": " -> "" ; ""),
-  day_name, ", ", date:ws,
+  (day_name -> "," ; ""), date:ws,
   day_of_the_month(D), date:ws,
   month_name(Mo), date:ws,
   date:year(Y), date:ws,
   date:hour(H1), ":",
   date:minute(Mi1), ":",
   date:second(S1), date:ws,
+  % The timezone _labels_ are too irregular to parse.  E.g.,
+  % http://lists.w3.org/Archives/Public/html-tidy/2012AprJun/0011.html
+  % says "+1000 (EST)", but Eastern Standard Time is -0500.
   date:timezone(H2, Mi2, S2), date:ws,
-  ("(" -> timezone_label(H2, Mi2, S2), ")" ; ""),
   {
     H is H1 + H2,
     Mi is Mi1 + Mi2,
@@ -307,25 +333,3 @@ nonstandard_date(DateTime) -->
     'dt-pl_to_date_time'(PlDateTime, DateTime)
   }.
 
-
-timezone_label(-1, 0, 0) --> "BST".
-timezone_label(-2, 0, 0) --> "CEST".
-timezone_label(-8, 0, 0) --> "CST".
-timezone_label(-10, 0, 0) --> "EST".
-timezone_label(0, 0, 0) --> "GMT".
-timezone_label(0, 0, 0) --> "UTC".
-timezone_label(7, 0, 0) --> "MST".
-timezone_label(7, 0, 0) --> "PDT".
-timezone_label(8, 0, 0) --> "PST".
-timezone_label(H, 0, 0) -->
-  "GMT",
-  inv_sign(H),
-  {H0 is abs(H)},
-  date:hour(H0),
-  ":00".
-
-inv_sign(N) -->
-  {N =< 0}, !,
-  "+".
-inv_sign(_) -->
-  "-".

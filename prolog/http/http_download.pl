@@ -93,7 +93,7 @@ html_download(Source, Dom) :-
 
 
 html_download(Source, Dom, Opts1) :-
-  merge_options([encoding('utf-8'),max_errors(10)], Opts1, Opts2),
+  merge_options([encoding('utf-8'),max_errors(-1)], Opts1, Opts2),
   http_get(Source, html_download_stream(Dom, Opts2)).
 
 html_download_stream(Dom, Opts, In, InPath, InPath) :-
