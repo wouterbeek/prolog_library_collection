@@ -1264,6 +1264,7 @@ http_known_unknown('fastly-debug-path').
 http_known_unknown('fastly-debug-ttl').
 http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
+http_known_unknown('host-header').
 http_known_unknown(p3p).
 http_known_unknown(servidor).
 http_known_unknown(status).
@@ -1313,6 +1314,7 @@ http_known_unknown('x-powered-by').
 http_known_unknown('x-productontology-limit').
 http_known_unknown('x-productontology-offset').
 http_known_unknown('x-productontology-results').
+http_known_unknown('x-proxy-cache').
 http_known_unknown('x-purl').
 http_known_unknown('x-robots-tag'). % Has grammar.  Implemented.
 http_known_unknown('x-rack-cache').

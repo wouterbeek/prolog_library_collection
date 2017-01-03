@@ -23,6 +23,7 @@
     http_status_is_auth_error/1, % +Status
     http_status_is_error/1,      % +Status
     http_status_is_redirect/1,   % +Status
+    http_status_is_success/1,    % +Status
     http_status_label/2,         % +Status, -Lbl
     http_status_must_be/2,       % +Status, +MustBe
     http_throw_bad_request/1     % :Goal_0
@@ -58,12 +59,14 @@ The following debug flags are used:
 
   * http(error)
 
-  * http(headers)
+  * http(send_request)
 
-  * io
+  * http(reply)
+
+  * io(open)
 
 @author Wouter Beek
-@version 2016/07-2016/12
+@version 2016/07-2017/01
 */
 
 :- use_module(library(apply)).
@@ -88,6 +91,8 @@ The following debug flags are used:
 :- use_module(library(time)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
+
+:- debug(http(error)).
 
 :- meta_predicate
     http_delete(+, 3),
@@ -261,12 +266,12 @@ http_open1(Uri, Method, State, In2, InPath2, Opts) :-
       TS
     )
   ),
-  indent_debug(in, io, "R> ~a → ~w", [Uri,In1]),
+  indent_debug(in, io(open), "R» ~a → ~w", [Uri,In1]),
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),
-      (   option(verbose(all), Opts)
-      ->  http_msg(user_output, Uri, Method, Status, Lines)
+      (   debugging(http(reply))
+      ->  http_msg(http(reply), Uri, Method, Status, Lines)
       ;   true
       ),
       InEntry1 = _{
@@ -405,12 +410,12 @@ http_retry_until_success(Goal_0, Timeout) :-
       E = error(existence_error(_,[InEntry|_]),_),
       Status = InEntry.status,
       (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
-  ->  indent_debug(http_io, "Status: ~D (~s)", [Status,Lbl]),
+  ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ;   % TCP error (Try Again)
       E = error(socket_error('Try Again'), _)
-  ->  indent_debug(http_io, "TCP Try Again"),
+  ->  indent_debug(http(error), "TCP Try Again"),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).
@@ -434,6 +439,13 @@ http_status_is_error(Status):-
 
 http_status_is_redirect(Status) :-
   between(300, 399, Status).
+
+
+
+%! http_status_is_success(+Status) is semidet.
+
+http_status_is_success(Status) :-
+  between(200, 299, Status).
 
 
 
@@ -489,10 +501,10 @@ http_default_success(In, InPath, InPath) :-
 %! http_error_msg(+Uri, +Method, +Status, +Lines, +In) is det.
 
 http_error_msg(Uri, Method, Status, Lines, In) :-
-  format(user_error, "HTTP ERROR:~n", []),
-  http_msg(user_error, Uri, Method, Status, Lines),
+  debug(http(error), "HTTP ERROR:", []),
+  http_msg(http(error), Uri, Method, Status, Lines),
   peek_string(In, 1000, Str),
-  format(user_error, "  Message content:~n    ~s~n", [Str]).
+  debug(http(error), "  Message content:~n    ~s", [Str]).
 
 
 
@@ -566,21 +578,20 @@ http_merge_headers(Key-Vals, Key-Val) :-
 
 
 
-%! http_msg(+Out, +Uri, +Method, +Status, +Lines) is det.
+%! http_msg(+Flag, +Uri, +Method, +Status, +Lines) is det.
 
-http_msg(Out, Uri, Method, Status, Lines) :-
+http_msg(Flag, Uri, Method, Status, Lines) :-
+  debug(Flag, "  Method: ~a", [Method]),
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  format(Out, "  Method:~n    ~a~n", [Method]),
-  format(Out, "  Response:~n    ~d (~a)~n", [Status,Lbl]),
-  format(Out, "  URI:~n    ~a~n", [Uri]),
-  format(Out, "  Headers:~n", []),
+  debug(Flag, "  Response: ~d (~a)", [Status,Lbl]),
+  debug(Flag, "  URI: ~a", [Uri]),
+  debug(Flag, "  Headers:", []),
   http_lines_pairs(Lines, Pairs),
-  maplist(http_header_msg0(Out), Pairs),
-  format(Out, "~n", []).
+  maplist(http_header_msg(Flag), Pairs).
 
-http_header_msg0(Out, Key-Val) :-
+http_header_msg(Flag, Key-Val) :-
   (http_known(Key) -> true ; gtrace),
-  format(Out, "    ~a: ~a~n", [Key,Val]).
+  debug(Flag, "    ~a: ~a", [Key,Val]).
 
 
 

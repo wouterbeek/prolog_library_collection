@@ -17,8 +17,9 @@
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
     close_any2/1,            % +Close
-    copy_stream_data/4,      % -Out, +In, +InPath1, -InPath2
+    copy_stream_data/4,      % +In, +InPath1, -InPath2, +Out
     guess_stream_encoding/2, % +In, -Enc
+    open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
     open_binary_string/2,    % +Str, -In
     process_open/3,          % +Cmd, +In, -Out
     process_open/4,          % +Cmd, +In, +Args, -Out
@@ -154,13 +155,9 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
     ),
     close_any2(Close)
   ),
-  % @bug: InPath3 is now uninstantiated.
   ignore(option(metadata(InPath3), SourceOpts)).
 
 
-% HTTP error status code may result in no stream at all.
-call_on_stream0(In, _, InPath, InPath, _) :-
-  var(In), !.
 % Empty input stream.
 call_on_stream0(In, _, InPath, InPath, _) :-
   at_end_of_stream(In), !.
@@ -547,9 +544,9 @@ close_metadata_hash(_, _).
 
 
 
-%! copy_stream_data(-Out, +In, +InPath1, -InPath2) is det.
+%! copy_stream_data(+In, +InPath1, -InPath2, +Out) is det.
 
-copy_stream_data(Out, In, InPath, InPath) :-
+copy_stream_data(In, InPath, InPath, Out) :-
   copy_stream_data(In, Out).
 
 
