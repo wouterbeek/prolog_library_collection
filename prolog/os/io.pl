@@ -35,7 +35,11 @@
 
 The following debug flags are used:
 
-  * io
+  - io(close)
+
+  - io(open)
+
+  - io(recode)
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
@@ -777,14 +781,14 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 %     * http_io:http_open_any/4
 
-open_any2(Spec, Mode, Stream2, Close, Path, Opts) :-
-  open_any2_variant(Spec, Mode, Stream1, Close, Path, Opts),
+open_any2(Spec, Mode, Stream2, Close2, Path, Opts) :-
+  open_any2_variant(Spec, Mode, Stream1, Close1, Path, Opts),
   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
   indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1]),
-  open_any2_hash(Stream1, Stream2, Opts).
+  open_any2_hash(Stream1, Close1, Stream2, Close2, Opts).
 
 
-open_any2_hash(Stream1, Stream2, Opts) :-
+open_any2_hash(Stream1, _, Stream2, Stream2, Opts) :-
   (   option(md5(_), Opts)
   ->  Alg = md5
   ;   option(sha1(_), Opts)
@@ -798,9 +802,10 @@ open_any2_hash(Stream1, Stream2, Opts) :-
   ;   option(sha512(_), Opts)
   ->  Alg = sha512
   ), !,
-  % The parent is closed automatically when the child is closed.
+  % The parent (Stream1) is closed automatically whenever the child
+  % (Stream2) is closed.
   open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
-open_any2_hash(Stream, Stream, _).
+open_any2_hash(Stream, Close, Stream, Close, _).
 
 
 open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
