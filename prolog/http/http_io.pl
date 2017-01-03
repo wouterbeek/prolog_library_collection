@@ -63,8 +63,6 @@ The following debug flags are used:
 
   * http(reply)
 
-  * io(open)
-
 @author Wouter Beek
 @version 2016/07-2017/01
 */
@@ -266,7 +264,6 @@ http_open1(Uri, Method, State, In2, InPath2, Opts) :-
       TS
     )
   ),
-  indent_debug(in, io(open), "R» ~a → ~w", [Uri,In1]),
   (   % No exception, so http_open/3 was successful.
       var(E)
   ->  http_lines_headers(Lines, Headers),

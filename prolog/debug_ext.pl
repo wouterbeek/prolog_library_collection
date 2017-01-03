@@ -17,7 +17,7 @@
     if_debug/2,                 % ?Flag, :Goal_0
     indent_debug/2,             % +Flag, +Format
     indent_debug/3,             % +Flag, +Format, +Args
-    indent_debug/4,             % +Diff, +Flag, +Format, +Args
+    indent_debug/4,             % +Mode, +Flag, +Format, +Args
     indent_debug_call/3,        % +Flag, +Format, :Goal_0
     number_of_open_files/1,     % -NunOpenFiles
     print_error/1               % +Error:compound
@@ -227,7 +227,7 @@ if_debug(_, Goal_0) :-
 
 %! indent_debug(+Flag, +Format) is det.
 %! indent_debug(+Flag, +Format, +Args) is det.
-%! indent_debug(+Diff, +Flag, +Format, +Args) is det.
+%! indent_debug(+Mode:oneof([in,out]), +Flag, +Format, +Args) is det.
 
 indent_debug(Flag, Format) :-
   indent_debug(Flag, Format, []).
