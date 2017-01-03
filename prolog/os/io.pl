@@ -39,12 +39,13 @@ The following debug flags are used:
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
-@version 2016/07-2016/12
+@version 2016/07-2017/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
 :- use_module(library(os/archive_ext)).
@@ -706,9 +707,11 @@ call_to_something(Goal_1, Type, Result) :-
 
 %! close_any2(+Close) is det.
 
-close_any2(true) :- !.
-close_any2(Stream) :-
-  close(Stream).
+close_any2(Close) :-
+  ground(Close),
+  (is_stream(Close) -> close(Close) ; Close == true).
+close_any2(Close) :-
+  instantiation_error(Close).
 
 
 

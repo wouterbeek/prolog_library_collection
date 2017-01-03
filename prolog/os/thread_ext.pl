@@ -57,6 +57,9 @@ attached_thread(Goal_0) :-
 
 
 %! call_in_thread(+Alias, :Goal_0) is det.
+%
+% Calls Goal_0 in a thread with given Alias and waits for that thread
+% to complete.
 
 call_in_thread(Alias, Goal_0) :-
   thread_create(Goal_0, Id, [alias(Alias)]),
