@@ -812,7 +812,8 @@ open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
   ;   % Allow ‘~’ to be used.
       expand_file_name(Spec, [File|_])
   ),
-  open(File, Mode, Stream, [type(binary)]),
+  open_options(Mode, OpenOpts),
+  open(File, Mode, Stream, OpenOpts),
   Entry = _{'@id': File, '@type': file, mode: Mode}.
 open_any2_variant(stream(Stream), Mode, Stream, true, [Entry], _) :- !,
   stream_property(Stream, mode(Mode)),
@@ -837,6 +838,11 @@ open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
   ;   Spec2 = file(Spec1)
   ),
   open_any2_variant(Spec2, Mode, Stream, Close, Path, Opts).
+
+open_options(Mode, [type(binary)]) :-
+  read_mode(Mode), !.
+open_options(Mode, [encoding(utf8),type(text)]) :-
+  write_mode(Mode), !.
 
 
 
