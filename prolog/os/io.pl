@@ -564,7 +564,8 @@ guess_stream_encoding(In1, Enc) :-
 % Encoding Enc is converted to lowercase.
 
 guess_string_encoding(Str, Enc2) :-
-  string_phrase('XMLDecl'(_, Enc1, _), Str, _), !,
+  string_phrase('XMLDecl'(_, Enc1, _), Str, _),
+  nonvar(Enc1),
   downcase_atom(Enc1, Enc2).
 guess_string_encoding(Str, Enc3) :-
   setup_call_cleanup(
@@ -661,12 +662,16 @@ process_open(Cmd, In1, Args, Out) :-
 
 recode_stream(In1, In2, In2, SourceOpts) :-
   option(recode(true), SourceOpts),
-  option(from_encoding(Enc), SourceOpts, _VAR),
-  (var(Enc) -> guess_stream_encoding(In1, Enc) ; true),
-  \+ memberchk(Enc, [ascii,'ascii/unknown','utf-8','us-ascii']), !,
-  debug(io(recode), "~a → utf-8", [Enc]),
-  process_open(iconv, In1, ['-c','-f',Enc,'-t','utf-8'], In2).
+  option(from_encoding(Enc1), SourceOpts, _VAR),
+  (var(Enc1) -> guess_stream_encoding(In1, Enc1) ; true),
+  \+ memberchk(Enc1, [ascii,'ascii/unknown','utf-8','us-ascii']), !,
+  debug(io(recode), "~a → utf-8", [Enc1]),
+  once(encoding_alias(Enc1, Enc2)),
+  process_open(iconv, In1, ['-c','-f',Enc2,'-t','utf-8'], In2).
 recode_stream(In, In, true, _).
+
+encoding_alias(macroman, macintosh).
+encoding_alias(Enc, Enc).
 
 
 
@@ -852,13 +857,13 @@ open_options(Mode, [encoding(utf8),type(text)]) :-
 % properties of Stream.  The following metadata properties are
 % included:
 %
-%   * byte_count(nonneg)
-%
-%   * char_count(nonneg)
-%
-%   * line_count(nonneg)
-%
 %   * newline(oneof([dos,posix]))
+%
+%   * number_of_bytes(nonneg)
+%
+%   * number_of_chars(nonneg)
+%
+%   * number_of_lines(nonneg)
 
 stream_metadata(Stream, Entry1, Entry2) :-
   stream_property(Stream, position(Pos)),
@@ -869,10 +874,10 @@ stream_metadata(Stream, Entry1, Entry2) :-
   merge_dicts(
     Entry1,
     _{
-      byte_count: NumBytes,
-      char_count: NumChars,
-      line_count: NumLines,
-      newline: Newline
+      newline: Newline,
+      number_of_bytes: NumBytes,
+      number_of_chars: NumChars,
+      number_of_lines: NumLines
     },
     Entry2
   ).
