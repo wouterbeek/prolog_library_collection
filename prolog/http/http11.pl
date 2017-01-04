@@ -159,6 +159,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
+:- use_module(library(http/http_alternative_services)).
 :- use_module(library(http/rfc2295)).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc6265)).
@@ -198,6 +199,7 @@ http_known_known('access-control-allow-methods').
 http_known_known('access-control-allow-origin').
 http_known_known('access-control-expose-headers').%@tbd
 http_known_known('access-control-request-method').
+http_known_known('alt-svc').
 http_known_known(alternates).
 http_known_known('content-disposition').
 http_known_known('content-security-policy').
@@ -1267,23 +1269,28 @@ http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
 http_known_unknown('host-header').
 http_known_unknown(p3p).
+http_known_unknown('r01-domain-origin').
 http_known_unknown(servidor).
 http_known_unknown(status).
 http_known_unknown(tcn).
 http_known_unknown(warning).
 http_known_unknown('x-acre-source-url').
 http_known_unknown('x-adblock-key').
+http_known_unknown('x-amz-id-2').
+http_known_unknown('x-amz-request-id').
+http_known_unknown('x-aspnet-version').
 http_known_unknown('x-backend').
 http_known_unknown('x-cache').
 http_known_unknown('x-cache-action').
 http_known_unknown('x-cache-age').
 http_known_unknown('x-cache-hits').
+http_known_unknown('x-cache-info').
 http_known_unknown('x-cache-lookup').
 http_known_unknown('x-cache-operation').
 http_known_unknown('x-cache-rule').
 http_known_unknown('x-cacheable').
 http_known_unknown('x-cloud-trace-context').
-http_known_unknown('x-content-type-options'). % Has grammar.  Implemented.
+http_known_unknown('x-content-type-options'). % Has grammar; implemented.
 http_known_unknown('x-dropbox-http-protocol').
 http_known_unknown('x-dropbox-request-id').
 http_known_unknown('x-drupal-cache').
@@ -1301,6 +1308,7 @@ http_known_unknown('x-goog-storage').
 http_known_unknown('x-goog-storage-class').
 http_known_unknown('x-goog-stored-content-encoding').
 http_known_unknown('x-goog-stored-content-length').
+http_known_unknown('x-guploader-uploadid').
 http_known_unknown('x-http-host').
 http_known_unknown('x-hosted-by').
 http_known_unknown('x-metaweb-cost').
@@ -1320,6 +1328,8 @@ http_known_unknown('x-proxy-cache').
 http_known_unknown('x-purl').
 http_known_unknown('x-robots-tag'). % Has grammar.  Implemented.
 http_known_unknown('x-rack-cache').
+http_known_unknown('x-render-time').
+http_known_unknown('x-request-count').
 http_known_unknown('x-request-id').
 http_known_unknown('x-response-id').
 http_known_unknown('x-runtime').
@@ -1329,6 +1339,7 @@ http_known_unknown('x-server').
 http_known_unknown('x-sparql').
 http_known_unknown('x-sparql-default-graph').
 http_known_unknown('x-sparql-maxrows').
+http_known_unknown('x-static-version').
 http_known_unknown('x-timer').
 http_known_unknown('x-total-results').
 http_known_unknown('x-ua-compatible').
@@ -1337,6 +1348,7 @@ http_known_unknown('x-varnish').
 http_known_unknown('x-varnish-caching-rule-id').
 http_known_unknown('x-varnish-header-set-id').
 http_known_unknown('x-vcap-request-id').
+http_known_unknown('x-version').
 http_known_unknown('x-xss-protection'). % Has grammar.  Implemented.
 
 
