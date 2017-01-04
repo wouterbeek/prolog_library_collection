@@ -1,7 +1,8 @@
 :- module(
   rfc2295,
   [
-    alternates//1 % -Alternates:list(compound)
+    alternates//1, % -Alternates:list(compound)
+    tcn//1         % -L
   ]
 ).
 
@@ -325,6 +326,18 @@ number(N) -->
 
 
 
+%! 'response-type'(-Type)// .
+%
+% ```bnf
+% response-type = "list" | "choice" | "adhoc"
+% ```
+
+'response-type'(list) --> "list".
+'response-type'(choice) --> "choice".
+'response-type'(adhoc) --> "adhoc".
+
+
+
 %! 'rvsa-version'(-Version:pair(nonneg))// .
 %
 % ```bnf
@@ -335,6 +348,17 @@ number(N) -->
   major(Major),
   ".",
   minor(Minor).
+
+
+
+%! 'server-side-override-directive'// .
+%
+% ```bnf
+% server-side-override-directive = "re-choose" | "keep"
+% ```
+
+'server-side-override-directive'('re-choose') --> "re-choose".
+'server-side-override-directive'(keep) --> "keep".
 
 
 
@@ -377,6 +401,38 @@ number(N) -->
 
 
 
+%! tcn(-L)// is det.
+%
+% ```bnf
+% TCN = "TCN" ":" #( response-type
+%                  | server-side-override-directive
+%                  | tcn-extension )
+% ```
+
+tcn(L) --> *(tcn0, L).
+
+tcn0(X) --> 'response-type'(X).
+tcn0(X) --> 'server-side-override-directive'(X).
+tcn0(X) --> 'tcn-extension'(X).
+
+
+
+%! 'tcn-extension'// .
+%
+% ```bnf
+% tcn-extension = token [ "=" ( token | quoted-string ) ]
+% ```
+
+'tcn-extension'(Ext) -->
+  token(Key),
+  (   "="
+  ->  (token(Val) -> "" ; 'quoted-string'(Val)),
+      {Ext =.. [Key,Val]}
+  ;   {Ext = Key}
+  ).
+
+
+                                                      
 %! 'true-improvement'(-N:float)// .
 %
 % ```bnf

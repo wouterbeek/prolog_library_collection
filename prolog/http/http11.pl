@@ -131,7 +131,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 @see https://tools.ietf.org/html/rfc7233
 @see https://tools.ietf.org/html/rfc7234
 @see https://tools.ietf.org/html/rfc7235
-@version 2015/11-2016/12
+@version 2015/11-2017/01
 */
 
 :- use_module(library(apply)).
@@ -208,6 +208,7 @@ http_known_known(origin).
 http_known_known('set-cookie').
 http_known_known('set-cookie2').
 http_known_known('strict-transport-security').
+http_known_known(tcn).
 http_known_known('x-content-type-options').
 http_known_known('x-frame-options').
 http_known_known('x-powered-by').
@@ -1268,6 +1269,7 @@ http_known_unknown('host-header').
 http_known_unknown(p3p).
 http_known_unknown(servidor).
 http_known_unknown(status).
+http_known_unknown(tcn).
 http_known_unknown(warning).
 http_known_unknown('x-acre-source-url').
 http_known_unknown('x-adblock-key').

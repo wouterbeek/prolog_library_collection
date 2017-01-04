@@ -238,9 +238,10 @@ http_open_any(Uri, In, InPath, Opts) :-
   ;   Flags = []
   ),
   option(method(Method), Opts, get),
-  debug_call(Flags, http_open1(Uri, Method, State, In, InPath, Opts)).
+  debug_call(Flags, http_open1(Uri, Method, State, In, InPath0, Opts)),
+  reverse(InPath0, InPath).
 
-http_open1(Uri, Method, State, In2, InPath2, Opts) :-
+http_open1(Uri, Method, State, In2, [InEntry|InPath], Opts) :-
   copy_term(Opts, OldOpts),
   setting(user_agent, UA),
   NewOpts = [
@@ -271,43 +272,32 @@ http_open1(Uri, Method, State, In2, InPath2, Opts) :-
       ->  http_msg(http(reply), Uri, Method, Status, Lines)
       ;   true
       ),
-      InEntry1 = _{
+      atomic_list_concat([Major,Minor], ., Version),
+      InEntry = _{
         '@id': Uri,
         '@type': uri,
         headers: Headers,
         status: Status,
         time: TS,
-        version: _{major: Major, minor: Minor}
+        version: Version
       },
-      http_open2(
-        Uri,
-        Method,
-        State,
-        Location,
-        Lines,
-        In1,
-        [InEntry1|InPath1],
-        In2,
-        Opts
-      ),
-      reverse([InEntry1|InPath1], InPath2)
-  ;   InPath2 = [],
-      throw(E)
+      http_open2(Uri, Method, State, Location, Lines, In1, Status, InPath, In2, Opts)
+  ;   throw(E)
   ).
 
 % Authentication error.
-http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
-  http_status_is_auth_error(InEntry.status),
+http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
+  http_status_is_auth_error(Status),
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Uri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
   http_open1(Uri, Method, State, In2, InPath, AuthOpts).
 % Non-authentication error.
-http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
-  http_status_is_error(InEntry.status), !,
+http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
+  http_status_is_error(Status), !,
   (   \+ option(verbose(error), Opts)
   ->  true
-  ;   http_error_msg(Uri, Method, InEntry.status, Lines, In1)
+  ;   http_error_msg(Uri, Method, Status, Lines, In1)
   ),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
@@ -316,8 +306,8 @@ http_open2(Uri, Method, State, _, Lines, In1, [InEntry|InPath], In2, Opts) :-
   ;   http_open1(Uri, Method, State, In2, InPath, Opts)
   ).
 % Redirect.
-http_open2(Uri1, Method, State, Location, _, In1, [InEntry|InPath], In2, Opts) :-
-  http_status_is_redirect(InEntry.status), !,
+http_open2(Uri1, Method, State, Location, _, In1, Status, InPath, In2, Opts) :-
+  http_status_is_redirect(Status), !,
   close(In1),
   uri_resolve(Location, Uri1, Uri2),
   dict_prepend(visited, State, Uri2),
@@ -330,7 +320,7 @@ http_open2(Uri1, Method, State, Location, _, In1, [InEntry|InPath], In2, Opts) :
   http_open:redirect_options(Opts, RedirectOpts),
   http_open1(Uri2, Method, State, In2, InPath, RedirectOpts).
 % Success.
-http_open2(_, _, _, _, _, In, [_], In, _).
+http_open2(_, _, _, _, _, In, _, [], In, _).
 
 
 
