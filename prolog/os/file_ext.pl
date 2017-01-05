@@ -19,6 +19,7 @@
     directory_path_recursive/2, % +Dir, -Path
     directory_recursive/2,      % +Dir, -Subdir
     directory_subdirectories/2, % ?Dir, ?Subdirs
+    directory_subdirectory/2,   % +Dir, ?Subdir
     directory_subdirectory/3,   % +Dir, ?Local, ?Subdir
     file_age/2,                 % +File, -Age:float
     file_change_extension/3,    % +File1, +Ext, File2
@@ -295,6 +296,13 @@ directory_subdirectories(Dir, Subdirs1) :-
   resolve_subdirectories(Subdirs1, Subdirs2),
   atomic_list_concat(Subdirs2, /, Dir).
 
+
+
+%! directory_subdirectory(+Dir, +Subdir) is semidet.
+%! directory_subdirectory(+Dir, -Subdir) is nondet.
+
+directory_subdirectory(Dir, Subdir) :-
+  directory_subdirectory(Dir, _, Subdir).
 
 
 %! directory_subdirectory(+Dir, +Local, +Subdir) is semidet.
