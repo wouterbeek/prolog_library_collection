@@ -1,7 +1,7 @@
 :- module(
   http_alternative_services,
   [
-    'alt-svc'//0
+    'alt-svc'//1 % -AltVals:list
   ]
 ).
 
