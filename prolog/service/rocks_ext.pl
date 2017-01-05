@@ -2,6 +2,7 @@
   rocks_ext,
   [
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
+    rocks_alias/1,     % ?Alias
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
@@ -54,6 +55,19 @@ type_merge_value(set(atom), rocks_merge_set, term).
 
 
 
+%! rocks_alias(+Alias) is semidet.
+%! rocks_alias(-Alias) is nondet.
+
+rocks_alias(Alias) :-
+  setting(index_dir, Dir),
+  (   ground(Alias)
+  ->  once(directory_subdirectory(Dir, Alias, Subdir)),
+      exists_directory(Subdir)
+  ;   directory_subdirectory(Dir, Alias, _)
+  ).
+  
+
+
 %! rocks_ls is det.
 %! rocks_ls(+PageOpts) is det.
 
@@ -62,13 +76,7 @@ rocks_ls :-
 
 
 rocks_ls(PageOpts) :-
-  setting(index_dir, Dir),
-  create_pagination(
-    Subdir,
-    directory_subdirectory(Dir, Subdir),
-    PageOpts,
-    Result
-  ),
+  create_pagination(Alias, rocks_alias(Alias), PageOpts, Result),
   cli_pagination_result(Result, pp_aliases).
 
 pp_aliases(Aliases) :-
@@ -79,10 +87,12 @@ pp_aliases(Aliases) :-
 %! rocks_merge_set(+Mode, +Key, +Left, +Right, -Result) is det.
 
 rocks_merge_set(partial, _, X, Y, Z) :-
-  ord_union(X, Y, Z).
+  ord_union(X, Y, Z),
+  debug(rocks, "Partial set merge: ~p ~p → ~p", [X,Y,Z]).
 rocks_merge_set(full, _, X, Y, Z) :-
   append([X|Y], XY),
-  sort(XY, Z).
+  sort(XY, Z),
+  debug(rocks, "Full set merge: ~p ~p → ~p", [X,Y,Z]).
 
 
 
