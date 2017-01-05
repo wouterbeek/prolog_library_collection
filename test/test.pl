@@ -154,7 +154,7 @@
 :- use_module(library(print_ext)).
 %/service
   :- use_module(library(service/es_api)).
-  :- use_module(library(service/rocksdb_ext)).
+  :- use_module(library(service/rocks_ext)).
 %/set
   :- use_module(library(set/direct_subset)).
   :- use_module(library(set/equiv)).
