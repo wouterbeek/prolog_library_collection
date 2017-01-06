@@ -11,7 +11,7 @@
 Generates tables for text-based display.
 
 @author Wouter Beek
-@version 2015/11-2016/01, 2016/08
+@version 2015/11-2016/01, 2016/08, 2017/01
 */
 
 :- use_module(library(apply)).
@@ -106,7 +106,7 @@ dcg_table_caption(_, Caption_0) -->
     strip_module(Caption_0, _, BareCaption_0),
     var(BareCaption_0)
   }, !,
-  [].
+  "".
 dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
   {
     dcg_width(Caption_0, CaptionLen),
@@ -223,6 +223,7 @@ dcg_table_row(_, _, _, _, []) -->
 
 %! dcg_table_line(+Pos)// is det.
 
+dcg_table_line(pos(_,row(_,_,0),_,_)) --> !, "".
 dcg_table_line(Pos) -->
   dcg_table_start_of_line(Pos),
   dcg_table_middle_of_line(Pos),
@@ -241,7 +242,7 @@ dcg_table_end_of_line(_) --> "┤".
 
 %! dcg_table_middle_of_line(+Pos)// is det.
 
-dcg_table_middle_of_line(pos(_,_,[],_)) --> !, [].
+dcg_table_middle_of_line(pos(_,_,[],_)) --> !, "".
 dcg_table_middle_of_line(pos(_,_,[H],_)) --> !,
   {H0 is H + 2},
   #(H0, bar), !.
@@ -306,15 +307,15 @@ number_of_columns([H0|_], Len) :-
 
 %! number_of_rows(+Rows, -NumRows) is det.
 
-number_of_rows(L, Len) :-
-  length(L, Len).
+number_of_rows(Rows, NumRows) :-
+  length(Rows, NumRows).
 
 
 
 %! row_list(+Row, -List) is det.
 
-row_list(head(L), L) :- !.
-row_list(L, L).
+row_list(head(Row), Row) :- !.
+row_list(Row, Row).
 
 
 
