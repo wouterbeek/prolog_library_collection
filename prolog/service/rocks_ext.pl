@@ -8,6 +8,7 @@
     rocks_ls/1,        % +PageOpts
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
+    rocks_nullify/1,   % +Alias
     rocks_open/2,      % +Alias, +Type
     rocks_pull/3,      % +Alias, -Key, -Val
     rocks_rm/1         % +Alias
@@ -111,6 +112,16 @@ rocks_merge_sum(partial, _, X, Y, Z) :-
   Z is X + Y.
 rocks_merge_sum(full, _, Initial, Additions, Sum) :-
   sum_list([Initial|Additions], Sum).
+
+
+
+%! rocks_nullify(+Alias) is det.
+
+rocks_nullify(Alias) :-
+  forall(
+    rocks_key(Alias, Key),
+    rocks_merge(Alias, Key, 0)
+  ).
 
 
 
