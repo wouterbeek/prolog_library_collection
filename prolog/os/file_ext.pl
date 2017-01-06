@@ -24,10 +24,15 @@
     file_age/2,                 % +File, -Age:float
     file_change_extension/3,    % +File1, +Ext, File2
     file_extensions/2,          % +File, -Exts
+    file_is_ready/1,            % +File
+    file_is_ready/2,            % +File1, +File2
     file_name/2,                % ?File, ?Name
     file_name_extensions/3,     % ?File, ?Name, ?Exts
     file_paths/2,               % +File, -Paths
+    file_ready/2,               % +File, -ReadyFile
+    file_ready_time/2,          % +File, -ReadyTime
     file_size/2,                % +File, -Size
+    file_touch_ready/1,         % +File
     is_dummy_file/1,            % +File
     is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
@@ -346,6 +351,23 @@ file_extensions(File, Exts) :-
 
 
 
+%! file_is_ready(+File) is semidet.
+
+file_is_ready(File) :-
+  file_ready(File, Ready),
+  exists_file(Ready).
+
+
+
+%! file_is_ready(+File1, +File2) is semidet.
+
+file_is_ready(File1, File2) :-
+  file_ready_time(File2, Ready2),
+  file_ready_time(File1, Ready1),
+  Ready2 >= Ready1.
+
+
+
 %! file_name(+File, -Name) is det.
 %! file_name(-File, +Name) is det.
 
@@ -369,12 +391,36 @@ file_paths(File, Paths) :-
 
 
 
+%! file_ready(+File, -ReadyFile) is det.
+
+file_ready(File, ReadyFile) :-
+  atomic_list_concat([File,ready], ., ReadyFile).
+
+
+
+%! file_ready_time(+File, -ReadyTime) is det.
+
+file_ready_time(File, ReadyTime) :-
+  file_ready(File, ReadyFile),
+  exists_file(ReadyFile),
+  time_file(ReadyFile, ReadyTime).
+
+
+
 %! file_size(+File, -Size) is det.
 %
 % @see Sane name for size_file/2.
 
 file_size(File, Size) :-
   size_file(File, Size).
+
+
+
+%! file_touch_ready(+File) is det.
+
+file_touch_ready(File) :-
+  file_ready(File, ReadyFile),
+  touch(ReadyFile).
 
 
 
