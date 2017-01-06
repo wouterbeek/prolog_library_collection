@@ -10,28 +10,35 @@
 
 Generates tables for text-based display.
 
+# State
+
+```pl
+state(CurrentRow, LastRow, ColWidths, LineWidth)
+```
+
 @author Wouter Beek
 @version 2015/11-2016/01, 2016/08, 2017/01
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dcg/dcg_cli)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/dcg_pl)).
 :- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).
 :- use_module(library(option)).
+:- use_module(library(string_ext)).
 
 :- meta_predicate
     column_widths(1, +, -),
     dcg_table_caption(+, 0, ?, ?),
     dcg_table_cell(+, +, 1, +, ?, ?),
-    dcg_table_cell_content(+, //, ?, ?),
-    dcg_table_data_rows(+, +, +, 1, +, -, ?, ?),
-    dcg_table_header_row(+, +, +, 1, -, -, ?, ?),
+    dcg_table_data_rows(+, 1, +, -, ?, ?),
+    dcg_table_line(+, //, ?, ?),
     dcg_table_row(+, +, 1, +, ?, ?),
     dcg_table_row(+, +, +, 1, +, ?, ?),
-    table_position(1, +, -).
+    table_state(1, +, -).
 
 is_meta(caption).
 is_meta(cell).
@@ -42,6 +49,8 @@ is_meta(cell).
 
 
 
+
+% API %
 
 %! dcg_table(+Rows)// is det.
 %! dcg_table(+Rows, :Opts)// is det.
@@ -65,39 +74,36 @@ dcg_table(Rows1, Opts0) -->
     meta_options(is_meta, Opts0, Opts),
     option(caption(Caption_0), Opts, _),
     option(cell(Cell_1), Opts, dcg:dcg_hook),
-    option(indexed(Ind), Opts, false),
-    option(maximum_number_of_rows(Max), Opts, inf),
-    %%%%add_sum_row(Rows1, Rows2, Opts),
-    table_position(Cell_1, Rows1, Pos1)
+    prepare_table(Rows1, Rows2, Opts),
+    table_state(Cell_1, Rows2, State1)
   },
-  dcg_table_caption(Pos1, Caption_0),
-  dcg_table_line(Pos1),
-  dcg_table_header_row(Ind, Pos1, Rows1, Cell_1, Pos2, Rows2),
-  dcg_table_data_rows(Ind, Pos2, Max, Cell_1, Rows2, Pos3),
-  dcg_table_line(Pos3).
-
-
-add_sum_row(Rows1, Rows2, Opts) :-
-  option(sum_col(Cols0), Opts, []),
-  sort(Cols0, Cols),
-  number_of_columns(Rows1, Last),
-  add_sum_row0(1, Last, Rows1, Cols, Row),
-  append(Rows1, [Row], Rows2).
-
-
-add_sum_row0(Last, Last, _, _, []) :- !.
-add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]) :- !,
-  maplist(nth0(Col1), Rows, Vals),
-  sum_list(Vals, Sum),
-  Col2 is Col1 + 1,
-  add_sum_row0(Col2, Last, Rows, Cols, T).
-add_sum_row0(Col1, Last, Rows, Cols, [_|T]) :-
-  Col2 is Col1 + 1,
-  add_sum_row0(Col2, Last, Rows, Cols, T).
+  dcg_table_caption(State1, Caption_0),
+  % TOP: HEADER ROW + FIRST LINES
+  (   {Rows2 = [head(Row)|Rows3]}
+  ->  dcg_table_top_line(State1),
+      dcg_table_row(head, State1, Cell_1, Row),
+      (   {State1 = state(_,0,_,_)}
+      ->  dcg_table_bot_line(State1)
+      ;   dcg_table_mid_line(State1)
+      )
+  ;   {State1 = state(_,0,_,_)}
+  ->  ""
+  ;   dcg_table_top_line(State1)
+  ),
+  % REST: DATA ROWS + BOTTOM LINE
+  (   {State1 = state(_,0,_,_)}
+  ->  ""
+  ;   dcg_table_data_rows(State1, Cell_1, Rows3, State2),
+      dcg_table_bot_line(State2)
+  ).
 
 
 
-%! dcg_table_caption(+Pos, :Caption_0)// is det.
+
+
+% CAPTION %
+
+%! dcg_table_caption(+State, :Caption_0)// is det.
 %
 % Generates the table caption.
 
@@ -107,7 +113,7 @@ dcg_table_caption(_, Caption_0) -->
     var(BareCaption_0)
   }, !,
   "".
-dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
+dcg_table_caption(state(_,_,_,Len), Caption_0) -->
   {
     dcg_width(Caption_0, CaptionLen),
     N0 is floor((Len - CaptionLen) / 2),
@@ -117,166 +123,122 @@ dcg_table_caption(pos(_,_,_,Len), Caption_0) -->
 
 
 
-%! dcg_table_cell(
-%!   +Type:oneof([data,header]),
-%!   +ColWidth:positive_integer,
-%!   :Cell_1,
-%!   +Element
-%! )// is det.
-% Generated an the content for a table cell (both header and data).
 
-dcg_table_cell(Type, Width, Cell_1, X) --> !,
+
+% ROWS %
+
+%! dcg_table_cell(+Type, +ContentWidth, :Cell_1, +Elem)// is det.
+%
+% Type is either `head` or `data`.
+
+dcg_table_cell(Type, MaxContentWidth, Cell_1, Elem) --> !,
   {
-    once(dcg_with_output_to(codes(Cs), dcg_call_cp(Cell_1, X))),
-    length(Cs, CellLen),
-    SpareLen0 is Width - CellLen + 1,
-    SpareLen is max(0,SpareLen0)
+    string_phrase(dcg_call_cp(Cell_1, Elem), Content),
+    string_truncate(Content, MaxContentWidth, TruncatedContent),
+    (   Content == TruncatedContent
+    ->  string_length(Content, ContentWidth),
+        Indent is MaxContentWidth - ContentWidth
+    ;   Indent = 0
+    )
   },
-  dcg_table_cell_content(Type, Cs),
-  indent(SpareLen).
+  " ",
+  dcg_table_cell_content(Type, TruncatedContent),
+  " ",
+  indent(Indent).
 
 
 
-%! dcg_table_cell_content(+Type:oneof([data,header]), +Cs)// is det.
-% @tbd Use bold face for header content.
+%! dcg_table_cell_content(+Type, +Content)// is det.
 
-dcg_table_cell_content(data, Cs) --> !, Cs.
-dcg_table_cell_content(header, Cs) --> Cs.
-
-
-
-%! dcg_table_data_rows(
-%!   +Indexed:boolean,
-%!   +StartPos,
-%!   +MaxNumRows:positive_integer,
-%!   :Cell_1,
-%!   +Rows,
-%!   -EndPos
-%! )// is det.
-
-dcg_table_data_rows(Ind, Pos1, Max, Cell_1, [H|T], Pos3) -->
-  {Pos1 = pos(_,row(Row1,_,_),_,_), Row1 \== Max}, !,
-  {(Ind == true -> L = [Row1|H] ; L = H)},
-  dcg_table_row(data, Pos1, Cell_1, L),
-  {next_position_row(Pos1, Pos2)},
-  dcg_table_data_rows(Ind, Pos2, Max, Cell_1, T, Pos3).
-dcg_table_data_rows(_, Pos, _, _, _, Pos) --> "".
+dcg_table_cell_content(data, Content) --> !,
+  str(Content).
+dcg_table_cell_content(head, Content) -->
+  bold(Content).
 
 
 
-%! dcg_table_header_row(
-%!   +Indexed:boolean,
-%!   +StartPos,
-%!   +Rows,
-%!   :Cell_1,
-%!   -EndPos,
-%!   -DataRows
-%! )// is det.
+%! dcg_table_data_rows(+State1, :Cell_1, +Rows, -State2)// is det.
 
-dcg_table_header_row(
-  Indexed,
-  Pos1,
-  [head(Row0)|Rows],
-  Cell_1,
-  Pos2,
-  Rows
-) --> !,
-  % If the indexed option is set, then include a first header cell
-  % indicating the index number column.
-  {(Indexed == true ->  Row = ["#"|Row0] ; Row = Row0)},
-  dcg_table_row(header, Pos1, Cell_1, Row),
-  {next_position_row(Pos1, Pos2)},
-  dcg_table_line(Pos2).
-dcg_table_header_row(_, Pos, Rows, _, Pos, Rows) --> "".
+dcg_table_data_rows(State, _, [], State) --> !, "".
+dcg_table_data_rows(State1, Cell_1, [H|T], State3) -->
+  dcg_table_row(data, State1, Cell_1, H),
+  {next_row(State1, State2)},
+  dcg_table_data_rows(State2, Cell_1, T, State3).
 
 
 
-%! dcg_table_row(
-%!   +Type:oneof([data,header]),
-%!   +Pos,
-%!   :Cell_1,
-%!   +Row
-%! )// is det.
-%! dcg_table_row(
-%!   +Type:oneof([data,header]),
-%!   +Pos,
-%!   +ColWidths:list(positive_integer),
-%!   :Cell_1,
-%!   +Row
-%! )// is det.
+%! dcg_table_row(+Type, +State, :Cell_1, +Row)// is det.
+%! dcg_table_row(+Type, +State, +ColWidths, :Cell_1, +Row)// is det.
 
-dcg_table_row(Type, pos(Col,Row,Ws,Len), Cell_1, L) -->
-  dcg_table_row(Type, pos(Col,Row,Ws,Len), Ws, Cell_1, L).
+dcg_table_row(Type, state(Current,Last,Ws,Len), Cell_1, L) -->
+  dcg_table_row(Type, state(Current,Last,Ws,Len), Ws, Cell_1, L).
 
 
-dcg_table_row(Type, Pos, [W|Ws], Cell_1, [H|T]) --> !,
-  cell_border,
+dcg_table_row(Type, State, [W|Ws], Cell_1, [H|T]) --> !,
+  "│",
   dcg_table_cell(Type, W, Cell_1, H),
-  dcg_table_row(Type, Pos, Ws, Cell_1, T).
+  dcg_table_row(Type, State, Ws, Cell_1, T).
 dcg_table_row(_, _, _, _, []) -->
-  cell_border, nl.
+  "│",
+  nl.
 
 
 
 
 % LINE %
 
-%! dcg_table_line(+Pos)// is det.
+%! dcg_table_bot_line(+State)// is det.
 
-dcg_table_line(pos(_,row(_,_,0),_,_)) --> !, "".
-dcg_table_line(Pos) -->
-  dcg_table_start_of_line(Pos),
-  dcg_table_middle_of_line(Pos),
-  dcg_table_end_of_line(Pos),
-  nl, !.
-
-
-
-%! dcg_table_end_of_line(+Pos)// is det.
-
-dcg_table_end_of_line(pos(_,row(0,1,_),_,_)) --> !, "┐".
-dcg_table_end_of_line(pos(_,row(Last,_,Last),_,_)) --> !, "┘".
-dcg_table_end_of_line(_) --> "┤".
+dcg_table_bot_line(State) -->
+  "└",
+  {State = state(_,_,Ws,_)},
+  dcg_table_line(Ws, "┴"),
+  "┘",
+  nl.
 
 
 
-%! dcg_table_middle_of_line(+Pos)// is det.
+%! dcg_table_mid_line(+State)// is det.
 
-dcg_table_middle_of_line(pos(_,_,[],_)) --> !, "".
-dcg_table_middle_of_line(pos(_,_,[H],_)) --> !,
+dcg_table_mid_line(State) -->
+  "├",
+  {State = state(_,_,Ws,_)},
+  dcg_table_line(Ws, "┼"),
+  "┤",
+  nl.
+
+
+
+%! dcg_table_top_line(+State)// is det.
+
+dcg_table_top_line(State) -->
+  "┌",
+  {State = state(_,_,Ws,_)},
+  dcg_table_line(Ws, "┬"),
+  "┐",
+  nl.
+
+
+
+%! dcg_table_line(+Ws, :Sep_0)// is det.
+
+dcg_table_line([], _) --> !, "".
+dcg_table_line([H], _) --> !,
   {H0 is H + 2},
   #(H0, bar), !.
-dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),[H|T],Len)) -->
+dcg_table_line([H|T], Sep_0) -->
   {H0 is H + 2},
   #(H0, bar), !,
-  ({Row2 =:= 1} -> "┬" ; {Row1 =:= Last} -> "┴" ; "┼"),
-  dcg_table_middle_of_line(pos(Col,row(Row1,Row2,Last),T,Len)).
+  Sep_0,
+  dcg_table_line(T, Sep_0).
 
-
-
-%! dcg_table_start_of_line(+Pos)// is det.
-
-dcg_table_start_of_line(pos(_,row(0,1,_),_,_)) --> !, "┌".
-dcg_table_start_of_line(pos(_,row(Last,_,Last),_,_)) --> !, "└".
-dcg_table_start_of_line(_) --> "├".
+bar --> "─".
 
 
 
 
 
 % HELPERS %
-
-%! bar// is det.
-
-bar --> "─".
-
-
-
-%! cell_border// is det.
-
-cell_border --> "│ ".
-
-
 
 %! column_widths(:Cell_1, +Rows, -Widths) is det.
 
@@ -286,13 +248,10 @@ column_widths(Cell_1, Rows, MaxWs) :-
 
 
 
-%! next_position_row(+Pos, -NextPos) is det.
+%! next_row(+State1, -State2) is det.
 
-next_position_row(
-  pos(Col,row(_,Row2,Last),Ws,Len),
-  pos(Col,row(Row2,Row3,Last),Ws,Len)
-) :-
-  succ(Row2, Row3).
+next_row(state(Row1,Last,Ws,Len),state(Row2,Last,Ws,Len)) :-
+  Row2 is Row1 + 1.
 
 
 
@@ -307,6 +266,8 @@ number_of_columns([H0|_], Len) :-
 
 %! number_of_rows(+Rows, -NumRows) is det.
 
+number_of_rows([head(_)|Rows], NumRows) :- !,
+  number_of_rows(Rows, NumRows).
 number_of_rows(Rows, NumRows) :-
   length(Rows, NumRows).
 
@@ -336,10 +297,73 @@ add_head(H, T, [H|T]).
 
 
 
-%! table_position(:Cell_1, +Rows, -Pos) is det.
 
-table_position(Cell_1, Rows, pos(col(0,1,NumCols),row(0,1,NumRows),Ws,Len)) :-
+
+% STATE %
+
+%! table_state(:Cell_1, +Rows, -State) is det.
+
+table_state(Cell_1, Rows, state(0,NumRows,Ws,Len)) :-
   number_of_columns(Rows, NumCols),
   number_of_rows(Rows, NumRows),
   column_widths(Cell_1, Rows, Ws),
   sum_list([1,NumCols,NumCols,NumCols|Ws], Len).
+
+
+
+
+
+% PREPARATION %
+
+%! prepare_table(+Rows1, -Rows2, +Opts) is det.
+
+prepare_table(Rows1, Rows3, Opts) :-
+  option(indexed(Indexed), Opts, false),
+  (Indexed == true -> index_table(Rows1, Rows2) ; Rows2 = Rows1),
+  option(maximum_number_of_rows(Max), Opts, inf),
+  max_table(Max, Rows2, Rows3).
+
+
+
+%! max_table(+Max, +Rows1, -Rows2) is det.
+%
+% Restrict Rows1 to include at most Max number of rows.
+
+max_table(inf, Rows, Rows) :- !.
+max_table(Max, [head(Row)|Rows1], [head(Row)|Rows2]) :- !,
+  max_table(Max, Rows1, Rows2).
+max_table(Max, Rows1, Rows2) :-
+  prefix(Rows2, Max, Rows1).
+
+
+
+%! index_table(+Rows1, -Rows2) is det.
+%
+% Add indexes to all rows, and to the header row (if present).
+
+index_table([head(Row)|Rows1], [head(["№"|Row])|Rows2]) :-
+  index_table(1, Rows1, Rows2).
+
+index_table(_, [], []) :- !.
+index_table(N1, [Row|Rows1], [[N1|Row]|Rows2]) :-
+  N2 is N1 + 1,
+  index_table(N2, Rows1, Rows2).
+
+/*
+add_sum_row(Rows1, Rows2, Opts) :-
+  option(sum_col(Cols0), Opts, []),
+  sort(Cols0, Cols),
+  number_of_columns(Rows1, Last),
+  add_sum_row0(1, Last, Rows1, Cols, Row),
+  append(Rows1, [Row], Rows2).
+
+add_sum_row0(Last, Last, _, _, []) :- !.
+add_sum_row0(Col1, Last, Rows, [Col1|Cols], [Sum|T]) :- !,
+  maplist(nth0(Col1), Rows, Vals),
+  sum_list(Vals, Sum),
+  Col2 is Col1 + 1,
+  add_sum_row0(Col2, Last, Rows, Cols, T).
+add_sum_row0(Col1, Last, Rows, Cols, [_|T]) :-
+  Col2 is Col1 + 1,
+  add_sum_row0(Col2, Last, Rows, Cols, T).
+*/
