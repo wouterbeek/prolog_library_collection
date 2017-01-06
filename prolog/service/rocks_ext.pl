@@ -3,6 +3,7 @@
   [
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
+    rocks_key/2,       % +Alias, ?Key
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
@@ -66,6 +67,14 @@ rocks_alias(Alias) :-
   ;   directory_subdirectory(Dir, Alias, _)
   ).
   
+
+
+%! rocks_key(+Alias, +Key) is semidet.
+%! rocks_key(+Alias, -Key) is nondet.
+
+rocks_key(Alias, Key) :-
+  rocks_get(Alias, Key, _).
+
 
 
 %! rocks_ls is det.
