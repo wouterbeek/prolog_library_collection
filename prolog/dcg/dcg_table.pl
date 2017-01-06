@@ -13,7 +13,7 @@ Generates tables for text-based display.
 # State
 
 ```pl
-state(CurrentRow, LastRow, ColWidths, LineWidth)
+state(CurrentRow, LastRow, ColWidths)
 ```
 
 @author Wouter Beek
@@ -32,15 +32,12 @@ state(CurrentRow, LastRow, ColWidths, LineWidth)
 
 :- meta_predicate
     column_widths(1, +, -),
-    dcg_table_caption(+, 0, ?, ?),
     dcg_table_cell(+, +, 1, +, ?, ?),
     dcg_table_data_rows(+, 1, +, -, ?, ?),
     dcg_table_line(+, //, ?, ?),
     dcg_table_row(+, +, 1, +, ?, ?),
-    dcg_table_row(+, +, +, 1, +, ?, ?),
     table_state(1, +, -).
 
-is_meta(caption).
 is_meta(cell).
 
 :- multifile
@@ -57,8 +54,6 @@ is_meta(cell).
 %
 % The following options are supported:
 %
-%   * caption(+callable)
-%
 %   * cell(+callable)
 %
 %   * indexed(+boolean)
@@ -72,60 +67,31 @@ dcg_table(L) -->
 dcg_table(Rows1, Opts0) -->
   {
     meta_options(is_meta, Opts0, Opts),
-    option(caption(Caption_0), Opts, _),
     option(cell(Cell_1), Opts, dcg:dcg_hook),
     prepare_table(Rows1, Rows2, Opts),
     table_state(Cell_1, Rows2, State1)
   },
-  dcg_table_caption(State1, Caption_0),
   % TOP: HEADER ROW + FIRST LINES
   (   {Rows2 = [head(Row)|Rows3]}
   ->  dcg_table_top_line(State1),
-      dcg_table_row(head, State1, Cell_1, Row),
-      (   {State1 = state(_,0,_,_)}
+      {State1 = state(_,_,Ws)},
+      dcg_table_row(head, Ws, Cell_1, Row),
+      (   {State1 = state(_,0,_)}
       ->  dcg_table_bot_line(State1)
       ;   dcg_table_mid_line(State1)
       )
-  ;   {State1 = state(_,0,_,_)}
+  ;   {State1 = state(_,0,_)}
   ->  ""
   ;   dcg_table_top_line(State1)
   ),
   % REST: DATA ROWS + BOTTOM LINE
-  (   {State1 = state(_,0,_,_)}
+  (   {State1 = state(_,0,_)}
   ->  ""
   ;   dcg_table_data_rows(State1, Cell_1, Rows3, State2),
       dcg_table_bot_line(State2)
   ).
 
 
-
-
-
-% CAPTION %
-
-%! dcg_table_caption(+State, :Caption_0)// is det.
-%
-% Generates the table caption.
-
-dcg_table_caption(_, Caption_0) -->
-  {
-    strip_module(Caption_0, _, BareCaption_0),
-    var(BareCaption_0)
-  }, !,
-  "".
-dcg_table_caption(state(_,_,_,Len), Caption_0) -->
-  {
-    dcg_width(Caption_0, CaptionLen),
-    N0 is floor((Len - CaptionLen) / 2),
-    N is max(0, N0)
-  },
-  indent_nl(N, Caption_0).
-
-
-
-
-
-% ROWS %
 
 %! dcg_table_cell(+Type, +ContentWidth, :Cell_1, +Elem)// is det.
 %
@@ -142,18 +108,9 @@ dcg_table_cell(Type, MaxContentWidth, Cell_1, Elem) --> !,
     )
   },
   " ",
-  dcg_table_cell_content(Type, TruncatedContent),
+  ({Type == data} -> str(Content) ; bold(Content)),
   " ",
   indent(Indent).
-
-
-
-%! dcg_table_cell_content(+Type, +Content)// is det.
-
-dcg_table_cell_content(data, Content) --> !,
-  str(Content).
-dcg_table_cell_content(head, Content) -->
-  bold(Content).
 
 
 
@@ -161,24 +118,20 @@ dcg_table_cell_content(head, Content) -->
 
 dcg_table_data_rows(State, _, [], State) --> !, "".
 dcg_table_data_rows(State1, Cell_1, [H|T], State3) -->
-  dcg_table_row(data, State1, Cell_1, H),
+  {State1 = state(_,_,Ws)},
+  dcg_table_row(data, Ws, Cell_1, H),
   {next_row(State1, State2)},
   dcg_table_data_rows(State2, Cell_1, T, State3).
 
 
 
-%! dcg_table_row(+Type, +State, :Cell_1, +Row)// is det.
-%! dcg_table_row(+Type, +State, +ColWidths, :Cell_1, +Row)// is det.
+%! dcg_table_row(+Type, +Ws, :Cell_1, +Row)// is det.
 
-dcg_table_row(Type, state(Current,Last,Ws,Len), Cell_1, L) -->
-  dcg_table_row(Type, state(Current,Last,Ws,Len), Ws, Cell_1, L).
-
-
-dcg_table_row(Type, State, [W|Ws], Cell_1, [H|T]) --> !,
+dcg_table_row(Type, [W|Ws], Cell_1, [H|T]) --> !,
   "│",
   dcg_table_cell(Type, W, Cell_1, H),
-  dcg_table_row(Type, State, Ws, Cell_1, T).
-dcg_table_row(_, _, _, _, []) -->
+  dcg_table_row(Type, Ws, Cell_1, T).
+dcg_table_row(_, _, _, []) -->
   "│",
   nl.
 
@@ -191,7 +144,7 @@ dcg_table_row(_, _, _, _, []) -->
 
 dcg_table_bot_line(State) -->
   "└",
-  {State = state(_,_,Ws,_)},
+  {State = state(_,_,Ws)},
   dcg_table_line(Ws, "┴"),
   "┘",
   nl.
@@ -202,7 +155,7 @@ dcg_table_bot_line(State) -->
 
 dcg_table_mid_line(State) -->
   "├",
-  {State = state(_,_,Ws,_)},
+  {State = state(_,_,Ws)},
   dcg_table_line(Ws, "┼"),
   "┤",
   nl.
@@ -213,7 +166,7 @@ dcg_table_mid_line(State) -->
 
 dcg_table_top_line(State) -->
   "┌",
-  {State = state(_,_,Ws,_)},
+  {State = state(_,_,Ws)},
   dcg_table_line(Ws, "┬"),
   "┐",
   nl.
@@ -238,7 +191,7 @@ bar --> "─".
 
 
 
-% HELPERS %
+% STATE %
 
 %! column_widths(:Cell_1, +Rows, -Widths) is det.
 
@@ -250,7 +203,7 @@ column_widths(Cell_1, Rows, MaxWs) :-
 
 %! next_row(+State1, -State2) is det.
 
-next_row(state(Row1,Last,Ws,Len),state(Row2,Last,Ws,Len)) :-
+next_row(state(Row1,Last,Ws),state(Row2,Last,Ws)) :-
   Row2 is Row1 + 1.
 
 
@@ -297,17 +250,11 @@ add_head(H, T, [H|T]).
 
 
 
-
-
-% STATE %
-
 %! table_state(:Cell_1, +Rows, -State) is det.
 
-table_state(Cell_1, Rows, state(0,NumRows,Ws,Len)) :-
-  number_of_columns(Rows, NumCols),
+table_state(Cell_1, Rows, state(0,NumRows,Ws)) :-
   number_of_rows(Rows, NumRows),
-  column_widths(Cell_1, Rows, Ws),
-  sum_list([1,NumCols,NumCols,NumCols|Ws], Len).
+  column_widths(Cell_1, Rows, Ws).
 
 
 
