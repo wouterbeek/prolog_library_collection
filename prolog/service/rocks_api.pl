@@ -1,5 +1,5 @@
 :- module(
-  rocks_ext,
+  rocks_api,
   [
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
