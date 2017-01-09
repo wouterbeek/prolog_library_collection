@@ -175,21 +175,24 @@ call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
-    archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
     (
-      indent_debug(in, io(open), "R» ~w → ~w", [In,Arch]),
-      call_on_archive0(Arch, Goal_3, InPath1, InPath2, SourceOpts),
-      indent_debug(out, io(close), "«R ~w", [Arch])
+      archive_open(stream(In), Arch, [close_parent(false),filter(all)|Formats]),
+      indent_debug(in, io(open), "R» ~w → ~w", [In,Arch])
     ),
-    archive_close(Arch)
+    call_on_archive0(Arch, Goal_3, InPath1, InPath2, SourceOpts), %NONDET
+    (
+      indent_debug(out, io(close), "«R ~w", [Arch]),
+      archive_close(Arch)
+    )
   ).
-
 
 call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
   option(entry_name(EntryNameMatch), SourceOpts, _),
   archive_property(Arch, filter(Filters)),
   repeat,
-  (   archive_next_header(Arch, EntryName)
+  (   % @bug error(archive_error(1001,Truncated input file (needed
+      % 2049346009 bytes, only 0 available)),_12880)
+      archive_next_header(Arch, EntryName)
   ->  findall(Prop, archive_header_property(Arch, Prop), Props),
       dict_create(InEntry1, [filters(Filters),name(EntryName)|Props]),
       % If the entry name is `data` then proceed.  If the entry name
@@ -215,9 +218,11 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
       ),
       (   memberchk(filetype(file), Props)
       ->  setup_call_cleanup(
-            archive_open_entry(Arch, In),
             (
-              indent_debug(in, io(open), "R» ~w → ~a → ~w", [Arch,EntryName,In]),
+              archive_open_entry(Arch, In),
+              indent_debug(in, io(open), "R» ~w → ~a → ~w", [Arch,EntryName,In])
+            ),
+            (
               call_on_stream0(
                 In,
                 Goal_3,
@@ -387,13 +392,15 @@ call_to_compressed_stream(
   Format = gzip,
   put_dict(compression, OutEntry1, Format, OutEntry2),
   setup_call_cleanup(
-    zopen(Out1, Out2, [close_parent(false),format(Format)]),
     (
-      indent_debug(in, io(open), "ZW» ~w → ~a → ~w", [Out1,Format,Out2]),
-      call(Goal_1, Out2),
-      indent_debug(out, io(close), "«ZW ~w", [Out2])
+      zopen(Out1, Out2, [close_parent(false),format(Format)]),
+      indent_debug(in, io(open), "ZW» ~w → ~a → ~w", [Out1,Format,Out2])
     ),
-    close(Out2)
+    call(Goal_1, Out2),
+    (
+      close(Out2),
+      indent_debug(out, io(close), "«ZW ~w", [Out2])
+    )
   ).
 call_to_compressed_stream(Out, Goal_1, OutPath, OutPath, _) :-
   call(Goal_1, Out).
