@@ -660,6 +660,8 @@ process_open(Cmd, In1, Args, Out) :-
 
 %! recode_stream(+In1, -In2, -Close, +Opts) is det.
 
+recode_stream(In, In, true, _) :-
+  set_stream(In, encoding(bom)), !.
 recode_stream(In1, In2, In2, SourceOpts) :-
   option(recode(true), SourceOpts),
   option(from_encoding(Enc1), SourceOpts, _VAR),
