@@ -171,8 +171,8 @@ es_exists(PathComps) :-
 
 
 
-%! es_get(+PathComps, -Result) is det.
-%! es_get(+PathComps, +Keys, -Result) is det.
+%! es_get(+PathComps, -Result) is semidet.
+%! es_get(+PathComps, +Keys, -Result) is semidet.
 %
 % PathComps must be of the form [Index,Type,Id].
 %
@@ -202,6 +202,7 @@ es_get(PathComps, Keys, Result) :-
       QueryComps = ['_source'(Search)]
   ),
   es_get0(PathComps, QueryComps, Status, Dict),
+  get_dict(found, Dict, true),
   es_dict_to_result0(Dict, Result),
   http_status_must_be(Status, [200]).
 
