@@ -1,17 +1,19 @@
 :- module(
   rocks_api,
   [
+  % ALIAS
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
-    rocks_key/2,       % +Alias, ?Key
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
+    rocks_open/2,      % +Alias, +Type
+    rocks_rm/1,        % +Alias
+  % ROCKSDB
+    rocks_key/2,       % +RocksDB, ?Key
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
-    rocks_nullify/1,   % +Alias
-    rocks_open/2,      % +Alias, +Type
-    rocks_pull/3,      % +Alias, -Key, -Val
-    rocks_rm/1         % +Alias
+    rocks_nullify/1,   % +RocksDB
+    rocks_pull/3       % +RocksDB, -Key, -Val
   ]
 ).
 :- reexport(library(rocksdb)).
@@ -59,6 +61,8 @@ type_merge_value(set(atom), rocks_merge_set, term).
 
 %! rocks_alias(+Alias) is semidet.
 %! rocks_alias(-Alias) is nondet.
+%
+% Enumerates the exisiting RocksDB indices.
 
 rocks_alias(Alias) :-
   setting(index_dir, Dir),
@@ -70,16 +74,18 @@ rocks_alias(Alias) :-
   
 
 
-%! rocks_key(+Alias, +Key) is semidet.
-%! rocks_key(+Alias, -Key) is nondet.
+%! rocks_key(+RocksDB, +Key) is semidet.
+%! rocks_key(+RocksDB, -Key) is nondet.
 
-rocks_key(Alias, Key) :-
-  rocks_get(Alias, Key, _).
+rocks_key(RocksDB, Key) :-
+  rocks_enum(RocksDB, Key, _).
 
 
 
 %! rocks_ls is det.
 %! rocks_ls(+PageOpts) is det.
+%
+% Prints the existing RocksDB indices to stdout.
 
 rocks_ls :-
   rocks_ls(_{}).
@@ -115,12 +121,12 @@ rocks_merge_sum(full, _, Initial, Additions, Sum) :-
 
 
 
-%! rocks_nullify(+Alias) is det.
+%! rocks_nullify(+RocksDB) is det.
 
-rocks_nullify(Alias) :-
+rocks_nullify(RocksDB) :-
   forall(
-    rocks_key(Alias, Key),
-    rocks_merge(Alias, Key, 0)
+    rocks_key(RocksDB, Key),
+    rocks_merge(RocksDB, Key, 0)
   ).
 
 
@@ -134,11 +140,11 @@ rocks_open(Alias, Type) :-
 
 
 
-%! rocks_pull(+Alias, -Key, -Val) is nondet.
+%! rocks_pull(+RocksDB, -Key, -Val) is nondet.
 
-rocks_pull(Alias, Key, Val) :-
-  rocks_enum(Alias, Key, Val),
-  rocks_delete(Alias, Key).
+rocks_pull(RocksDB, Key, Val) :-
+  rocks_enum(RocksDB, Key, Val),
+  rocks_delete(RocksDB, Key).
 
 
 
