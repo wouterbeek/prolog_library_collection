@@ -1,8 +1,8 @@
 :- module(
   uri_ext,
   [
-    auth_comps/2, % -Auth:atom, +Comps:compound
-    uri_comps/2,  % -Uri:atom, +Comps:compound
+    auth_comps/2, % ?Auth:atom, ?Comps:compound
+    uri_comps/2,  % ?Uri:atom, ?Comps:compound
     uri_comps/3,  % -Uri:atom, +BaseUri:atom, +Comps:compound
     uri_optional_query_enc//0,
     uri_query_enc//0
@@ -13,11 +13,12 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/04, 2016/11-2016/12
+@version 2015/08, 2015/10-2016/04, 2016/11-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
 
@@ -25,6 +26,7 @@
 
 
 
+%! auth_comps(+Auth:atom, -Comps:compound) is det.
 %! auth_comps(-Auth:atom, +Comps:compound) is det.
 
 auth_comps(Auth, auth(User,Host,Port)) :-
@@ -32,22 +34,38 @@ auth_comps(Auth, auth(User,Host,Port)) :-
 
 
 
+%! uri_comps(+Uri:atom, -Comps:compound) is det.
 %! uri_comps(-Uri:atom, +Comps:compound) is det.
 %
-% Comps is of the form uri(Scheme,Auth,Path,Query,Frag), where:
+% Comps is a compound term of the form
+% ‘uri(Scheme,Auth,Path,Query,Frag)’, where:
 %
-%   - Auth is of the form auth(User,Host,Port)
+%   * Auth is either an atom or a compound term of the form
+%     ‘auth(User,Host,Port)’.
 %
-%   - Path is a list of atomic segments.  Allowed to be
+%   * Path is a list of atomic segments.  Allowed to be
 %     uninstantiated.
 %
-%   - Query is a list of unary compound terms denoting key/value
-%     pairs.  Allowed to be uninstantiated.
+%   * Query is (1) a list of unary compound terms, or (2) a list of
+%     pairs, or (3) a flat dict (i.e., non-dict values).  Allowed to
+%     be uninstantiated.
 
+uri_comps(Uri, uri(Scheme,AuthComp,Segments,QueryComps,Frag)) :-
+  ground(Uri), !,
+  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)),
+  auth_comps(Auth, AuthComp),
+  atomic_list_concat([''|Segments], /, Path),
+  (var(Query) -> QueryComps = [] ; uri_query_components(Query, QueryComps)).
 uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
   (atom(Auth0) -> Auth = Auth0 ; auth_comps(Auth, Auth0)),
   (var(Segments) -> true ; atomic_list_concat([''|Segments], /, Path)),
-  (var(QueryComps) -> true ; uri_query_components(Query, QueryComps)),
+  (   var(QueryComps)
+  ->  true
+  ;   is_dict(QueryComps)
+  ->  dict_pairs(QueryComps, QueryPairs),
+      uri_query_components(Query, QueryPairs)
+  ;   uri_query_components(Query, QueryComps)
+  ),
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
 
 
