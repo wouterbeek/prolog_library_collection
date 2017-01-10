@@ -1271,6 +1271,7 @@ http_known_unknown('host-header').
 http_known_unknown(p3p).
 http_known_unknown('r01-domain-origin').
 http_known_unknown(servidor).
+http_known_unknown('source-age').
 http_known_unknown(status).
 http_known_unknown(tcn).
 http_known_unknown(warning).
@@ -1299,6 +1300,7 @@ http_known_unknown('x-ec-custom-error').
 http_known_unknown('x-fastly-request-id').
 http_known_unknown('x-frame-options').
 http_known_unknown('x-generator').
+http_known_unknown('x-geo-block-list').
 http_known_unknown('x-github-request-id').
 http_known_unknown('x-goog-generation').
 http_known_unknown('x-goog-hash').
