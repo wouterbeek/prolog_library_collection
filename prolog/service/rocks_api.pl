@@ -54,9 +54,6 @@ call_on_rocks(Alias, Type, Goal_1) :-
     rocks_close(Alias)
   ).
 
-type_merge_value(int, rocks_merge_sum, int64).
-type_merge_value(set(atom), rocks_merge_set, term).
-
 
 
 %! rocks_alias(+Alias) is semidet.
@@ -77,6 +74,9 @@ rocks_alias(Alias) :-
 %! rocks_key(+RocksDB, +Key) is semidet.
 %! rocks_key(+RocksDB, -Key) is nondet.
 
+rocks_key(RocksDB, Key) :-
+  ground(Key), !,
+  rocks_get(RocksDB, Key, _).
 rocks_key(RocksDB, Key) :-
   rocks_enum(RocksDB, Key, _).
 
@@ -137,6 +137,9 @@ rocks_open(Alias, Type) :-
   rocks_dir(Alias, Dir),
   once(type_merge_value(Type, Merge_5, Val)),
   rocks_open(Dir, _, [alias(Alias),key(atom),merge(Merge_5),value(Val)]).
+
+type_merge_value(int, rocks_merge_sum, int64).
+type_merge_value(set(atom), rocks_merge_set, term).
 
 
 
