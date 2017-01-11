@@ -36,7 +36,7 @@ There are two phases in handling REST requests:
        - call(Goal_2, Method, MT)
 
 @author Wouter Beek
-@version 2016/02-2016/12
+@version 2016/02-2017/01
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
@@ -75,7 +75,7 @@ rest_exception(_, E) :-
 
 % 400 Bad Request
 rest_exception_media_type(text/html, bad_request(E)) :-
-  http_status_reply(bad_request(E)).
+  http_status_reply(bad_request(E), current_output, [], _).
 rest_exception_media_type(MT, existence_error(http_parameter,Key)) :- !,
   (   MT == application/json
   ->  Headers = ['Content-Type'-media_type(application/json,[])],
@@ -87,7 +87,7 @@ rest_exception_media_type(MT, existence_error(http_parameter,Key)) :- !,
   reply_http_message(400, Headers, Cs).
 % 401 Unauthorized (RFC 7235)
 rest_exception_media_type(text/html, 401) :-
-  http_status_reply(authorise(basic,'')).
+  http_status_reply(authorise(basic,''), current_output, [], _).
 % 402 Payment Required
 % 403 Forbidden
 % 404 Not Found
