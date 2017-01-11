@@ -52,8 +52,6 @@ concrete Web Service the following two things must be defined:
 :- http_handler(root(login), login, []).
 :- http_handler(root(logout), logout, []).
 
-:- debug(http(login)).
-
 :- multifile
     google_client:create_user/1,
     google_client:create_user_hook/2,
