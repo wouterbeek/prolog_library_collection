@@ -236,6 +236,9 @@
     widths/2                 % +Widths:or([list(between(1,12)),between(1,12)]), -Classes:list(atom)
   ]
 ).
+:- reexport(library(http/html_head)).
+:- reexport(library(http/html_write)).
+:- reexport(library(http/js_write)).
 
 /** <module> HTML extensions
 
@@ -256,8 +259,6 @@ html({|html||...|}).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(html/html_resource)).
-:- use_module(library(http/html_head)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_host)).
@@ -265,7 +266,6 @@ html({|html||...|}).
 :- use_module(library(http/http_user)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
-:- use_module(library(http/js_write)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(licenses)).
