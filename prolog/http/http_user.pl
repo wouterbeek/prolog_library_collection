@@ -14,7 +14,8 @@ Support for letting users login/logout of a Web Service.
 
 This module is designed to work with an arbitrary database for storing
 the users of a Web Service.  In order to use this module for a
-concrete Web Service the following two things must be defined:
+concrete service the following two things must be defined for the
+long-term storage of user data:
 
   * google_client:create_user_hook(+Profile, -User)
 
@@ -26,8 +27,12 @@ concrete Web Service the following two things must be defined:
     Should retrieve the user from the database that matches the given
     Google Profile, if any.
 
+The following debug flags are used:
+
+  * http(login)
+
 @author Wouter Beek
-@version 2016/04, 2016/06, 2016/10, 2016/12
+@version 2016/04-2017/01
 */
 
 :- use_module(library(debug)).
@@ -40,17 +45,22 @@ concrete Web Service the following two things must be defined:
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_stream)).
 :- use_module(library(http/http_wrapper)).
-:- use_module(library(persistency)).
 
-:- initialization
-   db_attach('user_login.db', []).
+%! current_site_user(?User:atom, ?OpenId:atom) .
+%! stay_signed_in(
+%!   ?OpenId:atom,
+%!   ?Cookie:atom,
+%!   ?Peer:atom,
+%!   ?Time:integer,
+%!   ?Expires:integer
+%! ) .
 
-:- persistent
-   current_site_user(user:atom,openid:atom),
-   stay_signed_in(openid:atom,cookie:atom,peer:atom,time:integer,expires:integer).
+:- dynamic
+   current_site_user/2,
+   stay_signed_in/5.
 
-:- http_handler(root(login), login, []).
-:- http_handler(root(logout), logout, []).
+:- http_handler(root(login), login_handler, []).
+:- http_handler(root(logout), logout_handler, []).
 
 :- multifile
     google_client:create_user/1,
@@ -84,7 +94,6 @@ google_client:create_user(Profile) :-
   google_client:create_user_hook(Profile, User),
   google_login(User, Profile).
 
-
 %! google_client:login_existing_user(+Profile) is det.
 
 google_client:login_existing_user(Profile) :-
@@ -95,6 +104,16 @@ google_client:login_existing_user(Profile) :-
 
 
 
+%! current_user(+User) is semidet.
+%! current_user(-User) is semidet.
+
+current_user(User) :-
+  openid_logged_in(OpenId),
+  current_site_user(User, OpenId),
+  debug(http(login), "Current user ~w is using ~w", [User,OpenId]).
+
+
+
 %! google_login(+User, +Profile) is det.
 
 google_login(User, Profile) :-
@@ -102,8 +121,8 @@ google_login(User, Profile) :-
   google_fake_open_id(Profile, OpenId),
   (   current_site_user(User, OpenId)
   ->  true
-  ;   retractall_current_site_user(_, OpenId),
-      assert_current_site_user(User, OpenId),
+  ;   retractall(current_site_user(_, OpenId)),
+      assert(current_site_user(User, OpenId)),
       debug(http(login), "User ~w logged in using ~w", [User,OpenId])
   ),
 
@@ -125,17 +144,8 @@ true(yes).
 
 
 
-%! current_user(+User) is semidet.
-%! current_user(-User) is semidet.
-
-current_user(User) :-
-  openid_logged_in(OpenId),
-  current_site_user(User, OpenId),
-  debug(http(login), "Current user ~w is using ~w", [User,OpenId]).
-
-
-
 %! has_current_user is semidet.
+%
 % Succeeds iff the user is currently logged in.
 
 has_current_user :-
@@ -143,9 +153,9 @@ has_current_user :-
 
 
 
-%! login(+Req) is det.
+%! login_handler(+Req) is det.
 
-login(Req) :-
+login_handler(Req) :-
   http_parameters(
     Req,
     [
@@ -165,13 +175,13 @@ login(Req) :-
 
 login_link(Link) :-
   http_base_location_iri(Iri),
-  http_link_to_id(login, ['openid.return_to'(Iri)], Link).
+  http_link_to_id(login_handler, ['openid.return_to'(Iri)], Link).
 
 
 
-%! logout(+Req) is det.
+%! logout_handler(+Req) is det.
 
-logout(Req) :-
+logout_handler(Req) :-
   openid_logged_in(OpenId), !,
   openid_logout(OpenId),
   http_parameters(Req, ['openid.return_to'(ReturnTo, [default(/)])]),
@@ -183,7 +193,7 @@ logout(Req) :-
 
 logout_link(Link) :-
   http_base_location_iri(Iri),
-  http_link_to_id(logout, ['openid.return_to'(Iri)], Link).
+  http_link_to_id(logout_handler, ['openid.return_to'(Iri)], Link).
 
 
 
@@ -196,7 +206,7 @@ http_openid:openid_hook(stay_signed_in(OpenId)) :-
   Now is round(Now0),
   http_peer(Peer),
   Expires is Now + 31 * 24 * 60 * 60,   % 31 days from now.
-  assert_stay_signed_in(OpenId, Cookie, Peer, Now, Expires),
+  assert(stay_signed_in(OpenId, Cookie, Peer, Now, Expires)),
   http_session_option(path(Path)),
   debug(http(login), "Created stay-signed-in for ~q", [OpenId]),
   http_timestamp(Expires, RFC1123),
@@ -208,7 +218,7 @@ http_openid:openid_hook(stay_signed_in(OpenId)) :-
 http_openid:openid_hook(logout(OpenId)) :-
   nonvar(OpenId),
   assertion(in_header_state),
-  retractall_stay_signed_in(OpenId, _, _, _, _),
+  retractall(stay_signed_in(OpenId, _, _, _, _)),
   http_session_option(path(Path)),
   stay_login_cookie(CookieName),
   format(
@@ -235,6 +245,6 @@ http_openid:openid_hook(
   )
 ).
 
-in_header_state:-
+in_header_state :-
   current_output(Cgi),
   cgi_property(Cgi, state(header)), !.

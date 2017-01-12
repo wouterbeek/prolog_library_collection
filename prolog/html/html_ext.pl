@@ -3162,22 +3162,23 @@ user_menu(UserName_2, UserImg_2) -->
       \dropdown_menu(
         [id='user-menu'],
         \user_menu_top(User, UserName_2, UserImg_2),
-        \internal_link(Link, [id='logout-button'], "Logout")
+        user_menu_item,
+        [menu_item(Link, [id='logout-button'], "Logout")]
       )
     )
   ).
 user_menu(_, _) -->
   {login_link(Link)},
-  html(
-    form(
-      Link,
-      [class=['navbar-form','navbar-right'],id='user-menu'],
-      div(class='form-group',
-        \submit_button(\internal_link(Link, "Login"))
-      )
+  form(
+    Link,
+    [class=['navbar-form','navbar-right'],id='user-menu'],
+    div(class='form-group',
+      \submit_button(\internal_link(Link, "Login"))
     )
   ).
 
+user_menu_item(menu_item(Link,Attrs,Lbl)) -->
+  internal_link(Link, Attrs, Lbl).
 
 user_menu_top(User, UserName_2, UserImg_2) -->
   {
