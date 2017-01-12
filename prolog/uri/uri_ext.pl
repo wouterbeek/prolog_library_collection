@@ -12,6 +12,8 @@
 
 /** <module> URI extensions
 
+
+
 @author Wouter Beek
 @version 2015/08, 2015/10-2016/04, 2016/11-2017/01
 */
@@ -19,6 +21,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_host), []).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
 
@@ -58,7 +61,13 @@ uri_comps(Uri, uri(Scheme,AuthComp,Segments,QueryComps,Frag)) :-
   (var(Query) -> QueryComps = [] ; uri_query_components(Query, QueryComps)).
 uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
   (atom(Auth0) -> Auth = Auth0 ; auth_comps(Auth, Auth0)),
-  (var(Segments) -> true ; atomic_list_concat([''|Segments], /, Path)),
+  (   var(Segments)
+  ->  true
+  ;   Segments = []
+  ->  Path = '/'
+  ;   atomic_list_concat([''|Segments], /, Path0),
+      atom_concat(Path0, /, Path)
+  ),
   (   var(QueryComps)
   ->  true
   ;   is_dict(QueryComps)
