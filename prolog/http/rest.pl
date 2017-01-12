@@ -40,6 +40,7 @@ There are two phases in handling REST requests:
 */
 
 :- use_module(library(http/html_write)). % HTML meta.
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_wrapper)).
