@@ -55,6 +55,7 @@
     footer_panel//3,         % +Spec, :Top, :Bottom
     footnote_post//2,        % +State, :Html_0
     footnote_receive//2,     % +N, :Html_0
+    footnotes//0,
     form//2,                 % +Spec, :Html_0
     form//3,                 % +Spec, +Attrs, :Html_0
     form_submit_button//0,
@@ -164,6 +165,7 @@
     pipe//0,
     pl_link//0,
     pl_version//0,
+    postscriptum//1,         % :Content_2
     ref//2,                  % +Label, :Html_0
     reply_raw_file/1,        % +Spec
     reset_button//0,
@@ -249,7 +251,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2016/12
+@version 2016/02-2017/01
 */
 
 :- use_module(library(apply)).
@@ -275,7 +277,7 @@ html({|html||...|}).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(q/q_term)). %HACK
-:- use_module(library(settings)).
+:- use_module(library(setting_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
@@ -300,7 +302,6 @@ html({|html||...|}).
    endpoint_link(+, html, ?, ?),
    external_link(+, html, ?, ?),
    external_link(+, +, html, ?, ?),
-   fb_follow0(html, ?, ?),
    fb_follow0(+, html, ?, ?),
    figure(+, +, html, ?, ?),
    footer_panel(+, html, html, ?, ?),
@@ -337,6 +338,7 @@ html({|html||...|}).
    panel(+, html, html, ?, ?),
    panel(+, +, html, html, ?, ?),
    panels(html, ?, ?),
+   postscriptum(html, ?, ?),
    ref(+, html, ?, ?),
    reset_button(html, ?, ?),
    row_1(html, ?, ?),
@@ -359,7 +361,6 @@ html({|html||...|}).
    table_header(html, ?, ?),
    tile(3, +, ?, ?),
    tooltip(+, html, ?, ?),
-   twitter_follow0(html, ?, ?),
    twitter_follow0(+, html, ?, ?),
    unless(0, html, ?, ?),
    unordered_list(html, +, ?, ?),
@@ -532,31 +533,6 @@ html({|html||...|}).
     html:html_hook//1,
     html:html_hook//2.
 
-:- setting(
-     html:fb_app_id,
-     atom,
-     '',
-     "Facebook application identifier."
-   ).
-:- setting(
-     html:fb_profile,
-     atom,
-     '',
-     "Facebook profile name."
-   ).
-:- setting(
-     html:google_analytics_id,
-     atom,
-     '',
-     "Google Analytics ID."
-   ).
-:- setting(
-     html:twitter_profile,
-     atom,
-     '',
-     "Twitter profile name."
-   ).
-
 % string
 html:html_hook(string(Str)) -->
   html(Str).
@@ -584,6 +560,30 @@ html:html_hook(Str) -->
   {string(Str)},
   html(Str).
 
+:- setting(
+     html:fb_app_id,
+     term,
+     _,
+     "Facebook application identifier."
+   ).
+:- setting(
+     html:fb_profile,
+     term,
+     _,
+     "Facebook profile name."
+   ).
+:- setting(
+     html:google_analytics_id,
+     term,
+     _,
+     "Google Analytics ID."
+   ).
+:- setting(
+     html:twitter_profile,
+     term,
+     _,
+     "Twitter profile name."
+   ).
 
 
 
@@ -1159,8 +1159,9 @@ favicon(Spec) -->
 %! fb_app_id// is det.
 
 fb_app_id -->
-  {setting(html:fb_app_id, Id)},
+  {setting_nonvar(html:fb_app_id, Id)}, !,
   meta('fb:app_id', Id).
+fb_app_id --> [].
 
 
 
@@ -1178,13 +1179,7 @@ fb_comments(Iri) -->
 
 
 
-%! fb_follow0(:Html_0)// is det.
 %! fb_follow0(+User, :Html_0)// is det.
-
-fb_follow0(Html_0) -->
-  {setting(html:fb_profile, User)},
-  fb_follow0(User, Html_0).
-
 
 fb_follow0(User, Html_0) -->
   {fb_user_iri(User, Iri)},
@@ -1196,8 +1191,9 @@ fb_follow0(User, Html_0) -->
 %! fb_follow_img(+User)// is det.
 
 fb_follow_img -->
-  {setting(html:fb_profile, User)},
+  {setting_nonvar(html:fb_profile, User)}, !,
   fb_follow_img(User).
+fb_follow_img --> [].
 
 
 fb_follow_img(User) -->
@@ -1210,8 +1206,9 @@ fb_follow_img(User) -->
 %! fb_follow_txt(+User)// is det.
 
 fb_follow_txt -->
-  {setting(html:fb_profile, User)},
+  {setting_nonvar(html:fb_profile, User)}, !,
   fb_follow_txt(User).
+fb_follow_txt --> [].
 
 
 fb_follow_txt(User) -->
@@ -1362,6 +1359,13 @@ footnote_receive(N, Html_0) -->
 
 
 
+%! footnotes// is det.
+
+footnotes -->
+  html([hr([]), ol(\html_receive(footnote))]).
+
+
+
 %! form(+Spec, :Html_0)// is det.
 %! form(+Spec, +Attrs, :Html_0)// is det.
 
@@ -1402,10 +1406,7 @@ git_version -->
 %! google_analytics// is det.
 
 google_analytics -->
-  {
-    setting(html:google_analytics_id, Id),
-    Id \== '', !
-  },
+  {setting_nonvar(html:google_analytics_id, Id)}, !,
   js_script({|javascript(Id)||
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -2075,7 +2076,7 @@ ip(IP) -->
 
 language_menu(LTags) -->
   {
-    setting(nlp:lrange, [LTag|_]),
+    setting_nonvar(nlp:lrange, [LTag|_]), !,
     lstring(language, Lbl)
   },
   navbar_dropdown_menu(
@@ -2092,6 +2093,7 @@ $( "#language-menu" ).change(function() {
   });
 });
   |}).
+language_menu(_) --> [].
 
 language_menu_item(LTag0, LTag) -->
   {(LTag0 == LTag -> T = [selected=selected] ; T = [])},
@@ -2305,7 +2307,7 @@ navbar(Brand_0, Menu_0, Right_0) -->
         ]),
         div([class=[collapse,'navbar-collapse'],id=Target], [
           \navbar_menu(Menu_0),
-          Right_0
+          ul(class=[nav,'navbar-nav','navbar-right'], Right_0)
         ])
       ])
     ),
@@ -2502,6 +2504,13 @@ pl_version -->
       span(class=patch, Version.patch)
     ])
   ).
+
+
+
+%! postscriptum(:Content_0)// is det.
+
+postscriptum(Content_0) -->
+  html([hr([])|Content_0]).
 
 
 
@@ -2966,13 +2975,7 @@ truncate(Str, MaxLen) -->
 
 
 
-%! twitter_follow0(:Html_0)// is det.
 %! twitter_follow0(+User, :Html_0)// is det.
-
-twitter_follow0(Html_0) -->
-  {setting(html:twitter_profile, User)},
-  twitter_follow0(User, Html_0).
-
 
 twitter_follow0(User, Html_0) -->
   {twitter_user_iri(User, Iri)},
@@ -2984,8 +2987,9 @@ twitter_follow0(User, Html_0) -->
 %! twitter_follow_img(+User)// is det.
 
 twitter_follow_img -->
-  {setting(html:twitter_profile, User)},
+  {setting_nonvar(html:twitter_profile, User)}, !,
   twitter_follow_img(User).
+twitter_follow_img --> [].
 
 
 twitter_follow_img(User) -->
@@ -2998,8 +3002,9 @@ twitter_follow_img(User) -->
 %! twitter_follow_txt(+User)// is det.
 
 twitter_follow_txt -->
-  {setting(html:twitter_profile, User)},
+  {setting_nonvar(html:twitter_profile, User)}, !,
   twitter_follow_txt(User).
+twitter_follow_txt --> [].
 
 
 twitter_follow_txt(User) -->
@@ -3037,8 +3042,9 @@ twitter_img0 -->
 %! twitter_mention(+User)// is det.
 
 twitter_mention -->
-  {setting(html:twitter_profile, User)},
+  {setting_nonvar(html:twitter_profile, User)}, !,
   twitter_mention(User).
+twitter_mention --> [].
 
 
 twitter_mention(User) -->
@@ -3062,8 +3068,9 @@ twitter_mention(User) -->
 %! twitter_profile(+User)// is det.
 
 twitter_profile -->
-  {setting(html:twitter_profile, User)},
+  {setting_nonvar(html:twitter_profile, User)}, !,
   twitter_profile(User).
+twitter_profile --> [].
 
 
 twitter_profile(User) -->
@@ -3157,15 +3164,11 @@ user_menu(UserName_2, UserImg_2) -->
     current_user(User), !,
     logout_link(Link)
   },
-  html(
-    ul(class=[nav,'navbar-nav','navbar-right'],
-      \dropdown_menu(
-        [id='user-menu'],
-        \user_menu_top(User, UserName_2, UserImg_2),
-        user_menu_item,
-        [menu_item(Link, [id='logout-button'], "Logout")]
-      )
-    )
+  dropdown_menu(
+    [id='user-menu'],
+    \user_menu_top(User, UserName_2, UserImg_2),
+    user_menu_item,
+    [menu_item(Link, [id='logout-button'], "Logout")]
   ).
 user_menu(_, _) -->
   {login_link(Link)},
