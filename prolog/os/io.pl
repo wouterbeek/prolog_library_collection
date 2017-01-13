@@ -562,8 +562,6 @@ copy_stream_data(In, InPath, InPath, Out) :-
 
 guess_stream_encoding(In, Enc) :-
   peek_string(In, 1000, Str),
-  writeln(In-Str),
-  gtrace,
   guess_string_encoding(Str, Enc).
 
 
