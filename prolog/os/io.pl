@@ -560,9 +560,11 @@ copy_stream_data(In, InPath, InPath, Out) :-
 
 %! guess_stream_encoding(+In, -Enc) is det.
 
-guess_stream_encoding(In1, Enc) :-
-  peek_string(In1, 4000, Chunk),
-  guess_string_encoding(Chunk, Enc).
+guess_stream_encoding(In, Enc) :-
+  peek_string(In, 1000, Str),
+  writeln(In-Str),
+  gtrace,
+  guess_string_encoding(Str, Enc).
 
 
 
