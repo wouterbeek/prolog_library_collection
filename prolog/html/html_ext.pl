@@ -280,7 +280,7 @@ html({|html||...|}).
 :- use_module(library(setting_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
-:- use_module(library(uri)).
+:- use_module(library(uri/uri_ext)).
 
 :- html_meta
    alert(+, html, ?, ?),
