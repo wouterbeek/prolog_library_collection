@@ -3080,7 +3080,7 @@ twitter_share(Uri0, Title) -->
     lstring(share_x_on_y, [Title,"Twitter"], Str),
     uri_comps(Uri, uri(https,'twitter.com',[share],[text(Title),url(Uri0)],_))
   },
-  tooltip(Str, a(href=Url, \twitter_img0)).
+  tooltip(Str, a(href=Uri, \twitter_img0)).
 
 
 
