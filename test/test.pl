@@ -169,6 +169,7 @@
   :- use_module(library(set/set_ext_experimental)).
   :- use_module(library(set/symmetric_closure)).
   :- use_module(library(set/transitive_closure)).
+:- use_module(library(setting_ext)).
 %/sgml
   :- use_module(library(sgml/sgml_ext)).
 :- use_module(library(stream_ext)).
