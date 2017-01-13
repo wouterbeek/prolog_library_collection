@@ -2,13 +2,13 @@
   http_ext,
   [
     http_absolute_location/2, % +Spec, -Path
-    http_base_location_iri/1, % -Iri
+    http_base_location_uri/1, % -Uri
     http_cookie/2,            % +Key, -Cookie
     http_default_port/2,      % +Scheme, -DefPort
-    http_iri_query/2,         % +Iri, -Comp
+    http_uri_query/2,         % +Uri, -Comp
     http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
-    http_location_iri/2,      % +Req, -Location
+    http_location_uri/2,      % +Req, -Location
     http_peer/1,              % -PeerIP
     http_redirect/2,          % +How, +To
     http_reply_file/1,        % +File
@@ -51,13 +51,13 @@ http_absolute_location(Spec, Path) :-
 
 
 
-%! http_base_location_iri(-Iri) is det.
+%! http_base_location_uri(-Uri) is det.
 
-http_base_location_iri(Iri2) :-
+http_base_location_uri(Uri2) :-
   http_current_request(Req),
-  http_location_iri(Req, Iri1),
-  uri_components(Iri1, uri_components(Scheme,Auth,Path,_,_)),
-  uri_components(Iri2, uri_components(Scheme,Auth,Path,_,_)).
+  http_location_uri(Req, Uri1),
+  uri_components(Uri1, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Uri2, uri_components(Scheme,Auth,Path,_,_)).
 
 
 
@@ -77,10 +77,10 @@ http_default_port(https, 443).
 
 
 
-%! http_iri_query(+Iri, -Comp) is nondet.
+%! http_uri_query(+Uri, -Comp) is nondet.
 
-http_iri_query(Iri, Comp) :-
-  uri_components(Iri, uri_components(_,_,_,Query,_)),
+http_uri_query(Uri, Comp) :-
+  uri_components(Uri, uri_components(_,_,_,Query,_)),
   (var(Query) -> Comps = [] ; uri_query_components(Query, Comps)),
   member(Comp, Comps).
 
@@ -100,11 +100,11 @@ http_link_to_id(HandleId, Local) :-
 
 
 
-%! http_location_iri(+Req, -Iri) is det.
+%! http_location_uri(+Req, -Uri) is det.
 
-http_location_iri(Req, Loc) :-
-  memberchk(request_uri(Iri), Req),
-  iri_to_location(Iri, Loc).
+http_location_uri(Req, Loc) :-
+  memberchk(request_uri(Uri), Req),
+  iri_to_location(Uri, Loc).
 
 
 

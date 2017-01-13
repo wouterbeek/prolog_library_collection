@@ -34,8 +34,8 @@ Support for downloading files and datastructures over HTTP(S).
 
 
 
-%! file_download(+Iri, +File) is det.
-%! file_download(+Iri, +File, +Opts) is det.
+%! file_download(+Uri, +File) is det.
+%! file_download(+Uri, +File, +Opts) is det.
 %
 % Downloads the contents stored at the given URI to either the a File
 % with either a given file name or a file name that is created based
@@ -49,33 +49,33 @@ Support for downloading files and datastructures over HTTP(S).
 %
 %   * Other options are passed to http_get/3.
 %
-% @throws type_error if Iri is not an absolute URI.
+% @throws type_error if Uri is not an absolute URI.
 
-file_download(Iri, File) :-
-  file_download(Iri, File, []).
+file_download(Uri, File) :-
+  file_download(Uri, File, []).
 
 
 % The file was already downloaded in the past.
-file_download(Iri, File, Opts) :-
+file_download(Uri, File, Opts) :-
   nonvar(File),
   exists_file(File), !,
   (   option(freshness_lifetime(FL), Opts, inf),
       is_fresh_file(File, FL)
   ->  access_file(File, read)
   ;   delete_file(File),
-      file_download(Iri, File, Opts)
+      file_download(Uri, File, Opts)
   ).
-% Throw an exception if Iri is not absolute.
-file_download(Iri, _, _) :-
-  \+ uri_is_global(Iri), !,
-  type_error(absolute_uri, Iri).
+% Throw an exception if Uri is not absolute.
+file_download(Uri, _, _) :-
+  \+ uri_is_global(Uri), !,
+  type_error(absolute_uri, Uri).
 % A file name is given.
-file_download(Iri, File, Opts) :-
-  iri_normalized(Iri, NormIri),
-  md5(NormIri, Hash),
+file_download(Uri, File, Opts) :-
+  iri_normalized(Uri, NormUri),
+  md5(NormUri, Hash),
   thread_file(Hash, TmpFile),
   call_onto_stream(
-    Iri,
+    Uri,
     TmpFile,
     [In,InPath,InPath,Out]>>copy_stream_data(In, Out),
     [metadata(InPath)|Opts],
@@ -104,8 +104,9 @@ html_download_stream(Dom, Opts, In, InPath, InPath) :-
 
 %! xml_download(+Source, -Dom) is det.
 %! xml_download(+Source, -Dom, +Opts) is det.
-% Returns the HTML Document Object Model (DOM)
-% for the website with the given IRI.
+%
+% Returns the HTML Document Object Model (DOM) for the website with
+% the given URI.
 
 xml_download(Source, Dom) :-
   xml_download(Source, Dom, []).

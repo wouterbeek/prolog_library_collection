@@ -12,13 +12,13 @@
     card//3,                 % +Attrs, :Left_0, :Right_0
     html_caret//0,
     center_logo//1,          % +Spec
-    code_link//1,            % +Iri
+    code_link//1,            % +Uri
     collapse_content//2,     % +Id, :Html_0
     collapse_link//2,        % +Id, :Link_0
     copy_to_clipboard//1,    % +Txt
-    data_link//1,            % +Iri
-    data_link//2,            % +Iri, :Html_0
-    data_link//3,            % +Iri, +Attrs, :Html_0
+    data_link//1,            % +Uri
+    data_link//2,            % +Uri, :Html_0
+    data_link//3,            % +Uri, +Attrs, :Html_0
     date//1,                 % +DT
     deck//2,                 % :Card_1, +Items
     deck//3,                 % +Attrs, :Card_1, +Items
@@ -34,22 +34,22 @@
     endpoint_link//1,        % +HandleId
     endpoint_link//2,        % +HandleId, :Html_0
     error//1,                % +E
-    external_link//1,        % +Iri
-    external_link//2,        % +Iri, :Html_0
-    external_link//3,        % +Iri, +Attrs, :Html_0
-    external_link_icon//1,   % +Iri
+    external_link//1,        % +Uri
+    external_link//2,        % +Uri, :Html_0
+    external_link//3,        % +Uri, +Attrs, :Html_0
+    external_link_icon//1,   % +Uri
     favicon//1,              % +Spec
     fb_app_id//0,
-    fb_comments//1,          % +Iri
+    fb_comments//1,          % +Uri
     fb_follow_img//0,
     fb_follow_img//1,        % +User
     fb_follow_txt//0,
     fb_follow_txt//1,        % +User
-    fb_like//1,              % +Iri
-    fb_like//2,              % +Size:oneof([large,small]), +Iri
-    fb_share//2,             % +Iri, +Title
-    figure//2,               % +Iri, +Caption
-    figure//3,               % +Iri, +Alt, :Caption_0
+    fb_like//1,              % +Uri
+    fb_like//2,              % +Size:oneof([large,small]), +Uri
+    fb_share//2,             % +Uri, +Title
+    figure//2,               % +Uri, +Caption
+    figure//3,               % +Uri, +Alt, :Caption_0
     file_name//1,            % +File
     flag_icon//1,            % +LTag
     footer_panel//3,         % +Spec, :Top, :Bottom
@@ -131,7 +131,7 @@
     language_menu//1,        % +LTags
     link//1,                 % +Pair
     link//2,                 % +Attrs, +Pair
-    link_button//2,          % +Iri, :Html_0
+    link_button//2,          % +Uri, :Html_0
     linkedin_share//0,
     list//1,                 % +Args
     list//2,                 % :Html_1, +Args
@@ -220,13 +220,13 @@
     twitter_follow_img//1,   % +User
     twitter_follow_txt//0,
     twitter_follow_txt//1,   % +User
-    twitter_grid//2,         % +Iri, +Title
+    twitter_grid//2,         % +Uri, +Title
     twitter_mention//0,
     twitter_mention//1,      % +User
     twitter_profile//0,
     twitter_profile//1,      % +User
-    twitter_share//2,        % +Iri, +Title
-    twitter_tweet//1,        % +Iri
+    twitter_share//2,        % +Uri, +Title
+    twitter_tweet//1,        % +Uri
     unless//2,               % :Unless_0, :Then_0
     unordered_list//1,       % +Items
     unordered_list//2,       % :Html_1, +Items
@@ -559,6 +559,9 @@ html:html_hook(A) -->
 html:html_hook(Str) -->
   {string(Str)},
   html(Str).
+% URI
+html:html_hook(uri(Uri)) -->
+  external_link(Uri).
 
 :- setting(
      html:fb_app_id,
@@ -729,21 +732,21 @@ copy_to_clipboard(Txt) -->
 
 
 
-%! data_link(+Iri)// is det.
-%! data_link(+Iri, :Html_0)// is det.
-%! data_link(+Iri, +Attrs, :Html_0)// is det.
+%! data_link(+Uri)// is det.
+%! data_link(+Uri, :Html_0)// is det.
+%! data_link(+Uri, +Attrs, :Html_0)// is det.
 
-data_link(Iri) -->
-  data_link(Iri, \icon(internal_link)).
-
-
-data_link(Iri, Html_0) -->
-  data_link(Iri, [], Html_0).
+data_link(Uri) -->
+  data_link(Uri, \icon(internal_link)).
 
 
-data_link(Iri, Attrs1, Html_0) -->
+data_link(Uri, Html_0) -->
+  data_link(Uri, [], Html_0).
+
+
+data_link(Uri, Attrs1, Html_0) -->
   {
-    iri_to_location(Iri, Loc),
+    iri_to_location(Uri, Loc),
     merge_attrs([href=Loc], Attrs1, Attrs2)
   },
   html(a(Attrs2, Html_0)).
@@ -879,13 +882,13 @@ ellipsis(Str, MaxLen) -->
 %! endpoint_link(+HandleId, :Html_0)// is det.
 
 endpoint_link(HandleId) -->
-  {http_link_to_id(HandleId, Iri)},
-  internal_link(Iri, code(Iri)).
+  {http_link_to_id(HandleId, Uri)},
+  internal_link(Uri, code(Uri)).
 
 
 endpoint_link(HandleId, Html_0) -->
-  {http_link_to_id(HandleId, Iri)},
-  internal_link(Iri, Html_0).
+  {http_link_to_id(HandleId, Uri)},
+  internal_link(Uri, Html_0).
 
 
 
@@ -1115,33 +1118,33 @@ error_stream(Stream) -->
 
 
 
-%! external_link(+Iri)// is det.
-%! external_link(+Iri, :Html_0)// is det.
-%! external_link(+Iri, +Attrs, :Html_0)// is det.
+%! external_link(+Uri)// is det.
+%! external_link(+Uri, :Html_0)// is det.
+%! external_link(+Uri, +Attrs, :Html_0)// is det.
 %
 % Generates an HTML link to an external resource.
 %
 % When Icon is `true` the fact that the link points to an external
 % resource is indicated by a link icon (default is `false`).
 
-external_link(Iri) -->
-  external_link(Iri, Iri).
+external_link(Uri) -->
+  external_link(Uri, Uri).
 
 
-external_link(Iri, Html_0) -->
-  external_link(Iri, [], Html_0).
+external_link(Uri, Html_0) -->
+  external_link(Uri, [], Html_0).
 
 
-external_link(Iri, Attrs1, Html_0) -->
-  {merge_attrs(Attrs1, [href=Iri,target='_blank'], Attrs2)},
+external_link(Uri, Attrs1, Html_0) -->
+  {merge_attrs(Attrs1, [href=Uri,target='_blank'], Attrs2)},
   html(a(Attrs2, Html_0)).
 
 
 
-%! external_link_icon(+Iri)// is det.
+%! external_link_icon(+Uri)// is det.
 
-external_link_icon(Iri) -->
-  html(a([href=Iri,target='_blank'], \icon(external_link))).
+external_link_icon(Uri) -->
+  html(a([href=Uri,target='_blank'], \icon(external_link))).
 
 
 
@@ -1151,8 +1154,8 @@ external_link_icon(Iri) -->
 % Web browser's tab.
 
 favicon(Spec) -->
-  {spec_iri(Spec, Iri)},
-  link([type='image/x-icon'], icon-Iri).
+  {spec_uri0(Spec, Uri)},
+  link([type='image/x-icon'], icon-Uri).
 
 
 
@@ -1165,14 +1168,14 @@ fb_app_id --> [].
 
 
 
-%! fb_comments(+Iri)// is det.
+%! fb_comments(+Uri)// is det.
 
-fb_comments(Iri) -->
+fb_comments(Uri) -->
   html(
     div([
       class='fb-comments',
       'data-colorscheme'=dark,
-      'data-href'=Iri,
+      'data-href'=Uri,
       'data-numposts'=5
     ], [])
   ).
@@ -1182,8 +1185,8 @@ fb_comments(Iri) -->
 %! fb_follow0(+User, :Html_0)// is det.
 
 fb_follow0(User, Html_0) -->
-  {fb_user_iri(User, Iri)},
-  html(a(href=Iri, Html_0)).
+  {fb_user_uri(User, Uri)},
+  html(a(href=Uri, Html_0)).
 
 
 
@@ -1233,20 +1236,20 @@ fb_img0 -->
 
 
 
-%! fb_like(+Iri)// is det.
-%! fb_like(+Style:oneof([large,small]), +Iri)// is det.
+%! fb_like(+Uri)// is det.
+%! fb_like(+Style:oneof([large,small]), +Uri)// is det.
 
-fb_like(Iri) -->
-  fb_like(small, Iri).
+fb_like(Uri) -->
+  fb_like(small, Uri).
 
 
-fb_like(Size, Iri) -->
+fb_like(Size, Uri) -->
   html(
     div([
       class='fb-like',
       'data-action'=like,
       'data-colorsheme'=dark,
-      'data-href'=Iri,
+      'data-href'=Uri,
       'data-layout'=button_count,
       'data-share'=true,
       'data-show-faces'=false,
@@ -1256,30 +1259,29 @@ fb_like(Size, Iri) -->
 
 
 
-%! fb_share(+Iri, +Title)// is det.
+%! fb_share(+Uri, +Title)// is det.
 
-fb_share(Iri, Title) -->
+fb_share(Uri0, Title) -->
   {
     lstring(share_x_on_y, [Title,"Facebook"], Str),
-    uri_query_components(Query, [title=Title,u=Iri]),
-    uri_components(
-      Url,
-      uri_components(http,'www.facebook.com','/share.php',Query,_)
+    uri_comps(
+      Uri,
+      uri(http,'www.facebook.com',['share.php'],[title=Title,u=Uri0],_)
     )
   },
-  tooltip(Str, a([href=Url,target='_blank'], \fb_img0)).
+  tooltip(Str, a([href=Uri,target='_blank'], \fb_img0)).
 
 
 
-%! figure(+Iri, +Caption)// is det.
-%! figure(+Iri, +Alt, :Caption_0)// is det.
+%! figure(+Uri, +Caption)// is det.
+%! figure(+Uri, +Alt, :Caption_0)// is det.
 
-figure(Iri, Caption) -->
-  figure(Iri, Caption, html(Caption)).
+figure(Uri, Caption) -->
+  figure(Uri, Caption, html(Caption)).
 
 
-figure(Iri, Alt, Caption_0) -->
-  html(figure([\image(Iri, [alt=Alt]),figcaption(Caption_0)])).
+figure(Uri, Alt, Caption_0) -->
+  html(figure([\image(Uri, [alt=Alt]),figcaption(Caption_0)])).
 
 
 
@@ -1375,9 +1377,9 @@ form(Spec, Html_0) -->
 
 form(Spec, Attrs1, Html_0) -->
   {
-    spec_iri(Spec, Iri),
+    spec_uri0(Spec, Uri),
     merge_attrs([method=get], Attrs1, Attrs2),
-    merge_attrs(Attrs2, [action=Iri], Attrs3)
+    merge_attrs(Attrs2, [action=Uri], Attrs3)
   },
   html(form(Attrs3, Html_0)).
 
@@ -1422,16 +1424,8 @@ google_analytics --> [].
 %! google_font(+Name)// is det.
 
 google_font(Name) -->
-  {
-    Dict = _{
-      host: 'fonts.googleapis.com',
-      path: [css],
-      query: [family(Name)],
-      scheme: https
-    },
-    iri_create(Dict, Iri)
-  },
-  link([type='text/css'], stylesheet-Iri).
+  {uri_comps(Uri, uri(https,'fonts.googleapis.com',[css],[family(Name)],_))},
+  link([type='text/css'], stylesheet-Uri).
 
 
 
@@ -1609,7 +1603,7 @@ html_http_error_page(Style, Req) :-
 
 
 
-%! html_license(+Iri, Lbl)// is det.
+%! html_license(+Uri, Lbl)// is det.
 
 html_license(Uri, Lbl) -->
   external_link(Uri, [rel=license], Lbl).
@@ -1910,18 +1904,18 @@ image(Spec) -->
 
 image(Spec, Attrs1) -->
   {
-    spec_iri(Spec, Iri),
-    merge_attrs(Attrs1, [src=Iri], Attrs2)
+    spec_uri0(Spec, Uri),
+    merge_attrs(Attrs1, [src=Uri], Attrs2)
   },
   html(img(Attrs2, [])).
 
 
 
-%! image_header(+Iri, :Html_0)// is det.
+%! image_header(+Uri, :Html_0)// is det.
 
-image_header(Iri, Html_0) -->
+image_header(Uri, Html_0) -->
   {
-    format(atom(Img0), 'url("~a")', [Iri]),
+    format(atom(Img0), 'url("~a")', [Uri]),
     atomic_list_concat(
       [
         'background:',
@@ -2055,9 +2049,9 @@ internal_link(Spec, Html_0) -->
 
 internal_link(Spec, Attrs1, Content0_0) -->
   {
-    spec_iri(Spec, Iri),
-    merge_attrs(Attrs1, [href=Iri], Attrs2),
-    (var_goal(Content0_0) -> Html_0 = Iri ; Html_0 = Content0_0)
+    spec_uri0(Spec, Uri),
+    merge_attrs(Attrs1, [href=Uri], Attrs2),
+    (var_goal(Content0_0) -> Html_0 = Uri ; Html_0 = Content0_0)
   },
   html(a(Attrs2, Html_0)).
 
@@ -2104,7 +2098,7 @@ language_menu_item(LTag0, LTag) -->
 %! link(+Pair)// is det.
 %! link(+Attrs, +Pair)// is det.
 %
-% Pair is of the form `Rel-Iri`, where Iri is based on Spec.
+% Pair is of the form `Rel-Uri`, where Uri is based on Spec.
 
 link(Pair) -->
   link([], Pair).
@@ -2112,19 +2106,19 @@ link(Pair) -->
 
 link(Attrs1, Rel-Spec) -->
   {
-    spec_iri(Spec, Iri),
-    merge_attrs(Attrs1, [href=Iri,rel=Rel], Attrs2)
+    spec_uri0(Spec, Uri),
+    merge_attrs(Attrs1, [href=Uri,rel=Rel], Attrs2)
   },
   html(link(Attrs2, [])).
 
 
 
-%! link_button(+Iri, :Html_0)// is det.
+%! link_button(+Uri, :Html_0)// is det.
 %
 % Generate an HTML link that looks like a button.
 
-link_button(Iri, Html_0) -->
-  html(a([class=[btn,'btn-default'],href=Iri], Html_0)).
+link_button(Uri, Html_0) -->
+  html(a([class=[btn,'btn-default'],href=Uri], Html_0)).
 
 
 
@@ -2172,7 +2166,7 @@ mail_link_and_icon(Uri) -->
 
 menu -->
   {
-    http_base_location_iri(Loc),
+    http_base_location_uri(Loc),
     major_menus(MajorMenus)
   },
   html_maplist(major_menu(Loc), MajorMenus).
@@ -2181,10 +2175,10 @@ menu -->
 % Flat menu item.
 major_menu(Loc, menu_item(Handle,Lbl)-[]) --> !,
   {
-    http_link_to_id(Handle, Iri),
-    (atom_postfix(Loc, Iri) -> Attrs = [class=active] ; Attrs = [])
+    http_link_to_id(Handle, Uri),
+    (atom_postfix(Loc, Uri) -> Attrs = [class=active] ; Attrs = [])
   },
-  html(li(Attrs, \internal_link(Iri, Lbl))).
+  html(li(Attrs, \internal_link(Uri, Lbl))).
 % Nested menu items.
 major_menu(_, MajorItem-MinorItems) -->
   dropdown_menu(menu_item(MajorItem), menu_item, MinorItems).
@@ -2978,8 +2972,8 @@ truncate(Str, MaxLen) -->
 %! twitter_follow0(+User, :Html_0)// is det.
 
 twitter_follow0(User, Html_0) -->
-  {twitter_user_iri(User, Iri)},
-  html(a(href=Iri, html_call(Html_0))).
+  {twitter_user_uri(User, Uri)},
+  html(a(href=Uri, html_call(Html_0))).
 
 
 
@@ -3023,10 +3017,10 @@ twitter_txt0(User) -->
 
 
 
-%! twitter_grid(+Iri, +Title)// is det.
+%! twitter_grid(+Uri, +Title)// is det.
 
-twitter_grid(Iri, Title) -->
-  html(a([class='twitter-grid',href=Iri], Title)).
+twitter_grid(Uri, Title) -->
+  html(a([class='twitter-grid',href=Uri], Title)).
 
 
 
@@ -3048,16 +3042,10 @@ twitter_mention --> [].
 
 
 twitter_mention(User) -->
-  {
-    uri_query_components(Query, [screen_name(User)]),
-    uri_components(
-      Iri,
-      uri_components(https,'twitter.com','/intent/tweet',Query,_)
-    )
-  },
+  {uri_comps(Uri, uri(https,'twitter.com',[intent,tweet],[screen_name(User)],_))},
   html(
     a(
-      [class='twitter-mention-button','data-show-count'=false,href=Iri],
+      [class='twitter-mention-button','data-show-count'=false,href=Uri],
       [\html_lstring(tweet_to)," @",User]
     )
   ).
@@ -3074,9 +3062,9 @@ twitter_profile --> [].
 
 
 twitter_profile(User) -->
-  {twitter_user_iri(User, Iri)},
+  {twitter_user_uri(User, Uri)},
   html(
-    a([class='twitter-timeline',href=Iri], [
+    a([class='twitter-timeline',href=Uri], [
       \html_lstring(tweets_by),
       " ",
       User
@@ -3085,13 +3073,12 @@ twitter_profile(User) -->
 
 
 
-%! twitter_share(+Iri, +Title)// is det.
+%! twitter_share(+Uri, +Title)// is det.
 
-twitter_share(Iri, Title) -->
+twitter_share(Uri0, Title) -->
   {
     lstring(share_x_on_y, [Title,"Twitter"], Str),
-    uri_query_components(Query, [text(Title),url(Iri)]),
-    uri_components(Url, uri_components(https,'twitter.com','/share',Query,_))
+    uri_comps(Uri, uri(https,'twitter.com',[share],[text(Title),url(Uri0)],_))
   },
   tooltip(Str, a(href=Url, \twitter_img0)).
 
@@ -3101,12 +3088,11 @@ twitter_share(Iri, Title) -->
 
 twitter_tweet(Tweet) -->
   {
-    uri_query_components(Query, [omit_script(true),url(Tweet)]),
-    uri_components(
-      Iri,
-      uri_components(https,'publish.twitter.com','/oembed',Query,_)
+    uri_comps(
+      Uri,
+      uri(https,'publish.twitter.com',[oembed],[omit_script(true),url(Tweet)],_)
     ),
-    json_read_any(Iri, Dict),
+    json_read_any(Uri, Dict),
     atom_string(A, Dict.html)
   },
   [A].
@@ -3256,11 +3242,10 @@ exit_code_reason(130, "Script terminated by Control-C.").
 
 
 
-%! fb_user_iri(+User, -Iri) is det.
+%! fb_user_uri(+User, -Uri) is det.
 
-fb_user_iri(User, Iri) :-
-  atomic_list_concat(['',User], /, Path),
-  uri_components(Iri, uri_components(https,'facebook.com',Path,_,_)).
+fb_user_uri(User, Uri) :-
+  uri_comps(Uri, uri(https,'facebook.com',[User],_,_)).
 
 
 
@@ -3489,23 +3474,22 @@ raw_page(Spec, Title, Content) :-
 
 
 
-%! spec_iri(+Spec, -Iri) is det.
+%! spec_uri0(+Spec, -Uri) is det.
 
-spec_iri(link_to_id(HandleId), Iri) :- !,
-  http_link_to_id(HandleId, Iri).
-spec_iri(link_to_id(HandleId,Query0), Iri) :- !,
+spec_uri0(link_to_id(HandleId), Uri) :- !,
+  http_link_to_id(HandleId, Uri).
+spec_uri0(link_to_id(HandleId,Query0), Uri) :- !,
   maplist(q_query_term, Query0, Query), %HACK
-  http_link_to_id(HandleId, Query, Iri).
-spec_iri(Spec, Iri) :-
-  http_absolute_location(Spec, Iri).
+  http_link_to_id(HandleId, Query, Uri).
+spec_uri0(Spec, Uri) :-
+  http_absolute_location(Spec, Uri).
 
 
 
-%! twitter_user_iri(+User, -Iri) is det.
+%! twitter_user_uri(+User, -Uri) is det.
 
-twitter_user_iri(User, Iri) :-
-  atomic_list_concat(['',User], /, Path),
-  uri_components(Iri, uri_components(https,'twitter.com',Path,_,_)).
+twitter_user_uri(User, Uri) :-
+  uri_comps(Uri, uri(https,'twitter.com',[User],_,_)).
 
 
 

@@ -166,13 +166,13 @@ rest_method0(_, options, Methods, _, _, _) :- !,
 % Method accepted, on to matching the Media Types.
 rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   memberchk(Method, Methods), !,
-  memberchk(request_uri(Iri1), Req),
+  memberchk(request_uri(Uri1), Req),
   memberchk(accept(MTs0), Req),
   (var(MTs0) -> MTs = [] ; MTs = MTs0),
-  iri_to_resource(Iri1, Res),
+  iri_to_resource(Uri1, Res),
   (   ground(HandleId),
-      http_link_to_id(HandleId, Iri2),
-      \+ iri_to_resource(Iri2, Res)
+      http_link_to_id(HandleId, Uri2),
+      \+ iri_to_resource(Uri2, Res)
   ->  call(Singular_3, Res, Method, MTs)
   ;   call(Plural_2, Method, MTs)
   ).

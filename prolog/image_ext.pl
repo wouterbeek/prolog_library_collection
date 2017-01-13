@@ -4,7 +4,7 @@
     image_dimensions/3,     % +File, -Width, -Height
     image_file_extension/1, % ?Ext
     is_image_file/1,        % @Term
-    is_image_iri/1          % @Term
+    is_image_uri/1          % @Term
   ]
 ).
 
@@ -101,10 +101,10 @@ is_image_file(File) :-
 
 
 
-%! is_image_iri(+Iri) is semidet.
-% Succeeds if the given Iri is commonly understood to denote an image file.
+%! is_image_uri(+Uri) is semidet.
+% Succeeds if the given Uri is commonly understood to denote an image file.
 
-is_image_iri(Iri) :-
-  uri_is_global(Iri),
-  iri_comp(Iri, path, Path),
+is_image_uri(Uri) :-
+  uri_is_global(Uri),
+  uri_components(Uri, uri_components(_,_,Path,_,_)),
   is_image_file(Path).

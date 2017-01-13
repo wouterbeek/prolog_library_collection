@@ -160,7 +160,7 @@ annotate(Txt, Anns, Opts) :-
   option(spotter(Spotter), Opts, 'Default'),
   option(support(Support), Opts, 0),
 
-  uri_components(Iri, uri_components(Scheme,Auth,Path,_,_)),
+  uri_components(Uri, uri_components(Scheme,Auth,Path,_,_)),
 
   % Message body.
   % Notice that the query components are also sent in the POST body.
@@ -181,7 +181,7 @@ annotate(Txt, Anns, Opts) :-
 
   % Perform Web request.
   http_post(
-    Iri,
+    Uri,
     codes('application/x-www-form-urlencoded',Body),
     callback0(Txt, Anns, Opts),
     [request_header('Accept'='application/json')]

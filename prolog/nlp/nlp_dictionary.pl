@@ -12,7 +12,7 @@
 Support for natural language dictionaries.
 
 @author Wouter Beek
-@version 2015/09-2015/10
+@version 2015/09-2015/10, 2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -24,7 +24,7 @@ Support for natural language dictionaries.
 :- use_module(library(persistency)).
 :- use_module(library(random)).
 :- use_module(library(readutil)).
-:- use_module(library(uri)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(yall)).
 
 :- persistent
@@ -77,7 +77,7 @@ nlp_dict_assert(Lang, N1, In) :-
 % @throws existence_error if an HTTP request returns an error code.
 
 nlp_dict_download(Lang) :-
-  nlp_dict_iri(Lang, Iri),
+  nlp_dict_uri(Lang, Uri),
 
   % Construct the entry path that is to be extracted from the archive.
   file_name_extension(Lang, dic, Local),
@@ -85,7 +85,7 @@ nlp_dict_download(Lang) :-
 
   % Assert the words that appear in the dictionary.
   call_on_stream(
-    Iri,
+    Uri,
     {Lang}/[In,Meta,Meta]>>nlp_dict_assert(Lang, In),
     [archive_entry(Entry)]
   ).
@@ -122,24 +122,24 @@ nlp_dict_init(Lang) :-
 
 
 
-%! nlp_dict_iri(?Language:string, -Iri:atom) is nondet.
+%! nlp_dict_uri(?Language:string, -Uri:atom) is nondet.
 
-nlp_dict_iri("en-US", Iri) :-
-  atomic_list_concat(
-    [
-      '',
-      firefox,
-      downloads,
-      file,
-      '199368',
-      'united_states_english_spellchecker-7.0-fx+sm+tb.xpi'
-    ],
-    /,
-    Path
-  ),
-  uri_components(
-    Iri,
-    uri_components(https,'addons.mozilla.org',Path,'src=dp-btn-primary',_)
+nlp_dict_uri("en-US", Uri) :-
+  uri_comps(
+    Uri,
+    uri(
+      https,
+      'addons.mozilla.org',
+      [
+        firefox,
+        downloads,
+        file,
+        '199368',
+        'united_states_english_spellchecker-7.0-fx+sm+tb.xpi'
+      ],
+      [src('dp-btn-primary'),
+      _
+    )
   ).
 
 
@@ -148,7 +148,7 @@ nlp_dict_iri("en-US", Iri) :-
 %! nlp_dict_lang(-Language:string) is multi.
 
 nlp_dict_lang(Lang) :-
-  nlp_dict_iri(Lang, _).
+  nlp_dict_uri(Lang, _).
 
 
 

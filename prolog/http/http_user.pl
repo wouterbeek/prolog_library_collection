@@ -174,8 +174,8 @@ login_handler(Req) :-
 %! login_link(-Link) is det.
 
 login_link(Link) :-
-  http_base_location_iri(Iri),
-  http_link_to_id(login_handler, ['openid.return_to'(Iri)], Link).
+  http_base_location_uri(Uri),
+  http_link_to_id(login_handler, ['openid.return_to'(Uri)], Link).
 
 
 
@@ -192,7 +192,7 @@ logout_handler(Req) :-
 %! logout_link(-Link) is det.
 
 logout_link(Link) :-
-  http_base_location_iri(Iri),
+  http_base_location_uri(Iri),
   http_link_to_id(logout_handler, ['openid.return_to'(Iri)], Link).
 
 

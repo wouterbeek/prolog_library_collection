@@ -6,7 +6,6 @@
     iri_change_comp/4,     % +Iri1, +Key, +Val, -Iri2
     iri_comp/3,            % +Iri,  ?Key, ?Val
     iri_comps/2,           % ?Iri,  ?Comps
-    iri_create/2,          % +Dict, -Iri
     iri_file_extensions/2, % +Iri,  -Exts
     iri_here/1,            % -Iri
     iri_here/2,            % +PathComps, -Iri
@@ -167,41 +166,6 @@ iri_comps(Comps1, Comps2) :-
   Comps2 = uri_components(Scheme,Auth,Path,Search,Frag).
 iri_comps(Iri, Comps) :-
   uri_components(Iri, Comps).
-
-
-
-%! iri_create(+Dict, -Iri) is det.
-%
-% Dict can contains the following keys:
-%
-%   - fragment(+atom)
-%
-%   - host(+atom)
-%
-%   - password(+atom)
-%
-%   - path(+list(atom))
-%
-%   - port(+nonneg)
-%
-%   - query(+list(compound))
-%
-%   - scheme(+oneof([http,https]))
-%
-%   - user(+atom)
-
-iri_create(Dict, Iri) :-
-  ignore((dict_get(port, Dict, Port), Port =\= 80)),
-  dict_get(user, Dict, _, User),
-  dict_get(password, Dict, _, Password),
-  dict_get(host, Dict, _, Host),
-  uri_authority_components(Auth, uri_authority(User,Password,Host,Port)),
-  dict_get(path, Dict, [], PathComps),
-  atomic_list_concat(PathComps, /, Path),
-  dict_get(query, Dict, [], QueryComps),
-  uri_query_components(Query, QueryComps),
-  dict_get(fragment, Dict, _, Fragment),
-  uri_components(Iri, uri_components(Dict.scheme,Auth,Path,Query,Fragment)).
 
 
 

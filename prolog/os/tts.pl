@@ -65,20 +65,25 @@ write_tts(Sink, Lines):-
 
 
 line_to_mp3(Out, Line):-
-  google_tts_link(Line, Iri),
-  http_get(Iri, [In,Meta,Meta]>>copy_stream_data(In, Out)).
+  google_tts_link(Line, Uri),
+  http_get(Uri, [In,Meta,Meta]>>copy_stream_data(In, Out)).
 
 
-google_tts_link(Line, Iri):-
-  google_tts_link("UTF-8", "en", Line, Iri).
+google_tts_link(Line, Uri):-
+  google_tts_link("UTF-8", "en", Line, Uri).
 
 
-google_tts_link(Enc, Lang, Line, Iri):-
+google_tts_link(Enc, Lang, Line, Uri):-
   string_phrase(space_to_plus, Line, NormLine),
-  uri_query_components(Query, [ie=Enc,tl=Lang,q=NormLine]),
-  uri_components(
-    Iri,
-    uri_components(http,'translate.google.com','/translate_tts',Query,_)
+  uri_comps(
+    Uri,
+    uri(
+      http,
+      'translate.google.com',
+      ['translate_tts'],
+      [ie=Enc,tl=Lang,q=NormLine],
+      _
+    )
   ).
 
 space_to_plus, [0'+] --> [0' ], !, space_to_plus.
