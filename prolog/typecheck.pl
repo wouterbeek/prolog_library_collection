@@ -148,7 +148,7 @@ is_file_iri(Iri) :-
 is_http_iri(Iri) :-
   atom(Iri),
   uri_is_global(Iri),
-  iri_comp(Iri, scheme, Scheme),
+  uri_components(Iri, uri_components(Scheme,_,_,_,_)),
   memberchk(Scheme, [http,https]).
 
 

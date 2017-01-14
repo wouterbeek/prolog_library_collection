@@ -4,7 +4,6 @@
     iri_add_query_comp/3,  % +Iri1, +Comp,  -Iri2
     iri_add_query_comps/3, % +Iri1, +Comps, -Iri2
     iri_change_comp/4,     % +Iri1, +Key, +Val, -Iri2
-    iri_comp/3,            % +Iri,  ?Key, ?Val
     iri_file_extensions/2, % +Iri,  -Exts
     iri_here/1,            % -Iri
     iri_here/2,            % +PathComps, -Iri
@@ -23,7 +22,7 @@
 /** <module> IRI extensions
 
 @author Wouter Beek
-@version 2015/11-2016/12
+@version 2015/11-2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -38,7 +37,7 @@
 :- use_module(library(os/file_ext)).
 :- use_module(library(pair_ext)). % META
 :- use_module(library(settings)).
-:- use_module(library(uri)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(yall)).
 
@@ -65,6 +64,7 @@
 
 
 %! iri_add_query_comp(+Iri1, +Query, -Iri2) is det.
+%
 % The query component of a URI is not interpreted as key-value pairs
 % and can be any string that adheres to URI syntax.
 
@@ -95,7 +95,6 @@ append_atoms0(L, Q1, Q2) :-
 %! iri_change_comp(+Iri1, +Key, +Val, -Iri2) is det.
 %
 % The following Keys are supported:
-%
 %   * `authority'
 %   * `fragment'
 %   * `path'
@@ -107,57 +106,18 @@ iri_change_comp(Iri1, Key, Val, Iri2) :-
   uri_data_compatibility(Key, Comps1, Val, Comps2),
   uri_components(Iri2, Comps2).
 
-
-
-%! iri_comp(+Iri, +Key, +Val) is semidet.
-%! iri_comp(+Iri, +Key, -Val) is det.
-%! iri_comp(+Iri, -Key, -Val) is multi.
-%
-% Abbreviates multiple predicates from `library(uri)`:
-%   - uri_authority_components/2
-%   - uri_authority_data/3
-%   - uri_components/2
-%   - uri_data/3
-
-iri_comp(Iri, Key, Val) :-
-  iri_field0(Key), !,
-  uri_comps(Iri, Comps),
-  uri_data_compatibility(Key, Comps, Val).
-iri_comp(Iri, Key, Val) :-
-  auth_field0(Key), !,
-  uri_comps(Iri, IriComps),
-  uri_data_compatibility(authority, IriComps, Auth),
-  uri_authority_components(Auth, AuthComps),
-  uri_authority_data(Key, AuthComps, Val).
-iri_comp(_, Key0, _) :-
-  aggregate_all(set(Key), iri_field(Key), Keys),
-  type_error(oneof(Keys), Key0).
-
-
-iri_field(Key) :-
-  auth_field0(Key).
-iri_field(Key) :-
-  iri_field0(Key).
-
-
-auth_field0(host).
-auth_field0(password).
-auth_field0(port).
-auth_field0(user).
-
-
-iri_field0(authority).
-iri_field0(fragment).
-iri_field0(path).
-iri_field0(search).
-iri_field0(scheme).
+uri_data_compatibility(Key, Comps1, Val, Comps2) :-
+  Key == query, !,
+  uri_data(search, Comps1, Val, Comps2).
+uri_data_compatibility(Key, Comps1, Val, Comps2) :-
+  uri_data(Key, Comps1, Val, Comps2).
 
 
 
 %! iri_file_extensions(+Iri, -Exts) is det.
 
 iri_file_extensions(Iri, Exts) :-
-  iri_comp(Iri, path, Path),
+  uri_components(Iri, uri_components(_,_,Path,_,_)),
   file_extensions(Path, Exts).
 
 
@@ -328,20 +288,3 @@ iri_change_query_comps00(Goal_2, Q1, Q2) :-
   uri_query_components(Q1, Pairs1),
   call(Goal_2, Pairs1, Pairs2),
   uri_query_components(Q2, Pairs2).
-
-
-
-uri_data_compatibility(Key, Comps, Val) :-
-  Key == query, !,
-  uri_data(search, Comps, Val).
-uri_data_compatibility(Key, Comps, Val) :-
-  uri_data(Key0, Comps, Val),
-  (Key0 == search -> Key = query ; Key = Key0).
-
-
-
-uri_data_compatibility(Key, Comps1, Val, Comps2) :-
-  Key == query, !,
-  uri_data(search, Comps1, Val, Comps2).
-uri_data_compatibility(Key, Comps1, Val, Comps2) :-
-  uri_data(Key, Comps1, Val, Comps2).

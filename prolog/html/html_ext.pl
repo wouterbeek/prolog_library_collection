@@ -3479,7 +3479,7 @@ raw_page(Spec, Title, Content) :-
 spec_uri0(link_to_id(HandleId), Uri) :- !,
   http_link_to_id(HandleId, Uri).
 spec_uri0(link_to_id(HandleId,Query0), Uri) :- !,
-  maplist(q_query_term, Query0, Query), %HACK
+  maplist(rdf_query_term, Query0, Query), %HACK
   http_link_to_id(HandleId, Query, Uri).
 spec_uri0(Spec, Uri) :-
   http_absolute_location(Spec, Uri).

@@ -2,6 +2,7 @@
   uri_ext,
   [
     auth_comps/2, % ?Auth:atom, ?Comps:compound
+    uri_comp/3,   % +Uri, ?Key, ?Val
     uri_comps/2,  % ?Uri:atom, ?Comps:compound
     uri_comps/3,  % -Uri:atom, +BaseUri:atom, +Comps:compound
     uri_optional_query_enc//0,
@@ -34,6 +35,55 @@
 
 auth_comps(Auth, auth(User,Host,Port)) :-
   uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
+
+
+
+%! uri_comp(+Uri, +Key, +Val) is semidet.
+%! uri_comp(+Uri, +Key, -Val) is det.
+%! uri_comp(+Uri, -Key, -Val) is multi.
+%
+% Abbreviates multiple predicates from `library(uri)`:
+%   * uri_authority_components/2
+%   * uri_authority_data/3
+%   * uri_components/2
+%   * uri_data/3
+
+uri_comp(Uri, Key, Val) :-
+  uri_field0(Key), !,
+  uri_components(Uri, Comps),
+  uri_data_compatibility(Key, Comps, Val).
+uri_comp(Uri, Key, Val) :-
+  auth_field0(Key), !,
+  uri_components(Uri, UriComps),
+  uri_data_compatibility(authority, UriComps, Auth),
+  uri_authority_components(Auth, AuthComps),
+  uri_authority_data(Key, AuthComps, Val).
+uri_comp(_, Key0, _) :-
+  aggregate_all(set(Key), uri_field(Key), Keys),
+  type_error(oneof(Keys), Key0).
+
+uri_field0(authority).
+uri_field0(fragment).
+uri_field0(path).
+uri_field0(search).
+uri_field0(scheme).
+
+uri_data_compatibility(Key, Comps, Val) :-
+  Key == query, !,
+  uri_data(search, Comps, Val).
+uri_data_compatibility(Key, Comps, Val) :-
+  uri_data(Key0, Comps, Val),
+  (Key0 == search -> Key = query ; Key = Key0).
+
+auth_field0(host).
+auth_field0(password).
+auth_field0(port).
+auth_field0(user).
+
+uri_field(Key) :-
+  auth_field0(Key).
+uri_field(Key) :-
+  uri_field0(Key).
 
 
 
