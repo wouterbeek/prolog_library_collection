@@ -5,7 +5,6 @@
     iri_add_query_comps/3, % +Iri1, +Comps, -Iri2
     iri_change_comp/4,     % +Iri1, +Key, +Val, -Iri2
     iri_comp/3,            % +Iri,  ?Key, ?Val
-    iri_comps/2,           % ?Iri,  ?Comps
     iri_file_extensions/2, % +Iri,  -Exts
     iri_here/1,            % -Iri
     iri_here/2,            % +PathComps, -Iri
@@ -122,11 +121,11 @@ iri_change_comp(Iri1, Key, Val, Iri2) :-
 
 iri_comp(Iri, Key, Val) :-
   iri_field0(Key), !,
-  iri_comps(Iri, Comps),
+  uri_comps(Iri, Comps),
   uri_data_compatibility(Key, Comps, Val).
 iri_comp(Iri, Key, Val) :-
   auth_field0(Key), !,
-  iri_comps(Iri, IriComps),
+  uri_comps(Iri, IriComps),
   uri_data_compatibility(authority, IriComps, Auth),
   uri_authority_components(Auth, AuthComps),
   uri_authority_data(Key, AuthComps, Val).
@@ -152,20 +151,6 @@ iri_field0(fragment).
 iri_field0(path).
 iri_field0(search).
 iri_field0(scheme).
-
-
-
-%! iri_comps(+Iri, -Comps) is det.
-% Slight optimization that allows this predicate to also be called with
-% a compound term i.o. an atomic IRI.  This is more optimal in cases where
-% the IRI is build in the called context only to be decomposed inside the call.
-
-iri_comps(Comps1, Comps2) :-
-  ground(Comps1),
-  Comps1 = uri_components(Scheme,Auth,Path,Search,Frag), !,
-  Comps2 = uri_components(Scheme,Auth,Path,Search,Frag).
-iri_comps(Iri, Comps) :-
-  uri_components(Iri, Comps).
 
 
 
@@ -324,13 +309,13 @@ iri_to_resource(Iri, Res, Query, Frag) :-
 % before and after calling.
 
 iri_change_query0(Iri1, Goal_2, Iri2) :-
-  iri_comps(Iri1, uri_components(Scheme,Auth,Path,Q1,Frag)),
+  uri_comps(Iri1, uri_components(Scheme,Auth,Path,Q1,Frag)),
   % BEWARE: If an IRI has no query string,
-  % then iri_comps/2 does not give back the empty atom.
+  % then uri_comps/2 does not give back the empty atom.
   % Instead, it leaves `Q1` uninstantiated.
   defval('', Q1),
   call(Goal_2, Q1, Q2),
-  iri_comps(Iri2, uri_components(Scheme,Auth,Path,Q2,Frag)).
+  uri_comps(Iri2, uri_components(Scheme,Auth,Path,Q2,Frag)).
 
 
 

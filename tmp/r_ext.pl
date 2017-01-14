@@ -23,7 +23,7 @@
 :- use_module(library(os/process_ext)).
 :- use_module(library(real)).
 :- use_module(library(yall)).
-:- use_module(library(q/q_print)).
+:- use_module(library(q/rdf_print)).
 
 
 
@@ -61,7 +61,7 @@ r_plot(Rows, File, Opts) :-
   option(xlabel(XLbl), Opts, "X"),
   option(ylabel(YLbl), Opts, "Y"),
   maplist(list_split, Rows, Xs0, Ys),
-  maplist([X0,X]>>q_print_term(X0, _{out: string(X)}), Xs0, Xs),
+  maplist([X0,X]>>rdf_print_term(X0, _{out: string(X)}), Xs0, Xs),
   absolute_file_name(test, File, [access(write),extensions([svg])]),
   <- svg(+File),
   <- barplot(
@@ -135,4 +135,4 @@ interval_label(L) -->
   interval_label(Last),
   "]".
 interval_label(Term) -->
-  dcg_q_print_term(Term).
+  dcg_rdf_print_term(Term).
