@@ -1,16 +1,16 @@
 :- module(
   http11,
   [
-    charset//1,        % -Charset:atom
-    'content-type'//1, % -Mime:compound
-    'field-name'//1,   % -Name:atom
-    'header-field'//1, % -Header:pair
-    http_known/1,      % ?Key:atom
-    'media-type'//1,   % -MT:compound
-    method//1,         % -Method:atom
+    charset//1,         % -Charset:atom
+    'content-type'//1,  % -Mime:compound
+    'field-name'//1,    % -Name:atom
+    'header-field'//1,  % -Header:pair
+    http_known/1,       % ?Key:atom
+    'media-type'//1,    % -MT:compound
+    method//1,          % -Method:atom
     'OWS'//0,
-    qvalue//1,         % -Val:between(0.0,1.0)
-    'rfc850-date'//1   % -DT:compound
+    qvalue//1,          % -Val:between(0.0,1.0)
+    'rfc850-date'//1    % -DT:compound
   ]
 ).
 

@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 6265
 @see https://tools.ietf.org/html/rfc6265
-@version 2015/12, 2016/12
+@version 2015/12, 2016/12-2017/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -32,7 +32,10 @@
    ]).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/rfc1034)).
-:- use_module(library(http/rfc2616)).
+:- use_module(library(http/rfc2616), [
+     'rfc1123-date'//1, % -Date:atom
+     token//1           % -Token:atom
+   ]).
 :- use_module(library(http/http11)).
 
 

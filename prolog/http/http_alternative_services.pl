@@ -14,6 +14,10 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http11)).
+:- use_module(library(http/rfc2616), [
+     'quoted-string'//1, % -String:atom
+     token//1            % -Token:atom
+   ]).
 
 
 
@@ -52,6 +56,12 @@
 'alt-value'(Alt-Params) -->
   alternative(Alt),
   *(alt_value, Params).
+
+alt_value(Param) -->
+  'OWS',
+  ";",
+  'OWS',
+  parameter(Param).
 
 
 
