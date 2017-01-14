@@ -34,6 +34,8 @@
 :- meta_predicate
     call_on_rocks(+, +, 1).
 
+:- rlimit(nofile, _, 50000).
+
 :- setting(
      index_dir,
      atom,
