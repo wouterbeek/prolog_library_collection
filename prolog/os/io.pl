@@ -16,6 +16,7 @@
     call_to_streams/4,       % +Sink1, +Sink2, :Goal_2, +SinkOpts
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
+    close_any2/1,            % +Close
     close_any2/2,            % +Close, +Mode
     copy_stream_data/4,      % +In, +InPath1, -InPath2, +Out
     guess_stream_encoding/2, % +In, -Enc
@@ -717,6 +718,15 @@ call_to_something(Goal_1, Type, Result) :-
     free_memory_file(Handle)
   ).
 
+
+
+%! close_any2(+Close) is det.
+
+close_any2(Close) :-
+  ground(Close),
+  (is_stream(Close) -> close(Close) ; Close == true).
+close_any2(Close) :-
+  instantiation_error(Close).
 
 
 %! close_any2(+Close, +Mode) is det.
