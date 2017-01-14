@@ -16,7 +16,7 @@
     call_to_streams/4,       % +Sink1, +Sink2, :Goal_2, +SinkOpts
     call_to_streams/5,       % +Sink1, +Sink2, :Goal_2, +Sink1Opts, +Sink2Opts
     call_to_string/2,        % :Goal_1, -Str
-    close_any2/1,            % +Close
+    close_any2/2,            % +Close, +Mode
     copy_stream_data/4,      % +In, +InPath1, -InPath2, +Out
     guess_stream_encoding/2, % +In, -Enc
     open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
@@ -153,7 +153,7 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
       call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts),
       close_metadata(Close, InPath2, InPath3, SourceOpts)
     ),
-    close_any2(Close)
+    close_any2(Close, read)
   ),
   ignore(option(metadata(InPath3), SourceOpts)).
 
@@ -169,7 +169,7 @@ call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   setup_call_cleanup(
     recode_stream(In1, In2, Close, SourceOpts),
     call(Goal_3, In2, InPath1, InPath2),
-    close_any2(Close)
+    close_any2(Close, read)
   ).
 % Compressed and/or packaged input stream.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
@@ -230,10 +230,12 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
                 InPath2,
                 SourceOpts
               ),
-              % close_metadata/3 also emits the closing debug message.
               close_metadata(In, InPath2, InPath3)
             ),
-            close(In)
+            (
+              debug_close(In, read),
+              close(In)
+            )
           )
       ;   % Skip over non-file entries.
           fail
@@ -375,7 +377,7 @@ call_to_stream(Sink, Goal_1, SinkOpts) :-
       call_to_compressed_stream(Out, Goal_1, OutPath1, OutPath2, SinkOpts),
       close_metadata(Close, OutPath2, OutPath3, SinkOpts)
     ),
-    close_any2(Close)
+    close_any2(Close, Mode)
   ),
   % @bug: OutPath3 is now uninstantiated.
   ignore(option(metadata(OutPath3), SinkOpts)).
@@ -454,8 +456,8 @@ call_to_streams(Sink1, Sink2, Goal_2, Sink1Opts, Sink2Opts) :-
       close_metadata(Close2, OutPath2a, OutPath3a, Sink1Opts)
     ),
     (
-      close_any2(Close1),
-      close_any2(Close2)
+      close_any2(Close1, Mode1),
+      close_any2(Close2, Mode2)
     )
   ),
   % @bug: OutPath3a is now uninstantiated.
@@ -507,10 +509,7 @@ close_metadata(Close, Path1, Path2) :-
 close_metadata(Stream, [Entry1|Path], [Entry2|Path], Opts) :-
   is_stream(Stream), !,
   stream_metadata(Stream, Entry1, Entry2),
-  stream_property(Stream, mode(Mode)),
-  close_metadata_hash(Stream, Opts),
-  (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-  indent_debug(out, io(close), "«~s ~w", [Lbl,Stream]).
+  close_metadata_hash(Stream, Opts).
 close_metadata(true, Path, Path, _).
 
 
@@ -720,13 +719,21 @@ call_to_something(Goal_1, Type, Result) :-
 
 
 
-%! close_any2(+Close) is det.
+%! close_any2(+Close, +Mode) is det.
 
-close_any2(Close) :-
+close_any2(Close, Mode) :-
   ground(Close),
-  (is_stream(Close) -> close(Close) ; Close == true).
-close_any2(Close) :-
+  (is_stream(Close) -> debug_close(Close, Mode), close(Close) ; Close == true).
+close_any2(Close, _) :-
   instantiation_error(Close).
+
+
+
+%! debug_close(+Stream, +Mode) is det.
+
+debug_close(Stream, Mode) :-
+  (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+  indent_debug(out, io(close), "«~s ~w", [Lbl,Stream]).
 
 
 
