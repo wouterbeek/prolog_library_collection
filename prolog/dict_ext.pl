@@ -1,39 +1,41 @@
 :- module(
   dict_ext,
   [
-    atomize_dict/2,        % +D, -AtomizedD
-    create_dict/3,         % +Pairs, +Tag, -D
-    create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedD
-    create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedD
-    del_dict_or_default/5, % +Key, +D1, +Def, -Val, -D2
-    dict_call_pairs/2,     % :Goal_1, +D
-    dict_call_pairs/3,     % :Goal_2, +D1, -D2
+  % NEW
+    dict_key/2,            % +Dict, ?Key
+  % OLD
+    atomize_dict/2,        % +Dict, -AtomizedDict
+    create_dict/3,         % +Pairs, +Tag, -Dict
+    create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedDict
+    create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedDict
+    del_dict_or_default/5, % +Key, +Dict1, +Def, -Val, -Dict2
+    dict_call_pairs/2,     % :Goal_1, +Dict
+    dict_call_pairs/3,     % :Goal_2, +Dict1, -Dict2
     dict_create/2,         % -Dict, +Opts
-    dict_dec/2,            % +Key, +D
-    dict_dec/3,            % +Key, +D, -Val
-    dict_dec/4,            % +Key, +D, +Diff, -Val
-    dict_get/3,            % +Key, +D, -Val
-    dict_get/4,            % +Key, +D, +Def, -Val
-    dict_has_key/2,        % +Key, +D
-    dict_inc/2,            % +Key, +D
-    dict_inc/3,            % +Key, +D, -Val
-    dict_inc/4,            % +Key, +D, +Diff, -Val
-    dict_pairs/2,          % ?D, ?Pairs
-    dict_prepend/3,        % +Key, +D, +Elem
-    dict_put/3,            % +D1, +D2, -D3
-    dict_put_def/4,        % +Key, D1, +Def, +D2
-    dict_put_pairs/3,      % +D1, +Pairs, -D2
-    dict_remove_uninstantiated/2, % +D1, -D2
-    dict_set/3,            % +Key, D, +Val
-    dict_sum/2,            % +Dicts, -D
-    dict_sum/3,            % +D1, +D2, -D3
+    dict_dec/2,            % +Key, +Dict
+    dict_dec/3,            % +Key, +Dict, -Val
+    dict_dec/4,            % +Key, +Dict, +Diff, -Val
+    dict_get/3,            % +Key, +Dict, -Val
+    dict_get/4,            % +Key, +Dict, +Def, -Val
+    dict_inc/2,            % +Key, +Dict
+    dict_inc/3,            % +Key, +Dict, -Val
+    dict_inc/4,            % +Key, +Dict, +Diff, -Val
+    dict_pairs/2,          % ?Dict, ?Pairs
+    dict_prepend/3,        % +Key, +Dict, +Elem
+    dict_put/3,            % +Dict1, +Dict2, -Dict3
+    dict_put_def/4,        % +Key, Dict1, +Def, +Dict2
+    dict_put_pairs/3,      % +Dict1, +Pairs, -Dict2
+    dict_remove_uninstantiated/2, % +Dict1, -Dict2
+    dict_set/3,            % +Key, Dict, +Val
+    dict_sum/2,            % +Dicts, -Dict
+    dict_sum/3,            % +Dict1, +Dict2, -Dict3
     dict_tag/2,            % +Dict, -Tag
-    dict_tag/3,            % +D1, +Tag, ?D2
+    dict_tag/3,            % +Dict1, +Tag, ?Dict2
     dicts_get/3,           % +Key, +Dicts, -Val
     dicts_getchk/3,        % +Key, +Dicts, -Val
     empty_dict/1,          % ?Dict
-    get_dict_path/3,       % -Keys, +D, -Val
-    merge_dicts/3          % +D1, +D2, -D3
+    get_dict_path/3,       % -Keys, +Dict, -Val
+    merge_dicts/3          % +Dict1, +Dict2, -Dict3
   ]
 ).
 :- reexport(library(dicts)).
@@ -58,16 +60,34 @@
 
 
 
-%! atomize_dict(+D, -AtomizedD) is det.
+% NEW %
 
-atomize_dict(D1, D2):-
-  atomize_dict0(D1, D2).
+%! dict_key(+Dict, +Key) is semidet.
+%! dict_key(+Dict, -Key) is nondet.
 
-atomize_dict0(D1, D2):-
-  is_dict(D1), !,
-  dict_pairs(D1, Tag, L1),
-  maplist(atomize_dict0, L1, L2),
-  dict_pairs(D2, Tag, L2).
+dict_key(Dict, Key) :-
+  ground(Key), !,
+  get_dict(Key, Dict, _).
+dict_key(Dict, Key) :-
+  dict_pairs(Dict, Pairs),
+  member(Key-_, Pairs).
+
+
+
+
+
+% OLD %
+
+%! atomize_dict(+Dict, -AtomizedDict) is det.
+
+atomize_dict(Dict1, Dict2):-
+  atomize_dict0(Dict1, Dict2).
+
+atomize_dict0(Dict1, Dict2):-
+  is_dict(Dict1), !,
+  dict_pairs(Dict1, Tag, Pairs1),
+  maplist(atomize_dict0, Pairs1, Pairs2),
+  dict_pairs(Dict2, Tag, Pairs2).
 atomize_dict0(S, A):-
   string(S), !,
   atom_string(A, S).
@@ -75,11 +95,11 @@ atomize_dict0(X, X).
 
 
 
-%! create_dict(+Pairs, +Tag, -D) is det.
+%! create_dict(+Pairs, +Tag, -Dict) is det.
 
-create_dict(Pairs, Tag, D):-
+create_dict(Pairs, Tag, Dict):-
   maplist(dict_pair, Pairs, Dicts),
-  create_grouped_sorted_dict(Dicts, Tag, D).
+  create_grouped_sorted_dict(Dicts, Tag, Dict).
 
 
 dict_pair(Key1-Val1, Key2-Val2):-
@@ -88,18 +108,18 @@ dict_pair(Key1-Val1, Key2-Val2):-
 
 
 
-%! create_grouped_sorted_dict(+Pairs, -GroupedSortedD) is det.
-%! create_grouped_sorted_dict(+Pairs, ?Tag, -GroupedSortedD) is det.
+%! create_grouped_sorted_dict(+Pairs, -GroupedSortedDict) is det.
+%! create_grouped_sorted_dict(+Pairs, ?Tag, -GroupedSortedDict) is det.
 
-create_grouped_sorted_dict(Pairs, D):-
-  create_grouped_sorted_dict(Pairs, _, D).
+create_grouped_sorted_dict(Pairs, Dict):-
+  create_grouped_sorted_dict(Pairs, _, Dict).
 
 
-create_grouped_sorted_dict(Pairs, Tag, D):-
+create_grouped_sorted_dict(Pairs, Tag, Dict):-
   sort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs1),
   maplist(pair_flatten_singleton, GroupedPairs1, GroupedPairs2),
-  dict_pairs(D, Tag, GroupedPairs2).
+  dict_pairs(Dict, Tag, GroupedPairs2).
 
 
 
@@ -114,18 +134,18 @@ del_dict_or_default(_, Dict, Def, Def, Dict).
 
 
 
-%! dict_call_pairs(:Goal_1, +D) is det.
-%! dict_call_pairs(:Goal_2, +D1, -D2) is det.
+%! dict_call_pairs(:Goal_1, +Dict) is det.
+%! dict_call_pairs(:Goal_2, +Dict1, -Dict2) is det.
 
-dict_call_pairs(Goal_1, D) :-
-  dict_pairs(D, Pairs),
+dict_call_pairs(Goal_1, Dict) :-
+  dict_pairs(Dict, Pairs),
   call(Goal_1, Pairs).
 
 
-dict_call_pairs(Goal_2, D1, D2) :-
-  dict_pairs(D1, Pairs1),
+dict_call_pairs(Goal_2, Dict1, Dict2) :-
+  dict_pairs(Dict1, Pairs1),
   maplist(Goal_2, Pairs1, Pairs2),
-  dict_pairs(D2, Pairs2).
+  dict_pairs(Dict2, Pairs2).
 
 
 
@@ -136,42 +156,35 @@ dict_create(Dict, Opts) :-
 
 
 
-%! dict_dec(+Key, +D) is det.
-%! dict_dec(+Key, +D, -Val) is det.
-%! dict_dec(+Key, +D, +Diff, -Val) is det.
+%! dict_dec(+Key, +Dict) is det.
+%! dict_dec(+Key, +Dict, -Val) is det.
+%! dict_dec(+Key, +Dict, +Diff, -Val) is det.
 
-dict_dec(Key, D) :-
-  dict_dec(Key, D, _).
-
-
-dict_dec(Key, D, Val) :-
-  dict_dec(Key, D, 1, Val).
+dict_dec(Key, Dict) :-
+  dict_dec(Key, Dict, _).
 
 
-dict_dec(Key, D, Diff, Val2) :-
-  get_dict(Key, D, Val1),
+dict_dec(Key, Dict, Val) :-
+  dict_dec(Key, Dict, 1, Val).
+
+
+dict_dec(Key, Dict, Diff, Val2) :-
+  get_dict(Key, Dict, Val1),
   Val2 is Val1 - Diff,
-  nb_set_dict(Key, D, Val2).
+  nb_set_dict(Key, Dict, Val2).
 
 
 
-%! dict_get(+Key, +D, -Val) is semidet.
-%! dict_get(+Key, +D, +Def, -Val) is semidet.
+%! dict_get(+Key, +Dict, -Val) is semidet.
+%! dict_get(+Key, +Dict, +Def, -Val) is semidet.
 
-dict_get(Key, D, Val) :-
-  get_dict(Key, D, Val).
+dict_get(Key, Dict, Val) :-
+  get_dict(Key, Dict, Val).
 
 
-dict_get(Key, D, _, Val) :-
-  dict_get(Key, D, Val), !.
+dict_get(Key, Dict, _, Val) :-
+  dict_get(Key, Dict, Val), !.
 dict_get(_, _, Def, Def).
-
-
-
-%! dict_has_key(+Key, +D) is semidet.
-
-dict_has_key(Key, D) :-
-  get_dict(Key, D, _).
 
 
 
@@ -194,60 +207,60 @@ dict_inc(Key, Dict, Diff, Val2) :-
 
 
 
-%! dict_pairs(+D, +Pairs) is semidet.
-%! dict_pairs(+D, -Pairs) is det.
-%! dict_pairs(-D, +Pairs) is det.
+%! dict_pairs(+Dict, +Pairs) is semidet.
+%! dict_pairs(+Dict, -Pairs) is det.
+%! dict_pairs(-Dict, +Pairs) is det.
 
-dict_pairs(D, L):-
-  dict_pairs(D, _, L).
-
-
-
-%! dict_put_def(+Key, +D1, +Def, -D2) is det.
-
-dict_put_def(Key, D, _, D) :-
-  dict_has_key(Key, D), !.
-dict_put_def(Key, D1, Def, D2) :-
-  D2 = D1.put(Key, Def).
+dict_pairs(Dict, Pairs):-
+  dict_pairs(Dict, _, Pairs).
 
 
 
-%! dict_put_pairs(+D1, +Pairs, -D2) is det.
+%! dict_put_def(+Key, +Dict1, +Def, -Dict2) is det.
 
-dict_put_pairs(D1, L, D2) :-
-  dict_pairs(D1, L1),
-  append(L1, L, L2),
-  dict_pairs(D2, L2).
-
-
-
-%! dict_prepend(+Key, +D, +Elem) is det.
-
-dict_prepend(Key, D, H) :-
-  get_dict(Key, D, T),
-  nb_set_dict(Key, D, [H|T]).
+dict_put_def(Key, Dict, _, Dict) :-
+  dict_key(Dict, Key), !.
+dict_put_def(Key, Dict1, Def, Dict2) :-
+  Dict2 = Dict1.put(Key, Def).
 
 
 
-%! dict_put(+D1, +D2, -D3) is det.
+%! dict_put_pairs(+Dict1, +Pairs, -Dict2) is det.
 
-dict_put(D1, D2, D3) :-
-  D3 = D1.put(D2).
-
-
-%! dict_set(+Key, +D, +Val) is det.
-
-dict_set(Key, D, Val) :-
-  nb_set_dict(Key, D, Val).
+dict_put_pairs(Dict1, Pairs, Dict2) :-
+  dict_pairs(Dict1, Pairs1),
+  append(Pairs1, Pairs, Pairs2),
+  dict_pairs(Dict2, Pairs2).
 
 
 
-%! dict_remove_uninstantiated(+D1, -D2) is det.
+%! dict_prepend(+Key, +Dict, +Elem) is det.
 
-dict_remove_uninstantiated(D1, D2):-
-  dict_pairs(D1, Tag, L1),
-  exclude(var_val, L1, L2),
-  dict_pairs(D2, Tag, L2).
+dict_prepend(Key, Dict, H) :-
+  get_dict(Key, Dict, T),
+  nb_set_dict(Key, Dict, [H|T]).
+
+
+
+%! dict_put(+Dict1, +Dict2, -Dict3) is det.
+
+dict_put(Dict1, Dict2, Dict3) :-
+  Dict3 = Dict1.put(Dict2).
+
+
+%! dict_set(+Key, +Dict, +Val) is det.
+
+dict_set(Key, Dict, Val) :-
+  nb_set_dict(Key, Dict, Val).
+
+
+
+%! dict_remove_uninstantiated(+Dict1, -Dict2) is det.
+
+dict_remove_uninstantiated(Dict1, Dict2):-
+  dict_pairs(Dict1, Tag, Pairs1),
+  exclude(var_val, Pairs1, Pairs2),
+  dict_pairs(Dict2, Tag, Pairs2).
 
 
 var_val(_-Val):-
@@ -255,31 +268,31 @@ var_val(_-Val):-
 
 
 
-%! dict_sum(+Dicts, -D) is det.
-%! dict_sum(+D1, +D2, -D3) is det.
+%! dict_sum(+Dicts, -Dict) is det.
+%! dict_sum(+Dict1, +Dict2, -Dict3) is det.
 
-dict_sum(Dicts, D) :-
-  dict_sum0(Dicts, _{}, D).
+dict_sum(Dicts, Dict) :-
+  dict_sum0(Dicts, _{}, Dict).
 
-dict_sum0([], D, D) :- !.
-dict_sum0([D1|T], D2, D4) :-
-  dict_sum(D1, D2, D3),
-  dict_sum0(T, D3, D4).
+dict_sum0([], Dict, Dict) :- !.
+dict_sum0([Dict1|T], Dict2, Dict4) :-
+  dict_sum(Dict1, Dict2, Dict3),
+  dict_sum0(T, Dict3, Dict4).
 
 
-dict_sum(D1, D2, D3) :-
-  maplist(dict_pairs, [D1,D2], [Pairs1,Pairs2]),
+dict_sum(Dict1, Dict2, Dict3) :-
+  maplist(dict_pairs, [Dict1,Dict2], [Pairs1,Pairs2]),
   pairs_sum(Pairs1, Pairs2, Pairs3),
-  dict_pairs(D3, Pairs3).
+  dict_pairs(Dict3, Pairs3).
 
 
 pairs_sum([], Pairs, Pairs) :- !.
-pairs_sum([Key-Val1|T1], L2a, [Key-Val3|T3]) :-
-  selectchk(Key-Val2, L2a, L2b), !,
+pairs_sum([Key-Val1|T1], Pairs2a, [Key-Val3|T3]) :-
+  selectchk(Key-Val2, Pairs2a, Pairs2b), !,
   Val3 is Val1 + Val2,
-  pairs_sum(T1, L2b, T3).
-pairs_sum([Key-Val|T1], L2, [Key-Val|T3]) :-
-  pairs_sum(T1, L2, T3).
+  pairs_sum(T1, Pairs2b, T3).
+pairs_sum([Key-Val|T1], Pairs2, [Key-Val|T3]) :-
+  pairs_sum(T1, Pairs2, T3).
 
 
 
@@ -289,22 +302,22 @@ dict_tag(Dict, Tag) :-
   dict_pairs(Dict, Tag, _).
 
 
-%! dict_tag(+D1, +Tag, +D2) is semidet.
-%! dict_tag(+D1, +Tag, -D2) is det.
+%! dict_tag(+Dict1, +Tag, +Dict2) is semidet.
+%! dict_tag(+Dict1, +Tag, -Dict2) is det.
 %
 % Converts between dictionaries that differ only in their outer tag name.
 
-dict_tag(D1, Tag, D2):-
-  dict_pairs(D1, _, Ps),
-  dict_pairs(D2, Tag, Ps).
+dict_tag(Dict1, Tag, Dict2):-
+  dict_pairs(Dict1, _, Ps),
+  dict_pairs(Dict2, Tag, Ps).
 
 
 
 %! dicts_get(+Key, +Dicts, -Val) is nondet.
 
 dicts_get(Key, Dicts, Val) :-
-  member(D, Dicts),
-  get_dict(Key, D, Val).
+  member(Dict, Dicts),
+  get_dict(Key, Dict, Val).
 
 
 
@@ -321,10 +334,10 @@ empty_dict(_{}).
 
 
 
-%! get_dict_path(-Keys, +D, -Val) is nondet.
+%! get_dict_path(-Keys, +Dict, -Val) is nondet.
 
-get_dict_path(L, D, Val) :-
-  get_dict(H, D, Val0),
+get_dict_path(L, Dict, Val) :-
+  get_dict(H, Dict, Val0),
   (   is_dict(Val0)
   ->  get_dict_path(T, Val0, Val),
       L = [H|T]
@@ -334,21 +347,24 @@ get_dict_path(L, D, Val) :-
 
 
 
-%! merge_dicts(+D1, +D2, -D3) is det.
+%! merge_dicts(+Dict1, +Dict2, -Dict3) is det.
 %
 % Merges two dictionaries into one new dictionary.
 %
-% If D1 and D2 contain the same key then the value from D2 is used.
-% If D1 and D2 do not have the same tag then the tag of D2 is used.
+% If Dict1 and Dict2 contain the same key then the value from Dict2 is
+% used.
+%
+% If Dict1 and Dict2 do not have the same tag then the tag of Dict2 is
+% used.
 
-merge_dicts(D1, D2, D3):-
-  dict_pairs(D1, Tag1, Ps1),
-  dict_pairs(D2, Tag2, Ps2),
-  dict_keys(D2, Keys2),
+merge_dicts(Dict1, Dict2, Dict3):-
+  dict_pairs(Dict1, Tag1, Ps1),
+  dict_pairs(Dict2, Tag2, Ps2),
+  dict_keys(Dict2, Keys2),
   exclude(key_in_keys0(Keys2), Ps1, OnlyPs1),
   append(OnlyPs1, Ps2, Ps3),
   (Tag1 = Tag2 -> true ; Tag3 = Tag2),
-  dict_pairs(D3, Tag3, Ps3).
+  dict_pairs(Dict3, Tag3, Ps3).
 
 key_in_keys0(Keys, Key-_) :-
   memberchk(Key, Keys).
