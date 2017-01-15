@@ -4,7 +4,6 @@
     iri_add_query_comp/3,  % +Iri1, +Comp,  -Iri2
     iri_add_query_comps/3, % +Iri1, +Comps, -Iri2
     iri_change_comp/4,     % +Iri1, +Key, +Val, -Iri2
-    iri_file_extensions/2, % +Iri,  -Exts
     iri_here/1,            % -Iri
     iri_here/2,            % +PathComps, -Iri
     iri_here/3,            % +PathComps, +QueryComps, -Iri
@@ -12,7 +11,6 @@
     iri_prefix/1,          % -Prefix
     iri_prefix/2,          % -Scheme, -Auth
     iri_query_enc//0,
-    iri_remove_fragment/2, % +Iri, -BaseIri
     iri_to_location/2,     % +Iri, -Loc
     iri_to_resource/2,     % +Iri, -Res
     iri_to_resource/4      % +Iri, -Res, -Query, -Frag
@@ -114,14 +112,6 @@ uri_data_compatibility(Key, Comps1, Val, Comps2) :-
 
 
 
-%! iri_file_extensions(+Iri, -Exts) is det.
-
-iri_file_extensions(Iri, Exts) :-
-  uri_components(Iri, uri_components(_,_,Path,_,_)),
-  file_extensions(Path, Exts).
-
-
-
 %! iri_here(-Iri) is det.
 %! iri_here(+PathComps, -Iri) is det.
 %! iri_here(+PathComps, +QueryComps, -Iri) is det.
@@ -196,17 +186,6 @@ iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   iri_query_enc.
 iri_query_enc --> "".
-
-
-
-%! iri_remove_fragment(+Iri, -BaseIri) is det.
-%
-% The base IRI is the eventual IRI that is being read from, wtihout
-% the fragment component.
-
-iri_remove_fragment(Iri, BaseIri) :-
-  uri_components(Iri, uri_components(Scheme,Auth,Path,Query,_)),
-  uri_components(BaseIri, uri_components(Scheme,Auth,Path,Query,_)).
 
 
 

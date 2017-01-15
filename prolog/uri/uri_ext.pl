@@ -1,12 +1,14 @@
 :- module(
   uri_ext,
   [
-    auth_comps/2, % ?Auth:atom, ?Comps:compound
-    uri_comp/3,   % +Uri, ?Key, ?Val
-    uri_comps/2,  % ?Uri:atom, ?Comps:compound
-    uri_comps/3,  % -Uri:atom, +BaseUri:atom, +Comps:compound
+    auth_comps/2,          % ?Auth, ?Comps
+    uri_comp/3,            % +Uri, ?Key, ?Val
+    uri_comps/2,           % ?Uri, ?Comps
+    uri_comps/3,           % -Uri, +BaseUri, +Comps
+    uri_file_extensions/2, % +Uri,  -Exts
     uri_optional_query_enc//0,
-    uri_query_enc//0
+    uri_query_enc//0,
+    uri_remove_fragment/2  % +Uri, -BaseUri
   ]
 ).
 :- reexport(library(uri)).
@@ -16,13 +18,15 @@
 
 
 @author Wouter Beek
-@version 2015/08, 2015/10-2016/04, 2016/11-2017/01
+@version 2016/11-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_host), []).
+:- use_module(library(os/file_ext)).
+:- use_module(library(lists)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
 
@@ -136,6 +140,15 @@ uri_comps(Uri, BaseUri, Comps) :-
 
 
 
+%! uri_file_extensions(+Uri, -Exts) is det.
+
+uri_file_extensions(Uri, Exts) :-
+  uri_comps(Uri, uri(_,_,Segments,_,_)),
+  last(Segments, Segment),
+  file_extensions(Segment, Exts).
+
+
+
 %! uri_optional_query_enc// .
 
 uri_optional_query_enc, "%2C" --> ",", !, uri_optional_query_enc.
@@ -168,3 +181,14 @@ uri_query_enc, "%", hex(W1), hex(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   uri_query_enc.
 uri_query_enc --> [].
+
+
+
+%! uri_remove_fragment(+Uri, -BaseUri) is det.
+%
+% The base URI is the eventual URI that is being read from, wtihout
+% the fragment component.
+
+uri_remove_fragment(Uri, BaseUri) :-
+  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)),
+  uri_components(BaseUri, uri_components(Scheme,Auth,Path,Query,_)).
