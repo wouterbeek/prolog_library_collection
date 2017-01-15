@@ -133,7 +133,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 % ```
 
 link(BaseUri, LinkValues) -->
-  *#('link-value'(BaseUri), LinkValues), !.
+  seplist('link-value'(BaseUri), (blanks,",",blanks), LinkValues), !.
 
 
 
