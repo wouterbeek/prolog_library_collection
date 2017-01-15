@@ -276,7 +276,7 @@ html({|html||...|}).
 :- use_module(library(pagination/html_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
-:- use_module(library(q/q_term)). %HACK
+:- use_module(library(rdf/rdf_term)). % @hack
 :- use_module(library(setting_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).

@@ -110,17 +110,17 @@ param_type(Spec) -->
 param_type(Spec) -->
   {memberchk(positive_integer, Spec)}, !,
   html("n ≥ 1").
-% q_iri
+% rdf_iri
 param_type(Spec) -->
-  {memberchk(q_iri, Spec)}, !,
+  {memberchk(rdf_iri, Spec)}, !,
   html("RDF IRI").
-% q_literal
+% rdf_literal
 param_type(Spec) -->
-  {memberchk(q_literal, Spec)}, !,
+  {memberchk(rdf_literal, Spec)}, !,
   html("RDF literal").
-% q_term
+% rdf_term
 param_type(Spec) -->
-  {memberchk(q_term, Spec)}, !,
+  {memberchk(rdf_term, Spec)}, !,
   html("RDF term").
 % string
 param_type(Spec) -->
