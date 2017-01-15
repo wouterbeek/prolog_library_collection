@@ -28,7 +28,9 @@
 :- use_module(library(ltag/rfc5646), [
      'Language-Tag'//1 as 'language-tag' % -LTag:list(atom)
    ]).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf11), [
+     op(110, xfx, @)
+   ]).
 :- use_module(library(uri/rfc3986)).
 :- use_module(library(url/rfc1738), [
      digit//1 as 'DIGIT' % ?Weight:between(0,9)

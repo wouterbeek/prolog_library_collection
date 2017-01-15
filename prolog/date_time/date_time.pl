@@ -47,12 +47,15 @@ predicates that only work with date_time/7.  This is a huge
 time-saver!
 
 @author Wouter Beek
-@version 2015/08, 2015/11-2015/12, 2016/02, 2016/07-2016/08, 2016/10-2016/11
+@version 2015/08-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf11) ,[
+     (rdf_meta)/1,
+     op(1150, fx, rdf_meta)
+   ]).
 
 :- meta_predicate
     call_statistics(0, +, -),

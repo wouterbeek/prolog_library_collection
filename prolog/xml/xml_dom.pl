@@ -25,7 +25,6 @@
 :- use_module(library(option)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
-:- use_module(library(semweb/rdf11), []).
 :- use_module(library(sgml)).
 :- use_module(library(sgml_write)).
 :- use_module(library(yall)).

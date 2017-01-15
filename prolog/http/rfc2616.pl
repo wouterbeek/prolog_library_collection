@@ -40,7 +40,9 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(pair_ext)).
-:- use_module(library(semweb/rdf11)).
+:- use_module(library(semweb/rdf11) ,[
+     op(650, xfx, ^^)
+   ]).
 :- use_module(library(uri/rfc2396), [
      abs_path//1, % -Path:list(atom)
      host//1,     % -Host

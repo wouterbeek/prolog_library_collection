@@ -15,7 +15,6 @@
 
 :- use_module(library(http/html_write)).
 :- use_module(library(memfile)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(sgml)).
 
 

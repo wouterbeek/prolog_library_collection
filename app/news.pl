@@ -24,7 +24,6 @@ http://lists.w3.org/Archives/Public/html-tidy/2016JulSep/0000.html
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_download)).
 :- use_module(library(print_ext)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(xpath)).
 
 :- debug(io(recode)).
