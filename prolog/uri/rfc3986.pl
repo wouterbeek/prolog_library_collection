@@ -10,7 +10,7 @@
     'path-abempty'//1, % -Segments:list(atom)
     'pct-encoded'//1, % -Code:between(0,255)
     port//1, % -Port:nonneg
-    query//1, % -Query:atom
+    query//1, % -QueryComps:list(compound)
     'relative-part'//2, % -Auth:compound, -Segments:list(atom)
     scheme//1, % -Scheme:atom
     scheme_code//1, % -Code:code
@@ -30,12 +30,12 @@ The following terms are used:
 | Auth | auth(User,host,Port)             |
 | Host | IP or atom Name                  |
 | IP   | ip(Version,Address)              |
-| Uri  | uri(Scheme,Auth,Segments,Query,Frag) |
+| Uri  | uri(Scheme,Auth,Segments,QueryComps,Frag) |
 
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2015/11-2016/01, 2016/11-2016/12
+@version 2016/11-2017/01
 */
 
 :- use_module(library(apply)).
@@ -58,11 +58,11 @@ The following terms are used:
 % absolute-URI = scheme ":" hier-part [ "?" query ]
 % ```
 
-'absolute-URI'(uri(Scheme,Auth,Segments,Query,_)) -->
+'absolute-URI'(uri(Scheme,Auth,Segments,QueryComps,_)) -->
   scheme(Scheme),
   ":",
   'hier-part'(Auth, Segments),
-  ("?" -> query(Query) ; "").
+  ("?" -> query(QueryComps) ; "").
 
 
 
@@ -433,15 +433,18 @@ port(Port) -->
 
 
 
-%! query(-Query:atom)// is det.
+%! query(-QueryComps:list(compound))// is det.
 %
 % ```abnf
 % query = *( pchar / "/" / "?" )
 % ```
 
-query(Query) -->
+query(QueryComps) -->
   *(query_code, Cs), !,
-  {atom_codes(Query, Cs)}.
+  {
+    atom_codes(Query, Cs),
+    uri_query_components(Query, QueryComps)
+  }.
 
 query_code(C)   --> pchar(C).
 query_code(0'/) --> "/".
