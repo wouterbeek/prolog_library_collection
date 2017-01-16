@@ -74,11 +74,12 @@ used instead.
 @author Wouter Beek
 @compat Based on CKAN API 2.6.0
 @see http://docs.ckan.org/en/latest/api.html
-@version 2016/03-2016/04, 2017/01
+@version 2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
@@ -974,7 +975,9 @@ ckan_reply(_, Result, In, InPath, InPath) :-
   dict_get('content-type', Headers, Val),
   http_parse_header_value(content_type, Val, media(application/json,_)), !,
   json_read_dict(In, Reply),
-  (   dict_key(Reply, error)
+  (   \+ is_dict(Reply)
+  ->  type_error(ckan_reply, Reply)
+  ;   dict_key(Reply, error)
   ->  throw(error(Reply.error.'__type',context(Reply.help,Reply.error.message)))
   ;   dict_get(result, Reply, Result)
   ).
