@@ -1255,6 +1255,7 @@ http_known0(Key) :-
 
 %! http_known_unknown(+Key) is semidet.
 
+http_known_unknown(ccdeac).
 http_known_unknown('cf-ray').
 http_known_unknown('epke-alive').
 http_known_unknown('es.index').
@@ -1268,6 +1269,7 @@ http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
 http_known_unknown('host-header').
 http_known_unknown(p3p).
+http_known_unknown('proxy-connection').
 http_known_unknown('public-key-pins').
 http_known_unknown('r01-domain-origin').
 http_known_unknown(serverhost).
