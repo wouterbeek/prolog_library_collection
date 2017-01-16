@@ -1268,7 +1268,9 @@ http_known_unknown('fastly-no-shield').
 http_known_unknown('fuseki-request-id').
 http_known_unknown('host-header').
 http_known_unknown(p3p).
+http_known_unknown('public-key-pins').
 http_known_unknown('r01-domain-origin').
+http_known_unknown(serverhost).
 http_known_unknown(servidor).
 http_known_unknown('source-age').
 http_known_unknown(status).
@@ -1278,6 +1280,7 @@ http_known_unknown('x-acre-source-url').
 http_known_unknown('x-adblock-key').
 http_known_unknown('x-amz-id-2').
 http_known_unknown('x-amz-request-id').
+http_known_unknown('x-app').
 http_known_unknown('x-aspnet-version').
 http_known_unknown('x-backend').
 http_known_unknown('x-cache').
@@ -1346,6 +1349,7 @@ http_known_unknown('x-total-results').
 http_known_unknown('x-ua-compatible').
 http_known_unknown('x-uniprot-release').
 http_known_unknown('x-varnish').
+http_known_unknown('x-varnish-cache').
 http_known_unknown('x-varnish-caching-rule-id').
 http_known_unknown('x-varnish-header-set-id').
 http_known_unknown('x-vcap-request-id').
