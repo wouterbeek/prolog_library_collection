@@ -637,64 +637,6 @@ ckan_package_show(Site, Pack, Args1, Dict) :-
 
 
 
-%! ckan_request(+Uri, +Action, -Result) is nondet.
-%! ckan_request(+Uri, +Action, +Args, -Result) is nondet.
-%
-% The arguments are supported:
-%
-%   * api_key(+atom)
-%
-%   * page_size(+nonneg)
-%
-%     Sets the ‘limit’ and ‘offset’ arguments and iterates over all
-%     result pages.
-%
-%   * version(+positive_integer)
-%
-%     Optional, using the server-side default otherwise.
-
-ckan_request(Uri, Action, Result) :-
-  ckan_request(Uri, Action, _{}, Result).
-
-
-ckan_request(Uri1, Action, Args1, Result) :-
-  uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
-  (del_dict(version, Args1, Version, Args2) -> true ; Args2 = Args1),
-  include(ground, [api,Version,action,Action], Segments2),
-  append(Segments1, Segments2, Segments3),
-  (   del_dict(page_size, Args2, PageSize, Args3)
-  ->  betwixt(0, inf, PageSize, Offset),
-      Args4 = Args3.put(_{limit: PageSize, offset: Offset})
-  ;   Args4 = Args2
-  ),
-  (   del_dict(api_key, Args4, Key, Args5)
-  ->  Opts1 = [request_header('Authorization'=Key)]
-  ;   Args5 = Args4,
-      Opts1 = []
-  ),
-  uri_comps(Uri2, uri(Scheme,Auth,Segments3,Args5,_)),
-  merge_options(Opts1, [request_header('Accept'='application/json')], Opts2),
-  http_get(Uri2, ckan_reply(Uri2, Result), Opts2),
-  (boolean(Result) -> !, true ; Result == [] -> !, true ; true).
-
-ckan_reply(_, Result, In, InPath, InPath) :-
-  dicts_getchk(headers, InPath, Headers),
-  dict_get('content-type', Headers, Val),
-  http_parse_header_value(content_type, Val, media(application/json,_)), !,
-  json_read_dict(In, Reply),
-  (   dict_key(Reply, error)
-  ->  throw(error(Reply.error.'__type',context(Reply.help,Reply.error.message)))
-  ;   dict_get(result, Reply, Result)
-  ).
-ckan_reply(Uri, _, In, InPath, InPath) :-
-  peek_string(In, 50, Str),
-  msg_warning("[CKAN] No JSON from site ‘~a’ (~s)~n", [Uri,Str]).
-
-boolean(false).
-boolean(true).
-
-
-
 %! ckan_resource_show(+Site, +Res, -Dict) is det.
 %! ckan_resource_show(+Site, +Res, +Args, -Dict) is det.
 %
@@ -980,3 +922,65 @@ ckan_user_show(Site, User, Args1, Dict) :-
   (is_dict(User) -> Id = User.id ; Id = User),
   Args2 = Args1.put(_{id: Id}),
   ckan_request(Site, user_show, Args2, Dict).
+
+
+
+
+
+% HELPERS %
+
+%! ckan_request(+Uri, +Action, -Result) is nondet.
+%! ckan_request(+Uri, +Action, +Args, -Result) is nondet.
+%
+% The arguments are supported:
+%
+%   * api_key(+atom)
+%
+%   * page_size(+nonneg)
+%
+%     Sets the ‘limit’ and ‘offset’ arguments and iterates over all
+%     result pages.
+%
+%   * version(+positive_integer)
+%
+%     Optional, using the server-side default otherwise.
+
+ckan_request(Uri, Action, Result) :-
+  ckan_request(Uri, Action, _{}, Result).
+
+
+ckan_request(Uri1, Action, Args1, Result) :-
+  uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
+  (del_dict(version, Args1, Version, Args2) -> true ; Args2 = Args1),
+  include(ground, [api,Version,action,Action], Segments2),
+  append(Segments1, Segments2, Segments3),
+  (   del_dict(page_size, Args2, PageSize, Args3)
+  ->  betwixt(0, inf, PageSize, Offset),
+      Args4 = Args3.put(_{limit: PageSize, offset: Offset})
+  ;   Args4 = Args2
+  ),
+  (   del_dict(api_key, Args4, Key, Args5)
+  ->  Opts1 = [request_header('Authorization'=Key)]
+  ;   Args5 = Args4,
+      Opts1 = []
+  ),
+  uri_comps(Uri2, uri(Scheme,Auth,Segments3,Args5,_)),
+  merge_options(Opts1, [request_header('Accept'='application/json')], Opts2),
+  http_get(Uri2, ckan_reply(Uri2, Result), Opts2),
+  (boolean(Result) -> !, true ; Result == [] -> !, true ; true).
+
+ckan_reply(_, Result, In, InPath, InPath) :-
+  dicts_getchk(headers, InPath, Headers),
+  dict_get('content-type', Headers, Val),
+  http_parse_header_value(content_type, Val, media(application/json,_)), !,
+  json_read_dict(In, Reply),
+  (   dict_key(Reply, error)
+  ->  throw(error(Reply.error.'__type',context(Reply.help,Reply.error.message)))
+  ;   dict_get(result, Reply, Result)
+  ).
+ckan_reply(Uri, _, In, InPath, InPath) :-
+  peek_string(In, 50, Str),
+  msg_warning("[CKAN] No JSON from site ‘~a’ (~s)~n", [Uri,Str]).
+
+boolean(false).
+boolean(true).
