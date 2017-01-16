@@ -119,7 +119,8 @@ uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
   ->  true
   ;   Segments = []
   ->  Path = '/'
-  ;   atomic_list_concat([''|Segments], /, Path)
+  ;   (Segments = [''|Segments0] -> true ; Segments0 = Segments),
+      atomic_list_concat([''|Segments0], /, Path)
   ),
   (   var(QueryComps)
   ->  true
