@@ -122,7 +122,7 @@ catch_msg(Def1, Mod:Goal_1, Arg1) :-
   Goal_1 =.. [Pred|Args1],
   append(Args1, [Arg1], Args2),
   Goal_0 =.. [Pred|Args2],
-  (   catch(Goal_1, E, print_catch(Def1, E, Arg1))
+  (   catch(Mod:Goal_0, E, print_catch(Def1, E, Arg1))
   ->  true
   ;   print_catch(Def1, "failed", Arg1)
   ).

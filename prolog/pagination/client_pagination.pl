@@ -42,18 +42,17 @@ client_pagination(Uri, Goal_3) :-
 
 
 client_pagination(Uri1, Goal_3, Opts1) :-
-  InPath = metadata([]),
-  (   merge_options([metadata(InPath0)], Opts1, Opts2),
-      call_on_stream(uri(Uri1), Goal_3, Opts2),
-      nb_setarg(1, InPath, InPath0)
-  ;   InPath = metadata(InPath0),
-      dicts_getchk(headers, InPath0, Headers),
-      dict_get(link, Headers, LinkA),
+  merge_options([metadata(InPath)], Opts1, Opts2),
+  call_on_stream(uri(Uri1), Goal_3, Opts2),
+  (   dicts_getchk(headers, InPath, Headers),
+      dict_get(link, Headers, Val),
       option(base_uri(BaseUri), Opts1, Uri1),
-      atom_phrase(link(BaseUri,Links), LinkA),
+      atom_phrase(link(BaseUri,Links), Val),
       once((
         member(link(Uri2,Params), Links),
         memberchk(rel-next, Params)
-      )),
-      client_pagination(Uri2, Goal_3, Opts1)
-  ).
+      ))
+  ->  true
+  ;   true
+  ),
+  (var(Uri2) -> true ; (true ; client_pagination(Uri2, Goal_3, Opts1))).
