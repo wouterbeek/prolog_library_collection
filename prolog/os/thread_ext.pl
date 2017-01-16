@@ -6,8 +6,10 @@
     call_on_wildcard/2,          % +Wildcard, :Goal_1
     call_on_wildcard/3,          % +Wildcard, :Goal_1, +Opts
     create_thread/1,             % :Goal_0
+    create_thread/2,             % +Alias, :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads
     detached_thread/1,           % :Goal_0
+    detached_thread/2,           % +Alias, :Goal_0
     intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
     intermittent_thread/4,       % :Goal_0, :EndGoal_0, +Interval, +Opts
     print_thread/0,
@@ -23,7 +25,7 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2015/10-2016/12
+@version 2015/10-2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -40,7 +42,9 @@
     call_on_wildcard(+, 1),
     call_on_wildcard(+, 1, +),
     create_thread(0),
+    create_thread(+, 0),
     detached_thread(0),
+    detached_thread(+, 0),
     intermittent_goal(0, 0, +),
     intermittent_thread(0, 0, +),
     intermittent_thread(0, 0, +, +).
@@ -95,9 +99,14 @@ call_on_wildcard(Wildcard0, Goal_1, Opts) :-
 
 
 %! create_thread(:Goal_0) is det.
+%! create_thread(+Alias, :Goal_0) is det.
 
 create_thread(Goal_0) :-
   thread_create(Goal_0, _, []).
+
+
+create_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, _, [alias(Alias)]).
 
 
 
@@ -110,9 +119,14 @@ default_number_of_threads(N) :-
 
 
 %! detached_thread(:Goal_0) is det.
+%! detached_thread(+Alias, :Goal_0) is det.
 
 detached_thread(Goal_0) :-
   thread_create(Goal_0, _, [detached(true)]).
+
+
+detached_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, _, [alias(Alias),detached(true)]).
 
 
 
