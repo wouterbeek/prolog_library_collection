@@ -3,10 +3,10 @@
   [
   % ALIAS
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
+    call_to_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
-    rocks_open/2,      % +Alias, +Type
     rocks_rm/1,        % +Alias
   % ROCKSDB
     rocks_key/2,       % +RocksDB, ?Key
@@ -21,7 +21,7 @@
 /** <module> RocksDB extensions
 
 @author Wouter Beek
-@version 2016/08-2016/09, 2017/01
+@version 2017/01
 */
 
 :- use_module(library(apply)).
@@ -32,7 +32,9 @@
 :- use_module(library(settings)).
 
 :- meta_predicate
-    call_on_rocks(+, +, 1).
+    call_on_rocks(+, +, 1),
+    call_rocks0(+, +, +, 1),
+    call_to_rocks(+, +, 1).
 
 :- rlimit(nofile, _, 50000).
 
@@ -50,11 +52,14 @@
 %! call_on_rocks(+Alias, +Type, :Goal_1) is det.
 
 call_on_rocks(Alias, Type, Goal_1) :-
-  setup_call_cleanup(
-    rocks_open(Alias, Type),
-    call(Goal_1, Alias),
-    rocks_close(Alias)
-  ).
+  call_rocks0(Alias, Type, read_only, Goal_1).
+
+
+
+%! call_to_rocks(+Alias, +Type, :Goal_1) is det.
+
+call_to_rocks(Alias, Type, Goal_1) :-
+  call_rocks0(Alias, Type, read_write, Goal_1).
 
 
 
@@ -133,18 +138,6 @@ rocks_nullify(RocksDB) :-
 
 
 
-%! rocks_open(+Alias, +Type) is det.
-
-rocks_open(Alias, Type) :-
-  rocks_dir(Alias, Dir),
-  once(type_merge_value(Type, Merge_5, Val)),
-  rocks_open(Dir, _, [alias(Alias),key(atom),merge(Merge_5),value(Val)]).
-
-type_merge_value(int, rocks_merge_sum, int64).
-type_merge_value(set(atom), rocks_merge_set, term).
-
-
-
 %! rocks_pull(+RocksDB, -Key, -Val) is nondet.
 
 rocks_pull(RocksDB, Key, Val) :-
@@ -159,7 +152,7 @@ rocks_rm(Alias) :-
   % Make sure the RocksDB index is closed before its files are
   % removed.
   catch(rocks_close(Alias), _, true),
-  rocks_dir(Alias, Dir),
+  rocks_dir0(Alias, Dir),
   delete_directory_and_contents_msg(Dir).
 
 
@@ -168,9 +161,31 @@ rocks_rm(Alias) :-
 
 % HELPERS %
 
-%! rocks_dir(+Alias, -Dir) is det.
+%! call_rocks0(+Alias, +Type, +Mode, :Goal_1) is det.
+%
+% Mode is either ‘read_only’ or ‘read_write’.
 
-rocks_dir(Alias, Subdir) :-
+call_rocks0(Alias, Type, Mode, Goal_1) :-
+  rocks_dir0(Alias, Dir),
+  once(type_merge_value(Type, Merge_5, Val)),
+  setup_call_cleanup(
+    rocks_open(
+      Dir,
+      _,
+      [alias(Alias),key(atom),merge(Merge_5),mode(Mode),value(Val)]
+    ),
+    call(Goal_1, Alias),
+    rocks_close(Alias)
+  ).
+
+type_merge_value(int, rocks_merge_sum, int64).
+type_merge_value(set(atom), rocks_merge_set, term).
+
+
+
+%! rocks_dir0(+Alias, -Dir) is det.
+
+rocks_dir0(Alias, Subdir) :-
   setting(index_dir, Dir),
   directory_file_path(Dir, Alias, Subdir),
   create_directory(Subdir).
