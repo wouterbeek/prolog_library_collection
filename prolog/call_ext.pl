@@ -1,23 +1,26 @@
 :- module(
   call_ext,
   [
-    call_det/2,          % :Goal_0, +IsDet
-    call_n_sol/3,        % +N, :Select_1, :Goal_1
-    call_n_times/2,      % +N, :Goal_0
-    call_or_exception/1, % :Goal_0
-    call_or_fail/1,      % :Goal_0
-    call_timeout/2,      % +Time, :Goal_0
-    concurrent_n_sols/3, % +N, :Select_1, :Goal_1
-    forall/1,            % :Goal_0
-    retry0/1,            % :Goal_0
-    var_goal/1           % @Term
+    call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
+    call_det/2,             % :Goal_0, +IsDet
+    call_n_sol/3,           % +N, :Select_1, :Goal_1
+    call_n_times/2,         % +N, :Goal_0
+    call_or_exception/1,    % :Goal_0
+    call_or_fail/1,         % :Goal_0
+    call_timeout/2,         % +Time, :Goal_0
+    catch_msg/1,            % :Goal_0
+    catch_msg/3,            % +Def1, :Goal_1, -Arg1
+    concurrent_n_sols/3,    % +N, :Select_1, :Goal_1
+    forall/1,               % :Goal_0
+    retry0/1,               % :Goal_0
+    var_goal/1              % @Term
   ]
 ).
 
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04, 2016/07-2016/10, 2016/12
+@version 2016/04-2017/01
 */
 
 :- use_module(library(debug)).
@@ -26,17 +29,27 @@
 :- use_module(library(time)).
 
 :- meta_predicate
+    call_catcher_cleanup(0, +, 0),
     call_det(0, +),
     call_n_sol(+, 1, 1),
     call_n_times(+, 0),
     call_or_exception(0),
     call_or_fail(0),
     call_timeout(+, 0),
+    catch_msg(0),
+    catch_msg(+, 1, -),
     concurrent_n_sols(+, 1, 1),
     forall(0),
     retry0(0).
 
 
+
+
+
+%! call_catcher_cleanup(:Goal_0, +Catcher, :Cleanup_0) .
+
+call_catcher_cleanup(Goal_0, Catcher, Cleanup_0) :-
+  setup_call_catcher_cleanup(true, Goal_0, Catcher, Cleanup_0).
 
 
 
@@ -92,6 +105,33 @@ call_timeout(inf, Goal_0) :- !,
   call(Goal_0).
 call_timeout(Time, Goal_0) :-
   call_with_time_limit(Time, Goal_0).
+
+
+
+%! catch_msg(:Goal_0) is det.
+%! catch_msg(+Def1, :Goal_1, -Arg1) is det.
+%
+% Catch all exceptions and failures in Goal_0/Goal_1 and print a
+% message when this happens.
+
+catch_msg(Goal_0) :-
+  (catch(Goal_0, E, print_catch(E)) -> true ; print_catch("failed")).
+
+
+catch_msg(Def1, Mod:Goal_1, Arg1) :-
+  Goal_1 =.. [Pred|Args1],
+  append(Args1, [Arg1], Args2),
+  Goal_0 =.. [Pred|Args2],
+  (   catch(Goal_1, E, print_catch(Def1, E, Arg1))
+  ->  true
+  ;   print_catch(Def1, "failed", Arg1)
+  ).
+
+print_catch(E) :-
+  print_message(warning, ckan_error(E)).
+
+print_catch(Arg1, E, Arg1) :-
+  print_catch(E).
 
 
 
