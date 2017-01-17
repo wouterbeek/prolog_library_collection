@@ -28,8 +28,8 @@
     process_open/4,          % +Cmd, +In, +Args, -Out
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
-    read_stream_to_atom/2,   % +In, -A
-    read_stream_to_string/2, % +In, -Str
+    read_to_atom/2,          % +Source, -A
+    read_to_string/2,        % +Source, -Str
     recode_stream/4,         % +In1, -In2, -Close, +Opts
     source_base_uri/2,       % +InPath, -BaseUri
     source_entry_name/2,     % +InPath, -EntryName
@@ -693,17 +693,23 @@ read_mode(read).
 
 
 
-%! read_stream_to_atom(+In, -A) is det.
+%! read_to_atom(+Source, -A) is det.
 
-read_stream_to_atom(In, A) :-
+read_to_atom(Source, A) :-
+  call_on_stream(Source, read_stream_to_atom(A)).
+
+read_stream_to_atom(A, In, InPath, InPath) :-
   read_stream_to_codes(In, Cs),
   atom_codes(A, Cs).
 
 
 
-%! read_stream_to_string(+In, -Str) is det.
+%! read_stream_to_string(+Source, -Str) is det.
 
-read_stream_to_string(In, Str) :-
+read_to_string(Source, Str) :-
+  call_on_stream(Source, read_stream_to_string(Str)).
+
+read_stream_to_string(Str, In, InPath, InPath) :-
   read_stream_to_codes(In, Cs),
   string_codes(Str, Cs).
 
