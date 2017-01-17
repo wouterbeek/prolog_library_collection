@@ -1,7 +1,6 @@
 :- module(
   io,
   [
-    archive_entry_name/2,    % +InPath, -EntryName
     archive_path/2,          % +Source, -InPath
     call_on_stream/2,        % +Source, :Goal_3
     call_on_stream/3,        % +Source, :Goal_3, +SourceOpts
@@ -32,6 +31,8 @@
     read_stream_to_atom/2,   % +In, -A
     read_stream_to_string/2, % +In, -Str
     recode_stream/4,         % +In1, -In2, -Close, +Opts
+    source_base_uri/2,       % +InPath, -BaseUri
+    source_entry_name/2,     % +InPath, -EntryName
     write_mode/1             % ?Mode
   ]
 ).
@@ -62,8 +63,9 @@ The following debug flags are used:
 :- use_module(library(process)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
-:- use_module(library(yall)).
+:- use_module(library(uri/uri_ext)).
 :- use_module(library(xml/xml_parse)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
@@ -100,26 +102,6 @@ error:has_type(write_mode, Term) :-
   error:has_type(oneof([append,write]), Term).
 
 
-
-
-
-%! archive_entry_name(+InPath, -EntryName) is det.
-%
-% EntryName is the concatenation of the entry names in InPath,
-% excluding the last ‘data’ part.
-
-archive_entry_name(InPath, EntryName) :-
-  archive_entry_name(InPath, [], EntryName).
-
-archive_entry_name([], L, EntryName) :- !,
-  atomic_list_concat(L, /, EntryName).
-archive_entry_name([H1|T1], T2, EntryName) :-
-  dict_get('@type', H1, entry),
-  dict_get('@id', H1, H2),
-  H2 \== data, !,
-  archive_entry_name(T1, [H2|T2], EntryName).
-archive_entry_name([_|T1], L2, EntryName) :-
-  archive_entry_name(T1, L2, EntryName).
 
 
 
@@ -235,7 +217,11 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(InPath3), SourceOpts)).
 
 
-% Data input stream.
+% Already a stream, leave as is.
+call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
+  get_dict('@type', InEntry1, stream), !,
+  call(Goal_3, In, [InEntry1], InPath).
+% Leaf archive entry.
 call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   InPath1 = [InEntry|_],
   get_dict(format, InEntry, raw),
@@ -245,7 +231,7 @@ call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
     call(Goal_3, In2, InPath1, InPath2),
     close_any2(Close, read)
   ).
-% Compressed and/or packaged input stream.
+% Non-leaf archive entry.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
@@ -773,6 +759,38 @@ encoding_alias(Enc, Enc).
 
 
 
+%! source_base_uri(+InPath, -BaseUri) is semidet.
+
+source_base_uri(InPath, BaseUri) :-
+  member(InEntry, InPath),
+  (   _{'@id': Uri, '@type': uri} :< InEntry
+  ->  !, uri_remove_fragment(Uri, BaseUri)
+  ;   _{'@id': File, '@type': file} :< InEntry
+  ->  !, uri_file_name(BaseUri, File)
+  ).
+
+
+
+%! source_entry_name(+InPath, -EntryName) is det.
+%
+% EntryName is the concatenation of the entry names in InPath,
+% excluding the last ‘data’ part.
+
+source_entry_name(InPath, EntryName) :-
+  source_entry_name(InPath, [], EntryName).
+
+source_entry_name([], L, EntryName) :- !,
+  atomic_list_concat(L, /, EntryName).
+source_entry_name([H1|T1], T2, EntryName) :-
+  dict_get('@type', H1, entry),
+  dict_get('@id', H1, H2),
+  H2 \== data, !,
+  source_entry_name(T1, [H2|T2], EntryName).
+source_entry_name([_|T1], L2, EntryName) :-
+  source_entry_name(T1, L2, EntryName).
+
+
+
 %! write_mode(+Mode) is semidet.
 %! write_mode(-Mode) is multi.
 %
@@ -900,8 +918,11 @@ memory_file_to_something(Handle, string, Str) :- !,
 
 open_any2(Spec, Mode, Stream2, Close2, Path, Opts) :-
   open_any2_variant(Spec, Mode, Stream1, Close1, Path, Opts),
-  (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
-  indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1]),
+  (   Close1 == true
+  ->  true
+  ;   (read_mode(Mode) -> Lbl = "R" ; write_mode(Mode) -> Lbl = "W"),
+      indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1])
+  ),
   open_any2_hash(Stream1, Close1, Stream2, Close2, Opts).
 
 
