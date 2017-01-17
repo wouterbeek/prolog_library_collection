@@ -25,8 +25,8 @@ Support for calling GNU sort from within Prolog.
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(option)).
-:- use_module(library(os/process_ext)).
 :- use_module(library(os/thread_ext)).
+:- use_module(library(process)).
 :- use_module(library(typecheck)).
 
 
@@ -70,12 +70,15 @@ Support for calling GNU sort from within Prolog.
 %     Whether the environment is set to UTF-8 encoding.  Default is
 %     `true`.
 
-gnu_sort(File, Opts) :-
+gnu_sort(File, Opts1) :-
   must_be_file(read, File),
   % The UTF-8 encoding option is handled by an environment variable.
-  (option(utf8(true), Opts, true) -> Env = [] ; Env = ['LC_ALL'='C']),
-  gnu_sort_args(Opts, Args),
-  run_process(sort, [file(File)|Args], [env(Env),program('GNU sort')]).
+  (option(utf8(true), Opts1, true) -> Env = [] ; Env = ['LC_ALL'='C']),
+  merge_options(Opts1, [output(File)], Opts2),
+  gnu_sort_args(Opts2, Args),
+  format(user_output, "<<<~w~n", [File]),
+  process_create(path(sort), [file(File)|Args], [env(Env)]),
+  format(user_output, "~w>>>~n", [File]).
 
 
 gnu_sort_args([], []).
