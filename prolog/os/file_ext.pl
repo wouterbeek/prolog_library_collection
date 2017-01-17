@@ -65,7 +65,6 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
-:- use_module(library(os/archive_ext)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/io)).
 :- use_module(library(os/os_ext)).

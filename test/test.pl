@@ -128,7 +128,6 @@
   :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(option_ext)).
 %/os
-  :- use_module(library(os/archive_ext)).
   :- use_module(library(os/compress_ext)).
   :- use_module(library(os/date_time_file)).
   :- use_module(library(os/external_program)).

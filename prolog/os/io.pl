@@ -1,6 +1,8 @@
 :- module(
   io,
   [
+    archive_entry_name/2,    % +InPath, -EntryName
+    archive_path/2,          % +Source, -InPath
     call_on_stream/2,        % +Source, :Goal_3
     call_on_stream/3,        % +Source, :Goal_3, +SourceOpts
     call_onto_stream/3,      % +Source, +Sink, :Goal_4
@@ -20,6 +22,7 @@
     close_any2/2,            % +Close, +Mode
     copy_stream_data/4,      % +In, +InPath1, -InPath2, +Out
     guess_stream_encoding/2, % +In, -Enc
+    is_archive_file/1,       % +File
     open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
     open_binary_string/2,    % +Str, -In
     process_open/3,          % +Cmd, +In, -Out
@@ -48,13 +51,13 @@ The following debug flags are used:
 @version 2016/07-2017/01
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
-:- use_module(library(os/archive_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(process)).
 :- use_module(library(string_ext)).
@@ -100,6 +103,77 @@ error:has_type(write_mode, Term) :-
 
 
 
+%! archive_entry_name(+InPath, -EntryName) is det.
+%
+% EntryName is the concatenation of the entry names in InPath,
+% excluding the last ‘data’ part.
+
+archive_entry_name(InPath, EntryName) :-
+  archive_entry_name(InPath, [], EntryName).
+
+archive_entry_name([], L, EntryName) :- !,
+  atomic_list_concat(L, /, EntryName).
+archive_entry_name([H1|T1], T2, EntryName) :-
+  dict_get('@type', H1, entry),
+  dict_get('@id', H1, H2),
+  H2 \== data, !,
+  archive_entry_name(T1, [H2|T2], EntryName).
+archive_entry_name([_|T1], L2, EntryName) :-
+  archive_entry_name(T1, L2, EntryName).
+
+
+
+%! archive_file_extension(+Ext) is semidet.
+%! archive_file_extension(-Ext) is multi.
+%
+% Often occurring file extensions for archvies.
+
+archive_file_extension(cab).
+archive_file_extension(rar).
+archive_file_extension(tar).
+archive_file_extension(xar).
+archive_file_extension(zip).
+
+
+
+%! archive_format(-Format) is multi.
+%! archive_format(-Format, -Supported) is multi.
+%
+% Some archive formats are not Supported because they often get
+% mistaken for regular text files.
+
+archive_format(Format) :-
+  archive_format(Format, _).
+
+
+archive_format('7zip',  true ).
+archive_format(ar,      true ).
+archive_format(cab,     true ).
+archive_format(cpio,    true ).
+archive_format(empty,   true ).
+archive_format(gnutar,  true ).
+archive_format(iso9660, true ).
+archive_format(lha,     true ).
+archive_format(mtree,   false).
+archive_format(rar,     true ).
+archive_format(raw,     true ).
+archive_format(tar,     true ).
+archive_format(xar,     true ).
+archive_format(zip,     true ).
+
+    
+
+%! archive_path(+Source, -InPath) is nondet.
+%
+% Enumerates the entry paths in the archive stored at Source.
+
+archive_path(Source, InPath) :-
+  call_on_stream(Source, archive_path0(InPath)).
+
+archive_path0(InPath, _, InPath, InPath).
+
+
+
 %! call_on_stream(+Source, :Goal_3) is det.
 %! call_on_stream(+Source, :Goal_3, +SourceOpts) is det.
 %
@@ -116,6 +190,10 @@ error:has_type(write_mode, Term) :-
 %
 %   * metadata(-dict)
 %
+%     * '@id'(atom)
+%
+%     * '@type'(oneof([entry]))
+%
 %     * filetype(oneof([block_device,character_device,directory,fifo,file,link,socket]))
 %
 %     * format(atom)
@@ -123,8 +201,6 @@ error:has_type(write_mode, Term) :-
 %     * link_target(atom)
 %
 %     * mtime(float)
-%
-%     * name(atom)
 %
 %     * size(nonneg)
 %
@@ -163,7 +239,7 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   InPath1 = [InEntry|_],
   get_dict(format, InEntry, raw),
-  get_dict(name, InEntry, data), !,
+  get_dict('@id', InEntry, data), !,
   setup_call_cleanup(
     recode_stream(In1, In2, Close, SourceOpts),
     call(Goal_3, In2, InPath1, InPath2),
@@ -192,7 +268,10 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
       % 2049346009 bytes, only 0 available)),_12880)
       archive_next_header(Arch, EntryName)
   ->  findall(Prop, archive_header_property(Arch, Prop), Props),
-      dict_create(InEntry1, [filters(Filters),name(EntryName)|Props]),
+      dict_create(
+        InEntry1,
+        ['@id'(EntryName),'@type'(entry),filters(Filters)|Props]
+      ),
       % If the entry name is `data` then proceed.  If the entry name
       % is uninstantiated then proceed.  If entry name is instantiated
       % and does not occur in the current archive header then fail
@@ -585,6 +664,19 @@ guess_string_encoding(Str, Enc3) :-
     close(In)
   ),
   downcase_atom(Enc2, Enc3).
+
+
+
+%! is_archive_file(+File) is semidet.
+%
+% Succeeds if File is a common way of naming an archive file.
+
+is_archive_file(File) :-
+  file_extensions(File, Exts),
+  once((
+    member(Ext, Exts),
+    archive_file_extension(Ext)
+  )).
 
 
 
