@@ -38,7 +38,7 @@ html_pagination_links(Result) -->
 html_pagination_pager(Result) -->
   html(
     nav(
-      ul([
+      ul(class(pager), [
         \html_pagination_pager_prev(Result),
         " ",
         \html_pagination_range(Result),
