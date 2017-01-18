@@ -14,17 +14,17 @@
     string_json_dict/2  % +Str, -Dict, +Opts
   ]
 ).
+:- reexport(library(http/json)).
 
 /** <module> JSON extensions
 
 @author Wouter Beek
-@version 2015/09-2015/11, 2016/01, 2016/03-2016/05, 2016/07, 2016/11-2016/12
+@version 2015/09-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/json)).
 :- use_module(library(os/io)).
 :- use_module(library(yall)).
 
