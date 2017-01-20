@@ -13,6 +13,11 @@ body {
   overflow-x: hidden;
   padding-top: 60px;
 }
+@media (max-width: 979px) {
+  body {
+    padding-top: 60px;
+  }
+}
 
 code, pre {
   background: #f8f8ff;
