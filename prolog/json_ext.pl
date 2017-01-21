@@ -3,6 +3,8 @@
   [
     atom_json_dict/2,   % ?A, ?Dict
     atomize_json/2,     % +Dict, -AtomizedDict
+    codes_json_dict/2,  % ?Cs, ?Dict
+    codes_json_dict/3,  % ?Cs, ?Dict, +Opts
     json_escape/2,      % +Str1, -Str2
     json_read_any/2,    % +Source, -Dict
     json_read_any/3,    % +Source, -Dict, +Opts
@@ -10,8 +12,8 @@
     json_write_any/2,   % +Sink, +Dict
     json_write_any/3,   % +Sink, +Dict, +Opts
     json_write_dict/1,  % +Dict
-    string_json_dict/3, % +Str, -Dict
-    string_json_dict/2  % +Str, -Dict, +Opts
+    string_json_dict/2, % ?Str, ?Dict
+    string_json_dict/3  % ?Str, ?Dict, +Opts
   ]
 ).
 :- reexport(library(http/json)).
@@ -47,6 +49,25 @@ atomize_json(L1, L2):-
   maplist(atomize_json, L1, L2).
 atomize_json(Dict1, Dict2):-
   atomize_dict(Dict1, Dict2).
+
+
+
+%! codes_json_dict(+Cs, -Dict) is det.
+%! codes_json_dict(-Cs, +Dict) is det.
+%! codes_json_dict(+Cs, -Dict, +Opts) is det.
+%! codes_json_dict(-Cs, +Dict, +Opts) is det.
+
+codes_json_dict(Cs, Dict) :-
+  codes_json_dict(Cs, Dict, []).
+
+
+codes_json_dict(Cs, Dict, Opts) :-
+  ground(Cs), !,
+  atom_codes(A, Cs),
+  atom_json_dict(A, Dict, Opts).
+codes_json_dict(Cs, Dict, Opts) :-
+  atom_json_dict(A, Dict, Opts),
+  atom_codes(A, Cs).
 
 
 
@@ -145,5 +166,9 @@ string_json_dict(Str, Dict) :-
 
 
 string_json_dict(Str, Dict, Opts) :-
+  ground(Str), !,
   atom_string(A, Str),
   atom_json_dict(A, Dict, Opts).
+string_json_dict(Str, Dict, Opts) :-
+  atom_json_dict(A, Dict, Opts),
+  atom_string(A, Str).
