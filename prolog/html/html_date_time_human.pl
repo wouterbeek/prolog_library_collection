@@ -11,7 +11,7 @@
 DCG rules for parsing/generating human-readable HTML5 dates.
 
 @author Wouter Beek
-@version 2015/08-2015/12, 2016/02
+@version 2015/08-2015/12, 2016/02, 2017/01
 */
 
 :- use_module(library(apply)).
@@ -19,6 +19,7 @@ DCG rules for parsing/generating human-readable HTML5 dates.
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/html_write)).
+:- use_module(library(nlp/nlp_ext)).
 
 
 
@@ -96,11 +97,9 @@ minute(Mi, _) -->
 month(Mo, Opts) -->
   {
     dict_get(ltag, Opts, en, LTag),
-    dict_get(month_abbr, Opts, false, Abbr),
-    (   Abbr == true
-    ->  month_dict(Mo, LTag, Month, _)
-    ;   month_dict(Mo, LTag, _, Month)
-    )
+    dict_get(month_abbr, Opts, false, IsAbbr),
+    once(month_name(Mo, LTag, Abbr, Full)),
+    (IsAbbr == true -> Month = Abbr ; Month = Full)
   },
   html(span(class=month, Month)).
 
@@ -216,44 +215,6 @@ yearless_date(_, Mo, Da, Opts) -->
 
 
 % HELPERS %
-
-%! month_dict(?Mo, ?LTag, ?Abbr, ?Full) is nondet.
-
-month_dict(1,  en, "Jan", "January").
-month_dict(2,  en, "Feb", "February").
-month_dict(3,  en, "Mar", "March").
-month_dict(4,  en, "Apr", "April").
-month_dict(5,  en, "May", "May").
-month_dict(6,  en, "Jun", "June").
-month_dict(7,  en, "Jul", "July").
-month_dict(8,  en, "Aug", "Augustus").
-month_dict(9,  en, "Sep", "September").
-month_dict(10, en, "Oct", "October").
-month_dict(11, en, "Nov", "November").
-month_dict(12, en, "Dec", "December").
-month_dict(1,  nl, "jan", "januari").
-month_dict(2,  nl, "feb", "februari").
-month_dict(3,  nl, "mrt", "maart").
-month_dict(4,  nl, "apr", "april").
-month_dict(5,  nl, "mei", "mei").
-month_dict(6,  nl, "jun", "juni").
-month_dict(7,  nl, "jul", "juli").
-month_dict(8,  nl, "aug", "augustus").
-month_dict(9,  nl, "sep", "september").
-month_dict(10, nl, "okt", "oktober").
-month_dict(11, nl, "nov", "november").
-month_dict(12, nl, "dec", "december").
-
-
-
-%! ordinal_suffix(+N, +LTag, -W) is det.
-
-ordinal_suffix(1, en, "st").
-ordinal_suffix(2, en, "nd").
-ordinal_suffix(3, en, "rd").
-ordinal_suffix(_, en, "th").
-
-
 
 %! padding_zero(+N:between(0,9))// is det.
 

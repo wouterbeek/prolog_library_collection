@@ -110,6 +110,7 @@
     number//0,
     opt//1,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
+    ordinal//1,            % +M
     pair//2,               % :Dcg_0, :Dcg_0
     parsing//0,
     perc//1,               % +Perc:between(0.0,1.0)
@@ -1522,6 +1523,25 @@ opt(_) --> "".
 
 opt(Dcg_1, Arg) --> dcg_call(Dcg_1, Arg), !.
 opt(_, _) --> "".
+
+
+
+%! ordinal(+N)// .
+
+ordinal(N) -->
+  integer(N),
+  ordinal_suffix(N).
+
+ordinal_suffix(N) -->
+  {N0 is N mod 10},
+  (   {N0 =:= 1}
+  ->  "st"
+  ;   {N0 =:= 2}
+  ->  "nd"
+  ;   {N0 =:= 3}
+  ->  "rd"
+  ;   "th"
+  ).
 
 
 
