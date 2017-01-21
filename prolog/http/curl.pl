@@ -31,7 +31,8 @@ curl_get(Uri) :-
 
 
 curl_get(Uri, MT) :-
-  http_get(Uri, print_body0, [request_header(accept=MT),verbose(all)]).
+  (var(MT) -> T = [] ; T = [request_header('Accept'=MT)]),
+  http_get(Uri, print_body0, [verbose(all)|T]).
 
 print_body0(In, Path, Path) :-
   copy_stream_data(In, user_output).
@@ -42,11 +43,12 @@ print_body0(In, Path, Path) :-
 %! curl_head(+Uri, +MT) is det.
 
 curl_head(Uri) :-
-  curl_head(Uri, []).
+  curl_head(Uri, _).
 
 
 curl_head(Uri, MT) :-
-  http_head(Uri, [request_header(accept=MT),verbose(all)]).
+  (var(MT) -> T = [] ; T = [request_header('Accept'=MT)]),
+  http_head(Uri, [verbose(all)|T]).
 
 
 
