@@ -1,6 +1,7 @@
 :- module(
   rest,
   [
+    http_is_get/1,     % +Method
     rest_exception/2,  % +MTs, +E
     rest_media_type/2, % +MTs, :Goal_1
     rest_method/2,     % +Req, :Plural_2
@@ -39,15 +40,17 @@ There are two phases in handling REST requests:
 @version 2016/02-2017/01
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
+:- use_module(library(http/http_io)).
 :- use_module(library(http/http_wrapper)).
-:- use_module(library(http/http_write)).
 :- use_module(library(http/json)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
+:- use_module(library(settings)).
 
 :- html_meta
    rest_media_type(+, 1),
@@ -56,7 +59,25 @@ There are two phases in handling REST requests:
    rest_method(+, 2, +, 3),
    rest_method0(+, +, +, 2, +, 3).
 
+:- setting(
+     http:server,
+     list,
+     ['Prolog-Library-Collection'],
+     "The name of the server that issues HTTP replies."
+).
 
+
+
+
+
+%! http_is_get(+Method) is semidet.
+%
+% Succeeds for GET and HEAD requests.  HEAD requests are handled just
+% like GET requests.  The SWI HTTP library deals with leaving out the
+% body for HEAD requests.
+
+http_is_get(get).
+http_is_get(head).
 
 
 
@@ -73,19 +94,19 @@ rest_exception(MTs, E) :-
 rest_exception(_, E) :-
   once(rest_exception_media_type(_, E)).
 
-
 % 400 Bad Request
 rest_exception_media_type(text/html, bad_request(E)) :-
   http_status_reply(bad_request(E), current_output, [], _).
 rest_exception_media_type(MT, existence_error(http_parameter,Key)) :- !,
   (   MT == application/json
-  ->  Headers = ['Content-Type'-media_type(application/json,[])],
+  ->  Headers = ['Content-Type'-[media_type(application/json,[])]],
       Dict = _{message: "Missing parameter", value: Key},
       with_output_to(codes(Cs), json_write_dict(current_output, Dict))
   ;   Headers = [],
       Cs = []
   ),
-  reply_http_message(400, Headers, Cs).
+  phrase('HTTP-message'(1-1, 400, Headers, Cs), Msg),
+  format(current_output, '~s', [Msg]).
 % 401 Unauthorized (RFC 7235)
 rest_exception_media_type(text/html, 401) :-
   http_status_reply(authorise(basic,''), current_output, [], _).
@@ -162,13 +183,18 @@ rest_method(Req, Plural_2, HandleId, Singular_3) :-
 
 % OPTIONS request
 rest_method0(_, options, Methods, _, _, _) :- !,
-  reply_http_message(200, ['Allow'-Methods]).
+  setting(http:server, Products),
+  phrase(
+    'HTTP-message'(1-1, 200, ['Allow'-[Methods],'Server'-[Products]], []),
+    Msg
+  ),
+  format(current_output, '~s', [Msg]).
 % Method accepted, on to matching the Media Types.
 rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   memberchk(Method, Methods), !,
   memberchk(request_uri(Uri1), Req),
-  memberchk(accept(MTs0), Req),
-  (var(MTs0) -> MTs = [] ; MTs = MTs0),
+  ignore(memberchk(accept(MTs0), Req)),
+  (var(MTs0) -> MTs = [_] ; MTs = MTs0),
   iri_to_resource(Uri1, Res),
   (   ground(HandleId),
       http_link_to_id(HandleId, Uri2),
@@ -178,4 +204,103 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   ).
 % 405 Method Not Allowed
 rest_method0(_, _, _, _, _) :-
-  reply_http_message(405).
+  phrase(
+    'HTTP-message'(1-1, 405, [], []),
+    Msg
+  ),
+  format(current_output, '~s', [Msg]).
+
+'Allow'(Val) -->
+  seplist(method, ", ", Val).
+
+'Content-Type'(MT) -->
+  'media-type'(MT).
+
+'field-name'(Key) -->
+  atom(Key).
+
+'header-field'(Key-Args) -->
+  'field-name'(Key),
+  ":",
+  'OWS',
+  {Dcg_0 =.. [Key|Args]},
+  Dcg_0,
+  'CRLF'.
+
+'HTTP-message'(Version, Status, Headers, Body) -->
+  'status-line'(Version, Status),
+  *('header-field', Headers), !,
+  'CRLF',
+  Body.
+
+'HTTP-name' -->
+  "HTTP".
+
+'HTTP-version'(X-Y) -->
+  'HTTP-name',
+  "/",
+  digit(X),
+  ".",
+  digit(Y).
+
+'media-type'(media(Type/Subtype,Params)) -->
+  type(Type),
+  "/",
+  subtype(Subtype),
+  *(sep_parameter, Params), !.
+
+method(Method1) -->
+  {upcase_atom(Method1, Method2)},
+  atom(Method2).
+
+parameter(Key-Val) -->
+  atom(Key),
+  "=",
+  atom(Val).
+
+product(Name-Version) --> !,
+  atom(Name),
+  "/",
+  'product-version'(Version).
+product(Name) --> !,
+  atom(Name).
+
+'product-version'(Version) -->
+  atom(Version).
+
+'reason-phrase'(Status) -->
+  {http_status_label(Status, Lbl)},
+  atom(Lbl).
+
+sep_parameter(Param) -->
+  ";",
+  'OWS',
+  parameter(Param).
+
+'Server'(Products) -->
+  seplist(product, 'RWS', Products).
+
+'status-code'(Status) -->
+  number(Status).
+
+% @bug Status code must be given as header?
+%'status-line'(Version, Status) -->
+%  'HTTP-version'(Version), 'SP',
+%  'status-code'(Status), 'SP',
+%  'reason-phrase'(Status), 'CRLF'.
+'status-line'(_, Status) -->
+  "Status: ", integer(Status), 'CRLF'.
+
+subtype(A) -->
+  atom(A).
+
+type(A) -->
+  atom(A).
+
+'CRLF' --> "\r\n".
+
+'OWS' --> " ".
+
+'RWS' --> " ".
+
+'SP' --> " ".

@@ -6,7 +6,6 @@
     http_cookie/2,            % +Key, -Cookie
     http_default_port/2,      % +Scheme, -DefPort
     http_uri_query/2,         % +Uri, -Comp
-    http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
     http_location_uri/2,      % +Req, -Location
     http_peer/1,              % -PeerIP
@@ -83,13 +82,6 @@ http_uri_query(Uri, Comp) :-
   uri_components(Uri, uri_components(_,_,_,Query,_)),
   (var(Query) -> Comps = [] ; uri_query_components(Query, Comps)),
   member(Comp, Comps).
-
-
-
-%! http_is_get(+Method) is semidet.
-
-http_is_get(get).
-http_is_get(head).
 
 
 
