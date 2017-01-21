@@ -78,7 +78,6 @@
   :- use_module(library(http/http_io)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/http_user)).
-  :- use_module(library(http/http_write)).
   :- use_module(library(http/http11)).
   :- use_module(library(http/http11_test)).
   :- use_module(library(http/ie_headers)).
