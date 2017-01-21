@@ -3,7 +3,9 @@
   [
     create_date_directory/2, % +Spec, -Dir
     create_date_time_file/2, % +Spec, -File
-    create_date_time_file/3, % +Spec, +Ext, -File
+    create_date_time_file/3, % +Spec, +Exts, -File
+    create_time_file/2,      % +Spec, -File
+    create_time_file/3,      % +Spec, +Exts, -File
     is_older_file/2,         % +Path1, +Path2
     is_younger_file/2,       % +Path1, +Path2
     latest_date_time_file/2  % +Spec, -File
@@ -13,13 +15,13 @@
 /** <module> Date-time file support
 
 @author Wouter Beek
-@version 2015/07, 2015/10-2015/12, 2016/02-2016/03, 2016/10
+@version 2015/07-2017/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(filesex)).
 :- use_module(library(lists)).
+:- use_module(library(os/file_ext)).
 :- use_module(library(string_ext)).
 
 
@@ -50,6 +52,20 @@ create_date_directory(Spec, Dir) :-
 
 create_date_time_file(Spec, File) :-
   create_date_directory(Spec, Dir),
+  create_time_file(Dir, File).
+
+
+create_date_time_file(Spec, Exts, File) :-
+  create_date_time_file(Spec, Base),
+  file_name_extensions(File, Base, Exts).
+
+
+
+%! create_time_file(+Spec, -File) is det.
+%! create_time_file(+Spec, +Exts, -File) is det.
+
+create_time_file(Spec, File) :-
+  absolute_directory_name(Spec, write, Dir),
   get_time(TS),
   format_time(string(H), "%H", TS),
   format_time(string(Mi), "%M", TS),
@@ -58,8 +74,8 @@ create_date_time_file(Spec, File) :-
   directory_file_path(Dir, Local, File).
 
 
-create_date_time_file(Spec, Exts, File) :-
-  create_date_time_file(Spec, Base),
+create_time_file(Spec, Exts, File) :-
+  create_time_file(Spec, Base),
   file_name_extensions(File, Base, Exts).
 
 
