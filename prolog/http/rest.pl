@@ -98,7 +98,7 @@ rest_exception(_, E) :-
 rest_exception_media_type(text/html, bad_request(E)) :-
   http_status_reply(bad_request(E), current_output, [], _).
 rest_exception_media_type(MT, existence_error(http_parameter,Key)) :- !,
-  (   MT == application/json
+  (   MT = media(application/json,_)
   ->  Headers = ['Content-Type'-[media_type(application/json,[])]],
       Dict = _{message: "Missing parameter", value: Key},
       with_output_to(codes(Cs), json_write_dict(current_output, Dict))
@@ -148,7 +148,7 @@ rest_exception_media_type(text/html, E) :-
 
 % Media type accepted, on to application-specific reply.
 rest_media_type(MTs, Goal_1) :-
-  member(media(MT,_,_,_), MTs),
+  member(MT, MTs),
   call(Goal_1, MT), !.
 % 406 Not Acceptable
 rest_media_type(_, _) :-
@@ -188,6 +188,7 @@ rest_method0(_, options, Methods, _, _, _) :- !,
     'HTTP-message'(1-1, 200, ['Allow'-[Methods],'Server'-[Products]], []),
     Msg
   ),
+  debug(rest, "~s", [Msg]),
   format(current_output, '~s', [Msg]).
 % Method accepted, on to matching the Media Types.
 rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-

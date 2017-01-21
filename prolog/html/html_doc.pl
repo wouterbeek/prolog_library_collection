@@ -45,12 +45,12 @@ media_type_data_row(Type/Subtype) -->
   table_data_row([Lbl,code(MT)]).
 
 
-media_type_label(application/json, "JSON").
-media_type_label(application/'ld+json', "JSON-LD 1.0").
-media_type_label(application/'n-triples', "N-Triples 1.1").
-media_type_label(application/'n-quads', "N-Quads 1.1").
-media_type_label(application/'vnd.geo+json', "GeoJSON").
-media_type_label(text/html, "HTML 5").
+media_type_label(media(application/json,_), "JSON").
+media_type_label(media(application/'ld+json',_), "JSON-LD 1.0").
+media_type_label(media(application/'n-triples',_), "N-Triples 1.1").
+media_type_label(media(application/'n-quads',_), "N-Quads 1.1").
+media_type_label(media(application/'vnd.geo+json',_), "GeoJSON").
+media_type_label(media(text/html,_), "HTML 5").
 
 
 
