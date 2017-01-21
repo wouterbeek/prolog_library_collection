@@ -40,6 +40,7 @@ There are two phases in handling REST requests:
 @version 2016/02-2017/01
 */
 
+:- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_dispatch)).
@@ -50,6 +51,7 @@ There are two phases in handling REST requests:
 :- use_module(library(http/json)).
 :- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
+:- use_module(library(pair_ext)).
 :- use_module(library(settings)).
 
 :- html_meta
@@ -195,7 +197,7 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   memberchk(Method, Methods), !,
   memberchk(request_uri(Uri1), Req),
   ignore(memberchk(accept(MTs0), Req)),
-  (var(MTs0) -> MTs = [_] ; MTs = MTs0),
+  (var(MTs0) -> MTs = [_] ; clean_media_types(MTs0, MTs)),
   iri_to_resource(Uri1, Res),
   (   ground(HandleId),
       http_link_to_id(HandleId, Uri2),
@@ -210,6 +212,15 @@ rest_method0(_, _, _, _, _) :-
     Msg
   ),
   format(current_output, '~s', [Msg]).
+
+clean_media_types(L1, L2) :-
+  maplist(clean_media_type, L1, Pairs),
+  desc_pairs_values(Pairs, L2).
+
+clean_media_type(
+  media(Parent/Child,Parms,QVal,_),
+  QVal-media(Parent/Child,Parms)
+).
 
 'Allow'(Val) -->
   seplist(method, ", ", Val).
