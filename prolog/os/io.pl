@@ -221,6 +221,9 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
   get_dict('@type', InEntry1, stream), !,
   call(Goal_3, In, [InEntry1], InPath).
+% Empty input stream.
+call_on_stream0(In, _, InPath, InPath, _) :-
+  at_end_of_stream(In), !.
 % Leaf archive entry.
 call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   InPath1 = [InEntry|_],
