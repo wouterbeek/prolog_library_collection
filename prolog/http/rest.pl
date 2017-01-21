@@ -48,8 +48,8 @@ There are two phases in handling REST requests:
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/http_wrapper)).
-:- use_module(library(http/json)).
 :- use_module(library(iri/iri_ext)).
+:- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(settings)).
@@ -87,83 +87,84 @@ http_is_get(head).
 
 rest_exception(MTs, error(E,_)) :- !,
   rest_exception(MTs, E).
-% The exception reply can be returned in an acceptable media type.
+% The exception reply can be returned in an acceptable Media Type.
 rest_exception(MTs, E) :-
   member(MT, MTs),
   rest_exception_media_type(MT, E), !.
-% The exception reply cannot be returned in an acceptable media type,
+% The exception reply cannot be returned in an acceptable Media Type,
 % so just pick one.
 rest_exception(_, E) :-
   once(rest_exception_media_type(_, E)).
 
-% 400 Bad Request
-rest_exception_media_type(text/html, bad_request(E)) :-
+% 400 “Bad Request”
+rest_exception_media_type(media(text/html,_), bad_request(E)) :-
   http_status_reply(bad_request(E), current_output, [], _).
-rest_exception_media_type(MT, existence_error(http_parameter,Key)) :- !,
-  (   MT = media(application/json,_)
-  ->  Headers = ['Content-Type'-[media_type(application/json,[])]],
-      Dict = _{message: "Missing parameter", value: Key},
-      with_output_to(codes(Cs), json_write_dict(current_output, Dict))
-  ;   Headers = [],
-      Cs = []
+rest_exception_media_type(
+  media(application/json,_),
+  existence_error(http_parameter,Key)
+) :-
+  codes_json_dict(Cs, _{message: "Missing parameter", value: Key}),
+  phrase(
+    'HTTP-message'(1-1, 400, ['Content-Type'-[media(application/json,[])]], Cs),
+    Msg
   ),
-  phrase('HTTP-message'(1-1, 400, Headers, Cs), Msg),
   format(current_output, '~s', [Msg]).
-% 401 Unauthorized (RFC 7235)
-rest_exception_media_type(text/html, 401) :-
+% 401 “Unauthorized” (RFC 7235)
+rest_exception_media_type(media(text/html,_), 401) :-
   http_status_reply(authorise(basic,''), current_output, [], _).
-% 402 Payment Required
-% 403 Forbidden
-% 404 Not Found
-rest_exception_media_type(text/html, 404) :-
+% 402 “Payment Required”
+% 403 “Forbidden”
+% 404 “Not Found”
+rest_exception_media_type(media(text/html,_), 404) :-
   http_current_request(Req),
   http_404([], Req).
-rest_exception_media_type(text/html, E) :-
+rest_exception_media_type(media(text/html,_), E) :-
   throw(E).
-% 407 Proxy Authentication Required (RFC 7235)
-% 408 Request Time-out
-% 409 Conflict
-% 410 Gone
-% 411 Length Required
-% 412 Precondition Failed (RFC 7232)
-% 413 Payload Too Large (RFC 7231)
-% 414 URI Too Long (RFC 7231)
-% 415 Unsupported Media Type
-% 416 Range Not Satisfiable (RFC 7233)
-% 417 Expectation Failed
-% 418 I'm a teapot (RFC 2324)
-% 421 Misdirected Request (RFC 7540)
-% 422 Unprocessable Entity (WebDAV; RFC 4918)
-% 423 Locked (WebDAV; RFC 4918)
-% 424 Failed Dependency (WebDAV; RFC 4918)
-% 426 Upgrade Required
-% 428 Precondition Required (RFC 6585)
-% 429 Too Many Requests (RFC 6585)
-% 431 Request Header Fields Too Large (RFC 6585)
-% 451 Unavailable For Legal Reasons
+% 405 “Method Not Allowed”
+% 406 “Unacceptable”
+% 407 “Proxy Authentication Required” (RFC 7235)
+% 408 “Request Time-out”
+% 409 “Conflict”
+% 410 “Gone”
+% 411 “Length Required”
+% 412 “Precondition Failed” (RFC 7232)
+% 413 “Payload Too Large” (RFC 7231)
+% 414 “URI Too Long” (RFC 7231)
+% 415 “Unsupported Media Type”
+% 416 “Range Not Satisfiable” (RFC 7233)
+% 417 “Expectation Failed”
+% 418 “I'm a teapot” (RFC 2324)
+% 421 “Misdirected Request” (RFC 7540)
+% 422 “Unprocessable Entity” (WebDAV; RFC 4918)
+% 423 “Locked” (WebDAV; RFC 4918)
+% 424 “Failed Dependency” (WebDAV; RFC 4918)
+% 426 “Upgrade Required”
+% 428 “Precondition Required” (RFC 6585)
+% 429 “Too Many Requests” (RFC 6585)
+% 431 “Request Header Fields Too Large” (RFC 6585)
+% 451 “Unavailable For Legal Reasons”
+% CATCHALL
+rest_exception_media_type(_, Status) :-
+  phrase('HTTP-message'(1-1, Status, [], []), Msg),
+  format(current_output, '~s', [Msg]).
 
 
 
 %! rest_media_type(+MTs, :Goal_1) is det.
-%
-% @tbd Add body for 405 code in multiple media types.
 
 % Media type accepted, on to application-specific reply.
 rest_media_type(MTs, Goal_1) :-
   member(MT, MTs),
   call(Goal_1, MT), !.
-% 406 Not Acceptable
-rest_media_type(_, _) :-
-  format("Status: 406~n"),
-  format("Content-Type: text/text~n~n").
+% 406 “Not Acceptable”
+rest_media_type(MTs, _) :-
+  rest_exception(MTs, 406).
 
 
 
 %! rest_method(+Req, :Plural_2) is det.
 %! rest_method(+Req, +HandleId, :Singular_3) is det.
 %! rest_method(+Req, :Plural_2, +HandleId, :Singular_3) is det.
-%
-% @tbd Return info for 405 status code.
 
 rest_method(Req, Plural_2) :-
   rest_method(Req, Plural_2, _, _).
@@ -196,8 +197,7 @@ rest_method0(_, options, Methods, _, _, _) :- !,
 rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   memberchk(Method, Methods), !,
   memberchk(request_uri(Uri1), Req),
-  ignore(memberchk(accept(MTs0), Req)),
-  (var(MTs0) -> MTs = [_] ; clean_media_types(MTs0, MTs)),
+  request_media_types(Req, MTs),
   iri_to_resource(Uri1, Res),
   (   ground(HandleId),
       http_link_to_id(HandleId, Uri2),
@@ -205,13 +205,15 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   ->  call(Singular_3, Res, Method, MTs)
   ;   call(Plural_2, Method, MTs)
   ).
-% 405 Method Not Allowed
-rest_method0(_, _, _, _, _) :-
-  phrase(
-    'HTTP-message'(1-1, 405, [], []),
-    Msg
-  ),
-  format(current_output, '~s', [Msg]).
+% 405 “Method Not Allowed”
+rest_method0(Req, _, _, _, _) :-
+  request_media_types(Req, MTs),
+  rest_exception(MTs, 405).
+
+request_media_types(Req, MTs) :-
+  memberchk(accept(MTs0), Req), !,
+  clean_media_types(MTs0, MTs).
+request_media_types(_, [_]).
 
 clean_media_types(L1, L2) :-
   maplist(clean_media_type, L1, Pairs),
