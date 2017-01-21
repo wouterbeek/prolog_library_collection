@@ -68,6 +68,7 @@ The following debug flags are used:
 */
 
 :- use_module(library(apply)).
+:- use_module(library(atom_ext)).
 :- use_module(library(call_ext)).
 :- use_module(library(date_time/date_time)).
 :- use_module(library(dcg/dcg_ext)).
@@ -234,7 +235,7 @@ http_open_any(Uri, In, InPath, Opts) :-
     visited: []
   },
   (   option(verbose(all), Opts)
-  ->  Flags = [http(send_request)]
+  ->  Flags = [http(reply),http(send_request)]
   ;   Flags = []
   ),
   option(method(Method), Opts, get),
@@ -269,7 +270,7 @@ http_open1(Uri, Method, State, In2, [InEntry|InPath], Opts) :-
       var(E)
   ->  http_lines_headers(Lines, Headers),
       (   debugging(http(reply))
-      ->  http_msg(http(reply), Uri, Method, Status, Lines)
+      ->  http_msg(http(reply), Status, Lines)
       ;   true
       ),
       atomic_list_concat([Major,Minor], ., Version),
@@ -295,10 +296,7 @@ http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
 % Non-authentication error.
 http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
   http_status_is_error(Status), !,
-  (   \+ option(verbose(error), Opts)
-  ->  true
-  ;   http_error_msg(Uri, Method, Status, Lines, In1)
-  ),
+  (option(verbose(error), Opts) -> http_error_msg(Status, Lines, In1) ; true),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
@@ -485,11 +483,11 @@ http_default_success(In, InPath, InPath) :-
 
 
 
-%! http_error_msg(+Uri, +Method, +Status, +Lines, +In) is det.
+%! http_error_msg(+Status, +Lines, +In) is det.
 
-http_error_msg(Uri, Method, Status, Lines, In) :-
+http_error_msg(Status, Lines, In) :-
   debug(http(error), "HTTP ERROR:", []),
-  http_msg(http(error), Uri, Method, Status, Lines),
+  http_msg(http(error), Status, Lines),
   peek_string(In, 1000, Str),
   debug(http(error), "  Message content:~n    ~s", [Str]).
 
@@ -565,20 +563,19 @@ http_merge_headers(Key-Vals, Key-Val) :-
 
 
 
-%! http_msg(+Flag, +Uri, +Method, +Status, +Lines) is det.
+%! http_msg(+Flag, +Status, +Lines) is det.
 
-http_msg(Flag, Uri, Method, Status, Lines) :-
-  debug(Flag, "  Method: ~a", [Method]),
+http_msg(Flag, Status, Lines) :-
   (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  debug(Flag, "  Response: ~d (~a)", [Status,Lbl]),
-  debug(Flag, "  URI: ~a", [Uri]),
-  debug(Flag, "  Headers:", []),
+  debug(Flag, "< Response: ~d (~a)", [Status,Lbl]),
   http_lines_pairs(Lines, Pairs),
-  maplist(http_header_msg(Flag), Pairs).
+  maplist(http_header_msg(Flag), Pairs),
+  debug(Flag, "", []).
 
-http_header_msg(Flag, Key-Val) :-
-  (http_known(Key) -> true ; gtrace),
-  debug(Flag, "    ~a: ~a", [Key,Val]).
+http_header_msg(Flag, Key1-Val) :-
+  (http_known(Key1) -> true ; gtrace),
+  capitalize_atom(Key1, Key2),
+  debug(Flag, "< ~a: ~a", [Key2,Val]).
 
 
 
