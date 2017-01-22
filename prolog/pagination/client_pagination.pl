@@ -56,7 +56,7 @@ client_pagination(Uri1, Goal_3, Opts1) :-
         member(link(Uri2,Params), Links),
         memberchk(rel-next, Params)
       )),
-      % @tbd Triply bug #67.
-      Uri1 \== Uri2
+      % Detect cyclic ‘Link’ headers.
+      (Uri1 == Uri2 -> print_message(warning, pagination_loop(Uri1)) ; true)
   ),
   (var(Uri2) -> true ; (true ; client_pagination(Uri2, Goal_3, Opts1))).
