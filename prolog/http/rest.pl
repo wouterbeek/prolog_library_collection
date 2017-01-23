@@ -188,7 +188,7 @@ rest_method(Req, Plural_2, HandleId, Singular_3) :-
 rest_method0(_, options, Methods, _, _, _) :- !,
   setting(http:server, Products),
   phrase(
-    'HTTP-message'(1-1, 200, ['Allow'-[Methods],'Server'-[Products]], []),
+    'HTTP-message'(1-1, 204, ['Allow'-[Methods],'Server'-[Products]], []),
     Msg
   ),
   debug(rest, "~s", [Msg]),
