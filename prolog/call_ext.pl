@@ -2,7 +2,6 @@
   call_ext,
   [
     call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
-    call_det/2,             % :Goal_0, +IsDet
     call_det_when/2,        % :Cond_0, :Goal_0
     call_n_sol/3,           % +N, :Select_1, :Goal_1
     call_n_times/2,         % +N, :Goal_0
@@ -31,7 +30,6 @@
 
 :- meta_predicate
     call_catcher_cleanup(0, +, 0),
-    call_det(0, +),
     call_det_when(0, 0),
     call_n_sol(+, 1, 1),
     call_n_times(+, 0),
@@ -52,15 +50,6 @@
 
 call_catcher_cleanup(Goal_0, Catcher, Cleanup_0) :-
   setup_call_catcher_cleanup(true, Goal_0, Catcher, Cleanup_0).
-
-
-
-%! call_det(:Goal_0, +IsDet) is det.
-
-call_det(Goal_0, true) :- !,
-  once(Goal_0).
-call_det(Goal_0, false) :-
-  call(Goal_0).
 
 
 
