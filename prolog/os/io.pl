@@ -960,6 +960,9 @@ open_any2_hash(Stream1, _, Stream2, Stream2, Opts) :-
 open_any2_hash(Stream, Close, Stream, Close, _).
 
 
+open_any2_variant(atom(A), Mode, Stream, Close, InPath, Opts) :- !,
+  atom_string(A, Str),
+  open_any2_variant(string(Str), Mode, Stream, Close, InPath, Opts).
 open_any2_variant(file(Spec), Mode, Stream, Stream, [Entry], Opts) :- !,
   (   compound(Spec)
   ->  merge_options([access(Mode)], Opts, PathOpts),
