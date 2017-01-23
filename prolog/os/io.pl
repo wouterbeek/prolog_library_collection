@@ -678,6 +678,37 @@ open_binary_string(Str, In) :-
 
 
 
+%! process_open(+Cmd, +In, +Out) is det.
+%! process_open(+Cmd, +In, +Args, +Out) is det.
+
+process_open(Cmd, In1, Out) :-
+  process_open(Cmd, In1, [], Out).
+
+
+process_open(Cmd, In1, Args, Out) :-
+  process_create(
+    path(Cmd),
+    Args,
+    [stdin(pipe(In2)),stdout(pipe(Out))]
+    %%%%[stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
+  ),
+  set_stream(In2, type(binary)),
+  call_cleanup(
+    copy_stream_data(In1, In2),
+    close(In2)
+  ).
+  % @bug Does not terminate for
+  % http://lists.w3.org/Archives/Public/html-tidy/2011JulSep/0001.html
+  %%%%call_cleanup(
+  %%%%  (
+  %%%%    read_stream_to_string(Err, Msg),
+  %%%%    (Msg == "" -> true ; msg_warning(Msg))
+  %%%%  ),
+  %%%%  close(Err)
+  %%%%).
+
+
+
 %! read_line_to_atom(+In, -A) is det.
 
 read_line_to_atom(In, A) :-
@@ -717,27 +748,6 @@ read_stream_to_codes(Cs, In, InPath, InPath) :-
 
 %! read_to_string(+Source, -Str) is det.
 
-process_open(Cmd, In1, Args, Out) :-
-  process_create(
-    path(Cmd),
-    Args,
-    [stdin(pipe(In2)),stdout(pipe(Out))]
-    %%%%[stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
-  ),
-  set_stream(In2, type(binary)),
-  call_cleanup(
-    copy_stream_data(In1, In2),
-    close(In2)
-  ).
-  % @bug Does not terminate for
-  % http://lists.w3.org/Archives/Public/html-tidy/2011JulSep/0001.html
-  %%%%call_cleanup(
-  %%%%  (
-  %%%%    read_stream_to_string(Err, Msg),
-  %%%%    (Msg == "" -> true ; msg_warning(Msg))
-  %%%%  ),
-  %%%%  close(Err)
-  %%%%).
 read_to_string(Source, Str) :-
   read_to_codes(Source, Cs),
   string_codes(Str, Cs).
