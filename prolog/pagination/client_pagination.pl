@@ -32,10 +32,12 @@
 %
 % The following options are supported:
 %
-%   * base_uri/1 is used to resolve relative URIs in the HTTP Link
-%     header.  By default this is the given request Uri.
+%   * base_uri(+atom)
 %
-%   * Other options are given to call_on_stream/3.
+%     Used to resolve relative URIs in the HTTP Link header.  By
+%     default this is the given request Uri.
+%
+%   * Other options are passed to call_on_stream/3.
 
 client_pagination(Uri, Goal_3) :-
   client_pagination(Uri, Goal_3, []).
@@ -46,10 +48,11 @@ client_pagination(Uri1, Goal_3, Opts1) :-
   State = state(_),
   when(nonvar(InPath), nb_setarg(1, State, InPath)),
   (   call_on_stream(uri(Uri1), Goal_3, Opts2)
-  ;   State = state(InPath)
+  ;   State = state(InPath),
       nonvar(InPath),
-      dicts_getchk(headers, InPath, Headers),
-      dict_get(link, Headers, Val),
+      member(InEntry, InPath),
+      _{'@type': uri, headers: Headers} :< InEntry, !,
+      _{link: Val} :< Headers,
       option(base_uri(BaseUri), Opts1, Uri1),
       atom_phrase(link(BaseUri,Links), Val),
       once((
