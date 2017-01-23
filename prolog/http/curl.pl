@@ -1,11 +1,15 @@
 :- module(
   curl,
   [
-    curl_get/1,    % +Uri
-    curl_get/2,    % +Uri, +MT
-    curl_head/1,   % +Uri
-    curl_head/2,   % +Uri, +MT
-    curl_options/1 % +Uri
+    curl_get/1,     % +Uri
+    curl_get/2,     % +Uri, +MT
+    curl_get/3,     % +Uri, :Goal_3, +MT
+    curl_head/1,    % +Uri
+    curl_head/2,    % +Uri, +MT
+    curl_options/1, % +Uri
+    curl_post/2,    % +Uri, +Data
+    curl_post/3,    % +Uri, +Data, +MT
+    curl_post/4     % +Uri, +Data, :Goal_3, +MT
   ]
 ).
 
@@ -20,22 +24,29 @@
 :- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
 
+:- meta_predicate
+    curl_get(+, 3, +),
+    curl_post(+, +, 3, +).
+
 
 
 
 
 %! curl_get(+Uri) is det.
+%! curl_get(+Uri, +MT) is det.
+%! curl_get(+Uri, :Goal_3, +MT) is det.
 
 curl_get(Uri) :-
   curl_get(Uri, _).
 
 
 curl_get(Uri, MT) :-
-  (var(MT) -> T = [] ; T = [request_header('Accept'=MT)]),
-  http_get(Uri, print_body0, [verbose(all)|T]).
+  curl_get(Uri, curl_reply0, MT).
 
-print_body0(In, Path, Path) :-
-  copy_stream_data(In, user_output).
+
+curl_get(Uri, Goal_3, MT) :-
+  curl_options0(MT, Opts),
+  http_get(Uri, Goal_3, Opts).
 
 
 
@@ -47,8 +58,8 @@ curl_head(Uri) :-
 
 
 curl_head(Uri, MT) :-
-  (var(MT) -> T = [] ; T = [request_header('Accept'=MT)]),
-  http_head(Uri, [verbose(all)|T]).
+  curl_options0(MT, Opts),
+  http_head(Uri, Opts).
 
 
 
@@ -62,4 +73,42 @@ curl_head(Uri, MT) :-
 % resource action.
 
 curl_options(Uri) :-
-  http_options(Uri, [verbose(all)]).
+  curl_options0(_, Opts),
+  http_options(Uri, Opts).
+
+
+
+%! curl_post(+Uri, +Data) is det.
+%! curl_post(+Uri, +Data, +MT) is det.
+%! curl_post(+Uri, +Data, :Goal_3, +MT) is det.
+
+curl_post(Uri, Data) :-
+  curl_post(Uri, Data, _).
+
+
+curl_post(Uri, Data, MT) :-
+  curl_post(Uri, Data, curl_reply0, MT).
+
+
+curl_post(Uri, Data, Goal_3, MT) :-
+  curl_options0(MT, Opts),
+  http_post(Uri, Data, Goal_3, Opts).
+
+
+
+
+
+% HELPERS %
+
+curl_options0(MT, Opts) :-
+  curl_options0([], MT, Opts).
+
+
+curl_options0(Opts1, MT, Opts3) :-
+  (var(MT) -> Opts2 = Opts1 ; Opts2 = [request_header('Accept'=MT)|Opts1]),
+  merge_options([verbose(all)], Opts2, Opts3).
+
+
+
+curl_reply0(In, Path, Path) :-
+  copy_stream_data(In, user_output).
