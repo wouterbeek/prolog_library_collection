@@ -43,11 +43,11 @@ client_pagination(Uri, Goal_3) :-
 
 client_pagination(Uri1, Goal_3, Opts1) :-
   merge_options([metadata(InPath)], Opts1, Opts2),
-  % @tbd How to make this thread-safe?
-  when(nonvar(InPath), nb_setval(Uri1, InPath)),
+  State = state(_),
+  when(nonvar(InPath), nb_setarg(1, State, InPath)),
   (   call_on_stream(uri(Uri1), Goal_3, Opts2)
-  ;   nb_current(Uri1, InPath),
-      nb_delete(Uri1),
+  ;   State = state(InPath)
+      nonvar(InPath),
       dicts_getchk(headers, InPath, Headers),
       dict_get(link, Headers, Val),
       option(base_uri(BaseUri), Opts1, Uri1),
