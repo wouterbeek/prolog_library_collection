@@ -3,6 +3,7 @@
   [
     charset//1,         % -Charset:atom
     'content-type'//1,  % -Mime:compound
+    'delta-seconds'//1, % -Seconds:nonneg
     'field-name'//1,    % -Name:atom
     'header-field'//1,  % -Header:pair
     http_known/1,       % ?Key:atom
@@ -197,6 +198,7 @@ http_known_known('access-control-allow-headers').
 http_known_known('access-control-allow-methods').
 http_known_known('access-control-allow-origin').
 http_known_known('access-control-expose-headers').%@tbd
+http_known_known('access-control-max-age').
 http_known_known('access-control-request-method').
 http_known_known('alt-svc').
 http_known_known(alternates).

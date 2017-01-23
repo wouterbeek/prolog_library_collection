@@ -9,8 +9,9 @@
 /** <module> DCG rules for HTTP
 
 @author Wouter Beek
+
 @compat RFC 2616
-@depracated
+
 @version 2015/11-2015/12
 */
 
@@ -26,14 +27,20 @@
 
 %! *#(:Dcg_1, ?Contents:list)// .
 
-*#(Dcg_1, [H|T]) --> dcg_call(Dcg_1, H), !, *(sep), *#(Dcg_1, T).
-*#(_, [])        --> "".
+*#(Dcg_1, [H|T]) -->
+  dcg_call(Dcg_1, H), !,
+  *(sep),
+  *#(Dcg_1, T).
+*#(_, []) --> "".
 
 
 
 %! +#(:Dcg_1, ?Contents:list)// .
 
-+#(Dcg_1, [H|T]) --> dcg_call(Dcg_1, H), !, *(sep), *#(Dcg_1, T).
++#(Dcg_1, [H|T]) -->
+  dcg_call(Dcg_1, H), !,
+  *(sep),
+  *#(Dcg_1, T).
 
 
 
