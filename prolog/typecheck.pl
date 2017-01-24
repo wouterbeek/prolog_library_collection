@@ -74,7 +74,6 @@ Predicates used for parsing and checking value-type conformance.
 */
 
 :- use_module(library(error)).
-:- use_module(library(iri/iri_ext)).
 
 :- multifile
     error:has_type/2.

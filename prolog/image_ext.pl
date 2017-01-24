@@ -18,7 +18,6 @@ Support for image files.
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(lists)).
 :- use_module(library(os/file_ext)).
 :- use_module(library(os/process_ext)).

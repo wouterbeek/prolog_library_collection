@@ -37,7 +37,6 @@ messages.
 :- use_module(library(http/http11)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(iri/iri_ext)).
 
 
 
@@ -93,10 +92,12 @@ http_link_to_id(HandleId, Local) :-
 
 
 %! http_location_uri(+Req, -Uri) is det.
+%
+% @tbd ???
 
 http_location_uri(Req, Loc) :-
   memberchk(request_uri(Uri), Req),
-  iri_to_location(Uri, Loc).
+  uri_resource(Uri, Loc).
 
 
 

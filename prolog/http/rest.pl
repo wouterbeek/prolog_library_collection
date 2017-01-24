@@ -48,7 +48,6 @@ There are two phases in handling REST requests:
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/http_wrapper)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
@@ -198,10 +197,13 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   memberchk(Method, Methods), !,
   memberchk(request_uri(Uri1), Req),
   request_media_types(Req, MTs),
-  iri_to_resource(Uri1, Res),
+  % For our REST support we make the resource URIs agnostic to the
+  % scheme and host of the server.  This allows a website with data to
+  % be hosted/tested on a different machine.
+  uri_resource(Uri1, Res),
   (   ground(HandleId),
       http_link_to_id(HandleId, Uri2),
-      \+ iri_to_resource(Uri2, Res)
+      \+ uri_to_resource(Uri2, Res)
   ->  call(Singular_3, Res, Method, MTs)
   ;   call(Plural_2, Method, MTs)
   ).

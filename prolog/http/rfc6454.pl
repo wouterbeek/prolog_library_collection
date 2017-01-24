@@ -1,14 +1,14 @@
 :- module(
   rfc6454,
   [
-    has_same_origin/2,        % +Uri1:atom, +Uri2:atom
+    has_same_origin/2,        % +Origin1, +Origin2
     'obs-fold'//0,
-    origin/2,                 % +Uri:atom, -Origin:compound
-    origin//1,                % -Origins:list(compound)
-    'origin-list-or-null'//1, % -Origins:list(compound)
-    'origin-list'//1,         % -Origins:list(compound)
+    origin/2,                 % +Uri, -Origin
+    origin//1,                % -Origins
+    'origin-list-or-null'//1, % -Origins
+    'origin-list'//1,         % -Origins
     'OWS'//0,
-    'serialized-origin'//1    % -Origin:compound
+    'serialized-origin'//1    % -Origin
   ]
 ).
 
@@ -17,7 +17,7 @@
 @author Wouter Beek
 @compat RFC 6454
 @see http://tools.ietf.org/html/rfc6454
-@version 2015/11-2016/01, 2016/12
+@version 2015/11-2016/01, 2016/12-2017/01
 */
 
 :- use_module(library(apply)).
@@ -46,9 +46,9 @@
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986), [
-     host//1,  % -Host:atom
+     host//1,  % -Host
      port//1,  % -Port:nonneg
-     scheme//1 % -Scheme:atom
+     scheme//1 % -Scheme
    ]).
 :- use_module(library(uuid)).
 
@@ -56,7 +56,7 @@
 
 
 
-%! has_same_origin(+Uri1:atom, +Uri2) is semidet.
+%! has_same_origin(+Origin1, +Origin2) is semidet.
 %
 % Two origins are "the same" if, and only if, they are identical.  In
 % particular:
@@ -75,10 +75,7 @@
 %      because data URIs do not use a server-based naming authority and
 %      therefore have globally unique identifiers as origins.
 
-has_same_origin(
-  _{'uri:scheme': Scheme1, 'uri:host': Host1, 'uri:port': Port1},
-  _{'uri:scheme': Scheme2, 'uri:host': Host2, 'uri:port': Port2}
-) :-
+has_same_origin(origin(Scheme1,Host1,Port1), origin(Scheme2,Host2,Port2)) :-
   maplist(==, [Scheme1,Host1,Port1], [Scheme2,Host2,Port2]), !.
 has_same_origin(X1, Y1) :-
   maplist(uri_is_global, [X1,Y1]), !,
@@ -99,7 +96,7 @@ has_same_origin(X1, Y1) :-
 
 
 
-%! origin(+Uri:atom, -Origin:compound) is det.
+%! origin(+Uri, -Origin) is det.
 %
 % The origin of a URI is the value computed by the following
 % algorithm:
@@ -168,7 +165,7 @@ origin(_, Id) :-
   
 
 
-%! origin(-Origins:list(compound))// is det.
+%! origin(-Origins)// is det.
 %
 % ```abnf
 % origin = "Origin:" OWS origin-list-or-null OWS
@@ -181,7 +178,7 @@ origin(Origins) -->
 
 
 
-%! 'origin-list'(-Origins:list(compound))// is det.
+%! 'origin-list'(-Origins)// is det.
 %
 % ```abnf
 % origin-list = serialized-origin *( SP serialized-origin )
@@ -197,7 +194,7 @@ sep_serialized_origin(Origin) -->
 
 
 
-%! 'origin-list-or-null'(-Origins:list(compound))// is det.
+%! 'origin-list-or-null'(-Origins)// is det.
 %
 % ```abnf
 % origin-list-or-null = %x6E %x75 %x6C %x6C / origin-list
@@ -225,7 +222,7 @@ ows --> 'obs-fold'.
 
 
 
-%! 'serialized-origin'(-Origin:compound)// is det.
+%! 'serialized-origin'(-Origin)// is det.
 %
 % ```abnf
 % serialized-origin = scheme "://" host [ ":" port ]

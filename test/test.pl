@@ -98,7 +98,6 @@
   :- use_module(library(http/rfc7034)).
 :- use_module(library(image_ext)).
 %/iri
-  :- use_module(library(iri/iri_ext)).
   :- use_module(library(iri/rfc3987)).
 :- use_module(library(json_ext)).
 :- use_module(library(licenses)).

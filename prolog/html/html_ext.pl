@@ -16,9 +16,9 @@
     collapse_content//2,     % +Id, :Html_0
     collapse_link//2,        % +Id, :Link_0
     copy_to_clipboard//1,    % +Txt
-    data_link//1,            % +Uri
-    data_link//2,            % +Uri, :Html_0
-    data_link//3,            % +Uri, +Attrs, :Html_0
+    data_link//1,            % +Res
+    data_link//2,            % +Res, :Html_0
+    data_link//3,            % +Res, +Attrs, :Html_0
     date//1,                 % +DT
     deck//2,                 % :Card_1, +Items
     deck//3,                 % +Attrs, :Card_1, +Items
@@ -268,7 +268,6 @@ html({|html||...|}).
 :- use_module(library(http/http_user)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
-:- use_module(library(iri/iri_ext)).
 :- use_module(library(json_ext)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
@@ -732,22 +731,22 @@ copy_to_clipboard(Txt) -->
 
 
 
-%! data_link(+Uri)// is det.
-%! data_link(+Uri, :Html_0)// is det.
-%! data_link(+Uri, +Attrs, :Html_0)// is det.
+%! data_link(+Res)// is det.
+%! data_link(+Res, :Html_0)// is det.
+%! data_link(+Res, +Attrs, :Html_0)// is det.
 
-data_link(Uri) -->
-  data_link(Uri, \icon(internal_link)).
-
-
-data_link(Uri, Html_0) -->
-  data_link(Uri, [], Html_0).
+data_link(Res) -->
+  data_link(Res, \icon(internal_link)).
 
 
-data_link(Uri, Attrs1, Html_0) -->
+data_link(Res, Html_0) -->
+  data_link(Res, [], Html_0).
+
+
+data_link(Res, Attrs1, Html_0) -->
   {
-    iri_to_location(Uri, Loc),
-    merge_attrs([href=Loc], Attrs1, Attrs2)
+    uri_resource(Res, Uri),
+    merge_attrs([href=Uri], Attrs1, Attrs2)
   },
   html(a(Attrs2, Html_0)).
 
