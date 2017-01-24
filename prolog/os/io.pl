@@ -742,7 +742,7 @@ read_to_codes(Source, Cs) :-
   call_on_stream(Source, read_stream_to_codes(Cs)).
 
 read_stream_to_codes(Cs, In, InPath, InPath) :-
-  read_line_to_codes(In, Cs).
+  read_stream_to_codes(In, Cs).
 
 
 
