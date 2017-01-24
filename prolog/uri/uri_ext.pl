@@ -110,7 +110,7 @@ uri_field(Key) :-
 uri_comps(Uri, uri(Scheme,AuthComp,Segments,QueryComps,Frag)) :-
   ground(Uri), !,
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)),
-  auth_comps(Auth, AuthComp),
+  (atom(Auth) -> AuthComp = Auth ; auth_comps(Auth, AuthComp)),
   atomic_list_concat([''|Segments], /, Path),
   (var(Query) -> QueryComps = [] ; uri_query_components(Query, QueryComps)).
 uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
