@@ -206,7 +206,7 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   ;   call(Plural_2, Method, MTs)
   ).
 % 405 “Method Not Allowed”
-rest_method0(Req, _, _, _, _) :-
+rest_method0(Req, _, _, _, _, _) :-
   request_media_types(Req, MTs),
   rest_exception(MTs, 405).
 
@@ -219,10 +219,7 @@ clean_media_types(L1, L2) :-
   maplist(clean_media_type, L1, Pairs),
   desc_pairs_values(Pairs, L2).
 
-clean_media_type(
-  media(Parent/Child,Parms,QVal,_),
-  QVal-media(Parent/Child,Parms)
-).
+clean_media_type(media(MT0,Parms,QVal,_), QVal-media(MT0,Parms)).
 
 'Allow'(Val) -->
   seplist(method, ", ", Val).
