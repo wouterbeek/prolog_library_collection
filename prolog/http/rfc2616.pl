@@ -23,7 +23,7 @@
      'SP'//0,
      'SP'//1            % ?Code
    ]).
-:- reexport(library(url/rfc1738), [
+:- reexport(library(uri/rfc1738), [
      hialpha//1 as 'HIALPHA', % ?Code
      lowalpha//1 as 'LOALPHA' % ?Code
    ]).

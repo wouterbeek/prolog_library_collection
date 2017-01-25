@@ -154,7 +154,7 @@
   ]
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
-:- reexport(library(url/rfc1738), [
+:- reexport(library(uri/rfc1738), [
      alpha//1,      % ?C
      alphadigit//1, % ?C
      digit//1,      % ?Weight:between(0,9)
@@ -189,7 +189,7 @@ My favorite collection of DCG rules.
 :- use_module(library(pair_ext)).
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
-:- use_module(library(url/rfc1738), [
+:- use_module(library(uri/rfc1738), [
      hialpha//1, % ?C
      lowalpha//1 % ?C
    ]).

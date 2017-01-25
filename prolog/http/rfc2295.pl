@@ -31,10 +31,10 @@
 :- use_module(library(semweb/rdf11), [
      op(110, xfx, @)
    ]).
-:- use_module(library(uri/rfc3986)).
-:- use_module(library(url/rfc1738), [
+:- use_module(library(uri/rfc1738), [
      digit//1 as 'DIGIT' % ?Weight:between(0,9)
    ]).
+:- use_module(library(uri/rfc3986)).
 
 
 

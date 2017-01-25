@@ -97,8 +97,6 @@
   :- use_module(library(http/rfc6797)).
   :- use_module(library(http/rfc7034)).
 :- use_module(library(image_ext)).
-%/iri
-  :- use_module(library(iri/rfc3987)).
 :- use_module(library(json_ext)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
@@ -180,12 +178,12 @@
 :- use_module(library(typecheck)).
 :- use_module(library(typeconv)).
 %/uri
+  :- use_module(library(uri/rfc1738)).
   :- use_module(library(uri/rfc2396)).
   :- use_module(library(uri/rfc3986)).
+  :- use_module(library(iri/rfc3987)).
   :- use_module(library(uri/uri_ext)).
   :- use_module(library(uri/uri_file_name)).
-%/url
-  :- use_module(library(url/rfc1738)).
 %/xml
   :- use_module(library(xml/marcxml)).
   :- use_module(library(xml/xml_dom)).
