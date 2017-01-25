@@ -30,6 +30,9 @@
 :- use_module(library(http/http_host), []).
 :- use_module(library(os/file_ext)).
 :- use_module(library(lists)).
+:- use_module(library(semweb/rdf11), [
+     rdf_global_id/2
+   ]).
 :- use_module(library(settings)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986)).
@@ -277,8 +280,8 @@ uri_segments(Uri, Segments) :-
   setting(uri:data_scheme, Scheme),
   setting(uri:data_host, Host),
   (Segments = [''|Segments0] -> true ; Segments0 = Segments),
-  atomic_list_components(Segments0, /, Path),
-  uri_components(Uri, uri(Scheme,Host,Path,_,_)).
+  atomic_list_concat(Segments0, /, Path),
+  uri_components(Uri, uri_components(Scheme,Host,Path,_,_)).
 
 
 
