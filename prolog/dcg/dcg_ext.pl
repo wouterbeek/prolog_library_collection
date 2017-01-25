@@ -137,6 +137,7 @@
     str_ci//1,             % ?Str
     str_ellipsis//2,       % +S, +Max
     string//0,
+    string_atom_phrase/3,  % :Dcg_0, ?S, ?A
     string_phrase/2,       % :Dcg_0, ?S
     string_phrase/3,       % :Dcg_0, +S1, ?S2
     string_without//1,     % +EndCs
@@ -276,6 +277,7 @@ My favorite collection of DCG rules.
     seplist(3, //, +, ?, ?),
     set(3, +, ?, ?),
     sq(//, ?, ?),
+    string_atom_phrase(//, ?, ?),
     string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
@@ -1787,8 +1789,16 @@ string -->
 
 
 
-%! string_phrase(:Dcg_0, ?S)// is nondet.
-%! string_phrase(:Dcg_0, +S1, ?S2)// is nondet.
+%! string_atom_phrase(:Dcg_0, ?S, ?A) is nondet.
+
+string_atom_phrase(Dcg_0, S, A) :-
+  string_codes(S, Cs1),
+  phrase(Dcg_0, Cs1, Cs2),
+  atom_codes(A, Cs2).
+
+
+%! string_phrase(:Dcg_0, ?S) is nondet.
+%! string_phrase(:Dcg_0, +S1, ?S2) is nondet.
 
 string_phrase(Dcg_0, S) :-
   var(S), !,
@@ -1801,7 +1811,6 @@ string_phrase(Dcg_0, S) :-
 
 
 string_phrase(Dcg_0, S1, S2) :-
-  must_be(string, S1),
   string_codes(S1, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
   string_codes(S2, Cs2).
