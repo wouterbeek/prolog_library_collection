@@ -36,6 +36,7 @@
 :- use_module(library(dlist)).
 %/fca
   :- use_module(library(fca/fca)).
+:- use_module(library(file_ext)).
 :- use_module(library(flag_ext)).
 % /gis
   :- use_module(library(gis/wkt_generate)).
@@ -96,7 +97,7 @@
   :- use_module(library(http/rfc6454)).
   :- use_module(library(http/rfc6797)).
   :- use_module(library(http/rfc7034)).
-:- use_module(library(image_ext)).
+:- use_module(library(io)).
 :- use_module(library(json_ext)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
@@ -123,22 +124,7 @@
   :- use_module(library(nlp/nlp_grammar)).
   :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(option_ext)).
-%/os
-  :- use_module(library(os/compress_ext)).
-  :- use_module(library(os/date_time_file)).
-  :- use_module(library(os/external_program)).
-  :- use_module(library(os/file_ext)).
-  :- use_module(library(os/gnu_plot)).
-  :- use_module(library(os/gnu_sort)).
-  :- use_module(library(os/gnu_wc)).
-  :- use_module(library(os/io)).
-  :- use_module(library(os/os_ext)).
-  :- use_module(library(os/pdf)).
-  :- use_module(library(os/process_ext)).
-  :- use_module(library(os/remote_ext)).
-  :- use_module(library(os/thread_counter)).
-  :- use_module(library(os/thread_ext)).
-  :- use_module(library(os/tts)).
+:- use_module(library(os_ext)).
 :- use_module(library(pagination/pagination)).
 :- use_module(library(pagination/cli_pagination)).
 :- use_module(library(pagination/html_pagination)).
@@ -171,6 +157,7 @@
 :- use_module(library(string_ext)).
 %/svg
   :- use_module(library(svg/svg_ext)).
+:- use_module(library(thread_ext)).
 %/tree
   :- use_module(library(tree/l_tree)).
   :- use_module(library(tree/s_tree)).

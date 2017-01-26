@@ -19,7 +19,7 @@ to relate them to the URI they were downloaded from.
 */
 
 :- use_module(library(atom_ext)).
-:- use_module(library(os/file_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(option)).
 :- use_module(library(uri)).
 

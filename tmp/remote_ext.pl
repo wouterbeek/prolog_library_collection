@@ -3,7 +3,7 @@
   [
     clear_remote_directory/1, % +RemoteDirectory:compound
     exists_remote_file/1, % +RemoteFile:compound
-    make_remote_directory_path/1, % +RemoteDirectory:compound
+    make_remote_directory/1 % +RemoteDir
     remote_open/3, % +RemoteFile:compound
                    % +Mode:oneof([append,read,write])
                    % -Stream:stream
@@ -23,7 +23,7 @@ Support for files residing on remote machines.
 */
 
 :- use_module(library(filesex)).
-:- use_module(library(os/process_ext)).
+:- use_module(library(os_ext)).
 
 :- predicate_options(remote_open/4, 4, [
      pass_to(open/4, 4)
@@ -52,12 +52,10 @@ exists_remote_file(remote_file(User,Machine,File)):-
 
 
 
-%! make_remote_directory_path(+RemoteDirectory:compound) is det.
-
-make_remote_directory_path(remote_file(User,Machine,Dir)):-
+make_remote_directory(remote_file(User,Machine,Dir)):-
   atomic_list_concat([User,Machine], '@', UserMachine),
-  atomic_list_concat([ssh,UserMachine,mkdir,'-p',Dir], ' ', Command),
-  handle_process(sh, ['-c',Command], [program(Command)]).
+  atomic_list_concat([ssh,UserMachine,mkdir,Dir], ' ', Command),
+  run_process(sh, ['-c',Command], [program(Command)]).
 
 
 

@@ -90,8 +90,8 @@ _{
 :- use_module(library(dict_ext)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
+:- use_module(library(io)).
 :- use_module(library(lists)).
-:- use_module(library(os/io)).
 :- use_module(library(pagination/pagination), []).
 :- use_module(library(print_ext)).
 :- use_module(library(readutil)).

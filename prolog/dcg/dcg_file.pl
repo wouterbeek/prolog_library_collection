@@ -10,12 +10,12 @@
 Grammar snippets for files.
 
 @author Wouter Beek
-@version 2015/08, 2015/11
+@version 2015/08, 2015/11, 2017/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(os/file_ext)).
-:- use_module(library(os/os_ext)).
+:- use_module(library(file_ext)).
+:- use_module(library(os_ext)).
 
 
 
@@ -47,7 +47,7 @@ file_path(Path) -->
   }.
 % Absolute directory.
 file_path(Path) -->
-  root_prefix,
+  os_root_prefix,
   *(path_segment, T),
   {atomic_list_concat([''|T], /, Path)}.
 
@@ -62,7 +62,7 @@ local_file_name(Local) --> *(local_file_char, Local).
 %! root_prefix// .
 
 root_prefix -->
-  {root_prefix(RootPrefix)},
+  {os_root_prefix(RootPrefix)},
   atom(RootPrefix).
 
 

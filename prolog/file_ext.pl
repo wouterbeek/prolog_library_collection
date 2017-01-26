@@ -5,10 +5,15 @@
     append_directories/2,       % +Dirs, -Dir
     append_directories/3,       % +Dir1, +Dir2, -Dir
     count_numlines/2,           % +Source, -NumLines
+    create_date_directory/2,    % +Spec, -Dir
+    create_date_time_file/2,    % +Spec, -File
+    create_date_time_file/3,    % +Spec, +Exts, -File
     create_directory/1,         % +Dir
     create_file/1,              % +File
     create_file_directory/1,    % +File
     create_file_link/2,         % +From, +To
+    create_time_file/2,         % +Spec, -File
+    create_time_file/3,         % +Spec, +Exts, -File
     current_directory/1,        % ?Dir
     delete_directory_msg/1,     % +Dir
     delete_directory_and_contents_msg/1, % +Dir
@@ -37,10 +42,13 @@
     is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
     is_fresh_file/2,            % +File, +FreshnessLifetime
+    is_image_file/1,            % @Term
+    is_older_file/2,            % +Path1, +Path2
     is_stale_age/2,             % +Age, +FreshnessLifetime
     is_stale_file/2,            % +File, +FreshnessLifetime
+    is_younger_file/2,          % +Path1, +Path2
+    latest_date_time_file/2,    % +Spec, -File
     latest_file/2,              % +Files, -LatestFile
-    root_prefix/1,              % ?Prefix
     run_in_directory/2,         % :Goal_0, +Dir
     thread_file/1,              % -ThreadFile
     thread_file/2,              % +File, -ThreadFile
@@ -56,7 +64,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2016/12
+@version 2015/07-2017/01
 */
 
 :- use_module(library(apply)).
@@ -65,16 +73,28 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(lists)).
-:- use_module(library(os/file_ext)).
-:- use_module(library(os/io)).
-:- use_module(library(os/os_ext)).
-:- use_module(library(os/thread_ext)).
+:- use_module(library(io)).
+:- use_module(library(os_ext)).
+:- use_module(library(thread_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
+:- use_module(library(string_ext)).
 :- use_module(library(uuid)).
+
+:- dynamic
+    user:prolog_file_type/2.
 
 :- meta_predicate
     run_in_directory(0, +).
+
+:- multifile
+    user:prolog_file_type/2.
+
+user:prolog_file_type(bmp, image).
+user:prolog_file_type(gif, image).
+user:prolog_file_type(jpeg, image).
+user:prolog_file_type(jpg, image).
+user:prolog_file_type(png, image).
 
 
 
@@ -142,6 +162,39 @@ count_numlines_stream0(In, M1, NumLines) :-
 
 
 
+%! create_date_directory(+Spec, -Dir) is det.
+%
+% Create and return the current date subdirectory of the given
+% absolute directory name.
+%
+% Example: `/tmp' ⇒ `/tmp/2013/05/10'
+
+create_date_directory(Spec, Dir) :-
+  get_time(TS),
+  format_time(atom(D), "%d", TS),
+  format_time(atom(Mo), "%m", TS),
+  format_time(atom(Y), "%Y", TS),
+  absolute_file_name(Spec, PrefixDir, [access(write),file_type(directory)]),
+  atomics_to_string([Y,Mo,D], "/", PostfixDir),
+  directory_file_path(PrefixDir, PostfixDir, Dir),
+  make_directory_path(Dir).
+
+
+
+%! create_date_time_file(+Spec, -File) is det.
+%! create_date_time_file(+Spec, +Exts, -File) is det.
+
+create_date_time_file(Spec, File) :-
+  create_date_directory(Spec, Dir),
+  create_time_file(Dir, File).
+
+
+create_date_time_file(Spec, Exts, File) :-
+  create_date_time_file(Spec, Base),
+  file_name_extensions(File, Base, Exts).
+
+
+
 %! create_directory(+Dir) is det.
 
 create_directory(Dir) :-
@@ -189,6 +242,25 @@ create_file_link(From, To) :-
   create_file_directory(From),
   create_file_directory(To),
   link_file(To, From, symbolic).
+
+
+
+%! create_time_file(+Spec, -File) is det.
+%! create_time_file(+Spec, +Exts, -File) is det.
+
+create_time_file(Spec, File) :-
+  absolute_directory_name(Spec, write, Dir),
+  get_time(TS),
+  format_time(string(H), "%H", TS),
+  format_time(string(Mi), "%M", TS),
+  format_time(string(S), "%S", TS),
+  atomics_to_string([H,Mi,S], "_", Local),
+  directory_file_path(Dir, Local, File).
+
+
+create_time_file(Spec, Exts, File) :-
+  create_time_file(Spec, Base),
+  file_name_extensions(File, Base, Exts).
 
 
 
@@ -457,6 +529,27 @@ is_fresh_file(File, FreshnessLifetime) :-
 
 
 
+%! is_image_file(+File) is semidet.
+%
+% Determines whether a file stores an image or not based on the file
+% extension.
+
+is_image_file(File) :-
+  file_extensions(File, Exts),
+  once((
+    member(Ext, Exts),
+    user:prolog_file_type(Ext, image)
+  )).
+  
+
+
+%! is_older_file(+Path1, +Path2) is semidet.
+
+is_older_file(Path1, Path2) :-
+  is_younger_file(Path2, Path1).
+
+
+
 %! is_stale_age(
 %!   +Age:between(0.0,inf),
 %!   +FreshnessLifetime:between(0.0,inf)
@@ -473,6 +566,57 @@ is_stale_age(Age, FreshnessLifetime) :-
 is_stale_file(File, FreshnessLifetime) :-
   file_age(File, Age),
   is_stale_age(Age, FreshnessLifetime).
+
+
+
+%! is_younger_file(+Path1, +Path2) is semidet.
+% Succeeds if the file denoted by Path1 is younger than
+% the file denoted by Path2.
+
+is_younger_file(Path1, Path2) :-
+  time_file(Path1, T1),
+  time_file(Path2, T2),
+  T1 > T2.
+
+
+
+%! latest_date_time_file(+Spec, -File) is det.
+
+latest_date_time_file(Spec, Latest) :-
+  absolute_file_name(Spec, Dir, [access(read),file_type(directory)]),
+
+  % Year
+  directory_files(Dir, Ys0),
+  include(atom_phrase(integer(_)), Ys0, Ys),
+  max_member(Y, Ys),
+  directory_file_path(Dir, Y, YDir),
+
+  % Month
+  directory_files(YDir, Mos0),
+  include(atom_phrase(integer(_)), Mos0, Mos),
+  max_member(Mo, Mos),
+  directory_file_path(YDir, Mo, MoDir),
+
+  % Day
+  directory_files(MoDir, Ds0),
+  include(atom_phrase(integer(_)), Ds0, Ds),
+  max_member(D, Ds),
+  directory_file_path(MoDir, D, DDir),
+
+  % Time
+  directory_files(DDir, DFiles0),
+  include(atom_phrase(date_or_time), DFiles0, DFiles),
+  max_member(LatestLocal, DFiles),
+  
+  directory_file_path(DDir, LatestLocal, Latest).
+
+date_or_time -->
+  integer(_),
+  "_",
+  integer(_),
+  "_",
+  integer(_),
+  ... .
 
 
 
@@ -495,18 +639,6 @@ latest_file([H|T], Time1-File1, Latest) :-
       File2 = File1
   ),
   latest_file(T, Time2-File2, Latest).
-
-
-
-%! root_prefix(+Prefix) is semidet.
-%! root_prefix(-Prefix) is multi.
-
-:- if(os(unix)).
-root_prefix(/).
-:- endif.
-:- if(os(windows)).
-root_prefix('C:\\').
-:- endif.
 
 
 

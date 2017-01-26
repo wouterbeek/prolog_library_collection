@@ -20,7 +20,7 @@
 :- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
-:- use_module(library(os/process_ext)).
+:- use_module(library(os_ext)).
 :- use_module(library(real)).
 :- use_module(library(yall)).
 :- use_module(library(q/rdf_print)).

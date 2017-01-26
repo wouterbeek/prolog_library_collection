@@ -15,9 +15,9 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/rfc5988)).
+:- use_module(library(io)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(os/io)).
 
 :- meta_predicate
     client_pagination(+, 3),

@@ -21,6 +21,7 @@
     threadsafe_name/2            % +Name1, -Name2
   ]
 ).
+:- reexport(library(thread)).
 
 /** <module> Thread extensions
 

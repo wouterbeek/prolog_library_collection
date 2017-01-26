@@ -13,7 +13,7 @@
 @version 2016/01, 2016/03, 2016/08
 */
 
-:- use_module(library(os/file_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(zlib)).
 
 

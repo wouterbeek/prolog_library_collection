@@ -15,8 +15,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(fca/fca_viz)).
-:- use_module(library(os/external_program)).
-:- use_module(library(os/pdf)).
+:- use_module(library(os_ext)).
 :- use_module(library(solution_sequences)).
 
 :- initialization(list_external_programs).

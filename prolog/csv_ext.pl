@@ -17,8 +17,8 @@
 @version 2015/10-2015/11, 2016/01, 2016/04
 */
 
+:- use_module(library(io)).
 :- use_module(library(option)).
-:- use_module(library(os/io)).
 :- use_module(library(yall)).
 
 

@@ -80,9 +80,9 @@ The following debug flags are used:
 :- use_module(library(http/http_open)).       % HTTP support
 :- use_module(library(http/http_ssl_plugin)). % HTTPS support
 :- use_module(library(http/http11)).
+:- use_module(library(io)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(os/io)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
 :- use_module(library(ssl)).                  % SSL support

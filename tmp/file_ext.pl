@@ -126,7 +126,7 @@ In line with the terminology this modules uses the following variable names:
 
 error:has_type(absolute_path, Term) :-
   error:has_type(atom, Term),
-  root_prefix(Root),
+  os_root_prefix(Root),
   atom_concat(Root, _, Term).
 
 

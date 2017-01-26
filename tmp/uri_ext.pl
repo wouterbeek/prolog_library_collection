@@ -27,9 +27,8 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(filesex)).
+:- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
-:- use_module(library(os/file_ext)).
 :- use_module(library(uri)).
 
 :- multifile

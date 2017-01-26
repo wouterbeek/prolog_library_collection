@@ -17,9 +17,8 @@ compressed or not.
 @version 2016/05
 */
 
-:- use_module(library(fileutils)).
-:- use_module(library(os/file_ext)).
-:- use_module(library(os/io)).
+:- use_module(library(file_ext)).
+:- use_module(library(io)).
 
 
 

@@ -14,7 +14,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(lists)).
-:- use_module(library(os/io)).
+:- use_module(library(io)).
 :- use_module(library(pure_input)).
 :- use_module(library(yall)).
 

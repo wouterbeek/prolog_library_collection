@@ -17,9 +17,8 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_io)).
-:- use_module(library(os/external_program)).
-:- use_module(library(os/io)).
-:- use_module(library(os/process_ext)).
+:- use_module(library(io)).
+:- use_module(library(os_program)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 

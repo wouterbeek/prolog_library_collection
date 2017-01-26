@@ -28,7 +28,7 @@ These predicates call GNU tools:
 
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
-:- use_module(library(os/process_ext)).
+:- use_module(library(os_ext)).
 
 % application/x-bzip2
 % .bz,.bz2,.tbz,.tbz2

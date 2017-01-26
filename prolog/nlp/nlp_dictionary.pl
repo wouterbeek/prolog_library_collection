@@ -17,9 +17,9 @@ Support for natural language dictionaries.
 
 :- use_module(library(aggregate)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/http_ssl_plugin)).
-:- use_module(library(os/file_ext)).
 :- use_module(library(persistency)).
 :- use_module(library(random)).
 :- use_module(library(readutil)).

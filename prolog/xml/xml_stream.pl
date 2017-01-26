@@ -11,7 +11,7 @@
 @version 2016/06
 */
 
-:- use_module(library(os/io)).
+:- use_module(library(io)).
 :- use_module(library(sgml)).
 
 :- meta_predicate

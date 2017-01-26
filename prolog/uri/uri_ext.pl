@@ -3,6 +3,7 @@
   [
     auth_comps/2,          % ?Auth, ?Comps
     iri_query_enc//0,
+    is_image_uri/1,        % @Term
     uri_alias_uuid/2,      % -Uri, +Alias
     uri_comp/3,            % +Uri, ?Key, ?Val
     uri_comps/2,           % ?Uri, ?Comps
@@ -28,8 +29,8 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
+:- use_module(library(file_ext)).
 :- use_module(library(http/http_host), []).
-:- use_module(library(os/file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11), [
      rdf_global_id/2
@@ -91,6 +92,18 @@ iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   iri_query_enc.
 iri_query_enc --> "".
+
+
+
+%! is_image_uri(+Uri) is semidet.
+%
+% Succeeds if the given URI is commonly understood to denote an image
+% file.
+
+is_image_uri(Uri) :-
+  uri_is_global(Uri),
+  uri_components(Uri, uri_components(_,_,Path,_,_)),
+  is_image_file(Path).
 
 
 
