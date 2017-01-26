@@ -3,7 +3,8 @@
   [
     exists_program/1,            % +Program
     find_program_by_file_type/2, % +FileType, -Program
-    list_external_programs/0
+    list_external_programs/0,
+    open_pdf/1                   % +File
   ]
 ).
 
@@ -20,6 +21,7 @@ Support for using external programs with SWI-Prolog.
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(os/os_ext)).
+:- use_module(library(process)).
 
 %! file_type_program(?FileType, ?Program) is nondet.
 %
@@ -31,6 +33,9 @@ Support for using external programs with SWI-Prolog.
 
 :- multifile
     user:file_type_program/2.
+
+user:file_type_program(pdf, evince).
+user:file_type_program(pdf, xpdf).
 
 %! user:module_uses(?Mod, ?Resource:compound) is nondet.
 %
@@ -153,3 +158,15 @@ write_program_support0(P):-
   ansi_format([fg(red)], "not supported", []),
   format(".~n"), !,
   fail.
+
+
+
+%! open_pdf(+File) is det.
+%
+% Opens the given PDF file.
+%
+% Options are passed to run_process/3.
+
+open_pdf(File):-
+  once(find_program_by_file_type(pdf, Program)),
+  process_create(path(Program), [file(File)], []).
