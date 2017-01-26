@@ -18,9 +18,10 @@ Support for calling GNU sort from within Prolog.
     API.
 
 @author Wouter Beek
-@version 2015/08-2015/10, 2016/01
+@version 2015/08-2015/10, 2016/01, 2017/01
 */
 
+:- use_module(library(apply)).
 :- use_module(library(cli_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
@@ -76,9 +77,11 @@ gnu_sort(File, Opts1) :-
   (option(utf8(true), Opts1, true) -> Env = [] ; Env = ['LC_ALL'='C']),
   merge_options(Opts1, [output(File)], Opts2),
   gnu_sort_args(Opts2, Args),
-  format(user_output, "<<<~w~n", [File]),
+  maplist(term_to_atom, Args, T),
+  atomic_list_concat([sort,File|T], ' ', Msg),
+  format(user_output, "<<<~w~n", [Msg]),
   process_create(path(sort), [file(File)|Args], [env(Env)]),
-  format(user_output, "~w>>>~n", [File]).
+  format(user_output, "~w>>>~n", [Msg]).
 
 gnu_sort_args([], []).
 gnu_sort_args([buffer_size(Size)|T1], [Arg|T2]) :- !,
