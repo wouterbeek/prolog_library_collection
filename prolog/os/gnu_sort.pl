@@ -80,7 +80,6 @@ gnu_sort(File, Opts1) :-
   process_create(path(sort), [file(File)|Args], [env(Env)]),
   format(user_output, "~w>>>~n", [File]).
 
-
 gnu_sort_args([], []).
 gnu_sort_args([buffer_size(Size)|T1], [Arg|T2]) :- !,
   long_flag('buffer-size', Size, Arg),

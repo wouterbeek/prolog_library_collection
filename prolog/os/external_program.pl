@@ -12,7 +12,7 @@
 Support for using external programs with SWI-Prolog.
 
 @author Wouter Beek
-@version 2015/08, 2016/03
+@version 2015/08, 2016/03, 2017/01
 */
 
 :- use_module(library(aggregate)).
@@ -22,27 +22,38 @@ Support for using external programs with SWI-Prolog.
 :- use_module(library(os/os_ext)).
 
 %! file_type_program(?FileType, ?Program) is nondet.
+%
 % Registration pointing out that files of type FileType
 % are handled by an external Program.
 
-:- dynamic(user:file_type_program/2).
-:- multifile(user:file_type_program/2).
+:- dynamic
+    user:file_type_program/2.
 
-%! user:module_uses(?Module, ?Resource:compound) is nondet.
+:- multifile
+    user:file_type_program/2.
+
+%! user:module_uses(?Mod, ?Resource:compound) is nondet.
+%
 % Registration pointing out that Module uses Resource.
 %
 % Resource can be one of the following:
+%
 %   * file_type(atom)
+%
 %   * program(atom)
 
-:- dynamic(user:module_uses/2).
-:- multifile(user:module_uses/2).
+:- dynamic
+    user:module_uses/2.
+
+:- multifile
+    user:module_uses/2.
 
 
 
 
 
 %! exists_program(+Program) is semidet.
+%
 % Succeeds if the given program can be run from PATH.
 
 exists_program(Program):-
@@ -55,8 +66,9 @@ exists_program(Program):-
 
 
 %! find_program_by_file_type(+FileType, -Program) is nondet.
-% Succeeds if there is at least one existing program that is registered to
-% the given file type.
+%
+% Succeeds if there is at least one existing program that is
+% registered to the given file type.
 
 find_program_by_file_type(FileType, Program):-
   user:file_type_program(FileType, Program),
@@ -65,11 +77,12 @@ find_program_by_file_type(FileType, Program):-
 
 
 %! list_external_programs is det.
-% Writes a list of external programs that are registered
-% with some file type to the console.
 %
-% The list indicates whether the external programs are available or not
-% and whether a file type's external dependencies are met.
+% Writes a list of external programs that are registered with some
+% file type to the console.
+%
+% The list indicates whether the external programs are available or
+% not and whether a file type's external dependencies are met.
 
 list_external_programs:-
   aggregate_all(
@@ -82,14 +95,14 @@ list_external_programs:-
 
 
 %! list_external_programs(+Filter:compound) is det.
-% Writes a list of external programs that are registered
-% for the given Filter, which is either `file_type(atom)` or `module(atom)`.
 %
-% The list indicates whether the external programs are available or not.
-% A file type's external dependencies are met if at least one
-% of the external programs is available.
-% A module's external dependencies are met if all external programs
-% are avaialble.
+% Writes a list of external programs that are registered for the given
+% Filter, which is either `file_type(atom)` or `module(atom)`.
+%
+% The list indicates whether the external programs are available or
+% not.  A file type's external dependencies are met if at least one of
+% the external programs is available.  A module's external
+% dependencies are met if all external programs are avaialble.
 
 list_external_programs(file_type(FT)):-
   aggregate_all(set(P), user:file_type_program(FT, P), Ps),
@@ -122,8 +135,9 @@ module_uses_program0(M, P):-
   user:file_type_program(FT, P).
 
 %! write_program_support0(+Program) is semidet.
-% Succeeds if the program with the given name exists on PATH.
-% Always writes a message to the standard user output as side effect.
+%
+% Succeeds if the program with the given name exists on PATH.  Always
+% writes a message to the standard user output as side effect.
 
 write_program_support0(P):-
   exists_program(P), !,
