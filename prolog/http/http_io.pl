@@ -25,7 +25,8 @@
     http_status_is_redirect/1,   % +Status
     http_status_is_success/1,    % +Status
     http_status_label/2,         % +Status, -Lbl
-    http_status_must_be/2,       % +Status, +MustBe
+    http_status_must_be/2,       % +Status, +Succeeds
+    http_status_must_be/3,       % +Status, +Succeeds, +Fails
     http_throw_bad_request/1     % :Goal_0
   ]
 ).
@@ -111,7 +112,7 @@ The following debug flags are used:
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 :- setting(
-     user_agent,
+     http:user_agent,
      string,
      "SWI-Prolog",
      "The HTTP User Agent."
@@ -215,6 +216,10 @@ http_is_scheme(https).
 %
 %     Default is `true`.
 %
+%   * status(-between(100,599))
+%
+%     The HTTP status code of the _last_ reply message.
+%
 %   * verbose(+oneof([all,error,none]))
 %
 %     Whether all, error or no messages are printed.  Default is
@@ -243,7 +248,7 @@ http_open_any(Uri, In, InPath, Opts) :-
 
 http_open1(Uri, Method, State, In2, [InEntry|InPath], Opts) :-
   copy_term(Opts, OldOpts),
-  setting(user_agent, UA),
+  setting(http:user_agent, UA),
   NewOpts = [
     authenticate(false),
     cert_verify_hook(cert_accept_any),
@@ -299,7 +304,9 @@ http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
   ->  In1 = In2,
-      InPath = []
+      InPath = [],
+      print_message(warning, http_error_code(Status)),
+      ignore(option(status(Status), Opts))
   ;   http_open1(Uri, Method, State, In2, InPath, Opts)
   ).
 % Redirect.
@@ -309,15 +316,17 @@ http_open2(Uri1, Method, State, Location, _, In1, Status, InPath, In2, Opts) :-
   uri_resolve(Location, Uri1, Uri2),
   dict_prepend(visited, State, Uri2),
   (   http_is_redirect_limit_exceeded(State)
-  ->  http_throw_max_redirect_error(Uri2, State.max_redirects)
+  ->  print_message(warning, http_max_redirect(State.max_redirects,Uri2)),
+      ignore(option(status(Status), Opts))
   ;   http_is_redirect_loop(Uri2, State)
-  ->  http_throw_looping_redirect_error(Uri2)
-  ;   true
-  ),
-  http_open:redirect_options(Opts, RedirectOpts),
-  http_open1(Uri2, Method, State, In2, InPath, RedirectOpts).
+  ->  print_message(warning, http_redirect_loop(Uri2)),
+      ignore(option(status(Status), Opts))
+  ;   http_open:redirect_options(Opts, RedirectOpts),
+      http_open1(Uri2, Method, State, In2, InPath, RedirectOpts)
+  ).
 % Success.
-http_open2(_, _, _, _, _, In, _, [], In, _).
+http_open2(_, _, _, _, _, In, Status, [], In, Opts) :-
+  ignore(option(status(Status), Opts)).
 
 
 
@@ -441,17 +450,29 @@ http_status_label(Code, Lbl):-
 
 
 
-%! http_status_must_be(+Status, +MustBe) is det.
+%! http_status_must_be(+Status, +Succeeds) is det.
+%! http_status_must_be(+Status, +Succeeds, +Fails) is det.
 %
-% MustBe is a list of HTTP status codes.
+% MustBe is a list of 2xx or 4xx range HTTP status codes.
+%
+% Succeeds if Status is an anticipated 2xx range HTTP status codes
+%
+% Fails silently if Status is an anticipated 4xx range HTTP status
+% codes
 %
 % @throws `http_status(Status,MustBe)`
 
-http_status_must_be(Status, MustBe) :-
-  member(N, MustBe),
-  Status =:= N, !.
-http_status_must_be(Status, MustBe) :-
-  throw(http_status(Status, MustBe)).
+http_status_must_be(Status, Succeeds) :-
+  http_status_must_be(Status, Succeeds, []).
+
+
+http_status_must_be(Status, Succeeds, _) :-
+  memberchk(Status, Succeeds), !.
+http_status_must_be(Status, _, Fails) :-
+  memberchk(Status, Fails), !,
+  fail.
+http_status_must_be(Status, Succeeds, Fails) :-
+  throw(http_status(Status,Succeeds,Fails)).
 
 
 
@@ -575,28 +596,3 @@ http_header_msg(Flag, Key1-Val) :-
   (http_known(Key1) -> true ; gtrace),
   capitalize_atom(Key1, Key2),
   debug(Flag, "< ~a: ~a", [Key2,Val]).
-
-
-
-%! http_throw_looping_redirect_error(+Uri) is det.
-
-http_throw_looping_redirect_error(Uri) :-
-  throw(
-    error(
-      permission_error(redirect, http, Uri),
-      context(_, 'Redirection loop')
-    )
-  ).
-
-
-
-%! http_throw_max_redirect_error(+Uri, +Max) is det.
-
-http_throw_max_redirect_error(Uri, Max) :-
-  format(atom(Comment), "max_redirect (~w) limit exceeded", [Max]),
-  throw(
-    error(
-      permission_error(redirect, http, Uri),
-      context(_, Comment)
-    )
-  ).
