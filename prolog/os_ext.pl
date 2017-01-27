@@ -58,7 +58,7 @@ Process output and error streams in parallel by using threads.
 :- at_halt(kill_processes).
 
 %! os:pid_stream(
-%!   ?Pid:nonneg,
+%!   ?Pid:positive_integer,
 %!   ?StreamType:oneof([error,output]),
 %!   ?ThreadId
 %! ) is nondet.
@@ -70,11 +70,9 @@ is_meta(error_goal).
 is_meta(output_goal).
 
 :- meta_predicate
-    run_jar(+, +),
     run_jar(+, +, :),
     run_jar(+, +, :, :),
     run_jar(+, +, :, :, +),
-    run_process(+, +),
     run_process(+, +, :),
     run_process(+, +, :, :),
     run_process(+, +, :, :, +).
@@ -363,7 +361,7 @@ run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
       % Make sure the streams have been fully processed.
       (   retract(os:pid_stream(Pid,error,ErrId))
       ->  thread_join(ErrId, ErrStatus),
-          thread_status(Pid,error,ErrStatus)
+          thread_status(Pid, error, ErrStatus)
       ;   true
       )
     )
@@ -404,7 +402,7 @@ process_status(StatusCode) :-
   print_message(warning, process_status(StatusCode)).
 
 %! thread_status(
-%!   +Pid:nonneg,
+%!   +Pid:positive_integer,
 %!   +StreamType:oneof([error,output]),
 %!   +Status:compound
 %! ) is det.
