@@ -222,9 +222,9 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(InPath3), SourceOpts)).
 
 
-% Empty input stream.
-call_on_stream0(In, _, InPath, InPath, _) :-
-  at_end_of_stream(In), !.
+%%%%% Empty input stream.  E.g., 204 reply body.
+%%%%call_on_stream0(In, _, InPath, InPath, _) :-
+%%%%  at_end_of_stream(In), !.
 % Already a stream, leave as is.
 call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
   get_dict('@type', InEntry1, stream), !,
