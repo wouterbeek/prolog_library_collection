@@ -21,7 +21,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/http_path)).
-:- use_module(library(io)).:
+:- use_module(library(io)).
 :- use_module(library(lists)).
 :- use_module(library(memfile)).
 :- use_module(library(option)).
