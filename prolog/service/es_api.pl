@@ -153,13 +153,15 @@ es_create(PathComps, Data) :-
   if_debug(es_api, print_dict(Dict)).
 
 
+% POST /<INDEX>/<TYPE>
 es_create([Index,Type], Data, Dict) :- !,
-  % The POST method auto-generated an ElasticSearch Id.
+  % The POST method auto-generated an ElasticSearch ID.
   es_post0([Index,Type], Data, Status, Dict),
   http_status_must_be(Status, [201]).
+% PUT /<INDEX>/<TYPE>/<ID>
 es_create([Index,Type,Id], Data, Dict) :-
   es_put0([Index,Type,Id,'_create'], Data, Status, Dict),
-  http_status_must_be(Status, [201,409]).
+  http_status_must_be(Status, [201], [409]).
 
 
 
@@ -178,15 +180,15 @@ es_exists(PathComps) :-
 %
 % Result contains the following keys:
 %
-%   - '_id'(-atom)
+%   * '_id'(-atom)
 %
-%   - '_index'(-atom)
+%   * '_index'(-atom)
 %
-%   - '_score'(-float)
+%   * '_score'(-float)
 %
-%   - '_source'(-dict)
+%   * '_source'(-dict)
 %
-%   - '_type'(-atom)
+%   * '_type'(-atom)
 %
 % Keys, if present, filters the keys returned in '_source'.
 
@@ -401,10 +403,11 @@ es_delete0(PathComps, Status, Dict) :-
   es_uri(PathComps, Uri),
   http_delete(
     Uri,
-    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
-    [metadata(Path),request_header('Accept'='application/json')]
+    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
+    [metadata(InPath),request_header('Accept'='application/json')]
   ),
-  dicts_getchk(status, Path, Status).
+  member(InEntry, InPath),
+  _{status: Status} :< InEntry, !.
 
 
 
@@ -434,7 +437,7 @@ es_get0(PathComps, QueryComps, Status, Dict) :-
     PathComps,
     QueryComps,
     [request_header('Accept'='application/json')],
-    {Dict}/[In,Path,Path]>>json_read_dict(In, Dict),
+    {Dict}/[In,InPath,InPath]>>json_read_dict(In, Dict),
     Status
   ).
 
@@ -444,7 +447,7 @@ es_get_cat0(PathComps, Msg) :-
     ['_cat'|PathComps],
     [v(true)],
     [],
-    {Msg}/[In,Path,Path]>>read_stream_to_string(In, Msg),
+    {Msg}/[In,InPath,InPath]>>read_stream_to_string(In, Msg),
     Status
   ),
   http_status_must_be(Status, [200]).
@@ -452,8 +455,9 @@ es_get_cat0(PathComps, Msg) :-
 
 es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
   es_uri(PathComps, QueryComps, Uri),
-  http_get(Uri, Goal_3, [metadata(Path)|T]),
-  dicts_getchk(status, Path, Status).
+  http_get(Uri, Goal_3, [metadata(InPath)|T]),
+  member(InEntry, InPath),
+  _{status: Status} :< InEntry.
 
 
 
@@ -463,9 +467,10 @@ es_head0(PathComps, Status) :-
   es_uri(PathComps, Uri),
   http_head(
     Uri,
-    [metadata(Path),request_header('Accept'='application/json')]
+    [metadata(InPath),request_header('Accept'='application/json')]
   ),
-  dicts_get(status, Path, Status).
+  member(InEntry, InPath),
+  _{status: Status} :< InEntry, !.
 
 
 
@@ -500,10 +505,11 @@ es_post0(PathComps, QueryComps, Data, Status, Dict) :-
   http_post(
     Uri,
     json(Data),
-    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
-    [metadata(Path),request_header('Accept'='application/json')]
+    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
+    [metadata(InPath),request_header('Accept'='application/json')]
   ),
-  dicts_getchk(status, Path, Status).
+  member(InEntry, InPath),
+  _{status: Status} :< InEntry, !.
 
 
 
@@ -515,7 +521,8 @@ es_put0(PathComps, Data, Status, Dict) :-
   http_put(
     Uri,
     json(Data),
-    {Dict}/[In,Path0,Path0]>>json_read_dict(In, Dict),
-    [metadata(Path),request_header('Accept'='application/json')]
+    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
+    [metadata(InPath),request_header('Accept'='application/json')]
   ),
-  dicts_getchk(status, Path, Status).
+  member(InEntry, InPath),
+  _{status: Status} :< InEntry, !.
