@@ -25,6 +25,7 @@
     wc/4                 % +File, -NumLines, -NumWords, -NumBytes
   ]
 ).
+:- reexport(library(true)).
 
 /** <module> OS extensions
 
@@ -46,6 +47,7 @@ Process output and error streams in parallel by using threads.
 :- use_module(library(apply)).
 :- use_module(library(cli_ext)).
 :- use_module(library(dcg/basics)).
+:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(io)).
 :- use_module(library(lists)).
@@ -78,7 +80,7 @@ is_meta(output_goal).
     run_process(+, +, :, :, +).
 
 :- setting(
-     tmp_dir,
+     os:tmp_dir,
      term,
      _,
      "Temporary directory."
@@ -342,7 +344,15 @@ run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
   % resolved WRT the PATH.
   (is_absolute_file_name(Program) -> Exec = Program ; Exec = path(Program)),
   setup_call_cleanup(
-    process_create(Exec, Args, ProcessOpts2),
+    (
+      (   debugging(os)
+      ->  maplist(arg_text, Args, ArgTxts),
+          atomic_list_concat([Program|ArgTxts], ' ', Msg),
+          debug(os, "~a", [Msg])
+      ;   true
+      ),
+      process_create(Exec, Args, ProcessOpts2)
+    ),
     (
       thread_create(
         call(ErrGoal_1, Err),
@@ -366,6 +376,9 @@ run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
       )
     )
   ).
+
+arg_text(file(File), File) :- !.
+arg_text(Arg, Arg).
 
 process_error(In) :-
   read_stream_to_codes(In, Cs, []),
@@ -442,7 +455,8 @@ thread_status(Pid, StreamType, exited(Term)) :-
 %   * tmp_dir(+atom)
 %
 %     The directory that is used for temporary sort results.  Default
-%     is File's directory.
+%     is either the value of setting ‘os:tmp_dir’ --- if set ---, or
+%     the File's directory.
 %
 %   * threads(+positive_integer)
 %
@@ -457,75 +471,85 @@ thread_status(Pid, StreamType, exited(Term)) :-
 %     `true`.
 
 sort_file(File) :-
-  setting(tmp_dir, Dir),
-  (var(Dir) -> file_directory_name(File, Dir) ; true),
-  sort_file(File, [duplicates(false),tmp_dir(Dir)]).
+  sort_file(File, [duplicates(false)]).
 
 
 sort_file(File1, Opts1) :-
   must_be_file(read, File1),
+  
   % The UTF-8 encoding option is handled by an environment variable.
   (option(utf8(true), Opts1, true) -> Env = [] ; Env = ['LC_ALL'='C']),
-  (   option(output(_), Opts1)
-  ->  Opts2 = Opts1
-  ;   file_name_extension(File1, gv, File2),
-      merge_options([output(File2)], Opts1, Opts2)
-  ),
-  sort_file_args(Opts2, Args),
-  maplist(term_to_atom, Args, T),
-  atomic_list_concat([sort,File1|T], ' ', Msg),
-  format(user_output, "<<<~w~n", [Msg]),
-  process_create(path(sort), [file(File1)|Args], [env(Env)]),
-  format(user_output, "~w>>>~n", [Msg]).
 
-sort_file_args([], []).
-sort_file_args([buffer_size(Size)|T1], [Arg|T2]) :- !,
+  % Temporary directory.
+  (   option(tmp_dir(Dir), Opts1)
+  ->  true
+  ;   setting(os:tmp_dir, Dir),
+      ground(Dir)
+  ->  true
+  ;   file_directory_name(File1, Dir)
+  ),
+  merge_optipons([tmp_dir(Dir)], Opts1, Opts2),
+
+  % Output file.
+  (   option(output(_), Opts2)
+  ->  Opts3 = Opts2
+  ;   file_name_extension(File1, gv, File2),
+      merge_options([output(File2)], Opts2, Opts3)
+  ),
+  
+  sort_flags(Opts3, Args),
+  run_process(sort, [file(File1)|Args], true, process_error, [env(Env)]).
+
+sort_flags([], []).
+sort_flags([buffer_size(Size)|T1], [Arg|T2]) :- !,
   long_flag('buffer-size', Size, Arg),
-  sort_file_args(T1, T2).
-sort_file_args([duplicates(false)|T1], ['--unique'|T2]) :- !,
-  sort_file_args(T1, T2).
-sort_file_args([numeric(Numeric)|T1], [Arg|T2]) :- !,
+  sort_flags(T1, T2).
+sort_flags([duplicates(false)|T1], ['--unique'|T2]) :- !,
+  sort_flags(T1, T2).
+sort_flags([numeric(Numeric)|T1], [Arg|T2]) :- !,
   must_be(boolean, Numeric),
   long_flag('numeric-sort', Arg),
-  sort_file_args(T1, T2).
-sort_file_args([output(File)|T1], [Arg|T2]) :- !,
+  sort_flags(T1, T2).
+sort_flags([output(File)|T1], [Arg|T2]) :- !,
   must_be_file(write, File),
   long_flag(output, File, Arg),
-  sort_file_args(T1, T2).
-sort_file_args([threads(Threads)|T1], [Arg|T2]) :- !,
+  sort_flags(T1, T2).
+sort_flags([threads(Threads)|T1], [Arg|T2]) :- !,
   long_flag(parallel, Threads, Arg),
-  sort_file_args(T1, T2).
-sort_file_args([tmp_dir(Dir)|T1], [Arg|T2]) :- !,
+  sort_flags(T1, T2).
+sort_flags([tmp_dir(Dir)|T1], [Arg|T2]) :- !,
   must_be_directory(Dir),
   long_flag('temporary-directory', Dir, Arg),
-  sort_file_args(T1, T2).
-sort_file_args([_|T1], L2) :-
-  sort_file_args(T1, L2).
+  sort_flags(T1, T2).
+sort_flags([_|T1], L2) :-
+  sort_flags(T1, L2).
 
 
 
 %! wc(+File, -NumLines) is det.
 %! wc(+File, -NumLines, -NumWords, -NumBytes) is det.
 
-wc(File, N1) :-
-  wc(File, N1, _, _).
+wc(File, NumLines) :-
+  wc(File, NumLines, _, _).
 
 
-wc(File, N1, N2, N3) :-
-  run_process(wc, [file(File)], [output_goal(parse_wc0(N1,N2,N3))]).
+wc(File, NumLines, NumWords, NumBytes) :-
+  run_process(wc, [file(File)], wc0(NumLines,NumWords,NumBytes)).
 
-parse_wc0(N1, N2, N3, In) :-
+wc0(NumLines, NumWords, NumBytes, In) :-
   read_stream_to_codes(In, Cs),
-  phrase(wc0(N1, N2, N3), Cs, _).
+  phrase(wc0(NumLines, NumWords, NumBytes), Cs, _).
 
 % Example:
+%
 % ```bash
 % 427  1818 13512 README.md
 % ```
-wc0(N1, N2, N3) -->
-  whites, integer(N1),
-  whites, integer(N2),
-  whites, integer(N3).
+
+wc0(NumLines, NumWords, NumBytes) -->
+  whites, integer(NumLines),
+  whites, integer(NumWords),
+  whites, integer(NumBytes).
 
 
 
