@@ -24,8 +24,6 @@
     is_archive_file/1,       % +File
     open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
     open_binary_string/2,    % +Str, -In
-    process_open/3,          % +Cmd, +In, -Out
-    process_open/4,          % +Cmd, +In, +Args, -Out
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_to_atom/2,          % +Source, -A
@@ -40,13 +38,19 @@
 
 /** <module> I/O
 
+The following external programs are used:
+
+  * iconv
+
+  * uchardet
+
 The following debug flags are used:
 
-  - io(close)
+  * io(close)
 
-  - io(open)
+  * io(open)
 
-  - io(recode)
+  * io(recode)
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
@@ -60,8 +64,8 @@ The following debug flags are used:
 :- use_module(library(error)).
 :- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
+:- use_module(library(os_ext)).
 :- use_module(library(print_ext)).
-:- use_module(library(process)).
 :- use_module(library(string_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).
@@ -675,37 +679,6 @@ is_archive_file(File) :-
 open_binary_string(Str, In) :-
   open_string(Str, In),
   set_stream(In, type(binary)).
-
-
-
-%! process_open(+Cmd, +In, +Out) is det.
-%! process_open(+Cmd, +In, +Args, +Out) is det.
-
-process_open(Cmd, In1, Out) :-
-  process_open(Cmd, In1, [], Out).
-
-
-process_open(Cmd, In1, Args, Out) :-
-  process_create(
-    path(Cmd),
-    Args,
-    [stdin(pipe(In2)),stdout(pipe(Out))]
-    %%%%[stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
-  ),
-  set_stream(In2, type(binary)),
-  call_cleanup(
-    copy_stream_data(In1, In2),
-    close(In2)
-  ).
-  % @bug Does not terminate for
-  % http://lists.w3.org/Archives/Public/html-tidy/2011JulSep/0001.html
-  %%%%call_cleanup(
-  %%%%  (
-  %%%%    read_stream_to_string(Err, Msg),
-  %%%%    (Msg == "" -> true ; msg_warning(Msg))
-  %%%%  ),
-  %%%%  close(Err)
-  %%%%).
 
 
 
