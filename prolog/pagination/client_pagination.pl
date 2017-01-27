@@ -55,14 +55,14 @@ client_pagination(Uri1, Goal_3, Opts1) :-
   merge_options([metadata(InPath)], Opts1, Opts2),
   State = state(_),
   when(nonvar(InPath), nb_setarg(1, State, InPath)),
-  call_on_stream(uri(Uri1), Goal_3, Opts2),
-  State = state(InPath),
-  nonvar(InPath),
-  once((
-    member(InEntry, InPath),
-    _{'@type': uri, headers: Headers} :< InEntry
-  )),
-  (   _{link: Link} :< Headers,
+  (   call_on_stream(uri(Uri1), Goal_3, Opts2)
+  ;   State = state(InPath),
+      nonvar(InPath),
+      once((
+        member(InEntry, InPath),
+        _{'@type': uri, headers: Headers} :< InEntry
+      )),
+      _{link: Link} :< Headers,
       option(base_uri(BaseUri), Opts1, Uri1),
       atom_phrase(link(BaseUri,Links), Link),
       once((
@@ -71,6 +71,5 @@ client_pagination(Uri1, Goal_3, Opts1) :-
       )),
       % Detect cyclic ‘Link’ headers.
       (Uri1 == Uri2 -> print_message(warning, pagination_loop(Uri1)) ; true),
-      (true ; client_pagination(Uri2, Goal_3, Opts1))
-  ;   true
+      client_pagination(Uri2, Goal_3, Opts1)
   ).
