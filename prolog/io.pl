@@ -165,7 +165,11 @@ archive_path0(InPath, _, InPath, InPath).
 %! call_on_stream(+Source, :Goal_3) is det.
 %! call_on_stream(+Source, :Goal_3, +SourceOpts) is det.
 %
-% The following call is made: `call(Goal_3, In)`.
+% The following call is made:
+%
+% ```
+% call(:Goal_3, +In, +InPath1, -InPath2)
+% ```
 %
 % The following options are supported:
 %
