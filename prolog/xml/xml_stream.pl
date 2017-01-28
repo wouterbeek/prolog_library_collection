@@ -31,7 +31,6 @@ xml_stream_record(Source, RecordNames, Goal_1) :-
   b_setval(xml_stream_record_names, RecordNames),
   call_on_stream(Source, xml_stream_record_stream0).
 
-
 xml_stream_record_stream0(In, Meta, Meta) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
@@ -41,7 +40,6 @@ xml_stream_record_stream0(In, Meta, Meta) :-
     ),
     free_sgml_parser(Parser)
   ).
-
 
 on_begin0(Elem, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),

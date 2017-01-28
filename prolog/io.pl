@@ -285,12 +285,11 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
       ;   % If the given entry name occurs in the current archive
           % header then _red cut_, because we are in the correct entry
           % branch.
-          EntryName == EntryNameMatch
+          EntryNameMatch == EntryName
       ->  !
-      ;   % If the given entry name did not match the current archive
-          % header then fail, because we are in the wrong entry
-          % branch.
-          var(EntryNameMatch)
+      ;   % Instantiate the entry name to support the ‘entry_name’
+          % option.
+          EntryNameMatch = EntryName
       ),
       (   memberchk(filetype(file), Props)
       ->  setup_call_cleanup(
