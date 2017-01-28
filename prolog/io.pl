@@ -32,6 +32,7 @@
     recode_stream/4,         % +In1, -In2, -Close, +Opts
     source_base_uri/2,       % +InPath, -BaseUri
     source_entry_name/2,     % +InPath, -EntryName
+    source_entry_segments/2, % +InPath, -Segments
     write_mode/1             % ?Mode
   ]
 ).
@@ -758,23 +759,34 @@ source_base_uri(InPath, BaseUri) :-
 
 
 
-%! source_entry_name(+InPath, -EntryName) is det.
+%! source_entry_name(+InPath, -Name) is semidet.
 %
 % EntryName is the concatenation of the entry names in InPath,
 % excluding the last ‘data’ part.
+%
+% Fails silently if there is no entry.
 
-source_entry_name(InPath, EntryName) :-
-  source_entry_name(InPath, [], EntryName).
+source_entry_name(InPath, Name) :-
+  source_entry_segments(InPath, Segments),
+  Segments \== [],
+  atomic_list_concat(Segments, /, Name).
 
-source_entry_name([], L, EntryName) :- !,
-  atomic_list_concat(L, /, EntryName).
-source_entry_name([H1|T1], T2, EntryName) :-
+
+
+%! source_entry_segments(+InPath, -Segments) is det.
+
+source_entry_segments(InPath, Segments) :-
+  source_entry_segments(InPath, [], Segments).
+
+
+source_entry_segments([], L, L) :- !.
+source_entry_segments([H1|T1], T2, EntryName) :-
   dict_get('@type', H1, entry),
   dict_get('@id', H1, H2),
   H2 \== data, !,
-  source_entry_name(T1, [H2|T2], EntryName).
-source_entry_name([_|T1], L2, EntryName) :-
-  source_entry_name(T1, L2, EntryName).
+  source_entry_segments(T1, [H2|T2], EntryName).
+source_entry_segments([_|T1], L2, EntryName) :-
+  source_entry_segments(T1, L2, EntryName).
 
 
 
