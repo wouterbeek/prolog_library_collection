@@ -101,6 +101,8 @@ user:prolog_file_type(png, image).
 
 
 %! absolute_directory_name(+Spec, +Mode, -Dir) is semidet.
+%
+% @tbd Requires that Dir exists in write modes.
 
 absolute_directory_name(Spec, Mode, Dir) :-
   absolute_file_name(Spec, Dir, [access(Mode),file_type(directory)]).
