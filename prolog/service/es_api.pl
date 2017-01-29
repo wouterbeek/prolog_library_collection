@@ -382,7 +382,7 @@ es_update([Index,Type,Id], Data) :-
 
 
 es_update([Index,Type,Id], Data, Dict) :-
-  es_post0([Index,Type,Id,'_update'], Data, [200], Dict).
+  es_post0([Index,Type,Id,'_update'], [], Data, [200], Dict).
 
 
 

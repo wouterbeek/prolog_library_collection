@@ -529,7 +529,7 @@ sort_file(File1, Opts1) :-
   ->  true
   ;   file_directory_name(File1, Dir)
   ),
-  merge_optipons([tmp_dir(Dir)], Opts1, Opts2),
+  merge_options([tmp_dir(Dir)], Opts1, Opts2),
 
   % Output file.
   (   option(output(_), Opts2)
