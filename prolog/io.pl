@@ -26,6 +26,8 @@
     open_binary_string/2,    % +Str, -In
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
+    read_stream_to_atom/2,   % +In, -A
+    read_stream_to_string/2, % +In, -Str
     read_to_atom/2,          % +Source, -A
     read_to_codes/2,         % +Source, -Cs
     read_to_string/2,        % +Source, -Str
@@ -227,9 +229,10 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
   ignore(option(metadata(InPath3), SourceOpts)).
 
 
-%%%%% Empty input stream.  E.g., 204 reply body.
-%%%%call_on_stream0(In, _, InPath, InPath, _) :-
-%%%%  at_end_of_stream(In), !.
+% Empty input stream.  E.g., 204 reply body.
+call_on_stream0(In, Goal_3, InPath1, InPath2, _) :-
+  at_end_of_stream(In), !,
+  call(Goal_3, In, InPath1, InPath2).
 % Already a stream, leave as is.
 call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
   _{'@type': stream} :< InEntry1, !,
@@ -701,6 +704,22 @@ read_line_to_atom(In, A) :-
 %   * read
 
 read_mode(read).
+
+
+
+%! read_stream_to_atom(+In, -A) is det.
+
+read_stream_to_atom(In, A) :-
+  read_stream_to_codes(In, Cs),
+  atom_codes(A, Cs).
+
+
+
+%! read_stream_to_string(+In, -Str) is det.
+
+read_stream_to_string(In, Str) :-
+  read_stream_to_codes(In, Cs),
+  string_codes(Str, Cs).
 
 
 
