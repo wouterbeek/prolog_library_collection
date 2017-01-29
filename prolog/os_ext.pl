@@ -1,6 +1,9 @@
 :- module(
   os_ext,
   [
+    compress_file/1,     % +From
+    compress_file/2,     % +From, +To
+    compress_file/3,     % +From, +To, +Compress
     exists_program/1,    % +Program
     image_dimensions/3,  % +File, -Width, -Height
     open_pdf/1,          % +File
@@ -49,6 +52,7 @@ Process output and error streams in parallel by using threads.
 :- use_module(library(dcg/basics)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
+:- use_module(library(file_ext)).
 :- use_module(library(io)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
@@ -56,6 +60,7 @@ Process output and error streams in parallel by using threads.
 :- use_module(library(settings)).
 :- use_module(library(thread_ext)).
 :- use_module(library(typecheck)).
+:- use_module(library(zlib)).
 
 :- at_halt(kill_processes).
 
@@ -87,6 +92,42 @@ is_meta(output_goal).
    ).
 
 
+
+
+
+%! compress_file(+From) is det.
+%! compress_file(+From, +To) is det.
+%! compress_file(+From, +To, +Compress) is det.
+%
+% The following values are supported for Compress:
+%   * ‘deflate’
+%   * ‘gzip’ (default)
+%   * ‘none’
+%
+% @tbd Reuse library(io) for this.
+
+compress_file(From) :-
+  thread_file(From, Tmp),
+  compress_file(From, Tmp, gzip),
+  rename_file(Tmp, From).
+
+
+compress_file(From, To) :-
+  compress_file(From, To, gzip).
+
+
+compress_file(From, To, none) :- !,
+  rename_file(From, To).
+compress_file(From, To, Compress) :-
+  setup_call_cleanup(
+    gzopen(To, write, Write, [format(Compress)]),
+    setup_call_cleanup(
+      open(From, read, Read),
+      copy_stream_data(Read, Write),
+      close(Read)
+    ),
+    close(Write)
+  ).
 
 
 
