@@ -7,8 +7,6 @@
     rest_method/2,     % +Req, :Plural_2
     rest_method/3,     % +Req, +HandleId, :Singular_3
     rest_method/4,     % +Req, :Plural_2, +HandleId, :Singular_3
-    rest_reply/4,      %          +Succeeds,         +In, +InPath1, -InPath2
-    rest_reply/5,      %          +Succeeds, +Fails, +In, +InPath1, -InPath2
     rest_reply/6,      % -Result, +Succeeds, +Fails, +In, +InPath1, -InPath2
   % Generators
     'media-type'//1    % +MT
@@ -327,17 +325,7 @@ type(A) -->
 
 
 
-%! rest_reply(         +Succeeds,         +In, +InPath1, -InPath2) is nondet.
-%! rest_reply(         +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
 %! rest_reply(-Result, +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
-
-rest_reply(Succeeds, In, InPath1, InPath2) :-
-  rest_reply(Succeeds, [], In, InPath1, InPath2).
-
-
-rest_reply(Succeeds, Fails, In, InPath1, InPath2) :-
-  rest_reply(_, Succeeds, Fails, In, InPath1, InPath2).
-
 
 rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
   once((

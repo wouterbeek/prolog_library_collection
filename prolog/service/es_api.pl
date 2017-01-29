@@ -151,7 +151,7 @@ es_create(PathComps, Data) :-
 % POST /<INDEX>/<TYPE>
 es_create([Index,Type], Data, Dict) :- !,
   % The POST method auto-generated an ElasticSearch ID.
-  es_post0([Index,Type], Data, [201], Dict).
+  es_post0([Index,Type], [], Data, [201], Dict).
 % PUT /<INDEX>/<TYPE>/<ID>
 es_create([Index,Type,Id], Data, Dict) :-
   es_put0([Index,Type,Id,'_create'], Data, [201], [409], Dict).
@@ -265,7 +265,12 @@ es_search(PathComps, Result) :-
 
 
 es_search(PathComps1, Search, PageOpts1, Result2) :-
-  pagination:pagination_init_options(PageOpts1, FirstPage, PageSize, PageOpts2),
+  pagination:pagination_init_options(
+    PageOpts1,
+    FirstPage,
+    PageSize,
+    PageOpts2
+  ),
   % NONDET
   between(FirstPage, inf, Page),
   From is (Page - 1) * PageSize,
@@ -320,7 +325,7 @@ format_simple_search_string0(Str, Str).
 es_setting(Index, Key, Val) :-
   ground(Val), !,
   dict_pairs(Data, [Key-Val]),
-  es_put0([Index,'_settings'], Data, [201], Dict),
+  es_put0([Index,'_settings'], Data, [201], [], Dict),
   Dict.acknowledged == true.
 
 
@@ -453,30 +458,20 @@ es_uri(PathComps, QueryComps, Uri) :-
 
 
 
-%! es_post0(+PathComps, +Data, +Success, -Dict) is det.
 %! es_post0(+PathComps, +QueryComps, +Data, +Success, -Dict) is det.
-
-es_post0(PathComps, Data, Success, Dict) :-
-  es_post0(PathComps, [], Data, Success, Dict).
-
 
 es_post0(PathComps, QueryComps, Data, Success, Dict) :-
   es_uri(PathComps, QueryComps, Uri),
   debug_dict(Data),
   call_on_stream(
     uri(Uri),
-    rest_reply(Dict, Success),
+    rest_reply(Dict, Success, []),
     [method(post),post(json(Data)),request_header('Accept'='application/json')]
   ).
 
 
 
-%! es_put0(+PathComps, +Data, +Success, -Dict) is det.
 %! es_put0(+PathComps, +Data, +Success, +Failure, -Dict) is det.
-
-es_put0(PathComps, Data, Success, Dict) :-
-  es_put0(PathComps, Data, Success, [], Dict).
-
 
 es_put0(PathComps, Data, Success, Failure, Dict) :-
   es_uri(PathComps, Uri),
