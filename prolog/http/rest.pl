@@ -6,7 +6,10 @@
     rest_media_type/2, % +MTs, :Goal_1
     rest_method/2,     % +Req, :Plural_2
     rest_method/3,     % +Req, +HandleId, :Singular_3
-    rest_method/4      % +Req, :Plural_2, +HandleId, :Singular_3
+    rest_method/4,     % +Req, :Plural_2, +HandleId, :Singular_3
+    rest_reply/4,      %          +Succeeds,         +In, +InPath1, -InPath2
+    rest_reply/5,      %          +Succeeds, +Fails, +In, +InPath1, -InPath2
+    rest_reply/6       % -Result, +Succeeds, +Fails, +In, +InPath1, -InPath2
   ]
 ).
 
@@ -44,6 +47,7 @@ There are two phases in handling REST requests:
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/html_write)). % HTML meta.
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_download)).
 :- use_module(library(http/http_ext)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
@@ -51,6 +55,7 @@ There are two phases in handling REST requests:
 :- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
+:- use_module(library(print_ext)).
 :- use_module(library(settings)).
 
 :- html_meta
@@ -317,3 +322,42 @@ type(A) -->
 'RWS' --> " ".
 
 'SP' --> " ".
+
+
+
+%! rest_reply(         +Succeeds,         +In, +InPath1, -InPath2) is nondet.
+%! rest_reply(         +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
+%! rest_reply(-Result, +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
+
+rest_reply(Succeeds, In, InPath1, InPath2) :-
+  rest_reply(Succeeds, [], In, InPath1, InPath2).
+
+
+rest_reply(Succeeds, Fails, In, InPath1, InPath2) :-
+  rest_reply(_, Succeeds, Fails, In, InPath1, InPath2).
+
+
+rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
+  once((
+    member(InEntry, InPath),
+    _{'@type': uri, headers: Headers, status: Status} :< InEntry
+  )),
+  _{'content-type': ContentType} :< Headers,
+  http_parse_header_value(content_type, ContentType, media(MT0,_)),
+  rest_reply_stream(MT0, Status, In, Result),
+  http_status_must_be(Status, Succeeds, Fails).
+
+rest_reply_stream(_, _, In, _) :-
+  at_end_of_stream(In), !,
+  print_message(warning, empty_http_reply).
+rest_reply_stream(application/json, Status, In, Result) :- !,
+  json_read_dict(In, Result0),
+  (   http_status_is_success(Status)
+  ->  (is_list(Result0) -> member(Result, Result0) ; Result = Result0)
+  ;   print_term(Result0)
+  ).
+rest_reply_stream(text/html, _, In, _) :- !,
+  html_download(In, Dom),
+  print_term(Dom).
+rest_reply_stream(text/plain, _, In, Result) :- !,
+  read_stream_to_string(In, Result).
