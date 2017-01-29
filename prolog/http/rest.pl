@@ -9,7 +9,9 @@
     rest_method/4,     % +Req, :Plural_2, +HandleId, :Singular_3
     rest_reply/4,      %          +Succeeds,         +In, +InPath1, -InPath2
     rest_reply/5,      %          +Succeeds, +Fails, +In, +InPath1, -InPath2
-    rest_reply/6       % -Result, +Succeeds, +Fails, +In, +InPath1, -InPath2
+    rest_reply/6,      % -Result, +Succeeds, +Fails, +In, +InPath1, -InPath2
+  % Generators
+    'media-type'//1    % +MT
   ]
 ).
 

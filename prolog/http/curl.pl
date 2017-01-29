@@ -12,6 +12,7 @@
     curl_post/4     % +Uri, +Data, :Goal_3, +MT
   ]
 ).
+:- reexport(library(http/http_io)).
 
 /** <module> cURL
 
@@ -19,7 +20,8 @@
 @version 2016/12-2017/01
 */
 
-:- reexport(library(http/http_io)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(http/rest)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
@@ -105,7 +107,11 @@ curl_options0(MT, Opts) :-
 
 
 curl_options0(Opts1, MT, Opts3) :-
-  (var(MT) -> Opts2 = Opts1 ; Opts2 = [request_header('Accept'=MT)|Opts1]),
+  (   var(MT)
+  ->  Opts2 = Opts1
+  ;   atom_phrase('media-type'(MT), Val),
+      Opts2 = [request_header('Accept'=Val)|Opts1]
+  ),
   merge_options([verbose(all)], Opts2, Opts3).
 
 
