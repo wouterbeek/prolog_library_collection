@@ -1,14 +1,15 @@
 :- module(
   rocks_api,
   [
-  % ALIAS
+  % Predicates with alias
     call_on_rocks/3,   % +Alias, +Type, :Goal_1
     call_to_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
+    rocks_open/3,      % +Alias, +Type, +Mode
     rocks_rm/1,        % +Alias
-  % ROCKSDB
+  % Predicates with RocksDB handle
     rocks_key/2,       % +RocksDB, ?Key
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
@@ -16,7 +17,14 @@
     rocks_pull/3       % +RocksDB, -Key, -Val
   ]
 ).
-:- reexport(library(rocksdb)).
+:- reexport(library(rocksdb), [
+     rocks_batch/2,    % +RocksDB, +Actions
+     rocks_enum/3,     % +RocksDB, ?Key, ?Val
+     rocks_get/3,      % +RocksDB, +Key, -Val
+     rocks_merge/3,    % +RocksDB, +Key, +Val
+     rocks_property/2, % +RocksDB, ?Prop
+     rocks_put/3       % +RocksDB, +Key, +Val
+   ]).
 
 /** <module> RocksDB extensions
 
@@ -25,6 +33,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(debug)).
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
@@ -111,11 +120,11 @@ pp_aliases(Aliases) :-
 
 rocks_merge_set(partial, _, X, Y, Z) :-
   ord_union(X, Y, Z),
-  debug(rocks, "Partial set merge: ~p ~p → ~p", [X,Y,Z]).
+  debug(rocks_api, "Partial set merge: ~p ~p → ~p", [X,Y,Z]).
 rocks_merge_set(full, _, X, Y, Z) :-
   append([X|Y], XY),
   sort(XY, Z),
-  debug(rocks, "Full set merge: ~p ~p → ~p", [X,Y,Z]).
+  debug(rocks_api, "Full set merge: ~p ~p → ~p", [X,Y,Z]).
 
 
 
@@ -135,6 +144,22 @@ rocks_nullify(RocksDB) :-
     rocks_key(RocksDB, Key),
     rocks_merge(RocksDB, Key, 0)
   ).
+
+
+
+%! rocks_open(+Alias, +Type, +Mode) is det.
+
+rocks_open(Alias, Type, Mode) :-
+  rocks_dir0(Alias, Dir),
+  once(type_merge_value0(Type, Merge_5, Val)),
+  rocksdb:rocks_open(
+    Dir,
+    _,
+    [alias(Alias),key(atom),merge(Merge_5),mode(Mode),value(Val)]
+  ).
+
+type_merge_value0(int, rocks_merge_sum, int64).
+type_merge_value0(set(atom), rocks_merge_set, term).
 
 
 
@@ -166,20 +191,11 @@ rocks_rm(Alias) :-
 % Mode is either ‘read_only’ or ‘read_write’.
 
 call_rocks0(Alias, Type, Mode, Goal_1) :-
-  rocks_dir0(Alias, Dir),
-  once(type_merge_value(Type, Merge_5, Val)),
   setup_call_cleanup(
-    rocks_open(
-      Dir,
-      _,
-      [alias(Alias),key(atom),merge(Merge_5),mode(Mode),value(Val)]
-    ),
+    rocks_open(Alias, Type, Mode),
     call(Goal_1, Alias),
     rocks_close(Alias)
   ).
-
-type_merge_value(int, rocks_merge_sum, int64).
-type_merge_value(set(atom), rocks_merge_set, term).
 
 
 
