@@ -16,7 +16,6 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
-:- use_module(library(http/http_io)).
 :- use_module(library(io)).
 :- use_module(library(os_program)).
 :- use_module(library(uri)).
@@ -65,7 +64,10 @@ write_tts(Sink, Lines):-
 
 line_to_mp3(Out, Line):-
   google_tts_link(Line, Uri),
-  http_get(Uri, [In,Meta,Meta]>>copy_stream_data(In, Out)).
+  call_on_stream(
+    uri(Uri),
+    {Out}/[In,InPath,InPath]>>copy_stream_data(In, Out)
+  ).
 
 
 google_tts_link(Line, Uri):-

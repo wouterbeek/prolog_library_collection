@@ -6,7 +6,9 @@
     rest_media_type/2, % +MTs, :Goal_1
     rest_method/2,     % +Req, :Plural_2
     rest_method/3,     % +Req, +HandleId, :Singular_3
-    rest_method/4      % +Req, :Plural_2, +HandleId, :Singular_3
+    rest_method/4,     % +Req, :Plural_2, +HandleId, :Singular_3
+  % Generators
+    'media-type'//1    % +MT
   ]
 ).
 
