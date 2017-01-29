@@ -465,9 +465,8 @@ es_post0(PathComps, QueryComps, Data, Success, Dict) :-
   debug_dict(Data),
   call_on_stream(
     uri(Uri),
-    json(Data),
     rest_reply(Dict, Success),
-    [method(post),request_header('Accept'='application/json')]
+    [method(post),post(json(Data)),request_header('Accept'='application/json')]
   ).
 
 
@@ -484,7 +483,6 @@ es_put0(PathComps, Data, Success, Failure, Dict) :-
   debug_dict(Data),
   call_on_stream(
     uri(Uri),
-    json(Data),
     rest_reply(Dict, Success, Failure),
-    [method(put),request_header('Accept'='application/json')]
+    [method(put),post(json(Data)),request_header('Accept'='application/json')]
   ).
