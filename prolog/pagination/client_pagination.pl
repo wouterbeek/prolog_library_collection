@@ -46,6 +46,9 @@
 %
 %   2. ensure that this predicate is deterministic when there is no
 %      ‘next’ link, and non-deterministic otherwise.
+%
+% @tbd Can this be made deterministic in cases where Goal_3 is
+%      deterministic and there is not next link?
 
 client_pagination(Uri, Goal_3) :-
   client_pagination(Uri, Goal_3, []).
