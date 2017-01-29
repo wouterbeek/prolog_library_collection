@@ -232,19 +232,18 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 %%%%  at_end_of_stream(In), !.
 % Already a stream, leave as is.
 call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
-  get_dict('@type', InEntry1, stream), !,
+  _{'@type': stream} :< InEntry1, !,
   call(Goal_3, In, [InEntry1], InPath).
-% Leaf archive entry.
+% Leaf/raw archive entry.
 call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   InPath1 = [InEntry|_],
-  get_dict(format, InEntry, raw),
-  get_dict('@id', InEntry, data), !,
+  _{'@type': entry, format: raw} :< InEntry, !,
   setup_call_cleanup(
     recode_stream(In1, In2, Close, SourceOpts),
     call(Goal_3, In2, InPath1, InPath2),
     close_any2(Close, read)
   ).
-% Non-leaf archive entry.
+% Non-leaf/raw archive entry.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
@@ -762,34 +761,41 @@ source_base_uri(InPath, BaseUri) :-
 
 
 
-%! source_entry_name(+InPath, -Name) is semidet.
+%! source_entry_name(+InPath, -Name) is det.
 %
-% EntryName is the concatenation of the entry names in InPath,
-% excluding the last ‘data’ part.
+% EntryName is either:
 %
-% Fails silently if there is no entry.
+%   1. the concatenation of the non-raw archive entry names in InPath,
+%      or
+%
+%   2. ‘data’.
 
 source_entry_name(InPath, Name) :-
   source_entry_segments(InPath, Segments),
-  Segments \== [],
+  Segments \== [], !,
   atomic_list_concat(Segments, /, Name).
+source_entry_name(_, data).
 
 
 
 %! source_entry_segments(+InPath, -Segments) is det.
+%
+% Segments is a list of non-raw archive enty names, in the order in
+% which they appear in InPath.
 
 source_entry_segments(InPath, Segments) :-
   source_entry_segments(InPath, [], Segments).
 
-
-source_entry_segments([], L, L) :- !.
-source_entry_segments([H1|T1], T2, EntryName) :-
-  dict_get('@type', H1, entry),
-  dict_get('@id', H1, H2),
-  H2 \== data, !,
-  source_entry_segments(T1, [H2|T2], EntryName).
-source_entry_segments([_|T1], L2, EntryName) :-
-  source_entry_segments(T1, L2, EntryName).
+source_entry_segments([], Segments, Segments) :- !.
+% Include segments of non-raw entires.
+source_entry_segments([H1|T1], T2, Segments) :-
+  _{'@type': entry, '@id': H2, format: Format} :< H1,
+  Format \== raw, !,
+  source_entry_segments(T1, [H2|T2], Segments).
+% Skip the segments of raw archive entries and skip things that are
+% not archive entries.
+source_entry_segments([_|T], L, Segments) :-
+  source_entry_segments(T, L, Segments).
 
 
 
