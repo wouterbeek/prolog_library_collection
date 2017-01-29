@@ -6,6 +6,8 @@
     es_count/2,       % +PathComps, -Dict
     es_create/2,      % +PathComps, +Data
     es_create/3,      % +PathComps, +Data, -Dict
+    es_delete/1,      % +PathComps
+    es_delete/2,      % +PathComps, -Dict
     es_exists/1,      % +PathComps
     es_get/2,         % +PathComps, -Result
     es_get/3,         % +PathComps, +Keys, -Result
@@ -13,8 +15,6 @@
     es_health_cat/0,
     es_indices_cat/0,
     es_nodes_cat/0,
-    es_rm/1,          % +PathComps
-    es_rm/2,          % +PathComps, -Dict
     es_search/2,      % +PathComps, -Result
     es_search/4,      % +PathComps, +Search, +PageOpts, -Result
     es_setting/3,     % +Index, +Key, ?Val
@@ -80,7 +80,7 @@ _{
 ```
 
 @author Wouter Beek
-@version 2016/08-2016/12
+@version 2016/08-2017/01
 */
 
 :- use_module(library(apply)).
@@ -88,8 +88,8 @@ _{
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
+:- use_module(library(http/rest)).
 :- use_module(library(io)).
 :- use_module(library(lists)).
 :- use_module(library(pagination/pagination), []).
@@ -99,9 +99,6 @@ _{
 :- use_module(library(true)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
-
-:- meta_predicate
-    es_get0(+, +, +, 3, -).
 
 :- setting(endpoint_host, atom, localhost, "").
 :- setting(endpoint_port, positive_integer, 9200, "").
@@ -114,8 +111,7 @@ _{
 %! es_check(-Dict) is det.
 
 es_check(Dict) :-
-  es_get0(Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_get0(Dict).
 
 
 
@@ -136,8 +132,7 @@ es_count(Dict) :-
 
 es_count(PathComps1, Dict) :-
   append(PathComps1, ['_count'], PathComps2),
-  es_get0(PathComps2, Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_get0(PathComps2, Dict).
 
 
 
@@ -156,20 +151,40 @@ es_create(PathComps, Data) :-
 % POST /<INDEX>/<TYPE>
 es_create([Index,Type], Data, Dict) :- !,
   % The POST method auto-generated an ElasticSearch ID.
-  es_post0([Index,Type], Data, Status, Dict),
-  http_status_must_be(Status, [201]).
+  es_post0([Index,Type], Data, [201], Dict).
 % PUT /<INDEX>/<TYPE>/<ID>
 es_create([Index,Type,Id], Data, Dict) :-
-  es_put0([Index,Type,Id,'_create'], Data, Status, Dict),
-  http_status_must_be(Status, [201], [409]).
+  es_put0([Index,Type,Id,'_create'], Data, [201], [409], Dict).
+
+
+
+%! es_delete(+PathComps) is det.
+%! es_delete(+PathComps, -Dict) is det.
+
+es_delete(PathComps) :-
+  es_delete(PathComps, Dict),
+  if_debug(es_api, print_dict(Dict)).
+
+
+es_delete(PathComps, Dict) :-
+  es_uri(PathComps, Uri),
+  call_on_stream(
+    uri(Uri),
+    rest_reply(Dict, [200], [404]),
+    [method(delete),request_header('Accept'='application/json')]
+  ).
 
 
 
 %! es_exists(+PathComps) is semidet.
 
 es_exists(PathComps) :-
-  es_head0(PathComps, Status),
-  http_status_must_be(Status, [200]).
+  es_uri(PathComps, Uri),
+  call_on_stream(
+    uri(Uri),
+    rest_reply(_, [200], [404]),
+    [method(head),request_header('Accept'='application/json')]
+  ).
 
 
 
@@ -203,54 +218,40 @@ es_get(PathComps, Keys, Result) :-
   ;   atomic_list_concat(Keys, ',', Search),
       QueryComps = ['_source'(Search)]
   ),
-  es_get0(PathComps, QueryComps, Status, Dict),
-  get_dict(found, Dict, true),
-  es_dict_to_result0(Dict, Result),
-  http_status_must_be(Status, [200]).
+  es_get0(PathComps, QueryComps, Dict),
+  _{found: true} :< Dict,
+  es_dict_to_result0(Dict, Result).
 
 
 
 %! es_health(-Dict) is det.
-%! es_health_cat is det.
 
 es_health(Dict) :-
-  es_get0(['_cluster',health], Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_get0(['_cluster',health], Dict).
 
+
+
+%! es_health_cat is det.
 
 es_health_cat :-
-  es_get_cat0([health], Msg),
-  writeln(Msg).
+  es_get_cat0([health], Str),
+  writeln(Str).
 
 
 
 %! es_indices_cat is det.
 
 es_indices_cat :-
-  es_get_cat0([indices], Msg),
-  writeln(Msg).
+  es_get_cat0([indices], Str),
+  writeln(Str).
 
 
 
 %! es_nodes_cat is det.
 
 es_nodes_cat :-
-  es_get_cat0([nodes], Msg),
-  writeln(Msg).
-
-
-
-%! es_rm(+PathComps) is det.
-%! es_rm(+PathComps, -Dict) is det.
-
-es_rm(PathComps) :-
-  es_rm(PathComps, Dict),
-  if_debug(es_api, print_dict(Dict)).
-
-
-es_rm(PathComps, Dict) :-
-  es_delete0(PathComps, Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_get_cat0([nodes], Str),
+  writeln(Str).
 
 
 
@@ -272,14 +273,14 @@ es_search(PathComps1, Search, PageOpts1, Result2) :-
   append(PathComps1, ['_search'], PathComps2),
   (   % Query DSL
       is_dict(Search)
-  ->  es_post0(PathComps2, QueryComps1, Search, Status, Dict)
+  ->  es_post0(PathComps2, QueryComps1, Search, [200], Dict)
   ;   % Simple Search
       (   var(Search)
       ->  QueryComps2 = QueryComps1
       ;   format_simple_search_string0(Search, Str),
           QueryComps2 = [q(Str)|QueryComps1]
       ),
-      es_get0(PathComps2, QueryComps2, Status, Dict)
+      es_get0(PathComps2, QueryComps2, Dict)
   ),
   Hits = Dict.hits,
   maplist(es_dict_to_result0, Hits.hits, Results),
@@ -293,9 +294,7 @@ es_search(PathComps1, Search, PageOpts1, Result2) :-
     results: Results,
     total_number_of_results: Hits.total
   },
-  merge_dicts(PageOpts2, Result1, Result2),
-  http_status_must_be(Status, [200]).
-
+  merge_dicts(PageOpts2, Result1, Result2).
 
 format_simple_search_string0(Comp, Str) :-
   compound(Comp), !,
@@ -321,9 +320,8 @@ format_simple_search_string0(Str, Str).
 es_setting(Index, Key, Val) :-
   ground(Val), !,
   dict_pairs(Data, [Key-Val]),
-  es_put0([Index,'_settings'], Data, Status, Dict),
-  Dict.acknowledged == true,
-  http_status_must_be(Status, [200]).
+  es_put0([Index,'_settings'], Data, [201], Dict),
+  Dict.acknowledged == true.
 
 
 
@@ -336,8 +334,7 @@ es_stat(Dict) :-
 
 es_stat(PathComps1, Dict) :-
   append(PathComps1, ['_stats'], PathComps2),
-  es_get0(PathComps2, Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_get0(PathComps2, Dict).
 
 
 
@@ -380,8 +377,7 @@ es_update([Index,Type,Id], Data) :-
 
 
 es_update([Index,Type,Id], Data, Dict) :-
-  es_post0([Index,Type,Id,'_update'], Data, Status, Dict),
-  http_status_must_be(Status, [200]).
+  es_post0([Index,Type,Id,'_update'], Data, [200], Dict).
 
 
 
@@ -391,23 +387,9 @@ es_update([Index,Type,Id], Data, Dict) :-
 
 debug_dict(Dict) :-
   debugging(es_api), !,
-  dcg_with_output_to(string(Msg), dcg_dict(Dict)),
-  debug(es_api, "~s", [Msg]).
+  dcg_with_output_to(string(Str), dcg_dict(Dict)),
+  debug(es_api, "~s", [Str]).
 debug_dict(_).
-
-
-
-%! es_delete0(+PathComps, -Status, -Dict) is det.
-
-es_delete0(PathComps, Status, Dict) :-
-  es_uri(PathComps, Uri),
-  http_delete(
-    Uri,
-    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
-    [metadata(InPath),request_header('Accept'='application/json')]
-  ),
-  member(InEntry, InPath),
-  _{status: Status} :< InEntry, !.
 
 
 
@@ -419,58 +401,37 @@ es_dict_to_result0(Dict, Result) :-
 
 
 
-%! es_get0(-Status, -Dict) is det.
-%! es_get0(+PathComps, -Status, -Dict) is det.
-%! es_get0(+PathComps, +QueryComps, -Status, -Dict) is det.
-%! es_get_cat0(+PathComps, -Msg) is det.
+%! es_get0(-Dict) is det.
+%! es_get0(+PathComps, -Dict) is det.
+%! es_get0(+PathComps, +QueryComps, -Dict) is det.
 
-es_get0(Status, Dict) :-
-  es_get0([], Status, Dict).
-
-
-es_get0(PathComps, Status, Dict) :-
-  es_get0(PathComps, [], Status, Dict).
+es_get0(Dict) :-
+  es_get0([], Dict).
 
 
-es_get0(PathComps, QueryComps, Status, Dict) :-
-  es_get0(
-    PathComps,
-    QueryComps,
-    [request_header('Accept'='application/json')],
-    {Dict}/[In,InPath,InPath]>>json_read_dict(In, Dict),
-    Status
+es_get0(PathComps, Dict) :-
+  es_get0(PathComps, [], Dict).
+
+
+es_get0(PathComps, QueryComps, Dict) :-
+  es_uri(PathComps, QueryComps, Uri),
+  call_on_stream(
+    Uri,
+    rest_reply(Dict, [200], [404]),
+    [method(get),request_header('Accept'='application/json')]
   ).
 
 
-es_get_cat0(PathComps, Msg) :-
-  es_get0(
-    ['_cat'|PathComps],
-    [v(true)],
-    [],
-    {Msg}/[In,InPath,InPath]>>read_stream_to_string(In, Msg),
-    Status
-  ),
-  http_status_must_be(Status, [200]).
 
+%! es_get_cat0(+PathComps, -Str) is det.
 
-es_get0(PathComps, QueryComps, T, Goal_3, Status) :-
-  es_uri(PathComps, QueryComps, Uri),
-  http_get(Uri, Goal_3, [metadata(InPath)|T]),
-  member(InEntry, InPath),
-  _{status: Status} :< InEntry.
-
-
-
-%! es_head0(+PathComps, -Status) is semidet.
-
-es_head0(PathComps, Status) :-
-  es_uri(PathComps, Uri),
-  http_head(
+es_get_cat0(PathComps, Str) :-
+  es_uri(['_cat'|PathComps], [v(true)], Uri),
+  call_on_stream(
     Uri,
-    [metadata(InPath),request_header('Accept'='application/json')]
-  ),
-  member(InEntry, InPath),
-  _{status: Status} :< InEntry, !.
+    rest_reply(Str, [200], [404]),
+    [method(get),request_header('Accept'='text/plain')]
+  ).
 
 
 
@@ -492,37 +453,38 @@ es_uri(PathComps, QueryComps, Uri) :-
 
 
 
-%! es_post0(+PathComps, +Data, -Status, -Dict) is det.
-%! es_post0(+PathComps, +QueryComps, +Data, -Status, -Dict) is det.
+%! es_post0(+PathComps, +Data, +Success, -Dict) is det.
+%! es_post0(+PathComps, +QueryComps, +Data, +Success, -Dict) is det.
 
-es_post0(PathComps, Data, Status, Dict) :-
-  es_post0(PathComps, [], Data, Status, Dict).
+es_post0(PathComps, Data, Success, Dict) :-
+  es_post0(PathComps, [], Data, Success, Dict).
 
 
-es_post0(PathComps, QueryComps, Data, Status, Dict) :-
+es_post0(PathComps, QueryComps, Data, Success, Dict) :-
   es_uri(PathComps, QueryComps, Uri),
   debug_dict(Data),
-  http_post(
-    Uri,
+  call_on_stream(
+    uri(Uri),
     json(Data),
-    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
-    [metadata(InPath),request_header('Accept'='application/json')]
-  ),
-  member(InEntry, InPath),
-  _{status: Status} :< InEntry, !.
+    rest_reply(Dict, Success),
+    [method(post),request_header('Accept'='application/json')]
+  ).
 
 
 
-%! es_put0(+PathComps, +Data, -Status, -Dict) is det.
+%! es_put0(+PathComps, +Data, +Success, -Dict) is det.
+%! es_put0(+PathComps, +Data, +Success, +Failure, -Dict) is det.
 
-es_put0(PathComps, Data, Status, Dict) :-
+es_put0(PathComps, Data, Success, Dict) :-
+  es_put0(PathComps, Data, Success, [], Dict).
+
+
+es_put0(PathComps, Data, Success, Failure, Dict) :-
   es_uri(PathComps, Uri),
   debug_dict(Data),
-  http_put(
-    Uri,
+  call_on_stream(
+    uri(Uri),
     json(Data),
-    {Dict}/[In,InPath0,InPath0]>>json_read_dict(In, Dict),
-    [metadata(InPath),request_header('Accept'='application/json')]
-  ),
-  member(InEntry, InPath),
-  _{status: Status} :< InEntry, !.
+    rest_reply(Dict, Success, Failure),
+    [method(put),request_header('Accept'='application/json')]
+  ).
