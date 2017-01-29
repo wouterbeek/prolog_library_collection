@@ -232,19 +232,18 @@ call_on_stream(Source, Goal_3, SourceOpts) :-
 %%%%  at_end_of_stream(In), !.
 % Already a stream, leave as is.
 call_on_stream0(In, Goal_3, [InEntry1], InPath, _) :-
-  get_dict('@type', InEntry1, stream), !,
+  _{'@type': stream} :< InEntry1, !,
   call(Goal_3, In, [InEntry1], InPath).
-% Leaf archive entry.
+% Leaf/raw archive entry.
 call_on_stream0(In1, Goal_3, InPath1, InPath2, SourceOpts) :-
   InPath1 = [InEntry|_],
-  get_dict(format, InEntry, raw),
-  get_dict('@id', InEntry, data), !,
+  _{'@type': entry, format: raw} :< InEntry, !,
   setup_call_cleanup(
     recode_stream(In1, In2, Close, SourceOpts),
     call(Goal_3, In2, InPath1, InPath2),
     close_any2(Close, read)
   ).
-% Non-leaf archive entry.
+% Non-leaf/raw archive entry.
 call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
   findall(format(Format), archive_format(Format, true), Formats),
   setup_call_cleanup(
