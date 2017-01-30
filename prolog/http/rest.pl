@@ -328,18 +328,20 @@ type(A) -->
 %! rest_reply(-Result, +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
 
 rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
+  peek_string(In, 1000, Str), %DEB
+  writeln(Str), %DEB
   once((
     member(InEntry, InPath),
     _{'@type': uri, headers: Headers, status: Status} :< InEntry
   )),
-  _{'content-type': ContentType} :< Headers,
-  http_parse_header_value(content_type, ContentType, media(MT0,_)),
-  rest_reply_stream(MT0, Status, In, Result),
+  (   _{'content-type': ContentType} :< Headers
+  ->  http_parse_header_value(content_type, ContentType, media(MT0,_)),
+      rest_reply_stream(MT0, Status, In, Result)
+  ;   % No Content-Type header, so no content.
+      at_end_of_stream(In)
+  ),
   http_status_must_be(Status, Succeeds, Fails).
 
-rest_reply_stream(_, _, In, _) :-
-  at_end_of_stream(In), !,
-  print_message(warning, empty_http_reply).
 rest_reply_stream(application/json, Status, In, Result) :- !,
   json_read_dict(In, Result0),
   (   http_status_is_success(Status)

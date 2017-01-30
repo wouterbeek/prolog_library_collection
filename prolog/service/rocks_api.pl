@@ -59,6 +59,8 @@
 
 
 %! call_on_rocks(+Alias, +Type, :Goal_1) is det.
+%
+% The following call is made: ‘call(:Goal_1, +Alias)’.
 
 call_on_rocks(Alias, Type, Goal_1) :-
   call_rocks0(Alias, Type, read_only, Goal_1).
@@ -66,6 +68,8 @@ call_on_rocks(Alias, Type, Goal_1) :-
 
 
 %! call_to_rocks(+Alias, +Type, :Goal_1) is det.
+%
+% The following call is made: ‘call(:Goal_1, +Alias)’.
 
 call_to_rocks(Alias, Type, Goal_1) :-
   call_rocks0(Alias, Type, read_write, Goal_1).
