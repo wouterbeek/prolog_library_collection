@@ -247,6 +247,7 @@ uri_optional_query_enc        --> [].
 
 
 %! uri_query_enc// .
+%
 % ```abnf
 % query = *( pchar / "/" / "?" )
 % pchar = unreserved / pct-encoded / sub-delims / ":" / "@"

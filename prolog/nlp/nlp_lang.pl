@@ -39,6 +39,10 @@ nlp:lstring(en, comments, "Comments").
 nlp:lstring(nl, comments, "Reacties").
 nlp:lstring(en, developed_with, "Developed with").
 nlp:lstring(nl, developed_with, "Ontwikkeld met").
+nlp:lstring(en, edit, "Edit").
+nlp:lstring(nl, edit, "Bewerk").
+nlp:lstring(en, edit_mode, "Edit mode").
+nlp:lstring(nl, edit_mode, "Bewerken").
 nlp:lstring(en, en, "English").
 nlp:lstring(nl, en, "Engels").
 nlp:lstring(en, follow, "Follow").

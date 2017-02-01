@@ -469,6 +469,32 @@ html({|html||...|}).
      ]
    ).
 
+:- if(debugging(css(editor))).
+  :- html_resource(
+       css(editor),
+       [requires([css('medium-editor-5.22.1.css')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       css(editor),
+       [requires([css('medium-editor-5.22.1.min.css')]),virtual(true)]
+     ).
+:- endif.
+
+:- if(debugging(js(editor))).
+  :- html_resource(
+       js(editor),
+       [requires([js('medium-editor-5.22.1.js')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       js(editor),
+       [requires([js('medium-editor-5.22.1.min.js')]),virtual(true)]
+     ).
+:- endif.
+
+:- html_resource(editor, [requires([css(medium),js(medium)]),virtual(true)]).
+
 :- meta_predicate
     deck(3, +, ?, ?),
     deck(+, 3, +, ?, ?),
