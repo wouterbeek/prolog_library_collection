@@ -159,7 +159,7 @@ rocks_open(Alias, Type, Mode) :-
   rocksdb:rocks_open(
     Dir,
     _,
-    [alias(Alias),key(atom),merge(Merge_5),mode(Mode),value(Val)]
+    [alias(Alias),key(atom),merge(rocks_api:Merge_5),mode(Mode),value(Val)]
   ).
 
 type_merge_value0(int, rocks_merge_sum, int64).
