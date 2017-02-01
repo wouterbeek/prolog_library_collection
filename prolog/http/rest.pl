@@ -209,7 +209,7 @@ rest_method0(Req, Method, Methods, Plural_2, HandleId, Singular_3) :-
   uri_resource(Uri1, Res),
   (   ground(HandleId),
       http_link_to_id(HandleId, Uri2),
-      \+ uri_to_resource(Uri2, Res)
+      \+ uri_resource(Uri2, Res)
   ->  call(Singular_3, Res, Method, MTs)
   ;   call(Plural_2, Method, MTs)
   ).
