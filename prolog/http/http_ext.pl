@@ -37,6 +37,7 @@ messages.
 :- use_module(library(http/http11)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
+:- use_module(library(uri/uri_ext)).
 
 
 

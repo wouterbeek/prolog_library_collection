@@ -57,6 +57,7 @@ There are two phases in handling REST requests:
 :- use_module(library(pair_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
+:- use_module(library(uri/uri_ext)).
 
 :- html_meta
    rest_media_type(+, 1),

@@ -289,8 +289,8 @@ uri_remove_fragment(Uri, BaseUri) :-
 uri_resource(Uri, Res) :-
   ground(Uri), !,
   uri_components(Uri, uri_components(_,_,Path,_,_)),
-  setting(data_uri:scheme, Scheme),
-  setting(data_uri:host, Host),
+  setting(uri:data_scheme, Scheme),
+  setting(uri:data_host, Host),
   uri_components(Res, uri_components(Scheme,Host,Path,_,_)).
 uri_resource(Uri, Res) :-
   uri_components(Res, uri_components(ResScheme,ResHost,Path,Query,Frag)), !,
