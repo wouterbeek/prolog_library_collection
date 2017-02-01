@@ -321,11 +321,11 @@ uri_segments(Uri, Segments) :-
   ground(Uri), !,
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   atomic_list_concat([''|Segments], /, Path).
-uri_segments(Uri, Segments) :-
+uri_segments(Uri, Segments1) :-
   setting(uri:data_scheme, Scheme),
   setting(uri:data_host, Host),
-  (Segments = [''|Segments0] -> true ; Segments0 = Segments),
-  atomic_list_concat(Segments0, /, Path),
+  (Segments1 = [''|Segments2] -> true ; Segments2 = Segments1),
+  atomic_list_concat([''|Segments2], /, Path),
   uri_components(Uri, uri_components(Scheme,Host,Path,_,_)).
 
 
