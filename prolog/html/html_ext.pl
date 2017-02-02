@@ -493,7 +493,7 @@ html({|html||...|}).
      ).
 :- endif.
 
-:- html_resource(editor, [requires([css(medium),js(medium)]),virtual(true)]).
+:- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
 
 :- meta_predicate
     deck(3, +, ?, ?),
