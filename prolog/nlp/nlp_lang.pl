@@ -25,6 +25,8 @@
 :- multifile
     nlp:lstring/3.
 
+nlp:lstring(en, add_article, "Add article").
+nlp:lstring(nl, add_article, "Voeg artikel toe").
 nlp:lstring(en, article, "Article").
 nlp:lstring(nl, article, "Artikel").
 nlp:lstring(en, articles, "Articles").
@@ -43,6 +45,8 @@ nlp:lstring(en, edit, "Edit").
 nlp:lstring(nl, edit, "Bewerk").
 nlp:lstring(en, edit_mode, "Edit mode").
 nlp:lstring(nl, edit_mode, "Bewerken").
+nlp:lstring(en, editing, "Editing").
+nlp:lstring(nl, editing, "Bewerken").
 nlp:lstring(en, en, "English").
 nlp:lstring(nl, en, "Engels").
 nlp:lstring(en, follow, "Follow").
@@ -79,8 +83,8 @@ nlp:lstring(en, votes, "votes").
 nlp:lstring(nl, votes, "stemmen").
 nlp:lstring(en, written_by, "Written by").
 nlp:lstring(nl, written_by, "Geschreven door").
-
-
+nlp:lstring(en, you, "You").
+nlp:lstring(nl, you, "Jij").
 
 
 
