@@ -1,25 +1,26 @@
 :- module(
   rfc3986,
   [
-    'absolute-URI'//1, % -Uri:compound
-    authority//1, % -Auth:compound
-    fragment//1, % -Frag:atom
-    host//1, % -Host:atom
-    'IP-literal'//1, % -Ip:compound
-    'IPv4address'//1, % -Address:list(between(0,255))
-    'path-abempty'//1, % -Segments:list(atom)
-    'pct-encoded'//1, % -Code:between(0,255)
-    port//1, % -Port:nonneg
-    query//1, % -QueryComps:list(compound)
+    'absolute-URI'//1,  % -Uri:compound
+    authority//1,       % -Auth:compound
+    fragment//1,        % -Frag:atom
+    host//1,            % -Host:atom
+    'IP-literal'//1,    % -Ip:compound
+    'IPv4address'//1,   % -Address:list(between(0,255))
+    'path-abempty'//1,  % -Segments:list(atom)
+    pchar//1,           % -Code
+    'pct-encoded'//1,   % -Code:between(0,255)
+    port//1,            % -Port:nonneg
+    query//1,           % -QueryComps:list(compound)
     'relative-part'//2, % -Auth:compound, -Segments:list(atom)
-    scheme//1, % -Scheme:atom
-    scheme_code//1, % -Code:code
-    segment//1, % -Segment:atom
-    'segment-nz'//1, % -Segment:atom
-    'sub-delims'//1 , % -Code:code
-    unreserved//1, % -Code:code
-    'URI'//1, % -Uri:compound
-    'URI-reference'//1 % -Uri:compound
+    scheme//1,          % -Scheme:atom
+    scheme_code//1,     % -Code:code
+    segment//1,         % -Segment:atom
+    'segment-nz'//1,    % -Segment:atom
+    'sub-delims'//1 ,   % -Code:code
+    unreserved//1,      % -Code:code
+    'URI'//1,           % -Uri:compound
+    'URI-reference'//1  % -Uri:compound
   ]
 ).
 
@@ -35,7 +36,7 @@ The following terms are used:
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2016/11-2017/01
+@version 2016/11-2017/02
 */
 
 :- use_module(library(apply)).

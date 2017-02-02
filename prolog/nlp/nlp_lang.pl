@@ -53,6 +53,8 @@ nlp:lstring(en, language, "Language").
 nlp:lstring(nl, language, "Taal").
 nlp:lstring(en, like_us_on_x, "Like us on ~s").
 nlp:lstring(nl, like_us_on_x, "Like ons op ~s").
+nlp:lstring(en, new, "New").
+nlp:lstring(nl, new, "Nieuw").
 nlp:lstring(en, nl, "Dutch").
 nlp:lstring(nl, nl, "Nederlands").
 nlp:lstring(en, on, "on").

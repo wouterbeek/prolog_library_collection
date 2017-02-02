@@ -42,6 +42,7 @@ atom_to_html_dom(A, Dom, Opts) :-
 
 
 %! html_insert_dom(+Dom)// is det.
+%
 % Includes the given XML DOM inside a generated HTML page.
 %
 % DOM is either a list or compound term or an atom.

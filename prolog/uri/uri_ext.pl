@@ -15,6 +15,7 @@
     uri_query_enc//0,
     uri_remove_fragment/2, % +Uri, -BaseUri
     uri_resource/2,        % ?Uri, ?Res
+    uri_segment_enc//0,
     uri_segments/2,        % ?Uri, ?Segments
     uri_segments_uuid/2    % ?Uri, ?Segments
   ]
@@ -323,6 +324,18 @@ uri_resource(Uri, Res) :-
 correct_for_default_port(http, 80, _) :- !.
 correct_for_default_port(https, 443, _) :- !.
 correct_for_default_port(_, Port, Port).
+
+
+
+%! uri_segment_enc// is det.
+
+uri_segment_enc, [C] -->
+  pchar(C), !,
+  uri_segment_enc.
+uri_segment_enc, "-" -->
+  [_], !,
+  uri_segment_enc.
+uri_segment_enc --> "".
 
 
 
