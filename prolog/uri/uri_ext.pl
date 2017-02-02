@@ -294,20 +294,21 @@ uri_resource(Uri, Res) :-
   setting(uri:data_host, Host),
   uri_components(Res, uri_components(Scheme,Host,Path,_,_)).
 uri_resource(Uri, Res) :-
-  uri_components(Res, uri_components(ResScheme,ResHost,Path,Query,Frag)), !,
+  uri_components(Res, uri_components(_ResScheme,_ResHost,Path,Query,Frag)), !,
   setting(http:public_scheme, UriScheme),
   setting(http:public_host, UriHost),
+  /*
   (   % Data location and public location are the same, so relative
       % resource URIs will do.
       ResScheme == UriScheme,
       ResHost == UriHost
-  ->  uri_components(Res, uri_components(_,_,Path,Query,Frag))
-  ;   setting(http:public_port, ResPort),
-      % Default ports do not need to set explicitly.
-      correct_for_default_port(UriScheme, ResPort, UriPort),
-      uri_authority_components(UriAuth, uri_authority(_,_,UriHost,UriPort)),
-      uri_components(Uri, uri_components(UriScheme,UriAuth,Path,Query,Frag))
-  ).
+  ->  uri_components(Uri, uri_components(_,_,Path,Query,Frag))
+  */
+  setting(http:public_port, UriPort),
+  % Default ports do not need to set explicitly.
+  correct_for_default_port(UriScheme, UriPort, UriPort),
+  uri_authority_components(UriAuth, uri_authority(_,_,UriHost,UriPort)),
+  uri_components(Uri, uri_components(UriScheme,UriAuth,Path,Query,Frag)).
 
 correct_for_default_port(http, 80, _) :- !.
 correct_for_default_port(https, 443, _) :- !.

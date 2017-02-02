@@ -104,14 +104,14 @@ current_ltag(LTags, LTag) :-
 
 
 
-%! lrange_to_ltag(+LRange, -LTag) is det.
+%! lrange_to_ltag(+LRange, -LTag) is nondet.
 
 lrange_to_ltag(LRange, LTag2) :-
   member(LTag1, LRange),
-  atomic_list_concat(L, -, LTag1),
-  longest_to_shortest_prefix0(Prefix, L),
-  Prefix \== [],
-  atomic_list_concat(Prefix, -, LTag2).
+  atomic_list_concat(Subtags, -, LTag1),
+  longest_to_shortest_prefix0(PrefixSubtags, Subtags),
+  PrefixSubtags \== [],
+  atomic_list_concat(PrefixSubtags, -, LTag2).
 
 longest_to_shortest_prefix0(L, L).
 longest_to_shortest_prefix0(Prefix, L1) :-
