@@ -3,6 +3,7 @@
   [
     auth_comps/2,          % ?Auth, ?Comps
     iri_query_enc//0,
+    is_data_uri/1,         % +Uri
     is_image_uri/1,        % @Term
     uri_alias_uuid/2,      % -Uri, +Alias
     uri_comp/3,            % +Uri, ?Key, ?Val
@@ -92,6 +93,15 @@ iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
   {W1 is C // 16, W2 is C mod 16},
   iri_query_enc.
 iri_query_enc --> "".
+
+
+
+%! is_data_uri(+Uri) is semidet.
+
+is_data_uri(Uri) :-
+  uri_components(Uri, uri_components(Scheme,Host,_,_,_)),
+  setting(uri:data_scheme, Scheme),
+  setting(uri:data_host, Host).
 
 
 
