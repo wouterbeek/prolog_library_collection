@@ -472,24 +472,24 @@ html({|html||...|}).
 :- if(debugging(css(editor))).
   :- html_resource(
        css(editor),
-       [requires([css('medium-editor-5.22.1.css')]),virtual(true)]
+       [requires([css('medium-editor-5.22.2.css')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        css(editor),
-       [requires([css('medium-editor-5.22.1.min.css')]),virtual(true)]
+       [requires([css('medium-editor-5.22.2.min.css')]),virtual(true)]
      ).
 :- endif.
 
 :- if(debugging(js(editor))).
   :- html_resource(
        js(editor),
-       [requires([js('medium-editor-5.22.1.js')]),virtual(true)]
+       [requires([js('medium-editor-5.22.2.js')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        js(editor),
-       [requires([js('medium-editor-5.22.1.min.js')]),virtual(true)]
+       [requires([js('medium-editor-5.22.2.min.js')]),virtual(true)]
      ).
 :- endif.
 

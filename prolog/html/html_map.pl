@@ -28,18 +28,18 @@
 
 :- html_resource(
      css(map),
-     [requires([css('leaflet-1.0.2.css')]),virtual(true)]
+     [requires([css('leaflet-1.0.3.css')]),virtual(true)]
    ).
 
 :- if(debugging(js(map))).
   :- html_resource(
        js(map),
-       [requires([js('leaflet-1.0.2.js')]),virtual(true)]
+       [requires([js('leaflet-1.0.3.js')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        js(map),
-       [requires([js('leaflet-1.0.2.min.js')]),virtual(true)]
+       [requires([js('leaflet-1.0.3.min.js')]),virtual(true)]
      ).
 :- endif.
 
