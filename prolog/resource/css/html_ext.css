@@ -1,3 +1,7 @@
+.editable {
+  border: 1px solid;
+}
+
 a,
 a:active,
 a:focus,
@@ -410,6 +414,7 @@ article h3 {
 
 /* Article: Textual content */
 
+article [property="dc:abstract"],
 article [property="sioc:content"] {
   margin: auto;
   max-width: 550px;
