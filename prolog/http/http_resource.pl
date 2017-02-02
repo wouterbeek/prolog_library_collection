@@ -1,12 +1,12 @@
-:- module(html_resource, []).
+:- module(http_resource, []).
 :- reexport(library(http/html_head)).
 
-/** <module> HTML resource
+/** <module> HTTP resource
 
-Initialize locations for serving HTML resources.
+Initialize locations for serving HTTP resources.
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/04, 2017/01
+@version 2015/08, 2016/02, 2016/04, 2017/01-2017/02
 */
 
 :- use_module(library(http/http_dispatch)).

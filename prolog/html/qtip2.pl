@@ -8,8 +8,8 @@
 */
 
 :- use_module(library(debug)).
-:- use_module(library(html/html_resource)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_resource)).
 
 
 

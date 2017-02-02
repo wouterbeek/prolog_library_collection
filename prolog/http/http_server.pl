@@ -27,10 +27,10 @@ Use the following settings while developing on localhost:
 */
 
 :- use_module(library(error)).
-:- use_module(library(html/html_resource)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_log)).
+:- use_module(library(http/http_resource)).
 :- use_module(library(http/http_session)). % Session support.
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(option)).

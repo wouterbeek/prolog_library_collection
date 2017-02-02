@@ -66,7 +66,6 @@
   :- use_module(library(html/html_dom)).
   :- use_module(library(html/html_ext)).
   :- use_module(library(html/html_map)).
-  :- use_module(library(html/html_resource)).
   :- use_module(library(html/qtip2)).
 %/http
   :- use_module(library(http/cors)).
@@ -77,6 +76,7 @@
   :- use_module(library(http/http_download)).
   :- use_module(library(http/http_ext)).
   :- use_module(library(http/http_io)).
+  :- use_module(library(http/http_resource)).
   :- use_module(library(http/http_server)).
   :- use_module(library(http/http_user)).
   :- use_module(library(http/http11)).
