@@ -183,8 +183,7 @@ rest_method(Req, Plural_2, HandleId, Singular_3) :-
   memberchk(path(Path), Req),
   strip_module(Plural_2, Mod, _),
   Mod:http_current_handler(Path, _, Opts),
-  memberchk(methods(Methods0), Opts),
-  sort([head,options|Methods0], Methods),
+  memberchk(methods(Methods), Opts),
   memberchk(method(Method), Req),
   rest_method0(Req, Method, Methods, Mod:Plural_2, HandleId, Mod:Singular_3).
 
