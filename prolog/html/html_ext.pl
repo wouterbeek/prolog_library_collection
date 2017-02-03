@@ -51,6 +51,7 @@
     figure//2,               % +Uri, +Caption
     figure//3,               % +Uri, +Alt, :Caption_0
     file_name//1,            % +File
+    file_upload//0,
     flag_icon//1,            % +LTag
     footer_panel//3,         % +Spec, :Top, :Bottom
     footnote_post//2,        % +State, :Html_0
@@ -365,8 +366,10 @@ html({|html||...|}).
    unordered_list(html, +, ?, ?),
    unordered_list(+, html, +, ?, ?).
 
+% jQuery
 :- set_setting(jquery:version, '3.1.1.min').
 
+% Bootstrap
 :- if(debugging(css(bootstrap))).
   :- html_resource(
        css(bootstrap),
@@ -378,7 +381,6 @@ html({|html||...|}).
        [requires([css('bootstrap-3.3.7.min.css')]),virtual(true)]
      ).
 :- endif.
-
 :- if(debugging(css('bootstrap-theme'))).
   :- html_resource(
        css('bootstrap-theme'),
@@ -398,7 +400,6 @@ html({|html||...|}).
        ]
      ).
 :- endif.
-
 :- if(debugging(js(bootstrap))).
   :- html_resource(
        js(bootstrap),
@@ -418,12 +419,12 @@ html({|html||...|}).
        ]
      ).
 :- endif.
-
 :- html_resource(
      bootstrap,
      [requires([css('bootstrap-theme'),js(bootstrap)]),virtual(true)]
    ).
 
+% Clipboard
 :- if(debugging(js(clipboard))).
   :- html_resource(
        js(clipboard),
@@ -435,17 +436,45 @@ html({|html||...|}).
        [requires([js('clipboard-1.5.12.min.js')]),virtual(true)]
      ).
 :- endif.
-
 :- html_resource(
      clipboard,
      [requires([js(clipboard)]),virtual(true)]
    ).
 
+% Dropzone
+:- if(debugging(css(dropzone))).
+  :- html_resource(
+       css(dropzone),
+       [requires([css('dropzone-4.3.0.css')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       css(dropzone),
+       [requires([css('dropzone-4.3.0.min.css')]),virtual(true)]
+     ).
+:- endif.
+
+:- if(debugging(js(dropzone))).
+  :- html_resource(
+       js(dropzone),
+       [requires([js('dropzone-4.3.0.js')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       js(dropzone),
+       [requires([js('dropzone-4.3.0.min.js')]),virtual(true)]
+     ).
+:- endif.
+:- html_resource(
+     dropzone,
+     [requires([css(dropzone),js(dropzone)]),virtual(true)]
+   ).
+
+% Grid
 :- html_resource(
      css(grid),
      [requires([css('grid.css')]),virtual(true)]
    ).
-
 :- if(debugging(js(grid))).
   :- html_resource(
        js(grid),
@@ -457,9 +486,9 @@ html({|html||...|}).
        [ordered(true),requires([jquery,js('jquery.pinto.min.js')]),virtual(true)]
      ).
 :- endif.
-
 :- html_resource(grid, [requires([css(grid),js(grid)]),virtual(true)]).
 
+% HTML extensions
 :- html_resource(
      html_ext,
      [
@@ -469,6 +498,7 @@ html({|html||...|}).
      ]
    ).
 
+% Medium editor
 :- if(debugging(css(editor))).
   :- html_resource(
        css(editor),
@@ -492,7 +522,6 @@ html({|html||...|}).
        [requires([js('medium-editor-5.22.2.min.js')]),virtual(true)]
      ).
 :- endif.
-
 :- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
 
 :- meta_predicate
@@ -1316,6 +1345,16 @@ figure(Uri, Alt, Caption_0) -->
 
 file_name(File) -->
   html(span(class=file, File)).
+
+
+
+%! file_upload// is det.
+
+file_upload -->
+  html([
+    \html_requires(dropzone),
+    form([action='/file-upload',class=dropzone,id=fileUpload], [])
+  ]).
 
 
 
