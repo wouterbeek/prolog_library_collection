@@ -1,7 +1,3 @@
-.editable {
-  border: 1px solid;
-}
-
 a,
 a:active,
 a:focus,
@@ -26,6 +22,11 @@ body {
 code, pre {
   background: #f8f8ff;
   font-family: monospace;
+}
+
+/* medium-editor */
+.editable {
+  border: 1px solid;
 }
 
 h1, h3, h4, h5, h6 {
@@ -122,14 +123,14 @@ li[typeof="sbo:Author"] img {
 
 
 
-/* Map */
+/* leaflet */
 
 html,
 body,
-.container-with-map,
-.container-with-map .main,
-.container-with-map .main .row,
-.container-with-map .main .row .col,
+.container-fluid,
+.container-fluid .main,
+.container-fluid .main .row,
+.container-fluid .main .row .col,
 #mapid {
   padding: 0;
   margin: 0;
