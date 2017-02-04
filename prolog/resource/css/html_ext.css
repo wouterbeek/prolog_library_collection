@@ -414,9 +414,9 @@ article h3 {
 
 
 
-/* Article: Textual content */
+/* Article: Textual content
+article [property="dc:abstract"],*/
 
-article [property="dc:abstract"],
 article [property="sioc:content"] {
   margin: auto;
   max-width: 550px;
