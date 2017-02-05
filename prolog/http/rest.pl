@@ -185,8 +185,8 @@ rest_method(Req, Plural_2, HandleId, Singular_3) :-
   Mod:http_current_handler(Path, _, Opts),
   memberchk(methods(Methods), Opts),
   memberchk(method(Method), Req),
+  format("Strict-Transport-Security: max-age=86400~n; includeSubDomains"),
   rest_method0(Req, Method, Methods, Mod:Plural_2, HandleId, Mod:Singular_3).
-
 
 % OPTIONS request
 rest_method0(_, options, Methods, _, _, _) :- !,
