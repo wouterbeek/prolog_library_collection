@@ -1,16 +1,18 @@
 :- module(
   wkt_gen,
   [
-    wkt_gen//1 % +Shape
+    wkt_gen//1, % +Shape:compound
+    wkt_gen//2  % +Crs:atom, +Shape:compound
   ]
 ).
 
 /** <module> Well-Known Text (WKT): Generator
 
-@version 2016/11
+@version 2016/11, 2017/02
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(uri/rfc3986)).
 
 
 
@@ -325,7 +327,18 @@ triangle_text_representation(ZM1, triangle(Points)) -->
 
 
 
+%! wkt_gen(+Shape:compound)// is det.
+%! wkt_gen(+Crs:atom, +Shape:compound)// is det.
+
 wkt_gen(Shape) -->
+  wkt_gen('http://www.opengis.net/def/crs/OGC/1.3/CRS84', Shape).
+
+
+wkt_gen(Crs, Shape) -->
+  (   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
+  ->  ""
+  ;   "<", 'URI'(Crs), "> "
+  ),
   wkt_representation(_, Shape).
 
 

@@ -38,13 +38,13 @@
 Predicates for manipulating atoms.
 
 We assume that atoms are encoded using ASCII (or an ASCII-compatible)
- encoding scheme.
+encoding scheme.
 
 # Replace
 
-In-atom replacements can best be made using DCGs.
-This requires the atom to be translated to/from a list of numeric codes.
-For example, escaping spaces and grave accent (e.g. in URIs):
+In-atom replacements can best be made using DCGs.  This requires the
+atom to be translated to/from a list of numeric codes.  For example,
+escaping spaces and grave accent (e.g. in URIs):
 
 ```prolog
 :- use_module(plc(dcg/dcg_ext)).

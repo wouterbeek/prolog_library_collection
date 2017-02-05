@@ -322,13 +322,13 @@ ls32(Ns) -->
 % ```
 
 % Begins with "/" or is empty.
-path(Segments) --> 'path-abempty'(Segments).
+path(Segments) --> 'path-abempty'(Segments), !.
 % Begins with "/" but not "//".
-path(Segments) --> 'path-absolute'(Segments).
+path(Segments) --> 'path-absolute'(Segments), !.
 % Begins with a non-colon segment
-path(Segments) --> 'path-noscheme'(Segments).
+path(Segments) --> 'path-noscheme'(Segments), !.
 % Begins with a segment
-path(Segments) --> 'path-rootless'(Segments).
+path(Segments) --> 'path-rootless'(Segments), !.
 % Empty path (i.e., no segments).
 path(Segments) --> 'path-empty'(Segments).
 
@@ -341,7 +341,7 @@ path(Segments) --> 'path-empty'(Segments).
 % ```
 
 'path-abempty'(L) -->
-  *(sep_segment, L).
+  *(sep_segment, L), !.
 
 
 
@@ -353,7 +353,7 @@ path(Segments) --> 'path-empty'(Segments).
 
 'path-absolute'([H|T]) -->
   "/",
-  ('segment-nz'(H) -> *(sep_segment, T) ; {T = []}).
+  ('segment-nz'(H) -> *(sep_segment, T), ! ; {T = []}).
 
 
 
@@ -375,7 +375,7 @@ path(Segments) --> 'path-empty'(Segments).
 
 'path-noscheme'([H|T]) -->
   'segment-nz-nc'(H),
-  *(sep_segment, T).
+  *(sep_segment, T), !.
 
 
 
@@ -387,7 +387,7 @@ path(Segments) --> 'path-empty'(Segments).
 
 'path-rootless'([H|T]) -->
   'segment-nz'(H),
-  *(sep_segment, T).
+  *(sep_segment, T), !.
 
 
 

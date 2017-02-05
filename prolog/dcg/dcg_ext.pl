@@ -84,6 +84,8 @@
     dcg_once//2,           % :Dcg_1, +Arg1
     dcg_once//3,           % :Dcg_2, +Arg1, +Arg2
     dcg_string//2,         % :Dcg_1, ?S
+    dcg_strip//0,
+    dcg_strip//1,          % +StripCs
     dcg_tab//0,
     dcg_var//2,            % +Map, +Var
     dcg_width/2,           % :Dcg_0, -Width
@@ -1323,6 +1325,38 @@ dcg_string(Dcg_1, S) -->
   {must_be(string, S)}, !,
   {string_codes(S, Cs)},
   dcg_call(Dcg_1, Cs).
+
+
+
+%! dcg_strip// is det.
+%! dcg_strip(+StripCs)// is det.
+
+dcg_strip -->
+  dcg_strip_begin([9,10,32]).
+
+
+dcg_strip(StripCs) -->
+  dcg_strip_begin(StripCs).
+
+dcg_strip_begin(StripCs) -->
+  [C],
+  {memberchk(C, StripCs)}, !,
+  dcg_strip_begin(StripCs).
+dcg_strip_begin(StripCs) -->
+  dcg_strip_middle(StripCs).
+
+dcg_strip_middle(StripCs) -->
+  dcg_strip_end(StripCs), !.
+dcg_strip_middle(StripCs), [C] -->
+  [C],
+  dcg_strip_middle(StripCs).
+
+dcg_strip_end(StripCs) -->
+  [C],
+  {memberchk(C, StripCs)}, !,
+  dcg_strip_end(StripCs).
+dcg_strip_end(_) -->
+  eos.
 
 
 

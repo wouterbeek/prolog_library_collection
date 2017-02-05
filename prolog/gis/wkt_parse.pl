@@ -1,7 +1,7 @@
 :- module(
   wkt_parse,
   [
-    wkt//1 % -Shape
+    wkt//2 % -Crs:atom, -Shape:compound
   ]
 ).
 
@@ -15,10 +15,16 @@ A **polygon** consists of exactly one Exterior linear ring and zero or
 more interior linear rings (Interiors).
 
 @author Wouter Beek
-@version 2016/05-2016/06, 2016/11
+@version 2016/05-2016/06, 2016/11, 2017/02
 */
 
+:- use_module(library(dcg/dcg_ascii), [space//0]).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(uri/rfc3986)).
+
+:- meta_predicate
+    're+'(3, -, ?, ?),
+    're*'(3, -, ?, ?).
 
 
 
@@ -33,7 +39,7 @@ circularstring_text(ZM, Points) -->
 
 
 circularstring_text_representation(ZM1, circularString(Points)) -->
-  keyword("circularstring"),
+  keyword(`circularstring`),
   z_m(ZM1, ZM2),
   circularstring_text(ZM2, Points).
 
@@ -41,10 +47,10 @@ circularstring_text_representation(ZM1, circularString(Points)) -->
 
 collection_text_representation(ZM, Multipoint) -->
   multipoint_text_representation(ZM, Multipoint), !.
-collection_text_representation(ZM, Compound) -->
-  multicurve_text_representation(ZM, Compound), !.
-collection_text_representation(ZM, Compound) -->
-  multisurface_text_representation(ZM, Compound), !.
+collection_text_representation(ZM, Shape) -->
+  multicurve_text_representation(ZM, Shape), !.
+collection_text_representation(ZM, Shape) -->
+  multisurface_text_representation(ZM, Shape), !.
 collection_text_representation(ZM, GeometryCollection) -->
   geometrycollection_text_representation(ZM, GeometryCollection).
 
@@ -60,7 +66,7 @@ compoundcurve_text(ZM, L) -->
 
 
 compoundcurve_text_representation(ZM1, compoundCurve(L)) -->
-  keyword("compoundcurve"),
+  keyword(`compoundcurve`),
   z_m(ZM1, ZM2),
   compoundcurve_text(ZM2, L).
 
@@ -74,8 +80,8 @@ curve_text(ZM, CompoundCurve) -->
   compoundcurve_text_representation(ZM, CompoundCurve).
 
 
-curve_text_representation(ZM, Compound) -->
-  linestring_text_representation(ZM, Compound), !.
+curve_text_representation(ZM, Shape) -->
+  linestring_text_representation(ZM, Shape), !.
 curve_text_representation(ZM, CircularString) -->
   circularstring_text_representation(ZM, CircularString), !.
 curve_text_representation(ZM, CompoundCurve) -->
@@ -96,27 +102,27 @@ curvepolygon_text_body(ZM, L) -->
 
 
 curvepolygon_text_representation(ZM1, curvePolygon(L)) -->
-  keyword("curvepolygon"),
+  keyword(`curvepolygon`),
   z_m(ZM1, ZM2),
   curvepolygon_text_body(ZM2, L), !.
-curvepolygon_text_representation(ZM, Compound) -->
-  polygon_text_representation(ZM, Compound), !.
-curvepolygon_text_representation(ZM, Compound) -->
-  triangle_text_representation(ZM, Compound).
+curvepolygon_text_representation(ZM, Shape) -->
+  polygon_text_representation(ZM, Shape), !.
+curvepolygon_text_representation(ZM, Shape) -->
+  triangle_text_representation(ZM, Shape).
 
 
 
-geometrycollection_text(_, Compounds) -->
-  empty_set(Compounds), !.
-geometrycollection_text(ZM, Compounds) -->
-  're+'(wkt_representation(ZM), Compounds),
+geometrycollection_text(_, Shapes) -->
+  empty_set(Shapes), !.
+geometrycollection_text(ZM, Shapes) -->
+  're+'(wkt_representation(ZM), Shapes),
   must_see_code(0')).
 
 
-geometrycollection_text_representation(ZM1, geometryCollection(Compounds)) -->
-  keyword("geometrycollection"),
+geometrycollection_text_representation(ZM1, geometryCollection(Shapes)) -->
+  keyword(`geometrycollection`),
   z_m(ZM1, ZM2),
-  geometrycollection_text(ZM2, Compounds).
+  geometrycollection_text(ZM2, Shapes).
 
 
 
@@ -133,7 +139,7 @@ linestring_text_body(ZM, Points) -->
 
 
 linestring_text_representation(ZM1, lineString(Points)) -->
-  keyword("linestring"),
+  keyword(`linestring`),
   z_m(ZM1, ZM2),
   linestring_text_body(ZM2, Points).
 
@@ -148,11 +154,11 @@ multicurve_text(ZM, L) -->
 
 
 multicurve_text_representation(ZM1, multiCurve(L)) -->
-  keyword("multicurve"),
+  keyword(`multicurve`),
   z_m(ZM1, ZM2),
   multicurve_text(ZM2, L), !.
-multicurve_text_representation(ZM, Compound) -->
-  multilinestring_text_representation(ZM, Compound).
+multicurve_text_representation(ZM, Shape) -->
+  multilinestring_text_representation(ZM, Shape).
 
 
 
@@ -165,7 +171,7 @@ multilinestring_text(ZM, Pointss) -->
 
 
 multilinestring_text_representation(ZM1, multiLineString(Pointss)) -->
-  keyword("multilinestring"),
+  keyword(`multilinestring`),
   z_m(ZM1, ZM2),
   multilinestring_text(ZM2, Pointss).
 
@@ -180,7 +186,7 @@ multipoint_text(ZM, Points) -->
 
 
 multipoint_text_representation(ZM1, multiPoint(Points)) -->
-  keyword("multipoint"),
+  keyword(`multipoint`),
   z_m(ZM1, ZM2),
   multipoint_text(ZM2, Points).
 
@@ -195,7 +201,7 @@ multipolygon_text(ZM, L) -->
 
 
 multipolygon_text_representation(ZM1, multiPolygon(L)) -->
-  keyword("multipolygon"),
+  keyword(`multipolygon`),
   z_m(ZM1, ZM2),
   multipolygon_text(ZM2, L).
 
@@ -210,11 +216,11 @@ multisurface_text(ZM, L) -->
 
 
 multisurface_text_representation(ZM1, multiSurface(L)) -->
-  keyword("multisurface"),
+  keyword(`multisurface`),
   z_m(ZM1, ZM2),
   multisurface_text(ZM2, L), !.
-multisurface_text_representation(ZM, Compound) -->
-  multipolygon_text_representation(ZM, Compound), !.
+multisurface_text_representation(ZM, Shape) -->
+  multipolygon_text_representation(ZM, Shape), !.
 multisurface_text_representation(ZM, PolyhedralSurface) -->
   polyhedralsurface_text_representation(ZM, PolyhedralSurface), !.
 multisurface_text_representation(ZM, Tin) -->
@@ -231,7 +237,7 @@ point_text(ZM, [Point]) -->
 
 
 point_text_representation(ZM1, point(Point)) -->
-  keyword("point"),
+  keyword(`point`),
   z_m(ZM1, ZM2),
   point_text(ZM2, [Point]).
 
@@ -250,7 +256,7 @@ polygon_text_body(ZM, Pointss) -->
 
 
 polygon_text_representation(ZM1, polygon(Pointss)) -->
-  keyword("polygon"),
+  keyword(`polygon`),
   z_m(ZM1, ZM2),
   polygon_text_body(ZM2, Pointss).
 
@@ -264,7 +270,7 @@ polyhedralsurface_text(ZM, Pointsss) -->
 
 
 polyhedralsurface_text_representation(ZM1, polyhedralSurface(Pointsss)) -->
-  keyword("polyhedralsurface"),
+  keyword(`polyhedralsurface`),
   z_m(ZM1, ZM2),
   polyhedralsurface_text(ZM2, Pointsss).
 
@@ -287,14 +293,14 @@ single_curve_text(ZM, CircularString) -->
 
 
 surface_text(ZM, curvePolygon(L)) -->
-  keyword("curvepolygon"),
+  keyword(`curvepolygon`),
   curvepolygon_text_body(ZM, L), !.
 surface_text(ZM, Pointss) -->
   polygon_text_body(ZM, Pointss).
 
 
-surface_text_representation(ZM, Compound) -->
-  curvepolygon_text_representation(ZM, Compound).
+surface_text_representation(ZM, Shape) -->
+  curvepolygon_text_representation(ZM, Shape).
 
 
 
@@ -307,7 +313,7 @@ tin_text(ZM, Pointss) -->
 
 
 tin_text_representation(ZM1, tin(Pointss)) -->
-  keyword("tin"),
+  keyword(`tin`),
   z_m(ZM1, ZM2),
   tin_text(ZM2, Pointss).
 
@@ -326,24 +332,30 @@ triangle_text_body(ZM, Points) -->
 
 
 triangle_text_representation(ZM1, triangle(Points)) -->
-  keyword("triangle"),
+  keyword(`triangle`),
   z_m(ZM1, ZM2),
   triangle_text_body(ZM2, Points).
 
 
 
-wkt(Compound) -->
-  wkt_representation(_, Compound).
+%! wkt(-Crs:atom, -Shape:compound)// is det.
+
+wkt(Crs, Shape) -->
+  (   "<", 'URI'(Crs), ">"
+  ->  +(space)
+  ;   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
+  ),
+  wkt_representation(_, Shape).
 
 
 wkt_representation(ZM, Point) -->
   point_text_representation(ZM, Point), !.
-wkt_representation(ZM, Compound) -->
-  curve_text_representation(ZM, Compound), !.
-wkt_representation(ZM, Compound) -->
-  surface_text_representation(ZM, Compound), !.
-wkt_representation(ZM, Compound) -->
-  collection_text_representation(ZM, Compound).
+wkt_representation(ZM, Shape) -->
+  curve_text_representation(ZM, Shape), !.
+wkt_representation(ZM, Shape) -->
+  surface_text_representation(ZM, Shape), !.
+wkt_representation(ZM, Shape) -->
+  collection_text_representation(ZM, Shape).
 
 
 
@@ -352,20 +364,33 @@ wkt_representation(ZM, Compound) -->
 % HELPERS %
 
 empty_set([]) -->
-  keyword("empty").
+  keyword(`empty`).
 
 
-keyword(Str) -->
-  {string_upper(Str, Str0)},
-  Str0,
-  skip_ws.
+
+keyword([H|T]) -->
+  '[a-zA-Z]'(C),
+  {code_type(H, to_lower(C))},
+  keyword(T).
+keyword([]) -->
+  ('[a-zA-Z]'(_) -> !, {fail} ; "").
+
+'[a-zA-Z]'(C) -->
+  [C],
+  { between(0'a, 0'z, C)
+  ; between(0'A, 0'Z, C)
+  }, !.
 
 
-m(N) --> number(N).
+
+m(N) -->
+  number(N).
+
 
 
 must_see_code(C) -->
   must_see_code(C, skip_ws).
+
 
 
 %point(zm, [X,Y,Z,M]) --> point(z, [X,Y,Z]), " ", m(M), !.
@@ -378,13 +403,16 @@ point(_, [X,Y]) -->
   skip_ws.
 
 
-:- meta_predicate
-    're+'(3, -, ?, ?),
-    're*'(3, -, ?, ?).
+
+%! 're+'(:Dcg_1, -L)// is det.
 
 're+'(Dcg_1, [H|T]) -->
   dcg_call(Dcg_1, H),
   're*'(Dcg_1, T).
+
+
+
+%! 're*'(:Dcg_1, -L)// is det.
 
 're*'(Dcg_1, [H|T]) -->
   ",", !,
@@ -394,10 +422,12 @@ point(_, [X,Y]) -->
 're*'(_, []) --> "".
 
 
+
 skip_ws -->
   'WS', !,
   skip_ws.
 skip_ws --> "".
+
 
 
 'WS' --> [0x20].
@@ -406,15 +436,20 @@ skip_ws --> "".
 'WS' --> [0x0A].
 
 
+
 'X'(N) --> number(N).
+
 
 
 'Y'(N) --> number(N).
 
 
+
 'Z'(N) --> number(N).
 
 
+
+% @tbd
 z_m(ZM, ZM) --> "".
 %z_m(_, zm) --> "ZM", +(ws).
 %z_m(_, z) --> "Z", +(ws).
