@@ -373,7 +373,8 @@ keyword([H|T]) -->
   {code_type(H, to_lower(C))},
   keyword(T).
 keyword([]) -->
-  ('[a-zA-Z]'(_) -> !, {fail} ; "").
+  ('[a-zA-Z]'(_) -> !, {fail} ; ""),
+  skip_ws.
 
 '[a-zA-Z]'(C) -->
   [C],
