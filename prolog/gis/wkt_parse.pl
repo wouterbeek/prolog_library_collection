@@ -342,7 +342,7 @@ triangle_text_representation(ZM1, triangle(Points)) -->
 
 wkt(Crs, Shape) -->
   (   "<", 'URI'(Crs), ">"
-  ->  +(space)
+  ->  +(space), !
   ;   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
   ),
   wkt_representation(_, Shape).
