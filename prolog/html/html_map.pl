@@ -159,7 +159,7 @@ window.onload = function() {
                 layer.bindPopup(feature.properties.popupContent, {"maxWidth": 1000});
               } else if (feature.properties['@id']) {
                 // No popup content.  Just show a ‘more info’ link.
-                var link = BrowserEndpoint + '?term=' + encodeURIComponent(feature.properties['@id']);
+                var link = BrowserEndpoint + '?subject=' + encodeURIComponent(feature.properties['@id']);
                 layer.bindPopup('<a href="' + link + '" target="_self">Link to graph</a>');
               }
             }
