@@ -19,7 +19,7 @@
 
 
 circularstring_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 circularstring_text(ZM, Points) -->
   "(",
   're+'(point(ZM), Points),
@@ -27,7 +27,7 @@ circularstring_text(ZM, Points) -->
 
 
 circularstring_text_representation(ZM1, circularString(Points)) -->
-  "CIRCULARSTRING",
+  "CircularString",
   z_m(ZM1, ZM2),
   circularstring_text(ZM2, Points).
 
@@ -45,7 +45,7 @@ collection_text_representation(ZM, GeometryCollection) -->
 
 
 compoundcurve_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 compoundcurve_text(ZM, L) -->
   "(",
   're+'(single_curve_text(ZM), L),
@@ -54,7 +54,7 @@ compoundcurve_text(ZM, L) -->
 
 
 compoundcurve_text_representation(ZM1, compoundCurve(L)) -->
-  "COMPOUNDCURVE",
+  "CompoundCurve",
   z_m(ZM1, ZM2),
   compoundcurve_text(ZM2, L).
 
@@ -78,7 +78,7 @@ curve_text_representation(ZM, CompoundCurve) -->
 
 
 curvepolygon_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 curvepolygon_text(ZM, L) -->
   "(",
   're+'(ring_text(ZM), L),
@@ -90,7 +90,7 @@ curvepolygon_text_body(ZM, L) -->
 
 
 curvepolygon_text_representation(ZM1, curvePolygon(L)) -->
-  "CURVEPOLYGON",
+  "CurvePolygon",
   z_m(ZM1, ZM2),
   curvepolygon_text_body(ZM2, L), !.
 curvepolygon_text_representation(ZM, Shape) -->
@@ -101,7 +101,7 @@ curvepolygon_text_representation(ZM, Shape) -->
 
 
 geometrycollection_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 geometrycollection_text(ZM, Shapes) -->
   "(",
   're+'(wkt_representation(ZM), Shapes),
@@ -109,14 +109,14 @@ geometrycollection_text(ZM, Shapes) -->
 
 
 geometrycollection_text_representation(ZM1, geometryCollection(Shapes)) -->
-  "GEOMETRYCOLLECTION",
+  "GeometryCollection",
   z_m(ZM1, ZM2),
   geometrycollection_text(ZM2, Shapes).
 
 
 
 linestring_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 linestring_text(ZM, Points) -->
   "(",
   're+'(point(ZM), Points),
@@ -128,14 +128,14 @@ linestring_text_body(ZM, Points) -->
 
 
 linestring_text_representation(ZM1, lineString(Points)) -->
-  "LINESTRING",
+  "LineString",
   z_m(ZM1, ZM2),
   linestring_text_body(ZM2, Points).
 
 
 
 multicurve_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 multicurve_text(ZM, L) -->
   "(",
   're+'(curve_text(ZM), L),
@@ -143,7 +143,7 @@ multicurve_text(ZM, L) -->
 
 
 multicurve_text_representation(ZM1, multiCurve(L)) -->
-  "MULTICURVE",
+  "MultiCurve",
   z_m(ZM1, ZM2),
   multicurve_text(ZM2, L), !.
 multicurve_text_representation(ZM, Shape) -->
@@ -152,7 +152,7 @@ multicurve_text_representation(ZM, Shape) -->
 
 
 multilinestring_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 multilinestring_text(ZM, Pointss) -->
   "(",
   're+'(linestring_text_body(ZM), Pointss),
@@ -160,14 +160,14 @@ multilinestring_text(ZM, Pointss) -->
 
 
 multilinestring_text_representation(ZM1, multiLineString(Pointss)) -->
-  "MULTILINESTRING",
+  "MultiLineString",
   z_m(ZM1, ZM2),
   multilinestring_text(ZM2, Pointss).
 
 
 
 multipoint_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 multipoint_text(ZM, Points) -->
   "(",
   're+'(point_text(ZM), Points),
@@ -175,14 +175,14 @@ multipoint_text(ZM, Points) -->
 
 
 multipoint_text_representation(ZM1, multiPoint(Points)) -->
-  "MULTIPOINT",
+  "MultiPoint",
   z_m(ZM1, ZM2),
   multipoint_text(ZM2, Points).
 
 
 
 multipolygon_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 multipolygon_text(ZM, L) -->
   "(",
   're+'(polygon_text_body(ZM), L),
@@ -190,14 +190,14 @@ multipolygon_text(ZM, L) -->
 
 
 multipolygon_text_representation(ZM1, multiPolygon(L)) -->
-  "MULTIPOLYGON",
+  "MultiPolygon",
   z_m(ZM1, ZM2),
   multipolygon_text(ZM2, L).
 
 
 
 multisurface_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 multisurface_text(ZM, L) -->
   "(",
   're+'(surface_text(ZM), L),
@@ -205,7 +205,7 @@ multisurface_text(ZM, L) -->
 
 
 multisurface_text_representation(ZM1, multiSurface(L)) -->
-  "MULTISURFACE",
+  "MultiSurface",
   z_m(ZM1, ZM2),
   multisurface_text(ZM2, L), !.
 multisurface_text_representation(ZM, Shape) -->
@@ -218,7 +218,7 @@ multisurface_text_representation(ZM, Tin) -->
 
 
 point_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 point_text(ZM, [Point]) -->
   "(",
   point(ZM, Point),
@@ -226,14 +226,14 @@ point_text(ZM, [Point]) -->
 
 
 point_text_representation(ZM1, point(Point)) -->
-  "POINT",
+  "Point",
   z_m(ZM1, ZM2),
   point_text(ZM2, [Point]).
 
 
 
 polygon_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 polygon_text(ZM, Pointss) -->
   "(",
   're+'(linestring_text(ZM), Pointss),
@@ -245,13 +245,13 @@ polygon_text_body(ZM, Pointss) -->
 
 
 polygon_text_representation(ZM1, polygon(Pointss)) -->
-  "POLYGON",
+  "Polygon",
   z_m(ZM1, ZM2),
   polygon_text_body(ZM2, Pointss).
 
 
 polyhedralsurface_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 polyhedralsurface_text(ZM, Pointsss) -->
   "(",
   're+'(polygon_text_body(ZM), Pointsss),
@@ -259,7 +259,7 @@ polyhedralsurface_text(ZM, Pointsss) -->
 
 
 polyhedralsurface_text_representation(ZM1, polyhedralSurface(Pointsss)) -->
-  "POLYHEDRALSURFACE",
+  "PolyhedralSurface",
   z_m(ZM1, ZM2),
   polyhedralsurface_text(ZM2, Pointsss).
 
@@ -282,7 +282,7 @@ single_curve_text(ZM, CircularString) -->
 
 
 surface_text(ZM, curvePolygon(L)) -->
-  "CURVEPOLYGON",
+  "CurvePolygon",
   curvepolygon_text_body(ZM, L), !.
 surface_text(ZM, Pointss) -->
   polygon_text_body(ZM, Pointss).
@@ -294,7 +294,7 @@ surface_text_representation(ZM, Shape) -->
 
 
 tin_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 tin_text(ZM, Pointss) -->
   "(",
   're+'(triangle_text_body(ZM), Pointss),
@@ -309,7 +309,7 @@ tin_text_representation(ZM1, tin(Pointss)) -->
 
 
 triangle_text(_, []) --> !,
-  "EMPTY".
+  "Empty".
 triangle_text(ZM, Points) -->
   "(",
   linestring_text(ZM, Points),
@@ -321,7 +321,7 @@ triangle_text_body(ZM, Points) -->
 
 
 triangle_text_representation(ZM1, triangle(Points)) -->
-  "TRIANGLE",
+  "Triangle",
   z_m(ZM1, ZM2),
   triangle_text_body(ZM2, Points).
 
@@ -378,7 +378,7 @@ point(_, [X,Y]) -->
   're*'(Dcg_1, T).
 
 're*'(Dcg_1, [H|T]) -->
-  ", ", !,
+  ",", !,
   dcg_call(Dcg_1, H),
   're*'(Dcg_1, T).
 're*'(_, []) --> "".

@@ -565,6 +565,7 @@ html({|html||...|}).
 %! html:author(?Name) is nondet.
 
 %! html:menu_item(?Major, ?Name, ?Lbl) is nondet.
+%! html:menu_item(?Major, ?Spec, ?Lbl) is nondet.
 %
 % Adds a top-level menu item to the menu.  The menu item has a rank
 % Major, an internal Name and a user-visible label Lbl.

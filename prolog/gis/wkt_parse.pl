@@ -1,7 +1,7 @@
 :- module(
   wkt_parse,
   [
-    wkt//2 % -Crs:atom, -Shape:compound
+    wkt_parse//2 % -Crs:atom, -Shape:compound
   ]
 ).
 
@@ -338,9 +338,9 @@ triangle_text_representation(ZM1, triangle(Points)) -->
 
 
 
-%! wkt(-Crs:atom, -Shape:compound)// is det.
+%! wkt_parse(-Crs:atom, -Shape:compound)// is det.
 
-wkt(Crs, Shape) -->
+wkt_parse(Crs, Shape) -->
   (   "<", 'URI'(Crs), ">"
   ->  +(space), !
   ;   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
