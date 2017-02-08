@@ -96,9 +96,9 @@ http_link_to_id(HandleId, Local) :-
 %
 % @tbd ???
 
-http_location_uri(Req, Loc) :-
-  memberchk(request_uri(Uri), Req),
-  uri_resource(Uri, Loc).
+http_location_uri(Req, AbsUri) :-
+  memberchk(request_uri(RelUri), Req),
+  http_absolute_uri(RelUri, AbsUri).
 
 
 
