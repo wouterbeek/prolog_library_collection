@@ -73,10 +73,8 @@ xml_clean_file(File, Opts) :-
   call_onto_stream(File, TmpFile, xml_clean_stream0, Opts, Opts),
   rename_file(TmpFile, File).
 
-
 xml_clean_stream0(In, Out, Meta, Meta) :-
   xml_clean_stream0(In, Out).
-
 
 xml_clean_stream0(In, _) :-
   at_end_of_stream(In), !.
