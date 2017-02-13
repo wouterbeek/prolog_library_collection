@@ -5,6 +5,7 @@
     iri_query_enc//0,
     is_data_uri/1,         % +Uri
     is_image_uri/1,        % @Term
+    is_uri/1,              % +Uri
     uri_alias_uuid/2,      % -Uri, +Alias
     uri_comp/3,            % +Uri, ?Key, ?Val
     uri_comps/2,           % ?Uri, ?Comps
@@ -25,7 +26,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2016/11-2017/01
+@version 2016/11-2017/02
 */
 
 :- use_module(library(apply)).
@@ -115,6 +116,14 @@ is_image_uri(Uri) :-
   uri_is_global(Uri),
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   is_image_file(Path).
+
+
+
+%! is_uri(+Uri) is semidet.
+
+is_uri(Uri) :-
+  uri_components(Uri, uri_components(Scheme,Auth,_,_,_)),
+  maplist(atom, [Scheme,Auth]).
 
 
 
