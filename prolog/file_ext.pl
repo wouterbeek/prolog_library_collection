@@ -64,7 +64,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2017/01
+@version 2015/07-2017/02
 */
 
 :- use_module(library(apply)).
@@ -202,7 +202,7 @@ create_date_time_file(Spec, Exts, File) :-
 create_directory(Dir) :-
   exists_directory(Dir), !.
 create_directory(Dir) :-
-  make_directory(Dir).
+  make_directory_path(Dir).
 
 
 
