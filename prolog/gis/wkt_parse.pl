@@ -31,7 +31,7 @@ more interior linear rings (Interiors).
 
 
 
-%! CircularString
+% CircularString
 
 circularstring_text(_, _, []) -->
   empty_set, !.

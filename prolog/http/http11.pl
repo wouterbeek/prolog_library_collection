@@ -1325,7 +1325,9 @@ http_known_unknown('x-ms-request-id').
 http_known_unknown('x-ms-version').
 http_known_unknown('x-origin-route').
 http_known_unknown('x-pad').
+http_known_unknown('x-page').
 http_known_unknown('x-pal-host').
+http_known_unknown('x-per-page').
 http_known_unknown('x-permitted-cross-domain-policies').
 http_known_unknown('x-pingback').
 http_known_unknown('x-powered-by').
@@ -1349,6 +1351,7 @@ http_known_unknown('x-sparql-default-graph').
 http_known_unknown('x-sparql-maxrows').
 http_known_unknown('x-static-version').
 http_known_unknown('x-timer').
+http_known_unknown('x-total').
 http_known_unknown('x-total-results').
 http_known_unknown('x-ua-compatible').
 http_known_unknown('x-uniprot-release').
