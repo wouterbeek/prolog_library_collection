@@ -337,7 +337,7 @@ rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
   (   _{'content-type': ContentType} :< Headers
   ->  http_parse_header_value(content_type, ContentType, media(MT0,_)),
       rest_reply_stream(MT0, Status, In, Result)
-  ;   % No Content-Type header, so no content.
+  ;   % No Content-Type header, so there should be no content.
       at_end_of_stream(In)
   ),
   http_status_must_be(Status, Succeeds, Fails).

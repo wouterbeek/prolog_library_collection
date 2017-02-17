@@ -80,7 +80,7 @@ _{
 ```
 
 @author Wouter Beek
-@version 2016/08-2017/01
+@version 2016/08-2017/02
 */
 
 :- use_module(library(apply)).
@@ -108,10 +108,13 @@ _{
 
 
 
-%! es_check(-Dict) is det.
+%! es_check(-Dict) is semidet.
+%
+% Succeeds if the HTTP status code is ‘200’.  Fails if the HTTP status
+% code is ‘404’.
 
 es_check(Dict) :-
-  es_get0(Dict).
+  es_get0([200], [404], Dict).
 
 
 
@@ -125,6 +128,9 @@ es_check(Dict) :-
 %     "match_all": {}
 %   }
 % }
+%
+% Succeeds if the HTTP status code is ‘200’; throws an exception
+% otherwise.
 
 es_count(Dict) :-
   es_count([], Dict).
@@ -132,16 +138,17 @@ es_count(Dict) :-
 
 es_count(PathComps1, Dict) :-
   append(PathComps1, ['_count'], PathComps2),
-  es_get0(PathComps2, Dict).
+  es_get0(PathComps2, [200], [], Dict).
 
 
 
-%! es_create(+PathComps, +Data) is det.
-%! es_create(+PathComps, +Data, -Dict) is det.
+%! es_create(+PathComps, +Data) is semidet.
+%! es_create(+PathComps, +Data, -Dict) is semidet.
 %
 % Create a new document.
 %
-% Succeeds if a document with given Id already exists.
+% Succeeds if the HTTP status code is ‘201 (Created)’.  Fails if the
+% HTTP status code is ‘409 (Conflict)’.
 
 es_create(PathComps, Data) :-
   es_create(PathComps, Data, Dict),
@@ -151,7 +158,7 @@ es_create(PathComps, Data) :-
 % POST /<INDEX>/<TYPE>
 es_create([Index,Type], Data, Dict) :- !,
   % The POST method auto-generated an ElasticSearch ID.
-  es_post0([Index,Type], [], Data, [201], Dict).
+  es_post0([Index,Type], [], Data, [201], [409], Dict).
 % PUT /<INDEX>/<TYPE>/<ID>
 es_create([Index,Type,Id], Data, Dict) :-
   es_put0([Index,Type,Id,'_create'], Data, [201], [409], Dict).
@@ -160,6 +167,8 @@ es_create([Index,Type,Id], Data, Dict) :-
 
 %! es_delete(+PathComps) is det.
 %! es_delete(+PathComps, -Dict) is det.
+%
+% Succeeds if the HTTP status code is ‘200’ or ‘404’.
 
 es_delete(PathComps) :-
   es_delete(PathComps, Dict),
@@ -170,13 +179,16 @@ es_delete(PathComps, Dict) :-
   es_uri(PathComps, Uri),
   call_on_stream(
     uri(Uri),
-    rest_reply(Dict, [200], [404]),
+    rest_reply(Dict, [200,404], []),
     [method(delete),request_header('Accept'='application/json')]
   ).
 
 
 
 %! es_exists(+PathComps) is semidet.
+%
+% Succeeds if the HTTP status code is ‘200’; fails if the HTTP status
+% code is ‘404’.
 
 es_exists(PathComps) :-
   es_uri(PathComps, Uri),
@@ -206,6 +218,9 @@ es_exists(PathComps) :-
 %   * '_type'(-atom)
 %
 % Keys, if present, filters the keys returned in '_source'.
+%
+% Succeeds if the HTTP status code is ‘200’; fails if the HTTP status
+% code is ‘404’.
 
 es_get(PathComps, Result) :-
   es_get(PathComps, _VAR, Result).
@@ -218,7 +233,7 @@ es_get(PathComps, Keys, Result) :-
   ;   atomic_list_concat(Keys, ',', Search),
       QueryComps = ['_source'(Search)]
   ),
-  es_get0(PathComps, QueryComps, Dict),
+  es_get0(PathComps, QueryComps, [200], [404], Dict),
   _{found: true} :< Dict,
   es_dict_to_result0(Dict, Result).
 
@@ -259,6 +274,9 @@ es_nodes_cat :-
 %! es_search(+PathComps, +Search, +PageOpts, -Result) is nondet.
 %
 % Result uses pagination.
+%
+% Succeeds if the HTTP status code is ‘200’; throws an exception
+% otherwise.
 
 es_search(PathComps, Result) :-
   es_search(PathComps, _VAR, _{}, Result).
@@ -278,14 +296,14 @@ es_search(PathComps1, Search, PageOpts1, Result2) :-
   append(PathComps1, ['_search'], PathComps2),
   (   % Query DSL
       is_dict(Search)
-  ->  es_post0(PathComps2, QueryComps1, Search, [200], Dict)
+  ->  es_post0(PathComps2, QueryComps1, Search, [200], [], Dict)
   ;   % Simple Search
       (   var(Search)
       ->  QueryComps2 = QueryComps1
       ;   format_simple_search_string0(Search, Str),
           QueryComps2 = [q(Str)|QueryComps1]
       ),
-      es_get0(PathComps2, QueryComps2, Dict)
+      es_get0(PathComps2, QueryComps2, [200], [], Dict)
   ),
   Hits = Dict.hits,
   maplist(es_dict_to_result0, Hits.hits, Results),
@@ -321,12 +339,18 @@ format_simple_search_string0(Str, Str).
 %   - number_of_replicas(nonneg)
 %
 % @tbd Get a setting.
+%
+% Succeeds if the HTTP status code is ‘200’ or ‘201 (Created)’; throws
+% an exception otherwise.
 
 es_setting(Index, Key, Val) :-
   ground(Val), !,
   dict_pairs(Data, [Key-Val]),
   es_put0([Index,'_settings'], Data, [201], [], Dict),
   Dict.acknowledged == true.
+es_setting(Index, Key, Val) :-
+  es_get0([Index,'_settings'], Dict),
+  get_dict(Key, Dict, Val).
 
 
 
@@ -343,8 +367,8 @@ es_stat(PathComps1, Dict) :-
 
 
 
-%! es_update(+PathComps, +Data) is det.
-%! es_update(+PathComps, +Data, -Dict) is det.
+%! es_update(+PathComps, +Data) is semidet.
+%! es_update(+PathComps, +Data, -Dict) is semidet.
 %
 % # Examples of Data
 %
@@ -375,6 +399,9 @@ es_stat(PathComps1, Dict) :-
 % ```swi
 % _{script: ..., upsert: Dict}
 % ```
+%
+% Succeeds if the HTTP status code is ‘200’; fails if the HTTP status
+% code is ‘409 (Conflict)’.
 
 es_update([Index,Type,Id], Data) :-
   es_update([Index,Type,Id], Data, Dict),
@@ -382,7 +409,8 @@ es_update([Index,Type,Id], Data) :-
 
 
 es_update([Index,Type,Id], Data, Dict) :-
-  es_post0([Index,Type,Id,'_update'], [], Data, [200], Dict).
+  format(user_output, "~a/~a/~a ~w~n", [Index,Type,Id,Data]),
+  es_post0([Index,Type,Id,'_update'], [], Data, [200], [409], Dict).
 
 
 
@@ -406,35 +434,43 @@ es_dict_to_result0(Dict, Result) :-
 
 
 
-%! es_get0(-Dict) is det.
-%! es_get0(+PathComps, -Dict) is det.
-%! es_get0(+PathComps, +QueryComps, -Dict) is det.
-
-es_get0(Dict) :-
-  es_get0([], Dict).
-
+%! es_get0(+PathComps, -Dict) is semidet.
+%! es_get0(+Successes, +Failures, -Dict) is semidet.
+%! es_get0(+PathComps, +Successes, +Failures, -Dict) is semidet.
+%! es_get0(+PathComps, +QueryComps, +Successes, +Failures, -Dict) is semidet.
 
 es_get0(PathComps, Dict) :-
-  es_get0(PathComps, [], Dict).
+  es_get0(PathComps, [200], [], Dict).
 
 
-es_get0(PathComps, QueryComps, Dict) :-
+es_get0(Success, Failures, Dict) :-
+  es_get0([], Success, Failures, Dict).
+
+
+es_get0(PathComps, Success, Failures, Dict) :-
+  es_get0(PathComps, [], Success, Failures, Dict).
+
+
+es_get0(PathComps, QueryComps, Success, Failures, Dict) :-
   es_uri(PathComps, QueryComps, Uri),
   call_on_stream(
     Uri,
-    rest_reply(Dict, [200], [404]),
+    rest_reply(Dict, Success, Failures),
     [method(get),request_header('Accept'='application/json')]
   ).
 
 
 
-%! es_get_cat0(+PathComps, -Str) is det.
+%! es_get_cat0(+PathComps, -Str) is semidet.
+%
+% Succeeds if the HTTP status code is ‘200’.  Throws an exception
+% otherwise.
 
 es_get_cat0(PathComps, Str) :-
   es_uri(['_cat'|PathComps], [v(true)], Uri),
   call_on_stream(
     Uri,
-    rest_reply(Str, [200], [404]),
+    rest_reply(Str, [200], []),
     [method(get),request_header('Accept'='text/plain')]
   ).
 
@@ -458,20 +494,28 @@ es_uri(PathComps, QueryComps, Uri) :-
 
 
 
-%! es_post0(+PathComps, +QueryComps, +Data, +Success, -Dict) is det.
+%! es_post0(+PathComps, +QueryComps, +Data, +Success, +Failure, -Dict) is semidet.
+%
+% Succeeds if the HTTP status code is in ‘Success’.
+%
+% Fails if the HTTP status code is in ‘Failure’.
 
-es_post0(PathComps, QueryComps, Data, Success, Dict) :-
+es_post0(PathComps, QueryComps, Data, Success, Failure, Dict) :-
   es_uri(PathComps, QueryComps, Uri),
   debug_dict(Data),
   call_on_stream(
     uri(Uri),
-    rest_reply(Dict, Success, []),
+    rest_reply(Dict, Success, Failure),
     [method(post),post(json(Data)),request_header('Accept'='application/json')]
   ).
 
 
 
-%! es_put0(+PathComps, +Data, +Success, +Failure, -Dict) is det.
+%! es_put0(+PathComps, +Data, +Success, +Failure, -Dict) is semidet.
+%
+% Succeeds if the HTTP status code is in ‘Success’.
+%
+% Fails if the HTTP status code is in ‘Failure’.
 
 es_put0(PathComps, Data, Success, Failure, Dict) :-
   es_uri(PathComps, Uri),
