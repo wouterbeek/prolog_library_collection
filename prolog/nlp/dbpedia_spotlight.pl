@@ -64,12 +64,11 @@ $ curl --data "text=De apen zijn terug&confidence=0" -H "Accept: application/jso
 :- use_module(library(http/http_io)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
+:- use_module(nlp/nlp_guess).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(print_ext)).
 :- use_module(library(uri)).
-
-:- use_module(detect_language).
 
 :- dynamic
     cached_annotate/3.
@@ -131,7 +130,7 @@ annotate(Txt, Anns, Opts) :-
   (   option(language(Lang), Opts)
   ->  true
   ;   % The language is assessed algorithmically.
-      detect_language(Txt, Lang)
+      nlp_guess(Txt, Lang)
   ),
 
   % IRI host.
