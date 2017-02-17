@@ -182,7 +182,7 @@ rocks_rm(Alias) :-
   % removed.
   catch(rocks_close(Alias), _, true),
   rocks_dir0(Alias, Dir),
-  delete_directory_and_contents_msg(Dir).
+  delete_directory_and_contents_silent(Dir).
 
 
 

@@ -15,9 +15,9 @@
     create_time_file/2,         % +Spec, -File
     create_time_file/3,         % +Spec, +Exts, -File
     current_directory/1,        % ?Dir
-    delete_directory_msg/1,     % +Dir
-    delete_directory_and_contents_msg/1, % +Dir
-    delete_file_msg/1,          % +File
+    delete_directory_silent/1,  % +Dir
+    delete_directory_and_contents_silent/1, % +Dir
+    delete_file_silent/1,       % +File
     directory_file/2,           % +Dir, -File
     directory_is_empty/1,       % +Dir
     directory_path/2,           % +Dir, -Path
@@ -274,36 +274,36 @@ current_directory(Dir) :-
 
 
 
-%! delete_directory_msg(+Dir) is det.
+%! delete_directory_silent(+Dir) is det.
 
-delete_directory_msg(Dir) :-
+delete_directory_silent(Dir) :-
   exists_directory(Dir), !,
   print_message(informational, delete_directory(Dir)),
   delete_directory(Dir).
-delete_directory_msg(_).
+delete_directory_silent(_).
 
 
 
-%! delete_directory_and_contents_msg(+Dir) is det.
+%! delete_directory_and_contents_silent(+Dir) is det.
 
-delete_directory_and_contents_msg(Dir) :-
+delete_directory_and_contents_silent(Dir) :-
   exists_directory(Dir), !,
   print_message(informational, delete_directory_and_contents(Dir)),
   delete_directory_and_contents(Dir).
-delete_directory_and_contents_msg(_).
+delete_directory_and_contents_silent(_).
 
 
 
-%! delete_file_msg(+File) is det.
+%! delete_file_silent(+File) is det.
 %
 % Succeed silently if File does not exist and print a message when
 % it does exist and is deleted.
 
-delete_file_msg(File) :-
+delete_file_silent(File) :-
   exists_file(File), !,
   print_message(informational, delete_file(File)),
   delete_file(File).
-delete_file_msg(_).
+delete_file_silent(_).
 
 
 

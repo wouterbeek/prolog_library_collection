@@ -328,8 +328,7 @@ type(A) -->
 %! rest_reply(-Result, +Succeeds, +Fails, +In, +InPath1, -InPath2) is nondet.
 
 rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
-  peek_string(In, 1000, Str), %DEB
-  writeln(Str), %DEB
+  %%%%peek_string(In, 1000, Str), writeln(Str), %DEB
   once((
     member(InEntry, InPath),
     _{'@type': uri, headers: Headers, status: Status} :< InEntry

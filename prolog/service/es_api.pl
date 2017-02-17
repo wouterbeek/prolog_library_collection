@@ -409,7 +409,6 @@ es_update([Index,Type,Id], Data) :-
 
 
 es_update([Index,Type,Id], Data, Dict) :-
-  format(user_output, "~a/~a/~a ~w~n", [Index,Type,Id,Data]),
   es_post0([Index,Type,Id,'_update'], [], Data, [200], [409], Dict).
 
 
