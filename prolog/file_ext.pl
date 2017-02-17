@@ -278,7 +278,7 @@ current_directory(Dir) :-
 
 delete_directory_silent(Dir) :-
   exists_directory(Dir), !,
-  print_message(informational, delete_directory(Dir)),
+  %%%%print_message(informational, delete_directory(Dir)),
   delete_directory(Dir).
 delete_directory_silent(_).
 
@@ -288,7 +288,7 @@ delete_directory_silent(_).
 
 delete_directory_and_contents_silent(Dir) :-
   exists_directory(Dir), !,
-  print_message(informational, delete_directory_and_contents(Dir)),
+  %%%%print_message(informational, delete_directory_and_contents(Dir)),
   delete_directory_and_contents(Dir).
 delete_directory_and_contents_silent(_).
 
@@ -301,7 +301,7 @@ delete_directory_and_contents_silent(_).
 
 delete_file_silent(File) :-
   exists_file(File), !,
-  print_message(informational, delete_file(File)),
+  %%%%print_message(informational, delete_file(File)),
   delete_file(File).
 delete_file_silent(_).
 
