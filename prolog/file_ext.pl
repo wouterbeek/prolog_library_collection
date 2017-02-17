@@ -501,7 +501,6 @@ file_touch_ready(File) :-
 %! finish_file(+File0, -File) is det.
 
 finish_file(File0, File) :-
-  gtrace,
   atom_concat(File, '.working', File0),
   (exists_file(File) -> delete_file(File0) ; rename_file(File0, File)).
 
