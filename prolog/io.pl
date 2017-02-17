@@ -27,6 +27,7 @@
     read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
+   %read_stream_to_codes/2,  % +In, -Cs
     read_stream_to_string/2, % +In, -Str
     read_to_atom/2,          % +Source, -A
     read_to_codes/2,         % +Source, -Cs

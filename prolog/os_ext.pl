@@ -350,7 +350,9 @@ run_jar(Jar, Args, OutGoal_1, ErrGoal_1, Opts) :-
 %
 % @tbd Run output and error goals is separate threads.
 %
-% ```
+% @tbd:
+%
+% ```prolog
 % process_create(path(cat), [file('a.txt'),file('b.txt')], [stdout(pipe(Out))]),
 % copy_stream_data(Out, user_output).
 %
@@ -381,7 +383,7 @@ run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
     ProcessOpts1,
     ProcessOpts2
   ),
-  % Program is either an absolute file or a related file that is
+  % ‘Program’ is either an absolute file or a related file that is
   % resolved WRT the PATH.
   (is_absolute_file_name(Program) -> Exec = Program ; Exec = path(Program)),
   setup_call_cleanup(
@@ -395,12 +397,7 @@ run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
       process_create(Exec, Args, ProcessOpts2)
     ),
     (
-      thread_create(
-        call(ErrGoal_1, Err),
-        ErrId,
-        % @tbd Option debug?
-        [at_exit(close(Err)),debug(false)]
-      ),
+      thread_create(call(ErrGoal_1, Err), ErrId, [at_exit(close(Err))]),
       assert(os:pid_stream(Pid,error,ErrId)),
       call(OutGoal_1, Out),
       process_wait(Pid, exit(OutStatus)),
