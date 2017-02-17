@@ -502,7 +502,10 @@ file_touch_ready(File) :-
 
 finish_file(File0, File) :-
   atom_concat(File, '.working', File0),
-  (exists_file(File) -> delete_file(File0) ; rename_file(File0, File)).
+  (   exists_file(File)
+  ->  delete_file_silent(File0)
+  ;   rename_file(File0, File)
+  ).
 
 
 
