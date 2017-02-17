@@ -10,7 +10,7 @@
 Grammar snippets for files.
 
 @author Wouter Beek
-@version 2015/08, 2015/11, 2017/01
+@version 2015/08, 2015/11, 2017/01-2017/02
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -22,17 +22,20 @@ Grammar snippets for files.
 
 
 %! file_path(-Path:atom)// is semidet.
-% Parses legal directory names,
-% where both Unix and Windows formats are supported.
 %
-% ## Example
+% Parses legal directory names, where both Unix and Windows formats
+% are supported.
 %
-% Unix directory input:
+% # Example
+%
+% Unix directory:
+%
 % ```
 % /home/wbeek/Dropbox/IOTW
 % ```
 %
-% Windows directory input:
+% Windows directory:
+%
 % ```
 % C:\Users\Quirinus\Dropbox\IOTW
 % ```
@@ -47,15 +50,16 @@ file_path(Path) -->
   }.
 % Absolute directory.
 file_path(Path) -->
-  os_root_prefix,
-  *(path_segment, T),
+  root_prefix,
+  path_segments(T),
   {atomic_list_concat([''|T], /, Path)}.
 
 
 
 %! local_file_name(-Local:atom)// .
 
-local_file_name(Local) --> *(local_file_char, Local).
+local_file_name(Local) -->
+  *(local_file_char, Local).
 
 
 
@@ -77,7 +81,6 @@ directory_char(0'-) --> "-".
 directory_char(0'+) --> "+".
 directory_char(0'_) --> "_".
 
-
 :- if(os(unix)).
 directory_sep --> "/".
 :- endif.
@@ -85,16 +88,18 @@ directory_sep --> "/".
 directory_sep --> "\\".
 :- endif.
 
-
-local_file_char(C)   --> alphadigit(C).
+local_file_char(C) --> alphadigit(C).
 local_file_char(0'.) --> ".".
 
+path_segment(S) -->
+  *(directory_char, Cs),
+  {string_codes(S, Cs)}.
 
-path_segment(S) --> *(directory_char, Cs), {string_codes(S, Cs)}.
+path_segments([H|T]) -->
+  path_segment(H),
+  *(sep_path_segment, T).
+path_segments([]) --> "".
 
-
-path_segments([H|T]) --> path_segment(H), *(sep_path_segment, T).
-path_segments([])    --> "".
-
-
-sep_path_segment(X) --> directory_sep, path_segment(X).
+sep_path_segment(X) -->
+  directory_sep,
+  path_segment(X).
