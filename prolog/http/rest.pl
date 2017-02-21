@@ -40,7 +40,7 @@ There are two phases in handling REST requests:
        - call(Goal_2, Method, MT)
 
 @author Wouter Beek
-@version 2016/02-2017/01
+@version 2016/02-2017/02
 */
 
 :- use_module(library(apply)).
@@ -52,6 +52,7 @@ There are two phases in handling REST requests:
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
 :- use_module(library(http/http_wrapper)).
+:- use_module(library(io)).
 :- use_module(library(json_ext)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
