@@ -3,6 +3,7 @@
   [
     csv_to_file/2,      % +File, +Rows
     csv_to_file/3,      % +File, +Rows, +Opts
+    csv_write_stream/2, % +Out,  +Rows
     tsv_read_file/2,    % +File, -Rows
     tsv_read_file/3,    % +File, -Rows, +Opts
     tsv_write_stream/2, % +Out,  +Rows
@@ -14,7 +15,7 @@
 /** <module> CSV extensions
 
 @author Wouter Beek
-@version 2015/10-2015/11, 2016/01, 2016/04
+@version 2015/10-2015/11, 2016/01, 2016/04, 2017/02
 */
 
 :- use_module(library(io)).
@@ -43,6 +44,13 @@ csv_to_file(Sink, Rows, Opts) :-
     {Rows,Opts}/[Out]>>csv_write_stream(Out, Rows, Opts),
     Opts
   ).
+
+
+
+%! csv_write_stream(+Out, +Rows) is det.
+
+csv_write_stream(Out, Rows) :-
+  csv_write_stream(Out, Rows, []).
 
 
 
