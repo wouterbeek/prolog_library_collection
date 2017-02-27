@@ -512,8 +512,8 @@ sort_file(File) :-
   sort_file(File, [duplicates(false)]).
 
 
-sort_file(File1, Opts1) :-
-  must_be_file(read, File1),
+sort_file(File, Opts1) :-
+  must_be_file(read, File),
   
   % The UTF-8 encoding option is handled by an environment variable.
   (option(utf8(true), Opts1, true) -> Env = [] ; Env = ['LC_ALL'='C']),
@@ -524,19 +524,18 @@ sort_file(File1, Opts1) :-
   ;   setting(os:tmp_dir, Dir),
       ground(Dir)
   ->  true
-  ;   file_directory_name(File1, Dir)
+  ;   file_directory_name(File, Dir)
   ),
   merge_options([tmp_dir(Dir)], Opts1, Opts2),
 
   % Output file.
   (   option(output(_), Opts2)
   ->  Opts3 = Opts2
-  ;   file_name_extension(File1, gv, File2),
-      merge_options([output(File2)], Opts2, Opts3)
+  ;   merge_options([output(File)], Opts2, Opts3)
   ),
   
   sort_flags(Opts3, Args),
-  run_process(sort, [file(File1)|Args], true, process_error, [env(Env)]).
+  run_process(sort, [file(File)|Args], true, process_error, [env(Env)]).
 
 sort_flags([], []).
 sort_flags([buffer_size(Size)|T1], [Arg|T2]) :- !,
