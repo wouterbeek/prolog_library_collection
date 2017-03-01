@@ -93,8 +93,8 @@ html_pagination_range(Result) -->
 % Opts are required because it contains the `uri` based on which the
 % backward/forward request URIs are build.
 %
-% Result contains the following keys: ‘number_of_results’,
-% ‘page’, ‘page_size’.
+% Result contains the following keys: ‘number_of_results’, ‘page’,
+% ‘page_size’.
 %
 % Result must contain the keys ‘uri’ and ‘query’.
 
