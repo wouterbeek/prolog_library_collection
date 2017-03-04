@@ -801,7 +801,7 @@ data_link(Res, Html_0) -->
 
 data_link(Res, Attrs1, Html_0) -->
   {
-    uri_resource(Res, Uri),
+    uri_resource(Uri, Res),
     merge_attrs([href=Uri], Attrs1, Attrs2)
   },
   html(a(Attrs2, Html_0)).
