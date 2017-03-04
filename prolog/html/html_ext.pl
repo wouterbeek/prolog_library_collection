@@ -2241,9 +2241,9 @@ menu -->
 major_menu(Loc, menu_item(Handle,Lbl)-[]) --> !,
   {
     http_link_to_id(Handle, Uri),
-    (atom_postfix(Loc, Uri) -> Attrs = [class=active] ; Attrs = [])
+    (atom_postfix(Loc, Uri) -> Classes = [active,Handle] ; Classes = [Handle])
   },
-  html(li(Attrs, \internal_link(Uri, Lbl))).
+  html(li(class=Classes, \internal_link(Uri, Lbl))).
 % Nested menu items.
 major_menu(_, MajorItem-MinorItems) -->
   dropdown_menu(menu_item(MajorItem), menu_item, MinorItems).
