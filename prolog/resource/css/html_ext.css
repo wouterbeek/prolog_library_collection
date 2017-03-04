@@ -123,14 +123,14 @@ li[typeof="sbo:Author"] img {
 
 
 
-/* leaflet */
-
+/* Leaflet
 html,
 body,
 .container-fluid,
 .container-fluid .main,
 .container-fluid .main .row,
 .container-fluid .main .row .col,
+*/
 #mapid {
   padding: 0;
   margin: 0;
