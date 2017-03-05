@@ -9,7 +9,6 @@
     button//1,               % :Html_0
     button//2,               % +Attrs, :Html_0
     html_caret//0,
-    center_logo//1,          % +Spec
     code_link//1,            % +Uri
     collapse_content//2,     % +Id, :Html_0
     collapse_link//2,        % +Id, :Link_0
@@ -376,31 +375,12 @@ html({|html||...|}).
        [requires([css('bootstrap.min.css')]),virtual(true)]
      ).
 :- endif.
-:- if(debugging(css('bootstrap-theme'))).
-  :- html_resource(
-       css('bootstrap-theme'),
-       [
-         ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme.css')]),
-         virtual(true)
-       ]
-     ).
-:- else.
-  :- html_resource(
-       css('bootstrap-theme'),
-       [
-         ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme.min.css')]),
-         virtual(true)
-       ]
-     ).
-:- endif.
 :- if(debugging(js(bootstrap))).
   :- html_resource(
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap.js')]),
+         requires([jquery,tether,js('bootstrap.js')]),
          virtual(true)
        ]
      ).
@@ -409,14 +389,14 @@ html({|html||...|}).
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap.min.js')]),
+         requires([jquery,tether,js('bootstrap.min.js')]),
          virtual(true)
        ]
      ).
 :- endif.
 :- html_resource(
      bootstrap,
-     [requires([css('bootstrap-theme'),js(bootstrap)]),virtual(true)]
+     [requires([css(bootstrap),js(bootstrap)]),virtual(true)]
    ).
 
 % Clipboard
@@ -465,6 +445,23 @@ html({|html||...|}).
      [requires([css(dropzone),js(dropzone)]),virtual(true)]
    ).
 
+% FontAwesome
+:- if(debugging(css('font-awesome'))).
+  :- html_resource(
+       css('font-awesome'),
+       [requires([css('font-awesome-4.7.0.css')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       css('font-awesome'),
+       [requires([css('font-awesome-4.7.0.min.css')]),virtual(true)]
+     ).
+:- endif.
+:- html_resource(
+     'font-awesome',
+     [requires([css('font-awesome')]),virtual(true)]
+   ).
+
 % Grid
 :- html_resource(
      css(grid),
@@ -488,7 +485,7 @@ html({|html||...|}).
      html_ext,
      [
        ordered(true),
-       requires([bootstrap,css('html_ext.css')]),
+       requires([bootstrap,'font-awesome',css('html_ext.css')]),
        virtual(true)
      ]
    ).
@@ -518,6 +515,23 @@ html({|html||...|}).
      ).
 :- endif.
 :- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
+
+% Tether
+:- if(debugging(js(tether))).
+  :- html_resource(
+       js(tether),
+       [requires([js('tether-1.3.3.js')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       js(tether),
+       [requires([js('tether-1.3.3.min.js')]),virtual(true)]
+     ).
+:- endif.
+:- html_resource(
+     tether,
+     [requires([js(tether)]),virtual(true)]
+   ).
 
 :- meta_predicate
     deck(3, +, ?, ?),
@@ -682,24 +696,6 @@ button(Html_0) -->
 button(Attrs1, Html_0) -->
   {merge_attrs([class=[btn,'btn-default'],type=button], Attrs1, Attrs2)},
   html(button(Attrs2, Html_0)).
-
-
-
-%! center_logo(+Spec)// is det.
-%
-% Generates a full-width SVG logo, typically directly beneath the
-% navigation bar.
-
-center_logo(Spec) -->
-  html(
-    div(class=row,
-      div(class=[col,'col-md-12'],
-        a([href='/',id=logo],
-          \image(Spec, [class='center-block'])
-        )
-      )
-    )
-  ).
 
 
 
@@ -1864,13 +1860,13 @@ digits0(_, 0).
 
 icon(pen) --> !,
   html(
-    svg([width=14,height=14,viewBox=[0,0,300,300]],
+    svg([width=20,height=20,viewBox=[0,0,300,300]],
       path([fill='#777777',d='M253 123l-77-77 46-46 77 77-46 46zm-92-61l77 77s-35 16-46 77c-62 62-123 62-123 62s-24 36-46 15l93-94c55 12 50-39 37-52s-62-21-52 37L7 277c-21-21 15-46 15-46s0-62 62-123c51-5 77-46 77-46z'], [])
     )
   ).
 icon(Name) -->
   {glyphicon(Name, Class, _)},
-  html(span(class([glyphicon,Class]), [])).
+  html(span(class([fa,Class]), [])).
 
 
 
@@ -3380,28 +3376,29 @@ functor_and_arity(Functor, Arity) -->
 %! glyphicon(+Name, -Class, -Title) is det.
 
 glyphicon(Name, Class, Title) :-
-  glyphicon0(Name, Class0, Title),
-  atomic_list_concat([glyphicon,Class0], -, Class).
+  glyphicon0(Name, ClassPostfix, Title),
+  atomic_list_concat([fa,ClassPostfix], -, Class).
 
 
 
 %! glyphicon0(?Name, ?Class, ?Title) is nondet.
 
 % CRUD = Create, Read, Update, Delete.
-glyphicon0(cancel,         erase,          "Cancel").
-glyphicon0(copy,           copy,           "Copy").
-glyphicon0(create,         pencil,         "Create").
-glyphicon0(delete,         trash,          "Delete").
-glyphicon0(download,      'save-file',     "Download").
-glyphicon0(external_link,  link,           "Follow link").
-glyphicon0(internal_link, 'chevron-right', "Follow link").
-glyphicon0(mail,           envelope,       "Send email").
-glyphicon0(tag,            tags,           "").
-glyphicon0(time,           time,           "Date/time").
-glyphicon0(user,           user,           "Log me in").
-glyphicon0(vote_down,     'thumbs-down',   "Vote up").
-glyphicon0(vote_up,       'thumbs-up',     "Vote down").
-glyphicon0(web,            globe,          "Visit Web site").
+glyphicon0(cancel,         eraser,          "Cancel").
+glyphicon0(copy,           copy,            "Copy").
+glyphicon0(create,         pencil,          "Create").
+glyphicon0(delete,         trash,           "Delete").
+glyphicon0(download,       download,        "Download").
+glyphicon0(external_link,  'external-link', "Follow link").
+glyphicon0(internal_link,  link,            "Follow link").
+glyphicon0(mail,           envelope,        "Send email").
+glyphicon0(tag,            tag,             "").
+glyphicon0(tags,           tags,            "").
+glyphicon0(time,           'clock-o',       "Date/time").
+glyphicon0(user,           user,            "Log me in").
+glyphicon0(vote_down,     'thumbs-o-down',  "Vote up").
+glyphicon0(vote_up,       'thumbs-o-up',    "Vote down").
+glyphicon0(web,            globe,           "Visit Web site").
 
 
 
