@@ -1,25 +1,26 @@
 :- module(
   uri_ext,
   [
-    auth_comps/2,          % ?Auth, ?Comps
-    host_uri/1,            % -Uri
+    auth_comps/2,           % ?Auth, ?Comps
+    host_uri/1,             % -Uri
     iri_query_enc//0,
-    is_data_uri/1,         % +Uri
-    is_image_uri/1,        % @Term
-    is_uri/1,              % +Uri
-    uri_alias_uuid/2,      % -Uri, +Alias
-    uri_comp/3,            % +Uri, ?Key, ?Val
-    uri_comps/2,           % ?Uri, ?Comps
-    uri_comps/3,           % -Uri, +BaseUri, +Comps
-    uri_file_extensions/2, % +Uri,  -Exts
-    uri_last_segment/2,    % +Uri, -LastSegment
+    is_data_uri/1,          % +Uri
+    is_image_uri/1,         % @Term
+    is_uri/1,               % +Uri
+    uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
+    uri_alias_uuid/2,       % -Uri, +Alias
+    uri_comp/3,             % +Uri, ?Key, ?Val
+    uri_comps/2,            % ?Uri, ?Comps
+    uri_comps/3,            % -Uri, +BaseUri, +Comps
+    uri_file_extensions/2,  % +Uri,  -Exts
+    uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
     uri_query_enc//0,
-    uri_remove_fragment/2, % +Uri, -BaseUri
-    uri_resource/2,        % ?Uri, ?Res
+    uri_remove_fragment/2,  % +Uri, -BaseUri
+    uri_resource/2,         % ?Uri, ?Res
     uri_segment_enc//0,
-    uri_segments/2,        % ?Uri, ?Segments
-    uri_segments_uuid/2    % ?Uri, ?Segments
+    uri_segments/2,         % ?Uri, ?Segments
+    uri_segments_uuid/2     % ?Uri, ?Segments
   ]
 ).
 :- reexport(library(uri)).
@@ -137,6 +138,15 @@ is_image_uri(Uri) :-
 is_uri(Uri) :-
   uri_components(Uri, uri_components(Scheme,Auth,_,_,_)),
   maplist(atom, [Scheme,Auth]).
+
+
+
+%! uri_add_path_postfix(+Uri1, +PathPostfix, -Uri2) is det.
+
+uri_add_path_postfix(Uri1, PathPostfix, Uri2) :-
+  uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
+  append(Segments1, PathPostfix, Segments2),
+  uri_comps(Uri2, uri(Scheme,Auth,Segments2,_,_)).
 
 
 
