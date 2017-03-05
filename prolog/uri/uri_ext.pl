@@ -2,6 +2,7 @@
   uri_ext,
   [
     auth_comps/2,          % ?Auth, ?Comps
+    host_uri/1,            % -Uri
     iri_query_enc//0,
     is_data_uri/1,         % +Uri
     is_image_uri/1,        % @Term
@@ -26,7 +27,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2016/11-2017/02
+@version 2016/11-2017/03
 */
 
 :- use_module(library(apply)).
@@ -65,6 +66,18 @@
 
 auth_comps(Auth, auth(User,Host,Port)) :-
   uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
+
+
+
+%! host_uri(-Uri) is det.
+%
+% The public URI at which the current host can be reached.
+
+host_uri(Uri) :-
+  setting(http:public_host, Host),
+  setting(http:public_port, Port),
+  setting(http:public_scheme, Scheme),
+  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),_,_,_)).
 
 
 

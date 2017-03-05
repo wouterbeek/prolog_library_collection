@@ -770,12 +770,9 @@ data_link(Res, Html_0) -->
   data_link(Res, [], Html_0).
 
 
-data_link(Res, Attrs1, Html_0) -->
-  {
-    uri_resource(Uri, Res),
-    merge_attrs([href=Uri], Attrs1, Attrs2)
-  },
-  html(a(Attrs2, Html_0)).
+data_link(Res, Attrs, Html_0) -->
+  {uri_resource(Uri, Res)},
+  internal_link(Uri, Attrs, Html_0).
 
 
 
@@ -3504,6 +3501,10 @@ spec_uri0(link_to_id(HandleId), Uri) :- !,
 spec_uri0(link_to_id(HandleId,Query0), Uri) :- !,
   maplist(rdf_query_term, Query0, Query), %HACK
   http_link_to_id(HandleId, Query, Uri).
+spec_uri0(Spec, Uri) :-
+  atom(Spec),
+  host_uri(HostUri),
+  atom_concat(HostUri, Uri, Spec), !.
 spec_uri0(Spec, Uri) :-
   http_absolute_location(Spec, Uri).
 
