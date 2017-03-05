@@ -8,8 +8,6 @@
     between//3,              % :Begin_0, :Middle_0, :End_0
     button//1,               % :Html_0
     button//2,               % +Attrs, :Html_0
-    card//2,                 % :Left_0, :Right_0
-    card//3,                 % +Attrs, :Left_0, :Right_0
     html_caret//0,
     center_logo//1,          % +Spec
     code_link//1,            % +Uri
@@ -149,7 +147,6 @@
     meta_license//1,         % +Uri
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
-    navbar_brand_img//2,     % +Local, +Alt
     navbar_dropdown_menu//4, % +Name, +Lbl, :Html_1, +L
     navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
     nonvar//1,               % :Html_0
@@ -252,7 +249,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2017/01
+@version 2016/02-2017/03
 */
 
 :- use_module(library(apply)).
@@ -289,8 +286,6 @@ html({|html||...|}).
    between(html, html, html, ?, ?),
    button(html, ?, ?),
    button(+, html, ?, ?),
-   card(html, html, ?, ?),
-   card(+, html, html, ?, ?),
    collapse_content(+, html, ?, ?),
    collapse_link(+, html, ?, ?),
    data_link(+, html, ?, ?),
@@ -373,12 +368,12 @@ html({|html||...|}).
 :- if(debugging(css(bootstrap))).
   :- html_resource(
        css(bootstrap),
-       [requires([css('bootstrap-3.3.7.css')]),virtual(true)]
+       [requires([css('bootstrap.css')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        css(bootstrap),
-       [requires([css('bootstrap-3.3.7.min.css')]),virtual(true)]
+       [requires([css('bootstrap.min.css')]),virtual(true)]
      ).
 :- endif.
 :- if(debugging(css('bootstrap-theme'))).
@@ -386,7 +381,7 @@ html({|html||...|}).
        css('bootstrap-theme'),
        [
          ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme-3.3.7.css')]),
+         requires([css(bootstrap),css('bootstrap-theme.css')]),
          virtual(true)
        ]
      ).
@@ -395,7 +390,7 @@ html({|html||...|}).
        css('bootstrap-theme'),
        [
          ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme-3.3.7.min.css')]),
+         requires([css(bootstrap),css('bootstrap-theme.min.css')]),
          virtual(true)
        ]
      ).
@@ -405,7 +400,7 @@ html({|html||...|}).
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap-3.3.7.js')]),
+         requires([jquery,js('bootstrap.js')]),
          virtual(true)
        ]
      ).
@@ -414,7 +409,7 @@ html({|html||...|}).
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap-3.3.7.min.js')]),
+         requires([jquery,js('bootstrap.min.js')]),
          virtual(true)
        ]
      ).
@@ -690,30 +685,6 @@ button(Attrs1, Html_0) -->
 
 
 
-%! card(:Left_0, :Right_0)// is det.
-%! card(+Attrs, :Left_0, :Right_0)// is det.
-
-card(Left_0, Right_0) -->
-  card([], Left_0, Right_0).
-
-
-card(Attrs1, Left_0, Right_0) -->
-  {merge_attrs([class=[card,row]], Attrs1, Attrs2)},
-  html(
-    div(Attrs2, [
-      div(class=['col-xs-0','col-sm-0','col-md-0','col-lg-1'], []),
-      div(class=['col-xs-12','col-sm-4','col-md-4','col-lg-3',left],
-        Left_0
-      ),
-      div(class=['col-xs-12','col-sm-8','col-md-8','col-lg-7',right],
-        Right_0
-      ),
-      div(class=['col-xs-0','col-sm-0','col-md-0','col-lg-1'], [])
-    ])
-  ).
-
-
-
 %! center_logo(+Spec)// is det.
 %
 % Generates a full-width SVG logo, typically directly beneath the
@@ -824,7 +795,7 @@ deck(Card_1, L) -->
 
 
 deck(Attrs1, Card_1, L) -->
-  {merge_attrs([class=[container,deck]], Attrs1, Attrs2)},
+  {merge_attrs([class=['card-columns']], Attrs1, Attrs2)},
   html(div(Attrs2, \html_maplist(Card_1, L))).
 
 
@@ -1524,18 +1495,16 @@ hamburger(Target0) -->
   {atom_concat('#', Target0, Target)},
   html(
     button([
+      'aria-controls'=Target,
       'aria-expanded'=false,
-      class=[collapsed,'navbar-toggle'],
+      'aria-label'="Toggle navigation",
+      class=[collapsed,'navbar-toggler','navbar-toggler-right'],
       'data-target'=Target,
       'data-toggle'=collapse,
       type=button
-    ], [
-      span(class='sr-only', "Toggle navigation"),
-      \bar,
-      \bar,
-      \bar
-    ])
+    ], span(class='navbar-toggler-icon', []))
   ).
+
 
 
 %! how(+Mod, +How)// is det.
@@ -2241,9 +2210,13 @@ menu -->
 major_menu(Loc, menu_item(Handle,Lbl)-[]) --> !,
   {
     http_link_to_id(Handle, Uri),
-    (atom_postfix(Loc, Uri) -> Classes = [active,Handle] ; Classes = [Handle])
+    (atom_postfix(Loc, Uri) -> Classes = [active] ; Classes = [])
   },
-  html(li(class=Classes, \internal_link(Uri, Lbl))).
+  html(
+    li(class='nav-item',
+      a([class=['nav-link',Handle|Classes],href=Uri], Lbl)
+    )
+  ).
 % Nested menu items.
 major_menu(_, MajorItem-MinorItems) -->
   dropdown_menu(menu_item(MajorItem), menu_item, MinorItems).
@@ -2349,7 +2322,7 @@ meta_license(Uri) -->
 %         can properly parse the attributes.
 
 meta_viewport -->
-  meta(viewport, 'width=device-width,initial-scale=1.0,user-scalable=yes').
+  meta(viewport, 'width=device-width, initial-scale=1, shrink-to-fit=no').
 
 
 
@@ -2358,24 +2331,17 @@ meta_viewport -->
 navbar(Brand_0, Menu_0, Right_0) -->
   {Target = target},
   html([
-    nav(class=[navbar,'navbar-default','navbar-fixed-top'],
-      div(class='container-fluid', [
-        div(class='navbar-header', [
-          \hamburger(Target),
-          a([class='navbar-brand',href='/'], Brand_0)
-        ]),
-        div([class=[collapse,'navbar-collapse'],id=Target], [
-          \navbar_menu(Menu_0),
-          ul(class=[nav,'navbar-nav','navbar-right'], Right_0)
-        ])
+    nav(class=[navbar,'fixed-top','navbar-toggleable-md'], [
+      \hamburger(Target),
+      a([class='navbar-brand',href='/'], Brand_0),
+      div([class=[collapse,'navbar-collapse'],id=Target], [
+        ul(class='navbar-nav', Menu_0),
+        ul(class='navbar-nav', Right_0)
       ])
-    ),
-    \navbar_resize
+    ])%,
+    %%%%\navbar_resize
   ]).
 
-
-navbar_menu(Html_0) -->
-  html(ul(class=[nav,'navbar-nav'], Html_0)).
 
 
 navbar_resize -->
@@ -2390,14 +2356,6 @@ $(window).resize(onResize);
 // Call it also when the page is ready after load or reload.
 $(function() { onResize(); });
   |}).
-
-
-
-%! navbar_brand_img(+Spec, +Attrs)// is det.
-
-navbar_brand_img(Spec, Attrs1) -->
-  {merge_attrs(Attrs1, [style='max-height:100%;'], Attrs2)},
-  image(Spec, Attrs2).
 
 
 

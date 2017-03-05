@@ -44,7 +44,8 @@ img {
   max-width: 100%;
 }
 
-li, p {
+li,
+p {
     line-height: 1.6em;
     margin: 0;
     text-align: justify;
@@ -177,41 +178,36 @@ path.leaflet-interactive:hover {
   margin: 0px;
 }
 
-.navbar-right {
-  margin-right: 0px;
-}
-
 
 
 /* Navigation bar: Brand */
 
-.navbar-brand {
+.navbarbar-brand {
   color: #337ab7 !important;
   font-weight: bold;
-  padding: 5px;
 }
 
-.nav-brand a img {
-  max-height: 30px;
+.navbar-brand img {
+  height: 100%;
 }
 
 
 
 /* Social buttons */
 
-ul.social-btns {
+.social-btns {
   margin-bottom: 0px !important;
   padding-left: 0px !important;
 }
 
-li.social-btn {
+.social-btn {
   display: inline-block;
   line-height: 1;
   padding: 10px;
   position: relative;
 }
 
-li.social-btn a img {
+.social-btn a img {
   max-height: 30px;
   max-width: 30px;
 }
@@ -220,33 +216,29 @@ li.social-btn a img {
 
 /* Navigation bar: Navigation menu */
 
-nav .container-fluid {
-  padding-right: 0;
-}
-
 /* Center menu items on mobile. */
 @media (max-width: 750px) {
-  nav ul li {
+  navbar ul li {
     text-align: center;
   }
 }
 /* Display menus horizontally i.o. vertically. */
 @media (min-width: 750px) {
-  nav ul li {
+  navbar ul li {
     display: inline-block;
     line-height: 1;
     position: relative;
   }
 }
 
-nav ul li a,
-nav ul li a:active,
-nav ul li a:focus,
-nav ul li a:visited {
+navbar ul li a,
+navbar ul li a:active,
+navbar ul li a:focus,
+navbar ul li a:visited {
   color: black;
 }
 
-nav ul li.selected {
+navbar ul li.selected {
   font-weight: bold;
 }
 
@@ -254,63 +246,16 @@ nav ul li.selected {
 
 /* Deck of cards */
 
-/*.deck {
-  max-width: 750px;
-  width: 85%
-}*/
-
-.card {
-  display: table;
-  margin-bottom: 15px;
-}
-
-/*
-.card .left {
-  float: left;
-}
-
-.card .left img {
-  border-radius: 45px;
-  height: 90px;
-  width: 90px;
-}
-*/
-
-/*.card .right {
-  float: right;
-  margin-left: 25px;
-  vertical-align: middle;
-} */ 
-
-.card .right h1 {
-  font-size: 1.5em;
-  font-weight: 400;
-  margin-bottom: 5px;
-  margin-top: 0px;
-}
-@media (max-width: 750px) {
-  .card .right h1 {
-    margin-top: 10px;
-  }
-}
-
-.card .right p {
-  color: black;
-  line-height: 1.3em;
-  margin-bottom: 5px;
-  text-align: justify;
-}
-
-.card .right footer ol,
-.card .right footer ul {
+.card-footer ol,
+.card-footer ul {
   display: inline;
   margin-bottom: 0;
   padding-left: 0;
   padding-right: 0;
 }
 
-.card .right footer ol li ,
-.card .right footer ul li {
+.card-footer ol li ,
+.card-footer ul li {
   display: inline;
   line-height: 1;
   position: relative;
@@ -318,16 +263,16 @@ nav ul li.selected {
 
 /* Links in card footers are grey. */
 /* It is a good idea to define a different color for hovered links. */
-.card .right footer,
-.card .right footer a,
-.card .right footer a:active,
-.card .right footer a:focus,
-.card .right footer a:visited {
+.card-footer,
+.card-footer a,
+.card-footer a:active,
+.card-footer a:focus,
+.card-footer a:visited {
   color: #777;
 }
 
-.card .right footer ol li:not(:last-child):after,
-.card .right footer ul li:not(:last-child):after {
+.card-footer ol li:not(:last-child):after,
+.card-footer ul li:not(:last-child):after {
   content: ",";
 }
 
