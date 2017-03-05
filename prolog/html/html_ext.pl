@@ -1865,7 +1865,7 @@ icon(pen) --> !,
     )
   ).
 icon(Name) -->
-  {glyphicon(Name, Class, _)},
+  {icon_class(Name, Class)},
   html(span(class([fa,Class]), [])).
 
 
@@ -1879,12 +1879,48 @@ icon_button(Name) -->
 
 icon_button(Name, Func) -->
   {
-    glyphicon(Name, Class, Title),
+    icon_class_title(Name, Class, Title),
     (var(Func) -> Attrs = [] ; Attrs = [onclick=Func])
   },
   html(
-    button([class=[btn,'btn-default',glyphicon,Class],title=Title|Attrs], [])
+    button([class=[btn,'btn-default',af,Class],title=Title|Attrs], [])
   ).
+
+
+
+%! icon_class(+Name, -Class, -Title) is det.
+
+icon_class(Name, Class) :-
+  icon_class_title(Name, Class, _).
+
+
+
+%! icon_class_title(+Name, -Class, -Title) is det.
+
+icon_class_title(Name, Class, Title) :-
+  icon_table(Name, ClassPostfix, Title),
+  atomic_list_concat([fa,ClassPostfix], -, Class).
+
+
+
+%! icon_table(?Name, ?Class, ?Title) is nondet.
+
+% CRUD = Create, Read, Update, Delete.
+icon_table(cancel,         eraser,          "Cancel").
+icon_table(copy,           copy,            "Copy").
+icon_table(create,         pencil,          "Create").
+icon_table(delete,         trash,           "Delete").
+icon_table(download,       download,        "Download").
+icon_table(external_link,  'external-link', "Follow link").
+icon_table(internal_link,  link,            "Follow link").
+icon_table(mail,           envelope,        "Send email").
+icon_table(tag,            tag,             "").
+icon_table(tags,           tags,            "").
+icon_table(time,           'clock-o',       "Date/time").
+icon_table(user,           user,            "Log me in").
+icon_table(vote_down,     'thumbs-o-down',  "Vote up").
+icon_table(vote_up,       'thumbs-o-up',    "Vote down").
+icon_table(web,            globe,           "Visit Web site").
 
 
 
@@ -3370,35 +3406,6 @@ form_input_label0(WidthsA, WidthsB, _, _, Classes) -->
 
 functor_and_arity(Functor, Arity) -->
   html([Functor,"/",Arity]).
-
-
-
-%! glyphicon(+Name, -Class, -Title) is det.
-
-glyphicon(Name, Class, Title) :-
-  glyphicon0(Name, ClassPostfix, Title),
-  atomic_list_concat([fa,ClassPostfix], -, Class).
-
-
-
-%! glyphicon0(?Name, ?Class, ?Title) is nondet.
-
-% CRUD = Create, Read, Update, Delete.
-glyphicon0(cancel,         eraser,          "Cancel").
-glyphicon0(copy,           copy,            "Copy").
-glyphicon0(create,         pencil,          "Create").
-glyphicon0(delete,         trash,           "Delete").
-glyphicon0(download,       download,        "Download").
-glyphicon0(external_link,  'external-link', "Follow link").
-glyphicon0(internal_link,  link,            "Follow link").
-glyphicon0(mail,           envelope,        "Send email").
-glyphicon0(tag,            tag,             "").
-glyphicon0(tags,           tags,            "").
-glyphicon0(time,           'clock-o',       "Date/time").
-glyphicon0(user,           user,            "Log me in").
-glyphicon0(vote_down,     'thumbs-o-down',  "Vote up").
-glyphicon0(vote_up,       'thumbs-o-up',    "Vote down").
-glyphicon0(web,            globe,           "Visit Web site").
 
 
 
