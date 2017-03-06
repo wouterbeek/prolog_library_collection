@@ -2360,14 +2360,23 @@ meta_viewport -->
 navbar(Brand_0, Menu_0, Right_0) -->
   {Target = target},
   html([
-    nav(class=[navbar,'fixed-top','navbar-toggleable-md'], [
-      \hamburger(Target),
-      a([class='navbar-brand',href='/'], Brand_0),
-      div([class=[collapse,'navbar-collapse'],id=Target], [
-        ul(class='navbar-nav', Menu_0),
-        ul(class='navbar-nav', Right_0)
-      ])
-    ])%,
+    nav([
+      class=[
+        'bg-faded',
+        'fixed-top',
+        navbar,
+        'navbar-light',
+        'navbar-toggleable-md'
+      ]
+    ], [
+        \hamburger(Target),
+        a([class='navbar-brand',href='/'], Brand_0),
+        div([class=[collapse,'navbar-collapse'],id=Target], [
+          ul(class=['navbar-nav','mr-auto'], Menu_0),
+          ul(class=['navbar-nav'], Right_0)
+        ])
+      ]
+    )%,
     %%%%\navbar_resize
   ]).
 
