@@ -1,6 +1,7 @@
 :- module(
   call_ext,
   [
+    call_bool/2,            % :Goal_0, -Bool
     call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
     call_det_when/2,        % :Cond_0, :Goal_0
     call_n_sol/3,           % +N, :Select_1, :Goal_1
@@ -20,7 +21,7 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04-2017/01
+@version 2016/04-2017/03
 */
 
 :- use_module(library(debug)).
@@ -29,6 +30,7 @@
 :- use_module(library(time)).
 
 :- meta_predicate
+    call_bool(0, -),
     call_catcher_cleanup(0, +, 0),
     call_det_when(0, 0),
     call_n_sol(+, 1, 1),
@@ -43,6 +45,14 @@
     retry0(0).
 
 
+
+
+
+%! call_bool(:Goal_0, -Bool) is det.
+
+call_bool(Goal_0, true) :-
+  once(Goal_0).
+call_bool(_, false).
 
 
 

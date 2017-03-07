@@ -203,7 +203,7 @@ nav ul li a:visited {
 /* Deck of cards */
 .card {
   margin: 15px;
-  padding: 10px;
+  margin-right: 60px;
   -webkit-box-shadow: 8px 8px 6px -6px #999;
   -moz-box-shadow: 8px 8px 6px -6px #999;
   box-shadow: 8px 8px 6px -6px #999;

@@ -66,6 +66,7 @@
     dcg_call//4,           % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call//5,           % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call//6,           % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_call_bool//2,      % :Dcg_0, -Bool
     dcg_call_cp//1,        % :Dcg_0
     dcg_call_cp//2,        % :Dcg_1, ?Arg1
     dcg_call_cp//3,        % :Dcg_2, ?Arg1, ?Arg2
@@ -173,7 +174,7 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2017/01
+@version 2015/11-2017/03
 */
 
 :- use_module(library(aggregate)).
@@ -241,6 +242,7 @@ My favorite collection of DCG rules.
     dcg_call(5, ?, ?, ?, ?, ?),
     dcg_call(6, ?, ?, ?, ?, ?, ?),
     dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_call_bool(//, -, ?, ?),
     dcg_call_cp(//, ?, ?),
     dcg_call_cp(3, ?, ?, ?),
     dcg_call_cp(4, ?, ?, ?, ?),
@@ -1082,6 +1084,14 @@ dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
 
 dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
   call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
+
+
+
+%! dcg_call_bool(:Dcg_0, -Bool)// is det.
+
+dcg_call_bool(Dcg_0, true) -->
+  dcg_once(Dcg_0), !.
+dcg_call_bool(_, false) --> "".
 
 
 
