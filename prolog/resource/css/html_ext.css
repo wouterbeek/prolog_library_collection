@@ -1,3 +1,9 @@
+.card-columns {
+  column-count: 3;
+  -moz-column-count: 3;
+  -webkit-column-count: 3;
+}
+
 a,
 a:active,
 a:focus,
@@ -7,9 +13,7 @@ a:visited {
 }
 
 body {
-  color: black;
-  font-size: 150%;
-  line-height: 1.6em;
+  /*line-height: 1.6em;*/
   overflow-x: hidden;
   padding-top: 60px;
 }
@@ -22,11 +26,6 @@ body {
 code, pre {
   background: #f8f8ff;
   font-family: monospace;
-}
-
-/* medium-editor */
-.editable {
-  border: 1px solid;
 }
 
 h1, h3, h4, h5, h6 {
@@ -44,14 +43,10 @@ img {
   max-width: 100%;
 }
 
-li, p {
-    line-height: 1.6em;
-    margin: 0;
-    text-align: justify;
-}
-
-.inline {
-  display: inline-block;
+p {
+  font-size: 120%;
+  margin: 0;
+  text-align: justify;
 }
 
 /* Concept */
@@ -59,8 +54,7 @@ li, p {
   font-style: italic;
 }
 
-/* Todo items */
-
+/* Todo item */
 .todo {
   color: red;
 }
@@ -123,44 +117,6 @@ li[typeof="sbo:Author"] img {
 
 
 
-/* Leaflet
-html,
-body,
-.container-fluid,
-.container-fluid .main,
-.container-fluid .main .row,
-.container-fluid .main .row .col,
-*/
-#mapid {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-}
-#mapid {
-  cursor: crosshair;
-}
-
-/* Hide Leaflet ‘watermark’. */
-.leaflet-control-attribution{
-  display: none !important;
-}
-
-path.leaflet-interactive:hover {
-  fill: black;
-}
-
-.ttip[about] {
-  background-color: #ffea79;
-  cursor: pointer;
-}
-
-.qtip {
-  max-width: 1000px;
-}
-
-
-
 /* In-line separators */
 
 /* Extra horizontal spacing for the pipe symbol. */
@@ -173,72 +129,68 @@ path.leaflet-interactive:hover {
 
 /* Navigation bar */
 
-.navbar-nav {
-  margin: 0px;
-}
-
-.navbar-right {
-  margin-right: 0px;
-}
-
-
-
 /* Navigation bar: Brand */
-
-.navbar-brand {
+.navbarbar-brand {
   color: #337ab7 !important;
   font-weight: bold;
-  padding: 5px;
 }
-
-.nav-brand a img {
-  max-height: 30px;
+.navbar-brand img {
+  height: 100%;
 }
-
-
 
 /* Social buttons */
-
-ul.social-btns {
+.social-btns {
   margin-bottom: 0px !important;
   padding-left: 0px !important;
 }
-
-li.social-btn {
+.social-btn {
   display: inline-block;
   line-height: 1;
   padding: 10px;
   position: relative;
 }
-
-li.social-btn a img {
+.social-btn a img {
   max-height: 30px;
   max-width: 30px;
 }
 
-
-
-/* Navigation bar: Navigation menu */
-
-nav .container-fluid {
-  padding-right: 0;
-}
-
 /* Center menu items on mobile. */
 @media (max-width: 750px) {
-  nav ul li {
+  .navbar ul li {
     text-align: center;
   }
 }
-/* Display menus horizontally i.o. vertically. */
+/* Display menus horizontally i.o. vertically on mobile. */
 @media (min-width: 750px) {
-  nav ul li {
+  .navbar ul li {
     display: inline-block;
     line-height: 1;
     position: relative;
   }
 }
 
+.navbar {
+  -webkit-box-shadow: 0 8px 6px -6px #999;
+  -moz-box-shadow: 0 8px 6px -6px #999;
+  box-shadow: 0 8px 6px -6px #999;
+  padding: 0;
+}
+.navbar li.active {
+  background: #999;
+}
+.nav-link {
+  line-height: 35px;
+}
+.navbar li {
+  line-height: 50px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.navbar li.active a,
+.navbar li.active a:focus,
+.navbar li.active a:hover {
+  color: #555;
+}
 nav ul li a,
 nav ul li a:active,
 nav ul li a:focus,
@@ -246,88 +198,38 @@ nav ul li a:visited {
   color: black;
 }
 
-nav ul li.selected {
-  font-weight: bold;
-}
-
 
 
 /* Deck of cards */
-
-/*.deck {
-  max-width: 750px;
-  width: 85%
-}*/
-
 .card {
-  display: table;
-  margin-bottom: 15px;
+  margin: 15px;
+  margin-right: 60px;
+  -webkit-box-shadow: 8px 8px 6px -6px #999;
+  -moz-box-shadow: 8px 8px 6px -6px #999;
+  box-shadow: 8px 8px 6px -6px #999;
 }
 
-/*
-.card .left {
-  float: left;
-}
-
-.card .left img {
-  border-radius: 45px;
-  height: 90px;
-  width: 90px;
-}
-*/
-
-/*.card .right {
-  float: right;
-  margin-left: 25px;
-  vertical-align: middle;
-} */ 
-
-.card .right h1 {
-  font-size: 1.5em;
-  font-weight: 400;
-  margin-bottom: 5px;
-  margin-top: 0px;
-}
-@media (max-width: 750px) {
-  .card .right h1 {
-    margin-top: 10px;
-  }
-}
-
-.card .right p {
-  color: black;
-  line-height: 1.3em;
-  margin-bottom: 5px;
-  text-align: justify;
-}
-
-.card .right footer ol,
-.card .right footer ul {
+.card-footer ol,
+.card-footer ol li,
+.card-footer ul,
+.card-footer ul li {
   display: inline;
-  margin-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.card .right footer ol li ,
-.card .right footer ul li {
-  display: inline;
-  line-height: 1;
-  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 /* Links in card footers are grey. */
 /* It is a good idea to define a different color for hovered links. */
-.card .right footer,
-.card .right footer a,
-.card .right footer a:active,
-.card .right footer a:focus,
-.card .right footer a:visited {
+.card-footer,
+.card-footer a,
+.card-footer a:active,
+.card-footer a:focus,
+.card-footer a:visited {
   color: #777;
 }
 
-.card .right footer ol li:not(:last-child):after,
-.card .right footer ul li:not(:last-child):after {
+.card-footer ol li:not(:last-child):after,
+.card-footer ul li:not(:last-child):after {
   content: ",";
 }
 
@@ -358,7 +260,6 @@ article header h1 {
   line-height: 1.2em;
   text-align: center;
 }
-
 
 
 /* Article: Header: Metadata. */
@@ -397,7 +298,6 @@ article .metadata ul li:not(:last-child):after {
 }
 
 
-
 /* Article: Section */
 
 article section {
@@ -410,7 +310,6 @@ article h2,
 article h3 {
   text-align: center;
 }
-
 
 
 /* Article: Textual content
@@ -426,7 +325,6 @@ article [property="sioc:content"] p {
 }
 
 
-
 /* Article: First letter */
 
 [property="sioc:content"] > p:first-of-type:first-letter {
@@ -434,14 +332,6 @@ article [property="sioc:content"] p {
   font-size: 550%;
   line-height: 0.8;
   margin-right: 5px;
-}
-
-
-
-/* Grid */
-
-#grid h1 {
-  text-align: center;
 }
 
 
@@ -525,7 +415,6 @@ footer.main ul li {
 }
 
 
-
 /* Comments: Existing ones */
 
 .votes {
@@ -555,7 +444,6 @@ footer.main ul li {
   min-height: 60px;
   width: 460px;
 }
-
 
 
 /* Comments: New ones */
@@ -590,4 +478,42 @@ footer.main ul li {
 #cancel-comment-button, .delete-comment-button {
   clear: both;
   display: block;
+}
+
+
+
+/* Editor */
+.editable {
+  border: 1px solid;
+}
+
+
+
+/* Leaflet
+html,
+body,
+.container-fluid,
+.container-fluid .main,
+.container-fluid .main .row,
+.container-fluid .main .row .col,
+*/
+#mapid {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/* Better mouse pointer. */
+#mapid {
+  cursor: crosshair;
+}
+
+/* Hide Leaflet ‘watermark’. */
+.leaflet-control-attribution{
+  display: none !important;
+}
+
+path.leaflet-interactive:hover {
+  fill: black;
 }

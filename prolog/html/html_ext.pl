@@ -8,10 +8,7 @@
     between//3,              % :Begin_0, :Middle_0, :End_0
     button//1,               % :Html_0
     button//2,               % +Attrs, :Html_0
-    card//2,                 % :Left_0, :Right_0
-    card//3,                 % +Attrs, :Left_0, :Right_0
     html_caret//0,
-    center_logo//1,          % +Spec
     code_link//1,            % +Uri
     collapse_content//2,     % +Id, :Html_0
     collapse_link//2,        % +Id, :Link_0
@@ -149,7 +146,6 @@
     meta_license//1,         % +Uri
     meta_viewport//0,
     navbar//3,               % :Brand_0, :Menu_0, :Right_0
-    navbar_brand_img//2,     % +Local, +Alt
     navbar_dropdown_menu//4, % +Name, +Lbl, :Html_1, +L
     navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
     nonvar//1,               % :Html_0
@@ -252,7 +248,7 @@ html({|html||...|}).
 ```
 
 @author Wouter Beek
-@version 2016/02-2017/01
+@version 2016/02-2017/03
 */
 
 :- use_module(library(apply)).
@@ -289,8 +285,6 @@ html({|html||...|}).
    between(html, html, html, ?, ?),
    button(html, ?, ?),
    button(+, html, ?, ?),
-   card(html, html, ?, ?),
-   card(+, html, html, ?, ?),
    collapse_content(+, html, ?, ?),
    collapse_link(+, html, ?, ?),
    data_link(+, html, ?, ?),
@@ -373,31 +367,12 @@ html({|html||...|}).
 :- if(debugging(css(bootstrap))).
   :- html_resource(
        css(bootstrap),
-       [requires([css('bootstrap-3.3.7.css')]),virtual(true)]
+       [requires([css('bootstrap.css')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        css(bootstrap),
-       [requires([css('bootstrap-3.3.7.min.css')]),virtual(true)]
-     ).
-:- endif.
-:- if(debugging(css('bootstrap-theme'))).
-  :- html_resource(
-       css('bootstrap-theme'),
-       [
-         ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme-3.3.7.css')]),
-         virtual(true)
-       ]
-     ).
-:- else.
-  :- html_resource(
-       css('bootstrap-theme'),
-       [
-         ordered(true),
-         requires([css(bootstrap),css('bootstrap-theme-3.3.7.min.css')]),
-         virtual(true)
-       ]
+       [requires([css('bootstrap.min.css')]),virtual(true)]
      ).
 :- endif.
 :- if(debugging(js(bootstrap))).
@@ -405,7 +380,7 @@ html({|html||...|}).
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap-3.3.7.js')]),
+         requires([jquery,tether,js('bootstrap.js')]),
          virtual(true)
        ]
      ).
@@ -414,14 +389,14 @@ html({|html||...|}).
        js(bootstrap),
        [
          ordered(true),
-         requires([jquery,js('bootstrap-3.3.7.min.js')]),
+         requires([jquery,tether,js('bootstrap.min.js')]),
          virtual(true)
        ]
      ).
 :- endif.
 :- html_resource(
      bootstrap,
-     [requires([css('bootstrap-theme'),js(bootstrap)]),virtual(true)]
+     [requires([css(bootstrap),js(bootstrap)]),virtual(true)]
    ).
 
 % Clipboard
@@ -470,6 +445,23 @@ html({|html||...|}).
      [requires([css(dropzone),js(dropzone)]),virtual(true)]
    ).
 
+% FontAwesome
+:- if(debugging(css('font-awesome'))).
+  :- html_resource(
+       css('font-awesome'),
+       [requires([css('font-awesome-4.7.0.css')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       css('font-awesome'),
+       [requires([css('font-awesome-4.7.0.min.css')]),virtual(true)]
+     ).
+:- endif.
+:- html_resource(
+     'font-awesome',
+     [requires([css('font-awesome')]),virtual(true)]
+   ).
+
 % Grid
 :- html_resource(
      css(grid),
@@ -493,7 +485,7 @@ html({|html||...|}).
      html_ext,
      [
        ordered(true),
-       requires([bootstrap,css('html_ext.css')]),
+       requires([bootstrap,'font-awesome',css('html_ext.css')]),
        virtual(true)
      ]
    ).
@@ -523,6 +515,23 @@ html({|html||...|}).
      ).
 :- endif.
 :- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
+
+% Tether
+:- if(debugging(js(tether))).
+  :- html_resource(
+       js(tether),
+       [requires([js('tether-1.3.3.js')]),virtual(true)]
+     ).
+:- else.
+  :- html_resource(
+       js(tether),
+       [requires([js('tether-1.3.3.min.js')]),virtual(true)]
+     ).
+:- endif.
+:- html_resource(
+     tether,
+     [requires([js(tether)]),virtual(true)]
+   ).
 
 :- meta_predicate
     deck(3, +, ?, ?),
@@ -690,48 +699,6 @@ button(Attrs1, Html_0) -->
 
 
 
-%! card(:Left_0, :Right_0)// is det.
-%! card(+Attrs, :Left_0, :Right_0)// is det.
-
-card(Left_0, Right_0) -->
-  card([], Left_0, Right_0).
-
-
-card(Attrs1, Left_0, Right_0) -->
-  {merge_attrs([class=[card,row]], Attrs1, Attrs2)},
-  html(
-    div(Attrs2, [
-      div(class=['col-xs-0','col-sm-0','col-md-0','col-lg-1'], []),
-      div(class=['col-xs-12','col-sm-4','col-md-4','col-lg-3',left],
-        Left_0
-      ),
-      div(class=['col-xs-12','col-sm-8','col-md-8','col-lg-7',right],
-        Right_0
-      ),
-      div(class=['col-xs-0','col-sm-0','col-md-0','col-lg-1'], [])
-    ])
-  ).
-
-
-
-%! center_logo(+Spec)// is det.
-%
-% Generates a full-width SVG logo, typically directly beneath the
-% navigation bar.
-
-center_logo(Spec) -->
-  html(
-    div(class=row,
-      div(class=[col,'col-md-12'],
-        a([href='/',id=logo],
-          \image(Spec, [class='center-block'])
-        )
-      )
-    )
-  ).
-
-
-
 %! code_link(+Str)// is det.
 
 code_link(Str0) -->
@@ -799,12 +766,9 @@ data_link(Res, Html_0) -->
   data_link(Res, [], Html_0).
 
 
-data_link(Res, Attrs1, Html_0) -->
-  {
-    uri_resource(Uri, Res),
-    merge_attrs([href=Uri], Attrs1, Attrs2)
-  },
-  html(a(Attrs2, Html_0)).
+data_link(Res, Attrs, Html_0) -->
+  {uri_resource(Uri, Res)},
+  internal_link(Uri, Attrs, Html_0).
 
 
 
@@ -824,7 +788,7 @@ deck(Card_1, L) -->
 
 
 deck(Attrs1, Card_1, L) -->
-  {merge_attrs([class=[container,deck]], Attrs1, Attrs2)},
+  {merge_attrs([class=['card-columns']], Attrs1, Attrs2)},
   html(div(Attrs2, \html_maplist(Card_1, L))).
 
 
@@ -1524,18 +1488,16 @@ hamburger(Target0) -->
   {atom_concat('#', Target0, Target)},
   html(
     button([
+      'aria-controls'=Target,
       'aria-expanded'=false,
-      class=[collapsed,'navbar-toggle'],
+      'aria-label'="Toggle navigation",
+      class=[collapsed,'navbar-toggler','navbar-toggler-right'],
       'data-target'=Target,
       'data-toggle'=collapse,
       type=button
-    ], [
-      span(class='sr-only', "Toggle navigation"),
-      \bar,
-      \bar,
-      \bar
-    ])
+    ], span(class='navbar-toggler-icon', []))
   ).
+
 
 
 %! how(+Mod, +How)// is det.
@@ -1903,8 +1865,8 @@ icon(pen) --> !,
     )
   ).
 icon(Name) -->
-  {glyphicon(Name, Class, _)},
-  html(span(class([glyphicon,Class]), [])).
+  {icon_class(Name, Class)},
+  html(span(class([fa,Class]), [])).
 
 
 
@@ -1917,12 +1879,48 @@ icon_button(Name) -->
 
 icon_button(Name, Func) -->
   {
-    glyphicon(Name, Class, Title),
+    icon_class_title(Name, Class, Title),
     (var(Func) -> Attrs = [] ; Attrs = [onclick=Func])
   },
   html(
-    button([class=[btn,'btn-default',glyphicon,Class],title=Title|Attrs], [])
+    button([class=[btn,'btn-default',af,Class],title=Title|Attrs], [])
   ).
+
+
+
+%! icon_class(+Name, -Class, -Title) is det.
+
+icon_class(Name, Class) :-
+  icon_class_title(Name, Class, _).
+
+
+
+%! icon_class_title(+Name, -Class, -Title) is det.
+
+icon_class_title(Name, Class, Title) :-
+  icon_table(Name, ClassPostfix, Title),
+  atomic_list_concat([fa,ClassPostfix], -, Class).
+
+
+
+%! icon_table(?Name, ?Class, ?Title) is nondet.
+
+% CRUD = Create, Read, Update, Delete.
+icon_table(cancel,         eraser,          "Cancel").
+icon_table(copy,           copy,            "Copy").
+icon_table(create,         pencil,          "Create").
+icon_table(delete,         trash,           "Delete").
+icon_table(download,       download,        "Download").
+icon_table(external_link,  'external-link', "Follow link").
+icon_table(internal_link,  link,            "Follow link").
+icon_table(mail,           envelope,        "Send email").
+icon_table(tag,            tag,             "").
+icon_table(tags,           tags,            "").
+icon_table(time,           'clock-o',       "Date/time").
+icon_table(user,           user,            "Log me in").
+icon_table(vote_down,     'thumbs-o-down',  "Vote up").
+icon_table(vote_up,       'thumbs-o-up',    "Vote down").
+icon_table(web,            globe,           "Visit Web site").
 
 
 
@@ -2241,9 +2239,13 @@ menu -->
 major_menu(Loc, menu_item(Handle,Lbl)-[]) --> !,
   {
     http_link_to_id(Handle, Uri),
-    (atom_postfix(Loc, Uri) -> Attrs = [class=active] ; Attrs = [])
+    (atom_postfix(Loc, Uri) -> Classes = [active] ; Classes = [])
   },
-  html(li(Attrs, \internal_link(Uri, Lbl))).
+  html(
+    li(class='nav-item',
+      a([class=['nav-link',Handle|Classes],href=Uri], Lbl)
+    )
+  ).
 % Nested menu items.
 major_menu(_, MajorItem-MinorItems) -->
   dropdown_menu(menu_item(MajorItem), menu_item, MinorItems).
@@ -2349,7 +2351,7 @@ meta_license(Uri) -->
 %         can properly parse the attributes.
 
 meta_viewport -->
-  meta(viewport, 'width=device-width,initial-scale=1.0,user-scalable=yes').
+  meta(viewport, 'width=device-width, initial-scale=1, shrink-to-fit=no').
 
 
 
@@ -2358,24 +2360,26 @@ meta_viewport -->
 navbar(Brand_0, Menu_0, Right_0) -->
   {Target = target},
   html([
-    nav(class=[navbar,'navbar-default','navbar-fixed-top'],
-      div(class='container-fluid', [
-        div(class='navbar-header', [
-          \hamburger(Target),
-          a([class='navbar-brand',href='/'], Brand_0)
-        ]),
+    nav([
+      class=[
+        'bg-faded',
+        'fixed-top',
+        navbar,
+        'navbar-light',
+        'navbar-toggleable-md'
+      ]
+    ], [
+        \hamburger(Target),
+        a([class='navbar-brand',href='/'], Brand_0),
         div([class=[collapse,'navbar-collapse'],id=Target], [
-          \navbar_menu(Menu_0),
-          ul(class=[nav,'navbar-nav','navbar-right'], Right_0)
+          ul(class=['navbar-nav','mr-auto'], Menu_0),
+          ul(class=['navbar-nav'], Right_0)
         ])
-      ])
-    ),
-    \navbar_resize
+      ]
+    )%,
+    %%%%\navbar_resize
   ]).
 
-
-navbar_menu(Html_0) -->
-  html(ul(class=[nav,'navbar-nav'], Html_0)).
 
 
 navbar_resize -->
@@ -2390,14 +2394,6 @@ $(window).resize(onResize);
 // Call it also when the page is ready after load or reload.
 $(function() { onResize(); });
   |}).
-
-
-
-%! navbar_brand_img(+Spec, +Attrs)// is det.
-
-navbar_brand_img(Spec, Attrs1) -->
-  {merge_attrs(Attrs1, [style='max-height:100%;'], Attrs2)},
-  image(Spec, Attrs2).
 
 
 
@@ -3422,34 +3418,6 @@ functor_and_arity(Functor, Arity) -->
 
 
 
-%! glyphicon(+Name, -Class, -Title) is det.
-
-glyphicon(Name, Class, Title) :-
-  glyphicon0(Name, Class0, Title),
-  atomic_list_concat([glyphicon,Class0], -, Class).
-
-
-
-%! glyphicon0(?Name, ?Class, ?Title) is nondet.
-
-% CRUD = Create, Read, Update, Delete.
-glyphicon0(cancel,         erase,          "Cancel").
-glyphicon0(copy,           copy,           "Copy").
-glyphicon0(create,         pencil,         "Create").
-glyphicon0(delete,         trash,          "Delete").
-glyphicon0(download,      'save-file',     "Download").
-glyphicon0(external_link,  link,           "Follow link").
-glyphicon0(internal_link, 'chevron-right', "Follow link").
-glyphicon0(mail,           envelope,       "Send email").
-glyphicon0(tag,            tags,           "").
-glyphicon0(time,           time,           "Date/time").
-glyphicon0(user,           user,           "Log me in").
-glyphicon0(vote_down,     'thumbs-down',   "Vote up").
-glyphicon0(vote_up,       'thumbs-up',     "Vote down").
-glyphicon0(web,            globe,          "Visit Web site").
-
-
-
 %! http_error(?Status, ?Context, ?LTag, ?Msg) is nondet.
 
 http_error(400, title, nl, "Verkeerde vraag").
@@ -3546,6 +3514,10 @@ spec_uri0(link_to_id(HandleId), Uri) :- !,
 spec_uri0(link_to_id(HandleId,Query0), Uri) :- !,
   maplist(rdf_query_term, Query0, Query), %HACK
   http_link_to_id(HandleId, Query, Uri).
+spec_uri0(Spec, Uri) :-
+  atom(Spec),
+  host_uri(HostUri),
+  atom_concat(HostUri, Uri, Spec), !.
 spec_uri0(Spec, Uri) :-
   http_absolute_location(Spec, Uri).
 

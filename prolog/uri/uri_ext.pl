@@ -1,24 +1,26 @@
 :- module(
   uri_ext,
   [
-    auth_comps/2,          % ?Auth, ?Comps
+    auth_comps/2,           % ?Auth, ?Comps
+    host_uri/1,             % -Uri
     iri_query_enc//0,
-    is_data_uri/1,         % +Uri
-    is_image_uri/1,        % @Term
-    is_uri/1,              % +Uri
-    uri_alias_uuid/2,      % -Uri, +Alias
-    uri_comp/3,            % +Uri, ?Key, ?Val
-    uri_comps/2,           % ?Uri, ?Comps
-    uri_comps/3,           % -Uri, +BaseUri, +Comps
-    uri_file_extensions/2, % +Uri,  -Exts
-    uri_last_segment/2,    % +Uri, -LastSegment
+    is_data_uri/1,          % +Uri
+    is_image_uri/1,         % @Term
+    is_uri/1,               % +Uri
+    uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
+    uri_alias_uuid/2,       % -Uri, +Alias
+    uri_comp/3,             % +Uri, ?Key, ?Val
+    uri_comps/2,            % ?Uri, ?Comps
+    uri_comps/3,            % -Uri, +BaseUri, +Comps
+    uri_file_extensions/2,  % +Uri,  -Exts
+    uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
     uri_query_enc//0,
-    uri_remove_fragment/2, % +Uri, -BaseUri
-    uri_resource/2,        % ?Uri, ?Res
+    uri_remove_fragment/2,  % +Uri, -BaseUri
+    uri_resource/2,         % ?Uri, ?Res
     uri_segment_enc//0,
-    uri_segments/2,        % ?Uri, ?Segments
-    uri_segments_uuid/2    % ?Uri, ?Segments
+    uri_segments/2,         % ?Uri, ?Segments
+    uri_segments_uuid/2     % ?Uri, ?Segments
   ]
 ).
 :- reexport(library(uri)).
@@ -26,7 +28,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2016/11-2017/02
+@version 2016/11-2017/03
 */
 
 :- use_module(library(apply)).
@@ -65,6 +67,18 @@
 
 auth_comps(Auth, auth(User,Host,Port)) :-
   uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
+
+
+
+%! host_uri(-Uri) is det.
+%
+% The public URI at which the current host can be reached.
+
+host_uri(Uri) :-
+  setting(http:public_host, Host),
+  setting(http:public_port, Port),
+  setting(http:public_scheme, Scheme),
+  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),_,_,_)).
 
 
 
@@ -124,6 +138,15 @@ is_image_uri(Uri) :-
 is_uri(Uri) :-
   uri_components(Uri, uri_components(Scheme,Auth,_,_,_)),
   maplist(atom, [Scheme,Auth]).
+
+
+
+%! uri_add_path_postfix(+Uri1, +PathPostfix, -Uri2) is det.
+
+uri_add_path_postfix(Uri1, PathPostfix, Uri2) :-
+  uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
+  append(Segments1, PathPostfix, Segments2),
+  uri_comps(Uri2, uri(Scheme,Auth,Segments2,_,_)).
 
 
 

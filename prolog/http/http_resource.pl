@@ -6,7 +6,7 @@
 Initialize locations for serving HTTP resources.
 
 @author Wouter Beek
-@version 2015/08, 2016/02, 2016/04, 2017/01-2017/02
+@version 2015/08-2017/03
 */
 
 :- use_module(library(http/http_dispatch)).
