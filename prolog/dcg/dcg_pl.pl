@@ -3,13 +3,13 @@
   [
     pl_date_time//1,       % +DT
     pl_dict//1,            % +Dict
-    pl_dict//2,            % +Dict, +Opts
+    pl_dict//2,            % +Dict, +Indent
     pl_list//1,            % +L
-    pl_list//2,            % +L, +Opts
+    pl_list//2,            % +L, +Indent
     pl_predicate//1,       % +Predicate
     pl_stream_position//1, % +Pos
     pl_term//1,            % @Term
-    pl_term//2             % @Term, +Opts
+    pl_term//2             % @Term, +Indent
   ]
 ).
 
@@ -57,26 +57,26 @@ pl_date_time(DT, X, Y):-
 
 
 %! pl_dict(+Dict)// is det.
-%! pl_dict(+Dict, +Opts)// is det.
+%! pl_dict(+Dict, +Indent)// is det.
 
 pl_dict(Dict) -->
-  pl_dict(Dict, _{}).
+  pl_dict(Dict, 0).
 
 
-pl_dict(Dict, Opts) -->
-  pl_term(Dict, Opts).
+pl_dict(Dict, I) -->
+  pl_term(Dict, I).
 
 
 
 %! pl_list(+L)// is det.
-%! pl_list(+L, +Opts)// is det.
+%! pl_list(+L, +Indent)// is det.
 
 pl_list(L) -->
-  pl_list(L, []).
+  pl_list(L, 0).
 
 
-pl_list(L, Opts) -->
-  dcg_list(pl_term, L, Opts).
+pl_list(L, I) -->
+  dcg_list(pl_term, L, I).
 
 
 
@@ -95,25 +95,35 @@ pl_stream_position(stream(_,Row,Col,_)) -->
 
 
 %! pl_term(@Term)// is det.
-%! pl_term(@Term, +Opts)// is det.
+%! pl_term(@Term, +Indent)// is det.
 
 pl_term(Term) -->
-  pl_term(Term, _{indent: 0}).
+  pl_term(Term, 0).
 
 
-pl_term(Term, Opts) -->
-  pl_term0(pl_term, Term, Opts).
+pl_term(Term, I) -->
+  pl_term0(pl_term, Term, I).
 
 
-pl_term0(Dcg_1, Dict, Opts) -->
+pl_term0(Dcg_1, Dict, I) -->
   {is_dict(Dict)}, !,
-  dcg_dict(Dcg_1, Dict, Opts.indent).
-pl_term0(Dcg_1, L, Opts) -->
+  dcg_dict(Dcg_1, Dict, I).
+pl_term0(Dcg_1, L, I) -->
   {is_list(L)}, !,
-  dcg_list(Dcg_1, L, Opts.indent).
-pl_term0(_, Term, Opts) -->
-  tab(Opts.indent),
+  dcg_list(Dcg_1, L, I).
+pl_term0(_, Term, I) -->
+  tab(I),
   dcg:dcg_hook(Term), !.
+pl_term0(Dcg_1, Term, I1) -->
+  {compound(Term)}, !,
+  {Term =.. [Pred|Args]},
+  tab(I1), atom(Pred), "(", nl,
+  {I2 is I1 + 1},
+  *(pl_term00(Dcg_1, I2), Args),
+  tab(I1), ")", nl.
 pl_term0(_, Term, _) -->
   {term_to_atom(Term, A)},
   atom(A).
+
+pl_term00(Dcg_1, I, Term) -->
+  pl_term0(Dcg_1, Term, I).

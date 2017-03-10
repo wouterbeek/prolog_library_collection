@@ -20,7 +20,7 @@
     print_table/1,      % +Rows
     print_table/2,      % +Rows, :Opts
     print_term/1,       % +Term
-    print_term/2,       % +Term, +Opts
+   %print_term/2,       % +Term, +Opts
     print_tree/1,       % +Tree
     print_tree/2,       % +Tree, :Opts
     tab/0,
@@ -30,13 +30,14 @@
   ]
 ).
 :- reexport(library(ansi_term)).
+:- reexport(library(pprint)).
 
 /** <module> Print extensions
 
 Additional predicates for printing.
 
 @author Wouter Beek
-@version 2015/08-2016/12
+@version 2015/08-2017/03
 */
 
 :- use_module(library(check_installation), []).
@@ -191,7 +192,7 @@ msg_warning(Format, Args) :-
 
 pp_dict(Goal_1) :-
   catch(call(Goal_1, Dict), E, true),
-  (var(E) -> print_term(Dict) ; print_message(warning, E)).
+  (var(E) -> print_dict(Dict) ; print_message(warning, E)).
 
 
 
@@ -239,11 +240,6 @@ print_table(Rows, Opts) :-
 
 print_term(Term) :-
   print_term(Term, []).
-
-
-print_term(Term, Opts) :-
-  option(out(Out), Opts, current_output),
-  dcg_with_output_to(Out, pl_term(Term)).
 
 
 

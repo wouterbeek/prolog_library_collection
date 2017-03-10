@@ -1175,14 +1175,12 @@ dcg_dict0(Dcg_1, Dict, I) -->
       "}"
   ).
 
-
-dcg_dict_or_list0(Dcg_1, Val, Opts) -->
+dcg_dict_or_list0(Dcg_1, Val, I) -->
   {is_dict(Val)}, !,
-  dcg_dict0(Dcg_1, Val, Opts).
-dcg_dict_or_list0(Dcg_1, Val, Opts) -->
+  dcg_dict0(Dcg_1, Val, I).
+dcg_dict_or_list0(Dcg_1, Val, I) -->
   {is_list(Val)}, !,
-  dcg_list(Dcg_1, Val, Opts).
-
+  dcg_list(Dcg_1, Val, I).
 
 dcg_entries0(Dcg_1, [H1,H2|T], I) --> !,
   dcg_entry0(Dcg_1, H1, I),
@@ -1195,7 +1193,6 @@ dcg_entries0(Dcg_1, [H], I) --> !,
 dcg_entries0(_, [], I1) --> !,
   {I2 is I1 - 1},
   tab(I2).
-
 
 dcg_entry0(Dcg_1, Key-Val, I1) --> !,
   tab(I1),
@@ -1214,12 +1211,10 @@ dcg_entry0(Dcg_1, Elem, I) -->
   tab(I),
   dcg_call(Dcg_1, Elem).
 
-
 is_dict_or_list0(Term) :-
   is_dict(Term).
 is_dict_or_list0(Term) :-
   is_list(Term).
-
 
 is_empty_term0(Dict) :-
   is_dict(Dict), !,
@@ -1228,12 +1223,10 @@ is_empty_term0(L) :-
   is_list(L), !,
   empty_list(L).
 
-
 is_empty_or_singleton_term0(Term) :-
   is_empty_term0(Term).
 is_empty_or_singleton_term0(Term) :-
   is_singleton_term0(Term).
-
 
 is_singleton_term0(Dict) :-
   is_dict(Dict), !,
