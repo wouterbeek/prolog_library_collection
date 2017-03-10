@@ -17,6 +17,7 @@
     integer_padding/3,    % +I, +Len, -Atom
     integer_padding/4,    % +I, +Len, +PadChar, -Atom
     is_empty_atom/1,      % +Empty
+    lower_upper/2,        % ?Lower, ?Upper
     lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
     repeating_atom/3,     % +Sub,    +Repeats, -Atom
@@ -27,11 +28,6 @@
     strip_atom_end/3      % +PadChars, +Atom,  -NewAtom
   ]
 ).
-:- reexport(
-  library(dialect/ifprolog),
-  [
-    lower_upper/2 % ?Lower, ?Upper
-  ]).
 
 /** <module> Atom extensions
 
@@ -69,7 +65,7 @@ Titlecase atoms can be created using upcase_atom/2.
 ---
 
 @author Wouter Beek
-@version 2015/07-2015/10, 2016/03-2016/06, 2016/08-2016/10
+@version 2015/07-2017/03
 */
 
 :- use_module(library(apply)).
@@ -284,6 +280,21 @@ is_empty_atom(A) :-
   atom(A),
   atom_phrase(blanks, A).
 
+
+
+%! lower_upper(+Lower, -Upper) is det.
+%! lower_upper(-Lower, +Upper) is det.
+%
+% Multi-moded combination of upcase_atom/2 and downcase_atom/2.
+%
+% Copied from library(dialect/ifprolog), which cannot be reused
+% because it redefines time/1.
+
+lower_upper(Lower, Upper) :-
+  nonvar(Lower), !,
+  upcase_atom(Lower, Upper).
+lower_upper(Lower, Upper) :-
+  downcase_atom(Upper, Lower).
 
 
 %! lowercase_atom(+Atom, -Lowercased) is det.
