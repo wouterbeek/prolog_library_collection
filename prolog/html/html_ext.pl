@@ -150,7 +150,6 @@
     navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
     nonvar//1,               % :Html_0
     nonvar//2,               % :Html_1, +Arg1
-    nowrap//1,               % :Html_0
     number//2,               % +Format, +N
     once//1,                 % :Html_0
     ordered_list//1,         % +Items
@@ -326,7 +325,6 @@ html({|html||...|}).
    navbar_dropdown_menu(+, +, 3, +, ?, ?),
    navbar_dropdown_menu(+, +, +, 3, +, ?, ?),
    nonvar(html, ?, ?),
-   nowrap(html, ?, ?),
    ordered_list(html, +, ?, ?),
    ordered_list(+, html, +, ?, ?),
    panel(+, html, html, ?, ?),
@@ -2430,13 +2428,6 @@ nonvar(Html_0) -->
 
 nonvar(Html_1, Arg1) -->
   ({var_goal(Html_1)} -> [] ; html_call(Html_1, Arg1)).
-
-
-
-%! nowrap(:Html_0)// is det.
-
-nowrap(Html_0) -->
-  html(span(style='white-space: nowrap;', Html_0)).
 
 
 

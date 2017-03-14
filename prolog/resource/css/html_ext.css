@@ -27,6 +27,15 @@
   }
 }
 
+/* Prevent wordwrap. */
+.nowrap {
+  white-space: nowrap;
+}
+
+.container-fluid {
+  padding: 0px; /* Overrule Bootstrap 4. */
+}
+
 a,
 a:active,
 a:focus,
