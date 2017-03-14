@@ -1259,6 +1259,7 @@ http_known0(Key) :-
 
 http_known_unknown(ccdeac).
 http_known_unknown('cf-ray').
+http_known_unknown('context-path').
 http_known_unknown('epke-alive').
 http_known_unknown('es.index').
 http_known_unknown('es.index_uuid').
