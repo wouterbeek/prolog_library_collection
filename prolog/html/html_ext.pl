@@ -2367,24 +2367,8 @@ navbar(Brand_0, Menu_0, Right_0) -->
           ul(class=['navbar-nav'], Right_0)
         ])
       ]
-    )%,
-    %%%%\navbar_resize
+    )
   ]).
-
-
-
-navbar_resize -->
-  js_script({|javascript(_)||
-var onResize = function() {
-  // Apply dynamic padding at the top of the body according to
-  // the fixed navbar height.
-  $("body").css("padding-top", $(".navbar-fixed-top").height());
-};
-// Attach the function to the window resize event.
-$(window).resize(onResize);
-// Call it also when the page is ready after load or reload.
-$(function() { onResize(); });
-  |}).
 
 
 
