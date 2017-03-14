@@ -174,21 +174,13 @@
     row_2//4,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
     row_2//5,                % +Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
     row_3//3,                % :ContentA_0, :ContentB_0, :ContentC_0
-    row_3//6,                % +WidthsA
-                             % :ContentA_0
-                             % +WidthsB
-                             % :ContentB_0
-                             % +WidthsC
-                             % :ContentC_0
+    row_3//6,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+                             % +WidthsC, :ContentC_0
+    row_3//7,                % +Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+                             % +WidthsC, :ContentC_0
     row_4//4,                % :ContentA_0, :ContentB_0, :ContentC_0, :ContentD_0
-    row_4//8,                % +WidthsA
-                             % :ContentA_0
-                             % +WidthsB
-                             % :ContentB_0
-                             % +WidthsC
-                             % :ContentC_0
-                             % +WidthsD
-                             % :ContentD_0
+    row_4//8,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+                             % +WidthsC, :ContentC_0, +WidthsD, :ContentD_0
     search_box//1,           % +Action
     search_box//2,           % +Attrs, +Action
     search_result//2,        % +Result, :Html_1
@@ -342,6 +334,7 @@ html({|html||...|}).
    row_2(+, +, html, +, html, ?, ?),
    row_3(html, html, html, ?, ?),
    row_3(+, html, +, html, +, html, ?, ?),
+   row_3(+, +, html, +, html, +, html, ?, ?),
    row_4(html, html, html, html, ?, ?),
    row_4(+, html, +, html, +, html, +, html, ?, ?),
    streamer(html, ?, ?),
@@ -2653,28 +2646,27 @@ row_2(Attrs1, WidthsA, ContentA_0, WidthsB, ContentB_0) -->
 
 
 %! row_3(:ContentA_0, :ContentB_0, :ContentC_0)// is det.
-%! row_3(
-%!   +WidthsA,
-%!   :ContentA_0,
-%!   +WidthsB,
-%!   :ContentB_0,
-%!   +WidthsC,
-%!   :ContentC_0
-%! )// is det.
+%! row_3(+WidthsA, :ContentA_0, +WidthsB, :ContentB_0, +WidthsC, :ContentC_0)// is det.
+%! row_3(+Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0, +WidthsC, :ContentC_0)// is det.
 
 row_3(ContentA_0, ContentB_0, ContentC_0) -->
   row_3(4, ContentA_0, 4, ContentB_0, 4, ContentC_0).
 
 
 row_3(WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0) -->
+  row_3([], WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0).
+
+
+row_3(Attrs1, WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0) -->
   {
+    merge_attrs(Attrs1, [class=['container-fluid']], Attrs2),
     maplist(widths, [WidthsA,WidthsB,WidthsC], [ClassesA,ClassesB,ClassesC])
   },
   html(
-    div(class='container-fluid',
+    div(Attrs2,
       div(class=row, [
         div(class=[col|ClassesA], ContentA_0),
-        div(class=[col|ClassesB], ContentB_0),
+        div(class=[col,middle|ClassesB], ContentB_0),
         div(class=[col|ClassesC], ContentC_0)
       ])
     )
