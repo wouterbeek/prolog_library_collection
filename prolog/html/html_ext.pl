@@ -1345,9 +1345,7 @@ footer_panel(Spec, Top_0, Bottom_0) -->
           \image(Spec, [height=60,style='max-height: 60px;'])
         )
       ),
-      div([class='brand-txt',style='display: table-cell; font-size: 120%; vertical-align: middle;'],
-        a(href='/', Top_0)
-      )
+      div(class='brand-txt', a(href='/', Top_0))
     ]),
     Bottom_0
   ]).

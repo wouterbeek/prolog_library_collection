@@ -164,7 +164,7 @@ q:after {
 
 /* User page: Header */
 
-article > header img {
+article header img {
   border-radius: 100px;
   height: 200px;
   width: 200px;
@@ -218,8 +218,11 @@ li[typeof="sbo:Author"] img {
 }
 
 nav {
+  min-height: 50px;
 }
 
+.navbar-toggler {
+  margin: 5px 0;
 }
 
 .navbar {
@@ -231,11 +234,24 @@ nav {
 .navbar li.active {
   background: #999;
 }
-.nav-link {
-  line-height: 35px;
+
+.navbar-brand,
+.navbar-nav,
+.navbar-toggleable-md {
+  margin: 0; /*Overrule Bootstrap 4.*/
+  padding: 0; /*Overrule Bootstrap 4.*/
 }
+
+.brand-txt {
+  margin-top: 5px;
+  vertical-align: middle;
+}
+
+.nav-link {
+  padding: 15px;
+}
+
 .navbar li {
-  line-height: 50px;
   padding-left: 10px;
   padding-right: 10px;
 }
@@ -255,14 +271,18 @@ nav ul li a:visited {
 
 /* Deck of cards */
 .card {
-  -webkit-column-gap: 40px;
-  -moz-column-gap: 40px;
-  column-gap: 40px;
-  margin: 15px;
-  margin-right: 60px;
-  -webkit-box-shadow: 12px 12px 8px -8px #999;
-  -moz-box-shadow: 12px 12px 8px -8px #999;
+  border: 0px; /*Overrule Bootstrap 4.*/
   box-shadow: 12px 12px 8px -8px #999;
+  -moz-box-shadow: 12px 12px 8px -8px #999;
+  -webkit-box-shadow: 12px 12px 8px -8px #999;
+  height: 100%;
+}
+
+/*Alas, ‘clip-path’ is not yet implemented in FF.*/
+/*clip-path: polygon(0% 0%, 100% 0%, 100% 250px, 0% 250px)*/
+.crop {
+  height: 225px;
+  overflow: hidden;
 }
 
 .card-footer ol,
@@ -307,7 +327,7 @@ article header {
   margin-bottom: 15px;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 5px;
+  margin-top: 25px;
   text-align: center;
 }
 
@@ -388,14 +408,6 @@ article [property="sioc:content"] p {
   font-size: 550%;
   line-height: 0.8;
   margin-right: 5px;
-}
-
-
-
-/* Main */
-
-div.main {
-  margin-bottom: 15px;
 }
 
 
