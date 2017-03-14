@@ -3,6 +3,7 @@
   [
     auth_comps/2,           % ?Auth, ?Comps
     host_uri/1,             % -Uri
+    host_uri/2,             % +Uri1, -Uri2
     iri_query_enc//0,
     is_data_uri/1,          % +Uri
     is_image_uri/1,         % @Term
@@ -71,14 +72,23 @@ auth_comps(Auth, auth(User,Host,Port)) :-
 
 
 %! host_uri(-Uri) is det.
+%! host_uri(+Uri1, -Uri2) is det.
 %
 % The public URI at which the current host can be reached.
 
 host_uri(Uri) :-
+  host_uri0(_, _, _, Uri).
+
+
+host_uri(Uri1, Uri2) :-
+  uri_comps(Uri1, uri(_,_,Path,Query,Frag)),
+  host_uri0(Path, Query, Frag, Uri2).
+
+host_uri0(Path, Query, Frag, Uri) :-
   setting(http:public_host, Host),
   setting(http:public_port, Port),
   setting(http:public_scheme, Scheme),
-  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),_,_,_)).
+  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),Path,Query,Frag)).
 
 
 

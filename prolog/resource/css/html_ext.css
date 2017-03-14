@@ -1,7 +1,30 @@
-.card-columns {
-  column-count: 3;
-  -moz-column-count: 3;
-  -webkit-column-count: 3;
+@media (max-width: 800px) {
+  .card-columns {
+    column-count: 1;
+    -moz-column-count: 1;
+    -webkit-column-count: 1;
+  }
+}
+@media (min-width: 800px) {
+  .card-columns {
+    column-count: 2;
+    -moz-column-count: 2;
+    -webkit-column-count: 2;
+  }
+}
+@media (min-width: 1150px) {
+  .card-columns {
+    column-count: 3;
+    -moz-column-count: 3;
+    -webkit-column-count: 3;
+  }
+}
+@media (min-width: 1500px) {
+  .card-columns {
+    column-count: 4;
+    -moz-column-count: 4;
+    -webkit-column-count: 4;
+  }
 }
 
 a,
@@ -17,7 +40,7 @@ body {
   overflow-x: hidden;
   padding-top: 60px;
 }
-@media (max-width: 979px) {
+@media (max-width: 1150px) {
   body {
     padding-top: 60px;
   }
@@ -75,12 +98,12 @@ q:after {
 
 /* User menu */
 
-@media (min-width: 760px) {
+@media (min-width: 1150px) {
   #user-menu {
     margin-right: 5px;
   }
 }
-@media (max-width: 760px) {
+@media (max-width: 1150px) {
   #user-menu {
     text-align: center;
   }
@@ -155,13 +178,13 @@ li[typeof="sbo:Author"] img {
 }
 
 /* Center menu items on mobile. */
-@media (max-width: 750px) {
+@media (max-width: 1150px) {
   .navbar ul li {
     text-align: center;
   }
 }
 /* Display menus horizontally i.o. vertically on mobile. */
-@media (min-width: 750px) {
+@media (min-width: 1150px) {
   .navbar ul li {
     display: inline-block;
     line-height: 1;
@@ -202,11 +225,14 @@ nav ul li a:visited {
 
 /* Deck of cards */
 .card {
+  -webkit-column-gap: 40px;
+  -moz-column-gap: 40px;
+  column-gap: 40px;
   margin: 15px;
   margin-right: 60px;
-  -webkit-box-shadow: 8px 8px 6px -6px #999;
-  -moz-box-shadow: 8px 8px 6px -6px #999;
-  box-shadow: 8px 8px 6px -6px #999;
+  -webkit-box-shadow: 12px 12px 8px -8px #999;
+  -moz-box-shadow: 12px 12px 8px -8px #999;
+  box-shadow: 12px 12px 8px -8px #999;
 }
 
 .card-footer ol,
@@ -302,7 +328,7 @@ article .metadata ul li:not(:last-child):after {
 
 article section {
   margin: auto;
-  max-width: 750px;
+  max-width: 740px;
   width: 80%
 }
 
@@ -386,13 +412,13 @@ footer.main ul li {
   content: close-quote;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 1150px) {
   .streamer {
     margin-bottom: 10px;
     margin-top: 10px;
   }
 }
-@media (min-width: 750px) {
+@media (min-width: 1150px) {
   .streamer {
     float: left;
     margin-left: -90px;
