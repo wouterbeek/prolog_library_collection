@@ -1,29 +1,60 @@
-@media (max-width: 800px) {
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767px) {
   .card-columns {
     column-count: 1;
     -moz-column-count: 1;
     -webkit-column-count: 1;
   }
 }
-@media (min-width: 800px) {
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991px){
+  .card-columns {
+    column-count: 1;
+    -moz-column-count: 1;
+    -webkit-column-count: 1;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) and (max-width: 1199px) {
   .card-columns {
     column-count: 2;
     -moz-column-count: 2;
     -webkit-column-count: 2;
   }
 }
-@media (min-width: 1150px) {
+
+/* Everything but a large desktop. */
+@media (min-width: 576px) and (max-width: 1199px) {
+  /* Center menu items in dropdown menu. */
+  .navbar ul li {
+    text-align: center;
+  }
+  .streamer {
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
   .card-columns {
     column-count: 3;
     -moz-column-count: 3;
     -webkit-column-count: 3;
   }
-}
-@media (min-width: 1500px) {
-  .card-columns {
-    column-count: 4;
-    -moz-column-count: 4;
-    -webkit-column-count: 4;
+  /* Display menus horizontally i.o. vertically on mobile. */
+  .navbar ul li {
+    display: inline-block;
+    line-height: 1;
+    position: relative;
+  }
+  .streamer {
+    float: left;
+    margin-left: -90px;
+    margin-right: 10px;
+    width: 250px;
   }
 }
 
@@ -186,19 +217,9 @@ li[typeof="sbo:Author"] img {
   max-width: 30px;
 }
 
-/* Center menu items on mobile. */
-@media (max-width: 1150px) {
-  .navbar ul li {
-    text-align: center;
-  }
+nav {
 }
-/* Display menus horizontally i.o. vertically on mobile. */
-@media (min-width: 1150px) {
-  .navbar ul li {
-    display: inline-block;
-    line-height: 1;
-    position: relative;
-  }
+
 }
 
 .navbar {
@@ -421,21 +442,6 @@ footer.main ul li {
   content: close-quote;
 }
 
-@media (max-width: 1150px) {
-  .streamer {
-    margin-bottom: 10px;
-    margin-top: 10px;
-  }
-}
-@media (min-width: 1150px) {
-  .streamer {
-    float: left;
-    margin-left: -90px;
-    margin-right: 10px;
-    width: 250px;
-  }
-}
-
 
 
 /* Comments */
@@ -539,12 +545,12 @@ body,
   width: 100%;
 }
 
-/* Better mouse pointer. */
+/* Crosshair mouse pointer for interacting with the map. */
 #mapid {
   cursor: crosshair;
 }
 
-/* Hide Leaflet ‘watermark’. */
+/* Hide the Leaflet ‘watermark’. */
 .leaflet-control-attribution{
   display: none !important;
 }
