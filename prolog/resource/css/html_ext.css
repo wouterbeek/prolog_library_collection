@@ -58,6 +58,10 @@
 
 /* Overrule the Bootstrap 4 default style. */
 
+.card {
+  border: 0px; /*Overrule Bootstrap 4.*/
+}
+
 .container-fluid,
 .navbar-brand,
 .navbar-nav,
@@ -73,7 +77,7 @@
 /* Generic style. */
 
 body {
-  padding-top: 60px;
+  padding: 70px 10px 0 10px;
 }
 
 a,
@@ -207,14 +211,6 @@ nav {
   padding: 0;
 }
 
-.navbarbar-brand {
-  color: #337ab7 !important;
-  font-weight: bold;
-}
-.navbar-brand img {
-  height: 100%;
-}
-
 .navbar-toggler {
   margin: 5px 0;
 }
@@ -252,13 +248,12 @@ nav {
 
 .social-btn {
   display: inline-block;
-  line-height: 1;
   padding: 10px;
   position: relative;
 }
 .social-btn a img {
-  max-height: 30px;
-  max-width: 30px;
+  max-height: 40px;
+  max-width: 40px;
 }
 
 
@@ -268,16 +263,13 @@ nav {
 /* Deck of cards */
 
 .card {
-  border: 0px; /*Overrule Bootstrap 4.*/
   box-shadow: 12px 12px 8px -8px #999;
   -moz-box-shadow: 12px 12px 8px -8px #999;
   -webkit-box-shadow: 12px 12px 8px -8px #999;
   height: 100%;
 }
 
-/*Alas, ‘clip-path’ is not yet implemented in FF.*/
-/*clip-path: polygon(0% 0%, 100% 0%, 100% 250px, 0% 250px)*/
-.crop {
+.card .crop {
   height: 225px;
   overflow: hidden;
 }
