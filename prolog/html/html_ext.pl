@@ -2362,7 +2362,7 @@ navbar(Brand_0, Menu_0, Right_0) -->
         a([class='navbar-brand',href='/'], Brand_0),
         div([class=[collapse,'navbar-collapse'],id=Target], [
           ul(class=['navbar-nav','mr-auto'], Menu_0),
-          ul(class=['navbar-nav'], Right_0)
+          ul(class='navbar-nav', Right_0)
         ])
       ]
     )
@@ -2672,14 +2672,10 @@ row_4(ContentA_0, ContentB_0, ContentC_0, ContentD_0) -->
   row_4(3, ContentA_0, 3, ContentB_0, 3, ContentC_0, 3, ContentD_0).
 
 row_4(
-  WidthsA,
-  ContentA_0,
-  WidthsB,
-  ContentB_0,
-  WidthsC,
-  ContentC_0,
-  WidthsD,
-  ContentD_0
+  WidthsA, ContentA_0,
+  WidthsB, ContentB_0,
+  WidthsC, ContentC_0,
+  WidthsD, ContentD_0
 ) -->
   {
     maplist(
@@ -3511,9 +3507,9 @@ widths(Widths, Classes) :-
 
 widths(Offset, Widths, Classes) :-
   is_list(Widths), !,
-  maplist(width0(Offset), [lg,md,sm,xs], Widths, Classes).
+  maplist(width0(Offset), [xs,sm,md,lg,xl], Widths, Classes).
 widths(Offset, Width, Classes) :-
-  widths(Offset, [Width,Width,Width,Width], Classes).
+  widths(Offset, [Width,Width,Width,Width,Width], Classes).
 
 
 %! width0(

@@ -28,7 +28,7 @@
 /* Everything but a large desktop. */
 @media (min-width: 576px) and (max-width: 1199px) {
   /* Center menu items in dropdown menu. */
-  .navbar ul li {
+  .navbar li {
     text-align: center;
   }
   .streamer {
@@ -44,12 +44,6 @@
     -moz-column-count: 3;
     -webkit-column-count: 3;
   }
-  /* Display menus horizontally i.o. vertically on mobile. */
-  .navbar ul li {
-    display: inline-block;
-    line-height: 1;
-    position: relative;
-  }
   .streamer {
     float: left;
     margin-left: -90px;
@@ -58,13 +52,28 @@
   }
 }
 
-/* Prevent wordwrap. */
-.nowrap {
-  white-space: nowrap;
+
+
+
+
+/* Overrule the Bootstrap 4 default style. */
+
+.container-fluid,
+.navbar-brand,
+.navbar-nav,
+.navbar-toggleable-md {
+  margin: 0;
+  padding: 0;
 }
 
-.container-fluid {
-  padding: 0px; /* Overrule Bootstrap 4. */
+
+
+
+
+/* Generic style. */
+
+body {
+  padding-top: 60px;
 }
 
 a,
@@ -75,20 +84,13 @@ a:visited {
   text-decoration: none;
 }
 
-body {
-  /*line-height: 1.6em;*/
-  overflow-x: hidden;
-  padding-top: 60px;
-}
-@media (max-width: 1150px) {
-  body {
-    padding-top: 60px;
-  }
-}
-
 code, pre {
   background: #f8f8ff;
   font-family: monospace;
+}
+
+.concept {
+  font-style: italic;
 }
 
 h1, h3, h4, h5, h6 {
@@ -106,25 +108,22 @@ img {
   max-width: 100%;
 }
 
+/* Prevent wordwrap. */
+.nowrap {
+  white-space: nowrap;
+}
+
 p {
   font-size: 120%;
   margin: 0;
   text-align: justify;
 }
 
-/* Concept */
-.concept {
-  font-style: italic;
+/* Extra horizontal spacing for the pipe symbol. */
+.pipe, .space {
+  padding-left: 2px;
+  padding-right: 2px;
 }
-
-/* Todo item */
-.todo {
-  color: red;
-}
-
-
-
-/* Quoted text */
 
 /* Quotes are styled uniformly.  Use the `q` tag to mark them up. */
 q:before {
@@ -133,6 +132,12 @@ q:before {
 q:after {
   content: close-quote;
 }
+
+.todo {
+  color: red;
+}
+
+
 
 
 
@@ -162,6 +167,8 @@ q:after {
 
 
 
+
+
 /* User page: Header */
 
 article header img {
@@ -180,19 +187,26 @@ li[typeof="sbo:Author"] img {
 
 
 
-/* In-line separators */
-
-/* Extra horizontal spacing for the pipe symbol. */
-.pipe, .space {
-  padding-left: 2px;
-  padding-right: 2px;
-}
-
 
 
 /* Navigation bar */
 
-/* Navigation bar: Brand */
+.brand-txt {
+  margin-top: 5px;
+  vertical-align: middle;
+}
+
+nav {
+  min-height: 50px;
+}
+
+.navbar {
+  -webkit-box-shadow: 0 8px 6px -6px #999;
+  -moz-box-shadow: 0 8px 6px -6px #999;
+  box-shadow: 0 8px 6px -6px #999;
+  padding: 0;
+}
+
 .navbarbar-brand {
   color: #337ab7 !important;
   font-weight: bold;
@@ -201,11 +215,41 @@ li[typeof="sbo:Author"] img {
   height: 100%;
 }
 
-/* Social buttons */
-.social-btns {
-  margin-bottom: 0px !important;
-  padding-left: 0px !important;
+.navbar-toggler {
+  margin: 5px 0;
 }
+
+.nav-item {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.nav-item.active {
+  background: #999;
+}
+.nav-item.active a,
+.nav-item.active a:focus,
+.nav-item.active a:hover {
+  color: #555;
+}
+
+.nav-link {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.nav-link a,
+.nav-link a:active,
+.nav-link a:focus,
+.nav-link a:visited {
+  color: black;
+}
+
+
+
+
+
+/* Social buttons */
+
 .social-btn {
   display: inline-block;
   line-height: 1;
@@ -217,59 +261,12 @@ li[typeof="sbo:Author"] img {
   max-width: 30px;
 }
 
-nav {
-  min-height: 50px;
-}
 
-.navbar-toggler {
-  margin: 5px 0;
-}
-
-.navbar {
-  -webkit-box-shadow: 0 8px 6px -6px #999;
-  -moz-box-shadow: 0 8px 6px -6px #999;
-  box-shadow: 0 8px 6px -6px #999;
-  padding: 0;
-}
-.navbar li.active {
-  background: #999;
-}
-
-.navbar-brand,
-.navbar-nav,
-.navbar-toggleable-md {
-  margin: 0; /*Overrule Bootstrap 4.*/
-  padding: 0; /*Overrule Bootstrap 4.*/
-}
-
-.brand-txt {
-  margin-top: 5px;
-  vertical-align: middle;
-}
-
-.nav-link {
-  padding: 15px;
-}
-
-.navbar li {
-  padding-left: 10px;
-  padding-right: 10px;
-}
-.navbar li.active a,
-.navbar li.active a:focus,
-.navbar li.active a:hover {
-  color: #555;
-}
-nav ul li a,
-nav ul li a:active,
-nav ul li a:focus,
-nav ul li a:visited {
-  color: black;
-}
 
 
 
 /* Deck of cards */
+
 .card {
   border: 0px; /*Overrule Bootstrap 4.*/
   box-shadow: 12px 12px 8px -8px #999;
