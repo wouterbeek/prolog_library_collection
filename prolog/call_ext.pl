@@ -12,9 +12,12 @@
     catch_msg/1,            % :Goal_0
     catch_msg/3,            % +Def1, :Goal_1, -Arg1
     concurrent_n_sols/3,    % +N, :Select_1, :Goal_1
+    findn/4,                % ?N, ?Templ, :Goal_0, -Results
+    findn_chk/4,            % ?N, ?Templ, :Goal_0, -Results
     forall/1,               % :Goal_0
     retry0/1,               % :Goal_0
-    var_goal/1              % @Term
+    var_goal/1,             % @Term
+    when_ground/1           % :Goal_0
   ]
 ).
 
@@ -41,8 +44,11 @@
     catch_msg(0),
     catch_msg(+, 1, -),
     concurrent_n_sols(+, 1, 1),
+    findn(?, ?, 0, -),
+    findn_chk(?, ?, 0, -),
     forall(0),
-    retry0(0).
+    retry0(0),
+    when_ground(0).
 
 
 
@@ -165,6 +171,23 @@ concurrent_n_sols(N, Select_1, Mod:Goal_1) :-
 
 
 
+%! findn(?N, ?Templ, :Goal_0, -Results) is nondet.
+
+findn(N, Templ, Goal_0, Results) :-
+  var(N), !,
+  findall(Templ, Goal_0, Results).
+findn(N, Templ, Goal_0, Results) :-
+  findnsols(N, Templ, Goal_0, Results).
+
+
+
+%! findn_chk(?N, ?Templ, :Goal_0, -Results) is det.
+
+findn_chk(N, Templ, Goal_0, Results) :-
+  findn(N, Templ, Goal_0, Results).
+
+
+
 %! forall(:Goal_0) is det.
 
 forall(Goal_0) :-
@@ -186,3 +209,10 @@ retry0(Goal_0) :-
 
 var_goal(X) :- var(X), !.
 var_goal(_:X) :- var(X).
+
+
+
+%! when_ground(:Goal_0) is det.
+
+when_ground(Goal_0) :-
+  when(ground(Goal_0), Goal_0).
