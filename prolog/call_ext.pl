@@ -184,7 +184,7 @@ findn(N, Templ, Goal_0, Results) :-
 %! findn_chk(?N, ?Templ, :Goal_0, -Results) is det.
 
 findn_chk(N, Templ, Goal_0, Results) :-
-  findn(N, Templ, Goal_0, Results).
+  once(findn(N, Templ, Goal_0, Results)).
 
 
 
