@@ -57,7 +57,10 @@ if_option(_, _, _, _).
 
 
 %! merge_options(+Optss:list(list), -Opts:list) is det.
+%
 % Generalization of merge_options/3.
+%
+% Newer options come earlier.
 
 merge_options([H1,H2|T], L) :- !,
   merge_options(H1, H2, H3),
