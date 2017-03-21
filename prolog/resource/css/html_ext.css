@@ -28,7 +28,7 @@
 /* Everything but a large desktop. */
 @media (min-width: 576px) and (max-width: 1199px) {
   /* Center menu items in dropdown menu. */
-  .navbar li {
+  nav .navbar li {
     text-align: center;
   }
   .streamer {
@@ -54,30 +54,56 @@
 
 
 
-
-
-/* Overrule the Bootstrap 4 default style. */
+/* Deck of cards */
 
 .card {
-  border: 0px; /*Overrule Bootstrap 4.*/
+  border: 0 0 0 0; /*Overrule Bootstrap 4.*/
+  box-shadow: 12px 12px 8px -8px #999;
+  -moz-box-shadow: 12px 12px 8px -8px #999;
+  -webkit-box-shadow: 12px 12px 8px -8px #999;
+  margin-top: 10px;
 }
 
-.container-fluid,
-.navbar-brand,
-.navbar-nav,
-.navbar-toggleable-md {
+.card .crop {
+  height: 225px;
+  overflow: hidden;
+}
+
+.card-columns {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.card-footer ol,
+.card-footer ol li,
+.card-footer ul,
+.card-footer ul li {
+  display: inline;
   margin: 0;
   padding: 0;
 }
 
+/* Links in card footers are grey. */
+/* It is a good idea to define a different color for hovered links. */
+.card-footer,
+.card-footer a,
+.card-footer a:active,
+.card-footer a:focus,
+.card-footer a:visited {
+  color: #777;
+}
 
+.card-footer ol li:not(:last-child):after,
+.card-footer ul li:not(:last-child):after {
+  content: ",";
+}
 
 
 
 /* Generic style. */
 
 body {
-  padding: 70px 10px 0 10px;
+  margin-top: 60px;
 }
 
 a,
@@ -137,11 +163,20 @@ q:after {
   content: close-quote;
 }
 
+.streamer {
+  font-size: 1.7em;
+  line-height: 1.2em;
+}
+.streamer:after {
+  content: close-quote;
+}
+.streamer:before {
+  content: open-quote;
+}
+
 .todo {
   color: red;
 }
-
-
 
 
 
@@ -171,8 +206,6 @@ q:after {
 
 
 
-
-
 /* User page: Header */
 
 article header img {
@@ -191,17 +224,23 @@ li[typeof="sbo:Author"] img {
 
 
 
-
-
 /* Navigation bar */
 
-.brand-txt {
-  margin-top: 5px;
-  vertical-align: middle;
+.container-fluid,
+.navbar-brand,
+.navbar-nav,
+.navbar-toggleable-md {
+  margin: 0;
+  padding: 0;
 }
 
 nav {
   min-height: 50px;
+}
+
+nav .brand-txt {
+  margin-top: 5px;
+  vertical-align: middle;
 }
 
 .navbar {
@@ -211,36 +250,34 @@ nav {
   padding: 0;
 }
 
-.navbar-toggler {
+nav .navbar-toggler {
   margin: 5px 0;
 }
 
-.nav-item {
+nav .nav-item {
   padding-left: 10px;
   padding-right: 10px;
 }
-.nav-item.active {
+nav .nav-item.active {
   background: #999;
 }
-.nav-item.active a,
-.nav-item.active a:focus,
-.nav-item.active a:hover {
+nav .nav-item.active a,
+nav .nav-item.active a:focus,
+nav .nav-item.active a:hover {
   color: #555;
 }
 
-.nav-link {
+nav .nav-link {
   position: relative;
   top: 50%;
   transform: translateY(-50%);
 }
-.nav-link a,
-.nav-link a:active,
-.nav-link a:focus,
-.nav-link a:visited {
+nav .nav-link a,
+nav .nav-link a:active,
+nav .nav-link a:focus,
+nav .nav-link a:visited {
   color: black;
 }
-
-
 
 
 
@@ -258,48 +295,6 @@ nav {
 
 
 
-
-
-/* Deck of cards */
-
-.card {
-  box-shadow: 12px 12px 8px -8px #999;
-  -moz-box-shadow: 12px 12px 8px -8px #999;
-  -webkit-box-shadow: 12px 12px 8px -8px #999;
-  height: 100%;
-}
-
-.card .crop {
-  height: 225px;
-  overflow: hidden;
-}
-
-.card-footer ol,
-.card-footer ol li,
-.card-footer ul,
-.card-footer ul li {
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-/* Links in card footers are grey. */
-/* It is a good idea to define a different color for hovered links. */
-.card-footer,
-.card-footer a,
-.card-footer a:active,
-.card-footer a:focus,
-.card-footer a:visited {
-  color: #777;
-}
-
-.card-footer ol li:not(:last-child):after,
-.card-footer ul li:not(:last-child):after {
-  content: ",";
-}
-
-
-
 /* Figure */
 
 figure {
@@ -310,7 +305,7 @@ figure {
 
 
 
-/* Article: Header */
+/* Article */
 
 article header {
   margin-bottom: 15px;
@@ -325,9 +320,6 @@ article header h1 {
   line-height: 1.2em;
   text-align: center;
 }
-
-
-/* Article: Header: Metadata. */
 
 article > header > .metadata {
   display: block;
@@ -362,9 +354,6 @@ article .metadata ul li:not(:last-child):after {
   content: ",";
 }
 
-
-/* Article: Section */
-
 article section {
   margin: auto;
   max-width: 740px;
@@ -376,10 +365,6 @@ article h3 {
   text-align: center;
 }
 
-
-/* Article: Textual content
-article [property="dc:abstract"],*/
-
 article [property="sioc:content"] {
   margin: auto;
   max-width: 550px;
@@ -389,10 +374,7 @@ article [property="sioc:content"] p {
   margin-bottom: 10px;
 }
 
-
-/* Article: First letter */
-
-[property="sioc:content"] > p:first-of-type:first-letter {
+article [property="sioc:content"] > p:first-of-type:first-letter {
   float: left;
   font-size: 550%;
   line-height: 0.8;
@@ -403,7 +385,7 @@ article [property="sioc:content"] p {
 
 /* Footer */
 
-footer.main {
+body footer {
   background-color: #f8f8f8;
   border-top: 1px solid #e7e7e7;
   margin-left: 15px;
@@ -411,37 +393,19 @@ footer.main {
   padding-bottom: 30px;
   padding-top: 30px;
 }
-footer.main h1 {
-  font-size: 150%;
-  margin-top: 0px;
+body footer h1 {
+  font-size: 130%;
   text-transform: uppercase;
 }
-footer.main ul {
+body footer ul {
   list-style: outside none none;
-  margin: 0;
-  padding: 0;
 }
-footer.main ul li {
-  padding: 0 0 8px;
+body footer li {
+  padding: 10px 0 0 0;
   text-transform: capitalize;
 }
 
 
-
-/* Streamer */
-
-.streamer {
-  font-size: 1.7em;
-  line-height: 1.2em;
-}
-
-.streamer:before {
-  content: open-quote;
-}
-
-.streamer:after {
-  content: close-quote;
-}
 
 
 
