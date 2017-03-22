@@ -349,7 +349,7 @@ html({|html||...|}).
    unordered_list(+, html, +, ?, ?).
 
 % jQuery
-:- set_setting(jquery:version, '3.1.1.min').
+:- set_setting(jquery:version, '3.2.0.min').
 
 % Bootstrap
 :- if(debugging(css(bootstrap))).
@@ -464,24 +464,24 @@ html({|html||...|}).
 :- if(debugging(css(editor))).
   :- html_resource(
        css(editor),
-       [requires([css('medium-editor-5.22.2.css')]),virtual(true)]
+       [requires([css('medium-editor-5.23.0.css')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        css(editor),
-       [requires([css('medium-editor-5.22.2.min.css')]),virtual(true)]
+       [requires([css('medium-editor-5.23.0.min.css')]),virtual(true)]
      ).
 :- endif.
 
 :- if(debugging(js(editor))).
   :- html_resource(
        js(editor),
-       [requires([js('medium-editor-5.22.2.js')]),virtual(true)]
+       [requires([js('medium-editor-5.23.0.js')]),virtual(true)]
      ).
 :- else.
   :- html_resource(
        js(editor),
-       [requires([js('medium-editor-5.22.2.min.js')]),virtual(true)]
+       [requires([js('medium-editor-5.23.0.min.js')]),virtual(true)]
      ).
 :- endif.
 :- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
