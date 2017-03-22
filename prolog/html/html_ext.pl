@@ -61,7 +61,6 @@
     git_version//0,
     google_analytics//0,
     google_font//1,          % +Name
-    grid//4,                 % +GridWidth, +TileWidth, :Html_1, +Args
     hamburger//1,            % +Target
     html_bracketed//1,       % :Html_0
     html_call//1,            % :Html_0
@@ -295,7 +294,6 @@ html({|html||...|}).
    form(+, html, ?, ?),
    form(+, +, html, ?, ?),
    form_submit_button(html, ?, ?),
-   grid(+, +, 3, +, ?, ?),
    html_bracketed(html, ?, ?),
    html_catch(html, ?, ?),
    html_code(html, ?, ?),
@@ -344,7 +342,6 @@ html({|html||...|}).
    table(html, html, html, ?, ?),
    table_caption(html, ?, ?),
    table_header(html, ?, ?),
-   tile(3, +, ?, ?),
    tooltip(+, html, ?, ?),
    twitter_follow0(+, html, ?, ?),
    unless(0, html, ?, ?),
@@ -452,24 +449,6 @@ html({|html||...|}).
      'font-awesome',
      [requires([css('font-awesome')]),virtual(true)]
    ).
-
-% Grid
-:- html_resource(
-     css(grid),
-     [requires([css('grid.css')]),virtual(true)]
-   ).
-:- if(debugging(js(grid))).
-  :- html_resource(
-       js(grid),
-       [ordered(true),requires([jquery,js('jquery.pinto.js')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       js(grid),
-       [ordered(true),requires([jquery,js('jquery.pinto.min.js')]),virtual(true)]
-     ).
-:- endif.
-:- html_resource(grid, [requires([css(grid),js(grid)]),virtual(true)]).
 
 % HTML extensions
 :- html_resource(
@@ -1444,30 +1423,6 @@ google_analytics --> [].
 google_font(Name) -->
   {uri_comps(Uri, uri(https,'fonts.googleapis.com',[css],[family(Name)],_))},
   link([type='text/css'], stylesheet-Uri).
-
-
-
-%! grid(+GridWidth, +TileWidth, :Html_1, +Args)// is det.
-%
-% Generates an HTML grid whose tiles implement widgets.  Widgets are
-% represented by Prolog compound terms.  Widgets are defined outside
-% of this module.
-
-grid(GridWidth, TileWidth, Html_1, L) -->
-  {format(atom(Style), 'margin-top: 10px; max-width: ~dpx;', [GridWidth])},
-  html([
-    div([id=grid,style=Style], \html_maplist(tile(Html_1), L)),
-    \html_requires(grid),
-    \js_script({|javascript(TileWidth)||
-$('#grid').pinto({gapY: 10, itemWidth: TileWidth});
-    |})
-  ]).
-
-
-%! tile(:Html_1, +Arg)// is det.
-
-tile(Html_1, X) -->
-  html(div(\html_call(Html_1, X))).
 
 
 
