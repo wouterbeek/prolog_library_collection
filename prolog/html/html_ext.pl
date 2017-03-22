@@ -2208,7 +2208,12 @@ mail_icon(Uri) -->
 %! mail_link_and_icon(+Uri)// is det.
 
 mail_link_and_icon(Uri) -->
-  external_link(Uri, [property='foaf:mbox'], [\icon(mail)," ",code(Uri)]).
+  {uri_components(Uri, uri_components(mailto,_,Lbl,_,_))},
+  external_link(
+    Uri,
+    [class=nowrap,property='foaf:mbox'],
+    [\icon(mail)," ",code(Lbl)]
+  ).
 
 
 
