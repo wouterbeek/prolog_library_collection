@@ -144,7 +144,6 @@ img {
 }
 
 p {
-  font-size: 120%;
   margin: 0;
   text-align: justify;
 }
@@ -366,6 +365,7 @@ article h3 {
 }
 
 article [property="sioc:content"] {
+  font-size: 120%;
   margin: auto;
   max-width: 550px;
 }
@@ -388,10 +388,10 @@ article [property="sioc:content"] > p:first-of-type:first-letter {
 body footer {
   background-color: #f8f8f8;
   border-top: 1px solid #e7e7e7;
-  margin-left: 15px;
-  margin-right: 15px;
   padding-bottom: 30px;
   padding-top: 30px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 body footer h1 {
   font-size: 130%;
@@ -399,6 +399,7 @@ body footer h1 {
 }
 body footer ul {
   list-style: outside none none;
+  padding-left: 10px;
 }
 body footer li {
   padding: 10px 0 0 0;
