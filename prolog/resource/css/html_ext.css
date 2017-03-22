@@ -225,14 +225,6 @@ li[typeof="sbo:Author"] img {
 
 /* Navigation bar */
 
-.container-fluid,
-.navbar-brand,
-.navbar-nav,
-.navbar-toggleable-md {
-  margin: 0;
-  padding: 0;
-}
-
 nav {
   min-height: 50px;
 }
@@ -388,10 +380,7 @@ article [property="sioc:content"] > p:first-of-type:first-letter {
 body footer {
   background-color: #f8f8f8;
   border-top: 1px solid #e7e7e7;
-  padding-bottom: 30px;
-  padding-top: 30px;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding: 30px 15px 30px 15px;
 }
 body footer h1 {
   font-size: 130%;
