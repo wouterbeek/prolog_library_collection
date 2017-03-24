@@ -57,7 +57,7 @@
 %! call_bool(:Goal_0, -Bool) is det.
 
 call_bool(Goal_0, true) :-
-  once(Goal_0).
+  Goal_0, !.
 call_bool(_, false).
 
 
