@@ -8,10 +8,11 @@
 
 /** <module> Well-Known Text (WKT): Generator
 
-@version 2016/11, 2017/02
+@version 2016/11, 2017/02-2017/03
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(error)).
 :- use_module(library(uri/rfc3986)).
 
 :- meta_predicate
@@ -419,6 +420,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'X'(+Number)// is det.
 
 'X'(N) -->
+  {must_be(float, N)},
   number(N).
 
 
@@ -426,6 +428,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'Y'(+Number)// is det.
 
 'Y'(N) -->
+  {must_be(float, N)},
   number(N).
 
 
@@ -433,6 +436,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'Z'(+Number)// is det.
 
 'Z'(N) -->
+  {must_be(float, N)},
   number(N).
 
 
