@@ -8,15 +8,8 @@
 
 /** <module> Well-Known Text (WKT): Parser
 
-A **linear ring** is a closed line string of at least four positions,
-where the first and the last position are the same (both syntactically
-and semantically).
-
-A **polygon** consists of exactly one Exterior linear ring and zero or
-more interior linear rings (Interiors).
-
 @author Wouter Beek
-@version 2016/05-2016/06, 2016/11, 2017/02
+@version 2016/05-2016/06, 2016/11, 2017/02, 2017/04
 */
 
 :- use_module(library(dcg/dcg_ascii), [space//0]).

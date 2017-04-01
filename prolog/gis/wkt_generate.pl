@@ -8,7 +8,7 @@
 
 /** <module> Well-Known Text (WKT): Generator
 
-@version 2016/11, 2017/02-2017/03
+@version 2016/11, 2017/02-2017/04
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -32,7 +32,7 @@ circularstring_text(Z, LRS, Points) -->
   're+'(point(Z, LRS), Points),
   ")".
 
-circularstring_text_representation(Z, LRS, circularstring(Points)) -->
+circularstring_text_representation(Z, LRS, 'CircularString'(Points)) -->
   "CircularString",
   z_m(Z, LRS),
   circularstring_text(Z, LRS, Points).
@@ -59,7 +59,7 @@ compoundcurve_text(Z, LRS, L) -->
   're+'(single_curve_text(Z, LRS), L),
   ")".
 
-compoundcurve_text_representation(Z, LRS, compoundcurve(L)) -->
+compoundcurve_text_representation(Z, LRS, 'CompoundCurve'(L)) -->
   "CompoundCurve",
   z_m(Z, LRS),
   compoundcurve_text(Z, LRS, L).
@@ -94,7 +94,7 @@ curvepolygon_text(Z, LRS, L) -->
 curvepolygon_text_body(Z, LRS, L) -->
   curvepolygon_text(Z, LRS, L).
 
-curvepolygon_text_representation(Z, LRS, curvepolygon(L)) -->
+curvepolygon_text_representation(Z, LRS, 'CurvePolygon'(L)) -->
   "CurvePolygon",
   z_m(Z, LRS),
   curvepolygon_text_body(Z, LRS, L), !.
@@ -114,7 +114,7 @@ geometrycollection_text(Z, LRS, Shapes) -->
   're+'(wkt_representation(Z, LRS), Shapes),
   ")".
 
-geometrycollection_text_representation(Z, LRS, geometrycollection(Shapes)) -->
+geometrycollection_text_representation(Z, LRS, 'GeometryCollection'(Shapes)) -->
   "GeometryCollection",
   z_m(Z, LRS),
   geometrycollection_text(Z, LRS, Shapes).
@@ -133,7 +133,7 @@ linestring_text(Z, LRS, Points) -->
 linestring_text_body(Z, LRS, Points) -->
   linestring_text(Z, LRS, Points).
 
-linestring_text_representation(Z, LRS, linestring(Points)) -->
+linestring_text_representation(Z, LRS, 'LineString'(Points)) -->
   "LineString",
   z_m(Z, LRS),
   linestring_text_body(Z, LRS, Points).
@@ -149,7 +149,7 @@ multicurve_text(Z, LRS, L) -->
   're+'(curve_text(Z, LRS), L),
   ")".
 
-multicurve_text_representation(Z, LRS, multicurve(L)) -->
+multicurve_text_representation(Z, LRS, 'MultiCurve'(L)) -->
   "MultiCurve",
   z_m(Z, LRS),
   multicurve_text(Z, LRS, L), !.
@@ -167,7 +167,7 @@ multilinestring_text(Z, LRS, Pointss) -->
   're+'(linestring_text_body(Z, LRS), Pointss),
   ")".
 
-multilinestring_text_representation(Z, LRS, multilinestring(Pointss)) -->
+multilinestring_text_representation(Z, LRS, 'MultiLineString'(Pointss)) -->
   "MultiLineString",
   z_m(Z, LRS),
   multilinestring_text(Z, LRS, Pointss).
@@ -183,7 +183,7 @@ multipoint_text(Z, LRS, Points) -->
   're+'(point_text(Z, LRS), Points),
   ")".
 
-multipoint_text_representation(Z, LRS, multipoint(Points)) -->
+multipoint_text_representation(Z, LRS, 'MultiPoint'(Points)) -->
   "MultiPoint",
   z_m(Z, LRS),
   multipoint_text(Z, LRS, Points).
@@ -199,7 +199,7 @@ multipolygon_text(Z, LRS, L) -->
   're+'(polygon_text_body(Z, LRS), L),
   ")".
 
-multipolygon_text_representation(Z, LRS, multipolygon(L)) -->
+multipolygon_text_representation(Z, LRS, 'MultiPolygon'(L)) -->
   "MultiPolygon",
   z_m(Z, LRS),
   multipolygon_text(Z, LRS, L).
@@ -215,7 +215,7 @@ multisurface_text(Z, LRS, L) -->
   're+'(surface_text(Z, LRS), L),
   ")".
 
-multisurface_text_representation(Z, LRS, multisurface(L)) -->
+multisurface_text_representation(Z, LRS, 'MultiSurface'(L)) -->
   "MultiSurface",
   z_m(Z, LRS),
   multisurface_text(Z, LRS, L), !.
@@ -237,11 +237,10 @@ point_text(Z, LRS, [Point]) -->
   point(Z, LRS, Point),
   ")".
 
-point_text_representation(Z, LRS, Point) -->
-  {Point =.. [point|_]},
+point_text_representation(Z, LRS, 'Point'(Coords)) -->
   "Point",
   z_m(Z, LRS),
-  point_text(Z, LRS, [Point]).
+  point_text(Z, LRS, Coords).
 
 
 
@@ -257,7 +256,7 @@ polygon_text(Z, LRS, Pointss) -->
 polygon_text_body(Z, LRS, Pointss) -->
   polygon_text(Z, LRS, Pointss).
 
-polygon_text_representation(Z, LRS, polygon(Pointss)) -->
+polygon_text_representation(Z, LRS, 'Polygon'(Pointss)) -->
   "Polygon",
   z_m(Z, LRS),
   polygon_text_body(Z, LRS, Pointss).
@@ -273,7 +272,7 @@ polyhedralsurface_text(Z, LRS, Pointsss) -->
   're+'(polygon_text_body(Z, LRS), Pointsss),
   ")".
 
-polyhedralsurface_text_representation(Z, LRS, polyhedralsurface(Pointsss)) -->
+polyhedralsurface_text_representation(Z, LRS, 'PolyhedralSurface'(Pointsss)) -->
   "PolyhedralSurface",
   z_m(Z, LRS),
   polyhedralsurface_text(Z, LRS, Pointsss).
@@ -298,7 +297,7 @@ single_curve_text(Z, LRS, CircularString) -->
 
 % CurvePolygon
 
-surface_text(Z, LRS, curvepolygon(L)) -->
+surface_text(Z, LRS, 'CurvePolygon'(L)) -->
   "CurvePolygon",
   curvepolygon_text_body(Z, LRS, L), !.
 surface_text(Z, LRS, Pointss) -->
@@ -318,7 +317,7 @@ tin_text(Z, LRS, Pointss) -->
   're+'(triangle_text_body(Z, LRS), Pointss),
   ")".
 
-tin_text_representation(Z, LRS, tin(Pointss)) -->
+tin_text_representation(Z, LRS, 'TIN'(Pointss)) -->
   "TIN",
   z_m(Z, LRS),
   tin_text(Z, LRS, Pointss).
@@ -337,7 +336,7 @@ triangle_text(Z, LRS, Points) -->
 triangle_text_body(Z, LRS, Points) -->
   triangle_text(Z, LRS, Points).
 
-triangle_text_representation(Z, LRS, triangle(Points)) -->
+triangle_text_representation(Z, LRS, 'Triangle'(Points)) -->
   "Triangle",
   z_m(Z, LRS),
   triangle_text_body(Z, LRS, Points).
@@ -384,22 +383,22 @@ m(N) -->
 
 
 
-%! point(+Z:boolean, +LRS:boolean, +Point:compound)// is det.
+%! point(+Z:boolean, +LRS:boolean, +Coords:list(number))// is det.
 
-point(false, false, point(X,Y)) -->
+point(false, false, [X,Y]) -->
   'X'(X),
   " ",
   'Y'(Y).
-point(false, true, point(X,Y,LRS)) -->
-  point(false, false, point(X,Y)),
+point(false, true, [X,Y,LRS]) -->
+  point(false, false, [X,Y]),
   " ",
   m(LRS), !.
-point(true, false, point(X,Y,Z)) -->
-  point(false, false, point(X,Y)),
+point(true, false, [X,Y,Z]) -->
+  point(false, false, [X,Y]),
   " ",
   'Z'(Z), !.
-point(true, true, point(X,Y,Z,LRS)) -->
-  point(true, false, point(X,Y,Z)),
+point(true, true, [X,Y,Z,LRS]) -->
+  point(true, false, [X,Y,Z]),
   " ",
   m(LRS), !.
 
@@ -420,7 +419,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'X'(+Number)// is det.
 
 'X'(N) -->
-  {must_be(float, N)},
+  {must_be(number, N)},
   number(N).
 
 
@@ -428,7 +427,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'Y'(+Number)// is det.
 
 'Y'(N) -->
-  {must_be(float, N)},
+  {must_be(number, N)},
   number(N).
 
 
@@ -436,7 +435,7 @@ point(true, true, point(X,Y,Z,LRS)) -->
 %! 'Z'(+Number)// is det.
 
 'Z'(N) -->
-  {must_be(float, N)},
+  {must_be(number, N)},
   number(N).
 
 
