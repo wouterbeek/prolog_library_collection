@@ -147,7 +147,7 @@ is_image_uri(Uri) :-
 
 is_uri(Uri) :-
   uri_components(Uri, uri_components(Scheme,Auth,_,_,_)),
-  maplist(atom, [Scheme,Auth]).
+  ground(Scheme-Auth).
 
 
 
