@@ -1,7 +1,7 @@
 :- module(
   xml_stream,
   [
-    xml_stream_record/3 % +Source, +RecordNames, :Goal_1
+    xml_stream/3 % +In, +RecordName, :Goal_1
   ]
 ).
 
@@ -16,23 +16,20 @@
 :- use_module(library(sgml)).
 
 :- meta_predicate
-    xml_stream_record(+, +, 1).
+    xml_stream(+, +, 1).
 
 
 
 
 
-%! xml_stream_record(+Source, +RecordNames, :Goal_1) is det.
+%! xml_stream(+In, +RecordName, :Goal_1) is det.
 %
 % Call Goal_1 on an XML stream, where the argument supplied to Goal_1
-% is a subtree that starts with an elements within RecordNames.
+% is a subtree that starts with an element called RecordName.
 
-xml_stream_record(Source, RecordNames, Goal_1) :-
+xml_stream(In, RecordName, Goal_1) :-
   b_setval(xml_stream_goal, Goal_1),
-  b_setval(xml_stream_record_names, RecordNames),
-  call_on_stream(Source, xml_stream_record_stream0).
-
-xml_stream_record_stream0(In, Meta, Meta) :-
+  b_setval(xml_stream_record_name, RecordName),
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
@@ -44,8 +41,7 @@ xml_stream_record_stream0(In, Meta, Meta) :-
 
 on_begin0(Elem, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
-  b_getval(xml_stream_record_names, RecordNames),
-  memberchk(Elem, RecordNames), !,
+  b_getval(xml_stream_record_name, Elem), !,
   sgml_parse(Parser, [document(Dom1),parse(content)]),
   xml_clean_dom(Dom1, Dom2),
   call(Goal_1, [element(Elem,Attr,Dom2)]).
