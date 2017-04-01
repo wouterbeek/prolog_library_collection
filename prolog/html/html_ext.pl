@@ -255,7 +255,7 @@ html({|html||...|}).
 :- use_module(library(http/http_user)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/jquery)).
-:- use_module(library(json_ext)).
+:- use_module(library(http/json)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 :- use_module(library(nlp/nlp_lang)).
@@ -3074,7 +3074,8 @@ twitter_tweet(Tweet) -->
       Uri,
       uri(https,'publish.twitter.com',[oembed],[omit_script(true),url(Tweet)],_)
     ),
-    json_read_any(Uri, Dict),
+    http_open(Uri, In, [request_header('Accept'='application/json')]),
+    json_read_dict(In, Dict),
     atom_string(A, Dict.html)
   },
   [A].
