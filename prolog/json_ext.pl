@@ -6,8 +6,6 @@
     codes_json_dict/2,  % ?Cs, ?Dict
     codes_json_dict/3,  % ?Cs, ?Dict, +Opts
     json_escape/2,      % +Str1, -Str2
-    json_read_any/2,    % +Source, -Dict
-    json_read_any/3,    % +Source, -Dict, +Opts
     json_var_to_null/2, % +Term, -NullifiedTerm
     json_write_any/2,   % +Sink, +Dict
     json_write_any/3,   % +Sink, +Dict, +Opts
@@ -95,25 +93,6 @@ json_escape_codes, "\\t"      --> [9],      !, json_escape_codes.
 json_escape_codes, "\\n"      --> [10],     !, json_escape_codes.
 json_escape_codes, "\\f"      --> [12],     !, json_escape_codes.
 json_escape_codes, "\\r"      --> [13],     !, json_escape_codes.
-
-
-
-%! json_read_any(+Source, -Dict) is det.
-%! json_read_any(+Source, -Dict, +Opts) is det.
-%
-% Read JSON from any source.
-
-json_read_any(Source, Dict):-
-  json_read_any(Source, Dict, []).
-
-
-json_read_any(Source, Dict, Opts1) :-
-  merge_options([request_header('Accept'='application/json')], Opts1, Opts2),
-  call_on_stream(
-    Source,
-    {Dict,Opts2}/[In,Meta,Meta]>>json_read_dict(In, Dict, Opts2),
-    Opts2
-  ).
 
 
 
