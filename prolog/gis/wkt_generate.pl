@@ -180,7 +180,7 @@ multipoint_text(_, _, []) --> !,
   "Empty".
 multipoint_text(Z, LRS, Points) -->
   "(",
-  're+'(point_text(Z, LRS), Points),
+  're+'(point(Z, LRS), Points),
   ")".
 
 multipoint_text_representation(Z, LRS, 'MultiPoint'(Points)) -->
@@ -232,9 +232,9 @@ multisurface_text_representation(Z, LRS, Tin) -->
 
 point_text(_, _, []) --> !,
   "Empty".
-point_text(Z, LRS, [Point]) -->
+point_text(Z, LRS, Coords) -->
   "(",
-  point(Z, LRS, Point),
+  point(Z, LRS, Coords),
   ")".
 
 point_text_representation(Z, LRS, 'Point'(Coords)) -->

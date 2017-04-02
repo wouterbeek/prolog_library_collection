@@ -33,7 +33,7 @@ circularstring_text(Z, LRS, Points) -->
   're+'(point(Z, LRS), Points),
   must_see_code(0')).
 
-circularstring_text_representation(Z, LRS, circularstring(Points)) -->
+circularstring_text_representation(Z, LRS, 'CircularString'(Points)) -->
   keyword(`circularstring`),
   z_m(Z, LRS),
   circularstring_text(Z, LRS, Points).
@@ -60,7 +60,7 @@ compoundcurve_text(Z, LRS, L) -->
   're+'(single_curve_text(Z, LRS), L),
   must_see_code(0')).
 
-compoundcurve_text_representation(Z, LRS, compoundcurve(L)) -->
+compoundcurve_text_representation(Z, LRS, 'CompoundCurve'(L)) -->
   keyword(`compoundcurve`),
   z_m(Z, LRS),
   compoundcurve_text(Z, LRS, L).
@@ -96,7 +96,7 @@ curvepolygon_text(Z, LRS, L) -->
 curvepolygon_text_body(Z, LRS, L) -->
   curvepolygon_text(Z, LRS, L).
 
-curvepolygon_text_representation(Z, LRS, curvepolygon(L)) -->
+curvepolygon_text_representation(Z, LRS, 'CurvePolygon'(L)) -->
   keyword(`curvepolygon`),
   z_m(Z, LRS),
   curvepolygon_text_body(Z, LRS, L), !.
@@ -115,7 +115,7 @@ geometrycollection_text(Z, LRS, Shapes) -->
   're+'(wkt_representation(Z, LRS), Shapes),
   must_see_code(0')).
 
-geometrycollection_text_representation(Z, LRS, geometrycollection(Shapes)) -->
+geometrycollection_text_representation(Z, LRS, 'GeometryCollection'(Shapes)) -->
   keyword(`geometrycollection`),
   z_m(Z, LRS),
   geometrycollection_text(Z, LRS, Shapes).
@@ -134,7 +134,7 @@ linestring_text(Z, LRS, Points) -->
 linestring_text_body(Z, LRS, Points) -->
   linestring_text(Z, LRS, Points).
 
-linestring_text_representation(Z, LRS, linestring(Points)) -->
+linestring_text_representation(Z, LRS, 'LineString'(Points)) -->
   keyword(`linestring`),
   z_m(Z, LRS),
   linestring_text_body(Z, LRS, Points).
@@ -150,7 +150,7 @@ multicurve_text(Z, LRS, L) -->
   're+'(curve_text(Z, LRS), L),
   must_see_code(0')).
 
-multicurve_text_representation(Z, LRS, multicurve(L)) -->
+multicurve_text_representation(Z, LRS, 'MultiCurve'(L)) -->
   keyword(`multicurve`),
   z_m(Z, LRS),
   multicurve_text(Z, LRS, L), !.
@@ -168,7 +168,7 @@ multilinestring_text(Z, LRS, Pointss) -->
   're+'(linestring_text_body(Z, LRS), Pointss),
   must_see_code(0')).
 
-multilinestring_text_representation(Z, LRS, multilinestring(Pointss)) -->
+multilinestring_text_representation(Z, LRS, 'MultiLineString'(Pointss)) -->
   keyword(`multilinestring`),
   z_m(Z, LRS),
   multilinestring_text(Z, LRS, Pointss).
@@ -184,7 +184,7 @@ multipoint_text(Z, LRS, Points) -->
   're+'(point_text(Z, LRS), Points),
   must_see_code(0')).
 
-multipoint_text_representation(Z, LRS, multipoint(Points)) -->
+multipoint_text_representation(Z, LRS, 'MultiPoint'(Points)) -->
   keyword(`multipoint`),
   z_m(Z, LRS),
   multipoint_text(Z, LRS, Points).
@@ -200,7 +200,7 @@ multipolygon_text(Z, LRS, L) -->
   're+'(polygon_text_body(Z, LRS), L),
   must_see_code(0')).
 
-multipolygon_text_representation(Z, LRS, multipolygon(L)) -->
+multipolygon_text_representation(Z, LRS, 'MultiPolygon'(L)) -->
   keyword(`multipolygon`),
   z_m(Z, LRS),
   multipolygon_text(Z, LRS, L).
@@ -216,7 +216,7 @@ multisurface_text(Z, LRS, L) -->
   're+'(surface_text(Z, LRS), L),
   must_see_code(0')).
 
-multisurface_text_representation(Z, LRS, multisurface(L)) -->
+multisurface_text_representation(Z, LRS, 'MultiSurface'(L)) -->
   keyword(`multisurface`),
   z_m(Z, LRS),
   multisurface_text(Z, LRS, L), !.
@@ -238,10 +238,10 @@ point_text(Z, LRS, [Point]) -->
   point(Z, LRS, Point),
   must_see_code(0')).
 
-point_text_representation(Z, LRS, Point) -->
+point_text_representation(Z, LRS, 'Point'(Coords)) -->
   keyword(`point`),
   z_m(Z, LRS),
-  point_text(Z, LRS, [Point]).
+  point_text(Z, LRS, Coords).
 
 
 
@@ -257,7 +257,7 @@ polygon_text(Z, LRS, Pointss) -->
 polygon_text_body(Z, LRS, Pointss) -->
   polygon_text(Z, LRS, Pointss).
 
-polygon_text_representation(Z, LRS, polygon(Pointss)) -->
+polygon_text_representation(Z, LRS, 'Polygon'(Pointss)) -->
   keyword(`polygon`),
   z_m(Z, LRS),
   polygon_text_body(Z, LRS, Pointss).
@@ -273,7 +273,7 @@ polyhedralsurface_text(Z, LRS, Pointsss) -->
   're+'(polygon_text_body(Z, LRS), Pointsss),
   must_see_code(0')).
 
-polyhedralsurface_text_representation(Z, LRS, polyhedralsurface(Pointsss)) -->
+polyhedralsurface_text_representation(Z, LRS, 'PolyhedralSurface'(Pointsss)) -->
   keyword(`polyhedralsurface`),
   z_m(Z, LRS),
   polyhedralsurface_text(Z, LRS, Pointsss).
@@ -316,7 +316,7 @@ tin_text(Z, LRS, Pointss) -->
   're+'(triangle_text_body(Z, LRS), Pointss),
   must_see_code(0')).
 
-tin_text_representation(Z, LRS, tin(Pointss)) -->
+tin_text_representation(Z, LRS, 'TIN'(Pointss)) -->
   keyword(`tin`),
   z_m(Z, LRS),
   tin_text(Z, LRS, Pointss).
@@ -335,7 +335,7 @@ triangle_text(Z, LRS, Points) -->
 triangle_text_body(Z, LRS, Points) -->
   triangle_text(Z, LRS, Points).
 
-triangle_text_representation(Z, LRS, triangle(Points)) -->
+triangle_text_representation(Z, LRS, 'Triangle'(Points)) -->
   keyword(`triangle`),
   z_m(Z, LRS),
   triangle_text_body(Z, LRS, Points).
@@ -404,21 +404,21 @@ must_see_code(C) -->
 
 %! point(+Z:boolean, +LRS:boolean, -Point:compound)// is det.
 
-point(false, false, point(X,Y)) -->
+point(false, false, [X,Y]) -->
   'X'(X),
   must_see_code(0' ),
   'Y'(Y),
   skip_ws.
-point(false, true, point(X,Y,LRS)) -->
-  point(false, false, point(X,Y)),
+point(false, true, [X,Y,LRS]) -->
+  point(false, false, [X,Y]),
   " ",
   m(LRS).
-point(true, false, point(X,Y,Z)) -->
-  point(false, false, point(X,Y)),
+point(true, false, [X,Y,Z]) -->
+  point(false, false, [X,Y]),
   " ",
   'Z'(Z).
-point(true, true, point(X,Y,Z,LRS)) -->
-  point(true, false, point(X,Y,Z)),
+point(true, true, [X,Y,Z,LRS]) -->
+  point(true, false, [X,Y,Z]),
   " ",
   m(LRS).
 
