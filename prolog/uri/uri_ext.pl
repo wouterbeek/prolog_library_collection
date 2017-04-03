@@ -221,17 +221,15 @@ uri_field(Key) :-
 %! uri_comps(-Uri, +Comps) is det.
 %
 % Comps is a compound term of the form
-% ‘uri(Scheme,Auth,Path,Query,Frag)’, where:
+% `uri(Scheme,Auth,Path,Query,Frag)', where:
 %
 %   * Auth is either an atom or a compound term of the form
-%     ‘auth(User,Host,Port)’.
+%     `auth(User,Host,Port)'.
 %
-%   * Path is a list of atomic segments.  Allowed to be
-%     uninstantiated.
+%   * Path is a list of atomic segments.
 %
 %   * Query is (1) a list of unary compound terms, or (2) a list of
-%     pairs, or (3) a flat dict (i.e., non-dict values).  Allowed to
-%     be uninstantiated.
+%     pairs, or (3) a flat dict (i.e., a dict with non-dict values).
 
 uri_comps(Uri, uri(Scheme,AuthComp,Segments,QueryComps,Frag)) :-
   ground(Uri), !,
