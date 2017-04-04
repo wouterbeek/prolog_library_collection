@@ -233,7 +233,7 @@ multisurface_text_representation(Z, LRS, Tin) -->
 
 point_text(_, _, []) -->
   empty_set, !.
-point_text(Z, LRS, [Point]) -->
+point_text(Z, LRS, Point) -->
   must_see_code(0'(),
   point(Z, LRS, Point),
   must_see_code(0')).
