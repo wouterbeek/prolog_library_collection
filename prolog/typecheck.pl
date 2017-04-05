@@ -7,7 +7,6 @@
     code/1,              % @Term
     codes/1,             % @Term
     is_file_iri/1,       % @Term
-    is_http_iri/1,       % @Term
     must_be_directory/1, % +Dir
     must_be_file/2,      % +Mode:oneof([append,read,write]), +File
     negative_float/1,    % @Term
@@ -139,16 +138,6 @@ codes(T) :-
 is_file_iri(Iri) :-
   atom(Iri),
   uri_file_name(Iri, _).
-
-
-
-%! is_http_iri(@Term) is semidet.
-
-is_http_iri(Iri) :-
-  atom(Iri),
-  uri_is_global(Iri),
-  uri_components(Iri, uri_components(Scheme,_,_,_,_)),
-  memberchk(Scheme, [http,https]).
 
 
 

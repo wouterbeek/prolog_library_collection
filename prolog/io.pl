@@ -58,7 +58,7 @@ The following debug flags are used:
 
 @author Wouter Beek
 @tbd Implement metadata using backtrackable setval.
-@version 2016/07-2017/01
+@version 2016/07-2017/04
 */
 
 :- use_module(library(apply)).
@@ -71,7 +71,6 @@ The following debug flags are used:
 :- use_module(library(os_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(string_ext)).
-:- use_module(library(typecheck)).
 :- use_module(library(uri/uri_ext)).
 :- use_module(library(xml/xml_parse)).
 :- use_module(library(yall)).
@@ -1003,7 +1002,7 @@ open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
   ;   atomic(Spec1)
   ->  (   uri_file_name(Spec1, File)
       ->  Spec2 = file(File)
-      ;   is_http_iri(Spec1)
+      ;   is_uri(Spec1)
       ->  Spec2 = uri(Spec1)
       ;   Spec2 = file(Spec1)
       )
