@@ -3,7 +3,6 @@
   [
     compress_file/1,     % +From
     compress_file/2,     % +From, +To
-    compress_file/3,     % +From, +To, +Compress
     exists_program/1,    % +Program
     image_dimensions/3,  % +File, -Width, -Height
     open_pdf/1,          % +File
@@ -42,7 +41,7 @@ Process output and error streams in parallel by using threads.
 
 @tbd Merge process_open/[3,4] into run_process/[2-5].
 
-@version 2015/08-2017/01
+@version 2015/08-2017/01, 2017/04
 */
 
 :- use_module(library(aggregate)).
@@ -97,37 +96,24 @@ is_meta(output_goal).
 
 %! compress_file(+From) is det.
 %! compress_file(+From, +To) is det.
-%! compress_file(+From, +To, +Compress) is det.
-%
-% The following values are supported for Compress:
-%   * ‘deflate’
-%   * ‘gzip’ (default)
-%   * ‘none’
-%
-% @tbd Reuse library(io) for this.
 
 compress_file(From) :-
-  thread_file(From, Tmp),
-  compress_file(From, Tmp, gzip),
-  rename_file(Tmp, From).
+  file_name_extension(From, gz, To),
+  compress_file(From, To).
 
 
 compress_file(From, To) :-
-  compress_file(From, To, gzip).
-
-
-compress_file(From, To, none) :- !,
-  rename_file(From, To).
-compress_file(From, To, Compress) :-
+  thread_file(To, TmpTo),
   setup_call_cleanup(
-    gzopen(To, write, Write, [format(Compress)]),
+    gzopen(TmpTo, write, Write, [format(gzip)]),
     setup_call_cleanup(
       open(From, read, Read),
       copy_stream_data(Read, Write),
       close(Read)
     ),
     close(Write)
-  ).
+  ),
+  rename_file(TmpTo, To).
 
 
 
@@ -239,6 +225,7 @@ os_path(File) :-
 os_path_separator(Sep) :-
   os(Os),
   os_path_separator(Os, Sep).
+
 
 %! os_path_separator(+Os:os, -Separator) is det.
 
