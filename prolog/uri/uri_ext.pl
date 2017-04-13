@@ -310,7 +310,15 @@ uri_optional_query_enc        --> [].
 uri_path_append(Uri1, Suffix, Uri2) :-
   uri_comps(Uri1, uri(Scheme,Auth,Segments1,Query,Fragment)),
   append(Segments1, Suffix, Segments2),
-  uri_comps(Uri2, uri(Scheme,Auth,Segments2,Query,Fragment)).
+  remove_empty_segments(Segments2, Segments3),
+  uri_comps(Uri2, uri(Scheme,Auth,Segments3,Query,Fragment)).
+
+remove_empty_segments([], []) :- !.
+remove_empty_segments([Segment], [Segment]) :- !.
+remove_empty_segments([''|T1], T2) :- !,
+  remove_empty_segments(T1, T2).
+remove_empty_segments([H|T1], [H|T2]) :-
+  remove_empty_segments(T1, T2).
 
 
 
