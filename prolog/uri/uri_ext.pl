@@ -16,7 +16,7 @@
     uri_file_extensions/2,  % +Uri,  -Exts
     uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
-    uri_path_append/3,      % +Uri1, +PathSuffix, -Uri2
+    uri_path_append/3,      % +Uri1, +Suffix, -Uri2
     uri_query_enc//0,
     uri_remove_fragment/2,  % +Uri, -BaseUri
     uri_resource/2,         % ?Uri, ?Res
@@ -305,12 +305,12 @@ uri_optional_query_enc        --> [].
 
 
 
-%! uri_path_append(+Uri1, +PathSuffix, -Uri2) is det.
+%! uri_path_append(+Uri1, +Suffix, -Uri2) is det.
 
-uri_path_append(Uri1, PathSuffix, Uri2) :-
-  uri_comps(Uri1, uri(Scheme,Auth,Path1,Query,Fragment)),
-  append(Path1, PathSuffix, Path2),
-  uri_comps(Uri2, uri(Scheme,Auth,Path2,Query,Fragment)).
+uri_path_append(Uri1, Suffix, Uri2) :-
+  uri_comps(Uri1, uri(Scheme,Auth,Segments1,Query,Fragment)),
+  append(Segments1, Suffix, Segments2),
+  uri_comps(Uri2, uri(Scheme,Auth,Segments2,Query,Fragment)).
 
 
 
