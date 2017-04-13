@@ -2,7 +2,7 @@
   os_ext,
   [
     compress_file/1,     % +From
-    compress_file/2,     % +From, +To
+    compress_file/2,     % +From, -To
     exists_program/1,    % +Program
     image_dimensions/3,  % +File, -Width, -Height
     open_pdf/1,          % +File
@@ -95,14 +95,14 @@ is_meta(output_goal).
 
 
 %! compress_file(+From) is det.
-%! compress_file(+From, +To) is det.
+%! compress_file(+From, -To) is det.
 
 compress_file(From) :-
-  file_name_extension(From, gz, To),
-  compress_file(From, To).
+  compress_file(From, _).
 
 
 compress_file(From, To) :-
+  file_name_extension(From, gz, To),
   thread_file(To, TmpTo),
   setup_call_cleanup(
     gzopen(TmpTo, write, Write, [format(gzip)]),
