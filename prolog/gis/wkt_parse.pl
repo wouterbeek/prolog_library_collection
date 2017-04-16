@@ -26,12 +26,12 @@
 
 % CircularString
 
-circularstring_text(_, _, []) -->
-  empty_set, !.
 circularstring_text(Z, LRS, Points) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(point(Z, LRS), Points),
   must_see_code(0')).
+circularstring_text(_, _, []) -->
+  empty_set.
 
 circularstring_text_representation(Z, LRS, 'CircularString'(Points)) -->
   keyword(`circularstring`),
@@ -53,12 +53,12 @@ collection_text_representation(Z, LRS, GeometryCollection) -->
 
 % CompoundCurve
 
-compoundcurve_text(_, _, []) -->
-  empty_set, !.
 compoundcurve_text(Z, LRS, L) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(single_curve_text(Z, LRS), L),
   must_see_code(0')).
+compoundcurve_text(_, _, []) -->
+  empty_set.
 
 compoundcurve_text_representation(Z, LRS, 'CompoundCurve'(L)) -->
   keyword(`compoundcurve`),
@@ -86,12 +86,12 @@ curve_text_representation(Z, LRS, CompoundCurve) -->
 
 % CurvePolygon
 
-curvepolygon_text(_, _, []) -->
-  empty_set, !.
 curvepolygon_text(Z, LRS, L) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(ring_text(Z, LRS), L),
   must_see_code(0')).
+curvepolygon_text(_, _, []) -->
+  empty_set.
 
 curvepolygon_text_body(Z, LRS, L) -->
   curvepolygon_text(Z, LRS, L).
@@ -109,11 +109,12 @@ curvepolygon_text_representation(Z, LRS, Shape) -->
 
 % GeometryCollection
 
-geometrycollection_text(_, _, []) -->
-  empty_set, !.
 geometrycollection_text(Z, LRS, Shapes) -->
+  "(", !,
   're+'(wkt_representation(Z, LRS), Shapes),
   must_see_code(0')).
+geometrycollection_text(_, _, []) -->
+  empty_set.
 
 geometrycollection_text_representation(Z, LRS, 'GeometryCollection'(Shapes)) -->
   keyword(`geometrycollection`),
@@ -124,12 +125,12 @@ geometrycollection_text_representation(Z, LRS, 'GeometryCollection'(Shapes)) -->
 
 % LineString
 
-linestring_text(_, _, []) -->
-  empty_set, !.
 linestring_text(Z, LRS, Points) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(point(Z, LRS), Points),
   must_see_code(0')).
+linestring_text(_, _, []) -->
+  empty_set.
 
 linestring_text_body(Z, LRS, Points) -->
   linestring_text(Z, LRS, Points).
@@ -143,12 +144,12 @@ linestring_text_representation(Z, LRS, 'LineString'(Points)) -->
 
 % MultiCurve
 
-multicurve_text(_, _, []) -->
-  empty_set, !.
 multicurve_text(Z, LRS, L) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(curve_text(Z, LRS), L),
   must_see_code(0')).
+multicurve_text(_, _, []) -->
+  empty_set.
 
 multicurve_text_representation(Z, LRS, 'MultiCurve'(L)) -->
   keyword(`multicurve`),
@@ -161,12 +162,12 @@ multicurve_text_representation(Z, LRS, Shape) -->
 
 % MultiLineString
 
-multilinestring_text(_, _, []) -->
-  empty_set, !.
 multilinestring_text(Z, LRS, Pointss) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(linestring_text_body(Z, LRS), Pointss),
   must_see_code(0')).
+multilinestring_text(_, _, []) -->
+  empty_set.
 
 multilinestring_text_representation(Z, LRS, 'MultiLineString'(Pointss)) -->
   keyword(`multilinestring`),
@@ -177,12 +178,12 @@ multilinestring_text_representation(Z, LRS, 'MultiLineString'(Pointss)) -->
 
 % MultiPoint
 
-multipoint_text(_, _, []) -->
-  empty_set, !.
 multipoint_text(Z, LRS, Points) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(point_text(Z, LRS), Points),
   must_see_code(0')).
+multipoint_text(_, _, []) -->
+  empty_set.
 
 multipoint_text_representation(Z, LRS, 'MultiPoint'(Points)) -->
   keyword(`multipoint`),
@@ -193,12 +194,12 @@ multipoint_text_representation(Z, LRS, 'MultiPoint'(Points)) -->
 
 % MultiPolygon
 
-multipolygon_text(_, _, []) -->
-  empty_set, !.
 multipolygon_text(Z, LRS, L) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(polygon_text_body(Z, LRS), L),
   must_see_code(0')).
+multipolygon_text(_, _, []) -->
+  empty_set.
 
 multipolygon_text_representation(Z, LRS, 'MultiPolygon'(L)) -->
   keyword(`multipolygon`),
@@ -209,12 +210,12 @@ multipolygon_text_representation(Z, LRS, 'MultiPolygon'(L)) -->
 
 % MultiSurface
 
-multisurface_text(_, _, []) -->
-  empty_set, !.
 multisurface_text(Z, LRS, L) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(surface_text(Z, LRS), L),
   must_see_code(0')).
+multisurface_text(_, _, []) -->
+  empty_set.
 
 multisurface_text_representation(Z, LRS, 'MultiSurface'(L)) -->
   keyword(`multisurface`),
@@ -231,12 +232,12 @@ multisurface_text_representation(Z, LRS, Tin) -->
 
 % Point
 
-point_text(_, _, []) -->
-  empty_set, !.
 point_text(Z, LRS, Point) -->
-  must_see_code(0'(),
+  "(", !,
   point(Z, LRS, Point),
   must_see_code(0')).
+point_text(_, _, []) -->
+  empty_set.
 
 point_text_representation(Z, LRS, 'Point'(Coords)) -->
   keyword(`point`),
@@ -247,12 +248,12 @@ point_text_representation(Z, LRS, 'Point'(Coords)) -->
 
 % Polygon
 
-polygon_text(_, _, []) -->
-  empty_set, !.
 polygon_text(Z, LRS, Pointss) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(linestring_text(Z, LRS), Pointss),
   must_see_code(0')).
+polygon_text(_, _, []) -->
+  empty_set.
 
 polygon_text_body(Z, LRS, Pointss) -->
   polygon_text(Z, LRS, Pointss).
@@ -266,12 +267,12 @@ polygon_text_representation(Z, LRS, 'Polygon'(Pointss)) -->
 
 % PolyhedralSurface
 
-polyhedralsurface_text(_, _, []) -->
-  empty_set, !.
 polyhedralsurface_text(Z, LRS, Pointsss) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(polygon_text_body(Z, LRS), Pointsss),
   must_see_code(0')).
+polyhedralsurface_text(_, _, []) -->
+  empty_set.
 
 polyhedralsurface_text_representation(Z, LRS, 'PolyhedralSurface'(Pointsss)) -->
   keyword(`polyhedralsurface`),
@@ -309,12 +310,12 @@ surface_text_representation(Z, LRS, Shape) -->
 
 % TIN
 
-tin_text(_, _, []) -->
-  empty_set, !.
 tin_text(Z, LRS, Pointss) -->
-  must_see_code(0'(),
+  "(", !,
   're+'(triangle_text_body(Z, LRS), Pointss),
   must_see_code(0')).
+tin_text(_, _, []) -->
+  empty_set.
 
 tin_text_representation(Z, LRS, 'TIN'(Pointss)) -->
   keyword(`tin`),
@@ -325,12 +326,12 @@ tin_text_representation(Z, LRS, 'TIN'(Pointss)) -->
 
 % Triangle
 
-triangle_text(_, _, []) -->
-  empty_set, !.
 triangle_text(Z, LRS, Points) -->
-  must_see_code(0'(),
+  "(", !,
   linestring_text(Z, LRS, Points),
   must_see_code(0')).
+triangle_text(_, _, []) -->
+  empty_set.
 
 triangle_text_body(Z, LRS, Points) -->
   triangle_text(Z, LRS, Points).
