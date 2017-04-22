@@ -38,7 +38,6 @@
     file_ready_time/2,          % +File, -ReadyTime
     file_size/2,                % +File, -Size
     file_touch_ready/1,         % +File
-    finish_file/2,              % +File0, -File
     is_dummy_file/1,            % +File
     is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
@@ -279,7 +278,6 @@ current_directory(Dir) :-
 
 delete_directory_silent(Dir) :-
   exists_directory(Dir), !,
-  %%%%print_message(informational, delete_directory(Dir)),
   delete_directory(Dir).
 delete_directory_silent(_).
 
@@ -289,7 +287,6 @@ delete_directory_silent(_).
 
 delete_directory_and_contents_silent(Dir) :-
   exists_directory(Dir), !,
-  %%%%print_message(informational, delete_directory_and_contents(Dir)),
   delete_directory_and_contents(Dir).
 delete_directory_and_contents_silent(_).
 
@@ -302,7 +299,6 @@ delete_directory_and_contents_silent(_).
 
 delete_file_silent(File) :-
   exists_file(File), !,
-  %%%%print_message(informational, delete_file(File)),
   delete_file(File).
 delete_file_silent(_).
 
@@ -495,17 +491,6 @@ file_size(File, Size) :-
 file_touch_ready(File) :-
   file_ready(File, ReadyFile),
   touch(ReadyFile).
-
-
-
-%! finish_file(+File0, -File) is det.
-
-finish_file(File0, File) :-
-  atom_concat(File, '.working', File0),
-  (   exists_file(File)
-  ->  delete_file_silent(File0)
-  ;   rename_file(File0, File)
-  ).
 
 
 
