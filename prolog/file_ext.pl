@@ -64,7 +64,7 @@
 Extensions to the file operations in the standard SWI-Prolog libraries.
 
 @author Wouter Beek
-@version 2015/07-2017/02
+@version 2015/07-2017/04
 */
 
 :- use_module(library(apply)).
@@ -72,8 +72,9 @@ Extensions to the file operations in the standard SWI-Prolog libraries.
 :- use_module(library(error)).
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
-:- use_module(library(lists)).
 :- use_module(library(io)).
+:- use_module(library(lists)).
+:- use_module(library(md5)).
 :- use_module(library(os_ext)).
 :- use_module(library(thread_ext)).
 :- use_module(library(process)).
@@ -661,8 +662,10 @@ thread_file(File) :-
 
 
 thread_file(Base, File) :-
-  thread_name(Thread),
-  file_name_extension(Base, Thread, File).
+  thread_name(ThreadName),
+  % @note The thread name may not be a legal file name.
+  md5_hash(ThreadName, Hash, []),
+  file_name_extension(Base, Hash, File).
 
 
 

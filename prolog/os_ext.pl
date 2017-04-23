@@ -103,15 +103,17 @@ compress_file(From) :-
 
 compress_file(From, To) :-
   file_name_extension(From, gz, To),
-  thread_file(To, TmpTo),
+  file_name_extension(To, tmp, TmpTo),
   setup_call_cleanup(
-    gzopen(TmpTo, write, Write, [format(gzip)]),
-    setup_call_cleanup(
-      open(From, read, Read),
-      copy_stream_data(Read, Write),
-      close(Read)
+    (
+      gzopen(TmpTo, write, Out, [format(gzip)]),
+      open(From, read, In)
     ),
-    close(Write)
+    copy_stream_data(In, Out),
+    (
+      close(In),
+      close(Out)
+    )
   ),
   rename_file(TmpTo, To).
 
