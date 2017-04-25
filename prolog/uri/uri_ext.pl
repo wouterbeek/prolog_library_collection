@@ -1,22 +1,18 @@
 :- module(
   uri_ext,
   [
-    auth_comps/2,           % ?Auth, ?Comps
     host_uri/1,             % -Uri
     host_uri/2,             % +Uri1, -Uri2
     iri_query_enc//0,
     is_data_uri/1,          % +Uri
     is_image_uri/1,         % @Term
-    is_uri/1,               % +Uri
     uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
     uri_alias_uuid/2,       % -Uri, +Alias
     uri_comp/3,             % +Uri, ?Key, ?Val
-    uri_comps/2,            % ?Uri, ?Comps
     uri_comps/3,            % -Uri, +BaseUri, +Comps
     uri_file_extensions/2,  % +Uri,  -Exts
     uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
-    uri_path_append/3,      % +Uri1, +Suffix, -Uri2
     uri_query_enc//0,
     uri_remove_fragment/2,  % +Uri, -BaseUri
     uri_resource/2,         % ?Uri, ?Res
@@ -35,18 +31,14 @@
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/rfc3986)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_host), []).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf11), [
-     rdf_global_id/2
-   ]).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
-:- use_module(library(uri)).
-:- use_module(library(uri/rfc3986)).
-:- use_module(library(uri/rfc3987)).
 
 :- multifile
     error:has_type/2.
@@ -68,14 +60,6 @@ error:has_type(uri, Uri) :-
    ).
 
 
-
-
-
-%! auth_comps(+Auth, -Comps) is det.
-%! auth_comps(-Auth, +Comps) is det.
-
-auth_comps(Auth, auth(User,Host,Port)) :-
-  uri_authority_components(Auth, uri_authority(User,_,Host,Port)).
 
 
 
@@ -151,14 +135,6 @@ is_image_uri(Uri) :-
 
 
 
-%! is_uri(+Uri) is semidet.
-
-is_uri(Uri) :-
-  uri_components(Uri, uri_components(Scheme,Auth,_,_,_)),
-  ground(Scheme-Auth).
-
-
-
 %! uri_add_path_postfix(+Uri1, +PathPostfix, -Uri2) is det.
 
 uri_add_path_postfix(Uri1, PathPostfix, Uri2) :-
@@ -225,46 +201,6 @@ uri_field(Key) :-
 
 
 
-%! uri_comps(+Uri, -Comps) is det.
-%! uri_comps(-Uri, +Comps) is det.
-%
-% Comps is a compound term of the form
-% `uri(Scheme,Auth,Path,Query,Frag)', where:
-%
-%   * Auth is either an atom or a compound term of the form
-%     `auth(User,Host,Port)'.
-%
-%   * Path is a list of atomic segments.
-%
-%   * Query is (1) a list of unary compound terms, or (2) a list of
-%     pairs, or (3) a flat dict (i.e., a dict with non-dict values).
-
-uri_comps(Uri, uri(Scheme,AuthComp,Segments,QueryComps,Frag)) :-
-  ground(Uri), !,
-  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)),
-  (atom(Auth) -> AuthComp = Auth ; auth_comps(Auth, AuthComp)),
-  atomic_list_concat([''|Segments], /, Path),
-  (var(Query) -> QueryComps = [] ; uri_query_components(Query, QueryComps)).
-uri_comps(Uri, uri(Scheme,Auth0,Segments,QueryComps,Frag)) :-
-  (atom(Auth0) -> Auth = Auth0 ; auth_comps(Auth, Auth0)),
-  (   var(Segments)
-  ->  true
-  ;   Segments = []
-  ->  Path = '/'
-  ;   (Segments = [''|Segments0] -> true ; Segments0 = Segments),
-      atomic_list_concat([''|Segments0], /, Path)
-  ),
-  (   var(QueryComps)
-  ->  true
-  ;   is_dict(QueryComps)
-  ->  dict_pairs(QueryComps, QueryPairs),
-      uri_query_components(Query, QueryPairs)
-  ;   uri_query_components(Query, QueryComps)
-  ),
-  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,Frag)).
-
-
-
 %! uri_comps(-Uri, +BaseUri, +Comps) is det.
 
 uri_comps(Uri, BaseUri, Comps) :-
@@ -302,23 +238,6 @@ uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
 uri_optional_query_enc, "%40" --> "@", !, uri_optional_query_enc.
 uri_optional_query_enc, [C]   --> [C], !, uri_optional_query_enc.
 uri_optional_query_enc        --> [].
-
-
-
-%! uri_path_append(+Uri1, +Suffix, -Uri2) is det.
-
-uri_path_append(Uri1, Suffix, Uri2) :-
-  uri_comps(Uri1, uri(Scheme,Auth,Segments1,Query,Fragment)),
-  append(Segments1, Suffix, Segments2),
-  remove_empty_segments(Segments2, Segments3),
-  uri_comps(Uri2, uri(Scheme,Auth,Segments3,Query,Fragment)).
-
-remove_empty_segments([], []) :- !.
-remove_empty_segments([Segment], [Segment]) :- !.
-remove_empty_segments([''|T1], T2) :- !,
-  remove_empty_segments(T1, T2).
-remove_empty_segments([H|T1], [H|T2]) :-
-  remove_empty_segments(T1, T2).
 
 
 

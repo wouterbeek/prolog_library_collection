@@ -11,7 +11,6 @@
     group_pairs_by_key/3,     % :Comparator_2, +Pairs, -GroupedPairs
     is_pair/1,                % @Term
     is_reflexive_pair/1,      % +Pair
-    memberchk_eq_key/3,       % +Key, +Pairs, -Val
     pair/3,                   % ?Pair, ?Key, ?Value
     pair_edge/2,              % ?Pair, ?Edge
     pair_element/2,           % ?Pair, ?Element
@@ -151,15 +150,6 @@ is_pair(_-_).
 %! is_reflexive_pair(+Pair) is semidet.
 
 is_reflexive_pair(Pair):- pair(Pair, X, X).
-
-
-
-%! memberchk_eq_key(+Key, +Pairs, -Val) is semidet.
-
-memberchk_eq_key(Key, [Key0-Val|_], Val) :-
-  Key == Key0, !.
-memberchk_eq_key(Key, [_|T], Val) :-
-  memberchk_eq_key(Key, T, Val).
 
 
 

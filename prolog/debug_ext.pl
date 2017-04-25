@@ -262,11 +262,11 @@ update_indent_debug0(Diff) :-
   assert(debug_indent(Indent3)).
 
 msg(_, 0, Msg) --> !,
-  str(Msg).
+  atom(Msg).
 msg(Diff, 1, Msg) --> !,
   msg_diff1(Diff),
   "─",
-  str(Msg).
+  atom(Msg).
 msg(Diff, N1, Msg) -->
   ({N1 =:= 1} -> msg_diff2(Diff), "─" ; "│ "),
   {N2 is N1 - 1},

@@ -2,30 +2,21 @@
   atom_ext,
   [
     atom_after_char/3,    % +Atom,   +Char,    -Rest
-    atom_ellipsis/3,      % +Atom,   ?Len,     ?Ellipsis
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
     atom_postfix/2,       % +Atom,   ?Sub
     atom_postfix/3,       % +Atom,   ?Len,     ?Sub
-   %atom_prefix/2,        % +Atom,   ?Sub
-    atom_prefix/3,        % +Atom,   ?Len,     ?Sub
     atom_to_term/2,       % +Atom,   -Term
-    atom_truncate/3,      % +Atom,   +MaxLen,  -Truncated
     capitalize_atom/2,    % +Atom,   -Capitalized
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
     ensure_atom/2,        % +Term,   -Atom
     integer_padding/3,    % +I, +Len, -Atom
     integer_padding/4,    % +I, +Len, +PadChar, -Atom
-    is_empty_atom/1,      % +Empty
     lower_upper/2,        % ?Lower, ?Upper
     lowercase_atom/2,     % +Atom,   -Lowercased
     new_atom/2,           % +Old,    -New
     repeating_atom/3,     % +Sub,    +Repeats, -Atom
     split_atom_length/3,  % +Atom,   +Len,     -Subs
-    strip_atom/2,         % +Atom,   -NewAtom
-    strip_atom/3,         % +PadChars, +Atom,  -NewAtom
-    strip_atom_begin/3,   % +PadChars, +Atom,  -NewAtom
-    strip_atom_end/3      % +PadChars, +Atom,  -NewAtom
   ]
 ).
 
@@ -92,40 +83,6 @@ atom_after_char(Atom, Char, Rest) :-
 
 
 
-%! atom_ellipsis(+Atom, +Len, +Ellipsis) is semidet.
-%! atom_ellipsis(+Atom, +Len, -Ellipsis) is semidet.
-%! atom_ellipsis(+Atom, -Len, -Ellipsis) is nondet.
-%
-% ```
-% ?- atom_ellipsis(monkey, N, X).
-% N = 2,
-% X = 'm…' ;
-% N = 3,
-% X = 'mo…' ;
-% N = 4,
-% X = 'mon…' ;
-% N = 5,
-% X = 'monk…' ;
-% N = 6,
-% X = monkey.
-% ```
-
-atom_ellipsis(Atom, ELen, Ellipsis) :-
-  atom_length(Atom, Len),
-  (   ELen = inf
-  ->  Ellipsis = Atom
-  ;   between(2, Len, ELen)
-  *-> (   ELen =:= Len
-      ->  Ellipsis = Atom
-      ;   TLen is ELen - 1,
-          atom_truncate(Atom, TLen, Truncated),
-          atomic_concat(Truncated, "…", Ellipsis)
-      )
-  ;   Ellipsis = Atom
-  ).
-
-
-
 %! atom_ending_in(+Atom, +Suffix, -NewAtom) is det.
 % Make sure that NewAtom is similar to Atom and ends in Suffix.
 %
@@ -156,20 +113,6 @@ atom_postfix(Atom, Len, Sub) :-
 
 
 
-%! atom_prefix(+Atom, +Len, +Sub) is semidet.
-%! atom_prefix(+Atom, +Len, -Sub) is semidet.
-%! atom_prefix(+Atom, -Len, +Sub) is semidet.
-%! atom_prefix(+Atom, -Len, -Sub) is multi.
-%
-% Sub is the prefix of Atom that has length Len.
-%
-% Fails in case Len is higher than the length of Atom.
-
-atom_prefix(Atom, Len, Sub) :-
-  sub_atom(Atom, 0, Len, _, Sub).
-
-
-
 %! atom_to_term(+Atom, -Term) is det.
 % Return the Term described by the Atom.
 %
@@ -177,30 +120,6 @@ atom_prefix(Atom, Len, Sub) :-
 
 atom_to_term(Atom, Term) :-
   atom_to_term(Atom, Term, _).
-
-
-
-%! atom_truncate(+Atom, +MaxLen, -Truncated) is det.
-%
-% Return a truncated version of the given atom.  MaxLen is the exact
-% maximum lenght of the truncated atom.  Truncation will always result
-% in an atom which has at most `MaxLength`.
-%
-% @param MaxLen must be a non-negative integer or `inf`.  When `inf`
-%        the original atom is returned without truncation.
-%
-% @see atom_ellipsis/3 for returning a truncated atom with ellipsis
-%      sign.
-%
-% @throws type_error
-
-atom_truncate(A, inf, A) :- !.
-atom_truncate(A, MaxLen, A) :-
-  must_be(nonneg, MaxLen),
-  atom_length(A, Len),
-  Len =< MaxLen, !.
-atom_truncate(A, MaxLen, Prefix) :-
-  atom_prefix(A, MaxLen, Prefix).
 
 
 
@@ -270,15 +189,6 @@ integer_padding(I, L, PadChar, Out) :-
   ZeroLength is L - IL,
   repeating_atom(PadChar, ZeroLength, Zeros),
   atomic_concat(Zeros, I, Out).
-
-
-
-%! is_empty_atom(+Empty) is semidet.
-% Succeeds only on the empty atom.
-
-is_empty_atom(A) :-
-  atom(A),
-  atom_phrase(blanks, A).
 
 
 
@@ -363,37 +273,3 @@ split_atom_length(A1, L, [H|T]) :-
   atom_concat(H, A2, A1),
   split_atom_length(A2, L, T).
 split_atom_length(A, _, [A]).
-
-
-
-%! strip_atom(+Atom, -Sub) is det.
-%! strip_atom(+PadChars, +Atom, -Sub) is det.
-%! strip_atom_begin(+PadChars, +Atom, -Sub) is det.
-%! strip_atom_end(+PadChars, +Atom, -Sub) is det.
-% Return Atom with any occurrens of PadChars remove from the front and/or back.
-%
-% Notice that the order in which the PadChars occur is significant.
-%
-% The default PadChars are space, newline and horizontal tab.
-
-strip_atom(A1, A2) :-
-  strip_atom([' ','\n','\t'], A1, A2).
-
-
-strip_atom(PadChars, A1, A3) :-
-  strip_atom_begin(PadChars, A1, A2),
-  strip_atom_end(PadChars, A2, A3).
-
-
-strip_atom_begin(PadChars, A1, A3) :-
-  member(PadChar, PadChars),
-  atom_concat(PadChar, A2, A1), !,
-  strip_atom_begin(PadChars, A2, A3).
-strip_atom_begin(_, A, A).
-
-
-strip_atom_end(PadChars, A1, A3) :-
-  member(PadChar, PadChars),
-  atom_concat(A2, PadChar, A1), !,
-  strip_atom_end(PadChars, A2, A3).
-strip_atom_end(_, A, A).

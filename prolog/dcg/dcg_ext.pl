@@ -6,26 +6,15 @@
     '?'//1,                % :Dcg_0
     '?'//2,                % :Dcg_1, -Args1
     '?'//3,                % :Dcg_2, -Args1, -Args2
-    '*'//1,                % :Dcg_0
-    '*'//2,                % :Dcg_1, -Args1
     '*'//3,                % :Dcg_2, -Args1, -Args2
-    '+'//1,                % :Dcg_0
-    '+'//2,                % :Dcg_1, -Args1
     '+'//3,                % :Dcg_2, -Args1, -Args2
-    '#'//2,                % ?Occurrences, :Dcg_0
-    '#'//3,                % ?Occurrences, :Dcg_1, -Args1
     '#'//4,                % ?Occurrences, :Dcg_2, -Args1, -Args2
-    '*n'//2,               % ?High, :Dcg_0
-    '*n'//3,               % ?High, :Dcg_1, -Args1
     '*n'//4,               % ?High, :Dcg_2, -Args1, -Args2
     'm*'//2,               % ?Low, :Dcg_0
     'm*'//3,               % ?Low, :Dcg_1, -Args1
     'm*'//4,               % ?Low, :Dcg_2, -Args1, -Args2
-    'm*n'//3,              % ?Low, ?High, :Dcg_0
-    'm*n'//4,              % ?Low, ?High, :Dcg_1, -Args1
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_ci//1,            % ?A
-    atom_ellipsis//2,      % +A, +Max
     atom_lower//1,         % ?A
     atom_phrase/2,         % :Dcg_0, ?A
     atom_phrase/3,         % :Dcg_0, +A1, ?A2
@@ -60,8 +49,6 @@
     dcg_atom//2,           % :Dcg_1, ?A
     dcg_between//2,        % :Between_0, :Dcg_0
     dcg_between//3,        % :Begin_0, :Dcg_0, :End_0
-    dcg_call//1,           % :Dcg_0
-    dcg_call//2,           % :Dcg_1, ?Arg1
     dcg_call//3,           % :Dcg_2, ?Arg1, ?Arg2
     dcg_call//4,           % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call//5,           % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
@@ -88,10 +75,7 @@
     dcg_strip//0,
     dcg_strip//1,          % +StripCs
     dcg_tab//0,
-    dcg_var//2,            % +Map, +Var
     dcg_width/2,           % :Dcg_0, -Width
-    dcg_with_output_to/1,  % :Dcg_0
-    dcg_with_output_to/2,  % +Sink, :Dcg_0
     debug/2,               % +Topic, :Dcg_0
     def//3,                % :Dcg_1, -Arg, +Def
     digit_code//1,         % ?C
@@ -102,27 +86,19 @@
     generate_as_digits//2, % +N:nonneg, +NoDs
     generate_as_digits//3, % +N:nonneg, +Base:positive_integer, +NoDs
     generating//0,
-    indent//1,             % +Indent:nonneg
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
     lowercase//0,
-    must_see//1,           % :Dcg_0
-    must_see_code//2,      % +C, :Skip_0
-    nl//0,
-    nonblank//0,
     number//0,
     opt//1,                % :Dcg_0
     opt//2,                % :Dcg_1, ?Arg
     ordinal//1,            % +M
     pair//2,               % :Dcg_0, :Dcg_0
-    parsing//0,
     perc//1,               % +Perc:between(0.0,1.0)
     perc_fixed//1,         % +Perc:between(0.0,1.0)
     pos/2,                 % +N:nonneg, -Ds:list(between(0,9))
     pos/3,                 % +N:nonneg, +Base, -Ds:list(between(0,9))
     pos_frac/2,            % +Ds:list(between(0,9)), -FracPart:rational
-    pos_sum/2,             % +Ds:list(between(0,9)), -N:nonneg
-    pos_sum/3,             % +Ds:list(nonneg), +Base:positive_integer, -N:nonneg
     progress_bar//2,       % +Processed, +All
     quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
     quoted//1,             % :Content_0
@@ -136,7 +112,6 @@
     set//2,                % :Dcg_1, +L
     skip_line//0,
     sq//1,                 % :Dcg_0
-    str//1,                % +Str
     str_ci//1,             % ?Str
     str_ellipsis//2,       % +S, +Max
     string//0,
@@ -149,7 +124,6 @@
     tab//1,                % +Indent:nonneg
     tab//2,                % +Indent:nonneg, :Dcg_0
     tab_nl//2,             % +Indent:nonneg, :Dcg_0
-    thousands//1,          % +Integer:integer
     triple//3,             % :DcgX_0, :DcgY_0, :DcgZ_0
     tuple//1,              % +L
     tuple//2,              % :Dcg_1, +L
@@ -201,29 +175,15 @@ My favorite collection of DCG rules.
     ?(//, ?, ?),
     ?(3, -, ?, ?),
     ?(4, -, -, ?, ?),
-    *(//, ?, ?),
-    *(3, -, ?, ?),
     *(4, -, -, ?, ?),
-    +(//, ?, ?),
-    +(3, -, ?, ?),
     +(4, -, -, ?, ?),
-    #(+, //, ?, ?),
-    #(+, 3, -, ?, ?),
     #(+, 4, -, -, ?, ?),
-    '*n'(?, //, ?, ?),
-    '*n'(?, 3, -, ?, ?),
     '*n'(?, 4, -, -, ?, ?),
     'm*'(?, //, ?, ?),
     'm*'(?, 3, -, ?, ?),
     'm*'(?, 4, -, -, ?, ?),
-    'm*n'(?, ?, //, ?, ?),
-    'm*n'(?, ?, 3, -, ?, ?),
     'm*n'(?, ?, 4, -, -, ?, ?),
-    'm*n__g'(?, ?, +, //, ?, ?),
-    'm*n__g'(?, ?, +, 3, -, ?, ?),
     'm*n__g'(?, ?, +, 4, -, -, ?, ?),
-    'm*n__p'(?, ?, +, //, ?, ?),
-    'm*n__p'(?, ?, +, 3, -, ?, ?),
     'm*n__p'(?, ?, +, 4, -, -, ?, ?),
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
@@ -236,8 +196,6 @@ My favorite collection of DCG rules.
     dcg_atom(3, ?, ?, ?),
     dcg_between(//, //, ?, ?),
     dcg_between(//, //, //, ?, ?),
-    dcg_call(//, ?, ?),
-    dcg_call(3, ?, ?, ?),
     dcg_call(4, ?, ?, ?, ?),
     dcg_call(5, ?, ?, ?, ?, ?),
     dcg_call(6, ?, ?, ?, ?, ?, ?),
@@ -261,15 +219,11 @@ My favorite collection of DCG rules.
     dcg_once(//, +, +, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
-    dcg_with_output_to(//),
-    dcg_with_output_to(+, //),
     debug(+, //),
     def(3, -, +, ?, ?),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
-    must_see(//, ?, ?),
-    must_see_code(+, //, ?, ?),
     opt(//, ?, ?),
     opt(3, ?, ?, ?),
     pair(//, //, ?, ?),
@@ -297,7 +251,7 @@ dcg:dcg_hook(perc(Term)) -->
 dcg:dcg_hook(set(L)) -->
   set(L).
 dcg:dcg_hook(string(Str)) -->
-  str(Str).
+  atom(Str).
 dcg:dcg_hook(thousands(N)) -->
   thousands(N).
 
@@ -344,60 +298,26 @@ dcg:dcg_hook(thousands(N)) -->
 
 
 
-%! *(:Dcg_0)// is det.
-%! *(:Dcg_1, -Args1)// is det.
 %! *(:Dcg_2, -Args1, -Args2)// is det.
-
-*(Dcg_0) -->
-  'm*n'(0, _, Dcg_0).
-
-*(Dcg_1, L1) -->
-  'm*n'(0, _, Dcg_1, L1).
 
 *(Dcg_2, L1, L2) -->
   'm*n'(0, _, Dcg_2, L1, L2).
 
 
 
-%! #(?Occurrences, :Dcg_0)// is det.
-%! #(?Occurrences, :Dcg_1, -Args1)// is det.
 %! #(?Occurrences, :Dcg_2, -Args1, -Args2)// is det.
-
-#(N, Dcg_0) -->
-  'm*n'(N, N, Dcg_0).
-
-#(N, Dcg_1, L1) -->
-  'm*n'(N, N, Dcg_1, L1).
 
 #(N, Dcg_2, L1, L2) -->
   'm*n'(N, N, Dcg_2, L1, L2).
 
 
 
-%! '*n'(?High, :Dcg_0)// is det.
-%! '*n'(?High, :Dcg_1, -Args1)// is det.
-%! '*n'(?High, :Dcg_2, -Args1, -Args2)// is det.
-
-+(Dcg_0) -->
-  'm*n'(1, _, Dcg_0).
-
-+(Dcg_1, L1) -->
-  'm*n'(1, _, Dcg_1, L1).
-
 +(Dcg_2, L1, L2) -->
   'm*n'(1, _, Dcg_2, L1, L2).
 
 
 
-%! '*n'(?High, :Dcg_0)// is det.
-%! '*n'(?High, :Dcg_1, -Args1)// is det.
 %! '*n'(?High, :Dcg_2, -Args1, -Args2)// is det.
-
-'*n'(High, Dcg_0) -->
-  'm*n'(_, High, Dcg_0).
-
-'*n'(High, Dcg_1, L1) -->
-  'm*n'(_, High, Dcg_1, L1).
 
 '*n'(High, Dcg_2, L1, L2) -->
   'm*n'(_, High, Dcg_2, L1, L2).
@@ -419,55 +339,7 @@ dcg:dcg_hook(thousands(N)) -->
 
 
 
-%! 'm*n'(?Low, ?High, :Dcg_0)// is det.
-%! 'm*n'(?Low, ?High, :Dcg_1, -Args1)// is det.
 %! 'm*n'(?Low, ?High, :Dcg_2, -Args1, -Args2)// is det.
-
-'m*n'(Low, High, Dcg_0) -->
-  parsing, !,
-  'm*n__p'(Low, High, 0, Dcg_0).
-'m*n'(Low, High, Dcg_0) -->
-  'm*n__g'(Low, High, 0, Dcg_0).
-
-'m*n__g'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m*n__g'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm*n__g'(Low, High, Count2, Dcg_0).
-
-'m*n__p'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm*n__p'(Low, High, Count2, Dcg_0).
-'m*n__p'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
-
-
-'m*n'(Low, High, Dcg_1, L1) -->
-  parsing, !,
-  'm*n__p'(Low, High, 0, Dcg_1, L1).
-'m*n'(Low, High, Dcg_1, L1) -->
-  'm*n__g'(Low, High, 0, Dcg_1, L1).
-
-'m*n__g'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m*n__g'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm*n__g'(Low, High, Count2, Dcg_1, T1).
-
-'m*n__p'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm*n__p'(Low, High, Count2, Dcg_1, T1).
-'m*n__p'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-
 
 'm*n'(Low, High, Dcg_2, L1, L2) -->
   parsing, !,
@@ -523,16 +395,6 @@ atom_ci(A) -->
 atom_ci(A) -->
   *(code_ci, Cs),
   {atom_codes(A, Cs)}.
-
-
-
-%! atom_ellipsis(+A, +MaxLen:or([nonneg,oneof([inf])]))// is det.
-%
-% MaxLen is the maximum length of the ellipsed atom A.
-
-atom_ellipsis(A, Len) -->
-  {atom_ellipsis(A, Len, Ellipsed)},
-  atom(Ellipsed).
 
 
 
@@ -1050,8 +912,6 @@ dcg_between(Begin_0, Dcg_0, End_0) -->
 
 
 
-%! dcg_call(:Dcg_0)// .
-%! dcg_call(:Dcg_1, ?Arg1)// .
 %! dcg_call(:Dcg_2, ?Arg1, ?Arg2)// .
 %! dcg_call(:Dcg_3, ?Arg1, ?Arg2, ?Arg3)// .
 %! dcg_call(:Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4)// .
@@ -1061,14 +921,6 @@ dcg_between(Begin_0, Dcg_0, End_0) -->
 % calls of the same Dcg may share variables.
 %
 % This is a DCG-based  variant of call//[1-5].
-
-dcg_call(Dcg_0, X, Y) :-
-  call(Dcg_0, X, Y).
-
-
-dcg_call(Dcg_1, Arg1, X, Y) :-
-  call(Dcg_1, Arg1, X, Y).
-
 
 dcg_call(Dcg_2, Arg1, Arg2, X, Y) :-
   call(Dcg_2, Arg1, Arg2, X, Y).
@@ -1371,32 +1223,11 @@ dcg_tab -->
 
 
 
-%! dcg_var(+Map, +Var)// is det.
-
-dcg_var(Map, Var) -->
-  {memberchk_eq_key(Var, Map, VarName)},
-  atom(VarName).
-
-
-
 %! dcg_width(:Dcg_0, -Width:nonneg) is det.
 
 dcg_width(Dcg_0, W) :-
   dcg_with_output_to(codes(Cs), Dcg_0),
   length(Cs, W).
-
-
-
-%! dcg_with_output_to(:Dcg_0) is nondet.
-%! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
-
-dcg_with_output_to(Dcg_0) :-
-  dcg_with_output_to(current_output, Dcg_0).
-
-
-dcg_with_output_to(Sink, Dcg_0) :-
-  phrase(Dcg_0, Cs),
-  with_output_to(Sink, put_codes(Cs)).
 
 
 
@@ -1483,12 +1314,6 @@ generating(X, Y) :-
 
 
 
-%! indent(+Indent:nonneg)// is det.
-
-indent(0) --> !, "".
-indent(N1) --> " ", !, {N2 is N1 - 1}, indent(N2).
-
-
 %! indent(+Indent:nonneg, :Dcg_0)// is det.
 
 indent(I, Dcg_0) --> indent(I), Dcg_0.
@@ -1507,41 +1332,6 @@ lowercase, [Low] -->
   {code_type(Low, to_lower(Up))}, !,
   rest.
 lowercase --> "".
-
-
-
-%! must_see(:Dcg_0)// .
-
-must_see(Dcg_0, X, Y) :-
-  call(Dcg_0, X, Y), !.
-must_see(_:Dcg_0, _, _) :-
-  Dcg_0 =.. [Pred|_],
-  format(string(Msg), "‘~a’ expected", [Pred]),
-  syntax_error(Msg).
-
-
-
-%! must_see_code(+C, :Skip_0)// .
-
-must_see_code(C, Skip_0) -->
-  [C], !,
-  Skip_0.
-must_see_code(C, _) -->
-  {char_code(Char, C)},
-  syntax_error(expected(Char)).
-
-
-
-%! nl// is det.
-
-nl --> "\n".
-
-
-
-%! nonblank// .
-% Wrapper around nonblank//1 from library(dcg/basics).
-
-nonblank --> nonblank(_).
 
 
 
@@ -1591,16 +1381,6 @@ pair(DcgX_0, DcgY_0) -->
 
 
 
-%! parsing// is semidet.
-%
-% Succeeds if currently parsing a list of codes (rather than
-% generating a list of codes).
-
-parsing(H, H) :-
-  nonvar(H).
-
-
-
 %! perc(+Perc:between(0.0,1.0))// is det.
 %
 % Generates a human-readable representation of a percentage.
@@ -1647,22 +1427,6 @@ pos_rev(I1, Base, [H|T]) :-
 
 pos_frac(Ds, Frac) :-
   aggregate_all(sum(Rat), (nth1(I, Ds, D), Rat is D rdiv (10 ^ I)), Frac).
-
-
-
-%! pos_sum(+Ds:list(between(0,9)), -I:nonneg) is det.
-% Positional summation.
-
-pos_sum(Ds, I) :- pos_sum(Ds, 10, I).
-
-
-%! pos_sum(+Ds:list(between(0,9)), +Base:positive_integer, -I:nonneg) is det.
-
-pos_sum(Ds, Base, I) :- pos_sum(Ds, Base, 0, I).
-pos_sum([D|Ds], Base, I1, I) :- !,
-  I2 is I1 * Base + D,
-  pos_sum(Ds, Base, I2, I).
-pos_sum([], _, I, I).
 
 
 
@@ -1790,14 +1554,6 @@ sq(Dcg_0) -->
 
 
 
-%! str(+Str)// is det.
-
-str(Str) -->
-  {string_codes(Str, Cs)},
-  Cs.
-
-
-
 %! str_ci(?Str)// .
 
 str_ci(Str) -->
@@ -1814,7 +1570,7 @@ str_ci(Str) -->
 
 str_ellipsis(Str, MaxLen) -->
   {string_ellipsis(Str, MaxLen, Ellipsis)},
-  str(Ellipsis).
+  atom(Ellipsis).
 
 
 
@@ -1905,16 +1661,6 @@ tab(I, Dcg_0) -->
 tab_nl(I, Dcg_0) -->
   tab(I, Dcg_0),
   nl.
-
-
-
-%! thousands(+I)// is det.
-
-thousands(inf) --> !,
-  "∞".
-thousands(I) -->
-  {format(atom(A), "~D", [I])},
-  atom(A).
 
 
 

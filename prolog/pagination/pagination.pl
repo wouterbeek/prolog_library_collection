@@ -28,6 +28,7 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dict_ext)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
 
@@ -218,48 +219,3 @@ pagination_range(Result, 0-0) :-
 pagination_range(Result, Low-High) :-
   Low is (Result.page - 1) * Result.page_size + 1,
   High is Low + Result.number_of_results - 1.
-
-
-
-
-
-% HELPERS %
-
-%! del_dict_or_default(+Key, +Dict1, +Default, -Value, -Dict2) is det.
-%
-% Either delete the Value for Key from Dict1 resulting in Dict2, or
-% return the Default value and leave the dictionary intact.
-
-del_dict_or_default(Key, Dict1, _, Val, Dict2) :-
-  del_dict(Key, Dict1, Val, Dict2), !.
-del_dict_or_default(_, Dict, Def, Def, Dict).
-
-
-
-%! dict_inc(+Key, !Dict) is det.
-
-dict_inc(Key, Dict) :-
-  get_dict(Key, Dict, Val1),
-  Val2 is Val1 + 1,
-  nb_set_dict(Key, Dict, Val2).
-
-
-
-%! merge_dicts(+D1, +D2, -D3) is det.
-%
-% Merges two dictionaries into one new dictionary.
-%
-% If D1 and D2 contain the same key then the value from D2 is used.
-% If D1 and D2 do not have the same tag then the tag of D2 is used.
-
-merge_dicts(D1, D2, D3):-
-  dict_pairs(D1, Tag1, Ps1),
-  dict_pairs(D2, Tag2, Ps2),
-  dict_keys(D2, Keys2),
-  exclude(key_in_keys0(Keys2), Ps1, OnlyPs1),
-  append(OnlyPs1, Ps2, Ps3),
-  (Tag1 = Tag2 -> true ; Tag3 = Tag2),
-  dict_pairs(D3, Tag3, Ps3).
-
-key_in_keys0(Keys, Key-_) :-
-  memberchk(Key, Keys).

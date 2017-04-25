@@ -1,8 +1,6 @@
 :- module(
   os_ext,
   [
-    compress_file/1,     % +From
-    compress_file/2,     % +From, -To
     exists_program/1,    % +Program
     image_dimensions/3,  % +File, -Width, -Height
     open_pdf/1,          % +File
@@ -91,31 +89,6 @@ is_meta(output_goal).
    ).
 
 
-
-
-
-%! compress_file(+From) is det.
-%! compress_file(+From, -To) is det.
-
-compress_file(From) :-
-  compress_file(From, _).
-
-
-compress_file(From, To) :-
-  file_name_extension(From, gz, To),
-  file_name_extension(To, tmp, TmpTo),
-  setup_call_cleanup(
-    (
-      gzopen(TmpTo, write, Out, [format(gzip)]),
-      open(From, read, In)
-    ),
-    copy_stream_data(In, Out),
-    (
-      close(In),
-      close(Out)
-    )
-  ),
-  rename_file(TmpTo, To).
 
 
 

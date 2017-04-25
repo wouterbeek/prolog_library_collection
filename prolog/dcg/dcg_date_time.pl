@@ -6,16 +6,16 @@
     time//3       % +H, +Mi, +S
   ]
 ).
-:- reexport(library(dcg/dcg_ext)).
 
 /** <module> DCG date time
 
 Parse/generate date/time strings.
 
 @author Wouter Beek
-@version 2017/01
+@version 2017/01, 2017/04
 */
 
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(nlp/nlp_ext)).
 
 
@@ -61,7 +61,7 @@ minute(Mi) -->
 
 month(Mo) -->
   {once(month_name(Mo, en, Abbr, _))},
-  str(Abbr).
+  atom(Abbr).
 
 
 %! month(+Y, +Mo)// .
@@ -111,9 +111,9 @@ timezone(Off) -->
     dcg_with_output_to(string(Mi0), generate_as_digits(Mi, 2))
   },
   sign(Off),
-  str(H0),
+  atom(H0),
   ":",
-  str(Mi0).
+  atom(Mi0).
 
 
 

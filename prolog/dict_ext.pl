@@ -34,8 +34,7 @@
     dicts_get/3,           % +Key, +Dicts, -Val
     dicts_getchk/3,        % +Key, +Dicts, -Val
     empty_dict/1,          % ?Dict
-    get_dict_path/3,       % -Keys, +Dict, -Val
-    merge_dicts/3          % +Dict1, +Dict2, -Dict3
+    get_dict_path/3        % -Keys, +Dict, -Val
   ]
 ).
 :- reexport(library(dicts)).
@@ -344,27 +343,3 @@ get_dict_path(L, Dict, Val) :-
   ;   Val = Val0,
       L = [H]
   ).
-
-
-
-%! merge_dicts(+Dict1, +Dict2, -Dict3) is det.
-%
-% Merges two dictionaries into one new dictionary.
-%
-% If Dict1 and Dict2 contain the same key then the value from Dict2 is
-% used.
-%
-% If Dict1 and Dict2 do not have the same tag then the tag of Dict2 is
-% used.
-
-merge_dicts(Dict1, Dict2, Dict3):-
-  dict_pairs(Dict1, Tag1, Ps1),
-  dict_pairs(Dict2, Tag2, Ps2),
-  dict_keys(Dict2, Keys2),
-  exclude(key_in_keys0(Keys2), Ps1, OnlyPs1),
-  append(OnlyPs1, Ps2, Ps3),
-  (Tag1 = Tag2 -> true ; Tag3 = Tag2),
-  dict_pairs(Dict3, Tag3, Ps3).
-
-key_in_keys0(Keys, Key-_) :-
-  memberchk(Key, Keys).

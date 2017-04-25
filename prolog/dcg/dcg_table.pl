@@ -108,7 +108,7 @@ dcg_table_cell(Type, MaxContentWidth, Cell_1, Elem) --> !,
     )
   },
   " ",
-  ({Type == data} -> str(Content) ; bold(Content)),
+  ({Type == data} -> atom(Content) ; bold(Content)),
   " ",
   indent(Indent).
 

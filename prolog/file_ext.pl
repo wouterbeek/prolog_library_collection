@@ -18,10 +18,7 @@
     delete_directory_silent/1,  % +Dir
     delete_directory_and_contents_silent/1, % +Dir
     delete_file_silent/1,       % +File
-    directory_file/2,           % +Dir, -File
     directory_is_empty/1,       % +Dir
-    directory_path/2,           % +Dir, -Path
-    directory_path_recursive/2, % +Dir, -Path
     directory_recursive/2,      % +Dir, -Subdir
     directory_subdirectories/2, % ?Dir, ?Subdirs
     directory_subdirectory/2,   % +Dir, ?Subdir
@@ -38,7 +35,6 @@
     file_ready_time/2,          % +File, -ReadyTime
     file_size/2,                % +File, -Size
     file_touch_ready/1,         % +File
-    is_dummy_file/1,            % +File
     is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
     is_fresh_file/2,            % +File, +FreshnessLifetime
@@ -305,41 +301,10 @@ delete_file_silent(_).
 
 
 
-% directory_file(+Dir, -File) is nondet.
-%
-% Non-deterministic variant of directory_files/2 that skips dummy
-% files.
-
-directory_file(Dir, File) :-
-  directory_files(Dir, Files),
-  member(File, Files),
-  \+ is_dummy_file(File).
-
-
-
 %! directory_is_empty(+Dir) is semidet.
 
 directory_is_empty(Dir) :-
   \+ directory_file(Dir, _).
-
-
-
-%! directory_path(+Dir, -Path) is nondet.
-
-directory_path(Dir, Path) :-
-  directory_file(Dir, File),
-  directory_file_path(Dir, File, Path).
-
-
-
-%! directory_path_recursive(+Dir, -Path) is nondet.
-
-directory_path_recursive(Dir, Path) :-
-  directory_path(Dir, Path0),
-  (   exists_directory(Path0)
-  ->  directory_path_recursive(Path0, Path)
-  ;   Path = Path0
-  ).
 
 
 
@@ -492,14 +457,6 @@ file_size(File, Size) :-
 file_touch_ready(File) :-
   file_ready(File, ReadyFile),
   touch(ReadyFile).
-
-
-
-%! is_dummy_file(+File) is semidet.
-
-is_dummy_file(.).
-is_dummy_file(..).
-is_dummy_file('README.md').
 
 
 

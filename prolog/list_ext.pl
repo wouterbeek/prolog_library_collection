@@ -13,7 +13,6 @@
     ensure_list/2,          % +Term, -L
     first/2,                % +L, ?First
     first_duplicate/2,      % ?FirstDuplicate, +L
-    inflist/2,              % +X, -L
     is_singleton_list/1,    % @Term
     list_binary_term/3,     % ?L, ?Op, ?Term
     list_intersperse/3,     % +L1, +Sep, -L2
@@ -265,30 +264,6 @@ first_duplicate(X, [_|T]) :-
 first_duplicate(X, [H|T]) :-
   maplist(dif(H), T),
   first_duplicate(X, T).
-
-
-
-%! inflist(+Element, -List) is det.
-% Lazy-lists containing an infinitely re-occurring element.
-%
-% # Example of use
-%
-% ```prolog
-% ?- inflist(0, L), append([A,B,C,D,E,F|_], _, L).
-% L = [0, 0, 0, 0, 0, 0|_G29924368],
-% A = B, B = C, C = D, D = E, E = F, F = 0,
-% freeze(_G29924368, list_ext: (_G29924368=[0|_G29924422], inflist(0, _G29924422)))
-% ```
-%
-% @see Based on
-%      [a StackOverflow answer](http://stackoverflow.com/questions/8869485/lazy-lists-in-prolog)
-%      by Michael Hendricks.
-
-inflist(X, L) :-
-  freeze(L, (
-    L = [X|T],
-    inflist(X, T)
-  )).
 
 
 

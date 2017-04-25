@@ -10,10 +10,9 @@
                      % +From:code
                      % +To:code
                      % +ToCodes:list(code)
-    codes_rm/3, % +FromCodes:list(code)
-                % +Remove:code
-                % -ToCodes:list(code)
-    put_codes/1 % +Codes:list(code)
+    codes_rm/3 % +FromCodes:list(code)
+               % +Remove:code
+               % -ToCodes:list(code)
   ]
 ).
 
@@ -103,13 +102,3 @@ codes_rm([H|T1], Xs, T2):-
   codes_rm(T1, Xs, T2).
 codes_rm([H|T1], Xs, [H|T2]):- !,
   codes_rm(T1, Xs, T2).
-
-
-
-%! put_codes(+Codes:list(code)) is det.
-%! put_codes(+Out:stream, +Codes:list(code)) is det.
-% @see Wrapper around put_code/1 that works on lists of codes
-%      and that can write to an arbitrary stream.
-
-put_codes(Codes):-
-  maplist(put_code, Codes).
