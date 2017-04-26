@@ -54,7 +54,7 @@ html_date_time(Something, Opts) -->
   {
     something_to_date_time(Something, DT),
     html_machine_date_time(DT, MS),
-    dict_get(masks, Opts, [], Masks),
+    get_dict(masks, Opts, [], Masks),
     date_time_masks(Masks, DT, MaskedDT)
   },
   html(time(datetime=MS, \html_human_date_time(MaskedDT, Opts))).

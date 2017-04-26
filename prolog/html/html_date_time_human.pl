@@ -96,8 +96,8 @@ minute(Mi, _) -->
 
 month(Mo, Opts) -->
   {
-    dict_get(ltag, Opts, en, LTag),
-    dict_get(month_abbr, Opts, false, IsAbbr),
+    get_dict(ltag, Opts, en, LTag),
+    get_dict(month_abbr, Opts, false, IsAbbr),
     once(month_name(Mo, LTag, Abbr, Full)),
     (IsAbbr == true -> Month = Abbr ; Month = Full)
   },
@@ -129,7 +129,7 @@ month_day_inner(Da, Opts) -->
 
 ordinal(N, Opts) -->
   {
-    dict_get(ltag, Opts, en, LTag),
+    get_dict(ltag, Opts, en, LTag),
     ordinal_suffix(N, LTag, Suffix)
   },
   html([N, sup([], Suffix)]).

@@ -15,8 +15,6 @@
     dict_dec/2,            % +Key, +Dict
     dict_dec/3,            % +Key, +Dict, -Val
     dict_dec/4,            % +Key, +Dict, +Diff, -Val
-    dict_get/3,            % +Key, +Dict, -Val
-    dict_get/4,            % +Key, +Dict, +Def, -Val
     dict_inc/2,            % +Key, +Dict
     dict_inc/3,            % +Key, +Dict, -Val
     dict_inc/4,            % +Key, +Dict, +Diff, -Val
@@ -34,6 +32,7 @@
     dicts_get/3,           % +Key, +Dicts, -Val
     dicts_getchk/3,        % +Key, +Dicts, -Val
     empty_dict/1,          % ?Dict
+    get_dict/4,            % +Key, +Dict, +Def, -Val
     get_dict_path/3        % -Keys, +Dict, -Val
   ]
 ).
@@ -171,19 +170,6 @@ dict_dec(Key, Dict, Diff, Val2) :-
   get_dict(Key, Dict, Val1),
   Val2 is Val1 - Diff,
   nb_set_dict(Key, Dict, Val2).
-
-
-
-%! dict_get(+Key, +Dict, -Val) is semidet.
-%! dict_get(+Key, +Dict, +Def, -Val) is semidet.
-
-dict_get(Key, Dict, Val) :-
-  get_dict(Key, Dict, Val).
-
-
-dict_get(Key, Dict, _, Val) :-
-  dict_get(Key, Dict, Val), !.
-dict_get(_, _, Def, Def).
 
 
 
@@ -330,6 +316,14 @@ dicts_getchk(Key, Dicts, Val) :-
 %! empty_dict(@Term) is semidet.
 
 empty_dict(_{}).
+
+
+
+%! get_dict(+Key, +Dict, +Def, -Val) is semidet.
+
+get_dict(Key, Dict, _, Val) :-
+  get_dict(Key, Dict, Val), !.
+get_dict(_, _, Def, Def).
 
 
 

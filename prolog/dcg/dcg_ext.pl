@@ -1,8 +1,6 @@
 :- module(
   dcg_ext,
   [
-    '...'//0,
-    '...'//1,              % -Cs
     '?'//1,                % :Dcg_0
     '?'//2,                % :Dcg_1, -Args1
     '?'//3,                % :Dcg_2, -Args1, -Args2
@@ -16,7 +14,6 @@
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_ci//1,            % ?A
     atom_lower//1,         % ?A
-    atom_phrase/2,         % :Dcg_0, ?A
     atom_phrase/3,         % :Dcg_0, +A1, ?A2
     atom_title//1,         % ?A
     atom_upper//1,         % ?A
@@ -76,7 +73,6 @@
     dcg_strip//1,          % +StripCs
     dcg_tab//0,
     dcg_width/2,           % :Dcg_0, -Width
-    debug/2,               % +Topic, :Dcg_0
     def//3,                % :Dcg_1, -Arg, +Def
     digit_code//1,         % ?C
     done//0,
@@ -106,8 +102,6 @@
     quoted//3,             % ?Length, :Quote_0, :Content_0
     rest//0,
     rest//1,               % -Rest:list(code)
-    seplist//2,            % :Dcg_0, :Sep_0
-    seplist//3,            % :Dcg_1, :Sep_0, +L
     set//1,                % +L
     set//2,                % :Dcg_1, +L
     skip_line//0,
@@ -116,7 +110,6 @@
     str_ellipsis//2,       % +S, +Max
     string//0,
     string_atom_phrase/3,  % :Dcg_0, ?S, ?A
-    string_phrase/2,       % :Dcg_0, ?S
     string_phrase/3,       % :Dcg_0, +S1, ?S2
     string_without//1,     % +EndCs
     sum_pos/2,             % +N:nonneg, -Ds:list(between(0,9))
@@ -185,7 +178,6 @@ My favorite collection of DCG rules.
     'm*n'(?, ?, 4, -, -, ?, ?),
     'm*n__g'(?, ?, +, 4, -, -, ?, ?),
     'm*n__p'(?, ?, +, 4, -, -, ?, ?),
-    atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
     bracketed(//, ?, ?),
     bracketed(+, //, ?, ?),
@@ -219,7 +211,6 @@ My favorite collection of DCG rules.
     dcg_once(//, +, +, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
-    debug(+, //),
     def(3, -, +, ?, ?),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
@@ -231,12 +222,9 @@ My favorite collection of DCG rules.
     quoted(//, ?, ?),
     quoted(//, //, ?, ?),
     quoted(?, //, //, ?, ?),
-    seplist(//, //, ?, ?),
-    seplist(3, //, +, ?, ?),
     set(3, +, ?, ?),
     sq(//, ?, ?),
     string_atom_phrase(//, ?, ?),
-    string_phrase(//, ?),
     string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
     tab_nl(+, //, ?, ?),
@@ -263,23 +251,6 @@ dcg:dcg_hook(thousands(N)) -->
    ).
 
 
-
-
-
-%! ...// .
-%
-% Wrapper around ...//1 that does not return the processed codes.
-
-... -->
-  ...(_).
-
-
-%! ...(-Codes:list(code))// .
-%
-% Wrapper around string//1.
-
-...(Cs) -->
-  string(Cs).
 
 
 
@@ -411,20 +382,6 @@ atom_lower(A) -->
   *(code_lower, Cs),
   {atom_codes(A, Cs)}.
 
-
-
-%! atom_phrase(:Dcg_0, ?A)// is nondet.
-% @throws instantiation_error
-% @throws type_error
-
-atom_phrase(Dcg_0, A) :-
-  var(A), !,
-  phrase(Dcg_0, Cs),
-  atom_codes(A, Cs).
-atom_phrase(Dcg_0, A) :-
-  must_be(atom, A),
-  atom_codes(A, Cs),
-  phrase(Dcg_0, Cs).
 
 
 %! atom_phrase(:Dcg_0, +A1, ?A2)// is nondet.
@@ -1231,17 +1188,6 @@ dcg_width(Dcg_0, W) :-
 
 
 
-%! debug(+Flag, :Dcg_0) is det.
-% Write the first generation of Dcg_0 as a debug message with given Flag.
-
-debug(Flag, Dcg_0) :-
-  debugging(Flag), !,
-  string_phrase(Dcg_0, S),
-  debug(Flag, "~s", [S]).
-debug(_, _).
-
-
-
 %! def(:Dcg_1, -Arg, +Def)// .
 
 def(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
@@ -1500,29 +1446,6 @@ rest(X, X, []).
 
 
 
-%! seplist(:Dcg_0, :Sep_0)// is det.
-%! seplist(:Dcg_1, :Sep_0, +L)// is det.
-
-seplist(Dcg_0, Sep_0) -->
-  Dcg_0,
-  (Sep_0 -> seplist(Dcg_0, Sep_0) ; "").
-seplist(_, _) --> !, "".
-
-
-% The first clause cannot contain a cut after the separator, because
-% the separator may also appear after the separated list.  For
-% example, "a b " could no longer be parsed if the separator was a
-% space.
-seplist(Dcg_1, Sep_0, [H1,H2|T]) -->
-  dcg_call(Dcg_1, H1),
-  Sep_0,
-  seplist(Dcg_1, Sep_0, [H2|T]).
-seplist(Dcg_1, _, [H]) -->
-  dcg_call(Dcg_1, H), !.
-seplist(_, _, []) --> !, "".
-
-
-
 %! set(+L)// is det.
 %! set(:Dcg_1, +L)// is det.
 
@@ -1590,18 +1513,8 @@ string_atom_phrase(Dcg_0, S, A) :-
   atom_codes(A, Cs2).
 
 
-%! string_phrase(:Dcg_0, ?S) is nondet.
+
 %! string_phrase(:Dcg_0, +S1, ?S2) is nondet.
-
-string_phrase(Dcg_0, S) :-
-  var(S), !,
-  phrase(Dcg_0, Cs),
-  string_codes(S, Cs).
-string_phrase(Dcg_0, S) :-
-  must_be(string, S),
-  string_codes(S, Cs),
-  phrase(Dcg_0, Cs).
-
 
 string_phrase(Dcg_0, S1, S2) :-
   string_codes(S1, Cs1),

@@ -47,7 +47,7 @@ http_pagination_header_comp0(Rel-Uri) :-
 
 http_pagination_uri(Result, Rel, Uri) :-
   pagination_page(Result, Rel, Page),
-  dict_get(query, Result, [], QueryComps),
+  get_dict(query, Result, [], QueryComps),
   uri_query_components(Query, [page(Page)|QueryComps]),
   uri_components(Result.uri, uri_components(Scheme,Auth,Path,_,_)),
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)).

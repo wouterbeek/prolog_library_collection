@@ -85,7 +85,7 @@ call_on_wildcard(Wildcard0, Goal_1) :-
 
 
 call_on_wildcard(Wildcard0, Goal_1, Opts) :-
-  (   dict_get(search_path, Opts, Search)
+  (   get_dict(search_path, Opts, Search)
   ->  Spec =.. [Search,.],
       absolute_file_name(Spec, Prefix),
       directory_file_path(Prefix, Wildcard0, Wildcard)

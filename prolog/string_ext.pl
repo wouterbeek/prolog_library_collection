@@ -2,7 +2,6 @@
   string_ext,
   [
     capitalize_string/2,  % +Str1, -Str2
-    codes_string/2,       % ?Cs, ?Str
     lowercase_string/2,   % +Str1, -Str2
     read_string/2,        % +In, -Str
     string_atom/2,        % ?Str, ?A
@@ -46,16 +45,6 @@ capitalize_string(Str1, Str2) :-
   string_codes(Str1, [H1|T]),
   to_upper(H1, H2),
   string_codes(Str2, [H2|T]).
-
-
-
-%! codes_string(+Cs, +Str) is semidet.
-%! codes_string(+Cs, -Str) is det.
-%! codes_string(-Cs, +Str) is det.
-% Variant of the built-in string_codes/2.
-
-codes_string(Cs, Str):-
-  string_codes(Str, Cs).
 
 
 
