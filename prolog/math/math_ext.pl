@@ -3,8 +3,6 @@
   [
     absolute/2, % ?Number:number
                 % ?Abs:number
-    average/2, % +Numbers:list(number)
-               % -Average:number
     between_float/3, % ?Low:float
                      % ?High:float
                      % +Number:float
@@ -176,30 +174,6 @@ absolute(N, Abs):-
   ).
 absolute(_, _):-
   instantiation_error(_).
-
-
-
-%! average(+Numbers:list(number), +Average:number) is semidet.
-%! average(+Numbers:list(number), -Average:number) is det.
-% @throws instantiation_error if Numbers is non-ground.
-%
-% ### Examples
-%
-% ```prolog
-% ?- average([1 rdiv 3, 1 rdiv 6], X).
-% X = 1 rdiv 4.
-% ```
-%
-% ### Special cases
-%
-% Average is the integer 0 in case Numbers is the empty list.
-% This is in line with sum_list/2.
-
-average([], 0):- !.
-average(L, Average):-
-  sum_list(L, Sum),
-  length(L, N),
-  Average is Sum / N.
 
 
 

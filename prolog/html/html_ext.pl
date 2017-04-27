@@ -61,9 +61,7 @@
     git_version//0,
     google_analytics//0,
     google_font//1,          % +Name
-    hamburger//1,            % +Target
     html_bracketed//1,       % :Html_0
-    html_call//1,            % :Html_0
     html_call//2,            % :Html_1, +Arg1
     html_call//3,            % :Html_2, +Arg1, +Arg2
     html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
@@ -93,7 +91,6 @@
     html_set//2,             % :Html_1, +Args
     html_space//0,
     html_sq//1,              % :Html_0
-    html_thousands//1,       % +Integer
     html_triple//3,          % +Arg1, +Arg2, +Arg3
     html_triple//4,          % :Html_1, +Arg1, +Arg2, +Arg3
     html_tuple//1,           % +Arg
@@ -107,8 +104,6 @@
     if_then//2,              % :If_0, :Then_0
     if_then_else//3,         % :If_0, :Then_0, :Else_0
     ignore//1,               % :Html_0
-    image//1,                % +Spec
-    image//2,                % +Spec, +Attrs
     image_header//2,         % +Img, :Html_0
     input_boolean//1,        % +Name
     input_checkbox//2,       % +Name, +Attrs
@@ -137,14 +132,10 @@
     menu//0,
     merge_attrs/3,           % +Attrs1, +Attrs2, -Attrs3
     meta//2,                 % +Name, +Content
-    meta_authors//0,
-    meta_authors//1,         % +Authors:list(string)
     meta_charset//0,
-    meta_description//1,     % +Desc
     meta_ie_latest//0,
     meta_license//1,         % +Uri
     meta_viewport//0,
-    navbar//3,               % :Brand_0, :Menu_0, :Right_0
     navbar_dropdown_menu//4, % +Name, +Lbl, :Html_1, +L
     navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
     nonvar//1,               % :Html_0
@@ -201,10 +192,7 @@
     table_trees//2,          % :CellHtml_1, +Trees
     term//1,                 % @Term
     title//1,                % +Strs
-    tooltip//2,              % +Str, :Html_0
     truncate//2,             % +Str, +Max
-    twitter_follow_img//0,
-    twitter_follow_img//1,   % +User
     twitter_follow_txt//0,
     twitter_follow_txt//1,   % +User
     twitter_grid//2,         % +Uri, +Title
@@ -311,7 +299,6 @@ html({|html||...|}).
    internal_link(+, html, ?, ?),
    internal_link(+, +, html, ?, ?),
    link_button(+, html, ?, ?),
-   navbar(html, html, html, ?, ?),
    navbar_dropdown_menu(+, +, 3, +, ?, ?),
    navbar_dropdown_menu(+, +, +, 3, +, ?, ?),
    nonvar(html, ?, ?),
@@ -342,7 +329,6 @@ html({|html||...|}).
    table(html, html, html, ?, ?),
    table_caption(html, ?, ?),
    table_header(html, ?, ?),
-   tooltip(+, html, ?, ?),
    twitter_follow0(+, html, ?, ?),
    unless(0, html, ?, ?),
    unordered_list(html, +, ?, ?),
@@ -509,7 +495,6 @@ html({|html||...|}).
     default(3, 3, +, ?, ?),
     dropdown_menu(2, 3, +, ?, ?),
     dropdown_menu(+, 2, 3, +, ?, ?),
-    html_call(2, ?, ?),
     html_call(3, +, ?, ?),
     html_call(4, +, +, ?, ?),
     html_call(5, +, +, +, ?, ?),
@@ -541,8 +526,6 @@ html({|html||...|}).
     unless(0, 2, ?, ?),
     user_menu(2, 2, ?, ?).
 
-%! html:author(?Name) is nondet.
-
 %! html:menu_item(?Major, ?Name, ?Lbl) is nondet.
 %! html:menu_item(?Major, ?Spec, ?Lbl) is nondet.
 %
@@ -561,7 +544,6 @@ html({|html||...|}).
 %! html:html_hook(+Opts, @Term)// is det.
 
 :- multifile
-    html:author/1,
     html:menu_item/3,
     html:menu_item/4,
     html:html_hook//1,
@@ -615,12 +597,6 @@ html:html_hook(uri(Uri)) -->
      _,
      "Google Analytics ID."
    ).
-:- setting(
-     html:twitter_profile,
-     term,
-     _,
-     "Twitter profile name."
-   ).
 
 
 
@@ -671,8 +647,7 @@ button(Attrs1, Html_0) -->
 
 %! code_link(+Str)// is det.
 
-code_link(Str0) -->
-  {string_or_strings(Str0, Str)},
+code_link(Str) -->
   html([
     \html_requires(js(clipboard)),
     \js_script({|javascript(_)||
@@ -1143,7 +1118,7 @@ external_link_icon(Uri) -->
 % Web browser's tab.
 
 favicon(Spec) -->
-  {spec_uri0(Spec, Uri)},
+  {uri_specification(Spec, Uri)},
   link([type='image/x-icon'], icon-Uri).
 
 
@@ -1374,7 +1349,7 @@ form(Spec, Html_0) -->
 
 form(Spec, Attrs1, Html_0) -->
   {
-    spec_uri0(Spec, Uri),
+    uri_specification(Spec, Uri),
     merge_attrs([method=get], Attrs1, Attrs2),
     merge_attrs(Attrs2, [action=Uri], Attrs3)
   },
@@ -1426,24 +1401,6 @@ google_font(Name) -->
 
 
 
-%! hamburger(+Target)// is det.
-
-hamburger(Target0) -->
-  {atom_concat('#', Target0, Target)},
-  html(
-    button([
-      'aria-controls'=Target,
-      'aria-expanded'=false,
-      'aria-label'="Toggle navigation",
-      class=[collapsed,'navbar-toggler','navbar-toggler-right'],
-      'data-target'=Target,
-      'data-toggle'=collapse,
-      type=button
-    ], span(class='navbar-toggler-icon', []))
-  ).
-
-
-
 %! how(+Mod, +How)// is det.
 %
 % | `dynamic(Line)`      | Declared dynamic at Line       |
@@ -1472,14 +1429,9 @@ html_bracketed(Html_0) -->
 
 
 
-%! html_call(:Html_0)// is det.
 %! html_call(:Html_1, +Arg1)// is det.
 %! html_call(:Html_4, +Arg1, +Arg2)// is det.
 %! html_call(:Html_5, +Arg1, +Arg2, +Arg3)// is det.
-
-html_call(Html_0, X, Y) :-
-  call(Html_0, X, Y).
-
 
 html_call(Html_1, Arg1, X, Y) :-
   call(Html_1, Arg1, X, Y).
@@ -1729,15 +1681,6 @@ html_to_atom(Html_0, A) :-
 
 
 
-%! html_thousands(+Integer)// is det.
-
-html_thousands(inf) --> !,
-  html("∞").
-html_thousands(Integer) -->
-  html("~:D"-[Integer]).
-
-
-
 %! html_triple(+Arg1, +Arg2, +Arg3)// is det.
 %! html_triple(:Html_1, +Arg1, +Arg2, +Arg3)// is det.
 %
@@ -1902,22 +1845,6 @@ ignore(_) --> [].
 
 
 
-%! image(+Spec)// is det.
-%! image(+Spec, +Attrs)// is det.
-
-image(Spec) -->
-  image(Spec, []).
-
-
-image(Spec, Attrs1) -->
-  {
-    spec_uri0(Spec, Uri),
-    merge_attrs(Attrs1, [src=Uri], Attrs2)
-  },
-  html(img(Attrs2, [])).
-
-
-
 %! image_header(+Uri, :Html_0)// is det.
 
 image_header(Uri, Html_0) -->
@@ -2056,7 +1983,7 @@ internal_link(Spec, Html_0) -->
 
 internal_link(Spec, Attrs1, Content0_0) -->
   {
-    spec_uri0(Spec, Uri),
+    uri_specification(Spec, Uri),
     merge_attrs(Attrs1, [href=Uri], Attrs2),
     (var_goal(Content0_0) -> Html_0 = Uri ; Html_0 = Content0_0)
   },
@@ -2113,7 +2040,7 @@ link(Pair) -->
 
 link(Attrs1, Rel-Spec) -->
   {
-    spec_uri0(Spec, Uri),
+    uri_specification(Spec, Uri),
     merge_attrs(Attrs1, [href=Uri,rel=Rel], Attrs2)
   },
   html(link(Attrs2, [])).
@@ -2227,39 +2154,10 @@ menu_item(menu_item(Handle,Lbl)) -->
 
 
 
-%! meta(+Name, +Content)// is det.
-
-meta(Name, Content) -->
-  html(meta([name=Name,content=Content], [])).
-
-
-
-%! meta_authors// is det.
-%! meta_authors(+Authors:list(string))// is det.
-
-meta_authors -->
-  {findall(Str, html:author(Str), Strs)},
-  meta_authors(Strs).
-
-
-meta_authors(Strs) -->
-  {atomics_to_string(Strs, ",", Str)},
-  meta(author, Str).
-
-
-
 %! meta_charset// is det.
 
 meta_charset -->
   html(meta(charset='utf-8', [])).
-
-
-
-%! meta_description(+Str)// is det.
-
-meta_description(Str0) -->
-  {string_or_strings(Str0, Str)},
-  meta(description, Str).
 
 
 
@@ -2301,32 +2199,6 @@ meta_license(Uri) -->
 
 meta_viewport -->
   meta(viewport, 'width=device-width, initial-scale=1, shrink-to-fit=no').
-
-
-
-%! navbar(:Brand_0, :Menu_0, :Right_0)// is det.
-
-navbar(Brand_0, Menu_0, Right_0) -->
-  {Target = target},
-  html([
-    nav([
-      class=[
-        'bg-faded',
-        'fixed-top',
-        navbar,
-        'navbar-light',
-        'navbar-toggleable-md'
-      ]
-    ], [
-        \hamburger(Target),
-        a([class='navbar-brand',href='/'], Brand_0),
-        div([class=[collapse,'navbar-collapse'],id=Target], [
-          ul(class=['navbar-nav','mr-auto'], Menu_0),
-          ul(class='navbar-nav', Right_0)
-        ])
-      ]
-    )
-  ]).
 
 
 
@@ -2936,41 +2808,11 @@ title(Strs) -->
 
 
 
-%! tooltip(+Str, :Html_0)// is det.
-
-tooltip(Str, Html_0) -->
-  html(span(['data-toggle'=tooltip,title=Str], Html_0)).
-
-
-
 %! truncate(+Str, +MaxLen)// is det.
 
 truncate(Str, MaxLen) -->
   {string_truncate(Str, MaxLen, Prefix)},
   ({Str == Prefix} -> html(Str) ; tooltip(Str, Prefix)).
-
-
-
-%! twitter_follow0(+User, :Html_0)// is det.
-
-twitter_follow0(User, Html_0) -->
-  {twitter_user_uri(User, Uri)},
-  html(a(href=Uri, html_call(Html_0))).
-
-
-
-%! twitter_follow_img// is det.
-%! twitter_follow_img(+User)// is det.
-
-twitter_follow_img -->
-  {setting_nonvar(html:twitter_profile, User)}, !,
-  twitter_follow_img(User).
-twitter_follow_img --> [].
-
-
-twitter_follow_img(User) -->
-  {lstring(follow_us_on_x, ["Twitter"], Str)},
-  tooltip(Str, \twitter_follow0(User, \twitter_img0)).
 
 
 
@@ -3006,14 +2848,6 @@ twitter_grid(Uri, Title) -->
 
 
 
-%! twitter_img0// is det.
-
-twitter_img0 -->
-  {http_absolute_location(img('twitter.png'), Loc)},
-  html(img([alt="Twitter",src=Loc], [])).
-
-
-
 %! twitter_mention// is det.
 %! twitter_mention(+User)// is det.
 
@@ -3044,7 +2878,7 @@ twitter_profile --> [].
 
 
 twitter_profile(User) -->
-  {twitter_user_uri(User, Uri)},
+  {twitter_user_uri0(User, Uri)},
   html(
     a([class='twitter-timeline',href=Uri], [
       \html_lstring(tweets_by),
@@ -3357,31 +3191,6 @@ http_error(500, main, en, "The server encountered an internal error.").
 
 
 
-%! merge_attrs(+Attrs1, +Attrs2, -Attrs3) is det.
-%
-% Merge two lists of HTML attributes into one.
-
-merge_attrs([], L, L) :- !.
-% HTTP attribute with multiple values.
-merge_attrs([Key=Val1|T1], L2a, [Key=Val3|T3]):-
-  attr_multi_val(Key),
-  selectchk(Key=Val2, L2a, L2b), !,
-  maplist(ensure_list, [Val1,Val2], [Val1L,Val2L]),
-  append(Val1L, Val2L, ValL),
-  sort(ValL, Val3),
-  merge_attrs(T1, L2b, T3).
-% HTTP attribute with single value.
-merge_attrs([Key=_|T1], L2a, [Key=Val2|T3]) :-
-  selectchk(Key=Val2, L2a, L2b), !,
-  merge_attrs(T1, L2b, T3).
-merge_attrs([H|T1], L2, [H|T3]):-
-  merge_attrs(T1, L2, T3).
-
-
-attr_multi_val(class).
-
-
-
 %! module_prefix(+Mod)// is det.
 
 module_prefix(Mod) -->
@@ -3426,29 +3235,6 @@ raw_page(Spec, Title, Content) :-
   Style = element(style, _, _),
   findall(Style, sub_term(Style, Dom), Styles),
   append(Styles, Body, Content).
-
-
-
-%! spec_uri0(+Spec, -Uri) is det.
-
-spec_uri0(link_to_id(HandleId), Uri) :- !,
-  http_link_to_id(HandleId, Uri).
-spec_uri0(link_to_id(HandleId,Query0), Uri) :- !,
-  maplist(rdf_query_term, Query0, Query), %HACK
-  http_link_to_id(HandleId, Query, Uri).
-spec_uri0(Spec, Uri) :-
-  atom(Spec),
-  host_uri(HostUri),
-  atom_concat(HostUri, Uri, Spec), !.
-spec_uri0(Spec, Uri) :-
-  http_absolute_location(Spec, Uri).
-
-
-
-%! twitter_user_uri(+User, -Uri) is det.
-
-twitter_user_uri(User, Uri) :-
-  uri_comps(Uri, uri(https,'twitter.com',[User],_,_)).
 
 
 

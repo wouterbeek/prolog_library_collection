@@ -1,9 +1,7 @@
 :- module(
   call_ext,
   [
-    call_bool/2,            % :Goal_0, -Bool
     call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
-    call_det_when/2,        % :Cond_0, :Goal_0
     call_n_sol/3,           % +N, :Select_1, :Goal_1
     call_n_times/2,         % +N, :Goal_0
     call_or_exception/1,    % :Goal_0
@@ -18,7 +16,6 @@
     retry0/1,               % :Goal_0
     run_in_thread/1,        % :Goal_0
     var_goal/1,             % @Term
-    when_ground/1           % :Goal_0
   ]
 ).
 
@@ -34,9 +31,7 @@
 :- use_module(library(time)).
 
 :- meta_predicate
-    call_bool(0, -),
     call_catcher_cleanup(0, +, 0),
-    call_det_when(0, 0),
     call_n_sol(+, 1, 1),
     call_n_times(+, 0),
     call_or_exception(0),
@@ -49,18 +44,9 @@
     findn_chk(?, ?, 0, -),
     forall(0),
     retry0(0),
-    run_in_thread(0),
-    when_ground(0).
+    run_in_thread(0).
 
 
-
-
-
-%! call_bool(:Goal_0, -Bool) is det.
-
-call_bool(Goal_0, true) :-
-  Goal_0, !.
-call_bool(_, false).
 
 
 
@@ -68,19 +54,6 @@ call_bool(_, false).
 
 call_catcher_cleanup(Goal_0, Catcher, Cleanup_0) :-
   setup_call_catcher_cleanup(true, Goal_0, Catcher, Cleanup_0).
-
-
-
-%! call_det_when(:Cond_0, :Goal_0) is det.
-%
-% Goal_0 is called once when Cond_0 succeeds and is called freely
-% otherwise.
-
-call_det_when(Cond_0, Goal_0) :-
-  Cond_0, !,
-  once(Goal_0).
-call_det_when(_, Goal_0) :-
-  Goal_0.
 
 
 
@@ -218,10 +191,3 @@ run_in_thread(Goal_0) :-
 
 var_goal(X) :- var(X), !.
 var_goal(_:X) :- var(X).
-
-
-
-%! when_ground(:Goal_0) is det.
-
-when_ground(Goal_0) :-
-  when(ground(Goal_0), Goal_0).

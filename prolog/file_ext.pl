@@ -10,7 +10,6 @@
     create_date_time_file/3,    % +Spec, +Exts, -File
     create_directory/1,         % +Dir
     create_file/1,              % +File
-    create_file_directory/1,    % +File
     create_file_link/2,         % +From, +To
     create_time_file/2,         % +Spec, -File
     create_time_file/3,         % +Spec, +Exts, -File
@@ -214,16 +213,6 @@ create_file(File) :-
   touch(File).
 create_file(File) :-
   type_error(absolute_file_name, File).
-
-
-
-%! create_file_directory(+Path) is det.
-%
-% Ensures that the directory structure for the given file exists.
-
-create_file_directory(Path) :-
-  (exists_directory(Path) -> Dir = Path ; directory_file_path(Dir, _, Path)),
-  make_directory_path(Dir).
 
 
 

@@ -14,7 +14,6 @@
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_ci//1,            % ?A
     atom_lower//1,         % ?A
-    atom_phrase/3,         % :Dcg_0, +A1, ?A2
     atom_title//1,         % ?A
     atom_upper//1,         % ?A
     atom_uppercase//0,
@@ -178,7 +177,6 @@ My favorite collection of DCG rules.
     'm*n'(?, ?, 4, -, -, ?, ?),
     'm*n__g'(?, ?, +, 4, -, -, ?, ?),
     'm*n__p'(?, ?, +, 4, -, -, ?, ?),
-    atom_phrase(//, ?, ?),
     bracketed(//, ?, ?),
     bracketed(+, //, ?, ?),
     bracketed0(+, //, ?, ?),
@@ -381,18 +379,6 @@ atom_lower(A) -->
 atom_lower(A) -->
   *(code_lower, Cs),
   {atom_codes(A, Cs)}.
-
-
-
-%! atom_phrase(:Dcg_0, +A1, ?A2)// is nondet.
-% @throws instantiation_error
-% @throws type_error
-
-atom_phrase(Dcg_0, A1, A2) :-
-  must_be(atom, A1),
-  atom_codes(A1, Cs1),
-  phrase(Dcg_0, Cs1, Cs2),
-  atom_codes(A2, Cs2).
 
 
 

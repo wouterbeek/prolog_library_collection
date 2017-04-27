@@ -442,14 +442,6 @@ http_status_is_success(Status) :-
 
 
 
-%! http_status_label(+Code:between(100,599), -Lbl) is det.
-
-http_status_label(Code, Lbl):-
-  http_header:status_number_fact(Fact, Code),
-  string_phrase(http_header:status_comment(Fact), Lbl).
-
-
-
 %! http_status_must_be(+Status, +Succeeds) is det.
 %! http_status_must_be(+Status, +Succeeds, +Fails) is det.
 %

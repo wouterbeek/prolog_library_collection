@@ -1,8 +1,6 @@
 :- module(
   uri_ext,
   [
-    host_uri/1,             % -Uri
-    host_uri/2,             % +Uri1, -Uri2
     iri_query_enc//0,
     is_data_uri/1,          % +Uri
     is_image_uri/1,         % @Term
@@ -35,7 +33,6 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_host), []).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
@@ -60,27 +57,6 @@ error:has_type(uri, Uri) :-
    ).
 
 
-
-
-
-%! host_uri(-Uri) is det.
-%! host_uri(+Uri1, -Uri2) is det.
-%
-% The public URI at which the current host can be reached.
-
-host_uri(Uri) :-
-  host_uri0(_, _, _, Uri).
-
-
-host_uri(Uri1, Uri2) :-
-  uri_comps(Uri1, uri(_,_,Path,Query,Frag)),
-  host_uri0(Path, Query, Frag, Uri2).
-
-host_uri0(Path, Query, Frag, Uri) :-
-  setting(http:public_host, Host),
-  setting(http:public_port, Port),
-  setting(http:public_scheme, Scheme),
-  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),Path,Query,Frag)).
 
 
 

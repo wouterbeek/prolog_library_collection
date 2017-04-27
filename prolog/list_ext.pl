@@ -10,7 +10,6 @@
     directly_before/3,      % ?After, ?Before, ?L
     element_cut/4,          % +L, +X, -L1, -L2
     empty_list/1,           % ?L
-    ensure_list/2,          % +Term, -L
     first/2,                % +L, ?First
     first_duplicate/2,      % ?FirstDuplicate, +L
     is_singleton_list/1,    % @Term
@@ -196,14 +195,6 @@ element_cut([OtherElement | L], Element, [OtherElement | L1], L2) :-
 %! empty_list(@Term) is semidet.
 
 empty_list([]).
-
-
-
-%! ensure_list(+Term, -L) is det.
-
-ensure_list(L, L) :-
-  is_list(L), !.
-ensure_list(Term, [Term]).
 
 
 

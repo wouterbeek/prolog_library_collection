@@ -1,13 +1,9 @@
 :- module(
   pair_ext,
   [
-    asc_pairs/2,              % +Pairs, -AscendingPairs
-    asc_pairs_values/2,       % +Pairs, -AscendingValues
     call_on_key/3,            % :Key_2, +Pair1, -Pair2
     call_on_key_value/4,      % :Key_2, :Val_2, +Pair1, -Pair2
     call_on_value/3,          % :Val_2, +Pair1, -Pair2
-    desc_pairs/2,             % +Pairs, -DescendingPairs
-    desc_pairs_values/2,      % +Pairs, -DescendingValues
     group_pairs_by_key/3,     % :Comparator_2, +Pairs, -GroupedPairs
     is_pair/1,                % @Term
     is_reflexive_pair/1,      % +Pair
@@ -66,25 +62,6 @@ error:has_type(pair(Type1,Type2), X-Y):-
 
 
 
-%! asc_pairs(+Pairs, -AscendingPairs) is det.
-%
-% Sort Pairs in ascending order.
-
-asc_pairs(L1, L2) :-
-  keysort(L1, L2).
-
-
-
-%! asc_pairs_values(+Pairs, -AscendingValues) is det.
-%
-% Sort the valus of Pairs in ascending order.
-
-asc_pairs_values(L1, L3) :-
-  asc_pairs(L1, L2),
-  pairs_values(L2, L3).
-
-
-
 %! call_on_key(:Key_2, +Pair1, -Pair2) is det.
 
 call_on_key(Key_2, Key1-Val, Key2-Val) :-
@@ -104,25 +81,6 @@ call_on_key_value(Key_2, Val_2, Key1-Val1, Key2-Val2) :-
 
 call_on_value(Val_2, Key-Val1, Key-Val2) :-
   call(Val_2, Val1, Val2).
-
-
-
-%! desc_pairs(+Pairs, -AscendingPairs) is det.
-%
-% Sort Pairs in descending order.
-
-desc_pairs(L1, L2) :-
-  sort(1, @>=, L1, L2).
-
-
-
-%! desc_pairs_values(+Pairs, -DescendingValues) is det.
-%
-% Sort the values of Pairs in descending order.
-
-desc_pairs_values(L1, L3) :-
-  desc_pairs(L1, L2),
-  pairs_values(L2, L3).
 
 
 
