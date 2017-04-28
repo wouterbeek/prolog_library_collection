@@ -31,21 +31,10 @@
 :- use_module(library(hash_ext)).
 :- use_module(library(uri)).
 
-:- multifile
-    error:has_type/2.
-
 error:has_type(email, Term):-
   sub_atom(Term, Before, 1, After, '@'),
   Before > 0,
   After > 0.
-error:has_type(uri, Term):-
-  error:has_type(iri, Term).
-error:has_type(iri, Term):-
-  uri_components(
-    Term,
-    uri_components(Scheme,Authority,Path,_Search,_Fragment)
-  ),
-  maplist(nonvar, [Scheme,Authority,Path]).
 
 
 

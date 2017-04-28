@@ -17,8 +17,6 @@
     data_link//2,            % +Res, :Html_0
     data_link//3,            % +Res, +Attrs, :Html_0
     date//1,                 % +DT
-    deck//2,                 % :Card_1, +Items
-    deck//3,                 % +Attrs, :Card_1, +Items
     default//3,              % :Html_1, :DefHtml_1, +Arg1
     definition_list//1,      % +L
     definition_list//2,      % :Html_1, +L
@@ -62,7 +60,6 @@
     google_analytics//0,
     google_font//1,          % +Name
     html_bracketed//1,       % :Html_0
-    html_call//2,            % :Html_1, +Arg1
     html_call//3,            % :Html_2, +Arg1, +Arg2
     html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
     html_catch//1,           % :Html_0
@@ -76,7 +73,6 @@
     html_list//3,            % +Ordered:boolean, :Html_1, +Args
     html_list//4,            % +Attrs, +Ordered:boolean, :Html_1, +Args
     html_lstring//1,         % +Name
-    html_maplist//2,         % :Html_1, +Args1
     html_maplist//3,         % :Html_1, +Args1, +Args2
     html_pair//1,            % +Pair
     html_pair//2,            % +Arg1, Arg2
@@ -490,15 +486,11 @@ html({|html||...|}).
    ).
 
 :- meta_predicate
-    deck(3, +, ?, ?),
-    deck(+, 3, +, ?, ?),
     default(3, 3, +, ?, ?),
     dropdown_menu(2, 3, +, ?, ?),
     dropdown_menu(+, 2, 3, +, ?, ?),
-    html_call(3, +, ?, ?),
     html_call(4, +, +, ?, ?),
     html_call(5, +, +, +, ?, ?),
-    html_maplist(3, +, ?, ?),
     html_maplist(4, +, +, ?, ?),
     html_pair(3, +, +, ?, ?),
     html_quad(3, +, +, +, +, ?, ?),
@@ -722,19 +714,6 @@ data_link(Res, Attrs, Html_0) -->
 date(DT) -->
   {format_time(string(Str), "%+", DT)},
   html(Str).
-
-
-
-%! deck(:Card_1, +Items)// is det.
-%! deck(+Attrs, :Card_1, +Items)// is det.
-
-deck(Card_1, L) -->
-  deck([], Card_1, L).
-
-
-deck(Attrs1, Card_1, L) -->
-  {merge_attrs([class=['card-columns']], Attrs1, Attrs2)},
-  html(div(Attrs2, \html_maplist(Card_1, L))).
 
 
 
@@ -1429,13 +1408,8 @@ html_bracketed(Html_0) -->
 
 
 
-%! html_call(:Html_1, +Arg1)// is det.
 %! html_call(:Html_4, +Arg1, +Arg2)// is det.
 %! html_call(:Html_5, +Arg1, +Arg2, +Arg3)// is det.
-
-html_call(Html_1, Arg1, X, Y) :-
-  call(Html_1, Arg1, X, Y).
-
 
 html_call(Html_4, Arg1, Arg2, X, Y) :-
   call(Html_4, Arg1, Arg2, X, Y).
@@ -1560,19 +1534,12 @@ html_lstring(Name) -->
 
 
 
-%! html_maplist(:Html_1, +Args1) .
-%! html_maplist(:Html_1, +Args1, +Args2)// is det.
-
-html_maplist(_, []) --> !, [].
-html_maplist(Html_1, [H|T]) -->
-  html_call(Html_1, H),
-  html_maplist(Html_1, T).
-
+%! html_maplist(:Html_2, +Args1, +Args2)// is det.
 
 html_maplist(_, [], []) --> [].
-html_maplist(Goal_4, [H1|T1], [H2|T2]) -->
-  html_call(Goal_4, H1, H2),
-  html_maplist(Goal_4, T1, T2).
+html_maplist(Html_2, [H1|T1], [H2|T2]) -->
+  html_call(Html_2, H1, H2),
+  html_maplist(Html_2, T1, T2).
 
 
 

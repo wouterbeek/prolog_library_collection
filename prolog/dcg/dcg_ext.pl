@@ -8,8 +8,6 @@
     '+'//3,                % :Dcg_2, -Args1, -Args2
     '#'//4,                % ?Occurrences, :Dcg_2, -Args1, -Args2
     '*n'//4,               % ?High, :Dcg_2, -Args1, -Args2
-    'm*'//2,               % ?Low, :Dcg_0
-    'm*'//3,               % ?Low, :Dcg_1, -Args1
     'm*'//4,               % ?Low, :Dcg_2, -Args1, -Args2
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_ci//1,            % ?A
@@ -77,7 +75,7 @@
     done//0,
     dq//1,                 % :Dcg_0
     eol//0,
-    frac_pos/2,            % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
+    frac_pos/2,           % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
     generate_as_digits//2, % +N:nonneg, +NoDs
     generate_as_digits//3, % +N:nonneg, +Base:positive_integer, +NoDs
     generating//0,
@@ -93,7 +91,6 @@
     perc_fixed//1,         % +Perc:between(0.0,1.0)
     pos/2,                 % +N:nonneg, -Ds:list(between(0,9))
     pos/3,                 % +N:nonneg, +Base, -Ds:list(between(0,9))
-    pos_frac/2,            % +Ds:list(between(0,9)), -FracPart:rational
     progress_bar//2,       % +Processed, +All
     quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
     quoted//1,             % :Content_0
@@ -171,8 +168,6 @@ My favorite collection of DCG rules.
     +(4, -, -, ?, ?),
     #(+, 4, -, -, ?, ?),
     '*n'(?, 4, -, -, ?, ?),
-    'm*'(?, //, ?, ?),
-    'm*'(?, 3, -, ?, ?),
     'm*'(?, 4, -, -, ?, ?),
     'm*n'(?, ?, 4, -, -, ?, ?),
     'm*n__g'(?, ?, +, 4, -, -, ?, ?),
@@ -293,15 +288,7 @@ dcg:dcg_hook(thousands(N)) -->
 
 
 
-%! 'm*'(?Low, :Dcg_0)// is det.
-%! 'm*'(?Low, :Dcg_1, -Args1)// is det.
 %! 'm*'(?Low, :Dcg_2, -Args1, -Args2)// is det.
-
-'m*'(Low, Dcg_0) -->
-  'm*n'(Low, _, Dcg_0).
-
-'m*'(Low, Dcg_1, L1) -->
-  'm*n'(Low, _, Dcg_1, L1).
 
 'm*'(Low, Dcg_2, L1, L2) -->
   'm*n'(Low, _, Dcg_2, L1, L2).
@@ -1351,14 +1338,6 @@ pos_rev(I1, Base, [H|T]) :-
   H is I1 mod Base,
   I2 is I1 // Base,
   pos_rev(I2, Base, T).
-
-
-
-%! pos_frac(+Ds:list(between(0,9)), -FractionalPart:rational) is det.
-% Positional fractional.
-
-pos_frac(Ds, Frac) :-
-  aggregate_all(sum(Rat), (nth1(I, Ds, D), Rat is D rdiv (10 ^ I)), Frac).
 
 
 
