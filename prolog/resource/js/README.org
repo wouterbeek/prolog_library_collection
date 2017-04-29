@@ -1,2 +1,0 @@
-#+TITLE: Directory with JavaScript files
-#+AUTHOR: Wouter Beek

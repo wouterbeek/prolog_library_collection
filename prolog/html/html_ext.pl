@@ -238,7 +238,6 @@ html({|html||...|}).
 :- use_module(library(http/http_resource)).
 :- use_module(library(http/http_user)).
 :- use_module(library(http/http_wrapper)).
-:- use_module(library(http/jquery)).
 :- use_module(library(http/json)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
@@ -330,45 +329,6 @@ html({|html||...|}).
    unordered_list(html, +, ?, ?),
    unordered_list(+, html, +, ?, ?).
 
-% jQuery
-:- set_setting(jquery:version, '3.2.0.min').
-
-% Bootstrap
-:- if(debugging(css(bootstrap))).
-  :- html_resource(
-       css(bootstrap),
-       [requires([css('bootstrap.css')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       css(bootstrap),
-       [requires([css('bootstrap.min.css')]),virtual(true)]
-     ).
-:- endif.
-:- if(debugging(js(bootstrap))).
-  :- html_resource(
-       js(bootstrap),
-       [
-         ordered(true),
-         requires([jquery,tether,js('bootstrap.js')]),
-         virtual(true)
-       ]
-     ).
-:- else.
-  :- html_resource(
-       js(bootstrap),
-       [
-         ordered(true),
-         requires([jquery,tether,js('bootstrap.min.js')]),
-         virtual(true)
-       ]
-     ).
-:- endif.
-:- html_resource(
-     bootstrap,
-     [requires([css(bootstrap),js(bootstrap)]),virtual(true)]
-   ).
-
 % Clipboard
 :- if(debugging(js(clipboard))).
   :- html_resource(
@@ -415,33 +375,6 @@ html({|html||...|}).
      [requires([css(dropzone),js(dropzone)]),virtual(true)]
    ).
 
-% FontAwesome
-:- if(debugging(css('font-awesome'))).
-  :- html_resource(
-       css('font-awesome'),
-       [requires([css('font-awesome-4.7.0.css')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       css('font-awesome'),
-       [requires([css('font-awesome-4.7.0.min.css')]),virtual(true)]
-     ).
-:- endif.
-:- html_resource(
-     'font-awesome',
-     [requires([css('font-awesome')]),virtual(true)]
-   ).
-
-% HTML extensions
-:- html_resource(
-     html_ext,
-     [
-       ordered(true),
-       requires([bootstrap,'font-awesome',css('html_ext.css')]),
-       virtual(true)
-     ]
-   ).
-
 % Medium editor
 :- if(debugging(css(editor))).
   :- html_resource(
@@ -467,23 +400,6 @@ html({|html||...|}).
      ).
 :- endif.
 :- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
-
-% Tether
-:- if(debugging(js(tether))).
-  :- html_resource(
-       js(tether),
-       [requires([js('tether-1.3.3.js')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       js(tether),
-       [requires([js('tether-1.3.3.min.js')]),virtual(true)]
-     ).
-:- endif.
-:- html_resource(
-     tether,
-     [requires([js(tether)]),virtual(true)]
-   ).
 
 :- meta_predicate
     default(3, 3, +, ?, ?),
