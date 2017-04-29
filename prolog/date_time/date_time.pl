@@ -1,7 +1,6 @@
 :- module(
   date_time,
   [
-    call_statistics/3,        % :Goal_0, +Key, -Delta
     call_statistics/4,        % :Goal_0, +Key, +NumCalls, -AvgDelta
     date_time_masks/3,        % +Masks, +DT, -MaskedDT
     'dt-pl_to_date_time'/2,   % +Pl, -DT
@@ -58,7 +57,6 @@ time-saver!
    ]).
 
 :- meta_predicate
-    call_statistics(0, +, -),
     call_statistics(0, +, +, -).
 
 :- rdf_meta
@@ -112,20 +110,10 @@ error:has_type('dt-rdf', time(H,Mi,S)) :-
 
 
 
-%! call_statistics(:Goal_0, +Key, -Delta) is det.
 %! call_statistics(:Goal_0, +Key, +NumCalls, -AvgDelta) is det.
 %
 % call_statistics/3 preserves variable bindings but call_statistics/4
 % does not.
-
-call_statistics(Goal_0, Key, Delta):-
-  statistics(Key, Val1a),
-  fix_val(Val1a, Val1b),
-  call(Goal_0),
-  statistics(Key, Val2a),
-  fix_val(Val2a, Val2b),
-  Delta is Val2b - Val1b.
-
 
 call_statistics(Goal_0, Key, NumCalls, AvgDelta):-
   statistics(Key, Val1a),
