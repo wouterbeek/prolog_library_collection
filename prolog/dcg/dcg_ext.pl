@@ -106,7 +106,6 @@
     str_ellipsis//2,       % +S, +Max
     string//0,
     string_atom_phrase/3,  % :Dcg_0, ?S, ?A
-    string_phrase/3,       % :Dcg_0, +S1, ?S2
     string_without//1,     % +EndCs
     sum_pos/2,             % +N:nonneg, -Ds:list(between(0,9))
     sum_pos/3,             % +N:nonneg, +Base:positive_integer, -Ds:list(nonneg)
@@ -218,7 +217,6 @@ My favorite collection of DCG rules.
     set(3, +, ?, ?),
     sq(//, ?, ?),
     string_atom_phrase(//, ?, ?),
-    string_phrase(//, ?, ?),
     tab(+, //, ?, ?),
     tab_nl(+, //, ?, ?),
     triple(//, //, //, ?, ?),
@@ -1476,15 +1474,6 @@ string_atom_phrase(Dcg_0, S, A) :-
   string_codes(S, Cs1),
   phrase(Dcg_0, Cs1, Cs2),
   atom_codes(A, Cs2).
-
-
-
-%! string_phrase(:Dcg_0, +S1, ?S2) is nondet.
-
-string_phrase(Dcg_0, S1, S2) :-
-  string_codes(S1, Cs1),
-  phrase(Dcg_0, Cs1, Cs2),
-  string_codes(S2, Cs2).
 
 
 
