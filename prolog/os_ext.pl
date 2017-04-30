@@ -11,14 +11,6 @@
     process_open/3,      % +Program, +In, -Out
     process_open/4,      % +Program, +In, +Args, -Out
     renice/2,            % +Pid:positive_integer, +Nice:between(-20,19)
-    run_jar/2,           % +Jar, +Args
-    run_jar/3,           % +Jar, +Args, :OutGoal_1
-    run_jar/4,           % +Jar, +Args, :OutGoal_1, :ErrGoal_1
-    run_jar/5,           % +Jar, +Args, :OutGoal_1, :ErrGoal_1, +Opts
-    run_process/2,       % +Program, +Args
-    run_process/3,       % +Program, +Args, :OutGoal_1
-    run_process/4,       % +Program, +Args, :OutGoal_1, :ErrGoal_1
-    run_process/5,       % +Program, +Args, :OutGoal_1, :ErrGoal_1, +Opts
     sort_file/1,         % +File
     sort_file/2,         % +File, +Opts
     wc/2,                % +File, -NumLines
@@ -30,10 +22,6 @@
 /** <module> OS extensions
 
 Support for using external programs and other OS functions.
-
-Automatically kill all running processes upon halt.
-
-Process output and error streams in parallel by using threads.
 
 @author Wouter Beek
 
@@ -58,28 +46,6 @@ Process output and error streams in parallel by using threads.
 :- use_module(library(thread_ext)).
 :- use_module(library(typecheck)).
 :- use_module(library(zlib)).
-
-:- at_halt(kill_processes).
-
-%! os:pid_stream(
-%!   ?Pid:positive_integer,
-%!   ?StreamType:oneof([error,output]),
-%!   ?ThreadId
-%! ) is nondet.
-
-:- dynamic
-    os:pid_stream/3.
-
-is_meta(error_goal).
-is_meta(output_goal).
-
-:- meta_predicate
-    run_jar(+, +, :),
-    run_jar(+, +, :, :),
-    run_jar(+, +, :, :, +),
-    run_process(+, +, :),
-    run_process(+, +, :, :),
-    run_process(+, +, :, :, +).
 
 :- setting(
      os:tmp_dir,
@@ -130,20 +96,6 @@ image_dimensions0(File, Width, Height) -->
   "x",
   integer(Height),
   done.
-
-
-
-%! kill_processes is det.
-%
-% Kills all running processes by PID.
-
-kill_processes :-
-  % Make sure the PIDs are unique.
-  % We do not want to kill the same process twice.
-  with_mutex(process_id, (
-    aggregate_all(set(Pid), process_id(Pid), Pids),
-    concurrent_maplist(process_kill, Pids)
-  )).
 
 
 
@@ -270,166 +222,6 @@ renice(Pid, N) :-
 
 
 
-%! run_jar(+Jar, +Args) is det.
-%! run_jar(+Jar, +Args, :OutGoal_1) is det.
-%! run_jar(+Jar, +Args, :OutGoal_1, :ErrGoal_1) is det.
-%! run_jar(+Jar, +Args, :OutGoal_1, :ErrGoal_1, +Opts) is det.
-%
-% Runs the given JAR file with the given commandline arguments.
-%
-% Options are passed to run_process/5.
-
-run_jar(Jar, Args) :-
-  run_jar(Jar, Args, true).
-
-
-run_jar(Jar, Args, OutGoal_1) :-
-  run_jar(Jar, Args, OutGoal_1, process_error, []).
-
-
-run_jar(Jar, Args, OutGoal_1, ErrGoal_1) :-
-  run_jar(Jar, Args, OutGoal_1, ErrGoal_1, []).
-
-
-run_jar(Jar, Args, OutGoal_1, ErrGoal_1, Opts) :-
-  run_process(java, ['-jar',file(Jar)|Args], OutGoal_1, ErrGoal_1, Opts).
-
-
-
-%! run_process(+Program, +Args) is det.
-%! run_process(+Program, +Args, :OutGoal_1) is det.
-%! run_process(+Program, +Args, :OutGoal_1, :ErrGoal_1) is det.
-%! run_process(+Program, +Args, :OutGoal_1, :ErrGoal_1, +Opts) is det.
-%
-% Calls an external process with the given name and arguments, and
-% calls an internal goal on the process' output.
-%
-% The following options are supported:
-%
-%   * status(-nonneg)
-%
-%   * Other options are passed to process_create/3.
-%
-% @tbd Run output and error goals is separate threads.
-%
-% @tbd:
-%
-% ```prolog
-% process_create(path(cat), [file('a.txt'),file('b.txt')], [stdout(pipe(Out))]),
-% copy_stream_data(Out, user_output).
-%
-% run_process(
-%   cat,
-%   [file('a.txt'),file('b.txt')],
-%   [Out]>>copy_stream_data(Out,current_output)
-% )
-% ```
-
-run_process(Program, Args) :-
-  run_process(Program, Args, true).
-
-
-run_process(Program, Args, OutGoal_1) :-
-  run_process(Program, Args, OutGoal_1, process_error).
-
-
-run_process(Program, Args, OutGoal_1, ErrGoal_1) :-
-  run_process(Program, Args, OutGoal_1, ErrGoal_1, []).
-
-
-run_process(Program, Args, OutGoal_1, ErrGoal_1, Opts0) :-
-  meta_options(is_meta, Opts0, Opts),
-  include(process_create_option, Opts, ProcessOpts1),
-  merge_options(
-    [process(Pid),stderr(pipe(Err)),stdout(pipe(Out))],
-    ProcessOpts1,
-    ProcessOpts2
-  ),
-  % ‘Program’ is either an absolute file or a related file that is
-  % resolved WRT the PATH.
-  (is_absolute_file_name(Program) -> Exec = Program ; Exec = path(Program)),
-  setup_call_cleanup(
-    (
-      (   debugging(os)
-      ->  maplist(arg_text, Args, ArgTxts),
-          atomic_list_concat([Program|ArgTxts], ' ', Msg),
-          debug(os, "~a", [Msg])
-      ;   true
-      ),
-      process_create(Exec, Args, ProcessOpts2)
-    ),
-    (
-      thread_create(call(ErrGoal_1, Err), ErrId, [at_exit(close(Err))]),
-      assert(os:pid_stream(Pid,error,ErrId)),
-      call(OutGoal_1, Out),
-      process_wait(Pid, exit(OutStatus)),
-      process_status(OutStatus),
-      ignore(option(status(OutStatus), Opts))
-    ),
-    (
-      close(Out),
-      % Make sure the streams have been fully processed.
-      (   retract(os:pid_stream(Pid,error,ErrId))
-      ->  thread_join(ErrId, ErrStatus),
-          thread_status(Pid, error, ErrStatus)
-      ;   true
-      )
-    )
-  ).
-
-arg_text(file(File), File) :- !.
-arg_text(Arg, Arg).
-
-process_error(In) :-
-  read_stream_to_codes(In, Cs, []),
-  (   Cs == []
-  ->  true
-  ;   string_codes(Str, Cs),
-      print_message(warning, Str)
-  ).
-
-process_create_option(cwd(_)).
-process_create_option(detached(_)).
-process_create_option(env(_)).
-process_create_option(priority(_)).
-process_create_option(window(_)).
-
-%! process_status(+Status:or([compound,nonneg])) is det.
-%
-% Handling of exit codes given by programs that are run from the
-% shell.
-%
-% @arg Status Either an integer status code, or an integer status code
-%      wrapped in functor `exit`.
-%
-% @throws shell_error Throws a shell error when a shell process exits
-%         with a non-zero code.
-
-% Unwrap code.
-process_status(exit(StatusCode)) :- !,
-  process_status(StatusCode).
-% Success code.
-process_status(0) :- !.
-% Error/exception code.
-process_status(StatusCode) :-
-  print_message(warning, process_status(StatusCode)).
-
-%! thread_status(
-%!   +Pid:positive_integer,
-%!   +StreamType:oneof([error,output]),
-%!   +Status:compound
-%! ) is det.
-
-thread_status(_, _, true) :- !.
-thread_status(Pid, StreamType, false) :- !,
-  print_message(warning, thread_status(Pid,StreamType,fail,_)).
-thread_status(Pid, StreamType, exception(Exception)) :- !,
-  print_message(warning, thread_status(Pid,StreamType,exception,Exception)).
-thread_status(Pid, StreamType, exited(Term)) :-
-  print_message(warning, thread_status(Pid,StreamType,exited,Term)).
-
-
-
 %! sort_file(+File) is det.
 %! sort_file(+File, +Opts) is det.
 %
@@ -549,21 +341,3 @@ wc0(NumLines, NumWords, NumBytes) -->
   whites, integer(NumLines),
   whites, integer(NumWords),
   whites, integer(NumBytes).
-
-
-
-
-
-% MESSAGES %
-
-:- multifile
-    prolog:message//1.
-
-prolog:message(process_status(StatusCode)) -->
-  ["Process returned status code ~w."-[StatusCode]].
-prolog:message(thread_status(Pid,StreamType,fail)) -->
-  ["The ~a stream of process ~d failed."-[StreamType,Pid]].
-prolog:message(thread_status(Pid,StreamType,exception,Term)) -->
-  ["The ~a stream of process ~d threw exception ~w "-[StreamType,Pid,Term]].
-prolog:message(thread_status(Pid,StreamType,exited,Term)) -->
-  ["The ~a stream of process ~d exited with ~w "-[StreamType,Pid,Term]].
