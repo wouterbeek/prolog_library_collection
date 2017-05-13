@@ -35,7 +35,6 @@
     postfix/3,              % ?Part, ?N, ?Whole
     prefix/3,               % ?Part, ?N, ?Whole
     remove_sublists/2,      % +Ls1, -Ls2
-    repeating_list/3,       % ?X, ?N, ?L
     replace_nth/6,          % +Start, ?I, +L1, ?X1, +X2, -L2
     replace_nth0/5,         % ?I, +L1, ?X1, +X2, -L2
     replace_nth1/5,         % ?I, +L1, ?X1, +X2, -L2
@@ -479,23 +478,6 @@ remove_sublists(Ls1, Ls3) :-
   strict_sublist(SubL, L), !,
   remove_sublists(Ls2, Ls3).
 remove_sublists(Ls, Ls).
-
-
-
-%! repeating_list(+X, +N, +L) is semidet.
-%! repeating_list(+X, +N, -L) is det.
-%! repeating_list(+X, -N, +L) is semidet.
-%! repeating_list(-X, +N, +L) is semidet.
-%! repeating_list(+X, -N, -L) is multi.
-%! repeating_list(-X, +N, -L) is det.
-%! repeating_list(-X, -N, +L) is det.
-%! repeating_list(-X, -N, -L) is multi.
-%
-% Succeeds for lists L that repeat term X exactly N times.
-
-repeating_list(X, N, L) :-
-  length(L, N),
-  maplist(=(X), L).
 
 
 
