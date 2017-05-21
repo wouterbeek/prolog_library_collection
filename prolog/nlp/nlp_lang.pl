@@ -1,6 +1,3 @@
-:- multifile
-    nlp:nlp_string/3.
-
 nlp:nlp_string(en, add_article, "Add article").
 nlp:nlp_string(nl, add_article, "Voeg artikel toe").
 nlp:nlp_string(en, article, "Article").
@@ -59,27 +56,3 @@ nlp:nlp_string(en, written_by, "Written by").
 nlp:nlp_string(nl, written_by, "Geschreven door").
 nlp:nlp_string(en, you, "You").
 nlp:nlp_string(nl, you, "Jij").
-
-
-
-%! current_ltag(+LTags, -LTag) is det.
-
-current_ltag(LTags, LTag) :-
-  current_ltag(LTag),
-  memberchk(LTag, LTags).
-
-
-
-%! lrange_to_ltag(+LRange, -LTag) is nondet.
-
-lrange_to_ltag(LRange, LTag2) :-
-  member(LTag1, LRange),
-  atomic_list_concat(Subtags, -, LTag1),
-  longest_to_shortest_prefix0(PrefixSubtags, Subtags),
-  PrefixSubtags \== [],
-  atomic_list_concat(PrefixSubtags, -, LTag2).
-
-longest_to_shortest_prefix0(L, L).
-longest_to_shortest_prefix0(Prefix, L1) :-
-  append(L2, [_], L1),
-  longest_to_shortest_prefix0(Prefix, L2).

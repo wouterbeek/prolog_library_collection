@@ -4,7 +4,6 @@
     call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
     call_n_sol/3,           % +N, :Select_1, :Goal_1
     call_n_times/2,         % +N, :Goal_0
-    call_or_exception/1,    % :Goal_0
     call_or_fail/1,         % :Goal_0
     call_timeout/2,         % +Time, :Goal_0
     catch_msg/1,            % :Goal_0
@@ -14,8 +13,7 @@
     findn_chk/4,            % ?N, ?Templ, :Goal_0, -Results
     forall/1,               % :Goal_0
     retry0/1,               % :Goal_0
-    run_in_thread/1,        % :Goal_0
-    var_goal/1,             % @Term
+    run_in_thread/1         % :Goal_0
   ]
 ).
 
@@ -34,7 +32,6 @@
     call_catcher_cleanup(0, +, 0),
     call_n_sol(+, 1, 1),
     call_n_times(+, 0),
-    call_or_exception(0),
     call_or_fail(0),
     call_timeout(+, 0),
     catch_msg(0),
@@ -70,18 +67,6 @@ call_n_sol(N, Select_1, Goal_1) :-
 
 call_n_times(N, Goal_0) :-
   forall(between(1, N, _), Goal_0).
-
-
-
-%! call_or_exception(:Goal_0) is semidet.
-
-call_or_exception(Goal_0) :-
-  catch(Goal_0, E, true),
-  (   var(E)
-  ->  true
-  ;   print_message(warning, E),
-      fail
-  ).
 
 
 
@@ -182,12 +167,3 @@ retry0(Goal_0) :-
 
 run_in_thread(Goal_0) :-
   thread_create(Goal_0, _, [detached(true)]).
-
-
-
-%! var_goal(@Term) is semidet.
-%
-% Succeeds for a variable or a module prefixes variable.
-
-var_goal(X) :- var(X), !.
-var_goal(_:X) :- var(X).

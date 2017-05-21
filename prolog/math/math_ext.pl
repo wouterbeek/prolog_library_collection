@@ -38,8 +38,6 @@
     float_div_zero/3, % ?X
                       % ?Y
                       % ?Z
-    fractional_integer/2, % +Number:or([float,integer,rational])
-                          % -Fractional:integer
     int_div_zero/3, % ?X
                     % ?Y
                     % ?Z
@@ -314,12 +312,6 @@ combinations(NObjects, CombinationLength, NCombinations):-
 %! ) is det.
 % @throws instantation_error
 % @throws type_error
-%
-% ### Examples
-%
-% ```prolog
-% 
-% ```
 
 decimal_parts(N, I, Frac):-
   nonvar(N),
@@ -391,28 +383,6 @@ float_div_zero(X, Y, Z):-
 float_div_zero(X, Y, Z):-
   maplist(number, [Y,Z]), !,
   X is Y * Z.
-
-
-
-%! fractional_integer(
-%!   +Number:or([float,integer,rational]),
-%!   -Fractional:integer
-%! ) is det.
-% Variant of float_fractional_part/2 where
-% the integer value of the fractional part is returned.
-
-fractional_integer(N, Frac):-
-  N = A rdiv B, !,
-  Float is A / B,
-  fractional_integer(Float, Frac).
-fractional_integer(Number, Frac):-
-  atom_number(NumberAtom, Number),
-  % We assume that there is at most one occurrence of `.`.
-  sub_atom(NumberAtom, IndexOfDot, 1, _, .), !,
-  succ(IndexOfDot, Skip),
-  sub_atom(NumberAtom, Skip, _, 0, FracAtom),
-  atom_number(FracAtom, Frac).
-fractional_integer(_, 0).
 
 
 

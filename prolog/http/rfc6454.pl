@@ -7,7 +7,6 @@
     origin//1,                % -Origins
     'origin-list-or-null'//1, % -Origins
     'origin-list'//1,         % -Origins
-    'OWS'//0,
     'serialized-origin'//1    % -Origin
   ]
 ).

@@ -15,7 +15,6 @@ Utilities for generating and HTML tables containing data (not layout).
 */
 
 :- use_module(library(html/html_ext)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_wrapper), [http_current_request/1]).
 :- use_module(library(option)).
 

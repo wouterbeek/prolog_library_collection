@@ -8,19 +8,13 @@
     create_dict/3,         % +Pairs, +Tag, -Dict
     create_grouped_sorted_dict/2, % +Pairs, -GroupedSortedDict
     create_grouped_sorted_dict/3, % +Pairs, +Tag, -GroupedSortedDict
-    del_dict_or_default/5, % +Key, +Dict1, +Def, -Val, -Dict2
     dict_call_pairs/2,     % :Goal_1, +Dict
     dict_call_pairs/3,     % :Goal_2, +Dict1, -Dict2
     dict_create/2,         % -Dict, +Opts
     dict_dec/2,            % +Key, +Dict
     dict_dec/3,            % +Key, +Dict, -Val
     dict_dec/4,            % +Key, +Dict, +Diff, -Val
-    dict_inc/2,            % +Key, +Dict
-    dict_inc/3,            % +Key, +Dict, -Val
-    dict_inc/4,            % +Key, +Dict, +Diff, -Val
-    dict_pairs/2,          % ?Dict, ?Pairs
     dict_prepend/3,        % +Key, +Dict, +Elem
-    dict_put/3,            % +Dict1, +Dict2, -Dict3
     dict_put_def/4,        % +Key, Dict1, +Def, +Dict2
     dict_put_pairs/3,      % +Dict1, +Pairs, -Dict2
     dict_remove_uninstantiated/2, % +Dict1, -Dict2
@@ -32,7 +26,6 @@
     dicts_get/3,           % +Key, +Dicts, -Val
     dicts_getchk/3,        % +Key, +Dicts, -Val
     empty_dict/1,          % ?Dict
-    get_dict/4,            % +Key, +Dict, +Def, -Val
     get_dict_path/3        % -Keys, +Dict, -Val
   ]
 ).
@@ -121,17 +114,6 @@ create_grouped_sorted_dict(Pairs, Tag, Dict):-
 
 
 
-%! del_dict_or_default(+Key, +Dict1, +Default, -Value, -Dict2) is det.
-%
-% Either delete the Value for Key from Dict1 resulting in Dict2, or
-% return the Default value and leave the dictionary intact.
-
-del_dict_or_default(Key, Dict1, _, Val, Dict2) :-
-  del_dict(Key, Dict1, Val, Dict2), !.
-del_dict_or_default(_, Dict, Def, Def, Dict).
-
-
-
 %! dict_call_pairs(:Goal_1, +Dict) is det.
 %! dict_call_pairs(:Goal_2, +Dict1, -Dict2) is det.
 
@@ -173,34 +155,6 @@ dict_dec(Key, Dict, Diff, Val2) :-
 
 
 
-%! dict_inc(+Key, +Dict) is det.
-%! dict_inc(+Key, +Dict, -Val) is det.
-%! dict_inc(+Key, +Dict, +Diff, -Val) is det.
-
-dict_inc(Key, Dict) :-
-  dict_inc(Key, Dict, _).
-
-
-dict_inc(Key, Dict, Val) :-
-  dict_inc(Key, Dict, 1, Val).
-
-
-dict_inc(Key, Dict, Diff, Val2) :-
-  get_dict(Key, Dict, Val1),
-  Val2 is Val1 + Diff,
-  nb_set_dict(Key, Dict, Val2).
-
-
-
-%! dict_pairs(+Dict, +Pairs) is semidet.
-%! dict_pairs(+Dict, -Pairs) is det.
-%! dict_pairs(-Dict, +Pairs) is det.
-
-dict_pairs(Dict, Pairs):-
-  dict_pairs(Dict, _, Pairs).
-
-
-
 %! dict_put_def(+Key, +Dict1, +Def, -Dict2) is det.
 
 dict_put_def(Key, Dict, _, Dict) :-
@@ -225,12 +179,6 @@ dict_prepend(Key, Dict, H) :-
   get_dict(Key, Dict, T),
   nb_set_dict(Key, Dict, [H|T]).
 
-
-
-%! dict_put(+Dict1, +Dict2, -Dict3) is det.
-
-dict_put(Dict1, Dict2, Dict3) :-
-  Dict3 = Dict1.put(Dict2).
 
 
 %! dict_set(+Key, +Dict, +Val) is det.
@@ -316,14 +264,6 @@ dicts_getchk(Key, Dicts, Val) :-
 %! empty_dict(@Term) is semidet.
 
 empty_dict(_{}).
-
-
-
-%! get_dict(+Key, +Dict, +Def, -Val) is semidet.
-
-get_dict(Key, Dict, _, Val) :-
-  get_dict(Key, Dict, Val), !.
-get_dict(_, _, Def, Def).
 
 
 

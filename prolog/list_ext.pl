@@ -456,6 +456,8 @@ postfix(Part, N, Whole) :-
 %! prefix(?Part, ?N, ?Whole) is det.
 %
 % Part is the length-N prefix of Whole.
+%
+% Shorter prefixes are generated first.
 
 prefix(Part, N, Whole) :-
   length(Part, N),

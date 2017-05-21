@@ -8,7 +8,6 @@
     uri_alias_uuid/2,       % -Uri, +Alias
     uri_comp/3,             % +Uri, ?Key, ?Val
     uri_comps/3,            % -Uri, +BaseUri, +Comps
-    uri_file_extensions/2,  % +Uri,  -Exts
     uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
     uri_query_enc//0,
@@ -182,15 +181,6 @@ uri_field(Key) :-
 uri_comps(Uri, BaseUri, Comps) :-
   uri_comps(RelUri, Comps),
   uri_resolve(RelUri, BaseUri, Uri).
-
-
-
-%! uri_file_extensions(+Uri, -Exts) is det.
-
-uri_file_extensions(Uri, Exts) :-
-  uri_comps(Uri, uri(_,_,Segments,_,_)),
-  last(Segments, Segment),
-  file_extensions(Segment, Exts).
 
 
 

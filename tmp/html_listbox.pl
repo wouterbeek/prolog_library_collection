@@ -15,7 +15,6 @@ Support for generating HTML drop-down lists.
 */
 
 :- use_module(library(html/html_ext)).
-:- use_module(library(http/html_write)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 

@@ -25,14 +25,9 @@
     dict//1,                 % +Dict
     dropdown_menu//3,        % :Top_0, :Html_1, +Items
     dropdown_menu//4,        % +Attrs, :Top_0, :Html_1, +Items
-    ellipsis//2,             % +Str, +MaxLen
     endpoint_link//1,        % +HandleId
     endpoint_link//2,        % +HandleId, :Html_0
     error//1,                % +E
-    external_link//1,        % +Uri
-    external_link//2,        % +Uri, :Html_0
-    external_link//3,        % +Uri, +Attrs, :Html_0
-    external_link_icon//1,   % +Uri
     favicon//1,              % +Spec
     fb_app_id//0,
     fb_comments//1,          % +Uri
@@ -47,7 +42,6 @@
     figure//3,               % +Uri, +Alt, :Caption_0
     file_name//1,            % +File
     file_upload//0,
-    flag_icon//1,            % +LTag
     footer_panel//3,         % +Spec, :Top, :Bottom
     footnote_post//2,        % +State, :Html_0
     footnote_receive//2,     % +N, :Html_0
@@ -66,8 +60,6 @@
     html_code//1,            % :Html_0
     html_dq//1,              % :Html_0
     html_float//1,           % +Float
-    html_hook//1,            % +Term
-    html_hook//2,            % +Opts, +Term
     html_http_error_page/2,  % +Style, +Req
     html_license//2,         % +Uri, +Lbl
     html_list//3,            % +Ordered:boolean, :Html_1, +Args
@@ -112,18 +104,12 @@
     input_text//2,           % +Name, +Attrs
     input_text//3,           % +Name, +Attrs, +Opts
     insert_raw_body//1,      % +Spec
-    internal_link//1,        % +Spec
-    internal_link//2,        % +Spec, :Html_0
-    internal_link//3,        % +Spec, +Attrs, :Html_0
     ip//1,                   % +Ip
     language_menu//1,        % +LTags
-    link//1,                 % +Pair
-    link//2,                 % +Attrs, +Pair
     link_button//2,          % +Uri, :Html_0
     linkedin_share//0,
     list//1,                 % +Args
     list//2,                 % :Html_1, +Args
-    mail_icon//1,            % +Uri
     mail_link_and_icon//1,   % +Uri
     menu//0,
     merge_attrs/3,           % +Attrs1, +Attrs2, -Attrs3
@@ -173,15 +159,6 @@
     streamer//1,             % :Html_0
     submit_button//0,
     submit_button//1,        % :Html_0
-    table//1,                % :BodyHtml_0
-    table//2,                % :HeaderHtml_0, :BodyHtml_0
-    table//3,                % :CaptionHtml_0, :HeaderHtml_0, :BodyHtml_0
-    table_caption//1,        % :Html_0
-    table_content//2,        % :Cell_1, +Rows
-    table_data_row//1,       % +Row
-    table_data_row//2,       % :CellHtml_1, +Row
-    table_header_row//1,     % +Row
-    table_header_row//2,     % :CellHtml_1, +Row
     table_tree//1,           % +Tree
     table_tree//2,           % :CellHtml_1, +Tree
     table_trees//1,          % +Trees
@@ -231,18 +208,13 @@ html({|html||...|}).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
-:- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_ext)).
-:- use_module(library(http/http_host)).
-:- use_module(library(http/http_path)).
-:- use_module(library(http/http_resource)).
+:- use_module(library(html/html_pagination)).
+:- use_module(library(http/http_server)).
 :- use_module(library(http/http_user)).
-:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/json)).
 :- use_module(library(licenses)).
 :- use_module(library(list_ext)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(pagination/html_pagination)).
 :- use_module(library(pair_ext)).
 :- use_module(library(pl_ext)).
 :- use_module(library(rdf/rdf_term)). % @hack
@@ -267,8 +239,6 @@ html({|html||...|}).
    dropdown_menu(html, :, +, ?, ?),
    dropdown_menu(+, html, :, +, ?, ?),
    endpoint_link(+, html, ?, ?),
-   external_link(+, html, ?, ?),
-   external_link(+, +, html, ?, ?),
    fb_follow0(+, html, ?, ?),
    figure(+, +, html, ?, ?),
    footer_panel(+, html, html, ?, ?),
@@ -291,8 +261,6 @@ html({|html||...|}).
    if_then_else(0, html, html, ?, ?),
    ignore(html, ?, ?),
    image_header(+, html, ?, ?),
-   internal_link(+, html, ?, ?),
-   internal_link(+, +, html, ?, ?),
    link_button(+, html, ?, ?),
    navbar_dropdown_menu(+, +, 3, +, ?, ?),
    navbar_dropdown_menu(+, +, +, 3, +, ?, ?),
@@ -319,11 +287,6 @@ html({|html||...|}).
    row_4(+, html, +, html, +, html, +, html, ?, ?),
    streamer(html, ?, ?),
    submit_button(html, ?, ?),
-   table(html, ?, ?),
-   table(html, html, ?, ?),
-   table(html, html, html, ?, ?),
-   table_caption(html, ?, ?),
-   table_header(html, ?, ?),
    twitter_follow0(+, html, ?, ?),
    unless(0, html, ?, ?),
    unordered_list(html, +, ?, ?),
@@ -421,11 +384,6 @@ html({|html||...|}).
     nonvar(3, +, ?, ?),
     once(3, ?, ?),
     search_result(+, 3, ?, ?),
-    table_content(3, +, ?, ?),
-    table_data_cell(3, +, ?, ?),
-    table_data_row(3, +, ?, ?),
-    table_header_cell(3, +, ?, ?),
-    table_header_row(3, +, ?, ?),
     table_tree(3, +, ?, ?),
     table_tree(+, 3, +, ?, ?),
     table_tree_cell(+, 3, +, +, ?, ?),
@@ -447,45 +405,9 @@ html({|html||...|}).
 % denotes the HTTP handler that fires when this menu item is clicked.
 % Lbl is a user-visible label.
 
-%! html:html_hook(@Term)// is det.
-
-%! html:html_hook(+Opts, @Term)// is det.
-
 :- multifile
     html:menu_item/3,
-    html:menu_item/4,
-    html:html_hook//1,
-    html:html_hook//2.
-
-% string
-html:html_hook(string(Str)) -->
-  html(Str).
-% code
-html:html_hook(code(Str)) -->
-  html_code(Str).
-% empty
-html:html_hook(empty) -->
-  html([]).
-% IRI
-html:html_hook(iri(Iri)) -->
-  external_link(Iri).
-% set
-html:html_hook(set(L)) -->
-  html_set(L).
-% thousands
-html:html_hook(thousands(N)) -->
-  html_thousands(N).
-% atom
-html:html_hook(A) -->
-  {atom(A)},
-  html(A).
-% string
-html:html_hook(Str) -->
-  {string(Str)},
-  html(Str).
-% URI
-html:html_hook(uri(Uri)) -->
-  external_link(Uri).
+    html:menu_item/4.
 
 :- setting(
      html:fb_app_id,
@@ -729,14 +651,6 @@ dropdown_menu(Attrs1, Top_0, Html_1, L) -->
 
 
 
-%! ellipsis(+Str, +MaxLen)// is det.
-
-ellipsis(Str, MaxLen) -->
-  {string_ellipsis(Str, MaxLen, Ellipsis)},
-  ({Str == Ellipsis} -> html(Str) ; tooltip(Str, Ellipsis)).
-
-
-
 %! endpoint_link(+HandleId)// is det.
 %! endpoint_link(+HandleId, :Html_0)// is det.
 
@@ -977,36 +891,6 @@ error_stream(Stream) -->
 
 
 
-%! external_link(+Uri)// is det.
-%! external_link(+Uri, :Html_0)// is det.
-%! external_link(+Uri, +Attrs, :Html_0)// is det.
-%
-% Generates an HTML link to an external resource.
-%
-% When Icon is `true` the fact that the link points to an external
-% resource is indicated by a link icon (default is `false`).
-
-external_link(Uri) -->
-  external_link(Uri, Uri).
-
-
-external_link(Uri, Html_0) -->
-  external_link(Uri, [], Html_0).
-
-
-external_link(Uri, Attrs1, Html_0) -->
-  {merge_attrs(Attrs1, [href=Uri,target='_blank'], Attrs2)},
-  html(a(Attrs2, Html_0)).
-
-
-
-%! external_link_icon(+Uri)// is det.
-
-external_link_icon(Uri) -->
-  html(a([href=Uri,target='_blank'], \icon(external_link))).
-
-
-
 %! favicon(+Spec)// is det.
 %
 % Generates an HTML link to a favicon.  This icon will show up in a
@@ -1160,26 +1044,6 @@ file_upload -->
     \html_requires(dropzone),
     form([action='/file-upload',class=dropzone,id=fileUpload], [])
   ]).
-
-
-
-%! flag_icon(+LTag)// is det.
-
-flag_icon(LTag) -->
-  {
-    file_name_extension(LTag, svg, File),
-    directory_file_path(flag_4x3, File, Path)
-  },
-  html(span(class=[label,'label-primary'], [\flag_icon_img(Path)," ",LTag])).
-
-
-flag_icon_img(Path) -->
-  {
-    absolute_file_name(img(Path), _, [access(read)]), !,
-    http_absolute_location(img(Path), Location)
-  },
-  html(span(class='flag-icon', img(src=Location))).
-flag_icon_img(_) --> [].
 
 
 
@@ -1383,22 +1247,6 @@ html_dq(Html_0) -->
 
 html_float(Float) -->
   html("~G"-[Float]).
-
-
-
-%! html_hook(+Term)// is det.
-%! html_hook(+Opts, +Term)// is det.
-
-html_hook(Term) -->
-  html_hook(_{}, Term).
-
-
-html_hook(Opts, Term) -->
-  html:html_hook(Opts, Term), !.
-html_hook(_, Term) -->
-  html:html_hook(Term), !.
-html_hook(_, Html_0) -->
-  html_call(Html_0).
 
 
 
@@ -1626,20 +1474,6 @@ digits0(_, 0).
 
 
 
-%! icon(+Name)// is det.
-
-icon(pen) --> !,
-  html(
-    svg([width=14,height=14,viewBox=[0,0,300,300]],
-      path([fill='#777777',d='M253 123l-77-77 46-46 77 77-46 46zm-92-61l77 77s-35 16-46 77c-62 62-123 62-123 62s-24 36-46 15l93-94c55 12 50-39 37-52s-62-21-52 37L7 277c-21-21 15-46 15-46s0-62 62-123c51-5 77-46 77-46z'], [])
-    )
-  ).
-icon(Name) -->
-  {icon_class(Name, Class)},
-  html(span(class([fa,Class]), [])).
-
-
-
 %! icon_button(+Name)// is det.
 %! icon_button(+Name, +Func)// is det.
 
@@ -1655,42 +1489,6 @@ icon_button(Name, Func) -->
   html(
     button([class=[btn,'btn-default',af,Class],title=Title|Attrs], [])
   ).
-
-
-
-%! icon_class(+Name, -Class, -Title) is det.
-
-icon_class(Name, Class) :-
-  icon_class_title(Name, Class, _).
-
-
-
-%! icon_class_title(+Name, -Class, -Title) is det.
-
-icon_class_title(Name, Class, Title) :-
-  icon_table(Name, ClassPostfix, Title),
-  atomic_list_concat([fa,ClassPostfix], -, Class).
-
-
-
-%! icon_table(?Name, ?Class, ?Title) is nondet.
-
-% CRUD = Create, Read, Update, Delete.
-icon_table(cancel,         eraser,          "Cancel").
-icon_table(copy,           copy,            "Copy").
-icon_table(create,         pencil,          "Create").
-icon_table(delete,         trash,           "Delete").
-icon_table(download,       download,        "Download").
-icon_table(external_link,  'external-link', "Follow link").
-icon_table(internal_link,  link,            "Follow link").
-icon_table(mail,           envelope,        "Send email").
-icon_table(tag,            tag,             "").
-icon_table(tags,           tags,            "").
-icon_table(time,           'clock-o',       "Date/time").
-icon_table(user,           user,            "Log me in").
-icon_table(vote_down,     'thumbs-o-down',  "Vote up").
-icon_table(vote_up,       'thumbs-o-up',    "Vote down").
-icon_table(web,            globe,           "Visit Web site").
 
 
 
@@ -1852,28 +1650,6 @@ insert_raw_body(Spec) -->
 
 
 
-%! internal_link(+Spec)// is det.
-%! internal_link(+Spec, :Html_0)// is det.
-%! internal_link(+Spec, +Attrs, :Html_0)// is det.
-
-internal_link(Spec) -->
-  internal_link(Spec, _).
-
-
-internal_link(Spec, Html_0) -->
-  internal_link(Spec, [], Html_0).
-
-
-internal_link(Spec, Attrs1, Content0_0) -->
-  {
-    uri_specification(Spec, Uri),
-    merge_attrs(Attrs1, [href=Uri], Attrs2),
-    (var_goal(Content0_0) -> Html_0 = Uri ; Html_0 = Content0_0)
-  },
-  html(a(Attrs2, Html_0)).
-
-
-
 %! ip(+Ip)// is det.
 
 ip(ip(A,B,C,D)) --> !,
@@ -1912,24 +1688,6 @@ language_menu_item(LTag0, LTag) -->
 
 
 
-%! link(+Pair)// is det.
-%! link(+Attrs, +Pair)// is det.
-%
-% Pair is of the form `Rel-Uri`, where Uri is based on Spec.
-
-link(Pair) -->
-  link([], Pair).
-
-
-link(Attrs1, Rel-Spec) -->
-  {
-    uri_specification(Spec, Uri),
-    merge_attrs(Attrs1, [href=Uri,rel=Rel], Attrs2)
-  },
-  html(link(Attrs2, [])).
-
-
-
 %! link_button(+Uri, :Html_0)// is det.
 %
 % Generate an HTML link that looks like a button.
@@ -1960,13 +1718,6 @@ list(Args) -->
 
 list(Html_1, Args) -->
   html([&(91),\html_seplist(Html_1, Args),&(93)]).
-
-
-
-%! mail_icon(+Uri)// is det.
-
-mail_icon(Uri) -->
-  external_link(Uri, [property='foaf:mbox'], [" ",\icon(mail)]).
 
 
 
@@ -2484,90 +2235,6 @@ submit_button(Html_0) -->
 
 
 
-%! table(:BodyHtml_0)// is det.
-%! table(:Header_0, :Body_0)// is det.
-%! table(:CaptionHtml_0, :HeaerRow_0, :BodyHtml_0)// is det.
-
-table(Body_0) -->
-  table(_, Body_0).
-
-
-table(Header_0, Body_0) -->
-  table(_, Header_0, Body_0).
-
-
-table(Caption_0, Header_0, Body_0) -->
-  html(
-    table(class=[block,table,'table-condensed','table-striped'], [
-      \table_caption(Caption_0),
-      \table_header(Header_0),
-      tbody(Body_0)
-    ])
-  ).
-
-
-
-%! table_caption(:Html_0)// is det.
-
-table_caption(Html_0) -->
-  {var_goal(Html_0)}, !, [].
-table_caption(Html_0) -->
-  html(Html_0).
-
-
-
-%! table_data_cell(+Term)// is det.
-%! table_data_cell(:CellHtml_1, +Term)// is det.
-
-table_data_cell(Term) -->
-  table_data_cell(html_hook, Term).
-
-
-table_data_cell(CellHtml_1, Term) -->
-  html(td(\html_call(CellHtml_1, Term))).
-
-
-
-%! table_data_row(+Row)// is det.
-%! table_data_row(:CellHtml_1, +Row)// is det.
-
-table_data_row(Row) -->
-  table_data_row(html_hook, Row).
-
-
-table_data_row(CellHtml_1, Row) -->
-  html(tr(\html_maplist(table_data_cell(CellHtml_1), Row))).
-
-
-
-%! table_header(:HeaderHtml_0)// is det.
-
-table_header(HeaderHtml_0) -->
-  {var_goal(HeaderHtml_0)}, !, [].
-table_header(HeaderHtml_0) -->
-  html(thead(HeaderHtml_0)).
-
-
-
-%! table_header_cell(:CellHtml_1, +Term)// is det.
-
-table_header_cell(CellHtml_1, Term) -->
-  html(th(\html_call(CellHtml_1, Term))).
-
-
-
-%! table_header_row(+Row)// is det.
-%! table_header_row(:CellHtml_1, +Row)// is det.
-
-table_header_row(Row) -->
-  table_header_row(html_hook, Row).
-
-
-table_header_row(CellHtml_1, Row) -->
-  html(tr(\html_maplist(table_header_cell(CellHtml_1), Row))).
-
-
-
 %! table_tree(+Tree)// is det.
 %! table_tree(:CellHtml_1, +Tree)// is det.
 
@@ -2625,16 +2292,6 @@ table_trees(InRow, CellHtml_1, [H|T]) --> !,
   table_tree(InRow, CellHtml_1, H),
   table_trees(InRow, CellHtml_1, T).
 table_trees(_, _, []) --> !, [].
-
-
-
-%! table_content(:Cell_1, +Rows)// is det.
-
-table_content(Cell_1, [head(HeaderRow)|DataRows]) -->
-  table(
-    \table_header_row(Cell_1, HeaderRow),
-    \html_maplist(table_data_row(Cell_1), DataRows)
-  ).
 
 
 

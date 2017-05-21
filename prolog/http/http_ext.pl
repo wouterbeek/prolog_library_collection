@@ -7,7 +7,6 @@
     http_default_port/2,      % +Scheme, -DefPort
     http_uri_query/2,         % +Uri, -Comp
     http_link_to_id/2,        % +HandleId, -Local
-    http_location_uri/2,      % +Req, -Location
     http_peer/1,              % -PeerIP
     http_redirect/2,          % +How, +To
     http_reply_file/1,        % +File
@@ -89,16 +88,6 @@ http_uri_query(Uri, Comp) :-
 
 http_link_to_id(HandleId, Local) :-
   http_link_to_id(HandleId, [], Local).
-
-
-
-%! http_location_uri(+Req, -Uri) is det.
-%
-% @tbd ???
-
-http_location_uri(Req, AbsUri) :-
-  memberchk(request_uri(RelUri), Req),
-  http_absolute_uri(RelUri, AbsUri).
 
 
 

@@ -256,9 +256,7 @@ at_most_once('title*').
 at_most_once(type).
 
 sep_link_param(BaseUri, LinkParam) -->
-  'OWS',
-  ";",
-  'OWS',
+  sep(0';),
   'link-param'(BaseUri, LinkParam).
 
 

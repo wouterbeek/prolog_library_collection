@@ -55,13 +55,7 @@
 
 'alt-value'(Alt-Params) -->
   alternative(Alt),
-  *(alt_value, Params).
-
-alt_value(Param) -->
-  'OWS',
-  ";",
-  'OWS',
-  parameter(Param).
+  *(sep_parameter0, Params).
 
 
 

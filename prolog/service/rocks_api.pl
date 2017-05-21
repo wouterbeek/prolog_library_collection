@@ -37,7 +37,7 @@
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
-:- use_module(library(pagination/cli_pagination)).
+:- use_module(library(pagination_cli)).
 :- use_module(library(settings)).
 
 :- meta_predicate

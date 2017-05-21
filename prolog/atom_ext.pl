@@ -6,7 +6,6 @@
     atom_postfix/2,       % +Atom,   ?Sub
     atom_postfix/3,       % +Atom,   ?Len,     ?Sub
     atom_to_term/2,       % +Atom,   -Term
-    capitalize_atom/2,    % +Atom,   -Capitalized
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
     ensure_atom/2,        % +Term,   -Atom
@@ -120,21 +119,6 @@ atom_postfix(Atom, Len, Sub) :-
 
 atom_to_term(Atom, Term) :-
   atom_to_term(Atom, Term, _).
-
-
-
-%! capitalize_atom(+Atom, -Capitalized) is det.
-% Succeeds if Capitalized is a copy of Atom where the first character
-% is in upper case.
-%
-% If the first character of Atom is already in upper case then
-% Capitalized is a plain copy of Atom.
-
-capitalize_atom('', '').
-capitalize_atom(A1, A2) :-
-  atom_codes(A1, [H1|T]),
-  to_upper(H1, H2),
-  atom_codes(A2, [H2|T]).
 
 
 

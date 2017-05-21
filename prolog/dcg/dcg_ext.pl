@@ -10,7 +10,6 @@
     '*n'//4,               % ?High, :Dcg_2, -Args1, -Args2
     'm*'//4,               % ?Low, :Dcg_2, -Args1, -Args2
     'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
-    atom_ci//1,            % ?A
     atom_lower//1,         % ?A
     atom_title//1,         % ?A
     atom_upper//1,         % ?A
@@ -70,14 +69,11 @@
     dcg_strip//1,          % +StripCs
     dcg_tab//0,
     dcg_width/2,           % :Dcg_0, -Width
-    def//3,                % :Dcg_1, -Arg, +Def
     digit_code//1,         % ?C
     done//0,
     dq//1,                 % :Dcg_0
     eol//0,
     frac_pos/2,           % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
-    generate_as_digits//2, % +N:nonneg, +NoDs
-    generate_as_digits//3, % +N:nonneg, +Base:positive_integer, +NoDs
     generating//0,
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
@@ -96,8 +92,6 @@
     quoted//1,             % :Content_0
     quoted//2,             % :Quote_0, :Content_0
     quoted//3,             % ?Length, :Quote_0, :Content_0
-    rest//0,
-    rest//1,               % -Rest:list(code)
     set//1,                % +L
     set//2,                % :Dcg_1, +L
     skip_line//0,
@@ -203,7 +197,6 @@ My favorite collection of DCG rules.
     dcg_once(//, +, +, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
-    def(3, -, +, ?, ?),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
@@ -316,39 +309,6 @@ dcg:dcg_hook(thousands(N)) -->
   'm*n__p'(Low, High, Count2, Dcg_2, T1, T2).
 'm*n__p'(Low, _, Count, _, [], []) -->
   {(var(Low) -> true ; Low =< Count)}.
-
-
-
-%! atom_ci(?A)// .
-%
-% ```prolog
-% ?- phrase(atom_ci(http), Cs).
-% Cs = "HTTP" ;
-% Cs = "HTTp" ;
-% Cs = "HTtP" ;
-% Cs = "HTtp" ;
-% Cs = "HtTP" ;
-% Cs = "HtTp" ;
-% Cs = "HttP" ;
-% Cs = "Http" ;
-% Cs = "hTTP" ;
-% Cs = "hTTp" ;
-% Cs = "hTtP" ;
-% Cs = "hTtp" ;
-% Cs = "htTP" ;
-% Cs = "htTp" ;
-% Cs = "httP" ;
-% Cs = "http" ;
-% false.
-% ```
-
-atom_ci(A) -->
-  {ground(A)}, !,
-  {atom_codes(A, Cs)},
-  *(code_ci, Cs).
-atom_ci(A) -->
-  *(code_ci, Cs),
-  {atom_codes(A, Cs)}.
 
 
 
@@ -1159,13 +1119,6 @@ dcg_width(Dcg_0, W) :-
 
 
 
-%! def(:Dcg_1, -Arg, +Def)// .
-
-def(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
-def(_, Def, Def) --> "".
-
-
-
 %! digit_code(?C)// .
 % Wrapper around digit//2.
 
@@ -1200,24 +1153,6 @@ eol --> "\r\n".
 frac_pos(Frac, Ds) :-
   fractional_integer(Frac, I),
   sum_pos(I, Ds).
-
-
-
-%! generate_as_digits(+N:nonneg, +NoDs)// is det.
-
-generate_as_digits(N, M) -->
-  generate_as_digits(N, 10, M).
-
-
-%! generate_as_digits(+N:nonneg, +Base:positive_integer, +NoDs)// is det.
-
-generate_as_digits(_, _, 0) --> !, "".
-generate_as_digits(N1, Base, M1) -->
-  {M2 is M1 - 1},
-  {D is N1 // Base ^ M2},
-  digit(D),
-  {N2 is N1 mod Base ^ M2},
-  generate_as_digits(N2, Base, M2).
 
 
 
@@ -1394,18 +1329,6 @@ quoted(Quote_0, Content_0) -->
 
 quoted(N, Quote_0, Content_0) -->
   dcg_between(#(N, Quote_0), Content_0).
-
-
-
-%! rest// is det.
-%! rest(-Rest:list(code))// is det.
-%
-% Same as `rest --> "".'
-
-rest(X, X).
-
-
-rest(X, X, []).
 
 
 

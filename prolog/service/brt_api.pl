@@ -17,7 +17,7 @@
 
 :- use_module(library(http/rest)).
 :- use_module(library(lists)).
-:- use_module(library(pagination/client_pagination)).
+:- use_module(library(pagination_client)).
 :- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
 

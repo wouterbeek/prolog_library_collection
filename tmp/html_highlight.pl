@@ -15,7 +15,6 @@ Code highlighting in HTML.
 */
 
 :- use_module(library(html/html_ext)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_resource)).
 :- use_module(library(http/jquery)).
 :- use_module(library(http/js_write)).

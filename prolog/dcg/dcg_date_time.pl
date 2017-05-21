@@ -12,7 +12,7 @@
 Parse/generate date/time strings.
 
 @author Wouter Beek
-@version 2017/01, 2017/04
+@version 2017/01, 2017/04-2017/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -102,18 +102,15 @@ time(H, Mi, S) -->
 
 %! timezone(+Off)// .
 
-timezone(0) --> !, "Z".
+timezone(0) --> !,
+  "Z".
 timezone(Off) -->
-  {
-    H is Off // 60,
-    dcg_with_output_to(string(H0), generate_as_digits(H, 2)),
-    Mi is Off mod 60,
-    dcg_with_output_to(string(Mi0), generate_as_digits(Mi, 2))
-  },
   sign(Off),
-  atom(H0),
+  {H is Off // 60},
+  generate_as_digits(H, 2),
   ":",
-  atom(Mi0).
+  {Mi is Off mod 60},
+  generate_as_digits(Mi, 2).
 
 
 
@@ -130,12 +127,17 @@ year(Y) -->
 
 %! padding_zero(+N)// .
 
-padding_zero(N) --> {N =< 9}, !, "0".
+padding_zero(N) -->
+  {N =< 9}, !,
+  "0".
 padding_zero(_) --> "".
 
 
 
 %! sign(+Sg)// .
 
-sign(Sg) --> {Sg < 0}, !, "-".
-sign(_)  --> "+".
+sign(Sg) -->
+  {Sg < 0}, !,
+  "-".
+sign(_) -->
+  "+".

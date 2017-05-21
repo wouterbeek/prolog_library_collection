@@ -24,11 +24,9 @@
     directory_subdirectory/3,   % +Dir, ?Local, ?Subdir
     file_age/2,                 % +File, -Age:float
     file_change_extension/3,    % +File1, +Ext, File2
-    file_extensions/2,          % +File, -Exts
     file_is_ready/1,            % +File
     file_is_ready/2,            % +File1, +File2
     file_name/2,                % ?File, ?Name
-    file_name_extensions/3,     % ?File, ?Name, ?Exts
     file_paths/2,               % +File, -Paths
     file_ready/2,               % +File, -ReadyFile
     file_ready_time/2,          % +File, -ReadyTime
@@ -369,13 +367,6 @@ file_change_extension(From, Ext, To) :-
 
 
 
-%! file_extensions(+File, -Exts) is det.
-
-file_extensions(File, Exts) :-
-  file_name_extensions(File, _, Exts).
-
-
-
 %! file_is_ready(+File) is semidet.
 
 file_is_ready(File) :-
@@ -398,14 +389,6 @@ file_is_ready(File1, File2) :-
 
 file_name(File, Name) :-
   file_name_extensions(File, Name, _).
-
-
-
-%! file_name_extensions(+File, -Name, -Exts) is det.
-%! file_name_extensions(-File, +Name, +Exts) is det.
-
-file_name_extensions(File, Name, Exts) :-
-  atomic_list_concat([Name|Exts], ., File).
 
 
 

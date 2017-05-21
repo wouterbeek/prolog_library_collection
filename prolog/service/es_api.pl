@@ -16,7 +16,7 @@
     es_indices_cat/0,
     es_nodes_cat/0,
     es_search/2,      % +PathComps, -Result
-    es_search/4,      % +PathComps, +Search, +PageOpts, -Result
+    es_search/4,      % +PathComps, +Search, +Opts, -Result
     es_setting/3,     % +Index, +Key, ?Val
     es_stat/1,        % -Dict
     es_stat/2,        % +PathComps, -Dict
@@ -92,7 +92,7 @@ _{
 :- use_module(library(http/rest)).
 :- use_module(library(io)).
 :- use_module(library(lists)).
-:- use_module(library(pagination/pagination), []).
+:- use_module(library(pagination_server), []).
 :- use_module(library(print_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(settings)).
@@ -271,7 +271,7 @@ es_nodes_cat :-
 
 
 %! es_search(+PathComps, -Result) is nondet.
-%! es_search(+PathComps, +Search, +PageOpts, -Result) is nondet.
+%! es_search(+PathComps, +Search, +Opts, -Result) is nondet.
 %
 % Result uses pagination.
 %
@@ -282,13 +282,8 @@ es_search(PathComps, Result) :-
   es_search(PathComps, _VAR, _{}, Result).
 
 
-es_search(PathComps1, Search, PageOpts1, Result2) :-
-  pagination:pagination_init_options(
-    PageOpts1,
-    FirstPage,
-    PageSize,
-    PageOpts2
-  ),
+es_search(PathComps1, Search, Opts1, Result2) :-
+  pagination:pagination_options(Opts1, FirstPage, PageSize, Opts2),
   % NONDET
   between(FirstPage, inf, Page),
   From is (Page - 1) * PageSize,
@@ -317,7 +312,7 @@ es_search(PathComps1, Search, PageOpts1, Result2) :-
     results: Results,
     total_number_of_results: Hits.total
   },
-  merge_dicts(PageOpts2, Result1, Result2).
+  merge_dicts(Opts2, Result1, Result2).
 
 format_simple_search_string0(Comp, Str) :-
   compound(Comp), !,

@@ -1,8 +1,6 @@
 :- module(
   code_ext,
   [
-    code_ci/2, % +Code:nonneg
-               % -CiCode:nonneg
     codes_replace/3, % +FromCodes:list(code)
                      % +Pairs:list(pair(code))
                      % +ToCodes:list(code)
@@ -44,21 +42,6 @@ phrase(dcg_sep_list(:SeparatorDCG,-Sublists:list(list(code))), Codes)
 :- use_module(library(lists)).
 
 
-
-
-
-%! code_ci(+Code:nonneg, -CiCode:nonneg) is nondet.
-% Returns case-insensitive variants of the given code.
-% This includes the code itself.
-
-% Lowercase is a case-insensitive variant of uppercase.
-code_ci(Upper, Lower):-
-  code_type(Upper, upper(Lower)).
-% Uppercase is a case-insensitive variant of lowercase.
-code_ci(Lower, Upper):-
-  code_type(Lower, lower(Upper)).
-% Every code is a case-insensitive variant of itself.
-code_ci(Code, Code).
 
 
 
