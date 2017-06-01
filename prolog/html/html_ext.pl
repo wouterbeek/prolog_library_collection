@@ -57,7 +57,6 @@
     html_call//3,            % :Html_2, +Arg1, +Arg2
     html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
     html_catch//1,           % :Html_0
-    html_code//1,            % :Html_0
     html_dq//1,              % :Html_0
     html_float//1,           % +Float
     html_http_error_page/2,  % +Style, +Req
@@ -73,10 +72,6 @@
     html_quad//5,            % :Html_1, +Arg1, +Arg2, +Arg3, +Arg4
     html_select//2,          % :ItemGen_1, :Html_1
     html_select//3,          % +Attrs, :ItemGen_1, :Html_1
-    html_seplist//2,         % :Html_0, :Sep_0
-    html_seplist//3,         % :Html_1, :Sep_0, +Args
-    html_set//1,             % +Args
-    html_set//2,             % :Html_1, +Args
     html_space//0,
     html_sq//1,              % :Html_0
     html_triple//3,          % +Arg1, +Arg2, +Arg3
@@ -249,12 +244,9 @@ html({|html||...|}).
    form_submit_button(html, ?, ?),
    html_bracketed(html, ?, ?),
    html_catch(html, ?, ?),
-   html_code(html, ?, ?),
    html_dq(html, ?, ?),
    html_list(+, 3, +, ?, ?),
    html_list(+, +, 3, +, ?, ?),
-   html_seplist(html, html, ?, ?),
-   html_seplist(3, html, +, ?, ?),
    html_sq(html, ?, ?),
    html_to_atom(html, -),
    if_then(0, html, ?, ?),
@@ -375,7 +367,6 @@ html({|html||...|}).
     html_quad(3, +, +, +, +, ?, ?),
     html_select(1, 3, ?, ?),
     html_select(+, 1, 3, ?, ?),
-    html_set(3, +, ?, ?),
     html_triple(3, +, +, +, ?, ?),
     html_tuple(3, +, ?, ?),
     if_then(0, 2, ?, ?),
@@ -483,7 +474,7 @@ code_link(Str) -->
     \js_script({|javascript(_)||
 new Clipboard('.btn');
     |}),
-    \html_code(Str),
+    code(Str),
     " ",
     \copy_to_clipboard(Str)
   ]).
@@ -1229,13 +1220,6 @@ html_catch(Html_0, X, Y) :-
 
 
 
-%! html_code(:Html_0)// is det.
-
-html_code(Html_0) -->
-  html(code(Html_0)).
-
-
-
 %! html_dq(:Html_0)// is det.
 
 html_dq(Html_0) -->
@@ -1353,40 +1337,6 @@ html_select(Attrs1, ItemGen_1, Html_1) -->
     findall(Item, call(ItemGen_1, Item), Items)
   },
   html(select(Attrs2, \html_maplist(Html_1, Items))).
-
-
-
-%! html_seplist(:Html_0, :Sep_0)// is det.
-%! html_seplist(:Html_1, :Sep_0, +L)// is det.
-
-html_seplist(Html_0, Sep_0) -->
-  Html_0,
-  Sep_0,
-  html_seplist(Html_0, Sep_0).
-html_seplist(Html_0, _) --> !,
-  Html_0.
-html_seplist(_, _) --> !, [].
-
-
-html_seplist(_, _, []) --> !, [].
-html_seplist(Html_1, _, [H]) --> !,
-  html_call(Html_1, H).
-html_seplist(Html_1, Sep_0, [H1,H2|T]) -->
-  html_call(Html_1, H1),
-  Sep_0,
-  html_seplist(Html_1, Sep_0, [H2|T]).
-
-
-
-%! html_set(+Args)// is det.
-%! html_set(:Html_1, +Args)// is det.
-
-html_set(Args) -->
-  html_set(html_hook, Args).
-
-
-html_set(Html_1, Args) -->
-  html([&(123),\html_seplist(Html_1, html(","), Args),&(125)]).
 
 
 

@@ -34,7 +34,7 @@
 @author Wouter Beek
 @compat RFC 3339
 @see https://tools.ietf.org/html/rfc3339
-@version 2015/07, 2015/11
+@version 2015/07, 2015/11, 2017/05
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -45,11 +45,14 @@
 
 
 %! 'date-fullyear'(?Year:between(0,9999))// is det.
+%
 % ```abnf
 % date-fullyear = 4DIGIT
 % ```
 
-'date-fullyear'(Y) --> #(4, digit, Ds), {pos_sum(Ds, Y)}.
+'date-fullyear'(Y) -->
+  #(4, digit, Weights),
+  {integer_weights(Y, Weights)}.
 
 :- begin_tests('date-fullyear').
 
@@ -64,24 +67,36 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 
 %! 'date-mday'(?Day:between(1,31))// is det.
+%
 % ```abnf
 % date-mday = 2DIGIT   ; 01-28, 01-29, 01-30, 01-31 based on month/year
 % ```
 %
 % @bug The comment is stricter than the grammar rule.
 
-'date-mday'(D) --> #(2, digit, Ds), {pos_sum(Ds, D), between(1, 31, D)}.
+'date-mday'(D) -->
+  #(2, digit, Weights),
+  {
+    integer_weights(D, Weights),
+    between(1, 31, D)
+  }.
 
 
 
 %! 'date-month'(?Month:between(1,12))// is det.
+%
 % ```abnf
 % date-month = 2DIGIT   ; 01-12
 % ```
 %
 % @bug The comment is stricter than the grammar rule.
 
-'date-month'(Mo) --> #(2, digit, Ds), {pos_sum(Ds, Mo), between(1, 12, Mo)}.
+'date-month'(Mo) -->
+  #(2, digit, Weights),
+  {
+    integer_weights(Mo, Weights),
+    between(1, 12, Mo)
+  }.
 
 
 
@@ -94,12 +109,15 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %!   ?Second:rational,
 %!   ?Offset:between(-86340,86340)
 %! )// is det.
+%
 % ```abnf
 % date-time = full-date "T" full-time
 % ```
 
 'date-time'(Y, Mo, D, H, Mi, S, Offset) -->
-  'full-date'(Y, Mo, D), "T", 'full-time'(H, Mi, S, Offset).
+  'full-date'(Y, Mo, D),
+  "T",
+  'full-time'(H, Mi, S, Offset).
 
 
 
@@ -108,12 +126,17 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %!   ?Month:between(1,12),
 %!   ?Day:between(1,31)
 %! )// is det.
+%
 % ```abnf
 % full-date = date-fullyear "-" date-month "-" date-mday
 % ```
 
 'full-date'(Y, Mo, D) -->
-  'date-fullyear'(Y), "-", 'date-month'(Mo), "-", 'date-mday'(D).
+  'date-fullyear'(Y),
+  "-",
+  'date-month'(Mo),
+  "-",
+  'date-mday'(D).
 
 
 
@@ -123,6 +146,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %!   ?Second:rational,
 %!   ?Offset:between(-86340,86340)
 %! )// is det.
+%
 % ```abnf
 % full-time = partial-time time-offset
 % ```
@@ -138,36 +162,54 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %!    ?Minute:between(0,59),
 %!    ?Second:rational
 %! )// is det.
+%
 % ```abnf
 % partial-time = time-hour ":" time-minute ":" time-second [time-secfrac]
 % ```
 
 'partial-time'(H, Mi, S) -->
-  'time-hour'(H), ":", 'time-minute'(Mi), ":", 'time-second'(S1),
+  'time-hour'(H),
+  ":",
+  'time-minute'(Mi),
+  ":",
+  'time-second'(S1),
   def('time-secfrac', S2, 0),
   {S is S1 + S2}.
 
 
 
 %! 'time-hour'(?Hour:between(0,23))// is det.
+%
 % ```abnf
 % time-hour = 2DIGIT   ; 00-23
 % ```
 
-'time-hour'(H) --> #(2, digit, Ds), {pos_sum(Ds, H), between(0, 23, H)}.
+'time-hour'(H) -->
+  #(2, digit, Weights),
+  {
+    integer_weights(H, Weights),
+    between(0, 23, H)
+  }.
 
 
 
 %! 'time-minute'(?Minute:between(0,59))// is det.
+%
 % ```abnf
 % time-minute = 2DIGIT   ; 00-59
 % ```
 
-'time-minute'(Mi) --> #(2, digit, Ds), {pos_sum(Ds, Mi), between(0, 59, Mi)}.
+'time-minute'(Mi) -->
+  #(2, digit, Weights),
+  {
+    integer_weights(Mi, Weights),
+    between(0, 59, Mi)
+  }.
 
 
 
 %! 'time-numoffset'(?Offset:between(-86340,86340))// is det.
+%
 % ```abnf
 % time-numoffset = ("+" / "-") time-hour ":" time-minute
 % ```
@@ -180,6 +222,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 
 %! 'time-offset'(?Offset:between(-86340,86340))// is det.
+%
 % ```abnf
 % time-offset = "Z" / time-numoffset
 % ```
@@ -190,19 +233,29 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 
 %! 'time-secfrac'(?Fraction:rational)// is det.
+%
 % ```abnf
 % time-secfrac = "." 1*DIGIT
 % ```
 
-'time-secfrac'(SFrac) --> ".", +(digit, Ds), {pos_frac(Ds, SFrac)}.
+'time-secfrac'(SFrac) -->
+  ".",
+  +(digit, Weights),
+  {fractional_weights(SFrac, Weights)}.
 
 
 
 %! 'time-second'(?Second:between(0,60))// is det.
+%
 % ```abnf
 % time-second = 2DIGIT   ; 00-58, 00-59, 00-60 based on leap second rules
 % ```
 %
 % @bug The comment is sticter than the grammar rule.
 
-'time-second'(S) --> #(2, digit, Ds), {pos_sum(Ds, S), between(0, 60, S)}.
+'time-second'(S) -->
+  #(2, digit, Weights),
+  {
+    integer_weights(S, Weights),
+    between(0, 60, S)
+  }.

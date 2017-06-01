@@ -126,8 +126,8 @@ portlist(Ports) -->
 % ```
 
 portnum(Port) -->
-  +('DIGIT', Ds), !,
-  {pos_sum(Ds, Port)}.
+  +('DIGIT', Weights), !,
+  {integer_weights(Port, Weights)}.
 
 
 
@@ -178,8 +178,8 @@ portnum(Port) -->
 'set-cookie-av'(version-Version) -->
   atom_ci('Version'), !,
   "=",
-  +('DIGIT', Ds), !,
-  {pos_sum(Ds, Version)}.
+  +('DIGIT', Weights), !,
+  {integer_weights(Version, Weights)}.
 
 
 

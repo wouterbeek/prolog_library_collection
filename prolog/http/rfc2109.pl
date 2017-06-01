@@ -89,8 +89,8 @@ sep_cookie_av(Param) -->
 'cookie-av'(version-Version) -->
   atom_ci('Version'), !,
   "=",
-  +(digit, Ds), !,
-  {pos_sum(Ds, Version)}.
+  +(digit, Weights), !,
+  {integer_weights(Version, Weights)}.
 
 
 

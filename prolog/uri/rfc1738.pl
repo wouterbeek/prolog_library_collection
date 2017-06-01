@@ -1,15 +1,15 @@
 :- module(
   rfc1738,
   [
-    alpha//1,      % ?Code:code
-    alphadigit//1, % ?Code:code
+    alpha//1,      % ?Code
+    alphadigit//1, % ?Code
     digit//1,      % ?Weight
-    digit//2,      % ?Weight:between(0,9), ?Code:code
-    escape//1,     % ?Code:code
+    digit//2,      % ?Weight, ?Code
+    escape//1,     % ?Code
     hex//1,        % ?Weight
-    hex//2,        % ?Weight:between(0,15), ?Code:code
-    hialpha//1,    % ?Code:code
-    lowalpha//1    % ?Code:code
+    hex//2,        % ?Weight, ?Code
+    hialpha//1,    % ?Code
+    lowalpha//1    % ?Code
   ]
 ).
 
@@ -126,7 +126,9 @@ digit(9, 0'9) --> "9".
 % digits = 1*digit
 % ```
 
-digits(N) --> +(digit, Ds), {pos_sum(Ds, N)}.
+digits(N) -->
+  +(digit, Weights),
+  {integer_weights(N, Weights)}.
 
 
 

@@ -125,6 +125,7 @@ atom_to_term(Atom, Term) :-
 %! codes_atom(+Cs, +A) is semidet.
 %! codes_atom(+Cs, -A) is det.
 %! codes_atom(-Cs, +A) is det.
+%
 % Positional variant of atom_codes/2.
 
 codes_atom(Cs, A) :-
@@ -134,6 +135,7 @@ codes_atom(Cs, A) :-
 
 %! common_atom_prefix(+Atom1, +Atom2, +Sub) is semidet.
 %! common_atom_prefix(+Atom1, +Atom2, -Sub) is nondet.
+%
 % Returns the longest common prefix of the given two atoms.
 
 common_atom_prefix(Atom1, Atom2, Sub) :-

@@ -27,7 +27,6 @@ positional notations of different radix.
 :- use_module(plc(generics/list_ext)).
 :- use_module(plc(generics/typecheck)).
 :- use_module(plc(math/math_ext)).
-:- use_module(plc(math/positional)).
 
 :- multifile(error:has_type/2).
 error:has_type(rad_name, Value):-
@@ -64,10 +63,10 @@ between_radix(Low, High, Number):-
 digits_radix(Ds, N):-
   nonvar(Ds), !,
   maplist(digit_weight, Ds, Ws),
-  positional(N, Ws).
+  integer_weights(N, Ws).
 digits_radix(Ds, N):-
   nonvar(N), !,
-  positional(N, Ws),
+  integer_weights(N, Ws),
   maplist(digit_weight, Ds, Ws).
 digits_radix(_, _):-
   instantiation_error(_).

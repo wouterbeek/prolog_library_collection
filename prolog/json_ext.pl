@@ -3,8 +3,6 @@
   [
     atom_json_dict/2,   % ?A, ?Dict
     atomize_json/2,     % +Dict, -AtomizedDict
-    codes_json_dict/2,  % ?Cs, ?Dict
-    codes_json_dict/3,  % ?Cs, ?Dict, +Opts
     json_escape/2,      % +Str1, -Str2
     json_var_to_null/2, % +Term, -NullifiedTerm
     json_write_any/2,   % +Sink, +Dict
@@ -47,25 +45,6 @@ atomize_json(L1, L2):-
   maplist(atomize_json, L1, L2).
 atomize_json(Dict1, Dict2):-
   atomize_dict(Dict1, Dict2).
-
-
-
-%! codes_json_dict(+Cs, -Dict) is det.
-%! codes_json_dict(-Cs, +Dict) is det.
-%! codes_json_dict(+Cs, -Dict, +Opts) is det.
-%! codes_json_dict(-Cs, +Dict, +Opts) is det.
-
-codes_json_dict(Cs, Dict) :-
-  codes_json_dict(Cs, Dict, []).
-
-
-codes_json_dict(Cs, Dict, Opts) :-
-  ground(Cs), !,
-  atom_codes(A, Cs),
-  atom_json_dict(A, Dict, Opts).
-codes_json_dict(Cs, Dict, Opts) :-
-  atom_json_dict(A, Dict, Opts),
-  atom_codes(A, Cs).
 
 
 

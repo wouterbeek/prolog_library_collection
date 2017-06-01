@@ -39,7 +39,6 @@
     dcg/1,                 % :Dcg_0
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
-    dcg_atom//2,           % :Dcg_1, ?A
     dcg_between//2,        % :Between_0, :Dcg_0
     dcg_between//3,        % :Begin_0, :Dcg_0, :End_0
     dcg_call//3,           % :Dcg_2, ?Arg1, ?Arg2
@@ -73,7 +72,6 @@
     done//0,
     dq//1,                 % :Dcg_0
     eol//0,
-    frac_pos/2,           % +Frac:between(0.0,1.0), -Ds:list(between(0,9))
     generating//0,
     indent//2,             % +Indent:nonneg, :Dcg_0
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
@@ -85,8 +83,6 @@
     pair//2,               % :Dcg_0, :Dcg_0
     perc//1,               % +Perc:between(0.0,1.0)
     perc_fixed//1,         % +Perc:between(0.0,1.0)
-    pos/2,                 % +N:nonneg, -Ds:list(between(0,9))
-    pos/3,                 % +N:nonneg, +Base, -Ds:list(between(0,9))
     progress_bar//2,       % +Processed, +All
     quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
     quoted//1,             % :Content_0
@@ -101,8 +97,6 @@
     string//0,
     string_atom_phrase/3,  % :Dcg_0, ?S, ?A
     string_without//1,     % +EndCs
-    sum_pos/2,             % +N:nonneg, -Ds:list(between(0,9))
-    sum_pos/3,             % +N:nonneg, +Base:positive_integer, -Ds:list(nonneg)
     tab//1,                % +Indent:nonneg
     tab//2,                % +Indent:nonneg, :Dcg_0
     tab_nl//2,             % +Indent:nonneg, :Dcg_0
@@ -171,7 +165,6 @@ My favorite collection of DCG rules.
     dcg(//),
     dcg_apply(//,+, ?, ?),
     dcg_apply_cp(//, +, ?, ?),
-    dcg_atom(3, ?, ?, ?),
     dcg_between(//, //, ?, ?),
     dcg_between(//, //, //, ?, ?),
     dcg_call(4, ?, ?, ?, ?),
@@ -741,51 +734,6 @@ dcg_apply_cp(Dcg, Args1, X, Y) :-
 
 
 
-%! dcg_atom(:Dcg_1, ?A)// .
-%
-% This meta-DCG rule handles the translation between the word and the
-% character level of parsing/generating.
-%
-% Typically, grammar *A* specifies how words can be formed out of
-% characters.  A character is a code, and a word is a list of codes.
-% Grammar *B* specifies how sentences can be built out of words.  Now
-% the word is an atom, and the sentences in a list of atoms.
-%
-% This means that at some point, words in grammar *A*, i.e. lists of
-% codes, need to be translated to words in grammar *B*, i.e. atoms.
-%
-% This is where dcg_atom//2 comes in.  We illustrate this with a
-% schematic example:
-%
-% ```prolog
-% sentence([W1,...,Wn]) -->
-%   word2(W1),
-%   ...,
-%   word2(Wn).
-%
-% word2(W) -->
-%   dcg_atom(word1, W).
-%
-% word1([C1, ..., Cn]) -->
-%   char(C1),
-%   ...,
-%   char(Cn).
-% ```
-%
-% @throws instantiation_error
-% @throws type_error
-
-dcg_atom(Dcg_1, A) -->
-  {var(A)}, !,
-  dcg_call(Dcg_1, Cs),
-  {atom_codes(A, Cs)}.
-dcg_atom(Dcg_1, A) -->
-  {must_be(atom, A)}, !,
-  {atom_codes(A, Cs)},
-  dcg_call(Dcg_1, Cs).
-
-
-
 %! dcg_between(:Between_0, :Dcg_0)// .
 %! dcg_between(:Begin_0, :Dcg_0, :End_0)// .
 
@@ -1148,14 +1096,6 @@ eol --> "\r\n".
 
 
 
-%! frac_pos(+Fractional:between(0.0,1.0), -Ds:list(between(0,9))) is det.
-
-frac_pos(Frac, Ds) :-
-  fractional_integer(Frac, I),
-  sum_pos(I, Ds).
-
-
-
 %! generating// is semidet.
 %
 % Succeeds if currently generating a list of codes (rather than
@@ -1250,28 +1190,6 @@ perc(Perc0, Head, Tail) :-
 perc_fixed(Perc) -->
   ({Perc < 0.1} -> "  " ; {Perc < 1.0} -> " " ; ""),
   perc(Perc).
-
-
-%! pos(+I:nonneg, -Ds:list(between(0,9))) is det.
-% Wrapper around pois/2 with decimal base.
-
-pos(I, Ds) :-
-  pos(I, 10, Ds).
-
-
-%! pos(+I:nonneg, +Base:positive_integer, -Ds:list(between(0,9))) is det.
-
-pos(I, Base, Ds) :-
-  pos_rev(I, Base, Ds0),
-  reverse(Ds0, Ds).
-
-pos_rev(I, Base, [I]) :-
-  I < Base, !.
-pos_rev(I1, Base, [H|T]) :-
-  H is I1 mod Base,
-  I2 is I1 // Base,
-  pos_rev(I2, Base, T).
-
 
 
 %! progress_bar(+Processed, +All)// is det.
@@ -1405,27 +1323,6 @@ string_atom_phrase(Dcg_0, S, A) :-
 
 string_without(End) -->
   string_without(End, _).
-
-
-
-%! sum_pos(+N:nonneg, -Ds:list(between(0,9))) is det.
-%! sum_pos(+N:nonneg, +Base:nonneg, -Ds:list(between(0,9))) is det.
-%
-% The default Base is decimal.
-
-sum_pos(I, Ds) :-
-  sum_pos(I, 10, Ds).
-
-
-sum_pos(I, Base, Ds) :-
-  sum_pos0(I, Base, Ds0),
-  reverse(Ds0, Ds).
-
-sum_pos0(0, _, []) :- !.
-sum_pos0(I1, Base, [H|T]) :-
-  H is I1 mod Base,
-  I2 is I1 // Base,
-  sum_pos0(I2, Base, T).
 
 
 

@@ -7,7 +7,6 @@
     uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
     uri_alias_uuid/2,       % -Uri, +Alias
     uri_comp/3,             % +Uri, ?Key, ?Val
-    uri_comps/3,            % -Uri, +BaseUri, +Comps
     uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
     uri_query_enc//0,
@@ -23,18 +22,18 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2016/11-2017/04
+@version 2016/11-2017/06
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/rfc3986)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(settings)).
+:- use_module(library(uri/rfc3986)).
 
 :- multifile
     error:has_type/2.
@@ -173,14 +172,6 @@ uri_field(Key) :-
   auth_field0(Key).
 uri_field(Key) :-
   uri_field0(Key).
-
-
-
-%! uri_comps(-Uri, +BaseUri, +Comps) is det.
-
-uri_comps(Uri, BaseUri, Comps) :-
-  uri_comps(RelUri, Comps),
-  uri_resolve(RelUri, BaseUri, Uri).
 
 
 

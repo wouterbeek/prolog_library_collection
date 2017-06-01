@@ -618,8 +618,8 @@ yesno(false) --> "no".
 
 'VersionNum'(version(1,Minor)) -->
   "1.",
-  +(digit, Ds),
-  {pos_sum(Ds, Minor)}.
+  +(digit, Weights),
+  {integer_weights(Minor, Weights)}.
 'VersionNum'(version(1,1)) -->
   "1.1".
 

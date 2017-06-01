@@ -206,9 +206,9 @@ cookie_value_codes(Cs) -->
 'max-age-av'(MaxAge) -->
   atom_ci('Max-Age'),
   "=",
-  'non-zero-digit'(H),
-  *(digit, T), !,
-  {pos_sum([H|T], MaxAge)}.
+  'non-zero-digit'(Weight),
+  *(digit, Weights), !,
+  {integer_weights(MaxAge, [Weight|Weights])}.
 
 
 

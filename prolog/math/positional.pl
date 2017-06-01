@@ -17,7 +17,7 @@ Support for positional number notation.
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(math/math_ext)).
+:- use_module(library(math_ext)).
 
 :- multifile(clpfd:run_propagator/2).
 
@@ -36,28 +36,28 @@ Support for positional number notation.
 %   #(4, 'DIGIT', [Y1,Y2,Y3,Y4], []).
 % ```
 
-clpfd_positional(Ds, N):-
-  clpfd_positional(Ds, 10, N).
+clpfd_positional(Weights, N):-
+  clpfd_positional(Weights, 10, N).
 
 
 %! clpfd_positional(+Digits:list(between(0,9)), +Base:nonneg, +Integer:nonneg) is semidet.
 %! clpfd_positional(+Digits:list(between(0,9)), +Base:nonneg, -Integer:nonneg) is det.
 %! clpfd_positional(-Digits:list(between(0,9)), +Base:nonneg, +Integer:nonneg) is det.
 
-clpfd_positional(Ds, Base, N):-
-  clpfd:make_propagator(clpfd_positional(Ds, Base, N), Prop),
+clpfd_positional(Weights, Base, N):-
+  clpfd:make_propagator(clpfd_positional(Weights, Base, N), Prop),
   clpfd:init_propagator(N, Prop),
   clpfd:init_propagator(Base, Prop),
-  maplist(flip_init_propagator(Prop), Ds),
+  maplist(flip_init_propagator(Prop), Weights),
   clpfd:trigger_once(Prop).
 
-clpfd:run_propagator(clpfd_positional(Ds, Base, N), MState):-
+clpfd:run_propagator(clpfd_positional(Weights, Base, N), MState):-
   (   (   maplist(error:has_type(nonneg), [N,Base])
-      ;   maplist(error:has_type(between(0, 9)), Ds)
+      ;   maplist(error:has_type(between(0, 9)), Weights)
       )
   ->  clpfd:kill(MState),
-      positional(Ds, Base, N)
-  ;   \+ ground([N|Ds])
+      integer_fractional(N, Base, Weights)
+  ;   \+ ground([N|Weights])
   ).
 
 flip_init_propagator(Prop, Arg):-

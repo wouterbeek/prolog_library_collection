@@ -8,7 +8,6 @@
     create_date_directory/2,    % +Spec, -Dir
     create_date_time_file/2,    % +Spec, -File
     create_date_time_file/3,    % +Spec, +Exts, -File
-    create_directory/1,         % +Dir
     create_file/1,              % +File
     create_file_link/2,         % +From, +To
     create_time_file/2,         % +Spec, -File
@@ -188,15 +187,6 @@ create_date_time_file(Spec, File) :-
 create_date_time_file(Spec, Exts, File) :-
   create_date_time_file(Spec, Base),
   file_name_extensions(File, Base, Exts).
-
-
-
-%! create_directory(+Dir) is det.
-
-create_directory(Dir) :-
-  exists_directory(Dir), !.
-create_directory(Dir) :-
-  make_directory_path(Dir).
 
 
 

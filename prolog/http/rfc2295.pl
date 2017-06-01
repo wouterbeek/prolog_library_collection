@@ -286,8 +286,8 @@ ftag(Tag) --> 'quoted-string'(Tag).
 % ```
 
 major(Major) -->
-  'm*n'(1, 4, 'DIGIT', Ds),
-  {pos_sum(Ds, Major)}.
+  'm*n'(1, 4, 'DIGIT', Weights),
+  {integer_weights(Major, Weights)}.
 
 
 
@@ -298,8 +298,8 @@ major(Major) -->
 % ```
 
 minor(Minor) -->
-  'm*n'(1, 4, 'DIGIT', Ds),
-  {pos_sum(Ds, Minor)}.
+  'm*n'(1, 4, 'DIGIT', Weights),
+  {integer_weights(Minor, Weights)}.
 
 
 
@@ -310,8 +310,8 @@ minor(Minor) -->
 % ```
 
 number(N) -->
-  +('DIGIT', Ds),
-  {pos_sum(Ds, N)}.
+  +('DIGIT', Weights),
+  {integer_weights(N, Weights)}.
 
 
 
@@ -371,11 +371,11 @@ number(N) -->
 % ```
 
 'short-float'(N2) -->
-  'm*n'(1, 3, 'DIGIT', Ds1),
-  {pos_sum(Ds1, N1)},
-  ("." -> 'm*n'(0, 3, 'DIGIT', Ds2) ; ""),
+  'm*n'(1, 3, 'DIGIT', Weights1),
+  {integer_weights(N1, Weights1)},
+  ("." -> 'm*n'(0, 3, 'DIGIT', Weights2) ; ""),
   {
-    pos_frac(Ds2, Frac),
+    fractional_weights(Frac, Weights2),
     N2 is N1 + Frac
   }.
 
@@ -471,8 +471,8 @@ tcn0(X) --> 'tcn-extension'(X).
   "}".
 'variant-attribute'(length(Len)) -->
   "{length", !,
-  +('DIGIT', Ds),
-  {pos_sum(Ds, Len)}.
+  +('DIGIT', Weights),
+  {integer_weights(Len, Weights)}.
 'variant-attribute'(features(L)) -->
   "{features",
   'feature-list'(L).

@@ -26,7 +26,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(math/positional)).
+:- use_module(library(math_ext)).
 
 
 
@@ -102,7 +102,7 @@ rational_parts(D, I, F):-
 %!   -FractionalWeights:list(between(0,9))
 %! ) is det.
 
-rational_parts_weights(D, IW, FW):-
-  rational_parts(D, I, F),
-  positional(I, IW),
-  positional_fraction(FW, F).
+rational_parts_weights(D, IntWeights, FracWeights):-
+  rational_parts(D, Int, Frac),
+  integer_weights(Int, IntWeights),
+  fractional_weights(Frac, FracWeights).

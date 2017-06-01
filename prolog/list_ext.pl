@@ -20,7 +20,6 @@
     list_split/2,           % ?L, ?X
     list_split/3,           % ?L, ?X, ?Y
     list_split/4,           % ?L, ?X, ?Y, ?Z
-    list_truncate/3,        % +L1, +Max, -L2
     member/3,               % ?X, ?Y, ?L
     member_default/3,       % ?X, +L, +Def
     nth0_minus/3,           % ?I, ?L, ?X
@@ -48,8 +47,7 @@
     split_list_nth1/5,      % +L, -Before, ?I, ?X, -After
     split_list_number/3,    % +L, +NumLs, -Ls
     split_list_size/3,      % +L, +SizeOfSublists, -Ls
-    strict_sublist/2,       % ?Part, +Whole
-    sublist/2               % ?Part, +Whole
+    strict_sublist/2        % ?Part, +Whole
   ]
 ).
 :- reexport(library(lists)).
@@ -336,25 +334,6 @@ list_split([X,Y], X, Y).
 
 
 list_split([X,Y,Z], X, Y, Z).
-
-
-
-%! list_truncate(+Whole, +Max:or([oneof([inf]),nonneg]), -Part) is det.
-%
-% Returns the truncated version of the given list.  The maximum length
-% indicates the exact maximum.  Truncation will always result in a
-% list which contains at most `Max` elements.
-
-% Special value `inf`.
-list_truncate(L, inf, L):- !.
-% The list does not have to be truncated, it is not that long.
-list_truncate(L, Max, L) :-
-  length(L, Len),
-  Len =< Max, !.
-% The list exceeds the maximum length, it is truncated.
-list_truncate(L1, Max, L2) :-
-  length(L2, Max),
-  append(L2, _, L1).
 
 
 
@@ -687,16 +666,3 @@ split_list_size(LastSublist, _SizeOfSublists, [LastSublist]).
 strict_sublist(Part, Whole) :-
   sublist(Part, Whole),
   Part \== Whole.
-
-
-
-%! sublist(?Part, +Whole) is nondet.
-%
-% Returns sublists of the given list.  Construction proceeds from
-% smaller to greater sublists.
-
-sublist([], []).
-sublist(Part, [_|T]) :-
-  sublist(Part, T).
-sublist([H|SubT], [H|T]) :-
-  sublist(SubT, T).

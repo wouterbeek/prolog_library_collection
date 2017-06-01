@@ -1,10 +1,8 @@
 :- module(
   http_ext,
   [
-    http_absolute_location/2, % +Spec, -Path
     http_base_location_uri/1, % -Uri
     http_cookie/2,            % +Key, -Cookie
-    http_default_port/2,      % +Scheme, -DefPort
     http_uri_query/2,         % +Uri, -Comp
     http_link_to_id/2,        % +HandleId, -Local
     http_peer/1,              % -PeerIP
@@ -42,13 +40,6 @@ messages.
 
 
 
-%! http_absolute_location(+Spec, -Path) is det.
-
-http_absolute_location(Spec, Path) :-
-  http_absolute_location(Spec, Path, []).
-
-
-
 %! http_base_location_uri(-Uri) is det.
 
 http_base_location_uri(Uri2) :-
@@ -65,13 +56,6 @@ http_cookie(Key, Cookie) :-
   http_current_request(Req),
   memberchk(cookie(Cookies), Req),
   memberchk(Key=Cookie, Cookies).
-
-
-
-%! http_default_port(+Scheme, -DefPort) is det.
-
-http_default_port(http, 80).
-http_default_port(https, 443).
 
 
 

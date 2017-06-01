@@ -25,9 +25,6 @@
     combinations/3, % +NumObjects:integer
                     % +CombinationLength:integer
                     % -NumCombinations:integer
-    decimal_parts/3, % ?Decimal:compound
-                     % ?Integer:integer
-                     % ?Fraction:compound
     euclidean_distance/3, % +Coordinate1:coordinate
                           % +Coordinate2:coordinate
                           % -EuclideanDistance:float
@@ -58,10 +55,6 @@
     normalized_number/3, % +Decimal:compound
                          % -NormalizedDecimal:compound
                          % -Exponent:nonneg
-    number_length/2, % +Number, -Length
-    number_length/3, % +Number:number
-                     % +Radix:integer
-                     % -Length:integer
     permutations/2, % +NumObjects, -NumPermutations
     permutations/3, % +NumbersOfObjects:list(integer)
                     % +PermutationLength:integer
@@ -300,32 +293,6 @@ combinations(NObjects, CombinationLength, NCombinations):-
 
 
 
-%! decimal_parts(
-%!   +Decimal:number,
-%!   -Integer:integer,
-%!   -Fractional:nonneg
-%! ) is det.
-%! decimal_parts(
-%!   -Decimal:number,
-%!   +Integer:integer,
-%!   +Fractional:nonneg
-%! ) is det.
-% @throws instantation_error
-% @throws type_error
-
-decimal_parts(N, I, Frac):-
-  nonvar(N),
-  must_be(number, N), !,
-  I is floor(float_integer_part(N)),
-  fractional_integer(N, Frac).
-decimal_parts(N, I, Frac):-
-  must_be(integer, I),
-  must_be(nonneg, Frac),
-  number_length(Frac, L),
-  N is copysign(abs(I) + (Frac rdiv (10 ^ L)), I).
-
-
-
 %! euclidean_distance(
 %!   +Coordinate1:coordinate,
 %!   +Coordinate2:coordinate,
@@ -518,32 +485,6 @@ normalized_number(D1, ND, Exp1):-
   D2 is D1 * 10.0,
   normalized_number(D2, ND, Exp2),
   Exp1 is Exp2 - 1.
-
-
-
-%! number_length(+Number:number, -Length:integer) is det.
-% @see number_length/3 with radix set to `10` (decimal).
-
-number_length(M, L):-
-  number_length(M, 10.0, L).
-
-%! number_length(+Number:number, +Radix:integer, -Length:integer) is det.
-% Returns the length of the given number 'before the dot'.
-% The number is in decimal notation.
-%
-% @arg An integer representing a decimal number.
-% @arg Radix An integer representing the radix used.
-%      Common values are `2` (binary), `8` (octal),
-%      `10` (decimal), and `16` (hexadecimal).
-% @arg Length An integer representing the number of digits in
-%      the given number.
-
-number_length(N1, Radix, L1):-
-  N2 is N1 / Radix,
-  N2 >= 1.0, !,
-  number_length(N2, Radix, L2),
-  L1 is L2 + 1.
-number_length(_N, _Radix, 1):- !.
 
 
 

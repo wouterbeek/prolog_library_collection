@@ -193,13 +193,6 @@ pair_key(X-_, X).
 pair_list(X-Y, [X,Y]).
 
 
-
-%! pair_merge_value(+Pair1, -Pair2) is det.
-
-pair_merge_value(Key-Vals, Key-Val) :-
-  ord_union(Vals, Val).
-
-
 %! pair_option(+Pair, -Opt) is det.
 %! pair_option(-Pair, +Opt) is det.
 

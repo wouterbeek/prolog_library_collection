@@ -120,7 +120,10 @@ encodingSig_code(0'_) --> "_".
 % ```
 
 'ESCAPE'(C) --> "\\", escape(C).
-'ESCAPE'(C) --> "&#x", 'm*n'(2, 6, 'HEXDIG', Ds), {pos_sum(Ds, C)}.
+'ESCAPE'(C) -->
+  "&#x",
+  'm*n'(2, 6, 'HEXDIG', Weights),
+  {integer_weights(C, Weights)}.
 escape(0'\\) --> "\\".
 escape(0'&)  --> "&".
 escape(0'r)  --> "r".
