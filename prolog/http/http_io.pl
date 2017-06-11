@@ -20,11 +20,6 @@
     http_put/4,                  % +Uri, +Data, :Goal_3, +Opts
     http_retry_until_success/1,  % :Goal_0
     http_retry_until_success/2,  % :Goal_0, +Timeout
-    http_status_is_auth_error/1, % +Status
-    http_status_is_error/1,      % +Status
-    http_status_is_redirect/1,   % +Status
-    http_status_is_success/1,    % +Status
-    http_status_label/2,         % +Status, -Lbl
     http_status_must_be/2,       % +Status, +Succeeds
     http_status_must_be/3,       % +Status, +Succeeds, +Fails
     http_throw_bad_request/1     % :Goal_0
@@ -292,14 +287,14 @@ http_open1(Uri, Method, State, In2, [InEntry|InPath], Opts) :-
 
 % Authentication error.
 http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
-  http_status_is_auth_error(Status),
+  Status =:= 401,
   http_open:parse_headers(Lines, Headers),
   http:authenticate_client(Uri, auth_reponse(Headers, Opts, AuthOpts)), !,
   close(In1),
   http_open1(Uri, Method, State, In2, InPath, AuthOpts).
 % Non-authentication error.
 http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
-  http_status_is_error(Status), !,
+  between(400, 599, Status), !,
   (option(verbose(error), Opts) -> http_error_msg(Status, Lines, In1) ; true),
   dict_inc(retries, State),
   (   State.retries >= State.max_retries
@@ -311,7 +306,7 @@ http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
   ).
 % Redirect.
 http_open2(Uri1, Method, State, Location, _, In1, Status, InPath, In2, Opts) :-
-  http_status_is_redirect(Status), !,
+  between(300, 399, Status), !,
   close(In1),
   uri_resolve(Location, Uri1, Uri2),
   dict_prepend(visited, State, Uri2),
@@ -412,33 +407,6 @@ http_retry_until_success(Goal_0, Timeout) :-
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ).
-
-
-
-%! http_status_is_auth_error(+Status) is semidet.
-
-http_status_is_auth_error(401).
-
-
-
-%! http_status_is_error(+Status) is semidet.
-
-http_status_is_error(Status):-
-  between(400, 599, Status).
-
-
-
-%! http_status_is_redirect(+Status) is semidet.
-
-http_status_is_redirect(Status) :-
-  between(300, 399, Status).
-
-
-
-%! http_status_is_success(+Status) is semidet.
-
-http_status_is_success(Status) :-
-  between(200, 299, Status).
 
 
 

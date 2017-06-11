@@ -77,7 +77,7 @@ rest_reply(Result, Succeeds, Fails, In, InPath, InPath) :-
 
 rest_reply_stream(application/json, Status, In, Result) :- !,
   json_read_dict(In, Result0),
-  (   http_status_is_success(Status)
+  (   between(200, 299, Status)
   ->  (is_list(Result0) -> member(Result, Result0) ; Result = Result0)
   ;   print_term(Result0)
   ).

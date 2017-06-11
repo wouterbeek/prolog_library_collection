@@ -21,7 +21,6 @@
     dict_set/3,            % +Key, Dict, +Val
     dict_sum/2,            % +Dicts, -Dict
     dict_sum/3,            % +Dict1, +Dict2, -Dict3
-    dict_tag/2,            % +Dict, -Tag
     dict_tag/3,            % +Dict1, +Tag, ?Dict2
     dicts_get/3,           % +Key, +Dicts, -Val
     dicts_getchk/3,        % +Key, +Dicts, -Val
@@ -227,12 +226,6 @@ pairs_sum([Key-Val1|T1], Pairs2a, [Key-Val3|T3]) :-
 pairs_sum([Key-Val|T1], Pairs2, [Key-Val|T3]) :-
   pairs_sum(T1, Pairs2, T3).
 
-
-
-%! dict_tag(+Dict, -Tag) is det.
-
-dict_tag(Dict, Tag) :-
-  dict_pairs(Dict, Tag, _).
 
 
 %! dict_tag(+Dict1, +Tag, +Dict2) is semidet.
