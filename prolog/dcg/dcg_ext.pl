@@ -63,7 +63,6 @@
     dcg_once//1,           % :Dcg_0
     dcg_once//2,           % :Dcg_1, +Arg1
     dcg_once//3,           % :Dcg_2, +Arg1, +Arg2
-    dcg_string//2,         % :Dcg_1, ?S
     dcg_strip//0,
     dcg_strip//1,          % +StripCs
     dcg_tab//0,
@@ -77,8 +76,6 @@
     indent_nl//2,          % +Indent:nonneg, :Dcg_0
     lowercase//0,
     number//0,
-    opt//1,                % :Dcg_0
-    opt//2,                % :Dcg_1, ?Arg
     ordinal//1,            % +M
     pair//2,               % :Dcg_0, :Dcg_0
     perc//1,               % +Perc:between(0.0,1.0)
@@ -188,13 +185,10 @@ My favorite collection of DCG rules.
     dcg_once(//, ?, ?),
     dcg_once(//, +, ?, ?),
     dcg_once(//, +, +, ?, ?),
-    dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
     indent_nl(+, //, ?, ?),
-    opt(//, ?, ?),
-    opt(3, ?, ?, ?),
     pair(//, //, ?, ?),
     quad(//, //, //, //, ?, ?),
     quoted(//, ?, ?),
@@ -1004,21 +998,6 @@ dcg_once(Dcg_2, Arg1, Arg2, X, Y) :-
 
 
 
-%! dcg_string(:Dcg_1, ?S)// .
-%
-% @see Variants of dcg_atom//2 that supports SWI7 strings.
-
-dcg_string(Dcg_1, S) -->
-  {var(S)}, !,
-  dcg_call(Dcg_1, Cs),
-  {string_codes(S, Cs)}.
-dcg_string(Dcg_1, S) -->
-  {must_be(string, S)}, !,
-  {string_codes(S, Cs)},
-  dcg_call(Dcg_1, Cs).
-
-
-
 %! dcg_strip// is det.
 %! dcg_strip(+StripCs)// is det.
 
@@ -1131,19 +1110,6 @@ lowercase --> "".
 % Wrapper around number//1 from library(dcg/basics).
 
 number --> number(_).
-
-
-
-%! opt(:Dcg_0)// .
-
-opt(Dcg_0) --> Dcg_0, !.
-opt(_) --> "".
-
-
-%! opt(:Dcg_1, ?Arg)// .
-
-opt(Dcg_1, Arg) --> dcg_call(Dcg_1, Arg), !.
-opt(_, _) --> "".
 
 
 

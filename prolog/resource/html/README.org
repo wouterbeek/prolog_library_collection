@@ -1,2 +1,0 @@
-#+TITLE: Directory with HTML files
-#+AUTHOR: Wouter Beek

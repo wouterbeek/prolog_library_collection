@@ -32,7 +32,6 @@
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf11)).
-:- use_module(library(settings)).
 :- use_module(library(uri/rfc3986)).
 
 :- multifile
@@ -40,19 +39,6 @@
 
 error:has_type(uri, Uri) :-
   is_uri(Uri).
-
-:- setting(
-     uri:data_host,
-     atom,
-     'example.org',
-     "The host component of data IRIs."
-   ).
-:- setting(
-     uri:data_scheme,
-     oneof([http,https]),
-     https,
-     "The scheme of data IRIs."
-   ).
 
 
 
@@ -231,74 +217,3 @@ uri_query_enc --> [].
 uri_remove_fragment(Uri, BaseUri) :-
   uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)),
   uri_components(BaseUri, uri_components(Scheme,Auth,Path,Query,_)).
-
-
-
-%! uri_resource(+Uri, -Res) is det.
-%! uri_resource(-Uri, +Res) is det.
-%
-% Convert between public URIs and resource/data URIs.
-
-uri_resource(Uri, Res) :-
-  ground(Uri), !,
-  uri_components(Uri, uri_components(_,_,Path,_,_)),
-  setting(uri:data_scheme, Scheme),
-  setting(uri:data_host, Host),
-  uri_components(Res, uri_components(Scheme,Host,Path,_,_)).
-uri_resource(Uri, Res) :-
-  uri_components(Res, uri_components(_ResScheme,_ResHost,Path,Query,Frag)), !,
-  setting(http:public_scheme, UriScheme),
-  setting(http:public_host, UriHost),
-  /*
-  (   % Data location and public location are the same, so relative
-      % resource URIs will do.
-      ResScheme == UriScheme,
-      ResHost == UriHost
-  ->  uri_components(Uri, uri_components(_,_,Path,Query,Frag))
-  */
-  setting(http:public_port, UriPort),
-  % Default ports do not need to set explicitly.
-  correct_for_default_port(UriScheme, UriPort, UriPort),
-  uri_authority_components(UriAuth, uri_authority(_,_,UriHost,UriPort)),
-  uri_components(Uri, uri_components(UriScheme,UriAuth,Path,Query,Frag)).
-
-correct_for_default_port(http, 80, _) :- !.
-correct_for_default_port(https, 443, _) :- !.
-correct_for_default_port(_, Port, Port).
-
-
-
-%! uri_segment_enc// is det.
-
-uri_segment_enc, [C] -->
-  pchar(C), !,
-  uri_segment_enc.
-uri_segment_enc, "-" -->
-  [_], !,
-  uri_segment_enc.
-uri_segment_enc --> "".
-
-
-
-%! uri_segments(+Uri, -Segments) is det.
-%! uri_segments(-Uri, +Segments) is det.
-
-uri_segments(Uri, Segments) :-
-  ground(Uri), !,
-  uri_components(Uri, uri_components(_,_,Path,_,_)),
-  atomic_list_concat([''|Segments], /, Path).
-uri_segments(Uri, Segments1) :-
-  setting(uri:data_scheme, Scheme),
-  setting(uri:data_host, Host),
-  (Segments1 = [''|Segments2] -> true ; Segments2 = Segments1),
-  atomic_list_concat([''|Segments2], /, Path),
-  uri_components(Uri, uri_components(Scheme,Host,Path,_,_)).
-
-
-
-%! uri_segments_uuid(-Uri, +Segments) is det.
-
-uri_segments_uuid(Uri, Segments1) :-
-  uuid(Uuid),
-  append(Segments1, [Uuid], Segments2),
-  uri_segments(Uri, Segments2).

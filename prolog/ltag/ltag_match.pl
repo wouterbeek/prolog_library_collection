@@ -41,30 +41,6 @@ Registry.
 
 
 
-%! basic_filtering(+LPriorityList, +LTag) is semidet.
-%
-% Succeeds if the LanguagePriorityList matches the LanguageTag
-% according to the basic filtering algorithm described in RFC 4647,
-% i.e., if the former is a case-insensitive prefix of the latter,
-% while also treating the `*` sign as a wildcard.
-%
-% @compat RFC 4647
-
-% Allow language priority lists of length 1 to be specified as atoms.
-basic_filtering(Ranges, Tag):-
-  % NONDET
-  member(Range, Ranges),
-  atomic_list_concat(Subtags1, -, Range),
-  atomic_list_concat(Subtags2, -, Tag),
-  basic_filtering0(Subtags1, Subtags2), !.
-
-basic_filtering0(_, []).
-basic_filtering0([H1|T1], [H2|T2]):-
-  subtag_match(H1, H2),
-  basic_filtering0(T1, T2).
-
-
-
 %! extended_filtering(
 %!   +LanguagePriorityList:list(atom),
 %!   +LanguageTag:atom
@@ -161,19 +137,3 @@ lookup(L1a, L2):-
   append(L1b, [_], L1a),
   lookup(L1b, L2).
 
-
-
-
-
-% HELPERS %
-
-%! subtag_match(+RangeSubtag, +Subtag) is semidet.
-%
-% Two subtags match if either they are the same when compared
-% case-insensitively or the language range's subtag is the wildcard
-% `*`
-
-subtag_match(*, _):- !.
-subtag_match(X1, X2):-
-  downcase_atom(X1, X),
-  downcase_atom(X2, X).

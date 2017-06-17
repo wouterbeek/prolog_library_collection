@@ -1,184 +1,131 @@
 :- module(
   html_ext,
   [
-    alert//2,                % +Mode:oneof([danger,info,success,warning])
-                             % :Html_0
-    anchor//2,               % +Name, :Header_0
-    between//2,              % :Outer_0, :Middle_0
-    between//3,              % :Begin_0, :Middle_0, :End_0
-    button//1,               % :Html_0
-    button//2,               % +Attrs, :Html_0
-    html_caret//0,
-    code_link//1,            % +Uri
-    collapse_content//2,     % +Id, :Html_0
-    collapse_link//2,        % +Id, :Link_0
-    copy_to_clipboard//1,    % +Txt
-    data_link//1,            % +Res
-    data_link//2,            % +Res, :Html_0
-    data_link//3,            % +Res, +Attrs, :Html_0
-    date//1,                 % +DT
-    default//3,              % :Html_1, :DefHtml_1, +Arg1
-    definition_list//1,      % +L
-    definition_list//2,      % :Html_1, +L
-    definition_list//3,      % +Attrs, :Html_1, +L
+    alert//2,               % +Mode:oneof([danger,info,success,warning])
+                            % :Html_0
+    anchor//2,              % +Name, :Header_0
+    between//2,             % :Outer_0, :Middle_0
+    between//3,             % :Begin_0, :Middle_0, :End_0
+    code_link//1,           % +Uri
+    collapse_content//2,    % +Id, :Html_0
+    collapse_link//2,       % +Id, :Link_0
+    copy_to_clipboard//1,   % +Txt
+    date//1,                % +DT
+    default//3,             % :Html_1, :DefHtml_1, +Arg1
+    definition_list//1,     % +L
+    definition_list//2,     % :Html_1, +L
+    definition_list//3,     % +Attrs, :Html_1, +L
     developed_with//0,
-    dict//1,                 % +Dict
-    dropdown_menu//3,        % :Top_0, :Html_1, +Items
-    dropdown_menu//4,        % +Attrs, :Top_0, :Html_1, +Items
-    endpoint_link//1,        % +HandleId
-    endpoint_link//2,        % +HandleId, :Html_0
-    error//1,                % +E
-    favicon//1,              % +Spec
-    fb_app_id//0,
-    fb_comments//1,          % +Uri
-    fb_follow_img//0,
-    fb_follow_img//1,        % +User
-    fb_follow_txt//0,
-    fb_follow_txt//1,        % +User
-    fb_like//1,              % +Uri
-    fb_like//2,              % +Size:oneof([large,small]), +Uri
-    fb_share//2,             % +Uri, +Title
-    figure//2,               % +Uri, +Caption
-    figure//3,               % +Uri, +Alt, :Caption_0
-    file_name//1,            % +File
-    file_upload//0,
-    footer_panel//3,         % +Spec, :Top, :Bottom
-    footnote_post//2,        % +State, :Html_0
-    footnote_receive//2,     % +N, :Html_0
+    dict//1,                % +Dict
+    endpoint_link//1,       % +HandleId
+    endpoint_link//2,       % +HandleId, :Html_0
+    error//1,               % +E
+    facebook_app_id//0,
+    facebook_comments//1,   % +Uri
+    facebook_follow_txt//0,
+    facebook_follow_txt//1, % +User
+    facebook_like//1,       % +Uri
+    facebook_like//2,       % +Size:oneof([large,small]), +Uri
+    facebook_share//2,      % +Uri, +Title
+    figure//2,              % +Uri, +Caption
+    figure//3,              % +Uri, +Alt, :Caption_0
+    file_name//1,           % +File
+    footnote_post//2,       % +State, :Html_0
+    footnote_receive//2,    % +N, :Html_0
     footnotes//0,
-    form//2,                 % +Spec, :Html_0
-    form//3,                 % +Spec, +Attrs, :Html_0
     form_submit_button//0,
-    form_submit_button//1,   % :Html_0
+    form_submit_button//1,  % :Html_0
     git_version//0,
-    google_analytics//0,
-    google_font//1,          % +Name
-    html_bracketed//1,       % :Html_0
-    html_call//3,            % :Html_2, +Arg1, +Arg2
-    html_call//4,            % :Html_3, +Arg1, +Arg2, +Arg3
-    html_catch//1,           % :Html_0
-    html_dq//1,              % :Html_0
-    html_float//1,           % +Float
-    html_http_error_page/2,  % +Style, +Req
-    html_license//2,         % +Uri, +Lbl
-    html_list//3,            % +Ordered:boolean, :Html_1, +Args
-    html_list//4,            % +Attrs, +Ordered:boolean, :Html_1, +Args
-    html_lstring//1,         % +Name
-    html_maplist//3,         % :Html_1, +Args1, +Args2
-    html_pair//1,            % +Pair
-    html_pair//2,            % +Arg1, Arg2
-    html_pair//3,            % :Html_1, +Arg1, +Arg2
-    html_quad//4,            % +Arg1, +Arg2, +Arg3, +Arg4
-    html_quad//5,            % :Html_1, +Arg1, +Arg2, +Arg3, +Arg4
-    html_select//2,          % :ItemGen_1, :Html_1
-    html_select//3,          % +Attrs, :ItemGen_1, :Html_1
-    html_space//0,
-    html_sq//1,              % :Html_0
-    html_triple//3,          % +Arg1, +Arg2, +Arg3
-    html_triple//4,          % :Html_1, +Arg1, +Arg2, +Arg3
-    html_tuple//1,           % +Arg
-    html_tuple//2,           % :Html_1, +Args
-    html_to_atom/2,          % :Html_0, -A
-    human_integer//1,        % +N
-    icon//1,                 % +Name
-    icon_button//1,          % +Name
-    icon_button//2,          % +Name, +Func
-    idle//1,                 % +Time
-    if_then//2,              % :If_0, :Then_0
-    if_then_else//3,         % :If_0, :Then_0, :Else_0
-    ignore//1,               % :Html_0
-    image_header//2,         % +Img, :Html_0
-    input_boolean//1,        % +Name
-    input_checkbox//2,       % +Name, +Attrs
-    input_file//2,           % +Name, +Attrs
-    input_file//3,           % +Name, +Attrs, +Opts
-    input_hidden//2,         % +Name, +Attrs
-    input_password//2,       % +Name, +Attrs
-    input_password//3,       % +Name, +Attrs, +Opts
-    input_radio//2,          % +Name, +L
-    input_text//2,           % +Name, +Attrs
-    input_text//3,           % +Name, +Attrs, +Opts
-    insert_raw_body//1,      % +Spec
-    ip//1,                   % +Ip
-    language_menu//1,        % +LTags
-    link_button//2,          % +Uri, :Html_0
+    google_font//1,         % +Name
+    html_bracketed//1,      % :Html_0
+    html_call//3,           % :Html_2, +Arg1, +Arg2
+    html_call//4,           % :Html_3, +Arg1, +Arg2, +Arg3
+    html_catch//1,          % :Html_0
+    html_dq//1,             % :Html_0
+    html_float//1,          % +Float
+    html_http_error_page/2, % +Style, +Req
+    html_license//2,        % +Uri, +Lbl
+    html_maplist//3,        % :Html_1, +Args1, +Args2
+    html_pair//1,           % +Pair
+    html_pair//2,           % +Arg1, Arg2
+    html_pair//3,           % :Html_1, +Arg1, +Arg2
+    html_quad//4,           % +Arg1, +Arg2, +Arg3, +Arg4
+    html_quad//5,           % :Html_1, +Arg1, +Arg2, +Arg3, +Arg4
+    html_select//2,         % :ItemGen_1, :Html_1
+    html_select//3,         % +Attrs, :ItemGen_1, :Html_1
+    html_sq//1,             % :Html_0
+    html_triple//3,         % +Arg1, +Arg2, +Arg3
+    html_triple//4,         % :Html_1, +Arg1, +Arg2, +Arg3
+    html_tuple//1,          % +Arg
+    html_tuple//2,          % :Html_1, +Args
+    html_to_atom/2,         % :Html_0, -A
+    human_integer//1,       % +N
+    idle//1,                % +Time
+    if_then//2,             % :If_0, :Then_0
+    if_then_else//3,        % :If_0, :Then_0, :Else_0
+    image_header//2,        % +Img, :Html_0
+    input_boolean//1,       % +Name
+    input_checkbox//2,      % +Name, +Attrs
+    input_file//2,          % +Name, +Attrs
+    input_file//3,          % +Name, +Attrs, +Opts
+    input_hidden//2,        % +Name, +Attrs
+    input_password//2,      % +Name, +Attrs
+    input_password//3,      % +Name, +Attrs, +Opts
+    input_radio//2,         % +Name, +L
+    input_text//2,          % +Name, +Attrs
+    input_text//3,          % +Name, +Attrs, +Opts
+    insert_raw_body//1,     % +Spec
+    ip//1,                  % +Ip
+    link_button//2,         % +Uri, :Html_0
     linkedin_share//0,
-    list//1,                 % +Args
-    list//2,                 % :Html_1, +Args
-    mail_link_and_icon//1,   % +Uri
-    menu//0,
-    merge_attrs/3,           % +Attrs1, +Attrs2, -Attrs3
-    meta//2,                 % +Name, +Content
+    list//1,                % +Args
+    list//2,                % :Html_1, +Args
+    mail_link_and_icon//1,  % +Uri
+    meta//2,                % +Name, +Content
     meta_charset//0,
     meta_ie_latest//0,
-    meta_license//1,         % +Uri
+    meta_license//1,        % +Uri
     meta_viewport//0,
-    navbar_dropdown_menu//4, % +Name, +Lbl, :Html_1, +L
-    navbar_dropdown_menu//5, % +Attrs, +Name, +Lbl, :Html_1, +L
-    nonvar//1,               % :Html_0
-    nonvar//2,               % :Html_1, +Arg1
-    number//2,               % +Format, +N
-    once//1,                 % :Html_0
-    ordered_list//1,         % +Items
-    ordered_list//2,         % :Html_1, +Items
-    ordered_list//3,         % +Attrs, :Html_1, +Items
-    panel//3,                % +In, :Header_0, :Body_0
-    panel//4,                % +Open:boolean, +In, :Header_0, :Body_0
-    panels//1,               % :Panels_0
-    pipe//0,
-    pl_link//0,
+    nonvar//1,              % :Html_0
+    nonvar//2,              % :Html_1, +Arg1
+    number//2,              % +Format, +N
+    once//1,                % :Html_0
+    panel//3,               % +In, :Header_0, :Body_0
+    panel//4,               % +Open:boolean, +In, :Header_0, :Body_0
+    panels//1,              % :Panels_0
     pl_version//0,
-    postscriptum//1,         % :Content_2
-    ref//2,                  % +Label, :Html_0
-    reply_raw_file/1,        % +Spec
+    postscriptum//1,        % :Content_2
+    ref//2,                 % +Label, :Html_0
+    reply_raw_file/1,       % +Spec
     reset_button//0,
-    reset_button//1,         % :Html_0
-    row_1//1,                % :ContentA_0
-    row_1//2,                % +WidthsA, :ContentA_0
-    row_1//3,                % +Attrs, +WidthsA, :ContentA_0
-    row_2//2,                % :ContentA_0, :ContentB_0
-    row_2//3,                % +Attrs, :ContentA_0, :ContentB_0
-    row_2//4,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
-    row_2//5,                % +Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
-    row_3//3,                % :ContentA_0, :ContentB_0, :ContentC_0
-    row_3//6,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
-                             % +WidthsC, :ContentC_0
-    row_3//7,                % +Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
-                             % +WidthsC, :ContentC_0
-    row_4//4,                % :ContentA_0, :ContentB_0, :ContentC_0, :ContentD_0
-    row_4//8,                % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
-                             % +WidthsC, :ContentC_0, +WidthsD, :ContentD_0
-    search_box//1,           % +Action
-    search_box//2,           % +Attrs, +Action
-    search_result//2,        % +Result, :Html_1
-    streamer//1,             % :Html_0
-    submit_button//0,
-    submit_button//1,        % :Html_0
-    table_tree//1,           % +Tree
-    table_tree//2,           % :CellHtml_1, +Tree
-    table_trees//1,          % +Trees
-    table_trees//2,          % :CellHtml_1, +Trees
-    term//1,                 % @Term
-    title//1,                % +Strs
-    truncate//2,             % +Str, +Max
+    reset_button//1,        % :Html_0
+    row_2//2,               % :ContentA_0, :ContentB_0
+    row_2//3,               % +Attrs, :ContentA_0, :ContentB_0
+    row_2//4,               % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+    row_2//5,               % +Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+    row_4//4,               % :ContentA_0, :ContentB_0, :ContentC_0, :ContentD_0
+    row_4//8,               % +WidthsA, :ContentA_0, +WidthsB, :ContentB_0
+                            % +WidthsC, :ContentC_0, +WidthsD, :ContentD_0
+    search_box//1,          % +Action
+    search_box//2,          % +Attrs, +Action
+    search_result//2,       % +Result, :Html_1
+    streamer//1,            % :Html_0
+    table_tree//1,          % +Tree
+    table_tree//2,          % :CellHtml_1, +Tree
+    table_trees//1,         % +Trees
+    table_trees//2,         % :CellHtml_1, +Trees
+    term//1,                % @Term
+    truncate//2,            % +Str, +Max
     twitter_follow_txt//0,
-    twitter_follow_txt//1,   % +User
-    twitter_grid//2,         % +Uri, +Title
+    twitter_follow_txt//1,  % +User
+    twitter_grid//2,        % +Uri, +Title
     twitter_mention//0,
-    twitter_mention//1,      % +User
+    twitter_mention//1,     % +User
     twitter_profile//0,
-    twitter_profile//1,      % +User
-    twitter_share//2,        % +Uri, +Title
-    twitter_tweet//1,        % +Uri
-    unless//2,               % :Unless_0, :Then_0
-    unordered_list//1,       % +Items
-    unordered_list//2,       % :Html_1, +Items
-    unordered_list//3,       % +Attrs, :Html_1, +Items
-    upload_form//1,          % +Spec
-    user_menu//2,            % :UserName_2, :UserImg_2
-    vote_down//1,            % +Vote:integer
-    vote_up//1,              % +Vote:integer
-    widths/2                 % +Widths:or([list(between(1,12)),between(1,12)]), -Classes:list(atom)
+    twitter_profile//1,     % +User
+    twitter_tweet//1,       % +Uri
+    unless//2,              % :Unless_0, :Then_0
+    upload_form//1          % +Spec
   ]
 ).
 :- reexport(library(http/html_head)).
@@ -223,66 +170,41 @@ html({|html||...|}).
    anchor(+, html, ?, ?),
    between(html, html, ?, ?),
    between(html, html, html, ?, ?),
-   button(html, ?, ?),
-   button(+, html, ?, ?),
    collapse_content(+, html, ?, ?),
    collapse_link(+, html, ?, ?),
-   data_link(+, html, ?, ?),
-   data_link(+, +, html, ?, ?),
    definition_list(html, +, ?, ?),
    definition_list(+, html, +, ?, ?),
-   dropdown_menu(html, :, +, ?, ?),
-   dropdown_menu(+, html, :, +, ?, ?),
    endpoint_link(+, html, ?, ?),
-   fb_follow0(+, html, ?, ?),
+   facebook_follow0(+, html, ?, ?),
    figure(+, +, html, ?, ?),
-   footer_panel(+, html, html, ?, ?),
    footnote_post(+, html, ?, ?),
    footnote_receive(+, html, ?, ?),
-   form(+, html, ?, ?),
-   form(+, +, html, ?, ?),
    form_submit_button(html, ?, ?),
    html_bracketed(html, ?, ?),
    html_catch(html, ?, ?),
    html_dq(html, ?, ?),
-   html_list(+, 3, +, ?, ?),
-   html_list(+, +, 3, +, ?, ?),
    html_sq(html, ?, ?),
    html_to_atom(html, -),
    if_then(0, html, ?, ?),
    if_then_else(0, html, html, ?, ?),
-   ignore(html, ?, ?),
    image_header(+, html, ?, ?),
    link_button(+, html, ?, ?),
-   navbar_dropdown_menu(+, +, 3, +, ?, ?),
-   navbar_dropdown_menu(+, +, +, 3, +, ?, ?),
    nonvar(html, ?, ?),
-   ordered_list(html, +, ?, ?),
-   ordered_list(+, html, +, ?, ?),
    panel(+, html, html, ?, ?),
    panel(+, +, html, html, ?, ?),
    panels(html, ?, ?),
    postscriptum(html, ?, ?),
    ref(+, html, ?, ?),
    reset_button(html, ?, ?),
-   row_1(html, ?, ?),
-   row_1(+, html, ?, ?),
-   row_1(+, +, html, ?, ?),
    row_2(html, html, ?, ?),
    row_2(+, html, html, ?, ?),
    row_2(+, html, +, html, ?, ?),
    row_2(+, +, html, +, html, ?, ?),
-   row_3(html, html, html, ?, ?),
-   row_3(+, html, +, html, +, html, ?, ?),
-   row_3(+, +, html, +, html, +, html, ?, ?),
    row_4(html, html, html, html, ?, ?),
    row_4(+, html, +, html, +, html, +, html, ?, ?),
    streamer(html, ?, ?),
-   submit_button(html, ?, ?),
    twitter_follow0(+, html, ?, ?),
-   unless(0, html, ?, ?),
-   unordered_list(html, +, ?, ?),
-   unordered_list(+, html, +, ?, ?).
+   unless(0, html, ?, ?).
 
 % Clipboard
 :- if(debugging(js(clipboard))).
@@ -301,65 +223,8 @@ html({|html||...|}).
      [requires([js(clipboard)]),virtual(true)]
    ).
 
-% Dropzone
-:- if(debugging(css(dropzone))).
-  :- html_resource(
-       css(dropzone),
-       [requires([css('dropzone-4.3.0.css')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       css(dropzone),
-       [requires([css('dropzone-4.3.0.min.css')]),virtual(true)]
-     ).
-:- endif.
-
-:- if(debugging(js(dropzone))).
-  :- html_resource(
-       js(dropzone),
-       [requires([js('dropzone-4.3.0.js')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       js(dropzone),
-       [requires([js('dropzone-4.3.0.min.js')]),virtual(true)]
-     ).
-:- endif.
-:- html_resource(
-     dropzone,
-     [requires([css(dropzone),js(dropzone)]),virtual(true)]
-   ).
-
-% Medium editor
-:- if(debugging(css(editor))).
-  :- html_resource(
-       css(editor),
-       [requires([css('medium-editor-5.23.0.css')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       css(editor),
-       [requires([css('medium-editor-5.23.0.min.css')]),virtual(true)]
-     ).
-:- endif.
-
-:- if(debugging(js(editor))).
-  :- html_resource(
-       js(editor),
-       [requires([js('medium-editor-5.23.0.js')]),virtual(true)]
-     ).
-:- else.
-  :- html_resource(
-       js(editor),
-       [requires([js('medium-editor-5.23.0.min.js')]),virtual(true)]
-     ).
-:- endif.
-:- html_resource(editor, [requires([css(editor),js(editor)]),virtual(true)]).
-
 :- meta_predicate
     default(3, 3, +, ?, ?),
-    dropdown_menu(2, 3, +, ?, ?),
-    dropdown_menu(+, 2, 3, +, ?, ?),
     html_call(4, +, +, ?, ?),
     html_call(5, +, +, +, ?, ?),
     html_maplist(4, +, +, ?, ?),
@@ -380,44 +245,7 @@ html({|html||...|}).
     table_tree_cell(+, 3, +, +, ?, ?),
     table_trees(3, +, ?, ?),
     table_trees(+, 3, +, ?, ?),
-    unless(0, 2, ?, ?),
-    user_menu(2, 2, ?, ?).
-
-%! html:menu_item(?Major, ?Name, ?Lbl) is nondet.
-%! html:menu_item(?Major, ?Spec, ?Lbl) is nondet.
-%
-% Adds a top-level menu item to the menu.  The menu item has a rank
-% Major, an internal Name and a user-visible label Lbl.
-
-%! html:menu_item(?Name, ?Minor, ?Spec, ?Lbl) is nondet.
-%
-% Adds a menu-item under a top-level menu item with the given internal
-% Name.  Minor denotes the rank within the top-level menu item.  Spec
-% denotes the HTTP handler that fires when this menu item is clicked.
-% Lbl is a user-visible label.
-
-:- multifile
-    html:menu_item/3,
-    html:menu_item/4.
-
-:- setting(
-     html:fb_app_id,
-     term,
-     _,
-     "Facebook application identifier."
-   ).
-:- setting(
-     html:fb_profile,
-     term,
-     _,
-     "Facebook profile name."
-   ).
-:- setting(
-     html:google_analytics_id,
-     term,
-     _,
-     "Google Analytics ID."
-   ).
+    unless(0, 2, ?, ?).
 
 
 
@@ -449,20 +277,6 @@ between(Begin_0, Middle_0, End_0) -->
   html_call(Begin_0),
   html_call(Middle_0),
   html_call(End_0).
-
-
-
-%! button(:Html_0)// is det.
-%! button(+Attrs, :Html_0)// is det.
-
-
-button(Html_0) -->
-  button([], Html_0).
-
-
-button(Attrs1, Html_0) -->
-  {merge_attrs([class=[btn,'btn-default'],type=button], Attrs1, Attrs2)},
-  html(button(Attrs2, Html_0)).
 
 
 
@@ -517,24 +331,6 @@ collapse_link(Id, Link_0) -->
 
 copy_to_clipboard(Txt) -->
   button(['data-clipboard-text'=Txt], \icon(copy)).
-
-
-
-%! data_link(+Res)// is det.
-%! data_link(+Res, :Html_0)// is det.
-%! data_link(+Res, +Attrs, :Html_0)// is det.
-
-data_link(Res) -->
-  data_link(Res, \icon(internal_link)).
-
-
-data_link(Res, Html_0) -->
-  data_link(Res, [], Html_0).
-
-
-data_link(Res, Attrs, Html_0) -->
-  {uri_resource(Uri, Res)},
-  internal_link(Uri, Attrs, Html_0).
 
 
 
@@ -595,7 +391,7 @@ developed_with -->
     div(class='developed-with', [
       \html_lstring(developed_with),
       " ",
-      \pl_link,
+      \prolog_link,
       "."
     ])
   ).
@@ -610,33 +406,6 @@ dict(Dict) -->
     span(class=dict, [
       span(class='dict-tag', Tag),
       \html_set(html_pair, Pairs)
-    ])
-  ).
-
-
-
-%! dropdown_menu(:Top_0, :Html_1, +Items)// is det.
-%! dropdown_menu(+Attrs, :Top_0, :Html_1, +Items)// is det.
-
-dropdown_menu(Top_0, Html_1, L) -->
-  dropdown_menu([], Top_0, Html_1, L).
-
-
-dropdown_menu(Attrs1, Top_0, Html_1, L) -->
-  {merge_attrs(Attrs1, [class=dropdown], Attrs2)},
-  html(
-    li(Attrs2, [
-      a([
-        'aria-expanded'=false,
-        'aria-haspopup'=true,
-        class='dropdown-toggle',
-        'data-toggle'=dropdown,
-        role=button
-      ], [
-        Top_0,
-        \html_caret
-      ]),
-      \unordered_list([class='dropdown-menu'], Html_1, L)
     ])
   ).
 
@@ -882,29 +651,18 @@ error_stream(Stream) -->
 
 
 
-%! favicon(+Spec)// is det.
-%
-% Generates an HTML link to a favicon.  This icon will show up in a
-% Web browser's tab.
+%! facebook_app_id// is det.
 
-favicon(Spec) -->
-  {uri_specification(Spec, Uri)},
-  link([type='image/x-icon'], icon-Uri).
+facebook_app_id -->
+  {setting(html:facebook_app_id, Id), ground(Id)}, !,
+  html(meta([name="fb:app_id",content=Id], [])).
+facebook_app_id --> [].
 
 
 
-%! fb_app_id// is det.
+%! facebook_comments(+Uri)// is det.
 
-fb_app_id -->
-  {setting_nonvar(html:fb_app_id, Id)}, !,
-  meta('fb:app_id', Id).
-fb_app_id --> [].
-
-
-
-%! fb_comments(+Uri)// is det.
-
-fb_comments(Uri) -->
+facebook_comments(Uri) -->
   html(
     div([
       class='fb-comments',
@@ -916,43 +674,20 @@ fb_comments(Uri) -->
 
 
 
-%! fb_follow0(+User, :Html_0)// is det.
+%! facebook_follow_txt// is det.
+%! facebook_follow_txt(+User)// is det.
 
-fb_follow0(User, Html_0) -->
-  {fb_user_uri(User, Uri)},
-  html(a(href=Uri, Html_0)).
-
-
-
-%! fb_follow_img// is det.
-%! fb_follow_img(+User)// is det.
-
-fb_follow_img -->
-  {setting_nonvar(html:fb_profile, User)}, !,
-  fb_follow_img(User).
-fb_follow_img --> [].
+facebook_follow_txt -->
+  {setting_nonvar(html:facebook_profile, User)}, !,
+  facebook_follow_txt(User).
+facebook_follow_txt --> [].
 
 
-fb_follow_img(User) -->
+facebook_follow_txt(User) -->
   {lstring(like_us_on_x, ["Facebook"], Str)},
-  tooltip(Str, \fb_follow0(User, \fb_img0)).
+  tooltip(Str, \facebook_follow0(User, facebook_txt0(User))).
 
-
-
-%! fb_follow_txt// is det.
-%! fb_follow_txt(+User)// is det.
-
-fb_follow_txt -->
-  {setting_nonvar(html:fb_profile, User)}, !,
-  fb_follow_txt(User).
-fb_follow_txt --> [].
-
-
-fb_follow_txt(User) -->
-  {lstring(like_us_on_x, ["Facebook"], Str)},
-  tooltip(Str, \fb_follow0(User, fb_txt0(User))).
-
-fb_txt0(User) -->
+facebook_txt0(User) -->
   html([
     \html_lstring(follow),
     " ",
@@ -964,20 +699,14 @@ fb_txt0(User) -->
 
 
 
-fb_img0 -->
-  {http_absolute_location(img('facebook.png'), Loc)},
-  html(img([alt="Facebook",src=Loc], [])).
+%! facebook_like(+Uri)// is det.
+%! facebook_like(+Style:oneof([large,small]), +Uri)// is det.
+
+facebook_like(Uri) -->
+  facebook_like(small, Uri).
 
 
-
-%! fb_like(+Uri)// is det.
-%! fb_like(+Style:oneof([large,small]), +Uri)// is det.
-
-fb_like(Uri) -->
-  fb_like(small, Uri).
-
-
-fb_like(Size, Uri) -->
+facebook_like(Size, Uri) -->
   html(
     div([
       class='fb-like',
@@ -990,20 +719,6 @@ fb_like(Size, Uri) -->
       'data-size'=Size
     ], [])
   ).
-
-
-
-%! fb_share(+Uri, +Title)// is det.
-
-fb_share(Uri0, Title) -->
-  {
-    lstring(share_x_on_y, [Title,"Facebook"], Str),
-    uri_comps(
-      Uri,
-      uri(http,'www.facebook.com',['share.php'],[title=Title,u=Uri0],_)
-    )
-  },
-  tooltip(Str, a([href=Uri,target='_blank'], \fb_img0)).
 
 
 
@@ -1025,35 +740,6 @@ figure(Uri, Alt, Caption_0) -->
 
 file_name(File) -->
   html(span(class=file, File)).
-
-
-
-%! file_upload// is det.
-
-file_upload -->
-  html([
-    \html_requires(dropzone),
-    form([action='/file-upload',class=dropzone,id=fileUpload], [])
-  ]).
-
-
-
-%! footer_panel(+Spec, :Top_0, :Bottom_0)// is det.
-
-footer_panel(Spec, Top_0, Bottom_0) -->
-  html([
-    div(style='display: table;', [
-      div([class='footer-logo',style='display: table-cell;'],
-        a(
-          href='/',
-          \image(Spec, [height=60,style='max-height: 60px;'])
-        )
-      ),
-      div(class='brand-txt', a(href='/', Top_0))
-    ]),
-    Bottom_0
-  ]).
-
 
 
 
@@ -1090,23 +776,6 @@ footnotes -->
 
 
 
-%! form(+Spec, :Html_0)// is det.
-%! form(+Spec, +Attrs, :Html_0)// is det.
-
-form(Spec, Html_0) -->
-  form(Spec, [], Html_0).
-
-
-form(Spec, Attrs1, Html_0) -->
-  {
-    uri_specification(Spec, Uri),
-    merge_attrs([method=get], Attrs1, Attrs2),
-    merge_attrs(Attrs2, [action=Uri], Attrs3)
-  },
-  html(form(Attrs3, Html_0)).
-
-
-
 %! form_submit_button// is det.
 %! form_submit_button(:Html_0)// is det.
 
@@ -1124,22 +793,6 @@ form_submit_button(Html_0) -->
 git_version -->
   {git_version(Version)},
   html(["GIT version ",Version,")"]).
-
-
-
-%! google_analytics// is det.
-
-google_analytics -->
-  {setting_nonvar(html:google_analytics_id, Id)}, !,
-  js_script({|javascript(Id)||
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-ga('create', Id, 'auto');
-ga('send', 'pageview');
-  |}).
-google_analytics --> [].
 
 
 
@@ -1199,13 +852,6 @@ html_callable(Mod, Html_2) -->
 
 
 
-%! html_caret// is det.
-
-html_caret -->
-  html(span(class=caret, [])).
-
-
-
 %! html_catch(:Html_0)// is det.
 %
 % Either generates Html_0 or an HTML representation of an exception
@@ -1252,33 +898,6 @@ html_http_error_page(Style, Req) :-
 
 html_license(Uri, Lbl) -->
   external_link(Uri, [rel=license], Lbl).
-
-
-
-%! html_list(+Ordered:boolean, :Html_1, +Args)// is det.
-%! html_list(+Attrs, +Ordered:boolean, :Html_1, +Args)// is det.
-
-html_list(Ordered, Html_1, L) -->
-  html_list([], Ordered, Html_1, L).
-
-html_list(Attrs, false, Html_1, L) --> !,
-  html(ul(Attrs, \html_maplist(html_list_item(false, Html_1), L))).
-html_list(Attrs, true, Html_1, L) -->
-  html(ol(Attrs, \html_maplist(html_list_item(true, Html_1), L))).
-
-html_list_item(Ordered, Html_1, L) -->
-  {is_list(L)}, !,
-  html(li(\html_list(Ordered, Html_1, L))).
-html_list_item(_, Html_1, X) --> !,
-  html(li(\html_call(Html_1, X))).
-
-
-
-%! html_lstring(+Name)// is det.
-
-html_lstring(Name) -->
-  {lstring(Name, Str)},
-  html(Str).
 
 
 
@@ -1337,13 +956,6 @@ html_select(Attrs1, ItemGen_1, Html_1) -->
     findall(Item, call(ItemGen_1, Item), Items)
   },
   html(select(Attrs2, \html_maplist(Html_1, Items))).
-
-
-
-%! html_space// is det.
-
-html_space -->
-  html(span(class=space, [])).
 
 
 
@@ -1424,24 +1036,6 @@ digits0(_, 0).
 
 
 
-%! icon_button(+Name)// is det.
-%! icon_button(+Name, +Func)// is det.
-
-icon_button(Name) -->
-  icon_button(Name, _).
-
-
-icon_button(Name, Func) -->
-  {
-    icon_class_title(Name, Class, Title),
-    (var(Func) -> Attrs = [] ; Attrs = [onclick=Func])
-  },
-  html(
-    button([class=[btn,'btn-default',af,Class],title=Title|Attrs], [])
-  ).
-
-
-
 %! idle(+Time)// is det.
 
 idle(Time) -->
@@ -1465,14 +1059,6 @@ if_then(If_0, Then_0) -->
 
 if_then_else(If_0, Then_0, Else_0) -->
   ({call(If_0)} -> html_call(Then_0) ; html_call(Else_0)).
-
-
-
-%! ignore(:Html_0)// is det.
-
-ignore(Html_0) -->
-  html_call(Html_0), !.
-ignore(_) --> [].
 
 
 
@@ -1609,35 +1195,6 @@ ip(IP) -->
 
 
 
-%! language_menu(+LTags)// is det.
-
-language_menu(LTags) -->
-  {
-    setting_nonvar(nlp:lrange, [LTag|_]), !,
-    lstring(language, Lbl)
-  },
-  navbar_dropdown_menu(
-    'language-menu',
-    Lbl,
-    language_menu_item(LTag),
-    LTags
-  ),
-  js_script({|javascript(_)||
-$( "#language-menu" ).change(function() {
-  var str = "";
-  $("select option:selected").each(function() {
-    $.get("/change_language", {ltag: $(this).val()});
-  });
-});
-  |}).
-language_menu(_) --> [].
-
-language_menu_item(LTag0, LTag) -->
-  {(LTag0 == LTag -> T = [selected=selected] ; T = [])},
-  html(option([value=LTag|T], \html_lstring(LTag))).
-
-
-
 %! link_button(+Uri, :Html_0)// is det.
 %
 % Generate an HTML link that looks like a button.
@@ -1683,61 +1240,6 @@ mail_link_and_icon(Uri) -->
 
 
 
-%! menu// is det.
-%
-% This needs to be plugged into navbar//3 for argument Menu_0.
-
-menu -->
-  {
-    http_base_location_uri(Loc),
-    major_menus(MajorMenus)
-  },
-  html_maplist(major_menu(Loc), MajorMenus).
-
-
-% Flat menu item.
-major_menu(Loc, menu_item(Handle,Lbl)-[]) --> !,
-  {
-    http_link_to_id(Handle, Uri),
-    (atom_postfix(Loc, Uri) -> Classes = [active] ; Classes = [])
-  },
-  html(
-    li(class='nav-item',
-      a([class=['nav-link',Handle|Classes],href=Uri], Lbl)
-    )
-  ).
-% Nested menu items.
-major_menu(_, MajorItem-MinorItems) -->
-  dropdown_menu(menu_item(MajorItem), menu_item, MinorItems).
-
-
-major_menus(MajorTrees) :-
-  findall(
-    Major-menu_item(Handle,Lbl),
-    (html:menu_item(Major, Handle, Lbl), Handle \== user),
-    Pairs
-  ),
-  asc_pairs_values(Pairs, MajorNodes),
-  maplist(major_node_to_menu, MajorNodes, MajorTrees).
-
-
-major_node_to_menu(
-  menu_item(Handle1,Lbl1),
-  menu_item(Handle1,Lbl1)-MinorNodes
-) :-
-  findall(
-    Minor-menu_item(Handle2,Lbl2),
-    html:menu_item(Handle1, Minor, Handle2, Lbl2),
-    Pairs
-  ),
-  asc_pairs_values(Pairs, MinorNodes).
-
-
-menu_item(menu_item(Handle,Lbl)) -->
-  internal_link(link_to_id(Handle), Lbl).
-
-
-
 %! meta_charset// is det.
 
 meta_charset -->
@@ -1745,68 +1247,10 @@ meta_charset -->
 
 
 
-%! meta_ie_latest// is det.
-%
-% Non-standard HTTP-like header that tells Internet Explorer to use
-% the most recent version of its rendering engine.
-
-meta_ie_latest -->
-  html(meta(['http-equiv'='X-UA-Compatible',content='IE=edge'], [])).
-
-
-
 %! meta_license(+Uri)// is det.
 
 meta_license(Uri) -->
   link(license-Uri).
-
-
-
-%! meta_viewport// is det.
-%
-% `width=device-width` instructs the page to match the screen’s width
-% in device-independent pixels.  This allows the page to reflow
-% content to match different screen sizes.
-%
-% Some browsers will keep the page’s width constant when rotating to
-% landscape mode, and zoom rather than reflow to fill the screen.
-% Adding the attribute `initial-scale=1` instructs browsers to
-% establish a 1:1 relationship between CSS pixels and
-% device-independent pixels regardless of device orientation, and
-% allows the page to take advantage of the full landscape width.
-%
-% `user-scalable=yes` allows a user to zoom in/out on the viewport for
-% accessibility.
-%
-% @compat Use a comma to separate attributes to ensure older browsers
-%         can properly parse the attributes.
-
-meta_viewport -->
-  meta(viewport, 'width=device-width, initial-scale=1, shrink-to-fit=no').
-
-
-
-%! navbar_dropdown_menu(+Name, +Lbl, :Html_1, +Items)// is det.
-%! navbar_dropdown_menu(+Attrs, +Name, +Lbl, :Html_1, +Items)// is det.
-%
-% @tbd What does `role(search)` do?
-
-navbar_dropdown_menu(Name, Lbl, Html_1, L) -->
-  navbar_dropdown_menu([], Name, Lbl, Html_1, L).
-
-
-navbar_dropdown_menu(Attrs1, Name, Lbl, Html_1, L) -->
-  {merge_attrs(Attrs1, [class=['navbar-form'],id=Name,role=search], Attrs2)},
-  html(
-    form(Attrs2,
-      div(class='form-group', [
-        label(for=Name, [Lbl,": "]),
-        select([class=['form-control',selectpicker],id=Name],
-          \html_maplist(Html_1, L)
-        )
-      ])
-    )
-  ).
 
 
 
@@ -1846,25 +1290,6 @@ operator(Mod, op(Pred,Type,Name)) -->
     \nonvar(module_prefix, Mod),
     "op(",Pred,",",Type,",",Name,")"
   ]).
-
-
-
-%! ordered_list(+Items)// is det.
-%! ordered_list(:Html_1, +Items)// is det.
-%! ordered_list(+Attrs, :Html_1, +Items)// is det.
-%
-% Generates an ordered HTML list.
-
-ordered_list(L) -->
-  ordered_list(html, L).
-
-
-ordered_list(Html_1, L) -->
-  ordered_list([], Html_1, L).
-
-
-ordered_list(Attrs, Html_1, L) -->
-  html_list(Attrs, true, Html_1, L).
 
 
 
@@ -1911,20 +1336,6 @@ panel_mode(true, [in]).
 
 panels(Panels_0) -->
   html(div([class='panel-group',id=accordion], Panels_0)).
-
-
-
-%! pipe// is det.
-
-pipe -->
-  html([" ",span(class=pipe, "|")," "]).
-
-
-
-%! pl_link// is det.
-
-pl_link -->
-  external_link('http://www.swi-prolog.org', "SWI-Prolog").
 
 
 
@@ -1983,33 +1394,6 @@ reset_button(Html_0) -->
 
 
 
-%! row_1(:ContentA_0)// is det.
-%! row_1(+WidthsA, :ContentA_0)// is det.
-%! row_1(+Attrs, +WidthsA, :ContentA_0)// is det.
-
-row_1(ContentA_0) -->
-  row_1(12, ContentA_0).
-
-
-row_1(WidthsA, ContentA_0) -->
-  row_1([], WidthsA, ContentA_0).
-
-
-row_1(Attrs1, WidthsA, ContentA_0) -->
-  {
-    merge_attrs(Attrs1, [class='container-fluid'], Attrs2),
-    widths(WidthsA, ClassesA)
-  },
-  html(
-    div(Attrs2,
-      div(class=row,
-        div(class=[col|ClassesA], ContentA_0)
-      )
-    )
-  ).
-
-
-
 %! row_2(:ContentA_0, :ContentB_0)// is det.
 %! row_2(+Attrs, :ContentA_0, :ContentB_0)// is det.
 %! row_2(+WidthsA, :ContentA_0, +WidthsB, :ContentB_0)// is det.
@@ -2037,35 +1421,6 @@ row_2(Attrs1, WidthsA, ContentA_0, WidthsB, ContentB_0) -->
       div(class=row, [
         div(class=[col|ClassesA], ContentA_0),
         div(class=[col|ClassesB], ContentB_0)
-      ])
-    )
-  ).
-
-
-
-%! row_3(:ContentA_0, :ContentB_0, :ContentC_0)// is det.
-%! row_3(+WidthsA, :ContentA_0, +WidthsB, :ContentB_0, +WidthsC, :ContentC_0)// is det.
-%! row_3(+Attrs, +WidthsA, :ContentA_0, +WidthsB, :ContentB_0, +WidthsC, :ContentC_0)// is det.
-
-row_3(ContentA_0, ContentB_0, ContentC_0) -->
-  row_3(4, ContentA_0, 4, ContentB_0, 4, ContentC_0).
-
-
-row_3(WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0) -->
-  row_3([], WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0).
-
-
-row_3(Attrs1, WidthsA, ContentA_0, WidthsB, ContentB_0, WidthsC, ContentC_0) -->
-  {
-    merge_attrs(Attrs1, [class=['container-fluid']], Attrs2),
-    maplist(widths, [WidthsA,WidthsB,WidthsC], [ClassesA,ClassesB,ClassesC])
-  },
-  html(
-    div(Attrs2,
-      div(class=row, [
-        div(class=[col|ClassesA], ContentA_0),
-        div(class=[col,middle|ClassesB], ContentB_0),
-        div(class=[col|ClassesC], ContentC_0)
       ])
     )
   ).
@@ -2170,18 +1525,6 @@ search_result_number(_) -->
 
 streamer(Html_0) -->
   html(div(class=streamer, Html_0)).
-
-
-
-%! submit_button// is det.
-%! submit_button(:Html_0)// is det.
-
-submit_button -->
-  submit_button("Submit").
-
-
-submit_button(Html_0) -->
-  button([type=submit], Html_0).
 
 
 
@@ -2290,14 +1633,6 @@ term(Term) -->
 
 
 
-%! title(+Strs)// is det.
-
-title(Strs) -->
-  {atomics_to_string(Strs, " ⎯ ", Str)},
-  html(title(Str)).
-
-
-
 %! truncate(+Str, +MaxLen)// is det.
 
 truncate(Str, MaxLen) -->
@@ -2379,30 +1714,24 @@ twitter_profile(User) -->
 
 
 
-%! twitter_share(+Uri, +Title)// is det.
-
-twitter_share(Uri0, Title) -->
-  {
-    lstring(share_x_on_y, [Title,"Twitter"], Str),
-    uri_comps(Uri, uri(https,'twitter.com',[share],[text(Title),url(Uri0)],_))
-  },
-  tooltip(Str, a(href=Uri, \twitter_img0)).
-
-
-
 %! twitter_tweet(+Tweet)// is det.
 
 twitter_tweet(Tweet) -->
   {
-    uri_comps(
-      Uri,
-      uri(https,'publish.twitter.com',[oembed],[omit_script(true),url(Tweet)],_)
+    http_open2(
+      uri(
+	https,
+	'publish.twitter.com',
+	[oembed],
+	[omit_script(true),url(Tweet)],
+	_
+      ),
+      In,
+      [request_header('Accept'='application/json')]
     ),
-    http_open(Uri, In, [request_header('Accept'='application/json')]),
-    json_read_dict(In, Dict),
-    atom_string(A, Dict.html)
+    json_read_dict(In, Dict, [value_string_as(atom)])
   },
-  [A].
+  [Dict.html].
 
 
 
@@ -2410,25 +1739,6 @@ twitter_tweet(Tweet) -->
 
 unless(Unless_0, Then_0) -->
   ({call(Unless_0)} -> [] ; html_call(Then_0)).
-
-
-
-%! unordered_list(+Items)// is det.
-%! unordered_list(:Html_1, +Items)// is det.
-%! unordered_list(+Attrs, :Html_1, +Items)// is det.
-%
-% Generates an unordered HTML list.
-
-unordered_list(L) -->
-  unordered_list(html, L).
-
-
-unordered_list(Html_1, L) -->
-  unordered_list([], Html_1, L).
-
-
-unordered_list(Attrs, Html_1, L) -->
-  html_list(Attrs, false, Html_1, L).
 
 
 
@@ -2447,73 +1757,6 @@ upload_form(Spec) -->
       \submit_button("Upload")
     ]
   ).
-
-
-
-%! user_menu(:UserName_2, :UserImg_2)// is det.
-
-user_menu(UserName_2, UserImg_2) -->
-  {
-    current_user(User), !,
-    logout_link(Link)
-  },
-  dropdown_menu(
-    [id='user-menu'],
-    \user_menu_top(User, UserName_2, UserImg_2),
-    user_menu_item,
-    [menu_item(Link, [id='logout-button'], "Logout")]
-  ).
-user_menu(_, _) -->
-  {login_link(Link)},
-  form(
-    Link,
-    [class=['navbar-form','navbar-right'],id='user-menu'],
-    div(class='form-group',
-      \submit_button(\internal_link(Link, "Login"))
-    )
-  ).
-
-user_menu_item(menu_item(Link,Attrs,Lbl)) -->
-  internal_link(Link, Attrs, Lbl).
-
-user_menu_top(User, UserName_2, UserImg_2) -->
-  {
-    call(UserName_2, User, Name),
-    call(UserImg_2, User, Img)
-  },
-  html([img([alt=Name,src=Img], []),Name]).
-
-
-
-%! vote_down(+Vote:integer)// is det.
-
-% @tbd Show as inactive and selected.
-vote_down(Vote) -->
-  {Vote < 0}, !,
-  icon_button(vote_down).
-vote_down(Vote) -->
-  {Vote =:= 0}, !,
-  icon_button(vote_down).
-% @tbd Show as inactive and not selected.
-vote_down(Vote) -->
-  {Vote > 0}, !,
-  icon_button(vote_down).
-
-
-
-%! vote_up(+Vote:integer)// is det.
-
-% @tbd Show as inactive and selected.
-vote_up(Vote) -->
-  {Vote < 0}, !,
-  icon_button(vote_up).
-vote_up(Vote) -->
-  {Vote =:= 0}, !,
-  icon_button(vote_up).
-% @tbd Show as inactive and not selected.
-vote_up(Vote) -->
-  {Vote > 0}, !,
-  icon_button(vote_up).
 
 
 
@@ -2546,13 +1789,6 @@ exit_code_reason(127, "Command not found.").
 exit_code_reason(128, "Invalid argument to the exit command; \c
                        only takes integer args in the range 0-255.").
 exit_code_reason(130, "Script terminated by Control-C.").
-
-
-
-%! fb_user_uri(+User, -Uri) is det.
-
-fb_user_uri(User, Uri) :-
-  uri_comps(Uri, uri(https,'facebook.com',[User],_,_)).
 
 
 
@@ -2725,40 +1961,3 @@ raw_page(Spec, Title, Content) :-
   Style = element(style, _, _),
   findall(Style, sub_term(Style, Dom), Styles),
   append(Styles, Body, Content).
-
-
-
-%! widths(
-%!   +Widths:or([list(between(1,12)),between(1,12)]),
-%!   -Classes:list(atom)
-%! ) is det.
-%! widths(
-%!   +Offset:boolean,
-%!   +Widths:or([list(between(1,12)),between(1,12)]),
-%!   -Classes:list(atom)
-%! ) is det.
-
-widths(Widths, Classes) :-
-  widths(false, Widths, Classes).
-
-
-widths(Offset, Widths, Classes) :-
-  is_list(Widths), !,
-  maplist(width0(Offset), [xs,sm,md,lg,xl], Widths, Classes).
-widths(Offset, Width, Classes) :-
-  widths(Offset, [Width,Width,Width,Width,Width], Classes).
-
-
-%! width0(
-%!   +Offset:boolean,
-%!   +Mode:oneof([lg,md,sm,xs]),
-%!   +Widths:or([list(between(1,12)),between(1,12)]),
-%!   -Class:atom
-%! ) is det.
-
-width0(Offset, Mode, Width, Class) :-
-  (   Offset == true
-  ->  Comps = [col,Mode,offset,Width]
-  ;   Comps = [col,Mode,Width]
-  ),
-  atomic_list_concat(Comps, -, Class).

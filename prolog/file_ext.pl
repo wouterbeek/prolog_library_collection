@@ -15,7 +15,6 @@
     current_directory/1,        % ?Dir
     delete_directory_silent/1,  % +Dir
     delete_directory_and_contents_silent/1, % +Dir
-    delete_file_silent/1,       % +File
     directory_is_empty/1,       % +Dir
     directory_recursive/2,      % +Dir, -Subdir
     directory_subdirectories/2, % ?Dir, ?Subdirs
@@ -263,18 +262,6 @@ delete_directory_and_contents_silent(Dir) :-
   exists_directory(Dir), !,
   delete_directory_and_contents(Dir).
 delete_directory_and_contents_silent(_).
-
-
-
-%! delete_file_silent(+File) is det.
-%
-% Succeed silently if File does not exist and print a message when
-% it does exist and is deleted.
-
-delete_file_silent(File) :-
-  exists_file(File), !,
-  delete_file(File).
-delete_file_silent(_).
 
 
 

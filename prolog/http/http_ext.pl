@@ -1,12 +1,8 @@
 :- module(
   http_ext,
   [
-    http_base_location_uri/1, % -Uri
-    http_cookie/2,            % +Key, -Cookie
     http_uri_query/2,         % +Uri, -Comp
-    http_link_to_id/2,        % +HandleId, -Local
     http_peer/1,              % -PeerIP
-    http_redirect/2,          % +How, +To
     http_reply_file/1,        % +File
     is_empty_get_request/1    % +Req
   ]
@@ -40,25 +36,6 @@ messages.
 
 
 
-%! http_base_location_uri(-Uri) is det.
-
-http_base_location_uri(Uri2) :-
-  http_current_request(Req),
-  http_location_uri(Req, Uri1),
-  uri_components(Uri1, uri_components(Scheme,Auth,Path,_,_)),
-  uri_components(Uri2, uri_components(Scheme,Auth,Path,_,_)).
-
-
-
-%! http_cookie(+Key, -Cookie) is det.
-
-http_cookie(Key, Cookie) :-
-  http_current_request(Req),
-  memberchk(cookie(Cookies), Req),
-  memberchk(Key=Cookie, Cookies).
-
-
-
 %! http_uri_query(+Uri, -Comp) is nondet.
 
 http_uri_query(Uri, Comp) :-
@@ -68,26 +45,11 @@ http_uri_query(Uri, Comp) :-
 
 
 
-%! http_link_to_id(+HandleId, -Local) is det.
-
-http_link_to_id(HandleId, Local) :-
-  http_link_to_id(HandleId, [], Local).
-
-
-
 %! http_peer(-PeerIP) is det.
 
 http_peer(PeerIP) :-
   http_current_request(Req),
   http_peer(Req, PeerIP).
-
-
-
-%! http_redirect(+How, +To) is det.
-
-http_redirect(How, To) :-
-  http_current_request(Req),
-  http_redirect(How, To, Req).
   
 
 
