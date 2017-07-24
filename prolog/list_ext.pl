@@ -14,7 +14,6 @@
     first_duplicate/2,      % ?FirstDuplicate, +L
     is_singleton_list/1,    % @Term
     list_binary_term/3,     % ?L, ?Op, ?Term
-    list_intersperse/3,     % +L1, +Sep, -L2
     list_replace/3,         % +L1, +Replacements:list(pair), -L2
     list_row/2,             % ?L, ?Row
     list_split/2,           % ?L, ?X
@@ -270,21 +269,6 @@ list_binary_term([H], _, H).
 list_binary_term([H|T1], Op, L2) :-
   list_binary_term(T1, Op, T2),
   L2 =.. [Op,H,T2].
-
-
-
-%! list_intersperse(+L1, +Sep, -L2)// is det.
-%
-% Returns a list that is based on the given list, but interspersed
-% with copies of the separator term.
-%
-% If the length of the given list is `n`, then the length of the new list
-% is `2n - 1` for `n > 0`.
-
-list_intersperse([], _, []) :- !.
-list_intersperse([H], _, [H]) :- !.
-list_intersperse([H|T1], Sep, [H,Sep|T2]) :-
-  list_intersperse(T1, Sep, T2).
 
 
 

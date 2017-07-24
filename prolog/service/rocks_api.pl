@@ -2,35 +2,17 @@
   rocks_api,
   [
   % Predicates with alias
-    call_on_rocks/3,   % +Alias, +Type, :Goal_1
-    call_to_rocks/3,   % +Alias, +Type, :Goal_1
     rocks_alias/1,     % ?Alias
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
-    rocks_open/3,      % +Alias, +Type, +Mode
     rocks_rm/1,        % +Alias
   % Predicates with RocksDB handle
-    rocks_key/2,       % +RocksDB, ?Key
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_nullify/1,   % +RocksDB
     rocks_pull/3       % +RocksDB, -Key, -Val
   ]
 ).
-:- reexport(library(rocksdb), [
-     rocks_batch/2,    % +RocksDB, +Actions
-     rocks_enum/3,     % +RocksDB, ?Key, ?Val
-     rocks_get/3,      % +RocksDB, +Key, -Val
-     rocks_merge/3,    % +RocksDB, +Key, +Val
-     rocks_property/2, % +RocksDB, ?Prop
-     rocks_put/3       % +RocksDB, +Key, +Val
-   ]).
-
-/** <module> RocksDB extensions
-
-@author Wouter Beek
-@version 2017/01
-*/
 
 :- use_module(library(apply)).
 :- use_module(library(debug)).
@@ -39,42 +21,6 @@
 :- use_module(library(ordsets)).
 :- use_module(library(pagination_cli)).
 :- use_module(library(settings)).
-
-:- meta_predicate
-    call_on_rocks(+, +, 1),
-    call_rocks0(+, +, +, 1),
-    call_to_rocks(+, +, 1).
-
-:- rlimit(nofile, _, 50000).
-
-:- setting(
-     index_dir,
-     atom,
-     '~/Data/index/',
-     "Directory in whose subdirectories RocksDB indices are stored."
-   ).
-
-
-
-
-
-%! call_on_rocks(+Alias, +Type, :Goal_1) is det.
-%
-% The following call is made: ‘call(:Goal_1, +Alias)’.
-
-call_on_rocks(Alias, Type, Goal_1) :-
-  call_rocks0(Alias, Type, read_only, Goal_1).
-
-
-
-%! call_to_rocks(+Alias, +Type, :Goal_1) is det.
-%
-% The following call is made: ‘call(:Goal_1, +Alias)’.
-
-call_to_rocks(Alias, Type, Goal_1) :-
-  call_rocks0(Alias, Type, read_write, Goal_1).
-
-
 
 %! rocks_alias(+Alias) is semidet.
 %! rocks_alias(-Alias) is nondet.
@@ -89,17 +35,6 @@ rocks_alias(Alias) :-
   ;   directory_subdirectory(Dir, Alias, _)
   ).
   
-
-
-%! rocks_key(+RocksDB, +Key) is semidet.
-%! rocks_key(+RocksDB, -Key) is nondet.
-
-rocks_key(RocksDB, Key) :-
-  ground(Key), !,
-  rocks_get(RocksDB, Key, _).
-rocks_key(RocksDB, Key) :-
-  rocks_enum(RocksDB, Key, _).
-
 
 
 %! rocks_ls is det.
@@ -151,22 +86,6 @@ rocks_nullify(RocksDB) :-
 
 
 
-%! rocks_open(+Alias, +Type, +Mode) is det.
-
-rocks_open(Alias, Type, Mode) :-
-  rocks_dir0(Alias, Dir),
-  once(type_merge_value0(Type, Merge_5, Val)),
-  rocksdb:rocks_open(
-    Dir,
-    _,
-    [alias(Alias),key(atom),merge(rocks_api:Merge_5),mode(Mode),value(Val)]
-  ).
-
-type_merge_value0(int, rocks_merge_sum, int64).
-type_merge_value0(set(atom), rocks_merge_set, term).
-
-
-
 %! rocks_pull(+RocksDB, -Key, -Val) is nondet.
 
 rocks_pull(RocksDB, Key, Val) :-
@@ -183,29 +102,3 @@ rocks_rm(Alias) :-
   catch(rocks_close(Alias), _, true),
   rocks_dir0(Alias, Dir),
   delete_directory_and_contents_silent(Dir).
-
-
-
-
-
-% HELPERS %
-
-%! call_rocks0(+Alias, +Type, +Mode, :Goal_1) is det.
-%
-% Mode is either ‘read_only’ or ‘read_write’.
-
-call_rocks0(Alias, Type, Mode, Goal_1) :-
-  setup_call_cleanup(
-    rocks_open(Alias, Type, Mode),
-    call(Goal_1, Alias),
-    rocks_close(Alias)
-  ).
-
-
-
-%! rocks_dir0(+Alias, -Dir) is det.
-
-rocks_dir0(Alias, Subdir) :-
-  setting(index_dir, Dir),
-  directory_file_path(Dir, Alias, Subdir),
-  create_directory(Subdir).

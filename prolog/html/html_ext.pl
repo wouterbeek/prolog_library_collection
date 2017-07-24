@@ -80,7 +80,6 @@
     linkedin_share//0,
     list//1,                % +Args
     list//2,                % :Html_1, +Args
-    mail_link_and_icon//1,  % +Uri
     meta//2,                % +Name, +Content
     meta_charset//0,
     meta_ie_latest//0,
@@ -1225,18 +1224,6 @@ list(Args) -->
 
 list(Html_1, Args) -->
   html([&(91),\html_seplist(Html_1, Args),&(93)]).
-
-
-
-%! mail_link_and_icon(+Uri)// is det.
-
-mail_link_and_icon(Uri) -->
-  {uri_components(Uri, uri_components(mailto,_,Lbl,_,_))},
-  external_link(
-    Uri,
-    [class=nowrap,property='foaf:mbox'],
-    [\icon(mail)," ",code(Lbl)]
-  ).
 
 
 

@@ -20,11 +20,8 @@
     close_any2/1,            % +Close
     close_any2/2,            % +Close, +Mode
     copy_stream_data/4,      % +In, +InPath1, -InPath2, +Out
-    guess_stream_encoding/2, % +In, -Enc
     is_archive_file/1,       % +File
     open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
-    open_binary_string/2,    % +Str, -In
-    read_line_to_atom/2,     % +In, -A
     read_mode/1,             % ?Mode
     read_stream_to_atom/2,   % +In, -A
    %read_stream_to_codes/2,  % +In, -Cs
@@ -32,7 +29,6 @@
     read_to_atom/2,          % +Source, -A
     read_to_codes/2,         % +Source, -Cs
     read_to_string/2,        % +Source, -Str
-    recode_stream/4,         % +In1, -In2, -Close, +Opts
     source_base_uri/2,       % +InPath, -BaseUri
     source_entry_name/2,     % +InPath, -EntryName
     source_entry_segments/2, % +InPath, -Segments
@@ -112,46 +108,6 @@ error:has_type(write_mode, Term) :-
 
 
 
-
-%! archive_file_extension(+Ext) is semidet.
-%! archive_file_extension(-Ext) is multi.
-%
-% Often occurring file extensions for archvies.
-
-archive_file_extension(cab).
-archive_file_extension(rar).
-archive_file_extension(tar).
-archive_file_extension(xar).
-archive_file_extension(zip).
-
-
-
-%! archive_format(-Format) is multi.
-%! archive_format(-Format, -Supported) is multi.
-%
-% Some archive formats are not Supported because they often get
-% mistaken for regular text files.
-
-archive_format(Format) :-
-  archive_format(Format, _).
-
-
-archive_format('7zip',  true ).
-archive_format(ar,      true ).
-archive_format(cab,     true ).
-archive_format(cpio,    true ).
-archive_format(empty,   true ).
-archive_format(gnutar,  true ).
-archive_format(iso9660, true ).
-archive_format(lha,     true ).
-archive_format(mtree,   false).
-archive_format(rar,     true ).
-archive_format(raw,     true ).
-archive_format(tar,     true ).
-archive_format(xar,     true ).
-archive_format(zip,     true ).
-
-    
 
 %! archive_path(+Source, -InPath) is nondet.
 %
@@ -261,14 +217,14 @@ call_on_stream0(In, Goal_3, InPath1, InPath2, SourceOpts) :-
     )
   ).
 
-call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
+call_on_archive0(Archive, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
   option(entry_name(EntryNameMatch), SourceOpts, _),
-  archive_property(Arch, filter(Filters)),
+  archive_property(Archive, filter(Filters)),
   repeat,
   (   % @bug error(archive_error(1001,Truncated input file (needed
       % 2049346009 bytes, only 0 available)),_12880)
-      archive_next_header(Arch, EntryName)
-  ->  findall(Prop, archive_header_property(Arch, Prop), Props),
+      archive_next_header(Archive, EntryName)
+  ->  findall(Prop, archive_header_property(Archive, Prop), Props),
       dict_create(
         InEntry1,
         ['@id'(EntryName),'@type'(entry),filters(Filters)|Props]
@@ -296,8 +252,8 @@ call_on_archive0(Arch, Goal_3, [InEntry2|InPath1], InPath3, SourceOpts) :-
       (   memberchk(filetype(file), Props)
       ->  setup_call_cleanup(
             (
-              archive_open_entry(Arch, In),
-              indent_debug(in, io(open), "R» ~w → ~a → ~w", [Arch,EntryName,In])
+              archive_open_entry(Archive, In),
+              indent_debug(in, io(open), "R» ~w → ~a → ~w", [Archive,EntryName,In])
             ),
             (
               call_on_stream0(
@@ -590,43 +546,6 @@ close_metadata(Stream, [Entry1|Path], [Entry2|Path], Opts) :-
 close_metadata(true, Path, Path, _).
 
 
-%! close_metadata_hash(+Stream, +Opts) is det.
-%
-% The following options are supported:
-%
-%   * The following hash options are supported:
-%
-%     * md5(-atom)
-%
-%     * sha1(-atom)
-%
-%     * sha224(-atom)
-%
-%     * sha256(-atom)
-%
-%     * sha384(-atom)
-%
-%     * sha512(-atom)
-
-close_metadata_hash(Stream, Opts) :-
-  (   option(md5(Hash), Opts)
-  ->  true
-  ;   option(sha1(Hash), Opts)
-  ->  true
-  ;   option(sha224(Hash), Opts)
-  ->  true
-  ;   option(sha256(Hash), Opts)
-  ->  true
-  ;   option(sha384(Hash), Opts)
-  ->  true
-  ;   option(sha512(Hash), Opts)
-  ->  true
-  ), !,
-  stream_hash(Stream, Hash).
-close_metadata_hash(_, _).
-
-
-
 %! copy_stream_data(+In, +InPath1, -InPath2, +Out) is det.
 
 copy_stream_data(In, InPath, InPath, Out) :-
@@ -634,36 +553,16 @@ copy_stream_data(In, InPath, InPath, Out) :-
 
 
 
-%! guess_stream_encoding(+In, -Enc) is det.
-
-guess_stream_encoding(In, Enc) :-
-  peek_string(In, 1000, Str),
-  guess_string_encoding(Str, Enc).
-
-
-
-%! guess_string_encoding(+Str, -Enc) is det.
+%! archive_file_extension(+Extension:atom) is semidet.
+%! archive_file_extension(-Extension:atom) is multi.
 %
-% Encoding Enc is converted to lowercase.
+% Often occurring file extensions for archvies.
 
-guess_string_encoding(Str, Enc2) :-
-  string_phrase('XMLDecl'(_, Enc1, _), Str, _),
-  nonvar(Enc1),
-  downcase_atom(Enc1, Enc2).
-guess_string_encoding(Str, Enc3) :-
-  setup_call_cleanup(
-    open_binary_string(Str, In),
-    setup_call_cleanup(
-      process_open(uchardet, In, Out),
-      (
-        read_string(Out, Enc1),
-        split_string(Enc1, "", "\n", [Enc2|_])
-      ),
-      close(Out)
-    ),
-    close(In)
-  ),
-  downcase_atom(Enc2, Enc3).
+archive_file_extension(cab).
+archive_file_extension(rar).
+archive_file_extension(tar).
+archive_file_extension(xar).
+archive_file_extension(zip).
 
 
 
@@ -677,22 +576,6 @@ is_archive_file(File) :-
     member(Ext, Exts),
     archive_file_extension(Ext)
   )).
-
-
-
-%! open_binary_string(+Str, -In) is det.
-
-open_binary_string(Str, In) :-
-  open_string(Str, In),
-  set_stream(In, type(binary)).
-
-
-
-%! read_line_to_atom(+In, -A) is det.
-
-read_line_to_atom(In, A) :-
-  read_line_to_codes(In, Cs),
-  atom_codes(A, Cs).
 
 
 
@@ -746,25 +629,6 @@ read_stream_to_codes(Cs, In, InPath, InPath) :-
 read_to_string(Source, Str) :-
   read_to_codes(Source, Cs),
   string_codes(Str, Cs).
-
-
-
-%! recode_stream(+In1, -In2, -Close, +Opts) is det.
-
-recode_stream(In, In, true, _) :-
-  set_stream(In, encoding(bom)), !.
-recode_stream(In1, In2, In2, SourceOpts) :-
-  option(recode(true), SourceOpts),
-  option(from_encoding(Enc1), SourceOpts, _VAR),
-  (var(Enc1) -> guess_stream_encoding(In1, Enc1) ; true),
-  \+ memberchk(Enc1, [ascii,'ascii/unknown','utf-8','us-ascii']), !,
-  debug(io(recode), "~a → utf-8", [Enc1]),
-  once(encoding_alias(Enc1, Enc2)),
-  process_open(iconv, In1, ['-c','-f',Enc2,'-t','utf-8'], In2).
-recode_stream(In, In, true, _).
-
-encoding_alias(macroman, macintosh).
-encoding_alias(Enc, Enc).
 
 
 
@@ -919,20 +783,6 @@ memory_file_to_something(Handle, string, Str) :- !,
 %
 % The following options are supported:
 %
-%   * The following hash options are supported:
-%
-%     * md5(--atom)
-%
-%     * sha1(--atom)
-%
-%     * sha224(--atom)
-%
-%     * sha256(--atom)
-%
-%     * sha384(--atom)
-%
-%     * sha512(--atom)
-%
 %   * metadata(-dict)
 %
 %     * file(atom)
@@ -951,26 +801,6 @@ open_any2(Spec, Mode, Stream2, Close2, Path, Opts) :-
       indent_debug(in, io(open), "~s» ~w → ~w", [Lbl,Spec,Stream1])
   ),
   open_any2_hash(Stream1, Close1, Stream2, Close2, Opts).
-
-
-open_any2_hash(Stream1, _, Stream2, Stream2, Opts) :-
-  (   option(md5(_), Opts)
-  ->  Alg = md5
-  ;   option(sha1(_), Opts)
-  ->  Alg = sha1
-  ;   option(sha224(_), Opts)
-  ->  Alg = sha224
-  ;   option(sha256(_), Opts)
-  ->  Alg = sha256
-  ;   option(sha384(_), Opts)
-  ->  Alg = sha384
-  ;   option(sha512(_), Opts)
-  ->  Alg = sha512
-  ), !,
-  % The parent (Stream1) is closed automatically whenever the child
-  % (Stream2) is closed.
-  open_hash_stream(Stream1, Stream2, [algorithm(Alg)]).
-open_any2_hash(Stream, Close, Stream, Close, _).
 
 
 open_any2_variant(atom(A), Mode, Stream, Close, InPath, Opts) :- !,
@@ -1014,36 +844,3 @@ open_options(Mode, [type(binary)]) :-
   read_mode(Mode), !.
 open_options(Mode, [encoding(utf8),type(text)]) :-
   write_mode(Mode), !.
-
-
-
-%! stream_metadata(+Stream, +Entry1, -Entry2) is det.
-%
-% Succeeds if Entry2 is a dictionary that contains the metadata
-% properties of Stream.  The following metadata properties are
-% included:
-%
-%   * newline(oneof([dos,posix]))
-%
-%   * number_of_bytes(nonneg)
-%
-%   * number_of_chars(nonneg)
-%
-%   * number_of_lines(nonneg)
-
-stream_metadata(Stream, Entry1, Entry2) :-
-  stream_property(Stream, position(Pos)),
-  stream_position_data(byte_count, Pos, NumBytes),
-  stream_position_data(char_count, Pos, NumChars),
-  stream_position_data(line_count, Pos, NumLines),
-  stream_property(Stream, newline(Newline)),
-  merge_dicts(
-    Entry1,
-    _{
-      newline: Newline,
-      number_of_bytes: NumBytes,
-      number_of_chars: NumChars,
-      number_of_lines: NumLines
-    },
-    Entry2
-  ).

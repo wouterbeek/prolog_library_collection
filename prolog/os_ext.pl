@@ -8,8 +8,6 @@
     os_path/1,           % ?File
     os_path_separator/1, % ?Sep
     os_root_prefix/1,    % ?Prefix
-    process_open/3,      % +Program, +In, -Out
-    process_open/4,      % +Program, +In, +Args, -Out
     renice/2,            % +Pid:positive_integer, +Nice:between(-20,19)
     sort_file/1,         % +File
     sort_file/2,         % +File, +Opts
@@ -24,8 +22,6 @@
 Support for using external programs and other OS functions.
 
 @author Wouter Beek
-
-@tbd Merge process_open/[3,4] into run_process/[2-5].
 
 @version 2015/08-2017/01, 2017/04
 */
@@ -175,37 +171,6 @@ os_root_prefix(/).
 :- if(os(windows)).
 os_root_prefix('C:\\').
 :- endif.
-
-
-
-%! process_open(+Program, +In, +Out) is det.
-%! process_open(+Program, +In, +Args, +Out) is det.
-
-process_open(Program, In1, Out) :-
-  process_open(Program, In1, [], Out).
-
-
-process_open(Program, In1, Args, Out) :-
-  process_create(
-    path(Program),
-    Args,
-    [stdin(pipe(In2)),stdout(pipe(Out))]
-    %%%%[stderr(pipe(Err)),stdin(pipe(In2)),stdout(pipe(Out))]
-  ),
-  set_stream(In2, type(binary)),
-  call_cleanup(
-    copy_stream_data(In1, In2),
-    close(In2)
-  ).
-  % @bug Does not terminate for
-  % http://lists.w3.org/Archives/Public/html-tidy/2011JulSep/0001.html
-  %%%%call_cleanup(
-  %%%%  (
-  %%%%    read_stream_to_string(Err, Msg),
-  %%%%    (Msg == "" -> true ; msg_warning(Msg))
-  %%%%  ),
-  %%%%  close(Err)
-  %%%%).
 
 
 
