@@ -8,7 +8,6 @@
     codes/1,             % @Term
     is_file_iri/1,       % @Term
     must_be_directory/1, % +Dir
-    must_be_file/2,      % +Mode:oneof([append,read,write]), +File
     negative_float/1,    % @Term
     negative_integer/1,  % @Term
     nonneg/1,            % @Term
@@ -150,25 +149,6 @@ must_be_directory(Dir) :-
   \+ exists_directory(Dir), !,
   existence_error(directory, Dir).
 must_be_directory(_).
-
-
-
-%! must_be_file(+Mode:oneof([append,read,write]), +File) is det.
-% @throws existence_error If File does not exist.
-% @throws instantiation_error If File is uninstantiated.
-% @throws permission_error If File cannot be accessed under Mode.
-
-must_be_file(_, File) :-
-  var(File), !,
-  instantiation_error(File).
-must_be_file(Mode, File) :-
-  memberchk(Mode, [access,read]),
-  \+ exists_file(File), !,
-  existence_error(file, File).
-must_be_file(Mode, File) :-
-  \+ access_file(File, Mode), !,
-  permission_error(Mode, file, File).
-must_be_file(_, _).
 
 
 
