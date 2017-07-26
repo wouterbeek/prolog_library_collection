@@ -3,8 +3,6 @@
   [
     check_input/2, % +Mode:oneof([read,write]), +Input:atom
     check_path/2,  % +Mode:oneof([read,write]), +Path:atom
-    long_flag/2,   % +Flag:atom,         -Argument:atom
-    long_flag/3,   % +Flag:atom, +Value, -Argument:atom
     show_help/1,   % +OptionSpecification:list(compound)
     user_input/1,  % +Msg
     user_input/3   % +Msg, :Dcg_1, ?Success
@@ -50,18 +48,6 @@ check_path(Mode, Path) :-
   ->  permission_error(Mode, file, Dir)
   ;   true
   ).
-
-
-
-%! long_flag(+Flag:atom, -Argument:atom) is det.
-%! long_flag(+Flag:atom, +Value, -Argument:atom) is det.
-
-long_flag(Flag, Arg) :-
-  format(atom(Arg), '--~w', [Flag]).
-
-
-long_flag(Flag, Val, Arg) :-
-  format(atom(Arg), '--~w=~w', [Flag,Val]).
 
 
 

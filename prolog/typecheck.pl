@@ -7,7 +7,6 @@
     code/1,              % @Term
     codes/1,             % @Term
     is_file_iri/1,       % @Term
-    must_be_directory/1, % +Dir
     negative_float/1,    % @Term
     negative_integer/1,  % @Term
     nonneg/1,            % @Term
@@ -137,18 +136,6 @@ codes(T) :-
 is_file_iri(Iri) :-
   atom(Iri),
   uri_file_name(Iri, _).
-
-
-
-%! must_be_directory(+Dir) is det.
-
-must_be_directory(Dir) :-
-  var(Dir), !,
-  instantiation_error(Dir).
-must_be_directory(Dir) :-
-  \+ exists_directory(Dir), !,
-  existence_error(directory, Dir).
-must_be_directory(_).
 
 
 
