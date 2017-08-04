@@ -15,9 +15,6 @@
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
-    indent_debug/2,             % +Flag, +Format
-    indent_debug/3,             % +Flag, +Format, +Args
-    indent_debug/4,             % +Mode, +Flag, +Format, +Args
     indent_debug_call/3,        % +Flag, +Format, :Goal_0
     number_of_open_files/1,     % -NunOpenFiles
     print_error/1               % +Error:compound
@@ -62,9 +59,6 @@ Tools that ease debugging SWI-Prolog programs.
     debug_with_output_to(?, 0),
     if_debug(?, 0),
     indent_debug_call(+, +, 0).
-
-:- thread_local
-   debug_indent/1.
 
 
 
@@ -222,63 +216,6 @@ if_debug(Flag, _) :-
   \+ debugging(Flag), !.
 if_debug(_, Goal_0) :-
   call(Goal_0).
-
-
-
-%! indent_debug(+Flag, +Format) is det.
-%! indent_debug(+Flag, +Format, +Args) is det.
-%! indent_debug(+Mode:oneof([in,out]), +Flag, +Format, +Args) is det.
-
-indent_debug(Flag, Format) :-
-  indent_debug(Flag, Format, []).
-
-
-indent_debug(Flag, Format, Args) :-
-  debugging(Flag), !,
-  indent_debug0(0, Flag, Format, Args).
-indent_debug(_, _, _).
-
-
-indent_debug(in, Flag, Format, Args) :-
-  debugging(Flag), !,
-  indent_debug0(1, Flag, Format, Args),
-  update_indent_debug0(1).
-indent_debug(out, Flag, Format, Args) :-
-  debugging(Flag), !,
-  update_indent_debug0(-1),
-  indent_debug0(-1, Flag, Format, Args).
-indent_debug(_, _, _, _).
-
-indent_debug0(Diff, Flag, Format, Args) :-
-  (debug_indent(Indent) -> true ; Indent = 1),
-  format(string(Msg0), Format, Args),
-  dcg_with_output_to(string(Msg), msg(Diff, Indent, Msg0)),
-  debug(Flag, Msg, []).
-
-update_indent_debug0(Diff) :-
-  (retract(debug_indent(Indent1)) -> true ; Indent1 = 1),
-  Indent2 is Indent1 + Diff,
-  (Indent2 < 1 -> Indent3 = 1 ; Indent3 = Indent2),
-  assert(debug_indent(Indent3)).
-
-msg(_, 0, Msg) --> !,
-  atom(Msg).
-msg(Diff, 1, Msg) --> !,
-  msg_diff1(Diff),
-  "─",
-  atom(Msg).
-msg(Diff, N1, Msg) -->
-  ({N1 =:= 1} -> msg_diff2(Diff), "─" ; "│ "),
-  {N2 is N1 - 1},
-  msg(Diff, N2, Msg).
-
-msg_diff1(1) --> "┌".
-msg_diff1(0) --> "─".
-msg_diff1(-1) --> "└".
-
-msg_diff2(1) --> "├".
-msg_diff2(0) --> "└".
-msg_diff2(-1) --> "└".
 
 
 
