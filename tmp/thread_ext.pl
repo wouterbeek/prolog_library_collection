@@ -1,254 +1,238 @@
 :- module(
   thread_ext,
   [
-    forall_thread/4, % :Antecedent
-                     % :Consequent
-                     % +DebugTopic:atom
-                     % +DebugMessage:atom
-    thread_create/1, % :Goal
-% RUN ON SUBLISTS INFRASTRUCTURE
-    run_on_sublists/3, % +List:list
-                       % :Goal
-                       % +NumberOfThreads:positive_integer
-    thread_alias/1, % ?ThreadAlias:atom
-    thread_end/1, % +ThreadAlias:atom
-    thread_overview/0,
-    thread_overview_web/1, % -Markup:dom
-    thread_prefix/2, % +Prefix:atom
-                     % -Thread:atom
-    thread_recover/0,
-    thread_recover/1, % +ThreadAlias:atom
-    thread_reset/1, % +ThreadAlias:atom
-    thread_restart/1, % +ThreadAlias:atom
-    thread_start/4, % +Model:atom
-                    % :Goal
-                    % +TaskList:list
-                    % ?ThreadAlias:atom
-    thread_success/1 % +ThreadAlias:atom
+    attached_thread/1,           % :Goal_0
+    call_in_thread/2,            % +Alias, :Goal_0
+    call_on_wildcard/2,          % +Wildcard, :Goal_1
+    call_on_wildcard/3,          % +Wildcard, :Goal_1, +Opts
+    create_thread/1,             % :Goal_0
+    create_thread/2,             % +Alias, :Goal_0
+    default_number_of_threads/1, % ?NumberOfThreads
+    detached_thread/1,           % :Goal_0
+    detached_thread/2,           % +Alias, :Goal_0
+    intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
+    intermittent_thread/4,       % :Goal_0, :EndGoal_0, +Interval, +Opts
+    print_thread/0,
+    print_thread/1,              % +Name
+    print_threads/0,
+    thread_name/1,               % -Name
+    threadsafe_alias/2,          % +Alias, -TAlias
+    threadsafe_format/3,         % +Alias, +Format, +Args
+    threadsafe_name/2            % +Name1, -Name2
   ]
 ).
+:- reexport(library(thread)).
 
 /** <module> Thread extensions
 
-Allows one to monitor running threads that register.
-
 @author Wouter Beek
-@version 2013/03, 2013/09, 2014/03-2014/04, 2014/12, 2015/02
+@version 2015/10-2017/01
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(debug)).
-:- use_module(library(lists), except([delete/3,subset/2])).
+:- use_module(library(dcg/dcg_cli)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
+:- use_module(library(print_ext)).
+:- use_module(library(stream_ext)).
 
-:- use_module(plc(generics/atom_ext)).
-:- use_module(plc(generics/list_ext)).
-:- use_module(plc(process/progress)).
-:- use_module(plc(prolog/pl_control)).
+:- meta_predicate
+    attached_thread(0),
+    call_in_thread(+, 0),
+    call_on_wildcard(+, 1),
+    call_on_wildcard(+, 1, +),
+    create_thread(0),
+    create_thread(+, 0),
+    detached_thread(0),
+    detached_thread(+, 0),
+    intermittent_goal(0, 0, +),
+    intermittent_thread(0, 0, +),
+    intermittent_thread(0, 0, +, +).
 
-:- meta_predicate(forall_thread(0,0,+,+)).
-:- meta_predicate(run_on_sublists(+,1,+)).
-:- meta_predicate(thread_create(0)).
-
-:- dynamic(end_flag/2).
-:- dynamic(workload/4).
 
 
 
-%! forall_thread(
-%!   :Antecedent,
-%!   :Consequent,
-%!   +DebugTopic:atom,
-%!   +DebugMessage:atom
+
+%! attached_thread(:Goal_0) is det.
+
+attached_thread(Goal_0) :-
+  thread_create(Goal_0, _, []).
+
+
+
+%! call_in_thread(+Alias, :Goal_0) is det.
+%
+% Calls Goal_0 in a thread with given Alias and waits for that thread
+% to complete.
+
+call_in_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, Id, [alias(Alias)]),
+  thread_join(Id, true).
+
+
+
+%! call_on_wildcard(+Wildcard, :Goal_1) is det.
+%! call_on_wildcard(+Wildcard, :Goal_1, +Opts) is det.
+%
+% The following options are supported:
+%
+%   * concurrent(+positive_integer) The number of thread that are used
+%   in parallel processing multiple files.
+
+call_on_wildcard(Wildcard0, Goal_1) :-
+  call_on_wildcard(Wildcard0, Goal_1, _{}).
+
+
+call_on_wildcard(Wildcard0, Goal_1, Opts) :-
+  (   get_dict(search_path, Opts, Search)
+  ->  Spec =.. [Search,.],
+      absolute_file_name(Spec, Prefix),
+      directory_file_path(Prefix, Wildcard0, Wildcard)
+  ;   Wildcard = Wildcard0
+  ),
+  expand_file_name(Wildcard, Files),
+  (   get_dict(concurrent, Opts, true)
+  ->  concurrent_maplist(Goal_1, Files)
+  ;   maplist(Goal_1, Files)
+  ).
+
+
+
+%! create_thread(:Goal_0) is det.
+%! create_thread(+Alias, :Goal_0) is det.
+
+create_thread(Goal_0) :-
+  thread_create(Goal_0, _, []).
+
+
+create_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, _, [alias(Alias)]).
+
+
+
+%! default_number_of_threads(+NumberOfThreads:positive_integer) is semidet.
+%! default_number_of_threads(-NumberOfThreads:positive_integer) is det.
+
+default_number_of_threads(N) :-
+  current_prolog_flag(cpu_count, N).
+
+
+
+%! detached_thread(:Goal_0) is det.
+%! detached_thread(+Alias, :Goal_0) is det.
+
+detached_thread(Goal_0) :-
+  thread_create(Goal_0, _, [detached(true)]).
+
+
+detached_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, _, [alias(Alias),detached(true)]).
+
+
+
+%! intermittent_goal(:Goal_0, :EndGoal_0, +Interval:positive_integer) is det.
+% Performs the given goal interspersed with time intervals
+% of the given duration.
+%
+% If the end goal succeeds the thread succeeds
+% (i.e., intermittent goal execution stops).
+
+intermittent_goal(_, EndGoal_0, _) :-
+  EndGoal_0, !.
+intermittent_goal(Goal_0, EndGoal_0, I) :-
+  Goal_0,
+  sleep(I),
+  intermittent_goal(Goal_0, EndGoal_0, I).
+
+
+
+%! intermittent_thread(:Goal_0, :EndGoal_0, +Interval) is det.
+%! intermittent_thread(
+%!   :Goal_0,
+%!   :EndGoal_0,
+%!   +Interval:positive_integer,
+%!   +Opts
 %! ) is det.
-% Runs for instatiation of `Antecedent` a threaded instatiation `Consequent`.
-% The threads are joined afterwards.
-% The status is send to the debug stream if `Topic` is switched on.
+% The following options are supported:
+%   * id(?atom)
+%   * Other options are passed to thread_create/3.
 
-forall_thread(Antecedent, Consequent, Topic, Msg):-
-  findall(
-    ThreadId,
-    (
-      call(Antecedent),
-      thread_create(
-        (
-          call(Consequent),
-          thread_at_exit(forall_thread_end(Topic, Msg))
-        ),
-        ThreadId,
-        [detached(false)]
-      )
-    ),
-    ThreadIds
-  ),
-  forall(
-    member(ThreadId, ThreadIds),
-    thread_join(ThreadId, true)
-  ).
+intermittent_thread(Goal_0, EndGoal_0, I) :-
+  intermittent_thread(Goal_0, EndGoal_0, I, []).
+intermittent_thread(Goal_0, EndGoal_0, I, Opts) :-
+  ignore(option(id(Id), Opts)),
+  thread_create(intermittent_goal(Goal_0, EndGoal_0, I), Id, Opts).
 
-forall_thread_end(Topic, _Msg):-
-  \+ debugging(Topic), !.
-forall_thread_end(Topic, Msg):-
+
+
+print_thread:-
+  thread_name(Name),
+  print_thread(Name).
+
+
+print_thread(Name) :-
+  dcg_with_output_to(user_output, thread(0, Name)).
+
+
+
+print_threads:-
+  % Print the threads in alphabetical order.
+  aggregate_all(set(Name), thread_property(_, alias(Name)), Names),
+  dcg_with_output_to(user_output, threads(0, Names)).
+
+
+
+%! thread_name(-Name:atom) is det.
+% Returns the name of the current thread.
+
+thread_name(Name) :-
   thread_self(Id),
-  thread_property(Id, status(Status)),
-  (Status == true -> Alarm = '' ; Alarm = '[!!!ALARM!!!]'),
-  debug(Topic, '~w~w exited with status ~w.', [Alarm,Msg,Status]).
-
-thread_create(Goal):-
-  thread_create(Goal, _, []).
+  thread_property(Id, alias(Name)), !.
+thread_name(Name) :-
+  thread_self(Name).
 
 
 
-% RUN ON SUBLIST INFRASTRUCTURE %
+threadsafe_alias(Alias, TAlias) :-
+  threadsafe_name(Alias, TAlias),
+  exists_stream_alias(TAlias).
 
-%! run_on_sublists(+List, :Goal, +NumberOfThreads:positive_integer) is det.
-% Run the given goal in different threads,
-% on different sublists of the given list.
 
-run_on_sublists(List, Mod:Goal, N):-
-  split_list_by_number_of_sublists(List, N, Sublists),
-  findall(
-    ThreadId,
-    (
-      member(TaskList, Sublists),
-      thread_start(Mod, Goal, TaskList, ThreadId)
-    ),
-    ThreadIds
-  ),
-  % Collect the threads after execution and display any failures to user.
-  maplist(thread_join, ThreadIds, Statuses),
-  exclude(==(true), Statuses, OopsStatuses),
-  forall(
-    member(OopsStatus, OopsStatuses),
-    debug(thread_ext, '~w', [OopsStatus])
-  ).
 
-thread_alias(ThreadAlias):-
-  nonvar(ThreadAlias), !,
-  atom_concat('t', _, ThreadAlias).
-thread_alias(ThreadAlias):-
-  flag(thread_alias, ID, ID + 1),
-  integer_padding(ID, 2, ID1),
-  format(atom(ThreadAlias), 't~w', [ID1]).
+threadsafe_format(Alias, Format, Args) :-
+  threadsafe_alias(Alias, TAlias),
+  format(TAlias, Format, Args).
 
-thread_end(ThreadAlias):-
-  thread_property(ThreadId, alias(ThreadAlias)),
-  thread_join(ThreadId, _Status),
-  retract(end_flag(ThreadAlias, _)),
-  retract(workload(ThreadAlias, _Module, _Goal, _TaskList)),
-  flag(ThreadAlias, _OldId, 0).
 
-thread_overview:-
-  thread_overview(Atoms),
-  forall(
-    member(Atom, Atoms),
-    format(user, '~w\n', [Atom])
-  ).
 
-thread_overview(Atoms):-
-  aggregate_all(
-    set(ThreadAlias/Current/End),
-    (
-      end_flag(ThreadAlias, End),
-      flag(ThreadAlias, Current, Current)
-    ),
-    Triples
-  ),
-  findall(
-    Atom,
-    (
-      member(ThreadAlias/Current/End, Triples),
-      progress_bar(Current, End, ProgressBar),
-      thread_status(ThreadAlias, Status),
-      format(atom(Atom), '~w ~w {~w}', [ThreadAlias,ProgressBar,Status])
-    ),
-    Atoms
-  ).
+threadsafe_name(Name1, Name2) :-
+  thread_name(Name0),
+  atomic_list_concat([Name0,Name1], Name2).
 
-thread_overview_web(Markup):-
-  thread_overview(Atoms),
-  (
-    Atoms == []
-  ->
-    Markup = [element(p,[],['No threads.'])]
-  ;
-    findall(
-      element(pre, [], [Atom]),
-      member(Atom, Atoms),
-      Markup
-    )
-  ).
 
-%! thread_prefix(+Prefix:atom, +Thread:atom) is semidet.
-% Succeeds if the given thread name starts with the given prefix.
-%! thread_prefix(+Prefix:atom, -Thread:atom) is nondet.
-% Enumerates the currently running threads that start with the given prefix.
 
-thread_prefix(Prefix, Thread):-
-  thread_property(Thread, status(_)),
-  atom_concat(Prefix, _, Thread).
 
-thread_recover:-
-  forall(
-    end_flag(ThreadAlias, _),
-    thread_recover(ThreadAlias)
-  ).
 
-thread_recover(ThreadAlias):-
-  thread_status(ThreadAlias, Status),
-  (
-    Status == running
-  ->
-    true
-  ;
-    Status = exception(Exception)
-  ->
-    format(user, 'Thread ~w exception ~w.\n', [ThreadAlias, Exception]),
-    thread_reset(ThreadAlias)
-  ;
-    thread_end(ThreadAlias),
-    format(user, 'Thread ~w was finished.\n', [ThreadAlias])
-  ).
+% GRAMMAR %
 
-thread_reset(ThreadAlias):-
-  workload(ThreadAlias, Module, Goal, TaskList),
-  flag(ThreadAlias, ID, ID),
-  (ID == 0 -> ProcessedLength = 0 ; ProcessedLength is ID - 1),
-  thread_end(ThreadAlias),
-  length(Processed, ProcessedLength),
-  append(Processed, Unprocessed, TaskList),
-  once(thread_start(Module, Goal, Unprocessed, ThreadAlias)).
+thread(I, Name) -->
+  {
+    thread_property(Id, alias(Name)),
+    thread_property(Id, status(Status))
+  },
+  tab(I),
+  atom(Name),
+  ": ",
+  atom(Status).
 
-thread_restart(ThreadAlias):-
-  workload(ThreadAlias, Module, Goal, TaskList),
-  once(thread_start(Module, Goal, TaskList, _ThreadId)).
 
-thread_start(Module, Goal, TaskList, ThreadAlias):-
-  thread_alias(ThreadAlias),
-  thread_create(call(Module:Goal, TaskList), _ThreadId, [alias(ThreadAlias)]),
-  length(TaskList, NumberOfTasks),
-  assert(end_flag(ThreadAlias, NumberOfTasks)),
-  assert(workload(ThreadAlias, Module, Goal, TaskList)).
+thread_items(I, [H|T]) -->
+  thread(I, H), !,
+  thread_items(I, T).
+thread_items(_, []) --> [].
 
-thread_status(ThreadAlias, Status):-
-  thread_property(ThreadId, alias(ThreadAlias)),
-  thread_property(ThreadId, status(Status)).
 
-%! thread_success(+ThreadAlias:atom) is det.
-% If the given atom is a registered thread alias,
-% then the statistics for that running thread are
-% upped by one.
-%
-% Notice that this predicate has to be called by
-% the threaded goal, after each successful iteration
-% inside goal.
-%
-% The thread alias is not passed around, by sould be
-% retrieved inside the threaded goal using thread_self/1.
-
-thread_success(ThreadAlias):-
-  flag(ThreadAlias, ID, ID + 1),
-  if_then(
-    end_flag(ThreadAlias, ID),
-    thread_end(ThreadAlias)
-  ).
+threads(I1, L) -->
+  {succ(I1, I2)},
+  section(I1, "Thead overview", thread_items(I2, L)).

@@ -1,54 +1,37 @@
 :- module(
   default,
   [
-    defgoal/2,    % :DefGoal_1,  ?Val
-    defsetting/2, % +DefSetting, ?Val
+    defval/2 % +DefaulValue, ?Value
   ]
 ).
 
 /** <module> Default
 
 @author Wouter Beek
-@version 2015/07, 2015/11, 2016/05, 2016/08
+@version 2017/06
 */
 
-:- use_module(library(settings)).
-
-:- meta_predicate
-    defgoal(1, ?).
 
 
 
 
-
-%! defgoal(:DefGoal_1, ?Val) is det.
+%! defval(+DefaultValue, ?Value) is det.
 %
-% Runs the given goal, whenever the given value is uninstantiated.
-% The given goal is assumed to be unary and deterministic, always
-% returning an instantiation for `Value`.
+% Returns either the given value or the default value, in case there
+% is no value given.
 %
 % ### Example
 %
-% The following code allows a specific start node to be given for
-% traveral, but also allows the start node to be uninstantiated,
-% instantiating it to a randomly chosen start node.
+% `Ordering` is a meta-argument that allows a list of elements to be
+% arbitrarily ordered.  The use of defval/2 here allows the original
+% ordering of elements to be retained in case the `Ordering` argument
+% is not instantiated.
 %
 % ```prolog
-% graph_traversal(StartNode) :-
-%   default_goal(random_start_node, StartNode),
-%   ...
+% defval(=, Ordering),
+% once(call(Ordering, L1, L2))
 % ```
 
-defgoal(_, Val) :-
-  ground(Val), !.
-defgoal(DefGoal_1, Val) :-
-  once(call(DefGoal_1, Val)).
-
-
-
-%! defsetting(+SettingName, ?Val) is det.
-
-defsetting(_, Val) :-
-  ground(Val), !.
-defsetting(Name, Val) :-
-  setting(Name, Val).
+defval(_, Value):-
+  nonvar(Value), !.
+defval(DefaultValue, DefaultValue).

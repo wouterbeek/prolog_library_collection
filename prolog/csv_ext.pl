@@ -1,79 +1,45 @@
 :- module(
   csv_ext,
   [
-    csv_to_file/2,      % +File, +Rows
-    csv_to_file/3,      % +File, +Rows, +Opts
-    csv_write_stream/2, % +Out,  +Rows
-    tsv_read_file/2,    % +File, -Rows
-    tsv_read_file/3,    % +File, -Rows, +Opts
-    tsv_write_stream/2, % +Out,  +Rows
-    tsv_write_stream/3  % +Out,  +Rows, +Opts
+    csv_read_stream_row/2, % +In, -Row
+    csv_read_stream_row/3  % +In, -Row, +Options
   ]
 ).
 :- reexport(library(csv)).
 
-/** <module> CSV extensions
+/** <module> CSV extension
 
 @author Wouter Beek
-@version 2015/10-2015/11, 2016/01, 2016/04, 2017/02
+@version 2017/06
 */
 
-:- use_module(library(io)).
 :- use_module(library(option)).
-:- use_module(library(yall)).
 
 
 
 
 
-%! csv_to_file(+Sink, +Rows) is det.
-%! csv_to_file(+Sink, +Rows, +Opts) is det.
+%! csv_read_stream_row(+In, -Row) is nondet.
+%! csv_read_stream_row(+In, -Row, +Options) is nondet.
 %
-% Options are passed to:
+% The following options are supported:
 %
-%   * call_to_stream/3
-%   * csv_to_stream/3
+%   * skip_header(+boolean)
+%
+%     Default is `true'.
+%
+%   * Other options are passed to csv_read_row/3.
 
-csv_to_file(Sink, Rows) :-
-  csv_to_file(Sink, Rows, []).
-
-
-csv_to_file(Sink, Rows, Opts) :-
-  call_to_stream(
-    Sink,
-    {Rows,Opts}/[Out]>>csv_write_stream(Out, Rows, Opts),
-    Opts
-  ).
+csv_read_stream_row(In, Row) :-
+  csv_read_stream_row(In, Row, []).
 
 
-
-%! csv_write_stream(+Out, +Rows) is det.
-
-csv_write_stream(Out, Rows) :-
-  csv_write_stream(Out, Rows, []).
-
-
-
-%! tsv_read_file(+File, -Rows:list(compound)) is det.
-%! tsv_read_file(+File, -Rows:list(compound), +Opts) is det.
-
-tsv_read_file(File, Rows):-
-  tsv_read_file(File, Rows, []).
-
-
-tsv_read_file(File, Rows, Opts0):-
-  merge_options([separator(9)], Opts0, Opts),
-  csv_read_file(File, Rows, Opts).
-
-
-
-%! tsv_write_stream(+Out, +Rows:list(compound)) is det.
-%! tsv_write_stream(+Out, +Rows:list(compound), +Opts) is det.
-
-tsv_write_stream(Out, Rows):-
-  tsv_write_stream(Out, Rows, []).
-
-
-tsv_write_stream(Out, Rows, Opts0):-
-  merge_options([separator(9)], Opts0, Opts),
-  csv_write_stream(Out, Rows, Opts).
+csv_read_stream_row(In, Row, Options1) :-
+  csv_options(Options2, Options1),
+  (   option(skip_header(true), Options1, true)
+  ->  csv_read_row(In, _, Options2)
+  ;   true
+  ),
+  repeat,
+  csv_read_row(In, Row, Options2),
+  (Row == end_of_file -> !, fail ; true).

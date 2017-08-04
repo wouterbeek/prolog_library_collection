@@ -1,169 +1,173 @@
 :- module(
   call_ext,
   [
-    call_catcher_cleanup/3, % :Goal_0, +Catcher, :Cleanup_0
-    call_n_sol/3,           % +N, :Select_1, :Goal_1
-    call_n_times/2,         % +N, :Goal_0
-    call_or_fail/1,         % :Goal_0
-    call_timeout/2,         % +Time, :Goal_0
-    catch_msg/1,            % :Goal_0
-    catch_msg/3,            % +Def1, :Goal_1, -Arg1
-    concurrent_n_sols/3,    % +N, :Select_1, :Goal_1
-    findn/4,                % ?N, ?Templ, :Goal_0, -Results
-    findn_chk/4,            % ?N, ?Templ, :Goal_0, -Results
-    forall/1,               % :Goal_0
-    retry0/1,               % :Goal_0
-    run_in_thread/1         % :Goal_0
+    call_bool/2,            % :Goal_0, -Bool
+    call_det_when/2,        % :Cond_0, :Goal_0
+    call_det_when_ground/2, % :Cond_0, :Goal_0
+    call_default_option/3,  % ?Option, +Options, :Goal_1
+    call_or_warning/1,      % :Goal_0
+    call_statistics/3,      % :Goal_0, +Key, -Delta
+    call_when_ground/1,     % :Goal_0
+    closure/3,              % :Goal_2, +From, -To
+    closure0/3,             % :Goal_2, +From, -To
+    pp_call/1,              % :Goal_1
+    true/1,                 % ?Arg1
+    true/2,                 % ?Arg1, ?Arg2
+    true/3                  % ?Arg1, ?Arg2, ?Arg3
   ]
 ).
 
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04-2017/03
+@version 2017/04-2017/07
 */
 
-:- use_module(library(debug)).
-:- use_module(library(lists)).
-:- use_module(library(thread)).
-:- use_module(library(time)).
+:- use_module(library(apply)).
+:- use_module(library(dif)).
+:- use_module(library(option)).
+:- use_module(library(pp)).
+:- use_module(library(when)).
 
 :- meta_predicate
-    call_catcher_cleanup(0, +, 0),
-    call_n_sol(+, 1, 1),
-    call_n_times(+, 0),
-    call_or_fail(0),
-    call_timeout(+, 0),
-    catch_msg(0),
-    catch_msg(+, 1, -),
-    concurrent_n_sols(+, 1, 1),
-    findn(?, ?, 0, -),
-    findn_chk(?, ?, 0, -),
-    forall(0),
-    retry0(0),
-    run_in_thread(0).
+    call_bool(0, -),
+    call_default_option(?, +, 1),
+    call_det_when(0, 0),
+    call_det_when_ground(?, 0),
+    call_or_warning(0),
+    call_statistics(0, +, -),
+    call_when_ground(0),
+    closure(2, +, -),
+    closure0(2, +, -),
+    closure0(2, +, -, +),
+    pp_call(1).
 
 
 
 
 
-%! call_catcher_cleanup(:Goal_0, +Catcher, :Cleanup_0) .
+%! call_bool(:Goal_0, -Bool) is det.
 
-call_catcher_cleanup(Goal_0, Catcher, Cleanup_0) :-
-  setup_call_catcher_cleanup(true, Goal_0, Catcher, Cleanup_0).
-
-
-
-%! call_n_sol(+N, :Select_1, :Goal_1) is det.
-
-call_n_sol(N, Select_1, Goal_1) :-
-  findnsols(N, X, call(Select_1, X), Xs),
-  last(Xs, X),
-  call(Goal_1, X).
+call_bool(Goal_0, true) :-
+  Goal_0, !.
+call_bool(_, false).
 
 
 
-%! call_n_times(+N, :Goal_0) is det.
+%! call_default_option(?Option, +Options, :Goal_1) is det.
 
-call_n_times(N, Goal_0) :-
-  forall(between(1, N, _), Goal_0).
-
-
-
-%! call_or_fail(:Goal_0) is semidet.
-
-call_or_fail(Goal_0) :-
-  catch(Goal_0, _, fail).
+call_default_option(Option, Options, _) :-
+  option(Option, Options), !.
+call_default_option(Option, _, Goal_1) :-
+  Option =.. [_,Value],
+  (call(Goal_1, DefaultValue) -> Value = DefaultValue).
 
 
-
-%! call_timeout(+Time, :Goal_0) is det.
+%! call_det_when(:Cond_0, :Goal_0) .
 %
-% Time is a float, integer, or `inf`.
+% Call `Goal_0' once when `Cond_0' succeeds.  Otherwise call `Goal_0'
+% normally.
 
-call_timeout(inf, Goal_0) :- !,
-  call(Goal_0).
-call_timeout(Time, Goal_0) :-
-  call_with_time_limit(Time, Goal_0).
+call_det_when(Cond_0, Goal_0) :-
+  Cond_0, !,
+  once(Goal_0).
+call_det_when(_, Goal_0) :-
+  Goal_0.
 
 
 
-%! catch_msg(:Goal_0) is det.
-%! catch_msg(+Def1, :Goal_1, -Arg1) is det.
+%! call_det_when_ground(+Term:term, :Goal_0) .
 %
-% Catch all exceptions and failures in Goal_0/Goal_1 and print a
-% message when this happens.
+% Call `Goal_0' deterministically in case Term is ground.  Otherwise
+% call `Goal_0' normally.
 
-catch_msg(Goal_0) :-
-  (catch(Goal_0, E, print_catch(E)) -> true ; print_catch("failed")).
-
-
-catch_msg(Def1, Mod:Goal_1, Arg1) :-
-  Goal_1 =.. [Pred|Args1],
-  append(Args1, [Arg1], Args2),
-  Goal_0 =.. [Pred|Args2],
-  (   catch(Mod:Goal_0, E, print_catch(Def1, E, Arg1))
-  ->  true
-  ;   print_catch(Def1, "failed", Arg1)
-  ).
-
-print_catch(E) :-
-  print_message(warning, ckan_error(E)).
-
-print_catch(Arg1, E, Arg1) :-
-  print_catch(E).
+call_det_when_ground(Term, Goal_0) :-
+  ground(Term), !,
+  once(Goal_0).
+call_det_when_ground(_, Goal_0) :-
+  Goal_0.
 
 
 
-%! concurrent_n_sols(+N, :Select_1, :Goal_1) is det.
+%! call_or_warning(:Goal_0) is semidet.
 
-concurrent_n_sols(N, Select_1, Mod:Goal_1) :-
-  findnsols(
-    N,
-    Mod:Goal_0,
-    (
-      call(Select_1, X),
-      Goal_0 =.. [Goal_1,X]
-    ),
-    Goals
-  ),
-  concurrent(N, Goals, []).
+call_or_warning(Goal_0) :-
+  catch(Goal_0, E, true),
+  (var(E) -> true ; print_message(warning, E), fail).
 
 
 
-%! findn(?N, ?Templ, :Goal_0, -Results) is nondet.
+%! call_statistics(:Goal_0, +Key, -Delta) is det.
 
-findn(N, Templ, Goal_0, Results) :-
-  var(N), !,
-  findall(Templ, Goal_0, Results).
-findn(N, Templ, Goal_0, Results) :-
-  findnsols(N, Templ, Goal_0, Results).
+call_statistics(Goal_0, Key, Delta):-
+  statistics(Key, Val1a),
+  fix_val0(Val1a, Val1b),
+  call(Goal_0),
+  statistics(Key, Val2a),
+  fix_val0(Val2a, Val2b),
+  Delta is Val2b - Val1b.
 
-
-
-%! findn_chk(?N, ?Templ, :Goal_0, -Results) is det.
-
-findn_chk(N, Templ, Goal_0, Results) :-
-  once(findn(N, Templ, Goal_0, Results)).
+fix_val0([X,_], X) :- !.
+fix_val0(X, X).
 
 
 
-%! forall(:Goal_0) is det.
+%! call_when_ground(:Goal_0) is det.
 
-forall(Goal_0) :-
-  forall(Goal_0, true).
-
-
-
-%! retry0(:Goal_0) is det.
-
-retry0(Goal_0) :-
-  catch(Goal_0, Exception, true),
-  (var(Exception) -> true ; debug(true, "~w", [Exception]), retry0(Goal_0)).
+call_when_ground(Goal_0) :-
+  when(ground(Goal_0), Goal_0).
 
 
 
-%! run_in_thread(:Goal_0) is det.
+%! closure(:Goal_2, +X, -Y) is nondet.
+%
+% Calculates the transitive closure of `Goal_2`.
+%
+% @author Ulrich Neumerkel
+%
+% @see http://stackoverflow.com/questions/26964782/determining-if-graph-is-connected-in-prolog/26965843?noredirect=1#comment42472120_26965843
+%
+% @see http://stackoverflow.com/questions/15473065/hilog-terms-in-xsb-prolog/15483764#15483764
 
-run_in_thread(Goal_0) :-
-  thread_create(Goal_0, _, [detached(true)]).
+closure(Goal_2, X, Z):-
+  call(Goal_2, X, Y),
+  closure0(Goal_2, Y, Z, [X,Y]).
+
+
+
+%! closure0(:Goal_2, +X, -Y) is multi.
+%
+% Calculates the transitive-reflexive closure of `Goal_2`.
+%
+% @author Ulrich Neumerkel
+%
+% @see http://stackoverflow.com/questions/26964782/determining-if-graph-is-connected-in-prolog/26965843?noredirect=1#comment42472120_26965843
+%
+% @see http://stackoverflow.com/questions/26946133/definition-of-reflexive-transitive-closure
+
+closure0(Goal_2, X, Y):-
+  closure0(Goal_2, X, Y, [X]).
+
+closure0(_, X, X, _).
+closure0(Goal_2, X, Z, Hist):-
+  call(Goal_2, X, Y),
+  maplist(dif(Y), Hist),
+  closure0(Goal_2, Y, Z, [Y|Hist]).
+
+
+
+%! pp_call(:Goal_1) is det.
+
+pp_call(Goal_1) :-
+  catch(call(Goal_1, Term), E, true),
+  (var(E) -> pp_term(Term) ; print_message(warning, E)).
+
+
+
+%! true(?Arg1) is det.
+%! true(?Arg1, ?Arg2) is det.
+%! true(?Arg1, ?Arg2, ?Arg3) is det.
+
+true(_).
+true(_, _).
+true(_, _, _).

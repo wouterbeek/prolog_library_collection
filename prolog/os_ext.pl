@@ -1,213 +1,231 @@
 :- module(
   os_ext,
   [
-    exists_program/1,    % +Program
-    image_dimensions/3,  % +File, -Width, -Height
-    open_pdf/1,          % +File
-    os/1,                % ?Os
-    os_path/1,           % ?File
-    os_path_separator/1, % ?Sep
-    os_root_prefix/1,    % ?Prefix
-    renice/2,            % +Pid:positive_integer, +Nice:between(-20,19)
-    sort_file/1,         % +File
-    sort_file/2,         % +File, +Opts
-    wc/2,                % +File, -NumLines
-    wc/4                 % +File, -NumLines, -NumWords, -NumBytes
+    cli_arguments/1, % -Arguments
+    process_flags/3, % :Goal_2, +Arguments, -Flags
+    process_open/3,  % +Program, +In1, -In2
+    process_open/4,  % +Program, +In1, +Arguments, -In2
+    process_open/5,  % +Program, +In1, +Arguments, -In2, +Options
+    run_jar/3,       % +Jar, +Arguments, :Goal_1
+    run_jar/4,       % +Jar, +Arguments, :Goal_1, +Options
+    run_process/2,   % +Program, +Arguments
+    run_process/3,   % +Program, +Arguments, +Options
+    run_process/4    % +Program, +Arguments, :Goal_1, +Options
   ]
 ).
-:- reexport(library(true)).
 
 /** <module> OS extensions
 
-Support for using external programs and other OS functions.
-
 @author Wouter Beek
-
-@version 2015/08-2017/01, 2017/04
+@version 2017/04-2017/07
 */
 
-:- use_module(library(aggregate)).
-:- use_module(library(ansi_term)).
 :- use_module(library(apply)).
-:- use_module(library(cli_ext)).
-:- use_module(library(dcg/basics)).
+:- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(error)).
-:- use_module(library(file_ext)).
-:- use_module(library(io)).
-:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(process)).
-:- use_module(library(settings)).
-:- use_module(library(thread_ext)).
-:- use_module(library(typecheck)).
-:- use_module(library(zlib)).
+:- use_module(library(readutil)).
+:- use_module(library(yall)).
 
-:- setting(
-     os:tmp_dir,
-     term,
-     _,
-     "Temporary directory."
-   ).
+%! cli_arguments(-Arguments:list(compound)) is det.
+
+:- dynamic
+    cli_arguments/1.
+
+:- initialization
+   init_cli_arguments.
+
+:- meta_predicate
+    process_flags(2, +, -),
+    run_jar(+, +, 1),
+    run_jar(+, +, 1, +),
+    run_process(+, +, 1, +).
 
 
 
 
 
-%! exists_program(+Program) is semidet.
+%! process_flags(:Goal_2, +Arguments:list(compound), -Flags:list(atom)) is det.
+
+process_flags(_, [], []).
+process_flags(Goal_2, [H1|T1], [H2|T2]) :-
+  call(Goal_2, H1, H2), !,
+  process_flags(Goal_2, T1, T2).
+process_flags(Goal_2, [_|T], L) :-
+  process_flags(Goal_2, T, L).
+
+
+
+%! process_open(+Program:atom, +In1:stream, -In2:stream) is det.
+%! process_open(+Program:atom, +In1:stream, +Arguments:list(term),
+%!              -In2:stream) is det.
+%! process_open(+Program:atom, +In1:stream, +Arguments:list(term),
+%!              -In2:stream, +Options:list(compound)) is det.
 %
-% Succeeds if the given program can be run from PATH.
+% In1 is closed by this predicate.
 
-exists_program(Program) :-
-  var(Program), !,
-  instantiation_error(Program).
-exists_program(Program) :-
-  os_path(Prefix),
-  atomic_list_concat([Prefix,Program], /, Exe),
-  access_file(Exe, execute), !.
+process_open(Program, In1, In2) :-
+  process_open(Program, In1, [], In2).
 
 
-
-%! image_dimensions(+File, -Width:float, -Height:float) is det.
-%
-% @see Requires ImageMagick.
-
-image_dimensions(File, Width, Height) :-
-  run_process(
-    identify,
-    [file(File)],
-    image_dimensions0(File, Width, Height)
-  ).
-
-image_dimensions0(File, Width, Height, In) :-
-  read_stream_to_codes(In, Cs),
-  phrase(image_dimensions0(File, Width, Height), Cs).
-
-image_dimensions0(File, Width, Height) -->
-  atom(File),
-  " ",
-  ...,
-  " ",
-  integer(Width),
-  "x",
-  integer(Height),
-  done.
+process_open(Program, In1, Arguments, In2) :-
+  process_open(Program, In1, Arguments, In2, []).
 
 
+process_open(Program, In1, Arguments, In2, Options1) :-
+  process_options(Options1, Options2),
+  merge_options(
+    [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(In2))],
+    Options2,
+    Options3
+  ),
+  process_debug(Program, Arguments),
+  process_create(path(Program), Arguments, Options3),
+  set_stream(ProcIn, type(binary)),
+  thread_create(copy_and_close(In1, ProcIn), _, [detached(true)]),
+  thread_create(print_error(ProcErr), _, [detached(true)]).
 
-%! open_pdf(+File) is det.
-%
-% Opens the given PDF file.
-
-open_pdf(File) :-
-  once((
-    member(Program, [xpdf,evince]),
-    exists_program(Program)
-  )),
-  run_process(Program, [file(File)]).
-
-
-
-%! os(+Os) is semidet.
-%! os(-Os) is det.
-%
-% Succeeds if Os names the current Operating System.
-%
-% Supported values are:
-%   * mac
-%   * unix
-%   * windows
-
-os(mac) :-
-  current_prolog_flag(apple, true), !.
-os(unix) :-
-  current_prolog_flag(unix, true), !.
-os(windows) :-
-  current_prolog_flag(windows, true), !.
-
-
-
-%! os_path(+File) is semidet.
-%! os_path(-File) is nondet.
-%
-% Succeeds if File is on the OS path.
-
-os_path(File) :-
-  getenv('PATH', Path),
-  os_path_separator(Sep),
-  atomic_list_concat(Files, Sep, Path),
-  member(File0, Files),
-  prolog_to_os_filename(File, File0).
-
-
-
-%! os_path_separator(+Separator) is semidet.
-%! os_path_separator(-Separator) is det.
-% Suceeds if Separator is the OS path separator character.
-
-os_path_separator(Sep) :-
-  os(Os),
-  os_path_separator(Os, Sep).
-
-
-%! os_path_separator(+Os:os, -Separator) is det.
-
-os_path_separator(Os, Sep) :-
-  os(Os),
-  (   memberchk(Os, [mac,unix])
-  ->  Sep = (:)
-  ;   Os == windows
-  ->  Sep = (;)
+copy_and_close(In, Out) :-
+  call_cleanup(
+    copy_stream_data(In, Out),
+    close(Out)
   ).
 
 
 
-%! os_root_prefix(+Prefix) is semidet.
-%! os_root_prefix(-Prefix) is multi.
+%! run_jar(+Jar:atom, +Arguments:list(term), :Goal_1) is det.
+%! run_jar(+Jar:atom, +Arguments:list(term), :Goal_1,
+%!         +Options:list(compound)) is det.
 
-:- if(os(unix)).
-os_root_prefix(/).
-:- endif.
-:- if(os(windows)).
-os_root_prefix('C:\\').
-:- endif.
+run_jar(Jar, Arguments, Goal_1) :-
+  run_jar(Jar, Arguments, Goal_1, []).
 
 
-
-%! renice(+Pid:positive_integer, +Nice:between(-20,19)) is det.
-
-renice(Pid, N) :-
-  with_mutex(process_id,(
-    (   process_id(Pid)
-    ->  must_be(between(-20,19), N),
-        run_process(renice, [10,Pid])
-    ;   existence_error(process, Pid)
-    )
-  )).
+run_jar(Jar, Arguments, Goal_1, Options) :-
+  run_process(java, ['-jar',file(Jar)|Arguments], Goal_1, Options).
 
 
 
-%! wc(+File, -NumLines) is det.
-%! wc(+File, -NumLines, -NumWords, -NumBytes) is det.
-
-wc(File, NumLines) :-
-  wc(File, NumLines, _, _).
-
-
-wc(File, NumLines, NumWords, NumBytes) :-
-  run_process(wc, [file(File)], wc0(NumLines,NumWords,NumBytes)).
-
-wc0(NumLines, NumWords, NumBytes, In) :-
-  read_stream_to_codes(In, Cs),
-  phrase(wc0(NumLines, NumWords, NumBytes), Cs, _).
-
-% Example:
+%! run_process(+Program:atom, +Arguments:list(term)) is det.
+%! run_process(+Program:atom, +Arguments:list(term), :Goal_1) is det.
+%! run_process(+Program:atom, +Arguments:list(term), :Goal_1,
+%!             +Options:list(compound)) is det.
 %
-% ```bash
-% 427  1818 13512 README.md
+% ```prolog
+% process_create(
+%   path(cat),
+%   [file('a.txt'),file('b.txt')],
+%   [stdout(pipe(Out))]
+% ),
+% copy_stream_data(Out, user_output).
+%
+% run_process(
+%   cat,
+%   [file('a.txt'),file('b.txt')],
+%   [Out]>>copy_stream_data(Out,current_output)
+% )
 % ```
 
-wc0(NumLines, NumWords, NumBytes) -->
-  whites, integer(NumLines),
-  whites, integer(NumWords),
-  whites, integer(NumBytes).
+run_process(Program, Arguments) :-
+  run_process(Program, Arguments, []).
+
+
+run_process(Program, Arguments, Options) :-
+  run_process(
+    Program,
+    Arguments,
+    [Out]>>copy_stream_data(Out, user_output),
+    Options
+  ).
+
+
+run_process(Program, Arguments, Goal_1, Options1) :-
+  process_options(Options1, Options2),
+  merge_options(
+    Options2,
+    [process(Pid),stderr(pipe(Err)),stdout(pipe(Out))],
+    Options3
+  ),
+  % `Program' is either an absolute file or a related file that is
+  % resolved WRT the PATH environment variable.
+  (is_absolute_file_name(Program) -> Exec = Program ; Exec = path(Program)),
+  process_debug(Program, Arguments),
+  setup_call_cleanup(
+    process_create(Exec, Arguments, Options3),
+    (
+      call(Goal_1, Out),
+      thread_create(print_error(Err), _, [detached(true)]),
+      process_wait(Pid, exit(OutStatus)),
+      process_status(OutStatus)
+    ),
+    close(Out)
+  ).
+
+process_debug(Program, Arguments) :-
+  debugging(process_open), !,
+  Goal_0 =.. [Program|Arguments],
+  debug(process_open, "~w", [Goal_0]).
+process_debug(_, _).
+
+process_status(0) :- !.
+process_status(exit(Status)) :-
+  print_message(warning, process_status(Status)).
+
+
+
+
+
+% INITIALIZATION %
+
+init_cli_arguments :-
+  current_prolog_flag(os_argv, Flags),
+  convlist(parse_argument, Flags, Arguments),
+  assert(cli_arguments(Arguments)).
+
+parse_argument(Flag, Argument) :-
+  atom_phrase(argument(Argument), Flag).
+
+argument(Argument) -->
+  "--",
+  '...'(Codes),
+  "=", !,
+  {atom_codes(Key, Codes)},
+  rest_as_atom(Value),
+  {Argument =.. [Key,Value]}.
+
+
+
+
+
+% HELPERS %
+
+%! print_error(+Error:stream) is det.
+
+print_error(Err) :-
+  call_cleanup(
+    copy_stream_data(Err, user_error),
+    close(Err)
+  ).
+
+
+
+%! process_options(+Options1:list(compound), -Options2:list(compound)) is det.
+
+process_options([], []) :- !.
+process_options([H|T1], [H|T2]) :-
+  process_option(H), !,
+  process_options(T1, T2).
+process_options([_|T1], T2) :-
+  process_options(T1, T2).
+
+process_option(cwd(_)).
+process_option(detached(_)).
+process_option(env(_)).
+process_option(priority(_)).
+process_option(process(_)).
+process_option(stderr(_)).
+process_option(stdin(_)).
+process_option(stdout(_)).
+process_option(window(_)).

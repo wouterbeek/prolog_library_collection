@@ -1,219 +1,262 @@
 :- module(
   uri_ext,
   [
-    iri_query_enc//0,
-    is_data_uri/1,          % +Uri
-    is_image_uri/1,         % @Term
-    uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
-    uri_alias_uuid/2,       % -Uri, +Alias
-    uri_comp/3,             % +Uri, ?Key, ?Val
-    uri_last_segment/2,     % +Uri, -LastSegment
-    uri_optional_query_enc//0,
-    uri_query_enc//0,
-    uri_remove_fragment/2,  % +Uri, -BaseUri
-    uri_resource/2,         % ?Uri, ?Res
-    uri_segment_enc//0,
-    uri_segments/2,         % ?Uri, ?Segments
-    uri_segments_uuid/2     % ?Uri, ?Segments
+    call_on_uri/2,         % +UriSpec, :Goal_3
+    call_on_uri/3,         % +UriSpec, :Goal_3, +Options
+    fresh_uri/2,           % -Uri, +Components
+    is_uri/1,              % @Term
+    uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
+    uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
+    uri_comps/2,           % ?Uri, ?Components
+    uri_file_extensions/2, % +Uri, -Extensions
+    uri_media_type/2       % +Uri, -MediaType
   ]
 ).
+:- reexport(library(stream_ext)).
 :- reexport(library(uri)).
 
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2016/11-2017/06
+@version 2017/04-2017/07
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(default)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(uri/rfc3986)).
+:- use_module(library(option)).
+:- use_module(library(ordsets)).
+:- use_module(library(settings)).
+:- use_module(library(uuid)).
+:- use_module(library(zlib)).
+
+:- meta_predicate
+    call_on_uri(+, 3),
+    call_on_uri(+, 3, +),
+    call_on_uri_scheme(+, +, 3, -, +).
 
 :- multifile
     error:has_type/2.
 
-error:has_type(uri, Uri) :-
-  is_uri(Uri).
+error:has_type(uri, Term):-
+  uri_components(Term, uri_components(Scheme,Authority,Path,_,_)),
+  ground(uri(Scheme,Authority,Path)).
 
 
 
 
 
-%! iri_query_enc// .
+%! call_on_uri(+UriSpec:term, :Goal_3) is nondet.
+%! call_on_uri(+UriSpec:term, :Goal_3, +Options:list(compound)) is nondet.
 %
-% ```abnf
-% iquery = *( ipchar / iprivate / "/" / "?" )
-% ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
-% iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
-% iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
-% ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-%         / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-%         / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-%         / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-%         / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-%         / %xD0000-DFFFD / %xE1000-EFFFD
-% ```
-
-iri_query_enc, "/" --> "/", !, iri_query_enc.
-iri_query_enc, "?" --> "?", !, iri_query_enc.
-iri_query_enc, ":" --> ":", !, iri_query_enc.
-iri_query_enc, "@" --> "@", !, iri_query_enc.
-iri_query_enc, [C] --> iunreserved(C), !, iri_query_enc.
-iri_query_enc, [C] --> 'sub-delims'(C), !, iri_query_enc.
-iri_query_enc, [C] --> iprivate(C), !, iri_query_enc.
-iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
-  between_code(0, 255, C), !,
-  {W1 is C // 16, W2 is C mod 16},
-  iri_query_enc.
-iri_query_enc --> "".
-
-
-
-%! is_data_uri(+Uri) is semidet.
-
-is_data_uri(Uri) :-
-  uri_components(Uri, uri_components(Scheme,Host,_,_,_)),
-  setting(uri:data_scheme, Scheme),
-  setting(uri:data_host, Host).
-
-
-
-%! is_image_uri(+Uri) is semidet.
+% @arg UriSpec is either an atomic URI, an atomic file name, a
+%      compound term uri/5 as handled by uri_comps/2, or a compound
+%      term as processed by absolute_file_name/[2,3].
 %
-% Succeeds if the given URI is commonly understood to denote an image
-% file.
+% @arg Options are passed to http_open2/4 if `Uri' has scheme `http'
+%      or `https'.
 
-is_image_uri(Uri) :-
-  uri_is_global(Uri),
-  uri_components(Uri, uri_components(_,_,Path,_,_)),
-  is_image_file(Path).
+call_on_uri(UriSpec, Goal_3) :-
+  call_on_uri(UriSpec, Goal_3, []).
 
 
+call_on_uri(UriSpec, Goal_3, Options) :-
+  uri_spec(UriSpec, read, Uri),
+  uri_components(Uri, uri_components(Scheme,_,_,_,_)),
+  call_on_uri_scheme(Scheme, Uri, Goal_3, Metadata, Options),
+  ignore(option(metadata(Metadata), Options)).
 
-%! uri_add_path_postfix(+Uri1, +PathPostfix, -Uri2) is det.
+uri_spec(uri(Scheme,Authority,Segments,Query,Fragment), _, Uri) :- !,
+  uri_comps(Uri, uri(Scheme,Authority,Segments,Query,Fragment)).
+uri_spec(Uri, _, Uri) :-
+  is_uri(Uri), !.
+uri_spec(FileSpec, Mode, Uri) :-
+  absolute_file_name(FileSpec, File, [access(Mode),expand(true)]),
+  uri_file_name(Uri, File).
 
-uri_add_path_postfix(Uri1, PathPostfix, Uri2) :-
-  uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
-  append(Segments1, PathPostfix, Segments2),
-  uri_comps(Uri2, uri(Scheme,Auth,Segments2,_,_)).
+call_on_uri_scheme(file, Uri, Goal_3, Metadata3, Options) :- !,
+  uri_file_name(Uri, File),
+  setup_call_cleanup(
+    open(File, read, Stream, Options),
+    (
+      stream_ext:call_on_stream(Stream, Goal_3, [uri{mode:read,uri:Uri}],
+                                Metadata1, Options),
+      stream_hash_metadata(Stream, Metadata1, Metadata2, Options)
+    ),
+    close(Stream)
+  ),
+  % Due to non-determinism, stream may or may not yet be closed..
+  (var(Metadata2) -> Metadata3 = Metadata1 ; Metadata3 = Metadata2).
+call_on_uri_scheme(http, Uri, Goal_3, Metadata, Options) :- !,
+  http_client2:call_on_http(Uri, Goal_3, Metadata, Options).
+call_on_uri_scheme(https, Uri, Goal_3, Metadata, Options) :-
+  call_on_uri_scheme(http, Uri, Goal_3, Metadata, Options).
 
 
 
-%! uri_alias_uuid(-Uri, +Alias) is det.
+%! fresh_uri(-Uri, +Components) is det.
 
-uri_alias_uuid(Uri, Alias) :-
-  uuid(Local),
-  rdf_global_id(Alias:Local, Uri).
+fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
+  uuid(Uuid),
+  defval([], Segments1),
+  append(Segments1, [Uuid], Segments2),
+  uri_comps(Uri, uri(Scheme,Authority,Segments2,Query,Fragment)).
 
 
 
-%! uri_comp(+Uri, +Key, +Val) is semidet.
-%! uri_comp(+Uri, +Key, -Val) is det.
-%! uri_comp(+Uri, -Key, -Val) is multi.
+%! is_uri(@Term) is semidet.
 %
-% Abbreviates multiple predicates from `library(uri)`:
-%   * uri_authority_components/2
-%   * uri_authority_data/3
-%   * uri_components/2
-%   * uri_data/3
+% Succeeds iff Term is an atom that conforms to the URI grammar.
 
-uri_comp(Uri, Key, Val) :-
-  uri_field0(Key), !,
-  uri_components(Uri, Comps),
-  uri_data_compatibility(Key, Comps, Val).
-uri_comp(Uri, Key, Val) :-
-  auth_field0(Key), !,
-  uri_components(Uri, UriComps),
-  uri_data_compatibility(authority, UriComps, Auth),
-  uri_authority_components(Auth, AuthComps),
-  uri_authority_data(Key, AuthComps, Val).
-uri_comp(_, Key0, _) :-
-  aggregate_all(set(Key), uri_field(Key), Keys),
-  type_error(oneof(Keys), Key0).
-
-uri_field0(authority).
-uri_field0(fragment).
-uri_field0(path).
-uri_field0(search).
-uri_field0(scheme).
-
-uri_data_compatibility(Key, Comps, Val) :-
-  Key == query, !,
-  uri_data(search, Comps, Val).
-uri_data_compatibility(Key, Comps, Val) :-
-  uri_data(Key0, Comps, Val),
-  (Key0 == search -> Key = query ; Key = Key0).
-
-auth_field0(host).
-auth_field0(password).
-auth_field0(port).
-auth_field0(user).
-
-uri_field(Key) :-
-  auth_field0(Key).
-uri_field(Key) :-
-  uri_field0(Key).
+is_uri(Uri) :-
+  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
+  ground(Scheme-Authority).
 
 
 
-%! uri_last_segment(+Uri, -LastSegment) is det.
+%! uri_comp_add(+Kind:oneof([path,query]), +Uri1, +Component, -Uri2) is det.
 %
-% This is sometimes useful when the name of something is encoded in
-% the last segments of an URI path.
+% For `Kind=path' we remove empty segments in the middle of a path.
+% For example, adding `[b]` to `/a/' is `/a/b' (and not `/a//b').
 
-uri_last_segment(Uri, LastSegment) :-
-  uri_components(Uri, uri_components(_,_,Path,_,_)),
-  atomic_list_concat(Segments, /, Path),
-  last(Segments, LastSegment).
+uri_comp_add(path, Uri1, Segments3, Uri2) :-
+  uri_comps(Uri1, uri(Scheme,Authority,Segments1,Query,Fragment)),
+  remove_last_segment_if_empty1(Segments1, Segments2),
+  append(Segments2, Segments3, Segments4),
+  uri_comps(Uri2, uri(Scheme,Authority,Segments4,Query,Fragment)).
+uri_comp_add(query, Uri1, QueryComps2, Uri2) :-
+  uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,Fragment)),
+  append(QueryComps1, QueryComps2, QueryComps3),
+  uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps3,Fragment)).
 
-
-
-%! uri_optional_query_enc// .
-
-uri_optional_query_enc, "%2C" --> ",", !, uri_optional_query_enc.
-uri_optional_query_enc, "%2F" --> "/", !, uri_optional_query_enc.
-uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
-uri_optional_query_enc, "%40" --> "@", !, uri_optional_query_enc.
-uri_optional_query_enc, [C]   --> [C], !, uri_optional_query_enc.
-uri_optional_query_enc        --> [].
+remove_last_segment_if_empty1(Segments1, Segments2) :-
+  append(Segments2, [''], Segments1), !.
+remove_last_segment_if_empty1(Segments, Segments).
 
 
 
-%! uri_query_enc// .
+%! uri_comp_set(+Kind:oneof([fragment,query]), +Uri1, +Component, -Uri2) is det.
+
+uri_comp_set(fragment, Uri1, Fragment, Uri2) :-
+  uri_components(Uri1, uri_components(Scheme,Authority,Path,Query,_)),
+  uri_components(Uri2, uri_components(Scheme,Authority,Path,Query,Fragment)).
+uri_comp_set(query, Uri1, QueryComponents, Uri2) :-
+  uri_components(Uri1, uri_components(Scheme,Authority,Path,_,Fragment)),
+  uri_query_components(Query, QueryComponents),
+  uri_components(Uri2, uri_components(Scheme,Authority,Path,Query,Fragment)).
+
+
+
+%! uri_comps(+Uri, -Components) is det.
+%! uri_comps(-Uri, +Components) is det.
 %
-% ```abnf
-% query = *( pchar / "/" / "?" )
-% pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-% pct-encoded = "%" HEXDIG HEXDIG
-% sub-delims = "!" / "$" / "&" / "'" / "(" / ")"
-%            / "*" / "+" / "," / ";" / "="
-% unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
-% ```
-
-uri_query_enc, "/" --> "/",             !, uri_query_enc.
-uri_query_enc, "?" --> "?",             !, uri_query_enc.
-uri_query_enc, ":" --> ":",             !, uri_query_enc.
-uri_query_enc, "@" --> "@",             !, uri_query_enc.
-uri_query_enc, [C] --> unreserved(C),   !, uri_query_enc.
-uri_query_enc, [C] --> 'sub-delims'(C), !, uri_query_enc.
-uri_query_enc, "%", hex(W1), hex(W2) -->
-  between_code(0, 255, C), !,
-  {W1 is C // 16, W2 is C mod 16},
-  uri_query_enc.
-uri_query_enc --> [].
-
-
-
-%! uri_remove_fragment(+Uri, -BaseUri) is det.
+% Components is a compound term of the form
+% `uri(Scheme,Authority,Segments,Query,Fragment)', where:
 %
-% The base URI is the eventual URI that is being read from, wtihout
-% the fragment component.
+%   * Authority is either an atom or a compound term of the form
+%     `auth(User,Host,Port)'.
+%
+%   * Segments is a list of atomic path segments.
+%
+%   * Query is (1) a list of unary compound terms, or (2) a list of
+%     pairs, or (3) a flat dict (i.e., a dict with non-dict values).
 
-uri_remove_fragment(Uri, BaseUri) :-
-  uri_components(Uri, uri_components(Scheme,Auth,Path,Query,_)),
-  uri_components(BaseUri, uri_components(Scheme,Auth,Path,Query,_)).
+uri_comps(Uri, uri(Scheme,AuthorityComp,Segments,QueryComponents,Fragment)) :-
+  ground(Uri), !,
+  uri_components(Uri, uri_components(Scheme,Authority,Path,Query,Fragment)),
+  (   atom(Authority),
+      var(AuthorityComp)
+  ->  AuthorityComp = Authority
+  ;   auth_comps0(Scheme, Authority, AuthorityComp)
+  ),
+  atomic_list_concat([''|Segments], /, Path),
+  (   var(Query)
+  ->  QueryComponents = []
+  ;   % @hack Currently needed because buggy URI query components are
+      %       common.
+      catch(uri_query_components(Query, QueryComponents0), _, fail)
+  ->  list_to_set(QueryComponents0, QueryComponents)
+  ;   QueryComponents = []
+  ).
+uri_comps(Uri, uri(Scheme,Authority0,Segments,QueryComponents,Fragment)) :-
+  (   atom(Authority0)
+  ->  Authority = Authority0
+  ;   auth_comps0(Scheme, Authority, Authority0)
+  ),
+  (   var(Segments)
+  ->  true
+  ;   Segments = []
+  ->  Path = '/'
+  ;   (Segments = [''|Segments0] -> true ; Segments0 = Segments),
+      atomic_list_concat([''|Segments0], /, Path)
+  ),
+  (   var(QueryComponents)
+  ->  true
+  ;   is_dict(QueryComponents)
+  ->  dict_pairs(QueryComponents, QueryPairs),
+      uri_query_components(Query, QueryPairs)
+  ;   uri_query_components(Query, QueryComponents)
+  ),
+  uri_components(Uri, uri_components(Scheme,Authority,Path,Query,Fragment)).
+
+auth_comps0(_, Authority, auth(User,Host,Port)) :-
+  ground(Authority), !,
+  uri_authority_components(Authority, uri_authority(User,_,Host,Port)).
+auth_comps0(Scheme, Authority, auth(User,Host,Port0)) :-
+  (   var(Port0)
+  ->  true
+  ;   % Leave out the port if it is the default port for the given
+      % Scheme.
+      ground(Scheme),
+      default_port0(Scheme, Port0)
+  ->  true
+  ;   Port = Port0
+  ),
+  % Create the Authorityority string.
+  uri_authority_components(Authority, uri_authority(User,_,Host,Port)).
+
+default_port0(http, 80).
+default_port0(https, 443).
+
+
+
+%! uri_dict(+Uri:atom, -Dict:dict) is det.
+
+uri_dict(Uri, Dict) :-
+  uri_comps(Uri, uri(Scheme,auth(User,Host,Port),Segments,Query,Fragment)),
+  include(ground, [host-Host,port-Port,user-User], AuthorityPairs),
+  dict_pairs(AuthorityDict, authority, AuthorityPairs),
+  include(
+    ground,
+    [
+      authority-AuthorityDict,
+      fragment-Fragment,
+      scheme-Scheme,
+      segments-Segments,
+      query-Query
+    ],
+    uri,
+    Pairs
+  ),
+  dict_pairs(Dict, Pairs).
+
+
+
+%! uri_file_extensions(+Uri, -Extensions) is det.
+
+uri_file_extensions(Uri, Extensions) :-
+  uri_comps(Uri, uri(_,_,Segments,_,_)),
+  last(Segments, Segment),
+  file_extensions(Segment, Extensions).
+
+
+
+%! uri_media_type(+Uri, -MediaType) is det.
+
+uri_media_type(Uri, MediaType) :-
+  uri_file_extensions(Uri, Extensions),
+  file_extensions_media_type(Extensions, MediaType).
