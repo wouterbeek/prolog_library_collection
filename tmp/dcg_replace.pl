@@ -287,4 +287,3 @@ dcg_replace0(FromDCG, ToDCG, [H|T1], [H|T2]):-
 
 is_not_nullable(DCG):-
   \+ \+ phrase(DCG, []).
-
