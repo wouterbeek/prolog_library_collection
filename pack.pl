@@ -13,6 +13,7 @@ keywords([
   sort,
   string,
   'URI',
+  'WKT',
   'XML'
 ]).
 maintainer('Wouter Beek', 'wouter@triply.cc').
