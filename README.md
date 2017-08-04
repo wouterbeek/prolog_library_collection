@@ -395,4 +395,4 @@ The following DCG rules allow arbitrary content to be quoted:
 
 ---
 
-This library was developed by [Wouter Beek](http://www.wouterbeek.com) in 2013-2015.
+This library was developed by [Wouter Beek](http://www.wouterbeek.com) in 2013-2017.
