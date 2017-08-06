@@ -63,6 +63,7 @@ call_default_option(Option, _, Goal_1) :-
   (call(Goal_1, DefaultValue) -> Value = DefaultValue).
 
 
+
 %! call_det_when(:Cond_0, :Goal_0) .
 %
 % Call `Goal_0' once when `Cond_0' succeeds.  Otherwise call `Goal_0'

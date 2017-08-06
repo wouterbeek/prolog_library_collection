@@ -2,24 +2,46 @@
 #+AUTHOR: Wouter Beek
 
 This is a collection of Prolog libraries that augment the
-functionality available in the [SWI-Prolog](www.swi-prolog.org)
-standard libraries.
+functionality available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.  It
+contains the following modules:
 
-
+  - ~archive_ext~
+  - ~atom_ext~: support for working with atoms, e.g., capitalization,
+    ellipsis, strip, truncate.
+  - ~call_ext~: meta-predicates
+  - ~code_ext~
+  - ~conf_ext~
+  - ~csv_ext~: streamed processing of CSV files
+  - ~date_time~
+  - ~dcg/~: DCG support
+  - ~default~
+  - ~dict_ext~: SWI7 dictionaries
+  - ~dlist~: difference lists
+  - ~file_ext~: handling files and directories
+  - ~geo/~: parsing & generating of Well-Known Text (WKT) strings
+  - ~has_ext~
+  - ~http/~: HTTP client & server support
+  - ~json_ext~
+  - ~list_ext~
+  - ~math_ext~
+  - ~nlp/~
+  - ~os_ext~: running external processes, streaming to/from external
+    processes
+  - ~pair_ext~
+  - ~pp~
+  - ~sort_ext~
+  - ~stream_ext~: support for recoding, unpacking, sorting, and hasing
+    streams.
+  - ~string_ext~
+  - ~uri/~: constructing/decomposing URIs
+  - ~write_ext~
+  - ~xml/~: streamed processing of XML DOMs
 
 * ~/dcg~ Definite Clause Grammars
 
 In directory ~/dcg~ you will find a collection of Definite Clause
-Grammar (DCG) modules:
+Grammar (DCG) modules.
 
-  - [[https://github.com/wouterbeek/Prolog_Library_Collection#dcg_abnf][~dcg_abnf~]]: Advanced Bauckus-Naur Form (ABNF) constructs in DCGs.
-
-In the code examples we expect that code lists are portrayed in the Prolog top level.
-An easy way of setting this is by loading the following module:
-
-#+BEGIN_SRC prolog
-:- [library(deb_ext)].
-#+END_SRC
 
 ** ~/dcg/dcg_abnf.pl~ Advanced Bauckus-Naur Form (ABNF)
 
@@ -48,7 +70,7 @@ When this module is loaded, the same can be written as follows:
 
 #+BEGIN_SRC prolog
 sentence(L) -->
-  *(word, L).
+  +(word, L).
 #+END_SRC
 
 *** definition

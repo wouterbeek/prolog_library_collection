@@ -1,3 +1,10 @@
+In the code examples we expect that code lists are portrayed in the Prolog top level.
+An easy way of setting this is by loading the following module:
+
+#+BEGIN_SRC prolog
+:- [library(deb_ext)].
+#+END_SRC
+
   - [[https://github.com/wouterbeek/Prolog_Library_Collection#dcg_arrow][~dcg_arrow~]]: Simple ASCII arrows and horizontal lines.
   - [[https://github.com/wouterbeek/Prolog_Library_Collection#dcg_ascii][~dcg_ascii~]]: Provides support for all ASCII characters and common
     ASCII character groups.
