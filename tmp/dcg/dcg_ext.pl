@@ -1,15 +1,6 @@
 :- module(
   dcg_ext,
   [
-    '?'//1,                % :Dcg_0
-    '?'//2,                % :Dcg_1, -Args1
-    '?'//3,                % :Dcg_2, -Args1, -Args2
-    '*'//3,                % :Dcg_2, -Args1, -Args2
-    '+'//3,                % :Dcg_2, -Args1, -Args2
-    '#'//4,                % ?Occurrences, :Dcg_2, -Args1, -Args2
-    '*n'//4,               % ?High, :Dcg_2, -Args1, -Args2
-    'm*'//4,               % ?Low, :Dcg_2, -Args1, -Args2
-    'm*n'//5,              % ?Low, ?High, :Dcg_2, -Args1, -Args2
     atom_lower//1,         % ?A
     atom_title//1,         % ?A
     atom_upper//1,         % ?A
@@ -145,17 +136,6 @@ My favorite collection of DCG rules.
    ]).
 
 :- meta_predicate
-    ?(//, ?, ?),
-    ?(3, -, ?, ?),
-    ?(4, -, -, ?, ?),
-    *(4, -, -, ?, ?),
-    +(4, -, -, ?, ?),
-    #(+, 4, -, -, ?, ?),
-    '*n'(?, 4, -, -, ?, ?),
-    'm*'(?, 4, -, -, ?, ?),
-    'm*n'(?, ?, 4, -, -, ?, ?),
-    'm*n__g'(?, ?, +, 4, -, -, ?, ?),
-    'm*n__p'(?, ?, +, 4, -, -, ?, ?),
     bracketed(//, ?, ?),
     bracketed(+, //, ?, ?),
     bracketed0(+, //, ?, ?),
@@ -222,80 +202,6 @@ dcg:dcg_hook(thousands(N)) -->
    ).
 
 
-
-
-
-%! ?(:Dcg_0)// is det.
-%! ?(:Dcg_1, -Args1)// is det.
-%! ?(:Dcg_2, -Args1, -Args2)// is det.
-
-?(Dcg_0) -->
-  'm*n'(0, 1, Dcg_0).
-
-?(Dcg_1, L1) -->
-  'm*n'(0, 1, Dcg_1, L1).
-
-?(Dcg_2, L1, L2) -->
-  'm*n'(0, 1, Dcg_2, L1, L2).
-
-
-
-%! *(:Dcg_2, -Args1, -Args2)// is det.
-
-*(Dcg_2, L1, L2) -->
-  'm*n'(0, _, Dcg_2, L1, L2).
-
-
-
-%! #(?Occurrences, :Dcg_2, -Args1, -Args2)// is det.
-
-#(N, Dcg_2, L1, L2) -->
-  'm*n'(N, N, Dcg_2, L1, L2).
-
-
-
-+(Dcg_2, L1, L2) -->
-  'm*n'(1, _, Dcg_2, L1, L2).
-
-
-
-%! '*n'(?High, :Dcg_2, -Args1, -Args2)// is det.
-
-'*n'(High, Dcg_2, L1, L2) -->
-  'm*n'(_, High, Dcg_2, L1, L2).
-
-
-
-%! 'm*'(?Low, :Dcg_2, -Args1, -Args2)// is det.
-
-'m*'(Low, Dcg_2, L1, L2) -->
-  'm*n'(Low, _, Dcg_2, L1, L2).
-
-
-
-%! 'm*n'(?Low, ?High, :Dcg_2, -Args1, -Args2)// is det.
-
-'m*n'(Low, High, Dcg_2, L1, L2) -->
-  parsing, !,
-  'm*n__p'(Low, High, 0, Dcg_2, L1, L2).
-'m*n'(Low, High, Dcg_2, L1, L2) -->
-  'm*n__g'(Low, High, 0, Dcg_2, L1, L2).
-
-'m*n__g'(Low, _, Count, _, [], []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m*n__g'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_2, H1, H2),
-  {Count2 is Count1 + 1},
-  'm*n__g'(Low, High, Count2, Dcg_2, T1, T2).
-
-'m*n__p'(Low, High, Count1, Dcg_2, [H1|T1], [H2|T2]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_2, H1, H2),
-  {Count2 is Count1 + 1},
-  'm*n__p'(Low, High, Count2, Dcg_2, T1, T2).
-'m*n__p'(Low, _, Count, _, [], []) -->
-  {(var(Low) -> true ; Low =< Count)}.
 
 
 
@@ -1225,7 +1131,7 @@ set(L) -->
 
 set(Dcg_1, L) -->
   "{",
-  seplist(Dcg_1, ", ", L),
+  *&(Dcg_1, ", ", L),
   "}".
 
 
@@ -1334,7 +1240,7 @@ tuple(L) -->
 
 
 tuple(Dcg_1, L) -->
-  "〈", seplist(Dcg_1, L), "〉".
+  "〈", *&(Dcg_1, L), "〉".
 
 
 

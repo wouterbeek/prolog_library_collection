@@ -13,10 +13,7 @@
 @version 2015/12-2016/01
 */
 
-:- use_module(library(dcg/dcg_ext), [
-     '?'//2,
-     '*'//2
-   ]).
+:- use_module(library(dcg/dcg_abnf)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1 as alpha0, % ?Code:code
      'DIGIT'//2 as digit0  % ?Weight:between(0,9), ?Code:code

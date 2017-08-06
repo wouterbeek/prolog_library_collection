@@ -76,7 +76,7 @@ replace_in_file(_, _, _) --> [].
 %! trim_spaces(+OldFile:atom, ?NewFile:atom) is det.
 
 trim_spaces(F1, F2):-
-  replace_in_file(F1, '+'(space, []), space, F2).
+  replace_in_file(F1, whites, white, F2).
 
 
 

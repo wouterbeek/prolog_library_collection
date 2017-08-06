@@ -101,7 +101,7 @@
   "<!ATTLIST",
   'S',
   'Name'(ElementType),
-  '*'('AttDef'(Version), AttrDefs, []),
+  *('AttDef'(Version), AttrDefs, []),
   ?('S'),
   ">".
 
@@ -154,7 +154,7 @@
 % @compat XML 1.1.2 [10].
 
 'AttValue'(Version, Names) -->
-  quoted(Quote, '*'('AttValue_'(Version, Quote), Names, [])).
+  quoted(Quote, *('AttValue_'(Version, Quote), Names, [])).
 
 'AttValue_'(Version, Quote, Name) -->
   'Reference'(Version, Name),
@@ -400,7 +400,7 @@ children(cp(Cp,Occurrence)) -->
 choice(choice(Cps)) -->
   "(",
   ?('S'),
-  seplist+(cp(Cps), pipe_sep),
+  +&(cp(Cps), pipe_sep),
   ?('S'),
   ")".
 
@@ -488,18 +488,18 @@ content(Version, L) -->
   *(content_(Version), T).
 
 content_(Version, H) -->
-  content__(H),
+  content__(Version, H),
   ?('CharData'(_)).
 
-content__(H) -->
-  element(Version, Content).
-content__(H) -->
-  'Reference'(Version, Content).
-content__(H) -->
-  'CDSect'(Version, Content).
-content__(H) -->
-  'PI'(Version, Content).
-content__(H) -->
+content__(Version, H) -->
+  element(Version, H).
+content__(Version, H) -->
+  'Reference'(Version, H).
+content__(Version, H) -->
+  'CDSect'(Version, H).
+content__(Version, H) -->
+  'PI'(Version, H).
+content__(Version, _) -->
   'Comment'(Version).
 
 
@@ -649,7 +649,7 @@ doctypedecl(Version, doctype_decl(Name,ExtId,Decls)) -->
 document(version(1,0), XmlDecl, DoctypeDecl, Pis, RootElement) -->
   prolog(version(1,0), XmlDecl, DoctypeDecl, Pis1),
   element(version(1,0), RootElement),
-  '*'('Misc'(version(1,0)), Pis2, []),
+  *('Misc'(version(1,0)), Pis2, []),
   {
     exclude(var, Pis2, Pis3),
     append(Pis1, Pis3, Pis)
@@ -724,7 +724,7 @@ elementdecl(element_decl(Name,ContentSpec)) -->
   "<",
   'Name'(Name),
   (   'S',
-      seplist+('Attribute'(Version), 'S', Attributes)
+      +&('Attribute'(Version), 'S', Attributes)
   ->  ""
   ;   {Attributes = []}
   ),
@@ -764,7 +764,7 @@ elementdecl(element_decl(Name,ContentSpec)) -->
 
 'EncName_'([H|T]) -->
   alpha(H),
-  '*'(enc_name_char, T).
+  *(enc_name_char, T).
 
 enc_name_char(C) --> alphanum(C).
 enc_name_char(0'.) --> ".".
@@ -801,7 +801,7 @@ enc_name_char(0'-) --> "-".
   'EntityValue'(Version, Literal).
 'EntityDef'(_, entity_def(ExternalId,NotationName)) -->
   'ExternalID'(ExternalId),
-  '?'('NDataDecl', NotationName, []).
+  ?('NDataDecl', NotationName, []).
 
 
 
@@ -887,7 +887,7 @@ enc_name_char(0'-) --> "-".
 'Enumeration'(oneof([Tokens])) -->
   "(",
   ?('S'),
-  seplist+('Nmtoken', Tokens, pipe_sep),
+  +&('Nmtoken', Tokens, pipe_sep),
   ?('S'),
   ")".
 
@@ -986,7 +986,7 @@ extParsedEnt(version(1,1), XmlVersion, Encoding, Content, X, Y):-
 % @compat XML 1.1.2 [30].
 
 extSubset(Version, XmlVersion, Encoding, Declarations) -->
-  '?'('TextDecl'(Version), XmlVersion, Encoding, []),
+  ?('TextDecl'(Version), XmlVersion, Encoding, []),
   extSubsetDecl(Version, Declarations).
 
 
@@ -1042,7 +1042,7 @@ extSubsetDecl(Version, [H|T]) -->
 % @compat XML 1.1.2 [65]
 
 'Ignore'(Version, Name) -->
-  dcg_atom('*'('Ignore_'(Version))).
+  dcg_atom(*('Ignore_'(Version)), Name).
 
 'Ignore_'(_, _) -->
   "<![", !,
@@ -1207,7 +1207,7 @@ markupdecl(Version, _) -->
   "(",
   ?('S'),
   "#PCDATA",
-  (pipe_sep -> seplist+('Name', Names, pipe_sep) ; {Names = []}),
+  (pipe_sep -> +&('Name', Names, pipe_sep) ; {Names = []}),
   ?('S'),
   ")*".
 'Mixed'([]) -->
@@ -1304,7 +1304,7 @@ markupdecl(Version, _) -->
 % @compat XML 1.1.2 [6].
 
 'Names'(Names) -->
-  seplist+('Name', " ", Names).
+  +&('Name', " ", Names).
 
 
 
@@ -1415,7 +1415,7 @@ markupdecl(Version, _) -->
 % @compat XML 1.1.2 [8].
 
 'Nmtokens'(Tokens) -->
-  seplist+('Nmtoken', " ", Tokens).
+  +&('Nmtoken', " ", Tokens).
 
 
 
@@ -1467,7 +1467,7 @@ markupdecl(Version, _) -->
   'S',
   "(",
   ?('S'),
-  seplist+('Name', Names, pipe_sep),
+  +&('Name', Names, pipe_sep),
   ?('S'),
   ")".
 
@@ -1555,7 +1555,7 @@ markupdecl(Version, _) -->
   "<?",
   'PITarget'(Target),
   (   'S'
-  ->  '*'(pi_code(Version), Cs),
+  ->  *(pi_code(Version), Cs),
       {
         atom_codes(A, Cs),
         X =.. [Target,A]
@@ -1604,8 +1604,8 @@ pi_code(Version, C) -->
 
 prolog(Version, Encoding, Standalone, PIs) -->
   ?('XMLDecl'(Version, Encoding, Standalone)),
-  '*'('Misc'(Version), PIs1),
-  (doctypedecl(Version) -> '*'('Misc'(Version), PIs2) ; ""),
+  *('Misc'(Version), PIs1),
+  (doctypedecl(Version) -> *('Misc'(Version), PIs2) ; ""),
   {
     append(PIs1, PIs2, PIs3),
     exclude(var, PIs3, PIs)
@@ -1796,7 +1796,7 @@ yesno(false) --> "no".
 seq(seq(Cps)) -->
   "(",
   ?('S'),
-  '*'(cp, Cps, [separator(xml_comma)]),
+  *(cp, Cps, [separator(xml_comma)]),
   ?('S'),
   ")".
 
@@ -1822,7 +1822,7 @@ xml_comma -->
   "<",
   'Name'(Name),
   (   'S',
-      seplist+('Attribute'(Version), 'S', Attributes)
+      +&('Attribute'(Version), 'S', Attributes)
   ->  ""
   ;   {Attributes = []}
   ),
@@ -1854,7 +1854,7 @@ xml_comma -->
 % @compat XML 1.1.2 [11].
 
 'SystemLiteral'(Literal) -->
-  quoted(Quote, dcg_atom('*'('SystemLiteral_'(Quote), []), Literal)).
+  quoted(Quote, dcg_atom(*('SystemLiteral_'(Quote), []), Literal)).
 
 'SystemLiteral_'(Quote, _) -->
   [Quote], !,

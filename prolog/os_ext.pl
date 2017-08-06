@@ -34,8 +34,10 @@
 :- dynamic
     cli_arguments/1.
 
-:- initialization
-   init_cli_arguments.
+% TBD: This throws an initialization error during startup, claiming
+%      that atom_phrase/2 is undefined.
+%:- initialization
+%   init_cli_arguments.
 
 :- meta_predicate
     process_flags(2, +, -),

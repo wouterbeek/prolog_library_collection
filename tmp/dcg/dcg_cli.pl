@@ -90,7 +90,7 @@ dcg:dcg_hook(bold(Term)) -->
 
 ansi_str(Modifiers, Str) -->
   "\e[",
-  seplist(integer, ";", Modifiers),
+  *&(integer, ";", Modifiers),
   "m",
   atom(Str),
   "\e[0m", !.

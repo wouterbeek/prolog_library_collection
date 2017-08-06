@@ -1,0 +1,122 @@
+#+TITLE: Prolog-Library-Collection
+#+AUTHOR: Wouter Beek
+
+This is a collection of Prolog libraries that augment the
+functionality available in the [SWI-Prolog](www.swi-prolog.org)
+standard libraries.
+
+
+
+* ~/dcg~ Definite Clause Grammars
+
+In directory ~/dcg~ you will find a collection of Definite Clause
+Grammar (DCG) modules:
+
+  - [[https://github.com/wouterbeek/Prolog_Library_Collection#dcg_abnf][~dcg_abnf~]]: Advanced Bauckus-Naur Form (ABNF) constructs in DCGs.
+
+In the code examples we expect that code lists are portrayed in the Prolog top level.
+An easy way of setting this is by loading the following module:
+
+#+BEGIN_SRC prolog
+:- [library(deb_ext)].
+#+END_SRC
+
+** ~/dcg/dcg_abnf.pl~ Advanced Bauckus-Naur Form (ABNF)
+
+While DCGs are nice, they can be a bit verbose for expressing common
+repetition patterns.  To make DCGs that include repetitions less
+verbose, this module implements *variable repetition* as defined in
+[[https://tools.ietf.org/html/rfc5234][RFC 5234: Augmented BNF for Syntax Specifications: ABNF]].
+
+*** A simple example
+
+Suppose we want to parse sentences, which are non-empty sequences of
+words:
+
+#+BEGIN_SRC prolog
+sentence1([H|T]) -->
+  word(H),
+  sentece2(T).
+
+sentence2([H|T]) -->
+  word(H),
+  sentence2(T)
+sentence2([]) --> "".
+#+END_SRC
+
+When this module is loaded, the same can be written as follows:
+
+#+BEGIN_SRC prolog
+sentence(L) -->
+  *(word, L).
+#+END_SRC
+
+*** definition
+
+**** variable repetition
+
+#+BEGIN_SRC prolog
+'m*n'(?M:nonneg, ?N:nonneg, :Dcg_0)//
+#+END_SRC
+
+*Variable repetition* is a metasyntactic construct which states that
+at least ~M~ and at most ~N~ occurrences of ~:Dcg_0~ must be
+processed.
+
+**** specific repetition
+
+#+BEGIN_SRC prolog
+'#'(?N:nonneg, :Dcg_0)//
+#+END_SRC
+
+*Specific repetition* is a metasyntactic construct which states that
+exactly ~N~ occurrences of ~Dcg_0~ must be processed.
+
+Specific repetition is a special case of [[variable repetition]], because
+~#(N, Dcg_0)~ is the same as ~'m*n'(N, N, Dcg_0)~.
+
+**** Kleene star
+
+#+BEGIN_SRC prolog
+*(?N:nonneg, :Dcg_0)//
+#+END_SRC
+
+*Kleene star* is a metasyntactic construct which states that zero or
+more occurrences of ~Dcg_0~ must be processed.
+
+Kleene star is a special case of [[variable repetition]], because ~*(N,
+Dcg_0)~ is the same as ~'m*n'(_, _, Dcg_0)~.
+
+**** Kleene sum
+
+#+BEGIN_SRC prolog
++(?N:nonneg, :Dcg_0)//
+#+END_SRC
+
+*Kleene sum* is a metasyntactic construct which states that one or
+more occurrences of ~Dcg_0~ must be processed.
+
+Kleene sum is a special case of [[variable repetition]], because ~+(N,
+Dcg_0)~ is the same as ~'m*n'(1, _, Dcg_0)~.
+
+**** optional sequence
+
+#+BEGIN_SRC prolog
+?(:Dcg_0)//
+#+END_SRC
+
+*Optional sequence* is a metasyntactic construct which states that
+~Dcg_0~ should either be processed once or not at all.
+
+Optional sequence is a special case of [[variable repetition]], because
+~?(Dcg_0)~ is the same as ~'m*n'(0, 1, Dcg_0)~.
+
+| *DCG*                     | *Meaning*                                           | *Name*              |
+|---------------------------+-----------------------------------------------------+---------------------|
+| ~#(?N, :Dcg_0)//~         | Process ~Dcg_0~ exactly ~N~ times.                  | [[specific repetition]] |
+| ~*(:Dcg_0)//~             | Process ~Dcg_0~ 0 or more times.                    | [[Kleene star]]         |
+| ~'*n'(?N, :Dcg_0)//~      | Process ~Dcg_0~ at most ~N~ times.                  |                     |
+| ~+(:Dcg_0)//~             | Process ~Dcg_0~ 1 or more times.                    | [[Kleene sum]]          |
+| ~?(:Dcg_0)//~             | Process ~Dcg_0~ 0 or 1 times.                       | [[optional sequence]]   |
+| ~'m*'(?M, :Dcg_0)//~      | Process ~Dcg_0~ at least ~M~ times.                 |                     |
+| ~'m*n'(?M, ?N, :Dcg_0)//~ | Process ~Dcg_0~ at least ~M~ and at most ~N~ times. | [[variable repetition]] |

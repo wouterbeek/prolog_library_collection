@@ -146,7 +146,7 @@ link(Values) -->
 
 
 link(BaseUri, Values) -->
-  seplist*('link-value'(BaseUri), (blanks,",",blanks), Values), !.
+  *&('link-value'(BaseUri), (blanks,",",blanks), Values), !.
 
 
 

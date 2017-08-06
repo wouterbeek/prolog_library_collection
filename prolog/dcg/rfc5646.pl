@@ -167,7 +167,7 @@ language(L) -->
   {atom_codes(H1, Cs)},
   ("-" -> extlang(H2), {L = [H1,H2]} ; {L = [H1]}).
 language([H]) -->
-  '#'(4, 'ALPHA', Cs),
+  #(4, 'ALPHA', Cs),
   {atom_codes(H, Cs)}.
 language([H]) -->
   'm*n'(5, 8, 'ALPHA', Cs),
@@ -242,7 +242,7 @@ privateuse_tail0(A) -->
 % ```
 
 region(Region) -->
-  ('#'(2, 'ALPHA', Cs) -> "" ; '#'(3, 'DIGIT', Cs)),
+  (#(2, 'ALPHA', Cs) -> "" ; #(3, 'DIGIT', Cs)),
   {atom_codes(Region, Cs)}.
 
 
@@ -280,7 +280,7 @@ regular([zh,xiang]) --> "zh-xiang".
 % ```
 
 script(Script) -->
-  '#'(4, 'ALPHA', Cs),
+  #(4, 'ALPHA', Cs),
   {atom_codes(Script, Cs)}.
 
 
@@ -332,7 +332,7 @@ subtag_code0(C) --> 'DIGIT'(_, C).
 
 variant(Variant) -->
   (   'DIGIT'(H)
-  ->  '#'(3, alphanum, T),
+  ->  #(3, alphanum, T),
       {Cs = [H|T]}
   ;   'm*n'(5, 8, alphanum, Cs)
   ),
