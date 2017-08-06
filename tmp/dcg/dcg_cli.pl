@@ -166,7 +166,9 @@ section(Header_0, Content_0) -->
 
 
 section(I, Header_0, Content_0) -->
-  tab_nl(I, Header_0),
+  dcg_tab(I)
+  Header_0,
+  nl,
   Content_0.
 
 

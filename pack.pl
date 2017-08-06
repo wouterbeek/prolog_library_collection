@@ -19,6 +19,5 @@ keywords([
 maintainer('Wouter Beek', 'wouter@triply.cc').
 name('Prolog-Library-Collection').
 packager('Wouter Beek', 'wouter@triply.cc').
-requires(googleclient).
 title('A collection of SWI-Prolog libraries.').
 version('0.0.1').

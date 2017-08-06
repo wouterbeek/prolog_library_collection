@@ -37,7 +37,9 @@
     dcg_call//3, % :Dcg_2, ?Arg1, ?Arg2
     dcg_call//4, % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call//5, % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
-    dcg_call//6  % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_call//6, % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_once//1, % :Dcg_0
+    parsing//0
   ]
 ).
 
@@ -103,7 +105,8 @@ predicates.  Since DCGs take two extra predicate, we can only define
     dcg_call(4, ?, ?, ?, ?),
     dcg_call(5, ?, ?, ?, ?, ?),
     dcg_call(6, ?, ?, ?, ?, ?, ?),
-    dcg_call(7, ?, ?, ?, ?, ?, ?, ?).
+    dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_once(//, ?, ?).
 
 
 
@@ -380,3 +383,22 @@ dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
 
 dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
   call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
+
+
+
+%! dcg_once(:Dcg_0)// is det.
+%
+% @see once/1
+
+dcg_once(Dcg_0, X, Y) :-
+  once(dcg_call(Dcg_0, X, Y)).
+
+
+
+%! parsing// is semidet.
+%
+% Succeeds if currently parsing a list of codes (rather than
+% generating a list of codes).
+
+parsing(H, H) :-
+  nonvar(H).

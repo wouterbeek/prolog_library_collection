@@ -12,6 +12,8 @@
     dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_string//2,         % :Dcg_1, ?String
+    dcg_tab//0,
+    dcg_tab//1,            % +N:nonneg
     dcg_with_output_to/1,  % :Dcg_0
     dcg_with_output_to/2,  % +Sink, :Dcg_0
     digit_weight//1,       % ?Digit:between(0,9)
@@ -24,7 +26,6 @@
     must_see_code//2,      % +Code, :Skip_0
     nl//0,
     nonblank//0,
-    parsing//0,
     rest//0,
     rest//1,               % -Rest:list(code)
     rest_as_atom//1,       % -Rest:atom
@@ -271,6 +272,18 @@ dcg_string(Dcg_1, String) -->
 
 
 
+%! dcg_tab// is det.
+%! dcg_tab(+N:nonneg)// is det.
+
+dcg_tab -->
+  "\t".
+
+
+dcg_tab(N) -->
+  dcg_once(#(N, dcg_tab)).
+
+
+
 %! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
 
@@ -378,16 +391,6 @@ nl -->
 
 nonblank -->
   nonblank(_).
-
-
-
-%! parsing// is semidet.
-%
-% Succeeds if currently parsing a list of codes (rather than
-% generating a list of codes).
-
-parsing(H, H) :-
-  nonvar(H).
 
 
 

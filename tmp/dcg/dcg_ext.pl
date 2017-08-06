@@ -51,12 +51,8 @@
     dcg_list//2,           % :Dcg_1, +L
     dcg_list//3,           % :Dcg_1, +L, +I
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
-    dcg_once//1,           % :Dcg_0
-    dcg_once//2,           % :Dcg_1, +Arg1
-    dcg_once//3,           % :Dcg_2, +Arg1, +Arg2
     dcg_strip//0,
     dcg_strip//1,          % +StripCs
-    dcg_tab//0,
     dcg_width/2,           % :Dcg_0, -Width
     digit_code//1,         % ?C
     done//0,
@@ -85,9 +81,6 @@
     string//0,
     string_atom_phrase/3,  % :Dcg_0, ?S, ?A
     string_without//1,     % +EndCs
-    tab//1,                % +Indent:nonneg
-    tab//2,                % +Indent:nonneg, :Dcg_0
-    tab_nl//2,             % +Indent:nonneg, :Dcg_0
     triple//3,             % :DcgX_0, :DcgY_0, :DcgZ_0
     tuple//1,              % +L
     tuple//2,              % :Dcg_1, +L
@@ -162,9 +155,6 @@ My favorite collection of DCG rules.
     dcg_list(3, +, ?, ?),
     dcg_list(3, +, +, ?, ?),
     dcg_max_width(3, +, -),
-    dcg_once(//, ?, ?),
-    dcg_once(//, +, ?, ?),
-    dcg_once(//, +, +, ?, ?),
     dcg_width(//, -),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
@@ -177,8 +167,6 @@ My favorite collection of DCG rules.
     set(3, +, ?, ?),
     sq(//, ?, ?),
     string_atom_phrase(//, ?, ?),
-    tab(+, //, ?, ?),
-    tab_nl(+, //, ?, ?),
     triple(//, //, //, ?, ?),
     tuple(3, +, ?, ?).
 
@@ -193,13 +181,6 @@ dcg:dcg_hook(string(Str)) -->
   atom(Str).
 dcg:dcg_hook(thousands(N)) -->
   thousands(N).
-
-:- setting(
-     tab_size,
-     integer,
-     2,
-     "The number of spaces that go into one tab."
-   ).
 
 
 
@@ -747,12 +728,12 @@ dcg_dict0(Dcg_1, Dict, I) -->
   {dict_pairs(Dict, Pairs)},
   (   % Empty terms do not use lucious spacing.
       {is_empty_term0(Dict)}
-  ->  tab(I),
+  ->  dcg_tab(I),
       "{}"
   ;   % Singleton term do not use lucious spacing if the member is
       % singleton.
       {is_singleton_term0(Dict)}
-  ->  tab(I),
+  ->  dcg_tab(I),
       "{ ",
       {Pairs = [Key-Val]},
       dcg_entry0(Dcg_1, Key-Val, 0),
@@ -780,10 +761,10 @@ dcg_entries0(Dcg_1, [H], I) --> !,
   dcg_entries0(Dcg_1, [], I).
 dcg_entries0(_, [], I1) --> !,
   {I2 is I1 - 1},
-  tab(I2).
+  dcg_tab(I2).
 
 dcg_entry0(Dcg_1, Key-Val, I1) --> !,
-  tab(I1),
+  dcg_tab(I1),
   dcg_call(Dcg_1, Key), ": ",
   (   {is_dict_or_list0(Val)}
   ->  % Newline and additional indentation before dictionary or list
@@ -793,10 +774,10 @@ dcg_entry0(Dcg_1, Key-Val, I1) --> !,
   ;   dcg_call(Dcg_1, Val)
   ).
 dcg_entry0(Dcg_1, Elem, I) -->
-  tab(I),
+  dcg_tab(I),
   dcg_dict_or_list0(Dcg_1, Elem, I), !.
 dcg_entry0(Dcg_1, Elem, I) -->
-  tab(I),
+  dcg_tab(I),
   dcg_call(Dcg_1, Elem).
 
 is_dict_or_list0(Term) :-
@@ -864,7 +845,7 @@ dcg_list(Dcg_1, L, I1) -->
   "[", nl,
   {I2 is I1 + 1},
   dcg_entries0(Dcg_1, L, I2),
-  tab(I1), "]".
+  dcg_tab(I1), "]".
 
 
 
@@ -882,25 +863,6 @@ dcg_max_width(Dcg_1, Args, MaxW) :-
     ),
     MaxW
   ).
-
-
-
-%! dcg_once(:Dcg_0)// is det.
-%! dcg_once(:Dcg_1, +Arg1)// is det.
-%! dcg_once(:Dcg_2, +Arg1, +Arg2)// is det.
-%
-% Calls the given DCG at most one time.
-
-dcg_once(Dcg_0, X, Y) :-
-  once(dcg_call(Dcg_0, X, Y)).
-
-
-dcg_once(Dcg_1, Arg1, X, Y) :-
-  once(dcg_call(Dcg_1, Arg1, X, Y)).
-
-
-dcg_once(Dcg_2, Arg1, Arg2, X, Y) :-
-  once(dcg_call(Dcg_2, Arg1, Arg2, X, Y)).
 
 
 
@@ -933,14 +895,6 @@ dcg_strip_end(StripCs) -->
   dcg_strip_end(StripCs).
 dcg_strip_end(_) -->
   eos.
-
-
-
-%! dcg_tab// is det.
-% This is not named tab//0 since that would conflict with the built-in tab/2.
-
-dcg_tab -->
-  tab(1).
 
 
 
@@ -1195,31 +1149,6 @@ string_atom_phrase(Dcg_0, S, A) :-
 
 string_without(End) -->
   string_without(End, _).
-
-
-
-%! tab(+Indent:nonneg)// is det.
-%! tab(+Indent:nonneg, :Dcg_0)// is det.
-
-tab(I) -->
-  {
-    setting(tab_size, N0),
-    N is I * N0
-  },
-  indent(N).
-
-
-tab(I, Dcg_0) -->
-  tab(I),
-  Dcg_0.
-
-
-
-%! tab_nl(+Indent:nonneg, :Dcg_0)// is det.
-
-tab_nl(I, Dcg_0) -->
-  tab(I, Dcg_0),
-  nl.
 
 
 
