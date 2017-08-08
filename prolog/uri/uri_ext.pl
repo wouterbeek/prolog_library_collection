@@ -6,6 +6,7 @@
     download/2,            % +Uri, +FileSpec
     download/3,            % +Uri, +FileSpec, +Options
     fresh_uri/2,           % -Uri, +Components
+    is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
@@ -119,6 +120,16 @@ fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
   defval([], Segments1),
   append(Segments1, [Uuid], Segments2),
   uri_comps(Uri, uri(Scheme,Authority,Segments2,Query,Fragment)).
+
+
+
+%! is_uri(@Term) is semidet.
+%
+% Succeeds iff Term is an atom that conforms to the URI grammar.
+
+is_uri(Uri) :-
+  atom(Uri),
+  uri_is_global(Uri).
 
 
 

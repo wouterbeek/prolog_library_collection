@@ -83,7 +83,7 @@ is_data_uri(Uri) :-
 % file.
 
 is_image_uri(Uri) :-
-  uri_is_global(Uri),
+  is_uri(Uri),
   uri_components(Uri, uri_components(_,_,Path,_,_)),
   is_image_file(Path).
 

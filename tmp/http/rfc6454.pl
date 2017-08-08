@@ -77,7 +77,7 @@
 has_same_origin(origin(Scheme1,Host1,Port1), origin(Scheme2,Host2,Port2)) :-
   maplist(==, [Scheme1,Host1,Port1], [Scheme2,Host2,Port2]), !.
 has_same_origin(X1, Y1) :-
-  maplist(uri_is_global, [X1,Y1]), !,
+  maplist(is_uri, [X1,Y1]), !,
   maplist(origin, [X1,Y1], [X2,Y2]),
   has_same_origin(X2, Y2).
 
@@ -153,7 +153,7 @@ has_same_origin(X1, Y1) :-
 %   7. Return the triple (uri-scheme, uri-host, uri-port).
 
 origin(Uri, origin(Scheme,Host,Port)) :-
-  uri_is_global(Uri), !,
+  is_uri(Uri), !,
   uri_components(Uri, uri_components(Scheme0,Auth,_,_,_)),
   downcase_atom(Scheme0, Scheme),
   uri_authority_components(Auth, uri_authority(_,_,Host0,Port0)),
