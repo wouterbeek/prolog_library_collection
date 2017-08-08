@@ -5,6 +5,7 @@
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/2, % :Cond_0, :Goal_0
     call_default_option/3,  % ?Option, +Options, :Goal_1
+    call_must_be/2,         % :Goal_1, @Term
     call_or_warning/1,      % :Goal_0
     call_statistics/3,      % :Goal_0, +Key, -Delta
     call_when_ground/1,     % :Goal_0
@@ -20,7 +21,7 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(apply)).
@@ -34,6 +35,7 @@
     call_default_option(?, +, 1),
     call_det_when(0, 0),
     call_det_when_ground(?, 0),
+    call_must_be(1, +),
     call_or_warning(0),
     call_statistics(0, +, -),
     call_when_ground(0),
@@ -87,6 +89,14 @@ call_det_when_ground(Term, Goal_0) :-
   once(Goal_0).
 call_det_when_ground(_, Goal_0) :-
   Goal_0.
+
+
+
+%! call_must_be(:Goal_1, @Term) is det.
+
+call_must_be(Goal_1, Term) :-
+  findall(Atom, call(Goal_1, Atom), Atoms),
+  must_be(oneof(Atoms), Term).
 
 
 
