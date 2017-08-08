@@ -2,10 +2,11 @@
   os_ext,
   [
     cli_arguments/1, % -Arguments
+    graphviz_open/4, % +Method, +In, +Format, +Out
     process_flags/3, % :Goal_2, +Arguments, -Flags
-    process_open/3,  % +Program, +In1, -In2
-    process_open/4,  % +Program, +In1, +Arguments, -In2
-    process_open/5,  % +Program, +In1, +Arguments, -In2, +Options
+    process_open/3,  % +Program, +In, -Out
+    process_open/4,  % +Program, +In, +Arguments, -Out
+    process_open/5,  % +Program, +In, +Arguments, -Out, +Options
     run_jar/3,       % +Jar, +Arguments, :Goal_1
     run_jar/4,       % +Jar, +Arguments, :Goal_1, +Options
     run_process/2,   % +Program, +Arguments
@@ -17,7 +18,7 @@
 /** <module> OS extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(apply)).
@@ -49,6 +50,85 @@
 
 
 
+%! graphviz_open(+Method:atom, +In:stream, +Format:atom, +Out:stream) is det.
+%
+% @arg Method The algorithm used by GraphViz for positioning the tree
+%             nodes.
+%
+% @arg Format The file type of the GraphViz output file.
+%
+% @type_error if Method is not a value of graphviz_method/1.
+%
+% @type_error if Format is not a value of graphviz_format/1.
+
+graphviz_open(Method, In, Format, Out) :-
+  call_must_be(graphviz_method, Method),
+  call_must_be(graphviz_format, Format),
+  atom_concat('-T', Format, Arg),
+  process_open(Method, In, [Arg], Out).
+
+graphviz_format(bmp).
+graphviz_format(canon).
+graphviz_format(dot).
+graphviz_format(gv).
+graphviz_format(xdot).
+graphviz_format('xdot1.2').
+graphviz_format('xdot1.4').
+graphviz_format(cgimage).
+graphviz_format(cmap).
+graphviz_format(eps).
+graphviz_format(exr).
+graphviz_format(fig).
+graphviz_format(gd).
+graphviz_format(gd2).
+graphviz_format(gif).
+graphviz_format(gtk).
+graphviz_format(ico).
+graphviz_format(imap).
+graphviz_format(cmapx).
+graphviz_format(imap_np).
+graphviz_format(cmapx_np).
+graphviz_format(ismap).
+graphviz_format(jp2).
+graphviz_format(jpg).
+graphviz_format(jpeg).
+graphviz_format(jpe).
+graphviz_format(pct).
+graphviz_format(pict).
+graphviz_format(pdf).
+graphviz_format(pic).
+graphviz_format(plain).
+graphviz_format('plain-ext').
+graphviz_format(png).
+graphviz_format(pov).
+graphviz_format(ps).
+graphviz_format(ps2).
+graphviz_format(psd).
+graphviz_format(sgi).
+graphviz_format(svg).
+graphviz_format(svgz).
+graphviz_format(tga).
+graphviz_format(tif).
+graphviz_format(tiff).
+graphviz_format(tk).
+graphviz_format(vml).
+graphviz_format(vmlz).
+graphviz_format(vrml).
+graphviz_format(wbmp).
+graphviz_format(webp).
+graphviz_format(xlib).
+graphviz_format(x11).
+
+graphviz_method(circo).
+graphviz_method(dot).
+graphviz_method(fdp).
+graphviz_method(neato).
+graphviz_method(osage).
+graphviz_method(sfdp).
+graphviz_method(twopi).
+
+
+
 %! process_flags(:Goal_2, +Arguments:list(compound), -Flags:list(atom)) is det.
 
 process_flags(_, [], []).
@@ -60,33 +140,33 @@ process_flags(Goal_2, [_|T], L) :-
 
 
 
-%! process_open(+Program:atom, +In1:stream, -In2:stream) is det.
-%! process_open(+Program:atom, +In1:stream, +Arguments:list(term),
-%!              -In2:stream) is det.
-%! process_open(+Program:atom, +In1:stream, +Arguments:list(term),
-%!              -In2:stream, +Options:list(compound)) is det.
+%! process_open(+Program:atom, +In:stream, -Out:stream) is det.
+%! process_open(+Program:atom, +In:stream, +Arguments:list(term),
+%!              -Out:stream) is det.
+%! process_open(+Program:atom, +In:stream, +Arguments:list(term),
+%!              -Out:stream, +Options:list(compound)) is det.
 %
-% In1 is closed by this predicate.
+% In is closed by this predicate.
 
-process_open(Program, In1, In2) :-
-  process_open(Program, In1, [], In2).
-
-
-process_open(Program, In1, Arguments, In2) :-
-  process_open(Program, In1, Arguments, In2, []).
+process_open(Program, In, Out) :-
+  process_open(Program, In, [], Out).
 
 
-process_open(Program, In1, Arguments, In2, Options1) :-
+process_open(Program, In, Arguments, Out) :-
+  process_open(Program, In, Arguments, Out, []).
+
+
+process_open(Program, In, Arguments, Out, Options1) :-
   process_options(Options1, Options2),
   merge_options(
-    [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(In2))],
+    [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(Out))],
     Options2,
     Options3
   ),
   process_debug(Program, Arguments),
   process_create(path(Program), Arguments, Options3),
   set_stream(ProcIn, type(binary)),
-  thread_create(copy_and_close(In1, ProcIn), _, [detached(true)]),
+  thread_create(copy_and_close(In, ProcIn), _, [detached(true)]),
   thread_create(print_error(ProcErr), _, [detached(true)]).
 
 copy_and_close(In, Out) :-
