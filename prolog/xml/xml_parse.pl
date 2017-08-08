@@ -101,7 +101,7 @@
   "<!ATTLIST",
   'S',
   'Name'(ElementType),
-  *('AttDef'(Version), AttrDefs, []),
+  *('AttDef'(Version), AttrDefs),
   ?('S'),
   ">".
 
@@ -154,7 +154,7 @@
 % @compat XML 1.1.2 [10].
 
 'AttValue'(Version, Names) -->
-  quoted(Quote, *('AttValue_'(Version, Quote), Names, [])).
+  quoted(Quote, *('AttValue_'(Version, Quote), Names)).
 
 'AttValue_'(Version, Quote, Name) -->
   'Reference'(Version, Name),
@@ -330,10 +330,10 @@
 'CharData'(Data) -->
   dcg_atom(*('CharData_'), Data).
 
-'CharData0'(_) --> "<",   !, {false}.
-'CharData0'(_) --> "&",   !, {false}.
-'CharData0'(_) --> "]]>", !, {false}.
-'CharData0'(C) --> [C].
+'CharData_'(_) --> "<",   !, {false}.
+'CharData_'(_) --> "&",   !, {false}.
+'CharData_'(_) --> "]]>", !, {false}.
+'CharData_'(C) --> [C].
 
 
 
@@ -647,9 +647,9 @@ doctypedecl(Version, doctype_decl(Name,ExtId,Decls)) -->
 % @compat XML 1.1.2 [1].
 
 document(version(1,0), XmlDecl, DoctypeDecl, Pis, RootElement) -->
-  prolog(version(1,0), XmlDecl, DoctypeDecl, Pis1),
+  prolog(version(1,0), prolog(XmlDecl,DoctypeDecl,Pis1)),
   element(version(1,0), RootElement),
-  *('Misc'(version(1,0)), Pis2, []),
+  *('Misc'(version(1,0)), Pis2),
   {
     exclude(var, Pis2, Pis3),
     append(Pis1, Pis3, Pis)
@@ -801,7 +801,7 @@ enc_name_char(0'-) --> "-".
   'EntityValue'(Version, Literal).
 'EntityDef'(_, entity_def(ExternalId,NotationName)) -->
   'ExternalID'(ExternalId),
-  ?('NDataDecl', NotationName, []).
+  ?('NDataDecl', NotationName).
 
 
 
@@ -986,7 +986,7 @@ extParsedEnt(version(1,1), XmlVersion, Encoding, Content, X, Y):-
 % @compat XML 1.1.2 [30].
 
 extSubset(Version, XmlVersion, Encoding, Declarations) -->
-  ?('TextDecl'(Version), XmlVersion, Encoding, []),
+  ?('TextDecl'(Version), XmlVersion, Encoding),
   extSubsetDecl(Version, Declarations).
 
 
@@ -1207,7 +1207,7 @@ markupdecl(Version, _) -->
   "(",
   ?('S'),
   "#PCDATA",
-  (pipe_sep -> +&('Name', Names, pipe_sep) ; {Names = []}),
+  (pipe_sep -> +&('Name', pipe_sep, Names) ; {Names = []}),
   ?('S'),
   ")*".
 'Mixed'([]) -->
@@ -1277,7 +1277,7 @@ markupdecl(Version, _) -->
 'NameChar'(0'.) -->
   ".".
 'NameChar'(Code) -->
-  digit(_, Code).
+  digit(Code).
 % #x00B7
 'NameChar'(0'·) -->
   "·".
@@ -1467,7 +1467,7 @@ markupdecl(Version, _) -->
   'S',
   "(",
   ?('S'),
-  +&('Name', Names, pipe_sep),
+  +&('Name', pipe_sep, Names),
   ?('S'),
   ")".
 
@@ -1602,13 +1602,13 @@ pi_code(Version, C) -->
 % @compat XML 1.0.5 [22].
 % @compat XML 1.1.2 [22].
 
-prolog(Version, Encoding, Standalone, PIs) -->
+prolog(Version, prolog(Encoding,Standalone,PIs4,Decl)) -->
   ?('XMLDecl'(Version, Encoding, Standalone)),
   *('Misc'(Version), PIs1),
-  (doctypedecl(Version) -> *('Misc'(Version), PIs2) ; ""),
+  (doctypedecl(Version, Decl) -> *('Misc'(Version), PIs2) ; ""),
   {
     append(PIs1, PIs2, PIs3),
-    exclude(var, PIs3, PIs)
+    exclude(var, PIs3, PIs4)
   }.
 
 
@@ -1637,30 +1637,31 @@ prolog(Version, Encoding, Standalone, PIs) -->
 % @compat XML 1.1.2 [13].
 
 % #x20
-'PubidChar'(C) --> space(C).
+'PubidChar'(0' ) --> " ".
 % #xA
-'PubidChar'(C) --> line_feed(C).
+'PubidChar'(0'\n) --> "\n".
 % #xD
-'PubidChar'(C) --> carriage_return(C).
+'PubidChar'(0'\r) --> "\r".
 % [a-zA-Z0-9]
-'PubidChar'(C) --> ascii_alpha_numeric(C).
+'PubidChar'(C) --> alphanum(C).
 % [-'()+,./:=?;!*#@$_%]
-'PubidChar'(C) --> hyphen_minus(C).
-'PubidChar'(C) --> apostrophe(C).
-'PubidChar'(C) --> round_bracket(C).
-'PubidChar'(C) --> plus_sign(C).
-'PubidChar'(C) --> comma(C).
-'PubidChar'(C) --> dot(C).
-'PubidChar'(C) --> forward_slash(C).
-'PubidChar'(C) --> colon(C).
-'PubidChar'(C) --> question_mark(C).
-'PubidChar'(C) --> exclamation_mark(C).
-'PubidChar'(C) --> asterisk(C).
-'PubidChar'(C) --> number_sign(C).
-'PubidChar'(C) --> at_sign(C).
-'PubidChar'(C) --> dollar_sign(C).
-'PubidChar'(C) --> underscore(C).
-'PubidChar'(C) --> percent_sign(C).
+'PubidChar'(0'-) --> "-".
+'PubidChar'(0'') --> "'".
+'PubidChar'(0'() --> "(".
+'PubidChar'(0')) --> ")".
+'PubidChar'(0'+) --> "+".
+'PubidChar'(0',) --> ",".
+'PubidChar'(0'.) --> ".".
+'PubidChar'(0'/) --> "/".
+'PubidChar'(0':) --> ":".
+'PubidChar'(0'?) --> "?".
+'PubidChar'(0'!) --> "!".
+'PubidChar'(0'*) --> "*".
+'PubidChar'(0'#) --> "#".
+'PubidChar'(0'@) --> "@".
+'PubidChar'(0'$) --> "$".
+'PubidChar'(0'_) --> "_".
+'PubidChar'(0'%) --> "%".
 
 
 
@@ -1796,7 +1797,7 @@ yesno(false) --> "no".
 seq(seq(Cps)) -->
   "(",
   ?('S'),
-  *(cp, Cps, [separator(xml_comma)]),
+  *&(cp, xml_comma, Cps),
   ?('S'),
   ")".
 
@@ -1854,7 +1855,7 @@ xml_comma -->
 % @compat XML 1.1.2 [11].
 
 'SystemLiteral'(Literal) -->
-  quoted(Quote, dcg_atom(*('SystemLiteral_'(Quote), []), Literal)).
+  quoted(Quote, dcg_atom(*('SystemLiteral_'(Quote)), Literal)).
 
 'SystemLiteral_'(Quote, _) -->
   [Quote], !,
@@ -1874,7 +1875,7 @@ xml_comma -->
 
 'TextDecl'(Version, XmlVersion, Encoding) -->
   "<?xml",
-  ?('VersionInfo'(Version, XmlVersion)),
+  ?('VersionInfo'(XmlVersion)),
   'EncodingDecl'(Encoding),
   ?('S'),
   "?>".

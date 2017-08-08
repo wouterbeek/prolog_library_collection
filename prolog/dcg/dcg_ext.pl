@@ -228,13 +228,13 @@ code_ci(Code) -->
 % @throws instantiation_error
 % @throws type_error
 
-dcg_atom(Dcg_1, A) -->
-  {var(A)}, !,
+dcg_atom(Dcg_1, Atom) -->
+  {var(Atom)}, !,
   dcg_call(Dcg_1, Codes),
-  {atom_codes(A, Codes)}.
-dcg_atom(Dcg_1, A) -->
-  {must_be(atom, A)}, !,
-  {atom_codes(A, Codes)},
+  {atom_codes(Atom, Codes)}.
+dcg_atom(Dcg_1, Atom) -->
+  {must_be(atom, Atom)}, !,
+  {atom_codes(Atom, Codes)},
   dcg_call(Dcg_1, Codes).
 
 
