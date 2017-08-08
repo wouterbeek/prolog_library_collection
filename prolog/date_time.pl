@@ -1,91 +1,70 @@
 :- module(
   date_time,
   [
-    date_time_masks/3,        % +Masks, +DateTime, -MaskedDateTime
-    debug_epoch/1,            % +Flag
-    prolog_to_date_time/2,    % +Prolog, -DateTime
-    date_time_to_prolog/2,    % +DateTime, -Prolog
-    date_time_to_semweb/3,    % +DateTime, +Datatype, -Semweb
-    semweb_to_date_time/2,    % +Semweb, -DateTime
-    get_date_time/1,          % -DateTime
-    is_prolog_date_time/1,    % @Term
-    is_semweb_date_time/1,    % @Term
-    is_date_time/1,           % @Term
-    something_to_date_time/2, % +Something, -DateTime
-    something_to_semweb/3,    % +Something, -DateTime
-    something_to_stamp/2,     % +Something:term, -Stamp:float
-    timestamp_to_date_time/2  % +Timestamp, -DateTime
+  % CONVERSIONS
+    timestamp_to_dt/2, % +Timestamp, -DT
+    date_time_to_dt/2, % +DateTime, -DT
+    dt_to_date_time/2, % +DT, -DateTime
+    is_date_time/1,    % @Term
+    is_dt/1,           % @Term
+  % OPERATIONS
+    date_time_masks/3, % +Masks, +DT1, -DT2
+    now/1              % -DT
   ]
 ).
 
 /** <module> Date-time support
 
-Support predicates for dealing with date and time representations.
+Support predicates for dealing with date/time representations.
 
 Prolog uses multiple representations for date/time values.  This
 module converts all these representations into one that is consistent
-with the XSD date/time model.
+with the XSD 7-property model.
 
-There are -- at least -- the following date/time representations:
+Prolog uses the following date/time representations:
 
-  * Prolog float/timestamp (type: `time`)
+  * float (timestamp)
+  * time/3
+  * date/3
+  * date/9
 
-  * The main Prolog date/time compounds (type: `prolog_date_time`,
-    variable: `Prolog'):
+We use the following date/time representation:
 
-    * time/3
-    * date/3
-    * date/9
+    * dt/7
 
-  * From library `semweb/rdf11` (type: `semweb_date_time', variable:
-    `Semweb`):
-
-    * date/3
-    * date_time/6
-    * month_day/2
-    * time/3
-    * year_month/2
-
-  * XSD (type: `date_time`, variable: `DateTime`):
-
-    * date_time/7
-
-The purpose of this module is to allow the programmer to write
-predicates that only work with date_time/7.  This is a huge
-date/time-saver!
+The purpose of this module is to allow the programmer to write all
+predicates that use date/time representations to only work with dt/7.
+This is a huge date/time-saver!
 
 @author Wouter Beek
 @version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
-:- use_module(library(debug)).
+:- use_module(library(call_ext)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf11) ,[
-     (rdf_meta)/1,
-     op(1150, fx, rdf_meta)
-   ]).
+:- use_module(library(solution_sequences)).
 
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
-error:has_type(date_time, date_time(Y,Mo,D,H,Mi,S,Off)):-
+error:has_type(dt, dt(Y,Mo,D,H,Mi,S,Off)):-
   error:has_type(date, date(Y,Mo,D)),
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)),
   (var(Off) -> true ; error:has_type(between(-840,840), Off)).
 % Prolog date/3
-error:has_type(prolog_date_time, date(Y,Mo,D)):-
+error:has_type(date_time, date(Y,Mo,D)):-
   (var(Y) -> true ; error:has_type(integer, Y)),
   (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
   (var(D) -> true ; error:has_type(between(1,31), D)).
 % Prolog date/9
-error:has_type(prolog_date_time, date(Y,Mo,D,H,Mi,S,Off,_,_)):-
+error:has_type(date_time, date(Y,Mo,D,H,Mi,S,Off,_,_)):-
   error:has_type(date, date(Y,Mo,D)),
   error:has_type(date, time(H,Mi,S)),
   (var(Off) -> true ; error:has_type(between(-50400,50400), Off)).
 % Prolog time/3
-error:has_type(prolog_date_time, time(H,Mi,S)):-
+error:has_type(date_time, time(H,Mi,S)):-
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)).
@@ -94,98 +73,31 @@ error:has_type(prolog_date_time, time(H,Mi,S)):-
 
 
 
+% CONVERSIONS %
+
+%! timestamp_to_dt(+Timestamp:float, -DT:dt) is det.
+
+timestamp_to_dt(Timestamp, DT) :-
+  date_time_stamp(DateTime, Timestamp),
+  date_time_to_dt(DateTime, DT).
 
 
-%! date_time_mask(+Mask, +DateTime, -MaskedDateTime) is det.
+
+%! date_time_to_dt(+DateTime:date_time, -DT:dt) is det.
 %
-% @arg Mask is one of the following atoms: `year', `month', `day',
-%      `hour', `minute', `second', and `offset'.
-
-date_time_mask(none,   DateTime,                     DateTime                          ) :- !.
-date_time_mask(year,   date(_,Mo,D),                 date(_,Mo,D)                ) :- !.
-date_time_mask(year,   date_time(_,Mo,D,H,Mi,S,Off), date_time(_,Mo,D,H,Mi,S,Off)) :- !.
-date_time_mask(year,   time(H,Mi,S),                 time(H,Mi,S)                ) :- !.
-date_time_mask(month,  date(Y,_, D),                 date(Y,_, D)                ) :- !.
-date_time_mask(month,  date_time(Y,_, D,H,Mi,S,Off), date_time(Y,_, D,H,Mi,S,Off)) :- !.
-date_time_mask(month,  time(H,Mi,S),                 time(H,Mi,S)                ) :- !.
-date_time_mask(day,    date(Y,Mo,_),                 date(Y,Mo,_)                ) :- !.
-date_time_mask(day,    date_time(Y,Mo,_,H,Mi,S,Off), date_time(Y,Mo,_,H,Mi,S,Off)) :- !.
-date_time_mask(day,    time(H,Mi,S),                 time(H,Mi,S)                ) :- !.
-date_time_mask(hour,   date(Y,Mo,D),                 date(Y,Mo,D)                ) :- !.
-date_time_mask(hour,   date_time(Y,Mo,D,_,Mi,S,Off), date_time(Y,Mo,D,_,Mi,S,Off)) :- !.
-date_time_mask(hour,   time(_,Mi,S),                 time(_,Mi,S)                ) :- !.
-date_time_mask(minute, date(Y,Mo,D),                 date(Y,Mo,D)                ) :- !.
-date_time_mask(minute, date_time(Y,Mo,D,H,_, S,Off), date_time(Y,Mo,D,H,_, S,Off)) :- !.
-date_time_mask(minute, time(H,_, S),                 time(H,_, S)                ) :- !.
-date_time_mask(second, date(Y,Mo,D),                 date(Y,Mo,D)                ) :- !.
-date_time_mask(second, date_time(Y,Mo,D,H,Mi,_,Off), date_time(Y,Mo,D,H,Mi,_,Off)) :- !.
-date_time_mask(second, time(H,Mi,_),                 time(H,Mi,_)                ) :- !.
-date_time_mask(offset, date(Y,Mo,D),                 date(Y,Mo,D)                ) :- !.
-date_time_mask(offset, date_time(Y,Mo,D,H,Mi,S,_  ), date_time(Y,Mo,D,H,Mi,S,_  )) :- !.
-date_time_mask(_,      DateTime,                     DateTime                          ).
-
-
-
-%! date_time_masks(+Masks:list, +DateTime, -MaskedDateTime) is det.
-
-date_time_masks([], DateTime, DateTime) :- !.
-date_time_masks([H|T], DateTime1, DateTime3) :-
-  date_time_mask(H, DateTime1, DateTime2),
-  date_time_masks(T, DateTime2, DateTime3).
-
-
-
-%! date_time_to_prolog(+DateTime, -Prolog) is det.
+% Converts the three Prolog date/time representations to the one
+% XSD-inspired 7-property model representation (type `dt`).
 %
-% Conversion from XSD-inspired date/time representation to
-% the three Prolog date/time compound term representations.
-
-date_time_to_prolog(date_time(Y,Mo,D,H,Mi,S1,Off), time(H,Mi,S2)):-
-  maplist(var, [Y,Mo,D,Off]), !,
-  S2 is float(S1).
-date_time_to_prolog(date_time(Y,Mo,D,H,Mi,S,Off), date(Y,Mo,D)):-
-  maplist(var, [H,Mi,S,Off]), !.
-date_time_to_prolog(date_time(Y,Mo,D,H,Mi,S1,Off1), date(Y,Mo,D,H,Mi,S2,Off2,-,-)):-
-  (var(Off1) -> true ; Off2 is Off1 * 60),
-  S2 is float(S1).
-
-
-
-%! date_time_to_semweb(+DateTime, +Datatype, -Semweb) is det.
-
-date_time_to_semweb(date_time(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
-date_time_to_semweb(date_time(Y,Mo,D,H,Mi,S,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S)) :- !.
-date_time_to_semweb(date_time(_,_,D,_,_,_,_), xsd:gDay, D) :- !.
-date_time_to_semweb(date_time(_,Mo,_,_,_,_,_), xsd:gMonth, Mo) :- !.
-date_time_to_semweb(date_time(_,Mo,D,_,_,_,_), xsd:gMonthDay, month_day(Mo,D)) :- !.
-date_time_to_semweb(date_time(Y,_,_,_,_,_,_), xsd:gYear, Y) :- !.
-date_time_to_semweb(date_time(Y,Mo,_,_,_,_,_), xsd:gYearMonth, year_month(Y,Mo)) :- !.
-date_time_to_semweb(date_time(_,_,_,H,Mi,S,_), xsd:time, time(H,Mi,S)).
-
-
-
-%! debug_epoch(+Flag:term) is det.
-
-debug_epoch(Flag) :-
-  get_time(Epoch),
-  debug(Flag, "~w", [Epoch]).
-
-
-
-%! prolog_to_date_time(+Prolog, -DateTime) is det.
-%
-% Converts the two Prolog date representations to the one XSD
-% date/time representation.
-%
-% The two Prolog date representations:
+% Prolog uses the following three date/time representations (type
+% `date_time`):
 %
 %   * `date(Y,Mo,D)`
-%
 %   * `date(Y,Mo,D,H,Mi,S,Off,TZ,DST)`
+%   * `time(H,Mi,S)`
 %
-% The one XSD date/time representation:
+% The one `dt` representation:
 %
-%   * `date(Y,Mo,D,H,Mi,S,Off)`
+%   * `dt(Y,Mo,D,H,Mi,S,Off)`
 %
 % Apart from a difference in compound structure there are also two
 % differences in value semantics:
@@ -200,92 +112,94 @@ debug_epoch(Flag) :-
 %      Greenwich.  In XSD `Off` represents the offset relative to UTC
 %      in *minutes* as an integer between -840 and 840 inclusive.
 
-prolog_to_date_time(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)):- !.
-prolog_to_date_time(
-  date(Y,Mo,D,H,Mi,S,Off1,_,_),
-  date_time(Y,Mo,D,H,Mi,S,Off2)
-):- !,
+date_time_to_dt(date(Y,Mo,D), dt(Y,Mo,D,_,_,_,0)):- !.
+date_time_to_dt(date(Y,Mo,D,H,Mi,S,Off1,_,_), dt(Y,Mo,D,H,Mi,S,Off2)):- !,
   Off2 is Off1 // 60.
-prolog_to_date_time(time(H,Mi,S), date_time(_,_,_,H,Mi,S,0)).
+date_time_to_dt(time(H,Mi,S), dt(_,_,_,H,Mi,S,0)).
 
 
 
-%! semweb_to_date_time(+Semweb, -DateTime) is det.
+%! dt_to_date_time(+DT:dt, -DateTime:date_time) is det.
+%
+% Conversion from the XSD-inspired 7-property model to the three
+% Prolog date/time compound term representations.
 
-semweb_to_date_time(date(Y,Mo,D), date_time(Y,Mo,D,_,_,_,0)) :- !.
-semweb_to_date_time(date_time(Y,Mo,D,H,Mi,S), date_time(Y,Mo,D,H,Mi,S,0)) :- !.
-semweb_to_date_time(month_day(Mo,D), date_time(_,Mo,D,_,_,_,0)) :- !.
-semweb_to_date_time(time(H,Mi,S), date_time(_,_,_,H,Mi,S,0)) :- !.
-semweb_to_date_time(year_month(Y,Mo), date_time(Y,Mo,_,_,_,_,0)).
+dt_to_date_time(dt(Y,Mo,D,H,Mi,S1,Off), time(H,Mi,S2)):-
+  maplist(var, [Y,Mo,D,Off]), !,
+  S2 is float(S1).
+dt_to_date_time(dt(Y,Mo,D,H,Mi,S,Off), date(Y,Mo,D)):-
+  maplist(var, [H,Mi,S,Off]), !.
+dt_to_date_time(dt(Y,Mo,D,H,Mi,S1,Off1), date(Y,Mo,D,H,Mi,S2,Off2,-,-)):-
+  (var(Off1) -> true ; Off2 is Off1 * 60),
+  S2 is float(S1).
 
 
 
-%! get_date_time(-DateTime) is det.
+%! is_dt(@Term) is semidet.
 
-get_date_time(DateTime):-
-  get_time(Timestamp),
-  timestamp_to_date_time(Timestamp, DateTime).
+is_dt(Term) :-
+  is_of_type(dt, Term).
 
 
 
 %! is_date_time(@Term) is semidet.
 
-is_date_time(T) :-
-  is_of_type(date_time, T).
+is_date_time(Term) :-
+  is_of_type(date_time, Term).
 
 
 
-%! is_prolog_date_time(@Term) is semidet.
-
-is_prolog_date_time(T) :-
-  is_of_type(prolog_date_time, T).
 
 
+% OPERATIONS %
 
-%! is_semweb_date_time(@Term) is semidet.
+%! date_time_mask(+Mask:atom) is semidet.
+%! date_time_mask(-Mask:atom) is multi.
 
-is_semweb_date_time(T) :-
-  is_of_type(semweb_date_time, T).
+date_time_mask(Mask) :-
+  distinct(Mask, date_time_mask_(Mask, _, _)).
 
 
 
-%! something_to_date_time(+Something, -DateTime) is det.
+%! date_time_mask(+Mask:atom, +DateTime:dt, -MaskedDateTime:dt) is det.
+%
+% @arg Mask is one of the values of date_time_mask/1.
+%
+% TBD: Support Mask=none?
 
-% Full date/time notation.
-something_to_date_time(
-  date_time(Y,Mo,D,H,Mi,S,Off),
-  date_time(Y,Mo,D,H,Mi,S,Off)
-) :- !.
-something_to_date_time(Semweb, DateTime) :-
-  is_semweb_date_time(Semweb), !,
-  semweb_to_date_time(Semweb, DateTime).
-something_to_date_time(Prolog, DateTime) :-
-  is_prolog_date_time(Prolog), !,
-  prolog_to_date_time(Prolog, DateTime).
-something_to_date_time(Timestamp, DateTime) :-
-  float(Timestamp), !,
-  timestamp_to_date_time(Timestamp, DateTime).
+date_time_mask(Mask, DT1, DT2) :-
+  call_must_be(date_time_mask, Mask),
+  must_be(dt, DT1),
+  once(date_time_mask_(Mask, DT1, DT2)).
 
-
-
-%! something_to_semweb(+Something, +D, -DateTime) is det.
-
-something_to_semweb(Something, D, Semweb) :-
-  something_to_date_time(Something, DateTime),
-  date_time_to_semweb(DateTime, D, Semweb).
+date_time_mask_(none,   DateTime,              DateTime             ).
+date_time_mask_(year,   dt(_,Mo,D,H,Mi,S,Off), dt(_,Mo,D,H,Mi,S,Off)).
+date_time_mask_(month,  dt(Y,_, D,H,Mi,S,Off), dt(Y,_, D,H,Mi,S,Off)).
+date_time_mask_(day,    dt(Y,Mo,_,H,Mi,S,Off), dt(Y,Mo,_,H,Mi,S,Off)).
+date_time_mask_(hour,   dt(Y,Mo,D,_,Mi,S,Off), dt(Y,Mo,D,_,Mi,S,Off)).
+date_time_mask_(minute, dt(Y,Mo,D,H,_, S,Off), dt(Y,Mo,D,H,_, S,Off)).
+date_time_mask_(second, dt(Y,Mo,D,H,Mi,_,Off), dt(Y,Mo,D,H,Mi,_,Off)).
+date_time_mask_(offset, dt(Y,Mo,D,H,Mi,S,_  ), dt(Y,Mo,D,H,Mi,S,_  )).
 
 
 
-%! something_to_stamp(+Something:term, -Stamp:float) is det.
+%! date_time_masks(+Masks:list(atom), +DateTime:dt, -MaskedDateTime:dt) is det.
+%
+% Apply an arbitrary number of date/time masks.
+%
+% @see date_time_mask/3
 
-something_to_stamp(Something, Stamp) :-
-  something_to_date_time(Something, DateTime),
-  date_time_stamp(DateTime, Stamp).
+date_time_masks([], DT, DT) :- !.
+date_time_masks([H|T], DT1, DT3) :-
+  date_time_mask(H, DT1, DT2),
+  date_time_masks(T, DT2, DT3).
 
 
 
-%! timestamp_to_date_time(+Timestamp, -DateTime) is det.
+%! now(-DT:dt) is det.
+%
+% Return the current date/time as a `dt`-typed compound term.
 
-timestamp_to_date_time(Timestamp, DateTime) :-
-  stamp_date_time(Timestamp, Prolog, local),
-  prolog_to_date_time(Prolog, DateTime).
+now(DT):-
+  get_time(Timestamp),
+  timestamp_to_dt(Timestamp, DT).
