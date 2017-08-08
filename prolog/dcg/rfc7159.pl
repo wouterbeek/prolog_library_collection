@@ -10,10 +10,12 @@
 @author Wouter Beek
 @compat RFC 7159
 @see https://tools.ietf.org/html/rfc7159
-@version 2017/04
+@version 2017/04, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext), except([number//1,string//1])).
+:- use_module(library(dcg/rfc5234)).
+:- use_module(library(math_ext)).
 
 
 

@@ -10,8 +10,7 @@
     rest_exception/2,         % +MediaTypes, +Exception
     rest_media_type/2,        % +MediaTypes, :Goal_1
     rest_method/2,            % +Request, :Goal_2
-    rest_method/4,            % +Request, +HandleId, :Plural_2, :Singular_3
-    uri_remove_host/2         % +Uri1, -Uri2
+    rest_method/4             % +Request, +HandleId, :Plural_2, :Singular_3
   ]
 ).
 :- reexport(library(http/http_cors)).
@@ -77,7 +76,7 @@
 
 
 
-%! data_uri(+Segments, -Uri) is det.
+%! data_uri(+Segments:list(atom), -Uri:atom) is det.
 
 data_uri(Segments, Uri) :-
   setting(http:public_scheme, Scheme),
@@ -87,14 +86,14 @@ data_uri(Segments, Uri) :-
 
 
 
-%! http_absolute_location(+Spec, -Path) is det.
+%! http_absolute_location(+Spec, -Path:atom) is det.
 
 http_absolute_location(Spec, Path) :-
   http_absolute_location(Spec, Path, []).
 
 
 
-%! http_current_location(-Uri) is det.
+%! http_current_location(-Uri:atom) is det.
 
 http_current_location(Uri) :-
   http_current_request(Request),
@@ -102,7 +101,7 @@ http_current_location(Uri) :-
 
 
 
-%! http_server_init(+Dict) is det.
+%! http_server_init(+Conf:dict) is det.
 
 http_server_init(Dict1) :-
   (   dict_get(endpoint, Dict1, Dict2)
@@ -123,7 +122,7 @@ http_server_init(Dict1) :-
 
 
 
-%! http_is_get(+Method) is semidet.
+%! http_is_get(@Method:atom) is semidet.
 %
 % Succeeds for GET and HEAD requests.  HEAD requests are handled just
 % like GET requests.  The SWI HTTP library deals with leaving out the
@@ -141,7 +140,7 @@ http_link_to_id(HandleId, Local) :-
 
 
 
-%! rest_exception(+MediaTypes, +E) is det.
+%! rest_exception(+MediaTypes:list(compound), +Exception:compound) is det.
 
 rest_exception(MediaTypes, error(E,_)) :- !,
   rest_exception(MediaTypes, E).
@@ -215,7 +214,7 @@ rest_exception_media_type(_, Status) :-
 
 
 
-%! rest_media_type(+MediaTypes, :Goal_1) is det.
+%! rest_media_type(+MediaTypes:list(compound), :Goal_1) is det.
 
 rest_media_type(MediaTypes, Goal_1) :-
   member(MediaType, MediaTypes), !,
@@ -225,8 +224,9 @@ rest_media_type(MediaTypes, _) :-
 
 
 
-%! rest_method(+Request, :Goal_2) is det.
-%! rest_method(+Request, +HandleId, :Plural_2, :Singular_3) is det.
+%! rest_method(+Request:list(compound), :Goal_2) is det.
+%! rest_method(+Request:list(compound), +HandleId, :Plural_2,
+%!             :Singular_3) is det.
 
 rest_method(Request, Plural_2) :-
   rest_method(Request, _, Plural_2, _:_).
@@ -280,16 +280,3 @@ clean_media_type(
   media(MediaType0,Parms,QValue,_),
   QValue-media(MediaType0,Parms)
 ).
-
-
-
-%! uri_remove_host(+Uri1, -Uri2) is det.
-
-uri_remove_host(Uri1, Uri2) :-
-  uri_comps(Uri1, uri(Scheme,auth(_,Host,Port),Segments,Query,Fragment)),
-  ground(host(Scheme, Host)),
-  setting(http:public_scheme, Scheme),
-  setting(http:public_host, Host),
-  setting(http:public_port, Port), !,
-  uri_comps(Uri2, uri(_,_,Segments,Query,Fragment)).
-uri_remove_host(Uri, Uri).
