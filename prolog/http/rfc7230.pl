@@ -1051,7 +1051,7 @@ te(L) -->
 % ```
 
 token(Token) -->
-  dcg_atom(+(tchar), Token).
+  dcg_once(dcg_atom(+(tchar), Token)).
 
 
 
