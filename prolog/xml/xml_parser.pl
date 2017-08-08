@@ -1,5 +1,5 @@
 :- module(
-  xml_parse,
+  xml_parser,
   [
     'AttlistDecl'//2,      % ?Version, ?AttributeDeclaration
     'AttValue'//2,         % ?Version, ?Value
@@ -23,7 +23,7 @@
     'Eq'//0,
     'ETag@xml'//1,         % ?Name
     'ExternalID'//1,       % ?ExternalId
-    extParsedEnt//4,       % ?Version, ?XmlVersion, ?Encoding, ?Content
+    extParsedEnt//3,       % ?Version, ?Encoding, ?Content
     extSubsetDecl//2,      % ?Version, ?Declarations
     markupdecl//2,         % ?Version, ?Declaration
     'Misc'//2,             % -Version, -PIs
@@ -42,7 +42,7 @@
     'SDDecl'//1,           % -Standalone
     'STag'//3,             % ?Version, ?Name, ?Attributes
     'SystemLiteral'//1,    % ?Literal
-    'TextDecl'//3,         % ?Version, ?XmlVersion, ?Encoding
+    'TextDecl'//2,         % ?Version, ?Encoding
     'VersionInfo'//1,      % -Version
     'XMLDecl'//3           % -Version, -Encoding, -Standalone
   ]
@@ -953,8 +953,7 @@ enc_name_char(0'-) --> "-".
 
 
 
-%! extParsedEnt(?Version:compound, ?XmlVersion:compound, ?Encoding:atom,
-%!              ?Content)// .
+%! extParsedEnt(?Version:compound, ?Encoding:atom, ?Content)// .
 %
 % ```bnf
 % extParsedEnt ::= ( TextDecl? content ) - ( Char* RestrictedChar Char* ) 
@@ -962,11 +961,11 @@ enc_name_char(0'-) --> "-".
 %
 % @compat XML 1.1.2 [78]
 
-extParsedEnt(version(1,0), XmlVersion, Encoding, Content) -->
-  ?('TextDecl'(version(1,0)), XmlVersion, Encoding),
+extParsedEnt(version(1,0), Encoding, Content) -->
+  ?('TextDecl'(version(1,0)), Encoding),
   content(version(1,0), Content).
-extParsedEnt(version(1,1), XmlVersion, Encoding, Content, X, Y):-
-  extParsedEnt(version(1,0), XmlVersion, Encoding, Content, X, Y),
+extParsedEnt(version(1,1), Encoding, Content, X, Y):-
+  extParsedEnt(version(1,0), Encoding, Content, X, Y),
   append(Codes, Y, X),
   \+ ((
     member(Code, Codes),
@@ -975,7 +974,7 @@ extParsedEnt(version(1,1), XmlVersion, Encoding, Content, X, Y):-
 
 
 
-%! extSubset(?Version:compound, ?XmlVersion:compound, ?Encoding:atom,
+%! extSubset(?Version:compound, ?Encoding:atom,
 %!           ?Declarations:list(compound))// .
 %
 % ```bnf
@@ -985,8 +984,8 @@ extParsedEnt(version(1,1), XmlVersion, Encoding, Content, X, Y):-
 % @compat XML 1.0.5 [30].
 % @compat XML 1.1.2 [30].
 
-extSubset(Version, XmlVersion, Encoding, Declarations) -->
-  ?('TextDecl'(Version), XmlVersion, Encoding),
+extSubset(Version, Encoding, Declarations) -->
+  ?('TextDecl'(Version), Encoding),
   extSubsetDecl(Version, Declarations).
 
 
@@ -1865,7 +1864,7 @@ xml_comma -->
 
 
 
-%! 'TextDecl'(?Version:compound, ?XmlVersion:compound, ?Encoding:atom)// .
+%! 'TextDecl'(?Version:compound, ?Encoding:atom)// .
 %
 % ```bnf
 % TextDecl ::= '<?xml' VersionInfo? EncodingDecl S? '?>'
@@ -1873,9 +1872,9 @@ xml_comma -->
 %
 % @compat XML 1.1.2 [77]
 
-'TextDecl'(Version, XmlVersion, Encoding) -->
+'TextDecl'(Version, Encoding) -->
   "<?xml",
-  ?('VersionInfo'(XmlVersion)),
+  ?('VersionInfo'(Version)),
   'EncodingDecl'(Encoding),
   ?('S'),
   "?>".
