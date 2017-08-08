@@ -13,8 +13,6 @@
     directory_file_path2/3,       % ?Dir, ?File, ?Path
     directory_path/2,             % ?Dir, ?Path
     directory_path_recursive/2,   % +Dir, -Path
-    download/2,                   % +Uri, +FileSpec
-    download/3,                   % +Uri, +FileSpec, +Options
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
@@ -30,7 +28,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(apply)).
@@ -245,19 +243,6 @@ directory_path_recursive(Dir, Path) :-
   ->  directory_path_recursive(Path0, Path)
   ;   Path = Path0
   ).
-
-
-
-%! download(+UriSpec:term, +FileSpec:term) is det.
-%! download(+UriSpec:term, +FileSpec:term, +Options:list(compound)) is det.
-
-download(UriSpec, FileSpec) :-
-  download(UriSpec, FileSpec, []).
-
-
-download(UriSpec, FileSpec, Options1) :-
-  merge_options([decompression(false)], Options1, Options2),
-  call_on_uri(UriSpec, stream_to_file(FileSpec), Options2).
 
 
 

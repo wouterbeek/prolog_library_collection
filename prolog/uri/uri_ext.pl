@@ -3,8 +3,9 @@
   [
     call_on_uri/2,         % +UriSpec, :Goal_3
     call_on_uri/3,         % +UriSpec, :Goal_3, +Options
+    download/2,            % +Uri, +FileSpec
+    download/3,            % +Uri, +FileSpec, +Options
     fresh_uri/2,           % -Uri, +Components
-    is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
@@ -18,7 +19,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(apply)).
@@ -73,7 +74,7 @@ call_on_uri(UriSpec, Goal_3, Options) :-
 uri_spec(uri(Scheme,Authority,Segments,Query,Fragment), _, Uri) :- !,
   uri_comps(Uri, uri(Scheme,Authority,Segments,Query,Fragment)).
 uri_spec(Uri, _, Uri) :-
-  is_uri(Uri), !.
+  uri_is_global(Uri), !.
 uri_spec(FileSpec, Mode, Uri) :-
   absolute_file_name(FileSpec, File, [access(Mode),expand(true)]),
   uri_file_name(Uri, File).
@@ -98,6 +99,19 @@ call_on_uri_scheme(https, Uri, Goal_3, Metadata, Options) :-
 
 
 
+%! download(+UriSpec:term, +FileSpec:term) is det.
+%! download(+UriSpec:term, +FileSpec:term, +Options:list(compound)) is det.
+
+download(UriSpec, FileSpec) :-
+  download(UriSpec, FileSpec, []).
+
+
+download(UriSpec, FileSpec, Options1) :-
+  merge_options([decompression(false)], Options1, Options2),
+  call_on_uri(UriSpec, stream_to_file(FileSpec), Options2).
+
+
+
 %! fresh_uri(-Uri, +Components) is det.
 
 fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
@@ -105,16 +119,6 @@ fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
   defval([], Segments1),
   append(Segments1, [Uuid], Segments2),
   uri_comps(Uri, uri(Scheme,Authority,Segments2,Query,Fragment)).
-
-
-
-%! is_uri(@Term) is semidet.
-%
-% Succeeds iff Term is an atom that conforms to the URI grammar.
-
-is_uri(Uri) :-
-  uri_components(Uri, uri_components(Scheme,Authority,_,_,_)),
-  ground(Scheme-Authority).
 
 
 
@@ -239,10 +243,9 @@ uri_dict(Uri, Dict) :-
       segments-Segments,
       query-Query
     ],
-    uri,
     Pairs
   ),
-  dict_pairs(Dict, Pairs).
+  dict_pairs(Dict, uri, Pairs).
 
 
 

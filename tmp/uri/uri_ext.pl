@@ -34,12 +34,6 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc3986)).
 
-:- multifile
-    error:has_type/2.
-
-error:has_type(uri, Uri) :-
-  is_uri(Uri).
-
 
 
 
