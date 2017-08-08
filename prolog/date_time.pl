@@ -1,7 +1,6 @@
 :- module(
   date_time,
   [
-    call_statistics/4,        % :Goal_0, +Key, +NumCalls, -AvgDelta
     date_time_masks/3,        % +Masks, +DateTime, -MaskedDateTime
     debug_epoch/1,            % +Flag
     prolog_to_date_time/2,    % +Prolog, -DateTime
@@ -56,7 +55,7 @@ predicates that only work with date_time/7.  This is a huge
 date/time-saver!
 
 @author Wouter Beek
-@version 2015/08-2017/01, 2017/05-2017/07
+@version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
@@ -66,12 +65,6 @@ date/time-saver!
      (rdf_meta)/1,
      op(1150, fx, rdf_meta)
    ]).
-
-:- meta_predicate
-    call_statistics(0, +, +, -).
-
-:- rdf_meta
-   'date_time_to_semweb'(+, r, -).
 
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
@@ -96,49 +89,10 @@ error:has_type(prolog_date_time, time(H,Mi,S)):-
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)).
-% RDF11 date/3
-error:has_type(semweb_date_time, date(Y,Mo,D)) :-
-  error:has_type(prolog_date_time, date(Y,Mo,D)).
-% RDF11 date_time/6
-error:has_type(semweb_date_time, date_time(Y,Mo,D,H,Mi,S)) :-
-  error:has_type(semweb_date_time, date(Y,Mo,D)),
-  (var(H) -> true ; error:has_type(between(0,24), H)),
-  (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
-  (var(S) -> true ; (error:has_type(integer, S) ; error:has_type(float, S))).
-% RDF11 month_day/2
-error:has_type(semweb_date_time, month_day(Mo,D)) :-
-  (var(Mo) -> true ; error:has_type(between(1,12), Mo)),
-  (var(D) -> true ; error:has_type(between(1,31), D)).
-% RDF11 year_month/2
-error:has_type(semweb_date_time, year_month(Y,Mo)) :-
-  (var(Y) -> true ; error:has_type(integer, Y)),
-  (var(Mo) -> true ; error:has_type(between(1,12), Mo)).  
-% RDF11 time/3
-error:has_type(semweb_date_time, time(H,Mi,S)) :-
-  error:has_type(prolog_date_time, time(H,Mi,S)).
 
 
 
 
-
-%! call_statistics(:Goal_0, +Key, +NumCalls, -AvgDelta) is det.
-%
-% call_statistics/3 preserves variable bindings but call_statistics/4
-% does not.
-
-call_statistics(Goal_0, Key, NumCalls, AvgDelta):-
-  statistics(Key, Val1a),
-  fix_value0(Val1a, Val1b),
-  forall(
-    between(1, NumCalls, _),
-    (copy_term(Goal_0, GoalCopy_0), call(GoalCopy_0))
-  ),
-  statistics(Key, Val2a),
-  fix_value0(Val2a, Val2b),
-  AvgDelta is (Val2b - Val1b) / NumCalls.
-
-fix_value0([X,_], X) :- !.
-fix_value0(X, X).
 
 
 
