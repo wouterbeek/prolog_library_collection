@@ -7,7 +7,6 @@
     atom_prefix/3,     % +Atom, ?Length, ?Sub
     atom_strip/2,      % +Atom, -StrippedAtom
     atom_strip/3,      % +StripChars, +Atom, -StrippedAtom
-    atom_to_file/2,    % +Atom, +FileSpec
     atom_truncate/3,   % +Atom, +MaxLength, -Truncated
     is_empty_atom/1    % @Term
   ]
@@ -16,7 +15,7 @@
 /** <module> Atom extensions
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -120,17 +119,6 @@ atom_strip_end0(StripChars, A1, A3) :-
   atom_concat(A2, StripChar, A1), !,
   atom_strip_end0(StripChars, A2, A3).
 atom_strip_end0(_, A, A).
-
-
-
-%! atom_to_file(+Content:atom, +FileSpec:term) is det.
-
-atom_to_file(Content, FileSpec) :-
-  setup_call_cleanup(
-    uri_open(FileSpec, write, In),
-    format(In, '~a', [Content]),
-    stream_close(In)
-  ).
 
 
 
