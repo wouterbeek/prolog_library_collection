@@ -48,7 +48,7 @@
 @author Wouter Beek
 @compat RFC 7230
 @see https://tools.ietf.org/html/rfc7230
-@version 2017/05-2017/06
+@version 2017/05-2017/06, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -86,7 +86,8 @@
     'm##n__g2'(?, ?, -, 3, +, ?, ?),
     'm##n__p1'(?, ?, -, 3, -, ?, ?),
     'm##n__p2'(?, ?, -, 3, -, ?, ?),
-    'field-content'(3, -, ?, ?).
+    'field-content'(3, -, ?, ?),
+    'field-value'(?, 3, -).
 
 :- multifile
     http:http_header/1,
@@ -316,10 +317,10 @@ sep_segment0(Segment) -->
 %
 % @bug It's a mistake to make chunk-ext optional when its also Kleene star.
 
-chunk(chunk(Size,Cs,Extensions)) -->
+chunk(chunk(Size,Codes,Extensions)) -->
   'chunk-size'(Size),
   'chunk-ext'(Extensions), 'CRLF',
-  'chunk-data'(Cs), 'CRLF'.
+  'chunk-data'(Codes), 'CRLF'.
 
 
 
@@ -331,8 +332,8 @@ chunk(chunk(Size,Cs,Extensions)) -->
 % chunk-data = 1*OCTET
 % ```
 
-'chunk-data'(Cs) -->
-  +('OCTET', Cs), !.
+'chunk-data'(Codes) -->
+  +('OCTET', Codes), !.
 
 
 
@@ -545,8 +546,8 @@ ctext(C) --> 'obs-text'(C).
 % field-value = *( field-content | 'obs-fold' )
 % ```
 
-'field-value'(Cs, Key, Value) :-
-  phrase('field-content'(Key, Value), Cs).
+'field-value'(Codes, Key, Value) :-
+  phrase('field-content'(Key, Value), Codes).
 
 
 
@@ -570,8 +571,8 @@ ctext(C) --> 'obs-text'(C).
 'header-field'(Key-Value) -->
   'field-name'(Key),
   ":", 'OWS',
-  rest(Cs),
-  {'field-value'(Cs, Key, Value)}.
+  rest(Codes),
+  {'field-value'(Codes, Key, Value)}.
 
 
 
@@ -687,8 +688,8 @@ host(auth(_,Host,Port)) -->
 % message-body = *OCTET
 % ```
 
-'message-body'(Cs) -->
-  *('OCTET', Cs), !.
+'message-body'(Codes) -->
+  *('OCTET', Codes), !.
 
 
 
@@ -861,9 +862,9 @@ qdtext(C)    --> 'obs-text'(C).
 
 'quoted-string'(String) -->
   'DQUOTE',
-  *(quoted_string_code0, Cs), !,
+  *(quoted_string_code0, Codes), !,
   'DQUOTE',
-  {atom_codes(String, Cs)}.
+  {atom_codes(String, Codes)}.
 
 quoted_string_code0(C) --> qdtext(C).
 quoted_string_code0(C) --> 'quoted-pair'(C).
@@ -899,8 +900,8 @@ rank(1.0) -->
 % ```
 
 'reason-phrase'(Reason) -->
-  *(reason_phrase_code, Cs),
-  {string_codes(Reason, Cs)}.
+  *(reason_phrase_code, Codes),
+  {string_codes(Reason, Codes)}.
 
 reason_phrase_code(C) --> 'HTAB'(C).
 reason_phrase_code(C) --> 'SP'(C).
@@ -1116,12 +1117,7 @@ te(L) -->
 % ```
 
 token(Token) -->
-  parsing, !,
-  +(tchar, Cs), !,
-  {atom_codes(Token, Cs)}.
-token(Token) -->
-  {atom_codes(Token, Cs)},
-  +(tchar, Cs).
+  dcg_atom(+(tchar), Token).
 
 
 

@@ -832,7 +832,7 @@ open_any2_variant(Spec1, Mode, Stream, Close, Path, Opts) :-
   ;   atomic(Spec1)
   ->  (   uri_file_name(Spec1, File)
       ->  Spec2 = file(File)
-      ;   is_uri(Spec1)
+      ;   uri_is_global(Spec1)
       ->  Spec2 = uri(Spec1)
       ;   Spec2 = file(Spec1)
       )
