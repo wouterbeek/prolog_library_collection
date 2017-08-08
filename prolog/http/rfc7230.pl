@@ -17,6 +17,8 @@
     comment//1,            % -Comment:string
     'field-name'//1,       % -Name:atom
     'HTTP-message'//1,     % -Message:compound
+    http_sep//0,
+    http_sep//1,           % +Code
     method//1,             % -Method:atom
     'obs-text'//1,         % -Code:code
     'OWS'//0,
@@ -78,14 +80,6 @@
     'm##'(?, 3, ?, ?, ?),
     'm##n'(?, ?, //, ?, ?),
     'm##n'(?, ?, 3, ?, ?, ?),
-    'm##n__g1'(?, ?, -, //, ?, ?),
-    'm##n__g2'(?, ?, -, //, ?, ?),
-    'm##n__p1'(?, ?, -, //, ?, ?),
-    'm##n__p2'(?, ?, -, //, ?, ?),
-    'm##n__g1'(?, ?, -, 3, +, ?, ?),
-    'm##n__g2'(?, ?, -, 3, +, ?, ?),
-    'm##n__p1'(?, ?, -, 3, -, ?, ?),
-    'm##n__p2'(?, ?, -, 3, -, ?, ?),
     'field-content'(3, -, ?, ?),
     'field-value'(?, 3, -).
 
@@ -98,7 +92,7 @@
 
 
 %! '##'(:Dcg_0)// .
-%! '##'(:Dcg_1, ?Args)// .
+%! '##'(:Dcg_1, ?Args:list)// .
 
 '##'(Dcg_0) -->
   'm##n'(_, _, Dcg_0).
@@ -110,7 +104,7 @@
 
 
 %! '+##'(:Dcg_0)// .
-%! '+##'(:Dcg_1, ?Args)// .
+%! '+##'(:Dcg_1, ?Args:list)// .
 
 '+##'(Dcg_0) -->
   'm##n'(1, _, Dcg_0).
@@ -122,7 +116,7 @@
 
 
 %! '*##'(:Dcg_0)// .
-%! '*##'(:Dcg_1, ?Args)// .
+%! '*##'(:Dcg_1, ?Args:list)// .
 
 '*##'(Dcg_0) -->
   'm##n'(0, _, Dcg_0).
@@ -133,8 +127,8 @@
 
 
 
-%! '##n'(?High, :Dcg_0)// .
-%! '##n'(?High, :Dcg_1, ?Args)// .
+%! '##n'(?High:nonneg, :Dcg_0)// .
+%! '##n'(?High:nonneg, :Dcg_1, ?Args:list)// .
 
 '##n'(High, Dcg_0) -->
   'm##n'(_, High, Dcg_0).
@@ -145,8 +139,8 @@
 
 
 
-%! 'm##'(?Low, :Dcg_0)// .
-%! 'm##'(?Low, :Dcg_1, ?Args)// .
+%! 'm##'(?Low:nonneg, :Dcg_0)// .
+%! 'm##'(?Low:nonneg, :Dcg_1, ?Args:list)// .
 
 'm##'(Low, Dcg_0) -->
   'm##n'(Low, _, Dcg_0).
@@ -157,8 +151,8 @@
 
 
 
-%! 'm##n'(?Low, ?High, :Dcg_0)// .
-%! 'm##n'(?Low, ?High, :Dcg_1, ?Args)// .
+%! 'm##n'(?Low:nonneg, ?High:nonneg, :Dcg_0)// .
+%! 'm##n'(?Low:nonneg, ?High:nonneg, :Dcg_1, ?Args:list)// .
 %
 % ```abnf
 % <n>#<m>element => element <n-1>*<m-1>( OWS "," OWS element )
@@ -167,85 +161,11 @@
 % Empty elements do not contribute to the count of elements present.
 
 'm##n'(Low, High, Dcg_0) -->
-  parsing, !,
-  'm##n__p1'(Low, High, 0, Dcg_0).
-'m##n'(Low, High, Dcg_0) -->
-  'm##n__g1'(Low, High, 0, Dcg_0).
-
-'m##n__g1'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m##n__g1'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm##n__g2'(Low, High, Count2, Dcg_0).
-
-'m##n__g2'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m##n__g2'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  +(sep0),
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm##n__g2'(Low, High, Count2, Dcg_0).
-
-'m##n__p1'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm##n__p2'(Low, High, Count2, Dcg_0).
-'m##n__p1'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
-
-'m##n__p2'(Low, High, Count1, Dcg_0) -->
-  {(var(High) -> true ; Count1 < High)},
-  +(sep0),
-  dcg_call(Dcg_0),
-  {Count2 is Count1 + 1},
-  'm##n__p2'(Low, High, Count2, Dcg_0).
-'m##n__p2'(Low, _, Count, _) -->
-  {(var(Low) -> true ; Low =< Count)}.
+  'm*&n'(Low, High, Dcg_0, http_sep).
 
 
-'m##n'(Low, High, Dcg_1, L1) -->
-  parsing, !,
-  'm##n__p1'(Low, High, 0, Dcg_1, L1).
-'m##n'(Low, High, Dcg_1, L1) -->
-  'm##n__g1'(Low, High, 0, Dcg_1, L1).
-
-'m##n__g1'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m##n__g1'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm##n__g2'(Low, High, Count2, Dcg_1, T1).
-
-'m##n__g2'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-'m##n__g2'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  +(sep0),
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm##n__g2'(Low, High, Count2, Dcg_1, T1).
-
-'m##n__p1'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm##n__p2'(Low, High, Count2, Dcg_1, T1).
-'m##n__p1'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
-
-'m##n__p2'(Low, High, Count1, Dcg_1, [H1|T1]) -->
-  {(var(High) -> true ; Count1 < High)},
-  +(sep0),
-  dcg_call(Dcg_1, H1),
-  {Count2 is Count1 + 1},
-  'm##n__p2'(Low, High, Count2, Dcg_1, T1).
-'m##n__p2'(Low, _, Count, _, []) -->
-  {(var(Low) -> true ; Low =< Count)}.
+'m##n'(Low, High, Dcg_1, Args) -->
+  'm*&n'(Low, High, Dcg_1, http_sep, Args).
 
 
 
@@ -603,7 +523,7 @@ host(auth(_,Host,Port)) -->
 
 'HTTP-message'(http(StartLine,Headers,Body)) -->
   'start-line'(StartLine),
-  *(header_field_eol0, Headers),
+  *(header_field_eol, Headers),
   'CRLF',
   dcg_default('message-body', Body, []),
   'CRLF'.
@@ -619,6 +539,20 @@ host(auth(_,Host,Port)) -->
 % ```
 
 'HTTP-name' --> [0x48,0x54,0x54,0x50].
+
+
+
+%! http_sep// is det.
+%! http_sep(+Code:code)// is det.
+
+http_sep -->
+  http_sep(0',).
+
+
+http_sep(Code) -->
+  'OWS',
+  [Code],
+  'OWS'.
 
 
 
@@ -645,9 +579,9 @@ host(auth(_,Host,Port)) -->
 
 'HTTP-version'(Major-Minor) -->
   'HTTP-name',
-  sep0(0'/),
+  http_sep(0'/),
   'DIGIT'(Major),
-  sep0(0'.),
+  http_sep(0'.),
   'DIGIT'(Minor).
 
 
@@ -725,7 +659,7 @@ method(Method) -->
 
 'obs-fold' -->
   'CRLF',
-  +(sp_or_htab0), !.
+  +(sp_or_htab), !.
 
 
 
@@ -762,7 +696,7 @@ method(Method) -->
 % ```
 
 'OWS' -->
-  *(sp_or_htab0), !.
+  *(sp_or_htab), !.
 
 
 
@@ -986,7 +920,7 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```
 
 'RWS' -->
-  +(sp_or_htab0), !.
+  +(sp_or_htab), !.
 
 
 
@@ -1055,7 +989,7 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```
 
 't-ranking'(Rank) -->
-  sep0(0';),
+  http_sep(0';),
   atom_ci('q='),
   rank(Rank).
 
@@ -1140,7 +1074,7 @@ trailer(L) -->
 % ```
 
 'trailer-part'(Headers) -->
-  *(header_field_eol0, Headers).
+  *(header_field_eol, Headers).
 
 
 
@@ -1188,7 +1122,7 @@ http:http_separable('transfer-encoding').
   *(sep_transfer_parameter0, Pairs).
 
 sep_transfer_parameter0(Pair) -->
-  sep0(0';),
+  http_sep(0';),
   'transfer-parameter'(Pair).
 
 
@@ -1244,22 +1178,15 @@ via_component(via(ReceivedProtocol,ReceivedBy,Comment)) -->
 
 % HELPERS %
 
-header_field_eol0(Header) -->
+%! header_field_eol(Header:compound)// is det.
+
+header_field_eol(Header) -->
   'header-field'(Header),
   'CRLF'.
 
 
 
-sep0 -->
-  sep0(0',).
+%! sp_or_htab// is det.
 
-
-sep0(Code) -->
-  'OWS',
-  [Code],
-  'OWS'.
-
-
-
-sp_or_htab0 --> 'SP'.
-sp_or_htab0 --> 'HTAB'.
+sp_or_htab --> 'SP'.
+sp_or_htab --> 'HTAB'.

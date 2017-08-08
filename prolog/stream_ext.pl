@@ -45,7 +45,7 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(readutil)).
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
-:- use_module(library(xml/xml_parse)).
+:- use_module(library(xml/xml_parser)).
 
 :- debug(stream_ext).
 

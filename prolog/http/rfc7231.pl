@@ -1,10 +1,10 @@
 :- module(
   rfc7231,
   [
-    accept//1,         % ?Pairs:list(pair(between(0.0,1.0),compound))
-    'content-type'//1, % -MediaType:compound
-    'HTTP-date'//1,    % -DateTime:compound
-    'media-type'//1    % ?MediaType:compound
+    accept//1,         % ?Pairs
+    'content-type'//1, % -MediaType
+    'HTTP-date'//1,    % -DateTime
+    'media-type'//1    % ?MediaType
   ]
 ).
 :- reexport(library(dcg/rfc4647), [
@@ -22,7 +22,7 @@
 @author Wouter Beek
 @compat RFC 7231
 @see https://tools.ietf.org/html/rfc7231
-@version 2017/05-2017/06
+@version 2017/05-2017/06, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -124,7 +124,7 @@ accept_encoding_value0(Weight-Encoding) -->
 % ```
 
 'accept-ext'(Extension) -->
-  rfc7230:sep0(0';),
+  http_sep(0';),
   token(Key),
   (   "="
   ->  (token(Val), ! ; 'quoted-string'(Val)),
@@ -855,7 +855,7 @@ vary(L) -->
 % ```
 
 weight(Weight) -->
-  rfc7230:sep0(0';),
+  http_sep(0';),
   "q=",
   qvalue(Weight).
 
@@ -878,7 +878,7 @@ year(Year) -->
 % HELPERS %
 
 sep_parameter0(Param) -->
-  rfc7230:sep0(0';),
+  http_sep(0';),
   parameter(Param).
 
 

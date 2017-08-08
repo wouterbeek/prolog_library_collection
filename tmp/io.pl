@@ -68,7 +68,7 @@ The following debug flags are used:
 :- use_module(library(print_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(xml/xml_parse)).
+:- use_module(library(xml/xml_parser)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
