@@ -17,7 +17,7 @@
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
-    stream_metadata/2,            % +Stream, -Dict
+    media_type_extension/2,       % +MediaType, -Extension
     stream_to_file/4,             % +FileSpec, +In, +Metadata1, -Metadata2
     working_directory/1           % -Dir
   ]
@@ -43,10 +43,6 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(zlib)).
 
-:- dynamic
-    error:has_type/2,
-    file_ext:media_type_extension/2.
-
 :- meta_predicate
     call_to_file(+, 3),
     call_to_file(+, 3, +),
@@ -54,7 +50,7 @@
 
 :- multifile
     error:has_type/2,
-    file_ext:media_type_extension/2.
+    file_ext:media_type_extension_/2.
 
 error:has_type(directory, Directory) :-
   var(Directory), !,
@@ -64,9 +60,12 @@ error:has_type(directory, Directory) :-
   existence_error(directory, Directory).
 error:has_type(directory, Directory) :-
   error:has_type(atom, Directory).
+error:has_type(media_type, media(Supertype/Subtype,Parameters)) :-
+  maplist(error:has_type(atom), [Supertype,Subtype]),
+  error:has_type(list(compound), Parameters).
 
-file_ext:media_type_extension(media(application/'xhtml+xml',[]), xhtml).
-file_ext:media_type_extension(media(text/html,[]), html).
+file_ext:media_type_extension_(media(application/'xhtml+xml',[]), xhtml).
+file_ext:media_type_extension_(media(text/html,[]), html).
 
 
 
@@ -235,7 +234,7 @@ directory_path(Dir, Path) :-
 
 
 
-%! directory_path_recursive(+Dir, -Path) is nondet.
+%! directory_path_recursive(+Directory:atom, -Path:atom) is nondet.
 
 directory_path_recursive(Dir, Path) :-
   directory_path(Dir, Path0),
@@ -246,30 +245,31 @@ directory_path_recursive(Dir, Path) :-
 
 
 
-%! file_extensions(+File, -Extensions) is det.
+%! file_extensions(+File:atom, -Extensions:list(atom)) is det.
 
 file_extensions(File, Extensions) :-
   file_name_extensions(File, _, Extensions).
 
 
 
-%! file_extensions_media_type(+Extensions, -MediaType) is det.
+%! file_extensions_media_type(+Extensions:list(atom),
+%!                            -MediaType:media_type) is det.
 
 file_extensions_media_type(Extensions, MediaType) :-
   member(Extension1, Extensions),
-  file_ext:media_type_extension(MediaType, Extension1), !.
+  media_type_extension(MediaType, Extension1), !.
 
 
 
-%! file_name_extensions(+File, -Name, -Extensions) is det.
-%! file_name_extensions(-File, +Name, +Extensions) is det.
+%! file_name_extensions(+File:atom, -Name:atom, -Extensions:list(atom)) is det.
+%! file_name_extensions(-File:atom, +Name:atom, +Extensions:list(atom)) is det.
 
 file_name_extensions(File, Name, Extensions) :-
   atomic_list_concat([Name|Extensions], ., File).
 
 
 
-%! file_to_string(+File, -String) is det.
+%! file_to_string(+File:atom, -String:string) is det.
 
 file_to_string(File, String) :-
   read_file_to_string(File, Codes, []),
@@ -277,27 +277,26 @@ file_to_string(File, String) :-
 
 
 
-%! is_dummy_file(+File) is semidet.
+%! is_dummy_file(+File:atom) is semidet.
 
 is_dummy_file(.).
 is_dummy_file(..).
 
 
 
-%! stream_metadata(+Stream, -Dict) is det.
+%! media_type_extension(+MediaType:compound, -Extension:atom) is det.
 
-stream_metadata(Stream, Dict) :-
-  stream_property(Stream, position(Pos)),
-  stream_position_data(byte_count, Pos, NumBytes),
-  stream_position_data(char_count, Pos, NumChars),
-  stream_position_data(line_count, Pos, NumLines),
-  stream_property(Stream, newline(Newline)),
-  Dict = _{
-    byte_count: NumBytes,
-    char_count: NumChars,
-    line_count: NumLines,
-    newline: Newline
-  }.
+media_type_extension(MediaType, Extension) :-
+  once(media_type_extension_(MediaType, Extension)).
+
+media_type_extension_(media(application/json,_), json).
+media_type_extension_(media(application/'n-quads',_), nq).
+media_type_extension_(media(application/'n-triples',_), nt).
+media_type_extension_(media(application/'sparql-query',_), rq).
+media_type_extension_(media(application/'x-prolog',_), pl).
+media_type_extension_(media(image/jpeg,_), jpeg).
+media_type_extension_(media(image/png,_), png).
+media_type_extension_(media(text/turtle,_), ttl).
 
 
 
@@ -316,18 +315,6 @@ stream_to_file(FileSpec, In, Metadata, Metadata) :-
   ),
   absolute_file_name(FileSpec, File, [access(write)|Options]),
   call_to_file(File, copy_stream_data(In), [compression(none),type(binary)]).
-
-media_type_extension(MediaType, Extension) :-
-  once(media_type_extension0(MediaType, Extension)).
-
-media_type_extension0(media(application/json,_), json).
-media_type_extension0(media(application/'n-quads',_), nq).
-media_type_extension0(media(application/'n-triples',_), nt).
-media_type_extension0(media(application/'sparql-query',_), rq).
-media_type_extension0(media(application/'x-prolog',_), pl).
-media_type_extension0(media(image/jpeg,_), jpeg).
-media_type_extension0(media(image/png,_), png).
-media_type_extension0(media(text/turtle,_), ttl).
 
 
 
