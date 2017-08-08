@@ -2,14 +2,15 @@
   date_time,
   [
   % CONVERSIONS
-    timestamp_to_dt/2, % +Timestamp, -DT
-    date_time_to_dt/2, % +DateTime, -DT
-    dt_to_date_time/2, % +DT, -DateTime
+    timestamp_to_dt/2, % +Timestamp, -Datetime
+    date_time_to_dt/2, % +Datetime1, -Datetime2
+    dt_to_date_time/2, % +Datetime1, -Datetime2
     is_date_time/1,    % @Term
     is_dt/1,           % @Term
   % OPERATIONS
-    date_time_masks/3, % +Masks, +DT1, -DT2
-    now/1              % -DT
+    date_time_masks/3, % +Masks, +Datetime1, -Datetime2
+    now/1,             % -Datetime
+    number_of_days_in_month_of_year/3 % ?Year, ?Month, ?MaxDay
   ]
 ).
 
@@ -30,7 +31,7 @@ Prolog uses the following date/time representations:
 
 We use the following date/time representation:
 
-    * dt/7
+  * dt/7
 
 The purpose of this module is to allow the programmer to write all
 predicates that use date/time representations to only work with dt/7.
@@ -48,7 +49,7 @@ This is a huge date/time-saver!
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
 error:has_type(dt, dt(Y,Mo,D,H,Mi,S,Off)):-
-  error:has_type(date, date(Y,Mo,D)),
+  error:has_type(date_time, date(Y,Mo,D)),
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)),
@@ -75,15 +76,15 @@ error:has_type(date_time, time(H,Mi,S)):-
 
 % CONVERSIONS %
 
-%! timestamp_to_dt(+Timestamp:float, -DT:dt) is det.
+%! timestamp_to_dt(+Timestamp:float, -Datetime:dt) is det.
 
-timestamp_to_dt(Timestamp, DT) :-
-  date_time_stamp(DateTime, Timestamp),
-  date_time_to_dt(DateTime, DT).
+timestamp_to_dt(Timestamp, Datetime2) :-
+  date_time_stamp(Datetime1, Timestamp),
+  date_time_to_dt(Datetime1, Datetime2).
 
 
 
-%! date_time_to_dt(+DateTime:date_time, -DT:dt) is det.
+%! date_time_to_dt(+Datetime:date_time, -Datetime:dt) is det.
 %
 % Converts the three Prolog date/time representations to the one
 % XSD-inspired 7-property model representation (type `dt`).
@@ -119,7 +120,7 @@ date_time_to_dt(time(H,Mi,S), dt(_,_,_,H,Mi,S,0)).
 
 
 
-%! dt_to_date_time(+DT:dt, -DateTime:date_time) is det.
+%! dt_to_date_time(+Datetime:dt, -Datetime:date_time) is det.
 %
 % Conversion from the XSD-inspired 7-property model to the three
 % Prolog date/time compound term representations.
@@ -161,18 +162,18 @@ date_time_mask(Mask) :-
 
 
 
-%! date_time_mask(+Mask:atom, +DateTime:dt, -MaskedDateTime:dt) is det.
+%! date_time_mask(+Mask:atom, +Datetime1:dt, -Datetime2:dt) is det.
 %
 % @arg Mask is one of the values of date_time_mask/1.
 %
 % TBD: Support Mask=none?
 
-date_time_mask(Mask, DT1, DT2) :-
+date_time_mask(Mask, Datetime1, Datetime2) :-
   call_must_be(date_time_mask, Mask),
-  must_be(dt, DT1),
-  once(date_time_mask_(Mask, DT1, DT2)).
+  must_be(dt, Datetime1),
+  once(date_time_mask_(Mask, Datetime1, Datetime2)).
 
-date_time_mask_(none,   DateTime,              DateTime             ).
+date_time_mask_(none,   Datetime,              Datetime             ).
 date_time_mask_(year,   dt(_,Mo,D,H,Mi,S,Off), dt(_,Mo,D,H,Mi,S,Off)).
 date_time_mask_(month,  dt(Y,_, D,H,Mi,S,Off), dt(Y,_, D,H,Mi,S,Off)).
 date_time_mask_(day,    dt(Y,Mo,_,H,Mi,S,Off), dt(Y,Mo,_,H,Mi,S,Off)).
@@ -183,23 +184,47 @@ date_time_mask_(offset, dt(Y,Mo,D,H,Mi,S,_  ), dt(Y,Mo,D,H,Mi,S,_  )).
 
 
 
-%! date_time_masks(+Masks:list(atom), +DateTime:dt, -MaskedDateTime:dt) is det.
+%! date_time_masks(+Masks:list(atom), +Datetime1:dt, -Datetime2:dt) is det.
 %
 % Apply an arbitrary number of date/time masks.
 %
 % @see date_time_mask/3
 
-date_time_masks([], DT, DT) :- !.
-date_time_masks([H|T], DT1, DT3) :-
-  date_time_mask(H, DT1, DT2),
-  date_time_masks(T, DT2, DT3).
+date_time_masks([], Datetime, Datetime) :- !.
+date_time_masks([H|T], Datetime1, Datetime3) :-
+  date_time_mask(H, Datetime1, Datetime2),
+  date_time_masks(T, Datetime2, Datetime3).
 
 
 
-%! now(-DT:dt) is det.
+%! now(-Datetime:dt) is det.
 %
 % Return the current date/time as a `dt`-typed compound term.
 
-now(DT):-
+now(Datetime):-
   get_time(Timestamp),
-  timestamp_to_dt(Timestamp, DT).
+  timestamp_to_dt(Timestamp, Datetime).
+
+
+
+%! number_of_days_in_month_of_year(?Year:integer, ?Month:between(1,12),
+%!                                 ?MaxDay:between(28,31)) is nondet.
+%
+% The number of days in month of year is:
+%
+%   * 31 if month is 1, 3, 5, 7, 8, 10, or 12;
+%
+%   * 30 if month is 4, 6, 9, or 11;
+%
+%   * 29 if month is 2 and year is a number divisible by 400, or if
+%     year is a number divisible by 4 but not by 100;
+%
+%   * 28 otherwise.
+
+number_of_days_in_month_of_year(_, Mo, 31):-
+  memberchk(Mo, [1,3,5,7,8,10,12]), !.
+number_of_days_in_month_of_year(_, Mo, 30):-
+  memberchk(Mo, [4,6,9,11]), !.
+number_of_days_in_month_of_year(Y, 2, 29):-
+  (Y mod 400 =:= 0 ; (Y mod 4 =:= 0, Y mod 100 =\= 0)), !.
+number_of_days_in_month_of_year(_, _, 28).

@@ -2,7 +2,7 @@
   logging,
   [
     read_log_entry/5, % ?Category:atom
-                      % ?DateTime:atom
+                      % ?Datetime:atom
                       % ?Kind:atom
                       % ?Term:compound
                       % ?Message:atom
@@ -57,14 +57,14 @@ init:-
 
 %! read_log_entry(
 %!   ?Category:atom,
-%!   ?DateTime:atom,
+%!   ?Datetime:atom,
 %!   ?Kind:atom,
 %!   ?Term:compound,
 %!   ?Message:atom
 %! ) is nondet.
 
-read_log_entry(Category, DateTime, Kind, Term, Msg):-
-  log_entry(Category, DateTime, Kind, Term, Msg).
+read_log_entry(Category, Datetime, Kind, Term, Msg):-
+  log_entry(Category, Datetime, Kind, Term, Msg).
 
 
 

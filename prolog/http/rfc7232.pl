@@ -82,15 +82,15 @@ http:http_header('if-match').
 
 
 
-%! 'if-modified-since'(-DateTime:compound)// is det.
+%! 'if-modified-since'(-Datetime:compound)// is det.
 %
 % ```abnf
 % If-Modified-Since = HTTP-date
 % ```
 
 http:http_header('if-modified=since').
-'if-modified-since'(DateTime) -->
-  'HTTP-date'(DateTime).
+'if-modified-since'(Datetime) -->
+  'HTTP-date'(Datetime).
 
 
 
@@ -108,15 +108,15 @@ http:http_header('if-none-match').
 
 
 
-%! 'if-unmodified-since'(-DateTime:compound)// is det.
+%! 'if-unmodified-since'(-Datetime:compound)// is det.
 %
 % ```abnf
 % If-Unmodified-Since = HTTP-date
 % ```
 
 http:http_header('if-unmodified-since').
-'if-unmodified-since'(DateTime) -->
-  'HTTP-date'(DateTime).
+'if-unmodified-since'(Datetime) -->
+  'HTTP-date'(Datetime).
 
 
 

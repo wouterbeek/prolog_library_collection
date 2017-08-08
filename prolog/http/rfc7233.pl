@@ -193,8 +193,8 @@ http:http_header('content-range').
 http:http_header('if-range').
 'if-range'(EntityTag) -->
   'entity-tag'(EntityTag), !.
-'if-range'(DateTime) -->
-  'HTTP-date'(DateTime).
+'if-range'(Datetime) -->
+  'HTTP-date'(Datetime).
 
 
 

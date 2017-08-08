@@ -3,7 +3,7 @@
   [
     accept//1,         % ?Pairs
     'content-type'//1, % -MediaType
-    'HTTP-date'//1,    % -DateTime
+    'HTTP-date'//1,    % -Datetime
     'media-type'//1    % ?MediaType
   ]
 ).
@@ -177,7 +177,7 @@ allow(Methods) -->
 
 
 
-%! 'asctime-date'(-DateTime:compound)// is det.
+%! 'asctime-date'(-Datetime:compound)// is det.
 %
 % ```abnf
 % asctime-date = day-name SP date3 SP time-of-day SP year
@@ -285,7 +285,7 @@ http:http_header('content-type').
 
 
 
-%! date(-DateTime:compound)// is det.
+%! date(-Datetime:compound)// is det.
 %
 % ```abnf
 % Date = HTTP-date
@@ -294,8 +294,8 @@ http:http_header('content-type').
 % Example: `Date: Tue, 15 Nov 1994 08:12:31 GMT`
 
 http:http_header(date).
-date(DateTime) -->
-  'HTTP-date'(DateTime).
+date(Datetime) -->
+  'HTTP-date'(Datetime).
 
 
 
@@ -469,18 +469,18 @@ hour(Hour) -->
 
 
 
-%! 'HTTP-date'(-DateTime:compound)// .
+%! 'HTTP-date'(-Datetime:compound)// .
 %
 % ```abnf
 % HTTP-date = IMF-fixdate | obs-date
 % ```
 
-'HTTP-date'(DateTime) --> 'IMF-fixdate'(DateTime), !.
-'HTTP-date'(DateTime) --> 'obs-date'(DateTime).
+'HTTP-date'(Datetime) --> 'IMF-fixdate'(Datetime), !.
+'HTTP-date'(Datetime) --> 'obs-date'(Datetime).
 
 
 
-%! 'IMF-fixdate'(-DateTime:compound)// .
+%! 'IMF-fixdate'(-Datetime:compound)// .
 %
 % Fixed length/zone/capitalization subset of the format see Section
 % 3.3 of [RFC5322].
@@ -615,16 +615,16 @@ month(12) --> atom_ci('Dec').
 
 
 
-%! 'obs-date'(-DateTime:compound)// .
+%! 'obs-date'(-Datetime:compound)// .
 %
 % ```abnf
 % obs-date = rfc850-date | asctime-date
 % ```
 
-'obs-date'(DateTime) -->
-  'rfc850-date'(DateTime), !.
-'obs-date'(DateTime) -->
-  'asctime-date'(DateTime).
+'obs-date'(Datetime) -->
+  'rfc850-date'(Datetime), !.
+'obs-date'(Datetime) -->
+  'asctime-date'(Datetime).
 
 
 
@@ -720,21 +720,21 @@ referer(Uri) -->
 
 
 
-%! 'retry-after'(-DateTime:compound)// is det.
+%! 'retry-after'(-Datetime:dt)// is det.
 %
 % ```abnf
 % Retry-After = HTTP-date | delay-seconds
 % ```
 
 http:http_header('retry-after').
-'retry-after'(DateTime) -->
-  'HTTP-date'(DateTime).
-'retry-after'(DateTime) -->
-  'delay-seconds'(DateTime).
+'retry-after'(Datetime) -->
+  'HTTP-date'(Datetime).
+'retry-after'(Datetime) -->
+  'delay-seconds'(Datetime).
 
 
 
-%! 'rfc850-date'(-DateTime:compound)// .
+%! 'rfc850-date'(-Datetime:dt)// .
 %
 % ```abnf
 % rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT

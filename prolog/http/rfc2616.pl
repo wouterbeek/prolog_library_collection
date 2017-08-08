@@ -243,7 +243,7 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'rfc850-date'(-DateTime:compound)// .
+%! 'rfc850-date'(-Datetime:compound)// .
 %
 % ```abnf
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
@@ -261,7 +261,7 @@ quoted_string_code(C) --> 'quoted-pair'(C).
 
 
 
-%! 'rfc1123-date'(-DateTime:compound)// .
+%! 'rfc1123-date'(-Datetime:compound)// .
 %
 % ```abnf
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"

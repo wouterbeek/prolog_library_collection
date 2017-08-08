@@ -87,15 +87,15 @@ http:http_separable('cache-control').
 
 
 
-%! expires(-DateTime:compound)// is det.
+%! expires(-Datetime:compound)// is det.
 %
 % ```abnf
 % Expires = HTTP-date
 % ```
 
 http:http_header(expires).
-expires(DateTime) -->
-  'HTTP-date'(DateTime).
+expires(Datetime) -->
+  'HTTP-date'(Datetime).
 
 
 
@@ -170,15 +170,15 @@ pragma(Pragmas) -->
 
 
 
-%! 'warn-date'(-DateTime:compound)// is det.
+%! 'warn-date'(-Datetime:compound)// is det.
 %
 % ```abnf
 % warn-date = DQUOTE HTTP-date DQUOTE
 % ```
 
-'warn-date'(DateTime) -->
+'warn-date'(Datetime) -->
   'DQUOTE',
-  'HTTP-date'(DateTime),
+  'HTTP-date'(Datetime),
   'DQUOTE'.
 
 
@@ -211,10 +211,10 @@ warning(Warnings) -->
 % warning-value = warn-code SP warn-agent SP warn-text [ SP warn-date ]
 % ```
 
-'warning-value'(warning(Code,Agent,Text,DateTime)) -->
+'warning-value'(warning(Code,Agent,Text,Datetime)) -->
   'warn-code'(Code),
   'SP',
   'warn-agent'(Agent),
   'SP',
   'warn-text'(Text),
-  ('SP' -> 'warn-date'(DateTime) ; "").
+  ('SP' -> 'warn-date'(Datetime) ; "").

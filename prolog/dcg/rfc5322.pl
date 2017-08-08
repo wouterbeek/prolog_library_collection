@@ -1,7 +1,7 @@
 :- module(
   rfc5322,
   [
-    mailbox//1 % -Mailbox:compound
+    mailbox//1 % -Mailbox
   ]
 ).
 
@@ -10,27 +10,27 @@
 @author Wouter Beek
 @compat RFC 5322
 @see https://tools.ietf.org/html/rfc5322
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext), except([
      atom//1
    ])).
 :- use_module(library(dcg/rfc5234), [
-     'ALPHA'//1,  % ?Code:code
+     'ALPHA'//1,  % ?Code
      'CR'//0,
-     'CR'//1,     % ?Code:code
+     'CR'//1,     % ?Code
      'CRLF'//0,
-     'CRLF'//1,   % ?Code:code
-     'DIGIT'//1,  % ?Weight:between(0,9)
+     'CRLF'//1,   % ?Code
+     'DIGIT'//1,  % ?Weight
      'DQUOTE'//0,
      'HTAB'//0,
      'LF'//0,
-     'LF'//1,     % ?Code:code
+     'LF'//1,     % ?Code
      'SP'//0,
-     'VCHAR'//1,  % ?Code:code
+     'VCHAR'//1,  % ?Code
      'WSP'//0,
-     'WSP'//1     % ?Code:code
+     'WSP'//1     % ?Code
    ]).
 :- use_module(library(lists)).
 :- use_module(library(math_ext)).
@@ -98,8 +98,8 @@ address(Name-Mailboxes) -->
 %       / "~"
 % ```
 
-atext(C)   --> 'ALPHA'(C).
-atext(C)   --> 'DIGIT'(C).
+atext(Code)   --> 'ALPHA'(Code).
+atext(Code)   --> 'DIGIT'(Code).
 atext(0'!) --> "!".
 atext(0'#) --> "#".
 atext(0'$) --> "$".
@@ -142,9 +142,12 @@ atom(Atom) -->
 % ccontent = ctext / quoted-pair / comment
 % ```
 
-ccontent --> ctext(_).
-ccontent --> 'quoted-pair'(_).
-ccontent --> comment.
+ccontent -->
+  ctext(_).
+ccontent -->
+  'quoted-pair'(_).
+ccontent -->
+  comment.
 
 
 
@@ -155,12 +158,12 @@ ccontent --> comment.
 % ```
 
 'CFWS' -->
-  +(sep_comment0),
+  +(sep_comment_),
   ?('FWS').
 'CFWS' -->
   'FWS'.
 
-sep_comment0 -->
+sep_comment_ -->
   ?('FWS'),
   comment.
 
@@ -174,11 +177,11 @@ sep_comment0 -->
 
 comment -->
   "(",
-  *(sep_ccontent0),
+  *(sep_ccontent_),
   ?('FWS'),
   ")".
 
-sep_ccontent0 -->
+sep_ccontent_ -->
   ?('FWS'),
   ccontent.
 
@@ -193,19 +196,20 @@ sep_ccontent0 -->
 %       / obs-ctext
 % ```
 
-ctext(C) -->
-  [C],
-  {once((
-    between(33, 39, C)
-  ; between(42, 91, C)
-  ; between(93, 126, C)
-  ))}.
-ctext(C) -->
-  'obs-ctext'(C).
+ctext(Code) -->
+  [Code],
+  {
+    once(between(33, 39, Code)
+    ;    between(42, 91, Code)
+    ;    between(93, 126, Code)
+    )
+  }.
+ctext(Code) -->
+  'obs-ctext'(Code).
 
 
 
-%! date(-Year:nonneg, -Month:bewtween(0,99), -Day:between(0,99))// .
+%! date(-Year:nonneg, -Month:between(0,99), -Day:between(0,99))// .
 %
 % ```abnf
 % date = day month year
@@ -218,13 +222,13 @@ date(Y, Mo, D) -->
 
 
 
-%! 'date-time'(-DateTime:compound)// .
+%! 'date-time'(-Datetime:dt)// .
 %
 % ```abnf
 % date-time = [ day-of-week "," ] date time [CFWS]
 % ```
 
-'date-time'(date_time(Y,Mo,D,H,Mi,S,Off)) -->
+'date-time'(dt(Y,Mo,D,H,Mi,S,Off)) -->
   ('day-of-week'(D) -> "," ; ""),
   date(Y, Mo, D),
   time(H, Mi, S, Off),
@@ -270,8 +274,11 @@ day(D) -->
 % day-of-week = ([FWS] day-name) / obs-day-of-week
 % ```
 
-'day-of-week'(D) --> ?('FWS'), 'day-name'(D).
-'day-of-week'(D) --> 'obs-day-of-week'(D).
+'day-of-week'(D) -->
+  ?('FWS'),
+  'day-name'(D).
+'day-of-week'(D) -->
+  'obs-day-of-week'(D).
 
 
 
@@ -292,9 +299,12 @@ day(D) -->
 % domain = dot-atom / domain-literal / obs-domain
 % ```
 
-domain(Domain) --> 'dot-atom'(Domain), !.
-domain(Domain) --> 'domain-literal'(Domain), !.
-domain(Domain) --> 'obs-domain'(Domain).
+domain(Domain) -->
+  'dot-atom'(Domain), !.
+domain(Domain) -->
+  'domain-literal'(Domain), !.
+domain(Domain) -->
+  'obs-domain'(Domain).
 
 
 
@@ -307,15 +317,15 @@ domain(Domain) --> 'obs-domain'(Domain).
 'domain-literal'(DomainLiteral) -->
   ?('CFWS'),
   "[",
-  *(spc_dtext0, Cs),
+  *(spc_dtext0, Codes),
   ?('FWS'),
   "]",
   ?('CFWS'),
-  {atom_codes(DomainLiteral, Cs)}.
+  {atom_codes(DomainLiteral, Codes)}.
 
-spc_dtext0(C) -->
+spc_dtext0(Code) -->
   ?('FWS'),
-  dtext(C).
+  dtext(Code).
 
 
 
@@ -344,7 +354,7 @@ spc_dtext0(C) -->
   {atom_codes(Atom, [H|T])}.
 
 dot_or_atext0(0'.) --> ".".
-dot_or_atext0(C) --> atext(C).
+dot_or_atext0(Code) --> atext(Code).
 
 
 
@@ -356,14 +366,11 @@ dot_or_atext0(C) --> atext(C).
 %       / obs-dtext   ;  "[", "]", or "\"
 % ```
 
-dtext(C) -->
-  [C],
-  {once(
-    between(33, 90, C)
-  ; between(94, 126, C)
-  )}.
-dtext(C) -->
-  'obs-dtext'(C).
+dtext(Code) -->
+  [Code],
+  {once(between(33, 90, Code) ; between(94, 126, Code))}.
+dtext(Code) -->
+  'obs-dtext'(Code).
 
 
 
@@ -434,9 +441,12 @@ hour(H) -->
 % local-part = dot-atom / quoted-atom / obs-local-part
 % ```
 
-'local-part'(LocalPart) --> 'dot-atom'(LocalPart).
-'local-part'(LocalPart) --> 'quoted-atom'(LocalPart).
-'local-part'(LocalPart) --> 'obs-local-part'(LocalPart).
+'local-part'(LocalPart) -->
+  'dot-atom'(LocalPart).
+'local-part'(LocalPart) -->
+  'quoted-atom'(LocalPart).
+'local-part'(LocalPart) -->
+  'obs-local-part'(LocalPart).
 
 
 
@@ -508,7 +518,8 @@ month(12) --> "Dec".
 
 
 
-%! 'name-addr'(-Name:list(atom), -Route:list(atom), -LocalPart:atom, -Domain:atom)// .
+%! 'name-addr'(-Name:list(atom), -Route:list(atom), -LocalPart:atom,
+%!             -Domain:atom)// .
 %
 % ```abnf
 % name-addr = [display-name] angle-addr
@@ -573,20 +584,28 @@ obs_addr_list_tail0([]) --> "".
   {append(L3, L6, L)}.
 'obs-body'([]) --> "".
 
-obs_body_codes0([0|T]) --> [0],     !, *('LF'), *('CR'), obs_body_codes0(T).
-obs_body_codes0([H|T]) --> text(H), !, *('LF'), *('CR'), obs_body_codes0(T).
-obs_body_codes0([])    --> "".
+obs_body_codes0([0|T]) -->
+  [0], !,
+  *('LF'),
+  *('CR'),
+  obs_body_codes0(T).
+obs_body_codes0([H|T]) -->
+  text(H), !,
+  *('LF'),
+  *('CR'),
+  obs_body_codes0(T).
+obs_body_codes0([]) --> "".
 
 
 
-%! 'obs-ctext'(?Code)// .
+%! 'obs-ctext'(?Code:code)// .
 %
 % ```abnf
 % obs-ctext = obs-NO-WS-CTL
 % ```
 
-'obs-ctext'(C) -->
-  'obs-NO-WS-CTL'(C).
+'obs-ctext'(Code) -->
+  'obs-NO-WS-CTL'(Code).
 
 
 
@@ -985,8 +1004,10 @@ qcontent(C) --> 'quoted-pair'(C).
 % ```
 
 qtext(33) --> [33].
-qtext(C)  --> [C], {once(between(35, 91, C) ; between(93, 126, C))}.
-qtext(C)  --> 'obs-qtext'(C).
+qtext(Code)  -->
+  [Code],
+  {once(between(35, 91, Code) ; between(93, 126, Code))}.
+qtext(Code)  --> 'obs-qtext'(Code).
 
 
 
@@ -996,9 +1017,14 @@ qtext(C)  --> 'obs-qtext'(C).
 % quoted-pair = ("\" (VCHAR / WSP)) / obs-qp
 % ```
 
-'quoted-pair'(C) --> "\\", 'VCHAR'(C).
-'quoted-pair'(C) --> "\\", 'WSP'(C).
-'quoted-pair'(C) --> 'obs-qp'(C).
+'quoted-pair'(Code) -->
+  "\\",
+  'VCHAR'(Code).
+'quoted-pair'(Code) -->
+  "\\",
+  'WSP'(Code).
+'quoted-pair'(Code) -->
+  'obs-qp'(Code).
 
 
 
@@ -1011,15 +1037,15 @@ qtext(C)  --> 'obs-qtext'(C).
 'quoted-atom'(A) -->
   ?('CFWS'),
   'DQUOTE',
-  *(quoted_atom_code0, Cs),
+  *(quoted_atom_code, Codes),
   ?('FWS'),
   'DQUOTE',
   ?('CFWS'),
-  {atom_codes(A, Cs)}.
+  {atom_codes(A, Codes)}.
 
-quoted_atom_code0(C) -->
+quoted_atom_code(Code) -->
   ?('FWS'),
-  qcontent(C).
+  qcontent(Code).
 
 
 
@@ -1074,17 +1100,14 @@ specials(0'")  --> 'DQUOTE'.   %"
 %      / %d14-127
 % ```
 
-text(C) -->
-  [C],
-  {once((
-    between(1, 9, C)
-  ; between(11, 12, C)
-  ; between(14, 127, C)
-  ))}.
+text(Code) -->
+  [Code],
+  {once(between(1, 9, Code) ; between(11, 12, Code) ; between(14, 127, Code))}.
 
 
 
-%! time(-Hour:between(0,99), -Minute:between(0,99), -Second:between(0,99), -Offset:between(-9999,9999))// .
+%! time(-Hour:between(0,99), -Minute:between(0,99), -Second:between(0,99),
+%!      -Offset:between(-9999,9999))// .
 %
 % ```abnf
 % time = time-of-day zone
@@ -1096,7 +1119,8 @@ time(H, Mi, S, Off) -->
 
 
 
-%! 'time-of-day'(-Hour:between(0,99), -Minute:between(0,99), -Second:between(0,99))// .
+%! 'time-of-day'(-Hour:between(0,99), -Minute:between(0,99),
+%!               -Second:between(0,99))// .
 %
 % ```abnf
 % time-of-day = hour ":" minute [ ":" second ]
@@ -1117,15 +1141,15 @@ time(H, Mi, S, Off) -->
 % ```
 
 unstructured(A) -->
-  *(unstructured_code0, Cs),
+  *(unstructured_code, Codes),
   *('WSP'),
-  {atom_codes(A, Cs)}.
+  {atom_codes(A, Codes)}.
 unstructured(A) -->
   'obs-unstruct'(A).
 
-unstructured_code0(C) -->
+unstructured_code(Code) -->
   ?('FWS'),
-  'VCHAR'(C).
+  'VCHAR'(Code).
 
 
 
@@ -1135,8 +1159,10 @@ unstructured_code0(C) -->
 % word = atom / quoted-atom
 % ```
 
-word(S) --> atom(S).
-word(S) --> 'quoted-atom'(S).
+word(Word) -->
+  atom(Word).
+word(Word) -->
+  'quoted-atom'(Word).
 
 
 
@@ -1146,13 +1172,13 @@ word(S) --> 'quoted-atom'(S).
 % year = (FWS 4*DIGIT FWS) / obs-year
 % ```
 
-year(Y) -->
+year(Year) -->
   'FWS',
   'm*'(4, 'DIGIT', Weights),
   'FWS',
-  {integer_weights(Y, Weights)}.
-year(Y) -->
-  'obs-year'(Y).
+  {integer_weights(Year, Weights)}.
+year(Year) -->
+  'obs-year'(Year).
 
 
 
