@@ -3,8 +3,6 @@
   [
     file_download/2, % +Source, ?File
     file_download/3, % +Source, ?File, +Opts
-    html_download/2, % +Source, -Dom
-    html_download/3, % +Source, -Dom,  +Opts
     xml_download/2,  % +Source, -Dom
     xml_download/3   % +Source, -Dom,  +Opts
   ]
@@ -85,23 +83,6 @@ file_download(Uri, File, Opts) :-
 
 
 
-%! html_download(+Source, -Dom) is det.
-%! html_download(+Source, -Dom, +Opts) is det.
-
-html_download(Source, Dom) :-
-  html_download(Source, Dom, []).
-
-
-html_download(Source, Dom, Opts1) :-
-  merge_options([encoding('utf-8'),max_errors(-1)], Opts1, Opts2),
-  http_get(Source, html_download_stream(Dom, Opts2)).
-
-html_download_stream(Dom, Opts, In, InPath, InPath) :-
-  load_html(In, DirtyDom, Opts),
-  clean_dom(DirtyDom, Dom).
-
-
-
 %! xml_download(+Source, -Dom) is det.
 %! xml_download(+Source, -Dom, +Opts) is det.
 %
@@ -114,29 +95,3 @@ xml_download(Source, Dom) :-
 
 xml_download(Source, Dom, Opts) :-
   http_get(Source, {Dom,Opts}/[In,InPath,InPath]>>load_xml(In, Dom, Opts)).
-
-
-
-
-
-% HELPERS %
-
-%! clean_dom(+Dom1, -Dom2) is det.
-%
-% Clean the given DOM tree in the following two ways:
-%
-%   1. Strip all blanks from the beginning and end of all strings.
-%
-%   2. Remove all strings that are empty under (1) from the DOM tree.
-
-clean_dom([H1|T1], L2) :-
-  atom(H1), !,
-  % Strip all blanks from strings that appear in the DOM.
-  strip_atom(H1, H2),
-  % Remove empty strings from the DOM.
-  (H2 == '' -> L2 = T2 ; L2 = [H2|T2]),
-  clean_dom(T1, T2).
-clean_dom([element(N,As,Contents1)|T1], [element(N,As,Contents2)|T2]) :- !,
-  clean_dom(Contents1, Contents2),
-  clean_dom(T1, T2).
-clean_dom([], []).
