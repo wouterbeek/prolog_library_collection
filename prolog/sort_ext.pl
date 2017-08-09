@@ -8,13 +8,14 @@
 /** <module> Sort extensions
 
 @author Wouter Beek
-@version 2017/03, 2017/07
+@version 2017/03-2017/08
 */
 
 :- use_module(library(error)).
 
 :- meta_predicate
     predmerge(3, +, +, -),
+    predmerge(+, 3, +, +, -, -, -),
     predmsort(3, +, -),
     predmsort(3, ?, +, ?, -).
 
