@@ -22,11 +22,7 @@
     print_term/1,       % +Term
    %print_term/2,       % +Term, +Opts
     print_tree/1,       % +Tree
-    print_tree/2,       % +Tree, :Opts
-    tab/0,
-    verbose/1,          % :Goal_0
-    verbose/2,          % :Goal_0, +Format
-    verbose/3           % :Goal_0, +Format, +Args
+    print_tree/2        % +Tree, :Opts
   ]
 ).
 :- reexport(library(ansi_term)).
@@ -52,10 +48,7 @@ is_meta(node_writer).
 :- meta_predicate
     pp_dict(1),
     print_dict(3, +),
-    print_dict(3, +, +),
-    verbose(0),
-    verbose(0, +),
-    verbose(0, +, +).
+    print_dict(3, +, +).
 
 :- setting(
      screen_width,
@@ -254,44 +247,3 @@ print_tree(Tree, Opts1) :-
   meta_options(is_meta, Opts1, Opts2),
   option(output(Sink), Opts2, current_output),
   dcg_with_output_to(Sink, dcg_tree(Tree, Opts2)).
-
-
-
-%! tab is det.
-%
-% Wrapper around tab/1 that prints a single horizontal tab character.
-
-tab:-
-  tab(1).
-
-
-
-%! verbose(:Goal_0) is det.
-%! verbose(:Goal_0, +Format) is det.
-%! verbose(:Goal_0, +Format, +Args) is det.
-%
-% Verbose calling of Goal_0.
-
-verbose(Goal_0) :-
-  term_string(Goal_0, Format),
-  verbose(Goal_0, Format).
-
-
-verbose(Goal_0, Format) :-
-  verbose(Goal_0, Format, []).
-
-
-verbose(Goal_0, Format, Args) :-
-  get_time(Start),
-  format(Format, Args),
-  (   catch(Goal_0, E, true)
-  ->  (   var(E)
-      ->  get_time(End),
-          Delta is End - Start,
-          msg_success("~`.t success (~2f sec.)~72|", [Delta])
-      ;   message_to_string(E, S),
-          msg_warning("~`.t ERROR: ~w~72|", [S])
-      )
-  ;   msg_warning("~`.t ERROR: (failed)~72|")
-  ),
-  nl.
