@@ -43,7 +43,6 @@
     run_in_directory/2,         % :Goal_0, +Dir
     thread_file/1,              % -ThreadFile
     thread_file/2,              % +File, -ThreadFile
-    touch/1,                    % +File
     wc/2,                       % +Source, -NumLines
     wildcard_file/2             % +Wildcard, -File
   ]
@@ -675,13 +674,6 @@ thread_file(Base, File) :-
   % @note The thread name may not be a legal file name.
   md5_hash(ThreadName, Hash, []),
   file_name_extension(Base, Hash, File).
-
-
-
-%! touch(+File) is det.
-
-touch(File) :-
-  setup_call_cleanup(open(File, write, Write), true, close(Write)).
 
 
 

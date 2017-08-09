@@ -19,6 +19,7 @@
     file_to_string/2,             % +File, -String
     media_type_extension/2,       % +MediaType, -Extension
     stream_to_file/4,             % +FileSpec, +In, +Metadata1, -Metadata2
+    touch/1,                      % +FileSpec
     working_directory/1           % -Dir
   ]
 ).
@@ -318,7 +319,14 @@ stream_to_file(FileSpec, In, Metadata, Metadata) :-
 
 
 
-%! working_directory(-Directory) is det.
+%! touch(+FileSpec:term) is det.
+
+touch(FileSpec) :-
+  call_to_file(FileSpec, true_metadata).
+
+
+
+%! working_directory(-Directory:atom) is det.
 
 working_directory(Directory) :-
   working_directory(Directory, Directory).
