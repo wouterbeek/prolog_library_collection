@@ -1,17 +1,17 @@
 :- module(
   os_ext,
   [
-    cli_arguments/1, % -Arguments
+    cli_arguments/1, % -Args
     graphviz_open/4, % +Method, +In, +Format, +Out
-    process_flags/3, % :Goal_2, +Arguments, -Flags
+    process_flags/3, % :Goal_2, +Args, -Flags
     process_open/3,  % +Program, +In, -Out
-    process_open/4,  % +Program, +In, +Arguments, -Out
-    process_open/5,  % +Program, +In, +Arguments, -Out, +Options
-    run_jar/3,       % +Jar, +Arguments, :Goal_1
-    run_jar/4,       % +Jar, +Arguments, :Goal_1, +Options
-    run_process/2,   % +Program, +Arguments
-    run_process/3,   % +Program, +Arguments, +Options
-    run_process/4    % +Program, +Arguments, :Goal_1, +Options
+    process_open/4,  % +Program, +In, +Args, -Out
+    process_open/5,  % +Program, +In, +Args, -Out, +Options
+    run_jar/3,       % +Jar, +Args, :Goal_1
+    run_jar/4,       % +Jar, +Args, :Goal_1, +Options
+    run_process/2,   % +Program, +Args
+    run_process/3,   % +Program, +Args, +Options
+    run_process/4    % +Program, +Args, :Goal_1, +Options
   ]
 ).
 
@@ -30,15 +30,15 @@
 :- use_module(library(readutil)).
 :- use_module(library(yall)).
 
-%! cli_arguments(-Arguments:list(compound)) is det.
+%! cli_arguments(-Args:list(compound)) is det.
 
 :- dynamic
     cli_arguments/1.
 
 % TBD: This throws an initialization error during startup, claiming
 %      that atom_phrase/2 is undefined.
-%:- initialization
-%   init_cli_arguments.
+:- initialization
+   init_cli_arguments.
 
 :- meta_predicate
     process_flags(2, +, -),
@@ -129,7 +129,7 @@ graphviz_method(twopi).
 
 
 
-%! process_flags(:Goal_2, +Arguments:list(compound), -Flags:list(atom)) is det.
+%! process_flags(:Goal_2, +Args:list(compound), -Flags:list(atom)) is det.
 
 process_flags(_, [], []).
 process_flags(Goal_2, [H1|T1], [H2|T2]) :-
@@ -141,10 +141,10 @@ process_flags(Goal_2, [_|T], L) :-
 
 
 %! process_open(+Program:atom, +In:stream, -Out:stream) is det.
-%! process_open(+Program:atom, +In:stream, +Arguments:list(term),
+%! process_open(+Program:atom, +In:stream, +Args:list(term),
 %!              -Out:stream) is det.
-%! process_open(+Program:atom, +In:stream, +Arguments:list(term),
-%!              -Out:stream, +Options:list(compound)) is det.
+%! process_open(+Program:atom, +In:stream, +Args:list(term), -Out:stream,
+%!              +Options:list(compound)) is det.
 %
 % In is closed by this predicate.
 
@@ -152,20 +152,27 @@ process_open(Program, In, Out) :-
   process_open(Program, In, [], Out).
 
 
-process_open(Program, In, Arguments, Out) :-
-  process_open(Program, In, Arguments, Out, []).
+process_open(Program, In, Args, Out) :-
+  process_open(Program, In, Args, Out, []).
 
 
-process_open(Program, In, Arguments, Out, Options1) :-
+process_open(Program, In, Args, Out, Options1) :-
   process_options(Options1, Options2),
   merge_options(
     [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(Out))],
     Options2,
     Options3
   ),
-  process_debug(Program, Arguments),
-  process_create(path(Program), Arguments, Options3),
-  set_stream(ProcIn, type(binary)),
+  process_debug(Program, Args),
+  process_create(path(Program), Args, Options3),
+
+  % Process input should have the same type as input.
+  stream_property(In, type(Type)),
+  (Type == text -> true ; set_stream(ProcIn, type(Type))),
+
+  %forall(stream_property(In, P), writeln(P)),
+  %peek_string(In, 100, Peek), writeln(Peek),
+  %copy_stream_data(In, user_output),
   thread_create(copy_and_close(In, ProcIn), _, [detached(true)]),
   thread_create(print_error(ProcErr), _, [detached(true)]).
 
@@ -177,22 +184,22 @@ copy_and_close(In, Out) :-
 
 
 
-%! run_jar(+Jar:atom, +Arguments:list(term), :Goal_1) is det.
-%! run_jar(+Jar:atom, +Arguments:list(term), :Goal_1,
+%! run_jar(+Jar:atom, +Args:list(term), :Goal_1) is det.
+%! run_jar(+Jar:atom, +Args:list(term), :Goal_1,
 %!         +Options:list(compound)) is det.
 
-run_jar(Jar, Arguments, Goal_1) :-
-  run_jar(Jar, Arguments, Goal_1, []).
+run_jar(Jar, Args, Goal_1) :-
+  run_jar(Jar, Args, Goal_1, []).
 
 
-run_jar(Jar, Arguments, Goal_1, Options) :-
-  run_process(java, ['-jar',file(Jar)|Arguments], Goal_1, Options).
+run_jar(Jar, Args, Goal_1, Options) :-
+  run_process(java, ['-jar',file(Jar)|Args], Goal_1, Options).
 
 
 
-%! run_process(+Program:atom, +Arguments:list(term)) is det.
-%! run_process(+Program:atom, +Arguments:list(term), :Goal_1) is det.
-%! run_process(+Program:atom, +Arguments:list(term), :Goal_1,
+%! run_process(+Program:atom, +Args:list(term)) is det.
+%! run_process(+Program:atom, +Args:list(term), :Goal_1) is det.
+%! run_process(+Program:atom, +Args:list(term), :Goal_1,
 %!             +Options:list(compound)) is det.
 %
 % ```prolog
@@ -210,20 +217,20 @@ run_jar(Jar, Arguments, Goal_1, Options) :-
 % )
 % ```
 
-run_process(Program, Arguments) :-
-  run_process(Program, Arguments, []).
+run_process(Program, Args) :-
+  run_process(Program, Args, []).
 
 
-run_process(Program, Arguments, Options) :-
+run_process(Program, Args, Options) :-
   run_process(
     Program,
-    Arguments,
+    Args,
     [Out]>>copy_stream_data(Out, user_output),
     Options
   ).
 
 
-run_process(Program, Arguments, Goal_1, Options1) :-
+run_process(Program, Args, Goal_1, Options1) :-
   process_options(Options1, Options2),
   merge_options(
     Options2,
@@ -233,9 +240,9 @@ run_process(Program, Arguments, Goal_1, Options1) :-
   % `Program' is either an absolute file or a related file that is
   % resolved WRT the PATH environment variable.
   (is_absolute_file_name(Program) -> Exec = Program ; Exec = path(Program)),
-  process_debug(Program, Arguments),
+  process_debug(Program, Args),
   setup_call_cleanup(
-    process_create(Exec, Arguments, Options3),
+    process_create(Exec, Args, Options3),
     (
       call(Goal_1, Out),
       thread_create(print_error(Err), _, [detached(true)]),
@@ -245,9 +252,9 @@ run_process(Program, Arguments, Goal_1, Options1) :-
     close(Out)
   ).
 
-process_debug(Program, Arguments) :-
+process_debug(Program, Args) :-
   debugging(process_open), !,
-  Goal_0 =.. [Program|Arguments],
+  Goal_0 =.. [Program|Args],
   debug(process_open, "~w", [Goal_0]).
 process_debug(_, _).
 
@@ -262,20 +269,21 @@ process_status(exit(Status)) :-
 % INITIALIZATION %
 
 init_cli_arguments :-
+  retractall(cli_arguments(_)),
   current_prolog_flag(os_argv, Flags),
-  convlist(parse_argument, Flags, Arguments),
-  assert(cli_arguments(Arguments)).
+  convlist(parse_argument, Flags, Args),
+  assert(cli_arguments(Args)).
 
-parse_argument(Flag, Argument) :-
-  atom_phrase(argument(Argument), Flag).
+parse_argument(Flag, Arg) :-
+  atom_phrase(argument(Arg), Flag).
 
-argument(Argument) -->
+argument(Arg) -->
   "--",
   '...'(Codes),
   "=", !,
   {atom_codes(Key, Codes)},
   rest_as_atom(Value),
-  {Argument =.. [Key,Value]}.
+  {Arg =.. [Key,Value]}.
 
 
 
