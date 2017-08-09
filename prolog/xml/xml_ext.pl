@@ -85,7 +85,7 @@ html_download(UriSpec, Dom) :-
 html_download(UriSpec, Dom, Options) :-
   call_on_uri(UriSpec, html_download_(Dom, Options), Options).
 
-html_download_(Dom, Options1, In, Meta, Meta) :-
+html_download_(Dom2, Options1, In, Meta, Meta) :-
   merge_options([encoding('utf-8'),max_errors(-1)], Options1, Options2),
   load_html(In, Dom1, Options2),
   clean_dom(Dom1, Dom2).
