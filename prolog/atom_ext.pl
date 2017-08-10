@@ -7,6 +7,8 @@
     atom_prefix/3,     % +Atom, ?Length, ?Sub
     atom_strip/2,      % +Atom, -StrippedAtom
     atom_strip/3,      % +StripChars, +Atom, -StrippedAtom
+    atom_postfix/2,    % +Atom, ?Postfix
+    atom_postfix/3,    % +Atom, ?Length, ?Postfix
     atom_truncate/3,   % +Atom, +MaxLength, -Truncated
     is_empty_atom/1    % @Term
   ]
@@ -80,6 +82,18 @@ atom_ellipsis(Atom, ELength, Ellipsis) :-
 %! atom_prefix(+Atom, +Length, -Sub) is semidet.
 %! atom_prefix(+Atom, -Length, +Sub) is semidet.
 %! atom_prefix(+Atom, -Length, -Sub) is multi.
+%! atom_postfix(+Atom:atom, -Postfix:atom) is multi.
+%! atom_postfix(+Atom:atom, ?Length:nonneg, -Postfix:atom) is multi.
+
+atom_postfix(Atom, Postfix) :-
+  atom_postfix(Atom, _, Postfix).
+
+
+atom_postfix(Atom, Length, Postfix) :-
+  atom_codes(Atom, Codes),
+  append(_, PostfixCodes, Codes),
+  length(PostfixCodes, Length),
+  atom_codes(Postfix, PostfixCodes).
 %
 % Sub is the prefix of Atom that has length Length.
 %

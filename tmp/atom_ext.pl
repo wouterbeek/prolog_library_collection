@@ -3,8 +3,6 @@
   [
     atom_after_char/3,    % +Atom,   +Char,    -Rest
     atom_ending_in/3,     % +Atom,   +Sub,     -NewAtom
-    atom_postfix/2,       % +Atom,   ?Sub
-    atom_postfix/3,       % +Atom,   ?Len,     ?Sub
     atom_to_term/2,       % +Atom,   -Term
     codes_atom/2,         % ?Cs,     ?Atom
     common_atom_prefix/3, % +Atom1,  +Atom2,   -Sub
@@ -94,21 +92,6 @@ atom_ending_in(A, Suffix, A) :-
   atom_concat(_, Suffix, A), !.
 atom_ending_in(A0, Suffix, A) :-
   atom_concat(A0, Suffix, A).
-
-
-
-%! atom_postfix(+Atom,       -Sub) is multi.
-%! atom_postfix(+Atom, ?Len, -Sub) is multi.
-
-atom_postfix(Atom, Sub) :-
-  atom_postfix(Atom, _, Sub).
-
-
-atom_postfix(Atom, Len, Sub) :-
-  atom_codes(Atom, Cs),
-  append(_, SubCs, Cs),
-  length(SubCs, Len),
-  atom_codes(Sub, SubCs).
 
 
 
