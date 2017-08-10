@@ -1,14 +1,14 @@
 :- module(
   atom_ext,
   [
-    atom_capitalize/2, % +Atom,   -Capitalized
+    atom_capitalize/2, % +Atom, -Capitalized
     atom_ellipsis/3,   % +Atom, ?Length, ?Ellipsis
-   %atom_prefix/2,     % +Atom, ?Sub
-    atom_prefix/3,     % +Atom, ?Length, ?Sub
-    atom_strip/2,      % +Atom, -StrippedAtom
-    atom_strip/3,      % +StripChars, +Atom, -StrippedAtom
     atom_postfix/2,    % +Atom, ?Postfix
     atom_postfix/3,    % +Atom, ?Length, ?Postfix
+   %atom_prefix/2,     % +Atom, ?Prefix
+    atom_prefix/3,     % +Atom, ?Length, ?Prefix
+    atom_strip/2,      % +Atom, -Stripped
+    atom_strip/3,      % +StripChars, +Atom, -Stripped
     atom_truncate/3,   % +Atom, +MaxLength, -Truncated
     is_empty_atom/1    % @Term
   ]
@@ -28,7 +28,7 @@
 
 
 
-%! atom_capitalize(+Atom, -Capitalized) is det.
+%! atom_capitalize(+Atom:atom, -Capitalized:atom) is det.
 %
 % Succeeds if Capitalized is a copy of Atom where the first character
 % is in upper case.
@@ -37,16 +37,16 @@
 % Capitalized is a plain copy of Atom.
 
 atom_capitalize('', '').
-atom_capitalize(A1, A2) :-
-  atom_codes(A1, [H1|T]),
+atom_capitalize(Atom, Capitalized) :-
+  atom_codes(Atom, [H1|T]),
   to_upper(H1, H2),
-  atom_codes(A2, [H2|T]).
+  atom_codes(Capitalized, [H2|T]).
 
 
 
-%! atom_ellipsis(+Atom, +Length, +Ellipsis) is semidet.
-%! atom_ellipsis(+Atom, +Length, -Ellipsis) is semidet.
-%! atom_ellipsis(+Atom, -Length, -Ellipsis) is nondet.
+%! atom_ellipsis(+Atom:atom, +MaxLength:nonneg, +Ellipsis:atom) is semidet.
+%! atom_ellipsis(+Atom:atom, +MaxLength:nonneg, -Ellipsis:atom) is semidet.
+%! atom_ellipsis(+Atom:atom, -MaxLength:nonneg, -Ellipsis:atom) is nondet.
 %
 % ```
 % ?- atom_ellipsis(monkey, N, X).
@@ -62,15 +62,15 @@ atom_capitalize(A1, A2) :-
 % X = monkey.
 % ```
 
-atom_ellipsis(Atom, ELength, Ellipsis) :-
+atom_ellipsis(Atom, MaxLength, Ellipsis) :-
   atom_length(Atom, Length),
-  (   ELength = inf
+  (   MaxLength = inf
   ->  Ellipsis = Atom
-  ;   between(2, Length, ELength)
-  *-> (   ELength =:= Length
+  ;   between(2, Length, MaxLength)
+  *-> (   MaxLength =:= Length
       ->  Ellipsis = Atom
-      ;   TLength is ELength - 1,
-          atom_truncate(Atom, TLength, Truncated),
+      ;   TruncateLength is MaxLength - 1,
+          atom_truncate(Atom, TruncateLength, Truncated),
           atomic_concat(Truncated, "…", Ellipsis)
       )
   ;   Ellipsis = Atom
@@ -78,10 +78,6 @@ atom_ellipsis(Atom, ELength, Ellipsis) :-
 
 
 
-%! atom_prefix(+Atom, +Length, +Sub) is semidet.
-%! atom_prefix(+Atom, +Length, -Sub) is semidet.
-%! atom_prefix(+Atom, -Length, +Sub) is semidet.
-%! atom_prefix(+Atom, -Length, -Sub) is multi.
 %! atom_postfix(+Atom:atom, -Postfix:atom) is multi.
 %! atom_postfix(+Atom:atom, ?Length:nonneg, -Postfix:atom) is multi.
 
@@ -94,18 +90,25 @@ atom_postfix(Atom, Length, Postfix) :-
   append(_, PostfixCodes, Codes),
   length(PostfixCodes, Length),
   atom_codes(Postfix, PostfixCodes).
+
+
+
+%! atom_prefix(+Atom:atom, +Length:nonneg, +Prefix:atom) is semidet.
+%! atom_prefix(+Atom:atom, +Length:nonneg, -Prefix:atom) is semidet.
+%! atom_prefix(+Atom:atom, -Length:nonneg, +Prefix:atom) is semidet.
+%! atom_prefix(+Atom:atom, -Length:nonneg, -Prefix:atom) is multi.
 %
-% Sub is the prefix of Atom that has length Length.
+% Prefix is the prefix of Atom that has length Length.
 %
 % Fails in case Length is higher than the length of Atom.
 
-atom_prefix(Atom, Length, Sub) :-
-  sub_atom(Atom, 0, Length, _, Sub).
+atom_prefix(Atom, Length, Prefix) :-
+  sub_atom(Atom, 0, Length, _, Prefix).
 
 
 
-%! atom_strip(+Atom, -StrippedAtom) is det.
-%! atom_strip(+StripChars, +Atom, -StrippedAtom) is det.
+%! atom_strip(+Atom:atom, -Stripped:atom) is det.
+%! atom_strip(+StripChars:list(char), +Atom:atom, -Stripped:atom) is det.
 %
 % Return Atom with any occurrens of PadChars remove from the front
 % and/or back.
@@ -136,7 +139,7 @@ atom_strip_end0(_, A, A).
 
 
 
-%! atom_truncate(+Atom:atom, +MaxLenght:nonneg, -Truncated:atom) is det.
+%! atom_truncate(+Atom:atom, +MaxLength:nonneg, -Truncated:atom) is det.
 %
 % Return a truncated version of the given atom.  MaxLength is the
 % exact maximum lenght of the truncated atom.  Truncation will always
