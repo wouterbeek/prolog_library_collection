@@ -3,7 +3,7 @@
   [
     create_pagination/3,    % +Pattern, :Goal_0, -Page
     create_pagination/4,    % +Pattern, :Goal_0, +Options, -Page
-    create_pagination/5,    % +Pattern, :Goal_0, :Est_1, +Options, -Page
+    create_pagination/5,    % +Pattern, :Goal_0, :Estimate_1, +Options, -Page
     pagination_is_at_end/1, % +Result
     pagination_is_empty/1,  % +Result
     pagination_page/3,      % +Page, ?Relation, -PageNumber
@@ -58,7 +58,7 @@ create_empty_pagination(Options, Page) :-
 %! create_pagination(+Templ, :Goal_0, -Page:dict) is nondet.
 %! create_pagination(+Templ, :Goal_0, +Options:list(compound),
 %!                   -Page:dict) is nondet.
-%! create_pagination(+Templ, :Goal_0, :Est_1, +Options:list(compound),
+%! create_pagination(+Templ, :Goal_0, :Estimate_1, +Options:list(compound),
 %!                   -Page:dict) is nondet.
 %
 % The following options are supported:
@@ -95,7 +95,7 @@ create_empty_pagination(Options, Page) :-
 %   * total_number_of_results(nonneg)
 %
 %     The total number of results, independent of pagination.  This is
-%     only present when etimation goal Est_1 is passed.
+%     only present when etimation goal Estimate_1 is passed.
 
 create_pagination(Templ, Goal_0, Page) :-
   create_pagination(Templ, Goal_0, _{}, Page).
@@ -128,9 +128,9 @@ create_pagination(_, _, Options, Page) :-
   create_empty_pagination(Options, Page).
 
 
-create_pagination(Templ, Goal_0, Est_1, Options1, Page2) :-
+create_pagination(Templ, Goal_0, Estimate_1, Options1, Page2) :-
   create_pagination(Templ, Goal_0, Options1, Page1),
-  call(Est_1, TotalNumResults),
+  call(Estimate_1, TotalNumResults),
   dict_put(total_number_of_results, Page1, TotalNumResults, Page2).
 
 
