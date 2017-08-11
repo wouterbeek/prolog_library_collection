@@ -1,17 +1,18 @@
 :- module(
   os_ext,
   [
-    cli_arguments/1, % -Args
-    graphviz_open/4, % +Method, +In, +Format, +Out
-    process_flags/3, % :Goal_2, +Args, -Flags
-    process_open/3,  % +Program, +In, -Out
-    process_open/4,  % +Program, +In, +Args, -Out
-    process_open/5,  % +Program, +In, +Args, -Out, +Options
-    run_jar/3,       % +Jar, +Args, :Goal_1
-    run_jar/4,       % +Jar, +Args, :Goal_1, +Options
-    run_process/2,   % +Program, +Args
-    run_process/3,   % +Program, +Args, +Options
-    run_process/4    % +Program, +Args, :Goal_1, +Options
+    cli_arguments/1,    % -Args
+    graphviz_open/4,    % +Method, +In, +Format, +Out
+    process_flags/3,    % :Goal_2, +Args, -Flags
+    process_open/3,     % +Program, +In, -Out
+    process_open/4,     % +Program, +In, +Args, -Out
+    process_open/5,     % +Program, +In, +Args, -Out, +Options
+    run_jar/3,          % +Jar, +Args, :Goal_1
+    run_jar/4,          % +Jar, +Args, :Goal_1, +Options
+    run_process/2,      % +Program, +Args
+    run_process/3,      % +Program, +Args, +Options
+    run_process/4,      % +Program, +Args, :Goal_1, +Options
+    set_cli_arguments/1 % +Args
   ]
 ).
 
@@ -264,15 +265,22 @@ process_status(exit(Status)) :-
 
 
 
+%! set_cli_arguments(+Args:list(compound)) is det.
+
+set_cli_arguments(Args) :-
+  retractall(cli_arguments(_)),
+  assert(cli_arguments(Args)).
+
+
+
 
 
 % INITIALIZATION %
 
 init_cli_arguments :-
-  retractall(cli_arguments(_)),
   current_prolog_flag(os_argv, Flags),
   convlist(parse_argument, Flags, Args),
-  assert(cli_arguments(Args)).
+  set_cli_arguments(Args).
 
 parse_argument(Flag, Arg) :-
   atom_phrase(argument(Arg), Flag).
