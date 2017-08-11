@@ -29,9 +29,6 @@
     nth0chk/4,              % ?I, ?L, ?X
     nth1chk/3,              % ?I, ?L, ?X
     nth1chk/4,              % ?I, ?L, ?X
-    postfix/2,              % ?Part, ?Whole
-    postfix/3,              % ?Part, ?N, ?Whole
-    prefix/3,               % ?Part, ?N, ?Whole
     remove_sublists/2,      % +Ls1, -Ls2
     replace_nth/6,          % +Start, ?I, +L1, ?X1, +X2, -L2
     replace_nth0/5,         % ?I, +L1, ?X1, +X2, -L2
@@ -398,33 +395,6 @@ nth1chk(I, L, E) :-
 
 nth1chk(I, L, E, Rest) :-
   once(nth1(I, L, E, Rest)).
-
-
-
-%! postfix(?Part, ?Whole) is nondet.
-%! postfix(?Part, ?N, ?Whole) is nondet.
-%
-% Part is the length-N postfix of Whole.
-
-postfix(Part, Whole) :-
-  postfix(Part, _, Whole).
-
-
-postfix(Part, N, Whole) :-
-  length(Part, N),
-  append(_, Part, Whole).
-
-
-
-%! prefix(?Part, ?N, ?Whole) is det.
-%
-% Part is the length-N prefix of Whole.
-%
-% Shorter prefixes are generated first.
-
-prefix(Part, N, Whole) :-
-  length(Part, N),
-  append(Part, _, Whole).
 
 
 

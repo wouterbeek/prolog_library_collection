@@ -2,9 +2,13 @@
   list_ext,
   [
     common_subsequence/2, % +Subsequences, -Subsequence
-    list_intersperse/3,   % +List1, +Sep, -List2
-    list_truncate/3,      % +List1, +MaxLength, -List2
-    repeating_list/3,     % ?Elem, ?NunElems, ?List
+    list_intersperse/3,   % +L1, +Separator, -L2
+    list_truncate/3,      % +Whole, +MaxLength, -Part
+    postfix/2,            % ?Part, ?Whole
+    postfix/3,            % ?Part, ?Length, ?Whole
+   %prefix/2,             % ?Part, ?Whole
+    prefix/3,             % ?Part, ?Length, ?Whole
+    repeating_list/3,     % ?Elem, ?N, ?L
     substring/2,          % ?Substring, +String
     subsequence/2         % ?Subsequence, ?Sequence
   ]
@@ -14,7 +18,7 @@
 /** <module> List extensions
 
 @author Wouter Beek
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
@@ -23,14 +27,14 @@
 
 
 
-%! common_subsequence(+Subsequences, -Subsequence) is nondet.
+%! common_subsequence(+Subsequences:list(list), -Subsequence:list) is nondet.
 
 common_subsequence(Xss, Xs) :-
   maplist(subsequence(Xs), Xss).
 
 
 
-%! list_intersperse(+List1, +Sep, -List2)// is det.
+%! list_intersperse(+L1:list, +Separator:term, -L2:list)// is det.
 %
 % Returns a list that is based on the given list, but interspersed
 % with copies of the separator term.
@@ -45,43 +49,67 @@ list_intersperse([H|T1], Sep, [H,Sep|T2]) :-
 
 
 
-%! list_truncate(+Whole, +Max:or([oneof([inf]),nonneg]), -Part) is det.
+%! list_truncate(+Whole:list, +MaxLength:or([oneof([∞]),nonneg]),
+%!               -Part:list) is det.
 %
 % Returns the truncated version of the given list.  The maximum length
 % indicates the exact maximum.  Truncation will always result in a
-% list which contains at most `Max` elements.
+% list which contains at most `MaxLength' elements.
 
-% Special value `inf`.
-list_truncate(L, inf, L):- !.
+list_truncate(Whole, ∞, Whole):- !.
 % The list does not have to be truncated, it is not that long.
-list_truncate(L, Max, L) :-
-  length(L, Len),
-  Len =< Max, !.
+list_truncate(Whole, MaxLength, Whole) :-
+  length(Whole, Length),
+  Length =< MaxLength, !.
 % The list exceeds the maximum length, it is truncated.
-list_truncate(L1, Max, L2) :-
-  length(L2, Max),
-  append(L2, _, L1).
+list_truncate(Whole, MaxLength, Part) :-
+  prefix(Part, MaxLength, Whole).
 
 
 
-%! repeating_list(+X, +N, +L) is semidet.
-%! repeating_list(+X, +N, -L) is det.
-%! repeating_list(+X, -N, +L) is semidet.
-%! repeating_list(-X, +N, +L) is semidet.
-%! repeating_list(+X, -N, -L) is multi.
-%! repeating_list(-X, +N, -L) is det.
-%! repeating_list(-X, -N, +L) is det.
-%! repeating_list(-X, -N, -L) is multi.
+%! postfix(?Part:list, ?Whole:list) is nondet.
+%! postfix(?Part:list, ?N:nonneg, ?Whole:list) is nondet.
 %
-% Succeeds for lists L that repeat term X exactly N times.
+% Part is the length-N postfix of Whole.
 
-repeating_list(X, N, L) :-
+postfix(Part, Whole) :-
+  postfix(Part, _, Whole).
+
+
+postfix(Part, Length, Whole) :-
+  length(Part, Length),
+  append(_, Part, Whole).
+
+
+
+%! prefix(?Part:list, ?Length:nonneg, ?Whole:list) is det.
+%
+% Shorter prefixes are generated first.
+
+prefix(Part, Length, Whole) :-
+  length(Part, Length),
+  append(Part, _, Whole).
+
+
+
+%! repeating_list(+Elem, +N:nonneg, +L:list) is semidet.
+%! repeating_list(+Elem, +N:nonneg, -L:list) is det.
+%! repeating_list(+Elem, -N:nonneg, +L:list) is semidet.
+%! repeating_list(-Elem, +N:nonneg, +L:list) is semidet.
+%! repeating_list(+Elem, -N:nonneg, -L:list) is multi.
+%! repeating_list(-Elem, +N:nonneg, -L:list) is det.
+%! repeating_list(-Elem, -N:nonneg, +L:list) is det.
+%! repeating_list(-Elem, -N:nonneg, -L:list) is multi.
+%
+% Succeeds for lists L that repeat term Elem exactly N times.
+
+repeating_list(Elem, N, L) :-
   length(L, N),
-  maplist(=(X), L).
+  maplist(=(Elem), L).
 
 
 
-%! substring(?Substring, +String) is nondet.
+%! substring(?Substring:list, +String:list) is nondet.
 %
 % Returns substrings of the given string.  Construction proceeds from
 % smaller to greater substrings.
@@ -96,7 +124,10 @@ substring(Ys, Xs) :-
 
 
 
-%! subsequence(?Subsequence, ?Sequence) is nondet.
+%! subsequence(?Subsequence:list, ?Sequence:list) is nondet.
+%
+% Returns substrings of the given string.  Construction proceeds from
+% smaller to greater subsequences.
 
 subsequence([], []).
 subsequence(L, [_|T]) :-
