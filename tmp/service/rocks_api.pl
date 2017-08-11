@@ -47,7 +47,7 @@ rocks_ls :-
 
 
 rocks_ls(PageOpts) :-
-  create_pagination(Alias, rocks_alias(Alias), PageOpts, Result),
+  pagination(Alias, rocks_alias(Alias), PageOpts, Result),
   cli_pagination_result(Result, pp_aliases).
 
 pp_aliases(Aliases) :-
