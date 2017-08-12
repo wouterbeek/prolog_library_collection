@@ -1,10 +1,11 @@
 :- module(
   xml_ext,
   [
-    call_on_xml/3,   % +UriSpec, +RecordName, :Goal_1
-    call_on_xml/4,   % +UriSpec, +RecordName, :Goal_1, +Options
-    html_download/2, % +UriSpec, -Dom
-    html_download/3  % +UriSpec, -Dom, +Options
+    call_on_xml/3,     % +UriSpec, +RecordName, :Goal_1
+    call_on_xml/4,     % +UriSpec, +RecordName, :Goal_1, +Options
+    html_download/2,   % +UriSpec, -Dom
+    html_download/3,   % +UriSpec, -Dom, +Options
+    html_insert_dom//1 % +Dom
   ]
 ).
 
@@ -15,6 +16,8 @@
 */
 
 :- use_module(library(atom_ext)).
+:- use_module(library(c14n2)).
+:- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 :- use_module(library(uri/uri_ext)).
@@ -89,6 +92,14 @@ html_download_(Dom2, Options1, In, Meta, Meta) :-
   merge_options([encoding('utf-8'),max_errors(-1)], Options1, Options2),
   load_html(In, Dom1, Options2),
   clean_dom(Dom1, Dom2).
+
+
+
+%! html_insert_dom//1 % +Dom
+
+html_insert_dom(Dom) -->
+  {with_output_to(atom(Atom), xml_write_canonical(current_output, Dom, []))},
+  html(\[Atom]).
 
 
 
