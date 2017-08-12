@@ -2,8 +2,6 @@
   file_ext,
   [
     absolute_directory_name/3,  % +Spec, +Mode, -Dir
-    append_directories/2,       % +Dirs, -Dir
-    append_directories/3,       % +Dir1, +Dir2, -Dir
     cat/2,                      % +UriSpecs, +FileSpec
     create_date_directory/2,    % +Spec, -Dir
     create_date_time_file/2,    % +Spec, -File
@@ -17,7 +15,6 @@
     delete_directory_and_contents_silent/1, % +Dir
     directory_is_empty/1,       % +Dir
     directory_recursive/2,      % +Dir, -Subdir
-    directory_subdirectories/2, % ?Dir, ?Subdirs
     directory_subdirectory/2,   % +Dir, ?Subdir
     directory_subdirectory/3,   % +Dir, ?Local, ?Subdir
     file_age/2,                 % +File, -Age:float
@@ -154,36 +151,6 @@ error:has_type(absolute_path, Term) :-
 
 absolute_directory_name(Spec, Mode, Dir) :-
   absolute_file_name(Spec, Dir, [access(Mode),file_type(directory)]).
-
-
-
-%! append_directories(+Dirs, -Dir) is det.
-
-append_directories([], '/') :- !.
-append_directories([Dir], Dir) :- !.
-append_directories([H|T], Dir) :-
-  append_directories0(H, T, Dir).
-
-append_directories0(Dir, [], Dir) :- !.
-append_directories0(Dir1, [H|T], Dir) :-
-  append_directories(Dir1, H, Dir2),
-  append_directories0(Dir2, T, Dir).
-
-
-%! append_directories(+Dir1, +Dir2, -Dir) is det.
-%
-% Returns the directory name obtained by concatenating the given
-% directory names.
-%
-% The empty atom in the first position indicates the root directory.
-%
-% Does *not* ensure that any of the directories exist.
-
-append_directories(Dir1, Dir2, Dir3) :-
-  directory_subdirectories(Dir1, Subdirs1),
-  directory_subdirectories(Dir2, Subdirs2),
-  append(Subdirs1, Subdirs2, Subdirs3),
-  directory_subdirectories(Dir3, Subdirs3).
 
 
 
@@ -344,26 +311,6 @@ directory_recursive(Dir, Subdir) :-
   (   directory_recursive(Subdir0, Subdir)
   ;   Subdir = Subdir0
   ).
-
-
-
-%! directory_subdirectories(+Dir, -Subdirs) is det.
-%! directory_subdirectories(-Dir, +Subdirs) is det.
-%
-% Occurrences of `.` and `..` in Dir are resolved.
-%
-% The empty atom in the first position indicates the root directory.
-%
-% For absolute directory names the first subdirectory name is the
-% empty atom.
-
-directory_subdirectories(Dir, Subdirs2) :-
-  ground(Dir), !,
-  atomic_list_concat(Subdirs1, /, Dir),
-  resolve_subdirectories(Subdirs1, Subdirs2).
-directory_subdirectories(Dir, Subdirs1) :-
-  resolve_subdirectories(Subdirs1, Subdirs2),
-  atomic_list_concat(Subdirs2, /, Dir).
 
 
 
@@ -700,23 +647,6 @@ wc_(In, Counter1, Lines) :-
 wildcard_file(Wildcard, File) :-
   expand_file_name(Wildcard, Files),
   member(File, Files).
-
-
-
-
-
-% HELPERS %
-
-%! resolve_subdirectories(+Subdirs, -ResoledSubdirs) is det.
-
-resolve_subdirectories([], []) :- !.
-resolve_subdirectories([''], []) :- !.
-resolve_subdirectories([.|T1], T2) :- !,
-  resolve_subdirectories(T1, T2).
-resolve_subdirectories([_,..|T1], T2) :- !,
-  resolve_subdirectories(T1, T2).
-resolve_subdirectories([H|T1], [H|T2]) :-
-  resolve_subdirectories(T1, T2).
 
 
 

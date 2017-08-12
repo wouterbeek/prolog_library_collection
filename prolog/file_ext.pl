@@ -1,18 +1,21 @@
 :- module(
   file_ext,
   [
+    append_directories/2,         % +Directories, -Directory
+    append_directories/3,         % +Directory1, +Directory2, -Directory3
     call_to_file/2,               % +FileSpec, :Goal_3
     call_to_file/3,               % +FileSpec, :Goal_3, +Options
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
-    create_directory/1,           % +Dir
+    create_directory/1,           % +Directory
     create_file_directory/1,      % +File
     delete_files_by_extension/1,  % +Extension
-    directory_file/2,             % +Dir, -File
-    directory_file_path2/3,       % ?Dir, ?File, ?Path
-    directory_path/2,             % ?Dir, ?Path
-    directory_path_recursive/2,   % +Dir, -Path
+    directory_file/2,             % +Directory, -File
+    directory_file_path2/3,       % ?Directory, ?File, ?Path
+    directory_path/2,             % ?Directory, ?Path
+    directory_path_recursive/2,   % +Directory, -Path
+    directory_subdirectories/2,   % ?Directory, ?Subdirectories
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
@@ -69,6 +72,37 @@ file_ext:media_type_extension_(media(application/'xhtml+xml',[]), xhtml).
 file_ext:media_type_extension_(media(text/html,[]), html).
 
 
+
+
+
+%! append_directories(+Directories:list(atom_, -Directory:atom) is det.
+
+append_directories([], '/') :- !.
+append_directories([H], H) :- !.
+append_directories([H|T], Dir) :-
+  append_directories_(H, T, Dir).
+
+append_directories_(Dir, [], Dir) :- !.
+append_directories_(Dir1, [H|T], Dir3) :-
+  append_directories(Dir1, H, Dir2),
+  append_directories_(Dir2, T, Dir3).
+
+
+%! append_directories(+Directory1:atom, +Directory2:atom,
+%!                    -Directory:atom) is det.
+%
+% Returns the directory name obtained by concatenating the given
+% directory names.
+%
+% The empty atom in the first position indicates the root directory.
+%
+% Does *not* ensure that any of the directories exist.
+
+append_directories(Dir1, Dir2, Dir3) :-
+  directory_subdirectories(Dir1, Subdirs1),
+  directory_subdirectories(Dir2, Subdirs2),
+  append(Subdirs1, Subdirs2, Subdirs3),
+  directory_subdirectories(Dir3, Subdirs3).
 
 
 
@@ -246,6 +280,26 @@ directory_path_recursive(Dir, Path) :-
 
 
 
+%! directory_subdirectories(+Directory:atom, -Subdirectories:list(atom)) is det.
+%! directory_subdirectories(-Directory:atom, +Subdirectories:list(atom)) is det.
+%
+% Occurrences of `.` and `..` in `Directory' are resolved.
+%
+% The empty atom in the first position indicates the root directory.
+%
+% For absolute directory names the first subdirectory name is the
+% empty atom.
+
+directory_subdirectories(Dir, Subdirs2) :-
+  ground(Dir), !,
+  atomic_list_concat(Subdirs1, /, Dir),
+  resolve_subdirectories(Subdirs1, Subdirs2).
+directory_subdirectories(Dir, Subdirs1) :-
+  resolve_subdirectories(Subdirs1, Subdirs2),
+  atomic_list_concat(Subdirs2, /, Dir).
+
+
+
 %! file_extensions(+File:atom, -Extensions:list(atom)) is det.
 
 file_extensions(File, Extensions) :-
@@ -298,6 +352,22 @@ media_type_extension_(media(application/'x-prolog',_), pl).
 media_type_extension_(media(image/jpeg,_), jpeg).
 media_type_extension_(media(image/png,_), png).
 media_type_extension_(media(text/turtle,_), ttl).
+
+
+
+%! resolve_subdirectories(+Subdirectories1:list(atom),
+%!                        -Subdirectories2:list(atom)) is det.
+%
+% Resolves `.' and `..'.
+
+resolve_subdirectories([], []) :- !.
+resolve_subdirectories([''], []) :- !.
+resolve_subdirectories([.|T1], T2) :- !,
+  resolve_subdirectories(T1, T2).
+resolve_subdirectories([_,..|T1], T2) :- !,
+  resolve_subdirectories(T1, T2).
+resolve_subdirectories([H|T1], [H|T2]) :-
+  resolve_subdirectories(T1, T2).
 
 
 
