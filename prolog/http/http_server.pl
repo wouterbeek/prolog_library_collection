@@ -217,7 +217,7 @@ rest_exception_media_type(_, Status) :-
 %! rest_media_type(+MediaTypes:list(compound), :Goal_1) is det.
 
 rest_media_type(MediaTypes, Goal_1) :-
-  member(MediaType, MediaTypes), !,
+  member(MediaType, MediaTypes),
   call(Goal_1, MediaType), !.
 rest_media_type(MediaTypes, _) :-
   rest_exception(MediaTypes, 406).
