@@ -61,7 +61,7 @@ The following terms are used:
   scheme(Scheme),
   ":",
   'hier-part'(Scheme, Authority, Segments),
-  ("?" -> query(Query) ; "").
+  uri_query(Query).
 
 
 
@@ -83,7 +83,7 @@ The following terms are used:
 % authoritatively to requests that target the identified resource.
 
 authority(Scheme, auth(User,Host,Port)) -->
-  (userinfo(User), "@" -> "" ; ""),
+  uri_userinfo(User),
   host(Host),
   uri_port(Scheme, Port).
 
@@ -525,8 +525,8 @@ reg_name_(Code) -->
 
 'relative-ref'(uri(_,Authority,Segments,Query,Fragment)) -->
   'relative-part'(_, Authority, Segments),
-  ("?" -> query(Query) ; {var(Query)}),
-  ("#" -> fragment(Fragment) ; {var(Fragment)}).
+  uri_query(Query),
+  uri_fragment(Fragment).
 
 
 
@@ -660,8 +660,8 @@ unreserved(0'~) --> "~".
   scheme(Scheme),
   ":",
   'hier-part'(Scheme, Authority, Segments),
-  ("?" -> query(Query) ; {var(Query)}),
-  ("#" -> fragment(Fragment) ; {var(Fragment)}).
+  uri_query(Query),
+  uri_fragment(Fragment).
 
 
 
@@ -739,6 +739,14 @@ sep_segment(Segment) -->
 
 
 
+%! uri_fragment(?Fragment:atom)// .
+
+uri_fragment(Fragment) --> parsing, !, ("#", fragment(Fragment) ; "").
+uri_fragment(Fragment) --> {var(Fragment)}.
+uri_fragment(Fragment) --> "#", fragment(Fragment).
+
+
+
 %! uri_port(?Scheme:atom, ?Port:nonneg)// .
 
 uri_port(Scheme, Port) -->
@@ -755,3 +763,19 @@ uri_port(Scheme, Port) -->
 uri_port(_, Port) -->
   ":",
   port(Port).
+
+
+
+%! uri_query(?Query:atom)// .
+
+uri_query(Query) --> parsing, !, ("?", query(Query) ; "").
+uri_query(Query) --> {var(Query)}.
+uri_query(Query) --> "?", query(Query).
+
+
+
+%! uri_userinfo(?User:atom)// .
+
+uri_userinfo(User) --> parsing, !, (userinfo(User), "@" ; "").
+uri_userinfo(User) --> {var(User)}.
+uri_userinfo(User) --> userinfo(User), "@".

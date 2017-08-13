@@ -13,6 +13,25 @@
 
 /** <module> RFC 3987: Internationalized Resource Identifiers (IRIs)
 
+# Why we need uir_iuserinfo//1 etc.
+
+The following is not enough:
+
+```prolog
+(iuserinfo(U), "@" ; {var(U)})
+```
+
+When `iuserinfo//1' is defined as `dcg_atom(*(<SOME-CODE>), U)' then
+the generating case will produce `"@"' with instantiation `U = '''.
+
+We therefore need the (cumbersome) following:
+
+```prolog
+uri_iuserinfo(U) --> parsing, !, (iuserinfo(U), "@" ; "").
+uri_iuserinfo(U) --> {var(U)}.
+uri_iuserinfo(U) --> iuserinfo(U), "@".
+```
+
 # Definitions
 
   * *Character*
@@ -80,7 +99,7 @@
   scheme(Scheme),
   ":",
   'ihier-part'(Scheme, Authority, Segments),
-  ("?" -> iquery(Query) ; "").
+  uri_iquery(Query).
 
 
 
@@ -91,7 +110,7 @@
 % ```
 
 iauthority(Scheme, auth(User,_,Host,Port)) -->
-  (iuserinfo(User), "@" ; ""),
+  uri_iuserinfo(User),
   ihost(Host), !,
   % If the port subcomponent is empty or not given, TCP port 80 (the
   % reserved port for WWW services) is the default.
@@ -199,7 +218,6 @@ ipath(Segments) -->
 % ```
 
 'ipath-absolute'(L) -->
-  {gtrace},
   "/",
   ('isegment-nz'(H) -> *(sep_isegment, T), !, {L = [H|T]} ; {L = []}).
 
@@ -340,8 +358,8 @@ ireg_name_(Code) -->
 
 'irelative-ref'(uri(Scheme,Authority,Segments,Query,Fragment)) -->
   'irelative-part'(Scheme, Authority, Segments),
-  ("?" -> iquery(Query) ; {var(Query)}),
-  ("#" -> ifragment(Fragment) ; {var(Fragment)}).
+  uri_iquery(Query),
+  uri_ifragment(Fragment).
 
 
 
@@ -355,8 +373,8 @@ ireg_name_(Code) -->
   scheme(Scheme),
   ":",
   'ihier-part'(Scheme, Authority, Segments),
-  ("?" -> iquery(Query) ; {var(Query)}),
-  ("#" -> ifragment(Fragment) ; {var(Fragment)}).
+  uri_iquery(Query),
+  uri_ifragment(Fragment).
 
 
 
@@ -507,3 +525,27 @@ ucschar(Code) -->
 sep_isegment(Segment) -->
   "/",
   isegment(Segment).
+
+
+
+%! uri_ifragment(?Fragment:atom)// .
+
+uri_ifragment(Fragment) --> parsing, !, ("#", ifragment(Fragment) ; "").
+uri_ifragment(Fragment) --> {var(Fragment)}.
+uri_ifragment(Fragment) --> "#", ifragment(Fragment).
+
+
+
+%! uri_iquery(?Query:atom)// .
+
+uri_iquery(Query) --> parsing, !, ("?", iquery(Query) ; "").
+uri_iquery(Query) --> {var(Query)}.
+uri_iquery(Query) --> "?", iquery(Query).
+
+
+
+%! uri_iuserinfo(?User:atom)// .
+
+uri_iuserinfo(User) --> parsing, !, (iuserinfo(User), "@" ; "").
+uri_iuserinfo(User) --> {var(User)}.
+uri_iuserinfo(User) --> iuserinfo(User), "@".
