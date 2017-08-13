@@ -257,7 +257,7 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       % to compare it to the current `HandleId'.
       uri_comps(Uri, uri(Scheme,Authority,Segments,_,_)),
       uri_comps(HandleUri, uri(Scheme,Authority,Segments,_,_)),
-      format("Strict-Transport-Security: max-age=86400; includeSubDomains~n"),
+      format("Strict-Transport-Security: max-age=31536000; includeSubDomains~n"),
       request_media_types(Request, MediaTypes),
       (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
       ->  call(Module:Plural_2, Method, MediaTypes)
