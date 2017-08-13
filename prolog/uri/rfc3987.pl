@@ -340,8 +340,8 @@ ireg_name_(Code) -->
 
 'irelative-ref'(uri(Scheme,Authority,Segments,Query,Fragment)) -->
   'irelative-part'(Scheme, Authority, Segments),
-  ("?" -> iquery(Query) ; ""),
-  ("#" -> ifragment(Fragment) ; "").
+  ("?" -> iquery(Query) ; {var(Query)}),
+  ("#" -> ifragment(Fragment) ; {var(Fragment)}).
 
 
 
@@ -355,8 +355,8 @@ ireg_name_(Code) -->
   scheme(Scheme),
   ":",
   'ihier-part'(Scheme, Authority, Segments),
-  ("?" -> iquery(Query) ; ""),
-  ("#" -> ifragment(Fragment) ; "").
+  ("?" -> iquery(Query) ; {var(Query)}),
+  ("#" -> ifragment(Fragment) ; {var(Fragment)}).
 
 
 

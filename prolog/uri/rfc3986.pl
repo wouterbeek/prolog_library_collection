@@ -525,8 +525,8 @@ reg_name_(Code) -->
 
 'relative-ref'(uri(_,Authority,Segments,Query,Fragment)) -->
   'relative-part'(_, Authority, Segments),
-  ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Fragment) ; "").
+  ("?" -> query(Query) ; {var(Query)}),
+  ("#" -> fragment(Fragment) ; {var(Fragment)}).
 
 
 
@@ -660,8 +660,8 @@ unreserved(0'~) --> "~".
   scheme(Scheme),
   ":",
   'hier-part'(Scheme, Authority, Segments),
-  ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Fragment) ; "").
+  ("?" -> query(Query) ; {var(Query)}),
+  ("#" -> fragment(Fragment) ; {var(Fragment)}).
 
 
 

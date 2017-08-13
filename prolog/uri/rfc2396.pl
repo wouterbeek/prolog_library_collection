@@ -1,9 +1,9 @@
 :- module(
   rfc2396,
   [
-    abs_path//1, % -Path:atom
+    abs_path//1, % -Segments
     host//1,     % -Host
-    port//1,     % -Port:nonneg
+    port//1,     % -Port
     query//1     % -Query
   ]
 ).
@@ -14,7 +14,7 @@
 @compat RFC 2396
 @deprecated Use module `rfc3986' instead.
 @see https://tools.ietf.org/html/rfc2396
-@version 2017/05-2017/07
+@version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
@@ -31,16 +31,15 @@
 
 
 
-%! abs_path(-Path:atom)// is det.
+%! abs_path(-Segments:list(atom))// is det.
 %
 % ```abnf
 % abs_path = "/"  path_segments
 % ```
 
-abs_path(Path) -->
+abs_path(Segments) -->
   "/",
-  path_segments(Segments),
-  {atomic_list_concat([''|Segments], /, Path)}.
+  path_segments(Segments).
 
 
 
@@ -50,45 +49,49 @@ abs_path(Path) -->
 % absoluteURI = scheme ":" ( hier_part | opaque_part )
 % ```
 
-absoluteURI(uri(Scheme,Auth,Path,Query,_)) -->
+absoluteURI(uri(Scheme,Authority,Segments,Query,_)) -->
   scheme(Scheme),
   ":",
-  (opaque_part(Path) -> "" ; hier_part(Auth, Path, Query)).
+  (opaque_part(Segments) -> "" ; hier_part(Authority, Segments, Query)).
 
 
 
-%! alpha(-Code:code)// .
+%! alpha(?Code:code)// .
 %
 % ```abnf
 % alpha = lowalpha | upalpha
 % ```
 
-alpha(C) --> lowalpha(C).
-alpha(C) --> upalpha(C).
+alpha(Code) -->
+  lowalpha(Code).
+alpha(Code) -->
+  upalpha(Code).
 
 
 
-%! alphanum(-Code:code)// .
+%! alphanum(?Code:code)// .
 %
 % ```abnf
 % alphanum = alpha | digit
 % ```
 
-alphanum(C) --> alpha(C).
-alphanum(C) --> digit(C).
+alphanum(Code) -->
+  alpha(Code).
+alphanum(Code) -->
+  digit(Code).
 
 
 
-%! authority(-Auth:compound)// is det.
+%! authority(-Authority:compound)// is det.
 %
 % ```abnf
 % authority = server | reg_name
 % ```
 
-authority(Auth) -->
-  reg_name(Auth), !.
-authority(Auth) -->
-  server(Auth).
+authority(Authority) -->
+  reg_name(Authority), !.
+authority(Authority) -->
+  server(Authority).
 
 
 
@@ -102,7 +105,7 @@ delims(0'<) --> "<".
 delims(0'>) --> ">".
 delims(0'#) --> "#".
 delims(0'%) --> "%".
-delims(0'") --> "\"".   %"
+delims(0'") --> "\"".
 
 
 
@@ -132,19 +135,19 @@ digit(0'9) --> "9".
 % ```
 
 domainlabel(DomainLabel) -->
-  dcg_atom(domainlabel_codes1, DomainLabel).
+  dcg_atom(domainlabel_1, DomainLabel).
 
-domainlabel_codes1([H|T]) -->
+domainlabel_1([H|T]) -->
   alphanum(H),
-  domainlabel_codes2(T).
-domainlabel_codes2([0'-,H|T]) -->
+  domainlabel_2(T).
+domainlabel_2([0'-,H|T]) -->
   "-", !,
   alphanum(H),
-  domainlabel_codes2(T).
-domainlabel_codes2([H|T]) -->
+  domainlabel_2(T).
+domainlabel_2([H|T]) -->
   alphanum(H), !,
-  domainlabel_codes2(T).
-domainlabel_codes2([]) --> "".
+  domainlabel_2(T).
+domainlabel_2([]) --> "".
 
 
 
@@ -154,34 +157,34 @@ domainlabel_codes2([]) --> "".
 % escaped = "%" hex hex
 % ```
 
-escaped(C) -->
+escaped(Code) -->
   "%",
-  hex(D1),
-  hex(D2),
-  {C is D1 * 16 + D2}.
+  hex(Weights1),
+  hex(Weights2),
+  {Code is Weights1 * 16 + Weights2}.
 
 
 
-%! fragment(-Fragment:atom)// is det.
+%! fragment(?Fragment:atom)// is det.
 %
 % ```abnf
 % fragment = *uric
 % ```
 
-fragment(Frag) -->
-  *(uric, Cs), !,
-  {atom_codes(Frag, Cs)}.
+fragment(Fragment) -->
+  dcg_atom(*(uric), Fragment).
 
 
 
-%! hex(-Code:code)// .
+%! hex(?Code:code)// .
 %
 % ```abnf
 % hex = digit | "A" | "B" | "C" | "D" | "E" | "F"
 %             | "a" | "b" | "c" | "d" | "e" | "f"
 % ```
 
-hex(C)   --> digit(C).
+hex(Code) -->
+  digit(Code).
 hex(0'A) --> "A".
 hex(0'B) --> "B".
 hex(0'C) --> "C".
@@ -197,15 +200,16 @@ hex(0'f) --> "f".
 
 
 
-%! hier_part(-Authority:compound, -Segments:list(atom), -QueryComps:list(compound))// is det.
+%! hier_part(-Authority:compound, -Segments:list(atom),
+%!           -Query:list(compound))// is det.
 %
 % ```abnf
 % hier_part = ( net_path | abs_path ) [ "?" query ]
 % ```
 
-hier_part(Auth, Segments, QueryComps) -->
-  (net_path(Auth, Segments), ! ; abs_path(Segments)),
-  ("?" -> query(QueryComps) ; "").
+hier_part(Authority, Segments, Query) -->
+  (net_path(Authority, Segments), ! ; abs_path(Segments)),
+  ("?" -> query(Query) ; {var(Query)}).
 
 
 
@@ -274,7 +278,7 @@ hostport(Host, Port) -->
 
 
 
-%! lowalpha(-Code:code)// .
+%! lowalpha(?Code:code)// .
 %
 % ```abnf
 % lowalpha = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i"
@@ -311,7 +315,7 @@ lowalpha(0'z) --> "z".
 
 
 
-%! mark(-Code:code)// .
+%! mark(?Code:code)// .
 %
 % ```abnf
 % mark = "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
@@ -329,53 +333,54 @@ mark(0')) --> ")".
 
 
 
-%! net_path(-Auth:compound, -Path:atom)// is det.
+%! net_path(-Authority:compound, -Segments:list(atom))// is det.
 %
 % ```abnf
 % net_path = "//" authority [ abs_path ]
 % ```
 
-net_path(Auth, Path) -->
+net_path(Authority, Segments) -->
   "//",
-  authority(Auth),
-  ?(abs_path(Path)).
+  authority(Authority),
+  ?(abs_path(Segments)).
 
 
 
-%! opaque_part(-Path:atom)// is det.
+%! opaque_part(-Segments:atom)// is det.
 %
 % ```abnf
 % opaque_part = uric_no_slash *uric
 % ```
 
-opaque_part(Path) -->
+opaque_part([Segment]) -->
   uric_no_slash(H),
   *(uric, T), !,
-  {atom_codes(Path, [H|T])}.
+  {atom_codes(Segment, [H|T])}.
 
 
 
-%! param(-Param:atom)// is det.
+%! param(-Parameter:atom)// is det.
 %
 % ```abnf
 % param = *pchar
 % ```
 
-param(Param) -->
-  *(pchar, Cs), !,
-  {atom_codes(Param, Cs)}.
+param(Parameter) -->
+  dcg_atom(*(pchar), Parameter).
 
 
 
-%! path(-Path:atom)// is det.
+%! path(-Segments:list(atom))// is det.
 %
 % ```abnf
 % path = [ abs_path | opaque_part ]
 % ```
 
-path(Path) --> abs_path(Path), !.
-path(Path) --> opaque_part(Path), !.
-path(_)    --> "".
+path(Segments) -->
+  abs_path(Segments), !.
+path(Segments) -->
+  opaque_part(Segments), !.
+path([]) --> "".
 
 
 
@@ -401,8 +406,10 @@ sep_segment(X) -->
 % pchar = unreserved | escaped | ":" | "@" | "&" | "=" | "+" | "$" | ","
 % ```
 
-pchar(C)   --> unreserved(C).
-pchar(C)   --> escaped(C).
+pchar(Code) -->
+  unreserved(Code).
+pchar(Code) -->
+  escaped(Code).
 pchar(0':) --> ":".
 pchar(0'@) --> "@".
 pchar(0'&) --> "&".
@@ -425,74 +432,75 @@ port(Port) -->
 
 
 
-%! query(-Query:atom)// is det.
+%! query(?Query:atom)// is det.
 %
 % ```abnf
 % query = *uric
 % ```
 
 query(Query) -->
-  *(uric, Cs), !,
-  {atom_codes(Query, Cs)}.
+  dcg_atom(*(uric), Query).
 
 
 
-%! reg_name(-Auth:atom)// is det.
+%! reg_name(?Name:atom)// is det.
 %
 % ```abnf
 % reg_name = 1*( unreserved | escaped | "$" | ","
 %              | ";" | ":" | "@" | "&" | "=" | "+" )
 % ```
 
-reg_name(Auth) -->
-  +(reg_name_code, Cs), !,
-  {atom_codes(Auth, Cs)}.
+reg_name(Name) -->
+  dcg_atom(+(reg_name_), Name).
 
-reg_name_code(C)   --> unreserved(C).
-reg_name_code(C)   --> escaped(C).
-reg_name_code(0'$) --> "$".
-reg_name_code(0',) --> ",".
-reg_name_code(0';) --> ";".
-reg_name_code(0':) --> ":".
-reg_name_code(0'@) --> "@".
-reg_name_code(0'&) --> "&".
-reg_name_code(0'=) --> "=".
-reg_name_code(0'+) --> "+".
+reg_name_(Code) -->
+  unreserved(Code).
+reg_name_(Code) -->
+  escaped(Code).
+reg_name_(0'$) --> "$".
+reg_name_(0',) --> ",".
+reg_name_(0';) --> ";".
+reg_name_(0':) --> ":".
+reg_name_(0'@) --> "@".
+reg_name_(0'&) --> "&".
+reg_name_(0'=) --> "=".
+reg_name_(0'+) --> "+".
 
 
 
-%! rel_path(-Auth:atom, -Path:atom)// is det.
+%! rel_path(-Authority:atom, -Segments:list(atom))// is det.
 %
 % ```abnf
 % rel_path = rel_segment [ abs_path ]
 % ```
 
-rel_path(Auth, Path) -->
-  rel_segment(Auth),
-  ?(abs_path(Path)).
+rel_path(Authority, Segments) -->
+  rel_segment(Authority),
+  ?(abs_path(Segments)).
 
 
 
-%! rel_segment(-Auth:compound)// is det.
+%! rel_segment(?Segment:atom)// is det.
 %
 % ```abnf
 % rel_segment = 1*( unreserved | escaped
 %             | ";" | "@" | "&" | "=" | "+" | "$" | "," )
 % ```
 
-rel_segment(Auth) -->
-  +(rel_segment_code, Cs), !,
-  {atom_codes(Auth, Cs)}.
+rel_segment(Segment) -->
+  dcg_atom(+(rel_segment_), Segment).
 
-rel_segment_code(C)   --> unreserved(C).
-rel_segment_code(C)   --> escaped(C).
-rel_segment_code(0';) --> ";".
-rel_segment_code(0'@) --> "@".
-rel_segment_code(0'&) --> "&".
-rel_segment_code(0'=) --> "=".
-rel_segment_code(0'+) --> "+".
-rel_segment_code(0'$) --> "$".
-rel_segment_code(0',) --> ",".
+rel_segment_(Code) -->
+  unreserved(Code).
+rel_segment_(Code) -->
+  escaped(Code).
+rel_segment_(0';) --> ";".
+rel_segment_(0'@) --> "@".
+rel_segment_(0'&) --> "&".
+rel_segment_(0'=) --> "=".
+rel_segment_(0'+) --> "+".
+rel_segment_(0'$) --> "$".
+rel_segment_(0',) --> ",".
 
 
 
@@ -502,12 +510,12 @@ rel_segment_code(0',) --> ",".
 % relativeURI = ( net_path | abs_path | rel_path ) [ "?" query ]
 % ```
 
-relativeURI(uri(_,Auth,Path,Query,_)) -->
-  (   net_path(Auth, Path)
+relativeURI(uri(_,Authority,Segments,Query,_)) -->
+  (   net_path(Authority, Segments)
   ->  ""
-  ;   abs_path(Path)
+  ;   abs_path(Segments)
   ->  ""
-  ;   rel_path(Auth, Path)
+  ;   rel_path(Authority, Segments)
   ),
   ("?" -> query(Query) ; "").
 
@@ -539,14 +547,17 @@ reserved(0',) --> ",".
 % ```
 
 scheme(Scheme) -->
-  *(scheme_code, Cs), !,
-  {atom_codes(Scheme, Cs)}.
+  alpha(H),
+  *(scheme_, T),
+  {atom_codes(Scheme, [H|T])}.
 
-scheme_code(C)   --> alpha(C).
-scheme_code(C)   --> digit(C).
-scheme_code(0'+) --> "+".
-scheme_code(0'-) --> "-".
-scheme_code(0'.) --> ".".
+scheme_(Code) -->
+  alpha(Code).
+scheme_(Code) -->
+  digit(Code).
+scheme_(0'+) --> "+".
+scheme_(0'-) --> "-".
+scheme_(0'.) --> ".".
 
 
 
@@ -557,8 +568,7 @@ scheme_code(0'.) --> ".".
 % ```
 
 segment(Segment) -->
-  *(pchar, Cs), !,
-  {atom_codes(H, Cs)},
+  dcg_atom(*(pchar), H),
   *(sep_param, T),
   {atomic_list_concat([H|T], ;, Segment)}.
 
@@ -568,14 +578,14 @@ sep_param(Param) -->
 
 
 
-%! server(-Auth:compound)// is det.
+%! server(-Authority:compound)// is det.
 %
 % ```abnf
 % server = [ [ userinfo "@" ] hostport ]
 % ```
 
 server(auth(User,_,Host,Port)) -->
-  (userinfo(User) -> "@" ; ""),
+  (userinfo(User) -> "@" ; {var(User)}),
   hostport(Host, Port), !.
 % @bug This seems to be a bug in the standard?
 server(_) --> "".
@@ -593,19 +603,27 @@ space(0' ) -->
 
 
 
-%! toplabel(-TopLabel:atom)// is det.
+%! toplabel(?TopLabel:atom)// is det.
 %
 % ```abnf
 % toplabel = alpha | alpha *( alphanum | "-" ) alphanum
 % ```
 
 toplabel(Label) -->
-  dcg_atom(toplabel_codes1, Label).
+  dcg_atom(toplabel_1, Label).
 
-toplabel_codes1([H|T]) --> alpha(H), toplabel_codes2(T).
-toplabel_codes2([0'-,H|T]) --> "-", !, alphanum(H), toplabel_codes2(T).
-toplabel_codes2([H|T]) --> alphanum(H), !, toplabel_codes2(T).
-toplabel_codes2([]) --> "".
+toplabel_1([H|T]) -->
+  alpha(H),
+  toplabel_2(T).
+
+toplabel_2([0'-,H|T]) -->
+  "-", !,
+  alphanum(H),
+  toplabel_2(T).
+toplabel_2([H|T]) -->
+  alphanum(H), !,
+  toplabel_2(T).
+toplabel_2([]) --> "".
 
 
 
@@ -652,44 +670,46 @@ upalpha(0'Z) --> "Z".
 % URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
 % ```
 
-'URI-reference'(uri(Scheme,Auth,Path,Query,Frag)) -->
-  (   absoluteURI(uri(Scheme,Auth,Path,Query))
+'URI-reference'(uri(Scheme,Authority,Segments,Query,Fragment)) -->
+  (   absoluteURI(uri(Scheme,Authority,Segments,Query))
   ->  ""
-  ;   relativeURI(uri(Scheme,Auth,Path,Query))
+  ;   relativeURI(uri(Scheme,Authority,Segments,Query))
   ),
-  ("#" -> fragment(Frag) ; "").
+  ("#" -> fragment(Fragment) ; {var(Fragment)}).
 
 
 
-%! unreserved(-Code:code)// .
+%! unreserved(?Code:code)// .
 %
 % ```abnf
 % unreserved = alphanum | mark
 % ```
 
-unreserved(C) --> alphanum(C).
-unreserved(C) --> mark(C).
+unreserved(Code) -->
+  alphanum(Code).
+unreserved(Code) -->
+  mark(Code).
 
 
 
-%! unwise(-Code:code)// .
+%! unwise(?Code:code)// .
 %
 % ```abnf
 % unwise = "{" | "}" | "|" | "\" | "^" | "[" | "]" | "`"
 % ```
 
-unwise(0'{)  --> "{".
-unwise(0'})  --> "}".
-unwise(0'|)  --> "|".
+unwise(0'{) --> "{".
+unwise(0'}) --> "}".
+unwise(0'|) --> "|".
 unwise(0'\\) --> "\\".
-unwise(0'^)  --> "^".
-unwise(0'[)  --> "[".
-unwise(0'])  --> "]".
-unwise(0'`)  --> "`".
+unwise(0'^) --> "^".
+unwise(0'[) --> "[".
+unwise(0']) --> "]".
+unwise(0'`) --> "`".
 
 
 
-%! uric(-Code:code)// .
+%! uric(?Code:code)// .
 %
 % RFC 1738 (URL) defines a reordering of this grammar rule under the
 % name xchar//1.
@@ -698,21 +718,26 @@ unwise(0'`)  --> "`".
 % uric = reserved | unreserved | escaped
 % ```
 
-uric(C) --> reserved(C).
-uric(C) --> unreserved(C).
-uric(C) --> escaped(C).
+uric(Code) -->
+  reserved(Code).
+uric(Code) -->
+  unreserved(Code).
+uric(Code) -->
+  escaped(Code).
 
 
 
-%! uric_no_slash(-Code:code)// .
+%! uric_no_slash(?Code:code)// .
 %
 % ```abnf
 % uric_no_slash = unreserved | escaped | ";" | "?" | ":" | "@"
 %               | "&" | "=" | "+" | "$" | ","
 % ```
 
-uric_no_slash(C)   --> unreserved(C).
-uric_no_slash(C)   --> escaped(C).
+uric_no_slash(Code) -->
+  unreserved(Code).
+uric_no_slash(Code) -->
+  escaped(Code).
 uric_no_slash(0';) --> ";".
 uric_no_slash(0'?) --> "?".
 uric_no_slash(0':) --> ":".
@@ -725,7 +750,7 @@ uric_no_slash(0',) --> ",".
 
 
 
-%! userinfo(-User:atom)// is det.
+%! userinfo(?User:atom)// is det.
 %
 % ```abnf
 % userinfo = *( unreserved | escaped
@@ -733,15 +758,16 @@ uric_no_slash(0',) --> ",".
 % ```
 
 userinfo(User) -->
-  *(userinfo_code, Cs), !,
-  {atom_codes(User, Cs)}.
+  dcg_atom(*(userinfo_), User).
 
-userinfo_code(C)   --> unreserved(C).
-userinfo_code(C)   --> escaped(C).
-userinfo_code(0';) --> ";".
-userinfo_code(0':) --> ":".
-userinfo_code(0'&) --> "&".
-userinfo_code(0'=) --> "=".
-userinfo_code(0'+) --> "+".
-userinfo_code(0'$) --> "$".
-userinfo_code(0',) --> ",".
+userinfo_(Code) -->
+  unreserved(Code).
+userinfo_(Code) -->
+  escaped(Code).
+userinfo_(0';) --> ";".
+userinfo_(0':) --> ":".
+userinfo_(0'&) --> "&".
+userinfo_(0'=) --> "=".
+userinfo_(0'+) --> "+".
+userinfo_(0'$) --> "$".
+userinfo_(0',) --> ",".
