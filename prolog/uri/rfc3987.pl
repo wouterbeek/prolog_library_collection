@@ -4,14 +4,12 @@
     'absolute-IRI'//1,  % -Uri
     ipchar//1,          % ?Code
     iprivate//1,        % ?Code
-    iquery_code//1,     % ?Code
-    ireg_name_code//1,  % ?Code
     'IRI'//1,           % -Uri
     'IRI-reference'//1, % -Uri
-    iunreserved//1,     % ?Code
-    iuserinfo_code//1   % ?Code
+    iunreserved//1      % ?Code
   ]
 ).
+:- reexport(library(uri/rfc3986)).
 
 /** <module> RFC 3987: Internationalized Resource Identifiers (IRIs)
 
@@ -62,12 +60,11 @@
 @author Wouter Beek
 @compat RFC 3987
 @see http://tools.ietf.org/html/rfc3987
-@version 2015/08, 2015/11-2015/12, 2016/12, 2017/08
+@version 2017/08
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(uri/rfc3986)).
 
 
 
@@ -102,19 +99,19 @@ iauthority(Scheme, auth(User,_,Host,Port)) -->
 
 
 
-%! ifragment(-Fragment:atom)// is det.
+%! ifragment(?Fragment:atom)// .
 %
 % ```abnf
 % ifragment = *( ipchar / "/" / "?" )
 % ```
 
 ifragment(Fragment) -->
-  *(ifragment_code, Codes), !,
-  {atom_codes(Fragment, Codes)}.
+  dcg_atom(*(ifragment_), Fragment).
 
-ifragment_code(Code) --> ipchar(Code).
-ifragment_code(0'/) --> "/".
-ifragment_code(0'?) --> "?".
+ifragment_(Code) -->
+  ipchar(Code).
+ifragment_(0'/) --> "/".
+ifragment_(0'?) --> "?".
 
 
 
@@ -141,7 +138,7 @@ ifragment_code(0'?) --> "?".
 
 
 
-%! ihost(-Host:atom)// is det.
+%! ihost(-Host:term)// is det.
 %
 % ```abnf
 % ihost = IP-literal / IPv4address / ireg-name
@@ -166,36 +163,36 @@ ihost(Host) -->
 %       / ipath-empty      ; zero characters
 % ```
 
-% Begins with "/" or is empty.
+% begins with "/" or is empty
 ipath(Segments) -->
   'ipath-abempty'(Segments), !.
-% Begins with "/" but not "//".
+% begins with "/" but not "//"
 ipath(Segments) -->
   'ipath-absolute'(Segments), !.
-% Begins with a non-colon segment
+% begins with a non-colon segment
 ipath(Segments) -->
   'ipath-noscheme'(Segments), !.
-% Begins with a segment
+% begins with a segment
 ipath(Segments) -->
   'ipath-rootless'(Segments), !.
-% Empty path (i.e., no segments).
+% empty path (i.e., no segments)
 ipath(Segments) -->
   'ipath-empty'(Segments).
 
 
 
-%! 'ipath-abempty'(-Segments:list(atom))// is det.
+%! 'ipath-abempty'(?Segments:list(atom))// .
 %
 % ```abnf
 % ipath-abempty = *( "/" isegment )
 % ```
 
 'ipath-abempty'(Segments) -->
-  *(sep_isegment, Segments), !.
+  *(sep_isegment, Segments).
 
 
 
-%! 'ipath-absolute'(-Segments:list(atom))// is det.
+%! 'ipath-absolute'(?Segments:list(atom))// .
 %
 % ```abnf
 % ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
@@ -207,7 +204,7 @@ ipath(Segments) -->
 
 
 
-%! 'ipath-empty'(-Segments:list(atom))// is det.
+%! 'ipath-empty'(?Segments:list(atom))// .
 %
 % ```abnf
 % ipath-empty = 0<ipchar>
@@ -217,7 +214,7 @@ ipath(Segments) -->
 
 
 
-%! 'ipath-noscheme'(-Segments:list(atom))// is det.
+%! 'ipath-noscheme'(?Segments:list(atom))// .
 %
 % ```abnf
 % ipath-noscheme = isegment-nz-nc *( "/" isegment )
@@ -229,7 +226,7 @@ ipath(Segments) -->
 
 
 
-%! 'ipath-rootless'(-Segments:list(atom))// is det.
+%! 'ipath-rootless'(?Segments:list(atom))// .
 %
 % ```abnf
 % ipath-rootless = isegment-nz *( "/" isegment )
@@ -241,7 +238,7 @@ ipath(Segments) -->
 
 
 
-%! ipchar(-Code:code)// .
+%! ipchar(?Code:code)// .
 %
 % ```abnf
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
@@ -258,7 +255,7 @@ ipchar(Code) -->
 
 
 
-%! iprivate(-Code:code)// .
+%! iprivate(?Code:code)// .
 %
 % ```abnf
 % iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
@@ -273,38 +270,39 @@ iprivate(Code) -->
 
 
 
-%! iquery(-Query:atom)// is det.
+%! iquery(?Query:atom)// .
 %
 % ``abnf
 % iquery = *( ipchar / iprivate / "/" / "?" )
 % ```
 
 iquery(Query) -->
-  *(iquery_code, Codes), !,
-  {atom_codes(Query, Codes)}.
+  dcg_atom(*(iquery_), Query).
 
-iquery_code(Code)   -->
+iquery_(Code)   -->
   iprivate(Code).
-iquery_code(0'/) --> "/".
-iquery_code(0'?) --> "?".
-iquery_code(Code)   -->
+iquery_(0'/) --> "/".
+iquery_(0'?) --> "?".
+iquery_(Code)   -->
   ipchar(Code).
 
 
 
-%! 'ireg-name'(-Host:atom)// is det.
+%! 'ireg-name'(?Host:atom)// .
 %
 % ```abnf
 % ireg-name = *( iunreserved / pct-encoded / sub-delims )
 % ```
 
 'ireg-name'(Host) -->
-  *(ireg_name_code, Codes), !,
-  {atom_codes(Host, Codes)}.
+  dcg_atom(*(ireg_name_), Host).
 
-ireg_name_code(Code) --> iunreserved(Code).
-ireg_name_code(Code) --> 'sub-delims'(Code).
-ireg_name_code(Code) --> 'pct-encoded'(Code).
+ireg_name_(Code) -->
+  iunreserved(Code).
+ireg_name_(Code) -->
+  'sub-delims'(Code).
+ireg_name_(Code) -->
+  'pct-encoded'(Code).
 
 
 
@@ -377,7 +375,7 @@ ireg_name_code(Code) --> 'pct-encoded'(Code).
 
 
 
-%! isegment(-Segment:atom)// .
+%! isegment(?Segment:atom)// .
 %
 % ```abnf
 % isegment = *ipchar
@@ -388,7 +386,7 @@ isegment(Segment) -->
 
 
 
-%! 'isegment-nz'(-Segment:atom)// .
+%! 'isegment-nz'(?Segment:atom)// .
 %
 % ```abnf
 % isegment-nz = 1*ipchar
@@ -399,7 +397,7 @@ isegment(Segment) -->
 
 
 
-%! 'isegment-nz-nc'(-Segment:atom)// .
+%! 'isegment-nz-nc'(?Segment:atom)// .
 %
 % ```abnf
 % isegment-nz-nc = 1*( iunreserved / pct-encoded / sub-delims / "@" )
@@ -407,7 +405,7 @@ isegment(Segment) -->
 % ```
 
 'isegment-nz-nc'(Segment) -->
-  dcg_atom(+('isegment-nz_nc_', Segment).
+  dcg_atom(+('isegment-nz-nc_'), Segment).
 
 'isegment-nz-nc_'(Code) -->
   iunreserved(Code).
@@ -419,7 +417,7 @@ isegment(Segment) -->
 
 
 
-%! iunreserved(-Code:code)// .
+%! iunreserved(?Code:code)// .
 %
 % ```abnf
 % iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
@@ -432,7 +430,7 @@ iunreserved(Code) -->
 
 
 
-%! iuserinfo(-User:atom)// .
+%! iuserinfo(?User:atom)// .
 %
 % ```abnf
 % iuserinfo = *( iunreserved / pct-encoded / sub-delims / ":" )
@@ -451,7 +449,7 @@ iuserinfo_(Code) -->
 
 
 
-%! ucschar(-Code:code)// .
+%! ucschar(?Code:code)// .
 %
 % ```abnf
 % ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
@@ -503,7 +501,7 @@ ucschar(Code) -->
 
 % HELPERS %
 
-%! sep_isegment(-Segment)// is det.
+%! sep_isegment(?Segment:list)// .
 
 sep_isegment(Segment) -->
   "/",

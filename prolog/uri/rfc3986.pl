@@ -14,7 +14,6 @@
     query//1,           % -Query
     'relative-part'//2, % -Authority, -Segments
     scheme//1,          % -Scheme
-    scheme_code//1,     % -Code
     segment//1,         % -Segment
     'segment-nz'//1,    % -Segment
     'sub-delims'//1 ,   % -Code
@@ -24,6 +23,7 @@
     'URI-reference'//2  % ?BaseUri, ?Uri
   ]
 ).
+:- reexport(library(dcg/rfc5234)).
 
 /** <module> RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
 
@@ -97,45 +97,57 @@ authority(auth(User,Host,Port)) -->
 %           / "25" %x30-35        ; 250-255
 % ```
 
-'dec-octet'(D) -->
+'dec-octet'(Octet) -->
   "25",
-  [C], {between(0x30, 0x35, C)}, !,
-  {D3 is C - 0x30, integer_weights(D, [2,5,D3])}.
-'dec-octet'(D) -->
+  [Code],
+  {
+    between(0x30, 0x35, Code), !,
+    Digit3 is Code - 0x30,
+    integer_weights(Octet, [2,5,Digit3])
+  }.
+'dec-octet'(Octet) -->
   "2",
-  [C], {between(0x30, 0x34, C), !, D2 is C - 0x30},
-  digit_weight(D3), !,
-  {integer_weights(D, [2,D2,D3])}.
-'dec-octet'(D) -->
+  [Code],
+  {
+    between(0x30, 0x34, Code), !,
+    Digit2 is Code - 0x30
+  },
+  digit_weight(Digit3),
+  {integer_weights(Octet, [2,Digit2,Digit3])}.
+'dec-octet'(Octet) -->
   "1",
-  #(2, digit_weight, [D2,D3]), !,
-  {integer_weights(D, [1,D2,D3])}.
-'dec-octet'(D) -->
-  [C], {between(0x31, 0x39, C), D1 is C - 0x30},
-  digit_weight(D2),
-  {D is D1 * 10 + D2}.
-'dec-octet'(D) -->
-  digit_weight(D).
+  #(2, digit_weight, [Digit2,Digit3]), !,
+  {integer_weights(Octet, [1,Digit2,Digit3])}.
+'dec-octet'(Octet) -->
+  [Code],
+  {
+    between(0x31, 0x39, Code),
+    Digit1 is Code - 0x30
+  },
+  digit_weight(Digit2),
+  {Octet is Digit1 * 10 + Digit2}.
+'dec-octet'(Octet) -->
+  digit_weight(Octet).
 
 
 
-%! fragment(-Fragment:atom)// is det.
+%! fragment(?Fragment:atom)// .
 %
 % ```anbf
 % fragment = *( pchar / "/" / "?" )
 % ```
 
 fragment(Fragment) -->
-  *(fragment_code, Cs), !,
-  {atom_codes(Fragment, Cs)}.
+  dcg_atom(*(fragment_), Fragment).
 
-fragment_code(C)   --> pchar(C).
-fragment_code(0'/) --> "/".
-fragment_code(0'?) --> "?".
+fragment_(Code) -->
+  pchar(Code).
+fragment_(0'/) --> "/".
+fragment_(0'?) --> "?".
 
 
 
-%! 'gen-delims'(-Code:code)// .
+%! 'gen-delims'(?Code:code)// .
 %
 % ```abnf
 % gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
@@ -234,15 +246,8 @@ host(Name) -->
 % IPv4address = dec-octet "." dec-octet "." dec-octet "." dec-octet
 % ```
 
-'IPv4address'([I1,I2,I3,I4]) -->
-  'dec-octet'(I1),
-  ".",
-  'dec-octet'(I2),
-  ".",
-  'dec-octet'(I3),
-  ".",
-  'dec-octet'(I4),
-  ".".
+'IPv4address'(Address) -->
+  #&(4, 'dec-octet', ".", Address).
 
 
 
@@ -270,7 +275,9 @@ host(Name) -->
 'IPv6address'(L) --> ('*n'(5, 'h16:', L1), h16(X) ; ""), "::", h16(Y),                    {append(L1, [X,Y], L)}.
 'IPv6address'(L) --> ('*n'(6, 'h16:', L1), h16(X) ; ""), "::",                            {append(L1, [X], L)}.
 
-'h16:'(I) --> h16(I), ":".
+'h16:'(I) -->
+  h16(I),
+  ":".
 
 
 
@@ -285,12 +292,13 @@ host(Name) -->
   +(xdigit, Weights), !,
   {integer_weights(Version, 16, Weights)},
   ".",
-  +(ipv_future_code, Cs), !,
-  {atom_codes(Address, Cs)}.
+  dcg_atom(+('IPv_future_'), Address).
 
-ipv_future_code(C)   --> unreserved(C).
-ipv_future_code(C)   --> 'sub-delims'(C).
-ipv_future_code(0':) --> ":".
+'IPv_future_'(Code) -->
+  unreserved(Code).
+'IPv_future_'(Code) -->
+  'sub-delims'(Code).
+'IPv_future_'(0':) --> ":".
 
 
 
@@ -320,15 +328,20 @@ ls32(Ns) -->
 % ```
 
 % Begins with "/" or is empty.
-path(Segments) --> 'path-abempty'(Segments), !.
+path(Segments) -->
+  'path-abempty'(Segments), !.
 % Begins with "/" but not "//".
-path(Segments) --> 'path-absolute'(Segments), !.
+path(Segments) -->
+  'path-absolute'(Segments), !.
 % Begins with a non-colon segment
-path(Segments) --> 'path-noscheme'(Segments), !.
+path(Segments) -->
+  'path-noscheme'(Segments), !.
 % Begins with a segment
-path(Segments) --> 'path-rootless'(Segments), !.
+path(Segments) -->
+  'path-rootless'(Segments), !.
 % Empty path (i.e., no segments).
-path(Segments) --> 'path-empty'(Segments).
+path(Segments) -->
+  'path-empty'(Segments).
 
 
 
@@ -338,8 +351,8 @@ path(Segments) --> 'path-empty'(Segments).
 % path-abempty = *( "/" segment )
 % ```
 
-'path-abempty'(L) -->
-  *(sep_segment, L), !.
+'path-abempty'(Segments) -->
+  *(sep_segment, Segments), !.
 
 
 
@@ -389,15 +402,18 @@ path(Segments) --> 'path-empty'(Segments).
 
 
 
-%! pchar(-Code:code)// .
+%! pchar(?Code:code)// .
 %
 % ```abnf
 % pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
 
-pchar(C)   --> unreserved(C).
-pchar(C)   --> 'pct-encoded'(C).
-pchar(C)   --> 'sub-delims'(C).
+pchar(Code) -->
+  unreserved(Code).
+pchar(Code) -->
+  'pct-encoded'(Code).
+pchar(Code) -->
+  'sub-delims'(Code).
 pchar(0':) --> ":".
 pchar(0'@) --> "@".
 
@@ -412,11 +428,11 @@ pchar(0'@) --> "@".
 % pct-encoded = "%" HEXDIG HEXDIG
 % ```
 
-'pct-encoded'(C) -->
+'pct-encoded'(Code) -->
   "%",
   xdigit(H1),
   xdigit(H2),
-  {C is H1 * 16 + H2}.
+  {Code is H1 * 16 + H2}.
 
 
 
@@ -438,20 +454,18 @@ port(Port) -->
 % query = *( pchar / "/" / "?" )
 % ```
 
-query(Query) -->
-  *(query_code, Cs), !,
-  {
-    atom_codes(Query, Cs),
-    uri_query_components(Query, Query)
-  }.
+query(QueryComps) -->
+  dcg_atom(*(query_), Query), !,
+  {uri_query_components(Query, QueryComps)}.
 
-query_code(C)   --> pchar(C).
-query_code(0'/) --> "/".
-query_code(0'?) --> "?".
+query_(Code) -->
+  pchar(Code).
+query_(0'/) --> "/".
+query_(0'?) --> "?".
 
 
 
-%! 'reg-name'(-Name:atom)// is det.
+%! 'reg-name'(?Name:atom)// .
 %
 % “Registered name”
 %
@@ -460,12 +474,14 @@ query_code(0'?) --> "?".
 % ```
 
 'reg-name'(Name) -->
-  *(reg_name_code, Cs), !,
-  {atom_codes(Name, Cs)}.
+  dcg_atom(*(reg_name_), Name).
 
-reg_name_code(C) --> unreserved(C).
-reg_name_code(C) --> 'pct-encoded'(C).
-reg_name_code(C) --> 'sub-delims'(C).
+reg_name_(Code) -->
+  unreserved(Code).
+reg_name_(Code) -->
+  'pct-encoded'(Code).
+reg_name_(Code) -->
+  'sub-delims'(Code).
 
 
 
@@ -507,14 +523,16 @@ reg_name_code(C) --> 'sub-delims'(C).
 
 
 
-%! reserved(-Code:code)// .
+%! reserved(?Code:code)// .
 %
 % ```abnf
 % reserved = gen-delims / sub-delims
 % ```
 
-reserved(C) --> 'gen-delims'(C).
-reserved(C) --> 'sub-delims'(C).
+reserved(Code) -->
+  'gen-delims'(Code).
+reserved(Code) -->
+  'sub-delims'(Code).
 
 
 
@@ -529,29 +547,29 @@ reserved(C) --> 'sub-delims'(C).
 
 scheme(Scheme) -->
   alpha(H),
-  *(scheme_code, T), !,
+  *(scheme_, T), !,
   {atom_codes(Scheme, [H|T])}.
 
-scheme_code(C)   --> alphanum(C).
-scheme_code(0'+) --> "+".
-scheme_code(0'-) --> "-".
-scheme_code(0'.) --> ".".
+scheme_(Code) -->
+  alphanum(Code).
+scheme_(0'+) --> "+".
+scheme_(0'-) --> "-".
+scheme_(0'.) --> ".".
 
 
 
-%! segment(-Segment:atom)// is det.
+%! segment(?Segment:atom)// .
 %
 % ```abnf
 % segment = *pchar
 % ```
 
 segment(Segment) -->
-  *(pchar, Cs), !,
-  {atom_codes(Segment, Cs)}.
+  dcg_atom(*(pchar), Segment).
 
 
 
-%! 'segment-nz'(-Segment:atom)// is det.
+%! 'segment-nz'(?Segment:atom)// .
 %
 % Non-empty (nz = non-zero?) segment.
 %
@@ -560,12 +578,11 @@ segment(Segment) -->
 % ```
 
 'segment-nz'(Segment) -->
-  +(pchar, Cs), !,
-  {atom_codes(Segment, Cs)}.
+  dcg_atom(+(pchar), Segment).
 
 
 
-%! 'segment-nz-nc'(-Segment:atom)// is det.
+%! 'segment-nz-nc'(?Segment:atom)// .
 %
 % Non-zero-length segment without any colon.
 %
@@ -574,17 +591,19 @@ segment(Segment) -->
 % ```
 
 'segment-nz-nc'(Segment) -->
-  +(segment_nz_nc_code, Cs), !,
-  {atom_codes(Segment, Cs)}.
+  dcg_atom(+(segment_nz_nc_), Segment).
 
-segment_nz_nc_code(C)   --> unreserved(C).
-segment_nz_nc_code(C)   --> 'pct-encoded'(C).
-segment_nz_nc_code(C)   --> 'sub-delims'(C).
-segment_nz_nc_code(0'@) --> "@".
+segment_nz_nc_(Code) -->
+  unreserved(Code).
+segment_nz_nc_(Code) -->
+  'pct-encoded'(Code).
+segment_nz_nc_(Code) -->
+  'sub-delims'(Code).
+segment_nz_nc_(0'@) --> "@".
 
 
 
-%! 'sub-delims'(-Code:code)// .
+%! 'sub-delims'(?Code:code)// .
 %
 % ```abnf
 % sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
@@ -604,13 +623,14 @@ segment_nz_nc_code(0'@) --> "@".
 
 
 
-%! unreserved(-Code:code)// .
+%! unreserved(?Code:code)// .
 %
 % ```abnf
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-unreserved(C)   --> alphanum(C).
+unreserved(Code) -->
+  alphanum(Code).
 unreserved(0'-) --> "-".
 unreserved(0'.) --> ".".
 unreserved(0'_) --> "_".
@@ -656,7 +676,7 @@ unreserved(0'~) --> "~".
 
 
 
-%! userinfo(-User:atom)// is det.
+%! userinfo(?User:atom)// .
 %
 % # Syntax
 %
@@ -685,13 +705,15 @@ unreserved(0'~) --> "~".
 % has proven to be a security risk.
 
 userinfo(User) -->
-  *(userinfo_code, Cs), !,
-  {atom_codes(User, Cs)}.
+  dcg_atom(*(userinfo_), User).
 
-userinfo_code(C)   --> unreserved(C).
-userinfo_code(C)   --> 'pct-encoded'(C).
-userinfo_code(C)   --> 'sub-delims'(C).
-userinfo_code(0':) --> ":".
+userinfo_(Code) -->
+  unreserved(Code).
+userinfo_(Code) -->
+  'pct-encoded'(Code).
+userinfo_(Code) -->
+  'sub-delims'(Code).
+userinfo_(0':) --> ":".
 
 
 
