@@ -45,9 +45,10 @@
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986), [
-     host//1,  % -Host
-     port//1,  % -Port
-     scheme//1 % -Scheme
+     host//1,    % -Host
+     port//1,    % -Port
+     scheme//1,  % -Scheme
+     uri_port//2 % ?Scheme, ?Port
    ]).
 :- use_module(library(uuid)).
 
@@ -235,4 +236,4 @@ ows --> 'obs-fold'.
   scheme(Scheme),
   "://",
   host(Host),
-  (":" -> port(Port) ; {uri:default_port(Scheme, Port)}).
+  uri_port(Scheme, Port).

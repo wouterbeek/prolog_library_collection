@@ -84,18 +84,18 @@
 
 
 
-%! iauthority(+Scheme:atom, -Authority:compound)// is det.
+%! iauthority(?Scheme:atom, -Authority:compound)// is det.
 %
 % ```abnf
 % iauthority = [ iuserinfo "@" ] ihost [ ":" port ]
 % ```
 
 iauthority(Scheme, auth(User,_,Host,Port)) -->
-  (iuserinfo(User) -> "@" ; ""),
+  (iuserinfo(User), "@" ; ""),
   ihost(Host), !,
   % If the port subcomponent is empty or not given, TCP port 80 (the
   % reserved port for WWW services) is the default.
-  (":" -> port(Port) ; {uri:default_port(Scheme, Port)}).
+  uri_port(Scheme, Port).
 
 
 
@@ -115,7 +115,7 @@ ifragment_(0'?) --> "?".
 
 
 
-%! 'ihier-part'(+Scheme:atom, -Authority:compound,
+%! 'ihier-part'(?Scheme:atom, -Authority:compound,
 %!              -Segments:list(atom))// is det.
 %
 % ```abnf
@@ -199,6 +199,7 @@ ipath(Segments) -->
 % ```
 
 'ipath-absolute'(L) -->
+  {gtrace},
   "/",
   ('isegment-nz'(H) -> *(sep_isegment, T), !, {L = [H|T]} ; {L = []}).
 
@@ -306,7 +307,7 @@ ireg_name_(Code) -->
 
 
 
-%! 'irelative-part'(+Scheme:atom, -Authority:compound,
+%! 'irelative-part'(?Scheme:atom, -Authority:compound,
 %!                  -Segments:list(atom))// is det.
 %
 % ```abnf

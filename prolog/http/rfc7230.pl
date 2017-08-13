@@ -2,44 +2,44 @@
   rfc7230,
   [
     '##'//1,               % :Dcg_0
-    '##'//2,               % :Dcg_1, ?Args
+    '##'//2,               % :Dcg_1, ?Arguments
     '+##'//1,              % :Dcg_0
-    '+##'//2,              % :Dcg_1, ?Args
+    '+##'//2,              % :Dcg_1, ?Arguments
     '*##'//1,              % :Dcg_0
-    '*##'//2,              % :Dcg_1, ?Args
+    '*##'//2,              % :Dcg_1, ?Arguments
     '##n'//2,              % ?High, :Dcg_0
-    '##n'//3,              % ?High, :Dcg_1, ?Args
+    '##n'//3,              % ?High, :Dcg_1, ?Arguments
     'm##'//2,              % ?Low, :Dcg_0
-    'm##'//3,              % ?Low, :Dcg_1, ?Args
+    'm##'//3,              % ?Low, :Dcg_1, ?Arguments
     'm##n'//3,             % ?Low, ?High, :Dcg_0
-    'm##n'//4,             % ?Low, ?High, :Dcg_1, ?Args
+    'm##n'//4,             % ?Low, ?High, :Dcg_1, ?Arguments
     'BWS'//0,
-    comment//1,            % -Comment:string
-    'field-name'//1,       % -Name:atom
-    'HTTP-message'//1,     % -Message:compound
+    comment//1,            % -Comment
+    'field-name'//1,       % -Name
+    'HTTP-message'//1,     % -Message
     http_sep//0,
     http_sep//1,           % +Code
-    method//1,             % -Method:atom
+    method//1,             % -Method
     'obs-text'//1,         % -Code:code
     'OWS'//0,
-    'partial-URI'//1,      % -Uri:atom
-    pseudonym//1,          % -Pseudonym:atom
-    'quoted-string'//1,    % -String:atom
+    'partial-URI'//1,      % -Uri
+    pseudonym//1,          % -Pseudonym
+    'quoted-string'//1,    % -String
     'RWS'//0,
-    token//1,              % -Token:atom
-    'transfer-encoding'//1 % -TransferCodings:list(dict)
+    token//1,              % -Token
+    'transfer-encoding'//1 % -TransferCodings
   ]
 ).
 :- reexport(library(dcg/rfc5234)).
 :- reexport(library(uri/rfc3986), [
      'absolute-URI'//1,
-     authority//1,
+     authority//2,
      fragment//1,
      host//1 as 'uri-host',
      'path-abempty'//1,
      port//1,
      query//1,
-     'relative-part'//2,
+     'relative-part'//3,
      scheme//1,
      segment//1,
      'URI-reference'//1
@@ -50,7 +50,7 @@
 @author Wouter Beek
 @compat RFC 7230
 @see https://tools.ietf.org/html/rfc7230
-@version 2017/05-2017/06, 2017/08
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -68,12 +68,12 @@
     http:http_separable/1.
 
 :- meta_predicate
-    '##'(//, ?, ?),
-    '##'(3, ?, ?, ?),
-    '+##'(//, ?, ?),
-    '+##'(3, ?, ?, ?),
-    '*##'(//, ?, ?),
-    '*##'(3, ?, ?, ?),
+    ##(//, ?, ?),
+    ##(3, ?, ?, ?),
+    +##(//, ?, ?),
+    +##(3, ?, ?, ?),
+    *##(//, ?, ?),
+    *##(3, ?, ?, ?),
     '##n'(?, //, ?, ?),
     '##n'(?, 3, ?, ?, ?),
     'm##'(?, //, ?, ?),
@@ -91,68 +91,68 @@
 
 
 
-%! '##'(:Dcg_0)// .
-%! '##'(:Dcg_1, ?Args:list)// .
+%! ##(:Dcg_0)// .
+%! ##(:Dcg_1, ?Arguments:list)// .
 
-'##'(Dcg_0) -->
+##(Dcg_0) -->
   'm##n'(_, _, Dcg_0).
 
 
-'##'(Dcg_1, Args) -->
-  'm##n'(_, _, Dcg_1, Args).
+##(Dcg_1, Arguments) -->
+  'm##n'(_, _, Dcg_1, Arguments).
 
 
 
-%! '+##'(:Dcg_0)// .
-%! '+##'(:Dcg_1, ?Args:list)// .
+%! +##(:Dcg_0)// .
+%! +##(:Dcg_1, ?Arguments:list)// .
 
-'+##'(Dcg_0) -->
++##(Dcg_0) -->
   'm##n'(1, _, Dcg_0).
 
 
-'+##'(Dcg_1, Args) -->
-  'm##n'(1, _, Dcg_1, Args).
++##(Dcg_1, Arguments) -->
+  'm##n'(1, _, Dcg_1, Arguments).
 
 
 
-%! '*##'(:Dcg_0)// .
-%! '*##'(:Dcg_1, ?Args:list)// .
+%! *##(:Dcg_0)// .
+%! *##(:Dcg_1, ?Arguments:list)// .
 
-'*##'(Dcg_0) -->
+*##(Dcg_0) -->
   'm##n'(0, _, Dcg_0).
 
 
-'*##'(Dcg_1, Args) -->
-  'm##n'(0, _, Dcg_1, Args).
+*##(Dcg_1, Arguments) -->
+  'm##n'(0, _, Dcg_1, Arguments).
 
 
 
 %! '##n'(?High:nonneg, :Dcg_0)// .
-%! '##n'(?High:nonneg, :Dcg_1, ?Args:list)// .
+%! '##n'(?High:nonneg, :Dcg_1, ?Arguments:list)// .
 
 '##n'(High, Dcg_0) -->
   'm##n'(_, High, Dcg_0).
 
 
-'##n'(High, Dcg_1, Args) -->
-  'm##n'(_, High, Dcg_1, Args).
+'##n'(High, Dcg_1, Arguments) -->
+  'm##n'(_, High, Dcg_1, Arguments).
 
 
 
 %! 'm##'(?Low:nonneg, :Dcg_0)// .
-%! 'm##'(?Low:nonneg, :Dcg_1, ?Args:list)// .
+%! 'm##'(?Low:nonneg, :Dcg_1, ?Arguments:list)// .
 
 'm##'(Low, Dcg_0) -->
   'm##n'(Low, _, Dcg_0).
 
 
-'m##'(Low, Dcg_1, Args) -->
-  'm##n'(Low, _, Dcg_1, Args).
+'m##'(Low, Dcg_1, Arguments) -->
+  'm##n'(Low, _, Dcg_1, Arguments).
 
 
 
 %! 'm##n'(?Low:nonneg, ?High:nonneg, :Dcg_0)// .
-%! 'm##n'(?Low:nonneg, ?High:nonneg, :Dcg_1, ?Args:list)// .
+%! 'm##n'(?Low:nonneg, ?High:nonneg, :Dcg_1, ?Arguments:list)// .
 %
 % ```abnf
 % <n>#<m>element => element <n-1>*<m-1>( OWS "," OWS element )
@@ -164,8 +164,8 @@
   'm*&n'(Low, High, Dcg_0, http_sep).
 
 
-'m##n'(Low, High, Dcg_1, Args) -->
-  'm*&n'(Low, High, Dcg_1, http_sep, Args).
+'m##n'(Low, High, Dcg_1, Arguments) -->
+  'm*&n'(Low, High, Dcg_1, http_sep, Arguments).
 
 
 
@@ -186,9 +186,10 @@
 % absolute-path = 1*( "/" segment )
 % ```
 
-'absolute-path'(Segments) --> +(sep_segment0, Segments).
+'absolute-path'(Segments) -->
+  +(sep_segment_, Segments).
 
-sep_segment0(Segment) -->
+sep_segment_(Segment) -->
   "/",
   segment(Segment).
 
@@ -205,14 +206,14 @@ sep_segment0(Segment) -->
 
 
 
-%! 'authority-form'(-Auth:compound)// .
+%! 'authority-form'(-Authority:compound)// .
 %
 % ```abnf
 % authority-form = authority
 % ```
 
-'authority-form'(Auth) -->
-  authority(Auth).
+'authority-form'(Authority) -->
+  authority(_, Authority).
 
 
 
@@ -239,12 +240,14 @@ sep_segment0(Segment) -->
 
 chunk(chunk(Size,Codes,Extensions)) -->
   'chunk-size'(Size),
-  'chunk-ext'(Extensions), 'CRLF',
-  'chunk-data'(Codes), 'CRLF'.
+  'chunk-ext'(Extensions),
+  'CRLF',
+  'chunk-data'(Codes),
+  'CRLF'.
 
 
 
-%! 'chunk-data'(-Codes:list(code))// .
+%! 'chunk-data'(?Codes:list(code))// .
 %
 % A sequence of chunk-size octets
 %
@@ -253,7 +256,7 @@ chunk(chunk(Size,Codes,Extensions)) -->
 % ```
 
 'chunk-data'(Codes) -->
-  +('OCTET', Codes), !.
+  +('OCTET', Codes).
 
 
 
@@ -264,9 +267,9 @@ chunk(chunk(Size,Codes,Extensions)) -->
 % ```
 
 'chunk-ext'(Extensions) -->
-  *(sep_chunk_ext0, Extensions), !.
+  *('chunk-ext_', Extensions).
 
-sep_chunk_ext0(Extension) -->
+'chunk-ext_'(Extension) -->
   ";",
   'chunk-ext-name'(Key),
   (   "="
@@ -277,7 +280,7 @@ sep_chunk_ext0(Extension) -->
 
 
 
-%! 'chunk-ext-name'(-Name:atom)// .
+%! 'chunk-ext-name'(?Name:atom)// .
 %
 % ```abnf
 % chunk-ext-name = token
@@ -288,16 +291,16 @@ sep_chunk_ext0(Extension) -->
 
 
 
-%! 'chunk-ext-val'(-Val:atom)// .
+%! 'chunk-ext-val'(?Value:atom)// .
 %
 % ```abnf
 % chunk-ext-val = token / quoted-string
 % ```
 
-'chunk-ext-val'(Val) -->
-  token(Val), !.
-'chunk-ext-val'(Val) -->
-  'quoted-string'(Val).
+'chunk-ext-val'(Value) -->
+  token(Value).
+'chunk-ext-val'(Value) -->
+  'quoted-string'(Value).
 
 
 
@@ -313,7 +316,7 @@ sep_chunk_ext0(Extension) -->
 
 
 
-%! 'chunked-body'(-ChunkedBody:)// .
+%! 'chunked-body'(-Chunks:list, -LastChunk, -Headers:list)// .
 %
 % ```abnf
 % chunked-body = *chunk last-chunk trailer-part CRLF
@@ -334,25 +337,25 @@ sep_chunk_ext0(Extension) -->
 % ```
 
 comment(Comment) -->
-  dcg_string(comment_codes1, Comment).
+  dcg_string(comment_1, Comment).
 
-comment_codes1([0'(|T]) -->
-  "(", comment_codes2(T0), ")",
+comment_1([0'(|T]) -->
+  "(", comment_2(T0), ")",
   {append(T0, [0')], T)}.
 
-comment_codes2([H|T]) -->
+comment_2([H|T]) -->
   ctext(H), !,
-  comment_codes2(T).
-comment_codes2([H|T]) -->
+  comment_2(T).
+comment_2([H|T]) -->
   'quoted-pair'(H), !,
-  comment_codes2(T).
-comment_codes2(L) -->
-  comment_codes1(L), !.
-comment_codes2([]) --> "".
+  comment_2(T).
+comment_2(L) -->
+  comment_1(L), !.
+comment_2([]) --> "".
 
 
 
-%! connection(-Opts:list(atom))// .
+%! connection(-Options:list(atom))// .
 %
 % ```abnf
 % 'Connection'(S) --> 1#(connection-option)
@@ -360,19 +363,19 @@ comment_codes2([]) --> "".
 
 http:http_header(connection).
 http:http_separable(connection).
-connection(Opts) -->
-  +##('connection-option', Opts).
+connection(Options) -->
+  +##('connection-option', Options).
 
 
 
-%! 'connection-option'(-Opt)// .
+%! 'connection-option'(?Option:atom)// .
 %
 % ```abnf
 % connection-option = token
 % ```
 
-'connection-option'(Opt) -->
-  token(Opt).
+'connection-option'(Option) -->
+  token(Option).
 
 
 
@@ -397,13 +400,18 @@ http:http_header('content-length').
 % ctext = HTAB | SP | %x21-27 | %x2A-5B | %x5D-7E | obs-text
 % ```
 
-ctext(C) --> 'HTAB'(C).
-ctext(C) --> 'SP'(C).
-ctext(C) --> [C], {(  between(0x21, 0x27, C), !
-                  ;   between(0x2A, 0x5B, C), !
-                  ;   between(0x5D, 0x7E, C)
-                  )}.
-ctext(C) --> 'obs-text'(C).
+ctext(Code) -->
+  'HTAB'(Code).
+ctext(Code) -->
+  'SP'(Code).
+ctext(Code) -->
+  [Code],
+  {(   between(0x21, 0x27, Code)
+   ;   between(0x2A, 0x5B, Code)
+   ;   between(0x5D, 0x7E, Code)
+  )}.
+ctext(Code) -->
+  'obs-text'(Code).
 
 
 
@@ -471,14 +479,16 @@ ctext(C) --> 'obs-text'(C).
 
 
 
-%! 'field-vchar'(-Code:code)// .
+%! 'field-vchar'(?Code:code)// .
 %
 % ```abnf
 % field-vchar = VCHAR | obs-text
 % ```
 
-'field-vchar'(C) --> 'VCHAR'(C).
-'field-vchar'(C) --> 'obs-text'(C).
+'field-vchar'(Code) -->
+  'VCHAR'(Code).
+'field-vchar'(Code) -->
+  'obs-text'(Code).
 
 
 
@@ -496,7 +506,7 @@ ctext(C) --> 'obs-text'(C).
 
 
 
-%! host(-Auth:compound)// .
+%! host(-Authority:compound)// .
 %
 % ```abnf
 % Host = uri-host [ ":" port ] ; Section 2.7.1
@@ -562,12 +572,12 @@ http_sep(Code) -->
 % http-URI = "http:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
 % ```
 
-'http-URI'(uri(http,Auth,Segments,QueryComps,Frag)) -->
+'http-URI'(uri(http,Authority,Segments,Query,Fragment)) -->
   "http://",
-  authority(Auth),
+  authority(http, Authority),
   'path-abempty'(Segments),
-  ("?" -> query(QueryComps) ; ""),
-  ("#" -> fragment(Frag) ; "").
+  ("?" -> query(Query) ; ""),
+  ("#" -> fragment(Fragment) ; "").
 
 
 
@@ -592,12 +602,12 @@ http_sep(Code) -->
 % https-URI = "https:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
 % ```
 
-'https-URI'(uri(https,Auth,Segments,QueryComps,Frag)) -->
+'https-URI'(uri(https,Authority,Segments,Query,Fragment)) -->
   atom_ci('https://'),
-  authority(Auth),
+  authority(https, Authority),
   'path-abempty'(Segments),
-  ("?" -> query(QueryComps) ; ""),
-  ("#" -> fragment(Frag) ; "").
+  ("?" -> query(Query) ; ""),
+  ("#" -> fragment(Fragment) ; "").
 
 
 
@@ -681,9 +691,9 @@ method(Method) -->
 % origin-form = absolute-path [ "?" query ]
 % ```
 
-'origin-form'(uri(_,_,Segments,QueryComps,_)) -->
+'origin-form'(uri(_,_,Segments,Query,_)) -->
   'absolute-path'(Segments),
-  ("?" -> query(QueryComps) ; {QueryComps = []}).
+  ("?" -> query(Query) ; {Query = []}).
 
 
 
@@ -707,9 +717,9 @@ method(Method) -->
 % ```
 
 'partial-URI'(Uri) -->
-  'relative-part'(Auth, Segments),
+  'relative-part'(_, Authority, Segments),
   ("?" -> query(Query) ; ""),
-  {uri_comps(Uri, uri(_,Auth,Segments,Query,_))}.
+  {uri_comps(Uri, uri(_,Authority,Segments,Query,_))}.
 
 
 

@@ -47,11 +47,7 @@
 
 :- multifile
     http:http_separable/1,
-    http:post_data_hook/3,
-    uri:default_port/2.
-
-uri:default_port(http, 80).
-uri:default_port(https, 443).
+    http:post_data_hook/3.
 
 :- public
     ssl_verify/5.

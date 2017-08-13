@@ -2,7 +2,7 @@
   rfc3986,
   [
     'absolute-URI'//1,  % -Uri
-    authority//1,       % -Authority
+    authority//2,       % ?Scheme, -Authority
     fragment//1,        % -Fragment
     host//1,            % -Host
     'IP-literal'//1,    % -Ip
@@ -12,13 +12,14 @@
     'pct-encoded'//1,   % -Code
     port//1,            % -Port
     query//1,           % -Query
-    'relative-part'//2, % -Authority, -Segments
+    'relative-part'//3, % ?Scheme, -Authority, -Segments
     scheme//1,          % -Scheme
     segment//1,         % -Segment
     'segment-nz'//1,    % -Segment
     'sub-delims'//1 ,   % -Code
     unreserved//1,      % -Code
     'URI'//1,           % -Uri
+    uri_port//2,        % ?Scheme, ?Port
     'URI-reference'//1, % ?Uri
     'URI-reference'//2  % ?BaseUri, ?Uri
   ]
@@ -41,6 +42,7 @@ The following terms are used:
 */
 
 :- use_module(library(dcg/dcg_ext)).
+:- use_module(library(http/http_generic), []).
 :- use_module(library(lists)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri/uri_ext)).
@@ -58,12 +60,12 @@ The following terms are used:
 'absolute-URI'(uri(Scheme,Authority,Segments,Query,_)) -->
   scheme(Scheme),
   ":",
-  'hier-part'(Authority, Segments),
+  'hier-part'(Scheme, Authority, Segments),
   ("?" -> query(Query) ; "").
 
 
 
-%! authority(-Authority:compound)// is det.
+%! authority(?Scheme:atom, -Authority:compound)// is det.
 %
 % # Syntax
 %
@@ -80,10 +82,10 @@ The following terms are used:
 % The authority component determines who has the right to respond
 % authoritatively to requests that target the identified resource.
 
-authority(auth(User,Host,Port)) -->
+authority(Scheme, auth(User,Host,Port)) -->
   (userinfo(User), "@" -> "" ; ""),
   host(Host),
-  (":" -> port(Port) ; "").
+  uri_port(Scheme, Port).
 
 
 
@@ -177,7 +179,8 @@ h16(N) -->
 
 
 
-%! 'hier-part'(-Authority:compound, -Segments:list(atom))// is det.
+%! 'hier-part'(?Scheme:atom, -Authority:compound,
+%!             -Segments:list(atom))// is det.
 %
 % ```abnf
 % hier-part = "//" authority path-abempty
@@ -186,9 +189,9 @@ h16(N) -->
 %           / path-empty
 % ```
 
-'hier-part'(Authority, Segments) -->
+'hier-part'(Scheme, Authority, Segments) -->
   (   "//"
-  ->  authority(Authority),
+  ->  authority(Scheme, Authority),
       'path-abempty'(Segments)
   ;   'path-absolute'(Segments)
   ->  ""
@@ -436,15 +439,18 @@ pchar(0'@) --> "@".
 
 
 
-%! port(-Port:nonneg)// is det.
+%! port(?Port:nonneg)// .
 %
 % ```abnf
 % port = *DIGIT
 % ```
 
 port(Port) -->
-  *(digit_weight, Weights), !,
+  parsing, !,
+  *(digit_weight, Weights),
   {integer_weights(Port, Weights)}.
+port(Port) -->
+  integer(Port).
 
 
 
@@ -485,7 +491,8 @@ reg_name_(Code) -->
 
 
 
-%! 'relative-part'(-Authority:compound, -Segments:list(atom))// is det.
+%! 'relative-part'(?Scheme:atom, -Authority:compound,
+%!                 -Segments:list(atom))// is det.
 %
 % ```abnf
 % relative-part = "//" authority path-abempty
@@ -494,9 +501,9 @@ reg_name_(Code) -->
 %               / path-empty
 % ```
 
-'relative-part'(Authority, Segments) -->
+'relative-part'(Scheme, Authority, Segments) -->
   (   "//"
-  ->  authority(Authority),
+  ->  authority(Scheme, Authority),
       'path-abempty'(Segments)
   ;   'path-absolute'(Segments)
   ->  ""
@@ -517,7 +524,7 @@ reg_name_(Code) -->
 % ```
 
 'relative-ref'(uri(_,Authority,Segments,Query,Fragment)) -->
-  'relative-part'(Authority, Segments),
+  'relative-part'(_, Authority, Segments),
   ("?" -> query(Query) ; ""),
   ("#" -> fragment(Fragment) ; "").
 
@@ -536,7 +543,7 @@ reserved(Code) -->
 
 
 
-%! scheme(-Scheme:atom)// is det.
+%! scheme(?Scheme:atom)// is det.
 %
 % An US-ASCII letter, followed by a sequence consisting of US-ASCII
 % letters, digits, plus, dash, and dot characters.
@@ -546,9 +553,14 @@ reserved(Code) -->
 % ```
 
 scheme(Scheme) -->
+  parsing, !,
   alpha(H),
-  *(scheme_, T), !,
+  *(scheme_, T),
   {atom_codes(Scheme, [H|T])}.
+scheme(Scheme) -->
+  {atom_codes(Scheme, [H|T])},
+  alpha(H),
+  *(scheme_, T).
 
 scheme_(Code) -->
   alphanum(Code).
@@ -647,7 +659,7 @@ unreserved(0'~) --> "~".
 'URI'(uri(Scheme,Authority,Segments,Query,Fragment)) -->
   scheme(Scheme),
   ":",
-  'hier-part'(Authority, Segments),
+  'hier-part'(Scheme, Authority, Segments),
   ("?" -> query(Query) ; ""),
   ("#" -> fragment(Fragment) ; "").
 
@@ -724,3 +736,22 @@ userinfo_(0':) --> ":".
 sep_segment(Segment) -->
   "/",
   segment(Segment).
+
+
+
+%! uri_port(?Scheme:atom, ?Port:nonneg)// .
+
+uri_port(Scheme, Port) -->
+  parsing, !,
+  (   {uri:default_port(Scheme, Port)}
+  ;   ":",
+      port(Port)
+  ).
+uri_port(Scheme, Port) -->
+  {
+    atom(Scheme),
+    uri:default_port(Scheme, Port)
+  }, !.
+uri_port(_, Port) -->
+  ":",
+  port(Port).

@@ -135,7 +135,7 @@ date2(Y, Mo, D) -->
 http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
   host(Host),
-  (":" -> port(Port) ; {uri:default_port(http, Port)}),
+  uri_port(http, Port),
   (abs_path(Segments) -> ("?" -> query(QueryComps) ; "") ; "").
 
 
