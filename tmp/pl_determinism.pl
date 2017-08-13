@@ -93,7 +93,7 @@ mode_term_to_determinism(_, nondet).
 % True if elements of List joined together with xfy operator Op gives
 % Term. Usable in all directions.
 %
-% ### Example
+% # Example
 %
 % ```prolog
 % ?- xfy_list(',', (a,b,c), L).

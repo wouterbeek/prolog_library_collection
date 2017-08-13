@@ -76,7 +76,7 @@
 
 Extra arithmetic operations for use in SWI-Prolog.
 
-### Library `apply`
+# Library `apply`
 
 Notice that many arithmetic operations can be defined with `library(apply)`.
 
@@ -129,7 +129,7 @@ X = -6.
 % @throws instantiation_error
 % @throws type_error
 %
-% ### Examples
+% # Examples
 %
 % ```prolog
 % ?- absolute(1, Y).
@@ -143,7 +143,7 @@ X = -6.
 % X = -1.
 % ```
 %
-% ### CLP(FD)
+% # CLP(FD)
 %
 % The integer version of this predicate could have been written
 % in CLP(FD):

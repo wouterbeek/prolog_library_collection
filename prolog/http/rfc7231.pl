@@ -56,7 +56,7 @@ http:http_header(accept).
 http:http_separable(accept).
 accept(MediaTypes) -->
   parsing, !,
-  ##(accept_value0, Pairs), !,
+  *##(accept_value0, Pairs), !,
   {sort(1, @>=, Pairs, MediaTypes)}.
 accept(MediaTypes1) -->
   {
@@ -65,7 +65,7 @@ accept(MediaTypes1) -->
     Delta is (1.0 - 0.001) / Len,
     weight_pairs0(MediaTypes2, 0.001, Delta, Pairs)
   },
-  ##(accept_value0, Pairs), !.
+  *##(accept_value0, Pairs), !.
 
 weight_pairs0([], _, _, []) :- !.
 weight_pairs0([H|T1], N1, Len, [N1-H|T2]) :-

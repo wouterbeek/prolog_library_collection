@@ -93,7 +93,7 @@ directly_before0(L, Before, After) :-
 %
 % List L is a combination of items from the lists Ls.
 %
-% ## Example
+% # Example
 %
 % ```
 % ?- combination([[1,2,3],[4,5]], C).
@@ -206,7 +206,7 @@ first([H|_], H).
 % Succeeds if FirstDuplicate is the first term that appears twice in
 % List when reading from left to right.
 %
-% ### Use of dif/2
+% # Use of dif/2
 %
 % The following naive implementation:
 %
@@ -400,7 +400,7 @@ nth1chk(I, L, E, Rest) :-
 
 %! remove_sublists(+Ls1, -Ls2) is det.
 %
-% ### Example
+% # Example
 %
 % ```prolog
 % ?- remove_sublists([[a],[a,b],[a,b]], Ls).
@@ -420,7 +420,7 @@ remove_sublists(Ls, Ls).
 %
 % Performs rather advanced in-list replacements.
 %
-% ## Examples
+% # Examples
 %
 % Consecutive applications:
 % ```

@@ -46,7 +46,6 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 * moriarty has quit (Ping timeout: 246 seconds)
 <wbeek> ski : I don't see immediately why in the last clause the line `E=[F|G]` is needed, since `E` and `G` must be lists.
 <wbeek> Is there an example of a non-steadfast substitution for `C` that would indeed cause a problem here?
-* michael_lee (~michael_l@222.90.49.113) has joined ##prolog
 <ski> hm, i don't follow "I don't see immediately why in the last clause the line `E=[F|G]` is needed, since `E` and `G` must be lists"
 <ski> for non-steadfastness, assume that `E' is given in the last clause, and that, somehow, the recursive call there weren't steadfast. then moving `E=[F|G]' before the recursive call would provide the recursive call with more information (and so non-steadfastness might get us into trouble)
 <ski> of course, one could argue in general about whether it's the "provide more info" or "provide less info" that's the proper use of a given non-steadfast predicate
@@ -55,11 +54,9 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 <ski> and providing more info than expected in an "output" argument is exactly the usual non-steadfastness pitfall
 <wbeek> ski : ok, now I understand
 * edoop has quit (Quit: This computer has gone to sleep)
-* michael_lee (~michael_l@222.90.49.113) has joined ##prolog
 * like-a-boss has quit (Quit: leaving)
 <ski> generally, we'd prefer to move the pushback before the last call, due to last-call-optimization concerns, as you say
 <ski> but it seems hard in the general presense of non-steadfastness
-* like-a-boss (~nekro@89-64-212-152.dynamic.chello.pl) has joined ##prolog
 <ski> perhaps one could change the semantics of pushbash lists, and declare that its unification will happen before the last call, possibly even before any calls in the body (so that if you want it to happen after the last call, you have to explicitly add an auxilary call after it. that wouldn't be hard)
 <ski> (maybe placing it just before the last call would be nicer. but then one'd need to decide how to handle `p,[a] --> ( q,r ; s ).' e.g.)
 <ski> also, with the SWI DCG feature of allowing a variable pushback goal (`ToDCG' above), one could ask whether that should also be moved then (and to the start, or just before the last call)  ? or only unifications get moved ?
@@ -92,7 +89,6 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 <ski> (later compiler phases might remove such goals anyway, but iirc it already goes to some effort to avoid generating such needless trivial goals, so why not here as well ? mayhaps i misremember of the "already goes to some effort")
 <ski> wbeek : yea
 <ski> btw, regarding the predicate itself, it's not clear to me why you have included the first clause
-* Saizan_ (~saizan@li265-65.members.linode.com) has joined ##prolog
 <wbeek> Indeed if I use the above predicate (not using DCG notation) it works the way I wanted it to.
 <ski> it would seem more uniform to me to let `FromDCG' and `ToDCG' decide whether or not the call should be able to generate tokens out of an empty list (or alternatively backwards generate tokens out of an empty list)
 <ski> also, i think your first clause there could mean dcg_replace/4 isn't steadfast ;)
@@ -103,8 +99,6 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 * JuanDaugherty has quit (*.net *.split)
 * Saizan has quit (*.net *.split)
 <ski> hmm
-* JuanDaugherty (~juand@cpe-198-255-198-157.buffalo.res.rr.com) has joined ##prolog
-* oleo (~oleo@xdsl-78-35-133-3.netcologne.de) has joined ##prolog
 <wbeek> The first clause is indeed there for the empty list. But I do acknowledge that for some applications this would not be ideal, e.g. having `ToDCG` writing something to demarcate the end of the input list is reached.
 <ski> i suppose if `FromDCG' can materialize solutions, while consuming zero tokens (and perhaps producing some), then we could potentially apply it an infinite number of times in the replacement process
 <ski> which is probably why you wrote the first clause
@@ -116,12 +110,10 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 <ski> (to clarify, it's the special treatment of "end of input list" in parsing which i'm opposed to)
 <ski> (s/, anyway/ on principle, anyway/)
 * Saizan_ is now known as Saizan
-* RLa (~RL@82.131.41.255.cable.starman.ee) has joined ##prolog
 * opticdelusion has quit (Ping timeout: 246 seconds)
 <ski> wbeek : anyway, i think the basic problem here is similar to the one for append/2
 <ski> namely, consider (hypothetical, not in order)
 <ski>   ?- append(Lists,[a,b]).
-* opticdelusion (~opticdelu@p57BB876C.dip0.t-ipconnect.de) has joined ##prolog
 <ski>   Lists = [[a,b]] ;
 <ski>   Lists = [[],[a,b]] ;
 <ski>   Lists = [[a],[b]] ;
@@ -134,7 +126,6 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 <ski>   Lists = [[a,b],[],[]] ;
 <ski>   ...
 <ski> there an infinite number of empty lists one could insert, to make the concatenation of the resulting list be the original list
-* michael_lee (~michael_l@222.90.49.113) has joined ##prolog
 <wbeek> Yes, so `FromDCG` should process at least one more code than it consumes?
 <wbeek> "consumes" should be "generates" :-(
 <wbeek> typo
@@ -148,9 +139,7 @@ Is it possible to use DCG pushback lists in order to replace occurrences of an a
 <ski> actually checking whether input tokens is `[]' wouldn't be enough
 <ski> that would only prohibit it from being run at the end of input
 <ski> hm
-* michael_lee (~michael_l@222.90.49.113) has joined ##prolog
 <ski> to detect it, you'd want to check that `C' isn't some tail part of `G', i suppose
-* j_wright (~jwright@unaffiliated/j-wright/x-9145068) has joined ##prolog
 <ski> if you could detect that, you could just opt to fail in that case, effectively removing the "nullable" solutions of `ToDCG'
 <ski> hrm .. actually, sorry. i just realized i've been talking about `ToDCG' for a while (since "so, i think one could argue along ...", i think) when i meant `FromDCG'
 <ski> (and perhaps one'd also want to do something similar for `ToDCG' (in addition to `FromDCG' above), considering the "converse transforming" mode)

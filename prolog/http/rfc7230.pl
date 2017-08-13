@@ -1,18 +1,10 @@
 :- module(
   rfc7230,
   [
-    '##'//1,               % :Dcg_0
-    '##'//2,               % :Dcg_1, ?Arguments
     '+##'//1,              % :Dcg_0
     '+##'//2,              % :Dcg_1, ?Arguments
     '*##'//1,              % :Dcg_0
     '*##'//2,              % :Dcg_1, ?Arguments
-    '##n'//2,              % ?High, :Dcg_0
-    '##n'//3,              % ?High, :Dcg_1, ?Arguments
-    'm##'//2,              % ?Low, :Dcg_0
-    'm##'//3,              % ?Low, :Dcg_1, ?Arguments
-    'm##n'//3,             % ?Low, ?High, :Dcg_0
-    'm##n'//4,             % ?Low, ?High, :Dcg_1, ?Arguments
     'BWS'//0,
     comment//1,            % -Comment
     'field-name'//1,       % -Name
@@ -68,16 +60,10 @@
     http:http_separable/1.
 
 :- meta_predicate
-    ##(//, ?, ?),
-    ##(3, ?, ?, ?),
     +##(//, ?, ?),
     +##(3, ?, ?, ?),
     *##(//, ?, ?),
     *##(3, ?, ?, ?),
-    '##n'(?, //, ?, ?),
-    '##n'(?, 3, ?, ?, ?),
-    'm##'(?, //, ?, ?),
-    'm##'(?, 3, ?, ?, ?),
     'm##n'(?, ?, //, ?, ?),
     'm##n'(?, ?, 3, ?, ?, ?),
     'field-content'(3, -, ?, ?),
@@ -88,18 +74,6 @@
     http:http_separable/1.
 
 
-
-
-
-%! ##(:Dcg_0)// .
-%! ##(:Dcg_1, ?Arguments:list)// .
-
-##(Dcg_0) -->
-  'm##n'(_, _, Dcg_0).
-
-
-##(Dcg_1, Arguments) -->
-  'm##n'(_, _, Dcg_1, Arguments).
 
 
 
@@ -124,30 +98,6 @@
 
 *##(Dcg_1, Arguments) -->
   'm##n'(0, _, Dcg_1, Arguments).
-
-
-
-%! '##n'(?High:nonneg, :Dcg_0)// .
-%! '##n'(?High:nonneg, :Dcg_1, ?Arguments:list)// .
-
-'##n'(High, Dcg_0) -->
-  'm##n'(_, High, Dcg_0).
-
-
-'##n'(High, Dcg_1, Arguments) -->
-  'm##n'(_, High, Dcg_1, Arguments).
-
-
-
-%! 'm##'(?Low:nonneg, :Dcg_0)// .
-%! 'm##'(?Low:nonneg, :Dcg_1, ?Arguments:list)// .
-
-'m##'(Low, Dcg_0) -->
-  'm##n'(Low, _, Dcg_0).
-
-
-'m##'(Low, Dcg_1, Arguments) -->
-  'm##n'(Low, _, Dcg_1, Arguments).
 
 
 

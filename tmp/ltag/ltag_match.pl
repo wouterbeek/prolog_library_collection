@@ -41,10 +41,9 @@ Registry.
 
 
 
-%! extended_filtering(
-%!   +LanguagePriorityList:list(atom),
-%!   +LanguageTag:atom
-%! ) is semidet.
+%! extended_filtering(+LanguagePriorityList:list(atom),
+%!                    +LanguageTag:atom) is semidet.
+%
 % Compares extended language ranges to language tags.
 %
 % Subtags not specified, including those at the end of the language range,
@@ -55,7 +54,7 @@ Registry.
 % In addition, extended filtering selects language tags that contain any
 % intermediate subtags not specified in the language range.
 %
-% ### Example
+% # Example
 %
 % `de-*-DE` or `de-DE` matches all of the following tags:
 %

@@ -216,7 +216,7 @@
 %  they are used to escape blocks of text containing characters which would
 %  otherwise be recognized as markup.
 %
-% ### Example
+% # Example
 %
 % ```xml
 % <![CDATA[<greeting>Hello, world!</greeting>]]>

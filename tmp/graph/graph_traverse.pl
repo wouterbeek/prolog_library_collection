@@ -172,7 +172,7 @@ traverse(G2Es_2, V2N_3, G, V, W, Vs, Es, Hist, Options1):-
 %! ) is nondet.
 % Lets travel through graph land!
 %
-% ### Definitions
+% # Definitions
 %
 % A **walk** is an alternating sequence of vertices and edges,
 % starting and ending in a vertex.
@@ -207,7 +207,7 @@ traverse(G2Es_2, V2N_3, G, V, W, Vs, Es, Hist, Options1):-
 % Options = [every_edge(true),distinct_edges(true)]
 % ```
 %
-% ### Options
+% # Options
 %
 % The following options are supported:
 %   1.  `debug(+boolean)`

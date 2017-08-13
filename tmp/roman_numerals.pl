@@ -23,7 +23,7 @@
 % Symbols are placed from left to right in order of value
 % (from largest to lowest).
 %
-% ### Subtractive notation
+% # Subtractive notation
 %
 % Subtractive notation can be set with the option
 % `subtractive_notation(+boolean)` (default: `true`)
@@ -33,7 +33,7 @@
 %   - X can be placed before L and C to make 40 (XL) and 90 (XC) respectively.
 %   - C can be placed before D and M to make 400 (CD) and 900 (CM).
 %
-% ### Case
+% # Case
 %
 % Option `case(+oneof([lower,upper]))` (default `upper`)
 % is used to set the case of the roman digits.

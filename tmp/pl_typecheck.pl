@@ -10,7 +10,7 @@
 
 Adds typechecking to Prolog predicates that are documented in plDoc.
 
-## Type system semantics
+# Type system semantics
 
 If the type is missing, we use `any`.
 `?` is treated as `-`.
@@ -256,7 +256,7 @@ read_mode_terms(_, []).
 % True if elements of List joined together with xfy operator Op gives
 % Term. Usable in all directions.
 %
-% ### Example
+% # Example
 %
 % ```prolog
 % ?- xfy_list(',', (a,b,c), L).

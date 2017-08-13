@@ -28,7 +28,8 @@ Support for positional number notation.
 %! clpfd_positional(+Digits:list(between(0,9)), +Integer:nonneg) is semidet.
 %! clpfd_positional(+Digits:list(between(0,9)), -Integer:nonneg) is det.
 %! clpfd_positional(-Digits:list(between(0,9)), +Integer:nonneg) is det.
-% ### Example
+%
+% # Example
 %
 % ```prolog
 % year(Y) -->

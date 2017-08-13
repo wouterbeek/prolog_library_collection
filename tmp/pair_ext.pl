@@ -220,7 +220,7 @@ pair_value(_-X, X).
 %
 % Returns the set of elements that occur in the given pairs.
 %
-% ### Example
+% # Example
 %
 % The following pairs:
 %   * 〈a,b〉

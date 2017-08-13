@@ -16,7 +16,7 @@
 
 Tree datastructure.
 
-### Tree representation
+# Tree representation
 
 Trees are represented in the following way:
 
@@ -104,7 +104,7 @@ is_s_tree(t(_,L)) :-
 %! paths_to_trees(+Subpaths:list(list), -Tree:compound) is det.
 % Creates the tree based on the given subpaths.
 %
-% ### Examples
+% # Examples
 %
 % ```prolog
 % ?- paths_to_trees([[a,b],[a,c]], T).

@@ -29,14 +29,14 @@
 %! average(+Numbers:list(number), +Average:number) is semidet.
 %! average(+Numbers:list(number), -Average:number) is det.
 %
-% ### Examples
+% # Examples
 %
 % ```prolog
 % ?- average([1 rdiv 3, 1 rdiv 6], X).
 % X = 1 rdiv 4.
 % ```
 %
-% ### Special cases
+% # Special cases
 %
 % Average is the integer 0 in case Numbers is the empty list.  This is
 % in line with how sum_list/2 works.

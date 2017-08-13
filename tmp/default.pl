@@ -27,7 +27,7 @@
 % The given goal is assumed to be unary and deterministic, always
 % returning an instantiation for `Value`.
 %
-% ### Example
+% # Example
 %
 % The following code allows a specific start node to be given for
 % traveral, but also allows the start node to be uninstantiated,

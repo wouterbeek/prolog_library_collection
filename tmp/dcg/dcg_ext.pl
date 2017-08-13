@@ -315,7 +315,7 @@ between_radix(Low, High) --> between_radix(Low, High, _).
 % (binary, octal, decimal, hexadecimal)
 % and that are between the lower and higher bounds.
 %
-% ### Example
+% # Example
 %
 % ```prolog
 % ?- phrase(between_radix(bin(1001), hex(f), oct(X)), Codes).

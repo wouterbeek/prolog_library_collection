@@ -20,7 +20,7 @@
 % Returns either the given value or the default value, in case there
 % is no value given.
 %
-% ### Example
+% # Example
 %
 % `Ordering` is a meta-argument that allows a list of elements to be
 % arbitrarily ordered.  The use of defval/2 here allows the original

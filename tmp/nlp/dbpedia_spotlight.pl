@@ -10,7 +10,7 @@
 
 Prolog interface to the DBpedia Spotlight Web Service.
 
-### Example request
+# Example request
 
 ```bash
 $ curl -H "Accept: application/json" \
@@ -19,7 +19,7 @@ $ curl -H "Accept: application/json" \
        http://spotlight.dbpedia.org/rest/annotate
 ```
 
-### Example request & response
+# Example request & response
 
 ```bash
 $ curl --data "text=De apen zijn terug&confidence=0" -H "Accept: application/json" "http://spotlight.sztaki.hu:2232/rest/annotate"
