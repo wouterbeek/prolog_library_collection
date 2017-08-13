@@ -8,31 +8,33 @@
     atom_ci//1,            % ?Atom
     atom_phrase/2,         % :Dcg_0, ?Atom
     atom_phrase/3,         % :Dcg_0, +Atomic, ?Atom
+    between//2,            % +Low, +High
+    between//3,            % +Low, +High, ?Code
     dcg_atom//2,           % :Dcg_1, ?Atom
     dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_string//2,         % :Dcg_1, ?String
     dcg_tab//0,
-    dcg_tab//1,            % +N:nonneg
+    dcg_tab//1,            % +N
     dcg_with_output_to/1,  % :Dcg_0
     dcg_with_output_to/2,  % +Sink, :Dcg_0
-    digit_weight//1,       % ?Digit:between(0,9)
-    ellipsis//2,           % +Atom, +Max
+    digit_weight//1,       % ?Digit
+    ellipsis//2,           % +Atom, +MaxLength
     eol//0,
-    generate_as_digits//2, % +N:nonneg, +NumDigits
-    generate_as_digits//3, % +N:nonneg, +Base:positive_integer, +NumDigits
-    indent//1,             % +Indent:nonneg
+    generate_as_digits//2, % +N, +NumberOfDigits
+    generate_as_digits//3, % +N, +Base, +NumberOfDigits
+    indent//1,             % +Indent
     must_see//1,           % :Dcg_0
     must_see_code//2,      % +Code, :Skip_0
     nl//0,
     nonblank//0,
     rest//0,
-    rest//1,               % -Rest:list(code)
-    rest_as_atom//1,       % -Rest:atom
-    rest_as_string//1,     % -Rest:string
+    rest//1,               % -Rest
+    rest_as_atom//1,       % -Rest
+    rest_as_string//1,     % -Rest
     string_phrase/2,       % :Dcg_0, ?String
     string_phrase/3,       % :Dcg_0, +String1, -String2
-    thousands//1,          % +Integer:integer
+    thousands//1,          % +Integer
     'WS'//0
   ]
 ).
@@ -169,6 +171,19 @@ atom_phrase(Dcg_0, Atomic, Atom) :-
   ),
   phrase(Dcg_0, Codes1, Codes2),
   atom_codes(Atom, Codes2).
+
+
+
+%! between(+Low:nonneg, +High:nonneg)// .
+%! between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
+
+between(Low, High) -->
+  between(Low, High, _).
+
+
+between(Low, High, Code) -->
+  [Code],
+  {between(Low, High, Code)}.
 
 
 
@@ -326,10 +341,11 @@ eol --> "\r\n".
 
 
 
-%! generate_as_digits(+N:nonneg, +NumDigits:nonneg)// is det.
-%! generate_as_digits(+N:nonneg, +Base:positive_integer, +NumDigits:nonneg)// is det.
+%! generate_as_digits(+N:nonneg, +NumberOfDigits:nonneg)// is det.
+%! generate_as_digits(+N:nonneg, +Base:positive_integer,
+%!                    +NumberOfDigits:nonneg)// is det.
 %
-% Generate the non-negative integer N using exactly NumDigits digits,
+% Generate the non-negative integer N using exactly NumberOfDigits digits,
 % using `0' as padding if needed.
 
 generate_as_digits(N, M) -->
