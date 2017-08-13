@@ -16,7 +16,7 @@
 @author Wouter Beek
 @compat RFC 6454
 @see http://tools.ietf.org/html/rfc6454
-@version 2015/11-2016/01, 2016/12-2017/01
+@version 2015/11-2016/01, 2016/12-2017/01, 2017/08
 */
 
 :- use_module(library(apply)).
@@ -28,10 +28,10 @@
      'CRLF'//0,
      'CTL'//1, % ?Code
      'DIGIT'//1, % ?Weight
-     'DIGIT'//2, % ?Weight:between(0,9), ?Code
+     'DIGIT'//2, % ?Weight, ?Code
      'DQUOTE'//0,
      'HEXDIG'//1, % ?Weight
-     'HEXDIG'//2, % ?Weight:between(0,9), ?Code
+     'HEXDIG'//2, % ?Weight, ?Code
      'HTAB'//0,
      'LF'//0,
      'OCTET'//1, % ?Code
@@ -40,16 +40,19 @@
      'WSP'//0
    ]).
 :- use_module(library(default)).
-:- use_module(library(http/http_ext)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(http/rfc4790)).
 :- use_module(library(typecheck)).
 :- use_module(library(uri)).
 :- use_module(library(uri/rfc3986), [
      host//1,  % -Host
-     port//1,  % -Port:nonneg
+     port//1,  % -Port
      scheme//1 % -Scheme
    ]).
 :- use_module(library(uuid)).
+
+:- multifile
+    uri:default_port/2.
 
 
 
@@ -158,7 +161,7 @@ origin(Uri, origin(Scheme,Host,Port)) :-
   downcase_atom(Scheme0, Scheme),
   uri_authority_components(Auth, uri_authority(_,_,Host0,Port0)),
   ascii_casemap(Host0, Host),
-  (var(Port0) -> http_default_port(Scheme, Port) ; Port = Port0).
+  (var(Port0) -> uri:default_port(Scheme, Port) ; Port = Port0).
 origin(_, Id) :-
   uuid(Id).
   
@@ -232,4 +235,4 @@ ows --> 'obs-fold'.
   scheme(Scheme),
   "://",
   host(Host),
-  (":" -> port(Port) ; {http_default_port(Scheme, Port)}).
+  (":" -> port(Port) ; {uri:default_port(Scheme, Port)}).

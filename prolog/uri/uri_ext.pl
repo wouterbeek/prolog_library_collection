@@ -42,7 +42,8 @@
     call_on_uri_scheme(+, +, 3, -, +).
 
 :- multifile
-    error:has_type/2.
+    error:has_type/2,
+    uri:default_port/2.
 
 error:has_type(uri, Term):-
   uri_components(Term, uri_components(Scheme,Authority,Path,_,_)),
@@ -227,15 +228,12 @@ auth_comps0(Scheme, Authority, auth(User,Host,Port0)) :-
   ;   % Leave out the port if it is the default port for the given
       % Scheme.
       ground(Scheme),
-      default_port0(Scheme, Port0)
+      uri:default_port(Scheme, Port0)
   ->  true
   ;   Port = Port0
   ),
   % Create the Authorityority string.
   uri_authority_components(Authority, uri_authority(User,_,Host,Port)).
-
-default_port0(http, 80).
-default_port0(https, 443).
 
 
 

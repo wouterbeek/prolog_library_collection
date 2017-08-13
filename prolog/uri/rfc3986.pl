@@ -1,27 +1,27 @@
 :- module(
   rfc3986,
   [
-    'absolute-URI'//1,  % -Uri:compound
-    authority//1,       % -Auth:compound
-    fragment//1,        % -Frag:atom
-    host//1,            % -Host:atom
-    'IP-literal'//1,    % -Ip:compound
-    'IPv4address'//1,   % -Address:list(between(0,255))
-    'path-abempty'//1,  % -Segments:list(atom)
+    'absolute-URI'//1,  % -Uri
+    authority//1,       % -Authority
+    fragment//1,        % -Fragment
+    host//1,            % -Host
+    'IP-literal'//1,    % -Ip
+    'IPv4address'//1,   % -Address
+    'path-abempty'//1,  % -Segments
     pchar//1,           % -Code
-    'pct-encoded'//1,   % -Code:between(0,255)
-    port//1,            % -Port:nonneg
-    query//1,           % -QueryComps:list(compound)
-    'relative-part'//2, % -Auth:compound, -Segments:list(atom)
-    scheme//1,          % -Scheme:atom
-    scheme_code//1,     % -Code:code
-    segment//1,         % -Segment:atom
-    'segment-nz'//1,    % -Segment:atom
-    'sub-delims'//1 ,   % -Code:code
-    unreserved//1,      % -Code:code
-    'URI'//1,           % -Uri:compound
-    'URI-reference'//1, % ?Uri:atom
-    'URI-reference'//2  % ?BaseUri:atom, ?Uri:atom
+    'pct-encoded'//1,   % -Code
+    port//1,            % -Port
+    query//1,           % -Query
+    'relative-part'//2, % -Authority, -Segments
+    scheme//1,          % -Scheme
+    scheme_code//1,     % -Code
+    segment//1,         % -Segment
+    'segment-nz'//1,    % -Segment
+    'sub-delims'//1 ,   % -Code
+    unreserved//1,      % -Code
+    'URI'//1,           % -Uri
+    'URI-reference'//1, % ?Uri
+    'URI-reference'//2  % ?BaseUri, ?Uri
   ]
 ).
 
@@ -29,15 +29,15 @@
 
 The following terms are used:
 
-| Auth | auth(User,host,Port)             |
-| Host | IP or atom Name                  |
-| IP   | ip(Version,Address)              |
-| Uri  | uri(Scheme,Auth,Segments,QueryComps,Frag) |
+| Authority | auth(User,host,Port)                               |
+| Host      | IP or atom Name                                    |
+| IP        | ip(Version,Address)                                |
+| Uri       | uri(Scheme,Authority,Segments,QueryComps,Fragment) |
 
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2017/04=2017/06
+@version 2017/04-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -55,15 +55,15 @@ The following terms are used:
 % absolute-URI = scheme ":" hier-part [ "?" query ]
 % ```
 
-'absolute-URI'(uri(Scheme,Auth,Segments,QueryComps,_)) -->
+'absolute-URI'(uri(Scheme,Authority,Segments,Query,_)) -->
   scheme(Scheme),
   ":",
-  'hier-part'(Auth, Segments),
-  ("?" -> query(QueryComps) ; "").
+  'hier-part'(Authority, Segments),
+  ("?" -> query(Query) ; "").
 
 
 
-%! authority(-Auth:compound)// is det.
+%! authority(-Authority:compound)// is det.
 %
 % # Syntax
 %
@@ -119,15 +119,15 @@ authority(auth(User,Host,Port)) -->
 
 
 
-%! fragment(-Frag:atom)// is det.
+%! fragment(-Fragment:atom)// is det.
 %
 % ```anbf
 % fragment = *( pchar / "/" / "?" )
 % ```
 
-fragment(Frag) -->
+fragment(Fragment) -->
   *(fragment_code, Cs), !,
-  {atom_codes(Frag, Cs)}.
+  {atom_codes(Fragment, Cs)}.
 
 fragment_code(C)   --> pchar(C).
 fragment_code(0'/) --> "/".
@@ -165,7 +165,7 @@ h16(N) -->
 
 
 
-%! 'hier-part'(-Auth:compound, -Segments:list(atom))// is det.
+%! 'hier-part'(-Authority:compound, -Segments:list(atom))// is det.
 %
 % ```abnf
 % hier-part = "//" authority path-abempty
@@ -174,9 +174,9 @@ h16(N) -->
 %           / path-empty
 % ```
 
-'hier-part'(Auth, Segments) -->
+'hier-part'(Authority, Segments) -->
   (   "//"
-  ->  authority(Auth),
+  ->  authority(Authority),
       'path-abempty'(Segments)
   ;   'path-absolute'(Segments)
   ->  ""
@@ -432,17 +432,17 @@ port(Port) -->
 
 
 
-%! query(-QueryComps:list(compound))// is det.
+%! query(-Query:list(compound))// is det.
 %
 % ```abnf
 % query = *( pchar / "/" / "?" )
 % ```
 
-query(QueryComps) -->
+query(Query) -->
   *(query_code, Cs), !,
   {
     atom_codes(Query, Cs),
-    uri_query_components(Query, QueryComps)
+    uri_query_components(Query, Query)
   }.
 
 query_code(C)   --> pchar(C).
@@ -469,7 +469,7 @@ reg_name_code(C) --> 'sub-delims'(C).
 
 
 
-%! 'relative-part'(-Auth:compound, -Segments:list(atom))// is det.
+%! 'relative-part'(-Authority:compound, -Segments:list(atom))// is det.
 %
 % ```abnf
 % relative-part = "//" authority path-abempty
@@ -478,9 +478,9 @@ reg_name_code(C) --> 'sub-delims'(C).
 %               / path-empty
 % ```
 
-'relative-part'(Auth, Segments) -->
+'relative-part'(Authority, Segments) -->
   (   "//"
-  ->  authority(Auth),
+  ->  authority(Authority),
       'path-abempty'(Segments)
   ;   'path-absolute'(Segments)
   ->  ""
@@ -500,10 +500,10 @@ reg_name_code(C) --> 'sub-delims'(C).
 % relative-ref = relative-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'relative-ref'(uri(_,Auth,Segments,Query,Frag)) -->
-  'relative-part'(Auth, Segments),
+'relative-ref'(uri(_,Authority,Segments,Query,Fragment)) -->
+  'relative-part'(Authority, Segments),
   ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Frag) ; "").
+  ("#" -> fragment(Fragment) ; "").
 
 
 
@@ -624,12 +624,12 @@ unreserved(0'~) --> "~".
 % URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 % ```
 
-'URI'(uri(Scheme,Auth,Segments,Query,Frag)) -->
+'URI'(uri(Scheme,Authority,Segments,Query,Fragment)) -->
   scheme(Scheme),
   ":",
-  'hier-part'(Auth, Segments),
+  'hier-part'(Authority, Segments),
   ("?" -> query(Query) ; ""),
-  ("#" -> fragment(Frag) ; "").
+  ("#" -> fragment(Fragment) ; "").
 
 
 

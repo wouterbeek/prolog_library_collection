@@ -6,8 +6,6 @@
     atom_upper//1,         % ?A
     atom_uppercase//0,
     atom_uppercase//1,     % +A
-    between_code//2,       % +Low, +High
-    between_code//3,       % +Low, +High, ?C
     between_code_rad//2,   % +RadLow, +RadHigh
     between_code_rad//3,   % +RadLow, +RadHigh, -C
     between_digit//2,      % +Low:hex, +High:hex
@@ -250,19 +248,6 @@ atom_uppercase_codes([H|T]) -->
 
 
 
-%! between_code(+Low, +High)// .
-%! between_code(+Low, +High, ?C)// .
-
-between_code(Low, High) -->
-  between_code(Low, High, _).
-
-
-between_code(Low, High, C) -->
-  [C],
-  {between(Low, High, C)}.
-
-
-
 %! between_code_rad(+Low, +High)// .
 %! between_code_rad(+Low, +High, -C)// .
 %
@@ -273,7 +258,7 @@ between_code_rad(Low, High) -->
 
 
 between_code_rad(dec(Low), dec(High), C) --> !,
-  between_code(Low, High, C).
+  between(Low, High, C).
 between_code_rad(Low1, High1, C) -->
   {
     radconv(Low1, dec(Low2)),

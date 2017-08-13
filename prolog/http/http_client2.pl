@@ -1,7 +1,6 @@
 :- module(
   http_client2,
   [
-    http_default_port/2, % +Scheme, -DefaultPort
     http_status_label/2  % +Code, -Label
   ]
 ).
@@ -48,7 +47,11 @@
 
 :- multifile
     http:http_separable/1,
-    http:post_data_hook/3.
+    http:post_data_hook/3,
+    uri:default_port/2.
+
+uri:default_port(http, 80).
+uri:default_port(https, 443).
 
 :- public
     ssl_verify/5.
@@ -57,14 +60,6 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
            _Error).
 
 
-
-
-
-%! http_default_port(+Scheme:oneof([http,https]),
-%!                   -DefaultPort:between(0,inf)) is det.
-
-http_default_port(http, 80).
-http_default_port(https, 443).
 
 
 

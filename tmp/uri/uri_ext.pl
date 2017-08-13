@@ -38,36 +38,6 @@
 
 
 
-%! iri_query_enc// .
-%
-% ```abnf
-% iquery = *( ipchar / iprivate / "/" / "?" )
-% ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
-% iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
-% iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
-% ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-%         / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-%         / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-%         / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-%         / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-%         / %xD0000-DFFFD / %xE1000-EFFFD
-% ```
-
-iri_query_enc, "/" --> "/", !, iri_query_enc.
-iri_query_enc, "?" --> "?", !, iri_query_enc.
-iri_query_enc, ":" --> ":", !, iri_query_enc.
-iri_query_enc, "@" --> "@", !, iri_query_enc.
-iri_query_enc, [C] --> iunreserved(C), !, iri_query_enc.
-iri_query_enc, [C] --> 'sub-delims'(C), !, iri_query_enc.
-iri_query_enc, [C] --> iprivate(C), !, iri_query_enc.
-iri_query_enc, "%", 'HEXDIG'(W1), 'HEXDIG'(W2) -->
-  between_code(0, 255, C), !,
-  {W1 is C // 16, W2 is C mod 16},
-  iri_query_enc.
-iri_query_enc --> "".
-
-
-
 %! is_data_uri(+Uri) is semidet.
 
 is_data_uri(Uri) :-
@@ -169,12 +139,22 @@ uri_last_segment(Uri, LastSegment) :-
 
 %! uri_optional_query_enc// .
 
-uri_optional_query_enc, "%2C" --> ",", !, uri_optional_query_enc.
-uri_optional_query_enc, "%2F" --> "/", !, uri_optional_query_enc.
-uri_optional_query_enc, "%3A" --> ":", !, uri_optional_query_enc.
-uri_optional_query_enc, "%40" --> "@", !, uri_optional_query_enc.
-uri_optional_query_enc, [C]   --> [C], !, uri_optional_query_enc.
-uri_optional_query_enc        --> [].
+uri_optional_query_enc, "%2C" -->
+  ",", !,
+  uri_optional_query_enc.
+uri_optional_query_enc, "%2F" -->
+  "/", !,
+  uri_optional_query_enc.
+uri_optional_query_enc, "%3A" -->
+  ":", !,
+  uri_optional_query_enc.
+uri_optional_query_enc, "%40" -->
+  "@", !,
+  uri_optional_query_enc.
+uri_optional_query_enc, [Code] -->
+  [Code], !,
+  uri_optional_query_enc.
+uri_optional_query_enc --> "".
 
 
 
@@ -189,17 +169,32 @@ uri_optional_query_enc        --> [].
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-uri_query_enc, "/" --> "/",             !, uri_query_enc.
-uri_query_enc, "?" --> "?",             !, uri_query_enc.
-uri_query_enc, ":" --> ":",             !, uri_query_enc.
-uri_query_enc, "@" --> "@",             !, uri_query_enc.
-uri_query_enc, [C] --> unreserved(C),   !, uri_query_enc.
-uri_query_enc, [C] --> 'sub-delims'(C), !, uri_query_enc.
-uri_query_enc, "%", hex(W1), hex(W2) -->
-  between_code(0, 255, C), !,
-  {W1 is C // 16, W2 is C mod 16},
+uri_query_enc, "/" -->
+  "/", !,
   uri_query_enc.
-uri_query_enc --> [].
+uri_query_enc, "?" -->
+  "?", !,
+  uri_query_enc.
+uri_query_enc, ":" -->
+  ":", !,
+  uri_query_enc.
+uri_query_enc, "@" -->
+  "@", !,
+  uri_query_enc.
+uri_query_enc, [Code] -->
+  unreserved(Code), !,
+  uri_query_enc.
+uri_query_enc, [Code] -->
+  'sub-delims'(Code), !,
+  uri_query_enc.
+uri_query_enc, "%", hex(Weight1), hex(Weight2) -->
+  between(0, 255, Code), !,
+  {
+    Weight1 is Code // 16,
+    Weight2 is Code mod 16
+  },
+  uri_query_enc.
+uri_query_enc --> "".
 
 
 

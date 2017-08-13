@@ -30,17 +30,17 @@
 @author Wouter Beek
 @compat RFC 2616
 @see https://tools.ietf.org/html/rfc2616
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri/rfc2396), [
-     abs_path//1, % -Path:list(atom)
+     abs_path//1, % -Path
      host//1,     % -Host
-     port//1,     % -Port:nonneg
-     query//1     % -Query:atom
+     port//1,     % -Port
+     query//1     % -Query
    ]).
 
 
@@ -135,7 +135,7 @@ date2(Y, Mo, D) -->
 http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
   host(Host),
-  (":" -> port(Port) ; {http_default_port(http, Port)}),
+  (":" -> port(Port) ; {uri:default_port(http, Port)}),
   (abs_path(Segments) -> ("?" -> query(QueryComps) ; "") ; "").
 
 
