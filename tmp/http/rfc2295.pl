@@ -10,7 +10,7 @@
 
 @author Wouter beek
 @compat https://tools.ietf.org/html/rfc2295
-@version 2016/12
+@version 2016/12, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext), except([number//1])).
@@ -279,39 +279,36 @@ ftag(Tag) --> 'quoted-string'(Tag).
 
 
 
-%! major(-Major:nonneg)// is det.
+%! major(?Major:nonneg)// is det.
 %
 % ```bnf
 % major = 1*4DIGIT
 % ```
 
 major(Major) -->
-  'm*n'(1, 4, 'DIGIT', Weights),
-  {integer_weights(Major, Weights)}.
+  dcg_integer('m*n'(1, 4, 'DIGIT'), Major).
 
 
 
-%! minor(-Minor:nonneg)// is det.
+%! minor(?Minor:nonneg)// is det.
 %
 % ```bnf
 % minor = 1*4DIGIT
 % ```
 
 minor(Minor) -->
-  'm*n'(1, 4, 'DIGIT', Weights),
-  {integer_weights(Minor, Weights)}.
+  dcg_integer('m*n'(1, 4, 'DIGIT'), Minor).
 
 
 
-%! number(-N:nonneg)// .
+%! number(?N:nonneg)// .
 %
 % ```bnf
 % number = 1*DIGIT
 % ```
 
 number(N) -->
-  +('DIGIT', Weights),
-  {integer_weights(N, Weights)}.
+  dcg_integer(+('DIGIT'), N).
 
 
 
@@ -328,7 +325,7 @@ number(N) -->
 
 
 
-%! 'response-type'(-Type)// .
+%! 'response-type'(?Type:atom)// .
 %
 % ```bnf
 % response-type = "list" | "choice" | "adhoc"
@@ -340,7 +337,7 @@ number(N) -->
 
 
 
-%! 'rvsa-version'(-Version:pair(nonneg))// .
+%! 'rvsa-version'(?Version:pair(nonneg))// .
 %
 % ```bnf
 % rvsa-version = major "." minor
@@ -371,8 +368,7 @@ number(N) -->
 % ```
 
 'short-float'(N2) -->
-  'm*n'(1, 3, 'DIGIT', Weights1),
-  {integer_weights(N1, Weights1)},
+  dcg_integer('m*n'(1, 3, 'DIGIT'), N1),
   ("." -> 'm*n'(0, 3, 'DIGIT', Weights2) ; ""),
   {
     fractional_weights(Frac, Weights2),
@@ -381,18 +377,18 @@ number(N) -->
 
 
 
-%! 'source-quality'// .
+%! 'source-quality'(?QValue:between(0.0,1.0))// .
 %
 % ```bnf
 % source-quality = qvalue
 % ```
 
-'source-quality'(Q) -->
-  qvalue(Q).
+'source-quality'(QValue) -->
+  qvalue(QValue).
 
 
 
-%! 'tag-value'(-Tag:atom)// .
+%! 'tag-value'(?Tag:atom)// .
 %
 % ```bnf
 % tag-value = token | quoted-string
@@ -411,11 +407,11 @@ number(N) -->
 %                  | tcn-extension )
 % ```
 
-tcn(L) --> *(tcn0, L).
+tcn(L) --> *(tcn_, L).
 
-tcn0(X) --> 'response-type'(X).
-tcn0(X) --> 'server-side-override-directive'(X).
-tcn0(X) --> 'tcn-extension'(X).
+tcn_(X) --> 'response-type'(X).
+tcn_(X) --> 'server-side-override-directive'(X).
+tcn_(X) --> 'tcn-extension'(X).
 
 
 
@@ -446,7 +442,7 @@ tcn0(X) --> 'tcn-extension'(X).
 
 
 
-%! 'variant-attribute'(-Attr:compound)// .
+%! 'variant-attribute'(-Attribute:compound)// .
 %
 % ```bnf
 % variant-attribute = "{" "type" media-type "}"
@@ -457,29 +453,28 @@ tcn0(X) --> 'tcn-extension'(X).
 %                   | "{" "description" quoted-string [ language-tag ] "}"
 %                   | extension-attribute
 
-'variant-attribute'(MT) -->
-  "{type", !,
-  'media-type'(MT),
+'variant-attribute'(MediaType) -->
+  "{type",
+  'media-type'(MediaType),
   "}".
 'variant-attribute'(charset(Charset)) -->
-  "{charset", !,
+  "{charset",
   charset(Charset),
   "}".
 'variant-attribute'(language(LTags)) -->
-  "{language", !,
+  "{language",
   +('language-tag', LTags),
   "}".
-'variant-attribute'(length(Len)) -->
-  "{length", !,
-  +('DIGIT', Weights),
-  {integer_weights(Len, Weights)}.
+'variant-attribute'(length(Lenght)) -->
+  "{length",
+  dcg_integer(+('DIGIT'), Length).
 'variant-attribute'(features(L)) -->
   "{features",
   'feature-list'(L).
 'variant-attribute'(description(Desc)) -->
-  "{description", !,
-  'quoted-string'(Str),
-  ('language-tag'(LTag) -> {Desc = Str@LTag} ; {Desc = Str}),
+  "{description",
+  'quoted-string'(String),
+  ('language-tag'(LTag) -> {Desc = String@LTag} ; {Desc = String}),
   "}".
 'variant-attribute'(Attr) -->
   'extension-attribute'(Attr).
@@ -512,11 +507,8 @@ tcn0(X) --> 'tcn-extension'(X).
 % ```
 
 'variant-list'(L) -->
-  +(variant_comp, L).
+  +('variant-list_', L).
 
-variant_comp(Variant) -->
-  'variant-description'(Variant).
-variant_comp(Uri) -->
-  'fallback-variant'(Uri).
-variant_comp(Dir) -->
-  'list-directive'(Dir).
+'variant-list_'(Variant) --> 'variant-description'(Variant).
+'variant-list_'(Uri) --> 'fallback-variant'(Uri).
+'variant-list_'(Dir) --> 'list-directive'(Dir).

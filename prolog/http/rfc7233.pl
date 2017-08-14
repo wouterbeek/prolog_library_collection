@@ -1,15 +1,11 @@
-:- module(
-  rfc7233,
-  [
-  ]
-).
+:- module(rfc7233, []).
 
 /** <module> RFC 7233 - HTTP/1.1: Range Requests
 
 @author Wouter Beek
 @compat RFC 7233
 @see https://tools.ietf.org/html/rfc7233
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -56,20 +52,20 @@ http:http_header('accept-ranges').
 
 
 
-%! 'byte-content-range'(-Range:pair(nonneg), -Len:nonneg)// is det.
+%! 'byte-content-range'(-Range:pair(nonneg), -Length:nonneg)// is det.
 %
 % ```abnf
 % byte-content-range = bytes-unit SP ( byte-range-resp | unsatisfied-range )
 % ```
 
-'byte-content-range'(Range, Len) -->
+'byte-content-range'(Range, Length) -->
   'bytes-unit',
   'SP',
-  ('byte-range-resp'(Range, Len) -> "" ; 'unsatisfied-range'(Range, Len)).
+  ('byte-range-resp'(Range, Length) ; 'unsatisfied-range'(Range, Length)).
 
 
 
-%! 'byte-range'(-Range:pair(nonneg))// is det.
+%! 'byte-range'(?Range:pair(nonneg))// is det.
 %
 % ```abnf
 % byte-range = first-byte-pos "-" last-byte-pos
@@ -82,7 +78,7 @@ http:http_header('accept-ranges').
 
 
 
-%! 'byte-range-resp'(-Range:pair(nonneg), -Length:nonneg)// is det.
+%! 'byte-range-resp'(?Range:pair(nonneg), ?Length:nonneg)// is det.
 %
 % ```abnf
 % byte-range-resp = byte-range "/" ( complete-length | "*" )
@@ -91,11 +87,11 @@ http:http_header('accept-ranges').
 'byte-range-resp'(Range, Length) -->
   'byte-range'(Range),
   "/",
-  ("*" -> "" ; 'complete-length'(Length)).
+  ("*" ; 'complete-length'(Length)).
 
 
 
-%! 'byte-range-spec'(-Range:pair(nonneg))// .
+%! 'byte-range-spec'(?Range:pair(nonneg))// .
 %
 % ```abnf
 % byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
@@ -108,7 +104,7 @@ http:http_header('accept-ranges').
 
 
 
-%! 'byte-ranges-specifier'(-Set:list(or([nonneg,pair(nonneg)])))// .
+%! 'byte-ranges-specifier'(?Set:list(or([nonneg,pair(nonneg)])))// .
 %
 % ```abnf
 % byte-ranges-specifier = bytes-unit "=" byte-range-set
@@ -121,17 +117,17 @@ http:http_header('accept-ranges').
 
 
 
-%! 'byte-range-set'(-Set:list(or([nonneg,pair(nonneg)])))// .
+%! 'byte-range-set'(?Set:list(or([nonneg,pair(nonneg)])))// .
 %
 % ```abnf
 % byte-range-set = 1#( byte-range-spec | suffix-byte-range-spec )
 % ```
 
 'byte-range-set'(Set) -->
-  +##(byte_range_set_part0, Set), !.
+  +##('byte-range-set_', Set), !.
 
-byte_range_set_part0(Range) --> 'byte-range-spec'(Range).
-byte_range_set_part0(Len) --> 'suffix-byte-range-spec'(Len).
+'byte-range-set_'(Range) --> 'byte-range-spec'(Range).
+'byte-range-set_'(Length) --> 'suffix-byte-range-spec'(Length).
 
 
 
@@ -146,71 +142,64 @@ byte_range_set_part0(Len) --> 'suffix-byte-range-spec'(Len).
 
 
 
-%! 'complete-length'(-Length:nonneg)// is det.
+%! 'complete-length'(?Length:nonneg)// is det.
 %
 % ```abnf
 % complete-length = 1*DIGIT
 % ```
 
 'complete-length'(Length) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Length, Weights)}.
+  dcg_integer(+('DIGIT'), Length).
 
 
 
-%! 'content-range'(-Unit:atom, -Range:pair(nonneg))// is det.
+%! 'content-range'(?Unit:atom, ?Range:pair(nonneg))// is det.
 %
 % ```abnf
 % Content-Range = byte-content-range | other-content-range
 % ```
 
 http:http_header('content-range').
-'content-range'(byte, Range-Len) -->
-  'byte-content-range'(Range, Len).
-'content-range'(Unit, Resp) -->
-  'other-content-range'(Unit, Resp).
+'content-range'(byte, Range-Len) --> 'byte-content-range'(Range, Len).
+'content-range'(Unit, Resp) --> 'other-content-range'(Unit, Resp).
 
 
 
-%! 'first-byte-pos'(-Position:nonneg)// .
+%! 'first-byte-pos'(?Position:nonneg)// .
 %
 % ```abnf
 % first-byte-pos = 1*DIGIT
 % ```
 
 'first-byte-pos'(Position) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Position, Weights)}.
+  dcg_integer(+('DIGIT'), Position).
 
 
 
-%! 'if-range'(-Value:compound)// is det.
+%! 'if-range'(?Value:compound)// is det.
 %
 % ```abnf
 % If-Range = entity-tag | HTTP-date
 % ```
 
 http:http_header('if-range').
-'if-range'(EntityTag) -->
-  'entity-tag'(EntityTag), !.
-'if-range'(Datetime) -->
-  'HTTP-date'(Datetime).
+'if-range'(EntityTag) --> 'entity-tag'(EntityTag).
+'if-range'(Datetime) --> 'HTTP-date'(Datetime).
 
 
 
-%! 'last-byte-pos'(-Position:nonneg)// .
+%! 'last-byte-pos'(?Position:nonneg)// .
 %
 % ```abnf
 % last-byte-pos = 1*DIGIT
 % ```
 
 'last-byte-pos'(Position) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Position, Weights)}.
+  dcg_integer(+('DIGIT'), Position).
 
 
 
-%! 'other-content-range'(-Unit:atom, -Rest:atom)// is det.
+%! 'other-content-range'(?Unit:atom, ?Rest:atom)// is det.
 %
 % ```abnf
 % other-content-range = other-range-unit SP other-range-resp
@@ -223,31 +212,29 @@ http:http_header('if-range').
 
 
 
-%! 'other-range-resp'(-Resp:atom)// is det.
+%! 'other-range-resp'(?Resp:atom)// is det.
 %
 % ```abnf
 % other-range-resp = *CHAR
 % ```
 
 'other-range-resp'(Resp) -->
-  *('CHAR', Cs), !,
-  {atom_codes(Resp, Cs)}.
+  dcg_atom(*('CHAR'), Resp).
 
 
 
-%! 'other-range-set'(-Set:atom)// .
+%! 'other-range-set'(?Set:atom)// .
 %
 % ```abnf
 % other-range-set = 1*VCHAR
 % ```
 
 'other-range-set'(Set) -->
-  +('VCHAR', Cs), !,
-  {atom_codes(Set, Cs)}.
+  dcg_atom(+('VCHAR'), Set).
 
 
 
-%! 'other-range-unit'(-Unit:atom)// .
+%! 'other-range-unit'(?Unit:atom)// .
 %
 % ```abnf
 % other-range-unit = token
@@ -258,7 +245,7 @@ http:http_header('if-range').
 
 
 
-%! 'other-ranges-specifier'(-Unit:atom, -Set:atom)// .
+%! 'other-ranges-specifier'(?Unit:atom, ?Set:atom)// .
 %
 % ```abnf
 % other-ranges-specifier = other-range-unit "=" other-range-set
@@ -271,34 +258,30 @@ http:http_header('if-range').
 
 
 
-%! range(-Unit:atom, -Range:pair(nonneg))// .
+%! range(?Unit:atom, ?Range:pair(nonneg))// .
 %
 % ```abnf
 % Range = byte-ranges-specifier | other-ranges-specifier
 % ```
 
 http:http_header(range).
-range(byte, Range) -->
-  'byte-ranges-specifier'(Range).
-range(Unit, Set) -->
-  'other-ranges-specifier'(Unit, Set).
+range(byte, Range) --> 'byte-ranges-specifier'(Range).
+range(Unit, Set) --> 'other-ranges-specifier'(Unit, Set).
 
 
 
-%! 'range-unit'(-Unit:atom)// .
+%! 'range-unit'(?Unit:atom)// .
 %
 % ```abnf
 % range-unit = bytes-unit | other-range-unit
 % ```
 
-'range-unit'(bytes) -->
-  'bytes-unit', !.
-'range-unit'(Unit) -->
-  'other-range-unit'(Unit).
+'range-unit'(bytes) --> 'bytes-unit'.
+'range-unit'(Unit) --> 'other-range-unit'(Unit).
 
 
 
-%! 'suffix-byte-range-spec'(-Length:nonneg)// .
+%! 'suffix-byte-range-spec'(?Length:nonneg)// .
 %
 % ```abnf
 % suffix-byte-range-spec = "-" suffix-length
@@ -310,19 +293,18 @@ range(Unit, Set) -->
 
 
 
-%! 'suffix-length'(-Length:nonneg)// .
+%! 'suffix-length'(?Length:nonneg)// .
 %
 % ```abnf
 % suffix-length = 1*DIGIT
 % ```
 
 'suffix-length'(Length) -->
-  +('DIGIT', Weights),
-  {integer_weights(Length, Weights)}.
+  dcg_integer(+('DIGIT'), Length).
 
 
 
-%! 'unsatisfied-range'(-Range:string, -Length:nonneg)// is det.
+%! 'unsatisfied-range'(?Range:pair, ?Length:nonneg)// is det.
 %
 % ```abnf
 % unsatisfied-range = "*/" complete-length

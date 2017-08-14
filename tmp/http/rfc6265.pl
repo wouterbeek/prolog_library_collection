@@ -1,7 +1,7 @@
 :- module(
   rfc6265,
   [
-    'set-cookie'//1 % -Cookie:compound
+    'set-cookie'//1 % -Cookie
   ]
 ).
 
@@ -10,31 +10,31 @@
 @author Wouter Beek
 @compat RFC 6265
 @see https://tools.ietf.org/html/rfc6265
-@version 2015/12, 2016/12-2017/01
+@version 2015/12, 2016/12-2017/01, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'CHAR'//1, % ?Code:code
+     'ALPHA'//1,  % ?Code
+     'CHAR'//1,   % ?Code
      'CR'//0,
      'CRLF'//0,
-     'CTL'//1, % ?Code:code
-     'DIGIT'//1, % ?Weight:between(0,9)
+     'CTL'//1,    % ?Code
+     'DIGIT'//1,  % ?Weight
      'DQUOTE'//0,
-     'HEXDIG'//1, % ?Weight:between(0,15)
+     'HEXDIG'//1, % ?Weight
      'HTAB'//0,
      'LF'//0,
-     'OCTET'//1, % ?Code:code
+     'OCTET'//1,  % ?Code
      'SP'//0,
-     'VCHAR'//1, % ?Code:code
+     'VCHAR'//1,  % ?Code
      'WSP'//0
    ]).
 :- use_module(library(dict_ext)).
 :- use_module(library(http/rfc1034)).
 :- use_module(library(http/rfc2616), [
-     'rfc1123-date'//1, % -Date:atom
-     token//1           % -Token:atom
+     'rfc1123-date'//1, % -Date
+     token//1           % -Token
    ]).
 :- use_module(library(http/http11)).
 
@@ -42,7 +42,7 @@
 
 
 
-%! 'cookie-av'(-Param:pair(atom))// is det.
+%! 'cookie-av'(?Parameter:pair(atom))// is det.
 %
 % ```abnf
 % cookie-av = expires-av
@@ -54,44 +54,36 @@
 %           | extension-av
 % ```
 
-'cookie-av'(expires-Lex) -->
-  'expires-av'(Lex), !.
-'cookie-av'('max-age'-MaxAge) -->
-  'max-age-av'(MaxAge), !.
-'cookie-av'(domain-Domain) -->
-  'domain-av'(Domain), !.
-'cookie-av'(path-Path) -->
-  'path-av'(Path), !.
-'cookie-av'(secure-true) -->
-  'secure-av', !.
-'cookie-av'(httponly-true) -->
-  'httponly-av', !.
-'cookie-av'(extension-Ext) -->
-  'extension-av'(Ext).
+'cookie-av'(expires-Lex) --> 'expires-av'(Lex), !.
+'cookie-av'('max-age'-MaxAge) --> 'max-age-av'(MaxAge), !.
+'cookie-av'(domain-Domain) --> 'domain-av'(Domain), !.
+'cookie-av'(path-Path) --> 'path-av'(Path), !.
+'cookie-av'(secure-true) --> 'secure-av', !.
+'cookie-av'(httponly-true) --> 'httponly-av', !.
+'cookie-av'(extension-Extension) --> 'extension-av'(Extension).
 
 
 
-%! 'cookie-pair'(-Param)// is det.
+%! 'cookie-pair'(?Parameter:pair(atom))// is det.
 %
 % ```abnf
 % cookie-pair = cookie-name "=" cookie-value
 % ```
 
-'cookie-pair'(Key-Val) -->
-  'cookie-name'(Key),
+'cookie-pair'(Name-Value) -->
+  'cookie-name'(Name),
   "=",
-  'cookie-value'(Val).
+  'cookie-value'(Value).
 
 
 
-%! 'cookie-name'(-Name:atom)// is det.
+%! 'cookie-name'(?Name:atom)// is det.
 %
 % ```abnf
 % cookie-name = token
 % ```
 
-'cookie-name'(Name) -->
-  token(Name).
+'cookie-name'(Name) --> token(Name).
 
 
 
@@ -104,34 +96,27 @@
 %              ; and backslash
 % ```
 
-'cookie-octet'(0x21) -->
-  [0x21], !.
-'cookie-octet'(C) -->
-  [C],
-  (   {between(0x23, 0x2B, C)}, !
-  ;   {between(0x2D, 0x3A, C)}, !
-  ;   {between(0x3C, 0x5B, C)}, !
-  ;   {between(0x5D, 0x7E, C)}
-  ).
+'cookie-octet'(0x21) --> [0x21].
+'cookie-octet'(Code) --> between(0x23, 0x2B, Code).
+'cookie-octet'(Code) --> between(0x2D, 0x3A, Code).
+'cookie-octet'(Code) --> between(0x3C, 0x5B, Code).
+'cookie-octet'(Code) --> between(0x5D, 0x7E, Code).
 
 
 
-%! 'cookie-value'(-Val:atom)// is det.
+%! 'cookie-value'(?Value:atom)// is det.
 %
 % ```abnf
 % cookie-value = *cookie-octet
 %              | ( DQUOTE *cookie-octet DQUOTE )
 % ```
 
-'cookie-value'(Val) -->
+'cookie-value'(Value) -->
   'DQUOTE', !,
-  dcg_atom(cookie_value_codes, Val),
+  dcg_atom(*('cookie-octet'), Value),
   'DQUOTE'.
-'cookie-value'(Val) -->
-  dcg_atom(cookie_value_codes, Val).
-
-cookie_value_codes(Cs) -->
-  *('cookie-octet', Cs), !.
+'cookie-value'(Value) -->
+  dcg_atom(*('cookie-octet'), Value).
 
 
 
@@ -173,7 +158,7 @@ cookie_value_codes(Cs) -->
 
 
 
-%! 'extension-av'(-Ext:atom)// is det.
+%! 'extension-av'(?Ext:atom)// is det.
 %
 % ```abnf
 % extension-av = <any CHAR except CTLs or ";">
@@ -207,25 +192,25 @@ cookie_value_codes(Cs) -->
   atom_ci('Max-Age'),
   "=",
   'non-zero-digit'(Weight),
-  *(digit, Weights), !,
+  *(digit, Weights),
   {integer_weights(MaxAge, [Weight|Weights])}.
 
 
 
-%! 'non-zero-digit'(-Digit:between(1,9))// is det.
+%! 'non-zero-digit'(?Digit:between(1,9))// is det.
 %
 % ```abnf
 % non-zero-digit = %x31-39   ; digits 1 through 9
 % ```
 
-'non-zero-digit'(1) --> "1", !.
-'non-zero-digit'(2) --> "2", !.
-'non-zero-digit'(3) --> "3", !.
-'non-zero-digit'(4) --> "4", !.
-'non-zero-digit'(5) --> "5", !.
-'non-zero-digit'(6) --> "6", !.
-'non-zero-digit'(7) --> "7", !.
-'non-zero-digit'(8) --> "8", !.
+'non-zero-digit'(1) --> "1".
+'non-zero-digit'(2) --> "2".
+'non-zero-digit'(3) --> "3".
+'non-zero-digit'(4) --> "4".
+'non-zero-digit'(5) --> "5".
+'non-zero-digit'(6) --> "6".
+'non-zero-digit'(7) --> "7".
+'non-zero-digit'(8) --> "8".
 'non-zero-digit'(9) --> "9".
 
 
@@ -243,7 +228,7 @@ cookie_value_codes(Cs) -->
 
 
 
-%! 'path-value'(-Path:atom)// is det.
+%! 'path-value'(?Path:atom)// is det.
 %
 % ```abnf
 % path-value = <any CHAR except CTLs or ";">
@@ -295,12 +280,12 @@ cookie_value_codes(Cs) -->
 
 'set-cookie-string'([H|T]) -->
   'cookie-pair'(H),
-  *(sep_cookie_av, T), !.
+  *('set-cookie-string_', T).
 
-sep_cookie_av(Param) -->
+'set-cookie-string_'(Parameter) -->
   ";",
   'SP',
-  'cookie-av'(Param).
+  'cookie-av'(Parameter).
 
 
 
@@ -309,14 +294,11 @@ sep_cookie_av(Param) -->
 % HELPERS %
 
 word(Word) -->
-  dcg_atom(word_codes, Word).
+  dcg_atom(*(word_), Word).
 
-word_codes(Cs) -->
-  *(word_code, Cs), !.
-
-word_code(C) -->
-  'CHAR'(C),
+word_(Code) -->
+  'CHAR'(Code),
   {
-    \+ 'CTL'(C, _, _),
-    C \= 0';
+    \+ 'CTL'(Code, _, _),
+    Code \= 0';
   }.

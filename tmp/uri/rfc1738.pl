@@ -127,8 +127,7 @@ digit(9, 0'9) --> "9".
 % ```
 
 digits(N) -->
-  +(digit, Weights),
-  {integer_weights(N, Weights)}.
+  dcg_integer(+(digit), N).
 
 
 

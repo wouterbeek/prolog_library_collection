@@ -1,7 +1,7 @@
 :- module(
   rfc2965,
   [
-    'set-cookie2'//1 % -Val
+    'set-cookie2'//1 % -Value
   ]
 ).
 
@@ -11,7 +11,7 @@
 @compat RFC 2965
 @deprecated
 @see https://tools.ietf.org/html/rfc2965
-@version 2015/12-2016/01
+@version 2015/12-2016/01, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -27,7 +27,7 @@
 
 
 
-%! attr(-Attr:atom)// is det.
+%! attr(?Token:atom)// is det.
 %
 % ```abnf
 % attr = token
@@ -97,7 +97,7 @@ cookies(Cookies) -->
 
 
 
-%! 'NAME'(-Name:atom)// is det.
+%! 'NAME'(?Name:atom)// is det.
 %
 % ```abnf
 % NAME = attr
@@ -115,23 +115,22 @@ cookies(Cookies) -->
 % ```
 
 portlist(Ports) -->
-  +#(portnum, Ports), !.
+  +#(portnum, Ports).
 
 
 
-%! portnum(-Port:nonneg)// is det.
+%! portnum(?Port:nonneg)// is det.
 %
 % ```abnf
 % portnum = 1*DIGIT
 % ```
 
 portnum(Port) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Port, Weights)}.
+  dcg_integer(+('DIGIT'), Port).
 
 
 
-%! 'set-cookie-av'(-Param:pair)// is det.
+%! 'set-cookie-av'(-Parameter:pair)// is det.
 %
 % ```abnf
 % set-cookie-av = "Comment" "=" value
@@ -178,8 +177,7 @@ portnum(Port) -->
 'set-cookie-av'(version-Version) -->
   atom_ci('Version'), !,
   "=",
-  +('DIGIT', Weights), !,
-  {integer_weights(Version, Weights)}.
+  dcg_integer(+('DIGIT'), Version).
 
 
 
@@ -194,20 +192,18 @@ portnum(Port) -->
 
 
 
-%! value(-Val:atom)// is det.
+%! value(?Value:atom)// is det.
 %
 % ```abnf
 % value = token | quoted-string
 % ```
 
-value(Token) -->
-  token(Token), !.
-value(Str) -->
-  'quoted-string'(Str).
+value(Value) --> token(Value).
+value(Value) --> 'quoted-string'(Value).
 
 
 
-%! 'VALUE'(-Val:atom)// is det.
+%! 'VALUE'(?Value:atom)// is det.
 %
 % ```abnf
 % VALUE = value

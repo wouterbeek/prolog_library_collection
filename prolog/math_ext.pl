@@ -1,12 +1,12 @@
 :- module(
   math_ext,
   [
-    average/2,            % +Numbers:list(number), -Average:number
-    decimal_parts/3,      % ?Decimal:compound, ?Integer:integer, ?Frac:compound
-    fractional_integer/2, % +Number:number, -Frac:integer
-    fractional_weights/2, % ?Frac:number, ?Weights:list(between(0,9))
-    integer_weights/2,    % ?Int:nonneg, ?Weights:list(between(0,9))
-    integer_weights/3     % ?Int:nonneg, +Base:positive_integer, ?Weights:list(nonneg)
+    average/2,            % +Numbers, -Average
+    decimal_parts/3,      % ?Decimal, ?Integer, ?Fractorial
+    fractional_integer/2, % +Number, -Fractorial
+    fractional_weights/2, % ?Fractional, ?Weights
+    integer_weights/2,    % ?Integer, ?Weights
+    integer_weights/3     % ?Integer, +Base, ?Weights
   ]
 ).
 

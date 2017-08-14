@@ -34,12 +34,9 @@ variable repertoire of fields in a text format.
 % ASCCHAR = %x21-25 / %x27-5B / %x5D-7E
 % ```
 
-'ASCCHAR'(C) -->
-  [C],
-  {(  between(0x21, 0x25, C)
-  ;   between(0x27, 0x5B, C)
-  ;   between(0x5D, 0x7E, C)
-  )}.
+'ASCCHAR'(Code) --> between(0x21, 0x25, Code).
+'ASCCHAR'(Code) --> between(0x27, 0x5B, Code).
+'ASCCHAR'(Code) --> between(0x5D, 0x7E, Code).
 
 
 
@@ -72,14 +69,10 @@ character -->
   character(_).
 
 
-character(Code) -->
-  'SP'(Code).
-character(Code) -->
-  'ASCCHAR'(Code).
-character(Code) -->
-  'UNICHAR'(Code).
-character(Code) -->
-  'ESCAPE'(Code).
+character(Code) --> 'SP'(Code).
+character(Code) --> 'ASCCHAR'(Code).
+character(Code) --> 'UNICHAR'(Code).
+character(Code) --> 'ESCAPE'(Code).
 
 
 
@@ -126,8 +119,7 @@ encodingSig(Encoding) -->
   dcg_atom(*(encodingSig_), Encoding),
   eol.
 
-encodingSig_(Code) -->
-  alphadigit(Code).
+encodingSig_(Code) --> alphadigit(Code).
 encodingSig_(0'-) --> "-".
 encodingSig_(0'_) --> "_".
 
@@ -141,16 +133,16 @@ encodingSig_(0'_) --> "_".
 
 'ESCAPE'(Code) -->
   "\\",
-  escape(Code).
+  escape_(Code).
 'ESCAPE'(Code) -->
   "&#x",
-  'm*n'(2, 6, 'HEXDIG', Weights),
-  {integer_weights(Code, Weights)}.
-escape(0'\\) --> "\\".
-escape(0'&)  --> "&".
-escape(0'r)  --> "r".
-escape(0'n)  --> "n".
-escape(0't)  --> "t".
+  dcg_integer('m*n'(2, 6, 'HEXDIG'), Code).
+
+escape_(0'\\) --> "\\".
+escape_(0'&)  --> "&".
+escape_(0'r)  --> "r".
+escape_(0'n)  --> "n".
+escape_(0't)  --> "t".
 
 
 

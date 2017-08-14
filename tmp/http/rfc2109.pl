@@ -69,28 +69,27 @@ sep_cookie_av(Param) -->
 % ```
 
 'cookie-av'(comment-Comment) -->
-  atom_ci('Comment'), !,
+  atom_ci('Comment'),
   "=",
   value(Comment).
 'cookie-av'(domain-Domain) -->
-  atom_ci('Domain'), !,
+  atom_ci('Domain'),
   "=",
   value(Domain).
 'cookie-av'('max-age'-MaxAge) -->
-  atom_ci('Max-age'), !,
+  atom_ci('Max-age'),
   "=",
   value(MaxAge).
 'cookie-av'(path-Path) -->
-  atom_ci('Path'), !,
+  atom_ci('Path'),
   "=",
   value(Path).
 'cookie-av'(secure-true) -->
-  atom_ci('Secure'), !.
+  atom_ci('Secure').
 'cookie-av'(version-Version) -->
-  atom_ci('Version'), !,
+  atom_ci('Version'),
   "=",
-  +(digit, Weights), !,
-  {integer_weights(Version, Weights)}.
+  dcg_integer(+(digit), Version).
 
 
 
@@ -101,7 +100,7 @@ sep_cookie_av(Param) -->
 % ```
 
 cookies(Cookies) -->
-  '+#'(cookie, Cookies), !.
+  +#(cookie, Cookies), !.
 
 
 

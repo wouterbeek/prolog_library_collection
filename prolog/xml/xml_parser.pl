@@ -364,8 +364,7 @@
 
 'CharRef'(Version, Code) -->
   "&#",
-  ("x" -> +(xdigit, Weights) ; +(digit, Weights)),
-  {integer_weights(Code, Weights)},
+  ("x" -> dcg_integer(+(xdigit), Code) ; dcg_integer(+(digit), Code)),
   ";",
   % Only characters that match 'Char'//2 are allowed.
   {'Char'(Version, Code, _, _)}.
@@ -1956,8 +1955,7 @@ xml_comma -->
 
 'VersionNum'(version(1,Minor)) -->
   "1.",
-  +(digit_weight, Weights), !,
-  {integer_weights(Minor, Weights)}.
+  dcg_integer(+(digit_weight), Minor).
 'VersionNum'(version(1,1)) -->
   "1.1".
 

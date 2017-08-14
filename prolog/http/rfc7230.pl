@@ -7,22 +7,21 @@
     '*##'//2,              % :Dcg_1, ?Arguments
     'BWS'//0,
     comment//1,            % -Comment
-    'field-name'//1,       % -Name
-    'HTTP-message'//1,     % -Message
+    'field-name'//1,       % ?Name
+    'HTTP-message'//1,     % ?Message
     http_sep//0,
-    http_sep//1,           % +Code
-    method//1,             % -Method
-    'obs-text'//1,         % -Code:code
+    http_sep//1,           % ?Code
+    method//1,             % ?Method
+    'obs-text'//1,         % ?Code
     'OWS'//0,
     'partial-URI'//1,      % -Uri
     pseudonym//1,          % -Pseudonym
-    'quoted-string'//1,    % -String
+    'quoted-string'//1,    % ?String
     'RWS'//0,
-    token//1,              % -Token
-    'transfer-encoding'//1 % -TransferCodings
+    token//1,              % ?Token
+    'transfer-encoding'//1 % ?TransferCodings
   ]
 ).
-:- reexport(library(dcg/rfc5234)).
 :- reexport(library(uri/rfc3986), [
      'absolute-URI'//1,
      authority//2,
@@ -36,6 +35,8 @@
      segment//1,
      'URI-reference'//1
    ]).
+:- reexport(library(dcg/rfc5234)).
+:- reexport(library(http/rfc7231)).
 
 /** <module> RFC 7230 - HTTP/1.1: Message Syntax and Routing
 
@@ -47,6 +48,7 @@
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(http/http_generic)).
 :- use_module(library(lists)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri/uri_ext)).
@@ -130,7 +132,7 @@
 
 
 
-%! 'absolute-path'(-Segments:list(atom))// .
+%! 'absolute-path'(?Segments:list(atom))// .
 %
 % ```abnf
 % absolute-path = 1*( "/" segment )
@@ -254,15 +256,14 @@ chunk(chunk(Size,Codes,Extensions)) -->
 
 
 
-%! 'chunk-size'(-Size:nonneg)// .
+%! 'chunk-size'(?Size:nonneg)// .
 %
 % ```abnf
 % chunk-size = 1*HEXDIG
 % ```
 
 'chunk-size'(Size) -->
-  +('HEXDIG', Weights), !,
-  {integer_weights(Size, 16, Weights)}.
+  dcg_integer(+('HEXDIG'), 16, Size).
 
 
 
@@ -329,7 +330,7 @@ connection(Options) -->
 
 
 
-%! 'content-length'(-Length:nonneg)// .
+%! 'content-length'(?Length:nonneg)// .
 %
 % ```abnf
 % Content-Length = 1*DIGIT
@@ -339,29 +340,22 @@ connection(Options) -->
 
 http:http_header('content-length').
 'content-length'(Length) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Length, Weights)}.
+  dcg_integer(+('DIGIT'), Length).
 
 
 
-%! ctext(-Code:code)// .
+%! ctext(?Code:code)// .
 %
 % ```abnf
 % ctext = HTAB | SP | %x21-27 | %x2A-5B | %x5D-7E | obs-text
 % ```
 
-ctext(Code) -->
-  'HTAB'(Code).
-ctext(Code) -->
-  'SP'(Code).
-ctext(Code) -->
-  [Code],
-  {(   between(0x21, 0x27, Code)
-   ;   between(0x2A, 0x5B, Code)
-   ;   between(0x5D, 0x7E, Code)
-  )}.
-ctext(Code) -->
-  'obs-text'(Code).
+ctext(Code) --> 'HTAB'(Code).
+ctext(Code) --> 'SP'(Code).
+ctext(Code) --> between(0x21, 0x27, Code).
+ctext(Code) --> between(0x2A, 0x5B, Code).
+ctext(Code) --> between(0x5D, 0x7E, Code).
+ctext(Code) --> 'obs-text'(Code).
 
 
 
@@ -374,7 +368,7 @@ ctext(Code) -->
 'field-content'(Mod:Key_3, Value) -->
   (   {current_predicate(Key_3/3)}
   ->  (   % (1/4) valid value
-          dcg_call(Mod:Key_3, Value),
+          dcg_once(dcg_call(Mod:Key_3, Value)),
           'OWS',
           % @note This should fail in case only _part_ of the HTTP
           %       header is parsed.
@@ -406,15 +400,21 @@ ctext(Code) -->
 
 
 
-%! 'field-name'(-Name:atom)// .
+%! 'field-name'(?Name:atom)// .
 %
 % ```abnf
 % field-name = token
 % ```
+%
+% Ensured to be in lower case when parsing, in order to match DCG
+% rules that implement each header's grammar.
 
-'field-name'(LowerA) -->
-  token(A),
-  {downcase_atom(A, LowerA)}.
+'field-name'(LowerName) -->
+  parsing, !,
+  token(Name),
+  {downcase_atom(Name, LowerName)}.
+'field-name'(Name) -->
+  token(Name).
 
 
 
@@ -435,10 +435,8 @@ ctext(Code) -->
 % field-vchar = VCHAR | obs-text
 % ```
 
-'field-vchar'(Code) -->
-  'VCHAR'(Code).
-'field-vchar'(Code) -->
-  'obs-text'(Code).
+'field-vchar'(Code) --> 'VCHAR'(Code).
+'field-vchar'(Code) --> 'obs-text'(Code).
 
 
 
@@ -451,6 +449,7 @@ ctext(Code) -->
 'header-field'(Key-Value) -->
   'field-name'(Key),
   ":", 'OWS',
+  % TBD: generating
   rest(Codes),
   {'field-value'(Codes, Key, Value)}.
 
@@ -469,7 +468,7 @@ host(auth(_,Host,Port)) -->
 
 
 
-%! 'HTTP-message'(-Message:compound)// .
+%! 'HTTP-message'(?Message:compound)// .
 %
 % Message has the following form:
 %
@@ -499,20 +498,6 @@ host(auth(_,Host,Port)) -->
 % ```
 
 'HTTP-name' --> [0x48,0x54,0x54,0x50].
-
-
-
-%! http_sep// is det.
-%! http_sep(+Code:code)// is det.
-
-http_sep -->
-  http_sep(0',).
-
-
-http_sep(Code) -->
-  'OWS',
-  [Code],
-  'OWS'.
 
 
 
@@ -619,7 +604,7 @@ method(Method) -->
 
 'obs-fold' -->
   'CRLF',
-  +(sp_or_htab), !.
+  +(sp_or_htab).
 
 
 
@@ -629,9 +614,8 @@ method(Method) -->
 % obs-text = %x80-FF
 % ```
 
-'obs-text'(C) -->
-  [C],
-  {between(0x80, 0xFF, C)}.
+'obs-text'(Code) -->
+  between(0x80, 0xFF, Code).
 
 
 
@@ -656,7 +640,7 @@ method(Method) -->
 % ```
 
 'OWS' -->
-  *(sp_or_htab), !.
+  *(sp_or_htab).
 
 
 
@@ -689,7 +673,7 @@ protocol(Protocol) -->
 
 
 
-%! 'protocol-name'(-Name:atom)// .
+%! 'protocol-name'(?Name:atom)// .
 %
 % ```abnf
 % protocol-name = token
@@ -700,7 +684,7 @@ protocol(Protocol) -->
 
 
 
-%! 'protocol-version'(-Version:atom)// .
+%! 'protocol-version'(?Version:atom)// .
 %
 % ```abnf
 % protocol-version = token
@@ -711,7 +695,7 @@ protocol(Protocol) -->
 
 
 
-%! pseudonym(-Pseudonym:atom)// .
+%! pseudonym(?Pseudonym:atom)// .
 %
 % ```abnf
 % pseudonym = token
@@ -722,33 +706,38 @@ pseudonym(Pseudonym) -->
 
 
 
-%! qdtext(-Code:code)// .
+%! qdtext(?Code:code)// .
 %
 % ```abnf
 % qdtext = HTAB | SP | %x21 | %x23-5B | %x5D-7E | obs-text
 % ```
 
-qdtext(C)    --> 'HTAB'(C).
-qdtext(C)    --> 'SP'(C).
+qdtext(Code) --> 'HTAB'(Code).
+qdtext(Code) --> 'SP'(Code).
 qdtext(0x21) --> [0x21].
-qdtext(C)    --> [C], {(between(0x23, 0x5B, C), ! ; between(0x5D, 0x7E, C))}.
-qdtext(C)    --> 'obs-text'(C).
+qdtext(Code) --> between(0x23, 0x5B, Code).
+qdtext(Code) --> between(0x5D, 0x7E, Code).
+qdtext(Code) --> 'obs-text'(Code).
 
 
 
-%! 'quoted-pair'(-Code:code)// .
+%! 'quoted-pair'(?Code:code)// .
 %
 % ```abnf
 % quoted-pair = "\" ( HTAB | SP | VCHAR | obs-text )
 % ```
 
-'quoted-pair'(C) -->
+'quoted-pair'(Code) -->
   "\\",
-  ('HTAB'(C) ; 'SP'(C) ; 'VCHAR'(C) ; 'obs-text'(C)).
+  (   'HTAB'(Code)
+  ;   'SP'(Code)
+  ;   'VCHAR'(Code)
+  ;   'obs-text'(Code)
+  ).
 
 
 
-%! 'quoted-string'(-String:atom)// .
+%! 'quoted-string'(?String:atom)// .
 %
 % ```abnf
 % quoted-string = DQUOTE *( qdtext | quoted-pair ) DQUOTE
@@ -756,12 +745,13 @@ qdtext(C)    --> 'obs-text'(C).
 
 'quoted-string'(String) -->
   'DQUOTE',
-  *(quoted_string_code0, Codes), !,
-  'DQUOTE',
-  {atom_codes(String, Codes)}.
+  dcg_atom(*(quoted_string_), String),
+  'DQUOTE'.
 
-quoted_string_code0(C) --> qdtext(C).
-quoted_string_code0(C) --> 'quoted-pair'(C).
+quoted_string_(Code) -->
+  qdtext(Code).
+quoted_string_(Code) -->
+  'quoted-pair'(Code).
 
 
 
@@ -787,20 +777,19 @@ rank(1.0) -->
 
 
 
-%! 'reason-phrase'(-Reason:string)// .
+%! 'reason-phrase'(?Reason:string)// .
 %
 % ```abnf
 % reason-phrase = *( HTAB | SP | VCHAR | obs-text )
 % ```
 
 'reason-phrase'(Reason) -->
-  *(reason_phrase_code, Codes),
-  {string_codes(Reason, Codes)}.
+  dcg_string(*(reason_phrase_), Reason).
 
-reason_phrase_code(C) --> 'HTAB'(C).
-reason_phrase_code(C) --> 'SP'(C).
-reason_phrase_code(C) --> 'VCHAR'(C).
-reason_phrase_code(C) --> 'obs-text'(C).
+reason_phrase_(Code) --> 'HTAB'(Code).
+reason_phrase_(Code) --> 'SP'(Code).
+reason_phrase_(Code) --> 'VCHAR'(Code).
+reason_phrase_(Code) --> 'obs-text'(Code).
 
 
 
@@ -880,24 +869,24 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```
 
 'RWS' -->
-  +(sp_or_htab), !.
+  +(sp_or_htab).
 
 
 
-%! 'start-line'(-StartLine:compound)// .
+%! 'start-line'(?StartLine:compound)// .
 %
 % ```abnf
 % start-line = request-line | status-line
 % ```
 
 'start-line'(RequestLine) -->
-  'request-line'(RequestLine), !.
+  'request-line'(RequestLine).
 'start-line'(StatusLine) -->
   'status-line'(StatusLine).
 
 
 
-%! 'status-line'(-StatusLine:compound)// .
+%! 'status-line'(?StatusLine:compound)// .
 %
 % StatusLine has the following form:
 %
@@ -910,21 +899,24 @@ reason_phrase_code(C) --> 'obs-text'(C).
 % ```
 
 'status-line'(status_line(Version,Status,Reason)) -->
-  'HTTP-version'(Version), 'SP',
-  'status-code'(Status), 'SP',
-  'reason-phrase'(Reason), 'CRLF'.
+  'HTTP-version'(Version),
+  'SP',
+  'status-code'(Status),
+  {http_status_reason(Status, Reason)},
+  'SP',
+  'reason-phrase'(Reason),
+  'CRLF'.
 
 
 
-%! 'status-code'(-Status:between(100,599))// .
+%! 'status-code'(?Status:between(100,599))// .
 %
 % ```abnf
 % status-code = 3DIGIT
 % ```
 
 'status-code'(Status) -->
-  #(3, 'DIGIT', Weights),
-  {integer_weights(Status, Weights)}.
+  dcg_integer(#(3, 'DIGIT'), Status).
 
 
 
@@ -955,7 +947,7 @@ reason_phrase_code(C) --> 'obs-text'(C).
 
 
 
-%! tchar(?C)// .
+%! tchar(?Code:code)// .
 %
 % Any VCHAR, except delimiter.
 %
@@ -965,8 +957,8 @@ reason_phrase_code(C) --> 'obs-text'(C).
 %       | DIGIT | ALPHA
 % ```
 
-tchar(C)   --> 'ALPHA'(C).
-tchar(C)   --> 'DIGIT'(_, C).
+tchar(Code) --> 'ALPHA'(Code).
+tchar(Code) --> 'DIGIT'(_, Code).
 tchar(0'!) --> "!".
 tchar(0'#) --> "#".
 tchar(0'$) --> "$".
@@ -1038,7 +1030,7 @@ trailer(L) -->
 
 
 
-%! 'transfer-coding'(-TransferCoding)// .
+%! 'transfer-coding'(?TransferCoding:term)// .
 %
 % ```abnf
 % transfer-coding = "chunked"
@@ -1048,15 +1040,20 @@ trailer(L) -->
 %                 | transfer-extension
 % ```
 
-'transfer-coding'(chunked)    --> atom_ci(chunked), !.
-'transfer-coding'(compress)   --> atom_ci(compress), !.
-'transfer-coding'(deflate)    --> atom_ci(deflate), !.
-'transfer-coding'(gzip)       --> atom_ci(gzip), !.
-'transfer-coding'(Name-Pairs) --> 'transfer-extension'(Name, Pairs).
+'transfer-coding'(chunked) -->
+  atom_ci(chunked).
+'transfer-coding'(compress) -->
+  atom_ci(compress).
+'transfer-coding'(deflate) -->
+  atom_ci(deflate).
+'transfer-coding'(gzip) -->
+  atom_ci(gzip).
+'transfer-coding'(Name-Parameters) -->
+  'transfer-extension'(Name, Parameters).
 
 
 
-%! 'transfer-encoding'(-TransferCodings:list(dict))// .
+%! 'transfer-encoding'(?TransferCodings:list(dict))// .
 %
 % ```abnf
 % Transfer-Encoding = 1#transfer-coding
@@ -1071,23 +1068,23 @@ http:http_separable('transfer-encoding').
 
 
 
-%! 'transfer-extension'(-Name:atom, -Pairs:list(pair(atom)))// .
+%! 'transfer-extension'(?Name:atom, ?Parameters:list(pair(atom)))// .
 %
 % ```abnf
 % transfer-extension = token *( OWS ";" OWS transfer-parameter )
 % ```
 
-'transfer-extension'(Name, Pairs) -->
+'transfer-extension'(Name, Parameters) -->
   token(Name),
-  *(sep_transfer_parameter0, Pairs).
+  *('sep_transfer-parameter', Parameters).
 
-sep_transfer_parameter0(Pair) -->
+'sep_transfer-parameter'(Parameter) -->
   http_sep(0';),
-  'transfer-parameter'(Pair).
+  'transfer-parameter'(Parameter).
 
 
 
-%! 'transfer-parameter'(-Param:pair(atom))// .
+%! 'transfer-parameter'(?Parameter:pair(atom))// .
 %
 % ```abnf
 % transfer-parameter = token BWS "=" BWS ( token | quoted-string )
@@ -1098,7 +1095,7 @@ sep_transfer_parameter0(Pair) -->
   'BWS',
   "=",
   'BWS',
-  (token(Value), ! ; 'quoted-string'(Value)).
+  (token(Value) ; 'quoted-string'(Value)).
 
 
 
@@ -1138,11 +1135,25 @@ via_component(via(ReceivedProtocol,ReceivedBy,Comment)) -->
 
 % HELPERS %
 
-%! header_field_eol(Header:compound)// is det.
+%! header_field_eol(?Header:compound)// is det.
 
 header_field_eol(Header) -->
   'header-field'(Header),
   'CRLF'.
+
+
+
+%! http_sep// is det.
+%! http_sep(?Code:code)// is det.
+
+http_sep -->
+  http_sep(0',).
+
+
+http_sep(Code) -->
+  'OWS',
+  [Code],
+  'OWS'.
 
 
 

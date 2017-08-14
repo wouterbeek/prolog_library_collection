@@ -174,8 +174,7 @@ fragment_(0'?) --> "?".
 % ```
 
 h16(N) -->
-  'm*n'(1, 4, xdigit, Weights),
-  {integer_weights(N, Weights)}.
+  dcg_integer('m*n'(1, 4, xdigit), N).
 
 
 
@@ -292,8 +291,7 @@ host(Name) -->
 
 'IPvFuture'(ip(Version,Address)) -->
   "v",
-  +(xdigit, Weights), !,
-  {integer_weights(Version, 16, Weights)},
+  dcg_integer(+(xdigit), 16, Version),
   ".",
   dcg_atom(+('IPv_future_'), Address).
 
@@ -446,11 +444,7 @@ pchar(0'@) --> "@".
 % ```
 
 port(Port) -->
-  parsing, !,
-  *(digit_weight, Weights),
-  {integer_weights(Port, Weights)}.
-port(Port) -->
-  integer(Port).
+  dcg_integer(*(digit_weight), Port).
 
 
 

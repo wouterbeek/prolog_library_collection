@@ -264,17 +264,14 @@ hostport(Host, Port) -->
 % ```
 
 'IPv4address'([N1,N2,N3,N4]) -->
-  +(digit, Weights1), !,
-  {integer_weights(N1, Weights1)},
+  % TBD: #(4, dcg_integer(+digit), Address)
+  dcg_integer(+(digit), N1),
   ".",
-  +(digit, Weights2), !,
-  {integer_weights(N2, Weights2)},
+  dcg_integer(+(digit), N2),
   ".",
-  +(digit, Weights3), !,
-  {integer_weights(N3, Weights3)},
+  dcg_integer(+(digit), N3),
   ".",
-  +(digit, Weights4), !,
-  {integer_weights(N4, Weights4)}.
+  dcg_integer(+(digit), N4).
 
 
 
@@ -427,8 +424,7 @@ pchar(0',) --> ",".
 % ```
 
 port(Port) -->
-  *(digit, Weights), !,
-  {integer_weights(Port, Weights)}.
+  dcg_integer(*(digit), Port).
 
 
 

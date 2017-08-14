@@ -1,31 +1,18 @@
 :- module(
   rfc3339,
   [
-    'date-fullyear'//1, % ?Year:between(0,9999)
-    'date-mday'//1, % ?Day:between(1,31)
-    'date-month'//1, % ?Month:between(1,12)
-    'date-time'//7, % ?Year:between(0,9999)
-                    % ?Month:between(1,12)
-                    % ?Day:between(1,31)
-                    % ?Hour:between(0,23)
-                    % ?Minute:between(0,59)
-                    % ?Second:rational
-                    % ?Offset:between(-86340,86340)
-    'full-date'//3, % ?Year:between(0,9999)
-                    % ?Month:between(1,12)
-                    % ?Day:between(1,31)
-    'full-time'//4, % ?Hour:between(0,23)
-                    % ?Minute:between(0,59)
-                    % ?Second:rational
-                    % ?Offset:between(-86340,86340)
-    'partial-time'//3, % ?Hour:between(0,23)
-                       % ?Minute:between(0,59)
-                       % ?Second:rational
-    'time-hour'//1, % ?Hour:between(0,23)
-    'time-minute'//1, % ?Minute:between(0,59)
-    'time-numoffset'//1, % ?Offset:between(-86340,86340)
-    'time-offset'//1, % ?Offset:between(-86340,86340)
-    'time-second'//1 % ?Second:between(0,99)
+    'date-fullyear'//1,  % ?Year
+    'date-mday'//1,      % ?Day
+    'date-month'//1,     % ?Month
+    'date-time'//7,      % ?Year, ?Month, ?Day, ?Hour, ?Minute, ?Second, ?Offset
+    'full-date'//3,      % ?Year, ?Month, ?Day
+    'full-time'//4,      % ?Hour, ?Minute, ?Second, ?Offset
+    'partial-time'//3,   % ?Hour, ?Minute, ?Second
+    'time-hour'//1,      % ?Hour
+    'time-minute'//1,    % ?Minute
+    'time-numoffset'//1, % ?Offset
+    'time-offset'//1,    % ?Offset
+    'time-second'//1     % ?Second
   ]
 ).
 
@@ -34,9 +21,10 @@
 @author Wouter Beek
 @compat RFC 3339
 @see https://tools.ietf.org/html/rfc3339
-@version 2015/07, 2015/11, 2017/05
+@version 2015/07, 2015/11, 2017/05, 2017/08
 */
 
+:- use_module(library(clpfd)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(plunit)).
 
@@ -50,9 +38,8 @@
 % date-fullyear = 4DIGIT
 % ```
 
-'date-fullyear'(Y) -->
-  #(4, digit, Weights),
-  {integer_weights(Y, Weights)}.
+'date-fullyear'(Year) -->
+  dcg_integer(#(4, digit), Year).
 
 :- begin_tests('date-fullyear').
 
@@ -74,12 +61,9 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %
 % @bug The comment is stricter than the grammar rule.
 
-'date-mday'(D) -->
-  #(2, digit, Weights),
-  {
-    integer_weights(D, Weights),
-    between(1, 31, D)
-  }.
+'date-mday'(Day) -->
+  dcg_integer(#(2, digit), Day).
+  {between(1, 31, Day)}.
 
 
 
@@ -91,90 +75,71 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %
 % @bug The comment is stricter than the grammar rule.
 
-'date-month'(Mo) -->
-  #(2, digit, Weights),
-  {
-    integer_weights(Mo, Weights),
-    between(1, 12, Mo)
-  }.
+'date-month'(Month) -->
+  dcg_integer(#(2, digit), Month),
+  {between(1, 12, Month)}.
 
 
 
-%! 'date-time'(
-%!   ?Year:between(0,9999),
-%!   ?Month:between(1,12),
-%!   ?Day:between(1,31),
-%!   ?Hour:between(0,23),
-%!   ?Minute:between(0,59),
-%!   ?Second:rational,
-%!   ?Offset:between(-86340,86340)
-%! )// is det.
+%! 'date-time'(?Year:between(0,9999), ?Month:between(1,12), ?Day:between(1,31),
+%!             ?Hour:between(0,23), ?Minute:between(0,59), ?Second:rational,
+%!             ?Offset:between(-86340,86340))// is det.
 %
 % ```abnf
 % date-time = full-date "T" full-time
 % ```
 
-'date-time'(Y, Mo, D, H, Mi, S, Offset) -->
-  'full-date'(Y, Mo, D),
+'date-time'(Year, Month, Day, Hour, Minute, Second, Offset) -->
+  'full-date'(Year, Month, Day),
   "T",
-  'full-time'(H, Mi, S, Offset).
+  'full-time'(Hour, Minute, Second, Offset).
 
 
 
-%! 'full-date'(
-%!   ?Year:between(0,9999),
-%!   ?Month:between(1,12),
-%!   ?Day:between(1,31)
-%! )// is det.
+%! 'full-date'(?Year:between(0,9999), ?Month:between(1,12),
+%!             ?Day:between(1,31))// is det.
 %
 % ```abnf
 % full-date = date-fullyear "-" date-month "-" date-mday
 % ```
 
-'full-date'(Y, Mo, D) -->
-  'date-fullyear'(Y),
+'full-date'(Year, Month, Day) -->
+  'date-fullyear'(Year),
   "-",
-  'date-month'(Mo),
+  'date-month'(Month),
   "-",
-  'date-mday'(D).
+  'date-mday'(Day).
 
 
 
-%! 'full-time'(
-%!   ?Hour:between(0,23),
-%!   ?Minute:between(0,59),
-%!   ?Second:rational,
-%!   ?Offset:between(-86340,86340)
-%! )// is det.
+%! 'full-time'(?Hour:between(0,23), ?Minute:between(0,59), ?Second:rational,
+%!             ?Offset:between(-86340,86340))// is det.
 %
 % ```abnf
 % full-time = partial-time time-offset
 % ```
 
-'full-time'(H, Mi, S, Offset) -->
-  'partial-time'(H, Mi, S),
+'full-time'(Hour, Minute, Second, Offset) -->
+  'partial-time'(Hour, Minute, Second),
   'time-offset'(Offset).
 
 
 
-%! 'partial-time'(
-%!    ?Hour:between(0,23),
-%!    ?Minute:between(0,59),
-%!    ?Second:rational
-%! )// is det.
+%! 'partial-time'(?Hour:between(0,23), ?Minute:between(0,59),
+%!                ?Second:rational)// is det.
 %
 % ```abnf
 % partial-time = time-hour ":" time-minute ":" time-second [time-secfrac]
 % ```
 
-'partial-time'(H, Mi, S) -->
-  'time-hour'(H),
+'partial-time'(Hour, Minute, Second) -->
+  'time-hour'(Hour),
   ":",
-  'time-minute'(Mi),
+  'time-minute'(Minute),
   ":",
-  'time-second'(S1),
-  def('time-secfrac', S2, 0),
-  {S is S1 + S2}.
+  'time-second'(Second1),
+  def('time-secfrac', Second2, 0),
+  {Second #= Second1 + Second2}.
 
 
 
@@ -184,12 +149,9 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 % time-hour = 2DIGIT   ; 00-23
 % ```
 
-'time-hour'(H) -->
-  #(2, digit, Weights),
-  {
-    integer_weights(H, Weights),
-    between(0, 23, H)
-  }.
+'time-hour'(Hour) -->
+  dcg_integer(#(2, digit), Hour).
+  {between(0, 23, Hour)}.
 
 
 
@@ -199,12 +161,9 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 % time-minute = 2DIGIT   ; 00-59
 % ```
 
-'time-minute'(Mi) -->
-  #(2, digit, Weights),
-  {
-    integer_weights(Mi, Weights),
-    between(0, 59, Mi)
-  }.
+'time-minute'(Minute) -->
+  dcg_integer(#(2, digit), Minute).
+  {between(0, 59, Minute)}.
 
 
 
@@ -253,9 +212,6 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 %
 % @bug The comment is sticter than the grammar rule.
 
-'time-second'(S) -->
-  #(2, digit, Weights),
-  {
-    integer_weights(S, Weights),
-    between(0, 60, S)
-  }.
+'time-second'(Second) -->
+  dcg_integer(#(2, digit), Second),
+  {between(0, 60, Second)}.

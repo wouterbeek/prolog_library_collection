@@ -111,9 +111,9 @@
   'CRLF'(_).
 
 
-'CRLF'([C1,C2]) -->
-  'CR'(C1),
-  'LF'(C2).
+'CRLF'([Code1,Code2]) -->{gtrace},
+  'CR'(Code1),
+  'LF'(Code2).
 
 
 

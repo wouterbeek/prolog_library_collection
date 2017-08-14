@@ -13,6 +13,7 @@
 @version 2017/04, 2017/08
 */
 
+:- use_module(library(clpfd)).
 :- use_module(library(dcg/dcg_ext), except([number//1,string//1])).
 :- use_module(library(dcg/rfc5234)).
 :- use_module(library(math_ext)).
@@ -90,10 +91,9 @@ char_(0'\f) --> "f".
 char_(0'\n) --> "n".
 char_(0'\r) --> "r".
 char_(0'\t) --> "t".
-char_(C) -->
+char_(Code) -->
   "u", !,
-  must_see(#(4, 'HEXDIG', Weights)),
-  {integer_weights(C, 16, Weights)}.
+  must_see(dcg_integer(#(4, 'HEXDIG'), 16, Code)).
 
 
 
@@ -190,11 +190,8 @@ e --> "E".
 exp(N2) -->
   e,
   (minus -> {Sg = -1} ; plus -> {Sg = 1} ; {Sg = 1}),
-  'm*'(1, digit_weight, Weights),
-  {
-    integer_weights(N1, Weights),
-    N2 is Sg * N1
-  }.
+  dcg_integer('m*'(1, digit_weight), N1),
+  {N2 #= Sg * N1}.
 
 
 

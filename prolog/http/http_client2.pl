@@ -1,9 +1,5 @@
-:- module(
-  http_client2,
-  [
-    http_status_label/2  % +Code, -Label
-  ]
-).
+:- module(http_client2, []).
+
 :- reexport(library(http/http_header)).
 :- reexport(library(http/http_json)).
 :- reexport(library(http/http_path)).
@@ -25,6 +21,7 @@
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
 :- use_module(library(http/http_exception)).
+:- use_module(library(http/http_generic)).
 :- use_module(library(http/http_open), []).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc7230)).
@@ -445,14 +442,6 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_status_label(+Code:between(100,599), -Label:atom) is det.
-
-http_status_label(Code, Label):-
-  http_header:status_number_fact(Fact, Code),
-  string_phrase(http_header:status_comment(Fact), Label).
-
-
-
 
 
 % MESSAGES %
@@ -461,5 +450,5 @@ http_status_label(Code, Label):-
     prolog:message//1.
 
 prolog:message(http_error_code(Code)) -->
-  {http_status_label(Code, Label)}, !,
-  ["HTTP error code ~d (~s)."-[Code,Label]].
+  {http_status_reason(Code, Reason)}, !,
+  ["HTTP error code ~d (~s)."-[Code,Reason]].

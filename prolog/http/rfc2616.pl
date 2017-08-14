@@ -47,15 +47,14 @@
 
 
 
-%! comment(-String)// .
+%! comment(?Comment:atom)// .
 %
 % ```abnf
 % comment = "(" *( ctext | quoted-pair | comment ) ")"
 % ```
 
-comment(String) -->
-  comment_codes(Cs),
-  {string_codes(String, Cs)}.
+comment(Comment) -->
+  dcg_atom(comment_codes, Comment).
 
 comment_codes(Cs) -->
   "(",
@@ -74,15 +73,14 @@ comment_codes_inner([]) --> "".
 
 
 
-%! ctext(-Atom)// .
+%! ctext(?Text:atom)// .
 %
 % ```abnf
 % ctext = <any TEXT excluding "(" and ")">
 % ```
 
-ctext(A) -->
-  ctext_codes(Cs),
-  {atom_codes(A, Cs)}.
+ctext(Text) -->
+  dcg_atom(ctext_codes, Text).
 
 ctext_codes([H|T]) -->
   'TEXT'(H),
@@ -92,37 +90,33 @@ ctext_codes([]) --> "".
 
 
 
-%! date1(-Year:between(0,99), -Month:between(1,12), -Day:between(0,9999))// .
+%! date1(?Year:between(0,99), ?Month:between(1,12), ?Day:between(0,9999))// .
 %
 % ```abnf
 % date1 = 2DIGIT SP month SP 4DIGIT
 % ```
 
-date1(Y, Mo, D) -->
-  #(2, 'DIGIT', Weights1),
-  {integer_weights(D, Weights1)},
+date1(Year, Month, Day) -->
+  dcg_integer(#(2, 'DIGIT'), Day),
   'SP',
-  month(Mo),
+  month(Month),
   'SP',
-  #(4, 'DIGIT', Weights2),
-  {integer_weights(Y, Weights2)}.
+  dcg_integer(#(4, 'DIGIT'), Year).
 
 
 
-%! date2(-Year:between(0,99), -Month:between(1,12), -Day:between(0,9999))// .
+%! date2(?Year:between(0,99), ?Month:between(1,12), ?Day:between(0,9999))// .
 %
 % ```abnf
 % date2 = 2DIGIT "-" month "-" 2DIGIT
 % ```
 
-date2(Y, Mo, D) -->
-  #(2, 'DIGIT', Weights1),
-  {integer_weights(D, Weights1)},
+date2(Year, Month, Day) -->
+  dcg_integer(#(2, 'DIGIT'), Day),
   "-",
-  month(Mo),
+  month(Month),
   "-",
-  #(2, 'DIGIT', Weights2),
-  {integer_weights(Y, Weights2)}.
+  dcg_integer(#(2, 'DIGIT'), Year).
 
 
 
@@ -135,12 +129,12 @@ date2(Y, Mo, D) -->
 http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
   host(Host),
-  uri_port(http, Port),
+  (":" -> port(Port) ; {Port = 80}),
   (abs_path(Segments) -> ("?" -> query(QueryComps) ; "") ; "").
 
 
 
-%! 'HTTP-Version'(-Version:pair(nonneg))// .
+%! 'HTTP-Version'(?Version:pair(nonneg))// .
 %
 % ```abnf
 % HTTP-Version   = "HTTP" "/" 1*DIGIT "." 1*DIGIT
@@ -148,19 +142,16 @@ http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
 
 'HTTP-Version'(Major-Minor) -->
   "HTTP/",
-  +('DIGIT', Weights1),
-  {integer_weights(Major, Weights1)},
+  dcg_integer(+('DIGIT'), Major),
   ".",
-  +('DIGIT', Weights2),
-  {integer_weights(Minor, Weights2)}.
+  dcg_integer(+('DIGIT'), Minor).
 
 
 
 %! 'LOALPHA'(?Code:code)// .
 
-'LOALPHA'(C) -->
-  [C],
-  {between(0x61, 0x7A, C)}.
+'LOALPHA'(Code) -->
+  between(0x61, 0x7A, Code).
 
 
 
@@ -172,14 +163,14 @@ http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
 
 'LWS' -->
   ?('CRLF'),
-  +(sp_or_ht0), !.
+  +(sp_or_ht_).
 
-sp_or_ht0 --> 'SP'.
-sp_or_ht0 --> 'HT'.
+sp_or_ht_ --> 'SP'.
+sp_or_ht_ --> 'HT'.
 
 
 
-%! month(-Month:between(1,12))// .
+%! month(?Month:between(1,12))// .
 %
 % ```abnf
 % month = "Jan" | "Feb" | "Mar" | "Apr"
@@ -187,17 +178,17 @@ sp_or_ht0 --> 'HT'.
 %       | "Sep" | "Oct" | "Nov" | "Dec"
 % ```
 
-month(1) --> atom_ci('Jan'), !.
-month(2) --> atom_ci('Feb'), !.
-month(3) --> atom_ci('Mar'), !.
-month(4) --> atom_ci('Apr'), !.
-month(5) --> atom_ci('May'), !.
-month(6) --> atom_ci('Jun'), !.
-month(7) --> atom_ci('Jul'), !.
-month(8) --> atom_ci('Aug'), !.
-month(9) --> atom_ci('Sep'), !.
-month(10) --> atom_ci('Oct'), !.
-month(11) --> atom_ci('Nov'), !.
+month(1) --> atom_ci('Jan').
+month(2) --> atom_ci('Feb').
+month(3) --> atom_ci('Mar').
+month(4) --> atom_ci('Apr').
+month(5) --> atom_ci('May').
+month(6) --> atom_ci('Jun').
+month(7) --> atom_ci('Jul').
+month(8) --> atom_ci('Aug').
+month(9) --> atom_ci('Sep').
+month(10) --> atom_ci('Oct').
+month(11) --> atom_ci('Nov').
 month(12) --> atom_ci('Dec').
 
 
@@ -208,9 +199,9 @@ month(12) --> atom_ci('Dec').
 % qdtext = <any TEXT except <">>
 % ```
 
-qdtext(C) -->
-  'TEXT'(C),
-  {C \== 0'"}.
+qdtext(Code) -->
+  'TEXT'(Code),
+  {Code \== 0'"}.
 
 
 
@@ -220,66 +211,65 @@ qdtext(C) -->
 % quoted-pair = "\" CHAR
 % ```
 
-'quoted-pair'(C) -->
+'quoted-pair'(Code) -->
   "\\",
-  'CHAR'(C).
+  'CHAR'(Code).
 
 
 
-%! 'quoted-string'(-String:atom)// .
+%! 'quoted-string'(?String:atom)// .
 %
 % ```abnf
 % quoted-string = ( <"> *(qdtext | quoted-pair ) <"> )
 % ```
 
-'quoted-string'(Str) -->
+'quoted-string'(String) -->
   "\"",
-  *(quoted_string_code, Cs), !,
-  {atom_codes(Str, Cs)},
+  dcg_atom(*('quoted-string_'), String),
   "\"".
 
-quoted_string_code(C) --> qdtext(C).
-quoted_string_code(C) --> 'quoted-pair'(C).
+'quoted-string_'(Code) --> qdtext(Code).
+'quoted-string_'(Code) --> 'quoted-pair'(Code).
 
 
 
-%! 'rfc850-date'(-Datetime:compound)// .
+%! 'rfc850-date'(?Datetime:dt)// .
 %
 % ```abnf
 % rfc850-date = weekday "," SP date2 SP time SP "GMT"
 % ```
 
-'rfc850-date'(date_time(Y,Mo,D,H,Mi,S)) -->
-  weekday(D),
+'rfc850-date'(dt(Year,Month,Day,Hour,Minute,Second)) -->
+  weekday(Day),
   ",",
   'SP',
-  date2(Y, Mo, D),
+  date2(Year, Month, Day),
   'SP',
-  time(H, Mi, S),
+  time(Hour, Minute, Second),
   'SP',
   atom_ci('GMT').
 
 
 
-%! 'rfc1123-date'(-Datetime:compound)// .
+%! 'rfc1123-date'(?Datetime:dt)// .
 %
 % ```abnf
 % rfc1123-date = wkday "," SP date1 SP time SP "GMT"
 % ```
 
-'rfc1123-date'(date_time(Y,Mo,D,H,Mi,S)) -->
+'rfc1123-date'(dt(Year,Month,Day,Hour,Minute,Second)) -->
   wkday(_),
   ",",
   'SP',
-  date1(Y, Mo, D),
+  date1(Year, Month, Day),
   'SP',
-  time(H, Mi, S),
+  time(Hour, Minute, Second),
   'SP',
   atom_ci('GMT').
 
 
 
-%! separators(?Code)// .
+%! separators(?Code:code)// .
 %
 % ```abnf
 % separators = "(" | ")" | "<" | ">" | "@" | "," | ";" | ":" | "\" | <">
@@ -303,8 +293,8 @@ separators(0'?) --> "?".
 separators(0'=) --> "=".
 separators(0'{) --> "{".
 separators(0'}) --> "}".
-separators(C) --> 'SP'(C).
-separators(C) --> 'HT'(C).
+separators(Code) --> 'SP'(Code).
+separators(Code) --> 'HT'(Code).
 
 
 
@@ -314,97 +304,90 @@ separators(C) --> 'HT'(C).
 % TEXT = <any OCTET except CTLs, but including LWS>
 % ```
 
-'TEXT'(C) -->
-  'OCTET'(C),
-  {\+ 'CTL'(C, _, _)}.
+'TEXT'(Code) -->
+  'OCTET'(Code),
+  {\+ 'CTL'(Code, _, _)}.
 
 
 
-%! time(-H, -Mi, -S)// .
+%! time(?Hour:between(0,99), ?Minute:between(0,99), ?Second:between(0,99))// .
 %
 % ```abnf
 % time = 2DIGIT ":" 2DIGIT ":" 2DIGIT
 % ```
 
-time(H, Mi, S) -->
-  #(2, 'DIGIT', Weights1),
-  {integer_weights(H, Weights1)},
+time(Hour, Minute, Second) -->
+  dcg_integer(#(2, 'DIGIT'), Hour),
   ":",
-  #(2, 'DIGIT', Weights2),
-  {integer_weights(Mi, Weights2)},
+  dcg_integer(#(2, 'DIGIT'), Minute),
   ":",
-  #(2, 'DIGIT', Weights3),
-  {integer_weights(S, Weights3)}.
+  dcg_integer(#(2, 'DIGIT'), Second).
 
 
 
-%! token(-Token:atom)// .
+%! token(?Token:atom)// .
 %
 % ```abnf
 % token = 1*<any CHAR except CTLs or separators>
 % ```
 
 token(Token) -->
-  +(token_code, Cs), !,
-  {atom_codes(Token, Cs)}.
+  dcg_atom(+(token_), Token).
 
-token_code(C) -->
-  'CHAR'(C),
+token_(Code) -->
+  'CHAR'(Code),
   {
-    \+ 'CTL'(C, _, _),
-    \+ separators(C, _, _)
+    \+ 'CTL'(Code, _, _),
+    \+ separators(Code, _, _)
   }.
 
 
 
 %! 'UPALPHA'(?Code:code)// .
 
-'UPALPHA'(C) -->
-  [C],
-  {between(0x41, 0x5A, C)}.
+'UPALPHA'(Code) -->
+  between(0x41, 0x5A, Code).
 
 
 
-%! value(-Value:atom)// .
+%! value(?Value:atom)// .
 %
 % ```abnf
 % value = token | quoted-string
 % ```
 
-value(Token) -->
-  token(Token), !.
-value(Str) -->
-  'quoted-string'(Str).
+value(Value) --> token(Value).
+value(Value) --> 'quoted-string'(Value).
 
 
 
-%! weekday(-Day:between(1,7))// .
+%! weekday(?Day:between(1,7))// .
 %
 % ```abnf
 % weekday = "Monday" | "Tuesday" | "Wednesday"
 %         | "Thursday" | "Friday" | "Saturday" | "Sunday"
 % ```
 
-weekday(1) --> atom_ci('Monday'), !.
-weekday(2) --> atom_ci('Tuesday'), !.
-weekday(3) --> atom_ci('Wednesday'), !.
-weekday(4) --> atom_ci('Thursday'), !.
-weekday(5) --> atom_ci('Friday'), !.
-weekday(6) --> atom_ci('Saturday'), !.
+weekday(1) --> atom_ci('Monday').
+weekday(2) --> atom_ci('Tuesday').
+weekday(3) --> atom_ci('Wednesday').
+weekday(4) --> atom_ci('Thursday').
+weekday(5) --> atom_ci('Friday').
+weekday(6) --> atom_ci('Saturday').
 weekday(7) --> atom_ci('Sunday').
 
 
 
-%! wkday(-Day:between(1,7))// .
+%! wkday(?Day:between(1,7))// .
 %
 % ```abnf
 % wkday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"
 % ```
 
-wkday(1) --> atom_ci('Mon'), !.
-wkday(2) --> atom_ci('Tue'), !.
-wkday(3) --> atom_ci('Wed'), !.
-wkday(4) --> atom_ci('Thu'), !.
-wkday(5) --> atom_ci('Fri'), !.
-wkday(6) --> atom_ci('Sat'), !.
+wkday(1) --> atom_ci('Mon').
+wkday(2) --> atom_ci('Tue').
+wkday(3) --> atom_ci('Wed').
+wkday(4) --> atom_ci('Thu').
+wkday(5) --> atom_ci('Fri').
+wkday(6) --> atom_ci('Sat').
 wkday(7) --> atom_ci('Sun').

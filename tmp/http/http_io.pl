@@ -397,8 +397,8 @@ http_retry_until_success(Goal_0, Timeout) :-
   ;   % HTTP error status code
       E = error(existence_error(_,[InEntry|_]),_),
       Status = InEntry.status,
-      (http_status_label(Status, Lbl) -> true ; Lbl = "No Label")
-  ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Lbl]),
+      (http_status_reason(Status, Reason) -> true ; Reason = "No Reason")
+  ->  indent_debug(http(error), "Status: ~D (~s)", [Status,Reason]),
       sleep(Timeout),
       http_retry_until_success(Goal_0)
   ;   % TCP error (Try Again)
@@ -444,8 +444,8 @@ http_throw_bad_request(Goal_0) :-
   ->  true
   ;   message_to_string(E, Msg),
       Code = 400,
-      http_status_label(Code, Lbl),
-      format(string(Status), "~d (~s)", [Code,Lbl]),
+      http_status_reason(Code, Reason),
+      format(string(Status), "~d (~s)", [Code,Reason]),
       reply_json_dict(_{error: Msg, status: Status}, [status(Code)])
   ).
 
@@ -546,8 +546,8 @@ http_merge_headers(Key-Vals, Key-Val) :-
 %! http_msg(+Flag, +Status, +Lines) is det.
 
 http_msg(Flag, Status, Lines) :-
-  (http_status_label(Status, Lbl) -> true ; Lbl = "No Label"),
-  debug(Flag, "< Response: ~d (~a)", [Status,Lbl]),
+  (http_status_reason(Status, Reason) -> true ; Reason = "No Reason"),
+  debug(Flag, "< Response: ~d (~a)", [Status,Reason]),
   http_lines_pairs(Lines, Pairs),
   maplist(http_header_msg(Flag), Pairs),
   debug(Flag, "", []).

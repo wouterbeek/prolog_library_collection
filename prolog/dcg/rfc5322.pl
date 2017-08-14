@@ -13,6 +13,7 @@
 @version 2017/05-2017/08
 */
 
+:- use_module(library(clpfd)).
 :- use_module(library(dcg/dcg_ext), except([
      atom//1
    ])).
@@ -242,13 +243,12 @@ date(Y, Mo, D) -->
 % day = ([FWS] 1*2DIGIT FWS) / obs-day
 % ```
 
-day(D) -->
+day(Day) -->
   ?('FWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  'FWS',
-  {integer_weights(D, Weights)}.
-day(D) -->
-  'obs-day'(D).
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Day),
+  'FWS'.
+day(Day) -->
+  'obs-day'(Day).
 
 
 
@@ -421,17 +421,16 @@ group(Name, Mailboxes) -->
 
 
 
-%! hour(-Hour:between(0,99))// .
+%! hour(?Hour:between(0,99))// .
 %
 % ```abnf
 % hour = 2DIGIT / obs-hour
 % ```
 
-hour(H) -->
-  #(2, 'DIGIT', Weights), !,
-  {integer_weights(H, Weights)}.
-hour(H) -->
-  'obs-hour'(H).
+hour(Hour) -->
+  dcg_integer(#(2, 'DIGIT'), Hour).
+hour(Hour) -->
+  'obs-hour'(Hour).
 
 
 
@@ -487,11 +486,10 @@ sep_mailbox(Mailbox) -->
 % minute = 2DIGIT / obs-minute
 % ```
 
-minute(Mi) -->
-  #(2, 'DIGIT', Weights), !,
-  {integer_weights(Mi, Weights)}.
-minute(Mi) -->
-  'obs-minute'(Mi).
+minute(Minute) -->
+  dcg_integer(#(2, 'DIGIT'), Minute).
+minute(Minute) -->
+  'obs-minute'(Minute).
 
 
 
@@ -538,7 +536,7 @@ month(12) --> "Dec".
 % ```
 
 'obs-addr-list'([H|T]) -->
-  *(obs_list_prefix0),
+  *(obs_list_prefix_),
   address(H),
   obs_addr_list_tail0(T).
 
@@ -615,10 +613,9 @@ obs_body_codes0([]) --> "".
 % obs-day = [CFWS] 1*2DIGIT [CFWS]
 % ```
 
-'obs-day'(D) -->
+'obs-day'(Day) -->
   ?('CFWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  {integer_weights(D, Weights)}.
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Day).
 
 
 
@@ -658,13 +655,13 @@ sep_atom0(X) -->
 % ```
 
 'obs-domain-list'([H|T]) -->
-  *(obs_domain_list_prefix0),
+  *(obs_domain_list_prefix_),
   "@",
   domain(H),
   obs_domain_list_tail0(T).
 
-obs_domain_list_prefix0 --> 'CFWS'.
-obs_domain_list_prefix0 --> ",".
+obs_domain_list_prefix_ --> 'CFWS'.
+obs_domain_list_prefix_ --> ",".
 
 obs_domain_list_tail0(L) -->
   ",",
@@ -709,21 +706,20 @@ obs_fws_part -->
 % ```
 
 'obs-group-list' -->
-  +(obs_list_prefix0),
+  +(obs_list_prefix_),
   ?('CFWS').
 
 
 
-%! 'obs-hour'(-Hour:between(0,99))// .
+%! 'obs-hour'(?Hour:between(0,99))// .
 %
 % ```abnf
 % obs-hour = [CFWS] 2*DIGIT [CFWS]
 % ```
 
-'obs-hour'(H) -->
+'obs-hour'(Hour) -->
   ?('CFWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  {integer_weights(H, Weights)}.
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Hour).
 
 
 
@@ -750,7 +746,7 @@ sep_word0(X) -->
 % ```
 
 'obs-mbox-list'([H|T]) -->
-  *(obs_list_prefix0),
+  *(obs_list_prefix_),
   mailbox(H),
   obs_mbox_list_tail0(T).
 
@@ -762,16 +758,15 @@ obs_mbox_list_tail0([]) --> "".
 
 
 
-%! 'obs-minute'(-Minute:between(0,99))// .
+%! 'obs-minute'(?Minute:between(0,99))// .
 %
 % ```abnf
 % obs-minute = [CFWS] 2*DIGIT [CFWS]
 % ```
 
-'obs-minute'(Mi) -->
+'obs-minute'(Minute) -->
   ?('CFWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  {integer_weights(Mi, Weights)}.
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Minute).
 
 
 
@@ -875,16 +870,15 @@ obs_qp_code0(C) --> 'CR'(C).
 
 
 
-%! 'obs-second'(-Second:between(0,99))// .
+%! 'obs-second'(?Second:between(0,99))// .
 %
 % ```abnf
 % obs-second = [CFWS] 2*DIGIT [CFWS]
 % ```
 
-'obs-second'(S) -->
+'obs-second'(Second) -->
   ?('CFWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  {integer_weights(S, Weights)}.
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Second).
 
 
 
@@ -895,8 +889,8 @@ obs_qp_code0(C) --> 'CR'(C).
 % ```
 
 'obs-utext'(0) --> [0].
-'obs-utext'(C) --> 'obs-NO-WS-CTL'(C).
-'obs-utext'(C) --> 'VCHAR'(C).
+'obs-utext'(Code) --> 'obs-NO-WS-CTL'(Code).
+'obs-utext'(Code) --> 'VCHAR'(Code).
 
 
 
@@ -927,16 +921,15 @@ obs_unstruct_codes0([]) --> "".
 
 
 
-%! 'obs-year'(-Year:between(0,99))// .
+%! 'obs-year'(?Year:between(0,99))// .
 %
 % ```abnf
 % obs-year = [CFWS] 2*DIGIT [CFWS]
 % ```
 
-'obs-year'(Y) -->
+'obs-year'(Year) -->
   ?('CFWS'),
-  'm*n'(1, 2, 'DIGIT', Weights),
-  {integer_weights(Y, Weights)}.
+  dcg_integer('m*n'(1, 2, 'DIGIT'), Year).
 
 
 
@@ -1049,17 +1042,16 @@ quoted_atom_code(Code) -->
 
 
 
-%! second(-Second:between(0,99))// .
+%! second(?Second:between(0,99))// .
 %
 % ```abnf
 % second = 2DIGIT / obs-second
 % ```
 
-second(S) -->
-  #(2, 'DIGIT', Weights), !,
-  {integer_weights(S, Weights)}.
-second(S) -->
-  'obs-second'(S).
+second(Second) -->
+  dcg_integer(#(2, 'DIGIT'), Second).
+second(Second) -->
+  'obs-second'(Second).
 
 
 
@@ -1096,7 +1088,7 @@ specials(0'")  --> 'DQUOTE'.   %"
 % ```abnf
 % text = %d1-9      ; Characters excluding CR
 %      / %d11       ;  and LF
-%      / %d12 
+%      / %d12
 %      / %d14-127
 % ```
 
@@ -1153,7 +1145,7 @@ unstructured_code(Code) -->
 
 
 
-%! word(-Word:atom)// .
+%! word(?Word:atom)// .
 %
 % ```abnf
 % word = atom / quoted-atom
@@ -1166,7 +1158,7 @@ word(Word) -->
 
 
 
-%! year(-Year:nonneg)// .
+%! year(?Year:nonneg)// .
 %
 % ```abnf
 % year = (FWS 4*DIGIT FWS) / obs-year
@@ -1174,29 +1166,26 @@ word(Word) -->
 
 year(Year) -->
   'FWS',
-  'm*'(4, 'DIGIT', Weights),
-  'FWS',
-  {integer_weights(Year, Weights)}.
+  dcg_integer('m*'(4, 'DIGIT'), Year),
+  'FWS'.
 year(Year) -->
   'obs-year'(Year).
 
 
 
-%! zone(-Offset:between(-9999,9999))// .
+%! zone(?Offset:between(-9999,9999))// .
 %
 % ```abnf
 % zone = (FWS ( "+" / "-" ) 4DIGIT) / obs-zone
 % ```
 
-zone(N) -->
+zone(N2) -->
   'FWS',
   ("+" -> {Sg = 1} ; "-" -> {Sg = -1}),
-  #(4, 'DIGIT', Weights), !,
-  {
-    integer_weights(N0, Weights),
-    N is Sg * N0
-  }.
-zone(N) --> 'obs-zone'(N).
+  dcg_integer(#(4, 'DIGIT'), N1),
+  {N2 #= Sg * N1}.
+zone(N) -->
+  'obs-zone'(N).
 
 
 
@@ -1204,6 +1193,6 @@ zone(N) --> 'obs-zone'(N).
 
 % HELPERS %
 
-obs_list_prefix0 -->
+obs_list_prefix_ -->
   ?('CFWS'),
   ",".
