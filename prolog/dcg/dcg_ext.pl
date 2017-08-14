@@ -13,6 +13,8 @@
     dcg_atom//2,           % :Dcg_1, ?Atom
     dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
+    dcg_integer//2,        % :Dcg_1, ?Integer
+    dcg_integer//3,        % :Dcg_1, +Base, ?Integer
     dcg_string//2,         % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,            % +N
@@ -53,6 +55,7 @@
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(math_ext)).
 
 :- meta_predicate
     atom_phrase(//, ?),
@@ -60,6 +63,8 @@
     dcg_atom(3, ?, ?, ?),
     dcg_debug(+, //),
     dcg_default(3, -, +, ?, ?),
+    dcg_integer(3, ?, ?, ?),
+    dcg_integer(3, +, ?, ?, ?),
     dcg_string(3, ?, ?, ?),
     dcg_with_output_to(//),
     dcg_with_output_to(+, //),
@@ -271,6 +276,23 @@ dcg_debug(_, _).
 
 dcg_default(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
 dcg_default(_, Default, Default) --> "".
+
+
+
+%! dcg_integer(:Dcg_1, ?Integer)// .
+%! dcg_integer(:Dcg_1, +Base:nonneg, ?Integer)// .
+
+dcg_integer(Dcg_1, N) -->
+  dcg_integer(Dcg_1, 10, N).
+
+
+dcg_integer(Dcg_1, Base, N) -->
+  parsing, !,
+  dcg_call(Dcg_1, Weights),
+  {integer_weights(N, Base, Weights)}.
+dcg_integer(Dcg_1, Base, N) -->
+  {integer_weights(N, Base, Weights)},
+  dcg_call(Dcg_1, Weights).
 
 
 
