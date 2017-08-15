@@ -9,7 +9,7 @@
 @author Wouter Beek
 @compat RFC 7235
 @see https://tools.ietf.org/html/rfc7235
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -45,7 +45,7 @@
 
 
 
-%! 'auth-scheme'(-Scheme:atom)// .
+%! 'auth-scheme'(?Scheme:atom)// .
 %
 % ```abnf
 % auth-scheme = token
@@ -130,25 +130,24 @@ http:http_header('proxy-authorization').
 
 
 
-%! token68(-Token:atom)// .
+%! token68(?Token:atom)// .
 %
 % ```abnf
 % token68 = 1*( ALPHA | DIGIT | "-" | "." | "_" | "~" | "+" | "/" ) *"="
 % ```
 
 token68(Token) -->
-  +(token68_code, Cs), !,
-  {atom_codes(Token, Cs)},
-  *("="), !.
+  dcg_atom(+(token68_), Token),
+  *("=").
 
-token68_code(C)   --> 'ALPHA'(C).
-token68_code(C)   --> 'DIGIT'(_, C).
-token68_code(0'-) --> "-".
-token68_code(0'.) --> ".".
-token68_code(0'_) --> "_".
-token68_code(0'~) --> "~".
-token68_code(0'+) --> "+".
-token68_code(0'/) --> "/".
+token68_(Code) --> 'ALPHA'(Code).
+token68_(Code) --> 'DIGIT'(_, Code).
+token68_(0'-) --> "-".
+token68_(0'.) --> ".".
+token68_(0'_) --> "_".
+token68_(0'~) --> "~".
+token68_(0'+) --> "+".
+token68_(0'/) --> "/".
 
 
 

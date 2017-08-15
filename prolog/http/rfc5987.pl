@@ -18,20 +18,10 @@
 /** <module> RFC 5987: Character Set and Language Encoding for
              Hypertext Transfer Protocol (HTTP) Header Field Parameters
 
-The following abbreviations are used for variables:
-
-| ExtVal  | ExtendedValue |
-
-The following terms are used:
-
-| ExtVal | ext_val(Charset,LTag,Val) |
-| Param  | pair(Key,Val)             |
-| Val    | ExtVal or atom            |
-
 @author Wouter Beek
 @compat RFC 5987
 @see http://tools.ietf.org/html/rfc5987
-@version 2017/05
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -58,7 +48,7 @@ The following terms are used:
 
 
 
-%! 'attr-char'(-Code:code)// .
+%! 'attr-char'(?Code:code)// .
 %
 % ```abnf
 % attr-char = ALPHA / DIGIT / "!" / "#" / "$" / "&" / "+" / "-" / "."
@@ -66,8 +56,8 @@ The following terms are used:
 %           ; token except ( "*" / "'" / "%" )
 % ```
 
-'attr-char'(C)   --> 'ALPHA'(C).
-'attr-char'(C)   --> 'DIGIT'(C).
+'attr-char'(Code) --> 'ALPHA'(Code).
+'attr-char'(Code) --> 'DIGIT'(Code).
 'attr-char'(0'!) --> "!".
 'attr-char'(0'#) --> "#".
 'attr-char'(0'$) --> "$".
@@ -83,19 +73,19 @@ The following terms are used:
 
 
 
-%! charset(-Charset:atom)// is det.
+%! charset(?Charset:atom)// is det.
 %
 % ```abnf
 % charset = "UTF-8" / "ISO-8859-1" / mime-charset
 % ```
 
-charset('UTF-8')      --> atom_ci('UTF-8'), !.
-charset('ISO-8859-1') --> atom_ci('ISO-8859-1'), !.
-charset(Charset)      --> 'mime-charset'(Charset).
+charset('UTF-8') --> atom_ci('UTF-8').
+charset('ISO-8859-1') --> atom_ci('ISO-8859-1').
+charset(Charset) --> 'mime-charset'(Charset).
 
 
 
-%! 'ext-parameter'(-Parameter:pair)// is det.
+%! 'ext-parameter'(?Parameter:pair)// is det.
 %
 % Extended parameter.
 %
@@ -103,10 +93,12 @@ charset(Charset)      --> 'mime-charset'(Charset).
 % ext-parameter = parmname "*" LWSP "=" LWSP ext-value
 % ```
 
-'ext-parameter'(Key-Val) -->
-  parmname(Key), "*",
-  'LWSP', "=", 'LWSP',
-  'ext-value'(Val).
+'ext-parameter'(Name-Value) -->
+  parmname(Name), "*",
+  'LWSP',
+  "=",
+  'LWSP',
+  'ext-value'(Value).
 
 
 
@@ -129,30 +121,29 @@ charset(Charset)      --> 'mime-charset'(Charset).
 
 
 
-%! language(-LTag:list(atom))// is det.
+%! language(-LanguageTag:list(atom))// is det.
 %
 % ```abnf
 % language = <Language-Tag, defined in [RFC5646], Section 2.1>
 % ```
                                                                
-language(LTag) -->
-  'Language-Tag'(LTag).
+language(LanguageTag) -->
+  'Language-Tag'(LanguageTag).
 
 
 
-%! 'mime-charset'(-Charset:atom)// is det.
+%! 'mime-charset'(?Charset:atom)// is det.
 %
 % ```abnf
 % mime-charset  = 1*mime-charsetc
 % ```
 
 'mime-charset'(Charset) -->
-  +('mime-charsetc', Cs), !,
-  {atom_codes(Charset, Cs)}.
+  dcg_atom(+('mime-charsetc'), Charset).
 
 
 
-%! 'mime-charsetc'(-Code:code)// .
+%! 'mime-charsetc'(?Code:code)// .
 %
 % ```abnf
 % mime-charsetc = ALPHA / DIGIT
@@ -164,8 +155,8 @@ language(LTag) -->
 %               ; SHOULD be registered in the IANA charset registry
 % ```
 
-'mime-charsetc'(C)   --> 'ALPHA'(C).
-'mime-charsetc'(C)   --> 'DIGIT'(C).
+'mime-charsetc'(Code) --> 'ALPHA'(Code).
+'mime-charsetc'(Code) --> 'DIGIT'(Code).
 'mime-charsetc'(0'!) --> "!".
 'mime-charsetc'(0'#) --> "#".
 'mime-charsetc'(0'$) --> "$".
@@ -182,32 +173,29 @@ language(LTag) -->
 
 
 
-%! parameter(-Param:pair)// is det.
+%! parameter(?Parameter:pair(atom))// is det.
 %
 % ```abnf
 % parameter = reg-parameter / ext-parameter
 % ```
 
-parameter(Param) -->
-  'reg-parameter'(Param), !.
-parameter(Param) -->
-  'ext-parameter'(Param).
+parameter(Parameter) --> 'reg-parameter'(Parameter).
+parameter(Parameter) --> 'ext-parameter'(Parameter).
 
 
 
-%! parmname(-Name:atom)// is det.
+%! parmname(?Name:atom)// is det.
 %
 % ```abnf
 % parmname = 1*attr-char
 % ```
 
 parmname(Name) -->
-  +('attr-char', Cs), !,
-  {atom_codes(Name, Cs)}.
+  dcg_atom(+('attr-char'), Name).
 
   
 
-%! 'reg-parameter'(-Param:pair(atom))// is det.
+%! 'reg-parameter'(?Parameter:pair(atom))// is det.
 %
 % A regular parameter, as defined in RFC 2616.
 %
@@ -215,37 +203,34 @@ parmname(Name) -->
 % reg-parameter = parmname LWSP "=" LWSP value
 % ```
 
-'reg-parameter'(Key-Val) -->
-  parmname(Key),
+'reg-parameter'(Name-Value) -->
+  parmname(Name),
   'LWSP',
   "=",
   'LWSP',
-  value(Val).
+  value(Value).
 
 
 
-%! value(-Val:atom)// is det.
+%! value(?Value:atom)// is det.
 %
 % ```abnf
 % value = token / quoted-string
 % ```
 
-value(Val) -->
-  token(Val), !.
-value(Val) -->
-  'quoted-string'(Val).
+value(Value) --> token(Value).
+value(Value) --> 'quoted-string'(Value).
 
 
 
-%! 'value-chars'(-Val:atom)// is det.
+%! 'value-chars'(?Value:atom)// is det.
 %
 % ```abnf
 % value-chars = *( pct-encoded / attr-char )
 % ```
 
-'value-chars'(Val) -->
-  *(value_char, Cs), !,
-  {atom_codes(Val, Cs)}.
+'value-chars'(Value) -->
+  dcg_atom(*('value-chars_'), Value).
 
-value_char(C) --> 'pct-encoded'(C).
-value_char(C) --> 'attr-char'(C).
+'value-chars_'(Code) --> 'pct-encoded'(Code).
+'value-chars_'(Code) --> 'attr-char'(Code).

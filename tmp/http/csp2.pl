@@ -1,9 +1,9 @@
 :- module(
   csp2,
   [
-    'content-security-policy'//1,             % ?Policies:list(pair(atom))
-    'content-security-policy-report-only'//1, % ?Policies:list(pair(atom))
-    csp//1                                    % -Value:atom
+    'content-security-policy'//1,             % ?Policies
+    'content-security-policy-report-only'//1, % ?Policies
+    csp//1                                    % -Value
   ]
 ).
 
@@ -15,17 +15,17 @@
 
 @see http://www.w3.org/TR/CSP2/
 
-@version 2015/11-2015/12, 2017/01
+@version 2015/11-2015/12, 2017/01, 2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dcg/rfc2234), [
-     'ALPHA'//1, % ?Code:code
-     'DIGIT'//2, % ?Weight:between(0,9)
-                 % ?Code:code
-     'VCHAR'//1, % ?Code:code
+     'ALPHA'//1, % ?Code
+     'DIGIT'//2, % ?Weight
+                 % ?Code
+     'VCHAR'//1, % ?Code
      'WSP'//0,
-     'WSP'//1 % ?Code:code
+     'WSP'//1    % ?Code
    ]).
 :- use_module(library(http/dcg_http)).
 
@@ -66,7 +66,7 @@ csp(S) -->
 
 
 
-%! 'csp-header-value'(-Value:oneof([active]))// is det.
+%! 'csp-header-value'(?Value:oneof([active]))// is det.
 %
 % ```abnf
 % csp-header-value = *WSP "active" *WSP
@@ -79,19 +79,18 @@ csp(S) -->
 
 
 
-%! 'directive-name'(-Name:atom)// is det.
+%! 'directive-name'(?Name:atom)// is det.
 %
 % ```abnf
 % directive-name = 1*( ALPHA / DIGIT / "-" )
 % ```
 
 'directive-name'(Name) -->
-  +(directive_name_code, Cs), !,
-  {atom_codes(Name, Cs)}.
+  dcg_atom(+(directive_name_), Name).
 
-directive_name_code(C) --> 'ALPHA'(C).
-directive_name_code(C) --> 'DIGIT'(_, C).
-directive_name_code(0'-) --> "-".
+'directive-name_'(Code) --> 'ALPHA'(Code).
+'directive-name_'(Code) --> 'DIGIT'(_, Code).
+'directive-name_'(0'-) --> "-".
 
 
 
@@ -109,20 +108,19 @@ directive_name_code(0'-) --> "-".
 
 
 
-%! 'directive-value'(-Value:atom)// is det.
+%! 'directive-value'(?Value:atom)// is det.
 %
 % ```abnf
 % directive-value = *( WSP / <VCHAR except ";" and ","> )
 % ```
 
-'directive-value'(Val) -->
-  *(directive_value_code, Cs), !,
-  {atom_codes(Val, Cs)}.
+'directive-value'(Value) -->
+  dcg_atom(*('directive-value_'), Value).
 
-directive_value_code(C) --> 'WSP'(C).
-directive_value_code(_) --> ";", !, {fail}.
-directive_value_code(_) --> ",", !, {fail}.
-directive_value_code(C) --> 'VCHAR'(C).
+'directive-value_'(Code) --> 'WSP'(Code).
+'directive-value_'(_) --> ";", {fail}.
+'directive-value_'(_) --> ",", {fail}.
+'directive-value_'(Code) --> 'VCHAR'(Code).
 
 
 

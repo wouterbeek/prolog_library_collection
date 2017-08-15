@@ -1553,11 +1553,8 @@ markupdecl(Version, _) -->
   "<?",
   'PITarget'(Target),
   (   'S'
-  ->  *(pi_code(Version), Cs),
-      {
-        atom_codes(A, Cs),
-        X =.. [Target,A]
-      }
+  ->  dcg_atom(*(pi_code(Version)), Atom),
+      {X =.. [Target,Atom]}
   ;   {X = Target}
   ),
   "?>".

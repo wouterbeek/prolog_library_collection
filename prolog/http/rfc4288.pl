@@ -11,7 +11,7 @@
 @author Wouter Beek
 @compat RFC 4288
 @see https://tools.ietf.org/html/rfc4288
-@version 2017/05
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -24,15 +24,14 @@
 
 
 
-%! 'reg-name'(-Name:atom)// is det.
+%! 'reg-name'(?Name:atom)// is det.
 %
 % ```abnf
 % reg-name = 1*127reg-name-chars
 % ```
 
 'reg-name'(Name) -->
-  'm*n'(1, 127, 'reg-name-chars', Cs), !,
-  {atom_codes(Name, Cs)}.
+  dcg_atom('m*n'(1, 127, 'reg-name-chars'), Name).
 
 
 

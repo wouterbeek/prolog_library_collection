@@ -40,15 +40,12 @@
 % ```
 
 extlang([H|T]) -->
-  #(3, 'ALPHA', Cs),
-  {atom_codes(H, Cs)},
-  '*n'(2, permanently_reserved0, T).
+  dcg_atom(#(3, 'ALPHA'), H),
+  '*n'(2, extlang_, T).
 
-permanently_reserved0(S) -->
+extlang_(Atom) -->
   "-",
-  #(3, 'ALPHA', Cs),
-  {atom_codes(S, Cs)}.
-
+  dcg_atom(#(3, 'ALPHA'), Atom).
 
 
 
@@ -61,12 +58,11 @@ permanently_reserved0(S) -->
 
 extension([H|T]) -->
   singleton(H),
-  +(extension0, T).
+  +(extension_, T).
 
-extension0(Extension) -->
+extension_(Extension) -->
   "-",
-  'm*n'(2, 8, alphanum, Cs),
-  {atom_codes(Extension, Cs)}.
+  dcg_atom('m*n'(2, 8, alphanum), Extension).
 
 
 
@@ -104,22 +100,22 @@ grandfathered(L) --> regular(L).
 %           / "sgn-CH-DE"
 % ```
 
-irregular([en,'GB',oed]) --> "en-GB-oed", !.
-irregular([i,ami]) --> "i-ami", !.
-irregular([i,bnn]) --> "i-bnn", !.
-irregular([i,default]) --> "i-default", !.
-irregular([i,enochian]) --> "i-enochian", !.
-irregular([i,hak]) --> "i-hak", !.
-irregular([i,klingon]) --> "i-klingon", !.
-irregular([i,lux]) --> "i-lux", !.
-irregular([i,mingo]) --> "i-mingo", !.
-irregular([i,navajo]) --> "i-navajo", !.
-irregular([i,pwn]) --> "i-pwn", !.
-irregular([i,tao]) --> "i-tao", !.
-irregular([i,tay]) --> "i-tay", !.
-irregular([i,tsu]) --> "i-tsu", !.
-irregular([sgn,'BE','FR']) --> "sgn-BE-FR", !.
-irregular([sgn,'BE','NL']) --> "sgn-BE-NL", !.
+irregular([en,'GB',oed]) --> "en-GB-oed".
+irregular([i,ami]) --> "i-ami".
+irregular([i,bnn]) --> "i-bnn".
+irregular([i,default]) --> "i-default".
+irregular([i,enochian]) --> "i-enochian".
+irregular([i,hak]) --> "i-hak".
+irregular([i,klingon]) --> "i-klingon".
+irregular([i,lux]) --> "i-lux".
+irregular([i,mingo]) --> "i-mingo".
+irregular([i,navajo]) --> "i-navajo".
+irregular([i,pwn]) --> "i-pwn".
+irregular([i,tao]) --> "i-tao".
+irregular([i,tay]) --> "i-tay".
+irregular([i,tsu]) --> "i-tsu".
+irregular([sgn,'BE','FR']) --> "sgn-BE-FR".
+irregular([sgn,'BE','NL']) --> "sgn-BE-NL".
 irregular([sgn,'CH','DE']) --> "sgn-CH-DE".
 
 
@@ -163,15 +159,12 @@ sep_extension0(Extension) --> "-", extension(Extension).
 % ```
 
 language(L) -->
-  'm*n'(2, 3, 'ALPHA', Cs),
-  {atom_codes(H1, Cs)},
+  dcg_atom('m*n'(2, 3, 'ALPHA'), H1),
   ("-" -> extlang(H2), {L = [H1,H2]} ; {L = [H1]}).
 language([H]) -->
-  #(4, 'ALPHA', Cs),
-  {atom_codes(H, Cs)}.
+  dcg_atom(#(4, 'ALPHA'), H).
 language([H]) -->
-  'm*n'(5, 8, 'ALPHA', Cs),
-  {atom_codes(H, Cs)}.
+  dcg_atom('m*n'(5, 8, 'ALPHA'), H).
 
 
 
@@ -212,8 +205,7 @@ sep_subtag0(S) -->
 % ```
 
 'primary-subtag'(Subtag) -->
-  'm*n'(1, 8, 'ALPHA', Cs),
-  {atom_codes(Subtag, Cs)}.
+  dcg_atom('m*n'(1, 8, 'ALPHA'), Subtag).
 
 
 
@@ -225,12 +217,11 @@ sep_subtag0(S) -->
 
 privateuse([x|T]) -->
   atom_ci(x),
-  +(privateuse_tail0, T).
+  +(privateuse_, T).
 
-privateuse_tail0(A) -->
+privateuse_(Atom) -->
   "-",
-  'm*n'(1, 8, alphanum, Cs),
-  {atom_codes(A, Cs)}.
+  dcg_atom('m*n'(1, 8, alphanum), Atom).
 
 
 
@@ -261,27 +252,26 @@ region(Region) -->
 %         / "zh-xiang"
 % ```
 
-regular([art,lojban]) --> "art-lojban", !.
-regular([cel,gaulish]) --> "cel-gaulish", !.
-regular([no,bok]) --> "no-bok", !.
-regular([no,nyn]) --> "no-nyn", !.
-regular([zh,guoyu]) --> "zh-guoyu", !.
-regular([zh,hakka]) --> "zh-hakka", !.
-regular([zh,min]) --> "zh-min", !.
-regular([zh,min,nan]) --> "zh-min-nan", !.
+regular([art,lojban]) --> "art-lojban".
+regular([cel,gaulish]) --> "cel-gaulish".
+regular([no,bok]) --> "no-bok".
+regular([no,nyn]) --> "no-nyn".
+regular([zh,guoyu]) --> "zh-guoyu".
+regular([zh,hakka]) --> "zh-hakka".
+regular([zh,min]) --> "zh-min".
+regular([zh,min,nan]) --> "zh-min-nan".
 regular([zh,xiang]) --> "zh-xiang".
 
 
 
-%! script(-Script:atom)// .
+%! script(?Script:atom)// .
 %
 % ```abnf
 % script = 4ALPHA   ; ISO 15924 code
 % ```
 
 script(Script) -->
-  #(4, 'ALPHA', Cs),
-  {atom_codes(Script, Cs)}.
+  dcg_atom(#(4, 'ALPHA'), Script).
 
 
 
@@ -296,38 +286,33 @@ script(Script) -->
 %           / %x61-77   ; a - w
 %           / %x79-7A   ; y - z
 
-singleton(C) --> 'DIGIT'(_, C).
-singleton(C) -->
-  [C],
-  {once((
-    between(0x41, 0x57, C) ;
-    between(0x59, 0x5A, C) ;
-    between(0x61, 0x77, C) ;
-    between(0x79, 0x7A, C)
-  ))}.
+singleton(Code) --> 'DIGIT'(_, Code).
+singleton(Code) --> between(0x41, 0x57, Code).
+singleton(Code) --> between(0x59, 0x5A, Code).
+singleton(Code) --> between(0x61, 0x77, Code).
+singleton(Code) --> between(0x79, 0x7A, Code).
 
 
 
-%! subtag(-Subtag:atom)// .
+%! subtag(?Subtag:atom)// .
 %
 % ```abnf
 % subtag = 1*8(ALPHA / DIGIT)
 % ```
 
 subtag(Subtag) -->
-  'm*n'(1, 8, subtag_code0, Cs),
-  {atom_codes(Subtag, Cs)}.
+  dcg_atom('m*n'(1, 8, subtag_), Subtag).
 
-subtag_code0(C) --> 'ALPHA'(C).
-subtag_code0(C) --> 'DIGIT'(_, C).
-
+subtag_(Code) --> 'ALPHA'(Code).
+subtag_(Code) --> 'DIGIT'(_, Code).
 
 
-%! variant(-Variant:atom)// .
+
+%! variant(?Variant:atom)// .
 %
 % ```abnf
-% variant       = 5*8alphanum         ; registered variants
-%               / (DIGIT 3alphanum)
+% variant = 5*8alphanum         ; registered variants
+%         / (DIGIT 3alphanum)
 % ```
 
 variant(Variant) -->

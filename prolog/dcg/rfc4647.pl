@@ -1,8 +1,8 @@
 :- module(
   rfc4647,
   [
-    'extended-language-range'//1, % ?LanguageRange:list(atom)
-    'language-range'//1           % ?LanguageRange:list(atom)
+    'extended-language-range'//1, % ?LanguageRange
+    'language-range'//1           % ?LanguageRange
   ]
 ).
 
@@ -11,7 +11,7 @@
 @author Wouter Beek
 @compat RFC 4647
 @see https://tools.ietf.org/html/rfc4647
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext), except([alphanum//1])).
@@ -21,14 +21,14 @@
 
 
 
-%! alphanum(?Code)// .
+%! alphanum(?Code:code)// .
 %
 % ```abnf
 % alphanum = ALPHA / DIGIT
 % ```
 
-alphanum(C) --> 'ALPHA'(C).
-alphanum(C) --> 'DIGIT'(C).
+alphanum(Code) --> 'ALPHA'(Code).
+alphanum(Code) --> 'DIGIT'(Code).
 
 
 
@@ -39,12 +39,12 @@ alphanum(C) --> 'DIGIT'(C).
 % ```
 
 'extended-language-range'([H|T]) -->
-  ('m*n'(1, 8, 'ALPHA', Cs) -> {atom_codes(H, Cs)} ; "*"),
-  *(sep_extended_language_range0, T).
+  (dcg_atom('m*n'(1, 8, 'ALPHA'), H) ; "*"),
+  *('extended-language-range_', T).
 
-sep_extended_language_range0(A) -->
+'extended-language-range_'(Atom) -->
   "-",
-  ('m*n'(1, 8, alphanum, Cs) -> {atom_codes(A, Cs)} ; "*" -> {A = '*'}).
+  (dcg_atom('m*n'(1, 8, alphanum), Atom) ; "*").
 
 
 
@@ -55,12 +55,10 @@ sep_extended_language_range0(A) -->
 % ```
 
 'language-range'([H|T]) -->
-  'm*n'(1, 8, 'ALPHA', Cs), !,
-  {atom_codes(H, Cs)},
-  *(sep_language_range0, T).
-'language-range'(["*"]) --> "*".
+  dcg_atom('m*n'(1, 8, 'ALPHA'), H),
+  *('language-range_', T).
+'language-range'(['*']) --> "*".
 
-sep_language_range0(A) -->
+'language-range_'(Atom) -->
   "-",
-  'm*n'(1, 8, alphanum, Cs),
-  {atom_codes(A, Cs)}.
+  dcg_atom('m*n'(1, 8, alphanum), Atom).

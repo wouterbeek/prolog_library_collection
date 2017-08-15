@@ -90,7 +90,7 @@ alternates(Alternates) -->
 
 
 
-%! 'extension-name'(-Name:atom)// is det.
+%! 'extension-name'(?Name:atom)// is det.
 %
 % ```bnf
 % extension-name = token
@@ -101,19 +101,21 @@ alternates(Alternates) -->
 
 
 
-%! 'extension-specials'(-A:atom)// is det.
+%! 'extension-specials'(?A:atom)// is det.
 %
 % ```bnf
 % extension-specials = <any element of tspecials except <"> and "}">
 % ```
 
-'extension-specials'(A) -->
-  *(tspecials_except0, Cs), !,
-  {atom_codes(A, Cs)}.
+'extension-specials'(Atom) -->
+  dcg_atom(*('extension-specials_'), Atom).
 
-tspecials_except0(C) -->
-  tspecials(C),
-  {C \== 0'", C\== 0'}}. %"
+'extension-specials_'(Code) -->
+  tspecials(Code),
+  {
+    Code \== 0'",
+    Code\== 0'}
+  }.
 
 
 

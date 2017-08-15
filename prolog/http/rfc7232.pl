@@ -142,9 +142,8 @@ http:http_header('last-modified').
 
 'opaque-tag'(Tag) -->
   'DQUOTE',
-  *(etagc, Cs), !,
-  'DQUOTE',
-  {atom_codes(Tag, Cs)}.
+  dcg_atom(*(etagc), Tag),
+  'DQUOTE'.
 
 
 

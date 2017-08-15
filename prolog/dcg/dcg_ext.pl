@@ -138,13 +138,8 @@ alphanum(C) -->
 % false.
 % ```
 
-atom_ci(A) -->
-  {ground(A)}, !,
-  {atom_codes(A, Codes)},
-  *(code_ci, Codes).
-atom_ci(A) -->
-  *(code_ci, Codes),
-  {atom_codes(A, Codes)}.
+atom_ci(Atom) -->
+  dcg_atom(*(code_ci), Atom).
 
 
 
@@ -274,7 +269,8 @@ dcg_debug(_, _).
 
 %! dcg_default(:Dcg_1, -Arg, +Def)// .
 
-dcg_default(Dcg_1, Arg, _) --> dcg_call(Dcg_1, Arg), !.
+dcg_default(Dcg_1, Arg, _) -->
+  dcg_call(Dcg_1, Arg), !.
 dcg_default(_, Default, Default) --> "".
 
 

@@ -278,7 +278,7 @@ sep_link_param(BaseUri, LinkParam) -->
 
 
 
-%! 'media-type'(-MediaType:compound)// is det.
+%! 'media-type'(?MediaType:compound)// is det.
 %
 % ```abnf
 % media-type = type-name "/" subtype-name
@@ -291,19 +291,18 @@ sep_link_param(BaseUri, LinkParam) -->
 
 
 
-%! ptoken(-Token:atom)// is det.
+%! ptoken(?Token:atom)// is det.
 %
 % ```abnf
 % ptoken = 1*ptokenchar
 % ```
 
 ptoken(Token) -->
-  +(ptokenchar, Cs), !,
-  {atom_codes(Token, Cs)}.
+  dcg_atom(+(ptokenchar), Token).
 
 
 
-%! ptokenchar(-Code:code)// is det.
+%! ptokenchar(?Code:code)// is det.
 %
 % ```abnf
 % ptokenchar = "!" | "#" | "$" | "%" | "&" | "'" | "("
@@ -367,13 +366,13 @@ ptokenchar(0'~) --> "~".
 
 'reg-rel-type'(RelationType) -->
   'LOALPHA'(H),
-  *(reg_rel_type_code, T), !,
+  *('reg-rel-type_', T),
   {atom_codes(RelationType, [H|T])}.
 
-reg_rel_type_code(C)   --> 'LOALPHA'(C).
-reg_rel_type_code(C)   --> 'DIGIT'(_, C).
-reg_rel_type_code(0'.) --> ".".
-reg_rel_type_code(0'-) --> "-".
+'reg-rel-type_'(Code) --> 'LOALPHA'(Code).
+'reg-rel-type_'(Code) --> 'DIGIT'(_, Code).
+'reg-rel-type_'(0'.) --> ".".
+'reg-rel-type_'(0'-) --> "-".
 
 
 

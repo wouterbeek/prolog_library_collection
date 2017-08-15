@@ -123,7 +123,7 @@ atext(0'~) --> "~".
 
 
 
-%! atom(-Atom:atom)// .
+%! atom(?Atom:atom)// .
 %
 % ```abnf
 % atom = [CFWS] 1*atext [CFWS]
@@ -131,9 +131,8 @@ atext(0'~) --> "~".
 
 atom(Atom) -->
   ?('CFWS'),
-  +(atext, Cs),
-  ?('CFWS'),
-  {atom_codes(Atom, Cs)}.
+  dcg_atom(+(atext), Atom),
+  ?('CFWS').
 
 
 
@@ -143,12 +142,9 @@ atom(Atom) -->
 % ccontent = ctext / quoted-pair / comment
 % ```
 
-ccontent -->
-  ctext(_).
-ccontent -->
-  'quoted-pair'(_).
-ccontent -->
-  comment.
+ccontent --> ctext(_).
+ccontent --> 'quoted-pair'(_).
+ccontent --> comment.
 
 
 
@@ -188,7 +184,7 @@ sep_ccontent_ -->
 
 
 
-%! ctext(-Code:code)// .
+%! ctext(?Code:code)// .
 %
 % ```abnf
 % ctext = %d33-39     ; Printable US-ASCII
@@ -197,47 +193,41 @@ sep_ccontent_ -->
 %       / obs-ctext
 % ```
 
-ctext(Code) -->
-  [Code],
-  {
-    once(between(33, 39, Code)
-    ;    between(42, 91, Code)
-    ;    between(93, 126, Code)
-    )
-  }.
-ctext(Code) -->
-  'obs-ctext'(Code).
+ctext(Code) --> between(33, 39, Code).
+ctext(Code) --> between(42, 91, Code).
+ctext(Code) --> between(93, 126, Code).
+ctext(Code) --> 'obs-ctext'(Code).
 
 
 
-%! date(-Year:nonneg, -Month:between(0,99), -Day:between(0,99))// .
+%! date(?Year:nonneg, ?Month:between(0,99), ?Day:between(0,99))// .
 %
 % ```abnf
 % date = day month year
 % ```
 
-date(Y, Mo, D) -->
-  day(D),
-  month(Mo),
-  year(Y).
+date(Year, Month, Day) -->
+  day(Day),
+  month(Month),
+  year(Year).
 
 
 
-%! 'date-time'(-Datetime:dt)// .
+%! 'date-time'(?Datetime:dt)// .
 %
 % ```abnf
 % date-time = [ day-of-week "," ] date time [CFWS]
 % ```
 
-'date-time'(dt(Y,Mo,D,H,Mi,S,Off)) -->
-  ('day-of-week'(D) -> "," ; ""),
-  date(Y, Mo, D),
-  time(H, Mi, S, Off),
+'date-time'(dt(Year,Month,Day,Hour,Minute,Second,Offset)) -->
+  ('day-of-week'(Day) -> "," ; ""),
+  date(Year, Month, Day),
+  time(Hour, Minute, Second, Offset),
   ?('CFWS').
 
 
 
-%! day(-Day:between(0,99))// .
+%! day(?Day:between(0,99))// .
 %
 % ```abnf
 % day = ([FWS] 1*2DIGIT FWS) / obs-day
@@ -252,7 +242,7 @@ day(Day) -->
 
 
 
-%! 'day-name'(-Day:between(1,7))// .
+%! 'day-name'(?Day:between(1,7))// .
 %
 % ```abnf
 % day-name = "Mon" / "Tue" / "Wed" / "Thu" / "Fri" / "Sat" / "Sun"
@@ -268,21 +258,21 @@ day(Day) -->
 
 
 
-%! 'day-of-week'(-Day:between(1,7))// .
+%! 'day-of-week'(?Day:between(1,7))// .
 %
 % ```abnf
 % day-of-week = ([FWS] day-name) / obs-day-of-week
 % ```
 
-'day-of-week'(D) -->
+'day-of-week'(Day) -->
   ?('FWS'),
-  'day-name'(D).
-'day-of-week'(D) -->
-  'obs-day-of-week'(D).
+  'day-name'(Day).
+'day-of-week'(Day) -->
+  'obs-day-of-week'(Day).
 
 
 
-%! 'display-name'(-Name:list(atom))// .
+%! 'display-name'(?Name:list(atom))// .
 %
 % ```abnf
 % display-name = phrase
@@ -293,22 +283,19 @@ day(Day) -->
 
 
 
-%! domain(-Domain:atom)// .
+%! domain(?Domain:atom)// .
 %
 % ```abnf
 % domain = dot-atom / domain-literal / obs-domain
 % ```
 
-domain(Domain) -->
-  'dot-atom'(Domain), !.
-domain(Domain) -->
-  'domain-literal'(Domain), !.
-domain(Domain) -->
-  'obs-domain'(Domain).
+domain(Domain) --> 'dot-atom'(Domain).
+domain(Domain) --> 'domain-literal'(Domain).
+domain(Domain) --> 'obs-domain'(Domain).
 
 
 
-%! 'domain-literal'(-DomainLiteral:atom)// .
+%! 'domain-literal'(?DomainLiteral:atom)// .
 %
 % ```abnf
 % domain-literal = [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
@@ -317,19 +304,18 @@ domain(Domain) -->
 'domain-literal'(DomainLiteral) -->
   ?('CFWS'),
   "[",
-  *(spc_dtext0, Codes),
+  dcg_atom(*('domain-literal_'), DomainLiteral),
   ?('FWS'),
   "]",
-  ?('CFWS'),
-  {atom_codes(DomainLiteral, Codes)}.
+  ?('CFWS').
 
-spc_dtext0(Code) -->
+'domain-literal_'(Code) -->
   ?('FWS'),
   dtext(Code).
 
 
 
-%! 'dot-atom'(-Atom:atom)// .
+%! 'dot-atom'(?Atom:atom)// .
 %
 % ```abnf
 % dot-atom = [CFWS] dot-atom-text [CFWS]
@@ -342,7 +328,7 @@ spc_dtext0(Code) -->
 
 
 
-%! 'dot-atom-text'(-Atom:atom)// .
+%! 'dot-atom-text'(?Atom:atom)// .
 %
 % ```abnf
 % dot-atom-text = 1*atext *("." 1*atext)
@@ -350,11 +336,11 @@ spc_dtext0(Code) -->
 
 'dot-atom-text'(Atom) -->
   atext(H),
-  *(dot_or_atext0, T),
+  *('dot-atom-text_', T),
   {atom_codes(Atom, [H|T])}.
 
-dot_or_atext0(0'.) --> ".".
-dot_or_atext0(Code) --> atext(Code).
+'dot-atom-text_'(0'.) --> ".".
+'dot-atom-text_'(Code) --> atext(Code).
 
 
 
@@ -366,11 +352,9 @@ dot_or_atext0(Code) --> atext(Code).
 %       / obs-dtext   ;  "[", "]", or "\"
 % ```
 
-dtext(Code) -->
-  [Code],
-  {once(between(33, 90, Code) ; between(94, 126, Code))}.
-dtext(Code) -->
-  'obs-dtext'(Code).
+dtext(Code) --> between(33, 90, Code).
+dtext(Code) --> between(94, 126, Code).
+dtext(Code) --> 'obs-dtext'(Code).
 
 
 
@@ -933,7 +917,7 @@ obs_unstruct_codes0([]) --> "".
 
 
 
-%! 'obs-zone'(-TZ:atom)// .
+%! 'obs-zone'(?Timezone:atom)// .
 %
 % ```abnf
 % obs-zone = "UT"            ; Universal Time
@@ -948,30 +932,26 @@ obs_unstruct_codes0([]) --> "".
 %          / %d107-122       ; upper and lower case
 % ```
 
-'obs-zone'("Universal Time") --> "UT", !.
-'obs-zone'("North American UT") --> "GMT", !.
-'obs-zone'("Eastern") --> ("EST" ; "EDT"), !.
-'obs-zone'("Central") --> ("CST" ; "CDT"), !.
-'obs-zone'("Mountain") --> ("MST" ; "MDT"), !.
-'obs-zone'("Pacific") --> ("PST" ; "PDT"), !.
-'obs-zone'("Military") -->
-  [C],
-  {once((
-    between(65, 73, C) ;
-    between(75, 90, C) ;
-    between(97, 105, C) ;
-    between(107, 122, C)
-  ))}.
+'obs-zone'('Universal Time') --> "UT".
+'obs-zone'('North American UT') --> "GMT".
+'obs-zone'('Eastern') --> ("EST" ; "EDT").
+'obs-zone'('Central') --> ("CST" ; "CDT").
+'obs-zone'('Mountain') --> ("MST" ; "MDT").
+'obs-zone'('Pacific') --> ("PST" ; "PDT").
+'obs-zone'('Military') --> between(65, 73).
+'obs-zone'('Military') --> between(75, 90).
+'obs-zone'('Military') --> between(97, 105).
+'obs-zone'('Military') --> between(107, 122).
 
 
 
-%! phrase0(-Words:list(atom))// .
+%! phrase0(?Words:list(atom))// .
 %
 % ```abnf
 % phrase = 1*word / obs-phrase
 % ```
 
-phrase0(Words) --> +(word, Words), !.
+phrase0(Words) --> +(word, Words).
 phrase0(Words) --> 'obs-phrase'(Words).
 
 
@@ -982,8 +962,8 @@ phrase0(Words) --> 'obs-phrase'(Words).
 % qcontent = qtext / quoted-pair
 % ```
 
-qcontent(C) --> qtext(C).
-qcontent(C) --> 'quoted-pair'(C).
+qcontent(Code) --> qtext(Code).
+qcontent(Code) --> 'quoted-pair'(Code).
 
 
 
@@ -997,10 +977,9 @@ qcontent(C) --> 'quoted-pair'(C).
 % ```
 
 qtext(33) --> [33].
-qtext(Code)  -->
-  [Code],
-  {once(between(35, 91, Code) ; between(93, 126, Code))}.
-qtext(Code)  --> 'obs-qtext'(Code).
+qtext(Code) --> between(35, 91, Code).
+qtext(Code) --> between(93, 126, Code).
+qtext(Code) --> 'obs-qtext'(Code).
 
 
 
@@ -1021,22 +1000,21 @@ qtext(Code)  --> 'obs-qtext'(Code).
 
 
 
-%! 'quoted-atom'(-Atom:atom)// .
+%! 'quoted-atom'(?Atom:atom)// .
 %
 % ```abnf
 % quoted-atom = [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
 % ```
 
-'quoted-atom'(A) -->
+'quoted-atom'(Atom) -->
   ?('CFWS'),
   'DQUOTE',
-  *(quoted_atom_code, Codes),
+  dcg_atom(*('quoted-atom_'), Atom),
   ?('FWS'),
   'DQUOTE',
-  ?('CFWS'),
-  {atom_codes(A, Codes)}.
+  ?('CFWS').
 
-quoted_atom_code(Code) -->
+'quoted-atom_'(Code) -->
   ?('FWS'),
   qcontent(Code).
 
@@ -1048,10 +1026,8 @@ quoted_atom_code(Code) -->
 % second = 2DIGIT / obs-second
 % ```
 
-second(Second) -->
-  dcg_integer(#(2, 'DIGIT'), Second).
-second(Second) -->
-  'obs-second'(Second).
+second(Second) --> dcg_integer(#(2, 'DIGIT'), Second).
+second(Second) --> 'obs-second'(Second).
 
 
 
@@ -1079,7 +1055,7 @@ specials(0'@)  --> "@".
 specials(0'\\) --> "\\".
 specials(0',)  --> ",".
 specials(0'.)  --> ".".
-specials(0'")  --> 'DQUOTE'.   %"
+specials(0'")  --> 'DQUOTE'.
 
 
 
@@ -1092,54 +1068,53 @@ specials(0'")  --> 'DQUOTE'.   %"
 %      / %d14-127
 % ```
 
-text(Code) -->
-  [Code],
-  {once(between(1, 9, Code) ; between(11, 12, Code) ; between(14, 127, Code))}.
+text(Code) --> between(1, 9, Code).
+text(Code) --> between(11, 12, Code).
+text(Code) --> between(14, 127, Code).
 
 
 
-%! time(-Hour:between(0,99), -Minute:between(0,99), -Second:between(0,99),
-%!      -Offset:between(-9999,9999))// .
+%! time(?Hour:between(0,99), ?Minute:between(0,99), ?Second:between(0,99),
+%!      ?Offset:between(-9999,9999))// .
 %
 % ```abnf
 % time = time-of-day zone
 % ```
 
-time(H, Mi, S, Off) -->
-  'time-of-day'(H, Mi, S),
-  zone(Off).
+time(Hour, Minute, Second, Offset) -->
+  'time-of-day'(Hour, Minute, Second),
+  zone(Offset).
 
 
 
-%! 'time-of-day'(-Hour:between(0,99), -Minute:between(0,99),
-%!               -Second:between(0,99))// .
+%! 'time-of-day'(?Hour:between(0,99), ?Minute:between(0,99),
+%!               ?Second:between(0,99))// .
 %
 % ```abnf
 % time-of-day = hour ":" minute [ ":" second ]
 % ```
 
-'time-of-day'(H, Mi, S) -->
-  hour(H),
+'time-of-day'(Hour, Minute, Second) -->
+  hour(Hour),
   ":",
-  minute(Mi),
-  (":" -> second(S) ; {S = 0}).
+  minute(Minute),
+  (":", second(Second) ; {Second = 0}).
 
 
 
-%! unstructured(-Unstructured:atom)// .
+%! unstructured(?Unstructured:atom)// .
 %
 % ```abnf
 % unstructured = (*([FWS] VCHAR) *WSP) / obs-unstruct
 % ```
 
-unstructured(A) -->
-  *(unstructured_code, Codes),
-  *('WSP'),
-  {atom_codes(A, Codes)}.
-unstructured(A) -->
-  'obs-unstruct'(A).
+unstructured(Atom) -->
+  dcg_atom(*(unstructured_), Atom),
+  *('WSP').
+unstructured(Atom) -->
+  'obs-unstruct'(Atom).
 
-unstructured_code(Code) -->
+unstructured_(Code) -->
   ?('FWS'),
   'VCHAR'(Code).
 
