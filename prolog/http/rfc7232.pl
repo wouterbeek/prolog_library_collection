@@ -63,8 +63,8 @@ etag(EntityTag) -->
 % ```
 
 etagc(0x21) --> [0x21].
-etagc(C)    --> [C], {between(0x23, 0x7E, C)}.
-etagc(C)    --> 'obs-text'(C).
+etagc(Code) --> between(0x23, 0x7E, Code).
+etagc(Code) --> 'obs-text'(Code).
 
 
 

@@ -1268,27 +1268,18 @@ markupdecl(Version, _) -->
 % @compat XML 1.0.5 [4a].
 % @compat XML 1.1.2 [4a].
 
-'NameChar'(Code) -->
-  'NameStartChar'(Code).
-'NameChar'(0'-) -->
-  "-".
-'NameChar'(0'.) -->
-  ".".
-'NameChar'(Code) -->
-  digit(Code).
+'NameChar'(Code) --> 'NameStartChar'(Code).
+'NameChar'(0'-) --> "-".
+'NameChar'(0'.) --> ".".
+'NameChar'(Code) --> digit(Code).
 % #x00B7
-'NameChar'(0'·) -->
-  "·".
+'NameChar'(0'·) --> "·".
 % #x0300-#x036F
-'NameChar'(Code) -->
-  [Code],
-  {between(0x300, 0x36F, Code)}.
+'NameChar'(Code) --> between(0x300, 0x36F, Code).
 % #x203F
-'NameChar'(0'‿) -->
-  "‿".
+'NameChar'(0'‿) --> "‿".
 % #x2040
-'NameChar'(0'⁀) -->
-  "⁀".
+'NameChar'(0'⁀) --> "⁀".
 
 
 

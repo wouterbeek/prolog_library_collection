@@ -63,7 +63,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 'date-mday'(Day) -->
   dcg_integer(#(2, digit), Day).
-  {between(1, 31, Day)}.
+  {must_be(between(1, 31), Day)}.
 
 
 
@@ -77,7 +77,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 'date-month'(Month) -->
   dcg_integer(#(2, digit), Month),
-  {between(1, 12, Month)}.
+  {must_be(between(1, 12), Month)}.
 
 
 
@@ -151,7 +151,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 'time-hour'(Hour) -->
   dcg_integer(#(2, digit), Hour).
-  {between(0, 23, Hour)}.
+  {must_be(between(0, 23), Hour)}.
 
 
 
@@ -163,7 +163,7 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 'time-minute'(Minute) -->
   dcg_integer(#(2, digit), Minute).
-  {between(0, 59, Minute)}.
+  {must_be(between(0, 59), Minute)}.
 
 
 
@@ -214,4 +214,4 @@ test('date-fullyear', [forall('date-fullyear'(S,Y)),nondet]):-
 
 'time-second'(Second) -->
   dcg_integer(#(2, digit), Second),
-  {between(0, 60, Second)}.
+  {must_be(between(0, 60), Second)}.

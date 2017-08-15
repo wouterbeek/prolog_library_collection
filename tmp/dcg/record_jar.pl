@@ -307,5 +307,4 @@ sep_comment -->
 % ```
 
 'UNICHAR'(Code) -->
-  [Code],
-  {between(0x80, 0x10FFFF, Code)}.
+  between(0x80, 0x10FFFF, Code).

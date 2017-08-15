@@ -33,8 +33,10 @@
 @author Wouter Beek
 @deprecated dcg/rfc4234
 @see https://tools.ietf.org/html/rfc2234
-@version 2017/05-2017/06
+@version 2017/05-2017/08
 */
+
+:- use_module(library(dcg/dcg_ext)).
 
 
 
@@ -78,9 +80,8 @@
 % CHAR = %x01-7F   ; any 7-bit US-ASCII character, excluding NUL
 % ```
 
-'CHAR'(C) -->
-  [C],
-  {between(1, 127, C)}.
+'CHAR'(Code) -->
+  between(1, 127, Code).
 
 
 
@@ -269,9 +270,8 @@
 % OCTET = %x00-FF   ; 8 bits of data
 % ```
 
-'OCTET'(C) -->
-  [C],
-  {between(0, 255, C)}.
+'OCTET'(Code) -->
+  between(0, 255, Code).
 
 
 
@@ -302,9 +302,8 @@
 % VCHAR = %x21-7E   ; visible (printing) characters
 % ```
 
-'VCHAR'(C) -->
-  [C],
-  {between(33, 126, C)}.
+'VCHAR'(Code) -->
+  between(33, 126, Code).
 
 
 
