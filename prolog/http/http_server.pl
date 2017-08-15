@@ -164,23 +164,9 @@ rest_exception(_, E) :-
 % 400 “Bad Request”
 rest_exception_media_type(media(text/html,_), bad_request(E)) :-
   http_status_reply(bad_request(E), current_output, [], _).
-rest_exception_media_type(
-  media(application/json,_),
-  existence_error(http_parameter,Key)
-) :-
-  atom_json_dict(Atom, _{message: "Missing parameter", value: Key}, []),
-  atom_codes(Atom, Codes),
-  phrase(
-    'HTTP-message'(
-      http(
-        status_line(1-1,400,_),
-        ['content-type'-media(application/json,[])],
-        Codes
-      )
-    ),
-    Msg
-  ),
-  format(current_output, '~s', [Msg]).
+rest_exception_media_type(media(application/json,_),
+                          existence_error(http_parameter,Key)) :-
+  reply_json_dict(_{message: "Missing parameter", value: Key}, [status(400)]).
 % 401 “Unauthorized” (RFC 7235)
 rest_exception_media_type(media(text/html,_), 401) :-
   http_status_reply(authorise(basic,''), current_output, [], _).
@@ -217,8 +203,8 @@ rest_exception_media_type(media(text/html,_), E) :-
 % 451 “Unavailable For Legal Reasons”
 % CATCHALL
 rest_exception_media_type(_, Status) :-
-  phrase('HTTP-message'(http(start_line(1-1,Status),[],[])), Msg),
-  format(current_output, '~s', [Msg]).
+  format("Status: ~d\n", [Status]),
+  nl.
 
 
 
@@ -247,14 +233,12 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
   memberchk(methods(Methods), Options),
   (   Method == options
   ->  setting(http:products, Products),
-      phrase(
-        'HTTP-message'(
-          http(status_line(1-1,204,_),[allow-Methods,server-Products],[])
-        ),
-        Msg
-      ),
-      debug(rest, "~s", [Msg]),
-      format(current_output, '~s', [Msg])
+      format("Status: 204\n"),
+      atom_phrase(allow(Methods), Value1),
+      format("Allow: ~a\n", [Value1]),
+      atom_phrase(server(Products), Value2),
+      format("Server: ~a\n", [Value2]),
+      nl
   ;   % 405 “Method Not Allowed”
       \+ memberchk(Method, Methods)
   ->  request_media_types(Request, MediaTypes),
