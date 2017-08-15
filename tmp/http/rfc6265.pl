@@ -191,9 +191,9 @@
 'max-age-av'(MaxAge) -->
   atom_ci('Max-Age'),
   "=",
-  'non-zero-digit'(Weight),
-  *(digit, Weights),
-  {integer_weights(MaxAge, [Weight|Weights])}.
+  'non-zero-digit'(H),
+  *(digit, T),
+  {integer_weights(MaxAge, [H|T])}.
 
 
 

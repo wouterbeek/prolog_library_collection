@@ -82,8 +82,7 @@ http:http_separable('cache-control').
 % ```
 
 'delta-seconds'(Delta) -->
-  +('DIGIT', Weights), !,
-  {integer_weights(Delta, Weights)}.
+  dcg_integer(+('DIGIT'), Delta).
 
 
 
@@ -165,8 +164,7 @@ pragma(Pragmas) -->
 % ```
 
 'warn-code'(Code) -->
-  #(3, 'DIGIT', Weights),
-  {integer_weights(Code, Weights)}.
+  dcg_integer(#(3, 'DIGIT'), Code).
 
 
 

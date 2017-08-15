@@ -217,9 +217,9 @@ frac(Frac) -->
 int(0) -->
   zero.
 int(N) -->
-  'digit1-9'(Weight),
-  *(digit_weight, Weights),
-  {integer_weights(N, [Weight|Weights])}.
+  'digit1-9'(H),
+  *(digit_weight, T),
+  {integer_weights(N, [H|T])}.
 
 
 
