@@ -30,15 +30,16 @@
 /** <module> HTTP Server
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(http/rfc7230)).
 :- use_module(library(lists)).
-:- use_module(library(pairs)).
+:- use_module(library(pair_ext)).
 :- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
 
@@ -46,6 +47,13 @@
     rest_media_type(+, 1),
     rest_method(+, 2),
     rest_method(+, +, 2, 3).
+
+:- multifile
+    error:has_type/2.
+
+error:has_type(or(Types), Term) :-
+  member(Type, Types),
+  error:has_type(Type, Term), !.
 
 :- setting(
      http:client_name,
@@ -66,9 +74,9 @@
      "The scheme components of data IRIs."
    ).
 :- setting(
-     http:server_name,
-     list(string),
-     ["SWI-Prolog"],
+     http:products,
+     list(or([atom,pair(atom)])),
+     ['SWI-Prolog'],
      "The name of the server that creates HTTP replies."
    ).
 
@@ -160,14 +168,14 @@ rest_exception_media_type(
   media(application/json,_),
   existence_error(http_parameter,Key)
 ) :-
-  atom_json_dict(A, _{message: "Missing parameter", value: Key}, []),
-  atom_codes(A, Cs),
+  atom_json_dict(Atom, _{message: "Missing parameter", value: Key}, []),
+  atom_codes(Atom, Codes),
   phrase(
     'HTTP-message'(
       http(
         status_line(1-1,400,_),
         ['content-type'-media(application/json,[])],
-        Cs
+        Codes
       )
     ),
     Msg
@@ -238,7 +246,7 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
   Module:http_current_handler(Path, _, Options),
   memberchk(methods(Methods), Options),
   (   Method == options
-  ->  setting(http:server_name, Products),
+  ->  setting(http:products, Products),
       phrase(
         'HTTP-message'(
           http(status_line(1-1,204,_),[allow-Methods,server-Products],[])

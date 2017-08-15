@@ -3,9 +3,10 @@
   [
     accept//1,         % ?Pairs
     allow//1,          % ?Methods
-    'content-type'//1, % -MediaType
-    'HTTP-date'//1,    % -Datetime
-    'media-type'//1    % ?MediaType
+    'content-type'//1, % ?MediaType
+    'HTTP-date'//1,    % ?Datetime
+    'media-type'//1,   % ?MediaType
+    server//1          % ?Server
   ]
 ).
 :- reexport(library(dcg/rfc4647), [
@@ -633,15 +634,26 @@ parameter(Name-Value) -->
 
 
 
-%! product(?Product:pair(atom))// .
+%! product(?Product:or([atom,pair(atom)]))// .
 %
 % ```abnf
 % product = token ["/" product-version]
 % ```
 
-product(Name-Version) -->
+product(Product) -->
+  parsing, !,
   token(Name),
-  ("/", 'product-version'(Version) ; "").
+  (   "/",
+      'product-version'(Version),
+      {Product = Name-Version}
+  ;   {Product = Name}
+  ).
+product(Name-Version) --> !,
+  token(Name),
+  "/",
+  'product-version'(Version).
+product(Name) -->
+  token(Name).
 
 
 
@@ -751,7 +763,7 @@ second(Second) -->
 
 
 
-%! server(?Server:list(atom))// is det.
+%! server(?Server:list(pair(atom)))// is det.
 %
 % ```abnf
 % Server = product *( RWS ( product | comment ) )
@@ -805,7 +817,7 @@ type(Type) -->
 
 
 
-%! 'user-agent'(?UA:list(atom))// .
+%! 'user-agent'(?UA:list(pair(atom)))// .
 %
 % ```abnf
 % User-Agent = product *( RWS ( product | comment ) )
@@ -872,11 +884,11 @@ sep_parameter_(Parameter) -->
 
 
 
-%! sep_product_or_comment_(-A)// .
+%! sep_product_or_comment_(?Product:pair(atom))// .
 
-sep_product_or_comment_(A) -->
+sep_product_or_comment_(Product) -->
   'RWS',
-  (product(A) ; comment(A)).
+  (product(Product) ; comment).
 
 
 

@@ -67,9 +67,7 @@
     *##(//, ?, ?),
     *##(3, ?, ?, ?),
     'm##n'(?, ?, //, ?, ?),
-    'm##n'(?, ?, 3, ?, ?, ?),
-    'field-content'(3, -, ?, ?),
-    'field-value'(?, 3, -).
+    'm##n'(?, ?, 3, ?, ?, ?).
 
 :- multifile
     http:http_header/1,
@@ -359,16 +357,17 @@ ctext(Code) --> 'obs-text'(Code).
 
 
 
-%! 'field-content'(:Key_3, -Value:term)// .
+%! 'field-content'(+Name:atom, ?Value:term)// .
 %
 % ```abnf
 % field-content = field-vchar [ 1*( SP | HTAB ) field-vchar ]
 % ```
 
-'field-content'(Mod:Key_3, Value) -->
-  (   {current_predicate(Key_3/3)}
+'field-content'(Name, Value) -->
+  parsing, !,
+  (   {current_predicate(Name/3)}
   ->  (   % (1/4) valid value
-          dcg_once(dcg_call(Mod:Key_3, Value)),
+          dcg_once(dcg_call(Name, Value)),
           'OWS',
           % @note This should fail in case only _part_ of the HTTP
           %       header is parsed.
@@ -377,26 +376,40 @@ ctext(Code) --> 'obs-text'(Code).
       ;   % (2/4) empty value
           phrase('obs-fold')
       ->  {
-            Value = empty_http_value(Key_3),
+            Value = empty_http_value(Name),
             print_message(warning, Value)
           }
       ;    % (3/4) buggy value
           rest_as_string(Raw),
           {
-            Value = buggy_http_header(Key_3,Raw),
+            Value = buggy_http_header(Name,Raw),
             print_message(warning, Value)
           }
       )
   ;   % (4/4) unknown key
       rest_as_string(Raw),
       {
-        (   http:http_header(Key_3)
-        ->  Value = undefined_http_header(Key_3,Raw)
-        ;   Value = unknown_http_header(Key_3,Raw)
+        (   http:http_header(Name)
+        ->  Value = undefined_http_header(Name,Raw)
+        ;   Value = unknown_http_header(Name,Raw)
         ),
         print_message(warning, Value)
       }
   ).
+'field-content'(Name, Value) -->
+  dcg_once(dcg_call(Name, Value)).
+/*
+'field-content'(L) -->
+  'field-vchar'(H1),
+  (   +('field-content_'),
+      'field-vchar'(H2),
+      {L = [H1,H2]}
+  ;   {L = [H1]}
+  ).
+
+'field-content_' --> 'SP'.
+'field-content_' --> 'HTAB'.
+*/
 
 
 
@@ -418,14 +431,20 @@ ctext(Code) --> 'obs-text'(Code).
 
 
 
-%! 'field-value'(+Codes:list(code), -Pair:pair(atom,term))// .
+%! 'field-value'(+Name:atom, ?Value:term)// .
 %
 % ```abnf
 % field-value = *( field-content | 'obs-fold' )
 % ```
 
-'field-value'(Codes, Key, Value) :-
-  phrase('field-content'(Key, Value), Codes).
+'field-value'(Name, Value) -->
+  'field-content'(Name, Value).
+/*
+'field-value'(Content) -->
+  'field-content'(Content).
+'field-value'([]) -->
+  'obs-fold'.
+*/
 
 
 
@@ -440,18 +459,16 @@ ctext(Code) --> 'obs-text'(Code).
 
 
 
-%! 'header-field'(-Header:pair(atom,compound))// .
+%! 'header-field'(?Header:pair(atom,term))// .
 %
 % ```abnf
 % header-field = field-name ":" OWS field-value OWS
 % ```
 
-'header-field'(Key-Value) -->
-  'field-name'(Key),
+'header-field'(Name-Value) -->
+  'field-name'(Name),
   ":", 'OWS',
-  % TBD: generating
-  rest(Codes),
-  {'field-value'(Codes, Key, Value)}.
+  'field-value'(Name, Value).
 
 
 
@@ -482,7 +499,7 @@ host(auth(_,Host,Port)) -->
 
 'HTTP-message'(http(StartLine,Headers,Body)) -->
   'start-line'(StartLine),
-  *(header_field_eol, Headers),
+  *('header-field_eol', Headers),
   'CRLF',
   dcg_default('message-body', Body, []),
   'CRLF'.
@@ -1026,7 +1043,7 @@ trailer(L) -->
 % ```
 
 'trailer-part'(Headers) -->
-  *(header_field_eol, Headers).
+  *('header-field_eol', Headers).
 
 
 
@@ -1135,9 +1152,9 @@ via_component(via(ReceivedProtocol,ReceivedBy,Comment)) -->
 
 % HELPERS %
 
-%! header_field_eol(?Header:compound)// is det.
+%! 'header-field_eol'(?Header:compound)// is det.
 
-header_field_eol(Header) -->
+'header-field_eol'(Header) -->
   'header-field'(Header),
   'CRLF'.
 

@@ -111,7 +111,7 @@
   'CRLF'(_).
 
 
-'CRLF'([Code1,Code2]) -->{gtrace},
+'CRLF'([Code1,Code2]) -->
   'CR'(Code1),
   'LF'(Code2).
 
