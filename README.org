@@ -77,58 +77,58 @@ sentence(L) -->
 
 **** variable repetition
 
+Variable repetition is a metasyntactic construct which states that
+at least ~M~ and at most ~N~ occurrences of ~:Dcg_0~ must be
+processed:
+
 #+BEGIN_SRC prolog
 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_0)//
 #+END_SRC
 
-*Variable repetition* is a metasyntactic construct which states that
-at least ~M~ and at most ~N~ occurrences of ~:Dcg_0~ must be
-processed.
-
 **** specific repetition
+
+Specific repetition is a metasyntactic construct which states that
+exactly ~N~ occurrences of ~Dcg_0~ must be processed:
 
 #+BEGIN_SRC prolog
 '#'(?N:nonneg, :Dcg_0)//
 #+END_SRC
-
-*Specific repetition* is a metasyntactic construct which states that
-exactly ~N~ occurrences of ~Dcg_0~ must be processed.
 
 Specific repetition is a special case of [[variable repetition]], because
 ~#(N, Dcg_0)~ is the same as ~'m*n'(N, N, Dcg_0)~.
 
 **** Kleene star
 
+Kleene star is a metasyntactic construct which states that zero or
+more occurrences of ~Dcg_0~ must be processed:
+
 #+BEGIN_SRC prolog
 *(?N:nonneg, :Dcg_0)//
 #+END_SRC
-
-*Kleene star* is a metasyntactic construct which states that zero or
-more occurrences of ~Dcg_0~ must be processed.
 
 Kleene star is a special case of [[variable repetition]], because ~*(N,
 Dcg_0)~ is the same as ~'m*n'(_, _, Dcg_0)~.
 
 **** Kleene sum
 
+Kleene sum is a metasyntactic construct which states that one or more
+occurrences of ~Dcg_0~ must be processed:
+
 #+BEGIN_SRC prolog
 +(?N:nonneg, :Dcg_0)//
 #+END_SRC
-
-*Kleene sum* is a metasyntactic construct which states that one or
-more occurrences of ~Dcg_0~ must be processed.
 
 Kleene sum is a special case of [[variable repetition]], because ~+(N,
 Dcg_0)~ is the same as ~'m*n'(1, _, Dcg_0)~.
 
 **** optional sequence
 
+Optional sequence is a metasyntactic construct which states that
+~Dcg_0~ should either be processed once or not at all:
+
 #+BEGIN_SRC prolog
 ?(:Dcg_0)//
 #+END_SRC
-
-*Optional sequence* is a metasyntactic construct which states that
-~Dcg_0~ should either be processed once or not at all.
 
 Optional sequence is a special case of [[variable repetition]], because
 ~?(Dcg_0)~ is the same as ~'m*n'(0, 1, Dcg_0)~.
