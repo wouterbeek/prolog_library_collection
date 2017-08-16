@@ -734,7 +734,7 @@ uri_port(_, Port) -->
 
 %! uri_query(?Query:atom)// .
 
-uri_query(Query) --> parsing, !, ("?", {gtrace}, query(Query) ; "").
+uri_query(Query) --> parsing, !, ("?", query(Query) ; "").
 uri_query(Query) --> {var(Query)}.
 uri_query(Query) --> "?", query(Query).
 

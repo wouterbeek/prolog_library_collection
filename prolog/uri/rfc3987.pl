@@ -498,7 +498,7 @@ uri_ifragment(Fragment) --> "#", ifragment(Fragment).
 
 %! uri_iquery(?Query:atom)// .
 
-uri_iquery(Query) --> parsing, !, ("?", {gtrace}, iquery(Query) ; "").
+uri_iquery(Query) --> parsing, !, ("?", iquery(Query) ; "").
 uri_iquery(Query) --> {var(Query)}.
 uri_iquery(Query) --> "?", iquery(Query).
 

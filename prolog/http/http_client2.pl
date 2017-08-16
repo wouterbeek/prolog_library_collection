@@ -274,7 +274,7 @@ http_lines_pairs0(Lines, MergedPairs) :-
 
 
 http_parse_header_pair0(Line, Key-Val) :-
-  phrase(http_parse_header_simple0(Key, Val), Line).
+  once(phrase(http_parse_header_simple0(Key, Val), Line)).
 
 
 http_parse_header_simple0(Key, Val) -->
