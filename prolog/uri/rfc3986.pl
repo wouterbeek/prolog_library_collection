@@ -30,7 +30,7 @@
 
 The following terms are used:
 
-| Authority | auth(User,host,Port)                               |
+| Authority | auth(User,Password,Host,Port)                      |
 | Host      | IP or atom Name                                    |
 | IP        | ip(Version,Address)                                |
 | Uri       | uri(Scheme,Authority,Segments,QueryComps,Fragment) |
@@ -82,7 +82,7 @@ The following terms are used:
 % The authority component determines who has the right to respond
 % authoritatively to requests that target the identified resource.
 
-authority(Scheme, auth(User,Host,Port)) -->
+authority(Scheme, auth(User,_Password,Host,Port)) -->
   uri_userinfo(User),
   host(Host),
   uri_port(Scheme, Port).
@@ -142,10 +142,9 @@ authority(Scheme, auth(User,Host,Port)) -->
 fragment(Fragment) -->
   dcg_atom(*(fragment_), Fragment).
 
-fragment_(Code) -->
-  pchar(Code).
 fragment_(0'/) --> "/".
 fragment_(0'?) --> "?".
+fragment_(Code) --> pchar(Code).
 
 
 
@@ -220,12 +219,9 @@ h16(N) -->
 % host = IP-literal / IPv4address / reg-name
 % ```
 
-host(Ip) -->
-  'IP-literal'(Ip).
-host(ip(4,Address)) -->
-  'IPv4address'(Address).
-host(Name) -->
-  'reg-name'(Name).
+host(Ip) --> 'IP-literal'(Ip).
+host(ip(4,Address)) --> 'IPv4address'(Address).
+host(Name) --> 'reg-name'(Name).
 
 
 
@@ -295,11 +291,9 @@ host(Name) -->
   ".",
   dcg_atom(+('IPv_future_'), Address).
 
-'IPv_future_'(Code) -->
-  unreserved(Code).
-'IPv_future_'(Code) -->
-  'sub-delims'(Code).
 'IPv_future_'(0':) --> ":".
+'IPv_future_'(Code) --> 'sub-delims'(Code).
+'IPv_future_'(Code) --> unreserved(Code).
 
 
 
@@ -329,20 +323,15 @@ ls32(Ns) -->
 % ```
 
 % Begins with "/" or is empty.
-path(Segments) -->
-  'path-abempty'(Segments), !.
+path(Segments) --> 'path-abempty'(Segments).
 % Begins with "/" but not "//".
-path(Segments) -->
-  'path-absolute'(Segments), !.
+path(Segments) --> 'path-absolute'(Segments).
 % Begins with a non-colon segment
-path(Segments) -->
-  'path-noscheme'(Segments), !.
+path(Segments) --> 'path-noscheme'(Segments).
 % Begins with a segment
-path(Segments) -->
-  'path-rootless'(Segments), !.
+path(Segments) --> 'path-rootless'(Segments).
 % Empty path (i.e., no segments).
-path(Segments) -->
-  'path-empty'(Segments).
+path(Segments) --> 'path-empty'(Segments).
 
 
 
@@ -353,7 +342,7 @@ path(Segments) -->
 % ```
 
 'path-abempty'(Segments) -->
-  *(sep_segment, Segments), !.
+  *(sep_segment, Segments).
 
 
 
@@ -365,7 +354,7 @@ path(Segments) -->
 
 'path-absolute'([H|T]) -->
   "/",
-  ('segment-nz'(H) -> *(sep_segment, T), ! ; {T = []}).
+  ('segment-nz'(H), *(sep_segment, T) ; {T = []}).
 
 
 
@@ -387,7 +376,7 @@ path(Segments) -->
 
 'path-noscheme'([H|T]) -->
   'segment-nz-nc'(H),
-  *(sep_segment, T), !.
+  *(sep_segment, T).
 
 
 
@@ -399,7 +388,7 @@ path(Segments) -->
 
 'path-rootless'([H|T]) -->
   'segment-nz'(H),
-  *(sep_segment, T), !.
+  *(sep_segment, T).
 
 
 
@@ -409,14 +398,11 @@ path(Segments) -->
 % pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
 
-pchar(Code) -->
-  unreserved(Code).
-pchar(Code) -->
-  'pct-encoded'(Code).
-pchar(Code) -->
-  'sub-delims'(Code).
 pchar(0':) --> ":".
 pchar(0'@) --> "@".
+pchar(Code) --> 'sub-delims'(Code).
+pchar(Code) --> unreserved(Code).
+pchar(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -458,10 +444,9 @@ query(QueryComps) -->
   dcg_atom(*(query_), Query), !,
   {uri_query_components(Query, QueryComps)}.
 
-query_(Code) -->
-  pchar(Code).
 query_(0'/) --> "/".
 query_(0'?) --> "?".
+query_(Code) --> pchar(Code).
 
 
 
@@ -476,12 +461,9 @@ query_(0'?) --> "?".
 'reg-name'(Name) -->
   dcg_atom(*(reg_name_), Name).
 
-reg_name_(Code) -->
-  unreserved(Code).
-reg_name_(Code) -->
-  'pct-encoded'(Code).
-reg_name_(Code) -->
-  'sub-delims'(Code).
+reg_name_(Code) --> 'sub-delims'(Code).
+reg_name_(Code) --> unreserved(Code).
+reg_name_(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -530,10 +512,8 @@ reg_name_(Code) -->
 % reserved = gen-delims / sub-delims
 % ```
 
-reserved(Code) -->
-  'gen-delims'(Code).
-reserved(Code) -->
-  'sub-delims'(Code).
+reserved(Code) --> 'gen-delims'(Code).
+reserved(Code) --> 'sub-delims'(Code).
 
 
 
@@ -556,8 +536,7 @@ scheme(Scheme) -->
   alpha(H),
   *(scheme_, T).
 
-scheme_(Code) -->
-  alphanum(Code).
+scheme_(Code) --> alphanum(Code).
 scheme_(0'+) --> "+".
 scheme_(0'-) --> "-".
 scheme_(0'.) --> ".".
@@ -599,13 +578,10 @@ segment(Segment) -->
 'segment-nz-nc'(Segment) -->
   dcg_atom(+(segment_nz_nc_), Segment).
 
-segment_nz_nc_(Code) -->
-  unreserved(Code).
-segment_nz_nc_(Code) -->
-  'pct-encoded'(Code).
-segment_nz_nc_(Code) -->
-  'sub-delims'(Code).
 segment_nz_nc_(0'@) --> "@".
+segment_nz_nc_(Code) --> 'sub-delims'(Code).
+segment_nz_nc_(Code) --> unreserved(Code).
+segment_nz_nc_(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -635,8 +611,7 @@ segment_nz_nc_(0'@) --> "@".
 % unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 % ```
 
-unreserved(Code) -->
-  alphanum(Code).
+unreserved(Code) --> alphanum(Code).
 unreserved(0'-) --> "-".
 unreserved(0'.) --> ".".
 unreserved(0'_) --> "_".
@@ -713,13 +688,10 @@ unreserved(0'~) --> "~".
 userinfo(User) -->
   dcg_atom(*(userinfo_), User).
 
-userinfo_(Code) -->
-  unreserved(Code).
-userinfo_(Code) -->
-  'pct-encoded'(Code).
-userinfo_(Code) -->
-  'sub-delims'(Code).
 userinfo_(0':) --> ":".
+userinfo_(Code) --> 'sub-delims'(Code).
+userinfo_(Code) --> unreserved(Code).
+userinfo_(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -762,7 +734,7 @@ uri_port(_, Port) -->
 
 %! uri_query(?Query:atom)// .
 
-uri_query(Query) --> parsing, !, ("?", query(Query) ; "").
+uri_query(Query) --> parsing, !, ("?", {gtrace}, query(Query) ; "").
 uri_query(Query) --> {var(Query)}.
 uri_query(Query) --> "?", query(Query).
 

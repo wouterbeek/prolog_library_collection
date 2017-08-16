@@ -479,7 +479,7 @@ ctext(Code) --> 'obs-text'(Code).
 % ```
 
 http:http_header(host).
-host(auth(_,Host,Port)) -->
+host(auth(_User,_Password,Host,Port)) -->
   'uri-host'(Host),
   (":" -> port(Port) ; "").
 
@@ -816,7 +816,7 @@ reason_phrase_(Code) --> 'obs-text'(Code).
 % received-by = ( uri-host [ ":" port ] ) | pseudonym
 % ```
 
-'received-by'(auth(_,Host,Port)) -->
+'received-by'(auth(_User,_Password,Host,Port)) -->
   'uri-host'(Host), !,
   (":" -> port(Port) ; {Port = 80}).
 'received-by'(Pseudonym) -->

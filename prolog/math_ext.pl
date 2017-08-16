@@ -128,13 +128,10 @@ integer_weights(Int, Weights):-
 %! integer_weights(+Int:nonneg, +Base:nonneg, -Weights:list(between(0,9))) is det.
 %
 % @see http://stackoverflow.com/questions/4192063/reversible-binary-to-number-predicate/28442760#28442760
-% @throws instantiation_error
 
 integer_weights(Int, Base, Weights):-
   (nonvar(Int), nonvar(Base) ; nonvar(Weights)), !,
   integer_weights0(Int, Base, Weights, 0, Int).
-integer_weights(_, _, _):-
-  instantiation_error(_).
 
 integer_weights0(Int, _, [], Int, _) :- !.
 integer_weights0(Int, Base, [Weight|Weights], Int0, M):-

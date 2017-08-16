@@ -149,7 +149,7 @@ pragma(Pragmas) -->
 %            ; a single "-" is recommended when agent unknown
 % ```
 
-'warn-agent'(auth(_,Host,Port)) -->
+'warn-agent'(auth(_User,_Password,Host,Port)) -->
   'uri-host'(Host),
   (":" -> port(Port) ; ""), !.
 'warn-agent'(Pseudonym) -->

@@ -90,7 +90,7 @@ data_uri(Segments, Uri) :-
   setting(http:public_scheme, Scheme),
   setting(http:public_host, Host),
   setting(http:public_port, Port),
-  uri_comps(Uri, uri(Scheme,auth(_,Host,Port),Segments,_,_)).
+  uri_comps(Uri, uri(Scheme,auth(_User,_Password,Host,Port),Segments,_,_)).
 
 
 

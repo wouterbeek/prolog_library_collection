@@ -580,7 +580,7 @@ sep_param(Param) -->
 % server = [ [ userinfo "@" ] hostport ]
 % ```
 
-server(auth(User,_,Host,Port)) -->
+server(auth(User,_Password,Host,Port)) -->
   (userinfo(User) -> "@" ; {var(User)}),
   hostport(Host, Port), !.
 % @bug This seems to be a bug in the standard?

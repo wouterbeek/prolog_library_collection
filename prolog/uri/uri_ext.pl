@@ -6,6 +6,7 @@
     download/2,            % +Uri, +FileSpec
     download/3,            % +Uri, +FileSpec, +Options
     fresh_uri/2,           % -Uri, +Components
+    iri_to_uri/2,          % +Iri, -Uri
     is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
@@ -25,6 +26,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(default)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
@@ -33,6 +35,7 @@
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(settings)).
+:- use_module(library(uri/rfc3987)).
 :- use_module(library(uuid)).
 :- use_module(library(zlib)).
 
@@ -124,6 +127,21 @@ fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
 
 
 
+%! iri_to_uri(+Iri:atom, -Uri:atom) is det.
+%
+% # Example
+%
+% ```prolog
+% ?- iri_to_uri('http://dbpedia.org/resource/%C3%84iwoo_language', Uri).
+% Uri = 'http://dbpedia.org/resource/Ã%84iwoo_language'.
+% ```
+
+iri_to_uri(Iri, Uri) :-
+  once(atom_phrase('IRI'(Comps), Iri)),
+  once(atom_phrase('URI'(Comps), Uri)).
+
+
+
 %! is_uri(@Term) is semidet.
 %
 % Succeeds iff Term is an atom that conforms to the URI grammar.
@@ -174,7 +192,7 @@ uri_comp_set(query, Uri1, QueryComponents, Uri2) :-
 % `uri(Scheme,Authority,Segments,Query,Fragment)', where:
 %
 %   * Authority is either an atom or a compound term of the form
-%     `auth(User,Host,Port)'.
+%     `auth(User,Password,Host,Port)'.
 %
 %   * Segments is a list of atomic path segments.
 %
@@ -219,10 +237,10 @@ uri_comps(Uri, uri(Scheme,Authority0,Segments,QueryComponents,Fragment)) :-
   ),
   uri_components(Uri, uri_components(Scheme,Authority,Path,Query,Fragment)).
 
-auth_comps0(_, Authority, auth(User,Host,Port)) :-
+auth_comps0(_, Authority, auth(User,Password,Host,Port)) :-
   ground(Authority), !,
-  uri_authority_components(Authority, uri_authority(User,_,Host,Port)).
-auth_comps0(Scheme, Authority, auth(User,Host,Port0)) :-
+  uri_authority_components(Authority, uri_authority(User,Password,Host,Port)).
+auth_comps0(Scheme, Authority, auth(User,Password,Host,Port0)) :-
   (   var(Port0)
   ->  true
   ;   % Leave out the port if it is the default port for the given
@@ -233,15 +251,15 @@ auth_comps0(Scheme, Authority, auth(User,Host,Port0)) :-
   ;   Port = Port0
   ),
   % Create the Authorityority string.
-  uri_authority_components(Authority, uri_authority(User,_,Host,Port)).
+  uri_authority_components(Authority, uri_authority(User,Password,Host,Port)).
 
 
 
 %! uri_dict(+Uri:atom, -Dict:dict) is det.
 
 uri_dict(Uri, Dict) :-
-  uri_comps(Uri, uri(Scheme,auth(User,Host,Port),Segments,Query,Fragment)),
-  include(ground, [host-Host,port-Port,user-User], AuthorityPairs),
+  uri_comps(Uri, uri(Scheme,auth(User,Password,Host,Port),Segments,Query,Fragment)),
+  include(ground, [host-Host,password-Password,port-Port,user-User], AuthorityPairs),
   dict_pairs(AuthorityDict, authority, AuthorityPairs),
   include(
     ground,

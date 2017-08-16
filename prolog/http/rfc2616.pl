@@ -126,7 +126,7 @@ date2(Year, Month, Day) -->
 % http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
 % ```
 
-http_URL(uri(http,auth(_,Host,Port),Segments,QueryComps)) -->
+http_URL(uri(http,auth(_User,_Password,Host,Port),Segments,QueryComps)) -->
   atom_ci('http://'),
   host(Host),
   (":" -> port(Port) ; {Port = 80}),

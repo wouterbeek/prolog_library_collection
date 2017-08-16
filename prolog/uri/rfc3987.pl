@@ -109,11 +109,9 @@ uri_iuserinfo(U) --> iuserinfo(U), "@".
 % iauthority = [ iuserinfo "@" ] ihost [ ":" port ]
 % ```
 
-iauthority(Scheme, auth(User,_,Host,Port)) -->
+iauthority(Scheme, auth(User,_Password,Host,Port)) -->
   uri_iuserinfo(User),
-  ihost(Host), !,
-  % If the port subcomponent is empty or not given, TCP port 80 (the
-  % reserved port for WWW services) is the default.
+  ihost(Host),
   uri_port(Scheme, Port).
 
 
@@ -127,10 +125,10 @@ iauthority(Scheme, auth(User,_,Host,Port)) -->
 ifragment(Fragment) -->
   dcg_atom(*(ifragment_), Fragment).
 
-ifragment_(Code) -->
-  ipchar(Code).
 ifragment_(0'/) --> "/".
 ifragment_(0'?) --> "?".
+ifragment_(Code) -->
+  ipchar(Code).
 
 
 
@@ -263,14 +261,11 @@ ipath(Segments) -->
 % ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
 % ```
 
-ipchar(Code) -->
-  iunreserved(Code).
-ipchar(Code) -->
-  'sub-delims'(Code).
 ipchar(0':) --> ":".
 ipchar(0'@) --> "@".
-ipchar(Code) -->
-  'pct-encoded'(Code).
+ipchar(Code) --> 'sub-delims'(Code).
+ipchar(Code) --> iunreserved(Code).
+ipchar(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -280,12 +275,9 @@ ipchar(Code) -->
 % iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
 % ```
 
-iprivate(Code) -->
-  between(0xE000, 0xF8FF, Code).
-iprivate(Code) -->
-  between(0xF0000,  0xFFFFD,  Code).
-iprivate(Code) -->
-  between(0x100000, 0x10FFFD, Code).
+iprivate(Code) --> between(0xE000, 0xF8FF, Code).
+iprivate(Code) --> between(0xF0000,  0xFFFFD,  Code).
+iprivate(Code) --> between(0x100000, 0x10FFFD, Code).
 
 
 
@@ -298,12 +290,10 @@ iprivate(Code) -->
 iquery(Query) -->
   dcg_atom(*(iquery_), Query).
 
-iquery_(Code)   -->
-  iprivate(Code).
 iquery_(0'/) --> "/".
 iquery_(0'?) --> "?".
-iquery_(Code)   -->
-  ipchar(Code).
+iquery_(Code)   --> iprivate(Code).
+iquery_(Code)   --> ipchar(Code).
 
 
 
@@ -316,12 +306,9 @@ iquery_(Code)   -->
 'ireg-name'(Host) -->
   dcg_atom(*(ireg_name_), Host).
 
-ireg_name_(Code) -->
-  iunreserved(Code).
-ireg_name_(Code) -->
-  'sub-delims'(Code).
-ireg_name_(Code) -->
-  'pct-encoded'(Code).
+ireg_name_(Code) --> 'sub-delims'(Code).
+ireg_name_(Code) --> iunreserved(Code).
+ireg_name_(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -387,10 +374,8 @@ ireg_name_(Code) -->
 % IRI-reference = IRI / irelative-ref
 % ```
 
-'IRI-reference'(Uri) -->
-  'IRI'(Uri), !.
-'IRI-reference'(Uri) -->
-  'irelative-ref'(Uri).
+'IRI-reference'(Uri) --> 'IRI'(Uri).
+'IRI-reference'(Uri) --> 'irelative-ref'(Uri).
 
 
 
@@ -426,13 +411,10 @@ isegment(Segment) -->
 'isegment-nz-nc'(Segment) -->
   dcg_atom(+('isegment-nz-nc_'), Segment).
 
-'isegment-nz-nc_'(Code) -->
-  iunreserved(Code).
-'isegment-nz-nc_'(Code) -->
-  'pct-encoded'(Code).
-'isegment-nz-nc_'(Code) -->
-  'sub-delims'(Code).
 'isegment-nz-nc_'(0'@) --> "@".
+'isegment-nz-nc_'(Code) --> 'sub-delims'(Code).
+'isegment-nz-nc_'(Code) --> iunreserved(Code).
+'isegment-nz-nc_'(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -442,10 +424,8 @@ isegment(Segment) -->
 % iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
 % ```
 
-iunreserved(Code) -->
-  unreserved(Code).
-iunreserved(Code) -->
-  ucschar(Code).
+iunreserved(Code) --> unreserved(Code).
+iunreserved(Code) --> ucschar(Code).
 
 
 
@@ -458,13 +438,10 @@ iunreserved(Code) -->
 iuserinfo(User) -->
   dcg_atom(*(iuserinfo_), User).
 
-iuserinfo_(Code) -->
-  iunreserved(Code).
 iuserinfo_(0':) --> ":".
-iuserinfo_(Code) -->
-  'sub-delims'(Code).
-iuserinfo_(Code) -->
-  'pct-encoded'(Code).
+iuserinfo_(Code) --> 'sub-delims'(Code).
+iuserinfo_(Code) --> iunreserved(Code).
+iuserinfo_(Code) --> 'pct-encoded'(Code).
 
 
 
@@ -479,40 +456,23 @@ iuserinfo_(Code) -->
 %         / %xD0000-DFFFD / %xE1000-EFFFD
 % ```
 
-ucschar(Code) -->
-  between(0xA0, 0xD7FF, Code).
-ucschar(Code) -->
-  between(0xF900, 0xFDCF, Code).
-ucschar(Code) -->
-  between(0xFDF0, 0xFFEF, Code).
-ucschar(Code) -->
-  between(0x10000, 0x1FFFD, Code).
-ucschar(Code) -->
-  between(0x20000, 0x2FFFD, Code).
-ucschar(Code) -->
-  between(0x30000, 0x3FFFD, Code).
-ucschar(Code) -->
-  between(0x40000, 0x4FFFD, Code).
-ucschar(Code) -->
-  between(0x50000, 0x5FFFD, Code).
-ucschar(Code) -->
-  between(0x60000, 0x6FFFD, Code).
-ucschar(Code) -->
-  between(0x70000, 0x7FFFD, Code).
-ucschar(Code) -->
-  between(0x80000, 0x8FFFD, Code).
-ucschar(Code) -->
-  between(0x90000, 0x9FFFD, Code).
-ucschar(Code) -->
-  between(0xA0000, 0xAFFFD, Code).
-ucschar(Code) -->
-  between(0xB0000, 0xBFFFD, Code).
-ucschar(Code) -->
-  between(0xC0000, 0xCFFFD, Code).
-ucschar(Code) -->
-  between(0xD0000, 0xDFFFD, Code).
-ucschar(Code) -->
-  between(0xE1000, 0xEFFFD, Code).
+ucschar(Code) --> between(0xA0, 0xD7FF, Code).
+ucschar(Code) --> between(0xF900, 0xFDCF, Code).
+ucschar(Code) --> between(0xFDF0, 0xFFEF, Code).
+ucschar(Code) --> between(0x10000, 0x1FFFD, Code).
+ucschar(Code) --> between(0x20000, 0x2FFFD, Code).
+ucschar(Code) --> between(0x30000, 0x3FFFD, Code).
+ucschar(Code) --> between(0x40000, 0x4FFFD, Code).
+ucschar(Code) --> between(0x50000, 0x5FFFD, Code).
+ucschar(Code) --> between(0x60000, 0x6FFFD, Code).
+ucschar(Code) --> between(0x70000, 0x7FFFD, Code).
+ucschar(Code) --> between(0x80000, 0x8FFFD, Code).
+ucschar(Code) --> between(0x90000, 0x9FFFD, Code).
+ucschar(Code) --> between(0xA0000, 0xAFFFD, Code).
+ucschar(Code) --> between(0xB0000, 0xBFFFD, Code).
+ucschar(Code) --> between(0xC0000, 0xCFFFD, Code).
+ucschar(Code) --> between(0xD0000, 0xDFFFD, Code).
+ucschar(Code) --> between(0xE1000, 0xEFFFD, Code).
 
 
 
@@ -538,7 +498,7 @@ uri_ifragment(Fragment) --> "#", ifragment(Fragment).
 
 %! uri_iquery(?Query:atom)// .
 
-uri_iquery(Query) --> parsing, !, ("?", iquery(Query) ; "").
+uri_iquery(Query) --> parsing, !, ("?", {gtrace}, iquery(Query) ; "").
 uri_iquery(Query) --> {var(Query)}.
 uri_iquery(Query) --> "?", iquery(Query).
 
