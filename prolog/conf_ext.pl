@@ -8,7 +8,7 @@
 /** <module> Configuration extension
 
 @author Wouter Beek
-@version 2017/06-2017/07
+@version 2017/06-2017/08
 */
 
 :- use_module(library(json_ext)).
@@ -23,5 +23,7 @@
 
 conf_json(Dict) :-
   cli_arguments(Arguments),
-  option(conf(FileSpec), Arguments),
-  json_to_dict(FileSpec, Dict, [value_string_as(atom)]).
+  (   option(conf(FileSpec), Arguments)
+  ->  json_to_dict(FileSpec, Dict, [value_string_as(atom)])
+  ;   true
+  ).
