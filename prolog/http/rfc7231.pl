@@ -888,7 +888,7 @@ sep_parameter_(Parameter) -->
 
 sep_product_or_comment_(Product) -->
   'RWS',
-  (product(Product) ; comment).
+  (product(Product) ; comment(_)).
 
 
 

@@ -37,7 +37,7 @@
     'PubidLiteral'//1,     % ?Literal
     'NotationDecl'//1,     % ?NotationDeclaration
     'Reference'//2,        % ?Version, ?Reference
-    'RestrictedChar11'//1, % ?Code
+    'RestrictedChar'//2,   % ?Version, ?Code
     'S'//0,
     'SDDecl'//1,           % -Standalone
     'STag'//3,             % ?Version, ?Name, ?Attributes
@@ -1688,36 +1688,35 @@ prolog(Version, prolog(Encoding,Standalone,PIs4,Decl)) -->
 
 
 
-%! 'RestrictedChar'(?Code:code)// .
+%! 'RestrictedChar'(?Version:compound, ?Code:code)// .
 %
 % ```ebnf
-% RestrictedChar11 ::=
+% RestrictedChar ::=
 %     \\ Start of heading, start of text, end of text, end of transmission,
 %     \\ enquiry, positive acknowledgement, bell, backspace.
-%       [#x1-#x8]
-%
+%     [#x1-#x8]
 %     \\ Vertical tab, form feed.
 %     | [#xB-#xC]
-%
 %     \\ Shift out, shift in, data link escape, device control (1, 2, 3, 4),
 %     \\ negative acknowledgement, synchronous idle,
 %     \\ end of transmission block, cancel, end of medium, substitute,
 %     \\ escape, file separator, group separator, record separator,
 %     \\ unit separator.
 %     | [#xE-#x1F]
-%
 %     | [#x7F-#x84]
 %     | [#x86-#x9F]
 % ```
 
-'RestrictedChar11'(C) -->
-  [C],
-  {(  between(0x1,  0x8,  C)
-  ;   between(0xB,  0xC,  C)
-  ;   between(0xE,  0x1F, C)
-  ;   between(0x7F, 0x84, C)
-  ;   between(0x86, 0x9F, C)
-  )}.
+'RestrictedChar'(version(1,1), Code) -->
+  between(0x1,  0x8,  Code).
+'RestrictedChar'(version(1,1), Code) -->
+  between(0xB,  0xC,  Code).
+'RestrictedChar'(version(1,1), Code) -->
+  between(0xE,  0x1F, Code).
+'RestrictedChar'(version(1,1), Code) -->
+  between(0x7F, 0x84, Code).
+'RestrictedChar'(version(1,1), Code) -->
+  between(0x86, 0x9F, Code).
 
 
 
