@@ -2,6 +2,7 @@
   os_ext,
   [
     cli_arguments/1,    % -Args
+    graphviz_hash/2,    % +Term, -Hash
     graphviz_open/4,    % +Method, +In, +Format, +Out
     process_flags/3,    % :Goal_2, +Args, -Flags
     process_open/3,     % +Program, +In, -Out
@@ -26,6 +27,7 @@
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
+:- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
@@ -48,6 +50,16 @@
     run_process(+, +, 1, +).
 
 
+
+
+
+%! graphviz_hash(@Term, -Hash:atom) is det.
+%
+% GraphViz-friendly hash.
+
+graphviz_hash(Term, Hash2) :-
+  md5(Term, Hash1),
+  atomic_concat(n, Hash1, Hash2).
 
 
 
