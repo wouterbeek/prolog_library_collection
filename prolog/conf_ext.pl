@@ -19,11 +19,9 @@
 
 
 
-%! conf_json(-Dict:dict) is det.
+%! conf_json(-Dict:dict) is semidet.
 
 conf_json(Dict) :-
   cli_arguments(Arguments),
-  (   option(conf(FileSpec), Arguments)
-  ->  json_to_dict(FileSpec, Dict, [value_string_as(atom)])
-  ;   true
-  ).
+  option(conf(FileSpec), Arguments),
+  json_to_dict(FileSpec, Dict, [value_string_as(atom)]).
