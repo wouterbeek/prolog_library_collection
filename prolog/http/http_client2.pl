@@ -7,8 +7,12 @@
 
 /** <module> HTTP Client
 
+The following debug flags are defined:
+
+  * debug(http(receive_reply))
+
 @author Wouter Beek
-@version 2017/05-2017/07
+@version 2017/05-2017/08
 */
 
 :- use_module(library(apply)).
@@ -60,7 +64,7 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 %!              +Options:list(compound)) is nondet.
 %
 % @arg Metadata A list of dictionaries, each of which describing an
-%      HTTP(S) request/response interaction as well metadata about the
+%      HTTP(S) request/reply interaction as well metadata about the
 %      stream.
 %
 % @arg Options The following options are supported:
@@ -171,7 +175,6 @@ translate_encoding(Encoding, Encoding).
 
 http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
            [Dict|Dicts]) :-
-  debug(http_client, "\n% [REQUEST] ~a", [Uri]),
   (   select_option(status_code(Status), Options1, Options2)
   ->  true
   ;   Options2 = Options1
@@ -196,8 +199,8 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ),
   http_lines_pairs0(Lines, Pairs),
   dict_pairs(HeadersDict, Pairs),
-  debug(http_client, "\n% [RESPONSE] ~d ~a", [Status,Uri]),
-  (debugging(http_client) -> maplist(debug_reply_header, Pairs) ; true),
+  debug(http(receive_reply), "< ~d ~a", [Status,Uri]),
+  (debugging(http(receive_reply)) -> maplist(debug_reply_header, Pairs) ; true),
   Dict = http{
     headers: HeadersDict,
     status: Status,
@@ -208,11 +211,9 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   http_open2(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
              Retries, Visited, In2, Dicts).
 
-
 debug_reply_header(Key1-Value) :-
   pp_http_header_key(Key1, Key2),
-  debug(http_client, "< ~a: ~a", [Key2,Value]).
-
+  debug(http(receive_reply), "< ~a: ~a", [Key2,Value]).
 
 pp_http_header_key(Key1, Key2) :-
   atomic_list_concat(Comps1, -, Key1),
