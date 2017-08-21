@@ -29,7 +29,6 @@ Support for using external programs and other OS functions.
 :- use_module(library(aggregate)).
 :- use_module(library(ansi_term)).
 :- use_module(library(apply)).
-:- use_module(library(cli_ext)).
 :- use_module(library(dcg/basics)).
 :- use_module(library(debug)).
 :- use_module(library(error)).

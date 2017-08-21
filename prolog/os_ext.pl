@@ -1,19 +1,15 @@
 :- module(
   os_ext,
   [
-    cli_arguments/1,    % -Args
-    graphviz_hash/2,    % +Term, -Hash
-    graphviz_open/4,    % +Method, +In, +Format, +Out
-    process_flags/3,    % :Goal_2, +Args, -Flags
-    process_open/3,     % +Program, +In, -Out
-    process_open/4,     % +Program, +In, +Args, -Out
-    process_open/5,     % +Program, +In, +Args, -Out, +Options
-    run_jar/3,          % +Jar, +Args, :Goal_1
-    run_jar/4,          % +Jar, +Args, :Goal_1, +Options
-    run_process/2,      % +Program, +Args
-    run_process/3,      % +Program, +Args, +Options
-    run_process/4,      % +Program, +Args, :Goal_1, +Options
-    set_cli_arguments/1 % +Args
+    process_flags/3, % :Goal_2, +Args, -Flags
+    process_open/3,  % +Program, +In, -Out
+    process_open/4,  % +Program, +In, +Args, -Out
+    process_open/5,  % +Program, +In, +Args, -Out, +Options
+    run_jar/3,       % +Jar, +Args, :Goal_1
+    run_jar/4,       % +Jar, +Args, :Goal_1, +Options
+    run_process/2,   % +Program, +Args
+    run_process/3,   % +Program, +Args, +Options
+    run_process/4    % +Program, +Args, :Goal_1, +Options
   ]
 ).
 
@@ -33,16 +29,6 @@
 :- use_module(library(readutil)).
 :- use_module(library(yall)).
 
-%! cli_arguments(-Args:list(compound)) is det.
-
-:- dynamic
-    cli_arguments/1.
-
-% TBD: This throws an initialization error during startup, claiming
-%      that atom_phrase/2 is undefined.
-:- initialization
-   init_cli_arguments.
-
 :- meta_predicate
     process_flags(2, +, -),
     run_jar(+, +, 1),
@@ -50,95 +36,6 @@
     run_process(+, +, 1, +).
 
 
-
-
-
-%! graphviz_hash(@Term, -Hash:atom) is det.
-%
-% GraphViz-friendly hash.
-
-graphviz_hash(Term, Hash2) :-
-  md5(Term, Hash1),
-  atomic_concat(n, Hash1, Hash2).
-
-
-
-%! graphviz_open(+Method:atom, +In:stream, +Format:atom, +Out:stream) is det.
-%
-% @arg Method The algorithm used by GraphViz for positioning the tree
-%             nodes.
-%
-% @arg Format The file type of the GraphViz output file.
-%
-% @type_error if Method is not a value of graphviz_method/1.
-%
-% @type_error if Format is not a value of graphviz_format/1.
-
-graphviz_open(Method, In, Format, Out) :-
-  call_must_be(graphviz_method, Method),
-  call_must_be(graphviz_format, Format),
-  atom_concat('-T', Format, Arg),
-  process_open(Method, In, [Arg], Out).
-
-graphviz_format(bmp).
-graphviz_format(canon).
-graphviz_format(dot).
-graphviz_format(gv).
-graphviz_format(xdot).
-graphviz_format('xdot1.2').
-graphviz_format('xdot1.4').
-graphviz_format(cgimage).
-graphviz_format(cmap).
-graphviz_format(eps).
-graphviz_format(exr).
-graphviz_format(fig).
-graphviz_format(gd).
-graphviz_format(gd2).
-graphviz_format(gif).
-graphviz_format(gtk).
-graphviz_format(ico).
-graphviz_format(imap).
-graphviz_format(cmapx).
-graphviz_format(imap_np).
-graphviz_format(cmapx_np).
-graphviz_format(ismap).
-graphviz_format(jp2).
-graphviz_format(jpg).
-graphviz_format(jpeg).
-graphviz_format(jpe).
-graphviz_format(pct).
-graphviz_format(pict).
-graphviz_format(pdf).
-graphviz_format(pic).
-graphviz_format(plain).
-graphviz_format('plain-ext').
-graphviz_format(png).
-graphviz_format(pov).
-graphviz_format(ps).
-graphviz_format(ps2).
-graphviz_format(psd).
-graphviz_format(sgi).
-graphviz_format(svg).
-graphviz_format(svgz).
-graphviz_format(tga).
-graphviz_format(tif).
-graphviz_format(tiff).
-graphviz_format(tk).
-graphviz_format(vml).
-graphviz_format(vmlz).
-graphviz_format(vrml).
-graphviz_format(wbmp).
-graphviz_format(webp).
-graphviz_format(xlib).
-graphviz_format(x11).
-
-graphviz_method(circo).
-graphviz_method(dot).
-graphviz_method(fdp).
-graphviz_method(neato).
-graphviz_method(osage).
-graphviz_method(sfdp).
-graphviz_method(twopi).
 
 
 
@@ -169,10 +66,10 @@ process_open(Program, In, Args, Out) :-
   process_open(Program, In, Args, Out, []).
 
 
-process_open(Program, In, Args, Out, Options1) :-
+process_open(Program, In, Args, ProcOut, Options1) :-
   process_options(Options1, Options2),
   merge_options(
-    [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(Out))],
+    [stderr(pipe(ProcErr)),stdin(pipe(ProcIn)),stdout(pipe(ProcOut))],
     Options2,
     Options3
   ),
@@ -277,36 +174,6 @@ process_status(exit(Status)) :-
 
 
 
-%! set_cli_arguments(+Args:list(compound)) is det.
-
-set_cli_arguments(Args) :-
-  retractall(cli_arguments(_)),
-  assert(cli_arguments(Args)).
-
-
-
-
-
-% INITIALIZATION %
-
-init_cli_arguments :-
-  current_prolog_flag(os_argv, Flags),
-  convlist(parse_argument, Flags, Args),
-  set_cli_arguments(Args).
-
-parse_argument(Flag, Arg) :-
-  atom_phrase(argument(Arg), Flag).
-
-argument(Arg) -->
-  "--",
-  '...'(Codes),
-  "=", !,
-  {atom_codes(Key, Codes)},
-  rest_as_atom(Value),
-  {Arg =.. [Key,Value]}.
-
-
-
 
 
 % HELPERS %
@@ -315,8 +182,15 @@ argument(Arg) -->
 
 print_error(Err) :-
   call_cleanup(
-    copy_stream_data(Err, user_error),
-    close(Err)
+    print_errors(Err),
+    close(Err)).
+
+print_errors(Stream) :-
+  read_line_to_string(Stream, String),
+  (   String == end_of_file
+  ->  true
+  ;   print_message(warning, process_error(String)),
+      print_errors(Stream)
   ).
 
 
