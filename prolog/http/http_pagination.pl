@@ -2,6 +2,7 @@
   http_pagination,
   [
     http_pagination_header/1, % +Page
+    http_pagination_json/1,   % +Page
     http_pagination_link/3,   % +Page, +Relation, -Uri
     http_pagination_links/2   % +Page, -Links
   ]
@@ -39,6 +40,16 @@ http_pagination_header_values([H|T]) :- !,
 
 http_pagination_header_value(Relation-Uri) :-
   format('<~a>; rel="~a"', [Uri,Relation]).
+
+
+
+%! http_pagination_json(+Page:dict) is det.
+
+http_pagination_json(Page) :-
+  format("Content-Type: application/json\n"),
+  http_pagination_header(Page),
+  nl,
+  json_write_dict(current_output, Page.results).
 
 
 
