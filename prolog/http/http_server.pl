@@ -49,11 +49,16 @@
     rest_method(+, +, 2, 3).
 
 :- multifile
-    error:has_type/2.
+    error:has_type/2,
+    http:convert_parameter/3.
 
 error:has_type(or(Types), Term) :-
   member(Type, Types),
   error:has_type(Type, Term), !.
+
+http:convert_parameter(positive_integer, Atom, Integer) :-
+  atom_number(Atom, Integer),
+  must_be(positive_integer, Integer).
 
 :- setting(
      http:client_name,
