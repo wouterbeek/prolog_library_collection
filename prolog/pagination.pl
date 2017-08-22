@@ -132,10 +132,11 @@ pagination(Templ, Goal_0, Estimate_1, Options1, Page2) :-
 %! pagination_bulk(:Goal_1, +Options:list(compound), -Page:dict) is nondet.
 
 pagination_bulk(Goal_1, Options1, Page2) :-
-  pagination:pagination_options(Options1, StartPageNumber, PageSize, Options2),
+  pagination_options(Options1, StartPageNumber, PageSize, Options2),
   call(Goal_1, AllResults),
   length(AllResults, TotalNumberOfResults),
   NumberOfPages is ceil(TotalNumberOfResults / PageSize),
+  must_be(between(1, NumberOfPages), StartPageNumber),
   between(StartPageNumber, NumberOfPages, PageNumber),
   SkipLength is PageSize * (PageNumber - 1),
   length(Skip, SkipLength),
