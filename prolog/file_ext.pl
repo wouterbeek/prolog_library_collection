@@ -18,6 +18,7 @@
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
+    file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     media_type_extension/2,       % +MediaType, -Extension
@@ -313,6 +314,22 @@ file_extensions(File, Extensions) :-
 file_extensions_media_type(Extensions, MediaType) :-
   member(Extension1, Extensions),
   media_type_extension(MediaType, Extension1), !.
+
+
+
+%! file_mode(+File:atom, +Mode:oneof([append,read,write])) is det.
+%
+% @throws existence_error
+% @throws permission_error
+
+file_mode(File, Mode) :-
+  (   exists_file(File)
+  ->  (   access_file(File, Mode)
+      ->  true
+      ;   permission_errro(Mode, file, File)
+      )
+  ;   existence_error(file, File)
+  ).
 
 
 
