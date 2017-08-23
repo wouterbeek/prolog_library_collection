@@ -7,6 +7,7 @@
     http_server_init/1,       % +Dict
     http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
+    http_reply_json/1,        % +Json
     rest_exception/2,         % +MediaTypes, +Exception
     rest_media_type/2,        % +MediaTypes, :Goal_1
     rest_method/2,            % +Request, :Goal_2
@@ -111,6 +112,15 @@ http_absolute_location(Spec, Path) :-
 http_current_location(Uri) :-
   http_current_request(Request),
   memberchk(path(Uri), Request).
+
+
+
+%! http_reply_json(+Json) is det.
+
+http_reply_json(Json) :-
+  format("Content-Type: application/json\n"),
+  nl,
+  json_write_dict(current_output, Json).
 
 
 
