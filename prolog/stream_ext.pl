@@ -358,11 +358,11 @@ guess_stream_encoding(In, Encoding) :-
 %
 % `Encoding' is converted to lowercase.
 
-guess_string_encoding(String, Encoding) :-
+guess_string_encoding(String, Encoding2) :-
   % Encoding is mentioned in the XML declaration.
-  string_phrase('XMLDecl'(_, Encoding0, _), String, _), !,
-  nonvar(Encoding0),
-  downcase_atom(Encoding0, Encoding).
+  string_phrase('XMLDecl'(_, Encoding1, _), String, _),
+  nonvar(Encoding1), !,
+  downcase_atom(Encoding1, Encoding2).
 guess_string_encoding(String, Encoding3) :-
   open_binary_string(String, In),
   setup_call_cleanup(
