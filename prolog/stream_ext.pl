@@ -47,8 +47,6 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(string_ext)).
 :- use_module(library(xml/xml_parser)).
 
-:- debug(stream_ext).
-
 :- meta_predicate
     call_on_archive(+, 3, +, -, +),
     call_on_recoded_stream(+, 3, +, -, +),
