@@ -22,6 +22,7 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     media_type_extension/2,       % +MediaType, -Extension
+    sort_file/1,                  % +FileSpec
     stream_to_file/4,             % +FileSpec, +In, +Metadata1, -Metadata2
     touch/1,                      % +FileSpec
     working_directory/1           % -Dir
@@ -385,6 +386,14 @@ resolve_subdirectories([_,..|T1], T2) :- !,
   resolve_subdirectories(T1, T2).
 resolve_subdirectories([H|T1], [H|T2]) :-
   resolve_subdirectories(T1, T2).
+
+
+
+%! sort_file(+FileSpec:term) is det.
+
+sort_file(FileSpec) :-
+  absolute_file_name(FileSpec, File, [access(read)]),
+  run_process(sort, ['-u','-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
 
 
 
