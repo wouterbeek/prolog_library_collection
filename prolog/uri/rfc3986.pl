@@ -717,10 +717,7 @@ uri_fragment(Fragment) --> "#", fragment(Fragment).
 
 uri_port(Scheme, Port) -->
   parsing, !,
-  (   {uri:default_port(Scheme, Port)}
-  ;   ":",
-      port(Port)
-  ).
+  (":" -> port(Port) ; {uri:default_port(Scheme, Port)}).
 uri_port(Scheme, Port) -->
   {
     atom(Scheme),
