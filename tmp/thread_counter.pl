@@ -38,12 +38,10 @@
 % @throws counter_exists If a counter with given name already exists.
 
 create_thread_counter(Name):-
-  (   thread_counter(Name, _)
-  ->  throw(error(thread_counter_exists(Name), 'Thread-local counter already exists.'))
-      %%%%delete_thread_counter(Name),%%%%HACK
-      %%%%create_thread_counter(Name)%%%%HACK
-  ;   assert(thread_counter(Name,0))
-  ).
+  thread_counter(Name, _), !,
+  throw(error(thread_counter_exists(Name), 'Thread-local counter already exists.')).
+create_thread_counter(Name):-
+  assert(thread_counter(Name,0)).
 
 
 
