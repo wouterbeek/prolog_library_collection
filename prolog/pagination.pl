@@ -200,7 +200,7 @@ pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
 %! pagination_page(+Page:dict, +Relation:atom,
 %!                 -PageNumber:positive_integer) is semidet.
 %! pagination_page(+Page:dict, -Relation:atom,
-%                  -PageNumber:positive_integer) is nondet.
+%!                 -PageNumber:positive_integer) is nondet.
 %
 % PageNumber is the first, last, next, and previous page number for
 % Page.
