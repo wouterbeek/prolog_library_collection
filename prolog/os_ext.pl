@@ -16,7 +16,7 @@
 /** <module> OS extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(apply)).
@@ -27,6 +27,7 @@
 :- use_module(library(option)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
+:- use_module(library(stream_ext)).
 :- use_module(library(yall)).
 
 :- meta_predicate
@@ -84,7 +85,7 @@ process_open(Program, In, Args, ProcOut, Options1) :-
   %peek_string(In, 100, Peek), writeln(Peek),
   %copy_stream_data(In, user_output),
   thread_create(copy_and_close(In, ProcIn), _, [detached(true)]),
-  thread_create(print_error(ProcErr), _, [detached(true)]).
+  thread_create(print_err(ProcErr), _, [detached(true)]).
 
 copy_and_close(In, Out) :-
   call_cleanup(
@@ -155,7 +156,7 @@ run_process(Program, Args, Goal_1, Options1) :-
     process_create(Exec, Args, Options3),
     (
       call(Goal_1, Out),
-      thread_create(print_error(Err), _, [detached(true)]),
+      thread_create(print_err(Err), _, [detached(true)]),
       process_wait(Pid, exit(OutStatus)),
       process_status(OutStatus)
     ),
@@ -177,23 +178,6 @@ process_status(exit(Status)) :-
 
 
 % HELPERS %
-
-%! print_error(+Error:stream) is det.
-
-print_error(Err) :-
-  call_cleanup(
-    print_errors(Err),
-    close(Err)).
-
-print_errors(Stream) :-
-  read_line_to_string(Stream, String),
-  (   String == end_of_file
-  ->  true
-  ;   print_message(warning, process_error(String)),
-      print_errors(Stream)
-  ).
-
-
 
 %! process_options(+Options1:list(compound), -Options2:list(compound)) is det.
 
