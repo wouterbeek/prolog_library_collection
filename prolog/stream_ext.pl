@@ -8,6 +8,7 @@
     call_to_stream/3,        % +Out, :Goal_3, +Options
     read_line_to_atom/2,     % +In, -Atom
   % HELPER PREDICATES
+    recode_stream/3,         % +FromEnc, +In1, -In2
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
     stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
   % ARGUMENTS TO META-PREDICATES
@@ -136,8 +137,8 @@ debug_indent(0).
 %
 %      * sha512(--atom)
 %
-%      * Other options are passed to archive_data_stream/3,
-%        recode_stream/3, and zopen/3.
+%      * Other options are passed to archive_data_stream/3 and
+%        zopen/3.
 
 call_on_stream(In, Goal_3) :-
   call_on_stream(In, Goal_3, []).
@@ -208,7 +209,15 @@ call_on_recoded_stream(In1, Goal_3, Metadata1, Metadata3, Options) :-
   ).
 
 call_on_recoded_stream_setup(In1, In2, Options) :-
-  recode_stream(In1, In2, Options),
+  (   option(from_encoding(FromEnc0), Options)
+  ->  encoding_alias(FromEnc0, FromEnc)
+  ;   guess_stream_encoding(In1, FromEnc)
+  ),
+  (   option(to_encoding(ToEnc), Options)
+  ->  must_be(oneof([octet,utf8]), ToEnc)
+  ;   (FromEnc == octet -> ToEnc = octet ; ToEnc = utf8)
+  ),
+  recode_stream(FromEnc, In1, ToEnc, In2),
   (   In1 == In2
   ->  true
   ;   indent_debug(1, stream_ext, "> ~w RECODE ~w", [In1,In2])
@@ -395,63 +404,32 @@ read_line_to_atom(In, A) :-
 
 
 
-%! recode_stream(+In1:stream, -In2:stream) is det.
-%! recode_stream(+In1:stream, -In2:stream, +Options:list(compound)) is det.
+%! recode_stream(+FromEnc:atom, +In1:stream, -In2:stream) is det.
 %
 % In1 is closed by this predicate.
 %
-% The following options are supported:
-%
-%   * from_encoding(+atom)
-%
-%     If the from encoding is not supplied it is guessed based on a
-%     stream peek.
-%
-%   * to_encoding(+oneof([octet,utf8]))
-%
-%     The encoding that is used to interpret the contents of the input
-%     stream.  Use `octet' for binary content, and `utf8' for textual
-%     content.  Default is `utf8'.
-%
-%   * Other options are passed to process_open/5.
+% @arg ToEnd The encoding that is used to interpret the contents of
+%            the input stream.  Use `octet' for binary content, and
+%            `utf8' for textual content.
 
-recode_stream(In1, In2) :-
-  recode_stream(In1, In2, []).
+recode_stream(octet, In1, In2) :- !,
+  recode_stream(octet, In1, octet, In2).
+recode_stream(FromEnc, In1, In2) :-
+  recode_stream(FromEnc, In1, utf8, In2).
 
-
-recode_stream(In1, In2, Options1) :-
-  (   select_option(from_encoding(FromEncoding0), Options1, Options2)
-  ->  encoding_alias(FromEncoding0, FromEncoding)
-  ;   guess_stream_encoding(In1, FromEncoding),
-      Options2 = Options1
-  ),
-  (   select_option(to_encoding(ToEncoding), Options2, Options3)
-  ->  must_be(oneof([octet,utf8]), ToEncoding)
-  ;   Options3 = Options2,
-      (FromEncoding == octet -> ToEncoding = octet ; ToEncoding = utf8)
-  ),
-  recode_stream0(In1, In2, FromEncoding, ToEncoding, Options3).
-
-recode_stream0(In, In, _, octet, _) :- !.
+recode_stream(_, In, octet, In) :- !.
 % “The value bom causes the stream to check whether the current
 % character is a Unicode BOM marker.  If a BOM marker is found, the
 % encoding is set accordingly and the call succeeds.  Otherwise the
 % call fails.”
-recode_stream0(In, In, _, utf8, _) :-
+recode_stream(_, In, utf8, In) :-
   set_stream(In, encoding(bom)), !.
-recode_stream0(In, In, FromEncoding, utf8, _) :-
-  memberchk(FromEncoding, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
+recode_stream(FromEnc, In, utf8, In) :-
+  memberchk(FromEnc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
   set_stream(In, encoding(utf8)).
-recode_stream0(In1, In2, FromEncoding, utf8, Options) :-
-  indent_debug(1, encoding, "> ~a RECODE", [FromEncoding]),
-  process_open(iconv, In1, ['-c','-f',FromEncoding,'-t','utf-8'], In2, Options).
-
-encoding_alias(Encoding1, Encoding2) :-
-  encoding_alias0(Encoding1, Encoding2), !.
-encoding_alias(Encoding, Encoding).
-
-encoding_alias0(macroman, macintosh).
-encoding_alias0(utf8, 'utf-8').
+recode_stream(FromEnc, In1, utf8, In2) :-
+  indent_debug(1, encoding, "> ~a RECODE", [FromEnc]),
+  process_open(iconv, In1, ['-c','-f',FromEnc,'-t','utf-8'], In2).
 
 
 
@@ -460,43 +438,41 @@ encoding_alias0(utf8, 'utf-8').
 %
 % @arg Options The following options are supported:
 %
-%              * buffer_size(+nonneg)
+%      * buffer_size(+nonneg)
 %
-%                Optionally, the size of the buffer in kilobytes.
+%        Optionally, the size of the buffer in kilobytes.
 %
-%              * duplicates(+boolean)
+%      * duplicates(+boolean)
 %
-%                Whether duplicates are allowed in the result.
-%                Default is `true'.
+%        Whether duplicates are allowed in the result.  Default is
+%        `true'.
 %
-%              * numeric(+boolean)
+%      * numeric(+boolean)
 %
-%                Whether numberic sort is performed.  Default is
-%                `false'.
+%        Whether numberic sort is performed.  Default is `false'.
 %
-%              * output(+atom)
+%      * output(+atom)
 %
-%                The name of the output file, as processed by
-%                `absolute_file_name/[2,3]'.  Default is the input
-%                file.
+%        The name of the output file, as processed by
+%        `absolute_file_name/[2,3]'.  Default is the input file.
 %
-%              * temporary_directory(+atom)
+%      * temporary_directory(+atom)
 %
-%                The directory that is used for storing intermediary
-%                results of sorting.  Default is the value of setting
-%                `temporary_directory'.
+%        The directory that is used for storing intermediary results
+%        of sorting.  Default is the value of setting
+%        `temporary_directory'.
 %
-%              * threads(+positive_integer)
+%      * threads(+positive_integer)
 %
-%                The number of threads that is used.  Default is the
-%                number of available processors, but not larger than
-%                8.  Larger numbers have diminishing returns.  Using
-%                $n$ threads increases the memory use by $\log n$.
+%        The number of threads that is used.  Default is the number of
+%        available processors, but not larger than 8.  Larger numbers
+%        have diminishing returns.  Using $n$ threads increases the
+%        memory use by $\log n$.
 %
-%              * utf8(+boolean)
+%      * utf8(+boolean)
 %
-%                Whether the environment is set to UTF-8 encoding.
-%                Default is `false'.
+%        Whether the environment is set to UTF-8 encoding.  Default is
+%        `false'.
 %
 % Other options are passed to process_open/5.
 
@@ -635,12 +611,14 @@ true_null(In, Metadata, Metadata) :-
 
 % COMMON METADATA EXTRACTIONS
 
-%! metadata_content_type(+Metadata:list(dict), -MediaType:compound) is det.
+%! metadata_content_type(+Metadata:list(dict), -MediaType:compound) is semidet.
+%
+% Fails if the metadata does not contain a `Content-Type' header.
 
 metadata_content_type(Metadata, MediaType) :-
   member(Dict1, Metadata),
   dict_get(headers, Dict1, Dict2),
-  dict_get('content-type', Dict2, ContentType), !,
+  dict_get('content-type', Dict2, [ContentType|_]), !,
   (   atom_phrase('content-type'(MediaType), ContentType)
   ->  true
   ;   type_error(media_type, ContentType)
