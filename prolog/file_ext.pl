@@ -25,6 +25,7 @@
     sort_file/1,                  % +FileSpec
     stream_to_file/4,             % +FileSpec, +In, +Metadata1, -Metadata2
     touch/1,                      % +FileSpec
+    uchardet_file/2,              % +FileSpec, -Enc
     working_directory/1           % -Dir
   ]
 ).
@@ -34,7 +35,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(apply)).
@@ -45,8 +46,10 @@
 :- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(stream_ext)).
+:- use_module(library(string_ext)).
 :- use_module(library(zlib)).
 
 :- meta_predicate
@@ -419,6 +422,29 @@ stream_to_file(FileSpec, In, Metadata, Metadata) :-
 
 touch(FileSpec) :-
   call_to_file(FileSpec, true_metadata).
+
+
+
+%! uchardet_file(+FileSpec:term, -Encoding:atom) is det.
+
+uchardet_file(FileSpec, Enc2) :-
+  absolute_file_name(FileSpec, File, [access(write)]),
+  setup_call_cleanup(
+    (
+      process_create(
+        path(uchardet),
+        [file(File)],
+        [stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+      ),
+      thread_create(print_err(ProcErr), _, [detached(true)])
+    ),
+    (
+      read_string(ProcOut, Encs),
+      split_string(Encs, "", "\n", [Enc1|_])
+    ),
+    close(ProcOut)
+  ),
+  normalize_encoding(Enc1, Enc2).
 
 
 
