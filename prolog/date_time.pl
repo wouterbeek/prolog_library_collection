@@ -2,11 +2,11 @@
   date_time,
   [
   % CONVERSIONS
-    timestamp_to_dt/2, % +Timestamp, -Datetime
     date_time_to_dt/2, % +Datetime1, -Datetime2
     dt_to_date_time/2, % +Datetime1, -Datetime2
     is_date_time/1,    % @Term
     is_dt/1,           % @Term
+    timestamp_to_dt/2, % +Timestamp, -Datetime
   % OPERATIONS
     date_time_masks/3, % +Masks, +Datetime1, -Datetime2
     now/1,             % -Datetime
@@ -76,14 +76,6 @@ error:has_type(date_time, time(H,Mi,S)):-
 
 % CONVERSIONS %
 
-%! timestamp_to_dt(+Timestamp:float, -Datetime:dt) is det.
-
-timestamp_to_dt(Timestamp, Datetime2) :-
-  date_time_stamp(Datetime1, Timestamp),
-  date_time_to_dt(Datetime1, Datetime2).
-
-
-
 %! date_time_to_dt(+Datetime:date_time, -Datetime:dt) is det.
 %
 % Converts the three Prolog date/time representations to the one
@@ -147,6 +139,14 @@ is_dt(Term) :-
 
 is_date_time(Term) :-
   is_of_type(date_time, Term).
+
+
+
+%! timestamp_to_dt(+Timestamp:float, -Datetime:dt) is det.
+
+timestamp_to_dt(Timestamp, Datetime2) :-
+  stamp_date_time(Timestamp, Datetime1, local),
+  date_time_to_dt(Datetime1, Datetime2).
 
 
 
