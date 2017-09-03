@@ -53,8 +53,7 @@ The following debug flags are defined:
 :- public
     ssl_verify/5.
 
-ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
-           _Error).
+ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 
 
@@ -88,61 +87,59 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 %
 %   * Other options are passed to http_open/3 and stream_open/4.
 
-call_on_http(Uri1, Goal_3, Metadata2, Options) :-
+call_on_http(Uri1, Goal_3, Meta2, Options) :-
   copy_term(Options, Options0),
-  option(number_of_hops(MaxHops), Options, 5),
-  option(number_of_repeats(MaxRepeats), Options, 2),
-  option(number_of_retries(MaxRetries), Options, 1),
-  http_open2(Uri1, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [],
-             Metadata0),
-  reverse(Metadata0, Metadata1),
-  % status code
-  [Dict|_] = Metadata1,
-  metadata_status_code([Dict], Status),
-  between(200, 299, Status),
-  % Check whether the body is empty.
-  (   % The from-encoding can be determined based on the value of the
-      % `Content-Type' header.
-      metadata_content_type([Dict], MediaType)
-  ->  once(media_type_encoding(MediaType, FromEncoding)),
+  http_open2(Uri1, In, Options, Meta1),
+  Meta1 = [Dict|_],
+  % MediaType, if anvailable
+  ignore(metadata_content_type([Dict], MediaType)),
+  check_empty_body(MediaType, In),
+  % Set from-encoding based on Media Type, if available.
+  (   var(MediaType)
+  ->  StreamOptions = Options
+  ;   once(media_type_encoding(MediaType, FromEncoding)),
       merge_options([from_encoding(FromEncoding)], Options, StreamOptions)
-  ;   % If there is no `Content-Type' header, the stream must be
-      % empty and `Content-Length' -- if present -- must be 0.
-      empty_body_warning(In),
-      StreamOptions = Options
   ),
   % `Link' reply header
-  (   dict_get(link, Dict.headers, Link),
-      atom_phrase(link(Uri1,Links), Link),
-      once((
-        member(link(Uri2,Params), Links),
-        memberchk(rel-next, Params)
-      ))
-  ->  (   call_on_http_stream(In, Goal_3, Metadata1, Metadata2, StreamOptions,
-                              Options)
+  (   has_link(Dict, "next", Uri2)
+  ->  (   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
       ;   % Detect cyclic `Link' headers.
           cyclic_link_warning(Uri1, Uri2),
-          call_on_http(Uri2, Goal_3, Metadata2, Options0)
+          call_on_http(Uri2, Goal_3, Meta2, Options0)
       )
-  ;   call_on_http_stream(In, Goal_3, Metadata1, Metadata2, StreamOptions,
-                          Options)
+  ;   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
   ).
 
-call_on_http_stream(In, Goal_3, Metadata1, Metadata3, StreamOptions,
-                    Options) :- !,
+has_link(Dict, Relation, Uri) :-
+  dict_get(link, Dict.headers, Link),
+  split_string(Link, ",", " ", LinkComps),
+  member(LinkComp, LinkComps),
+  split_string(LinkComp, ";", "<> ", [Uri|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["rel",Relation]).
+
+call_on_http_stream(In, Goal_3, Meta1, Meta3, StreamOptions, Options) :- !,
   call_cleanup(
     (
-      stream_ext:call_on_stream(In, Goal_3, Metadata1, Metadata2,
-                                StreamOptions),
-      stream_hash_metadata(In, Metadata2, Metadata3, Options)
+      stream_ext:call_on_stream(In, Goal_3, Meta1, Meta2, StreamOptions),
+      stream_hash_metadata(In, Meta2, Meta3, Options)
     ),
     close(In)
   ).
 
-empty_body_warning(In) :-
-  at_end_of_stream(In), !.
-empty_body_warning(_) :-
-  print_message(warning, "No `Content-Type' header but non-empty body.").
+%! check_empty_body(?MediaType:compound, +In:stream) is det.
+%
+% If there is no `Content-Type' header, the stream _must_ be empty and
+% `Content-Length' -- if present -- must be 0.
+
+check_empty_body(MediaType, In) :-
+  (   var(MediaType)
+  ->  (   at_end_of_stream(In)
+      ->  true
+      ;   print_message(warning, no_content_type_header_yet_a_nonempty_body)
+      )
+  ;   true
+  ).
 
 cyclic_link_warning(Uri, Uri) :- !,
   print_message(warning, pagination_loop(Uri)).
@@ -173,8 +170,14 @@ translate_encoding('us-ascii', ascii).
 translate_encoding('utf-8', utf8).
 translate_encoding(Encoding, Encoding).
 
-http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
-           [Dict|Dicts]) :-
+http_open2(Uri, In, Options, Meta2) :-
+  option(number_of_hops(MaxHops), Options, 5),
+  option(number_of_repeats(MaxRepeats), Options, 2),
+  option(number_of_retries(MaxRetries), Options, 1),
+  http_open2(Uri, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [], Meta1),
+  reverse(Meta1, Meta2).
+
+http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited, [Dict|Dicts]) :-
   (   select_option(status_code(Status), Options1, Options2)
   ->  true
   ;   Options2 = Options1
@@ -205,7 +208,7 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     headers: HeadersDict,
     status: Status,
     uri: Uri,
-    version: Major-Minor,
+    version: version{major: Major, minor: Minor},
     walltime: Walltime
   },
   http_open2(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
@@ -219,7 +222,6 @@ pp_http_header_key(Key1, Key2) :-
   atomic_list_concat(Comps1, -, Key1),
   maplist(atom_capitalize, Comps1, Comps2),
   atomic_list_concat(Comps2, -, Key2).
-
 
 % authentication error
 http_open2(_, In, _, _, Status, _, _, _, _, _, []) :-
@@ -264,27 +266,24 @@ http_open2(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
                  Dicts)
   ).
 % succes
-http_open2(_, In, _, _, _, _, _, _, _, In, []).
+http_open2(_, In, _, _, Status, _, _, _, _, In, []) :-
+  must_be(between(200,299), Status).
 
 
-http_lines_pairs0(Lines, MergedPairs) :-
+http_lines_pairs0(Lines, GroupedPairs) :-
   maplist(http_parse_header_pair0, Lines, Pairs),
   keysort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, Groups),
-  maplist(merge_separable_header, Groups, MergedPairs).
+  group_pairs_by_key(SortedPairs, GroupedPairs).
 
+http_parse_header_pair0(Line, Key-Value) :-
+  once(phrase(http_parse_header_simple0(Key, Value), Line)).
 
-http_parse_header_pair0(Line, Key-Val) :-
-  once(phrase(http_parse_header_simple0(Key, Val), Line)).
-
-
-http_parse_header_simple0(Key, Val) -->
+http_parse_header_simple0(Key, Value) -->
   'field-name'(Key),
   ":",
   'OWS',
-  rest(Val0),
-  {atom_codes(Val, Val0)}.
-
+  rest(Codes),
+  {atom_codes(Value, Codes)}.
 
 %! merge_separable_header(+Pair1:pair(atom,list(term)),
 %!                        -Pair2:pair(atom,term)) is det.
