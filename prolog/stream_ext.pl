@@ -8,6 +8,7 @@
     call_to_stream/3,        % +Out, :Goal_3, +Options
     read_line_to_atom/2,     % +In, -Atom
   % HELPER PREDICATES
+    normalize_encoding/2,    % +Encoding1, -Encoding2
     recode_stream/3,         % +FromEnc, +In1, -In2
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
     stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
@@ -381,6 +382,17 @@ guess_string_encoding(String, Encoding3) :-
     close(Out)
   ),
   downcase_atom(Encoding2, Encoding3).
+
+
+
+%! normalize_encoding(+Encoding1:atom, -Encoding2:atom) is det.
+
+normalize_encoding(Enc1, Enc3) :-
+  downcase_atom(Enc1, Enc2),
+  (encoding_alias(Enc2, Enc3) -> true ; Enc3 = Enc2).
+
+encoding_alias(macroman, macintosh).
+encoding_alias(utf8, 'utf-8').
 
 
 
