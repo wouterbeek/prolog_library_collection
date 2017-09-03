@@ -12,6 +12,7 @@
     dict_put/3,               % +Dict1, +Dict2, -Dict3
     dict_put/4,               % +Key, +Dict1, +Value, -Dict2
     dict_tag/2,               % +Dict, ?Tag
+    merge_dicts/2,            % +Dicts, -Dict
     merge_dicts/3             % +Dict1, +Dict2, -Dict3
   ]
 ).
@@ -19,7 +20,7 @@
 /** <module> Dictionary extension
 
 @author Wouter Beek
-@version 2017/04-2017/07
+@version 2017/04-2017/08
 */
 
 :- use_module(library(apply)).
@@ -112,6 +113,18 @@ dict_put(Key, Dict1, Value, Dict2) :-
 dict_tag(Dict, Tag) :-
   dict_pairs(Dict, Tag, _).
 
+
+
+%! merge_dicts(+Dicts, -Dict) is det.
+%
+% A string of applications of merge_dicts/3, where newer dictionaries
+% appear later in `Dicts'.
+
+merge_dicts([], []).
+merge_dicts([H], H) :- !.
+merge_dicts([H1,H2|T1], T2) :-
+  merge_dicts(H2, H1, H12),
+  merge_dicts([H12|T1], T2).
 
 
 %! merge_dicts(+NewDict, +OldDict, -Dict) is det.
