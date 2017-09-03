@@ -7,10 +7,6 @@
                      % ?High:float
                      % +Number:float
     betwixt/3, % +Low, +High, ?Value
-    betwixt/4, % +Low:integer
-               % +High:integer
-               % +Interval:integer
-               % ?Value:integer
     binomial_coefficient/3, % +M:integer
                             % +N:integer
                             % -BinomialCoefficient:integer
@@ -192,30 +188,6 @@ between_float(Low, High, Number):-
 betwixt(Low, High, N):-
   clpfd_between(Low, High, N),
   label([N]).
-
-
-
-%! betwixt(
-%!   +Low:integer,
-%!   +High:integer,
-%!   +Interval:integer,
-%!   +Value:integer
-%! ) is semidet.
-%! betwixt(
-%!   +Low:integer,
-%!   +High:integer,
-%!   +Interval:integer,
-%!   -Value:integer
-%! ) is nondet.
-
-betwixt(Low, _, _, Low).
-betwixt(Low0, High, Interval, Value):-
-  Low is Low0 + Interval,
-  (   High == inf
-  ->  true
-  ;   Low =< High
-  ),
-  betwixt(Low, High, Interval, Value).
 
 
 

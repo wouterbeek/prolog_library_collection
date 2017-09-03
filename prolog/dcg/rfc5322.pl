@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 5322
 @see https://tools.ietf.org/html/rfc5322
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(clpfd)).
@@ -193,9 +193,9 @@ sep_ccontent_ -->
 %       / obs-ctext
 % ```
 
-ctext(Code) --> between(33, 39, Code).
-ctext(Code) --> between(42, 91, Code).
-ctext(Code) --> between(93, 126, Code).
+ctext(Code) --> dcg_between(33, 39, Code).
+ctext(Code) --> dcg_between(42, 91, Code).
+ctext(Code) --> dcg_between(93, 126, Code).
 ctext(Code) --> 'obs-ctext'(Code).
 
 
@@ -352,8 +352,8 @@ domain(Domain) --> 'obs-domain'(Domain).
 %       / obs-dtext   ;  "[", "]", or "\"
 % ```
 
-dtext(Code) --> between(33, 90, Code).
-dtext(Code) --> between(94, 126, Code).
+dtext(Code) --> dcg_between(33, 90, Code).
+dtext(Code) --> dcg_between(94, 126, Code).
 dtext(Code) --> 'obs-dtext'(Code).
 
 
@@ -662,8 +662,8 @@ obs_domain_list_tail0([]) --> "".
 % obs-dtext = obs-NO-WS-CTL / quoted-pair
 % ```
 
-'obs-dtext'(C) --> 'obs-NO-WS-CTL'(C).
-'obs-dtext'(C) --> 'quoted-pair'(C).
+'obs-dtext'(Code) --> 'obs-NO-WS-CTL'(Code).
+'obs-dtext'(Code) --> 'quoted-pair'(Code).
 
 
 
@@ -764,14 +764,10 @@ obs_mbox_list_tail0([]) --> "".
 %               / %d127     ; white space characters
 % ```
 
-'obs-NO-WS-CTL'(C) -->
-  [C],
-  {once((
-    between(1, 8, C)
-  ; between(11, 12, C)
-  ; between(14, 31, C)
-  ; C =:= 127
-  ))}.
+'obs-NO-WS-CTL'(Code) --> dcg_between(1, 8, Code).
+'obs-NO-WS-CTL'(Code) --> dcg_between(11, 12, Code).
+'obs-NO-WS-CTL'(Code) --> dcg_between(14, 31, Code).
+'obs-NO-WS-CTL'(127) --> [127].
 
 
 
@@ -820,14 +816,14 @@ phrase_cfws_empty0 --> "".
 % obs-qp = "\" (%d0 / obs-NO-WS-CTL / LF / CR)
 % ```
 
-'obs-qp'(C) -->
+'obs-qp'(Code) -->
   "\\",
-  obs_qp_code0(C).
+  obs_qp_code_(Code).
 
-obs_qp_code0(0) --> [0].
-obs_qp_code0(C) --> 'obs-NO-WS-CTL'(C).
-obs_qp_code0(C) --> 'LF'(C).
-obs_qp_code0(C) --> 'CR'(C).
+obs_qp_code_(0) --> [0].
+obs_qp_code_(Code) --> 'obs-NO-WS-CTL'(Code).
+obs_qp_code_(Code) --> 'LF'(Code).
+obs_qp_code_(Code) --> 'CR'(Code).
 
 
 
@@ -837,8 +833,8 @@ obs_qp_code0(C) --> 'CR'(C).
 % obs-qtext = obs-NO-WS-CTL
 % ```
 
-'obs-qtext'(C) -->
-  'obs-NO-WS-CTL'(C).
+'obs-qtext'(Code) -->
+  'obs-NO-WS-CTL'(Code).
 
 
 
@@ -884,16 +880,16 @@ obs_qp_code0(C) --> 'CR'(C).
 % obs-unstruct = *((*LF *CR *(obs-utext *LF *CR)) / FWS)
 % ```
 
-'obs-unstruct'(Cs) -->
+'obs-unstruct'(Codes) -->
   'FWS', !,
-  'obs-unstruct'(Cs).
-'obs-unstruct'(Cs) -->
-  *('LF', Cs1),
-  *('CR', Cs2),
-  obs_unstruct_codes0(Cs3),
-  {append([Cs1,Cs2,Cs3], Cs0), Cs0 \== []}, !,
-  'obs-unstruct'(Cs4),
-  {append(Cs3, Cs4, Cs)}.
+  'obs-unstruct'(Codes).
+'obs-unstruct'(Codes) -->
+  *('LF', Codes1),
+  *('CR', Codes2),
+  obs_unstruct_codes0(Codes3),
+  {append([Codes1,Codes2,Codes3], Codes0), Codes0 \== []}, !,
+  'obs-unstruct'(Codes4),
+  {append(Codes3, Codes4, Codes)}.
 'obs-unstruct'([]) --> "".
 
 obs_unstruct_codes0([H|T]) -->
@@ -977,8 +973,8 @@ qcontent(Code) --> 'quoted-pair'(Code).
 % ```
 
 qtext(33) --> [33].
-qtext(Code) --> between(35, 91, Code).
-qtext(Code) --> between(93, 126, Code).
+qtext(Code) --> dcg_between(35, 91, Code).
+qtext(Code) --> dcg_between(93, 126, Code).
 qtext(Code) --> 'obs-qtext'(Code).
 
 
@@ -1055,7 +1051,7 @@ specials(0'@)  --> "@".
 specials(0'\\) --> "\\".
 specials(0',)  --> ",".
 specials(0'.)  --> ".".
-specials(0'")  --> 'DQUOTE'.
+specials(0'")  --> 'DQUOTE'. %"
 
 
 
@@ -1068,9 +1064,9 @@ specials(0'")  --> 'DQUOTE'.
 %      / %d14-127
 % ```
 
-text(Code) --> between(1, 9, Code).
-text(Code) --> between(11, 12, Code).
-text(Code) --> between(14, 127, Code).
+text(Code) --> dcg_between(1, 9, Code).
+text(Code) --> dcg_between(11, 12, Code).
+text(Code) --> dcg_between(14, 127, Code).
 
 
 

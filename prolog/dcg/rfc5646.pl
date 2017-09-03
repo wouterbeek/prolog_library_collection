@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 5646
 @see https://tools.ietf.org/html/rfc5646
-@version 2017/05-2017/06
+@version 2017/05-2017/06, 2017/09
 */
 
 :- use_module(library(apply)).
@@ -287,10 +287,10 @@ script(Script) -->
 %           / %x79-7A   ; y - z
 
 singleton(Code) --> 'DIGIT'(_, Code).
-singleton(Code) --> between(0x41, 0x57, Code).
-singleton(Code) --> between(0x59, 0x5A, Code).
-singleton(Code) --> between(0x61, 0x77, Code).
-singleton(Code) --> between(0x79, 0x7A, Code).
+singleton(Code) --> dcg_between(0x41, 0x57, Code).
+singleton(Code) --> dcg_between(0x59, 0x5A, Code).
+singleton(Code) --> dcg_between(0x61, 0x77, Code).
+singleton(Code) --> dcg_between(0x79, 0x7A, Code).
 
 
 
@@ -318,7 +318,7 @@ subtag_(Code) --> 'DIGIT'(_, Code).
 variant(Variant) -->
   (   'DIGIT'(H)
   ->  #(3, alphanum, T),
-      {Cs = [H|T]}
-  ;   'm*n'(5, 8, alphanum, Cs)
+      {Codes = [H|T]}
+  ;   'm*n'(5, 8, alphanum, Codes)
   ),
-  {atom_codes(Variant, Cs)}.
+  {atom_codes(Variant, Codes)}.

@@ -2,6 +2,7 @@
   math_ext,
   [
     average/2,            % +Numbers, -Average
+    between/4,            % +Low, +High, +Interval, ?Value
     decimal_parts/3,      % ?Decimal, ?Integer, ?Fractorial
     fractional_integer/2, % +Number, -Fractorial
     fractional_weights/2, % ?Fractional, ?Weights
@@ -13,7 +14,7 @@
 /** <module> Mathematics extensions
 
 @author Wouter Beek
-@version 2017/04-2017/05
+@version 2017/04-2017/05, 2017/09
 */
 
 :- use_module(library(aggregate)).
@@ -48,6 +49,19 @@ average(L, Average):-
   sum_list(L, Sum),
   length(L, N),
   Average is Sum / N.
+
+
+
+%! between(+Low:integer, +High:integer, +Interval:integer,
+%!         +Value:integer) is semidet.
+%! between(+Low:integer, +High:integer, +Interval:integer,
+%!         -Value:integer) is nondet.
+
+between(Low, _, _, Low).
+between(Low1, High, Interval, Value):-
+  Low2 is Low1 + Interval,
+  (High == inf -> true ; Low2 =< High),
+  between(Low2, High, Interval, Value).
 
 
 

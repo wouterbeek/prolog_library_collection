@@ -61,7 +61,7 @@ iri_query_enc, [Code] --> iunreserved(Code), !, iri_query_enc.
 iri_query_enc, [Code] --> 'sub-delims'(Code), !, iri_query_enc.
 iri_query_enc, [Code] --> iprivate(Code), !, iri_query_enc.
 iri_query_enc, "%", 'HEXDIG'(Weight1), 'HEXDIG'(Weight2) -->
-  between(0, 255, Code), !,
+  dcg_between(0, 255, Code), !,
   {
     Weight1 is Code // 16,
     Weight2 is Code mod 16
@@ -221,7 +221,7 @@ uri_query_enc, [Code] -->
   'sub-delims'(Code), !,
   uri_query_enc.
 uri_query_enc, "%", hex(Weight1), hex(Weight2) -->
-  between(0, 255, Code), !,
+  dcg_between(0, 255, Code), !,
   {
     Weight1 is Code // 16,
     Weight2 is Code mod 16

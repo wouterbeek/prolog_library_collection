@@ -1,30 +1,30 @@
 :- module(
   dcg_ext,
   [
-    atom_lower//1,         % ?A
-    atom_title//1,         % ?A
-    atom_upper//1,         % ?A
+    atom_lower//1,         % ?Atom
+    atom_title//1,         % ?Atom
+    atom_upper//1,         % ?Atom
     atom_uppercase//0,
-    atom_uppercase//1,     % +A
+    atom_uppercase//1,     % +Atom
     between_code_rad//2,   % +RadLow, +RadHigh
-    between_code_rad//3,   % +RadLow, +RadHigh, -C
-    between_digit//2,      % +Low:hex, +High:hex
-    between_digit//3,      % +Low:hex, +High:hex, -Weight:between(0,15)
-    between_digit//4,      % +Low:hex, +High:hex, -Weight:between(0,15), -Code:code
-    between_int//2,        % +Low:integer, +High:integer
-    between_int//3,        % +Low:integer, +High:integer, ?Value:integer
-    between_radix//2,      % +Low:compound, +High:compound
-    between_radix//3,      % +Low:compound, +High:compound, ?Value:compound
-    bit//1,                % ?I:between(0,1)
+    between_code_rad//3,   % +RadLow, +RadHigh, -Code
+    between_digit//2,      % +Low, +High
+    between_digit//3,      % +Low, +High, -Weight
+    between_digit//4,      % +Low, +High, -Weight, -Code
+    between_int//2,        % +Low, +High
+    between_int//3,        % +Low, +High, ?Value
+    between_radix//2,      % +Low, +High
+    between_radix//3,      % +Low, +High, ?Value
+    bit//1,                % ?Integer
     bracketed//1,          % :Dcg_0
-    bracketed//2,          % ?Type:oneof([angular,curly,round,square,ungular]), :Dcg_0
+    bracketed//2,          % ?Type, :Dcg_0
     bs//0,
-    code//1,               % ?C
-    code_ci//1,            % ?C
-    code_lower//1,         % ?C
-    code_rad//1,           % ?RadC
-    code_rad//2,           % ?RadC, -C
-    code_upper//1,         % ?C
+    code//1,               % ?Code
+    code_ci//1,            % ?Code
+    code_lower//1,         % ?Code
+    code_rad//1,           % ?RadCode
+    code_rad//2,           % ?RadCode, -Code
+    code_upper//1,         % ?Code
     dcg/1,                 % :Dcg_0
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
@@ -50,9 +50,9 @@
     dcg_list//3,           % :Dcg_1, +L, +I
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
     dcg_strip//0,
-    dcg_strip//1,          % +StripCs
+    dcg_strip//1,          % +StripCodes
     dcg_width/2,           % :Dcg_0, -Width
-    digit_code//1,         % ?C
+    digit_code//1,         % ?Code
     done//0,
     dq//1,                 % :Dcg_0
     eol//0,
@@ -63,8 +63,8 @@
     number//0,
     ordinal//1,            % +M
     pair//2,               % :Dcg_0, :Dcg_0
-    perc//1,               % +Perc:between(0.0,1.0)
-    perc_fixed//1,         % +Perc:between(0.0,1.0)
+    perc//1,               % +Perc
+    perc_fixed//1,         % +Perc
     progress_bar//2,       % +Processed, +All
     quad//4,               % :DcgX_0, :DcgY_0, :DcgZ_0, :DcgQ_0
     quoted//1,             % :Content_0
@@ -77,8 +77,8 @@
     str_ci//1,             % ?Str
     str_ellipsis//2,       % +S, +Max
     string//0,
-    string_atom_phrase/3,  % :Dcg_0, ?S, ?A
-    string_without//1,     % +EndCs
+    string_atom_phrase/3,  % :Dcg_0, ?String, ?Atom
+    string_without//1,     % +EndCodes
     triple//3,             % :DcgX_0, :DcgY_0, :DcgZ_0
     tuple//1,              % +L
     tuple//2,              % :Dcg_1, +L
@@ -87,15 +87,15 @@
 ).
 :- reexport(library(dcg/basics), except([digit//1,digits//1])).
 :- reexport(library(uri/rfc1738), [
-     alpha//1,      % ?C
-     alphadigit//1, % ?C
-     digit//1,      % ?Weight:between(0,9)
-     digit//2,      % ?Weight:between(0,9), ?C
-     escape//1 as percent_escape, % ?C
-     hex//1,        % ?Weigth:between(0,15)
-     hex//2,        % ?Weigth:between(0,15), ?C
-     hialpha//1,    % ?C
-     lowalpha//1    % ?C
+     alpha//1,      % ?Code
+     alphadigit//1, % ?Code
+     digit//1,      % ?Weight
+     digit//2,      % ?Weight, ?Code
+     escape//1 as percent_escape, % ?Code
+     hex//1,        % ?Weigth
+     hex//2,        % ?Weigth, ?Code
+     hialpha//1,    % ?Code
+     lowalpha//1    % ?Code
    ]).
 
 /** <module> DCG extensions
@@ -122,8 +122,8 @@ My favorite collection of DCG rules.
 :- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc1738), [
-     hialpha//1, % ?C
-     lowalpha//1 % ?C
+     hialpha//1, % ?Code
+     lowalpha//1 % ?Code
    ]).
 
 :- meta_predicate

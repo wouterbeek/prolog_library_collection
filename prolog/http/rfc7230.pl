@@ -43,7 +43,7 @@
 @author Wouter Beek
 @compat RFC 7230
 @see https://tools.ietf.org/html/rfc7230
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -350,9 +350,9 @@ http:http_header('content-length').
 
 ctext(Code) --> 'HTAB'(Code).
 ctext(Code) --> 'SP'(Code).
-ctext(Code) --> between(0x21, 0x27, Code).
-ctext(Code) --> between(0x2A, 0x5B, Code).
-ctext(Code) --> between(0x5D, 0x7E, Code).
+ctext(Code) --> dcg_between(0x21, 0x27, Code).
+ctext(Code) --> dcg_between(0x2A, 0x5B, Code).
+ctext(Code) --> dcg_between(0x5D, 0x7E, Code).
 ctext(Code) --> 'obs-text'(Code).
 
 
@@ -632,7 +632,7 @@ method(Method) -->
 % ```
 
 'obs-text'(Code) -->
-  between(0x80, 0xFF, Code).
+  dcg_between(0x80, 0xFF, Code).
 
 
 
@@ -732,8 +732,8 @@ pseudonym(Pseudonym) -->
 qdtext(Code) --> 'HTAB'(Code).
 qdtext(Code) --> 'SP'(Code).
 qdtext(0x21) --> [0x21].
-qdtext(Code) --> between(0x23, 0x5B, Code).
-qdtext(Code) --> between(0x5D, 0x7E, Code).
+qdtext(Code) --> dcg_between(0x23, 0x5B, Code).
+qdtext(Code) --> dcg_between(0x5D, 0x7E, Code).
 qdtext(Code) --> 'obs-text'(Code).
 
 

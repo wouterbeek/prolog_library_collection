@@ -53,7 +53,7 @@
 @author Wouter Beek
 @compat [XML 1.0.5](http://www.w3.org/TR/2008/REC-xml-20081126/)
 @compat [XML 1.1.2](http://www.w3.org/TR/2006/REC-xml11-20060816/)
-@version 2017/06, 2017/08
+@version 2017/06, 2017/08-2017/09
 */
 
 :- use_module(library(apply)).
@@ -303,18 +303,12 @@
 'Char'(version(1,0), 0x9) --> [0x9].
 'Char'(version(1,0), 0xA) --> [0xA].
 'Char'(version(1,0), 0xD) --> [0xD].
-'Char'(version(1,0), Code) -->
-  [Code],
-  {(  between(0x20, 0xD7FF, Code)
-  ;   between(0xE000, 0xFFFD, Code)
-  ;   between(0x10000, 0x10FFFF, Code)
-  )}.
-'Char'(version(1,1), Code) -->
-  [Code],
-  {(  between(0x1, 0xD7FF, Code)
-  ;   between(0xE000, 0xFFFD, Code)
-  ;   between(0x10000, 0x10FFFF, Code)
-  )}.
+'Char'(version(1,0), Code) --> dcg_between(0x20, 0xD7FF, Code).
+'Char'(version(1,0), Code) --> dcg_between(0xE000, 0xFFFD, Code).
+'Char'(version(1,0), Code) --> dcg_between(0x10000, 0x10FFFF, Code).
+'Char'(version(1,1), Code) --> dcg_between(0x1, 0xD7FF, Code).
+'Char'(version(1,1), Code) --> dcg_between(0xE000, 0xFFFD, Code).
+'Char'(version(1,1), Code) --> dcg_between(0x10000, 0x10FFFF, Code).
 
 
 
@@ -765,7 +759,7 @@ elementdecl(element_decl(Name,ContentSpec)) -->
   alpha(H),
   *(enc_name_char, T).
 
-enc_name_char(C) --> alphanum(C).
+enc_name_char(Code) --> alphanum(Code).
 enc_name_char(0'.) --> ".".
 enc_name_char(0'_) --> "_".
 enc_name_char(0'-) --> "-".
@@ -1275,7 +1269,7 @@ markupdecl(Version, _) -->
 % #x00B7
 'NameChar'(0'·) --> "·".
 % #x0300-#x036F
-'NameChar'(Code) --> between(0x300, 0x36F, Code).
+'NameChar'(Code) --> dcg_between(0x300, 0x36F, Code).
 % #x203F
 'NameChar'(0'‿) --> "‿".
 % #x2040
@@ -1321,12 +1315,9 @@ markupdecl(Version, _) -->
 % @compat XML 1.0.5 [4].
 % @compat XML 1.1.2 [4].
 
-'NameStartChar'(Code) -->
-  alpha(Code).
-'NameStartChar'(0':) -->
-  ":".
-'NameStartChar'(0'_) -->
-  "_".
+'NameStartChar'(Code) --> alpha(Code).
+'NameStartChar'(0':) --> ":".
+'NameStartChar'(0'_) --> "_".
 % #xC0-#xD6
 % #xD8-#xF6
 % #xF8-#x2FF
@@ -1339,21 +1330,18 @@ markupdecl(Version, _) -->
 % #xF900-#xFDCF
 % #xFDF0-#xFFFD
 % #x10000-#xEFFFF
-'NameStartChar'(Code) -->
-  [Code],
-  {(  between(0xC0, 0xD6, Code)
-  ;   between(0xD8, 0xF6, Code)
-  ;   between(0xF8, 0x2FF, Code)
-  ;   between(0x370, 0x37D, Code)
-  ;   between(0x37F, 0x1FFF, Code)
-  ;   between(0x200C, 0x200D, Code)
-  ;   between(0x2070, 0x218F, Code)
-  ;   between(0x2C00, 0x2FEF, Code)
-  ;   between(0x3001, 0xD7FF, Code)
-  ;   between(0xF900, 0xFDCF, Code)
-  ;   between(0xFDF0, 0xFFFD, Code)
-  ;   between(0x10000, 0xEFFFF, Code)
-  )}.
+'NameStartChar'(Code) --> dcg_between(0xC0, 0xD6, Code).
+'NameStartChar'(Code) --> dcg_between(0xD8, 0xF6, Code).
+'NameStartChar'(Code) --> dcg_between(0xF8, 0x2FF, Code).
+'NameStartChar'(Code) --> dcg_between(0x370, 0x37D, Code).
+'NameStartChar'(Code) --> dcg_between(0x37F, 0x1FFF, Code).
+'NameStartChar'(Code) --> dcg_between(0x200C, 0x200D, Code).
+'NameStartChar'(Code) --> dcg_between(0x2070, 0x218F, Code).
+'NameStartChar'(Code) --> dcg_between(0x2C00, 0x2FEF, Code).
+'NameStartChar'(Code) --> dcg_between(0x3001, 0xD7FF, Code).
+'NameStartChar'(Code) --> dcg_between(0xF900, 0xFDCF, Code).
+'NameStartChar'(Code) --> dcg_between(0xFDF0, 0xFFFD, Code).
+'NameStartChar'(Code) --> dcg_between(0x10000, 0xEFFFF, Code).
 
 
 
@@ -1707,16 +1695,11 @@ prolog(Version, prolog(Encoding,Standalone,PIs4,Decl)) -->
 %     | [#x86-#x9F]
 % ```
 
-'RestrictedChar'(version(1,1), Code) -->
-  between(0x1,  0x8,  Code).
-'RestrictedChar'(version(1,1), Code) -->
-  between(0xB,  0xC,  Code).
-'RestrictedChar'(version(1,1), Code) -->
-  between(0xE,  0x1F, Code).
-'RestrictedChar'(version(1,1), Code) -->
-  between(0x7F, 0x84, Code).
-'RestrictedChar'(version(1,1), Code) -->
-  between(0x86, 0x9F, Code).
+'RestrictedChar'(version(1,1), Code) --> dcg_between(0x1,  0x8,  Code).
+'RestrictedChar'(version(1,1), Code) --> dcg_between(0xB,  0xC,  Code).
+'RestrictedChar'(version(1,1), Code) --> dcg_between(0xE,  0x1F, Code).
+'RestrictedChar'(version(1,1), Code) --> dcg_between(0x7F, 0x84, Code).
+'RestrictedChar'(version(1,1), Code) --> dcg_between(0x86, 0x9F, Code).
 
 
 
@@ -2009,9 +1992,9 @@ quoted(Dcg_0) -->
 
 
 quoted(0'", Dcg_0) -->
-  "\"", !,
+  "\"", !,%"
   Dcg_0,
-  "\"".
+  "\"".%"
 quoted(0'', Dcg_0) -->
   "'",
   Dcg_0,

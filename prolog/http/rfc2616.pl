@@ -30,7 +30,7 @@
 @author Wouter Beek
 @compat RFC 2616
 @see https://tools.ietf.org/html/rfc2616
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -151,7 +151,7 @@ http_URL(uri(http,auth(_User,_Password,Host,Port),Segments,QueryComps)) -->
 %! 'LOALPHA'(?Code:code)// .
 
 'LOALPHA'(Code) -->
-  between(0x61, 0x7A, Code).
+  dcg_between(0x61, 0x7A, Code).
 
 
 
@@ -346,7 +346,7 @@ token_(Code) -->
 %! 'UPALPHA'(?Code:code)// .
 
 'UPALPHA'(Code) -->
-  between(0x41, 0x5A, Code).
+  dcg_between(0x41, 0x5A, Code).
 
 
 

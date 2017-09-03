@@ -79,7 +79,7 @@ uri_iuserinfo(U) --> iuserinfo(U), "@".
 @author Wouter Beek
 @compat RFC 3987
 @see http://tools.ietf.org/html/rfc3987
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(apply)).
@@ -275,9 +275,9 @@ ipchar(Code) --> 'pct-encoded'(Code).
 % iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
 % ```
 
-iprivate(Code) --> between(0xE000, 0xF8FF, Code).
-iprivate(Code) --> between(0xF0000,  0xFFFFD,  Code).
-iprivate(Code) --> between(0x100000, 0x10FFFD, Code).
+iprivate(Code) --> dcg_between(0xE000, 0xF8FF, Code).
+iprivate(Code) --> dcg_between(0xF0000,  0xFFFFD,  Code).
+iprivate(Code) --> dcg_between(0x100000, 0x10FFFD, Code).
 
 
 
@@ -456,23 +456,23 @@ iuserinfo_(Code) --> 'pct-encoded'(Code).
 %         / %xD0000-DFFFD / %xE1000-EFFFD
 % ```
 
-ucschar(Code) --> between(0xA0, 0xD7FF, Code).
-ucschar(Code) --> between(0xF900, 0xFDCF, Code).
-ucschar(Code) --> between(0xFDF0, 0xFFEF, Code).
-ucschar(Code) --> between(0x10000, 0x1FFFD, Code).
-ucschar(Code) --> between(0x20000, 0x2FFFD, Code).
-ucschar(Code) --> between(0x30000, 0x3FFFD, Code).
-ucschar(Code) --> between(0x40000, 0x4FFFD, Code).
-ucschar(Code) --> between(0x50000, 0x5FFFD, Code).
-ucschar(Code) --> between(0x60000, 0x6FFFD, Code).
-ucschar(Code) --> between(0x70000, 0x7FFFD, Code).
-ucschar(Code) --> between(0x80000, 0x8FFFD, Code).
-ucschar(Code) --> between(0x90000, 0x9FFFD, Code).
-ucschar(Code) --> between(0xA0000, 0xAFFFD, Code).
-ucschar(Code) --> between(0xB0000, 0xBFFFD, Code).
-ucschar(Code) --> between(0xC0000, 0xCFFFD, Code).
-ucschar(Code) --> between(0xD0000, 0xDFFFD, Code).
-ucschar(Code) --> between(0xE1000, 0xEFFFD, Code).
+ucschar(Code) --> dcg_between(0xA0, 0xD7FF, Code).
+ucschar(Code) --> dcg_between(0xF900, 0xFDCF, Code).
+ucschar(Code) --> dcg_between(0xFDF0, 0xFFEF, Code).
+ucschar(Code) --> dcg_between(0x10000, 0x1FFFD, Code).
+ucschar(Code) --> dcg_between(0x20000, 0x2FFFD, Code).
+ucschar(Code) --> dcg_between(0x30000, 0x3FFFD, Code).
+ucschar(Code) --> dcg_between(0x40000, 0x4FFFD, Code).
+ucschar(Code) --> dcg_between(0x50000, 0x5FFFD, Code).
+ucschar(Code) --> dcg_between(0x60000, 0x6FFFD, Code).
+ucschar(Code) --> dcg_between(0x70000, 0x7FFFD, Code).
+ucschar(Code) --> dcg_between(0x80000, 0x8FFFD, Code).
+ucschar(Code) --> dcg_between(0x90000, 0x9FFFD, Code).
+ucschar(Code) --> dcg_between(0xA0000, 0xAFFFD, Code).
+ucschar(Code) --> dcg_between(0xB0000, 0xBFFFD, Code).
+ucschar(Code) --> dcg_between(0xC0000, 0xCFFFD, Code).
+ucschar(Code) --> dcg_between(0xD0000, 0xDFFFD, Code).
+ucschar(Code) --> dcg_between(0xE1000, 0xEFFFD, Code).
 
 
 

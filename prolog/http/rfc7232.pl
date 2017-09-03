@@ -9,7 +9,7 @@
 
 @author Wouter Beek
 @see https://tools.ietf.org/html/rfc7232
-@version 2017/05-2017/06
+@version 2017/05-2017/06, 2017/09
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -63,7 +63,7 @@ etag(EntityTag) -->
 % ```
 
 etagc(0x21) --> [0x21].
-etagc(Code) --> between(0x23, 0x7E, Code).
+etagc(Code) --> dcg_between(0x23, 0x7E, Code).
 etagc(Code) --> 'obs-text'(Code).
 
 

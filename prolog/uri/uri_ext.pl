@@ -76,6 +76,7 @@ call_on_uri(UriSpec, Goal_3, Options) :-
   call_on_uri_scheme(Scheme, Uri, Goal_3, Metadata, Options),
   ignore(option(metadata(Metadata), Options)).
 
+uri_spec(uri(Uri), _, Uri) :- !.
 uri_spec(uri(Scheme,Authority,Segments,Query,Fragment), _, Uri) :- !,
   uri_comps(Uri, uri(Scheme,Authority,Segments,Query,Fragment)).
 uri_spec(Uri, _, Uri) :-

@@ -10,7 +10,7 @@
 @author Wouter Beek
 @compat RFC 7159
 @see https://tools.ietf.org/html/rfc7159
-@version 2017/04, 2017/08
+@version 2017/04, 2017/08-2017/09
 */
 
 :- use_module(library(clpfd)).
@@ -63,7 +63,7 @@ array0([]) --> "".
 
 
 
-%! char(-C)// .
+%! char(-Code:code)// .
 %
 % ```abnf
 % char = unescaped /
@@ -77,11 +77,11 @@ array0([]) --> "".
 %                 %x74 /           ; t tab             U+0009
 %                 %x75 4HEXDIG )   ; uXXXX        U+XXXX
 
-char(C) -->
-  unescaped(C).
-char(C) -->
+char(Code) -->
+  unescaped(Code).
+char(Code) -->
   escape,
-  char_(C).
+  char_(Code).
 
 char_(0'\") --> "\"".
 char_(0'\\) --> "\\".
@@ -334,9 +334,9 @@ plus --> "+".
 
 string(String) -->
   'quotation-mark',
-  *(char, Cs),
+  *(char, Codes),
   'quotation-mark',
-  {string_codes(String, Cs)}.
+  {string_codes(String, Codes)}.
 
 
 
@@ -350,19 +350,15 @@ true --> "true".
 
 
 
-%! unescaped(-C)// .
+%! unescaped(-Code:code)// .
 %
 % ```abnf
 % unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
 % ```
 
-unescaped(C) -->
-  [C],
-  {unescaped_(C)}.
-
-unescaped_(C) :- between(0x20, 0x21, C).
-unescaped_(C) :- between(0x23, 0x5b, C).
-unescaped_(C) :- between(0x5d, 0x10ffff, C).
+unescaped(Code) --> dcg_between(0x20, 0x21, Code).
+unescaped(Code) --> dcg_between(0x23, 0x5b, Code).
+unescaped(Code) --> dcg_between(0x5d, 0x10ffff, Code).
 
 
 

@@ -1,30 +1,30 @@
 :- module(
   rfc2234,
   [
-    'ALPHA'//1,  % ?Code:code
-    'CHAR'//1,   % ?Code:code
+    'ALPHA'//1,  % ?Code
+    'CHAR'//1,   % ?Code
     'CR'//0,
-    'CR'//1,     % ?Code:code
+    'CR'//1,     % ?Code
     'CRLF'//0,
-    'CRLF'//1,   % ?Codes:list(code)
+    'CRLF'//1,   % ?Codes
     'CTL'//0,
-    'CTL'//1,    % ?Code:Code
+    'CTL'//1,    % ?Code
     'DIGIT'//1,  % ?Weight
-    'DIGIT'//2,  % ?Weight:between(0,9), ?Code:code
+    'DIGIT'//2,  % ?Weight, ?Code
     'DQUOTE'//0,
     'HEXDIG'//1, % ?Weight
-    'HEXDIG'//2, % ?Weight:between(0,15), ?Code:code
+    'HEXDIG'//2, % ?Weight, ?Code
     'HTAB'//0,
-    'HTAB'//1,   % ?Code:code
+    'HTAB'//1,   % ?Code
     'LF'//0,
-    'LF'//1,     % ?Code:code
+    'LF'//1,     % ?Code
     'LWSP'//0,
-    'OCTET'//1,  % ?Code:code
+    'OCTET'//1,  % ?Code
     'SP'//0,
-    'SP'//1,     % ?Code:code
-    'VCHAR'//1,  % ?Code:code
+    'SP'//1,     % ?Code
+    'VCHAR'//1,  % ?Code
     'WSP'//0,
-    'WSP'//1     % ?Code:code
+    'WSP'//1     % ?Code
   ]
 ).
 
@@ -33,7 +33,7 @@
 @author Wouter Beek
 @deprecated dcg/rfc4234
 @see https://tools.ietf.org/html/rfc2234
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -51,9 +51,8 @@
 % ALPHA = %x41-5A / %x61-7A   ; A-Z / a-z
 % ```
 
-'ALPHA'(C) -->
-  [C],
-  {once(between(0x41, 0x5A, C) ; between(0x61, 0x7A, C))}.
+'ALPHA'(Code) --> dcg_between(0x41, 0x5A, Code).
+'ALPHA'(Code) --> dcg_between(0x61, 0x7A, Code).
 
 
 
@@ -133,9 +132,8 @@
   'CTL'(_).
 
 
-'CTL'(C) -->
-  [C],
-  {(between(0, 31, C) ; C = 127)}.
+'CTL'(Code) --> dcg_between(0, 31, Code).
+'CTL'(127)  --> [127].
 
 
 
@@ -197,7 +195,7 @@
   'HEXDIG'(Weight, _).
 
 
-'HEXDIG'(Weight, C)    --> 'DIGIT'(Weight, C).
+'HEXDIG'(Weight, Code) --> 'DIGIT'(Weight, Code).
 'HEXDIG'(10, 0'A) --> "A".
 'HEXDIG'(11, 0'B) --> "B".
 'HEXDIG'(12, 0'C) --> "C".
@@ -270,8 +268,7 @@
 % OCTET = %x00-FF   ; 8 bits of data
 % ```
 
-'OCTET'(Code) -->
-  between(0, 255, Code).
+'OCTET'(Code) --> dcg_between(0, 255, Code).
 
 
 
@@ -302,8 +299,7 @@
 % VCHAR = %x21-7E   ; visible (printing) characters
 % ```
 
-'VCHAR'(Code) -->
-  between(33, 126, Code).
+'VCHAR'(Code) --> dcg_between(33, 126, Code).
 
 
 
@@ -316,9 +312,8 @@
 % WSP = SP / HTAB   ; white space
 % ```
 
-'WSP' -->
-  'WSP'(_).
+'WSP' --> 'WSP'(_).
 
 
-'WSP'(C) --> 'SP'(C).
-'WSP'(C) --> 'HTAB'(C).
+'WSP'(Code) --> 'SP'(Code).
+'WSP'(Code) --> 'HTAB'(Code).

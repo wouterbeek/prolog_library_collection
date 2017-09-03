@@ -14,7 +14,7 @@ variable repertoire of fields in a text format.
 @see Originally described in *The Art of Unix Programming*.
 @see http://tools.ietf.org/html/draft-phillips-record-jar-02
 @see http://www.inter-locale.com/ID/draft-phillips-record-jar-01.html
-@version 2015/11, 2016/03, 2016/08
+@version 2015/11, 2016/03, 2016/08, 2017/09
 */
 
 :- use_module(library(apply)).
@@ -34,9 +34,9 @@ variable repertoire of fields in a text format.
 % ASCCHAR = %x21-25 / %x27-5B / %x5D-7E
 % ```
 
-'ASCCHAR'(Code) --> between(0x21, 0x25, Code).
-'ASCCHAR'(Code) --> between(0x27, 0x5B, Code).
-'ASCCHAR'(Code) --> between(0x5D, 0x7E, Code).
+'ASCCHAR'(Code) --> dcg_between(0x21, 0x25, Code).
+'ASCCHAR'(Code) --> dcg_between(0x27, 0x5B, Code).
+'ASCCHAR'(Code) --> dcg_between(0x5D, 0x7E, Code).
 
 
 
@@ -307,4 +307,4 @@ sep_comment -->
 % ```
 
 'UNICHAR'(Code) -->
-  between(0x80, 0x10FFFF, Code).
+  dcg_between(0x80, 0x10FFFF, Code).

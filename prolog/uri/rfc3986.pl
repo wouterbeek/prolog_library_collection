@@ -38,7 +38,7 @@ The following terms are used:
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -101,19 +101,15 @@ authority(Scheme, auth(User,_Password,Host,Port)) -->
 
 'dec-octet'(Octet) -->
   "25",
-  [Code],
+  dcg_between(0x30, 0x35, Code), !,
   {
-    between(0x30, 0x35, Code), !,
     Digit3 is Code - 0x30,
     integer_weights(Octet, [2,5,Digit3])
   }.
 'dec-octet'(Octet) -->
   "2",
-  [Code],
-  {
-    between(0x30, 0x34, Code), !,
-    Digit2 is Code - 0x30
-  },
+  dcg_between(0x30, 0x34, Code), !,
+  {Digit2 is Code - 0x30},
   digit_weight(Digit3),
   {integer_weights(Octet, [2,Digit2,Digit3])}.
 'dec-octet'(Octet) -->
@@ -121,13 +117,9 @@ authority(Scheme, auth(User,_Password,Host,Port)) -->
   #(2, digit_weight, [Digit2,Digit3]), !,
   {integer_weights(Octet, [1,Digit2,Digit3])}.
 'dec-octet'(Octet) -->
-  [Code],
-  {
-    between(0x31, 0x39, Code),
-    Digit1 is Code - 0x30
-  },
+  dcg_between(0x31, 0x39, Code),
   digit_weight(Digit2),
-  {Octet is Digit1 * 10 + Digit2}.
+  {Octet is (Code - 0x30) * 10 + Digit2}.
 'dec-octet'(Octet) -->
   digit_weight(Octet).
 

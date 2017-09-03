@@ -8,9 +8,9 @@
     atom_ci//1,            % ?Atom
     atom_phrase/2,         % :Dcg_0, ?Atom
     atom_phrase/3,         % :Dcg_0, +Atomic, ?Atom
-    between//2,            % +Low, +High
-    between//3,            % +Low, +High, ?Code
     dcg_atom//2,           % :Dcg_1, ?Atom
+    dcg_between//2,        % +Low, +High
+    dcg_between//3,        % +Low, +High, ?Code
     dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_integer//2,        % :Dcg_1, ?Integer
@@ -46,7 +46,7 @@
 /** <module> DCG extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(aggregate)).
@@ -92,26 +92,21 @@
 
 
 %! alpha// .
-%! alpha(?Code)// .
+%! alpha(?Code:code)// .
 
 alpha -->
   alpha(_).
 
 
-alpha(C) -->
-  [C],
-  { between(0'a, 0'z, C)
-  ; between(0'A, 0'Z, C)
-  }, !.
+alpha(Code) --> dcg_between(0'a, 0'z, Code).
+alpha(Code) --> dcg_between(0'A, 0'Z, Code).
 
 
 
-%! alphanum(?Code)// .
+%! alphanum(?Code:code)// .
 
-alphanum(C) -->
-  alpha(C), !.
-alphanum(C) -->
-  digit(C).
+alphanum(Code) --> alpha(Code).
+alphanum(Code) --> digit(Code).
 
 
 
@@ -153,7 +148,6 @@ atom_phrase(Dcg_0, Atom) :-
   phrase(Dcg_0, Codes),
   atom_codes(Atom, Codes).
 atom_phrase(Dcg_0, Atom) :-
-  must_be(atom, Atom),
   atom_codes(Atom, Codes),
   phrase(Dcg_0, Codes).
 
@@ -171,19 +165,6 @@ atom_phrase(Dcg_0, Atomic, Atom) :-
   ),
   phrase(Dcg_0, Codes1, Codes2),
   atom_codes(Atom, Codes2).
-
-
-
-%! between(+Low:nonneg, +High:nonneg)// .
-%! between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
-
-between(Low, High) -->
-  between(Low, High, _).
-
-
-between(Low, High, Code) -->
-  [Code],
-  {between(Low, High, Code)}.
 
 
 
@@ -248,9 +229,21 @@ dcg_atom(Dcg_1, Atom) -->
   dcg_call(Dcg_1, Codes),
   {atom_codes(Atom, Codes)}.
 dcg_atom(Dcg_1, Atom) -->
-  {must_be(atom, Atom)}, !,
   {atom_codes(Atom, Codes)},
   dcg_call(Dcg_1, Codes).
+
+
+
+%! dcg_between(+Low:nonneg, +High:nonneg)// .
+%! dcg_between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
+
+dcg_between(Low, High) -->
+  dcg_between(Low, High, _).
+
+
+dcg_between(Low, High, Code) -->
+  [Code],
+  {between(Low, High, Code)}.
 
 
 
@@ -299,7 +292,6 @@ dcg_string(Dcg_1, String) -->
   dcg_call(Dcg_1, Codes),
   {string_codes(String, Codes)}.
 dcg_string(Dcg_1, String) -->
-  {must_be(string, String)}, !,
   {string_codes(String, Codes)},
   dcg_call(Dcg_1, Codes).
 
@@ -463,7 +455,6 @@ string_phrase(Dcg_0, String) :-
   phrase(Dcg_0, Codes),
   string_codes(String, Codes).
 string_phrase(Dcg_0, String) :-
-  must_be(string, String),
   string_codes(String, Codes),
   phrase(Dcg_0, Codes).
 
