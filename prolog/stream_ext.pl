@@ -28,13 +28,13 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2017/07
+@version 2017/06-2017/09
 */
 
 :- use_module(library(archive)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext), []).
 :- use_module(library(hash_stream)).
@@ -689,59 +689,6 @@ archive_format(raw).
 archive_format(tar).
 archive_format(xar).
 archive_format(zip).
-
-
-
-%! indent_debug(+Mode:oneof([-1,0,1]), +Flag:compound, +Format:string) is det.
-%! indent_debug(+Mode:oneof([-1,0,1]), +Flag:compound, +Format:string,
-%!              +Arguments:list(term)) is det.
-
-indent_debug(Mode, Flag, Format) :-
-  indent_debug(Mode, Flag, Format, []).
-
-
-indent_debug(Mode, Flag, Format, Arguments) :-
-  debugging(Flag), !,
-  must_be(oneof([-1,0,1]), Mode),
-  (retract(debug_indent(N1)) -> N2 is max(0, N1 + Mode) ; N2 = Mode),
-  assert(debug_indent(N2)),
-  format(string(Msg1), Format, Arguments),
-  (Mode =:= -1 -> N = N1 ; N = N2),
-  dcg_with_output_to(string(Msg2), msg1(Mode, N, Msg1)),
-  debug(Flag, Msg2, []).
-indent_debug(_, _, _, _).
-
-msg1(_, 0, Msg) --> !,
-  atom(Msg).
-msg1(Diff, 1, Msg) --> !,
-  msg_diff1(Diff),
-  "─",
-  atom(Msg).
-msg1(Diff, N1, Msg) -->
-  ({N1 =:= 1} -> msg_diff2(Diff), "─" ; "│ "),
-  {N2 is N1 - 1},
-  msg1(Diff, N2, Msg).
-
-msg_diff1(1) --> !, "┌".
-msg_diff1(0) --> !, "─".
-msg_diff1(-1) --> "└".
-
-msg_diff2(1) --> !, "├".
-msg_diff2(0) --> !, "└".
-msg_diff2(-1) --> "└".
-
-
-
-%! indented_debug(+Flag:compound, +Format:string) is det.
-%! indented_debug(+Flag:compound, +Format:string,
-%!                +Arguments:list(term)) is det.
-
-indented_debug(Flag, Format) :-
-  indented_debug(Flag, Format, []).
-
-
-indented_debug(Flag, Format, Arguments) :-
-  indent_debug(0, Flag, Format, Arguments).
 
 
 
