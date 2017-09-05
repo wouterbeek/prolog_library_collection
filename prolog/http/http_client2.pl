@@ -53,7 +53,8 @@ The following debug flags are defined:
 :- public
     ssl_verify/5.
 
-ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
+ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
+           _Error).
 
 
 
@@ -177,7 +178,8 @@ http_open2(Uri, In, Options, Meta2) :-
   http_open2(Uri, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [], Meta1),
   reverse(Meta1, Meta2).
 
-http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited, [Dict|Dicts]) :-
+http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
+           [Dict|Dicts]) :-
   (   select_option(status_code(Status), Options1, Options2)
   ->  true
   ;   Options2 = Options1
@@ -214,9 +216,10 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited, [Dict|Dict
   http_open2(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
              Retries, Visited, In2, Dicts).
 
-debug_reply_header(Key1-Value) :-
+debug_reply_header(Key1-Value1) :-
   pp_http_header_key(Key1, Key2),
-  debug(http(receive_reply), "< ~a: ~a", [Key2,Value]).
+  atomic_list_concat(Value1, '; ', Value2),
+  debug(http(receive_reply), "< ~a: ~a", [Key2,Value2]).
 
 pp_http_header_key(Key1, Key2) :-
   atomic_list_concat(Comps1, -, Key1),
