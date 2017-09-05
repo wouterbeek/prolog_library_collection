@@ -10,7 +10,10 @@
   % OPERATIONS
     date_time_masks/3, % +Masks, +Datetime1, -Datetime2
     now/1,             % -Datetime
-    number_of_days_in_month_of_year/3 % ?Year, ?Month, ?MaxDay
+    number_of_days_in_month_of_year/3, % ?Year, ?Month, ?MaxDay
+  % PP
+    dt_label/2,        % +Datetime, -Label
+    dt_label/3         % +Datetime, -Label, +Options
   ]
 ).
 
@@ -38,12 +41,15 @@ predicates that use date/time representations to only work with dt/7.
 This is a huge date/time-saver!
 
 @author Wouter Beek
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dict_ext)).
 :- use_module(library(error)).
+:- use_module(library(nlp/nlp_lang)).
 :- use_module(library(solution_sequences)).
 
 % XSD-inspired 7-value model, except for seconds,
@@ -228,3 +234,188 @@ number_of_days_in_month_of_year(_, Mo, 30):-
 number_of_days_in_month_of_year(Y, 2, 29):-
   (Y mod 400 =:= 0 ; (Y mod 4 =:= 0, Y mod 100 =\= 0)), !.
 number_of_days_in_month_of_year(_, _, 28).
+
+
+
+% PP %
+
+%! dt_label(+Datetime:dt, -Label:string) is det.
+%! dt_label(+Datetime:dt, -Label:string, +Options:dict) is det.
+
+dt_label(Datetime, Label) :-
+  dt_label(Datetime, Label, _{}).
+
+
+dt_label(Datetime, Label, Options) :-
+  dcg_with_output_to(string(Label), dt(Datetime, Options)).
+
+dt(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
+  (   {ground(date(Y,Mo,Da,H,Mi,S,Off))}
+  ->  global_date_and_time(Y, Mo, Da, H, Mi, S, Off, Options)
+  ;   {ground(date(Y,Mo,Da,H,Mi,S))}
+  ->  floating_date_and_time(Y, Mo, Da, H, Mi, S, Options)
+  ;   {ground(date(Y,Mo,Da))}
+  ->  date(Y, Mo, Da, Options)
+  ;   {ground(date(H,Mi,S))}
+  ->  time(H, Mi, S, Options)
+  ;   {ground(date(Mo,Da))}
+  ->  yearless_date(Mo, Da, Options)
+  ;   {ground(date(Y,Mo))}
+  ->  month(Y, Mo, Options)
+  ;   {ground(date(Y))}
+  ->  year(Y, Options)
+  ;   {ground(date(Off))}
+  ->  timezone_offset(Off)
+  ).
+
+
+%! date(+Year:integer, +Month:between(1,12), +Day:between(1,31),
+%!      +Options:list(compound))// is det.
+
+date(Y, Mo, Da, Options) -->
+  month_day(Da, Options),
+  " ",
+  month(Y, Mo, Options).
+
+
+%! floating_date_and_time(+Year:integer, +Month:between(1,12),
+%!                        +Day:between(1,31), +Hour:between(0,24),
+%!                        +Minute:between(0,59), +Second:float,
+%!                        +Options:list(compound))// is det.
+
+floating_date_and_time(Y, Mo, Da, H, Mi, S, Options) -->
+  date(Y, Mo, Da, Options),
+  " ",
+  time(H, Mi, S, Options).
+
+
+%! global_date_and_time(+Year:integer, +Month:between(1,12),
+%!                      +Day:between(1,31), +Hour:between(0,24),
+%!                      +Minute:between(0,59), +Second:float,
+%!                      +Offset:between(-840,840),
+%!                      +Options:list(compound))// is det.
+
+global_date_and_time(Y, Mo, Da, H, Mi, S, Off, Options) -->
+  floating_date_and_time(Y, Mo, Da, H, Mi, S, Options),
+  timezone_offset(Off).
+
+
+%! hour(+Hour:between(0,24), +Options:list(compound))// is det.
+
+hour(H, _) -->
+  padding_zero(H),
+  integer(H).
+
+
+%! minute(+Minute:between(0,59), +Options:list(compound))// is det.
+
+minute(Mi, _) -->
+  padding_zero(Mi),
+  integer(Mi).
+
+
+%! month(+Month:between(1,12), +Options:list(compound))// is det.
+
+month(Mo, Options) -->
+  {
+    dict_get(ltag, Options, en, LTag),
+    dict_get(month_abbr, Options, false, IsAbbr),
+    once(month_name(Mo, LTag, Abbr, Full)),
+    (IsAbbr == true -> Month = Abbr ; Month = Full)
+  },
+  atom(Month).
+
+
+
+%! month(+Year:integer, +Month:between(1,12),
+%!       +Options:list(compound))// is det.
+
+month(Y, Mo, Options) -->
+  month(Mo, Options),
+  " ",
+  year(Y, Options).
+
+
+
+%! month_day(+Day:between(1,31), +Options:list(compound)) is det.
+
+month_day(Da, Options) -->
+  (   {dict_get(ltag, Options, nl)}
+  ->  integer(Da)
+  ;   ordinal(Da, Options)
+  ).
+
+
+%! padding_zero(+N:between(0,9))// is det.
+
+padding_zero(N) -->
+  ({N =< 9} -> "0" ; "").
+
+
+%! ordinal(+N:nonneg, +Options:list(compound))// is det.
+
+ordinal(N, Options) -->
+  {
+    dict_get(ltag, Options, en, LTag),
+    ordinal_suffix(N, LTag, Suffix)
+  },
+  integer(N),
+  atom(Suffix).
+
+
+%! second(+Second:float, +Options:list(compound))// is det.
+
+second(S0, _) -->
+  {S is floor(S0)},
+  padding_zero(S),
+  integer(S).
+
+
+%! sign(+N:number)// is det.
+
+sign(N) -->
+  ({N < 0} -> "-" ; "+").
+
+
+
+%! time(+Hour:between(0,24), +Minute:between(0,59), +Second:float,
+%!      +Options:list(compound))// is det.
+
+time(H, Mi, S, Options) -->
+  hour(H, Options),
+  ":",
+  minute(Mi, Options),
+  ":",
+  second(S, Options).
+
+
+%! timezone_offset(+Offset:between(-840,840))// is det.
+
+timezone_offset(Off) -->
+  (   {Off =:= 0}
+  ->  "Z"
+  ;   {
+        H is Off // 60,
+        dcg_with_output_to(string(H0), generate_as_digits(H, 2)),
+        Mi is Off mod 60,
+        dcg_with_output_to(string(Mi0), generate_as_digits(Mi, 2))
+      },
+      sign(Off),
+      H0,
+      ":",
+      Mi0
+  ).
+
+
+%! year(+Year:integer, +Options:list(compound))// is det.
+
+year(Y, _) -->
+  integer(Y).
+
+
+%! yearless_date(+Month:between(1,12), +Day:between(1,31),
+%!               +Options:list(compound))// is det.
+
+yearless_date(Mo, Da, Options) -->
+  month(Mo, Options),
+  month_day(Da, Options).
