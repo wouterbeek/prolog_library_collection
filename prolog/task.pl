@@ -11,7 +11,7 @@
 /** <module> Debug extensions
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/09
 */
 
 :- use_module(library(ansi_term)).
@@ -32,16 +32,16 @@
 %
 % Verbose calling of Goal_0.
 
-run_task(Goal_0) :-
+run_task(Mod:Goal_0) :-
   term_string(Goal_0, Format),
-  run_task(Goal_0, Format).
+  run_task(Mod:Goal_0, Format).
 
 
 run_task(Goal_0, Format) :-
   run_task(Goal_0, Format, []).
 
 
-run_task(Goal_0, Format, Args) :-
+run_task(Mod:Goal_0, Format, Args) :-
   format(atom(Local), "~w", [Goal_0]),
   file_name_extension(Local, task, File),
   (   exists_file(File)
@@ -49,7 +49,7 @@ run_task(Goal_0, Format, Args) :-
                   [Local])
   ;   get_time(Start),
       format(Format, Args),
-      (   catch(Goal_0, E, true)
+      (   catch(Mod:Goal_0, E, true)
       ->  (   var(E)
           ->  get_time(End),
               Delta is End - Start,

@@ -1,4 +1,10 @@
-:- module(http_client2, []).
+:- module(
+  http_client2,
+  [
+    http_link/3, % +Value, +Relation, -Uri
+    http_open2/3 % +Uri, -In, +Options
+  ]
+).
 
 :- reexport(library(http/http_header)).
 :- reexport(library(http/http_json)).
@@ -12,7 +18,7 @@ The following debug flags are defined:
   * debug(http(receive_reply))
 
 @author Wouter Beek
-@version 2017/05-2017/08
+@version 2017/05-2017/09
 */
 
 :- use_module(library(apply)).
@@ -92,6 +98,7 @@ call_on_http(Uri1, Goal_3, Meta2, Options) :-
   copy_term(Options, Options0),
   http_open2(Uri1, In, Options, Meta1),
   Meta1 = [Dict|_],
+  between(200, 299, Dict.status),
   % MediaType, if anvailable
   ignore(metadata_content_type([Dict], MediaType)),
   check_empty_body(MediaType, In),
@@ -102,7 +109,8 @@ call_on_http(Uri1, Goal_3, Meta2, Options) :-
       merge_options([from_encoding(FromEncoding)], Options, StreamOptions)
   ),
   % `Link' reply header
-  (   has_link(Dict, "next", Uri2)
+  (   dict_get(link, Dict.headers, Link),
+      has_link(Link, next, Uri2)
   ->  (   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
       ;   % Detect cyclic `Link' headers.
           cyclic_link_warning(Uri1, Uri2),
@@ -110,14 +118,6 @@ call_on_http(Uri1, Goal_3, Meta2, Options) :-
       )
   ;   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
   ).
-
-has_link(Dict, Relation, Uri) :-
-  dict_get(link, Dict.headers, Link),
-  split_string(Link, ",", " ", LinkComps),
-  member(LinkComp, LinkComps),
-  split_string(LinkComp, ";", "<> ", [Uri|Params]),
-  member(Param, Params),
-  split_string(Param, "=", "\"", ["rel",Relation]).
 
 call_on_http_stream(In, Goal_3, Meta1, Meta3, StreamOptions, Options) :- !,
   call_cleanup(
@@ -170,6 +170,26 @@ media_type_encoding(MediaType, octet) :-
 translate_encoding('us-ascii', ascii).
 translate_encoding('utf-8', utf8).
 translate_encoding(Encoding, Encoding).
+
+
+
+%! http_link(+Value:atom, +Relation:atom, -Uri:atom) is semidet.
+
+http_link(Atom, Relation, Uri) :-
+  atom_string(Relation, Relation0),
+  split_string(Atom, ",", " ", Comps),
+  member(Comp, Comps),
+  split_string(Comp, ";", "<> ", [Uri|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["rel",Relation0]).
+
+
+
+%! http_open2(+Uri:atom, -In:stream, +Options:list(compound)) is det.
+
+http_open2(Uri, In, Options) :-
+  http_open2(Uri, In, Options, Meta),
+  ignore(option(metadata(Meta), Options)).
 
 http_open2(Uri, In, Options, Meta2) :-
   option(number_of_hops(MaxHops), Options, 5),

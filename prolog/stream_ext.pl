@@ -212,7 +212,7 @@ call_on_recoded_stream(In1, Goal_3, Metadata1, Metadata3, Options) :-
 
 call_on_recoded_stream_setup(In1, In2, Options) :-
   (   option(from_encoding(FromEnc0), Options)
-  ->  encoding_alias(FromEnc0, FromEnc)
+  ->  normalize_encoding(FromEnc0, FromEnc)
   ;   guess_stream_encoding(In1, FromEnc)
   ),
   (   option(to_encoding(ToEnc), Options)
