@@ -15,6 +15,7 @@
 */
 
 :- use_module(library(call_ext)).
+:- use_module(library(debug)).
 :- use_module(library(hash_ext)).
 :- use_module(library(process)).
 
@@ -39,14 +40,15 @@ dot_hash(Term, Hash2) :-
 %! dot_node(+Out:stream, +Id:atom, +Label:string) is det.
 
 dot_node(Out, Id, Label) :-
-  format(Out, '  ~a [label=<~s>];\n', [Id,Label]).
+  format(Out, '  ~a [label=<~s>];\n', [Id,Label]),
+  debug(dot, '  ~a [label=<~s>];\n', [Id,Label]).
 
 
 
 %! graphviz(+Method:atom, -ProcIn:stream, +Format:atom) is det.
 
 graphviz(Method, ProcIn, Format) :-
-  call_must_be(graphviz_method, Method),
+  call_must_be(method, Method),
   call_must_be(output_format_none, Format),
   process_create(path(Method), ['-T',Format], [stdin(pipe(ProcIn))]).
 
@@ -63,12 +65,12 @@ output_format_none(Format) :-
 %
 % @arg Format The file type of the GraphViz output file.
 %
-% @type_error if Method is not a value of graphviz_method/1.
+% @type_error if Method is not a value of method/1.
 %
 % @type_error if Format is not a value of output_format/1.
 
 graphviz(Method, ProcIn, Format, ProcOut) :-
-  call_must_be(graphviz_method, Method),
+  call_must_be(method, Method),
   call_must_be(output_format_not_none, Format),
   output_format(Format, Type),
   set_stream(ProcOut, type(Type)),
@@ -78,6 +80,18 @@ graphviz(Method, ProcIn, Format, ProcOut) :-
 output_format_not_none(Format) :-
   output_format(Format, Type),
   Type \== none.
+
+
+
+%! method(?Method:atom) is nondet.
+
+method(circo).
+method(dot).
+method(fdp).
+method(neato).
+method(osage).
+method(sfdp).
+method(twopi).
 
 
 
@@ -189,11 +203,3 @@ output_format(x11, none).
 output_format(xdot, text).
 output_format(xdot_json, text).
 output_format(xlib, none).
-
-graphviz_method(circo).
-graphviz_method(dot).
-graphviz_method(fdp).
-graphviz_method(neato).
-graphviz_method(osage).
-graphviz_method(sfdp).
-graphviz_method(twopi).
