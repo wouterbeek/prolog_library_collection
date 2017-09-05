@@ -73,9 +73,9 @@ graphviz(Method, ProcIn, Format, ProcOut) :-
   call_must_be(method, Method),
   call_must_be(output_format_not_none, Format),
   output_format(Format, Type),
-  set_stream(ProcOut, type(Type)),
   process_create(path(Method), ['-T',Format],
-                 [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]).
+                 [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]),
+  set_stream(ProcOut, type(Type)).
 
 output_format_not_none(Format) :-
   output_format(Format, Type),
