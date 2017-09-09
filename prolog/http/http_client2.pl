@@ -13,10 +13,6 @@
 
 /** <module> HTTP Client
 
-The following debug flags are defined:
-
-  * debug(http(receive_reply))
-
 @author Wouter Beek
 @version 2017/05-2017/09
 */
@@ -257,12 +253,7 @@ http_open2(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
   between(400, 599, Status), !,
   NumRetries2 is NumRetries1 + 1,
   (   NumRetries2 >= MaxRetries
-  ->  print_message(warning, http_error_code(Status)),
-      forall(
-        read_line_to_atom(In1, Line),
-        print_message(warning, Line)
-      ),
-      close(In1),
+  ->  In2 = In1,
       Dicts = []
   ;   http_open2(Uri, In2, Options, MaxHops, MaxRepeats,
                  NumRetries2-MaxRetries, Visited, Dicts)
@@ -291,7 +282,6 @@ http_open2(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
 % succes
 http_open2(_, In, _, _, Status, _, _, _, _, In, []) :-
   must_be(between(200,299), Status).
-
 
 http_lines_pairs0(Lines, GroupedPairs) :-
   maplist(http_parse_header_pair0, Lines, Pairs),
@@ -332,8 +322,7 @@ merge_separable_header(Key-Vals, Key-Val) :-
 merge_separable_header(Key-[H|T], Key-H) :-
   print_message(warning, http_nonseparable(Key,[H|T])).
 
-
-% COPIED FROM swipl-devel/packages/http/http_open %
+% COPIED FROM swipl-devel/packages/http/http_open
 http_open1(Uri, In, QOptions) :-
   meta_options(http_open:is_meta, QOptions, Options),
   (atomic(Uri) -> http_open:parse_url_ex(Uri, Parts) ; Parts = Uri),
@@ -353,7 +342,6 @@ http_open1(Uri, In, QOptions) :-
   ;   try_http_proxy(direct, Parts, In, Options2)
   ).
 
-
 try_a_proxy(Parts, Result, Options) :-
   http_open:parts_uri(Parts, AtomicUri),
   option(host(Host), Parts),
@@ -364,52 +352,46 @@ try_a_proxy(Parts, Result, Options) :-
   ->  Proxy = proxy(ProxyHost, ProxyPort)
   ;   socket:proxy_for_url(AtomicUri, Host, Proxy)
   ),
-  debug(http(proxy), "http_open: Connecting via ~w to ~w", [Proxy,AtomicUri]),
-    (   catch(try_http_proxy(Proxy, Parts, In, Options), E, true)
-    ->  (var(E) -> !, Result = true(Proxy, In) ; Result = error(Proxy, E))
-    ;   Result = false(Proxy)
-    ),
-    debug(http(proxy), "http_open: ~w: ~p", [Proxy,Result]).
-
+  (   catch(try_http_proxy(Proxy, Parts, In, Options), E, true)
+  ->  (var(E) -> !, Result = true(Proxy, In) ; Result = error(Proxy, E))
+  ;   Result = false(Proxy)
+  ).
 
 try_http_proxy(Method, Parts, In, Options0) :-
-    option(host(Host), Parts),
-    (   Method == direct
-    ->  http_open:parts_request_uri(Parts, RequestUri)
-    ;   http_open:parts_uri(Parts, RequestUri)
-    ),
-    select_option(visited(Visited0), Options0, OptionsV, []),
-    Options = [visited([Parts|Visited0])|OptionsV],
-    http_open:parts_scheme(Parts, Scheme),
-    http_open:default_port(Scheme, DefPort),
-    http_open:url_part(port(Port), Parts, DefPort),
-    http_open:host_and_port(Host, DefPort, Port, HostPort),
-    (   option(connection(Connection), Options0),
-        http_open:keep_alive(Connection),
-        http_open:get_from_pool(Host:Port, InPair),
-        debug(http(connection), "Trying Keep-alive to ~p using ~p", [Host:Port,
-                                                                     InPair]),
-        catch(
-          send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options),
-          error(E,_),
-          http_open:keep_alive_error(E)
-        )
-    ->  true
-    ;   http:http_connection_over_proxy(Method, Parts, Host:Port, SocketInPair,
-                                        Options, Options1),
-        (   catch(
-              http:http_protocol_hook(Scheme, Parts, SocketInPair, InPair,
-                                      Options),
-              E,
-              (close(SocketInPair, [force(true)]), throw(E))
-            )
-        ->  true
-        ;   InPair = SocketInPair
-        ),
-        send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options1)
-    ),
-    http_open:return_final_url(Options).
-
+  option(host(Host), Parts),
+  (   Method == direct
+  ->  http_open:parts_request_uri(Parts, RequestUri)
+  ;   http_open:parts_uri(Parts, RequestUri)
+  ),
+  select_option(visited(Visited0), Options0, OptionsV, []),
+  Options = [visited([Parts|Visited0])|OptionsV],
+  http_open:parts_scheme(Parts, Scheme),
+  http_open:default_port(Scheme, DefPort),
+  http_open:url_part(port(Port), Parts, DefPort),
+  http_open:host_and_port(Host, DefPort, Port, HostPort),
+  (   option(connection(Connection), Options0),
+      http_open:keep_alive(Connection),
+      http_open:get_from_pool(Host:Port, InPair),
+      catch(
+        send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options),
+        error(E,_),
+        http_open:keep_alive_error(E)
+      )
+  ->  true
+  ;   http:http_connection_over_proxy(Method, Parts, Host:Port, SocketInPair,
+                                      Options, Options1),
+      (   catch(
+            http:http_protocol_hook(Scheme, Parts, SocketInPair, InPair,
+                                    Options),
+            E,
+            (close(SocketInPair, [force(true)]), throw(E))
+          )
+      ->  true
+      ;   InPair = SocketInPair
+      ),
+      send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options1)
+  ),
+  http_open:return_final_url(Options).
 
 send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
   (   catch(
