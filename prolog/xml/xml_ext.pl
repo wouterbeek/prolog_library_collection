@@ -1,18 +1,19 @@
 :- module(
   xml_ext,
   [
-    call_on_xml/3,     % +UriSpec, +RecordName, :Goal_1
-    call_on_xml/4,     % +UriSpec, +RecordName, :Goal_1, +Options
-    html_download/2,   % +UriSpec, -Dom
-    html_download/3,   % +UriSpec, -Dom, +Options
-    html_insert_dom//1 % +Dom
+    call_on_xml/3,      % +UriSpec, +RecordName, :Goal_1
+    call_on_xml/4,      % +UriSpec, +RecordName, :Goal_1, +Options
+    html_download/2,    % +UriSpec, -Dom
+    html_download/3,    % +UriSpec, -Dom, +Options
+    html_insert_dom//1, % +Dom
+    load_xml/2          % +Source, -Dom
   ]
 ).
 
 /** <module> XML extensions
 
 @author Wouter Beek
-@version 2016/06-2017/08
+@version 2016/06-2017/09
 */
 
 :- use_module(library(atom_ext)).
@@ -100,6 +101,13 @@ html_download_(Dom2, Options1, In, Meta, Meta) :-
 html_insert_dom(Dom) -->
   {with_output_to(atom(Atom), xml_write_canonical(current_output, Dom, []))},
   html(\[Atom]).
+
+
+
+%! load_xml(+Source, -Dom:list(compound)) is det.
+
+load_xml(Source, Dom) :-
+  load_xml(Source, Dom, []).
 
 
 
