@@ -220,8 +220,6 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ),
   http_lines_pairs0(Lines, Pairs),
   dict_pairs(HeadersDict, Pairs),
-  debug(http(receive_reply), "< ~d ~a", [Status,Uri]),
-  (debugging(http(receive_reply)) -> maplist(debug_reply_header, Pairs) ; true),
   Dict = http{
     headers: HeadersDict,
     status: Status,
@@ -231,16 +229,6 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   },
   http_open2(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
              Retries, Visited, In2, Dicts).
-
-debug_reply_header(Key1-Value1) :-
-  pp_http_header_key(Key1, Key2),
-  atomic_list_concat(Value1, '; ', Value2),
-  debug(http(receive_reply), "< ~a: ~a", [Key2,Value2]).
-
-pp_http_header_key(Key1, Key2) :-
-  atomic_list_concat(Comps1, -, Key1),
-  maplist(atom_capitalize, Comps1, Comps2),
-  atomic_list_concat(Comps2, -, Key2).
 
 % authentication error
 http_open2(_, In, _, _, Status, _, _, _, _, _, []) :-
@@ -436,7 +424,6 @@ guarded_send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
   ignore(option(raw_headers(Lines), Options)),
   http_open:do_open(ReplyVersion, Code, Comment, Lines, Options, Parts, Host,
                     InPair, In).
-
 
 http:post_data_hook(string(String), Out, HdrExtra) :-
   atom_string(Atom, String),
