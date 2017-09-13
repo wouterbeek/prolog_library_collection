@@ -1,8 +1,8 @@
 :- module(
   xml_ext,
   [
-    call_on_xml/3,      % +UriSpec, +RecordName, :Goal_1
-    call_on_xml/4,      % +UriSpec, +RecordName, :Goal_1, +Options
+    call_on_xml/3,      % +In, +RecordNames, :Goal_1
+    call_on_xml/4,      % +In, +RecordNames, :Goal_1, +Options
     html_download/2,    % +UriSpec, -Dom
     html_download/3,    % +UriSpec, -Dom, +Options
     html_insert_dom//1, % +Dom
@@ -16,6 +16,7 @@
 @version 2016/06-2017/09
 */
 
+:- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(c14n2)).
 :- use_module(library(http/html_write)).
@@ -25,34 +26,33 @@
 
 :- meta_predicate
     call_on_xml(+, +, 1),
-    call_on_xml(+, +, 1, +),
-    call_on_xml_stream(+, 1, +, +, -).
+    call_on_xml(+, +, 1, +).
 
 
 
 
 
-%! call_on_xml(+UriSpec:term, +RecordName:atom, :Goal_1) is det.
-%! call_on_xml(+UriSpec:term, +RecordName:atom, :Goal_1,
+%! call_on_xml(+In:stream, +RecordNames:list(atom), :Goal_1) is det.
+%! call_on_xml(+In:stream, +RecordNames:list(atom), :Goal_1,
 %!             +Options:list(compound)) is det.
 %
 % Call Goal_1 on an XML stream, where the argument supplied to Goal_1
 % is a subtree that starts with an element called RecordName.
+%
+% @arg Options are set with set_sgml_parser/2.
 
-call_on_xml(UriSpec, RecordName, Goal_1) :-
-  call_on_xml(UriSpec, RecordName, Goal_1, []).
+call_on_xml(In, RecordNames, Goal_1) :-
+  call_on_xml(In, RecordNames, Goal_1, []).
 
 
-call_on_xml(UriSpec, RecordName, Goal_1, Options) :-
-  call_on_uri(UriSpec, call_on_xml_stream(RecordName, Goal_1), Options).
-
-call_on_xml_stream(RecordName, Goal_1, In, Metadata, Metadata) :-
+call_on_xml(In, RecordNames, Goal_1, Options1) :-
+  b_setval(xml_stream_record_names, RecordNames),
   b_setval(xml_stream_goal, Goal_1),
-  b_setval(xml_stream_record_name, RecordName),
+  merge_options(Options1, [space(remove)], Options2),
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
-      set_sgml_parser(Parser, space(remove)),
+      maplist(set_sgml_parser(Parser), Options2),
       sgml_parse(Parser, [call(begin,on_begin0),source(In)])
     ),
     free_sgml_parser(Parser)
@@ -60,7 +60,8 @@ call_on_xml_stream(RecordName, Goal_1, In, Metadata, Metadata) :-
 
 on_begin0(Elem, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
-  b_getval(xml_stream_record_name, Elem), !,
+  b_getval(xml_stream_record_names, Elems),
+  memberchk(Elem, Elems), !,
   sgml_parse(Parser, [document(Dom1),parse(content)]),
   xml_clean_dom(Dom1, Dom2),
   call(Goal_1, [element(Elem,Attr,Dom2)]).
