@@ -11,6 +11,7 @@
     call_when_ground/1,     % :Goal_0
     closure/3,              % :Goal_2, +From, -To
     closure0/3,             % :Goal_2, +From, -To
+    is_det/1,               % :Goal_0
     pp_call/1,              % :Goal_1
     true/1,                 % ?Arg1
     true/2,                 % ?Arg1, ?Arg2
@@ -21,7 +22,7 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/09
 */
 
 :- use_module(library(apply)).
@@ -42,6 +43,7 @@
     closure(2, +, -),
     closure0(2, +, -),
     closure0(2, +, -, +),
+    is_det(0),
     pp_call(1).
 
 
@@ -164,6 +166,14 @@ closure0(Goal_2, X, Z, Hist):-
   call(Goal_2, X, Y),
   maplist(dif(Y), Hist),
   closure0(Goal_2, Y, Z, [Y|Hist]).
+
+
+
+%! is_det(:Goal_0) is semidet.
+
+is_det(Goal_0) :-
+  call_cleanup(Goal_0, Det = true),
+  (Det == true -> true ; !, fail).
 
 
 
