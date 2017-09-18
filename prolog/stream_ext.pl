@@ -6,6 +6,7 @@
     call_to_null/1,          % :Goal_1
     call_to_stream/2,        % +Out, :Goal_3
     call_to_stream/3,        % +Out, :Goal_3, +Options
+    copy_stream_type/2,      % +In, +Out
     read_line_to_atom/2,     % +In, -Atom
   % HELPER PREDICATES
     normalize_encoding/2,    % +Encoding1, -Encoding2
@@ -351,6 +352,18 @@ call_to_stream2(Out1, Goal_3, Metadata1, Metadata4, Options) :-
   stream_hash_metadata(Out1, Metadata3, Metadata4, Options).
 call_to_stream2(Out, Goal_3, Metadata1, Metadata2, _) :-
   call(Goal_3, Out, Metadata1, Metadata2).
+
+
+
+%! copy_stream_type(+In:stream, +Out:stream) is det.
+%
+% Like copy_stream_data/2, but also sets the stream type of Out to
+% match the stream type of In, if needed,
+
+copy_stream_type(In, Out) :-
+  stream_property(In, type(Type)),
+  set_stream(Out, type(Type)),
+  copy_stream_data(In, Out).
 
 
 
