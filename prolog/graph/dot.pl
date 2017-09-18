@@ -2,7 +2,7 @@
   dot,
   [
     dot_hash/2, % +Term, -Hash
-    dot_node/3, % +Out, +Id, +Label
+    dot_node/3, % +Out, +Id, +Options
     graphviz/3, % +Method, -ProcIn, +Format
     graphviz/4  % +Method, -ProcIn, +Format, -ProcOut
   ]
@@ -17,6 +17,7 @@
 :- use_module(library(call_ext)).
 :- use_module(library(debug)).
 :- use_module(library(hash_ext)).
+:- use_module(library(option)).
 :- use_module(library(process)).
 
 :- discontiguous
@@ -37,11 +38,30 @@ dot_hash(Term, Hash2) :-
 
 
 
-%! dot_node(+Out:stream, +Id:atom, +Label:string) is det.
+%! dot_node(+Out:stream, +Id:atom, +Options:list(compound)) is det.
+%
+% The following Options are supported:
+%
+%   * label(+string)
+%
+%     Is printed as a DOT HTML label to allow Unicode characters.
+%
+%   * Other options are written as DOT attributes.
 
-dot_node(Out, Id, Label) :-
-  format(Out, '  ~a [label=<~s>];\n', [Id,Label]),
-  debug(dot, '  ~a [label=<~s>];\n', [Id,Label]).
+dot_node(Out, Id, Options1) :-
+  maplist(dot_attribute, Options1, Options2),
+  atomic_list_concat(Options2, ',', Options3),
+  format(Out, '  ~a [~a];\n', [Id,Options3]),
+  debug(dot, '  ~a [~a];\n', [Id,Options3]).
+
+dot_attribute(Option, Atom) :-
+  Option =.. [Name,Value],
+  dot_attribute(Name, Value, Atom).
+
+dot_attribute(label, Value, Atom) :- !,
+  format(atom(Atom), 'label=<~a>', [Value]).
+dot_attribute(Name, Value, Atom) :-
+  format(atom(Atom), '~a="~a"', [Name,Value]).
 
 
 
