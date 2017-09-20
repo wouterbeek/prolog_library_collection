@@ -12,6 +12,7 @@
     dict_put/3,               % +Dict1, +Dict2, -Dict3
     dict_put/4,               % +Key, +Dict1, +Value, -Dict2
     dict_tag/2,               % +Dict, ?Tag
+    dict_tag/3,               % +Dict1, ?Tag, -Dict2
     merge_dicts/2,            % +Dicts, -Dict
     merge_dicts/3             % +Dict1, +Dict2, -Dict3
   ]
@@ -112,6 +113,16 @@ dict_put(Key, Dict1, Value, Dict2) :-
 
 dict_tag(Dict, Tag) :-
   dict_pairs(Dict, Tag, _).
+
+
+%! dict_tag(+Dict1, +Tag, +Dict2) is semidet.
+%! dict_tag(+Dict1, +Tag, -Dict2) is det.
+%
+% Converts between dictionaries that differ only in their outer tag name.
+
+dict_tag(Dict1, Tag, Dict2):-
+  dict_pairs(Dict1, _, Pairs),
+  dict_pairs(Dict2, Tag, Pairs).
 
 
 

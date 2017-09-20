@@ -228,17 +228,6 @@ pairs_sum([Key-Val|T1], Pairs2, [Key-Val|T3]) :-
 
 
 
-%! dict_tag(+Dict1, +Tag, +Dict2) is semidet.
-%! dict_tag(+Dict1, +Tag, -Dict2) is det.
-%
-% Converts between dictionaries that differ only in their outer tag name.
-
-dict_tag(Dict1, Tag, Dict2):-
-  dict_pairs(Dict1, _, Ps),
-  dict_pairs(Dict2, Tag, Ps).
-
-
-
 %! dicts_get(+Key, +Dicts, -Val) is nondet.
 
 dicts_get(Key, Dicts, Val) :-
