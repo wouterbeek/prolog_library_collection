@@ -12,7 +12,6 @@
     closure/3,              % :Goal_2, +From, -To
     closure0/3,             % :Goal_2, +From, -To
     is_det/1,               % :Goal_0
-    pp_call/1,              % :Goal_1
     true/1,                 % ?Arg1
     true/2,                 % ?Arg1, ?Arg2
     true/3                  % ?Arg1, ?Arg2, ?Arg3
@@ -28,7 +27,6 @@
 :- use_module(library(apply)).
 :- use_module(library(dif)).
 :- use_module(library(option)).
-:- use_module(library(pp)).
 :- use_module(library(when)).
 
 :- meta_predicate
@@ -43,8 +41,7 @@
     closure(2, +, -),
     closure0(2, +, -),
     closure0(2, +, -, +),
-    is_det(0),
-    pp_call(1).
+    is_det(0).
 
 
 
@@ -174,14 +171,6 @@ closure0(Goal_2, X, Z, Hist):-
 is_det(Goal_0) :-
   call_cleanup(Goal_0, Det = true),
   (Det == true -> true ; !, fail).
-
-
-
-%! pp_call(:Goal_1) is det.
-
-pp_call(Goal_1) :-
-  catch(call(Goal_1, Term), E, true),
-  (var(E) -> pp_term(Term) ; print_message(warning, E)).
 
 
 
