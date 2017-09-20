@@ -1,15 +1,19 @@
 :- module(
   elasticsearch,
   [
-    es/2,           % +Segments, -Result
-    es/4,           % +Segments, +Search, +Options, -Result
-    es_add/3,       % +Segments, +Document, -Status
-    es_get/2,       % +Segments, -Result
+    es/2,            % +Segments, -Result
+    es/3,            % +Segments, -Result, +Options
+    es_add/3,        % +Segments, +Document, -Status
+    es_count/2,      % +Segments, -Count
+    es_delete/2,     % +Segments, -Status
+    es_get/2,        % +Segments, -Result
     es_health/0,
-    es_health/1,    % -Status
+    es_health/1,     % -Status
     es_indices/0,
     es_nodes/0,
-    es_statistics/2 % +Segments, -Status
+    es_setting/3,    % +Index, +Key, ?Value
+    es_statistics/2, % +Segments, -Status
+    es_update/3      % +Segments, +Document, -Status
   ]
 ).
 :- reexport(library(pp)).
@@ -44,35 +48,45 @@
 
 
 %! es(+Segments:list(atom), -Result:dict) is nondet.
-%! es(+Segments:list(atom), +Search, +Options, -Result:dict) is nondet.
+%! es(+Segments:list(atom), -Result:dict, +Options:list(compound)) is nondet.
 %
-% Result contains pagination keys.
+% The following options are supported:
+%
+%   * page_number(+positive_integer)
+%
+%     The number of the page that is initially retreived.  Default is
+%     1.
+%
+%   * page_size(+positive_integer)
+%
+%     The number of results per request.  Default is 10.
+%
 
 es(Segments, Result) :-
-  es(Segments, _VAR, _{}, Result).
+  es(Segments, Result, []).
 
 
-es(Segments1, Search, Options1, Result2) :-
-  pagination:pagination_options(Options1, FirstPage, PageSize, Options2),
-  % NONDET
-  between(FirstPage, inf, Page),
+es(Segments1, Result, Options) :-
+  option(page_number(FirstPage), Options, 1),
+  option(page_size(PageSize), Options, 10),
+  between(FirstPage, inf, Page), % NONDET
   From is (Page - 1) * PageSize,
   Query1 = [from(From),size(PageSize)],
   append(Segments1, ['_search'], Segments2),
-  (   % Query DSL
-      is_dict(Search)
-  ->  es_request_(
+  (   option(query_dsl(Search), Options)
+  ->  must_be(dict, Search),
+      es_request_(
         Segments2,
         Query1,
         [post(json(Search)),request_header('Accept'='application/json')],
         200,
         Status
       )
-  ;   % Simple Search
-      (   var(Search)
-      ->  Query2 = Query1
-      ;   simple_search_string(Search, String),
+  ;   (   option(simple_search(Search), Options)
+      ->  must_be(ground, Search),
+          simple_search_string(Search, String),
           Query2 = [q(String)|Query1]
+      ;   Query2 = Query1
       ),
       es_request_(
         Segments2,
@@ -82,23 +96,13 @@ es(Segments1, Search, Options1, Result2) :-
         Status
       )
   ),
-  Hits = Status.hits,
-  maplist(es_hit, Hits.hits, Hits),
-  length(Hits, NumberOfHits),
+  Hits = Status.hits.hits,
   % Remove choicepoints when there are no more results.
-  (NumberOfHits =:= 0 -> !, true ; true),
-  Result1 = _{
-    number_of_results: NumberOfHits,
-    page: Page,
-    page_size: PageSize,
-    results: Hits,
-    total_number_of_results: Hits.total
-  },
-  merge_dicts(Options2, Result1, Result2).
-
-es_hit(Dict1, Dict3) :-
-  _{'_id': Id, '_source': Dict2} :< Dict1,
-  dict_tag(Dict2, Id, Dict3).
+  length(Hits, NumberOfHits),
+  (NumberOfHits < PageSize -> !, true ; true),
+  member(Hit, Hits),
+  _{'_id': Id, '_source': Source} :< Hit,
+  dict_tag(Source, Id, Result).
 
 simple_search_string(Term, String) :-
   compound(Term), !,
@@ -135,7 +139,43 @@ es_add([Index,Type,Id], Document, Status) :-
       post(json(Document)),
       request_header('Accept'='application/json')
     ],
-    201,
+    201-409,
+    Status
+  ).
+
+
+
+%! es_count(+Segments:list(atom), -Status:dict) is det.
+%
+% ```bash
+% curl -XGET 'http://localhost:9200/_count?pretty' -d '
+% {
+%   "query": {
+%     "match_all": {}
+%   }
+% }
+% ```
+
+es_count(Segments1, Status) :-
+  append(Segments1, ['_count'], Segments2),
+  es_request_(
+    Segments2,
+    [],
+    [request_header('Accept'='application/json')],
+    200-404,
+    Status
+  ).
+
+
+
+%! es_delete(+Segments:list(atom), -Status:dict) is det.
+
+es_delete(Segments, Status) :-
+  es_request_(
+    Segments,
+    [],
+    [method(delete),request_header('Accept'='application/json')],
+    200-404,
     Status
   ).
 
@@ -163,7 +203,7 @@ es_get(Segments, Result) :-
     Segments,
     [],
     [request_header('Accept'='application/json')],
-    200,
+    200-404,
     Status
   ),
   _{'_id': Id, '_source': Source, found: true} :< Status,
@@ -184,7 +224,7 @@ es_health :-
     ['_cat',health],
     [v(true)],
     [request_header('Accept'='text/plain')],
-    200,
+    200-404,
     Codes
   ),
   format("~s\n", [Codes]).
@@ -197,7 +237,7 @@ es_health(Dict) :-
     ['_cluster',health],
     [],
     [request_header('Accept'='text/plain')],
-    200,
+    200-404,
     Dict
   ).
 
@@ -210,7 +250,7 @@ es_indices :-
     ['_cat',indices],
     [v(true)],
     [request_header('Accept'='text/plain')],
-    200,
+    200-404,
     Codes
   ),
   format("~s\n", [Codes]).
@@ -224,7 +264,7 @@ es_nodes :-
     ['_cat',nodes],
     [v(true)],
     [request_header('Accept'='text/plain')],
-    200,
+    200-404,
     Codes
   ),
   format("~s\n", [Codes]).
@@ -239,7 +279,94 @@ es_statistics(Segments1, Status) :-
     Segments2,
     [],
     [request_header('Accept'='text/plain')],
-    200,
+    200-404,
+    Status
+  ).
+
+
+
+%! es_setting(+Index:atom, +Key:atom, +Value:nonneg) is det.
+%! es_setting(+Index:atom, +Key:atom, -Value:nonneg) is det.
+%
+% Get and set settings.
+%
+% The following keys are supported:
+%
+%   - number_of_shards(nonneg)
+%
+%   - number_of_replicas(nonneg)
+%
+% @tbd Get a setting.
+%
+% Succeeds if the HTTP status code is ‘200’ or ‘201 (Created)’; throws
+% an exception otherwise.
+
+es_setting(Index, Key, Value) :-
+  call_must_be(es_setting_key, Key),
+  (   ground(Value)
+  ->  dict_pairs(Data, [Key-Value]),
+      es_request_(
+        [Index,'_settings'],
+        [],
+        [
+          method(put),
+          post(json(Data)),
+          request_header('Accept'='application/json')
+        ],
+        201-409,
+        Status
+      ),
+      assertion(Status.acknowledged == true)
+  ;   es_request_(
+        [Index,'_settings'],
+        [],
+        [request_header('Accept'='application/json')],
+        200-404,
+        Status
+      ),
+      Value = Status.Key
+  ).
+
+
+
+%! es_update(+Segments:list(atom), +Document:dict, -Status:dict) is det.
+%
+% # Examples of Data
+%
+% Merge `Dict` with the existing document:
+%
+% ```swi
+% _{doc: Dict}
+% ```
+%
+% Groovy script [?]:
+%
+% ```swi
+% _{script: 'ctx._source.<KEY>+=<INT>'}
+% ```
+%
+% Groovy script with parameters [?]:
+%
+% ```swi
+% _{
+%   script: 'ctx._source.<KEY>+=new_tag',
+%   params: _{new_tag : Val}
+% }
+% ```
+%
+% Dict is the document that is inserted when the document does not yet
+% exist:
+%
+% ```swi
+% _{script: ..., upsert: Dict}
+% ```
+
+es_update([Index,Type,Id], Document, Status) :-
+  es_request_(
+    [Index,Type,Id,'_update'],
+    [],
+    [post(json(Document)),request_header('Accept'='application/json')],
+    200-409,
     Status
   ).
 
@@ -250,10 +377,11 @@ es_statistics(Segments1, Status) :-
 % HELPERS %
 
 %! es_request_(+Segments:list(atom), +Query:list(compound),
-%!             +Options:list(compound), +Success:between(200,299),
+%!             +Options:list(compound),
+%!             +StatusCodes:pair(between(200,299),between(400,499)),
 %!             -Result:term) is det.
 
-es_request_(Segments, Query, Options1, Success, Result) :-
+es_request_(Segments, Query, Options1, Success-Failure, Result) :-
   es_uri(Segments, Query, Uri),
   merge_options(
     [header(content_type,ContentType),status_code(Status)],
@@ -263,7 +391,8 @@ es_request_(Segments, Query, Options1, Success, Result) :-
   setup_call_cleanup(
     http_open(Uri, In, Options2),
     (
-      must_be(oneof([Success]), Status),
+      must_be(oneof([Success,Failure]), Status),
+      Status == Success,
       http_parse_header_value(content_type, ContentType, media(MediaType,_)),
       (   MediaType = application/json
       ->  json_read_dict(In, Result)
