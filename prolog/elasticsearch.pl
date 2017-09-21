@@ -1,19 +1,20 @@
 :- module(
   elasticsearch,
   [
-    es/2,            % +Segments, -Result
-    es/3,            % +Segments, -Result, +Options
-    es_add/3,        % +Segments, +Document, -Status
-    es_count/2,      % +Segments, -Count
-    es_delete/2,     % +Segments, -Status
-    es_get/2,        % +Segments, -Result
+    es/2,                % +Segments, -Result
+    es/3,                % +Segments, -Result, +Options
+    es_add_document/3,   % +Segments, +Document, -Status
+    es_add_index/2,      % +Index, -Status
+    es_count/2,          % +Segments, -Count
+    es_delete/2,         % +Segments, -Status
+    es_get/2,            % +Segments, -Result
     es_health/0,
-    es_health/1,     % -Status
+    es_health/1,         % -Status
     es_indices/0,
     es_nodes/0,
-    es_setting/3,    % +Index, +Key, ?Value
-    es_statistics/2, % +Segments, -Status
-    es_update/3      % +Segments, +Document, -Status
+    es_setting/3,        % +Index, ?Key, ?Value
+    es_statistics/2,     % +Segments, -Status
+    es_update_document/3 % +Segments, +Document, -Status
   ]
 ).
 :- reexport(library(pp)).
@@ -24,6 +25,7 @@
 @version 2017/09
 */
 
+:- use_module(library(call_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/json)).
@@ -112,7 +114,8 @@ simple_search_string(String, String).
 
 
 
-%! es_add(+Segments:list(atom), +Document:dict, -Status:dict) is semidet.
+%! es_add_document(+Segments:list(atom), +Document:dict,
+%!                 -Status:dict) is semidet.
 %
 % Add a new document.
 %
@@ -120,7 +123,7 @@ simple_search_string(String, String).
 % HTTP status code is ‘409 (Conflict)’.
 
 % POST /<INDEX>/<TYPE>
-es_add([Index,Type], Document, Status) :- !,
+es_add_document([Index,Type], Document, Status) :- !,
   % The POST method automatically generates an ElasticSearch ID.
   es_request_(
     [Index,Type],
@@ -130,7 +133,7 @@ es_add([Index,Type], Document, Status) :- !,
     Status
   ).
 % PUT /<INDEX>/<TYPE>/<ID>
-es_add([Index,Type,Id], Document, Status) :-
+es_add_document([Index,Type,Id], Document, Status) :-
   es_request_(
     [Index,Type,Id,'_create'],
     [],
@@ -140,6 +143,19 @@ es_add([Index,Type,Id], Document, Status) :-
       request_header('Accept'='application/json')
     ],
     201-409,
+    Status
+  ).
+
+
+
+%! es_add_index(+Index:atom, -Status:dict) is det.
+
+es_add_index(Index, Status) :-
+  es_request_(
+    [Index],
+    [pretty(true)],
+    [method(put),request_header('Accept'='application/json')],
+    200-400,
     Status
   ).
 
@@ -287,19 +303,15 @@ es_statistics(Segments1, Status) :-
 
 %! es_setting(+Index:atom, +Key:atom, +Value:nonneg) is det.
 %! es_setting(+Index:atom, +Key:atom, -Value:nonneg) is det.
+%! es_setting(+Index:atom, -Key:atom, -Value:nonneg) is det.
 %
 % Get and set settings.
 %
 % The following keys are supported:
 %
-%   - number_of_shards(nonneg)
+%   * number_of_replicas(?nonneg)
 %
-%   - number_of_replicas(nonneg)
-%
-% @tbd Get a setting.
-%
-% Succeeds if the HTTP status code is ‘200’ or ‘201 (Created)’; throws
-% an exception otherwise.
+%   * number_of_shards(?nonneg)
 
 es_setting(Index, Key, Value) :-
   call_must_be(es_setting_key, Key),
@@ -327,9 +339,13 @@ es_setting(Index, Key, Value) :-
       Value = Status.Key
   ).
 
+es_setting_key(number_of_replicas).
+es_setting_key(number_of_shards).
 
 
-%! es_update(+Segments:list(atom), +Document:dict, -Status:dict) is det.
+
+%! es_update_document(+Segments:list(atom), +Document:dict,
+%!                    -Status:dict) is det.
 %
 % # Examples of Data
 %
@@ -361,7 +377,7 @@ es_setting(Index, Key, Value) :-
 % _{script: ..., upsert: Dict}
 % ```
 
-es_update([Index,Type,Id], Document, Status) :-
+es_update_document([Index,Type,Id], Document, Status) :-
   es_request_(
     [Index,Type,Id,'_update'],
     [],
