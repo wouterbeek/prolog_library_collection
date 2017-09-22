@@ -3,6 +3,7 @@
   [
     call_bool/2,            % :Goal_0, -Bool
     call_det_when/2,        % :Cond_0, :Goal_0
+    call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % :Cond_0, :Goal_0
     call_default_option/3,  % ?Option, +Options, :Goal_1
     call_must_be/2,         % :Goal_1, @Term
@@ -33,6 +34,7 @@
     call_bool(0, -),
     call_default_option(?, +, 1),
     call_det_when(0, 0),
+    call_det_when_ground(0),
     call_det_when_ground(?, 0),
     call_must_be(1, +),
     call_or_warning(0),
@@ -78,10 +80,15 @@ call_det_when(_, Goal_0) :-
 
 
 
+%! call_det_when_ground(:Goal_0) .
 %! call_det_when_ground(+Term:term, :Goal_0) .
 %
 % Call `Goal_0' deterministically in case Term is ground.  Otherwise
 % call `Goal_0' normally.
+
+call_det_when_ground(Mod:Goal_0) :-
+  call_det_when_ground(Goal_0, Mod:Goal_0).
+
 
 call_det_when_ground(Term, Goal_0) :-
   ground(Term), !,
