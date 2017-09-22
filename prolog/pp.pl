@@ -1,9 +1,10 @@
 :- module(
   pp,
   [
-    call_pp/1,   % :Goal_1
-    pp_term/1,   % +Term
-    pp_term_nl/1 % +Term
+    call_pp/1,       % :Goal_1
+    print_term/1,    % +Term
+    print_term_nl/1, % +Term
+    print_term_nl/2  % +Term, +Options
   ]
 ).
 :- reexport(library(pprint)).
@@ -25,19 +26,24 @@
 
 call_pp(Goal_1) :-
   catch(call(Goal_1, Term), E, true),
-  (var(E) -> pp_term(Term) ; print_message(warning, E)).
+  (var(E) -> print_term(Term) ; print_message(warning, E)).
 
 
 
-%! pp_term(+Term:term) is det.
+%! print_term(+Term:term) is det.
 
-pp_term(Term) :-
+print_term(Term) :-
   print_term(Term, []).
 
 
 
-%! pp_term_nl(+Term:term) is det.
+%! print_term_nl(+Term:term) is det.
+%! print_term_nl(+Term:term, +Options:list(compound)) is det.
 
-pp_term_nl(Term) :-
-  pp_term(Term),
+print_term_nl(Term) :-
+  print_term_nl(Term, []).
+
+
+print_term_nl(Term, Options) :-
+  print_term(Term, Options),
   nl.
