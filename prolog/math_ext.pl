@@ -60,7 +60,7 @@ average(L, Average):-
 between(Low, _, _, Low).
 between(Low1, High, Interval, Value):-
   Low2 is Low1 + Interval,
-  (High == inf -> true ; Low2 =< High),
+  (High == ∞ -> true ; Low2 =< High),
   between(Low2, High, Interval, Value).
 
 

@@ -63,7 +63,7 @@ atom_capitalize(Atom, Capitalized) :-
 
 atom_ellipsis(Atom, MaxLength, Ellipsis) :-
   atom_length(Atom, Length),
-  (   MaxLength = inf
+  (   MaxLength = ∞
   ->  Ellipsis = Atom
   ;   between(2, Length, MaxLength)
   *-> (   MaxLength =:= Length
@@ -144,15 +144,15 @@ atom_strip_end0(_, A, A).
 % exact maximum lenght of the truncated atom.  Truncation will always
 % result in an atom which has at most `MaxLength`.
 %
-% @param MaxLength must be a non-negative integer or `inf`.  When
-%        `inf` the original atom is returned without truncation.
+% @param MaxLength must be a non-negative integer or `∞`.  When `∞`
+%        the original atom is returned without truncation.
 %
 % @see atom_ellipsis/3 for returning a truncated atom with ellipsis
 %      sign.
 %
 % @throws type_error
 
-atom_truncate(A, inf, A) :- !.
+atom_truncate(A, ∞, A) :- !.
 atom_truncate(A, MaxLength, A) :-
   must_be(nonneg, MaxLength),
   atom_length(A, Length),

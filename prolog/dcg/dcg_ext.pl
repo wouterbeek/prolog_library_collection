@@ -334,7 +334,7 @@ digit_weight(Weight) -->
 
 
 
-%! ellipsis(+Atom, +MaxLen:or([nonneg,oneof([inf])]))// is det.
+%! ellipsis(+Atom, +MaxLen:nonneg)// is det.
 %
 % MaxLen is the maximum length of the ellipsed atom A.
 
@@ -470,7 +470,7 @@ string_phrase(Dcg_0, S1, S2) :-
 
 %! thousands(+I)// is det.
 
-thousands(inf) --> !,
+thousands(∞) --> !,
   "∞".
 thousands(I) -->
   {format(atom(A), "~D", [I])},

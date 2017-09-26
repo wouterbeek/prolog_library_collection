@@ -49,7 +49,7 @@ read_string(In, String) :-
 
 string_ellipsis(String, ELength, Ellipsis) :-
   string_length(String, Length),
-  (   ELength == inf
+  (   ELength == ∞
   ->  Ellipsis = String
   ;   between(2, Length, ELength)
   *-> (   ELength =:= Length
@@ -102,7 +102,7 @@ string_prefix(String, Length, SubString) :-
 %
 % @see string_ellipsis
 
-string_truncate(String, inf, String) :- !.
+string_truncate(String, ∞, String) :- !.
 string_truncate(String, MaxLength, String) :-
   must_be(nonneg, MaxLength),
   string_length(String, Length),

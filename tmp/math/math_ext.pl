@@ -183,7 +183,7 @@ between_float(Low, High, Number):-
 % Like ISO between/3, but allowing either `Low` or `High`
 % to be uninstantiated.
 %
-% In line with CLP(FD), `Low` can be `inf` and `High` can be `sup`.
+% In line with CLP(FD), `Low` can be `∞` and `High` can be `sup`.
 
 betwixt(Low, High, N):-
   clpfd_between(Low, High, N),
@@ -403,7 +403,7 @@ min_max_range(Min, Max, range(Begin,End,Step)) :-
 %! minus(+X:number, -Y:number, +Z:number) is det.
 %! minus(-X:number, +Y:number, +Z:number) is det.
 
-minus(inf, _, inf) :- !.
+minus(∞, _, ∞) :- !.
 minus(X, Y, Z):-
   nonvar(X), nonvar(Y), !,
   Z is X - Y.
@@ -563,11 +563,12 @@ square(N, Sq):-
 
 
 
-%! succ_inf(+X:or([oneof([inf]),integer]), +Y:or([oneof([inf]),integer])) is semidet.
-%! succ_inf(+X:or([oneof([inf]),integer]), -Y:or([oneof([inf]),integer])) is det.
-%! succ_inf(-X:or([oneof([inf]),integer]), +Y:or([oneof([inf]),integer])) is det.
-% Variant of succ/2 that allows the value `inf` to be used.
+%! succ_inf(+X:integer, +Y:integer) is semidet.
+%! succ_inf(+X:integer, -Y:integer) is det.
+%! succ_inf(-X:integer, +Y:integer) is det.
+%
+% Variant of succ/2 that allows the value `∞` to be used.
 
-succ_inf(inf, inf):- !.
+succ_inf(∞, ∞):- !.
 succ_inf(X, Y):-
   succ(X, Y).
