@@ -177,7 +177,7 @@ http_link(Atom, Relation, Uri) :-
   member(Comp, Comps),
   split_string(Comp, ";", "<> ", [Uri|Params]),
   member(Param, Params),
-  split_string(Param, "=", "\"", ["rel",Relation0]).
+  split_string(Param, "=", "\"", ["rel",Relation0]), !.
 
 
 
