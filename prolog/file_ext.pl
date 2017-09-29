@@ -3,8 +3,8 @@
   [
     append_directories/2,         % +Directories, -Directory
     append_directories/3,         % +Directory1, +Directory2, -Directory3
-    call_to_file/2,               % +FileSpec, :Goal_3
-    call_to_file/3,               % +FileSpec, :Goal_3, +Options
+    call_to_file/2,               % +File, :Goal_3
+    call_to_file/3,               % +File, :Goal_3, +Options
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
@@ -22,10 +22,10 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     media_type_extension/2,       % +MediaType, -Extension
-    sort_file/1,                  % +FileSpec
-    stream_to_file/4,             % +FileSpec, +In, +Metadata1, -Metadata2
-    touch/1,                      % +FileSpec
-    uchardet_file/2,              % +FileSpec, -Enc
+    sort_file/1,                  % +File
+    stream_to_file/4,             % +File, +In, +Metadata1, -Metadata2
+    touch/1,                      % +File
+    uchardet_file/2,              % +File, -Enc
     working_directory/1           % -Dir
   ]
 ).
@@ -111,8 +111,8 @@ append_directories(Dir1, Dir2, Dir3) :-
 
 
 
-%! call_to_file(+FileSpec:compound, :Goal_3) is det.
-%! call_to_file(+FileSpec:compound, :Goal_3, +Options:list(compound)) is det.
+%! call_to_file(+File, :Goal_3) is det.
+%! call_to_file(+File, :Goal_3, +Options:list(compound)) is det.
 %
 % The following options are supported:
 %
@@ -124,12 +124,12 @@ append_directories(Dir1, Dir2, Dir3) :-
 %
 %   * Other options are passed to open/4 and call_to_stream/4.
 
-call_to_file(FileSpec, Goal_3) :-
-  call_to_file(FileSpec, Goal_3, []).
+call_to_file(File, Goal_3) :-
+  call_to_file(File, Goal_3, []).
 
 
-call_to_file(FileSpec, Goal_3, Options) :-
-  call_to_file(FileSpec, Goal_3, Metadata, Options),
+call_to_file(File, Goal_3, Options) :-
+  call_to_file(File, Goal_3, Metadata, Options),
   ignore(option(metadata(Metadata), Options)).
 
 
@@ -392,7 +392,7 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 
 
-%! sort_file(+FileSpec:term) is det.
+%! sort_file(+File) is det.
 
 sort_file(FileSpec) :-
   absolute_file_name(FileSpec, File, [access(read)]),
@@ -400,7 +400,7 @@ sort_file(FileSpec) :-
 
 
 
-%! stream_to_file(+FileSpec:term, +In:stream, +Metadata1:list(dict),
+%! stream_to_file(+File, +In:stream, +Metadata1:list(dict),
 %!                -Metadata2:list(dict)) is det.
 %
 % The file name File is based on the given Name, but supplemented by a
@@ -418,14 +418,14 @@ stream_to_file(FileSpec, In, Metadata, Metadata) :-
 
 
 
-%! touch(+FileSpec:term) is det.
+%! touch(+File) is det.
 
-touch(FileSpec) :-
-  call_to_file(FileSpec, true_metadata).
+touch(File) :-
+  call_to_file(File, true_metadata).
 
 
 
-%! uchardet_file(+FileSpec:term, -Encoding:atom) is det.
+%! uchardet_file(+File, -Encoding:atom) is det.
 
 uchardet_file(FileSpec, Enc2) :-
   absolute_file_name(FileSpec, File, [access(write)]),
