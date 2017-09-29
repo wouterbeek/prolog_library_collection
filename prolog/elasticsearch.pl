@@ -408,7 +408,7 @@ es_request_(Segments, Query, Options1, Success-Failure, Result) :-
     http_open(Uri, In, Options2),
     (
       must_be(oneof([Success,Failure]), Status),
-      Status == Success,
+      assertion(Status =:= Success),
       http_parse_header_value(content_type, ContentType, media(MediaType,_)),
       (   MediaType = application/json
       ->  json_read_dict(In, Result)
