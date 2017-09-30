@@ -2,14 +2,44 @@
   dot,
   [
     dot_edge/3, % +Out, +FromId, +ToId
+    dot_edge/4, % +Out, +FromId, +ToId. +Attrs
     dot_id/2,   % +Term, -Id
-    dot_node/3, % +Out, +Id, +Options
+    dot_node/3, % +Out, +Id, +Attrs
     graphviz/3, % +Method, -ProcIn, +Format
     graphviz/4  % +Method, -ProcIn, +Format, -ProcOut
   ]
 ).
 
 /** <module> DOT
+
+DOT HTML-like labels:
+
+```
+label :   text
+        | table
+text :   textitem
+       | text textitem
+textitem :   string
+           | <BR/>
+           | <FONT> text </FONT>
+           | <I> text </I>
+           | <B> text </B>
+           | <U> text </U>
+           | <O> text </O>
+           | <SUB> text </SUB>
+           | <SUP> text </SUP>
+           | <S> text </S>
+table : [ <FONT> ] <TABLE> rows </TABLE> [ </FONT> ]
+rows :   row
+       | rows row
+       | rows <HR/> row
+row: <TR> cells </TR>
+cells :   cell
+        | cells cell
+        | cells <VR/> cell
+cell:   <TD> label </TD>
+      | <TD> <IMG/> </TD>
+```
 
 @author Wouter Beek
 @version 2017/08-2017/09
@@ -36,6 +66,14 @@ dot_edge(Out, FromId, ToId) :-
 
 
 
+%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom, +Attrs:list(compound)) is det.
+
+dot_edge(Out, FromId, ToId, Attrs) :-
+  attributes_atom(Attrs, AttrsAtom),
+  format_debug(dot, Out, "  ~a -> ~a [~a];", [FromId,ToId,AttrsAtom]).
+
+
+
 %! dot_id(@Term, -Id:atom) is det.
 %
 % Id is a DOT-compatible unique identifier for Term.
@@ -46,9 +84,9 @@ dot_id(Term, Id) :-
 
 
 
-%! dot_node(+Out:stream, +Id:atom, +Options:list(compound)) is det.
+%! dot_node(+Out:stream, +Id:atom, +Attrs:list(compound)) is det.
 %
-% The following Options are supported:
+% The following attributes are supported:
 %
 %   * label(+string)
 %
@@ -56,14 +94,13 @@ dot_id(Term, Id) :-
 %
 %   * Other options are written as DOT attributes.
 
-dot_node(Out, Id, Options) :-
-  maplist(dot_attribute, Options, Attrs1),
-  atomics_to_string(Attrs1, ",", Attrs2),
-  format_debug(dot, Out, "  ~a [~a];", [Id,Attrs2]).
+dot_node(Out, Id, Attrs) :-
+  attributes_atom(Attrs, AttrsAtom),
+  format_debug(dot, Out, "  ~a [~a];", [Id,AttrsAtom]).
 
-dot_attribute(Option, Attr) :-
-  Option =.. [Name,Value],
-  dot_attribute(Name, Value, Attr).
+dot_attribute(Attr1, Attr2) :-
+  Attr1 =.. [Name,Value],
+  dot_attribute(Name, Value, Attr2).
 
 dot_attribute(label, Value, Attr) :- !,
   format(string(Attr), "label=<~a>", [Value]).
@@ -230,3 +267,15 @@ output_format(x11, none).
 output_format(xdot, text).
 output_format(xdot_json, text).
 output_format(xlib, none).
+
+
+
+
+
+% HELPERS %
+
+%! attributes_atom(+Attrs:list(compound), -AttrsAtom:atom) is det.
+
+attributes_atom(Attrs, AttrsAtom) :-
+  maplist(dot_attribute, Attrs, AttrAtoms),
+  atomics_to_string(AttrAtoms, ",", AttrsAtom).
