@@ -180,11 +180,6 @@ http_call(FirstUri, Goal_1, Options) :-
 
 http_open2(CurrentUri, In, NextUri, Options) :-
   ignore(option(metadata(Meta), Options)),
-  (   debugging(http(send_request)),
-      option(post(RequestBody), Options)
-  ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
-  ;   true
-  ),
   http_open2_loop(CurrentUri, In, Meta, Options),
   Meta = [Meta0|_],
   _{headers: Headers, status: Status} :< Meta0,
@@ -194,15 +189,6 @@ http_open2(CurrentUri, In, NextUri, Options) :-
     atomic_list_concat(Links, ;, Link),
     http_link(Link, next, NextUri)
   )),
-  % Print status codes and reply headers as debug messages.
-  % Use curl/0 to show these debug messages.
-  (   debugging(http(receive_reply))
-  ->  debug(http(receive_reply), "", []),
-      debug(http(receive_reply), "< ~d", [Status]),
-      maplist(debug_header, Headers),
-      debug(http(receive_reply), "", [])
-  ;   true
-  ),
   option(success(Success), Options, 200),
   option(failure(Failure), Options, 400),
   must_be(oneof([Success,Failure]), Status),
@@ -212,10 +198,6 @@ http_open2(CurrentUri, In, NextUri, Options) :-
   ->  fail
   ;   print_message(warning, http_status(Status))
   ).
-
-debug_header(Header) :-
-  Header =.. [Key,Value],
-  debug(http(receive_reply), "< ~a: ~w", [Key,Value]).
 
 http_open2_loop(Uri, In, Meta, Options) :-
   catch(http_open2_meta(Uri, In, Meta, Options), E, true),
@@ -235,30 +217,28 @@ http_open2_meta(Uri, In, Meta2, Options) :-
 
 http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
                  [Dict|Dicts]) :-
-  (   select_option(status_code(Status), Options1, Options2)
-  ->  true
-  ;   Options2 = Options1
+  (   debugging(http(send_request)),
+      option(post(RequestBody), Options1)
+  ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
+  ;   true
   ),
-  call_statistics(
-    http_open1(
-      Uri,
-      In1,
-      [
-        authenticate(false),
-        cert_verify_hook(cert_accept_any),
-        header(location,Location),
-        raw_headers(Lines),
-        redirect(false),
-        status_code(Status),
-        timeout(60),
-        version(Major-Minor)
-      | Options2]
-    ),
-    walltime,
-    Walltime
+  merge_options(
+    Options1,
+    [
+      authenticate(false),
+      cert_verify_hook(cert_accept_any),
+      raw_headers(HeaderLines),
+      redirect(false),
+      status_code(Status),
+      timeout(60),
+      version(Major-Minor)
+    ],
+    Options2
   ),
-  http_lines_pairs(Lines, Pairs),
-  dict_pairs(HeadersDict, Pairs),
+  call_statistics(http_open1(Uri, In1, Options2), walltime, Walltime),
+  http_lines_pairs(HeaderLines, HeaderPairs),
+  ignore(memberchk(location-[Location], HeaderPairs)),
+  dict_pairs(HeadersDict, HeaderPairs),
   Dict = http{
     headers: HeadersDict,
     status: Status,
@@ -266,8 +246,23 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     version: version{major: Major, minor: Minor},
     walltime: Walltime
   },
-  http_open2_meta(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
+  % Print status codes and reply headers as debug messages.
+  % Use curl/0 to show these debug messages.
+  (   debugging(http(receive_reply))
+  ->  debug(http(receive_reply), "", []),
+      debug(http(receive_reply), "< ~d", [Status]),
+      maplist(debug_header, HeaderPairs),
+      debug(http(receive_reply), "", [])
+  ;   true
+  ),
+  http_open2_meta(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
                    Retries, Visited, In2, Dicts).
+
+debug_header(Key-Values) :-
+  maplist(debug_header(Key), Values).
+
+debug_header(Key, Value) :-
+  debug(http(receive_reply), "< ~a: ~w", [Key,Value]).
 
 % authentication error
 http_open2_meta(_, In, _, _, Status, _, _, _, _, _, []) :-
