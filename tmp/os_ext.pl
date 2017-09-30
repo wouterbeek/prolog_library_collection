@@ -1,14 +1,9 @@
 :- module(
   os_ext,
   [
-    exists_program/1,    % +Program
     gnu_wc/2,            % +File, -Lines
     gnu_wc/4             % +File, -Lines, -Words, -Bytes
     image_dimensions/3,  % +File, -Width, -Height
-    open_pdf/1,          % +File
-    os/1,                % ?Os
-    os_path/1,           % ?File
-    os_path_separator/1, % ?Sep
     os_root_prefix/1,    % ?Prefix
     renice/2,            % +Pid, +Nice
     sort_file/1,         % +File
@@ -50,20 +45,6 @@ Support for using external programs and other OS functions.
    ).
 
 
-
-
-
-%! exists_program(+Program) is semidet.
-%
-% Succeeds if the given program can be run from PATH.
-
-exists_program(Program) :-
-  var(Program), !,
-  instantiation_error(Program).
-exists_program(Program) :-
-  os_path(Prefix),
-  atomic_list_concat([Prefix,Program], /, Exe),
-  access_file(Exe, execute), !.
 
 
 
@@ -116,73 +97,6 @@ image_dimensions0(File, Width, Height) -->
   "x",
   integer(Height),
   done.
-
-
-
-%! open_pdf(+File) is det.
-%
-% Opens the given PDF file.
-
-open_pdf(File) :-
-  once((
-    member(Program, [xpdf,evince]),
-    exists_program(Program)
-  )),
-  run_process(Program, [file(File)]).
-
-
-
-%! os(+Os) is semidet.
-%! os(-Os) is det.
-%
-% Succeeds if Os names the current Operating System.
-%
-% Supported values are:
-%   * mac
-%   * unix
-%   * windows
-
-os(mac) :-
-  current_prolog_flag(apple, true), !.
-os(unix) :-
-  current_prolog_flag(unix, true), !.
-os(windows) :-
-  current_prolog_flag(windows, true), !.
-
-
-
-%! os_path(+File) is semidet.
-%! os_path(-File) is nondet.
-%
-% Succeeds if File is on the OS path.
-
-os_path(File) :-
-  getenv('PATH', Path),
-  os_path_separator(Sep),
-  atomic_list_concat(Files, Sep, Path),
-  member(File0, Files),
-  prolog_to_os_filename(File, File0).
-
-
-
-%! os_path_separator(+Separator) is semidet.
-%! os_path_separator(-Separator) is det.
-% Suceeds if Separator is the OS path separator character.
-
-os_path_separator(Sep) :-
-  os(Os),
-  os_path_separator(Os, Sep).
-
-
-%! os_path_separator(+Os:os, -Separator) is det.
-
-os_path_separator(Os, Sep) :-
-  os(Os),
-  (   memberchk(Os, [mac,unix])
-  ->  Sep = (:)
-  ;   Os == windows
-  ->  Sep = (;)
-  ).
 
 
 

@@ -1,15 +1,19 @@
 :- module(
   os_ext,
   [
-    process_flags/3, % :Goal_2, +Args, -Flags
-    process_open/3,  % +Program, +In, -Out
-    process_open/4,  % +Program, +In, +Args, -Out
-    process_open/5,  % +Program, +In, +Args, -Out, +Options
-    run_jar/3,       % +Jar, +Args, :Goal_1
-    run_jar/4,       % +Jar, +Args, :Goal_1, +Options
-    run_process/2,   % +Program, +Args
-    run_process/3,   % +Program, +Args, +Options
-    run_process/4    % +Program, +Args, :Goal_1, +Options
+    exists_program/1, % +Program
+    open_pdf/1,       % +File
+    os/1,             % ?Os
+    os_path/1,        % ?Directory
+    process_flags/3,  % :Goal_2, +Args, -Flags
+    process_open/3,   % +Program, +In, -Out
+    process_open/4,   % +Program, +In, +Args, -Out
+    process_open/5,   % +Program, +In, +Args, -Out, +Options
+    run_jar/3,        % +Jar, +Args, :Goal_1
+    run_jar/4,        % +Jar, +Args, :Goal_1, +Options
+    run_process/2,    % +Program, +Args
+    run_process/3,    % +Program, +Args, +Options
+    run_process/4     % +Program, +Args, :Goal_1, +Options
   ]
 ).
 
@@ -37,6 +41,70 @@
     run_process(+, +, 1, +).
 
 
+
+
+
+%! exists_program(+Program:atom) is semidet.
+%
+% Succeeds if the given program can be run from PATH.
+
+exists_program(Program) :-
+  os_path(Prefix),
+  atomic_list_concat([Prefix,Program], /, Exe),
+  access_file(Exe, execute), !.
+
+
+
+%! open_pdf(+File:atom) is det.
+%
+% Opens the given PDF file.
+
+open_pdf(File) :-
+  once((
+    member(Program, [evince,xpdf]),
+    exists_program(Program)
+  )),
+  run_process(Program, [file(File)]).
+
+
+
+%! os(+Os:oneof([mac,unix,windows])) is semidet.
+%! os(-Os:oneof([mac,unix,windows])) is det.
+%
+% Succeeds if Os denotes the current Operating System.
+
+os(mac) :-
+  current_prolog_flag(apple, true), !.
+os(unix) :-
+  current_prolog_flag(unix, true), !.
+os(windows) :-
+  current_prolog_flag(windows, true), !.
+
+
+
+%! os_path(+Directory:atom) is semidet.
+%! os_path(-Directory:atom) is nondet.
+%
+% Succeeds if Directory is on the OS PATH.
+
+os_path(OsDir) :-
+  getenv('PATH', Path),
+  os_path_separator(Sep),
+  atomic_list_concat(Dirs, Sep, Path),
+  member(Dir, Dirs),
+  prolog_to_os_filename(OsDir, Dir).
+
+
+
+%! os_path_separator(-Separator:oneof([:,;])) is det.
+
+os_path_separator(Sep) :-
+  os(Os),
+  os_path_separator(Os, Sep).
+
+os_path_separator(mac, :).
+os_path_separator(unix, :).
+os_path_separator(windows, ;).
 
 
 
