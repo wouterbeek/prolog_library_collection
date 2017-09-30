@@ -1,7 +1,8 @@
 :- module(
   dot,
   [
-    dot_hash/2, % +Term, -Hash
+    dot_edge/3, % +Out, +FromId, +ToId
+    dot_id/2,   % +Term, -Id
     dot_node/3, % +Out, +Id, +Options
     graphviz/3, % +Method, -ProcIn, +Format
     graphviz/4  % +Method, -ProcIn, +Format, -ProcOut
@@ -15,7 +16,7 @@
 */
 
 :- use_module(library(call_ext)).
-:- use_module(library(debug)).
+:- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(process)).
@@ -28,13 +29,20 @@
 
 
 
-%! dot_hash(@Term, -Hash:atom) is det.
-%
-% GraphViz-friendly hash.
+%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom) is det.
 
-dot_hash(Term, Hash2) :-
-  md5(Term, Hash1),
-  atomic_concat(n, Hash1, Hash2).
+dot_edge(Out, FromId, ToId) :-
+  format_debug(dot, Out, "  ~a -> ~a;", [FromId,ToId]).
+
+
+
+%! dot_id(@Term, -Id:atom) is det.
+%
+% Id is a DOT-compatible unique identifier for Term.
+
+dot_id(Term, Id) :-
+  md5(Term, Hash),
+  atomic_concat(n, Hash, Id).
 
 
 
@@ -48,20 +56,19 @@ dot_hash(Term, Hash2) :-
 %
 %   * Other options are written as DOT attributes.
 
-dot_node(Out, Id, Options1) :-
-  maplist(dot_attribute, Options1, Options2),
-  atomic_list_concat(Options2, ',', Options3),
-  format(Out, '  ~a [~a];\n', [Id,Options3]),
-  debug(dot, '  ~a [~a];\n', [Id,Options3]).
+dot_node(Out, Id, Options) :-
+  maplist(dot_attribute, Options, Attrs1),
+  atomics_to_string(Attrs1, ",", Attrs2),
+  format_debug(dot, Out, "  ~a [~a];", [Id,Attrs2]).
 
-dot_attribute(Option, Atom) :-
+dot_attribute(Option, Attr) :-
   Option =.. [Name,Value],
-  dot_attribute(Name, Value, Atom).
+  dot_attribute(Name, Value, Attr).
 
-dot_attribute(label, Value, Atom) :- !,
-  format(atom(Atom), 'label=<~a>', [Value]).
-dot_attribute(Name, Value, Atom) :-
-  format(atom(Atom), '~a="~a"', [Name,Value]).
+dot_attribute(label, Value, Attr) :- !,
+  format(string(Attr), "label=<~a>", [Value]).
+dot_attribute(Name, Value, Attr) :-
+  format(string(Attr), "~a=\"~a\"", [Name,Value]).
 
 
 
