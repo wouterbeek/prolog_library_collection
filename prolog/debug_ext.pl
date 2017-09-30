@@ -1,6 +1,7 @@
 :- module(
   debug_ext,
   [
+    format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Arguments
     indent_debug/3, % +Mode, +Flag, +Format
     indent_debug/4  % +Mode, +Flag, +Format, +Arguments
@@ -26,8 +27,13 @@ debug_indent(0).
 
 
 
+%! format_debug(+Flag, +Out:stream, +Pattern:string) is det.
 %! format_debug(+Flag, +Out:stream, +Pattern:string,
 %!              +Arguments:list(term)) is det.
+
+format_debug(Flag, Out, Pattern) :-
+  format_debug(Flag, Out, Pattern, []).
+
 
 format_debug(Flag, Out, Pattern, Arguments) :-
   string_concat(Pattern, "\n", PatternNewline),
