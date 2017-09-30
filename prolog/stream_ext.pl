@@ -20,7 +20,6 @@
     true_metadata/4,         % -Metadata2, +In, +Metadata1, -Metadata2
     true_null/3,             % +In, +Metadata1, -Metadata2
   % COMMON METADATA EXTRACTIONS
-    metadata_content_type/2, % +Metadata, -MediaType
     metadata_status_code/2,  % +Metadata, -Status
     metadata_uri/2           % +Metadata, -Uri
   ]
@@ -656,21 +655,6 @@ true_null(In, Metadata, Metadata) :-
 
 
 % COMMON METADATA EXTRACTIONS
-
-%! metadata_content_type(+Metadata:list(dict), -MediaType:compound) is semidet.
-%
-% Fails if the metadata does not contain a `Content-Type' header.
-
-metadata_content_type(Metadata, MediaType) :-
-  member(Dict1, Metadata),
-  dict_get(headers, Dict1, Dict2),
-  dict_get('content-type', Dict2, [ContentType|_]), !,
-  (   atom_phrase('content-type'(MediaType), ContentType)
-  ->  true
-  ;   type_error(media_type, ContentType)
-  ).
-
-
 
 %! metadata_status_code(+Metadata:list(dict), -Status:between(100,599)) is det.
 

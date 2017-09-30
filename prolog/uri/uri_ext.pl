@@ -116,6 +116,22 @@ download(UriSpec, FileSpec, Options1) :-
   merge_options([decompression(false)], Options1, Options2),
   call_on_uri(UriSpec, stream_to_file(FileSpec), Options2).
 
+%! stream_to_file(+File, +In:stream, +Metadata1:list(dict),
+%!                -Metadata2:list(dict)) is det.
+%
+% The file name File is based on the given Name, but supplemented by a
+% file extension that is based on the Media Type in the `Content-Type'
+% HTTP header (if present).
+
+stream_to_file(FileSpec, In, Metadata, Metadata) :-
+  (   metadata_content_type(Metadata, MediaType),
+      media_type_extension(MediaType, Extension)
+  ->  Options = [extensions([Extension])]
+  ;   Options = []
+  ),
+  absolute_file_name(FileSpec, File, [access(write)|Options]),
+  call_to_file(File, copy_stream_data(In), [compression(none),type(binary)]).
+
 
 
 %! fresh_uri(-Uri, +Components) is det.

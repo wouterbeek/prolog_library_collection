@@ -23,7 +23,6 @@
     file_to_string/2,             % +File, -String
     media_type_extension/2,       % +MediaType, -Extension
     sort_file/1,                  % +File
-    stream_to_file/4,             % +File, +In, +Metadata1, -Metadata2
     touch/1,                      % +File
     uchardet_file/2,              % +File, -Enc
     working_directory/1           % -Dir
@@ -397,24 +396,6 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 sort_file(FileSpec) :-
   absolute_file_name(FileSpec, File, [access(read)]),
   run_process(sort, ['-u','-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
-
-
-
-%! stream_to_file(+File, +In:stream, +Metadata1:list(dict),
-%!                -Metadata2:list(dict)) is det.
-%
-% The file name File is based on the given Name, but supplemented by a
-% file extension that is based on the Media Type in the `Content-Type'
-% HTTP header (if present).
-
-stream_to_file(FileSpec, In, Metadata, Metadata) :-
-  (   metadata_content_type(Metadata, MediaType),
-      media_type_extension(MediaType, Extension)
-  ->  Options = [extensions([Extension])]
-  ;   Options = []
-  ),
-  absolute_file_name(FileSpec, File, [access(write)|Options]),
-  call_to_file(File, copy_stream_data(In), [compression(none),type(binary)]).
 
 
 

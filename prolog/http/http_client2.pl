@@ -1,8 +1,9 @@
 :- module(
   http_client2,
   [
-    http_link/3, % +Value, +Relation, -Uri
-    http_open2/3 % +Uri, -In, +Options
+    http_call/2, % +Uri, :Goal_1
+    http_call/3, % +Uri, :Goal_1, +Options
+    http_open2/4 % +CurrentUri, -In, -NextUri, +Options
   ]
 ).
 
@@ -12,6 +13,57 @@
 :- reexport(library(http/json)).
 
 /** <module> HTTP Client
+
+```prolog
+media_type_encoding(media(application/json,_), utf8).
+media_type_encoding(media(application/'n-quads',_), utf8).
+media_type_encoding(media(application/'n-triples',_), utf8).
+media_type_encoding(media(application/'sparql-query',_), utf8).
+media_type_encoding(media(application/'x-prolog',_), utf8).
+media_type_encoding(media(image/jpeg,_), octet).
+media_type_encoding(media(image/png,_), octet).
+media_type_encoding(media(text/turtle,_), utf8).
+media_type_encoding(media(_,Params), Encoding3) :-
+  memberchk(charset-Encoding1, Params), !,
+  % @tbd Are values to the `charset' parameter case-insensitive?
+  downcase_atom(Encoding1, Encoding2),
+  once(translate_encoding(Encoding2, Encoding3)).
+media_type_encoding(MediaType, octet) :-
+  format(
+    string(Msg),
+    "Cannot determine encoding for Media Type ~w (assuming octet).",
+    [MediaType]
+  ),
+  print_message(warning, Msg).
+
+translate_encoding('us-ascii', ascii).
+translate_encoding('utf-8', utf8).
+translate_encoding(Encoding, Encoding).
+
+%! merge_separable_header(+Pair1:pair(atom,list(term)),
+%!                         -Pair2:pair(atom,term)) is det.
+%
+% Succeeds iff the given HTTP Key is separable.
+%
+% “Multiple message-header fields with the same field-name MAY be
+% present in a message if and only if the entire field-value for that
+% header field is defined as a comma-separated list [i.e., #(values)].
+% It MUST be possible to combine the multiple header fields into one
+% "field-name: field-value" pair, without changing the semantics of
+% the message, by appending each subsequent field-value to the first,
+% each separated by a comma.  The order in which header fields with
+% the same field-name are received is therefore significant to the
+% interpretation of the combined field value, and thus a proxy MUST
+% NOT change the order of these field values when a message is
+% forwarded.”
+
+merge_separable_header(Key-[Val], Key-Val) :- !.
+merge_separable_header(Key-Vals, Key-Val) :-
+  http:http_separable(Key), !,
+  atomic_list_concat(Vals, ', ', Val).
+merge_separable_header(Key-[H|T], Key-H) :-
+  print_message(warning, http_nonseparable(Key,[H|T])).
+```
 
 @author Wouter Beek
 @version 2017/05-2017/09
@@ -41,15 +93,11 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(uri/uri_ext)).
 
-:- dynamic
-    http:http_separable/1.
-
 :- meta_predicate
-    call_on_http(+, 3, -, +),
-    call_on_http_stream(+, 3, +, -, +, +).
+    http_call(+, 1),
+    http_call(+, 1, +).
 
 :- multifile
-    http:http_separable/1,
     http:post_data_hook/3.
 
 :- public
@@ -62,14 +110,50 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 
 
 
-%! call_on_http(+Uri:atom, :Goal_3, -Metadata:list(dict),
-%!              +Options:list(compound)) is nondet.
+%! http_call(+Uri:atom, :Goal_1) is det.
+%! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is det.
 %
-% @arg Metadata A list of dictionaries, each of which describing an
+% The following call is made: `call(Goal_1, In)'.
+
+http_call(Uri, Goal_1) :-
+  http_call(Uri, Goal_1, []).
+
+
+http_call(FirstUri, Goal_1, Options) :-
+  State = state(FirstUri),
+  % TBD: Non-deterministically enumerate over ‘next’ links.
+  repeat,
+  State = state(CurrentUri),
+  (   http_open2(CurrentUri, In, NextUri, Options)
+  ->  (   atom(NextUri)
+      ->  % Detect directly cyclic `Link' headers.
+          (   CurrentUri == NextUri
+          ->  throw(error(cyclic_link_header(NextUri)))
+          ;   nb_setarg(1, State, NextUri)
+          )
+      ;   !, true
+      ),
+      call(Goal_1, In)
+  ;   !, fail
+  ),
+  close(In).
+
+
+
+%! http_open2(+CurrentUri:atom, -In:stream, -NextUri:atom,
+%!            +Options:list(compound)) is det.
+%
+% @arg Meta A list of dictionaries, each of which describing an
 %      HTTP(S) request/reply interaction as well metadata about the
 %      stream.
 %
 % @arg Options The following options are supported:
+%
+%   * failure(+between(400,599))
+%
+%     Default is 400.
+%
+%   * metadata(-list(dict))
 %
 %   * number_of_hops(+positive_integer)
 %
@@ -88,114 +172,69 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 %     receiving an HTTP error code (i.e., HTTP status codes 400
 %     through 599).  The default is 1.
 %
-%   * Other options are passed to http_open/3 and stream_open/4.
-
-call_on_http(Uri1, Goal_3, Meta2, Options) :-
-  copy_term(Options, Options0),
-  http_open2(Uri1, In, Options, Meta1),
-  Meta1 = [Dict|_],
-  between(200, 299, Dict.status),
-  % MediaType, if anvailable
-  ignore(metadata_content_type([Dict], MediaType)),
-  check_empty_body(MediaType, In),
-  % Set from-encoding based on Media Type, if available.
-  (   var(MediaType)
-  ->  StreamOptions = Options
-  ;   once(media_type_encoding(MediaType, FromEncoding)),
-      merge_options([from_encoding(FromEncoding)], Options, StreamOptions)
-  ),
-  % `Link' reply header
-  (   dict_get(link, Dict.headers, Link),
-      has_link(Link, next, Uri2)
-  ->  (   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
-      ;   % Detect cyclic `Link' headers.
-          cyclic_link_warning(Uri1, Uri2),
-          call_on_http(Uri2, Goal_3, Meta2, Options0)
-      )
-  ;   call_on_http_stream(In, Goal_3, Meta1, Meta2, StreamOptions, Options)
-  ).
-
-call_on_http_stream(In, Goal_3, Meta1, Meta3, StreamOptions, Options) :- !,
-  call_cleanup(
-    (
-      stream_ext:call_on_stream(In, Goal_3, Meta1, Meta2, StreamOptions),
-      stream_hash_metadata(In, Meta2, Meta3, Options)
-    ),
-    close(In)
-  ).
-
-%! check_empty_body(?MediaType:compound, +In:stream) is det.
+%   * success(+between(200,299))
 %
-% If there is no `Content-Type' header, the stream _must_ be empty and
-% `Content-Length' -- if present -- must be 0.
+%     Default is 200.
+%
+%   * Other options are passed to http_open/3.
 
-check_empty_body(MediaType, In) :-
-  (   var(MediaType)
-  ->  (   at_end_of_stream(In)
-      ->  true
-      ;   print_message(warning, no_content_type_header_yet_a_nonempty_body)
-      )
+http_open2(CurrentUri, In, NextUri, Options) :-
+  ignore(option(metadata(Meta), Options)),
+  (   debugging(http(send_request)),
+      option(post(RequestBody), Options)
+  ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
   ;   true
+  ),
+  http_open2_loop(CurrentUri, In, Meta, Options),
+  Meta = [Meta0|_],
+  _{headers: Headers, status: Status} :< Meta0,
+  % `Link' reply header
+  ignore((
+    dict_get(link, Headers, Links),
+    atomic_list_concat(Links, ;, Link),
+    http_link(Link, next, NextUri)
+  )),
+  % Print status codes and reply headers as debug messages.
+  % Use curl/0 to show these debug messages.
+  (   debugging(http(receive_reply))
+  ->  debug(http(receive_reply), "", []),
+      debug(http(receive_reply), "< ~d", [Status]),
+      maplist(debug_header, Headers),
+      debug(http(receive_reply), "", [])
+  ;   true
+  ),
+  option(success(Success), Options, 200),
+  option(failure(Failure), Options, 400),
+  must_be(oneof([Success,Failure]), Status),
+  (   Status =:= Success
+  ->  true
+  ;   Status =:= Failure
+  ->  fail
+  ;   print_message(warning, http_status(Status))
   ).
 
-cyclic_link_warning(Uri, Uri) :- !,
-  print_message(warning, pagination_loop(Uri)).
-cyclic_link_warning(_, _).
+debug_header(Header) :-
+  Header =.. [Key,Value],
+  debug(http(receive_reply), "< ~a: ~w", [Key,Value]).
 
-media_type_encoding(media(application/json,_), utf8).
-media_type_encoding(media(application/'n-quads',_), utf8).
-media_type_encoding(media(application/'n-triples',_), utf8).
-media_type_encoding(media(application/'sparql-query',_), utf8).
-media_type_encoding(media(application/'x-prolog',_), utf8).
-media_type_encoding(media(image/jpeg,_), octet).
-media_type_encoding(media(image/png,_), octet).
-media_type_encoding(media(text/turtle,_), utf8).
-media_type_encoding(media(_,Params), Encoding3) :-
-  memberchk(charset-Encoding1, Params), !,
-  % @tbd Are values to the `charset' parameter case-insensitive?
-  downcase_atom(Encoding1, Encoding2),
-  once(translate_encoding(Encoding2, Encoding3)).
-media_type_encoding(MediaType, octet) :-
-  format(
-    string(Msg),
-    "Cannot determine encoding for Media Type ~w (assuming octet).",
-    [MediaType]
-  ),
-  print_message(warning, Msg).
+http_open2_loop(Uri, In, Meta, Options) :-
+  catch(http_open2_meta(Uri, In, Meta, Options), E, true),
+  (   var(E)
+  ->  true
+  ;   print_message(warning, E),
+      http_open2_loop(Uri, In, Meta, Options)
+  ).
 
-translate_encoding('us-ascii', ascii).
-translate_encoding('utf-8', utf8).
-translate_encoding(Encoding, Encoding).
-
-
-
-%! http_link(+Value:atom, +Relation:atom, -Uri:atom) is semidet.
-
-http_link(Atom, Relation, Uri) :-
-  atom_string(Relation, Relation0),
-  split_string(Atom, ",", " ", Comps),
-  member(Comp, Comps),
-  split_string(Comp, ";", "<> ", [Uri|Params]),
-  member(Param, Params),
-  split_string(Param, "=", "\"", ["rel",Relation0]), !.
-
-
-
-%! http_open2(+Uri:atom, -In:stream, +Options:list(compound)) is det.
-
-http_open2(Uri, In, Options) :-
-  http_open2(Uri, In, Options, Meta),
-  ignore(option(metadata(Meta), Options)).
-
-http_open2(Uri, In, Options, Meta2) :-
+http_open2_meta(Uri, In, Meta2, Options) :-
   option(number_of_hops(MaxHops), Options, 5),
   option(number_of_repeats(MaxRepeats), Options, 2),
   option(number_of_retries(MaxRetries), Options, 1),
-  http_open2(Uri, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [], Meta1),
+  http_open2_meta(Uri, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [],
+                   Meta1),
   reverse(Meta1, Meta2).
 
-http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
-           [Dict|Dicts]) :-
+http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
+                 [Dict|Dicts]) :-
   (   select_option(status_code(Status), Options1, Options2)
   ->  true
   ;   Options2 = Options1
@@ -218,7 +257,7 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     walltime,
     Walltime
   ),
-  http_lines_pairs0(Lines, Pairs),
+  http_lines_pairs(Lines, Pairs),
   dict_pairs(HeadersDict, Pairs),
   Dict = http{
     headers: HeadersDict,
@@ -227,28 +266,28 @@ http_open2(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     version: version{major: Major, minor: Minor},
     walltime: Walltime
   },
-  http_open2(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
-             Retries, Visited, In2, Dicts).
+  http_open2_meta(Uri, In1, Options2, Location, Status, MaxHops, MaxRepeats,
+                   Retries, Visited, In2, Dicts).
 
 % authentication error
-http_open2(_, In, _, _, Status, _, _, _, _, _, []) :-
+http_open2_meta(_, In, _, _, Status, _, _, _, _, _, []) :-
   Status =:= 401,
   close(In),
   print_message(warning, http_error_code(Status)).
 % non-authentication error
-http_open2(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
-           NumRetries1-MaxRetries, Visited, In2, Dicts) :-
+http_open2_meta(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
+                 NumRetries1-MaxRetries, Visited, In2, Dicts) :-
   between(400, 599, Status), !,
   NumRetries2 is NumRetries1 + 1,
   (   NumRetries2 >= MaxRetries
   ->  In2 = In1,
       Dicts = []
-  ;   http_open2(Uri, In2, Options, MaxHops, MaxRepeats,
-                 NumRetries2-MaxRetries, Visited, Dicts)
+  ;   http_open2_meta(Uri, In2, Options, MaxHops, MaxRepeats,
+                       NumRetries2-MaxRetries, Visited, Dicts)
   ).
 % redirect
-http_open2(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
-           Visited1, In2, Dicts) :-
+http_open2_meta(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats,
+                 Retries, Visited1, In2, Dicts) :-
   between(300, 399, Status), !,
   close(In1),
   uri_resolve(Location, Uri1, Uri2),
@@ -264,51 +303,27 @@ http_open2(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
   ->  close(In1),
       Dicts = [],
       print_message(warning, http_redirect_loop(Uri2))
-  ;   http_open2(Uri2, In2, Options, MaxHops, MaxRepeats, Retries, Visited2,
-                 Dicts)
+  ;   http_open2_meta(Uri2, In2, Options, MaxHops, MaxRepeats, Retries,
+                       Visited2, Dicts)
   ).
 % succes
-http_open2(_, In, _, _, Status, _, _, _, _, In, []) :-
+http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
   must_be(between(200,299), Status).
 
-http_lines_pairs0(Lines, GroupedPairs) :-
-  maplist(http_parse_header_pair0, Lines, Pairs),
+http_lines_pairs(Lines, GroupedPairs) :-
+  maplist(http_parse_header_pair, Lines, Pairs),
   keysort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs).
 
-http_parse_header_pair0(Line, Key-Value) :-
-  once(phrase(http_parse_header_simple0(Key, Value), Line)).
+http_parse_header_pair(Line, Key-Value) :-
+  once(phrase(http_parse_header_simple(Key, Value), Line)).
 
-http_parse_header_simple0(Key, Value) -->
+http_parse_header_simple(Key, Value) -->
   'field-name'(Key),
   ":",
   'OWS',
   rest(Codes),
   {atom_codes(Value, Codes)}.
-
-%! merge_separable_header(+Pair1:pair(atom,list(term)),
-%!                        -Pair2:pair(atom,term)) is det.
-%
-% Succeeds iff the given HTTP Key is separable.
-%
-% “Multiple message-header fields with the same field-name MAY be
-% present in a message if and only if the entire field-value for that
-% header field is defined as a comma-separated list [i.e., #(values)].
-% It MUST be possible to combine the multiple header fields into one
-% "field-name: field-value" pair, without changing the semantics of
-% the message, by appending each subsequent field-value to the first,
-% each separated by a comma.  The order in which header fields with
-% the same field-name are received is therefore significant to the
-% interpretation of the combined field value, and thus a proxy MUST
-% NOT change the order of these field values when a message is
-% forwarded.”
-
-merge_separable_header(Key-[Val], Key-Val) :- !.
-merge_separable_header(Key-Vals, Key-Val) :-
-  http:http_separable(Key), !,
-  atomic_list_concat(Vals, ', ', Val).
-merge_separable_header(Key-[H|T], Key-H) :-
-  print_message(warning, http_nonseparable(Key,[H|T])).
 
 % COPIED FROM swipl-devel/packages/http/http_open
 http_open1(Uri, In, QOptions) :-
@@ -396,7 +411,6 @@ send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
       fail
   ).
 
-
 guarded_send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
   http_open:user_agent(Agent, Options),
   http_open:method(Options, Method),
@@ -431,6 +445,18 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
+
+
+
+%! http_link(+Value:atom, +Relation:atom, -Uri:atom) is semidet.
+
+http_link(Atom, Relation, Uri) :-
+  atom_string(Relation, Relation0),
+  split_string(Atom, ",", " ", Comps),
+  member(Comp, Comps),
+  split_string(Comp, ";", "<> ", [Uri|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["rel",Relation0]), !.
 
 
 
