@@ -21,6 +21,7 @@
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
+    is_empty_directory/1,         % +Directory
     media_type_extension/2,       % +MediaType, -Extension
     sort_file/1,                  % +File
     touch/1,                      % +File
@@ -239,7 +240,7 @@ delete_files_by_extension(Directory, Extension) :-
 
 
 
-% directory_file(+Dir, -File) is nondet.
+% directory_file(+Directory:atom, -File:atom) is nondet.
 %
 % Non-deterministic variant of directory_files/2 that skips dummy
 % files.
@@ -356,6 +357,14 @@ file_to_string(File, String) :-
 
 is_dummy_file(.).
 is_dummy_file(..).
+
+
+
+%! is_empty_directory(+Directory:atom) is semidet.
+
+is_empty_directory(Dir) :-
+  exists_directory(Dir),
+  \+ directory_file(Dir, _).
 
 
 

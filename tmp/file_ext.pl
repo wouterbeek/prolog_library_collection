@@ -13,7 +13,6 @@
     current_directory/1,        % ?Dir
     delete_directory_silent/1,  % +Dir
     delete_directory_and_contents_silent/1, % +Dir
-    directory_is_empty/1,       % +Dir
     directory_recursive/2,      % +Dir, -Subdir
     directory_subdirectory/2,   % +Dir, ?Subdir
     directory_subdirectory/3,   % +Dir, ?Local, ?Subdir
@@ -293,13 +292,6 @@ delete_directory_and_contents_silent(Dir) :-
   exists_directory(Dir), !,
   delete_directory_and_contents(Dir).
 delete_directory_and_contents_silent(_).
-
-
-
-%! directory_is_empty(+Dir) is semidet.
-
-directory_is_empty(Dir) :-
-  \+ directory_file(Dir, _).
 
 
 
