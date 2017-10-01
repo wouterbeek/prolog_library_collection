@@ -21,7 +21,7 @@
 /** <module> Dictionary extension
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/10
 */
 
 :- use_module(library(apply)).
@@ -144,11 +144,12 @@ merge_dicts([H1,H2|T1], T2) :-
 % merge_options/3 from library(option).
 %
 % If NewDict and OldDict contain the same key then the value from
-% NewDict is used.
+% NewDict is used.  If NewDict and OldDict have a different tag, then
+% the tag from NewDict is used.
 
 merge_dicts(NewDict, OldDict, Dict):-
   dict_pairs(NewDict, Tag, NewPairs),
-  dict_pairs(OldDict, Tag, OldPairs),
+  dict_pairs(OldDict, _, OldPairs),
   pairs_keys(NewPairs, NewKeys),
   exclude(key_in_keys0(NewKeys), OldPairs, OnlyOldPairs),
   append(OnlyOldPairs, NewPairs, Pairs),
