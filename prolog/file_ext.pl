@@ -35,7 +35,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017/04-2017/09
+@version 2017/04-2017/10
 */
 
 :- use_module(library(apply)).

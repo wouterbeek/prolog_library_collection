@@ -16,7 +16,7 @@
 /** <module> RocksDB extension
 
 @author Wouter Beek
-@version 2017/06-2017/08
+@version 2017/06-2017/10
 */
 
 :- use_module(library(aggregate)).
@@ -38,6 +38,7 @@
 :- initialization
    conf_json(Dict),
    get_dict('rocksdb-directory', Dict, Dir),
+   create_directory(Dir),
    set_setting(rocks_directory, Dir).
 
 
