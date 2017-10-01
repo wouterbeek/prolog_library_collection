@@ -144,8 +144,9 @@ http_call(FirstUri, Goal_1, Options) :-
 
 %! http_head2(+Uri:atom, +Options:list(compound)) is det.
 
-http_head2(Uri, Options) :-
-  http_open2(Uri, In, Options),
+http_head2(Uri, Options1) :-
+  merge_options([method(head)], Options1, Options2),
+  http_open2(Uri, In, Options2),
   close(In).
 
 
@@ -195,7 +196,7 @@ http_open2(CurrentUri, In) :-
 http_open2(CurrentUri, In, Options) :-
   ignore(option(next(NextUri), Options)),
   ignore(option(metadata(Meta), Options)),
-  http_open2_loop(CurrentUri, In, Meta, Options),
+  http_open2_meta(CurrentUri, In, Meta, Options),
   Meta = [Meta0|_],
   _{headers: Headers, status: Status} :< Meta0,
   % `Link' reply header
@@ -212,14 +213,6 @@ http_open2(CurrentUri, In, Options) :-
   ;   Status =:= Failure
   ->  fail
   ;   print_message(warning, http_status(Status))
-  ).
-
-http_open2_loop(Uri, In, Meta, Options) :-
-  catch(http_open2_meta(Uri, In, Meta, Options), E, true),
-  (   var(E)
-  ->  true
-  ;   print_message(warning, E),
-      http_open2_loop(Uri, In, Meta, Options)
   ).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
