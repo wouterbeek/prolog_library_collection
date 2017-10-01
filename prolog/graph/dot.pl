@@ -88,7 +88,7 @@ dot_id(Term, Id) :-
 %
 % The following attributes are supported:
 %
-%   * label(+string)
+%   * label(+list(string))
 %
 %     Is printed as a DOT HTML label to allow Unicode characters.
 %
@@ -102,6 +102,10 @@ dot_attribute(Attr1, Attr2) :-
   Attr1 =.. [Name,Value],
   dot_attribute(Name, Value, Attr2).
 
+dot_attribute(label, Values, Attr) :-
+  is_list(Values), !,
+  atomics_to_string(Values, "<BR/>", Value),
+  dot_attribute(label, Value, Attr).
 dot_attribute(label, Value, Attr) :- !,
   format(string(Attr), "label=<~a>", [Value]).
 dot_attribute(Name, Value, Attr) :-
