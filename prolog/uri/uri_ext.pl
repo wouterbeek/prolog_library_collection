@@ -62,9 +62,6 @@ error:has_type(uri, Term):-
 % @arg UriSpec is either an atomic URI, an atomic file name, a
 %      compound term uri/5 as handled by uri_comps/2, or a compound
 %      term as processed by absolute_file_name/[2,3].
-%
-% @arg Options are passed to http_open2/4 if `Uri' has scheme `http'
-%      or `https'.
 
 call_on_uri(UriSpec, Goal_3) :-
   call_on_uri(UriSpec, Goal_3, []).

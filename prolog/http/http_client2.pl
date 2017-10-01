@@ -1,9 +1,11 @@
 :- module(
   http_client2,
   [
-    http_call/2, % +Uri, :Goal_1
-    http_call/3, % +Uri, :Goal_1, +Options
-    http_open2/4 % +CurrentUri, -In, -NextUri, +Options
+    http_call/2,  % +Uri, :Goal_1
+    http_call/3,  % +Uri, :Goal_1, +Options
+    http_head2/2, % +Uri, +Options
+    http_open2/2, % +CurrentUri, -In
+    http_open2/3  % +CurrentUri, -In, +Options
   ]
 ).
 
@@ -140,8 +142,16 @@ http_call(FirstUri, Goal_1, Options) :-
 
 
 
-%! http_open2(+CurrentUri:atom, -In:stream, -NextUri:atom,
-%!            +Options:list(compound)) is det.
+%! http_head2(+Uri:atom, +Options:list(compound)) is det.
+
+http_head2(Uri, Options) :-
+  http_open2(Uri, In, Options),
+  close(In).
+
+
+
+%! http_open2(+CurrentUri:atom, -In:stream) is det.
+%! http_open2(+CurrentUri:atom, -In:stream, +Options:list(compound)) is det.
 %
 % @arg Meta A list of dictionaries, each of which describing an
 %      HTTP(S) request/reply interaction as well metadata about the
@@ -178,7 +188,12 @@ http_call(FirstUri, Goal_1, Options) :-
 %
 %   * Other options are passed to http_open/3.
 
-http_open2(CurrentUri, In, NextUri, Options) :-
+http_open2(CurrentUri, In) :-
+  http_open2(CurrentUri, In, []).
+
+
+http_open2(CurrentUri, In, Options) :-
+  ignore(option(next(NextUri), Options)),
   ignore(option(metadata(Meta), Options)),
   http_open2_loop(CurrentUri, In, Meta, Options),
   Meta = [Meta0|_],
@@ -235,16 +250,18 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     ],
     Options2
   ),
-  call_statistics(http_open1(Uri, In1, Options2), walltime, Walltime),
+  get_time(Start),
+  http_open1(Uri, In1, Options2),
+  get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
   ignore(memberchk(location-[Location], HeaderPairs)),
   dict_pairs(HeadersDict, HeaderPairs),
   Dict = http{
     headers: HeadersDict,
     status: Status,
+    timestamp: Start-End,
     uri: Uri,
-    version: version{major: Major, minor: Minor},
-    walltime: Walltime
+    version: version{major: Major, minor: Minor}
   },
   % Print status codes and reply headers as debug messages.
   % Use curl/0 to show these debug messages.
