@@ -21,6 +21,7 @@
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
+    is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     media_type_extension/2,       % +MediaType, -Extension
     sort_file/1,                  % +File
