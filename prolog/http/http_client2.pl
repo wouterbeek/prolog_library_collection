@@ -68,7 +68,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/09
+@version 2017/05-2017/10
 */
 
 :- use_module(library(apply)).
@@ -121,12 +121,13 @@ http_call(Uri, Goal_1) :-
   http_call(Uri, Goal_1, []).
 
 
-http_call(FirstUri, Goal_1, Options) :-
+http_call(FirstUri, Goal_1, Options1) :-
   State = state(FirstUri),
-  % TBD: Non-deterministically enumerate over ‘next’ links.
+  % CHECK: Non-deterministically enumerate over ‘next’ links.
   repeat,
   State = state(CurrentUri),
-  (   http_open2(CurrentUri, In, NextUri, Options)
+  merge_options([next(NextUri)], Options1, Options2),
+  (   http_open2(CurrentUri, In, Options2)
   ->  (   atom(NextUri)
       ->  % Detect directly cyclic `Link' headers.
           (   CurrentUri == NextUri
