@@ -30,6 +30,7 @@
     must_see_code//2,      % +Code, :Skip_0
     nl//0,
     nonblank//0,
+    nonblanks//0,
     rest//0,
     rest//1,               % -Rest
     rest_as_atom//1,       % -Rest
@@ -46,7 +47,7 @@
 /** <module> DCG extensions
 
 @author Wouter Beek
-@version 2017/04-2017/09
+@version 2017/04-2017/10
 */
 
 :- use_module(library(aggregate)).
@@ -417,6 +418,13 @@ nl -->
 
 nonblank -->
   nonblank(_).
+
+
+
+%! nonblanks// .
+
+nonblanks -->
+  nonblanks(_).
 
 
 
