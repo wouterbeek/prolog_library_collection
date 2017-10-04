@@ -211,9 +211,13 @@ http_open2(CurrentUri, In, Options) :-
   must_be(oneof([Success,Failure]), Status),
   (   Status =:= Success
   ->  true
-  ;   Status =:= Failure
-  ->  fail
-  ;   print_message(warning, http_status(Status))
+  ;   read_stream_to_codes(In, Codes),
+      string_codes(Message, Codes),
+      (   Status =:= Failure
+      ->  print_message(informational, http_status(Status,Message)),
+          fail
+      ;   print_message(warning, http_status(Status,Message))
+      )
   ).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
