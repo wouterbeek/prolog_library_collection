@@ -1,18 +1,20 @@
 :- module(
   dot,
   [
-    dot_edge/3, % +Out, +FromId, +ToId
-    dot_edge/4, % +Out, +FromId, +ToId. +Attrs
-    dot_id/2,   % +Term, -Id
-    dot_node/3, % +Out, +Id, +Attrs
-    graphviz/3, % +Method, -ProcIn, +Format
-    graphviz/4  % +Method, -ProcIn, +Format, -ProcOut
+    dot_edge/3,        % +Out, +FromId, +ToId
+    dot_edge/4,        % +Out, +FromId, +ToId. +Attrs
+    dot_id/2,          % +Term, -Id
+    dot_node/3,        % +Out, +Id, +Attrs
+    graphviz_export/4, % +Method, +Format, +File, :Goal_1
+    graphviz_open/3,   % +Method, +Format, -ProcIn
+    graphviz_open/4,   % +Method, +Format, -ProcIn, -ProcOut
+    graphviz_show/3    % +Method, +Format, :Goal_1
   ]
 ).
 
 /** <module> DOT
 
-DOT HTML-like labels:
+# Grammar for DOT HTML-like labels
 
 ```
 label :   text
@@ -42,7 +44,7 @@ cell:   <TD> label </TD>
 ```
 
 @author Wouter Beek
-@version 2017/08-2017/09
+@version 2017/08-2017/10
 */
 
 :- use_module(library(call_ext)).
@@ -54,6 +56,10 @@ cell:   <TD> label </TD>
 :- discontiguous
     output_format/1,
     output_format/2.
+
+:- meta_predicate
+    graphviz_export(+, +, +, 1),
+    graphviz_show(+, +, 1).
 
 
 
@@ -113,9 +119,27 @@ dot_attribute(Name, Value, Attr) :-
 
 
 
-%! graphviz(+Method:atom, -ProcIn:stream, +Format:atom) is det.
+%! graphviz_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
 
-graphviz(Method, ProcIn, Format) :-
+graphviz_export(Method, Format, File, Goal_1) :-
+  setup_call_cleanup(
+    open(File, write, Out),
+    (
+      setup_call_cleanup(
+        graphviz_open(Method, Format, ProcIn, ProcOut),
+        call(Goal_1, ProcIn),
+        close(ProcIn)
+      ),
+      copy_stream_data(ProcOut, Out)
+    ),
+    close(Out)
+  ).
+
+
+
+%! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
+
+graphviz_open(Method, Format, ProcIn) :-
   call_must_be(method, Method),
   call_must_be(output_format_none, Format),
   process_create(path(Method), ['-T',Format], [stdin(pipe(ProcIn))]).
@@ -125,8 +149,8 @@ output_format_none(Format) :-
 
 
 
-%! graphviz(+Method:atom, -ProcIn:stream, +Format:atom,
-%!          -ProcOut:stream) is det.
+%! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream,
+%!               -ProcOut:stream) is det.
 %
 % @arg Method The algorithm used by GraphViz for positioning the tree
 %             nodes.
@@ -137,17 +161,31 @@ output_format_none(Format) :-
 %
 % @type_error if Format is not a value of output_format/1.
 
-graphviz(Method, ProcIn, Format, ProcOut) :-
+graphviz_open(Method, Format, ProcIn, ProcOut) :-
   call_must_be(method, Method),
   call_must_be(output_format_not_none, Format),
   output_format(Format, Type),
-  process_create(path(Method), ['-T',Format],
-                 [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]),
+  process_create(
+    path(Method),
+    ['-T',Format],
+    [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
+  ),
   set_stream(ProcOut, type(Type)).
 
 output_format_not_none(Format) :-
   output_format(Format, Type),
   Type \== none.
+
+
+
+%! graphviz_show(+Method, +Format, :Goal_1) is det.
+
+graphviz_show(Method, Format, Goal_1) :-
+  setup_call_cleanup(
+    graphviz_open(Method, Format, ProcIn),
+    call(Goal_1, ProcIn),
+    close(ProcIn)
+  ).
 
 
 
