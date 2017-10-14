@@ -81,7 +81,7 @@ file_ext:media_type_extension_(media(text/html,[]), html).
 
 
 
-%! append_directories(+Directories:list(atom_, -Directory:atom) is det.
+%! append_directories(+Directories:list(atom), -Directory:atom) is det.
 
 append_directories([], '/') :- !.
 append_directories([H], H) :- !.
