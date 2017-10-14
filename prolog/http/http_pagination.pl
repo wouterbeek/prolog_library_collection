@@ -11,10 +11,11 @@
 /** <module> HTTP support for pagination
 
 @author Wouter Beek
-@version 2017/05-2017/08
+@version 2017/05-2017/10
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(http/json)).
 :- use_module(library(pagination)).
 :- use_module(library(uri/uri_ext)).
 
