@@ -1,10 +1,8 @@
 :- module(
   uri_ext,
   [
-    call_on_uri/2,         % +UriSpec, :Goal_3
-    call_on_uri/3,         % +UriSpec, :Goal_3, +Options
-    download/2,            % +Uri, +FileSpec
-    download/3,            % +Uri, +FileSpec, +Options
+    file_download/2,       % +Uri, +File
+    file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
     iri_to_uri/2,          % +Iri, -Uri
     is_uri/1,              % @Term
@@ -21,7 +19,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/10
 */
 
 :- use_module(library(apply)).
@@ -29,8 +27,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(file_ext)).
-:- use_module(library(http/http_client2)).
+:- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
@@ -38,11 +35,6 @@
 :- use_module(library(uri/rfc3987)).
 :- use_module(library(uuid)).
 :- use_module(library(zlib)).
-
-:- meta_predicate
-    call_on_uri(+, 3),
-    call_on_uri(+, 3, +),
-    call_on_uri_scheme(+, +, 3, -, +).
 
 :- multifile
     error:has_type/2,
@@ -56,78 +48,27 @@ error:has_type(uri, Term):-
 
 
 
-%! call_on_uri(+UriSpec:term, :Goal_3) is nondet.
-%! call_on_uri(+UriSpec:term, :Goal_3, +Options:list(compound)) is nondet.
-%
-% @arg UriSpec is either an atomic URI, an atomic file name, a
-%      compound term uri/5 as handled by uri_comps/2, or a compound
-%      term as processed by absolute_file_name/[2,3].
+%! file_download(+Uri:atom, +File:atom) is det.
+%! file_download(+Uri:atom, +File:atom, +Options:list(compound)) is det.
 
-call_on_uri(UriSpec, Goal_3) :-
-  call_on_uri(UriSpec, Goal_3, []).
+file_download(Uri, File) :-
+  file_download(Uri, File, []).
 
 
-call_on_uri(UriSpec, Goal_3, Options) :-
-  uri_spec(UriSpec, read, Uri),
-  uri_components(Uri, uri_components(Scheme,_,_,_,_)),
-  call_on_uri_scheme(Scheme, Uri, Goal_3, Metadata, Options),
-  ignore(option(metadata(Metadata), Options)).
-
-uri_spec(uri(Uri), _, Uri) :- !.
-uri_spec(uri(Scheme,Authority,Segments,Query,Fragment), _, Uri) :- !,
-  uri_comps(Uri, uri(Scheme,Authority,Segments,Query,Fragment)).
-uri_spec(Uri, _, Uri) :-
-  uri_is_global(Uri), !.
-uri_spec(FileSpec, Mode, Uri) :-
-  absolute_file_name(FileSpec, File, [access(Mode),expand(true)]),
-  uri_file_name(Uri, File).
-
-call_on_uri_scheme(file, Uri, Goal_3, Metadata3, Options) :- !,
-  uri_file_name(Uri, File),
+file_download(Uri, File, Options1) :-
+  merge_options([status_code(Status)], Options1, Options2),
   setup_call_cleanup(
-    open(File, read, Stream, Options),
+    http_open(Uri, In, Options2),
     (
-      stream_ext:call_on_stream(Stream, Goal_3, [uri{mode:read,uri:Uri}],
-                                Metadata1, Options),
-      stream_hash_metadata(Stream, Metadata1, Metadata2, Options)
+      assertion(Status =:= 200),
+      setup_call_cleanup(
+        open(File, write, Out, [type(binary)]),
+        copy_stream_data(In, Out),
+        close(Out)
+      )
     ),
-    close(Stream)
-  ),
-  % Due to non-determinism, stream may or may not yet be closed..
-  (var(Metadata2) -> Metadata3 = Metadata1 ; Metadata3 = Metadata2).
-call_on_uri_scheme(http, Uri, Goal_3, Metadata, Options) :- !,
-  http_client2:call_on_http(Uri, Goal_3, Metadata, Options).
-call_on_uri_scheme(https, Uri, Goal_3, Metadata, Options) :-
-  call_on_uri_scheme(http, Uri, Goal_3, Metadata, Options).
-
-
-
-%! download(+UriSpec:term, +FileSpec:term) is det.
-%! download(+UriSpec:term, +FileSpec:term, +Options:list(compound)) is det.
-
-download(UriSpec, FileSpec) :-
-  download(UriSpec, FileSpec, []).
-
-
-download(UriSpec, FileSpec, Options1) :-
-  merge_options([decompression(false)], Options1, Options2),
-  call_on_uri(UriSpec, stream_to_file(FileSpec), Options2).
-
-%! stream_to_file(+File, +In:stream, +Metadata1:list(dict),
-%!                -Metadata2:list(dict)) is det.
-%
-% The file name File is based on the given Name, but supplemented by a
-% file extension that is based on the Media Type in the `Content-Type'
-% HTTP header (if present).
-
-stream_to_file(FileSpec, In, Metadata, Metadata) :-
-  (   metadata_content_type(Metadata, MediaType),
-      media_type_extension(MediaType, Extension)
-  ->  Options = [extensions([Extension])]
-  ;   Options = []
-  ),
-  absolute_file_name(FileSpec, File, [access(write)|Options]),
-  call_to_file(File, copy_stream_data(In), [compression(none),type(binary)]).
+    close(In)
+  ).
 
 
 

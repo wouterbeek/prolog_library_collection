@@ -3,8 +3,8 @@
   [
     call_on_xml/3,      % +In, +RecordNames, :Goal_1
     call_on_xml/4,      % +In, +RecordNames, :Goal_1, +Options
-    html_download/2,    % +UriSpec, -Dom
-    html_download/3,    % +UriSpec, -Dom, +Options
+    html_download/2,    % +Uri, -Dom
+    html_download/3,    % +Uri, -Dom, +Options
     html_insert_dom//1, % +Dom
     load_xml/2          % +Source, -Dom
   ]
@@ -13,16 +13,16 @@
 /** <module> XML extensions
 
 @author Wouter Beek
-@version 2016/06-2017/09
+@version 2016/06-2017/10
 */
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(c14n2)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_open)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
-:- use_module(library(uri/uri_ext)).
 
 :- meta_predicate
     call_on_xml(+, +, 1),
@@ -79,21 +79,25 @@ xml_clean_dom([], []).
 
 
 
-%! html_download(+UriSpec:term, -Dom:list(compound)) is det.
-%! html_download(+UriSpec:term, -Dom:list(compound),
-%!               +Options:list(compound)) is det.
+%! html_download(+Uri:atom, -Dom:list(compound)) is det.
+%! html_download(+Uri:atom, -Dom:list(compound), +Options:list(compound)) is det.
 
-html_download(UriSpec, Dom) :-
-  html_download(UriSpec, Dom, []).
+html_download(Uri, Dom) :-
+  html_download(Uri, Dom, []).
 
 
-html_download(UriSpec, Dom, Options) :-
-  call_on_uri(UriSpec, html_download_(Dom, Options), Options).
-
-html_download_(Dom2, Options1, In, Meta, Meta) :-
-  merge_options([encoding('utf-8'),max_errors(-1)], Options1, Options2),
-  load_html(In, Dom1, Options2),
-  clean_dom(Dom1, Dom2).
+html_download(Uri, Dom2, Options) :-
+  merge_options([status_code(Status)], Options, HttpOptions),
+  setup_call_cleanup(
+    http_open(Uri, In, HttpOptions),
+    (
+      assertion(Status =:= 200),
+      merge_options([encoding('utf-8'),max_errors(-1)], Options, HtmlOptions),
+      load_html(In, Dom1, HtmlOptions),
+      clean_dom(Dom1, Dom2)
+    ),
+    close(In)
+  ).
 
 
 

@@ -1,7 +1,7 @@
 :- module(
   archive_ext,
   [
-    archive_path/2 % +UriSpec, -Path
+    archive_path/3 % +File, -Path, +Options
   ]
 ).
 :- reexport(library(archive)).
@@ -9,17 +9,26 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2017/07
+@version 2017/07, 2017/10
 */
 
-:- use_module(library(stream_ext)).
-:- use_module(library(uri/uri_ext)).
 
 
 
 
+%! archive_path(+File:atom, -Path:list(dict), +Options:list(compound)) is nondet.
 
-%! archive_path(+UriSpec:compound, -Path:list(dict)) is nondet.
-
-archive_path(UriSpec, Metadata) :-
-  call_on_uri(UriSpec, true_metadata(Metadata)).
+archive_path(File, Path, Options) :-
+  setup_call_cleanup(
+    open(File, read, In, Options),
+    setup_call_cleanup(
+      archive_open(In, Archive, Options),
+      setup_call_cleanup(
+        archive_data_stream(Archive, In, [meta_data(Path)]),
+        true,
+        close(In)
+      ),
+      archive_close(Archive)
+    ),
+    close(In)
+  ).

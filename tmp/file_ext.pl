@@ -153,19 +153,6 @@ absolute_directory_name(Spec, Mode, Dir) :-
 
 
 
-%! cat(+UriSpecs:term, +FileSpec:term) is det.
-
-cat(UriSpecs, FileSpec) :-
-  call_to_file(FileSpec, cat_(UriSpecs)).
-
-cat_(UriSpecs, Out, M, M) :-
-  maplist(cat__(Out, M, M), UriSpecs).
-
-cat__(Out, M, M, UriSpec) :-
-  call_on_uri(UriSpec, {Out}/[In,M,M]>>copy_stream_data(In, Out)).
-
-
-
 %! create_date_directory(+Spec, -Dir) is det.
 %
 % Create and return the current date subdirectory of the given
@@ -613,24 +600,6 @@ thread_file(Base, File) :-
   % @note The thread name may not be a legal file name.
   md5_hash(ThreadName, Hash, []),
   file_name_extension(Base, Hash, File).
-
-
-
-%! wc(+UriSpec:compound, -NumberOfLines:nonneg) is det.
-
-wc(UriSpec, Lines) :-
-  call_on_uri(UriSpec, wc_(Lines)).
-
-wc_(Lines, In, M, M) :-
-  wc_(In, 0, Lines).
-
-wc_(In, Counter1, Lines) :-
-  read_line_to_codes(In, Codes),
-  (   Codes == end_of_file
-  ->  Lines = Counter1
-  ;   Counter2 is Counter1 + 1,
-      wc_(In, Counter2, Lines)
-  ).
 
 
 

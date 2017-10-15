@@ -3,13 +3,12 @@
   [
     append_directories/2,         % +Directories, -Directory
     append_directories/3,         % +Directory1, +Directory2, -Directory3
-    call_to_file/2,               % +File, :Goal_3
-    call_to_file/3,               % +File, :Goal_3, +Options
+    cat/2,                        % +Out, +Files
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
     convert_file/2,               % +File, +Format
-    convert_file/3,               % +File1, +Format, +File2
+    convert_file/3,               % +File1, +Format, ?File2
     create_directory/1,           % +Directory
     create_file_directory/1,      % +File
     delete_files_by_extension/1,  % +Extension
@@ -31,7 +30,6 @@
     recode_file/1,                % +File
     sort_file/1,                  % +File
     touch/1,                      % +File
-    uchardet_file/2,              % +File, -Enc
     wc/4,                         % +File, -Lines, -Words, -Bytes
     working_directory/1           % -Dir
   ]
@@ -56,11 +54,6 @@
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(zlib)).
-
-:- meta_predicate
-    call_to_file(+, 3),
-    call_to_file(+, 3, +),
-    call_to_file(+, 3, -, +).
 
 :- multifile
     error:has_type/2,
@@ -116,35 +109,16 @@ append_directories(Dir1, Dir2, Dir3) :-
 
 
 
-%! call_to_file(+File, :Goal_3) is det.
-%! call_to_file(+File, :Goal_3, +Options:list(compound)) is det.
-%
-% The following options are supported:
-%
-%   * mode(+oneof([append,write]))
-%
-%     Default is `write'.
-%
-%   * metadata(-list(dict))
-%
-%   * Other options are passed to open/4 and call_to_stream/4.
+%! cat(+Out:stream, +Files:list(atom)) is det.
 
-call_to_file(File, Goal_3) :-
-  call_to_file(File, Goal_3, []).
+cat(Out, Files) :-
+  maplist(cat_file(Out), Files).
 
-
-call_to_file(File, Goal_3, Options) :-
-  call_to_file(File, Goal_3, Metadata, Options),
-  ignore(option(metadata(Metadata), Options)).
-
-
-call_to_file(FileSpec, Goal_3, Metadata, Options) :-
-  option(mode(Mode), Options, write),
-  absolute_file_name(FileSpec, File, [access(Mode)]),
+cat_file(Out, File) :-
   setup_call_cleanup(
-    open(File, Mode, Out, Options),
-    stream_ext:call_to_stream(Out, Goal_3, Metadata, Options),
-    close(Out)
+    open(File, read, In),
+    copy_stream_data(In, Out),
+    close(In)
   ).
 
 
@@ -198,7 +172,7 @@ concatenate_files0([H|T], Out) :- !,
 
 
 %! convert_file(+File:atom, +Format:atom) is det.
-%! convert_file(+File1:atom, +Format:atom, +File2:atom) is det.
+%! convert_file(+File1:atom, +Format:atom, ?File2:atom) is det.
 %
 % @see Formats are ‘documented’ over at
 % https://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
@@ -208,16 +182,13 @@ convert_file(File, Format) :-
 
 
 convert_file(File1, Format, File2) :-
-  (   var(File2)
-  ->  file_name_extension(Base, _, File1),
-      file_name_extension(Base, Format, File2)
-  ;   true
-  ),
+  file_name_extension(Base, _, File1),
+  file_name_extension(Base, Format, File2),
   call_must_be(convert_format, Format),
   setup_call_cleanup(
     process_create(
       path(libreoffice),
-      ['--convert-to',Format,'--print-to-file',file(File2),file(File1)],
+      ['--convert-to',Format,file(File1)],%'--print-to-file',file(File2),file(File1)],
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
@@ -407,11 +378,14 @@ guess_file_encoding(File, Enc) :-
       thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
       read_string(ProcOut, String1),
       split_string(String1, "", "\n", [String2|_]),
-      downcase_atom(String2, Enc),
+      normalize_encoding(String2, Enc),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
-    close(ProcOut)
+    (
+      close(ProcErr),
+      close(ProcOut)
+    )
   ).
 
 
@@ -475,6 +449,31 @@ media_type_extension_(media(text/turtle,_), ttl).
 
 
 
+%! recode_file(+File:atom) is det.
+%
+% Recode to UTF-8 if File is a text file.
+
+recode_file(File1) :-
+  guess_file_encoding(File1, Enc),
+  file_name_extension(File1, recoding, File2),
+  setup_call_cleanup(
+    process_create(
+      path(iconv),
+      ['-f',Enc,'-t','utf-8','-o',file(File2),file(File1)],
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+    ),
+    (
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+      process_wait(Pid, exit(Status)),
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
+    ),
+    close(ProcOut)
+  ),
+  rename_file(File2, File1).
+
+
+
 %! resolve_subdirectories(+Subdirectories1:list(atom),
 %!                        -Subdirectories2:list(atom)) is det.
 %
@@ -491,42 +490,9 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 
 
-%! recode_file(+File:atom) is det.
-%
-% Recode to UTF-8 if File is a text file.
-
-recode_file(File1) :-
-  guess_file_encoding(File1, Enc),
-  file_name_extension(File1, recoding, File2),
-  setup_call_cleanup(
-    (
-      open(File1, read, In),
-      open(File2, write, Out)
-    ),
-    (
-      process_create(
-        path(iconv),
-        ['-f',Enc,'-t','utf-8','-o',file(File2),file(File1)],
-        [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-      ),
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-      thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    (
-      close(Out),
-      close(In)
-    )
-  ),
-  rename_file(File2, File1).
-
-
-
 %! sort_file(+File:atom) is det.
 
 sort_file(File1) :-
-  access_file(File1, read),
   file_name_extension(File1, sorting, File2),
   setup_call_cleanup(
     open(File2, write, Out),
@@ -555,34 +521,42 @@ sort_file(File1) :-
 %! touch(+File) is det.
 
 touch(File) :-
-  call_to_file(File, true_metadata).
-
-
-
-%! uchardet_file(+File:atom, -Encoding:atom) is det.
-
-uchardet_file(File, Enc) :-
-  access_file(File, read),
   setup_call_cleanup(
-    process_create(
-      path(uchardet),
-      [file(File)],
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-    ),
+    open(File, write, Out),
+    true,
+    close(Out)
+  ).
+
+
+
+%! wc(+File:atom, -Lines:nonneg) is det.
+%
+% Native implementation of line count.
+
+wc(File, Lines) :-
+  setup_call_cleanup(
+    open(File, read, In),
     (
-      thread_create(print_err(ProcErr, user_error), _, [detached(true)]),
-      read_string(ProcOut, String1),
-      split_string(String1, "", "\n", [String2|_]),
-      normalize_encoding(String2, Enc),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
+      Counter = count(0),
+      repeat,
+      read_line_to_codes(In, Codes),
+      (   Codes == end_of_file
+      ->  !,
+          arg(1, Counter, Lines)
+      ;   arg(1, Counter, Count1),
+          Count2 is Count1 + 1,
+          nb_setarg(1, Counter, Count2),
+          fail
+      )
     ),
-    close(ProcOut)
+    close(In)
   ).
 
 
 
 %! wc(+File:atom, -Lines:nonneg, -Words:nonneg, -Bytes:nonneg) is det.
+%
+% Linux-only parsing of GNU wc output.
 
 wc(File, Lines, Words, Bytes) :-
   process_create(
