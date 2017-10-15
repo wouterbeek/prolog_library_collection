@@ -31,7 +31,7 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2017/09
+@version 2017/06-2017/10
 */
 
 :- use_module(library(archive)).
@@ -41,7 +41,6 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(error)).
 :- use_module(library(file_ext), []).
 :- use_module(library(hash_stream)).
-:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
@@ -379,22 +378,35 @@ guess_stream_encoding(In, Encoding) :-
 %
 % `Encoding' is converted to lowercase.
 
-guess_string_encoding(String, Encoding2) :-
-  % Encoding is mentioned in the XML declaration.
-  string_phrase('XMLDecl'(_, Encoding1, _), String, _),
-  nonvar(Encoding1), !,
-  downcase_atom(Encoding1, Encoding2).
-guess_string_encoding(String, Encoding3) :-
+guess_string_encoding(String, Enc2) :-
+  % Enc is mentioned in the XML declaration.
+  string_phrase('XMLDecl'(_, Enc1, _), String, _),
+  nonvar(Enc1), !,
+  downcase_atom(Enc1, Enc2).
+guess_string_encoding(String, Enc) :-
   open_binary_string(String, In),
   setup_call_cleanup(
-    process_open(uchardet, In, Out),
-    (
-      read_string(Out, Encoding1),
-      split_string(Encoding1, "", "\n", [Encoding2|_])
+    process_create(
+      path(uchardet),
+      [],
+      [
+        process(Pid),
+        stderr(pipe(ProcErr)),
+        stdin(pipe(ProcIn)),
+        stdout(pipe(ProcOut))
+      ]
     ),
-    close(Out)
+    (
+      thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      read_string(ProcOut, String1),
+      split_string(String1, "", "\n", [String2|_]),
+      process_wait(Pid, exit(Status)),
+      process_status(Status)
+    ),
+    close(ProcOut)
   ),
-  downcase_atom(Encoding2, Encoding3).
+  downcase_atom(String2, Enc).
 
 
 
@@ -425,7 +437,8 @@ open_binary_string(Str, In) :-
 print_err(Err) :-
   call_cleanup(
     print_err_(Err),
-    close(Err)).
+    close(Err)
+  ).
 
 print_err_(Err) :-
   read_line_to_string(Err, String),
@@ -472,14 +485,27 @@ recode_stream(_, In, utf8, In) :-
 recode_stream(FromEnc, In, utf8, In) :-
   memberchk(FromEnc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
   set_stream(In, encoding(utf8)).
-recode_stream(FromEnc, In1, utf8, In2) :-
+recode_stream(FromEnc, In, utf8, ProcOut) :-
   indent_debug(1, encoding, "> ~a RECODE", [FromEnc]),
-  process_open(iconv, In1, ['-c','-f',FromEnc,'-t','utf-8'], In2).
+  process_create(
+    path(iconv),
+    ['-c','-f',FromEnc,'-t','utf-8'],
+    [
+      process(Pid),
+      stderr(pipe(ProcErr)),
+      stdin(pipe(ProcIn)),
+      stdout(pipe(ProcOut))
+    ]
+  ),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
+  process_wait(Pid, exit(Status)),
+  process_status(Status).
 
 
 
-%! sort_stream(+In1:stream, -In2:stream) is det.
-%! sort_stream(+In1:stream, -In2:stream, +Options:list(compound)) is det.
+%! sort_stream(+In:stream, -Out:stream) is det.
+%! sort_stream(+In:stream, -Out:stream, +Options:list(compound)) is det.
 %
 % @arg Options The following options are supported:
 %
@@ -518,19 +544,27 @@ recode_stream(FromEnc, In1, utf8, In2) :-
 %
 %        Whether the environment is set to UTF-8 encoding.  Default is
 %        `false'.
-%
-% Other options are passed to process_open/5.
 
-sort_stream(In1, In2) :-
-  sort_stream(In1, In2, []).
+sort_stream(In, Out) :-
+  sort_stream(In, Out, []).
 
 
-sort_stream(In1, In2, Options1) :-
+sort_stream(In, ProcOut, Options1) :-
   select_option(env(Env1), Options1, Options2, []),
   select_option(utf8(Utf8), Options2, Options3, false),
   (Utf8 == true -> Env2 = [] ; Env2 = ['LC_ALL'='C']),
   append(Env1, Env2, Env3),
-  merge_options([env(Env3)], Options3, Options4),
+  merge_options(
+    [
+      env(Env3),
+      process(Pid),
+      stderr(pipe(ProcErr)),
+      stdin(pipe(ProcIn)),
+      stdout(pipe(ProcOut))
+    ],
+    Options3,
+    Options4
+  ),
   (   \+ option(temporary_directory(_), Options3),
       setting(temporary_directory, Directory),
       ground(Directory)
@@ -538,7 +572,11 @@ sort_stream(In1, In2, Options1) :-
   ;   Arguments = Options3
   ),
   process_flags(sort_flag, Arguments, Flags),
-  process_open(sort, In1, Flags, In2, Options4).
+  process_create(path(sort), Flags, Options4),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
+  process_wait(Pid, exit(Status)),
+  process_status(Status).
 
 sort_flag(buffer_size(Size), Flag) :-
   must_be(nonneg, Size),

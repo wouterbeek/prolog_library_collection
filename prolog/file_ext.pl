@@ -21,9 +21,11 @@
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
+    guess_file_encoding/2,        % +File, -Enc
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     media_type_extension/2,       % +MediaType, -Extension
+    recode_file/1,                % +File
     sort_file/1,                  % +File
     touch/1,                      % +File
     uchardet_file/2,              % +File, -Enc
@@ -40,14 +42,10 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
-:- use_module(library(default)).
 :- use_module(library(error)).
-:- use_module(library(http/rfc7231)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(process)).
+:- use_module(library(os_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -354,6 +352,28 @@ file_to_string(File, String) :-
 
 
 
+%! guess_file_encoding(+File:atom, -Enc:atom) is det.
+
+guess_file_encoding(File, Enc) :-
+  setup_call_cleanup(
+    process_create(
+      path(uchardet),
+      [file(File)],
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+    ),
+    (
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      read_string(ProcOut, String1),
+      split_string(String1, "", "\n", [String2|_]),
+      downcase_atom(String2, Enc),
+      process_wait(Pid, exit(Status)),
+      process_status(Status)
+    ),
+    close(ProcOut)
+  ).
+
+
+
 %! is_dummy_file(+File:atom) is semidet.
 
 is_dummy_file(.).
@@ -401,11 +421,64 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 
 
-%! sort_file(+File) is det.
+%! recode_file(+File:atom) is det.
+%
+% Recode to UTF-8 if File is a text file.
 
-sort_file(FileSpec) :-
-  absolute_file_name(FileSpec, File, [access(read)]),
-  run_process(sort, ['-u','-o',file(File),file(File)], [env(['LC_ALL'='C'])]).
+recode_file(File1) :-
+  guess_file_encoding(File1, Enc),
+  file_name_extension(File1, recoding, File2),
+  setup_call_cleanup(
+    (
+      open(File1, read, In),
+      open(File2, write, Out)
+    ),
+    (
+      process_create(
+        path(iconv),
+        ['-f',Enc,'-t','utf-8','-o',file(File2),file(File1)],
+        [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+      ),
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
+      process_wait(Pid, exit(Status)),
+      process_status(Status)
+    ),
+    (
+      close(Out),
+      close(In)
+    )
+  ),
+  rename_file(File2, File1).
+
+
+
+%! sort_file(+File:atom) is det.
+
+sort_file(File1) :-
+  access_file(File1, read),
+  file_name_extension(File1, sorting, File2),
+  setup_call_cleanup(
+    open(File2, write, Out),
+    (
+      process_create(
+        path(sort),
+        ['-u','-o',file(File1),file(File2)],
+        [
+          env(['LC_ALL'='C']),
+          process(Pid),
+          stderr(pipe(ProcErr)),
+          stdout(pipe(ProcOut))
+        ]
+      ),
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
+      process_wait(Pid, exit(Status)),
+      process_status(Status)
+    ),
+    close(Out)
+  ),
+  rename_file(File1, File2).
 
 
 
@@ -418,16 +491,18 @@ touch(File) :-
 
 %! uchardet_file(+File, -Encoding:atom) is det.
 
-uchardet_file(FileSpec, Enc2) :-
-  absolute_file_name(FileSpec, File, [access(write)]),
+uchardet_file(File, Enc2) :-
+  access_file(File, read),
   setup_call_cleanup(
     (
       process_create(
         path(uchardet),
         [file(File)],
-        [stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+        [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
       ),
-      thread_create(print_err(ProcErr), _, [detached(true)])
+      thread_create(print_err(ProcErr), _, [detached(true)]),
+      process_wait(Pid, exit(Status)),
+      process_status(Status)
     ),
     (
       read_string(ProcOut, Encs),

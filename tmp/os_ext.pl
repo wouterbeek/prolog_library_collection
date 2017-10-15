@@ -56,14 +56,19 @@ gnu_wc(File, Lines) :-
 
 
 gnu_wc(File, Lines, Words, Bytes) :-
-  run_process(wc, [file(File)], gnu_wc_(Lines,Words,Bytes)).
-
-gnu_wc_(Lines, Words, Bytes, In) :-
-  read_stream_to_codes(In, Codes),
-  phrase(gnu_wc_(Lines, Words, Bytes), Codes, _Rest).
+  process_create(
+    path(wc),
+    [file(File)],
+    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+  ),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  read_stream_to_codes(ProcOut, Codes),
+  phrase(gnu_wc_out(Lines, Words, Bytes), Codes, _),
+  process_wait(Pid, exit(Status)),
+  process_status(Status).
 
 % E.g., `427  1818 13512 README.md`
-gnu_wc_(Lines, Words, Bytes) -->
+gnu_wc_out(Lines, Words, Bytes) -->
   whites,
   integer(Lines),
   whites,
@@ -78,17 +83,18 @@ gnu_wc_(Lines, Words, Bytes) -->
 % @see Requires ImageMagick.
 
 image_dimensions(File, Width, Height) :-
-  run_process(
-    identify,
+  process_create(
+    path(identify),
     [file(File)],
-    image_dimensions0(File, Width, Height)
-  ).
+    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+  ),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  read_stream_to_codes(ProcOut, Codes),
+  phrase(image_dimensions_out(File, Width, Height), Codes, _),
+  process_wait(Pid, exit(Status)),
+  process_status(Status).
 
-image_dimensions0(File, Width, Height, In) :-
-  read_stream_to_codes(In, Cs),
-  phrase(image_dimensions0(File, Width, Height), Cs).
-
-image_dimensions0(File, Width, Height) -->
+image_dimensions_out(File, Width, Height) -->
   atom(File),
   " ",
   ...,
@@ -118,7 +124,16 @@ renice(Pid, N) :-
   with_mutex(process_id,(
     (   process_id(Pid)
     ->  must_be(between(-20,19), N),
-        run_process(renice, [10,Pid])
+        process_create(
+          path(renice),
+          [10,Pid],
+          [process(Pid0),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+        ),
+        thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+        thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+        read_stream_to_codes(ProcOut, Codes),
+        process_wait(Pid, exit(Status)),
+        process_status(Status)
     ;   existence_error(process, Pid)
     )
   )).

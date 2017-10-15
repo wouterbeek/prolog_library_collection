@@ -55,7 +55,7 @@ exists_remote_file(remote_file(User,Machine,File)):-
 make_remote_directory(remote_file(User,Machine,Dir)):-
   atomic_list_concat([User,Machine], '@', UserMachine),
   atomic_list_concat([ssh,UserMachine,mkdir,Dir], ' ', Command),
-  run_process(sh, ['-c',Command], [program(Command)]).
+  process_create(path(sh), ['-c',Command], []).
 
 
 

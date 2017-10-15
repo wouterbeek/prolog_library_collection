@@ -52,7 +52,7 @@ r_plot(Rows) :-
 
 r_plot(Rows, Opts) :-
   r_plot(Rows, File, Opts),
-  run_process(eog, [file(File)]).
+  open_pdf(File).
 
 
 r_plot(Rows, File, Opts) :-
