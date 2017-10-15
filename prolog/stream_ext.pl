@@ -10,7 +10,6 @@
     read_line_to_atom/2,     % +In, -Atom
   % HELPER PREDICATES
     normalize_encoding/2,    % +Encoding1, -Encoding2
-    print_err/1,             % +Err
     recode_stream/3,         % +FromEnc, +In1, -In2
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
     stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
@@ -402,7 +401,7 @@ guess_string_encoding(String, Enc) :-
       read_string(ProcOut, String1),
       split_string(String1, "", "\n", [String2|_]),
       process_wait(Pid, exit(Status)),
-      process_status(Status)
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
     close(ProcOut)
   ),
@@ -426,27 +425,6 @@ encoding_alias(utf8, 'utf-8').
 open_binary_string(Str, In) :-
   open_string(Str, In),
   set_stream(In, type(binary)).
-
-
-
-%! print_err(+Err:stream) is det.
-%
-% Print content from an error stream using
-% `print_message(warning,err(<STRING>))'.
-
-print_err(Err) :-
-  call_cleanup(
-    print_err_(Err),
-    close(Err)
-  ).
-
-print_err_(Err) :-
-  read_line_to_string(Err, String),
-  (   String == end_of_file
-  ->  true
-  ;   print_message(warning, err(String)),
-      print_err_(Err)
-  ).
 
 
 
@@ -500,7 +478,7 @@ recode_stream(FromEnc, In, utf8, ProcOut) :-
   thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
   thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
   process_wait(Pid, exit(Status)),
-  process_status(Status).
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
 
 
@@ -576,7 +554,7 @@ sort_stream(In, ProcOut, Options1) :-
   thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
   thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
   process_wait(Pid, exit(Status)),
-  process_status(Status).
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
 sort_flag(buffer_size(Size), Flag) :-
   must_be(nonneg, Size),

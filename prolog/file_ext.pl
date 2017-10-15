@@ -8,6 +8,8 @@
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
+    convert_file/2,               % +File, +Format
+    convert_file/3,               % +File1, +Format, +File2
     create_directory/1,           % +Directory
     create_file_directory/1,      % +File
     delete_files_by_extension/1,  % +Extension
@@ -22,6 +24,7 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     guess_file_encoding/2,        % +File, -Enc
+    image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     media_type_extension/2,       % +MediaType, -Extension
@@ -29,6 +32,7 @@
     sort_file/1,                  % +File
     touch/1,                      % +File
     uchardet_file/2,              % +File, -Enc
+    wc/4,                         % +File, -Lines, -Words, -Bytes
     working_directory/1           % -Dir
   ]
 ).
@@ -42,10 +46,12 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(call_ext)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library(os_ext)).
+:- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -188,6 +194,42 @@ concatenate_files0([H|T], Out) :- !,
     close(In)
   ),
   concatenate_files0(T, Out).
+
+
+
+%! convert_file(+File:atom, +Format:atom) is det.
+%! convert_file(+File1:atom, +Format:atom, +File2:atom) is det.
+%
+% @see Formats are ‘documented’ over at
+% https://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
+
+convert_file(File, Format) :-
+  convert_file(File, Format, _).
+
+
+convert_file(File1, Format, File2) :-
+  (   var(File2)
+  ->  file_name_extension(Base, _, File1),
+      file_name_extension(Base, Format, File2)
+  ;   true
+  ),
+  call_must_be(convert_format, Format),
+  setup_call_cleanup(
+    process_create(
+      path(libreoffice),
+      ['--convert-to',Format,'--print-to-file',file(File2),file(File1)],
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+    ),
+    (
+      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+      process_wait(Pid, exit(Status)),
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
+    ),
+    close(ProcOut)
+  ).
+
+convert_format(csv).
 
 
 
@@ -367,10 +409,38 @@ guess_file_encoding(File, Enc) :-
       split_string(String1, "", "\n", [String2|_]),
       downcase_atom(String2, Enc),
       process_wait(Pid, exit(Status)),
-      process_status(Status)
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
     close(ProcOut)
   ).
+
+
+
+%! image_dimensions(+File, -Dimensions:pair(float)) is det.
+%
+% @see Requires ImageMagick.
+
+image_dimensions(File, Width-Height) :-
+  process_create(
+    path(identify),
+    [file(File)],
+    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+  ),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  read_stream_to_codes(ProcOut, Codes),
+  phrase(image_dimensions_out(File, Width, Height), Codes, _),
+  process_wait(Pid, exit(Status)),
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+
+image_dimensions_out(File, Width, Height) -->
+  atom(File),
+  " ",
+  ...,
+  " ",
+  integer(Width),
+  "x",
+  integer(Height),
+  done.
 
 
 
@@ -442,7 +512,7 @@ recode_file(File1) :-
       thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
       thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
       process_wait(Pid, exit(Status)),
-      process_status(Status)
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
     (
       close(Out),
@@ -474,7 +544,7 @@ sort_file(File1) :-
       thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
       thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
       process_wait(Pid, exit(Status)),
-      process_status(Status)
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
     close(Out)
   ),
@@ -489,28 +559,51 @@ touch(File) :-
 
 
 
-%! uchardet_file(+File, -Encoding:atom) is det.
+%! uchardet_file(+File:atom, -Encoding:atom) is det.
 
-uchardet_file(File, Enc2) :-
+uchardet_file(File, Enc) :-
   access_file(File, read),
   setup_call_cleanup(
-    (
-      process_create(
-        path(uchardet),
-        [file(File)],
-        [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-      ),
-      thread_create(print_err(ProcErr), _, [detached(true)]),
-      process_wait(Pid, exit(Status)),
-      process_status(Status)
+    process_create(
+      path(uchardet),
+      [file(File)],
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      read_string(ProcOut, Encs),
-      split_string(Encs, "", "\n", [Enc1|_])
+      thread_create(print_err(ProcErr, user_error), _, [detached(true)]),
+      read_string(ProcOut, String1),
+      split_string(String1, "", "\n", [String2|_]),
+      normalize_encoding(String2, Enc),
+      process_wait(Pid, exit(Status)),
+      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
     close(ProcOut)
+  ).
+
+
+
+%! wc(+File:atom, -Lines:nonneg, -Words:nonneg, -Bytes:nonneg) is det.
+
+wc(File, Lines, Words, Bytes) :-
+  process_create(
+    path(wc),
+    [file(File)],
+    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  normalize_encoding(Enc1, Enc2).
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  read_stream_to_codes(ProcOut, Codes),
+  phrase(wc_out(Lines, Words, Bytes), Codes, _),
+  process_wait(Pid, exit(Status)),
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+
+% E.g., `427  1818 13512 README.md`
+wc_out(Lines, Words, Bytes) -->
+  whites,
+  integer(Lines),
+  whites,
+  integer(Words),
+  whites,
+  integer(Bytes).
 
 
 

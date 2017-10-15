@@ -16,8 +16,7 @@
     debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
     indent_debug_call/3,        % +Flag, +Format, :Goal_0
-    number_of_open_files/1,     % -NunOpenFiles
-    print_error/1               % +Error:compound
+    number_of_open_files/1      % -NunOpenFiles
   ]
 ).
 :- reexport(library(debug)).

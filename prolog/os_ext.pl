@@ -1,13 +1,11 @@
 :- module(
   os_ext,
   [
-    convert_to/2,     % +Format, +File
     exists_program/1, % +Program
     open_pdf/1,       % +File
     os/1,             % ?Os
     os_path/1,        % ?Directory
-    process_flags/3,  % :Goal_2, +Args, -Flags
-    process_status/1  % +Status
+    process_flags/3   % :Goal_2, +Args, -Flags
   ]
 ).
 
@@ -18,42 +16,14 @@
 */
 
 :- use_module(library(call_ext)).
-:- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(process)).
 :- use_module(library(stream_ext)).
-:- use_module(library(yall)).
 
 :- meta_predicate
     process_flags(2, +, -).
 
 
-
-
-
-%! convert_to(+Format:atom, +File:atom) is det.
-%
-% @see Formats are ‘documented’ over at
-% https://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
-
-convert_to(Format, File) :-
-  call_must_be(convert_format, Format),
-  setup_call_cleanup(
-    process_create(
-      path(libreoffice),
-      ['--convert-to',Format,file(File)],
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-    ),
-    (
-      thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
-      thread_create(print_err(ProcErr), _, [detached(true)]),
-      process_wait(Pid, exit(Status)),
-      process_status(Status)
-    ),
-    close(ProcOut)
-  ).
-
-convert_format(csv).
 
 
 
@@ -137,11 +107,3 @@ process_flags(Goal_2, [H1|T1], [H2|T2]) :-
   process_flags(Goal_2, T1, T2).
 process_flags(Goal_2, [_|T], L) :-
   process_flags(Goal_2, T, L).
-
-
-
-%! process_status(+Status:nonneg) is det.
-
-process_status(0) :- !.
-process_status(Status) :-
-  print_message(warning, process_status(Status)).
