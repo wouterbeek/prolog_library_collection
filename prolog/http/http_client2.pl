@@ -213,10 +213,12 @@ http_open2(CurrentUri, In, Options) :-
   ->  true
   ;   read_stream_to_codes(In, Codes),
       string_codes(Message, Codes),
+      %  Map the failure code to `fail', but throw an error for other
+      %  error codes.
       (   Status =:= Failure
       ->  print_message(informational, http_status(Status,Message)),
           fail
-      ;   print_message(warning, http_status(Status,Message))
+      ;   throw(error(http_status(Status)))
       )
   ).
 
