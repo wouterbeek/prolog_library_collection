@@ -100,6 +100,11 @@ empty_pagination(Options, Page) :-
 %
 %     The results that are held by this Page.
 %
+%   * single_page(boolean)
+%
+%     A dirty hack to allow ‘pagination’ of one page, i.e., without
+%     ‘next’ links.
+%
 %   * total_number_of_results(nonneg)
 %
 %     The total number of results, independent of pagination.  This is
@@ -129,7 +134,8 @@ pagination(Templ, Goal_0, Options1, Page2) :-
     number_of_results: NumResults,
     page_number: CurrentPageNumber1,
     page_size: PageSize,
-    results: Results
+    results: Results,
+    single_page: false
   },
   merge_dicts(Options2, Page1, Page2).
 pagination(_, _, Options, Page) :-
@@ -162,6 +168,7 @@ pagination_bulk(Goal_1, Options1, Page2) :-
     page_number: PageNumber,
     page_size: PageSize,
     results: Results,
+    single_page: false,
     total_number_of_results: TotalNumberOfResults
   },
   merge_dicts(Options2, Page1, Page2).
@@ -175,6 +182,8 @@ pagination_bulk(Goal_1, Options1, Page2) :-
 % Since we do not know the total number of results, the last page may
 % be empty.
 
+pagination_is_at_end(Page) :-
+  _{single_page: true} :< Page, !.
 pagination_is_at_end(Page) :-
   Page.number_of_results < Page.page_size.
 
