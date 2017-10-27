@@ -28,6 +28,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
+:- use_module(library(file_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
