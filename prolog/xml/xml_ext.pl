@@ -64,7 +64,10 @@ on_begin0(Elem, Attr, Parser) :-
   memberchk(Elem, Elems), !,
   sgml_parse(Parser, [document(Dom1),parse(content)]),
   xml_clean_dom(Dom1, Dom2),
-  call(Goal_1, [element(Elem,Attr,Dom2)]).
+  (   call(Goal_1, [element(Elem,Attr,Dom2)])
+  ->  true
+  ;   print_message(warning, xml_error(element(Elem,Attr,Dom2)))
+  ).
 
 xml_clean_dom([element(Elem,Attr,Dom1)|T1], [element(Elem,Attr,Dom2)|T2]) :- !,
   xml_clean_dom(Dom1, Dom2),
