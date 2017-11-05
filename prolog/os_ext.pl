@@ -15,15 +15,10 @@
 @version 2017/04-2017/10
 */
 
-:- use_module(library(call_ext)).
-:- use_module(library(option)).
 :- use_module(library(process)).
-:- use_module(library(stream_ext)).
 
 :- meta_predicate
     process_flags(2, +, -).
-
-
 
 
 
@@ -52,10 +47,10 @@ open_pdf(File) :-
     [file(File)],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  thread_create(copy_data_stream(ProcErr, user_error), _, [detached(true)]),
-  thread_create(copy_data_stream(ProcOut, user_output), _, [detached(true)]),
+  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
   process_wait(Pid, exit(Status)),
-  process_status(Status).
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
 
 
