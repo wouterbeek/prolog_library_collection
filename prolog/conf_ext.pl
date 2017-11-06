@@ -14,7 +14,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(http/json)).
 :- use_module(library(option)).
-:- use_module(library(os_ext)).
 
 
 

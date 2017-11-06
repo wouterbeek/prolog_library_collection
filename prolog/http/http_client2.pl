@@ -208,7 +208,6 @@ http_open2(CurrentUri, In, Options) :-
   )),
   option(success(Success), Options, 200),
   option(failure(Failure), Options, 400),
-  must_be(oneof([Success,Failure]), Status),
   (   Status =:= Success
   ->  true
   ;   read_stream_to_codes(In, Codes),
@@ -218,7 +217,8 @@ http_open2(CurrentUri, In, Options) :-
       (   Status =:= Failure
       ->  print_message(informational, http_status(Status,Message)),
           fail
-      ;   throw(error(http_status(Status)))
+      ;   print_message(warning, http_status(Status,Message)),
+          throw(error(http_status(Status)))
       )
   ).
 
