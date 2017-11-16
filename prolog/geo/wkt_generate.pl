@@ -8,12 +8,11 @@
 
 /** <module> Well-Known Text (WKT): Generator
 
-@version 2016/11, 2017/02-2017/05
+@version 2016/11, 2017/02-2017/05, 2017/11
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
-:- use_module(library(uri/rfc3986)).
 
 :- meta_predicate
     'wkt+'(3, -, ?, ?),
@@ -357,7 +356,7 @@ wkt_generate(Shape) -->
 wkt_generate(Z, LRS, Crs, Shape) -->
   (   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
   ->  ""
-  ;   "<", 'URI'(Crs), "> "
+  ;   "<", atom(Crs), "> "
   ),
   wkt_representation(Z, LRS, Shape).
 
