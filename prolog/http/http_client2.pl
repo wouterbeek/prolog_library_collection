@@ -112,8 +112,15 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 
 
 
-%! http_call(+Uri:atom, :Goal_1) is det.
-%! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is det.
+%! http_call(+Uri:atom, :Goal_1) is nondet.
+%! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is nondet.
+%
+% Uses URIs that appear with the ‘next’ keyword in HTTP Link headers
+% to non-deterministically call Goal_1 for all subsequent input
+% streams.
+%
+% Detects cycles in HTTP Link header referals, in which case the
+% cyclic_link_header/1 is thrown.
 %
 % The following call is made: `call(Goal_1, In)'.
 
@@ -123,7 +130,8 @@ http_call(Uri, Goal_1) :-
 
 http_call(FirstUri, Goal_1, Options1) :-
   State = state(FirstUri),
-  % CHECK: Non-deterministically enumerate over ‘next’ links.
+  % Non-deterministically enumerate over URIs that appear in HTTP Link
+  % headers with the ‘next’ keyword.
   repeat,
   State = state(CurrentUri),
   merge_options([next(NextUri)], Options1, Options2),
@@ -154,6 +162,20 @@ http_head2(Uri, Options1) :-
 
 %! http_open2(+CurrentUri:atom, -In:stream) is det.
 %! http_open2(+CurrentUri:atom, -In:stream, +Options:list(compound)) is det.
+%
+% Alternative to http_open/3 in the SWI standard library with the
+% following additons:
+%
+%   * Allows Prolog truth/failure to be bound to HTTP status codes
+%   (e.g., Prolog truth = HTTP status code 201 for creation requests).
+%   For HTTP status codes that bind to neither truth nor falsity, an
+%   exception http_status/1 is thrown.
+%
+%   * If present, returns the URI that appears in the HTTP Link header
+%   with the ‘next’ key.  These next URIs must be used in sequent
+%   requests in order to retrieve a full result set.
+%
+%   * Returns full meta-data, including all HTTP headers.
 %
 % @arg Meta A list of dictionaries, each of which describing an
 %      HTTP(S) request/reply interaction as well metadata about the
