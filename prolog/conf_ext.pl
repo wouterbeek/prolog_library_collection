@@ -23,7 +23,8 @@
 
 conf_json(Conf) :-
   cli_arguments(Args),
-  option(conf(File), Args),
+  option(conf(File0), Args),
+  expand_file_name(File0, [File|_]),
   setup_call_cleanup(
     open(File, read, In),
     json_read_dict(In, Conf, [value_string_as(atom)]),
