@@ -1,7 +1,7 @@
 :- module(
   math_ext,
   [
-    average/2,            % +Numbers, -Average
+    avg_list/2,            % +Numbers, -Avg
     between/4,            % +Low, +High, +Interval, ?Value
     decimal_parts/3,      % ?Decimal, ?Integer, ?Fractorial
     fractional_integer/2, % +Number, -Fractorial
@@ -27,28 +27,28 @@
 
 
 
-%! average(+Numbers:list(number), +Average:number) is semidet.
-%! average(+Numbers:list(number), -Average:number) is det.
+%! avg_list(+Numbers:list(number), +Avg:number) is semidet.
+%! avg_list(+Numbers:list(number), -Avg:number) is det.
 %
 % # Examples
 %
 % ```prolog
-% ?- average([1 rdiv 3, 1 rdiv 6], X).
+% ?- avg_list([1 rdiv 3, 1 rdiv 6], X).
 % X = 1 rdiv 4.
 % ```
 %
 % # Special cases
 %
-% Average is the integer 0 in case Numbers is the empty list.  This is
+% Avg is the integer 0 in case Numbers is the empty list.  This is
 % in line with how sum_list/2 works.
 %
 % @throws instantiation_error if Numbers is non-ground.
 
-average([], 0):- !.
-average(L, Average):-
+avg_list([], 0):- !.
+avg_list(L, Avg):-
   sum_list(L, Sum),
   length(L, N),
-  Average is Sum / N.
+  Avg is Sum / N.
 
 
 
