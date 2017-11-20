@@ -138,6 +138,10 @@ graphviz_export(Method, Format, File, Goal_1) :-
 
 
 %! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
+%
+% Open a GraphViz input stream but no GraphViz output stream.  This is
+% used when _no_ export needs to be created, but content is for
+% example displayed temporarily inside an application.
 
 graphviz_open(Method, Format, ProcIn) :-
   call_must_be(method, Method),
@@ -151,6 +155,10 @@ output_format_none(Format) :-
 
 %! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream,
 %!               -ProcOut:stream) is det.
+%
+% Open a GraphViz input stream _and_ a GraphViz output stream.  The
+% input stream expects statments in the DOT language.  The output
+% stream will be in the indicated Format.
 %
 % @arg Method The algorithm used by GraphViz for positioning the tree
 %             nodes.
