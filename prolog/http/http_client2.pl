@@ -4,6 +4,7 @@
     http_call/2,  % +Uri, :Goal_1
     http_call/3,  % +Uri, :Goal_1, +Options
     http_head2/2, % +Uri, +Options
+    http_lmod/2,  % +Uri, -Time
     http_open2/2, % +CurrentUri, -In
     http_open2/3  % +CurrentUri, -In, +Options
   ]
@@ -68,7 +69,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/10
+@version 2017/05-2017/11
 */
 
 :- use_module(library(apply)).
@@ -82,7 +83,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/http_cookie), []).
 :- use_module(library(http/http_exception)).
 :- use_module(library(http/http_generic)).
-:- use_module(library(http/http_open), []).
+:- use_module(library(http/http_open)).
 :- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc7230)).
 :- use_module(library(http/rfc7231)).
@@ -160,13 +161,31 @@ http_head2(Uri, Options1) :-
 
 
 
+%! http_lmod(+Uri:atom, -Time:float) is det.
+
+http_lmod(Uri, Time) :-
+  http_open(
+    Uri,
+    In,
+    [header(last_modified,Time),method(head),status_code(Status)]
+  ),
+  call_cleanup(
+    (
+      assertion(Status =:= 200),
+      assertion(at_end_of_stream(In))
+    ),
+    close(In)
+  ).
+
+
+
 %! http_open2(+CurrentUri:atom, -In:stream) is det.
 %! http_open2(+CurrentUri:atom, -In:stream, +Options:list(compound)) is det.
 %
 % Alternative to http_open/3 in the SWI standard library with the
 % following additons:
 %
-%   * Allows Prolog truth/failure to be bound to HTTP status codes
+%   * Allows Prolog truth/falsity to be bound to HTTP status codes
 %   (e.g., Prolog truth = HTTP status code 201 for creation requests).
 %   For HTTP status codes that bind to neither truth nor falsity, an
 %   exception http_status/1 is thrown.
