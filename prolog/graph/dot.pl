@@ -122,15 +122,17 @@ dot_attribute(Name, Value, Attr) :-
 %! graphviz_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
 
 graphviz_export(Method, Format, File, Goal_1) :-
+  output_format(Format, Type),
   setup_call_cleanup(
-    open(File, write, Out),
-    (
-      setup_call_cleanup(
-        graphviz_open(Method, Format, ProcIn, ProcOut),
+    open(File, write, Out, [type(Type)]),
+    setup_call_cleanup(
+      graphviz_open(Method, Format, ProcIn, ProcOut),
+      (
         call(Goal_1, ProcIn),
-        close(ProcIn)
+        close(ProcIn),
+        copy_stream_data(ProcOut, Out)
       ),
-      copy_stream_data(ProcOut, Out)
+      close(ProcOut)
     ),
     close(Out)
   ).
