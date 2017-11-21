@@ -95,6 +95,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
 :- use_module(library(uri/uri_ext)).
+:- use_module(library(xml/xsd_dt)).
 
 :- meta_predicate
     http_call(+, 1),
@@ -167,7 +168,7 @@ http_lmod(Uri, Time) :-
   http_open(
     Uri,
     In,
-    [header(last_modified,Time),method(head),status_code(Status)]
+    [header(last_modified,LastModified),method(head),status_code(Status)]
   ),
   call_cleanup(
     (
@@ -175,7 +176,9 @@ http_lmod(Uri, Time) :-
       assertion(at_end_of_stream(In))
     ),
     close(In)
-  ).
+  ),
+  once(atom_phrase('last-modified'(DT), LastModified)),
+  timeOnTimeline(DT, Time).
 
 
 

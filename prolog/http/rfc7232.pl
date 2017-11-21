@@ -1,7 +1,8 @@
 :- module(
   rfc7232,
   [
-    'entity-tag'//1 % -Tag:pair(atom,boolean)
+    'entity-tag'//1,   % -Tag:pair(atom,boolean)
+    'last-modified'//1 % -Time
   ]
 ).
 
