@@ -21,7 +21,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017/04-2017/11
 */
 
 :- use_module(library(apply)).
@@ -30,6 +30,7 @@
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
+:- use_module(library(hash_ext)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
