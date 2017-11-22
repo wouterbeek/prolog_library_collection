@@ -15,10 +15,8 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(arithmetic)).
-:- use_module(library(date_time)).
 :- use_module(library(default)).
-:- use_module(library(semweb/rdf11)).
-:- use_module(library(xml/xsd)).
+:- use_module(library(semweb/rdf_api)).
 
 :- arithmetic_function(xsd_div/2).
 
@@ -144,49 +142,49 @@ daysInMonth(_, _, 31).
 %         Timeline”.
 
 
-timeOnTimeline(dt(Y1,Mo1,D1,H1,Mi1,S1,Off), N) :-
-  % yr be 1971 when dt's year is absent, and dt's year - 1 otherwise.
+timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
+  % Let ‘yr’ be 1971 when dt's year is absent, and (dt's year)-1
+  % otherwise.
   (var(Y1) -> Y2 = 1971 ; Y2 is Y1 - 1),
-  % mo be 12 or dt's month, similarly.
+  % Let ‘mo’ be 12 or (dt's month), similarly.
   defval(Mo1, 12, Mo2),
-  % da be daysInMonth(yr + 1, mo) - 1 or (dt's day) - 1, similarly.
-  Y2_succ is Y2 + 1,
+  % Let ‘da’ be daysInMonth(yr+1,mo)-1 or (dt's day)-1, similarly.
+  Y3 is Y2 + 1,
   (   var(D1)
-  ->  daysInMonth(Y2_succ, Mo2, D2_succ),
-      D2 is D2_succ - 1
+  ->  daysInMonth(Y3, Mo2, D3),
+      D2 is D3 - 1
   ;   D2 is D1 - 1
   ),
-  % hr be 0 or dt's hour, similarly.
-  defval(0, H1),
-  % mi be 0 or dt's minute, similarly.
+  % Let ‘hr’ be 0 or (dt's hour), similarly.
+  defval(0, H),
+  % Let ‘mi’ be 0 or (dt's minute), similarly.
   defval(0, Mi1),
-  % se be 0 or dt's second, similarly.
-  defval(0, S1),
-  % Subtract timezoneOffset from mi when timezoneOffset is not absent.
+  % Let ‘se’ be 0 or (dt's second), similarly.
+  defval(0, S),
+  % Subtract ‘timezoneOffset’ from ‘mi’ when ‘timezoneOffset’ is not
+  % absent.
   (var(Off) -> Mi2 = Mi1 ; Mi2 is Mi1 - Off),
-  % Add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl.
-  Mo2_pred is Mo2 - 1,
+  % Set ToTl to 31536000 × yr.
+  ToTl1 is 31536000 * Y2,
+  % Leap-year, month, and day.
+  % Add 86400 ⨯ (yr div 400 - yr div 100 + yr div 4) to ToTl.
+  ToTl2 is ToTl1 + 86400 * ((Y2 xsd_div 400) - (Y2 xsd_div 100) + (Y2 xsd_div 4)),
+  % Add 86400 × Sum_{m < mo} daysInMonth(yr+1,m) to ToTl.
+  Mo3 is Mo2 - 1,
   aggregate_all(
-    sum(D_aggr),
+    sum(D0),
     (
-      between(1, Mo2_pred, Mo2_iterator),
-      daysInMonth(Y2, Mo2_iterator, D_aggr)
+      between(1, Mo3, Mo0),
+      daysInMonth(Y3, Mo0, D0)
     ),
     DaysInMonth
   ),
-  N is % Set ToTl to 31536000 × yr.
-       31536000 * Y2
-       % Leap-year Days: add 86400 × (yr div 400 - yr div 100 + yr div
-       % 4) to ToTl.
-       + 86400 * ((Y2 xsd_div 400) - (Y2 xsd_div 100) + (Y2 xsd_div 4))
-       % Month: add 86400 × Sum_{m < mo} daysInMonth(yr + 1, m) to ToTl
-       + 86400 * DaysInMonth
-       % Day: add 86400 × da to ToTl
-       + 86400 * D2
-       % Hour, minute, second: add 3600 × hr + 60 × mi + se to ToTl
-       + 3600 * H1
-       + 60 * Mi2
-       + S1.
+  ToTl3 is ToTl2 + 86400 * DaysInMonth,
+  % Add 86400 ⨯ ‘da’ to ToTl.
+  ToTl4 is ToTl3 + 86400 * D2,
+  % Hour, minute, and second.
+  % Add 3600 ⨯ hr + 60 ⨯ mi + se to ToTl.
+  ToTl5 is ToTl4 + 3600 * H + 60 * Mi2 + S.
 
 
 
