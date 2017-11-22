@@ -73,21 +73,16 @@ merge_separable_header(Key-[H|T], Key-H) :-
 */
 
 :- use_module(library(apply)).
-:- use_module(library(atom_ext)).
-:- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
-:- use_module(library(http/http_exception)).
+
 :- use_module(library(http/http_generic)).
 :- use_module(library(http/http_open)).
-:- use_module(library(http/rfc5988)).
 :- use_module(library(http/rfc7230)).
-:- use_module(library(http/rfc7231)).
-:- use_module(library(http/rfc7232)).
 :- use_module(library(http/rfc7233)).
 :- use_module(library(http/rfc7234)).
 :- use_module(library(http/rfc7235)).
@@ -95,7 +90,6 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
 :- use_module(library(uri/uri_ext)).
-:- use_module(library(xml/xsd_dt)).
 
 :- meta_predicate
     http_call(+, 1),
@@ -177,8 +171,7 @@ http_lmod(Uri, Time) :-
     ),
     close(In)
   ),
-  once(atom_phrase('last-modified'(DT), LastModified)),
-  timeOnTimeline(DT, Time).
+  parse_time(LastModified, Time).
 
 
 
@@ -317,7 +310,7 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ;   true
   ),
   http_open2_meta(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
-                   Retries, Visited, In2, Dicts).
+                  Retries, Visited, In2, Dicts).
 
 debug_header(Key-Values) :-
   maplist(debug_header(Key), Values).
@@ -332,18 +325,18 @@ http_open2_meta(_, In, _, _, Status, _, _, _, _, _, []) :-
   print_message(warning, http_error_code(Status)).
 % non-authentication error
 http_open2_meta(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
-                 NumRetries1-MaxRetries, Visited, In2, Dicts) :-
+                NumRetries1-MaxRetries, Visited, In2, Dicts) :-
   between(400, 599, Status), !,
   NumRetries2 is NumRetries1 + 1,
   (   NumRetries2 >= MaxRetries
   ->  In2 = In1,
       Dicts = []
   ;   http_open2_meta(Uri, In2, Options, MaxHops, MaxRepeats,
-                       NumRetries2-MaxRetries, Visited, Dicts)
+                      NumRetries2-MaxRetries, Visited, Dicts)
   ).
 % redirect
 http_open2_meta(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats,
-                 Retries, Visited1, In2, Dicts) :-
+                Retries, Visited1, In2, Dicts) :-
   between(300, 399, Status), !,
   close(In1),
   uri_resolve(Location, Uri1, Uri2),
@@ -360,7 +353,7 @@ http_open2_meta(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats,
       Dicts = [],
       print_message(warning, http_redirect_loop(Uri2))
   ;   http_open2_meta(Uri2, In2, Options, MaxHops, MaxRepeats, Retries,
-                       Visited2, Dicts)
+                      Visited2, Dicts)
   ).
 % succes
 http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
