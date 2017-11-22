@@ -1,6 +1,7 @@
 :- module(
   uri_ext,
   [
+    append_segments/3,     % +Segments1, +Segments2, -Segments3
     file_download/2,       % +Uri, +File
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
@@ -49,6 +50,16 @@ error:has_type(uri, Term):-
   ground(uri(Scheme,Authority,Path)).
 
 
+
+
+
+%! append_segments(+Segments1:list(atom), +Segments2:list(atom),
+%!                 -Segments3:list(atom)) is det.
+
+append_segments([''|L1], L2, L3) :- !,
+  append(L1, L2, L3).
+append_segments(L1, L2, L3) :-
+  append(L1, L2, L3).
 
 
 
