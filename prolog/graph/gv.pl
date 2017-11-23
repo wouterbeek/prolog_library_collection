@@ -1,23 +1,24 @@
 :- module(
-  dot,
+  gv,
   [
     dot_edge/3,            % +Out, +FromId, +ToId
     dot_edge/4,            % +Out, +FromId, +ToId. +Attrs
     dot_id/2,              % +Term, -Id
     dot_node/3,            % +Out, +Id, +Attrs
-    graphviz_export/2,     % +File, :Goal_1
-    graphviz_export/4,     % +Method, +Format, +File, :Goal_1
-    graphviz_media_type/2, % ?Format, ?Type
-    graphviz_open/1,       % -ProcIn
-    graphviz_open/2,       % -ProcIn, -ProcOut
-    graphviz_open/3,       % +Method, +Format, -ProcIn
-    graphviz_open/4,       % +Method, +Format, -ProcIn, -ProcOut
-    graphviz_show/1,       % :Goal_1
-    graphviz_show/3        % +Method, +Format, :Goal_1
+    gv_export/2,     % +File, :Goal_1
+    gv_export/4,     % +Method, +Format, +File, :Goal_1
+    gv_media_type/2, % ?Format, ?Type
+    gv_open/1,       % -ProcIn
+    gv_open/2,       % -ProcIn, -ProcOut
+    gv_open/3,       % +Method, +Format, -ProcIn
+    gv_open/4,       % +Method, +Format, -ProcIn, -ProcOut
+    gv_reply/3,      % +Method, +MediaType, :Goal_1
+    gv_show/1,       % :Goal_1
+    gv_show/3        % +Method, +Format, :Goal_1
   ]
 ).
 
-/** <module> DOT
+/** <module> GraphViz
 
 # Grammar for DOT HTML-like labels
 
@@ -64,10 +65,11 @@ cell:   <TD> label </TD>
     output_format/2.
 
 :- meta_predicate
-    graphviz_export(+, 1),
-    graphviz_export(+, +, +, 1),
-    graphviz_show(1),
-    graphviz_show(+, +, 1).
+    gv_export(+, 1),
+    gv_export(+, +, +, 1),
+    gv_reply(+, +, 1),
+    gv_show(1),
+    gv_show(+, +, 1).
 
 :- setting(default_export_format, atom, pdf, "The default format for exporting graphs.").
 :- setting(default_method, atom, dot, "The default method for generating graphs.").
@@ -131,21 +133,21 @@ dot_attribute(Name, Value, Attr) :-
 
 
 
-%! graphviz_export(+File:atom, :Goal_1) is det.
-%! graphviz_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
+%! gv_export(+File:atom, :Goal_1) is det.
+%! gv_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
 
-graphviz_export(File, Goal_1) :-
+gv_export(File, Goal_1) :-
   setting(default_method, Method),
   setting(default_show_format, Format),
-  graphviz_export(Method, Format, File, Goal_1).
+  gv_export(Method, Format, File, Goal_1).
 
 
-graphviz_export(Method, Format, File, Goal_1) :-
+gv_export(Method, Format, File, Goal_1) :-
   output_format(Format, Type),
   setup_call_cleanup(
     open(File, write, Out, [type(Type)]),
     setup_call_cleanup(
-      graphviz_open(Method, Format, ProcIn, ProcOut),
+      gv_open(Method, Format, ProcIn, ProcOut),
       (
         call(Goal_1, ProcIn),
         close(ProcIn),
@@ -158,35 +160,35 @@ graphviz_export(Method, Format, File, Goal_1) :-
 
 
 
-%! graphviz_media_type(?Format:atom, ?Type:compound) is nondet.
+%! gv_media_type(?Format:atom, ?Type:compound) is nondet.
 
-graphviz_media_type(bmp, image/bmp).
-graphviz_media_type(gif, image/gif).
-graphviz_media_type(jpeg, image/jpeg).
-graphviz_media_type(json, application/json).
-graphviz_media_type(pdf, application/pdf).
-graphviz_media_type(png, image/png).
-graphviz_media_type(ps, application/postscript).
-graphviz_media_type(dot, text/'vnd.graphviz').
-graphviz_media_type(svg, image/'svg+xml').
-graphviz_media_type(tiff, image/tiff).
+gv_media_type(bmp, image/bmp).
+gv_media_type(gif, image/gif).
+gv_media_type(jpeg, image/jpeg).
+gv_media_type(json, application/json).
+gv_media_type(pdf, application/pdf).
+gv_media_type(png, image/png).
+gv_media_type(ps, application/postscript).
+gv_media_type(dot, text/'vnd.graphviz').
+gv_media_type(svg, image/'svg+xml').
+gv_media_type(tiff, image/tiff).
 
 
 
-%! graphviz_open(-ProcIn:stream) is det.
-%! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
+%! gv_open(-ProcIn:stream) is det.
+%! gv_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
 %
 % Open a GraphViz input stream but no GraphViz output stream.  This is
 % used when _no_ export needs to be created, but content is for
 % example displayed temporarily inside an application.
 
-graphviz_open(ProcIn) :-
+gv_open(ProcIn) :-
   setting(default_method, Method),
   setting(default_show_format, Format),
-  graphviz_open(Method, Format, ProcIn).
+  gv_open(Method, Format, ProcIn).
 
 
-graphviz_open(Method, Format, ProcIn) :-
+gv_open(Method, Format, ProcIn) :-
   call_must_be(method, Method),
   call_must_be(output_format_none, Format),
   process_create(path(Method), ['-T',Format], [stdin(pipe(ProcIn))]).
@@ -196,8 +198,8 @@ output_format_none(Format) :-
 
 
 
-%! graphviz_open(-ProcIn:stream, -ProcOut:stream) is det.
-%! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream,
+%! gv_open(-ProcIn:stream, -ProcOut:stream) is det.
+%! gv_open(+Method:atom, +Format:atom, -ProcIn:stream,
 %!               -ProcOut:stream) is det.
 %
 % Open a GraphViz input stream _and_ a GraphViz output stream.  The
@@ -213,13 +215,13 @@ output_format_none(Format) :-
 %
 % @type_error if Format is not a value of output_format/1.
 
-graphviz_open(ProcIn, ProcOut) :-
+gv_open(ProcIn, ProcOut) :-
   setting(default_method, Method),
   setting(default_show_format, Format),
-  graphviz_show(Method, Format, ProcIn, ProcOut).
+  gv_show(Method, Format, ProcIn, ProcOut).
 
 
-graphviz_open(Method, Format, ProcIn, ProcOut) :-
+gv_open(Method, Format, ProcIn, ProcOut) :-
   call_must_be(method, Method),
   call_must_be(output_format_not_none, Format),
   output_format(Format, Type),
@@ -236,18 +238,31 @@ output_format_not_none(Format) :-
 
 
 
-%! graphviz_show(:Goal_1) is det.
-%! graphviz_show(+Method, +Format, :Goal_1) is det.
+%! gv_reply(+Method:atom, +MediaType:compound, :Goal_1) is det.
 
-graphviz_show(Goal_1) :-
+gv_reply(Method, media(Supertype/Subtype,_), Goal_1) :-
+  format("Content-Type: ~a/~a\n\n", [Supertype,Subtype]),
+  gv_media_type(Format, Supertype/Subtype),
+  gv_open(Method, Format, ProcIn, ProcOut),
+  call(Goal_1, ProcIn),
+  close(ProcIn),
+  copy_stream_data(ProcOut, current_output),
+  close(ProcOut).
+
+
+
+%! gv_show(:Goal_1) is det.
+%! gv_show(+Method, +Format, :Goal_1) is det.
+
+gv_show(Goal_1) :-
   setting(default_method, Method),
   setting(default_show_format, Format),
-  graphviz_show(Method, Format, Goal_1).
+  gv_show(Method, Format, Goal_1).
 
 
-graphviz_show(Method, Format, Goal_1) :-
+gv_show(Method, Format, Goal_1) :-
   setup_call_cleanup(
-    graphviz_open(Method, Format, ProcIn),
+    gv_open(Method, Format, ProcIn),
     call(Goal_1, ProcIn),
     close(ProcIn)
   ).
