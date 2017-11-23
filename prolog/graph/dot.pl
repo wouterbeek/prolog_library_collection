@@ -5,9 +5,13 @@
     dot_edge/4,        % +Out, +FromId, +ToId. +Attrs
     dot_id/2,          % +Term, -Id
     dot_node/3,        % +Out, +Id, +Attrs
+    graphviz_export/2, % +File, :Goal_1
     graphviz_export/4, % +Method, +Format, +File, :Goal_1
+    graphviz_open/1,   % -ProcIn
+    graphviz_open/2,   % -ProcIn, -ProcOut
     graphviz_open/3,   % +Method, +Format, -ProcIn
     graphviz_open/4,   % +Method, +Format, -ProcIn, -ProcOut
+    graphviz_show/1,   % :Goal_1
     graphviz_show/3    % +Method, +Format, :Goal_1
   ]
 ).
@@ -44,7 +48,7 @@ cell:   <TD> label </TD>
 ```
 
 @author Wouter Beek
-@version 2017/08-2017/10
+@version 2017/08-2017/11
 */
 
 :- use_module(library(call_ext)).
@@ -52,14 +56,21 @@ cell:   <TD> label </TD>
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
 :- use_module(library(process)).
+:- use_module(library(settings)).
 
 :- discontiguous
     output_format/1,
     output_format/2.
 
 :- meta_predicate
+    graphviz_export(+, 1),
     graphviz_export(+, +, +, 1),
+    graphviz_show(1),
     graphviz_show(+, +, 1).
+
+:- setting(default_export_format, atom, pdf, "The default format for exporting graphs.").
+:- setting(default_method, atom, dot, "The default method for generating graphs.").
+:- setting(default_show_program, atom, gtk, "The default external program used for viewing graphs.").
 
 
 
@@ -119,7 +130,14 @@ dot_attribute(Name, Value, Attr) :-
 
 
 
+%! graphviz_export(+File:atom, :Goal_1) is det.
 %! graphviz_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
+
+graphviz_export(File, Goal_1) :-
+  setting(default_method, Method),
+  setting(default_show_format, Format),
+  graphviz_export(Method, Format, File, Goal_1).
+
 
 graphviz_export(Method, Format, File, Goal_1) :-
   output_format(Format, Type),
@@ -139,11 +157,18 @@ graphviz_export(Method, Format, File, Goal_1) :-
 
 
 
+%! graphviz_open(-ProcIn:stream) is det.
 %! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
 %
 % Open a GraphViz input stream but no GraphViz output stream.  This is
 % used when _no_ export needs to be created, but content is for
 % example displayed temporarily inside an application.
+
+graphviz_open(ProcIn) :-
+  setting(default_method, Method),
+  setting(default_show_format, Format),
+  graphviz_open(Method, Format, ProcIn).
+
 
 graphviz_open(Method, Format, ProcIn) :-
   call_must_be(method, Method),
@@ -155,6 +180,7 @@ output_format_none(Format) :-
 
 
 
+%! graphviz_open(-ProcIn:stream, -ProcOut:stream) is det.
 %! graphviz_open(+Method:atom, +Format:atom, -ProcIn:stream,
 %!               -ProcOut:stream) is det.
 %
@@ -170,6 +196,12 @@ output_format_none(Format) :-
 % @type_error if Method is not a value of method/1.
 %
 % @type_error if Format is not a value of output_format/1.
+
+graphviz_open(ProcIn, ProcOut) :-
+  setting(default_method, Method),
+  setting(default_show_format, Format),
+  graphviz_show(Method, Format, ProcIn, ProcOut).
+
 
 graphviz_open(Method, Format, ProcIn, ProcOut) :-
   call_must_be(method, Method),
@@ -188,7 +220,14 @@ output_format_not_none(Format) :-
 
 
 
+%! graphviz_show(:Goal_1) is det.
 %! graphviz_show(+Method, +Format, :Goal_1) is det.
+
+graphviz_show(Goal_1) :-
+  setting(default_method, Method),
+  setting(default_show_format, Format),
+  graphviz_show(Method, Format, Goal_1).
+
 
 graphviz_show(Method, Format, Goal_1) :-
   setup_call_cleanup(
@@ -198,6 +237,10 @@ graphviz_show(Method, Format, Goal_1) :-
   ).
 
 
+
+
+
+% SETTINGS %
 
 %! method(?Method:atom) is nondet.
 
