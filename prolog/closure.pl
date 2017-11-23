@@ -1,9 +1,11 @@
 :- module(
   closure,
   [
-    path_closure/3, % :Goal_2, ?X, ?Y
-    path_closure/4, % :Goal_2, ?X, ?Y, -Path
-    path_distance/4 % :Goal_2, ?X, ?Y. -N
+    path_closure/3,  % :Goal_2, ?X, ?Y
+    path_closure/4,  % :Goal_2, ?X, ?Y, -Path
+    path_closure0/3, % :Goal_2, ?X, ?Y
+    path_closure0/4, % :Goal_2, ?X, ?Y, -Path
+    path_distance/4  % :Goal_2, ?X, ?Y. -N
   ]
 ).
 
@@ -18,8 +20,10 @@
 :- meta_predicate
     path_closure(2, ?, ?),
     path_closure(2, ?, ?, -),
-    path_closure1(2, +, -, +, -),
-    path_closure2(2, -, +, +, -),
+    path_closure0(2, ?, ?),
+    path_closure0(2, ?, ?, -),
+    path_closure_1(2, +, -, +, -),
+    path_closure_2(2, -, +, +, -),
     path_distance(2, -, +, -),
     path_distance1(2, +, -, +, +, -),
     path_distance2(2, -, +, +, +, -).
@@ -28,33 +32,65 @@
 
 
 
-%! path_closure(:Goal_2, -Y, +X) is nondet.
-%! path_closure(:Goal_2, -Y, +X, -Path:list) is nondet.
+%! path_closure(:Goal_2, +X, +Y) is semidet.
+%! path_closure(:Goal_2, +X, -Y) is nondet.
+%! path_closure(:Goal_2, -X, +Y) is nondet.
+%! path_closure(:Goal_2, +X, +Y, -Path:list) is semidet.
+%! path_closure(:Goal_2, +X, -Y, -Path:list) is nondet.
+%! path_closure(:Goal_2, -X, +Y, -Path:list) is nondet.
+%
+% Transitive closure over X or Y.
 
 path_closure(Goal_2, X, Y) :-
   path_closure(Goal_2, X, Y, _).
 
 
-path_closure(Goal_2, X, Y, Path) :-
+path_closure(Goal_2, X, Z, Path) :-
   ground(X), !,
-  path_closure1(Goal_2, X, Y, [X], Path).
-path_closure(Goal_2, X, Y, Path) :-
-  ground(Y), !,
-  path_closure2(Goal_2, X, Y, [X], Path).
+  call(Goal_2, X, Y),
+  path_closure_1(Goal_2, Y, Z, [X,Y], Path).
+path_closure(Goal_2, X, Z, Path) :-
+  ground(Z), !,
+  call(Goal_2, Y, Z),
+  path_closure_2(Goal_2, X, Y, [Y,Z], Path).
 path_closure(_, X, Y, _) :-
   instantiation_error(args(X,Y)).
 
-path_closure1(_, X, X, Path, Path).
-path_closure1(Goal_2, X, Z, Hist, Path) :-
+
+
+%! path_closure0(:Goal_2, +X, +Y) is semidet.
+%! path_closure0(:Goal_2, +X, -Y) is nondet.
+%! path_closure0(:Goal_2, -X, +Y) is nondet.
+%! path_closure0(:Goal_2, +X, +Y, -Path:list) is semidet.
+%! path_closure0(:Goal_2, +X, -Y, -Path:list) is nondet.
+%! path_closure0(:Goal_2, -X, +Y, -Path:list) is nondet.
+%
+% Reflexive-transitive closure over X or Y.
+
+path_closure0(Goal_2, X, Y) :-
+  path_closure0(Goal_2, X, Y, _).
+
+
+path_closure0(Goal_2, X, Y, Path) :-
+  ground(X), !,
+  path_closure_1(Goal_2, X, Y, [X], Path).
+path_closure0(Goal_2, X, Y, Path) :-
+  ground(Y), !,
+  path_closure_2(Goal_2, X, Y, [Y], Path).
+path_closure0(_, X, Y, _) :-
+  instantiation_error(args(X,Y)).
+
+path_closure_1(_, X, X, Path, Path).
+path_closure_1(Goal_2, X, Z, Hist, Path) :-
   call(Goal_2, X, Y),
   \+ memberchk(Y, Hist),
-  path_closure1(Goal_2, Y, Z, [Y|Hist], Path).
+  path_closure_1(Goal_2, Y, Z, [Y|Hist], Path).
 
-path_closure2(_, X, X, Path, Path).
-path_closure2(Goal_2, Z, X, Hist, Path) :-
+path_closure_2(_, X, X, Path, Path).
+path_closure_2(Goal_2, Z, X, Hist, Path) :-
   call(Goal_2, Y, X),
   \+ memberchk(Y, Hist),
-  path_closure2(Goal_2, Z, Y, [Y|Hist], Path).
+  path_closure_2(Goal_2, Z, Y, [Y|Hist], Path).
 
 
 
