@@ -1,18 +1,19 @@
 :- module(
   dot,
   [
-    dot_edge/3,        % +Out, +FromId, +ToId
-    dot_edge/4,        % +Out, +FromId, +ToId. +Attrs
-    dot_id/2,          % +Term, -Id
-    dot_node/3,        % +Out, +Id, +Attrs
-    graphviz_export/2, % +File, :Goal_1
-    graphviz_export/4, % +Method, +Format, +File, :Goal_1
-    graphviz_open/1,   % -ProcIn
-    graphviz_open/2,   % -ProcIn, -ProcOut
-    graphviz_open/3,   % +Method, +Format, -ProcIn
-    graphviz_open/4,   % +Method, +Format, -ProcIn, -ProcOut
-    graphviz_show/1,   % :Goal_1
-    graphviz_show/3    % +Method, +Format, :Goal_1
+    dot_edge/3,            % +Out, +FromId, +ToId
+    dot_edge/4,            % +Out, +FromId, +ToId. +Attrs
+    dot_id/2,              % +Term, -Id
+    dot_node/3,            % +Out, +Id, +Attrs
+    graphviz_export/2,     % +File, :Goal_1
+    graphviz_export/4,     % +Method, +Format, +File, :Goal_1
+    graphviz_media_type/2, % ?Format, ?Type
+    graphviz_open/1,       % -ProcIn
+    graphviz_open/2,       % -ProcIn, -ProcOut
+    graphviz_open/3,       % +Method, +Format, -ProcIn
+    graphviz_open/4,       % +Method, +Format, -ProcIn, -ProcOut
+    graphviz_show/1,       % :Goal_1
+    graphviz_show/3        % +Method, +Format, :Goal_1
   ]
 ).
 
@@ -154,6 +155,21 @@ graphviz_export(Method, Format, File, Goal_1) :-
     ),
     close(Out)
   ).
+
+
+
+%! graphviz_media_type(?Format:atom, ?Type:compound) is nondet.
+
+graphviz_media_type(bmp, image/bmp).
+graphviz_media_type(gif, image/gif).
+graphviz_media_type(jpeg, image/jpeg).
+graphviz_media_type(json, application/json).
+graphviz_media_type(pdf, application/pdf).
+graphviz_media_type(png, image/png).
+graphviz_media_type(ps, application/postscript).
+graphviz_media_type(dot, text/'vnd.graphviz').
+graphviz_media_type(svg, image/'svg+xml').
+graphviz_media_type(tiff, image/tiff).
 
 
 
