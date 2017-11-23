@@ -2,9 +2,9 @@
   debug_ext,
   [
     format_debug/3, % +Flag, +Out, +Pattern
-    format_debug/4, % +Flag, +Out, +Pattern, +Arguments
+    format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
-    indent_debug/4  % +Mode, +Flag, +Format, +Arguments
+    indent_debug/4  % +Mode, +Flag, +Format, +Args
   ]
 ).
 :- reexport(library(debug)).
@@ -29,33 +29,33 @@ debug_indent(0).
 
 %! format_debug(+Flag, +Out:stream, +Pattern:string) is det.
 %! format_debug(+Flag, +Out:stream, +Pattern:string,
-%!              +Arguments:list(term)) is det.
+%!              +Args:list(term)) is det.
 
 format_debug(Flag, Out, Pattern) :-
   format_debug(Flag, Out, Pattern, []).
 
 
-format_debug(Flag, Out, Pattern, Arguments) :-
+format_debug(Flag, Out, Pattern, Args) :-
   string_concat(Pattern, "\n", PatternNewline),
-  format(Out, PatternNewline, Arguments),
-  debug(Flag, Pattern, Arguments).
+  format(Out, PatternNewline, Args),
+  debug(Flag, Pattern, Args).
 
 
 
 %! indent_debug(+Mode:oneof([-1,0,1]), +Flag:compound, +Format:string) is det.
 %! indent_debug(+Mode:oneof([-1,0,1]), +Flag:compound, +Format:string,
-%!              +Arguments:list(term)) is det.
+%!              +Args:list(term)) is det.
 
 indent_debug(Mode, Flag, Format) :-
   indent_debug(Mode, Flag, Format, []).
 
 
-indent_debug(Mode, Flag, Format, Arguments) :-
+indent_debug(Mode, Flag, Format, Args) :-
   debugging(Flag), !,
   must_be(oneof([-1,0,1]), Mode),
   (retract(debug_indent(N1)) -> N2 is max(0, N1 + Mode) ; N2 = Mode),
   assert(debug_indent(N2)),
-  format(string(Msg1), Format, Arguments),
+  format(string(Msg1), Format, Args),
   (Mode =:= -1 -> N = N1 ; N = N2),
   dcg_with_output_to(string(Msg2), msg1(Mode, N, Msg1)),
   debug(Flag, Msg2, []).
