@@ -13,8 +13,6 @@
     call_stats/3,           % :Select_1, :Goal_1, -Stats
     call_stats_n/3,         % +Repeats, :Goal_0, -Stats
     call_when_ground/1,     % :Goal_0
-    closure/3,              % :Goal_2, +From, -To
-    closure0/3,             % :Goal_2, +From, -To
     is_det/1,               % :Goal_0
     true/1,                 % ?Arg1
     true/2,                 % ?Arg1, ?Arg2
@@ -46,9 +44,6 @@
     call_stats(1, 1, -),
     call_stats_n(+, 0, -),
     call_when_ground(0),
-    closure(2, +, -),
-    closure0(2, +, -),
-    closure0(2, +, -, +),
     is_det(0).
 
 
@@ -292,43 +287,6 @@ update_average(Key, State, Avg) :-
 
 call_when_ground(Goal_0) :-
   when(ground(Goal_0), Goal_0).
-
-
-
-%! closure(:Goal_2, +X, -Y) is nondet.
-%
-% Calculates the transitive closure of `Goal_2`.
-%
-% @author Ulrich Neumerkel
-%
-% @see http://stackoverflow.com/questions/26964782/determining-if-graph-is-connected-in-prolog/26965843?noredirect=1#comment42472120_26965843
-%
-% @see http://stackoverflow.com/questions/15473065/hilog-terms-in-xsb-prolog/15483764#15483764
-
-closure(Goal_2, X, Z):-
-  call(Goal_2, X, Y),
-  closure0(Goal_2, Y, Z, [X,Y]).
-
-
-
-%! closure0(:Goal_2, +X, -Y) is multi.
-%
-% Calculates the transitive-reflexive closure of `Goal_2`.
-%
-% @author Ulrich Neumerkel
-%
-% @see http://stackoverflow.com/questions/26964782/determining-if-graph-is-connected-in-prolog/26965843?noredirect=1#comment42472120_26965843
-%
-% @see http://stackoverflow.com/questions/26946133/definition-of-reflexive-transitive-closure
-
-closure0(Goal_2, X, Y):-
-  closure0(Goal_2, X, Y, [X]).
-
-closure0(_, X, X, _).
-closure0(Goal_2, X, Z, Hist):-
-  call(Goal_2, X, Y),
-  maplist(dif(Y), Hist),
-  closure0(Goal_2, Y, Z, [Y|Hist]).
 
 
 
