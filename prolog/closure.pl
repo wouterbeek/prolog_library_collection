@@ -1,11 +1,13 @@
 :- module(
   closure,
   [
-    path_closure/3,  % :Goal_2, ?X, ?Y
-    path_closure/4,  % :Goal_2, ?X, ?Y, -Path
-    path_closure0/3, % :Goal_2, ?X, ?Y
-    path_closure0/4, % :Goal_2, ?X, ?Y, -Path
-    path_distance/4  % :Goal_2, ?X, ?Y. -N
+    leave_closure/3,  % :Goal_2, ?X, ?Y
+    leave_closure0/3, % :Goal_2, ?X, ?Y
+    path_closure/3,   % :Goal_2, ?X, ?Y
+    path_closure/4,   % :Goal_2, ?X, ?Y, -Path
+    path_closure0/3,  % :Goal_2, ?X, ?Y
+    path_closure0/4,  % :Goal_2, ?X, ?Y, -Path
+    path_distance/4   % :Goal_2, ?X, ?Y. -N
   ]
 ).
 
@@ -18,6 +20,8 @@
 :- use_module(library(error)).
 
 :- meta_predicate
+    leave_closure(2, ?, ?),
+    leave_closure0(2, ?, ?),
     path_closure(2, ?, ?),
     path_closure(2, ?, ?, -),
     path_closure0(2, ?, ?),
@@ -29,6 +33,50 @@
     path_distance2(2, -, +, +, +, -).
 
 
+
+
+
+%! leave_closure(:Goal_2, +X, +Y) is semidet.
+%! leave_closure(:Goal_2, +X, -Y) is nondet.
+%! leave_closure(:Goal_2, -X, +Y) is nondet.
+
+leave_closure(Goal_2, X, Z) :-
+  ground(X), !,
+  call(Goal_2, X, Y),
+  leave_closure_1(Goal_2, Y, Z, [X,Y]).
+leave_closure(Goal_2, X, Z) :-
+  ground(Z), !,
+  call(Goal_2, Y, Z),
+  leave_closure_2(Goal_2, X, Y, [Y,Z]).
+leave_closure(_, X, Y) :-
+  instantiation_error(args(X,Y)).
+
+
+
+%! leave_closure0(:Goal_2, +X, +Y) is semidet.
+%! leave_closure0(:Goal_2, +X, -Y) is nondet.
+%! leave_closure0(:Goal_2, -X, +Y) is nondet.
+
+leave_closure0(Goal_2, X, Y) :-
+  ground(X), !,
+  leave_closure_1(Goal_2, X, Y, [X]).
+leave_closure0(Goal_2, X, Y) :-
+  ground(Y), !,
+  leave_closure_2(Goal_2, X, Y, [Y]).
+leave_closure0(_, X, Y) :-
+  instantiation_error(args(X,Y)).
+
+leave_closure_1(Goal_2, X, Z, Hist) :-
+  call(Goal_2, X, Y),
+  \+ memberchk(Y, Hist), !,
+  leave_closure_1(Goal_2, Y, Z, [Y|Hist]).
+leave_closure_1(_, X, X, _).
+
+leave_closure_2(Goal_2, X, Z, Hist) :-
+  call(Goal_2, Y, Z),
+  \+ memberchk(Y, Hist), !,
+  leave_closure_2(Goal_2, X, Y, [Y|Hist]).
+leave_closure_2(_, X, X, _).
 
 
 
