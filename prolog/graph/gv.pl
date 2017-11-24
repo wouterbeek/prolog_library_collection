@@ -1,20 +1,20 @@
 :- module(
   gv,
   [
-    dot_edge/3,            % +Out, +FromId, +ToId
-    dot_edge/4,            % +Out, +FromId, +ToId. +Attrs
-    dot_id/2,              % +Term, -Id
-    dot_node/3,            % +Out, +Id, +Attrs
-    gv_export/2,     % +File, :Goal_1
-    gv_export/4,     % +Method, +Format, +File, :Goal_1
-    gv_media_type/2, % ?Format, ?Type
-    gv_open/1,       % -ProcIn
-    gv_open/2,       % -ProcIn, -ProcOut
-    gv_open/3,       % +Method, +Format, -ProcIn
-    gv_open/4,       % +Method, +Format, -ProcIn, -ProcOut
-    gv_reply/3,      % +Method, +MediaType, :Goal_1
-    gv_show/1,       % :Goal_1
-    gv_show/3        % +Method, +Format, :Goal_1
+    dot_edge/3,  % +Out, +FromId, +ToId
+    dot_edge/4,  % +Out, +FromId, +ToId. +Attrs
+    dot_id/2,    % +Term, -Id
+    dot_node/3,  % +Out, +Id, +Attrs
+    gv_export/2, % +File, :Goal_1
+    gv_export/4, % +Method, +Format, +File, :Goal_1
+    gv_format/1, % ?Format
+    gv_open/1,   % -ProcIn
+    gv_open/2,   % -ProcIn, -ProcOut
+    gv_open/3,   % +Method, +Format, -ProcIn
+    gv_open/4,   % +Method, +Format, -ProcIn, -ProcOut
+    gv_reply/3,  % +Method, +MediaType, :Goal_1
+    gv_show/1,   % :Goal_1
+    gv_show/3    % +Method, +Format, :Goal_1
   ]
 ).
 
@@ -57,6 +57,7 @@ cell:   <TD> label </TD>
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
+:- use_module(library(os_ext)).
 :- use_module(library(process)).
 :- use_module(library(settings)).
 
@@ -160,18 +161,18 @@ gv_export(Method, Format, File, Goal_1) :-
 
 
 
-%! gv_media_type(?Format:atom, ?Type:compound) is nondet.
+%! gv_format(?Format:atom) is nondet.
 
-gv_media_type(bmp, image/bmp).
-gv_media_type(gif, image/gif).
-gv_media_type(jpeg, image/jpeg).
-gv_media_type(json, application/json).
-gv_media_type(pdf, application/pdf).
-gv_media_type(png, image/png).
-gv_media_type(ps, application/postscript).
-gv_media_type(dot, text/'vnd.graphviz').
-gv_media_type(svg, image/'svg+xml').
-gv_media_type(tiff, image/tiff).
+gv_format(bmp).
+gv_format(dot).
+gv_format(gif).
+gv_format(jpeg).
+gv_format(json).
+gv_format(pdf).
+gv_format(png).
+gv_format(ps).
+gv_format(svg).
+gv_format(tiff).
 
 
 
@@ -242,7 +243,8 @@ output_format_not_none(Format) :-
 
 gv_reply(Method, media(Supertype/Subtype,_), Goal_1) :-
   format("Content-Type: ~a/~a\n\n", [Supertype,Subtype]),
-  gv_media_type(Format, Supertype/Subtype),
+  format_media_type(Format, Supertype/Subtype),
+  assertion(gv_format(Format)),
   gv_open(Method, Format, ProcIn, ProcOut),
   call(Goal_1, ProcIn),
   close(ProcIn),

@@ -1,24 +1,33 @@
 :- module(
   os_ext,
   [
-    exists_program/1, % +Program
-    open_pdf/1,       % +File
-    os/1,             % ?Os
-    os_path/1,        % ?Directory
-    process_flags/3   % :Goal_2, +Args, -Flags
+    exists_program/1,    % +Program
+    file_format/2,       % ?Format, ?Programs
+    file_format/3,       % ?Format, ?MediaType, ?Programs
+    format_media_type/2, % ?Format, ?MediaType
+    open_format/2,       % +Format, +File
+    os/1,                % ?Os
+    os_path/1,           % ?Directory
+    process_flags/3      % :Goal_2, +Args, -Flags
   ]
 ).
 
 /** <module> OS extensions
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017/04-2017/11
 */
 
 :- use_module(library(process)).
 
+:- discontiguous
+    file_format/2,
+    file_format/3.
+
 :- meta_predicate
     process_flags(2, +, -).
+
+
 
 
 
@@ -33,15 +42,79 @@ exists_program(Program) :-
 
 
 
-%! open_pdf(+File:atom) is det.
+%! file_format(?Format:atom, ?Programs:list(atom)) is nondet.
+%! file_format(?Format:atom, ?MediaType:compound,
+%!             ?Programs:list(atom)) is nondet.
+
+file_format(Format, Programs) :-
+  file_format(Format, _, Programs).
+
+
+% Windows Bitmap [Microsoft]
+file_format(bmp, image/bmp, [eog]).
+file_format(dot, text/'vnd.graphviz', []).
+% Graphics Interchange Format (GIF) [CompuServe]
+file_format(gif, image/gif, [eog]).
+% Windows Icon [Microsoft]
+% Microsoft uses Media Type ‘image/x-icon’.
+file_format(ico, image/'vnd.microsoft.icon', [eog]).
+% Joint Photographic Experts Group (JPEG) [ISO]
+file_format(jpeg, image/jpeg, [eog]).
+% JavaScript Object Notation (JSON)
+file_format(json, application/json, []).
+% PiCture EXchange [ZSoft Corporation]
+% Native file format of PC Paintbrush.
+file_format(pcx, image/'vnd.zbrush.pcx', [eog]).
+% Portable Network Graphics (PNG)
+file_format(png, image/png, [eog]).
+% Portable Bitmap Format (PBM)
+file_format(pbm, image/'x-portable-bitmap', []).
+% Portable Graymap Format (PGM)
+file_format(pgm, image/'x-portable-graymap', []).
+% Portable Pixmap Format (PPM)
+file_format(ppm, image/'x-portable-pixmap', []).
+% Portable Anymap Format (PNM)
+file_format(pnm, image/'x-portable-anymap', [eog]).
+% Portable Document Format (PDF)
+file_format(pdf, application/pdf, [evince,xpdf]).
+% PostScript (PS)
+file_format(ps, application/postscript, []).
+% Sun Raster [Sun Microsystems]
+file_format(ras, [eog]).
+% Scalable Vector Graphics (SVG) [W3C]
+file_format(svg, image/'svg+xml', [eog]).
+% Truevision Advanced Raster Graphics Adapter (TARGA) [Truevision
+% Inc.]
+file_format(tga, image/'x-targa', [eog]).
+% Tagged Image File Format (TIFF) [Aldus]
+file_format(tiff, image/tiff, [eog]).
+% Wireless Application Protocol Bitmap Format (Wireless Bitmap) [WAP
+% Forum]
+file_format(wbmp, image/'vnd.wap.bmp', [eog]).
+% X BitMap (XBM)
+file_format(xbm, image/'x-bitmap', [eog]).
+% X PixMap (XPM) [BULL Research]
+file_format(xpm, image/'x-xpixmap', [eog]).
+% WebP [Google]
+file_format(webp, image/webp, []).
+
+
+
+%! format_media_type(?Format:atm, ?MediaType:compound) is nondet.
+
+format_media_type(Format, MediaType) :-
+  file_format(Format, MediaType, _).
+
+
+
+%! open_format(+Format:atom, +File:atom) is det.
 %
 % Opens the given PDF file.
 
-open_pdf(File) :-
-  once((
-    member(Program, [evince,xpdf]),
-    exists_program(Program)
-  )),
+open_format(Format, File) :-
+  file_format(Format, Programs),
+  member(Program, Programs),
+  exists_program(Program), !,
   process_create(
     path(Program),
     [file(File)],

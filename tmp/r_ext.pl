@@ -52,7 +52,7 @@ r_plot(Rows) :-
 
 r_plot(Rows, Opts) :-
   r_plot(Rows, File, Opts),
-  open_pdf(File).
+  open_format(pdf, File).
 
 
 r_plot(Rows, File, Opts) :-
