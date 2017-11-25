@@ -6,7 +6,10 @@
     http_head2/2, % +Uri, +Options
     http_lmod/2,  % +Uri, -Time
     http_open2/2, % +CurrentUri, -In
-    http_open2/3  % +CurrentUri, -In, +Options
+    http_open2/3, % +CurrentUri, -In, +Options
+  % DEBUGGING
+    curl/0,
+    nocurl/0
   ]
 ).
 
@@ -79,7 +82,6 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(error)).
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
-
 :- use_module(library(http/http_generic)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/rfc7230)).
@@ -182,15 +184,18 @@ http_lmod(Uri, Time) :-
 % following additons:
 %
 %   * Allows Prolog truth/falsity to be bound to HTTP status codes
-%   (e.g., Prolog truth = HTTP status code 201 for creation requests).
-%   For HTTP status codes that bind to neither truth nor falsity, an
-%   exception http_status/1 is thrown.
+%     (e.g., Prolog truth = HTTP status code 201 for creation
+%     requests).  For HTTP status codes that bind to neither truth nor
+%     falsity, an exception http_status/1 is thrown.
 %
 %   * If present, returns the URI that appears in the HTTP Link header
-%   with the ‘next’ key.  These next URIs must be used in sequent
-%   requests in order to retrieve a full result set.
+%     with the ‘next’ key.  These next URIs must be used in sequent
+%     requests in order to retrieve a full result set.
 %
 %   * Returns full meta-data, including all HTTP headers.
+%
+%   * Emits detailed, cURL-like debug messages about sent requests and
+%     received replies.
 %
 % @arg Meta A list of dictionaries, each of which describing an
 %      HTTP(S) request/reply interaction as well metadata about the
@@ -289,6 +294,7 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ),
   get_time(Start),
   http_open1(Uri, In1, Options2),
+  ignore(option(status_code(Status), Options2)),
   get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
   ignore(memberchk(location-[Location], HeaderPairs)),
@@ -304,7 +310,8 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   % Use curl/0 to show these debug messages.
   (   debugging(http(receive_reply))
   ->  debug(http(receive_reply), "", []),
-      debug(http(receive_reply), "< ~d", [Status]),
+      http_status_reason(Status, Reason),
+      debug(http(receive_reply), "< ~d (~s)", [Status,Reason]),
       maplist(debug_header, HeaderPairs),
       debug(http(receive_reply), "", [])
   ;   true
@@ -506,6 +513,30 @@ http_link(Atom, Relation, Uri) :-
   split_string(Comp, ";", "<> ", [Uri|Params]),
   member(Param, Params),
   split_string(Param, "=", "\"", ["rel",Relation0]), !.
+
+
+
+
+
+% DEBUGGING %
+
+%! curl is det.
+%
+% Enable detailed, cURL-like debug messages.
+
+curl :-
+  debug(http(receive_reply)),
+  debug(http(send_request)).
+
+
+
+%! nocurl is det.
+%
+% Disable detailed, cURL-like debug messages.
+
+nocurl :-
+  nodebug(http(receive_reply)),
+  nodebug(http(send_request)).
 
 
 
