@@ -74,7 +74,7 @@ cell:   <TD> label </TD>
 
 :- setting(default_export_format, atom, pdf, "The default format for exporting graphs.").
 :- setting(default_method, atom, dot, "The default method for generating graphs.").
-:- setting(default_show_program, atom, gtk, "The default external program used for viewing graphs.").
+:- setting(default_show_format, atom, gtk, "The default external program used for viewing graphs.").
 
 
 
