@@ -6,6 +6,7 @@
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
     iri_to_uri/2,          % +Iri, -Uri
+    is_http_uri/1,         % @Term
     is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
@@ -109,6 +110,18 @@ fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
 iri_to_uri(Iri, Uri) :-
   once(atom_phrase('IRI'(Comps), Iri)),
   once(atom_phrase('URI'(Comps), Uri)).
+
+
+
+%! is_http_uri(@Term) is semidet.
+%
+% Succeeds iff Term is an atom that conforms to the URI grammar.
+
+is_http_uri(Uri) :-
+  atom(Uri),
+  uri_components(Uri, Comps),
+  uri_data(scheme, Comps, Scheme),
+  memberchk(Scheme, [http,https]).
 
 
 
