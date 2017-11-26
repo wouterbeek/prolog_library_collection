@@ -139,7 +139,7 @@ dot_attribute(Name, Value, Attr) :-
 
 gv_export(File, Goal_1) :-
   setting(default_method, Method),
-  setting(default_show_format, Format),
+  setting(default_export_format, Format),
   gv_export(Method, Format, File, Goal_1).
 
 
@@ -219,7 +219,7 @@ output_format_none(Format) :-
 gv_open(ProcIn, ProcOut) :-
   setting(default_method, Method),
   setting(default_show_format, Format),
-  gv_show(Method, Format, ProcIn, ProcOut).
+  gv_open(Method, Format, ProcIn, ProcOut).
 
 
 gv_open(Method, Format, ProcIn, ProcOut) :-
