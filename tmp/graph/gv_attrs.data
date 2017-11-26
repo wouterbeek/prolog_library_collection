@@ -1,0 +1,169 @@
+gv_attr('Damping',[graph],[double],'0.99','0.0','neato only').
+gv_attr('K',[cluster,graph],[double],'0.3','0','sfdp, fdp only').
+gv_attr('URL',[cluster,edge,graph,node],[escString],_G59448,'','svg, postscript, map only').
+gv_attr('_background',[graph],[string],_G59644,'','').
+gv_attr(area,[cluster,node],[double],'1.0','>0','patchwork only').
+gv_attr(arrowhead,[edge],[arrowType],normal,'','').
+gv_attr(arrowsize,[edge],[double],'1.0','0.0','').
+gv_attr(arrowtail,[edge],[arrowType],normal,'','').
+gv_attr(bb,[graph],[rect],'','','write only').
+gv_attr(bgcolor,[cluster,graph],[color,colorList],_G60571,'','').
+gv_attr(center,[graph],[bool],false,'','').
+gv_attr(charset,[graph],[string],'"UTF-8"','','').
+gv_attr(clusterrank,[graph],[clusterMode],local,'','dot only').
+gv_attr(color,[cluster,edge,node],[color,colorList],black,'','').
+gv_attr(colorscheme,[cluster,edge,graph,node],[string],'','','').
+gv_attr(comment,[edge,graph,node],[string],'','','').
+gv_attr(compound,[graph],[bool],false,'','dot only').
+gv_attr(concentrate,[graph],[bool],false,'','').
+gv_attr(constraint,[edge],[bool],true,'','dot only').
+gv_attr(decorate,[edge],[bool],false,'','').
+gv_attr(defaultdist,[graph],[double],'1+(avg. len)*sqrt(|V|)',epsilon,'neato only').
+gv_attr(dim,[graph],[int],'2','2','sfdp, fdp, neato only').
+gv_attr(dimen,[graph],[int],'2','2','sfdp, fdp, neato only').
+gv_attr(dir,[edge],[dirType],'forward(directed)none(undirected)','','').
+gv_attr(diredgeconstraints,[graph],[string,bool],false,'','neato only').
+gv_attr(distortion,[node],[double],'0.0','-100.0','').
+gv_attr(dpi,[graph],[double],'96.00.0','','svg, bitmap output only').
+gv_attr(edgeURL,[edge],[escString],'','','svg, map only').
+gv_attr(edgehref,[edge],[escString],'','','svg, map only').
+gv_attr(edgetarget,[edge],[escString],_G63711,'','svg, map only').
+gv_attr(edgetooltip,[edge],[escString],'','','svg, cmap only').
+gv_attr(epsilon,[graph],[double],'.0001 * # nodes(mode == KK).0001(mode == major)','','neato only').
+gv_attr(esep,[graph],[addDouble,addPoint],'+3','','not dot').
+gv_attr(fillcolor,[cluster,edge,node],[color,colorList],'lightgrey(nodes)black(clusters)','','').
+gv_attr(fixedsize,[node],[bool,string],false,'','').
+gv_attr(fontcolor,[cluster,edge,graph,node],[color],black,'','').
+gv_attr(fontname,[cluster,edge,graph,node],[string],'"Times-Roman"','','').
+gv_attr(fontnames,[graph],[string],'','','svg only').
+gv_attr(fontpath,[graph],[string],'system-dependent','','').
+gv_attr(fontsize,[cluster,edge,graph,node],[double],'14.0','1.0','').
+gv_attr(forcelabels,[graph],[bool],true,'','').
+gv_attr(gradientangle,[cluster,graph,node],[int],'','','').
+gv_attr(group,[node],[string],'','','dot only').
+gv_attr(headURL,[edge],[escString],'','','svg, map only').
+gv_attr(head_lp,[edge],[point],'','','write only').
+gv_attr(headclip,[edge],[bool],true,'','').
+gv_attr(headhref,[edge],[escString],'','','svg, map only').
+gv_attr(headlabel,[edge],[lblString],'','','').
+gv_attr(headport,[edge],[portPos],center,'','').
+gv_attr(headtarget,[edge],[escString],_G4892,'','svg, map only').
+gv_attr(headtooltip,[edge],[escString],'','','svg, cmap only').
+gv_attr(height,[node],[double],'0.5','0.02','').
+gv_attr(href,[cluster,edge,graph,node],[escString],'','','svg, postscript, map only').
+gv_attr(id,[cluster,edge,graph,node],[escString],'','','svg, postscript, map only').
+gv_attr(image,[node],[string],'','','').
+gv_attr(imagepath,[graph],[string],'','','').
+gv_attr(imagescale,[node],[bool,string],false,'','').
+gv_attr(inputscale,[graph],[double],_G6250,'','fdp, neato only').
+gv_attr(label,[cluster,edge,graph,node],[lblString],'"\\N" (nodes)"" (otherwise)','','').
+gv_attr(labelURL,[edge],[escString],'','','svg, map only').
+gv_attr(label_scheme,[graph],[int],'0','0','sfdp only').
+gv_attr(labelangle,[edge],[double],'-25.0','-180.0','').
+gv_attr(labeldistance,[edge],[double],'1.0','0.0','').
+gv_attr(labelfloat,[edge],[bool],false,'','').
+gv_attr(labelfontcolor,[edge],[color],black,'','').
+gv_attr(labelfontname,[edge],[string],'"Times-Roman"','','').
+gv_attr(labelfontsize,[edge],[double],'14.0','1.0','').
+gv_attr(labelhref,[edge],[escString],'','','svg, map only').
+gv_attr(labeljust,[cluster,graph],[string],'"c"','','').
+gv_attr(labelloc,[cluster,graph,node],[string],'"t"(clusters)"b"(root graphs)"c"(nodes)','','').
+gv_attr(labeltarget,[edge],[escString],_G8276,'','svg, map only').
+gv_attr(labeltooltip,[edge],[escString],'','','svg, cmap only').
+gv_attr(landscape,[graph],[bool],false,'','').
+gv_attr(layer,[cluster,edge,node],[layerRange],'','','').
+gv_attr(layerlistsep,[graph],[string],'","','','').
+gv_attr(layers,[graph],[layerList],'','','').
+gv_attr(layerselect,[graph],[layerRange],'','','').
+gv_attr(layersep,[graph],[string],'" :\\t"','','').
+gv_attr(layout,[graph],[string],'','','').
+gv_attr(len,[edge],[double],'1.0(neato)0.3(fdp)','','fdp, neato only').
+gv_attr(levels,[graph],[int],'MAXINT','0.0','sfdp only').
+gv_attr(levelsgap,[graph],[double],'0.0','','neato only').
+gv_attr(lhead,[edge],[string],'','','dot only').
+gv_attr(lheight,[cluster,graph],[double],'','','write only').
+gv_attr(lp,[cluster,edge,graph],[point],'','','write only').
+gv_attr(ltail,[edge],[string],'','','dot only').
+gv_attr(lwidth,[cluster,graph],[double],'','','write only').
+gv_attr(margin,[cluster,graph,node],[double,point],'<device-dependent>','','').
+gv_attr(maxiter,[graph],[int],'100 * # nodes(mode == KK)200(mode == major)600(fdp)','','fdp, neato only').
+gv_attr(mclimit,[graph],[double],'1.0','','dot only').
+gv_attr(mindist,[graph],[double],'1.0','0.0','circo only').
+gv_attr(minlen,[edge],[int],'1','0','dot only').
+gv_attr(mode,[graph],[string],major,'','neato only').
+gv_attr(model,[graph],[string],shortpath,'','neato only').
+gv_attr(mosek,[graph],[bool],false,'','neato only').
+gv_attr(nodesep,[graph],[double],'0.25','0.02','').
+gv_attr(nojustify,[cluster,edge,graph,node],[bool],false,'','').
+gv_attr(normalize,[graph],[double,bool],false,'','not dot').
+gv_attr(notranslate,[graph],[bool],false,'','neato only').
+gv_attr(nslimitnslimit1,[graph],[double],'','','dot only').
+gv_attr(ordering,[graph,node],[string],'','','dot only').
+gv_attr(orientation,[node],[double],'0.0','360.0','').
+gv_attr(orientation,[graph],[string],'','','').
+gv_attr(outputorder,[graph],[outputMode],breadthfirst,'','').
+gv_attr(overlap,[graph],[string,bool],true,'','not dot').
+gv_attr(overlap_scaling,[graph],[double],'-4','-1.0e10','prism only').
+gv_attr(overlap_shrink,[graph],[bool],true,'','prism only').
+gv_attr(pack,[graph],[bool,int],false,'','').
+gv_attr(packmode,[graph],[packMode],node,'','').
+gv_attr(pad,[graph],[double,point],'0.0555 (4 points)','','').
+gv_attr(page,[graph],[double,point],'','','').
+gv_attr(pagedir,[graph],[pagedir],'BL','','').
+gv_attr(pencolor,[cluster],[color],black,'','').
+gv_attr(penwidth,[cluster,edge,node],[double],'1.0','0.0','').
+gv_attr(peripheries,[cluster,node],[int],'shape default(nodes)1(clusters)','0','').
+gv_attr(pin,[node],[bool],false,'','fdp, neato only').
+gv_attr(pos,[edge,node],[point,splineType],'','','').
+gv_attr(quadtree,[graph],[quadType,bool],normal,'','sfdp only').
+gv_attr(quantum,[graph],[double],'0.0','0.0','').
+gv_attr(rank,[subgraph],[rankType],'','','dot only').
+gv_attr(rankdir,[graph],[rankdir],'TB','','dot only').
+gv_attr(ranksep,[graph],[double,doubleList],'0.5(dot)1.0(twopi)','0.02','twopi, dot only').
+gv_attr(ratio,[graph],[double,string],'','','').
+gv_attr(rects,[node],[rect],'','','write only').
+gv_attr(regular,[node],[bool],false,'','').
+gv_attr(remincross,[graph],[bool],true,'','dot only').
+gv_attr(repulsiveforce,[graph],[double],'1.0','0.0','sfdp only').
+gv_attr(resolution,[graph],[double],'96.00.0','','svg, bitmap output only').
+gv_attr(root,[graph,node],[string,bool],'<none>(graphs)false(nodes)','','circo, twopi only').
+gv_attr(rotate,[graph],[int],'0','','').
+gv_attr(rotation,[graph],[double],'0','','sfdp only').
+gv_attr(samehead,[edge],[string],'','','dot only').
+gv_attr(sametail,[edge],[string],'','','dot only').
+gv_attr(samplepoints,[node],[int],'8(output)20(overlap and image maps)','','').
+gv_attr(scale,[graph],[double,point],'','','not dot').
+gv_attr(searchsize,[graph],[int],'30','','dot only').
+gv_attr(sep,[graph],[addDouble,addPoint],'+4','','not dot').
+gv_attr(shape,[node],[shape],ellipse,'','').
+gv_attr(shapefile,[node],[string],'','','').
+gv_attr(showboxes,[edge,graph,node],[int],'0','0','dot only').
+gv_attr(sides,[node],[int],'4','0','').
+gv_attr(size,[graph],[double,point],'','','').
+gv_attr(skew,[node],[double],'0.0','-100.0','').
+gv_attr(smoothing,[graph],[smoothType],'"none"','','sfdp only').
+gv_attr(sortv,[cluster,graph,node],[int],'0','0','').
+gv_attr(splines,[graph],[bool,string],'','','').
+gv_attr(start,[graph],[startType],'','','fdp, neato only').
+gv_attr(style,[cluster,edge,graph,node],[style],'','','').
+gv_attr(stylesheet,[graph],[string],'','','svg only').
+gv_attr(tailURL,[edge],[escString],'','','svg, map only').
+gv_attr(tail_lp,[edge],[point],'','','write only').
+gv_attr(tailclip,[edge],[bool],true,'','').
+gv_attr(tailhref,[edge],[escString],'','','svg, map only').
+gv_attr(taillabel,[edge],[lblString],'','','').
+gv_attr(tailport,[edge],[portPos],center,'','').
+gv_attr(tailtarget,[edge],[escString],_G21528,'','svg, map only').
+gv_attr(tailtooltip,[edge],[escString],'','','svg, cmap only').
+gv_attr(target,[cluster,edge,graph,node],[escString,string],_G21878,'','svg, map only').
+gv_attr(tooltip,[cluster,edge,node],[escString],'','','svg, cmap only').
+gv_attr(truecolor,[graph],[bool],'','','bitmap output only').
+gv_attr(vertices,[node],[pointList],'','','write only').
+gv_attr(viewport,[graph],[viewPort],'','','').
+gv_attr(voro_margin,[graph],[double],'0.05','0.0','not dot').
+gv_attr(weight,[edge],[int,double],'1','0(dot,twopi)1(neato,fdp)','').
+gv_attr(width,[node],[double],'0.75','0.01','').
+gv_attr(xdotversion,[graph],[string],'','','xdot only').
+gv_attr(xlabel,[edge,node],[lblString],'','','').
+gv_attr(xlp,[edge,node],[point],'','','write only').
+gv_attr(z,[node],[double],'0.0','-MAXFLOAT-1000','').
