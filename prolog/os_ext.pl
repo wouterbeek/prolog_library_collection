@@ -81,7 +81,7 @@ file_format(pnm, image/'x-portable-anymap', [eog], "Portable Anymap Format (PNM)
 file_format(pdf, application/pdf, [evince,xpdf], "Portable Document Format (PDF)").
 file_format(ps, application/postscript, [evince,xpdf], "PostScript (PS)").
 file_format(ras, _, [eog], "Sun Raster").
-file_format(svg, image/'svg+xml', [eog], "Scalable Vector Graphics (SVG)").
+file_format(svg, image/'svg+xml', [firefox,eog], "Scalable Vector Graphics (SVG)").
 file_format(tga, image/'x-targa', [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 file_format(tiff, image/tiff, [eog], "Tagged Image File Format (TIFF)").
 file_format(wbmp, image/'vnd.wap.bmp', [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
