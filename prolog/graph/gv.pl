@@ -54,6 +54,7 @@ cell:   <TD> label </TD>
 */
 
 :- use_module(library(call_ext)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(option)).
@@ -127,10 +128,16 @@ dot_attribute(label, Values, Attr) :-
   is_list(Values), !,
   atomics_to_string(Values, "<BR/>", Value),
   dot_attribute(label, Value, Attr).
-dot_attribute(label, Value, Attr) :- !,
-  format(string(Attr), "label=<~a>", [Value]).
+dot_attribute(label, Value1, Attr) :- !,
+  string_phrase(html_replace, Value1, Value2),
+  format(string(Attr), "label=<~a>", [Value2]).
 dot_attribute(Name, Value, Attr) :-
   format(string(Attr), "~a=\"~a\"", [Name,Value]).
+
+html_replace, "&lt;" --> "<", !, html_replace.
+html_replace, "&gt;" --> ">", !, html_replace.
+html_replace, [C] --> [C], !, html_replace.
+html_replace --> "".
 
 
 
