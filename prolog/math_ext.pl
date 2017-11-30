@@ -46,9 +46,8 @@
 
 avg_list([], 0):- !.
 avg_list(L, Avg):-
-  sum_list(L, Sum),
-  length(L, N),
-  Avg is Sum / N.
+  aggregate(count+sum(X), member(X, L), Len+Sum),
+  Avg is Sum / Len.
 
 
 
