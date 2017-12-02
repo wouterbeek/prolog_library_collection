@@ -510,9 +510,10 @@ http_link(Atom, Relation, Uri) :-
   atom_string(Relation, Relation0),
   split_string(Atom, ",", " ", Comps),
   member(Comp, Comps),
-  split_string(Comp, ";", "<> ", [Uri|Params]),
+  split_string(Comp, ";", "<> ", [Uri0|Params]),
   member(Param, Params),
-  split_string(Param, "=", "\"", ["rel",Relation0]), !.
+  split_string(Param, "=", "\"", ["rel",Relation0]), !,
+  atom_string(Uri, Uri0).
 
 
 
