@@ -46,11 +46,10 @@ format_label(Format, Label) :-
 
 
 
-%! format_media_type(?Format:atm, ?MediaType:compound) is nondet.
+%! format_media_type(?Format:atom, ?MediaType:compound) is nondet.
 
 format_media_type(Format, MediaType) :-
-  file_format(Format, MediaType0, _, _),
-  MediaType0 == MediaType.
+  file_format(Format, MediaType, _, _).
 
 
 
@@ -73,12 +72,12 @@ file_format(jpeg, image/jpeg, [eog], "Joint Photographic Experts Group (JPEG)").
 file_format(json, application/json, [], "JavaScript Object Notation (JSON)").
 % Native file format of PC Paintbrush.
 file_format(pcx, image/'vnd.zbrush.pcx', [eog], "PiCture EXchange").
+file_format(pdf, application/pdf, [evince,xpdf], "Portable Document Format (PDF)").
 file_format(png, image/png, [eog], "Portable Network Graphics (PNG)").
 file_format(pbm, image/'x-portable-bitmap', [], "Portable Bitmap Format (PBM)").
 file_format(pgm, image/'x-portable-graymap', [], "Portable Graymap Format (PGM)").
 file_format(ppm, image/'x-portable-pixmap', [], "Portable Pixmap Format (PPM)").
 file_format(pnm, image/'x-portable-anymap', [eog], "Portable Anymap Format (PNM)").
-file_format(pdf, application/pdf, [evince,xpdf], "Portable Document Format (PDF)").
 file_format(ps, application/postscript, [evince,xpdf], "PostScript (PS)").
 file_format(ras, _, [eog], "Sun Raster").
 file_format(svg, image/'svg+xml', [firefox,eog], "Scalable Vector Graphics (SVG)").
