@@ -62,7 +62,8 @@ format_program(Format, Program) :-
 
 
 file_format(bmp, image/bmp, [eog], "Windows Bitmap").
-file_format(dot, text/'vnd.graphviz', [], "GraphViz DOT").
+file_format(csv, text/csv, [gedit], "Comma-separated values (CSV)").
+file_format(dot, text/'vnd.graphviz', [gedit], "GraphViz DOT").
 file_format(gif, image/gif, [eog], "Graphics Interchange Format (GIF)").
 file_format(html, text/html, [firefox], "Hyper Text Markup Language (HTML)").
 % Microsoft uses Media Type ‘image/x-icon’.
