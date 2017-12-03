@@ -1,12 +1,13 @@
 :- module(
   http_client2,
   [
-    http_call/2,  % +Uri, :Goal_1
-    http_call/3,  % +Uri, :Goal_1, +Options
-    http_head2/2, % +Uri, +Options
-    http_lmod/2,  % +Uri, -Time
-    http_open2/2, % +CurrentUri, -In
-    http_open2/3, % +CurrentUri, -In, +Options
+    http_accept_value/2, % +MediaTypes, -Accept
+    http_call/2,         % +Uri, :Goal_1
+    http_call/3,         % +Uri, :Goal_1, +Options
+    http_head2/2,        % +Uri, +Options
+    http_lmod/2,         % +Uri, -Time
+    http_open2/2,        % +CurrentUri, -In
+    http_open2/3,        % +CurrentUri, -In, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -72,7 +73,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/11
+@version 2017/05-2017/12
 */
 
 :- use_module(library(apply)).
@@ -84,10 +85,6 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/http_cookie), []).
 :- use_module(library(http/http_generic)).
 :- use_module(library(http/http_open)).
-:- use_module(library(http/rfc7230)).
-:- use_module(library(http/rfc7233)).
-:- use_module(library(http/rfc7234)).
-:- use_module(library(http/rfc7235)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
@@ -110,6 +107,62 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 
 
 
+%! http_accept_value(+MediaTypes:list(compound), -Accept:atom) is det.
+%
+% Create an atomic HTTP Accept header value out of a given list of
+% Media Types (from most to least acceptable).
+%
+% ```
+% Accept = #( media-range [ accept-params ] )
+% media-range = ( "*/*"
+%               / ( type "/" "*" )
+%               / ( type "/" subtype )
+%               ) *( OWS ";" OWS parameter )
+% parameter = token "=" ( token / quoted-string )
+% accept-params  = weight *( accept-ext )
+% accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
+% ```
+
+http_accept_value(MediaTypes, Accept) :-
+  length(MediaTypes, NumMediaTypes),
+  Interval is 1.0 / NumMediaTypes,
+  atom_phrase(accept_(MediaTypes, 0.0, Interval), Accept).
+
+accept_([], _, _) --> !, "".
+accept_([H], N, _) --> !,
+  media_type_(H),
+  weight_(N).
+accept_([H|T], N1, Interval) -->
+  media_type_(H),
+  weight_(N1),
+  {N2 is N1 + Interval},
+  accept_(T, N2, Interval).
+
+media_type_(media(Super/Sub,Params)) -->
+  atom(Super),
+  "/",
+  atom(Sub),
+  params_(Params).
+
+params_([]) --> !, "".
+params_([H|T]) -->
+  ";",
+  param_(H),
+  params_(T).
+
+param_(Param) -->
+  {
+    Param =.. [Key,Value],
+    format(atom(Atom), "~a(~w)", [Key,Value])
+  },
+  atom(Atom).
+
+weight_(N) -->
+  {format(atom(Atom), "~3f", [N])},
+  atom(Atom).
+
+
+     
 %! http_call(+Uri:atom, :Goal_1) is nondet.
 %! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is nondet.
 %
@@ -374,12 +427,24 @@ http_lines_pairs(Lines, GroupedPairs) :-
 http_parse_header_pair(Line, Key-Value) :-
   once(phrase(http_parse_header_simple(Key, Value), Line)).
 
+% ```
+% header-field = field-name ":" OWS field-value OWS
+% field-name = token
+% OWS = *( SP | HTAB )
+% ```
 http_parse_header_simple(Key, Value) -->
-  'field-name'(Key),
+  string_without(":", KeyCodes),
   ":",
-  'OWS',
+  {
+    atom_codes(Key0, KeyCodes),
+    downcase_atom(Key0, Key)
+  },
   rest(Codes),
-  {atom_codes(Value, Codes)}.
+  {
+    string_codes(String0, Codes),
+    split_string(String0, "", "\s\t", String),
+    atom_string(Value, String)
+  }.
 
 % COPIED FROM swipl-devel/packages/http/http_open
 http_open1(Uri, In, QOptions) :-

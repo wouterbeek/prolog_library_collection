@@ -35,11 +35,9 @@
 */
 
 :- use_module(library(dcg/dcg_ext)).
-:- use_module(library(debug)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_error)).
-:- use_module(library(http/rfc7230)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(settings)).
