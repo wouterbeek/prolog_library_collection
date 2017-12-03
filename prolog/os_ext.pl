@@ -5,6 +5,7 @@
     format_media_type/2, % ?Format, ?MediaType
     format_label/2,      % ?Format, -Label
     format_program/2,    % ?Format, ?Program
+    media_type/4,        % ?MediaType, ?Supertype, ?Subtype, ?Params
     media_type_label/2,  % ?MediaType, -Label
     open_format/2,       % +Format, +File
     os/1,                % ?Os
@@ -70,7 +71,9 @@ file_format(html, text/html, [firefox], "Hyper Text Markup Language (HTML)").
 file_format(ico, image/'vnd.microsoft.icon', [eog], "Windows Icon").
 file_format(jgf, application/'vnd.jgf+json', [eog], "JSON Graph Format (JGF)").
 file_format(jpeg, image/jpeg, [eog], "Joint Photographic Experts Group (JPEG)").
-file_format(json, application/json, [], "JavaScript Object Notation (JSON)").
+file_format(json, application/json, [gedit], "JavaScript Object Notation (JSON)").
+file_format(nq, application/'n-quads', [gedit], "N-Quads 1.1").
+file_format(nt, application/'n-triples', [gedit], "N-Triples 1.1").
 % Native file format of PC Paintbrush.
 file_format(pcx, image/'vnd.zbrush.pcx', [eog], "PiCture EXchange").
 file_format(pdf, application/pdf, [evince,xpdf], "Portable Document Format (PDF)").
@@ -84,10 +87,19 @@ file_format(ras, _, [eog], "Sun Raster").
 file_format(svg, image/'svg+xml', [firefox,eog], "Scalable Vector Graphics (SVG)").
 file_format(tga, image/'x-targa', [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 file_format(tiff, image/tiff, [eog], "Tagged Image File Format (TIFF)").
+file_format(ttl, text/turtle, [gedit], "Turtle 1.1").
+file_format(trig, application/trig, [gedit], "TriG 1.1").
 file_format(wbmp, image/'vnd.wap.bmp', [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
 file_format(xbm, image/'x-bitmap', [eog], "X BitMap (XBM)").
 file_format(xpm, image/'x-xpixmap', [eog], "X PixMap (XPM)").
 file_format(webp, image/webp, [], "WebP").
+
+
+
+%! media_type(?MediaType:compound, ?Supertype:atom, ?Subtype:atom,
+%!            ?Params:list) is det.
+
+media_type(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 
 
 

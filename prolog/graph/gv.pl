@@ -1,20 +1,21 @@
 :- module(
   gv,
   [
-    dot_edge/3,  % +Out, +FromId, +ToId
-    dot_edge/4,  % +Out, +FromId, +ToId. +Attrs
-    dot_id/2,    % +Term, -Id
-    dot_node/3,  % +Out, +Id, +Attrs
-    gv_export/2, % +File, :Goal_1
-    gv_export/4, % +Method, +Format, +File, :Goal_1
-    gv_format/1, % ?Format
-    gv_open/1,   % -ProcIn
-    gv_open/2,   % -ProcIn, -ProcOut
-    gv_open/3,   % +Method, +Format, -ProcIn
-    gv_open/4,   % +Method, +Format, -ProcIn, -ProcOut
-    gv_reply/3,  % +Method, +MediaType, :Goal_1
-    gv_show/1,   % :Goal_1
-    gv_show/3    % +Method, +Format, :Goal_1
+    dot_edge/3,      % +Out, +FromId, +ToId
+    dot_edge/4,      % +Out, +FromId, +ToId. +Attrs
+    dot_id/2,        % +Term, -Id
+    dot_node/3,      % +Out, +Id, +Attrs
+    gv_export/2,     % +File, :Goal_1
+    gv_export/4,     % +Method, +Format, +File, :Goal_1
+    gv_format/1,     % ?Format
+    gv_media_type/1, % +MediaType
+    gv_open/1,       % -ProcIn
+    gv_open/2,       % -ProcIn, -ProcOut
+    gv_open/3,       % +Method, +Format, -ProcIn
+    gv_open/4,       % +Method, +Format, -ProcIn, -ProcOut
+    gv_reply/3,      % +Method, +MediaType, :Goal_1
+    gv_show/1,       % :Goal_1
+    gv_show/3        % +Method, +Format, :Goal_1
   ]
 ).
 
@@ -180,6 +181,15 @@ gv_format(png).
 gv_format(ps).
 gv_format(svg).
 gv_format(tiff).
+
+
+
+%! gv_media_type(+MediaType:compound) is semidet.
+
+gv_media_type(MediaType) :-
+  media_type(MediaType, Supertype, Subtype, _),
+  format_media_type(Format, Supertype/Subtype),
+  gv_format(Format).
 
 
 
