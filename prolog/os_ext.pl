@@ -50,7 +50,9 @@ format_label(Format, Label) :-
 %! format_media_type(?Format:atom, ?MediaType:compound) is nondet.
 
 format_media_type(Format, MediaType) :-
-  file_format(Format, MediaType, _, _).
+  file_format(Format, MediaType0, _, _),
+  % This supports formats with no Media Type.
+  MediaType0 == MediaType.
 
 
 
