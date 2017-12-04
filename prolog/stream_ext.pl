@@ -22,7 +22,7 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2017/10
+@version 2017/06-2017/12
 */
 
 :- use_module(library(archive)).
@@ -109,7 +109,7 @@ guess_string_encoding(String, Enc) :-
       thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
       thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
       read_string(ProcOut, String1),
-      split_string(String1, "", "\n", [String2|_]),
+      string_strip(String1, "\n", String2),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),

@@ -6,6 +6,7 @@
     string_list_concat/2, % +Strings, -String
     string_list_concat/3, % ?Strings, ?Separator, ?String
     string_prefix/3,      % +String, ?Length, ?SubString
+    string_strip/3,       % +String1, +StripChars, -String2
     string_truncate/3     % +String, +Max, -Truncated
   ]
 ).
@@ -13,7 +14,7 @@
 /** <module> String extensions
 
 @author Wouter Beek
-@version 2017/05-2017/06
+@version 2017/05-2017/06, 2017/12
 */
 
 :- use_module(library(error)).
@@ -95,6 +96,13 @@ string_list_concat(Strings, Separator, String):-
 
 string_prefix(String, Length, SubString) :-
   sub_string(String, 0, Length, _, SubString).
+
+
+
+%! string_strip(+String1:string, +StripChars:string, -String2:string) is det.
+
+string_strip(String1, Strip, String2) :-
+  split_string(String1, "", Strip, [String2]).
 
 
 

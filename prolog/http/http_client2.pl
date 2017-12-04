@@ -88,6 +88,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
+:- use_module(library(string_ext)).
 :- use_module(library(uri/uri_ext)).
 
 :- meta_predicate
@@ -442,7 +443,7 @@ http_parse_header_simple(Key, Value) -->
   rest(Codes),
   {
     string_codes(String0, Codes),
-    split_string(String0, "", "\s\t", String),
+    string_strip(String0, "\s\t", String),
     atom_string(Value, String)
   }.
 
