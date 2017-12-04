@@ -32,14 +32,11 @@
 
 :- rlimit(nofile, _, 8192).
 
+:- initialization
+   init_rocks.
+
 :- setting(rocks_directory, atom, .,
            "The directory where RocksDB instances are stored.").
-
-:- initialization
-   conf_json(Dict),
-   get_dict('rocksdb-directory', Dict, Dir),
-   create_directory(Dir),
-   set_setting(rocks_directory, Dir).
 
 
 
@@ -128,6 +125,19 @@ rocks_size(Db, Size) :-
     rocks_enum(Db, _, _),
     Size
   ).
+
+
+
+
+
+% INITIALIZATION %
+
+init_rocks :-
+  conf_json(Conf),
+  get_dict('rocksdb-directory', Conf, Dir), !,
+  create_directory(Dir),
+  set_setting(rocks_directory, Dir).
+init_rocks.
 
 
 
