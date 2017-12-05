@@ -1,21 +1,21 @@
 :- module(
   gv,
   [
-    dot_edge/3,      % +Out, +FromId, +ToId
-    dot_edge/4,      % +Out, +FromId, +ToId. +Attrs
-    dot_id/2,        % +Term, -Id
-    dot_node/3,      % +Out, +Id, +Attrs
-    gv_export/2,     % +File, :Goal_1
-    gv_export/4,     % +Method, +Format, +File, :Goal_1
-    gv_format/1,     % ?Format
-    gv_media_type/1, % +MediaType
-    gv_open/1,       % -ProcIn
-    gv_open/2,       % -ProcIn, -ProcOut
-    gv_open/3,       % +Method, +Format, -ProcIn
-    gv_open/4,       % +Method, +Format, -ProcIn, -ProcOut
-    gv_reply/3,      % +Method, +MediaType, :Goal_1
-    gv_show/1,       % :Goal_1
-    gv_show/3        % +Method, +Format, :Goal_1
+    dot_edge/3,        % +Out, +FromId, +ToId
+    dot_edge/4,        % +Out, +FromId, +ToId. +Attributes
+    dot_id/2,          % +Term, -Id
+    dot_node/3,        % +Out, +Id, +Attributes
+    gv_export/2,       % +File, :Goal_1
+    gv_export/4,       % +Method, +Ext, +File, :Goal_1
+    gv_extension/1,    % ?Ext
+    gv_open/1,         % -ProcIn
+    gv_open/2,         % -ProcIn, -ProcOut
+    gv_open/3,         % +Method, +Ext, -ProcIn
+    gv_open/4,         % +Method, +Ext, -ProcIn, -ProcOut
+    gv_reply/3,        % +Method, +MediaType, :Goal_1
+    gv_show/1,         % :Goal_1
+    gv_show/3,         % +Method, +Ext, :Goal_1
+    is_gv_media_type/1 % +MediaType
   ]
 ).
 
@@ -51,21 +51,22 @@ cell:   <TD> label </TD>
 ```
 
 @author Wouter Beek
-@version 2017/08-2017/11
+@version 2017/08-2017/12
 */
 
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
 :- use_module(library(process)).
 :- use_module(library(settings)).
 
 :- discontiguous
-    output_format/1,
-    output_format/2.
+    extension_type_/1,
+    extension_type_/2.
 
 :- meta_predicate
     gv_export(+, 1),
@@ -74,9 +75,12 @@ cell:   <TD> label </TD>
     gv_show(1),
     gv_show(+, +, 1).
 
-:- setting(default_export_format, atom, pdf, "The default format for exporting graphs.").
-:- setting(default_method, atom, dot, "The default method for generating graphs.").
-:- setting(default_show_format, atom, gtk, "The default external program used for viewing graphs.").
+:- setting(default_export_extension, atom, pdf,
+           "The extension of the default format for exporting graphs.").
+:- setting(default_method, atom, dot,
+           "The default method for generating graphs.").
+:- setting(default_show_extension, atom, gtk,
+           "The extension of the default external program used for viewing graphs.").
 
 
 
@@ -89,11 +93,12 @@ dot_edge(Out, FromId, ToId) :-
 
 
 
-%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom, +Attrs:list(compound)) is det.
+%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom,
+%!          +Attributes:list(compound)) is det.
 
 dot_edge(Out, FromId, ToId, Attrs) :-
-  attributes_atom(Attrs, AttrsAtom),
-  format_debug(dot, Out, "  ~a -> ~a [~a];", [FromId,ToId,AttrsAtom]).
+  attributes_atom(Attrs, Atom),
+  format_debug(dot, Out, "  ~a -> ~a [~a];", [FromId,ToId,Atom]).
 
 
 
@@ -107,7 +112,7 @@ dot_id(Term, Id) :-
 
 
 
-%! dot_node(+Out:stream, +Id:atom, +Attrs:list(compound)) is det.
+%! dot_node(+Out:stream, +Id:atom, +Attributes:list(compound)) is det.
 %
 % The following attributes are supported:
 %
@@ -118,8 +123,8 @@ dot_id(Term, Id) :-
 %   * Other options are written as DOT attributes.
 
 dot_node(Out, Id, Attrs) :-
-  attributes_atom(Attrs, AttrsAtom),
-  format_debug(dot, Out, "  ~a [~a];", [Id,AttrsAtom]).
+  attributes_atom(Attrs, Atom),
+  format_debug(dot, Out, "  ~a [~a];", [Id,Atom]).
 
 dot_attribute(Attr1, Attr2) :-
   Attr1 =.. [Name,Value],
@@ -143,20 +148,20 @@ html_replace --> "".
 
 
 %! gv_export(+File:atom, :Goal_1) is det.
-%! gv_export(+Method:atom, +Format:atom, +File:atom, :Goal_1) is det.
+%! gv_export(+Method:atom, +Ext:atom, +File:atom, :Goal_1) is det.
 
 gv_export(File, Goal_1) :-
   setting(default_method, Method),
-  setting(default_export_format, Format),
-  gv_export(Method, Format, File, Goal_1).
+  setting(default_export_extension, Ext),
+  gv_export(Method, Ext, File, Goal_1).
 
 
-gv_export(Method, Format, File, Goal_1) :-
-  output_format(Format, Type),
+gv_export(Method, Ext, File, Goal_1) :-
+  extension_type_(Ext, Type),
   setup_call_cleanup(
     open(File, write, Out, [type(Type)]),
     setup_call_cleanup(
-      gv_open(Method, Format, ProcIn, ProcOut),
+      gv_open(Method, Ext, ProcIn, ProcOut),
       (
         call(Goal_1, ProcIn),
         close(ProcIn),
@@ -169,32 +174,23 @@ gv_export(Method, Format, File, Goal_1) :-
 
 
 
-%! gv_format(?Format:atom) is nondet.
+%! gv_extension(?Format:atom) is nondet.
 
-gv_format(bmp).
-gv_format(dot).
-gv_format(gif).
-gv_format(jpeg).
-gv_format(json).
-gv_format(pdf).
-gv_format(png).
-gv_format(ps).
-gv_format(svg).
-gv_format(tiff).
-
-
-
-%! gv_media_type(+MediaType:compound) is semidet.
-
-gv_media_type(MediaType) :-
-  media_type(MediaType, Supertype, Subtype, _),
-  format_media_type(Format, Supertype/Subtype),
-  gv_format(Format).
+gv_extension(bmp).
+gv_extension(dot).
+gv_extension(gif).
+gv_extension(jpeg).
+gv_extension(json).
+gv_extension(pdf).
+gv_extension(png).
+gv_extension(ps).
+gv_extension(svg).
+gv_extension(tiff).
 
 
 
 %! gv_open(-ProcIn:stream) is det.
-%! gv_open(+Method:atom, +Format:atom, -ProcIn:stream) is det.
+%! gv_open(+Method:atom, +Extension:atom, -ProcIn:stream) is det.
 %
 % Open a GraphViz input stream but no GraphViz output stream.  This is
 % used when _no_ export needs to be created, but content is for
@@ -202,23 +198,23 @@ gv_media_type(MediaType) :-
 
 gv_open(ProcIn) :-
   setting(default_method, Method),
-  setting(default_show_format, Format),
-  gv_open(Method, Format, ProcIn).
+  setting(default_show_extension, Ext),
+  gv_open(Method, Ext, ProcIn).
 
 
-gv_open(Method, Format, ProcIn) :-
+gv_open(Method, Ext, ProcIn) :-
   call_must_be(method, Method),
-  call_must_be(output_format_none, Format),
-  process_create(path(Method), ['-T',Format], [stdin(pipe(ProcIn))]).
+  call_must_be(extension_type_none, Ext),
+  process_create(path(Method), ['-T',Ext], [stdin(pipe(ProcIn))]).
 
-output_format_none(Format) :-
-  output_format(Format, none).
+extension_type_none(Ext) :-
+  extension_type_(Ext, none).
 
 
 
 %! gv_open(-ProcIn:stream, -ProcOut:stream) is det.
-%! gv_open(+Method:atom, +Format:atom, -ProcIn:stream,
-%!               -ProcOut:stream) is det.
+%! gv_open(+Method:atom, +Extension:atom, -ProcIn:stream,
+%!         -ProcOut:stream) is det.
 %
 % Open a GraphViz input stream _and_ a GraphViz output stream.  The
 % input stream expects statments in the DOT language.  The output
@@ -235,34 +231,35 @@ output_format_none(Format) :-
 
 gv_open(ProcIn, ProcOut) :-
   setting(default_method, Method),
-  setting(default_show_format, Format),
-  gv_open(Method, Format, ProcIn, ProcOut).
+  setting(default_show_extension, Ext),
+  gv_open(Method, Ext, ProcIn, ProcOut).
 
 
-gv_open(Method, Format, ProcIn, ProcOut) :-
+gv_open(Method, Ext, ProcIn, ProcOut) :-
   call_must_be(method, Method),
-  call_must_be(output_format_not_none, Format),
-  output_format(Format, Type),
+  call_must_be(extension_type_not_none, Ext),
+  extension_type_(Ext, Type),
   process_create(
     path(Method),
-    ['-T',Format],
+    ['-T',Ext],
     [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
   ),
   set_stream(ProcOut, type(Type)).
 
-output_format_not_none(Format) :-
-  output_format(Format, Type),
+extension_type_not_none(Ext) :-
+  extension_type_(Ext, Type),
   Type \== none.
 
 
 
 %! gv_reply(+Method:atom, +MediaType:compound, :Goal_1) is det.
 
-gv_reply(Method, media(Supertype/Subtype,_), Goal_1) :-
-  format("Content-Type: ~a/~a\n\n", [Supertype,Subtype]),
-  format_media_type(Format, Supertype/Subtype),
-  assertion(gv_format(Format)),
-  gv_open(Method, Format, ProcIn, ProcOut),
+gv_reply(Method, MediaType, Goal_1) :-
+  atom_phrase(media_type(MediaType), Atom),
+  format("Content-Type: ~a\n\n", [Atom]),
+  media_type_extension(MediaType, Ext),
+  assertion(gv_extension(Ext)),
+  gv_open(Method, Ext, ProcIn, ProcOut),
   call(Goal_1, ProcIn),
   close(ProcIn),
   copy_stream_data(ProcOut, current_output),
@@ -271,26 +268,34 @@ gv_reply(Method, media(Supertype/Subtype,_), Goal_1) :-
 
 
 %! gv_show(:Goal_1) is det.
-%! gv_show(+Method, +Format, :Goal_1) is det.
+%! gv_show(+Method:atom, +Extension:atom, :Goal_1) is det.
 
 gv_show(Goal_1) :-
   setting(default_method, Method),
-  setting(default_show_format, Format),
-  gv_show(Method, Format, Goal_1).
+  setting(default_show_extension, Ext),
+  gv_show(Method, Ext, Goal_1).
 
 
-gv_show(Method, Format, Goal_1) :-
+gv_show(Method, Ext, Goal_1) :-
   setup_call_cleanup(
-    gv_open(Method, Format, ProcIn),
+    gv_open(Method, Ext, ProcIn),
     call(Goal_1, ProcIn),
     close(ProcIn)
   ).
 
 
 
+%! is_gv_media_type(+MediaType:compound) is semidet.
+
+is_gv_media_type(MediaType) :-
+  media_type_extension(MediaType, Ext),
+  gv_extension(Ext).
 
 
-% SETTINGS %
+
+
+
+% GENERICS %
 
 %! method(?Method:atom) is nondet.
 
@@ -304,114 +309,114 @@ method(twopi).
 
 
 
-%! output_format(?Format:atom) is nondet.
-%! output_format(?Format:atom, ?Type:oneof([binary,none,text])) is nondet.
+%! extension_type_(?Extension:atom) is nondet.
+%! extension_type_(?Extension:atom, ?Type:oneof([binary,none,text])) is nondet.
 %
 % @arg Type The type of output.  `none' in case there is no output.
 
-output_format(Format) :-
-  output_format(Format, _).
+extension_type_(Ext) :-
+  extension_type_(Ext, _).
 
-output_format('plain-ext', text).
-output_format('xdot1.2', text).
-output_format('xdot1.4', text).
+extension_type_('plain-ext', text).
+extension_type_('xdot1.2', text).
+extension_type_('xdot1.4', text).
 % BMP
-output_format(bmp, binary).
-output_format(canon, text).
+extension_type_(bmp, binary).
+extension_type_(canon, text).
 % CGImage, a drawable image object in Core Graphics (the low-level
 % procedural drawing API for iOS and Mac OS X).
-output_format(cgimage, binary).
-output_format(cmap, text).
-output_format(cmapx, text).
-output_format(cmapx_np, text).
+extension_type_(cgimage, binary).
+extension_type_(cmap, text).
+extension_type_(cmapx, text).
+extension_type_(cmapx_np, text).
 % DOT
-output_format(dot, text).
+extension_type_(dot, text).
 % DOT JSON
-output_format(dot_json, text).
+extension_type_(dot_json, text).
 % Encapsulated PostScript
-output_format(eps, binary).
+extension_type_(eps, binary).
 % OpenEXR is a high dynamic-range (HDR) image file format developed by
 % Industrial Light & Magic for use in computer imaging applications.
-output_format(exr, binary).
+extension_type_(exr, binary).
 % FIG
-output_format(fig, text).
+extension_type_(fig, text).
 % GD
-output_format(gd, text).
+extension_type_(gd, text).
 % GD2
-output_format(gd2, binary).
+extension_type_(gd2, binary).
 % GIF
-output_format(gif, binary).
+extension_type_(gif, binary).
 % GTK
-output_format(gtk, none).
+extension_type_(gtk, none).
 % @see DOT
-output_format(gv, text).
+extension_type_(gv, text).
 % ICO
-output_format(ico, binary).
-output_format(imap, text).
-output_format(imap_np, text).
+extension_type_(ico, binary).
+extension_type_(imap, text).
+extension_type_(imap_np, text).
 % HTML image map
-output_format(ismap, text).
+extension_type_(ismap, text).
 % JPEG 2000
-output_format(jp2, binary).
+extension_type_(jp2, binary).
 % @see JPEG
-output_format(jpe, binary).
+extension_type_(jpe, binary).
 % JPEG
-output_format(jpeg, binary).
+extension_type_(jpeg, binary).
 % @see JPEG
-output_format(jpg, binary).
-output_format(json, text).
-output_format(json0, text).
-%output_format(mp).
+extension_type_(jpg, binary).
+extension_type_(json, text).
+extension_type_(json0, text).
+%extension_type_(mp).
 % PICT is a graphics file format introduced on the original Apple
 % Macintosh computer as its standard metafile format.
-output_format(pct, binary).
+extension_type_(pct, binary).
 % Portable Document Format (PDF)
-output_format(pdf, binary).
+extension_type_(pdf, binary).
 % PIC language developed for troff
-output_format(pic, text).
+extension_type_(pic, text).
 % @see PICT
-output_format(pict, binary).
-output_format(plain, text).
-output_format(png, binary).
+extension_type_(pict, binary).
+extension_type_(plain, text).
+extension_type_(png, binary).
 % Scene-description language for 3D modelling for the Persistence of
 % Vision Raytracer.
-output_format(pov, binary).
+extension_type_(pov, binary).
 % PostScript
-output_format(ps, binary).
+extension_type_(ps, binary).
 % PostScript output with PDF notations.
-output_format(ps2, binary).
+extension_type_(ps2, binary).
 % Adobe Photoshop PSD
-output_format(psd, binary).
+extension_type_(psd, binary).
 % SGI
-output_format(sgi, binary).
+extension_type_(sgi, binary).
 % SVG
-output_format(svg, text).
+extension_type_(svg, text).
 % compressed SVG
-output_format(svgz, binary).
+extension_type_(svgz, binary).
 % Truevision TGA or TARGA
-output_format(tga).
+extension_type_(tga).
 % TIFF
-output_format(tif, binary).
+extension_type_(tif, binary).
 % TIFF
-output_format(tiff, binary).
+extension_type_(tiff, binary).
 % TK graphics primitives
-output_format(tk, text).
+extension_type_(tk, text).
 % Microsoft Visio XML drawing file format
-output_format(vdx, text).
+extension_type_(vdx, text).
 % Vector Markup Language (VML)
-output_format(vml, text).
+extension_type_(vml, text).
 % compressed Vector Markup Language (VML)
-output_format(vmlz, binary).
+extension_type_(vmlz, binary).
 % Virtual Reality Modeling Language (VRML)
-output_format(vrml).
+extension_type_(vrml).
 % Wireless BitMap (WBMP)
-output_format(wbmp).
+extension_type_(wbmp).
 % image format for the Web (WEBP/WebP)
-output_format(webp).
-output_format(x11, none).
-output_format(xdot, text).
-output_format(xdot_json, text).
-output_format(xlib, none).
+extension_type_(webp).
+extension_type_(x11, none).
+extension_type_(xdot, text).
+extension_type_(xdot_json, text).
+extension_type_(xlib, none).
 
 
 
@@ -419,8 +424,8 @@ output_format(xlib, none).
 
 % HELPERS %
 
-%! attributes_atom(+Attrs:list(compound), -AttrsAtom:atom) is det.
+%! attributes_atom(+Attributes:list(compound), -Atom:atom) is det.
 
-attributes_atom(Attrs, AttrsAtom) :-
-  maplist(dot_attribute, Attrs, AttrAtoms),
-  atomics_to_string(AttrAtoms, ",", AttrsAtom).
+attributes_atom(Attrs, Atom) :-
+  maplist(dot_attribute, Attrs, Atoms),
+  atomic_list_concat(Atoms, ',', Atom).

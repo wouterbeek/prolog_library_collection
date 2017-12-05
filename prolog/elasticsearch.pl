@@ -22,7 +22,7 @@
 /** <module> ElasticSearch API
 
 @author Wouter Beek
-@version 2017/09
+@version 2017/09, 2017/12
 */
 
 :- use_module(library(call_ext)).
@@ -32,6 +32,7 @@
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(pagination), []).
 :- use_module(library(settings)).
@@ -410,9 +411,9 @@ es_request_(Segments, Query, Options1, Success-Failure, Result) :-
       must_be(oneof([Success,Failure]), Status),
       assertion(Status =:= Success),
       http_parse_header_value(content_type, ContentType, media(MediaType,_)),
-      (   MediaType = application/json
+      (   media_type_comps(MediaType, application, json, _)
       ->  json_read_dict(In, Result)
-      ;   MediaType = text/plain
+      ;   media_type_comps(MediaType, text, plain, _)
       ->  read_stream_to_codes(In, Result)
       ;   domain_error(media_type, MediaType)
       )

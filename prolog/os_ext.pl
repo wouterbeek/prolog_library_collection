@@ -1,25 +1,22 @@
 :- module(
   os_ext,
   [
-    exists_program/1,    % +Program
-    format_media_type/2, % ?Format, ?MediaType
-    format_label/2,      % ?Format, -Label
-    format_program/2,    % ?Format, ?Program
-    media_type/4,        % ?MediaType, ?Supertype, ?Subtype, ?Params
-    media_type_label/2,  % ?MediaType, -Label
-    open_format/2,       % +Format, +File
-    os/1,                % ?Os
-    os_path/1,           % ?Directory
-    process_flags/3      % :Goal_2, +Args, -Flags
+    exists_program/1, % +Program
+    open_file/1,      % +File
+    open_file/2,      % +MediaType, +File
+    os/1,             % ?Os
+    os_path/1,        % ?Directory
+    process_flags/3   % :Goal_2, +Args, -Flags
   ]
 ).
 
 /** <module> OS extensions
 
 @author Wouter Beek
-@version 2017/04-2017/11
+@version 2017/04-2017/12
 */
 
+:- use_module(library(media_type)).
 :- use_module(library(process)).
 
 :- meta_predicate
@@ -40,85 +37,25 @@ exists_program(Program) :-
 
 
 
-%! format_label(?Format:atom, ?Label:string) is nondet.
-
-format_label(Format, Label) :-
-  file_format(Format, _, _, Label).
-
-
-
-%! format_media_type(?Format:atom, ?MediaType:compound) is nondet.
-
-format_media_type(Format, MediaType) :-
-  file_format(Format, MediaType0, _, _),
-  % This supports formats with no Media Type.
-  MediaType0 == MediaType.
-
-
-
-%! format_program(?Format:atom, ?Programs:list(atom)) is nondet.
-
-format_program(Format, Program) :-
-  file_format(Format, _, Programs, _),
-  member(Program, Programs).
-
-
-
-file_format(bmp, image/bmp, [eog], "Windows Bitmap").
-file_format(csv, text/csv, [gedit], "Comma-separated values (CSV)").
-file_format(dot, text/'vnd.graphviz', [gedit], "GraphViz DOT").
-file_format(gif, image/gif, [eog], "Graphics Interchange Format (GIF)").
-file_format(html, text/html, [firefox], "Hyper Text Markup Language (HTML)").
-% Microsoft uses Media Type ‘image/x-icon’.
-file_format(ico, image/'vnd.microsoft.icon', [eog], "Windows Icon").
-file_format(jgf, application/'vnd.jgf+json', [eog], "JSON Graph Format (JGF)").
-file_format(jpeg, image/jpeg, [eog], "Joint Photographic Experts Group (JPEG)").
-file_format(json, application/json, [gedit], "JavaScript Object Notation (JSON)").
-file_format(nq, application/'n-quads', [gedit], "N-Quads 1.1").
-file_format(nt, application/'n-triples', [gedit], "N-Triples 1.1").
-% Native file format of PC Paintbrush.
-file_format(pcx, image/'vnd.zbrush.pcx', [eog], "PiCture EXchange").
-file_format(pdf, application/pdf, [evince,xpdf], "Portable Document Format (PDF)").
-file_format(png, image/png, [eog], "Portable Network Graphics (PNG)").
-file_format(pbm, image/'x-portable-bitmap', [], "Portable Bitmap Format (PBM)").
-file_format(pgm, image/'x-portable-graymap', [], "Portable Graymap Format (PGM)").
-file_format(ppm, image/'x-portable-pixmap', [], "Portable Pixmap Format (PPM)").
-file_format(pnm, image/'x-portable-anymap', [eog], "Portable Anymap Format (PNM)").
-file_format(ps, application/postscript, [evince,xpdf], "PostScript (PS)").
-file_format(ras, _, [eog], "Sun Raster").
-file_format(svg, image/'svg+xml', [firefox,eog], "Scalable Vector Graphics (SVG)").
-file_format(tga, image/'x-targa', [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
-file_format(tiff, image/tiff, [eog], "Tagged Image File Format (TIFF)").
-file_format(ttl, text/turtle, [gedit], "Turtle 1.1").
-file_format(trig, application/trig, [gedit], "TriG 1.1").
-file_format(wbmp, image/'vnd.wap.bmp', [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
-file_format(xbm, image/'x-bitmap', [eog], "X BitMap (XBM)").
-file_format(xpm, image/'x-xpixmap', [eog], "X PixMap (XPM)").
-file_format(webp, image/webp, [], "WebP").
-
-
-
-%! media_type(?MediaType:compound, ?Supertype:atom, ?Subtype:atom,
-%!            ?Params:list) is det.
-
-media_type(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
-
-
-
-%! media_type_label(?MediaType:compound, -Label:string) is nondet.
-
-media_type_label(MediaType, Label) :-
-  format_media_type(Format, MediaType),
-  format_label(Format, Label).
-
-
-
-%! open_format(+Format:atom, +File:atom) is det.
+%! open_file(+File:atom) is semidet.
+%! open_file(+MediaType:compound, +File:atom) is det.
 %
-% Opens the given PDF file.
+% Open the file using the first existing program that is registered
+% with the Media Type denote by its file name extension.
+%
+% Fails if there is no file name extension, or if the file name
+% extension cannot be mapped to a Media Type, or if the Media Type
+% cannot be mapped to a program, or if none of the mapped to programs
+% exists.
 
-open_format(Format, File) :-
-  format_program(Format, Program),
+open_file(File) :-
+  file_name_extension(_, Ext, File),
+  media_type_extension(MediaType, Ext),
+  open_file(MediaType, File).
+
+
+open_file(MediaType, File) :-
+  media_type_program(MediaType, Program),
   exists_program(Program), !,
   process_create(
     path(Program),

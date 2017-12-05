@@ -86,6 +86,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/http_generic)).
 :- use_module(library(http/http_open)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -131,32 +132,13 @@ http_accept_value(MediaTypes, Accept) :-
 
 accept_([], _, _) --> !, "".
 accept_([H], N, _) --> !,
-  media_type_(H),
+  media_type(H),
   weight_(N).
 accept_([H|T], N1, Interval) -->
-  media_type_(H),
+  media_type(H),
   weight_(N1),
   {N2 is N1 + Interval},
   accept_(T, N2, Interval).
-
-media_type_(media(Super/Sub,Params)) -->
-  atom(Super),
-  "/",
-  atom(Sub),
-  params_(Params).
-
-params_([]) --> !, "".
-params_([H|T]) -->
-  ";",
-  param_(H),
-  params_(T).
-
-param_(Param) -->
-  {
-    Param =.. [Key,Value],
-    format(atom(Atom), "~a(~w)", [Key,Value])
-  },
-  atom(Atom).
 
 weight_(N) -->
   {format(atom(Atom), "~3f", [N])},

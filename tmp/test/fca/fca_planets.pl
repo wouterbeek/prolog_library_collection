@@ -40,7 +40,7 @@ fca_planets:-
       graph_label("FCA for planets")
     ]
   ),
-  open_format(pdf, File).
+  open_file(File).
 
 
 
