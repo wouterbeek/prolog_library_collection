@@ -174,15 +174,7 @@ brt_request(Uri, Goal_3) :-
 
 
 brt_request(Uri, Goal_3, Opts1) :-
-  merge_options(
-    Opts1,
-    [
-      method(get),
-      request_header('Accept'='application/json'),
-      verbose(all)
-    ],
-    Opts2
-  ),
+  merge_options(Opts1, [accept(json),method(get),verbose(all)], Opts2),
   client_pagination(Uri, Goal_3, Opts2).
 
 

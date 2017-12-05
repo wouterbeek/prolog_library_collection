@@ -104,8 +104,8 @@ bag_request(Uri, Goal_3, Opts1) :-
   merge_options(
     Opts1,
     [
+      accept(media(application/'hal+json')),
       method(get),
-      request_header('Accept'='application/hal+json'),
       request_header('X-Api-Key'=Key),
       verbose(all)
     ],

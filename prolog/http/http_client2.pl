@@ -1,13 +1,12 @@
 :- module(
   http_client2,
   [
-    http_accept_value/2, % +MediaTypes, -Accept
-    http_call/2,         % +Uri, :Goal_1
-    http_call/3,         % +Uri, :Goal_1, +Options
-    http_head2/2,        % +Uri, +Options
-    http_lmod/2,         % +Uri, -Time
-    http_open2/2,        % +CurrentUri, -In
-    http_open2/3,        % +CurrentUri, -In, +Options
+    http_call/2,  % +Uri, :Goal_1
+    http_call/3,  % +Uri, :Goal_1, +Options
+    http_head2/2, % +Uri, +Options
+    http_lmod/2,  % +Uri, -Time
+    http_open2/2, % +CurrentUri, -In
+    http_open2/3, % +CurrentUri, -In, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -122,13 +121,14 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
 %               ) *( OWS ";" OWS parameter )
 % parameter = token "=" ( token / quoted-string )
 % accept-params  = weight *( accept-ext )
+% weight = OWS ";" OWS "q=" qvalue
 % accept-ext = OWS ";" OWS token [ "=" ( token / quoted-string ) ]
 % ```
 
 http_accept_value(MediaTypes, Accept) :-
   length(MediaTypes, NumMediaTypes),
   Interval is 1.0 / NumMediaTypes,
-  atom_phrase(accept_(MediaTypes, 0.0, Interval), Accept).
+  atom_phrase(accept_(MediaTypes, Interval, Interval), Accept).
 
 accept_([], _, _) --> !, "".
 accept_([H], N, _) --> !,
@@ -141,7 +141,7 @@ accept_([H|T], N1, Interval) -->
   accept_(T, N2, Interval).
 
 weight_(N) -->
-  {format(atom(Atom), "~3f", [N])},
+  {format(atom(Atom), ";q=~3f", [N])},
   atom(Atom).
 
 
@@ -239,6 +239,11 @@ http_lmod(Uri, Time) :-
 %
 % @arg Options The following options are supported:
 %
+%   * accept(+Accept)
+%
+%     Accept is either a registered file name extension, a Media Types
+%     compound term, or a list of Media Type compounds.
+%
 %   * failure(+between(400,599))
 %
 %     Default is 400.
@@ -272,10 +277,16 @@ http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, []).
 
 
-http_open2(CurrentUri, In, Options) :-
-  ignore(option(next(NextUri), Options)),
-  ignore(option(metadata(Meta), Options)),
-  http_open2_meta(CurrentUri, In, Meta, Options),
+http_open2(CurrentUri, In, Options1) :-
+  (   select_option(accept(Accept), Options1, Options2)
+  ->  http_open2_accept_(Accept, Atom)
+  ;   Atom = '*',
+      Options2 = Options1
+  ),
+  merge_options([request_header('Accept'=Atom)], Options2, Options3),
+  ignore(option(next(NextUri), Options3)),
+  ignore(option(metadata(Meta), Options3)),
+  http_open2_meta(CurrentUri, In, Meta, Options3),
   Meta = [Meta0|_],
   _{headers: Headers, status: Status} :< Meta0,
   % `Link' reply header
@@ -284,8 +295,8 @@ http_open2(CurrentUri, In, Options) :-
     atomic_list_concat(Links, ;, Link),
     http_link(Link, next, NextUri)
   )),
-  option(success(Success), Options, 200),
-  option(failure(Failure), Options, 400),
+  option(success(Success), Options3, 200),
+  option(failure(Failure), Options3, 400),
   (   Status =:= Success
   ->  true
   ;   read_stream_to_codes(In, Codes),
@@ -360,6 +371,19 @@ debug_header(Key-Values) :-
 
 debug_header(Key, Value) :-
   debug(http(receive_reply), "< ~a: ~w", [Key,Value]).
+
+% list of Media Types
+http_open2_accept_(MediaTypes, Atom) :-
+  is_list(MediaTypes), !,
+  http_accept_value(MediaTypes, Atom).
+% file name extension
+http_open2_accept_(Ext, Atom) :-
+  atom(Ext), !,
+  media_type_extension(MediaType, Ext),
+  http_open2_accept_([MediaType], Atom).
+% Media Type
+http_open2_accept_(MediaType, Atom) :-
+  http_open2_accept_([MediaType], Atom).
 
 % authentication error
 http_open2_meta(_, In, _, _, Status, _, _, _, _, _, []) :-

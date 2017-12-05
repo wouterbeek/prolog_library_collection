@@ -109,8 +109,7 @@ curl_options0(MT, Opts) :-
 curl_options0(Opts1, MT, Opts3) :-
   (   var(MT)
   ->  Opts2 = Opts1
-  ;   atom_phrase('media-type'(MT), Val),
-      Opts2 = [request_header('Accept'=Val)|Opts1]
+  ;   Opts2 = [accept(MT)|Opts1]
   ),
   merge_options([verbose(all)], Opts2, Opts3).
 

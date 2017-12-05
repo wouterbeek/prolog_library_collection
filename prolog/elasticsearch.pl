@@ -81,7 +81,7 @@ es(Segments1, Result, Options) :-
       es_request_(
         Segments2,
         Query1,
-        [post(json(Search)),request_header('Accept'='application/json')],
+        [accept(json),post(json(Search))],
         200,
         Status
       )
@@ -94,7 +94,7 @@ es(Segments1, Result, Options) :-
       es_request_(
         Segments2,
         Query2,
-        [request_header('Accept'='text/plain')],
+        [accept(media(text/plain,[]))],
         200,
         Status
       )
@@ -129,7 +129,7 @@ es_add_document([Index,Type], Document, Status) :- !,
   es_request_(
     [Index,Type],
     [],
-    [post(json(Document)),request_header('Accept'='application/json')],
+    [accept(json),post(json(Document))],
     201,
     Status
   ).
@@ -138,11 +138,7 @@ es_add_document([Index,Type,Id], Document, Status) :-
   es_request_(
     [Index,Type,Id,'_create'],
     [],
-    [
-      method(put),
-      post(json(Document)),
-      request_header('Accept'='application/json')
-    ],
+    [accept(json),method(put),post(json(Document))],
     201-409,
     Status
   ).
@@ -155,7 +151,7 @@ es_add_index(Index, Status) :-
   es_request_(
     [Index],
     [pretty(true)],
-    [method(put),request_header('Accept'='application/json')],
+    [accept(json),method(put)],
     200-400,
     Status
   ).
@@ -178,7 +174,7 @@ es_count(Segments1, Status) :-
   es_request_(
     Segments2,
     [],
-    [request_header('Accept'='application/json')],
+    [accept(json)],
     200-404,
     Status
   ).
@@ -191,7 +187,7 @@ es_delete(Segments, Status) :-
   es_request_(
     Segments,
     [],
-    [method(delete),request_header('Accept'='application/json')],
+    [accept(json),method(delete)],
     200-404,
     Status
   ).
@@ -219,7 +215,7 @@ es_get(Segments, Result) :-
   es_request_(
     Segments,
     [],
-    [request_header('Accept'='application/json')],
+    [accept(json)],
     200-404,
     Status
   ),
@@ -240,7 +236,7 @@ es_health :-
   es_request_(
     ['_cat',health],
     [v(true)],
-    [request_header('Accept'='text/plain')],
+    [accept(media(text/plain,[]))],
     200-404,
     Codes
   ),
@@ -253,7 +249,7 @@ es_health(Dict) :-
   es_request_(
     ['_cluster',health],
     [],
-    [request_header('Accept'='text/plain')],
+    [accept(media(text/plain,[]))],
     200-404,
     Dict
   ).
@@ -266,7 +262,7 @@ es_indices :-
   es_request_(
     ['_cat',indices],
     [v(true)],
-    [request_header('Accept'='text/plain')],
+    [accpept(media(text/plain,[]))],
     200-404,
     Codes
   ),
@@ -280,7 +276,7 @@ es_nodes :-
   es_request_(
     ['_cat',nodes],
     [v(true)],
-    [request_header('Accept'='text/plain')],
+    [accept(media(text/plain,[]))],
     200-404,
     Codes
   ),
@@ -295,7 +291,7 @@ es_statistics(Segments1, Status) :-
   es_request_(
     Segments2,
     [],
-    [request_header('Accept'='text/plain')],
+    [accept(media(text/plain,[]))],
     200-404,
     Status
   ).
@@ -321,11 +317,7 @@ es_setting(Index, Key, Value) :-
       es_request_(
         [Index,'_settings'],
         [],
-        [
-          method(put),
-          post(json(Data)),
-          request_header('Accept'='application/json')
-        ],
+        [accept(media(json)),method(put),post(json(Data))],
         201-409,
         Status
       ),
@@ -333,7 +325,7 @@ es_setting(Index, Key, Value) :-
   ;   es_request_(
         [Index,'_settings'],
         [],
-        [request_header('Accept'='application/json')],
+        [accept(json)],
         200-404,
         Status
       ),
@@ -382,7 +374,7 @@ es_update_document([Index,Type,Id], Document, Status) :-
   es_request_(
     [Index,Type,Id,'_update'],
     [],
-    [post(json(Document)),request_header('Accept'='application/json')],
+    [accept(json),post(json(Document))],
     200-409,
     Status
   ).

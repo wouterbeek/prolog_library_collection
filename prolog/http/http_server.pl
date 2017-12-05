@@ -272,9 +272,11 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       )
   ).
 
+% A sequence of Media Types (from most to least acceptable).
 request_media_types(Request, MediaTypes) :-
-  memberchk(accept(MediaTypes0), Request), !,
-  clean_media_types(MediaTypes0, MediaTypes).
+  memberchk(accept(MediaTypes0), Request),
+  clean_media_types(MediaTypes0, MediaTypes), !.
+% Any Media Type is accepted (`*`).
 request_media_types(_, [_]).
 
 clean_media_types(L1, L2) :-

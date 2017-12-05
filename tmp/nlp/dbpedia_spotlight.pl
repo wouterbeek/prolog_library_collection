@@ -183,7 +183,7 @@ annotate(Txt, Anns, Opts) :-
     Uri,
     codes('application/x-www-form-urlencoded',Body),
     callback0(Txt, Anns, Opts),
-    [request_header('Accept'='application/json')]
+    [accept(json)]
   ), !.
 annotate(_, _, _) :-
   print_message(error, service_offline(dbpedia_spotlight)).

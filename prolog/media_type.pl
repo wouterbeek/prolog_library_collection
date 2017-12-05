@@ -91,8 +91,8 @@ media_type_label(MediaType, Label) :-
 %! media_type_program(-MediaType:compound, +Program:atom) is nondet.
 %! media_type_program(-MediaType:compound, -Program:atom) is multi.
 
-media_type_program(Format, Program) :-
-  file_format(Format, _, Programs, _),
+media_type_program(MediaType, Program) :-
+  media_type_(_, MediaType, Programs, _),
   member(Program, Programs).
 
 
