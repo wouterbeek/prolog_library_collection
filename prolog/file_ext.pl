@@ -26,7 +26,6 @@
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
-    media_type_extension/2,       % +MediaType, -Extension
     recode_file/1,                % +File
     sort_file/1,                  % +File
     touch/1,                      % +File
@@ -48,6 +47,7 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
@@ -56,8 +56,7 @@
 :- use_module(library(zlib)).
 
 :- multifile
-    error:has_type/2,
-    file_ext:media_type_extension_/2.
+    error:has_type/2.
 
 error:has_type(directory, Directory) :-
   var(Directory), !,
@@ -70,9 +69,6 @@ error:has_type(directory, Directory) :-
 error:has_type(media_type, media(Supertype/Subtype,Parameters)) :-
   maplist(error:has_type(atom), [Supertype,Subtype]),
   error:has_type(list(compound), Parameters).
-
-file_ext:media_type_extension_(media(application/'xhtml+xml',[]), xhtml).
-file_ext:media_type_extension_(media(text/html,[]), html).
 
 
 
@@ -430,22 +426,6 @@ is_dummy_file(..).
 is_empty_directory(Dir) :-
   exists_directory(Dir),
   \+ directory_file(Dir, _).
-
-
-
-%! media_type_extension(+MediaType:compound, -Extension:atom) is det.
-
-media_type_extension(MediaType, Extension) :-
-  once(media_type_extension_(MediaType, Extension)).
-
-media_type_extension_(media(application/json,_), json).
-media_type_extension_(media(application/'n-quads',_), nq).
-media_type_extension_(media(application/'n-triples',_), nt).
-media_type_extension_(media(application/'sparql-query',_), rq).
-media_type_extension_(media(application/'x-prolog',_), pl).
-media_type_extension_(media(image/jpeg,_), jpeg).
-media_type_extension_(media(image/png,_), png).
-media_type_extension_(media(text/turtle,_), ttl).
 
 
 

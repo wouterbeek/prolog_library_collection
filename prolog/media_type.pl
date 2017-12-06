@@ -116,23 +116,26 @@ media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notati
 media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").
 media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
 media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
+media_type_(pbm, media(image/'x-portable-bitmap',[]), [], "Portable Bitmap Format (PBM)").
 % Native file format of PC Paintbrush.
 media_type_(pcx, media(image/'vnd.zbrush.pcx',[]), [eog], "PiCture EXchange").
 media_type_(pdf, media(application/pdf,[]), [evince,xpdf], "Portable Document Format (PDF)").
-media_type_(png, media(image/png,[]), [eog], "Portable Network Graphics (PNG)").
-media_type_(pbm, media(image/'x-portable-bitmap',[]), [], "Portable Bitmap Format (PBM)").
 media_type_(pgm, media(image/'x-portable-graymap',[]), [], "Portable Graymap Format (PGM)").
-media_type_(ppm, media(image/'x-portable-pixmap',[]), [], "Portable Pixmap Format (PPM)").
+media_type_(pl, media(application/'x-prolog',[]), [gedit], "Prolog").
+media_type_(png, media(image/png,[]), [eog], "Portable Network Graphics (PNG)").
 media_type_(pnm, media(image/'x-portable-anymap',[]), [eog], "Portable Anymap Format (PNM)").
+media_type_(ppm, media(image/'x-portable-pixmap',[]), [], "Portable Pixmap Format (PPM)").
 media_type_(ps, media(application/postscript,[]), [evince,xpdf], "PostScript (PS)").
 media_type_(rdf, media(application/'rdf+xml',[]), [gedit], "RDF/XML 1.1").
+media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog], "Tagged Image File Format (TIFF)").
-media_type_(ttl, media(text/turtle,[]), [gedit], "Turtle 1.1").
 media_type_(trig, media(application/trig,[]), [gedit], "TriG 1.1").
+media_type_(ttl, media(text/turtle,[]), [gedit], "Turtle 1.1").
 media_type_(wbmp, media(image/'vnd.wap.bmp',[]), [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
 media_type_(xbm, media(image/'x-bitmap',[]), [eog], "X BitMap (XBM)").
+media_type_(xhtml, media(application/'xhtml+xml',[]), [gedit], "XHTML").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog], "X PixMap (XPM)").
 media_type_(webp, media(image/webp,[]), [], "WebP").
 

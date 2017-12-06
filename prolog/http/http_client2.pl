@@ -386,9 +386,8 @@ http_open2_accept_(MediaType, Atom) :-
   http_open2_accept_([MediaType], Atom).
 
 % authentication error
-http_open2_meta(_, In, _, _, Status, _, _, _, _, _, []) :-
+http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
   Status =:= 401,
-  close(In),
   print_message(warning, http_error_code(Status)).
 % non-authentication error
 http_open2_meta(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
