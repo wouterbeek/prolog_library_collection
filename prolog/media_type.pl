@@ -110,7 +110,7 @@ media_type_(hdt, media(application/'vnd.hdt',[]), [], "Header Dictionary Triples
 media_type_(html, media(text/html,[]), [firefox], "Hyper Text Markup Language (HTML)").
 % Microsoft uses Media Type ‘image/x-icon’.
 media_type_(ico, media(image/'vnd.microsoft.icon',[]), [eog], "Windows Icon").
-media_type_(jgf, media(application/'vnd.jgf+json',[]), [eog], "JSON Graph Format (JGF)").
+media_type_(jgf, media(application/'vnd.jgf+json',[]), [gedit], "JSON Graph Format (JGF)").
 media_type_(jpeg, media(image/jpeg,[]), [eog], "Joint Photographic Experts Group (JPEG)").
 media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notation (JSON)").
 media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").
