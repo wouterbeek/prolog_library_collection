@@ -1,10 +1,10 @@
 :- module(
   gv,
   [
-    dot_edge/3,        % +Out, +FromId, +ToId
-    dot_edge/4,        % +Out, +FromId, +ToId. +Attributes
-    dot_id/2,          % +Term, -Id
-    dot_node/3,        % +Out, +Id, +Attributes
+    gv_edge/3,         % +Out, +FromId, +ToId
+    gv_edge/4,         % +Out, +FromId, +ToId. +Attributes
+    gv_id/2,           % +Term, -Id
+    gv_node/3,         % +Out, +Id, +Attributes
     gv_export/2,       % +File, :Goal_1
     gv_export/4,       % +Method, +Ext, +File, :Goal_1
     gv_extension/1,    % ?Ext
@@ -86,33 +86,33 @@ cell:   <TD> label </TD>
 
 
 
-%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom) is det.
+%! gv_edge(+Out:stream, +FromId:atom, +ToId:atom) is det.
 
-dot_edge(Out, FromId, ToId) :-
+gv_edge(Out, FromId, ToId) :-
   format_debug(dot, Out, "  ~a -> ~a;", [FromId,ToId]).
 
 
 
-%! dot_edge(+Out:stream, +FromId:atom, +ToId:atom,
+%! gv_edge(+Out:stream, +FromId:atom, +ToId:atom,
 %!          +Attributes:list(compound)) is det.
 
-dot_edge(Out, FromId, ToId, Attrs) :-
+gv_edge(Out, FromId, ToId, Attrs) :-
   attributes_atom(Attrs, Atom),
   format_debug(dot, Out, "  ~a -> ~a [~a];", [FromId,ToId,Atom]).
 
 
 
-%! dot_id(@Term, -Id:atom) is det.
+%! gv_id(@Term, -Id:atom) is det.
 %
 % Id is a DOT-compatible unique identifier for Term.
 
-dot_id(Term, Id) :-
+gv_id(Term, Id) :-
   md5(Term, Hash),
   atomic_concat(n, Hash, Id).
 
 
 
-%! dot_node(+Out:stream, +Id:atom, +Attributes:list(compound)) is det.
+%! gv_node(+Out:stream, +Id:atom, +Attributes:list(compound)) is det.
 %
 % The following attributes are supported:
 %
@@ -122,22 +122,22 @@ dot_id(Term, Id) :-
 %
 %   * Other options are written as DOT attributes.
 
-dot_node(Out, Id, Attrs) :-
+gv_node(Out, Id, Attrs) :-
   attributes_atom(Attrs, Atom),
   format_debug(dot, Out, "  ~a [~a];", [Id,Atom]).
 
-dot_attribute(Attr1, Attr2) :-
+gv_attribute(Attr1, Attr2) :-
   Attr1 =.. [Name,Value],
-  dot_attribute(Name, Value, Attr2).
+  gv_attribute(Name, Value, Attr2).
 
-dot_attribute(label, Values, Attr) :-
+gv_attribute(label, Values, Attr) :-
   is_list(Values), !,
   atomics_to_string(Values, "<BR/>", Value),
-  dot_attribute(label, Value, Attr).
-dot_attribute(label, Value1, Attr) :- !,
+  gv_attribute(label, Value, Attr).
+gv_attribute(label, Value1, Attr) :- !,
   string_phrase(html_replace, Value1, Value2),
   format(string(Attr), "label=<~a>", [Value2]).
-dot_attribute(Name, Value, Attr) :-
+gv_attribute(Name, Value, Attr) :-
   format(string(Attr), "~a=\"~a\"", [Name,Value]).
 
 html_replace, "&lt;" --> "<", !, html_replace.
@@ -427,5 +427,5 @@ extension_type_(xlib, none).
 %! attributes_atom(+Attributes:list(compound), -Atom:atom) is det.
 
 attributes_atom(Attrs, Atom) :-
-  maplist(dot_attribute, Attrs, Atoms),
+  maplist(gv_attribute, Attrs, Atoms),
   atomic_list_concat(Atoms, ',', Atom).
