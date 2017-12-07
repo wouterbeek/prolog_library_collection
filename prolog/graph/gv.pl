@@ -3,11 +3,11 @@
   [
     gv_edge/3,         % +Out, +FromId, +ToId
     gv_edge/4,         % +Out, +FromId, +ToId. +Attributes
-    gv_id/2,           % +Term, -Id
-    gv_node/3,         % +Out, +Id, +Attributes
     gv_export/2,       % +File, :Goal_1
     gv_export/4,       % +Method, +Ext, +File, :Goal_1
     gv_extension/1,    % ?Ext
+    gv_id/2,           % +Term, -Id
+    gv_node/3,         % +Out, +Id, +Attributes
     gv_open/1,         % -ProcIn
     gv_open/2,         % -ProcIn, -ProcOut
     gv_open/3,         % +Method, +Ext, -ProcIn
@@ -102,6 +102,48 @@ gv_edge(Out, FromId, ToId, Attrs) :-
 
 
 
+%! gv_export(+File:atom, :Goal_1) is det.
+%! gv_export(+Method:atom, +Ext:atom, +File:atom, :Goal_1) is det.
+
+gv_export(File, Goal_1) :-
+  setting(default_method, Method),
+  setting(default_export_extension, Ext),
+  gv_export(Method, Ext, File, Goal_1).
+
+
+gv_export(Method, Ext, File, Goal_1) :-
+  extension_type_(Ext, Type),
+  setup_call_cleanup(
+    open(File, write, Out, [type(Type)]),
+    setup_call_cleanup(
+      gv_open(Method, Ext, ProcIn, ProcOut),
+      (
+        call(Goal_1, ProcIn),
+        close(ProcIn),
+        copy_stream_data(ProcOut, Out)
+      ),
+      close(ProcOut)
+    ),
+    close(Out)
+  ).
+
+
+
+%! gv_extension(?Format:atom) is nondet.
+
+gv_extension(bmp).
+gv_extension(dot).
+gv_extension(gif).
+gv_extension(jpeg).
+gv_extension(json).
+gv_extension(pdf).
+gv_extension(png).
+gv_extension(ps).
+gv_extension(svg).
+gv_extension(tiff).
+
+
+
 %! gv_id(@Term, -Id:atom) is det.
 %
 % Id is a DOT-compatible unique identifier for Term.
@@ -144,48 +186,6 @@ html_replace, "&lt;" --> "<", !, html_replace.
 html_replace, "&gt;" --> ">", !, html_replace.
 html_replace, [C] --> [C], !, html_replace.
 html_replace --> "".
-
-
-
-%! gv_export(+File:atom, :Goal_1) is det.
-%! gv_export(+Method:atom, +Ext:atom, +File:atom, :Goal_1) is det.
-
-gv_export(File, Goal_1) :-
-  setting(default_method, Method),
-  setting(default_export_extension, Ext),
-  gv_export(Method, Ext, File, Goal_1).
-
-
-gv_export(Method, Ext, File, Goal_1) :-
-  extension_type_(Ext, Type),
-  setup_call_cleanup(
-    open(File, write, Out, [type(Type)]),
-    setup_call_cleanup(
-      gv_open(Method, Ext, ProcIn, ProcOut),
-      (
-        call(Goal_1, ProcIn),
-        close(ProcIn),
-        copy_stream_data(ProcOut, Out)
-      ),
-      close(ProcOut)
-    ),
-    close(Out)
-  ).
-
-
-
-%! gv_extension(?Format:atom) is nondet.
-
-gv_extension(bmp).
-gv_extension(dot).
-gv_extension(gif).
-gv_extension(jpeg).
-gv_extension(json).
-gv_extension(pdf).
-gv_extension(png).
-gv_extension(ps).
-gv_extension(svg).
-gv_extension(tiff).
 
 
 
