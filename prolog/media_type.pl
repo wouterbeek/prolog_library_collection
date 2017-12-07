@@ -114,6 +114,7 @@ media_type_(jgf, media(application/'vnd.jgf+json',[]), [gedit], "JSON Graph Form
 media_type_(jpeg, media(image/jpeg,[]), [eog], "Joint Photographic Experts Group (JPEG)").
 media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notation (JSON)").
 media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").
+media_type_(gml, media(text/'x-gml',[]), [gephi], "Gephi").
 media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
 media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
 media_type_(pbm, media(image/'x-portable-bitmap',[]), [], "Portable Bitmap Format (PBM)").
