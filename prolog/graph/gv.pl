@@ -317,9 +317,6 @@ method(twopi).
 extension_type_(Ext) :-
   extension_type_(Ext, _).
 
-extension_type_('plain-ext', text).
-extension_type_('xdot1.2', text).
-extension_type_('xdot1.4', text).
 % BMP
 extension_type_(bmp, binary).
 extension_type_(canon, text).
@@ -377,6 +374,7 @@ extension_type_(pic, text).
 % @see PICT
 extension_type_(pict, binary).
 extension_type_(plain, text).
+extension_type_('plain-ext', text).
 extension_type_(png, binary).
 % Scene-description language for 3D modelling for the Persistence of
 % Vision Raytracer.
@@ -416,6 +414,8 @@ extension_type_(webp).
 extension_type_(x11, none).
 extension_type_(xdot, text).
 extension_type_(xdot_json, text).
+extension_type_('xdot1.2', text).
+extension_type_('xdot1.4', text).
 extension_type_(xlib, none).
 
 
