@@ -329,7 +329,6 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   merge_options(
     Options1,
     [
-      authenticate(false),
       cert_verify_hook(cert_accept_any),
       raw_headers(HeaderLines),
       redirect(false),
