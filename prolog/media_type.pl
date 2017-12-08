@@ -133,6 +133,7 @@ media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Grap
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog], "Tagged Image File Format (TIFF)").
 media_type_(trig, media(application/trig,[]), [gedit], "TriG 1.1").
+media_type_(tsv, media(text/'tab-separated-values',[]), [gedit], "Tag-separated values (TSV)").
 media_type_(ttl, media(text/turtle,[]), [gedit], "Turtle 1.1").
 media_type_(wbmp, media(image/'vnd.wap.bmp',[]), [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
 media_type_(xbm, media(image/'x-bitmap',[]), [eog], "X BitMap (XBM)").
