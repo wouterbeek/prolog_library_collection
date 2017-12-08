@@ -55,5 +55,4 @@ jgf_node(NodeLabel_2, Node, _{id: Node, label: Label}) :-
 
 jgf_reply(Graph, NodeLabel_2) :-
   jgf(Graph, NodeLabel_2, Dict),
-  format("Content-Type: application/vnd.jgf+json\n\n"),
-  json_write_dict(current_output, Dict).
+  json_reply_dict(Dict, [content_type('application/vnd.jgf+json')]).
