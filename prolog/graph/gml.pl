@@ -1,10 +1,9 @@
 :- module(
   gml,
   [
-    gml_edge/4,   % +Out, +FromId, +ToId, +Attributes
-    gml_export/2, % +File, :Goal_1
-    gml_id/2,     % +Term, -Id
-    gml_node/3    % +Out, +Id, +Attributes
+    gml_edge/4, % +Out, +FromId, +ToId, +Attributes
+    gml_id/2,   % +Term, -Id
+    gml_node/3  % +Out, +Id, +Attributes
   ]
 ).
 
@@ -17,9 +16,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
-
-:- meta_predicate
-    gml_export(+, 1).
 
 
 
@@ -40,31 +36,7 @@ gml_attributes([], "").
 
 gml_edge(Out, FromId, ToId, Attrs) :-
   gml_attributes(Attrs, String),
-  debug_format(
-    gml,
-    Out,
-    "  edge [ source ~a target ~a~s ]",
-    [String,FromId,ToId]
-  ).
-
-
-
-%! gml_export(+File:atom, :Goal_1) is det.
-
-gml_export(File, Goal_1) :-
-  setup_call_cleanup(
-    open(File, write, Out),
-    setup_call_cleanup(
-      gml_open(ProcIn, ProcOut),
-      (
-        call(Goal_1, ProcIn),
-        close(ProcIn),
-        copy_stream_data(ProcOut, Out)
-      ),
-      close(ProcOut)
-    ),
-    close(Out)
-  ).
+  format_debug(gml, Out, "  edge [ source ~a target ~a~s ]", [FromId,ToId,String]).
 
 
 
@@ -101,4 +73,4 @@ gml_encode_label --> "".
 
 gml_node(Out, Id, Attrs) :-
   gml_attributes(Attrs, String),
-  format_debug(dot, Out, "  node [ id ~a~s ];", [Id,String]).
+  format_debug(gml, Out, "  node [ id ~a~s ]", [Id,String]).
