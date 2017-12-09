@@ -129,6 +129,7 @@ media_type_(ppm, media(image/'x-portable-pixmap',[]), [], "Portable Pixmap Forma
 media_type_(ps, media(application/postscript,[]), [evince,xpdf], "PostScript (PS)").
 media_type_(rdf, media(application/'rdf+xml',[]), [gedit], "RDF/XML 1.1").
 media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query").
+media_type_(ru, media(application/'sparql-update',[]), [gedit], "SPARQL 1.1 Update").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog], "Tagged Image File Format (TIFF)").
