@@ -86,6 +86,41 @@ cell:   <TD> label </TD>
 
 
 
+%! gv_attribute(+Attribute:compound, -String:string) is det.
+
+gv_attribute(Attr, Str) :-
+  Attr =.. [Name,Value],
+  gv_attribute(Name, Value, Str).
+
+gv_attribute(label, Values, Str) :-
+  is_list(Values), !,
+  atomics_to_string(Values, "<BR/>", Value),
+  gv_attribute(label, Value, Str).
+gv_attribute(label, Value0, Str) :- !,
+  string_phrase(html_replace, Value0, Value),
+  format(string(Str), "label=<~s>", [Value]).
+gv_attribute('URL', Value0, Str) :- !,
+  string_phrase(html_replace, Value0, Value),
+  format(string(Str), "URL=\"~s\"", [Value]).
+gv_attribute(Name, Value, Str) :-
+  format(string(Str), "~a=\"~s\"", [Name,Value]).
+
+html_replace, "&lt;" --> "<", !, html_replace.
+html_replace, "&gt;" --> ">", !, html_replace.
+html_replace, "&amp;" --> "&", !, html_replace.
+html_replace, [C] --> [C], !, html_replace.
+html_replace --> "".
+
+
+
+%! gv_attributes(+Attributes:list(compound), -String:string) is det.
+
+gv_attributes(Attrs, Str) :-
+  maplist(gv_attribute, Attrs, Strs),
+  atomics_to_string(Strs, ",", Str).
+
+
+
 %! gv_edge(+Out:stream, +FromId:atom, +ToId:atom) is det.
 
 gv_edge(Out, FromId, ToId) :-
@@ -97,8 +132,8 @@ gv_edge(Out, FromId, ToId) :-
 %!          +Attributes:list(compound)) is det.
 
 gv_edge(Out, FromId, ToId, Attrs) :-
-  attributes_atom(Attrs, Atom),
-  format_debug(dot, Out, "  ~a -> ~a [~a];", [FromId,ToId,Atom]).
+  gv_attributes(Attrs, Str),
+  format_debug(dot, Out, "  ~a -> ~a [~s];", [FromId,ToId,Str]).
 
 
 
@@ -165,27 +200,8 @@ gv_id(Term, Id) :-
 %   * Other options are written as DOT attributes.
 
 gv_node(Out, Id, Attrs) :-
-  attributes_atom(Attrs, Atom),
-  format_debug(dot, Out, "  ~a [~a];", [Id,Atom]).
-
-gv_attribute(Attr1, Attr2) :-
-  Attr1 =.. [Name,Value],
-  gv_attribute(Name, Value, Attr2).
-
-gv_attribute(label, Values, Attr) :-
-  is_list(Values), !,
-  atomics_to_string(Values, "<BR/>", Value),
-  gv_attribute(label, Value, Attr).
-gv_attribute(label, Value1, Attr) :- !,
-  string_phrase(html_replace, Value1, Value2),
-  format(string(Attr), "label=<~a>", [Value2]).
-gv_attribute(Name, Value, Attr) :-
-  format(string(Attr), "~a=\"~a\"", [Name,Value]).
-
-html_replace, "&lt;" --> "<", !, html_replace.
-html_replace, "&gt;" --> ">", !, html_replace.
-html_replace, [C] --> [C], !, html_replace.
-html_replace --> "".
+  gv_attributes(Attrs, Str),
+  format_debug(dot, Out, "  ~a [~s];", [Id,Str]).
 
 
 
@@ -417,15 +433,3 @@ extension_type_(xdot_json, text).
 extension_type_('xdot1.2', text).
 extension_type_('xdot1.4', text).
 extension_type_(xlib, none).
-
-
-
-
-
-% HELPERS %
-
-%! attributes_atom(+Attributes:list(compound), -Atom:atom) is det.
-
-attributes_atom(Attrs, Atom) :-
-  maplist(gv_attribute, Attrs, Atoms),
-  atomic_list_concat(Atoms, ',', Atom).
