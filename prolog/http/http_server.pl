@@ -248,10 +248,8 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
   (   Method == options
   ->  setting(http:products, Products),
       format("Status: 204\n"),
-      atom_phrase(allow(Methods), Value1),
-      format("Allow: ~a\n", [Value1]),
-      atom_phrase(server(Products), Value2),
-      format("Server: ~a\n", [Value2]),
+      write_allow_header(Methods),
+      write_server_header(Products),
       nl
   ;   % 405 “Method Not Allowed”
       \+ memberchk(Method, Methods)
@@ -272,6 +270,46 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       )
   ).
 
+
+
+% ```
+% Allow = #method
+% method = token
+% ```
+
+write_allow_header([H|T]) :-
+  format("Allow: ~a", [H]),
+  maplist(write_allow_header_, T),
+  nl.
+
+write_allow_header_(X) :-
+  format(", ~a", [X]).
+
+
+
+% ```
+% Server = product *( RWS ( product | comment ) )
+% product = token ["/" product-version]
+% product-version = token
+% ```
+
+write_server_header([H|T]) :-
+  format("Server: "),
+  product_(H),
+  maplist(write_server_header_, T),
+  nl.
+
+write_server_header_(X) :-
+  format(" "),
+  product_(X).
+
+product_(X-Y) :- !,
+  format("~a/~a", [X,Y]).
+product_(X) :- !,
+  format("~a", [X]).
+
+
+  
 % A sequence of Media Types (from most to least acceptable).
 request_media_types(Request, MediaTypes) :-
   memberchk(accept(MediaTypes0), Request),
