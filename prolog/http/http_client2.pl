@@ -378,8 +378,10 @@ http_open2_accept_(MediaTypes, Atom) :-
 % file name extension
 http_open2_accept_(Ext, Atom) :-
   atom(Ext), !,
-  media_type_extension(MediaType, Ext),
-  http_open2_accept_([MediaType], Atom).
+  (   media_type_extension(MediaType, Ext)
+  ->  http_open2_accept_([MediaType], Atom)
+  ;   existence_error(media_type_extension, Ext)
+  ).
 % Media Type
 http_open2_accept_(MediaType, Atom) :-
   http_open2_accept_([MediaType], Atom).
