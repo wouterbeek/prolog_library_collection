@@ -11,13 +11,30 @@
 /** <module> HTTP support for pagination
 
 @author Wouter Beek
-@version 2017/05-2017/10
+@version 2017/05-2017/12
 */
 
 :- use_module(library(dict_ext)).
 :- use_module(library(http/json)).
 :- use_module(library(pagination)).
+:- use_module(library(settings)).
 :- use_module(library(uri/uri_ext)).
+
+:- multifile
+    http:param/2.
+
+http:param(page, [
+  default(1),
+  description("The page number from the results set."),
+  positive_integer
+]).
+http:param(page_size, [
+  between(1, MaxPageSize),
+  default(DefaultPageSize),
+  description("The number of results per full result set page.")
+]) :-
+  setting(pagination:default_page_size, DefaultPageSize),
+  setting(pagination:maximum_page_size, MaxPageSize).
 
 
 
