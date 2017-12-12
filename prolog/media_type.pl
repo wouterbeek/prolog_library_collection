@@ -6,7 +6,7 @@
     media_type_comps/4,     % ?MediaType, ?Supertype, ?Subtype, ?Params
     media_type_extension/2, % ?MediaType, ?Extension
     media_type_label/2,     % ?MediaType, ?Label
-    media_type_program/2    % ?MediaType, ?Program
+    media_type_program/3    % ?MediaType, ?Program, -Args
   ]
 ).
 
@@ -86,14 +86,15 @@ media_type_label(MediaType, Label) :-
 
 
 
-%! media_type_program(+MediaType:compound, +Program:atom) is nondet.
-%! media_type_program(+MediaType:compound, -Program:atom) is nondet.
-%! media_type_program(-MediaType:compound, +Program:atom) is nondet.
-%! media_type_program(-MediaType:compound, -Program:atom) is multi.
+%! media_type_program(+MediaType:compound, +Program:atom, -Args:list) is nondet.
+%! media_type_program(+MediaType:compound, -Program:atom, -Args:list) is nondet.
+%! media_type_program(-MediaType:compound, +Program:atom, -Args:list) is nondet.
+%! media_type_program(-MediaType:compound, -Program:atom, -Args:list) is multi.
 
-media_type_program(MediaType, Program) :-
+media_type_program(MediaType, Program, Args) :-
   media_type_(_, MediaType, Programs, _),
-  member(Program, Programs).
+  member(Program0, Programs),
+  (Program0 = program(Program,Args) ; Program = Program0).
 
 
 
@@ -101,22 +102,35 @@ media_type_program(MediaType, Program) :-
 
 % GENERICS %
 
+media_type_(atom, media(application/'atom+x',[]), [gedit], "Atom XML").
 media_type_(bmp, media(image/bmp,[]), [eog], "Windows Bitmap (BMP)").
 media_type_(csv, media(text/csv,[]), [gedit], "Comma-separated values (CSV)").
+media_type_(docx, media(application/msword,[]), [program(libreoffice,'--writer')], "Microsoft Word").
 media_type_(dot, media(text/'vnd.graphviz',[]), [gedit], "GraphViz DOT").
+media_type_(epub, media(application/'epub+zip',[]), [], "ePub").
 media_type_(geojson, media(application/'vnd.geo+json',[]), [gedit], "GeoJSON").
 media_type_(gif, media(image/gif,[]), [eog], "Graphics Interchange Format (GIF)").
+media_type_(gml, media(application/'gml+xml',[]), [gedit], "GML").
+media_type_(gz, media(application/gzip,[]), [], "GNU Zip").
 media_type_(hdt, media(application/'vnd.hdt',[]), [], "Header Dictionary Triples (HDT)").
 media_type_(html, media(text/html,[]), [firefox], "Hyper Text Markup Language (HTML)").
 % Microsoft uses Media Type ‘image/x-icon’.
 media_type_(ico, media(image/'vnd.microsoft.icon',[]), [eog], "Windows Icon").
 media_type_(jgf, media(application/'vnd.jgf+json',[]), [gedit], "JSON Graph Format (JGF)").
 media_type_(jpeg, media(image/jpeg,[]), [eog], "Joint Photographic Experts Group (JPEG)").
+media_type_(js, media(application/javascript,[]), [gedit], "JavaScript (JS)").
 media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notation (JSON)").
 media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").
+media_type_(jsp, media(application/jsp,[]), [], "Java Server Pages (JSP)").
 media_type_(gml, media(text/'x-gml',[]), [gephi], "Graph Markup Language (GML)").
+media_type_(kml, media(application/'vnd.google-earth.kml+xml',[]), [], "KML").
+media_type_(kmz, media(application/'vnd.google-earth.kmz',[]), [], "KMZ").
+media_type_(mobi, media(application/'vnd.amazon.mobi8-ebook',[]), [], "Mobi").
+media_type_(n3, media(text/n3,[]), [gedit], "Notation 3 (N3)").
 media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
 media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
+media_type_(ods, media(application/'vnd.oasis.opendocument.spreadsheet',[]), [program(libreoffice,['--calc'])], "OpenDocument Spreadsheet").
+media_type_(odt, media(application/'vnd.oasis.opendocument.text',[]), [program(libreoffice,['--writer'])], "OpenDocument Text").
 media_type_(pbm, media(image/'x-portable-bitmap',[]), [], "Portable Bitmap Format (PBM)").
 % Native file format of PC Paintbrush.
 media_type_(pcx, media(image/'vnd.zbrush.pcx',[]), [eog], "PiCture EXchange").
@@ -129,17 +143,24 @@ media_type_(ppm, media(image/'x-portable-pixmap',[]), [], "Portable Pixmap Forma
 media_type_(ps, media(application/postscript,[]), [evince,xpdf], "PostScript (PS)").
 media_type_(rdf, media(application/'rdf+xml',[]), [gedit], "RDF/XML 1.1").
 media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query").
+media_type_(rss, media(application/'rss+xml',[]), [gedit], "Rich Site Summary (RSS)").
 media_type_(ru, media(application/'sparql-update',[]), [gedit], "SPARQL 1.1 Update").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog], "Tagged Image File Format (TIFF)").
+media_type_(torrent, media(application/'x-bittorrent',[]), ['transmission-gtk'], "BitTorrent").
 media_type_(trig, media(application/trig,[]), [gedit], "TriG 1.1").
 media_type_(tsv, media(text/'tab-separated-values',[]), [gedit], "Tag-separated values (TSV)").
 media_type_(ttl, media(text/turtle,[]), [gedit], "Turtle 1.1").
 media_type_(wbmp, media(image/'vnd.wap.bmp',[]), [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
 media_type_(xbm, media(image/'x-bitmap',[]), [eog], "X BitMap (XBM)").
 media_type_(xhtml, media(application/'xhtml+xml',[]), [gedit], "XHTML").
+media_type_(xml, media(text/xml,[]), [gedit], "Extended Markup Language (XML)").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog], "X PixMap (XPM)").
+media_type_(xslx, media(application/'vnd.ms-excel',[]), [program(libreoffice,['--calc'])], "LibreOffice Calc").
 media_type_(webp, media(image/webp,[]), [], "WebP").
+media_type_(zip, media(application/zip,[]), [], "ZIP").
 
 no_media_type_(ras, _, [eog], "Sun Raster").
+no_media_type_(trix, _, [gedit], "Triples in XML (TriX)").
+no_media_type_(yml, _, [gedit], "YAML Ain't Markup Language").

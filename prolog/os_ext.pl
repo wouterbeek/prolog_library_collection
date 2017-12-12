@@ -55,11 +55,11 @@ open_file(File) :-
 
 
 open_file(MediaType, File) :-
-  media_type_program(MediaType, Program),
+  media_type_program(MediaType, Program, Args),
   exists_program(Program), !,
   process_create(
     path(Program),
-    [file(File)],
+    [file(File)|Args],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
   thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
