@@ -60,6 +60,11 @@ http:convert_parameter(positive_integer, Atom, Integer) :-
   atom_number(Atom, Integer),
   must_be(positive_integer, Integer).
 
+:- initialization
+   current_prolog_flag(version_data, swi(Major,Minor,Patch,Extra)),
+   format(string(Version), "v~d.~d.~d (~w)", [Major,Minor,Patch,Extra]),
+   set_setting(http:products, ["SWI-Prolog"-Version]).
+
 :- setting(
      http:client_name,
      list(string),
@@ -80,9 +85,9 @@ http:convert_parameter(positive_integer, Atom, Integer) :-
    ).
 :- setting(
      http:products,
-     list(or([atom,pair(atom)])),
-     ['SWI-Prolog'],
-     "The name of the server that creates HTTP replies."
+     list(pair(string)),
+     [],
+     "The products that implement the server that creates HTTP replies."
    ).
 
 
