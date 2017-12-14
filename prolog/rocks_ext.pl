@@ -134,10 +134,11 @@ rocks_size(Db, Size) :-
 
 init_rocks :-
   conf_json(Conf),
-  get_dict('rocksdb-directory', Conf, Dir), !,
-  create_directory(Dir),
-  set_setting(rocks_directory, Dir).
-init_rocks.
+  (   _{'rocksdb-directory': Dict} :< Conf
+  ->  create_directory(Dir),
+      set_setting(rocks_directory, Dir)
+  ;   true
+  ).
 
 
 
