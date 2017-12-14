@@ -1,14 +1,16 @@
 :- module(
   rocks_ext,
   [
-    call_on_rocks/2, % +Name, :Goal_1
-    call_on_rocks/3, % +Name, :Goal_1, +Options
-    rocks/3,         % +Db, ?Key, ?Value
-    rocks_clear/1,   % +Name
-    rocks_key/2,     % +DB, ?Key
-    rocks_init/2,    % +Name, +Options
-    rocks_init/3,    % +Name, -Db, +Options
-    rocks_size/2     % +Db, -Size
+    call_on_rocks/2,   % +Alias, :Goal_1
+    call_on_rocks/3,   % +Alias, :Goal_1, +Options
+    rocks/3,           % +Db, ?Key, ?Value
+    rocks_alias/2,     % ?Alias, -Directory
+    rocks_clear/1,     % +Alias
+    rocks_directory/1, % -Directory
+    rocks_key/2,       % +DB, ?Key
+    rocks_init/2,      % +Alias, +Options
+    rocks_init/3,      % +Alias, -Db, +Options
+    rocks_size/2       % +Db, -Size
   ]
 ).
 :- reexport(library(rocksdb)).
@@ -16,7 +18,7 @@
 /** <module> RocksDB extension
 
 @author Wouter Beek
-@version 2017/06-2017/10
+@version 2017/06-2017/12
 */
 
 :- use_module(library(aggregate)).
@@ -42,20 +44,20 @@
 
 
 
-%! call_on_rocks(+Name:atom, :Goal_1) is det.
-%! call_on_rocks(+Name:atom, :Goal_1, +Options:list(compound)) is det.
+%! call_on_rocks(+Alias:atom, :Goal_1) is det.
+%! call_on_rocks(+Alias:atom, :Goal_1, +Options:list(compound)) is det.
 %
-% Calls Goal_1 on the RocksDB index called Name.
+% Calls Goal_1 on the RocksDB index called Alias.
 %
 % Options are passed to rocks_init/3.
 
-call_on_rocks(Name, Goal_1) :-
-  call_on_rocks(Name, Goal_1, []).
+call_on_rocks(Alias, Goal_1) :-
+  call_on_rocks(Alias, Goal_1, []).
 
 
-call_on_rocks(Name, Goal_1, Options) :-
+call_on_rocks(Alias, Goal_1, Options) :-
   setup_call_cleanup(
-    rocks_init(Name, Db, Options),
+    rocks_init(Alias, Db, Options),
     call(Goal_1, Db),
     rocks_close(Db)
   ).
@@ -77,11 +79,34 @@ rocks(Db, Key, Value) :-
 
 
 
-%! rocks_clear(+Name:atom) is det.
+%! rocks_alias(+Alias:atom, -Db:blob) is det.
+%! rocks_alias(-Alias:atom, -Db:blob) is nondet.
+%
+% Enumerates the exisiting RocksDB indices.
 
-rocks_clear(Name) :-
-  rocks_dir(Name, Dir),
+rocks_alias(Alias, Dir) :-
+  rocks_directory(Dir0),
+  directory_subdirectory(Dir0, Alias, Dir).
+
+
+
+%! rocks_clear(+Alias:atom) is det.
+%
+% Assumes that the RocksDB index is already closed.
+
+rocks_clear(Alias) :-
+  rocks_directory(Dir0),
+  directory_file_path(Dir0, Alias, Dir),
   (exists_directory(Dir) -> delete_directory_and_contents(Dir) ; true).
+
+
+
+%! rocks_directory(-Directory:atom) is det.
+
+rocks_directory(Dir) :-
+  setting(rocks_directory, Dir0),
+  % Allow rocks_directory to be a relative directory.
+  absolute_file_name(Dir0, Dir, [access(write),file_type(directory)]).
 
 
 
@@ -93,23 +118,24 @@ rocks_key(Db, Key) :-
 
 
 
-%! rocks_init(+Name:atom, +Options:list(compound)) is det,
-%! rocks_init(+Name:atom, -Db, +Options:list(compound)) is det,
+%! rocks_init(+Alias:atom, +Options:list(compound)) is det,
+%! rocks_init(+Alias:atom, -Db, +Options:list(compound)) is det,
 %
 % Initializes a RocksDB database object.  This includes creating the
 % directory structure, in case it is not already there.
 %
 % Options are passed to rocks_open/3.
 
-rocks_init(Name, Options1) :-
-  merge_options([alias(Name)], Options1, Options2),
-  rocks_init(Name, _, Options2).
+rocks_init(Alias, Options1) :-
+  merge_options([alias(Alias)], Options1, Options2),
+  rocks_init(Alias, _, Options2).
 
 
-rocks_init(Name, Db, Options1) :-
-  rocks_dir(Name, Dir),
+rocks_init(Alias, Db, Options1) :-
+  rocks_directory(Dir0),
+  directory_file_path(Dir0, Alias, Dir),
   create_directory(Dir),
-  merge_options([alias(Name)], Options1, Options2),
+  merge_options([alias(Alias)], Options1, Options2),
   rocks_open(Dir, Db, Options2).
 
 
@@ -134,21 +160,8 @@ rocks_size(Db, Size) :-
 
 init_rocks :-
   conf_json(Conf),
-  (   _{'rocksdb-directory': Dict} :< Conf
+  (   _{'rocks-directory': Dir} :< Conf
   ->  create_directory(Dir),
       set_setting(rocks_directory, Dir)
   ;   true
   ).
-
-
-
-
-
-% HELPERS %
-
-%! rocks_dir(+Name:atom, -Directory:atom) is det.
-
-rocks_dir(Name, Dir3) :-
-  setting(rocks_directory, Dir1),
-  absolute_file_name(Dir1, Dir2, [access(write),file_type(directory)]),
-  directory_file_path(Dir2, Name, Dir3).

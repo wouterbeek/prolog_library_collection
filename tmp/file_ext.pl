@@ -14,8 +14,6 @@
     delete_directory_silent/1,  % +Dir
     delete_directory_and_contents_silent/1, % +Dir
     directory_recursive/2,      % +Dir, -Subdir
-    directory_subdirectory/2,   % +Dir, ?Subdir
-    directory_subdirectory/3,   % +Dir, ?Local, ?Subdir
     file_age/2,                 % +File, -Age:float
     file_change_extension/3,    % +File1, +Ext, File2
     file_is_ready/1,            % +File
@@ -290,27 +288,6 @@ directory_recursive(Dir, Subdir) :-
   (   directory_recursive(Subdir0, Subdir)
   ;   Subdir = Subdir0
   ).
-
-
-
-%! directory_subdirectory(+Dir, +Subdir) is semidet.
-%! directory_subdirectory(+Dir, -Subdir) is nondet.
-
-directory_subdirectory(Dir, Subdir) :-
-  directory_subdirectory(Dir, _, Subdir).
-
-
-%! directory_subdirectory(+Dir, +Local, +Subdir) is semidet.
-%! directory_subdirectory(+Dir, +Local, -Subdir) is semidet.
-%! directory_subdirectory(+Dir, -Local, -Subdir) is nondet.
-
-directory_subdirectory(Dir, Local, Subdir) :-
-  ground(Local), !,
-  directory_file_path(Dir, Local, Subdir),
-  exists_directory(Subdir).
-directory_subdirectory(Dir, Local, Subdir) :-
-  directory_path(Dir, Subdir),
-  directory_file_path(_, Local, Subdir).
 
 
 

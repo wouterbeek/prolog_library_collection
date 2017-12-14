@@ -17,6 +17,8 @@
     directory_path/2,             % ?Directory, ?Path
     directory_path_recursive/2,   % +Directory, -Path
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
+    directory_subdirectory/2,     % +Dir, ?Subdir
+    directory_subdirectory/3,     % +Dir, ?Local, ?Subdir
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_mode/2,                  % +File, +Mode
@@ -310,6 +312,27 @@ directory_subdirectories(Dir, Subdirs2) :-
 directory_subdirectories(Dir, Subdirs1) :-
   resolve_subdirectories(Subdirs1, Subdirs2),
   atomic_list_concat(Subdirs2, /, Dir).
+
+
+
+%! directory_subdirectory(+Directory:atom, +SubDirectory:atom) is semidet.
+%! directory_subdirectory(+Directory:atom, -SubDirectory:atom) is nondet.
+
+directory_subdirectory(Dir, Subdir) :-
+  directory_subdirectory(Dir, _, Subdir).
+
+
+%! directory_subdirectory(+Directory:atom, +Local:atom, +SubDirectory:atom) is semidet.
+%! directory_subdirectory(+Directory:atom, +Local:atom, -SubDirectory:atom) is semidet.
+%! directory_subdirectory(+Directory:atom, -Local:atom, -SubDirectory:atom) is nondet.
+
+directory_subdirectory(Dir, Local, Subdir) :-
+  ground(Local), !,
+  directory_file_path(Dir, Local, Subdir),
+  exists_directory(Subdir).
+directory_subdirectory(Dir, Local, Subdir) :-
+  directory_path(Dir, Subdir),
+  directory_file_path(_, Local, Subdir).
 
 
 

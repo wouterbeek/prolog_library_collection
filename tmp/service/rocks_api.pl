@@ -1,12 +1,8 @@
 :- module(
   rocks_api,
   [
-  % Predicates with alias
-    rocks_alias/1,     % ?Alias
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
-    rocks_rm/1,        % +Alias
-  % Predicates with RocksDB handle
     rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_nullify/1,   % +RocksDB
@@ -22,18 +18,6 @@
 :- use_module(library(pagination_cli)).
 :- use_module(library(settings)).
 
-%! rocks_alias(+Alias) is semidet.
-%! rocks_alias(-Alias) is nondet.
-%
-% Enumerates the exisiting RocksDB indices.
-
-rocks_alias(Alias) :-
-  setting(index_dir, Dir),
-  (   ground(Alias)
-  ->  once(directory_subdirectory(Dir, Alias, Subdir)),
-      exists_directory(Subdir)
-  ;   directory_subdirectory(Dir, Alias, _)
-  ).
   
 
 
@@ -91,14 +75,3 @@ rocks_nullify(RocksDB) :-
 rocks_pull(RocksDB, Key, Val) :-
   rocks_enum(RocksDB, Key, Val),
   rocks_delete(RocksDB, Key).
-
-
-
-%! rocks_rm(+Alias) is det.
-
-rocks_rm(Alias) :-
-  % Make sure the RocksDB index is closed before its files are
-  % removed.
-  catch(rocks_close(Alias), _, true),
-  rocks_dir0(Alias, Dir),
-  delete_directory_and_contents_silent(Dir).
