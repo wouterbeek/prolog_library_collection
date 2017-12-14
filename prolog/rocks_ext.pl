@@ -32,12 +32,10 @@
     call_on_rocks(+, 1),
     call_on_rocks(+, 1, +).
 
-:- rlimit(nofile, _, 10240).
-
 :- initialization
    init_rocks.
 
-:- setting(rocks_directory, atom, .,
+:- setting(rocks:directory, atom, .,
            "The directory where RocksDB instances are stored.").
 
 
@@ -104,7 +102,7 @@ rocks_clear(Alias) :-
 %! rocks_directory(-Directory:atom) is det.
 
 rocks_directory(Dir) :-
-  setting(rocks_directory, Dir0),
+  setting(rocks:directory, Dir0),
   % Allow rocks_directory to be a relative directory.
   absolute_file_name(Dir0, Dir, [access(write),file_type(directory)]).
 
@@ -159,9 +157,16 @@ rocks_size(Db, Size) :-
 % INITIALIZATION %
 
 init_rocks :-
-  conf_json(Conf),
-  (   _{'rocks-directory': Dir} :< Conf
-  ->  create_directory(Dir),
-      set_setting(rocks_directory, Dir)
+  conf_json(Conf0),
+  (   _{rocks: Conf} :< Conf0
+  ->  (   _{directory: Dir} :< Conf
+      ->  create_directory(Dir),
+          set_setting(rocks:directory, Dir)
+      ;   true
+      ),
+      (   _{nofiles: NumFiles} :< Conf
+      ->  rlimit(nofile, _, NumFiles)
+      ;   true
+      )
   ;   true
   ).
