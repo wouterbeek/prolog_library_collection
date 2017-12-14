@@ -5,8 +5,7 @@
     open_file/1,      % +File
     open_file/2,      % +MediaType, +File
     os/1,             % ?Os
-    os_path/1,        % ?Directory
-    process_flags/3   % :Goal_2, +Args, -Flags
+    os_path/1         % ?Directory
   ]
 ).
 
@@ -18,9 +17,6 @@
 
 :- use_module(library(media_type)).
 :- use_module(library(process)).
-
-:- meta_predicate
-    process_flags(2, +, -).
 
 
 
@@ -106,14 +102,3 @@ os_path_separator(Sep) :-
 os_path_separator(mac, :).
 os_path_separator(unix, :).
 os_path_separator(windows, ;).
-
-
-
-%! process_flags(:Goal_2, +Args:list(compound), -Flags:list(atom)) is det.
-
-process_flags(_, [], []).
-process_flags(Goal_2, [H1|T1], [H2|T2]) :-
-  call(Goal_2, H1, H2), !,
-  process_flags(Goal_2, T1, T2).
-process_flags(Goal_2, [_|T], L) :-
-  process_flags(Goal_2, T, L).

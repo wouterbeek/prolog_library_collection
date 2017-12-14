@@ -30,7 +30,7 @@
     call_on_rocks(+, 1),
     call_on_rocks(+, 1, +).
 
-:- rlimit(nofile, _, 8192).
+:- rlimit(nofile, _, 10240).
 
 :- initialization
    init_rocks.

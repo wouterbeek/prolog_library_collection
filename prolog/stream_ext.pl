@@ -46,12 +46,6 @@ Uses the external programs `iconv' and `uchardet'.
      2000,
      "The number of characters that are used to determine the encoding of a given input stream.  Incorrect guesses were observed with value 1K."
    ).
-:- setting(
-     temporary_directory,
-     any,
-     _,
-     "The directory that is used for storing temporary files."
-   ).
 
 :- thread_local
    debug_indent/1.
@@ -189,105 +183,6 @@ recode_stream(FromEnc, In, utf8, ProcOut) :-
   thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
-
-
-
-%! sort_stream(+In:stream, -Out:stream) is det.
-%! sort_stream(+In:stream, -Out:stream, +Options:list(compound)) is det.
-%
-% @arg Options The following options are supported:
-%
-%      * buffer_size(+nonneg)
-%
-%        Optionally, the size of the buffer in kilobytes.
-%
-%      * duplicates(+boolean)
-%
-%        Whether duplicates are allowed in the result.  Default is
-%        `true'.
-%
-%      * numeric(+boolean)
-%
-%        Whether numberic sort is performed.  Default is `false'.
-%
-%      * output(+atom)
-%
-%        The name of the output file, as processed by
-%        `absolute_file_name/[2,3]'.  Default is the input file.
-%
-%      * temporary_directory(+atom)
-%
-%        The directory that is used for storing intermediary results
-%        of sorting.  Default is the value of setting
-%        `temporary_directory'.
-%
-%      * threads(+positive_integer)
-%
-%        The number of threads that is used.  Default is the number of
-%        available processors, but not larger than 8.  Larger numbers
-%        have diminishing returns.  Using $n$ threads increases the
-%        memory use by $\log n$.
-%
-%      * utf8(+boolean)
-%
-%        Whether the environment is set to UTF-8 encoding.  Default is
-%        `false'.
-
-sort_stream(In, Out) :-
-  sort_stream(In, Out, []).
-
-
-sort_stream(In, ProcOut, Options1) :-
-  select_option(env(Env1), Options1, Options2, []),
-  select_option(utf8(Utf8), Options2, Options3, false),
-  (Utf8 == true -> Env2 = [] ; Env2 = ['LC_ALL'='C']),
-  append(Env1, Env2, Env3),
-  merge_options(
-    [
-      env(Env3),
-      process(Pid),
-      stderr(pipe(ProcErr)),
-      stdin(pipe(ProcIn)),
-      stdout(pipe(ProcOut))
-    ],
-    Options3,
-    Options4
-  ),
-  (   \+ option(temporary_directory(_), Options3),
-      setting(temporary_directory, Directory),
-      ground(Directory)
-  ->  merge_options([temporary_directory(Directory)], Options3, Arguments)
-  ;   Arguments = Options3
-  ),
-  process_flags(sort_flag, Arguments, Flags),
-  process_create(path(sort), Flags, Options4),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-  thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
-
-sort_flag(buffer_size(Size), Flag) :-
-  must_be(nonneg, Size),
-  format(atom(Flag), '--buffer-size=~d', [Size]).
-% -u
-sort_flag(duplicates(KeepDuplicates), '--unique') :-
-  must_be(boolean, KeepDuplicates),
-  KeepDuplicates == false.
-sort_flag(numeric(IsNumeric), '--numeric-sort') :-
-  must_be(boolean, IsNumeric),
-  IsNumeric == true.
-% -o
-sort_flag(output(OutFileSpec), Flag) :-
-  absolute_file_name(OutFileSpec, OutFile, [access(write)]),
-  format(atom(Flag), '--output=~a', [OutFile]).
-sort_flag(threads(NumberOfThreads), Flag) :-
-  must_be(positive_integer, NumberOfThreads),
-  NumberOfThreads > 0,
-  format(atom(Flag), '--parallel=~d', [NumberOfThreads]).
-% -T
-sort_flag(temporary_directory(Directory), Flag) :-
-  must_be(directory, Directory),
-  format(atom(Flag), '--temporary-directory=~a', [Directory]).
 
 
 
