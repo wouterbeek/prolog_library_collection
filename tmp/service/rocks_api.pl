@@ -3,7 +3,6 @@
   [
     rocks_ls/0,
     rocks_ls/1,        % +PageOpts
-    rocks_merge_set/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_merge_sum/5, % +Mode, +Key, +Left, +Right, -Result
     rocks_nullify/1,   % +RocksDB
     rocks_pull/3       % +RocksDB, -Key, -Val
@@ -36,18 +35,6 @@ rocks_ls(PageOpts) :-
 
 pp_aliases(Aliases) :-
   maplist(writeln, Aliases).
-
-
-
-%! rocks_merge_set(+Mode, +Key, +Left, +Right, -Result) is det.
-
-rocks_merge_set(partial, _, X, Y, Z) :-
-  ord_union(X, Y, Z),
-  debug(rocks_api, "Partial set merge: ~p ~p → ~p", [X,Y,Z]).
-rocks_merge_set(full, _, X, Y, Z) :-
-  append([X|Y], XY),
-  sort(XY, Z),
-  debug(rocks_api, "Full set merge: ~p ~p → ~p", [X,Y,Z]).
 
 
 

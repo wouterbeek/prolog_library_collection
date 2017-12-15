@@ -22,7 +22,9 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(conf_ext)).
+:- use_module(library(debug)).
 :- use_module(library(file_ext)).
 :- use_module(library(option)).
 :- use_module(library(rlimit)).
@@ -149,6 +151,25 @@ rocks_size(Db, Size) :-
     rocks_enum(Db, _, _),
     Size
   ).
+
+
+
+
+
+% MERGE OPERATORS %
+
+%! rocks_merge_set(+Mode, +Key, +Left, +Right, -Result) is det.
+
+rocks_merge_set(partial, _, Xs, Ys, Zs) :-
+  ord_union(Xs, Ys, Zs),
+  (debugging(rocks) -> debug_merge_set_([Xs,Ys]) ; true).
+rocks_merge_set(full, _, Xs, Yss, Zs) :-
+  ord_union([Xs|Yss], Zs),
+  (debugging(rocks) -> debug_merge_set_([Xs|Yss]) ; true).
+
+debug_merge_set_(Sets) :-
+  maplist(length, Sets, Lengths),
+  debug(rocks, "Set merge: ~p", [Lengths]).
 
 
 
