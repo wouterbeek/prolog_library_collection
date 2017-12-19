@@ -118,8 +118,8 @@ rocks_key(Db, Key) :-
 
 
 
-%! rocks_init(+Alias:atom, +Options:list(compound)) is det,
-%! rocks_init(+Alias:atom, -Db, +Options:list(compound)) is det,
+%! rocks_init(+Alias:atom, +Options:list(compound)) is det.
+%! rocks_init(+Alias:atom, -Db, +Options:list(compound)) is det.
 %
 % Initializes a RocksDB database object.  This includes creating the
 % directory structure, in case it is not already there.
