@@ -63,11 +63,9 @@ empty_pagination(Options, Page) :-
 
 
 
-%! pagination(+Templ, :Goal_0, -Page:dict) is nondet.
-%! pagination(+Templ, :Goal_0, +Options:list(compound),
-%!                   -Page:dict) is nondet.
-%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:list(compound),
-%!                   -Page:dict) is nondet.
+%! pagination(+Templ, :Goal_0, -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, +Options:list(compound), -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:list(compound), -Page:dict) is det.
 %
 % The following options are supported:
 %
@@ -115,24 +113,13 @@ pagination(Templ, Goal_0, Page) :-
 
 
 pagination(Templ, Goal_0, Options1, Page2) :-
-  pagination_options(Options1, StartPageNumber, PageSize, Options2),
-  Counter = page(1),
-  findnsols(PageSize, Templ, Goal_0, Results),
-  arg(1, Counter, CurrentPageNumber1),
-  CurrentPageNumber2 is CurrentPageNumber1 + 1,
-  nb_setarg(1, Counter, CurrentPageNumber2),
-  (   % Done if there are no results.
-      Results == []
-  ->  !, true
-  ;   % Skip the current page if it appears before the start page.
-      CurrentPageNumber1 < StartPageNumber
-  ->  false
-  ;   !, true
-  ),
+  pagination_options(Options1, PageNumber, PageSize, Options2),
+  Offset is PageSize * (PageNumber - 1),
+  findall(Templ, limit(PageSize, offset(Offset, Goal_0)), Results),
   length(Results, NumResults),
   Page1 = _{
     number_of_results: NumResults,
-    page_number: CurrentPageNumber1,
+    page_number: PageNumber,
     page_size: PageSize,
     results: Results,
     single_page: false
