@@ -189,7 +189,11 @@ pagination_is_empty(Page) :-
 
 pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
   dict_delete_or_default(page_number, Options1, 1, StartPageNumber, Options2),
-  dict_delete_or_default(page_size, Options2, 10, PageSize, Options3).
+  (   del_dict(page_size, Options2, PageSize, Options3)
+  ->  true
+  ;   setting(default_page_size, PageSize),
+      Options3 = Options2
+  ).
 
 
 
