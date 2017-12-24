@@ -124,7 +124,7 @@ gv_attributes(Attrs, Str) :-
 %! gv_edge(+Out:stream, +FromId:atom, +ToId:atom) is det.
 
 gv_edge(Out, FromId, ToId) :-
-  format_debug(dot, Out, "  ~a -> ~a;", [FromId,ToId]).
+  format_debug(gv, Out, "  ~a -> ~a;", [FromId,ToId]).
 
 
 
@@ -133,7 +133,7 @@ gv_edge(Out, FromId, ToId) :-
 
 gv_edge(Out, FromId, ToId, Attrs) :-
   gv_attributes(Attrs, Str),
-  format_debug(dot, Out, "  ~a -> ~a [~s];", [FromId,ToId,Str]).
+  format_debug(gv, Out, "  ~a -> ~a [~s];", [FromId,ToId,Str]).
 
 
 
@@ -201,7 +201,7 @@ gv_id(Term, Id) :-
 
 gv_node(Out, Id, Attrs) :-
   gv_attributes(Attrs, Str),
-  format_debug(dot, Out, "  ~a [~s];", [Id,Str]).
+  format_debug(gv, Out, "  ~a [~s];", [Id,Str]).
 
 
 
