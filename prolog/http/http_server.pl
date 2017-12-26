@@ -30,7 +30,7 @@
 /** <module> HTTP Server
 
 @author Wouter Beek
-@version 2017/04-2017/08
+@version 2017/04-2017/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -57,8 +57,10 @@ error:has_type(or(Types), Term) :-
   error:has_type(Type, Term), !.
 
 http:convert_parameter(positive_integer, Atom, Integer) :-
-  atom_number(Atom, Integer),
-  must_be(positive_integer, Integer).
+  (   atom_number(Atom, Integer)
+  ->  must_be(positive_integer, Integer)
+  ;   instantiation_error(positive_integer)
+  ).
 
 :- initialization
    current_prolog_flag(version_data, swi(Major,Minor,Patch,Extra)),
@@ -169,6 +171,9 @@ http_link_to_id(HandleId, Local) :-
 
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
+% Map compound terms to HTTP status codes.
+rest_exception(MediaTypes, error(instantiation_error,_)) :- !,
+  rest_exception(MediaTypes, 400).
 % The exception reply can be returned in an acceptable Media Type.
 rest_exception(MediaTypes, E) :-
   member(MediaType, MediaTypes),
@@ -258,16 +263,14 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       uri_comps(HandleUri, uri(Scheme,Authority,Segments,_,_)),
       format("Strict-Transport-Security: max-age=31536000; includeSubDomains~n"),
       request_media_types(Request, MediaTypes),
-      (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
-      ->  (   call(Module:Plural_2, Method, MediaTypes)
-          ->  true
-          ;   rest_exception(MediaTypes, 400)
-          )
-      ;   data_uri(Segments, Resource),
-          (   call(Module:Singular_3, Resource, Method, MediaTypes)
-          ->  true
-          ;   rest_exception(MediaTypes, 400)
-          )
+      catch(
+        (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
+        ->  call(Module:Plural_2, Method, MediaTypes)
+        ;   data_uri(Segments, Resource),
+            call(Module:Singular_3, Resource, Method, MediaTypes)
+        ),
+        E,
+        rest_exception(MediaTypes, E)
       )
   ).
 

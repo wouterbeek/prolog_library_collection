@@ -15,6 +15,7 @@
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(http/http_server), []). % HTTP parameter hook
 :- use_module(library(http/json)).
 :- use_module(library(pagination)).
 :- use_module(library(settings)).
