@@ -10,7 +10,8 @@
     http_reply_json/1,        % +Json
     rest_media_type/2,        % +MediaTypes, :Goal_1
     rest_method/2,            % +Request, :Goal_2
-    rest_method/4             % +Request, +HandleId, :Plural_2, :Singular_3
+    rest_method/4,            % +Request, +HandleId, :Plural_2, :Singular_3
+    rest_parameters/2         % +Request, +Parameters
   ]
 ).
 :- reexport(library(http/http_cors)).
@@ -172,6 +173,8 @@ http_link_to_id(HandleId, Local) :-
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
 % Map compound terms to HTTP status codes.
+rest_exception(MediaTypes, error(http_status(Status),_)) :- !,
+  rest_exception(MediaTypes, Status).
 rest_exception(MediaTypes, error(instantiation_error,_)) :- !,
   rest_exception(MediaTypes, 400).
 % The exception reply can be returned in an acceptable Media Type.
@@ -273,6 +276,15 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
         rest_exception(MediaTypes, E)
       )
   ).
+
+
+
+%! rest_parameters(+Request:compound, +Parameters:list(compound)) is det.
+
+rest_parameters(Request, Params) :-
+  http_parameters(Request, Params, [attribute_declarations(http:param)]), !.
+rest_parameters(_, _) :-
+  throw(error(http_status(400),rest_parameters)).
 
 
 
