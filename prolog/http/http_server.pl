@@ -177,6 +177,8 @@ rest_exception(MediaTypes, error(http_status(Status),_)) :- !,
   rest_exception(MediaTypes, Status).
 rest_exception(MediaTypes, error(instantiation_error,_)) :- !,
   rest_exception(MediaTypes, 400).
+rest_exception(MediaTypes, error(representation_error(_),_)) :- !,
+  rest_exception(MediaTypes, 400).
 % The exception reply can be returned in an acceptable Media Type.
 rest_exception(MediaTypes, E) :-
   member(MediaType, MediaTypes),
