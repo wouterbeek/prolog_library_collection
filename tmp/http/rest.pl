@@ -1,7 +1,6 @@
 :- module(
   rest,
   [
-    rest_exception/2,  % +MediaTypes, +E
     rest_media_type/2, % +MediaTypes, :Goal_1
     rest_method/2,     % +Request, :Plural_2
     rest_method/3,     % +Request, +HandleId, :Singular_3

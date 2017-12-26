@@ -8,7 +8,6 @@
     http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
     http_reply_json/1,        % +Json
-    rest_exception/2,         % +MediaTypes, +Exception
     rest_media_type/2,        % +MediaTypes, :Goal_1
     rest_method/2,            % +Request, :Goal_2
     rest_method/4             % +Request, +HandleId, :Plural_2, :Singular_3
@@ -50,6 +49,7 @@
 
 :- multifile
     error:has_type/2,
+    html:rest_exception/1,
     http:convert_parameter/3.
 
 error:has_type(or(Types), Term) :-
@@ -167,63 +167,53 @@ http_link_to_id(HandleId, Local) :-
 
 
 
-%! rest_exception(+MediaTypes:list(compound), +Exception:compound) is det.
+%! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
-rest_exception(MediaTypes, error(E,_)) :- !,
-  rest_exception(MediaTypes, E).
 % The exception reply can be returned in an acceptable Media Type.
 rest_exception(MediaTypes, E) :-
   member(MediaType, MediaTypes),
   rest_exception_media_type(MediaType, E), !.
 % The exception reply cannot be returned in an acceptable Media Type,
 % so just pick one.
-rest_exception(_, E) :-
-  once(rest_exception_media_type(_, E)).
+rest_exception(_, Error) :-
+  format("Status: ~d\n\n", [Error]).
 
-% 400 “Bad Request”
-rest_exception_media_type(media(text/html,_), bad_request(E)) :-
-  http_status_reply(bad_request(E), current_output, [], _).
-rest_exception_media_type(media(application/json,_),
-                          existence_error(http_parameter,Key)) :-
+% HTML hook
+rest_exception_media_type(media(text/html,_), Error) :-
+  html:rest_exception(Error).
+% 400 Bad Request
+rest_exception_media_type(media(application/json,_), existence_error(http_parameter,Key)) :-
   reply_json_dict(_{message: "Missing parameter", value: Key}, [status(400)]).
-% 401 “Unauthorized” (RFC 7235)
-rest_exception_media_type(media(text/html,_), 401) :-
-  http_status_reply(authorise(basic,''), current_output, [], _).
-% 402 “Payment Required”
-% 403 “Forbidden”
-% 404 “Not Found”
+% 401 Unauthorized (RFC 7235)
+% 402 Payment Required
+% 403 Forbidden
+% 404 Not Found
 rest_exception_media_type(media(text/html,_), 404) :-
   http_current_request(Request),
   http_404([], Request).
-rest_exception_media_type(media(text/html,_), E) :-
-  throw(E).
-% 405 “Method Not Allowed”
-% 406 “Unacceptable”
-% 407 “Proxy Authentication Required” (RFC 7235)
-% 408 “Request Time-out”
-% 409 “Conflict”
-% 410 “Gone”
-% 411 “Length Required”
-% 412 “Precondition Failed” (RFC 7232)
-% 413 “Payload Too Large” (RFC 7231)
-% 414 “URI Too Long” (RFC 7231)
-% 415 “Unsupported Media Type”
-% 416 “Range Not Satisfiable” (RFC 7233)
-% 417 “Expectation Failed”
-% 418 “I'm a teapot” (RFC 2324)
-% 421 “Misdirected Request” (RFC 7540)
-% 422 “Unprocessable Entity” (WebDAV; RFC 4918)
-% 423 “Locked” (WebDAV; RFC 4918)
-% 424 “Failed Dependency” (WebDAV; RFC 4918)
-% 426 “Upgrade Required”
-% 428 “Precondition Required” (RFC 6585)
-% 429 “Too Many Requests” (RFC 6585)
-% 431 “Request Header Fields Too Large” (RFC 6585)
-% 451 “Unavailable For Legal Reasons”
-% CATCHALL
-rest_exception_media_type(_, Status) :-
-  format("Status: ~d\n", [Status]),
-  nl.
+% 405 Method Not Allowed
+% 406 Unacceptable
+% 407 Proxy Authentication Required (RFC 7235)
+% 408 Request Time-out
+% 409 Conflict
+% 410 Gone
+% 411 Length Required
+% 412 Precondition Failed (RFC 7232)
+% 413 Payload Too Large (RFC 7231)
+% 414 URI Too Long (RFC 7231)
+% 415 Unsupported Media Type
+% 416 Range Not Satisfiable (RFC 7233)
+% 417 Expectation Failed
+% 418 I'm a teapot (RFC 2324)
+% 421 Misdirected Request (RFC 7540)
+% 422 Unprocessable Entity (WebDAV; RFC 4918)
+% 423 Locked (WebDAV; RFC 4918)
+% 424 Failed Dependency (WebDAV; RFC 4918)
+% 426 Upgrade Required
+% 428 Precondition Required (RFC 6585)
+% 429 Too Many Requests (RFC 6585)
+% 431 Request Header Fields Too Large (RFC 6585)
+% 451 Unavailable For Legal Reasons
 
 
 
@@ -256,7 +246,7 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       write_allow_header(Methods),
       write_server_header(Products),
       nl
-  ;   % 405 “Method Not Allowed”
+  ;   % 405 Method Not Allowed
       \+ memberchk(Method, Methods)
   ->  request_media_types(Request, MediaTypes),
       rest_exception(MediaTypes, 405)
@@ -269,9 +259,15 @@ rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
       format("Strict-Transport-Security: max-age=31536000; includeSubDomains~n"),
       request_media_types(Request, MediaTypes),
       (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
-      ->  call(Module:Plural_2, Method, MediaTypes)
+      ->  (   call(Module:Plural_2, Method, MediaTypes)
+          ->  true
+          ;   rest_exception(MediaTypes, 400)
+          )
       ;   data_uri(Segments, Resource),
-          call(Module:Singular_3, Resource, Method, MediaTypes)
+          (   call(Module:Singular_3, Resource, Method, MediaTypes)
+          ->  true
+          ;   rest_exception(MediaTypes, 400)
+          )
       )
   ).
 
