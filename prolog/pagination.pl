@@ -24,10 +24,11 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/08
+@version 2017/05-2017/12
 */
 
 :- use_module(library(dict_ext)).
+:- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(settings)).
 
