@@ -244,9 +244,10 @@ http_lmod(Uri, Time) :-
 %     Accept is either a registered file name extension, a Media Types
 %     compound term, or a list of Media Type compounds.
 %
-%   * failure(+between(400,599))
+%   * failure(+or([-1,between(400,599)]))
 %
-%     Default is 400.
+%     Default is 400.  -1 means that no status code is mapped onto
+%     failure.
 %
 %   * metadata(-list(dict))
 %
@@ -306,7 +307,7 @@ http_open2(CurrentUri, In, Options1) :-
       (   Status =:= Failure
       ->  print_message(warning, http_error(Status,Message)),
           fail
-      ;   throw(error(warning, http_error(Status,Message)))
+      ;   throw(error(http_error(Status,Message)))
       )
   ).
 
