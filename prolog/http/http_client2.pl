@@ -304,10 +304,9 @@ http_open2(CurrentUri, In, Options1) :-
       %  Map the failure code to `fail', but throw an error for other
       %  error codes.
       (   Status =:= Failure
-      ->  print_message(informational, http_status(Status,Message)),
+      ->  print_message(warning, http_error(Status,Message)),
           fail
-      ;   print_message(warning, http_status(Status,Message)),
-          throw(error(http_status(Status)))
+      ;   throw(error(warning, http_error(Status,Message)))
       )
   ).
 
@@ -509,11 +508,9 @@ try_http_proxy(Method, Parts, In, Options0) :-
         http_open:keep_alive_error(E)
       )
   ->  true
-  ;   http:http_connection_over_proxy(Method, Parts, Host:Port, SocketInPair,
-                                      Options, Options1),
+  ;   http:http_connection_over_proxy(Method, Parts, Host:Port, SocketInPair, Options, Options1),
       (   catch(
-            http:http_protocol_hook(Scheme, Parts, SocketInPair, InPair,
-                                    Options),
+            http:http_protocol_hook(Scheme, Parts, SocketInPair, InPair, Options),
             E,
             (close(SocketInPair, [force(true)]), throw(E))
           )
@@ -564,8 +561,7 @@ guarded_send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
   http_open:read_header(InPair, Parts, ReplyVersion, Code, Comment, Lines),
   http_open:update_cookies(Lines, Parts, Options),
   ignore(option(raw_headers(Lines), Options)),
-  http_open:do_open(ReplyVersion, Code, Comment, Lines, Options, Parts, Host,
-                    InPair, In).
+  http_open:do_open(ReplyVersion, Code, Comment, Lines, Options, Parts, Host, InPair, In).
 
 http:post_data_hook(string(String), Out, HdrExtra) :-
   atom_string(Atom, String),
