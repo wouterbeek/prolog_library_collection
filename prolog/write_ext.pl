@@ -1,15 +1,16 @@
 :- module(
   write_ext,
   [
-    write_fact/1, % @Term
-    write_term/1  % @Term
+    replace_blobs/2, % +Term1, -Term2
+    write_fact/1,    % @Term
+    write_term/1     % @Term
   ]
 ).
 
 /** <module> Write extensions
 
 @author Wouter Beek
-@version 2017/08
+@version 2017/08-2017/12
 */
 
 :- use_module(library(apply)).
@@ -17,23 +18,6 @@
 
 
 
-
-%! write_fact(@Term) is det.
-
-write_fact(Term) :-
-  write_term(Term),
-  write(.),
-  nl.
-
-
-
-%! write_term(@Term) is det.
-% Alternative to write_canonical/[1,2] that lives up to the promise that
-% "terms written with this predicate can always be read back".
-
-write_term(Term) :-
-  replace_blobs(Term, BloblessTerm),
-  write_term(BloblessTerm, [numbervars(true),quoted(true)]).
 
 %! replace_blobs(+Term1, -Term2) is det.
 %
@@ -54,3 +38,22 @@ replace_blobs(Term0, Term) :-
   maplist(replace_blobs, Args0, Args),
   compound_name_arguments(Term, Pred, Args).
 replace_blobs(Term, Term).
+
+
+
+%! write_fact(@Term) is det.
+
+write_fact(Term) :-
+  write_term(Term),
+  write(.),
+  nl.
+
+
+
+%! write_term(@Term) is det.
+% Alternative to write_canonical/[1,2] that lives up to the promise that
+% "terms written with this predicate can always be read back".
+
+write_term(Term) :-
+  replace_blobs(Term, BloblessTerm),
+  write_term(BloblessTerm, [numbervars(true),quoted(true)]).
