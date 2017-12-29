@@ -1,6 +1,7 @@
 :- module(
   debug_ext,
   [
+    debug_dict/2,   % +Flag, +Dict
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
@@ -12,11 +13,12 @@
 /** <module> Debug extensions
 
 @author Wouter Beek
-@version 2017/09
+@version 2017/09-2017/12
 */
 
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
+:- use_module(library(pp)).
 
 :- thread_local
    debug_indent/1.
@@ -24,6 +26,16 @@
 debug_indent(0).
 
 
+
+
+
+%! debug_dict(+Flag:compound, +Dict:dict) is det.
+
+debug_dict(Flag, Dict) :-
+  debugging(Flag), !,
+  with_output_to(string(String), print_term(Dict)),
+  debug(Flag, "~s", [String]).
+debug_dict(_, _).
 
 
 
