@@ -270,30 +270,6 @@ metadata_uri(Metadata, Uri) :-
 
 % HELPERS %
 
-%! archive_format(+Format:atom) is semidet.
-%! archive_format(-Format:atom) is multi.
-%
-% Format are the names of supported archive formats.  The `mtree'
-% format is not supported, because archives in that format are regular
-% text files and result in false positives.
-
-archive_format('7zip').
-archive_format(ar).
-archive_format(cab).
-archive_format(cpio).
-archive_format(empty).
-archive_format(gnutar).
-archive_format(iso9660).
-archive_format(lha).
-%archive_format(mtree).
-archive_format(rar).
-archive_format(raw).
-archive_format(tar).
-archive_format(xar).
-archive_format(zip).
-
-
-
 %! open_hash(+Stream1:stream, -Stream2:stream,
 %!           +Options:list(compound)) is semidet.
 
