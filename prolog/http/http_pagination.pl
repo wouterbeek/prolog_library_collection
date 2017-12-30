@@ -65,7 +65,7 @@ http_pagination_header_value(Relation-Uri) :-
 %! http_pagination_json(+Page:dict) is det.
 
 http_pagination_json(Page) :-
-  format("Content-Type: application/json\n"),
+  format("Content-Type: application/json; charset=UTF-8\n"),
   http_pagination_header(Page),
   nl,
   json_write_dict(current_output, Page.results).
