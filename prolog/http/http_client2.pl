@@ -101,8 +101,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- public
     ssl_verify/5.
 
-ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate,
-           _Error).
+ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
 
 
@@ -304,11 +303,7 @@ http_open2(CurrentUri, In, Options1) :-
       string_codes(Message, Codes),
       %  Map the failure code to `fail', but throw an error for other
       %  error codes.
-      (   Status =:= Failure
-      ->  print_message(warning, http_error(Status,Message)),
-          fail
-      ;   throw(error(http_error(Status,Message)))
-      )
+      (Status =:= Failure -> fail ; throw(error(http_error(Status,Message))))
   ).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
