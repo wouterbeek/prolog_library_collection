@@ -125,8 +125,7 @@ http_current_location(Uri) :-
 %! http_reply_json(+Json) is det.
 
 http_reply_json(Json) :-
-  format("Content-Type: application/json\n"),
-  nl,
+  format("Content-Type: application/json; charset=UTF-8\n\n"),
   json_write_dict(current_output, Json).
 
 
