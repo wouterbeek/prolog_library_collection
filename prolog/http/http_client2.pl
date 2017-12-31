@@ -303,7 +303,7 @@ http_open2(CurrentUri, In, Options1) :-
       string_codes(Message, Codes),
       %  Map the failure code to `fail', but throw an error for other
       %  error codes.
-      (Status =:= Failure -> fail ; throw(error(http_error(Status,Message))))
+      (Status =:= Failure -> fail ; throw(error(http_status(Status,Message))))
   ).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
@@ -384,7 +384,7 @@ http_open2_accept_(MediaType, Atom) :-
 % authentication error
 http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
   Status =:= 401,
-  print_message(warning, http_error_code(Status)).
+  throw(error(http_status(Status))).
 % non-authentication error
 http_open2_meta(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
                 NumRetries1-MaxRetries, Visited, In2, Dicts) :-
@@ -602,16 +602,3 @@ curl :-
 nocurl :-
   nodebug(http(receive_reply)),
   nodebug(http(send_request)).
-
-
-
-
-
-% MESSAGES %
-
-:- multifile
-    prolog:message//1.
-
-prolog:message(http_error_code(Code)) -->
-  {http_status_reason(Code, Reason)}, !,
-  ["HTTP error code ~d (~s)."-[Code,Reason]].

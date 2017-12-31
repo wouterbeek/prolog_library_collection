@@ -30,6 +30,34 @@
 
 /** <module> HTTP Server
 
+401 Unauthorized (RFC 7235)
+402 Payment Required
+403 Forbidden
+404 Not Found
+405 Method Not Allowed
+406 Unacceptable
+407 Proxy Authentication Required (RFC 7235)
+408 Request Time-out
+409 Conflict
+410 Gone
+411 Length Required
+412 Precondition Failed (RFC 7232)
+413 Payload Too Large (RFC 7231)
+414 URI Too Long (RFC 7231)
+415 Unsupported Media Type
+416 Range Not Satisfiable (RFC 7233)
+417 Expectation Failed
+418 I'm a teapot (RFC 2324)
+421 Misdirected Request (RFC 7540)
+422 Unprocessable Entity (WebDAV; RFC 4918)
+423 Locked (WebDAV; RFC 4918)
+424 Failed Dependency (WebDAV; RFC 4918)
+426 Upgrade Required
+428 Precondition Required (RFC 6585)
+429 Too Many Requests (RFC 6585)
+431 Request Header Fields Too Large (RFC 6585)
+451 Unavailable For Legal Reasons
+
 @author Wouter Beek
 @version 2017/04-2017/12
 */
@@ -37,7 +65,6 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(http/http_error)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(settings)).
@@ -171,58 +198,27 @@ http_link_to_id(HandleId, Local) :-
 
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
-% Map compound terms to HTTP status codes.
-rest_exception(MediaTypes, error(http_status(Status),_)) :- !,
-  rest_exception(MediaTypes, Status).
+% Map compound terms to HTTP server error dict.
+rest_exception(MediaTypes, error(existence_error(http_parameter,Key))) :- !,
+  format(string(Message), "", [Key]),
+  rest_exception(MediaTypes, _{message: Message, status: 400}).
 rest_exception(MediaTypes, error(instantiation_error,_)) :- !,
-  rest_exception(MediaTypes, 400).
+  rest_exception(MediaTypes, error(http_server(_{message: "Instantiation error", status: 400}))).
 rest_exception(MediaTypes, error(representation_error(_),_)) :- !,
-  rest_exception(MediaTypes, 400).
-% The exception reply can be returned in an acceptable Media Type.
-rest_exception(MediaTypes, E) :-
+  rest_exception(MediaTypes, error(http_server(_{message: "Representation error", status: 400}))).
+% Try to return the exception reply in an acceptable Media Type first.
+rest_exception(MediaTypes, error(http_server(Dict))) :- !,
   member(MediaType, MediaTypes),
-  rest_exception_media_type(MediaType, E), !.
-% The exception reply cannot be returned in an acceptable Media Type,
-% so just pick one.
-rest_exception(_, Error) :-
-  format("Status: ~d\n\n", [Error]).
+  rest_exception_media_type(MediaType, Dict), !.
+% The exception reply cannot be returned in an acceptable Media Type.
+rest_exception(_, error(http_server(Dict))) :-
+  format("Status: ~d\n\n", [Dict.status]).
 
-% HTML hook
-rest_exception_media_type(media(text/html,_), Error) :-
-  html:rest_exception(Error).
-% 400 Bad Request
-rest_exception_media_type(media(application/json,_), existence_error(http_parameter,Key)) :-
-  reply_json_dict(_{message: "Missing parameter", value: Key}, [status(400)]).
-% 401 Unauthorized (RFC 7235)
-% 402 Payment Required
-% 403 Forbidden
-% 404 Not Found
-rest_exception_media_type(media(text/html,_), 404) :-
-  http_current_request(Request),
-  http_404([], Request).
-% 405 Method Not Allowed
-% 406 Unacceptable
-% 407 Proxy Authentication Required (RFC 7235)
-% 408 Request Time-out
-% 409 Conflict
-% 410 Gone
-% 411 Length Required
-% 412 Precondition Failed (RFC 7232)
-% 413 Payload Too Large (RFC 7231)
-% 414 URI Too Long (RFC 7231)
-% 415 Unsupported Media Type
-% 416 Range Not Satisfiable (RFC 7233)
-% 417 Expectation Failed
-% 418 I'm a teapot (RFC 2324)
-% 421 Misdirected Request (RFC 7540)
-% 422 Unprocessable Entity (WebDAV; RFC 4918)
-% 423 Locked (WebDAV; RFC 4918)
-% 424 Failed Dependency (WebDAV; RFC 4918)
-% 426 Upgrade Required
-% 428 Precondition Required (RFC 6585)
-% 429 Too Many Requests (RFC 6585)
-% 431 Request Header Fields Too Large (RFC 6585)
-% 451 Unavailable For Legal Reasons
+% HTML hookable by a specific website style.
+rest_exception_media_type(media(text/html,_), Dict) :-
+  html:rest_exception(Dict).
+rest_exception_media_type(media(application/json,_), Dict) :-
+  reply_json_dict(Dict, [status(Dict.status)]).
 
 
 
@@ -232,51 +228,57 @@ rest_media_type(MediaTypes, Goal_1) :-
   member(MediaType, MediaTypes),
   call(Goal_1, MediaType), !.
 rest_media_type(MediaTypes, _) :-
-  rest_exception(MediaTypes, 406).
+  rest_exception(MediaTypes, error(http_server(_{status: 406}))).
 
 
 
 %! rest_method(+Request:list(compound), :Goal_2) is det.
-%! rest_method(+Request:list(compound), +HandleId, :Plural_2,
-%!             :Singular_3) is det.
+%! rest_method(+Request:list(compound), +HandleId, :Plural_2, :Singular_3) is det.
 
 rest_method(Request, Plural_2) :-
   rest_method(Request, _, Plural_2, _:_).
 
 
-rest_method(Request, HandleId, Module:Plural_2, Module:Singular_3) :-
+rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
   memberchk(method(Method), Request),
   memberchk(path(Path), Request),
-  Module:http_current_handler(Path, _, Options),
+  Mod:http_current_handler(Path, _, Options),
   memberchk(methods(Methods), Options),
   (   Method == options
-  ->  setting(http:products, Products),
-      format("Status: 204\n"),
-      write_allow_header(Methods),
-      write_server_header(Products),
-      nl
+  ->  rest_options(Methods)
   ;   % 405 Method Not Allowed
       \+ memberchk(Method, Methods)
   ->  request_media_types(Request, MediaTypes),
-      rest_exception(MediaTypes, 405)
+      rest_exception(MediaTypes, error(http_server(_{status: 405})))
   ;   % `Method' is one of the accepted `Methods'.
       memberchk(request_uri(Uri), Request),
       % Remove the query and fragment components from the URI in order
       % to compare it to the current `HandleId'.
       uri_comps(Uri, uri(Scheme,Authority,Segments,_,_)),
       uri_comps(HandleUri, uri(Scheme,Authority,Segments,_,_)),
-      format("Strict-Transport-Security: max-age=31536000; includeSubDomains~n"),
+      format("Strict-Transport-Security: max-age=31536000; includeSubDomains\n"),
       request_media_types(Request, MediaTypes),
       catch(
         (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
-        ->  call(Module:Plural_2, Method, MediaTypes)
+        ->  call(Mod:Plural_2, Method, MediaTypes)
         ;   data_uri(Segments, Resource),
-            call(Module:Singular_3, Resource, Method, MediaTypes)
+            call(Mod:Singular_3, Resource, Method, MediaTypes)
         ),
-        E,
-        rest_exception(MediaTypes, E)
+        Error,
+        rest_exception(MediaTypes, Error)
       )
   ).
+
+
+
+%! rest_options(+Methods:list(atom)) is det.
+
+rest_options(Methods) :-
+  setting(http:products, Products),
+  format("Status: 204\n"),
+  write_allow_header(Methods),
+  write_server_header(Products),
+  nl.
 
 
 
@@ -289,6 +291,8 @@ rest_parameters(_, _) :-
 
 
 
+%! write_allow_header(+Methods:list(atom)) is det.
+%
 % ```
 % Allow = #method
 % method = token
@@ -304,6 +308,8 @@ write_allow_header_(X) :-
 
 
 
+%! write_server_header(+Products:list(pair(atom))) is det.
+%
 % ```
 % Server = product *( RWS ( product | comment ) )
 % product = token ["/" product-version]
@@ -326,7 +332,9 @@ product_(X) :- !,
   format("~a", [X]).
 
 
-  
+
+%! request_media_types(+Request:compound, +MediaTypes:list(compound)) is det.
+
 % A sequence of Media Types (from most to least acceptable).
 request_media_types(Request, MediaTypes) :-
   memberchk(accept(MediaTypes0), Request),
