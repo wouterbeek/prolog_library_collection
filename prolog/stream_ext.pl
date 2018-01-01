@@ -17,7 +17,7 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2017/12
+@version 2017/06-2018/01
 */
 
 :- use_module(library(archive)).
@@ -32,6 +32,7 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(os_ext)).
 :- use_module(library(readutil)).
 :- use_module(library(string_ext)).
+:- use_module(library(thread_ext)).
 :- use_module(library(xml/xml_parser)).
 
 :- thread_local
@@ -98,7 +99,7 @@ guess_string_encoding(String, Enc) :-
     ),
     close(ProcOut)
   ),
-  downcase_atom(String2, Enc).
+  string_lower(String2, Enc).
 
 
 
