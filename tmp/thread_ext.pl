@@ -8,8 +8,6 @@
     create_thread/1,             % :Goal_0
     create_thread/2,             % +Alias, :Goal_0
     default_number_of_threads/1, % ?NumberOfThreads
-    detached_thread/1,           % :Goal_0
-    detached_thread/2,           % +Alias, :Goal_0
     intermittent_thread/3,       % :Goal_0, :EndGoal_0, +Interval
     intermittent_thread/4,       % :Goal_0, :EndGoal_0, +Interval, +Opts
     print_thread/0,
@@ -44,8 +42,6 @@
     call_on_wildcard(+, 1, +),
     create_thread(0),
     create_thread(+, 0),
-    detached_thread(0),
-    detached_thread(+, 0),
     intermittent_goal(0, 0, +),
     intermittent_thread(0, 0, +),
     intermittent_thread(0, 0, +, +).
@@ -116,18 +112,6 @@ create_thread(Alias, Goal_0) :-
 
 default_number_of_threads(N) :-
   current_prolog_flag(cpu_count, N).
-
-
-
-%! detached_thread(:Goal_0) is det.
-%! detached_thread(+Alias, :Goal_0) is det.
-
-detached_thread(Goal_0) :-
-  thread_create(Goal_0, _, [detached(true)]).
-
-
-detached_thread(Alias, Goal_0) :-
-  thread_create(Goal_0, _, [alias(Alias),detached(true)]).
 
 
 

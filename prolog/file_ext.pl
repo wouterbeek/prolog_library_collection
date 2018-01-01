@@ -190,8 +190,8 @@ convert_file(File1, Format, File2) :-
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-      thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      create_detached_thread(copy_stream_data(ProcOut, user_output)),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
@@ -394,7 +394,7 @@ guess_file_encoding(File, Enc) :-
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
       read_string(ProcOut, String1),
       string_strip(String1, "\n", String2),
       normalize_encoding(String2, Enc),
@@ -419,7 +419,7 @@ image_dimensions(File, Width-Height) :-
     [file(File)],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
   read_stream_to_codes(ProcOut, Codes),
   phrase(image_dimensions_out(File, Width, Height), Codes, _),
   process_wait(Pid, exit(Status)),
@@ -466,8 +466,8 @@ recode_file(File1) :-
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-      thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      create_detached_thread(copy_stream_data(ProcOut, user_output)),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
@@ -510,8 +510,8 @@ sort_file(File1) :-
           stdout(pipe(ProcOut))
         ]
       ),
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-      thread_create(copy_stream_data(ProcOut, Out), _, [detached(true)]),
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      create_detached_thread(copy_stream_data(ProcOut, Out)),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
@@ -567,7 +567,7 @@ wc(File, Lines, Words, Bytes) :-
     [file(File)],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
   read_stream_to_codes(ProcOut, Codes),
   phrase(wc_out(Lines, Words, Bytes), Codes, _),
   process_wait(Pid, exit(Status)),

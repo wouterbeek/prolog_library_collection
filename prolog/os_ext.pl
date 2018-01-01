@@ -58,8 +58,8 @@ open_file(MediaType, File) :-
     [file(File)|Args],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-  thread_create(copy_stream_data(ProcOut, user_output), _, [detached(true)]),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
+  create_detached_thread(copy_stream_data(ProcOut, user_output)),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 

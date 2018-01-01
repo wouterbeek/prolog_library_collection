@@ -43,8 +43,8 @@ tts(Line):-
     ['--',Line],
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  thread_create(copy_data_stream(ProcErr, user_error), _, [detached(true)]),
-  thread_create(copy_data_stream(ProcOut, user_output), _, [detached(true)]),
+  create_detached_thread(copy_data_stream(ProcErr, user_error)),
+  create_detached_thread(copy_data_stream(ProcOut, user_output)),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 

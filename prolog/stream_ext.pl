@@ -2,17 +2,12 @@
   stream_ext,
   [
     copy_stream_type/2,      % +In, +Out
-    read_line_to_atom/2,     % +In, -Atom
-  % HELPER PREDICATES
+    guess_stream_encoding/3, % +In, +Length, -Encoding
     normalize_encoding/2,    % +Encoding1, -Encoding2
-    recode_stream/3,         % +FromEnc, +In1, -In2
+    read_line_to_atom/2,     % +In, -Atom
+    recode_stream/4,         % +FromEnc, +In1, -In2, :Close_0
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
-    stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
-  % ARGUMENTS TO META-PREDICATES
-    copy_stream_data/4,      % +In, +Out, +Metadata1, -Metadata2
-  % COMMON METADATA EXTRACTIONS
-    metadata_status_code/2,  % +Metadata, -Status
-    metadata_uri/2           % +Metadata, -Uri
+    stream_hash_metadata/4   % +Stream, +Metadata1, -Metadata2, +Options
   ]
 ).
 :- reexport(library(readutil)).
@@ -36,16 +31,8 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
 :- use_module(library(readutil)).
-:- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(xml/xml_parser)).
-
-:- setting(
-     guess_stream_encoding_length,
-     positive_integer,
-     2000,
-     "The number of characters that are used to determine the encoding of a given input stream.  Incorrect guesses were observed with value 1K."
-   ).
 
 :- thread_local
    debug_indent/1.
@@ -68,10 +55,9 @@ copy_stream_type(In, Out) :-
 
 
 
-%! guess_stream_encoding(+In:stream, -Encoding:atom) is det.
+%! guess_stream_encoding(+In:stream, +Length:nonneg, -Encoding:atom) is det.
 
-guess_stream_encoding(In, Encoding) :-
-  setting(guess_stream_encoding_length, Length),
+guess_stream_encoding(In, Length, Encoding) :-
   peek_string(In, Length, String),
   guess_string_encoding(String, Encoding).
 
@@ -100,8 +86,11 @@ guess_string_encoding(String, Enc) :-
       ]
     ),
     (
-      thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
-      thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      call_cleanup(
+        copy_stream_data(In, ProcIn),
+        close(ProcIn)
+      ),
       read_string(ProcOut, String1),
       string_strip(String1, "\n", String2),
       process_wait(Pid, exit(Status)),
@@ -144,7 +133,7 @@ read_line_to_atom(In, A) :-
 
 
 
-%! recode_stream(+FromEnc:atom, +In1:stream, -In2:stream) is det.
+%! recode_stream(+FromEnc:atom, +In1:stream, -In2:stream, :Close_0) is det.
 %
 % In1 is closed by this predicate.
 %
@@ -152,22 +141,22 @@ read_line_to_atom(In, A) :-
 %            the input stream.  Use `octet' for binary content, and
 %            `utf8' for textual content.
 
-recode_stream(octet, In1, In2) :- !,
-  recode_stream(octet, In1, octet, In2).
-recode_stream(FromEnc, In1, In2) :-
-  recode_stream(FromEnc, In1, utf8, In2).
+recode_stream(octet, In1, In2, Close_0) :- !,
+  recode_stream(octet, In1, octet, In2, Close_0).
+recode_stream(FromEnc, In1, In2, Close_0) :-
+  recode_stream(FromEnc, In1, utf8, In2, Close_0).
 
-recode_stream(_, In, octet, In) :- !.
+recode_stream(_, In, octet, In, true) :- !.
 % “The value bom causes the stream to check whether the current
 % character is a Unicode BOM marker.  If a BOM marker is found, the
 % encoding is set accordingly and the call succeeds.  Otherwise the
 % call fails.”
-recode_stream(_, In, utf8, In) :-
+recode_stream(_, In, utf8, In, true) :-
   set_stream(In, encoding(bom)), !.
-recode_stream(FromEnc, In, utf8, In) :-
+recode_stream(FromEnc, In, utf8, In, true) :-
   memberchk(FromEnc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
   set_stream(In, encoding(utf8)).
-recode_stream(FromEnc, In, utf8, ProcOut) :-
+recode_stream(FromEnc, In, utf8, ProcOut, close(In)) :-
   indent_debug(1, encoding, "> ~a RECODE", [FromEnc]),
   process_create(
     path(iconv),
@@ -179,8 +168,8 @@ recode_stream(FromEnc, In, utf8, ProcOut) :-
       stdout(pipe(ProcOut))
     ]
   ),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
-  thread_create(copy_stream_data(In, ProcIn), _, [detached(true)]),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
+  create_detached_thread(copy_stream_data(In, ProcIn)),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 

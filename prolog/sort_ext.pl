@@ -126,7 +126,7 @@ sort_stream(In, Out, Options1) :-
       stdout(pipe(ProcOut))
     ]
   ),
-  thread_create(copy_stream_data(ProcErr, user_error), _, [detached(true)]),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
   copy_stream_data(In, ProcIn),
   close(ProcIn),
   copy_stream_data(ProcOut, Out),

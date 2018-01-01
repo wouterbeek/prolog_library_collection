@@ -12,15 +12,14 @@
     findn/4,                % ?N, ?Templ, :Goal_0, -Results
     findn_chk/4,            % ?N, ?Templ, :Goal_0, -Results
     forall/1,               % :Goal_0
-    retry0/1,               % :Goal_0
-    run_in_thread/1         % :Goal_0
+    retry0/1                % :Goal_0
   ]
 ).
 
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2016/04-2017/03
+@version 2016/04-2017/12
 */
 
 :- use_module(library(debug)).
@@ -40,8 +39,7 @@
     findn(?, ?, 0, -),
     findn_chk(?, ?, 0, -),
     forall(0),
-    retry0(0),
-    run_in_thread(0).
+    retry0(0).
 
 
 
@@ -160,10 +158,3 @@ forall(Goal_0) :-
 retry0(Goal_0) :-
   catch(Goal_0, Exception, true),
   (var(Exception) -> true ; debug(true, "~w", [Exception]), retry0(Goal_0)).
-
-
-
-%! run_in_thread(:Goal_0) is det.
-
-run_in_thread(Goal_0) :-
-  thread_create(Goal_0, _, [detached(true)]).

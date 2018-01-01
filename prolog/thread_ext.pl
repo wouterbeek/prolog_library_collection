@@ -1,7 +1,9 @@
 :- module(
   thread_ext,
   [
-    thread_self_property/1 % ?Property
+    create_detached_thread/1, % :Goal_0
+    create_detached_thread/2, % +Alias, :Goal_0
+    thread_self_property/1    % ?Property
   ]
 ).
 :- reexport(library(thread)).
@@ -12,7 +14,23 @@
 @version 2017/12
 */
 
+:- meta_predicate
+    create_detached_thread(0),
+    create_detached_thread(+, 0).
 
+
+
+
+
+%! create_detached_thread(:Goal_0) is det.
+%! create_detached_thread(+Alias, :Goal_0) is det.
+
+create_detached_thread(Goal_0) :-
+  thread_create(Goal_0, _, [detached(true)]).
+
+
+create_detached_thread(Alias, Goal_0) :-
+  thread_create(Goal_0, _, [alias(Alias),detached(true)]).
 
 
 
