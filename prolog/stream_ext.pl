@@ -20,6 +20,7 @@ Uses the external programs `iconv' and `uchardet'.
 @version 2017/06-2018/01
 */
 
+:- use_module(library(apply)).
 :- use_module(library(archive)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(dict_ext)).
@@ -34,6 +35,7 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(string_ext)).
 :- use_module(library(thread_ext)).
 :- use_module(library(xml/xml_parser)).
+:- use_module(library(yall)).
 
 :- thread_local
    debug_indent/1.
@@ -79,7 +81,9 @@ guess_string_encoding(String, Enc) :-
       ]
     ),
     (
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      flag(uchardet, N, N+1),
+      format(atom(AliasErr), "uchardet-err-~d", [N]),
+      create_detached_thread(AliasErr, copy_and_close(ProcErr, user_error)),
       call_cleanup(
         copy_stream_data(In, ProcIn),
         close(ProcIn)
@@ -91,7 +95,27 @@ guess_string_encoding(String, Enc) :-
     ),
     close(ProcOut)
   ),
-  string_lower(String2, Enc).
+  % Trick to return the encoding as an atom.
+  downcase_atom(String2, Enc).
+
+copy_and_close(In, _) :-
+  at_end_of_stream(In), !,
+  close(In).
+copy_and_close(In, Out) :-
+  read_line_to_codes(In, Codes),
+  split_lines(Codes, Lines),
+  forall(
+    member(Line, Lines),
+    format(Out, "~s\n", [Line])
+  ),
+  copy_and_close(In, Out).
+
+split_lines([], []) :- !.
+split_lines(Codes1, [Line|Lines]) :-
+  append(LineCodes, [0'\n|Codes2], Codes1), !,
+  string_codes(Line, LineCodes),
+  split_lines(Codes2, Lines).
+split_lines(Line, [Line]).
 
 
 
@@ -156,13 +180,17 @@ recode_stream(FromEnc, In, utf8, ProcOut, close(In)) :-
     ['-c','-f',FromEnc,'-t','utf-8'],
     [
       process(Pid),
-      stderr(pipe(ProcErr)),
+      %stderr(pipe(ProcErr)),
+      stderr(pipe(null)),
       stdin(pipe(ProcIn)),
       stdout(pipe(ProcOut))
     ]
   ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
-  create_detached_thread(copy_stream_data(In, ProcIn)),
+  flag(iconv, N, N+1),
+  %format(atom(AliasErr), "iconv-err-~d", [N]),
+  format(atom(AliasIn), "iconv-cin~d", [N]),
+  %create_detached_thread(AliasErr, copy_and_close(ProcErr, user_error)),
+  create_detached_thread(AliasIn, copy_stream_data(In, ProcIn)),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 

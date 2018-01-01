@@ -29,8 +29,7 @@ call_on_uri_scheme(file, Uri, Goal_3, Metadata3, Options) :- !,
   setup_call_cleanup(
     open(File, read, Stream, Options),
     (
-      stream_ext:call_on_stream(Stream, Goal_3, [uri{mode:read,uri:Uri}],
-                                Metadata1, Options),
+      stream_ext:call_on_stream(Stream, Goal_3, [uri{mode:read,uri:Uri}], Metadata1, Options),
       stream_hash_metadata(Stream, Metadata1, Metadata2, Options)
     ),
     close(Stream)
@@ -170,7 +169,7 @@ call_on_recoded_stream(In1, Goal_3, Metadata1, Metadata3, Options) :-
 call_on_recoded_stream_setup(In1, In2, Options) :-
   (   option(from_encoding(FromEnc0), Options)
   ->  normalize_encoding(FromEnc0, FromEnc)
-  ;   guess_stream_encoding(In1, 10000, FromEnc)
+  ;   guess_stream_encoding(In1, 10 000, FromEnc)
   ),
   (   option(to_encoding(ToEnc), Options)
   ->  must_be(oneof([octet,utf8]), ToEnc)
