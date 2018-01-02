@@ -2,14 +2,14 @@
   xsd,
   [
     xsd_lexical_value/3, % +D, ?Lex, ?Val
-    xsd_subtype_of/2     % ?Subtype, ?Supertype
+    xsd_subtype/2        % ?D1, ?D2
   ]
 ).
 
 /** <module> XML Schema 1.1 Datatypes
 
 @author Wouter Beek
-@version 2017/08-2017/11
+@version 2017/08-2018/01
 */
 
 :- use_module(library(arithmetic)).
@@ -36,8 +36,8 @@ xsd_div(X, Y, Z):-
 
 :- rdf_meta
    xsd_lexical_value(r, ?, ?),
-   xsd_strict_subtype_of(r, r),
-   xsd_subtype_of(r, r).
+   xsd_strict_subtype(r, r),
+   xsd_subtype(r, r).
 
 
 
@@ -59,17 +59,17 @@ xsd_lexical_value(D, Lex, Value) :-
 
 
 
-%! xsd_strict_subtype_of(?Subtype:atom, ?Supertype:atom) is nondet.
+%! xsd_strict_subtype(?Subtype:atom, ?Supertype:atom) is nondet.
 
-xsd_strict_subtype_of(X, Y) :-
+xsd_strict_subtype(X, Y) :-
   dif(X, Y),
-  xsd_subtype_of(X, Y).
+  xsd_subtype(X, Y).
 
 
 
-%! xsd_subtype_of(?Subtype:atom, ?Supertype:atom) is nondet.
+%! xsd_subtype(?Subtype:atom, ?Supertype:atom) is nondet.
 
-xsd_subtype_of(SubGlobal, SuperGlobal) :-
+xsd_subtype(SubGlobal, SuperGlobal) :-
   xsd_global_local_(SubGlobal, SubLocal),
   xsd_global_local_(SuperGlobal, SuperLocal),
   xsdp_subtype_of(SubLocal, SuperLocal),
