@@ -34,8 +34,8 @@ create_process(Program, Args) :-
     Args,
     [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
   ),
-  create_detached_thread_create(copy_stream_data(ProcErr, user_error)),
-  create_detached_thread_create(copy_stream_data(ProcOut, user_output)),
+  create_detached_thread(copy_stream_data(ProcErr, user_error)),
+  create_detached_thread(copy_stream_data(ProcOut, user_output)),
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
