@@ -1,6 +1,7 @@
 :- module(
   os_ext,
   [
+    create_process/2, % +Program, +Arguments
     exists_program/1, % +Program
     open_file/1,      % +File
     open_file/2,      % +MediaType, +File
@@ -12,13 +13,31 @@
 /** <module> OS extensions
 
 @author Wouter Beek
-@version 2017/04-2017/12
+@version 2017/04-2018/01
 */
 
 :- use_module(library(media_type)).
 :- use_module(library(process)).
+:- use_module(library(thread_ext)).
 
 
+
+
+
+%! create_process(+Program:atom, +Arguments:list(compound)) is det.
+%
+% Run an external process _with no input_.
+
+create_process(Program, Args) :-
+  process_create(
+    path(Program),
+    Args,
+    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+  ),
+  create_detached_thread_create(copy_stream_data(ProcErr, user_error)),
+  create_detached_thread_create(copy_stream_data(ProcOut, user_output)),
+  process_wait(Pid, exit(Status)),
+  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
 
 
