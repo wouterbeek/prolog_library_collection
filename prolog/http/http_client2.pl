@@ -1,12 +1,14 @@
 :- module(
   http_client2,
   [
-    http_call/2,  % +Uri, :Goal_1
-    http_call/3,  % +Uri, :Goal_1, +Options
-    http_head2/2, % +Uri, +Options
-    http_lmod/2,  % +Uri, -Time
-    http_open2/2, % +CurrentUri, -In
-    http_open2/3, % +CurrentUri, -In, +Options
+    http_call/2,               % +Uri, :Goal_1
+    http_call/3,               % +Uri, :Goal_1, +Options
+    http_head2/2,              % +Uri, +Options
+    http_lmod/2,               % +Uri, -Time
+    http_metadata_file_name/2, % +Metas, -File
+    http_metadata_link/3,      % +Metas, +Relation, -Uri
+    http_open2/2,              % +CurrentUri, -In
+    http_open2/3,              % +CurrentUri, -In, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -286,25 +288,9 @@ http_open2(CurrentUri, In, Options1) :-
   merge_options([request_header('Accept'=Atom)], Options2, Options3),
   ignore(option(next(NextUri), Options3)),
   ignore(option(metadata(Meta), Options3)),
-  http_open2_meta(CurrentUri, In, Meta, Options3),
-  Meta = [Meta0|_],
-  _{headers: Headers, status: Status} :< Meta0,
-  % `Link' reply header
-  ignore((
-    dict_get(link, Headers, Links),
-    atomic_list_concat(Links, ;, Link),
-    http_link(Link, next, NextUri)
-  )),
-  option(success(Success), Options3, 200),
-  option(failure(Failure), Options3, 400),
-  (   Status =:= Success
-  ->  true
-  ;   read_stream_to_codes(In, Codes),
-      string_codes(Message, Codes),
-      %  Map the failure code to `fail', but throw an error for other
-      %  error codes.
-      (Status =:= Failure -> fail ; throw(error(http_status(Status,Message))))
-  ).
+  http_open2_meta(CurrentUri, In, Metas, Options3),
+  http_metadata_status(Metas, Metas, Options3),
+  ignore(http_metadata_link(Metas, next, NextUri)).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
   option(number_of_hops(MaxHops), Options, 5),
@@ -568,9 +554,27 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_link(+Value:atom, +Relation:atom, -Uri:atom) is semidet.
+%! http_metadata_file_name(+Metas:list(dict), -File:atom) is semidet.
 
-http_link(Atom, Relation, Uri) :-
+http_metadata_file_name(Metas, File) :-
+  Metas = [Meta|_],
+  dict_get('content-disposition', Meta.headers, [ContentDisposition|T]),
+  assertion(T == []),
+  split_string(ContentDisposition, ";", " ", ["attachment"|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["filename",File0]), !,
+  atom_string(File, File0).
+
+
+
+%! http_metadata_link(+Metas:list(dict), +Relation:atom, -Uri:atom) is semidet.
+
+http_metadata_link(Metas, Relation, Uri) :-
+  [Meta|_] = Metas,
+  dict_get(link, Meta.headers, Links),
+  % This header may appear multiple times.
+  atomic_list_concat(Links, ;, Link),
+  http_link(Link, next, NextUri),
   atom_string(Relation, Relation0),
   split_string(Atom, ",", " ", Comps),
   member(Comp, Comps),
@@ -578,6 +582,25 @@ http_link(Atom, Relation, Uri) :-
   member(Param, Params),
   split_string(Param, "=", "\"", ["rel",Relation0]), !,
   atom_string(Uri, Uri0).
+
+
+
+%! http_metadata_status(+In:stream, +Metas:list(dict),
+%!                      +Options:list(compound)) is det.
+
+http_metadata_status(In, Metas, Options) :-
+  Metas = [Meta|_],
+  _{status: Status} :< Meta,
+  option(success(Success), Options3, 200),
+  option(failure(Failure), Options3, 400),
+  (   Status =:= Success
+  ->  true
+  ;   read_stream_to_codes(In, Codes),
+      string_codes(Message, Codes),
+      %  Map the failure code to `fail', but throw an error for other
+      %  error codes.
+      (Status =:= Failure -> fail ; throw(error(http_status(Status,Message))))
+  ).
 
 
 
