@@ -287,9 +287,9 @@ http_open2(CurrentUri, In, Options1) :-
   ),
   merge_options([request_header('Accept'=Atom)], Options2, Options3),
   ignore(option(next(NextUri), Options3)),
-  ignore(option(metadata(Meta), Options3)),
+  ignore(option(metadata(Metas), Options3)),
   http_open2_meta(CurrentUri, In, Metas, Options3),
-  http_metadata_status(Metas, Metas, Options3),
+  http_metadata_status(In, Metas, Options3),
   ignore(http_metadata_link(Metas, next, NextUri)).
 
 http_open2_meta(Uri, In, Meta2, Options) :-
@@ -574,9 +574,8 @@ http_metadata_link(Metas, Relation, Uri) :-
   dict_get(link, Meta.headers, Links),
   % This header may appear multiple times.
   atomic_list_concat(Links, ;, Link),
-  http_link(Link, next, NextUri),
   atom_string(Relation, Relation0),
-  split_string(Atom, ",", " ", Comps),
+  split_string(Link, ",", " ", Comps),
   member(Comp, Comps),
   split_string(Comp, ";", "<> ", [Uri0|Params]),
   member(Param, Params),
@@ -591,8 +590,8 @@ http_metadata_link(Metas, Relation, Uri) :-
 http_metadata_status(In, Metas, Options) :-
   Metas = [Meta|_],
   _{status: Status} :< Meta,
-  option(success(Success), Options3, 200),
-  option(failure(Failure), Options3, 400),
+  option(success(Success), Options, 200),
+  option(failure(Failure), Options, 400),
   (   Status =:= Success
   ->  true
   ;   read_stream_to_codes(In, Codes),
