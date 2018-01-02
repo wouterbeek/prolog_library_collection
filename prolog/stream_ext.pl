@@ -181,7 +181,7 @@ recode_stream(FromEnc, In, utf8, ProcOut, close(In)) :-
     [
       process(Pid),
       %stderr(pipe(ProcErr)),
-      stderr(pipe(null)),
+      stderr(null),
       stdin(pipe(ProcIn)),
       stdout(pipe(ProcOut))
     ]
