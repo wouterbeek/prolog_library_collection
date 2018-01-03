@@ -29,15 +29,23 @@
 % Run an external process _with no input_.
 
 create_process(Program, Args) :-
-  process_create(
-    path(Program),
-    Args,
-    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-  ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
-  create_detached_thread(copy_stream_data(ProcOut, user_output)),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; throw(error(process_status(Status)))).
+  setup_call_cleanup(
+    process_create(
+      path(Program),
+      Args,
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+    ),
+    (
+      create_detached_thread(copy_stream_data(ProcErr, user_error)),
+      create_detached_thread(copy_stream_data(ProcOut, user_output)),
+      process_wait(Pid, exit(Status)),
+      (Status =:= 0 -> true ; throw(error(process_status(Status))))
+    ),
+    (
+      close(ProcErr),
+      close(ProcOut)
+    )
+  ).
 
 
 
