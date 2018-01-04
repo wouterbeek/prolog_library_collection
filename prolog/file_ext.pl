@@ -29,6 +29,7 @@
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     recode_file/1,                % +File
+    recode_file/2,                % +File, +FromEncoding
     sort_file/1,                  % +File
     touch/1,                      % +File
     wc/4,                         % +File, -Lines, -Words, -Bytes
@@ -41,7 +42,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017/04-2018/01
 */
 
 :- use_module(library(apply)).
@@ -51,10 +52,12 @@
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
 :- use_module(library(option)).
+:- use_module(library(os_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
+:- use_module(library(thread_ext)).
 :- use_module(library(zlib)).
 
 :- multifile
@@ -183,20 +186,7 @@ convert_file(File1, Format, File2) :-
   file_name_extension(Base, _, File1),
   file_name_extension(Base, Format, File2),
   call_must_be(convert_format, Format),
-  setup_call_cleanup(
-    process_create(
-      path(libreoffice),
-      ['--convert-to',Format,file(File1)],%'--print-to-file',file(File2),file(File1)],
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-    ),
-    (
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
-      create_detached_thread(copy_stream_data(ProcOut, user_output)),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    close(ProcOut)
-  ).
+  create_process(libreoffice, ['--convert-to',Format,file(File1)]).
 
 convert_format(csv).
 
@@ -453,26 +443,18 @@ is_empty_directory(Dir) :-
 
 
 %! recode_file(+File:atom) is det.
+%! recode_file(+File:atom, +FromEncoding:atom) is det.
 %
 % Recode to UTF-8 if File is a text file.
 
-recode_file(File1) :-
-  guess_file_encoding(File1, Enc),
+recode_file(File) :-
+  guess_file_encoding(File, FromEnc),
+  recode_file(File, FromEnc).
+
+
+recode_file(File1, FromEnc) :-
   file_name_extension(File1, recoding, File2),
-  setup_call_cleanup(
-    process_create(
-      path(iconv),
-      ['-f',Enc,'-t','utf-8','-o',file(File2),file(File1)],
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-    ),
-    (
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
-      create_detached_thread(copy_stream_data(ProcOut, user_output)),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    close(ProcOut)
-  ),
+  create_process(iconv, ['-f',FromEnc,'-t','utf-8','-o',file(File2),file(File1)]),
   rename_file(File2, File1).
 
 
