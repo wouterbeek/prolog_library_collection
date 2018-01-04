@@ -1,14 +1,15 @@
 :- module(
   http_client2,
   [
-    http_call/2,               % +Uri, :Goal_1
-    http_call/3,               % +Uri, :Goal_1, +Options
-    http_head2/2,              % +Uri, +Options
-    http_lmod/2,               % +Uri, -Time
-    http_metadata_file_name/2, % +Metas, -File
-    http_metadata_link/3,      % +Metas, +Relation, -Uri
-    http_open2/2,              % +CurrentUri, -In
-    http_open2/3,              % +CurrentUri, -In, +Options
+    http_call/2,                  % +Uri, :Goal_1
+    http_call/3,                  % +Uri, :Goal_1, +Options
+    http_head2/2,                 % +Uri, +Options
+    http_lmod/2,                  % +Uri, -Time
+    http_metadata_content_type/2, % +Metas, -MediaType
+    http_metadata_file_name/2,    % +Metas, -File
+    http_metadata_link/3,         % +Metas, +Relation, -Uri
+    http_open2/2,                 % +CurrentUri, -In
+    http_open2/3,                 % +CurrentUri, -In, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -23,31 +24,6 @@
 /** <module> HTTP Client
 
 ```prolog
-media_type_encoding(media(application/json,_), utf8).
-media_type_encoding(media(application/'n-quads',_), utf8).
-media_type_encoding(media(application/'n-triples',_), utf8).
-media_type_encoding(media(application/'sparql-query',_), utf8).
-media_type_encoding(media(application/'x-prolog',_), utf8).
-media_type_encoding(media(image/jpeg,_), octet).
-media_type_encoding(media(image/png,_), octet).
-media_type_encoding(media(text/turtle,_), utf8).
-media_type_encoding(media(_,Params), Encoding3) :-
-  memberchk(charset-Encoding1, Params), !,
-  % @tbd Are values to the `charset' parameter case-insensitive?
-  downcase_atom(Encoding1, Encoding2),
-  once(translate_encoding(Encoding2, Encoding3)).
-media_type_encoding(MediaType, octet) :-
-  format(
-    string(Msg),
-    "Cannot determine encoding for Media Type ~w (assuming octet).",
-    [MediaType]
-  ),
-  print_message(warning, Msg).
-
-translate_encoding('us-ascii', ascii).
-translate_encoding('utf-8', utf8).
-translate_encoding(Encoding, Encoding).
-
 %! merge_separable_header(+Pair1:pair(atom,list(term)),
 %!                         -Pair2:pair(atom,term)) is det.
 %
@@ -74,7 +50,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/12
+@version 2017/05-2018/01
 */
 
 :- use_module(library(apply)).
@@ -287,21 +263,18 @@ http_open2(CurrentUri, In, Options1) :-
   ),
   merge_options([request_header('Accept'=Atom)], Options2, Options3),
   ignore(option(next(NextUri), Options3)),
-  ignore(option(metadata(Metas), Options3)),
-  http_open2_meta(CurrentUri, In, Metas, Options3),
-  http_metadata_status(In, Metas, Options3),
-  ignore(http_metadata_link(Metas, next, NextUri)).
+  ignore(option(metadata(Metas1), Options3)),
+  option(number_of_hops(MaxHops), Options3, 5),
+  option(number_of_repeats(MaxRepeats), Options3, 2),
+  option(number_of_retries(MaxRetries), Options3, 1),
+  http_open2_(CurrentUri, In, Options3, MaxHops, MaxRepeats, 1-MaxRetries, [],
+              Metas1),
+  reverse(Metas1, Metas2),
+  http_metadata_status(In, Metas2, Options3),
+  ignore(http_metadata_link(Metas2, next, NextUri)).
 
-http_open2_meta(Uri, In, Meta2, Options) :-
-  option(number_of_hops(MaxHops), Options, 5),
-  option(number_of_repeats(MaxRepeats), Options, 2),
-  option(number_of_retries(MaxRetries), Options, 1),
-  http_open2_meta(Uri, In, Options, MaxHops, MaxRepeats, 1-MaxRetries, [],
-                   Meta1),
-  reverse(Meta1, Meta2).
-
-http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
-                 [Dict|Dicts]) :-
+http_open2_(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
+            [Meta|Metas]) :-
   (   debugging(http(send_request)),
       option(post(RequestBody), Options1)
   ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
@@ -325,9 +298,9 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
   ignore(memberchk(location-[Location], HeaderPairs)),
-  dict_pairs(HeadersDict, HeaderPairs),
-  Dict = http{
-    headers: HeadersDict,
+  dict_pairs(HeadersMeta, HeaderPairs),
+  Meta = http{
+    headers: HeadersMeta,
     status: Status,
     timestamp: Start-End,
     uri: Uri,
@@ -343,8 +316,17 @@ http_open2_meta(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
       debug(http(receive_reply), "", [])
   ;   true
   ),
-  http_open2_meta(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
-                  Retries, Visited, In2, Dicts).
+  http_open2_(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
+              Retries, Visited, In2, Metas),
+  % Change the input stream encoding based on the `Content-Type'
+  % header.
+  (   http_metadata_content_type([Meta|Metas], MediaType)
+  ->  (   media_type_encoding(MediaType, Encoding)
+      ->  set_stream(In2, encoding(Encoding))
+      ;   true
+      )
+  ;   at_end_of_stream(In2)
+  ).
 
 debug_header(Key-Values) :-
   maplist(debug_header(Key), Values).
@@ -368,23 +350,23 @@ http_open2_accept_(MediaType, Atom) :-
   http_open2_accept_([MediaType], Atom).
 
 % authentication error
-http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
+http_open2_(_, In, _, _, Status, _, _, _, _, In, []) :-
   Status =:= 401,
   throw(error(http_status(Status))).
 % non-authentication error
-http_open2_meta(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
-                NumRetries1-MaxRetries, Visited, In2, Dicts) :-
+http_open2_(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
+            NumRetries1-MaxRetries, Visited, In2, Metas) :-
   between(400, 599, Status), !,
   NumRetries2 is NumRetries1 + 1,
   (   NumRetries2 >= MaxRetries
   ->  In2 = In1,
-      Dicts = []
-  ;   http_open2_meta(Uri, In2, Options, MaxHops, MaxRepeats,
-                      NumRetries2-MaxRetries, Visited, Dicts)
+      Metas = []
+  ;   http_open2_(Uri, In2, Options, MaxHops, MaxRepeats,
+                  NumRetries2-MaxRetries, Visited, Metas)
   ).
 % redirect
-http_open2_meta(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats,
-                Retries, Visited1, In2, Dicts) :-
+http_open2_(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
+            Visited1, In2, Metas) :-
   between(300, 399, Status), !,
   close(In1),
   uri_resolve(Location, Uri1, Uri2),
@@ -392,19 +374,19 @@ http_open2_meta(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats,
   (   length(Visited2, NumVisited),
       NumVisited >= MaxHops
   ->  close(In1),
-      Dicts = [],
+      Metas = [],
       print_message(warning, http_max_redirect(5,Uri2))
   ;   include(==(Uri2), Visited2, Visited3),
       length(Visited3, NumRepeats),
       NumRepeats >= MaxRepeats
   ->  close(In1),
-      Dicts = [],
+      Metas = [],
       print_message(warning, http_redirect_loop(Uri2))
-  ;   http_open2_meta(Uri2, In2, Options, MaxHops, MaxRepeats, Retries,
-                      Visited2, Dicts)
+  ;   http_open2_(Uri2, In2, Options, MaxHops, MaxRepeats, Retries, Visited2,
+                  Metas)
   ).
 % succes
-http_open2_meta(_, In, _, _, Status, _, _, _, _, In, []) :-
+http_open2_(_, In, _, _, Status, _, _, _, _, In, []) :-
   must_be(between(200,299), Status).
 
 http_lines_pairs(Lines, GroupedPairs) :-
@@ -551,6 +533,26 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
+
+
+
+%! http_metadata_content_type(+Metas:list(dict), -MediaType:compound) is semidet.
+%
+% We cannot expect that an HTTP `Content-Type' header is present:
+%
+%   - Some HTTP replies have no content.
+%
+%   - Some non-empty HTTP replies omit the header (probably
+%     incorrectly), e.g., `http://abs.270a.info/sparql'.
+%
+%   - Some Content-Type headers' values do not follow the grammar for
+%     Media Types.
+
+http_metadata_content_type(Metas, MediaType) :-
+  Metas = [Meta|_],
+  get_dict('content-type', Meta.headers, [ContentType|T]),
+  assertion(T == []),
+  http_parse_header_value(content_type, ContentType, MediaType).
 
 
 
