@@ -133,25 +133,28 @@ sort_stream(In, Out, Options1) :-
   process_wait(Pid, exit(Status)),
   (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
 
+% --buffer-size
 sort_flag(buffer_size(Size), Flag) :-
   must_be(nonneg, Size),
   format(atom(Flag), '--buffer-size=~d', [Size]).
-% -u
-sort_flag(duplicates(KeepDuplicates), '--unique') :-
-  must_be(boolean, KeepDuplicates),
-  KeepDuplicates == false.
+% -n, --numeric-sort
 sort_flag(numeric(IsNumeric), '--numeric-sort') :-
   must_be(boolean, IsNumeric),
   IsNumeric == true.
-% -o
+% -o, --output
 sort_flag(output(OutFileSpec), Flag) :-
   absolute_file_name(OutFileSpec, OutFile, [access(write)]),
   format(atom(Flag), '--output=~a', [OutFile]).
+% --parallel
 sort_flag(threads(NumberOfThreads), Flag) :-
   must_be(positive_integer, NumberOfThreads),
   NumberOfThreads > 0,
   format(atom(Flag), '--parallel=~d', [NumberOfThreads]).
-% -T
+% -T, --temporary-directory
 sort_flag(temporary_directory(Dir), Flag) :-
   must_be(directory, Dir),
   format(atom(Flag), '--temporary-directory=~a', [Dir]).
+% -u, --unique
+sort_flag(duplicates(KeepDuplicates), '--unique') :-
+  must_be(boolean, KeepDuplicates),
+  KeepDuplicates == false.
