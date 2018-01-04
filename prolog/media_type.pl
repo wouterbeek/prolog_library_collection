@@ -5,8 +5,10 @@
     media_type//1,          % +MediaType
     media_type/1,           % ?MediaType
     media_type_comps/4,     % ?MediaType, ?Supertype, ?Subtype, ?Params
+    media_type_encoding/2,  % ?MediaType, ?Encoding
     media_type_extension/2, % ?MediaType, ?Extension
     media_type_label/2,     % ?MediaType, ?Label
+    media_type_parameter/3, % +MediaType, ?Key, ?Value
     media_type_program/3    % ?MediaType, ?Program, -Args
   ]
 ).
@@ -17,13 +19,14 @@ Design goal: maintain a one-to-one mapping between Media Types and
 file name extensions.
 
 @author Wouter Beek
-@version 2017/12
+@version 2017/12-2018/01
 */
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 
 
 
@@ -101,6 +104,30 @@ media_type_comps(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 
 
 
+%! media_type_encoding(+MediaType:compound, +Encoding:atom) is det.
+%! media_type_encoding(+MediaType:compound, -Encoding:atom) is det.
+
+% A parameter `charset'.
+% TBD: Are values to the `charset' parameter case-insensitive?
+media_type_encoding(MediaType, Encoding) :-
+  media_type_parameter(MediaType, charset, Encoding0), !,
+  translate_encoding(Encoding0, Encoding).
+% TBD: Integrate this with media_type_/5.
+media_type_encoding(media(application/json,_), utf8).
+media_type_encoding(media(application/'n-quads',_), utf8).
+media_type_encoding(media(application/'n-triples',_), utf8).
+media_type_encoding(media(application/'sparql-query',_), utf8).
+media_type_encoding(media(application/'x-prolog',_), utf8).
+media_type_encoding(media(image/jpeg,_), octet).
+media_type_encoding(media(image/png,_), octet).
+media_type_encoding(media(text/turtle,_), utf8).
+
+translate_encoding('us-ascii', ascii).
+translate_encoding('utf-8', utf8).
+translate_encoding(Encoding, Encoding).
+
+
+
 %! media_type_extension(+MediaType:compound, +Extension:atom) is semidet.
 %! media_type_extension(+MediaType:compound, -Extension:atom) is det.
 %! media_type_extension(-MediaType:compound, +Extension:atom) is det.
@@ -119,6 +146,16 @@ media_type_extension(MediaType, Ext) :-
 
 media_type_label(MediaType, Label) :-
   call_det_when_ground(MediaType, media_type_(_, MediaType, _, Label)).
+
+
+
+%! media_type_parameter(+MediaType:compound, +Key:atom, +Value:atom) is semidet.
+%! media_type_parameter(+MediaType:compound, +Key:atom, -Value:atom) is semidet.
+%! media_type_parameter(+MediaType:compound, -Key:atom, -Value:atom) is nondet.
+
+media_type_parameter(media(_/_,Parameters), Key, Value) :-
+  member(Parameter, Parameters),
+  Parameter =.. [Key,Value].
 
 
 
