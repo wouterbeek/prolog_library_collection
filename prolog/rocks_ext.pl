@@ -10,7 +10,8 @@
     rocks_key/2,       % +DB, ?Key
     rocks_init/2,      % +Alias, +Options
     rocks_init/3,      % +Alias, -Db, +Options
-    rocks_size/2       % +Db, -Size
+    rocks_size/2,      % +Db, -Size
+    rocks_value/2      % +Db, -Value
   ]
 ).
 :- reexport(library(rocksdb)).
@@ -18,7 +19,7 @@
 /** <module> RocksDB extension
 
 @author Wouter Beek
-@version 2017/06-2017/12
+@version 2017/06-2018/01
 */
 
 :- use_module(library(aggregate)).
@@ -151,6 +152,13 @@ rocks_size(Db, Size) :-
     rocks_enum(Db, _, _),
     Size
   ).
+
+
+
+%! rocks_value(+Db, -Value:term) is nondet.
+
+rocks_value(Db, Value) :-
+  rocks(Db, _, Value).
 
 
 
