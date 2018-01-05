@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   xsd_number,
   [
@@ -13,7 +14,7 @@ Functions”.
 
 @author Wouter Beek
 @compat XML Schema 1.1 Part 2: Datatypes
-@version 2017/04-2017/11
+@version 2017/04-2018/01
 */
 
 :- use_module(library(aggregate)).
@@ -23,8 +24,10 @@ Functions”.
 :- use_module(library(lists)).
 
 :- arithmetic_function(xsd_div/2).
+:- arithmetic_function(xsd_mod/2).
 
 :- op(400, yfx, xsd_div).
+:- op(400, yfx, xsd_mod).
 
 % xsd_div(+M, +N, -Z) is det.
 %
@@ -35,9 +38,6 @@ Functions”.
 
 xsd_div(X, Y, Z):-
   Z is floor(X rdiv Y).
-
-:- op(400, yfx, xsd_mod).
-:- arithmetic_function(xsd_mod/2).
 
 %! xsd_mod(+M, +N, -X) is det.
 %

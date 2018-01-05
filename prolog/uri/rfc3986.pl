@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rfc3986,
   [
@@ -38,7 +39,7 @@ The following terms are used:
 @author Wouter Beek
 @compat RFC 3986
 @see http://tools.ietf.org/html/rfc3986
-@version 2017/04-2017/09
+@version 2017/04-2018/01
 */
 
 :- use_module(library(dcg/dcg_ext)).

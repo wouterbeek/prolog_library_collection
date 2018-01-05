@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   string_ext,
   [
@@ -14,7 +15,7 @@
 /** <module> String extensions
 
 @author Wouter Beek
-@version 2017/05-2017/06, 2017/12
+@version 2017/05-2018/01
 */
 
 :- use_module(library(error)).

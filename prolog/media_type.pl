@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   media_type,
   [

@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   uri_ext,
   [
@@ -23,7 +24,7 @@
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2017/04-2017/11
+@version 2017/04-2018/01
 */
 
 :- use_module(library(apply)).

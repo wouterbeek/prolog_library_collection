@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   atom_ext,
   [
@@ -17,7 +18,7 @@
 /** <module> Atom extensions
 
 @author Wouter Beek
-@version 2017/04-2017/12
+@version 2017/04-2018/01
 */
 
 :- use_module(library(dcg/dcg_ext)).

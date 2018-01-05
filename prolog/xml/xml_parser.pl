@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   xml_parser,
   [
@@ -53,7 +54,7 @@
 @author Wouter Beek
 @compat [XML 1.0.5](http://www.w3.org/TR/2008/REC-xml-20081126/)
 @compat [XML 1.1.2](http://www.w3.org/TR/2006/REC-xml11-20060816/)
-@version 2017/06, 2017/08-2017/09
+@version 2017/08-2018/01
 */
 
 :- use_module(library(apply)).

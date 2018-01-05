@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   math_ext,
   [
@@ -14,7 +15,7 @@
 /** <module> Mathematics extensions
 
 @author Wouter Beek
-@version 2017/04-2017/05, 2017/09
+@version 2017/04-2018/01
 */
 
 :- use_module(library(aggregate)).
