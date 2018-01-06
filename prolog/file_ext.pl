@@ -485,7 +485,7 @@ sort_file(File1) :-
     (
       process_create(
         path(sort),
-        ['-u','-o',file(File1),file(File2)],
+        ['-u','-o',file(File2),file(File1)],
         [
           env(['LC_ALL'='C']),
           process(Pid),
