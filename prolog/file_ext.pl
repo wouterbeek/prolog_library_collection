@@ -32,6 +32,7 @@
     recode_file/1,                % +File
     recode_file/2,                % +File, +FromEncoding
     sort_file/1,                  % +File
+    sort_file/2,                  % +File, +Options
     touch/1,                      % +File
     wc/4,                         % +File, -Lines, -Words, -Bytes
     working_directory/1           % -Dir
@@ -144,10 +145,7 @@ compress_file(File, CompressedFile) :-
       gzopen(TmpFile, write, Out, [format(gzip)])
     ),
     copy_stream_data(In, Out),
-    (
-      close(Out),
-      close(In)
-    )
+    maplist(close, [In,Out])
   ),
   rename_file(TmpFile, CompressedFile).
 
@@ -392,10 +390,7 @@ guess_file_encoding(File, Enc) :-
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
     ),
-    (
-      close(ProcErr),
-      close(ProcOut)
-    )
+    maplist(close, [ProcErr,ProcOut])
   ).
 
 
@@ -477,28 +472,18 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 
 %! sort_file(+File:atom) is det.
+%! sort_file(+File:atom, +Options:list(compound)) is det.
 
 sort_file(File1) :-
+  sort_file(File1, []).
+
+
+sort_file(File1, Options) :-
   file_name_extension(File1, sorting, File2),
   setup_call_cleanup(
-    open(File2, write, Out),
-    (
-      process_create(
-        path(sort),
-        ['-u','-o',file(File2),file(File1)],
-        [
-          env(['LC_ALL'='C']),
-          process(Pid),
-          stderr(pipe(ProcErr)),
-          stdout(pipe(ProcOut))
-        ]
-      ),
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
-      create_detached_thread(copy_stream_data(ProcOut, Out)),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    close(Out)
+    maplist(open, [File1,File2], [read,write], [In,Out]),
+    sort_stream(In, Out, Options),
+    maplist(close, [In,Out])
   ),
   rename_file(File1, File2).
 
