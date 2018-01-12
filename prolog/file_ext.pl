@@ -481,7 +481,7 @@ sort_file(File1) :-
 sort_file(File1, Options) :-
   file_name_extension(File1, sorting, File2),
   setup_call_cleanup(
-    maplist(open, [File1,File2], [read,write], [In,Out]),
+    maplist(gzopen, [File1,File2], [read,write], [In,Out]),
     sort_stream(In, Out, Options),
     maplist(close, [In,Out])
   ),
