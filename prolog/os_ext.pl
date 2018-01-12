@@ -36,14 +36,19 @@ create_process(Program, Args) :-
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
-      create_detached_thread(copy_stream_data(ProcOut, user_output)),
+      thread_create(copy_stream_data(ProcErr, user_error), Id1),
+      thread_create(copy_stream_data(ProcOut, user_output), Id2),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; throw(error(process_status(Status))))
     ),
     (
-      close(ProcErr),
-      close(ProcOut)
+      call_cleanup(
+        thread_join(Id1),
+        call_cleanup(
+          thread_join(Id2),
+          call_cleanup(close(ProcErr), close(ProcOut))
+        )
+      )
     )
   ).
 
