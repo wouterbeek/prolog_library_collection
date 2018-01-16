@@ -9,7 +9,7 @@
 /** <module> Well-Known Text (WKT): Parser
 
 @author Wouter Beek
-@version 2016/05-2016/06, 2016/11, 2017/02, 2017/04-2017/05
+@version 2016/05-2018/01
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -238,10 +238,10 @@ point_text(Z, LRS, Point) -->
 point_text(_, _, []) -->
   empty_set.
 
-point_text_representation(Z, LRS, 'Point'(Coords)) -->
+point_text_representation(Z, LRS, Point) -->
   keyword(`point`),
   z_m(Z, LRS),
-  point_text(Z, LRS, Coords).
+  point_text(Z, LRS, Point).
 
 
 
@@ -351,7 +351,8 @@ wkt_parse(Shape) -->
 
 wkt_parse(Z, LRS, Crs, Shape) -->
   (   "<", 'URI'(Crs), ">"
-  ->  +('WS'), !
+  ->  blank,
+      blanks, !
   ;   {Crs = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84'}
   ),
   wkt_representation(Z, LRS, Shape).
@@ -386,7 +387,7 @@ keyword([H|T]) -->
   keyword(T).
 keyword([]) -->
   (alpha(_) -> !, {fail} ; ""),
-  *('WS').
+  blanks.
 
 
 
@@ -400,29 +401,47 @@ m(N) -->
 %! must_see_code(-Code)// .
 
 must_see_code(C) -->
-  must_see_code(C, *('WS')).
+  must_see_code(C, blanks).
 
 
 
 %! point(+Z:boolean, +LRS:boolean, -Point:compound)// is det.
 
-point(false, false, [X,Y]) -->
+point(true, true, 'Point'(X,Y,Z,LRS)) --> !,
   'X'(X),
   must_see_code(0' ),
+  blanks,
   'Y'(Y),
-  *('WS').
-point(false, true, [X,Y,LRS]) -->
-  point(false, false, [X,Y]),
-  " ",
+  must_see_code(0' ),
+  blanks,
+  'Z'(Z),
+  must_see_code(0' ),
+  blanks,
   m(LRS).
-point(true, false, [X,Y,Z]) -->
-  point(false, false, [X,Y]),
-  " ",
-  'Z'(Z).
-point(true, true, [X,Y,Z,LRS]) -->
-  point(true, false, [X,Y,Z]),
-  " ",
-  m(LRS).
+point(true, false, 'Point'(X,Y,Z)) --> !,
+  'X'(X),
+  must_see_code(0' ),
+  blanks,
+  'Y'(Y),
+  must_see_code(0' ),
+  blanks,
+  'Z'(Z),
+  blanks.
+point(false, true, 'Point'(X,Y,LRS)) --> !,
+  'X'(X),
+  must_see_code(0' ),
+  blanks,
+  'Y'(Y),
+  must_see_code(0' ),
+  blanks,
+  'm'(LRS),
+  blanks.
+point(false, false, 'Point'(X,Y)) -->
+  'X'(X),
+  must_see_code(0' ),
+  blanks,
+  'Y'(Y),
+  blanks.
 
 
 
@@ -438,7 +457,7 @@ point(true, true, [X,Y,Z,LRS]) -->
 
 'wkt*'(Dcg_1, [H|T]) -->
   ",", !,
-  *('WS'),
+  blanks,
   dcg_call(Dcg_1, H),
   'wkt*'(Dcg_1, T).
 'wkt*'(_, []) --> "".
