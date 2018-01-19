@@ -262,7 +262,7 @@ http_open2(CurrentUri, In, Options1) :-
   ;   Atom = '*',
       Options2 = Options1
   ),
-  merge_options([request_header('Accept'=Atom)], Options2, Options3),
+  Options3 = [request_header('Accept'=Atom)|Options2],
   ignore(option(next(NextUri), Options3)),
   ignore(option(metadata(Metas1), Options3)),
   option(number_of_hops(MaxHops), Options3, 5),
