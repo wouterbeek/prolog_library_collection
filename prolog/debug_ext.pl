@@ -3,10 +3,12 @@
   debug_ext,
   [
     debug_dict/2,   % +Flag, +Dict
+    dmon/0,
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
     indent_debug/4  % +Mode, +Flag, +Format, +Args
+    tmon/0
   ]
 ).
 :- reexport(library(debug)).
@@ -20,6 +22,7 @@
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(pp)).
+:- use_module(library(swi_ide)).
 
 :- thread_local
    debug_indent/1.
@@ -37,6 +40,15 @@ debug_dict(Flag, Dict) :-
   with_output_to(string(String), print_term(Dict)),
   debug(Flag, "~s", [String]).
 debug_dict(_, _).
+
+
+
+%! dmon is det.
+%
+% Wrapper that starts the debug monitor.
+
+dmon :-
+  prolog_ide(debug_monitor).
 
 
 
@@ -92,3 +104,12 @@ msg_diff1(-1) --> "└".
 msg_diff2(1) --> !, "├".
 msg_diff2(0) --> !, "└".
 msg_diff2(-1) --> "└".
+
+
+
+%! tmon is det.
+%
+% Wrapper that starts the thread monitor.
+
+tmon :-
+  prolog_ide(thread_monitor).
