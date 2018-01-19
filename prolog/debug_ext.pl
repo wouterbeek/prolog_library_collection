@@ -7,7 +7,7 @@
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
-    indent_debug/4  % +Mode, +Flag, +Format, +Args
+    indent_debug/4, % +Mode, +Flag, +Format, +Args
     tmon/0
   ]
 ).
