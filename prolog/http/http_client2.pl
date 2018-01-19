@@ -319,14 +319,18 @@ http_open2_(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ),
   http_open2_(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
               Retries, Visited, In2, Metas),
-  % Change the input stream encoding based on the `Content-Type'
-  % header.
-  (   http_metadata_content_type([Meta|Metas], MediaType)
+  (   % Change the input stream encoding based on the `Content-Type'
+      % header.
+      http_metadata_content_type([Meta|Metas], MediaType)
   ->  (   media_type_encoding(MediaType, Encoding)
       ->  set_stream(In2, encoding(Encoding))
       ;   true
       )
-  ;   at_end_of_stream(In2)
+  ;   % No Content-Type header, but no content either (no need for a
+      % warning).
+      at_end_of_stream(In2)
+  ->  true
+  ;   print_message(warning, missing_content_type)
   ).
 
 debug_header(Key-Values) :-
