@@ -3,6 +3,7 @@
   stream_ext,
   [
     copy_stream_type/2,      % +In, +Out
+    guess_stream_encoding/3, % +In, +Size, -Encoding
     guess_string_encoding/2, % +String, -Encoding
     normalize_encoding/2,    % +Encoding1, -Encoding2
     read_line_to_atom/2,     % +In, -Atom
@@ -56,6 +57,14 @@ copy_stream_type(In, Out) :-
   stream_property(In, type(Type)),
   set_stream(Out, type(Type)),
   copy_stream_data(In, Out).
+
+
+
+%! guess_stream_encoding(+In:stream, +Size:nonneg, -Encoding:atom) is det.
+
+guess_stream_encoding(In, Size, Encoding) :-
+  peek_string(In, Size, String),
+  guess_string_encoding(String, Encoding).
 
 
 
