@@ -2,7 +2,8 @@
   os_ext,
   [
     create_process/2, % +Program, +Arguments
-    create_process/3, % +Program, +Arguments, :Goal_1
+    create_process/3, % +Program, +Arguments, :OutGoal_1
+    create_process/4, % +Program, +Arguments, :OutGoal_1, :ErrGoal_1
     exists_program/1, % +Program
     open_file/1,      % +File
     open_file/2,      % +MediaType, +File
@@ -23,27 +24,29 @@
 :- use_module(library(yall)).
 
 :- meta_predicate
-    create_process(+, +, 1).
+    create_process(+, +, 1),
+    create_process(+, +, 1, 1).
 
 
 
 
 
 %! create_process(+Program:atom, +Arguments:list(compound)) is det.
+%! create_process(+Program:atom, +Arguments:list(compound), :OutGoal_1) is det.
+%! create_process(+Program:atom, +Arguments:list(compound), :OutGoal_1, :ErrGoal_1) is det.
 %
-% Run an external process _with no input_.
+% Run an external process _with no input_ whose output and input
+% streams are passed to the given goals.
 
 create_process(Program, Args) :-
   create_process(Program, Args, [ProcOut]>>copy_stream_data(ProcOut, user_output)).
 
 
+create_process(Program, Args, OutGoal_1) :-
+  create_process(Program, Args, OutGoal_1, [ProcErr]>>copy_stream_data(ProcErr, user_error)).
 
-%! create_process(+Program:atom, +Arguments:list(compound), :Goal_1) is det.
-%
-% Run an external process _with no input_ whose output stream ProcOut
-% is called as follows: `call(Goal_1, ProcOut)'.
 
-create_process(Program, Args, Goal_1) :-
+create_process(Program, Args, OutGoal_1, ErrGoal_1) :-
   setup_call_cleanup(
     process_create(
       path(Program),
@@ -51,17 +54,20 @@ create_process(Program, Args, Goal_1) :-
       [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
     ),
     (
-      thread_create(copy_stream_data(ProcErr, user_error), Id1),
-      thread_create(call(Goal_1, ProcOut), Id2),
+      thread_create(call(ErrGoal_1, ProcErr), ErrId),
+      thread_create(call(OutGoal_1, ProcOut), OutId),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; throw(error(process_status(Status))))
     ),
     (
       call_cleanup(
-        thread_join(Id1),
+        thread_join(ErrId),
         call_cleanup(
-          thread_join(Id2),
-          call_cleanup(close(ProcErr), close(ProcOut))
+          thread_join(OutId),
+          call_cleanup(
+            close(ProcErr),
+            close(ProcOut)
+          )
         )
       )
     )

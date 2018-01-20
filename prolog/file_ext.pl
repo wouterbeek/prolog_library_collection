@@ -436,7 +436,7 @@ is_empty_directory(Dir) :-
 % Succeeds iff File contains an image recognized by ImageMagick.
 
 is_image_file(File) :-
-  catch(create_process(identify, [file(File)], true), _, fail).
+  catch(create_process(identify, [file(File)], true, true), _, fail).
 
 
 
