@@ -29,6 +29,7 @@
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
+    is_image_file/1,              % +File
     recode_file/1,                % +File
     recode_file/2,                % +File, +FromEncoding
     sort_file/1,                  % +File
@@ -374,6 +375,8 @@ file_to_string(File, String) :-
 
 
 %! guess_file_encoding(+File:atom, -Enc:atom) is det.
+%
+% @see Requires uchardet.
 
 guess_file_encoding(File, Encoding) :-
   create_process(uchardet, [file(File)], read_file_encoding(Encoding)).
@@ -394,20 +397,15 @@ encoding_alias(utf8, 'utf-8').
 %
 % @see Requires ImageMagick.
 
-image_dimensions(File, Width-Height) :-
-  process_create(
-    path(identify),
-    [file(File)],
-    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-  ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
-  read_stream_to_codes(ProcOut, Codes),
-  phrase(image_dimensions_out(File, Width, Height), Codes, _),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+image_dimensions(File, Dimensions) :-
+  create_process(identify, [file(File)], read_image_dimensions(Dimensions)).
 
-image_dimensions_out(File, Width, Height) -->
-  atom(File),
+read_image_dimensions(Dimensions, ProcOut) :-
+  read_stream_to_codes(ProcOut, Codes),
+  phrase(read_image_dimensions(Dimensions), Codes, _).
+
+read_image_dimensions(Width-Height) -->
+  atom(_File),
   " ",
   ...,
   " ",
@@ -430,6 +428,15 @@ is_dummy_file(..).
 is_empty_directory(Dir) :-
   exists_directory(Dir),
   \+ directory_file(Dir, _).
+
+
+
+%! is_image_file(+File:atom) is semidet.
+%
+% Succeeds iff File contains an image recognized by ImageMagick.
+
+is_image_file(File) :-
+  create_process(identify, [file(File)]).
 
 
 
@@ -525,19 +532,14 @@ wc(File, Lines) :-
 % Linux-only parsing of GNU wc output.
 
 wc(File, Lines, Words, Bytes) :-
-  process_create(
-    path(wc),
-    [file(File)],
-    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-  ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
+  create_process(wc, [file(File)], read_wc(Lines, Words, Bytes)).
+
+read_wc(Lines, Words, Bytes, ProcOut) :-
   read_stream_to_codes(ProcOut, Codes),
-  phrase(wc_out(Lines, Words, Bytes), Codes, _),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+  phrase(read_wc(Lines, Words, Bytes), Codes, _).
 
 % E.g., `427  1818 13512 README.md`
-wc_out(Lines, Words, Bytes) -->
+read_wc(Lines, Words, Bytes) -->
   whites,
   integer(Lines),
   whites,

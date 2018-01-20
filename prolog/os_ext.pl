@@ -34,7 +34,7 @@
 % Run an external process _with no input_.
 
 create_process(Program, Args) :-
-  create_process(Program, Args, [ProcOut]>>copy_stream_data(ProcOut, user_ouput)).
+  create_process(Program, Args, [ProcOut]>>copy_stream_data(ProcOut, user_output)).
 
 
 
