@@ -375,23 +375,18 @@ file_to_string(File, String) :-
 
 %! guess_file_encoding(+File:atom, -Enc:atom) is det.
 
-guess_file_encoding(File, Enc) :-
-  setup_call_cleanup(
-    process_create(
-      path(uchardet),
-      [file(File)],
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-    ),
-    (
-      create_detached_thread(copy_stream_data(ProcErr, user_error)),
-      read_string(ProcOut, String1),
-      string_strip(String1, "\n", String2),
-      normalize_encoding(String2, Enc),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    maplist(close, [ProcErr,ProcOut])
-  ).
+guess_file_encoding(File, Encoding) :-
+  create_process(uchardet, [file(File)], read_file_encoding(Encoding)).
+
+read_file_encoding(Encoding, ProcOut) :-
+  read_string(ProcOut, String1),
+  string_strip(String1, "\n", String2),
+  % Clean the encoding string a bit.
+  downcase_atom(String2, Atom),
+  (encoding_alias(Atom, Encoding) -> true ; Encoding = Atom).
+
+encoding_alias(macroman, macintosh).
+encoding_alias(utf8, 'utf-8').
 
 
 
