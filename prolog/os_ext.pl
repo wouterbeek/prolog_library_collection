@@ -2,6 +2,7 @@
   os_ext,
   [
     create_process/2, % +Program, +Arguments
+    create_process/3, % +Program, +Arguments, :Goal_1
     exists_program/1, % +Program
     open_file/1,      % +File
     open_file/2,      % +MediaType, +File
@@ -19,6 +20,10 @@
 :- use_module(library(media_type)).
 :- use_module(library(process)).
 :- use_module(library(thread_ext)).
+:- use_module(library(yall)).
+
+:- meta_predicate
+    create_process(+, +, 1).
 
 
 
@@ -29,6 +34,16 @@
 % Run an external process _with no input_.
 
 create_process(Program, Args) :-
+  create_process(Program, Args, [ProcOut]>>copy_stream_data(ProcOut, user_ouput)).
+
+
+
+%! create_process(+Program:atom, +Arguments:list(compound), :Goal_1) is det.
+%
+% Run an external process _with no input_ whose output stream ProcOut
+% is called as follows: `call(Goal_1, ProcOut)'.
+
+create_process(Program, Args, Goal_1) :-
   setup_call_cleanup(
     process_create(
       path(Program),
@@ -37,7 +52,7 @@ create_process(Program, Args) :-
     ),
     (
       thread_create(copy_stream_data(ProcErr, user_error), Id1),
-      thread_create(copy_stream_data(ProcOut, user_output), Id2),
+      thread_create(call(Goal_1, ProcOut), Id2),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; throw(error(process_status(Status))))
     ),
