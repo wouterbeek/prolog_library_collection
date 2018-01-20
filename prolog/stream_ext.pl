@@ -5,7 +5,6 @@
     copy_stream_type/2,      % +In, +Out
     guess_stream_encoding/3, % +In, +Size, -Encoding
     guess_string_encoding/2, % +String, -Encoding
-    normalize_encoding/2,    % +Encoding1, -Encoding2
     read_line_to_atom/2,     % +In, -Atom
     recode_stream/4,         % +FromEnc, +In1, -In2, :Close_0
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
@@ -126,17 +125,6 @@ split_lines(Codes1, [Line|Lines]) :-
   string_codes(Line, LineCodes),
   split_lines(Codes2, Lines).
 split_lines(Line, [Line]).
-
-
-
-%! normalize_encoding(+Encoding1:atom, -Encoding2:atom) is det.
-
-normalize_encoding(Enc1, Enc3) :-
-  downcase_atom(Enc1, Enc2),
-  (encoding_alias(Enc2, Enc3) -> true ; Enc3 = Enc2).
-
-encoding_alias(macroman, macintosh).
-encoding_alias(utf8, 'utf-8').
 
 
 
