@@ -50,7 +50,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
-:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
@@ -58,6 +58,7 @@
 :- use_module(library(os_ext)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
+:- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(thread_ext)).
@@ -351,7 +352,7 @@ file_mode(File, Mode) :-
   (   exists_file(File)
   ->  (   access_file(File, Mode)
       ->  true
-      ;   permission_errro(Mode, file, File)
+      ;   permission_error(Mode, file, File)
       )
   ;   existence_error(file, File)
   ).
@@ -411,8 +412,7 @@ read_image_dimensions(Width-Height) -->
   " ",
   integer(Width),
   "x",
-  integer(Height),
-  done.
+  integer(Height).
 
 
 
@@ -436,7 +436,7 @@ is_empty_directory(Dir) :-
 % Succeeds iff File contains an image recognized by ImageMagick.
 
 is_image_file(File) :-
-  create_process(identify, [file(File)]).
+  catch(create_process(identify, [file(File)]), _, fail).
 
 
 

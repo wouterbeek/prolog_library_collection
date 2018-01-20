@@ -17,6 +17,7 @@
 :- use_module(library(error)).
 :- use_module(library(option)).
 :- use_module(library(process)).
+:- use_module(library(thread_ext)).
 
 :- meta_predicate
     predmerge(3, +, +, -),
