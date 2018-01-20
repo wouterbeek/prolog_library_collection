@@ -7,8 +7,7 @@
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
-    indent_debug/4, % +Mode, +Flag, +Format, +Args
-    tmon/0
+    indent_debug/4  % +Mode, +Flag, +Format, +Args
   ]
 ).
 :- reexport(library(debug)).
@@ -104,12 +103,3 @@ msg_diff1(-1) --> "└".
 msg_diff2(1) --> !, "├".
 msg_diff2(0) --> !, "└".
 msg_diff2(-1) --> "└".
-
-
-
-%! tmon is det.
-%
-% Wrapper that starts the thread monitor.
-
-tmon :-
-  prolog_ide(thread_monitor).
