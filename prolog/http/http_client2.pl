@@ -256,7 +256,9 @@ http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, []).
 
 
-http_open2(CurrentUri, In, Options1) :-
+http_open2(CurrentUri0, In, Options1) :-
+  % Make sure that non-ASCII Unicode characters are percent encoded.
+  uri_iri(CurrentUri, CurrentUri0),
   (   select_option(accept(Accept), Options1, Options2)
   ->  http_open2_accept_(Accept, Atom)
   ;   Atom = '*',
