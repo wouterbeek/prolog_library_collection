@@ -15,8 +15,7 @@
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
     debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
-    indent_debug_call/3,        % +Flag, +Format, :Goal_0
-    number_of_open_files/1      % -NunOpenFiles
+    indent_debug_call/3         % +Flag, +Format, :Goal_0
   ]
 ).
 :- reexport(library(debug)).
@@ -224,13 +223,6 @@ indent_debug_call(Flag, Format, Goal_0) :-
   indent_debug(in, Flag, Format, []),
   call(Goal_0),
   indent_debug(out, Flag, Format, []).
-
-
-
-%! number_of_open_files(-NumOpenFiles) is det.
-
-number_of_open_files(N) :-
-  aggregate_all(count, (member(X, [input,output]), stream_property(_, X)), N).
 
 
 

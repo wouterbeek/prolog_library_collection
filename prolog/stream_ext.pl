@@ -5,6 +5,7 @@
     copy_stream_type/2,      % +In, +Out
     guess_stream_encoding/3, % +In, +Size, -Encoding
     guess_string_encoding/2, % +String, -Encoding
+    number_of_open_files/1,  % -N
     read_line_to_atom/2,     % +In, -Atom
     recode_stream/4,         % +FromEnc, +In1, -In2, :Close_0
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
@@ -21,6 +22,7 @@ Uses the external programs `iconv' and `uchardet'.
 @version 2017/06-2018/01
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(archive)).
 :- use_module(library(dcg/dcg_ext)).
@@ -125,6 +127,20 @@ split_lines(Codes1, [Line|Lines]) :-
   string_codes(Line, LineCodes),
   split_lines(Codes2, Lines).
 split_lines(Line, [Line]).
+
+
+
+%! number_of_open_files(-NumFiles:nonneg) is det.
+
+number_of_open_files(N) :-
+  aggregate_all(
+    count,
+    (
+      stream_property(_, Mode),
+      memberchk(Mode, [input,output])
+    ),
+    N
+  ).
 
 
 
