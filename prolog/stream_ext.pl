@@ -2,16 +2,16 @@
 :- module(
   stream_ext,
   [
-    copy_stream_type/2,      % +In, +Out
-    guess_encoding/2,        % +In, -Encoding
-    number_of_open_files/2,  % ?Mode, -N
-    open_binary_string/2,    % +String, -In
-    read_line_to_atom/2,     % +In, -Atom
-    recode_stream/2,         % +FromEncoding, +In
-    recode_stream/3,         % +FromEncoding, +In, -Out
-    stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
-    stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
-    wc/2                     % +In, -Stats
+    copy_stream_type/2,     % +In, +Out
+    guess_encoding/2,       % +In, -Encoding
+    number_of_open_files/1, % -N
+    open_binary_string/2,   % +String, -In
+    read_line_to_atom/2,    % +In, -Atom
+    recode_stream/2,        % +FromEncoding, +In
+    recode_stream/3,        % +FromEncoding, +In, -Out
+    stream_metadata/3,      % +Stream, +Metadata1, -Metadata2
+    stream_hash_metadata/4, % +Stream, +Metadata1, -Metadata2, +Options
+    wc/2                    % +In, -Stats
   ]
 ).
 :- reexport(library(readutil)).
@@ -93,11 +93,11 @@ encoding_alias(utf8, 'utf-8').
 
 
 
-%! number_of_open_files(+Mode:oneof([input,output]), -NumFiles:nonneg) is det.
+%! number_of_open_files(-N:nonneg) is det.
 
-number_of_open_files(Mode, N) :-
-  must_be(oneof([input,output]), Mode),
-  aggregate_all(count, stream_property(_, Mode), N).
+number_of_open_files(N) :-
+  expand_file_name('/proc/self/fd/*', Files),
+  length(Files, N).
 
 
 
