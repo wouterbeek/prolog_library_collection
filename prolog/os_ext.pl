@@ -53,7 +53,7 @@ process(Program, Args) :-
 %! process_in(+Program:atom, :In_1) is det.
 
 process_in(Program, In_1) :-
-  process_in_out_err(Program, [], In_1).
+  process_in_out(Program, In_1, [ProcOut]>>copy_stream_data(ProcOut, user_output)).
 
 
 
@@ -63,7 +63,7 @@ process_in(Program, In_1) :-
 %!                +Options:list(compound)) is det.
 
 process_in_out(Program, In_1, Out_1) :-
-  process_in_out_err(Program, [], In_1, Out_1).
+  process_in_out(Program, [], In_1, Out_1).
 
 
 process_in_out(Program, Args, In_1, Out_1) :-
