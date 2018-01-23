@@ -421,16 +421,9 @@ is_empty_directory(Dir) :-
 % Succeeds iff File contains an image recognized by ImageMagick.
 
 is_image_file(File) :-
-  setup_call_catcher_cleanup(
-    open(File, read, In),
-    process_in(
-      identify,
-      {In}/[ProcIn]>>copy_stream_data(In, ProcIn)
-    ),
-    Catcher,
-    close(In)
-  ),
-  Catcher == exit.
+  process_create(path(identify), [file(File)], [process(Pid),stdout(null)]),
+  process_wait(Pid, exit(Status)),
+  Status =:= 0.
 
 
 
