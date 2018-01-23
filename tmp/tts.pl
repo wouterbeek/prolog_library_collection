@@ -16,7 +16,7 @@
 :- use_module(library(apply)).
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
-:- use_module(library(process)).
+:- use_module(library(os_ext)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
 
@@ -37,16 +37,7 @@ user:module_uses(tts, program(espeak)).
 % @throws existence_error if `espeak' is not installed.
 
 tts(Line):-
-  (exists_program(espeak) -> true ; existence_error(program, espeak)),
-  process_create(
-    path(espeak),
-    ['--',Line],
-    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-  ),
-  create_detached_thread(copy_data_stream(ProcErr, user_error)),
-  create_detached_thread(copy_data_stream(ProcOut, user_output)),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+  process(espeak, ['--',Line]).
 
 
 

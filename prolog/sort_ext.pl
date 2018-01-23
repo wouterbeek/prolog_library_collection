@@ -116,23 +116,13 @@ sort_stream(In, Out, Options1) :-
   select_option(utf8(Utf8), Options2, Options3, false),
   (Utf8 == true -> Env = EnvT ; Env = ['LC_ALL'='C'|EnvT]),
   maplist(sort_flag, Options3, Flags),
-  process_create(
-    path(sort),
+  process_in_out(
+    sort,
     Flags,
-    [
-      env(Env),
-      process(Pid),
-      stderr(pipe(ProcErr)),
-      stdin(pipe(ProcIn)),
-      stdout(pipe(ProcOut))
-    ]
-  ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
-  copy_stream_data(In, ProcIn),
-  close(ProcIn),
-  copy_stream_data(ProcOut, Out),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+    {Out}/[ProcOut]>>copy_stream_data(ProcOut, Out),
+    [env(Env)]
+  ).
 
 % --buffer-size
 sort_flag(buffer_size(Size), Flag) :-

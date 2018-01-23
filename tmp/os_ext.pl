@@ -43,16 +43,7 @@ renice(Pid, N) :-
   with_mutex(process_id,(
     (   process_id(Pid)
     ->  must_be(between(-20,19), N),
-        process_create(
-          path(renice),
-          [10,Pid],
-          [process(Pid0),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-        ),
-        create_detached_thread(copy_stream_data(ProcErr, user_error)),
-        create_detached_thread(copy_stream_data(ProcOut, user_output)),
-        read_stream_to_codes(ProcOut, Codes),
-        process_wait(Pid, exit(Status)),
-        (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
+        process(renice, [Pid]),
     ;   existence_error(process, Pid)
     )
   )).

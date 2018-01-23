@@ -51,18 +51,13 @@ nlp_guess_candidates(Str, Langs):-
       write(Stream, Str),
       close(Stream)
     ),
-    (
-      process_create(
-        path(java),
-        ['-jar',file(Jar),'--detectlang','-d',file(Dir),file(TmpFile)],
-        [stdout(pipe(Out))]
-      ),
-      read_stream_to_codes(Out, Cs),
-      close(Out)
+    process_out(
+      java,
+      ['-jar',file(Jar),'--detectlang','-d',file(Dir),file(TmpFile)],
+      {Langs}/[ProcOut]>>phrase_from_stream(ProcOut, nlp_guess_candidates(Langs))
     ),
     delete_file(TmpFile)
-  ),
-  once(phrase(nlp_guess_candidates(Langs), Cs)).
+  ).
 
 
 %! nlp_guess_candidates(-Langs:list(pair(between(0.0,1.0)),atom))// is det.

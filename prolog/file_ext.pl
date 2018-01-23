@@ -25,17 +25,13 @@
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
-    guess_file_encoding/2,        % +File, -Enc
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     is_image_file/1,              % +File
-    recode_file/1,                % +File
-    recode_file/2,                % +File, +FromEncoding
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
-    wc/4,                         % +File, -Lines, -Words, -Bytes
     working_directory/1           % -Dir
   ]
 ).
@@ -56,12 +52,12 @@
 :- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(os_ext)).
-:- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(thread_ext)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- multifile
@@ -187,7 +183,7 @@ convert_file(File1, Format, File2) :-
   file_name_extension(Base, _, File1),
   file_name_extension(Base, Format, File2),
   call_must_be(convert_format, Format),
-  create_process(libreoffice, ['--convert-to',Format,file(File1)]).
+  process(libreoffice, ['--convert-to',Format,file(File1)]).
 
 convert_format(csv).
 
@@ -375,34 +371,23 @@ file_to_string(File, String) :-
 
 
 
-%! guess_file_encoding(+File:atom, -Enc:atom) is det.
-%
-% @see Requires uchardet.
-
-guess_file_encoding(File, Encoding) :-
-  create_process(uchardet, [file(File)], read_file_encoding(Encoding)).
-
-read_file_encoding(Encoding, ProcOut) :-
-  read_string(ProcOut, String1),
-  string_strip(String1, "\n", String2),
-  % Clean the encoding string a bit.
-  downcase_atom(String2, Atom),
-  (encoding_alias(Atom, Encoding) -> true ; Encoding = Atom).
-
-encoding_alias(macroman, macintosh).
-encoding_alias(utf8, 'utf-8').
-
-
-
-%! image_dimensions(+File, -Dimensions:pair(float)) is det.
+%! image_dimensions(+File:atom, -Dimensions:pair(float)) is det.
 %
 % @see Requires ImageMagick.
 
 image_dimensions(File, Dimensions) :-
-  create_process(identify, [file(File)], read_image_dimensions(Dimensions)).
+  setup_call_cleanup(
+    open(File, read, In),
+    process_in_out(
+      identify,
+      {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+      {Dimensions}/[ProcOut]>>read_image_dimensions(ProcOut, Dimensions)
+    ),
+    close(In)
+  ).
 
-read_image_dimensions(Dimensions, ProcOut) :-
-  read_stream_to_codes(ProcOut, Codes),
+read_image_dimensions(Out, Dimensions) :-
+  read_stream_to_codes(Out, Codes),
   phrase(read_image_dimensions(Dimensions), Codes, _).
 
 read_image_dimensions(Width-Height) -->
@@ -436,24 +421,16 @@ is_empty_directory(Dir) :-
 % Succeeds iff File contains an image recognized by ImageMagick.
 
 is_image_file(File) :-
-  catch(create_process(identify, [file(File)], true, true), _, fail).
-
-
-
-%! recode_file(+File:atom) is det.
-%! recode_file(+File:atom, +FromEncoding:atom) is det.
-%
-% Recode to UTF-8 if File is a text file.
-
-recode_file(File) :-
-  guess_file_encoding(File, FromEnc),
-  recode_file(File, FromEnc).
-
-
-recode_file(File1, FromEnc) :-
-  file_name_extension(File1, recoding, File2),
-  create_process(iconv, ['-f',FromEnc,'-t','utf-8','-o',file(File2),file(File1)]),
-  rename_file(File2, File1).
+  setup_call_catcher_cleanup(
+    open(File, read, In),
+    process_in(
+      identify,
+      {In}/[ProcIn]>>copy_stream_data(In, ProcIn)
+    ),
+    Catcher,
+    close(In)
+  ),
+  Catcher == exit.
 
 
 
@@ -499,53 +476,6 @@ touch(File) :-
     true,
     close(Out)
   ).
-
-
-
-%! wc(+File:atom, -Lines:nonneg) is det.
-%
-% Native implementation of line count.
-
-wc(File, Lines) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    (
-      Counter = count(0),
-      repeat,
-      read_line_to_codes(In, Codes),
-      (   Codes == end_of_file
-      ->  !,
-          arg(1, Counter, Lines)
-      ;   arg(1, Counter, Count1),
-          Count2 is Count1 + 1,
-          nb_setarg(1, Counter, Count2),
-          fail
-      )
-    ),
-    close(In)
-  ).
-
-
-
-%! wc(+File:atom, -Lines:nonneg, -Words:nonneg, -Bytes:nonneg) is det.
-%
-% Linux-only parsing of GNU wc output.
-
-wc(File, Lines, Words, Bytes) :-
-  create_process(wc, [file(File)], read_wc(Lines, Words, Bytes)).
-
-read_wc(Lines, Words, Bytes, ProcOut) :-
-  read_stream_to_codes(ProcOut, Codes),
-  phrase(read_wc(Lines, Words, Bytes), Codes, _).
-
-% E.g., `427  1818 13512 README.md`
-read_wc(Lines, Words, Bytes) -->
-  whites,
-  integer(Lines),
-  whites,
-  integer(Words),
-  whites,
-  integer(Bytes).
 
 
 

@@ -1,9 +1,11 @@
 :- module(
   os_ext,
   [
-    create_process/2, % +Program, +Arguments
-    create_process/3, % +Program, +Arguments, :OutGoal_1
-    create_process/4, % +Program, +Arguments, :OutGoal_1, :ErrGoal_1
+    process/2,        % +Program, +Arguments
+    process_in/2,     % +Program, :In_1
+    process_in_out/3, % +Program, :In_1, :Out_1
+    process_in_out/4, % +Program, +Arguments, :In_1, :Out_1
+    process_in_out/5, % +Program, +Arguments, :In_1, :Out_1, +Options
     exists_program/1, % +Program
     open_file/1,      % +File
     open_file/2,      % +MediaType, +File
@@ -24,50 +26,126 @@
 :- use_module(library(yall)).
 
 :- meta_predicate
-    create_process(+, +, 1),
-    create_process(+, +, 1, 1).
+    process_in(+, 1),
+    process_in_out(+, 1, 1),
+    process_in_out(+, +, 1, 1),
+    process_in_out(+, +, 1, 1, +),
+    process_in_out_err(+, +, 1, 1, 1, +),
+    process_out_err(+, +, 1, 1, +).
 
 
 
 
 
-%! create_process(+Program:atom, +Arguments:list(compound)) is det.
-%! create_process(+Program:atom, +Arguments:list(compound), :OutGoal_1) is det.
-%! create_process(+Program:atom, +Arguments:list(compound), :OutGoal_1, :ErrGoal_1) is det.
-%
-% Run an external process _with no input_ whose output and input
-% streams are passed to the given goals.
+%! process(+Program:atom, +Arguments:list(compound)) is det.
 
-create_process(Program, Args) :-
-  create_process(Program, Args, [ProcOut]>>copy_stream_data(ProcOut, user_output)).
-
-
-create_process(Program, Args, OutGoal_1) :-
-  create_process(Program, Args, OutGoal_1, [ProcErr]>>copy_stream_data(ProcErr, user_error)).
+process(Program, Args) :-
+  process_out_err(
+    Program,
+    Args,
+    [ProcOut]>>copy_stream_data(ProcOut, user_output),
+    [ProcErr]>>copy_stream_data(ProcErr, user_error),
+    []
+  ).
 
 
-create_process(Program, Args, OutGoal_1, ErrGoal_1) :-
+
+%! process_in(+Program:atom, :In_1) is det.
+
+process_in(Program, In_1) :-
+  process_in_out_err(Program, [], In_1).
+
+
+
+%! process_in_out(+Program:atom, :In_1, :Out_1) is det.
+%! process_in_out(+Program:atom, +Arguments:list(compound), :In_1, :Out_1) is det.
+%! process_in_out(+Program:atom, +Arguments:list(compound), :In_1, :Out_1,
+%!                +Options:list(compound)) is det.
+
+process_in_out(Program, In_1, Out_1) :-
+  process_in_out_err(Program, [], In_1, Out_1).
+
+
+process_in_out(Program, Args, In_1, Out_1) :-
+  process_in_out(Program, Args, In_1, Out_1, []).
+
+
+process_in_out(Program, Args, In_1, Out_1, Options) :-
+  process_in_out_err(
+    Program,
+    Args,
+    In_1,
+    Out_1,
+    [ProcErr]>>copy_stream_data(ProcErr, user_error),
+    Options
+  ).
+
+
+
+%! process_in_out_err(+Program:atom, +Arguments:list(compound), :In_1, :Out_1,
+%!                    :Err_1, +Options:list(compound)) is det.
+
+process_in_out_err(Program, Args, In_1, Out_1, Err_1, Options) :-
   setup_call_cleanup(
     process_create(
       path(Program),
       Args,
-      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
+      [
+        process(Pid),
+        stderr(pipe(ProcErr)),
+        stdin(pipe(ProcIn)),
+        stdout(pipe(ProcOut))
+      | Options
+      ]
     ),
     (
-      thread_create(call(ErrGoal_1, ProcErr), ErrId),
-      thread_create(call(OutGoal_1, ProcOut), OutId),
+      thread_create(call(Err_1, ProcErr), ErrId),
+      thread_create(call(Out_1, ProcOut), OutId),
+      call_cleanup(
+        call(In_1, ProcIn),
+        close(ProcIn)
+      ),
       process_wait(Pid, exit(Status)),
       (Status =:= 0 -> true ; throw(error(process_status(Status))))
     ),
-    (
+    call_cleanup(
+      thread_join(ErrId),
       call_cleanup(
-        thread_join(ErrId),
+        thread_join(OutId),
         call_cleanup(
-          thread_join(OutId),
-          call_cleanup(
-            close(ProcErr),
-            close(ProcOut)
-          )
+          close(ProcErr),
+          close(ProcOut)
+        )
+      )
+    )
+  ).
+
+
+
+
+%! process_out_err(+Program:atom, +Arguments:list(compound), :Out_1, :Err_1,
+%!                 +Options:list(compound)) is det.
+
+process_out_err(Program, Args, Out_1, Err_1, Options) :-
+  setup_call_cleanup(
+    process_create(
+      path(Program),
+      Args,
+      [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))|Options]
+    ),
+    (
+      thread_create(call(Err_1, ProcErr), ErrId),
+      thread_create(call(Out_1, ProcOut), OutId),
+      process_wait(Pid, exit(Status)),
+      (Status =:= 0 -> true ; throw(error(process_status(Status))))
+    ),
+    call_cleanup(
+      thread_join(ErrId),
+      call_cleanup(
+        thread_join(OutId),
+        call_cleanup(
+          close(ProcErr),
+          close(ProcOut)
         )
       )
     )
@@ -105,16 +183,7 @@ open_file(File) :-
 
 open_file(MediaType, File) :-
   media_type_program(MediaType, Program, Args),
-  exists_program(Program), !,
-  process_create(
-    path(Program),
-    [file(File)|Args],
-    [process(Pid),stderr(pipe(ProcErr)),stdout(pipe(ProcOut))]
-  ),
-  create_detached_thread(copy_stream_data(ProcErr, user_error)),
-  create_detached_thread(copy_stream_data(ProcOut, user_output)),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+  process(Program, [file(File)|Args]).
 
 
 

@@ -3,13 +3,15 @@
   stream_ext,
   [
     copy_stream_type/2,      % +In, +Out
-    guess_stream_encoding/3, % +In, +Size, -Encoding
-    guess_string_encoding/2, % +String, -Encoding
-    number_of_open_files/1,  % -N
+    guess_encoding/2,        % +In, -Encoding
+    number_of_open_files/2,  % ?Mode, -N
+    open_binary_string/2,    % +String, -In
     read_line_to_atom/2,     % +In, -Atom
-    recode_stream/4,         % +FromEnc, +In1, -In2, :Close_0
+    recode_stream/2,         % +FromEncoding, +In
+    recode_stream/3,         % +FromEncoding, +In, -Out
     stream_metadata/3,       % +Stream, +Metadata1, -Metadata2
-    stream_hash_metadata/4   % +Stream, +Metadata1, -Metadata2, +Options
+    stream_hash_metadata/4,  % +Stream, +Metadata1, -Metadata2, +Options
+    wc/2                     % +In, -Stats
   ]
 ).
 :- reexport(library(readutil)).
@@ -61,93 +63,48 @@ copy_stream_type(In, Out) :-
 
 
 
-%! guess_stream_encoding(+In:stream, +Size:nonneg, -Encoding:atom) is det.
-
-guess_stream_encoding(In, Size, Encoding) :-
-  peek_string(In, Size, String),
-  guess_string_encoding(String, Encoding).
-
-
-
-%! guess_string_encoding(+String:string, -Encoding:atom) is det.
+%! guess_encoding(+In:stream, -Encoding:atom) is det.
 %
-% `Encoding' is converted to lowercase.
+% @tbd Guess encoding from XML prolog.
 
-guess_string_encoding(String, Enc2) :-
+/*
+guess_encoding(In, Enc2) :-
   % Enc is mentioned in the XML declaration.
-  string_phrase('XMLDecl'(_, Enc1, _), String, _),
+  phrase_from_stream(In, 'XMLDecl'(_, Enc1, _)),
   nonvar(Enc1), !,
   downcase_atom(Enc1, Enc2).
-guess_string_encoding(String, Enc) :-
-  open_binary_string(String, In),
-  setup_call_cleanup(
-    process_create(
-      path(uchardet),
-      [],
-      [
-        process(Pid),
-        stderr(pipe(ProcErr)),
-        stdin(pipe(ProcIn)),
-        stdout(pipe(ProcOut))
-      ]
-    ),
-    (
-      flag(uchardet, N, N+1),
-      format(atom(AliasErr), "uchardet-err-~d", [N]),
-      create_detached_thread(AliasErr, copy_and_close(ProcErr, user_error)),
-      call_cleanup(
-        copy_stream_data(In, ProcIn),
-        close(ProcIn)
-      ),
-      read_string(ProcOut, String1),
-      string_strip(String1, "\n", String2),
-      process_wait(Pid, exit(Status)),
-      (Status =:= 0 -> true ; print_message(warning, process_status(Status)))
-    ),
-    close(ProcOut)
-  ),
-  % Trick to return the encoding as an atom.
-  downcase_atom(String2, Enc).
-
-copy_and_close(In, _) :-
-  at_end_of_stream(In), !,
-  close(In).
-copy_and_close(In, Out) :-
-  read_line_to_codes(In, Codes),
-  split_lines(Codes, Lines),
-  forall(
-    member(Line, Lines),
-    format(Out, "~s\n", [Line])
-  ),
-  copy_and_close(In, Out).
-
-split_lines([], []) :- !.
-split_lines(Codes1, [Line|Lines]) :-
-  append(LineCodes, [0'\n|Codes2], Codes1), !,
-  string_codes(Line, LineCodes),
-  split_lines(Codes2, Lines).
-split_lines(Line, [Line]).
-
-
-
-%! number_of_open_files(-NumFiles:nonneg) is det.
-
-number_of_open_files(N) :-
-  aggregate_all(
-    count,
-    (
-      stream_property(_, Mode),
-      memberchk(Mode, [input,output])
-    ),
-    N
+*/
+guess_encoding(In, Encoding) :-
+  process_in_out(
+    uchardet,
+    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+    {Encoding}/[ProcOut]>>read_file_encoding(ProcOut, Encoding)
   ).
+
+read_file_encoding(Out, Encoding) :-
+  read_string(Out, String1),
+  string_strip(String1, "\n", String2),
+  % Clean the encoding string a bit.
+  downcase_atom(String2, Atom),
+  (encoding_alias(Atom, Encoding) -> true ; Encoding = Atom).
+
+encoding_alias(macroman, macintosh).
+encoding_alias(utf8, 'utf-8').
+
+
+
+%! number_of_open_files(+Mode:oneof([input,output]), -NumFiles:nonneg) is det.
+
+number_of_open_files(Mode, N) :-
+  must_be(oneof([input,output]), Mode),
+  aggregate_all(count, stream_property(_, Mode), N).
 
 
 
 %! open_binary_string(+String:string, -In:stream) is det.
 
-open_binary_string(Str, In) :-
-  open_string(Str, In),
+open_binary_string(String, In) :-
+  open_string(String, In),
   set_stream(In, type(binary)).
 
 
@@ -164,49 +121,35 @@ read_line_to_atom(In, A) :-
 
 
 
-%! recode_stream(+FromEnc:atom, +In1:stream, -In2:stream, :Close_0) is det.
+%! recode_stream(+FromEncoding:atom, +In:stream) is det.
 %
-% In1 is closed by this predicate.
-%
-% @arg ToEnd The encoding that is used to interpret the contents of
-%            the input stream.  Use `octet' for binary content, and
-%            `utf8' for textual content.
+% Recoding to UTF-8 that does not require a new stream.
 
-recode_stream(octet, In1, In2, Close_0) :- !,
-  recode_stream(octet, In1, octet, In2, Close_0).
-recode_stream(FromEnc, In1, In2, Close_0) :-
-  recode_stream(FromEnc, In1, utf8, In2, Close_0).
-
-recode_stream(_, In, octet, In, true) :- !.
+recode_stream(octet, _) :- !.
 % “The value bom causes the stream to check whether the current
 % character is a Unicode BOM marker.  If a BOM marker is found, the
 % encoding is set accordingly and the call succeeds.  Otherwise the
 % call fails.”
-recode_stream(_, In, utf8, In, true) :-
+recode_stream(_, In) :-
   set_stream(In, encoding(bom)), !.
-recode_stream(FromEnc, In, utf8, In, true) :-
-  memberchk(FromEnc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
+recode_stream(Enc, In) :-
+  memberchk(Enc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
   set_stream(In, encoding(utf8)).
-recode_stream(FromEnc, In, utf8, ProcOut, close(In)) :-
-  indent_debug(1, encoding, "> ~a RECODE", [FromEnc]),
-  process_create(
-    path(iconv),
-    ['-c','-f',FromEnc,'-t','utf-8'],
-    [
-      process(Pid),
-      %stderr(pipe(ProcErr)),
-      stderr(null),
-      stdin(pipe(ProcIn)),
-      stdout(pipe(ProcOut))
-    ]
-  ),
-  flag(iconv, N, N+1),
-  %format(atom(AliasErr), "iconv-err-~d", [N]),
-  format(atom(AliasIn), "iconv-cin~d", [N]),
-  %create_detached_thread(AliasErr, copy_and_close(ProcErr, user_error)),
-  create_detached_thread(AliasIn, copy_stream_data(In, ProcIn)),
-  process_wait(Pid, exit(Status)),
-  (Status =:= 0 -> true ; print_message(warning, process_status(Status))).
+
+
+%! recode_stream(+FromEncoding:atom, +In:stream, -Out:stream) is det.
+%
+% Recoding to UTF-8 that require a new stream.
+%
+% @tbd Connect ProcErr to user_error.
+
+recode_stream(Enc, In, Out) :-
+  process_in_out(
+    iconv,
+    ['-c','-f',Enc,'-t','utf-8'],
+    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+    {Out}/[ProcOut]>>copy_stream_data(ProcOut, Out)
+  ).
 
 
 
@@ -287,6 +230,58 @@ metadata_status_code(Metadata, Status) :-
 metadata_uri(Metadata, Uri) :-
   member(Dict, Metadata),
   dict_get(uri, Dict, Uri), !.
+
+
+
+/*
+%! wc(+In:stream, -Lines:nonneg) is det.
+%
+% Native implementation of line count.
+%
+% @tbd Compare performance with wc/4.
+
+wc(In, Lines) :-
+  Counter = count(0),
+  repeat,
+  read_line_to_codes(In, Codes),
+  (   Codes == end_of_file
+  ->  !,
+      arg(1, Counter, Lines)
+  ;   arg(1, Counter, Count1),
+      Count2 is Count1 + 1,
+      nb_setarg(1, Counter, Count2),
+      fail
+  ).
+*/
+
+%! wc(+In:stream, -Stats:dict) is det.
+%
+% Linux-only parsing of GNU wc output.
+
+wc(In, Stats) :-
+  process_in_out(
+    wc,
+    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+    [ProcOut]>>read_wc(ProcOut, Lines, Words, Bytes)
+  ),
+  Stats = _{
+    number_of_bytes: Bytes,
+    number_of_lines: Lines,
+    number_of_words: Words
+  }.
+
+read_wc(Out, Lines, Words, Bytes) :-
+  read_stream_to_codes(Out, Codes),
+  phrase(read_wc(Lines, Words, Bytes), Codes, _).
+
+% E.g., `427  1818 13512 README.md`
+read_wc(Lines, Words, Bytes) -->
+  whites,
+  integer(Lines),
+  whites,
+  integer(Words),
+  whites,
+  integer(Bytes).
 
 
 
