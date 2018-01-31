@@ -20,7 +20,6 @@
 :- use_module(library(atom_ext)).
 :- use_module(library(c14n2)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/http_open)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
 
@@ -84,17 +83,17 @@ xml_clean_dom([], []).
 
 %! html_download(+Uri:atom, -Dom:list(compound)) is det.
 %! html_download(+Uri:atom, -Dom:list(compound), +Options:list(compound)) is det.
+%
+% @arg Options are passed to http_open2/3 and load_html/3.
 
 html_download(Uri, Dom) :-
   html_download(Uri, Dom, []).
 
 
 html_download(Uri, Dom2, Options) :-
-  merge_options([status_code(Status)], Options, HttpOptions),
   setup_call_cleanup(
-    http_open(Uri, In, HttpOptions),
+    http_open2(Uri, In, Options),
     (
-      assertion(Status =:= 200),
       merge_options([encoding('utf-8'),max_errors(-1)], Options, HtmlOptions),
       load_html(In, Dom1, HtmlOptions),
       clean_dom(Dom1, Dom2)

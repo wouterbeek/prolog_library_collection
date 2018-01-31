@@ -17,11 +17,6 @@
   ]
 ).
 
-:- reexport(library(http/http_header)).
-:- reexport(library(http/http_json)).
-:- reexport(library(http/http_path)).
-:- reexport(library(http/json)).
-
 /** <module> HTTP Client
 
 ```prolog
@@ -62,13 +57,18 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
 :- use_module(library(http/http_generic)).
-:- use_module(library(http/http_open)).
+:- use_module(library(http/http_header)).
+:- use_module(library(http/http_json)).
+:- use_module(library(http/http_path)).
+:- use_module(library(http/json)).
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/uri_ext)).
+
+:- use_module(http_open_cp, []).
 
 :- meta_predicate
     http_call(+, 1),
@@ -175,7 +175,7 @@ http_head2(Uri, Options1) :-
 %! http_lmod(+Uri:atom, -Time:float) is det.
 
 http_lmod(Uri, Time) :-
-  http_open(
+  http_open_cp:http_open(
     Uri,
     In,
     [header(last_modified,LastModified),method(head),status_code(Status)]
@@ -276,7 +276,7 @@ http_open2(CurrentUri0, In, Options1) :-
   http_metadata_status(In, Metas2, Options3),
   ignore(http_metadata_link(Metas2, next, NextUri)).
 
-http_open2_(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
+http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
             [Meta|Metas]) :-
   (   debugging(http(send_request)),
       option(post(RequestBody), Options1)
@@ -296,7 +296,7 @@ http_open2_(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
     Options2
   ),
   get_time(Start),
-  http_open1(Uri, In1, Options2),
+  http_open_cp:http_open(Uri, In1, Options2),
   ignore(option(status_code(Status), Options2)),
   get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
@@ -325,14 +325,15 @@ http_open2_(Uri, In2, Options1, MaxHops, MaxRepeats, Retries, Visited,
       % header.
       http_metadata_content_type([Meta|Metas], MediaType)
   ->  (   media_type_encoding(MediaType, Encoding)
-      ->  set_stream(In2, encoding(Encoding))
-      ;   true
+      ->  recode_stream(Encoding, In2, In3)
+      ;   In3 = In2
       )
   ;   % No Content-Type header, but no content either (no need for a
       % warning).
       at_end_of_stream(In2)
-  ->  true
-  ;   print_message(warning, missing_content_type)
+  ->  In3 = In2
+  ;   print_message(warning, missing_content_type),
+      In3 = In2
   ).
 
 debug_header(Key-Values) :-
@@ -422,117 +423,6 @@ http_parse_header_simple(Key, Value) -->
     string_strip(String0, "\s\t", String),
     atom_string(Value, String)
   }.
-
-% COPIED FROM swipl-devel/packages/http/http_open
-http_open1(Uri, In, QOptions) :-
-  meta_options(http_open:is_meta, QOptions, Options),
-  (atomic(Uri) -> http_open:parse_url_ex(Uri, Parts) ; Parts = Uri),
-  http_open:autoload_https(Parts),
-  http_open:add_authorization(Parts, Options, Options1),
-  findall(HostOptions, http:open_options(Parts, HostOptions), AllHostOptions),
-  foldl(http_open:merge_options_rev, AllHostOptions, Options1, Options2),
-  (   option(bypass_proxy(true), Options)
-  ->  try_http_proxy(direct, Parts, In, Options2)
-  ;   term_variables(Options2, Vars2),
-      findall(Result-Vars2, try_a_proxy(Parts, Result, Options2), ResultList),
-      last(ResultList, Status-Vars2)
-  ->  (   Status = true(_Proxy, In)
-      ->  true
-      ;   throw(error(proxy_error(tried(ResultList)), _))
-      )
-  ;   try_http_proxy(direct, Parts, In, Options2)
-  ).
-
-try_a_proxy(Parts, Result, Options) :-
-  http_open:parts_uri(Parts, AtomicUri),
-  option(host(Host), Parts),
-  (   (   option(proxy(ProxyHost:ProxyPort), Options)
-      ;   is_list(Options),
-          memberchk(proxy(ProxyHost,ProxyPort), Options)
-      )
-  ->  Proxy = proxy(ProxyHost, ProxyPort)
-  ;   socket:proxy_for_url(AtomicUri, Host, Proxy)
-  ),
-  (   catch(try_http_proxy(Proxy, Parts, In, Options), E, true)
-  ->  (var(E) -> !, Result = true(Proxy, In) ; Result = error(Proxy, E))
-  ;   Result = false(Proxy)
-  ).
-
-try_http_proxy(Method, Parts, In, Options0) :-
-  option(host(Host), Parts),
-  (   Method == direct
-  ->  http_open:parts_request_uri(Parts, RequestUri)
-  ;   http_open:parts_uri(Parts, RequestUri)
-  ),
-  select_option(visited(Visited0), Options0, OptionsV, []),
-  Options = [visited([Parts|Visited0])|OptionsV],
-  http_open:parts_scheme(Parts, Scheme),
-  http_open:default_port(Scheme, DefPort),
-  http_open:url_part(port(Port), Parts, DefPort),
-  http_open:host_and_port(Host, DefPort, Port, HostPort),
-  (   option(connection(Connection), Options0),
-      http_open:keep_alive(Connection),
-      http_open:get_from_pool(Host:Port, InPair),
-      catch(
-        send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options),
-        error(E,_),
-        http_open:keep_alive_error(E)
-      )
-  ->  true
-  ;   http:http_connection_over_proxy(Method, Parts, Host:Port, SocketInPair, Options, Options1),
-      (   catch(
-            http:http_protocol_hook(Scheme, Parts, SocketInPair, InPair, Options),
-            E,
-            (close(SocketInPair, [force(true)]), throw(E))
-          )
-      ->  true
-      ;   InPair = SocketInPair
-      ),
-      send_rec_header(InPair, In, HostPort, RequestUri, Parts, Options1)
-  ),
-  http_open:return_final_url(Options).
-
-send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
-  (   catch(
-        guarded_send_rec_header(InPair, In, Host, RequestUri, Parts, Options),
-        E,
-        true
-      )
-  ->  (   var(E)
-      ->  (option(output(InPair), Options) -> true ; true)
-      ;   close(InPair, [force(true)]),
-          throw(E)
-      )
-  ;   close(InPair, [force(true)]),
-      fail
-  ).
-
-guarded_send_rec_header(InPair, In, Host, RequestUri, Parts, Options) :-
-  http_open:user_agent(Agent, Options),
-  http_open:method(Options, Method),
-  http_open:http_version(Version),
-  option(connection(Connection), Options, close),
-  debug(http(send_request), "> ~w ~w HTTP/~w", [Method,RequestUri,Version]),
-  debug(http(send_request), "> Host: ~w", [Host]),
-  debug(http(send_request), "> User-Agent: ~w", [Agent]),
-  debug(http(send_request), "> Connection: ~w", [Connection]),
-  format(
-    InPair,
-    "~w ~w HTTP/~w\r\nHost: ~w\r\nUser-Agent: ~w\r\nConnection: ~w\r\n",
-    [Method,RequestUri,Version,Host,Agent,Connection]
-  ),
-  http_open:parts_uri(Parts, Uri),
-  http_open:x_headers(Options, Uri, InPair),
-  http_open:write_cookies(InPair, Parts, Options),
-  (   option(post(PostData), Options)
-  ->  http_header:http_post_data(PostData, InPair, [])
-  ;   format(InPair, "\r\n", [])
-  ),
-  flush_output(InPair),
-  http_open:read_header(InPair, Parts, ReplyVersion, Code, Comment, Lines),
-  http_open:update_cookies(Lines, Parts, Options),
-  ignore(option(raw_headers(Lines), Options)),
-  http_open:do_open(ReplyVersion, Code, Comment, Lines, Options, Parts, Host, InPair, In).
 
 http:post_data_hook(string(String), Out, HdrExtra) :-
   atom_string(Atom, String),

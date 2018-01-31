@@ -34,7 +34,7 @@
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
-:- use_module(library(http/http_open)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
@@ -72,17 +72,13 @@ file_download(Uri, File) :-
   file_download(Uri, File, []).
 
 
-file_download(Uri, File, Options1) :-
-  merge_options([status_code(Status)], Options1, Options2),
+file_download(Uri, File, Options) :-
   setup_call_cleanup(
-    http_open(Uri, In, Options2),
-    (
-      assertion(Status =:= 200),
-      setup_call_cleanup(
-        open(File, write, Out, [type(binary)]),
-        copy_stream_data(In, Out),
-        close(Out)
-      )
+    http_open2(Uri, In, Options),
+    setup_call_cleanup(
+      open(File, write, Out, [type(binary)]),
+      copy_stream_data(In, Out),
+      close(Out)
     ),
     close(In)
   ).

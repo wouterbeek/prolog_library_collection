@@ -30,7 +30,7 @@
 :- use_module(library(error)).
 :- use_module(library(http/json)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_open)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(lists)).
 :- use_module(library(media_type)).
 :- use_module(library(option)).
@@ -393,16 +393,14 @@ es_update_document([Index,Type,Id], Document, Status) :-
 es_request_(Segments, Query, Options1, Success-Failure, Result) :-
   es_uri(Segments, Query, Uri),
   merge_options(
-    [header(content_type,ContentType),status_code(Status)],
+    [failure(Failure),metadata(Metas),success(Success)],
     Options1,
     Options2
   ),
-  setup_call_cleanup(
-    http_open(Uri, In, Options2),
+  http_open2(Uri, In, Options2),
+  call_cleanup(
     (
-      must_be(oneof([Success,Failure]), Status),
-      assertion(Status =:= Success),
-      http_parse_header_value(content_type, ContentType, media(MediaType,_)),
+      http_metadata_content_type(Metas, MediaType),
       (   media_type_comps(MediaType, application, json, _)
       ->  json_read_dict(In, Result)
       ;   media_type_comps(MediaType, text, plain, _)

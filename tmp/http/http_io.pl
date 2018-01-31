@@ -63,31 +63,6 @@ The following debug flags are used:
 @version 2016/07-2017/01
 */
 
-:- use_module(library(apply)).
-:- use_module(library(atom_ext)).
-:- use_module(library(call_ext)).
-:- use_module(library(date_time/date_time)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
-:- use_module(library(debug_ext)).
-:- use_module(library(dict_ext)).
-:- use_module(library(http/http_cookie)).     % HTTP cookie support
-:- use_module(library(http/http_json)).       % JSON support
-:- use_module(library(http/http_open)).       % HTTP support
-:- use_module(library(http/http_ssl_plugin)). % HTTPS support
-:- use_module(library(http/http11)).
-:- use_module(library(io)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(print_ext)).
-:- use_module(library(settings)).
-:- use_module(library(ssl)).                  % SSL support
-:- use_module(library(time)).
-:- use_module(library(uri)).
-:- use_module(library(yall)).
-
-:- debug(http(error)).
-
 :- meta_predicate
     http_delete(+, 3),
     http_delete(+, 3, +),

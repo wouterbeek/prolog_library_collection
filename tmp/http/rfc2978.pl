@@ -1,7 +1,7 @@
 :- module(
   rfc2978,
   [
-    iana_charset/1 % -Enc:atom
+    iana_charset/1 % -Encoding
   ]
 ).
 
@@ -9,25 +9,22 @@
 
 @author Wouter Beek
 @see https://www.iana.org/assignments/character-sets/character-sets.xhtml
-@version 2017/06-2017/07, 2017/10
+@version 2017/06-2018/01
 */
 
-:- use_module(library(http/http_open)).
+:- use_module(library(http/http_client2)).
 :- use_module(library(csv_ext)).
 
 
 
 
 
-%! iana_charset(-Enc:atom) is nondet.
+%! iana_charset(-Encoding:atom) is nondet.
 
 iana_charset(Enc) :-
-  setup_call_cleanup(
-    http_open(
-      'http://www.iana.org/assignments/character-sets/character-sets-1.csv',
-      In,
-      [status_code(Status)]
-    ),
+  Uri = 'http://www.iana.org/assignments/character-sets/character-sets-1.csv',
+  http_open2(Uri, In),
+  call_cleanup(
     (
       csv_read_stream_row(
         In,

@@ -142,3 +142,5 @@ Optional sequence is a special case of [[variable repetition]], because
 | ~?(:Dcg_0)//~             | Process ~Dcg_0~ 0 or 1 times.                       | [[optional sequence]]   |
 | ~'m*'(?M, :Dcg_0)//~      | Process ~Dcg_0~ at least ~M~ times.                 |                     |
 | ~'m*n'(?M, ?N, :Dcg_0)//~ | Process ~Dcg_0~ at least ~M~ and at most ~N~ times. | [[variable repetition]] |
+* TO-DO
+** TODO File download predicate
