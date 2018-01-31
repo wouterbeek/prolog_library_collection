@@ -153,8 +153,10 @@ gv_export(Method, Ext, File, Goal_1) :-
     setup_call_cleanup(
       gv_open(Method, Ext, ProcIn, ProcOut),
       (
-        call(Goal_1, ProcIn),
-        close(ProcIn),
+        call_cleanup(
+          call(Goal_1, ProcIn),
+          close(ProcIn)
+        ),
         copy_stream_data(ProcOut, Out)
       ),
       close(ProcOut)
