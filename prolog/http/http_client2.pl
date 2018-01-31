@@ -325,7 +325,10 @@ http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
       % header.
       http_metadata_content_type([Meta|Metas], MediaType)
   ->  (   media_type_encoding(MediaType, Encoding)
-      ->  recode_stream(Encoding, In2, In3)
+      ->  (   recode_stream(Encoding, In2)
+          ->  In3 = In2
+          ;   recode_stream(Encoding, In2, In3)
+          )
       ;   In3 = In2
       )
   ;   % No Content-Type header, but no content either (no need for a
