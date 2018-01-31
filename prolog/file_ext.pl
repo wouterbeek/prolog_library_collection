@@ -378,9 +378,9 @@ file_to_string(File, String) :-
 image_dimensions(File, Dimensions) :-
   setup_call_cleanup(
     open(File, read, In),
-    process_in_out(
+    process(
       identify,
-      {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
+      [],
       {Dimensions}/[ProcOut]>>read_image_dimensions(ProcOut, Dimensions)
     ),
     close(In)
@@ -421,10 +421,11 @@ is_empty_directory(Dir) :-
 % Succeeds iff File contains an image recognized by ImageMagick.
 
 is_image_file(File) :-
-  process_create(path(identify), [file(File)], [process(Pid),stdout(null)]),
-  process_wait(Pid, exit(Status)),
-  Status =:= 0.
-
+  setup_call_cleanup(
+    open(File, read, In),
+    process_in(identify, [-], In),
+    close(In)
+  ).
 
 
 %! resolve_subdirectories(+Subdirectories1:list(atom),

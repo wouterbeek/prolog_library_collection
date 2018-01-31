@@ -10,7 +10,7 @@
 /** <module> Sort extensions
 
 @author Wouter Beek
-@version 2017/03-2017/12
+@version 2017/03-2018/01
 */
 
 :- use_module(library(apply)).
@@ -116,13 +116,7 @@ sort_stream(In, Out, Options1) :-
   select_option(utf8(Utf8), Options2, Options3, false),
   (Utf8 == true -> Env = EnvT ; Env = ['LC_ALL'='C'|EnvT]),
   maplist(sort_flag, Options3, Flags),
-  process_in_out(
-    sort,
-    Flags,
-    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
-    {Out}/[ProcOut]>>copy_stream_data(ProcOut, Out),
-    [env(Env)]
-  ).
+  process_in_open(sort, Flags, In, Out, [env(Env)]).
 
 % --buffer-size
 sort_flag(buffer_size(Size), Flag) :-

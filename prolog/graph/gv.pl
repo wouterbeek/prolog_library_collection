@@ -231,8 +231,7 @@ extension_type_none(Ext) :-
 
 
 %! gv_open(-ProcIn:stream, -ProcOut:stream) is det.
-%! gv_open(+Method:atom, +Extension:atom, -ProcIn:stream,
-%!         -ProcOut:stream) is det.
+%! gv_open(+Method:atom, +Extension:atom, -ProcIn:stream, -ProcOut:stream) is det.
 %
 % Open a GraphViz input stream _and_ a GraphViz output stream.  The
 % input stream expects statments in the DOT language.  The output

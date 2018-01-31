@@ -28,6 +28,7 @@ file name extensions.
 :- use_module(library(dcg/dcg_ext)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(stream_ext)).
 
 
 
@@ -61,11 +62,8 @@ params_generate([H|T]) -->
   param_generate(H),
   params_generate(T).
 
-param_generate(Param) -->
-  {
-    Param =.. [Key,Value],
-    format(atom(Atom), "~a=~w", [Key,Value])
-  },
+param_generate(Key=Value) -->
+  {format(atom(Atom), "~a=~w", [Key,Value])},
   atom(Atom).
 
 media_type_parse(media(Super/Sub,Params)) -->
@@ -111,8 +109,7 @@ media_type_comps(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 % A parameter `charset'.
 % TBD: Are values to the `charset' parameter case-insensitive?
 media_type_encoding(MediaType, Encoding) :-
-  media_type_parameter(MediaType, charset, Encoding0), !,
-  translate_encoding(Encoding0, Encoding).
+  media_type_parameter(MediaType, charset, Encoding), !.
 % TBD: Integrate this with media_type_/5.
 media_type_encoding(media(application/json,_), utf8).
 media_type_encoding(media(application/'n-quads',_), utf8).
@@ -122,10 +119,6 @@ media_type_encoding(media(application/'x-prolog',_), utf8).
 media_type_encoding(media(image/jpeg,_), octet).
 media_type_encoding(media(image/png,_), octet).
 media_type_encoding(media(text/turtle,_), utf8).
-
-translate_encoding('us-ascii', ascii).
-translate_encoding('utf-8', utf8).
-translate_encoding(Encoding, Encoding).
 
 
 
@@ -155,8 +148,7 @@ media_type_label(MediaType, Label) :-
 %! media_type_parameter(+MediaType:compound, -Key:atom, -Value:atom) is nondet.
 
 media_type_parameter(media(_/_,Parameters), Key, Value) :-
-  member(Parameter, Parameters),
-  Parameter =.. [Key,Value].
+  member(Key=Value, Parameters).
 
 
 

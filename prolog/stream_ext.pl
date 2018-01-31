@@ -68,28 +68,23 @@ copy_stream_type(In, Out) :-
 % @tbd Guess encoding from XML prolog.
 
 /*
-guess_encoding(In, Enc2) :-
-  % Enc is mentioned in the XML declaration.
-  phrase_from_stream(In, 'XMLDecl'(_, Enc1, _)),
-  nonvar(Enc1), !,
-  downcase_atom(Enc1, Enc2).
+guess_encoding(In, Encoding2) :-
+  % Encoding is mentioned in the XML declaration.
+  phrase_from_stream(In, 'XMLDecl'(_, Encoding1, _)),
+  nonvar(Encoding1), !,
+  downcase_atom(Encoding1, Encoding2).
 */
 guess_encoding(In, Encoding) :-
-  process_in_out(
-    uchardet,
-    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
-    {Encoding}/[ProcOut]>>read_file_encoding(ProcOut, Encoding)
+  setup_call_cleanup(
+    process_in_open(uchardet, In, Out),
+    read_file_encoding(Out, Encoding),
+    close(Out)
   ).
 
 read_file_encoding(Out, Encoding) :-
   read_string(Out, String1),
   string_strip(String1, "\n", String2),
-  % Clean the encoding string a bit.
-  downcase_atom(String2, Atom),
-  (encoding_alias(Atom, Encoding) -> true ; Encoding = Atom).
-
-encoding_alias(macroman, macintosh).
-encoding_alias(utf8, 'utf-8').
+  atom_string(Encoding, String2).
 
 
 
@@ -125,31 +120,37 @@ read_line_to_atom(In, A) :-
 %
 % Recoding to UTF-8 that does not require a new stream.
 
-recode_stream(octet, _) :- !.
-% “The value bom causes the stream to check whether the current
-% character is a Unicode BOM marker.  If a BOM marker is found, the
-% encoding is set accordingly and the call succeeds.  Otherwise the
-% call fails.”
-recode_stream(_, In) :-
-  set_stream(In, encoding(bom)), !.
-recode_stream(Enc, In) :-
-  memberchk(Enc, [ascii,'ascii/unknown','us-ascii','utf-8']), !,
-  set_stream(In, encoding(utf8)).
+recode_stream(Encoding0, In) :-
+  clean_encoding(Encoding0, Encoding),
+  (   Encoding == octet
+  ->  true
+  ;   % The value bom causes the stream to check whether the current
+      % character is a Unicode BOM marker.  If a BOM marker is found,
+      % the encoding is set accordingly and the call succeeds.
+      % Otherwise the call fails.
+      set_stream(In, encoding(bom))
+  ->  true
+  ;   memberchk(Encoding, [ascii,utf8])
+  ->  set_stream(In, encoding(utf8))
+  ).
+
 
 
 %! recode_stream(+FromEncoding:atom, +In:stream, -Out:stream) is det.
 %
-% Recoding to UTF-8 that require a new stream.
+% We only recode to UTF-8.
 %
-% @tbd Connect ProcErr to user_error.
+% See the output of command ~iconv -l~ for the supported encodings.
 
-recode_stream(Enc, In, Out) :-
-  process_in_out(
-    iconv,
-    ['-c','-f',Enc,'-t','utf-8'],
-    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
-    {Out}/[ProcOut]>>copy_stream_data(ProcOut, Out)
-  ).
+recode_stream(Encoding0, In, Out) :-
+  clean_encoding(Encoding0, Encoding),
+  process_in_open(iconv, ['-c','-f',Encoding,'-t','utf-8'], In, Out).
+
+clean_encoding(Dirty, Clean) :-
+  downcase_atom(Dirty, Atom),
+  (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
+
+encoding_alias(macroman, macintosh).
 
 
 
@@ -259,10 +260,10 @@ wc(In, Lines) :-
 % Linux-only parsing of GNU wc output.
 
 wc(In, Stats) :-
-  process_in_out(
-    wc,
-    {In}/[ProcIn]>>copy_stream_data(In, ProcIn),
-    [ProcOut]>>read_wc(ProcOut, Lines, Words, Bytes)
+  setup_call_cleanup(
+    process_in_open(wc, In, Out),
+    read_wc(Out, Lines, Words, Bytes),
+    close(Out)
   ),
   Stats = _{
     number_of_bytes: Bytes,
@@ -274,7 +275,7 @@ read_wc(Out, Lines, Words, Bytes) :-
   read_stream_to_codes(Out, Codes),
   phrase(read_wc(Lines, Words, Bytes), Codes, _).
 
-% E.g., `427  1818 13512 README.md`
+% E.g., `427 1818 13512 README.md`.
 read_wc(Lines, Words, Bytes) -->
   whites,
   integer(Lines),
