@@ -72,8 +72,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 
 :- meta_predicate
     http_call(+, 1),
-    http_call(+, 1, +),
-    http_call_(?, 1, +, +).
+    http_call(+, 1, +).
 
 :- multifile
     http:post_data_hook/3.
@@ -148,29 +147,23 @@ http_call(FirstUri, Goal_1, Options1) :-
   repeat,
   State = state(CurrentUri),
   merge_options([next(NextUri)], Options1, Options2),
-  (   http_open2(CurrentUri, In, Options2),
-      http_call_(NextUri, Goal_1, In, State)
-  ->  true
-  ;   !, fail
-  ).
-
-http_call_(NextUri, Goal_1, In, State) :-
-  call_cleanup(
-    call(Goal_1, In),
-    close(In)
-  ),
-  (   % There is no next URI, cut recursion.
-      var(NextUri)
-  ->  !
-  ;   % There is a next URI
-      atom(NextUri)
-  ->  State = state(CurrentUri),
-      % Detect directly cyclic `Link' headers.
-      (   CurrentUri == NextUri
-      ->  throw(error(cyclic_link_header(NextUri)))
-      ;   nb_setarg(1, State, NextUri)
+  (   http_open2(CurrentUri, In, Options2)
+  ->  (   % There is a next URI: keep the choicepoint open.
+          atom(NextUri)
+      ->  State = state(CurrentUri),
+          % Detect directly cyclic `Link' headers.
+          (   CurrentUri == NextUri
+          ->  throw(error(cyclic_link_header(NextUri)))
+          ;   nb_setarg(1, State, NextUri)
+          )
+      ;   % There is no next URI: abandon choicepoint.
+          !
+      ),
+      call_cleanup(
+        call(Goal_1, In),
+        close(In)
       )
-  ;   !
+  ;   !, fail
   ).
 
 
