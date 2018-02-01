@@ -148,8 +148,11 @@ http_call(FirstUri, Goal_1, Options1) :-
   repeat,
   State = state(CurrentUri),
   merge_options([next(NextUri)], Options1, Options2),
-  http_open2(CurrentUri, In, Options2),
-  (http_call_(NextUri, Goal_1, In, State) -> true ; !, fail).
+  (   http_open2(CurrentUri, In, Options2),
+      http_call_(NextUri, Goal_1, In, State)
+  ->  true
+  ;   !, fail
+  ).
 
 http_call_(NextUri, Goal_1, In, State) :-
   call_cleanup(
