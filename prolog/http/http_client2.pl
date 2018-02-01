@@ -149,18 +149,20 @@ http_call(FirstUri, Goal_1, Options1) :-
   merge_options([next(NextUri)], Options1, Options2),
   (   http_open2(CurrentUri, In, Options2)
   ->  call_cleanup(
-        (
-          (   atom(NextUri)
-          ->  % Detect directly cyclic `Link' headers.
-              (   CurrentUri == NextUri
-              ->  throw(error(cyclic_link_header(NextUri)))
-              ;   nb_setarg(1, State, NextUri)
-              )
-          ;   !
-          ),
-          call(Goal_1, In)
-        ),
+        call(Goal_1, In),
         close(In)
+      ),
+      (   % There is no next URI, cut recursion.
+          var(NextUri)
+      ->  !
+      ;   % There is a next URI
+          atom(NextUri)
+      ->  % Detect directly cyclic `Link' headers.
+          (   CurrentUri == NextUri
+          ->  throw(error(cyclic_link_header(NextUri)))
+          ;   nb_setarg(1, State, NextUri)
+          )
+      ;   !
       )
   ;   !, fail
   ).
@@ -260,9 +262,7 @@ http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, []).
 
 
-http_open2(CurrentUri0, In, Options1) :-
-  % Make sure that non-ASCII Unicode characters are percent encoded.
-  uri_iri(CurrentUri, CurrentUri0),
+http_open2(CurrentUri, In, Options1) :-
   ignore(option(next(NextUri), Options1)),
   ignore(option(metadata(Metas), Options1)),
   http_options_(Options1, State, Options2),
