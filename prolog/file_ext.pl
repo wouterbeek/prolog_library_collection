@@ -423,7 +423,15 @@ is_empty_directory(Dir) :-
 is_image_file(File) :-
   setup_call_cleanup(
     open(File, read, In),
-    process_in(identify, [-], In),
+    setup_call_cleanup(
+      process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))]),
+      (
+        copy_stream_data(In, ProcIn),
+        process_wait(Pid, Status),
+        Status == exit(0)
+      ),
+      close(ProcIn)
+    ),
     close(In)
   ).
 
