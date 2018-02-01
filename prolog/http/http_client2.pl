@@ -148,18 +148,22 @@ http_call(FirstUri, Goal_1, Options1) :-
   State = state(CurrentUri),
   merge_options([next(NextUri)], Options1, Options2),
   (   http_open2(CurrentUri, In, Options2)
-  ->  (   atom(NextUri)
-      ->  % Detect directly cyclic `Link' headers.
-          (   CurrentUri == NextUri
-          ->  throw(error(cyclic_link_header(NextUri)))
-          ;   nb_setarg(1, State, NextUri)
-          )
-      ;   !, true
-      ),
-      call(Goal_1, In)
+  ->  call_cleanup(
+        (
+          (   atom(NextUri)
+          ->  % Detect directly cyclic `Link' headers.
+              (   CurrentUri == NextUri
+              ->  throw(error(cyclic_link_header(NextUri)))
+              ;   nb_setarg(1, State, NextUri)
+              )
+          ;   !
+          ),
+          call(Goal_1, In)
+        ),
+        close(In)
+      )
   ;   !, fail
-  ),
-  close(In).
+  ).
 
 
 
@@ -259,25 +263,33 @@ http_open2(CurrentUri, In) :-
 http_open2(CurrentUri0, In, Options1) :-
   % Make sure that non-ASCII Unicode characters are percent encoded.
   uri_iri(CurrentUri, CurrentUri0),
+  ignore(option(next(NextUri), Options1)),
+  ignore(option(metadata(Metas), Options1)),
+  http_options_(Options1, State, Options2),
+  http_open2_(CurrentUri, In, State, Metas0, Options2),
+  reverse(Metas0, Metas),
+  http_metadata_status(In, Metas, Options2),
+  ignore(http_metadata_link(Metas, next, NextUri)).
+
+http_options_(Options1, State, Options3) :-
   (   select_option(accept(Accept), Options1, Options2)
   ->  http_open2_accept_(Accept, Atom)
   ;   Atom = '*',
       Options2 = Options1
   ),
   Options3 = [request_header('Accept'=Atom)|Options2],
-  ignore(option(next(NextUri), Options3)),
-  ignore(option(metadata(Metas1), Options3)),
   option(number_of_hops(MaxHops), Options3, 5),
   option(number_of_repeats(MaxRepeats), Options3, 2),
   option(number_of_retries(MaxRetries), Options3, 1),
-  http_open2_(CurrentUri, In, Options3, MaxHops, MaxRepeats, 1-MaxRetries, [],
-              Metas1),
-  reverse(Metas1, Metas2),
-  http_metadata_status(In, Metas2, Options3),
-  ignore(http_metadata_link(Metas2, next, NextUri)).
+  State = _{
+    maximum_number_of_hops: MaxHops,
+    maximum_number_of_repeats: MaxRepeats,
+    maximum_number_of_retries: MaxRetries,
+    number_of_retries: 1,
+    visited: []
+  }.
 
-http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
-            [Meta|Metas]) :-
+http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
   (   debugging(http(send_request)),
       option(post(RequestBody), Options1)
   ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
@@ -300,7 +312,10 @@ http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
   ignore(option(status_code(Status), Options2)),
   get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
-  ignore(memberchk(location-[Location], HeaderPairs)),
+  (   memberchk(location-[Location], HeaderPairs)
+  ->  State2 = State1.put(_{location: Location})
+  ;   State2 = State1
+  ),
   dict_pairs(HeadersMeta, HeaderPairs),
   Meta = http{
     headers: HeadersMeta,
@@ -309,6 +324,7 @@ http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
     uri: Uri,
     version: version{major: Major, minor: Minor}
   },
+  State3 = State2.put(_{meta: Meta}),
   % Print status codes and reply headers as debug messages.
   % Use curl/0 to show these debug messages.
   (   debugging(http(receive_reply))
@@ -319,25 +335,7 @@ http_open2_(Uri, In3, Options1, MaxHops, MaxRepeats, Retries, Visited,
       debug(http(receive_reply), "", [])
   ;   true
   ),
-  http_open2_(Uri, In1, Options1, Location, Status, MaxHops, MaxRepeats,
-              Retries, Visited, In2, Metas),
-  (   % Change the input stream encoding based on the `Content-Type'
-      % header.
-      http_metadata_content_type([Meta|Metas], MediaType)
-  ->  (   media_type_encoding(MediaType, Encoding)
-      ->  (   recode_stream(Encoding, In2)
-          ->  In3 = In2
-          ;   recode_stream(Encoding, In2, In3)
-          )
-      ;   In3 = In2
-      )
-  ;   % No Content-Type header, but no content either (no need for a
-      % warning).
-      at_end_of_stream(In2)
-  ->  In3 = In2
-  ;   print_message(warning, missing_content_type),
-      In3 = In2
-  ).
+  http_open2_(Uri, In1, Status, State3, In2, Metas, Options1).
 
 debug_header(Key-Values) :-
   maplist(debug_header(Key), Values).
@@ -360,45 +358,74 @@ http_open2_accept_(Ext, Atom) :-
 http_open2_accept_(MediaType, Atom) :-
   http_open2_accept_([MediaType], Atom).
 
-% authentication error
-http_open2_(_, In, _, _, Status, _, _, _, _, In, []) :-
-  Status =:= 401,
-  throw(error(http_status(Status))).
-% non-authentication error
-http_open2_(Uri, In1, Options, _, Status, MaxHops, MaxRepeats,
-            NumRetries1-MaxRetries, Visited, In2, Metas) :-
-  between(400, 599, Status), !,
-  NumRetries2 is NumRetries1 + 1,
-  (   NumRetries2 >= MaxRetries
-  ->  In2 = In1,
-      Metas = []
-  ;   http_open2_(Uri, In2, Options, MaxHops, MaxRepeats,
-                  NumRetries2-MaxRetries, Visited, Metas)
-  ).
-% redirect
-http_open2_(Uri1, In1, Options, Location, Status, MaxHops, MaxRepeats, Retries,
-            Visited1, In2, Metas) :-
+% succes status code
+http_open2_(_, In1, Status, State, In2, [], _) :-
+  between(200, 299, Status), !,
+  http_open2_success_(In1, State, In2).
+% redirect status code
+http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
   between(300, 399, Status), !,
   close(In1),
+  _{location: Location, visited: Visited1} :< State1,
   uri_resolve(Location, Uri1, Uri2),
   Visited2 = [Uri2|Visited1],
   (   length(Visited2, NumVisited),
+      _{maximum_number_of_hops: MaxHops} :< State1,
       NumVisited >= MaxHops
-  ->  close(In1),
-      Metas = [],
+  ->  Metas = [],
       print_message(warning, http_max_redirect(5,Uri2))
   ;   include(==(Uri2), Visited2, Visited3),
       length(Visited3, NumRepeats),
+      _{maximum_number_of_repeats: MaxRepeats} :< State1,
       NumRepeats >= MaxRepeats
-  ->  close(In1),
-      Metas = [],
+  ->  Metas = [],
       print_message(warning, http_redirect_loop(Uri2))
-  ;   http_open2_(Uri2, In2, Options, MaxHops, MaxRepeats, Retries, Visited2,
-                  Metas)
+  ;   State2 = State1.put(_{visited: Visited2}),
+      http_open2_(Uri2, In2, State2, Metas, Options)
   ).
-% succes
-http_open2_(_, In, _, _, Status, _, _, _, _, In, []) :-
-  must_be(between(200,299), Status).
+% authentication error status code
+http_open2_(_, In, Status, _, In, [], _) :-
+  Status =:= 401,
+  throw(error(http_status(Status))).
+% non-authentication error status code
+http_open2_(Uri, In1, Status, State1, In2, Metas, Options) :-
+  between(400, 599, Status), !,
+  _{
+    maximum_number_of_retries: MaxRetries,
+    number_of_retries: Retries1
+  } :< State1,
+  Retries2 is Retries1 + 1,
+  (   Retries2 >= MaxRetries
+  ->  In2 = In1,
+      Metas = []
+  ;   close(In1),
+      State2 = State1.put(_{number_of_retries: Retries2}),
+      http_open2_(Uri, In2, State2, Metas, Options)
+  ).
+% unrecodnized status code
+http_open2_(_, In, Status, _, _, [], _) :-
+  close(In),
+  throw(error(domain_error(http_status,Status))).
+
+% Change the input stream encoding based on the value of the
+% `Content-Type' header.
+http_open2_success_(In1, State, In2) :-
+  _{meta: Meta} :< State,
+  http_metadata_content_type([Meta], MediaType), !,
+  (   media_type_encoding(MediaType, Encoding)
+  ->  (   recode_stream(Encoding, In1)
+      ->  In2 = In1
+      ;   recode_stream(Encoding, In1, In2)
+      )
+  ;   In2 = In1
+  ).
+% If there is no `Content-Type' header, then there must be no content
+% either.
+http_open2_success_(In, _, In) :-
+  (   at_end_of_stream(In)
+  ->  true
+  ;   print_message(warning, missing_content_type)
+  ).
 
 http_lines_pairs(Lines, GroupedPairs) :-
   maplist(http_parse_header_pair, Lines, Pairs),
@@ -496,11 +523,13 @@ http_metadata_status(In, Metas, Options) :-
   option(failure(Failure), Options, 400),
   (   Status =:= Success
   ->  true
-  ;   read_stream_to_codes(In, Codes),
-      string_codes(Message, Codes),
-      %  Map the failure code to `fail', but throw an error for other
-      %  error codes.
-      (Status =:= Failure -> fail ; throw(error(http_status(Status,Message))))
+  ;   call_cleanup(
+        read_string(In, 1 000, Msg),
+        close(In)
+      ),
+      % Map the failure code to `fail', but throw an error for other
+      % error codes.
+      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg))))
   ).
 
 
