@@ -151,7 +151,7 @@ clean_encoding(Dirty, Clean) :-
   (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
 
 encoding_alias(macroman, macintosh).
-
+encoding_alias('utf-8', utf8).
 
 
 %! stream_hash_metadata(+Stream:stream, +Metadata1:list(dict),
