@@ -183,12 +183,12 @@ process_in_open(Program, Args, In, Out, Options0) :-
     [detached(true)]
   ).
 
-handle_err(Out) :-
-  at_end_of_stream(Out), !,
-  close(Out).
-handle_err(Out) :-
-  copy_stream_data(Out, user_error),
-  handle_err(Out).
+handle_err(Err) :-
+  at_end_of_stream(Err), !,
+  close(Err).
+handle_err(Err) :-
+  copy_stream_data(Err, user_error),
+  handle_err(Err).
 
 
 
