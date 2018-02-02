@@ -46,7 +46,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2018/01
+@version 2017/05-2018/02
 */
 
 :- use_module(library(apply)).
@@ -358,9 +358,9 @@ http_open2_accept_(MediaType, Atom) :-
   http_open2_accept_([MediaType], Atom).
 
 % succes status code
-http_open2_(_, In1, Status, State, In2, [], _) :-
+http_open2_(Uri, In1, Status, State, In2, [], _) :-
   between(200, 299, Status), !,
-  http_open2_success_(In1, State, In2).
+  http_open2_success_(Uri, In1, State, In2).
 % redirect status code
 http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
   between(300, 399, Status), !,
@@ -404,13 +404,14 @@ http_open2_(Uri, In1, Status, State1, In2, Metas, Options) :-
 % unrecodnized status code
 http_open2_(_, In, Status, _, _, [], _) :-
   close(In),
-  throw(error(domain_error(http_status,Status))).
+  domain_error(http_status, Status).
 
 % Change the input stream encoding based on the value of the
 % `Content-Type' header.
-http_open2_success_(In1, State, In2) :-
+http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
-  http_metadata_content_type([Meta], MediaType), !,
+  http_metadata_content_type([Meta], _MediaType), !.
+/*
   (   media_type_encoding(MediaType, Encoding)
   ->  (   recode_stream(Encoding, In1)
       ->  In2 = In1
@@ -418,12 +419,13 @@ http_open2_success_(In1, State, In2) :-
       )
   ;   In2 = In1
   ).
+*/
 % If there is no `Content-Type' header, then there must be no content
 % either.
-http_open2_success_(In, _, In) :-
+http_open2_success_(Uri, In, _, In) :-
   (   at_end_of_stream(In)
   ->  true
-  ;   print_message(warning, missing_content_type)
+  ;   print_message(warning, http(no_content_type, Uri))
   ).
 
 http_lines_pairs(Lines, GroupedPairs) :-
@@ -517,7 +519,7 @@ http_metadata_link(Metas, Relation, Uri) :-
 
 http_metadata_status(In, Metas, Options) :-
   Metas = [Meta|_],
-  _{status: Status} :< Meta,
+  _{status: Status, uri: Uri} :< Meta,
   option(success(Success), Options, 200),
   option(failure(Failure), Options, 400),
   (   Status =:= Success
@@ -528,7 +530,7 @@ http_metadata_status(In, Metas, Options) :-
       ),
       % Map the failure code to `fail', but throw an error for other
       % error codes.
-      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg))))
+      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg),Uri)))
   ).
 
 
