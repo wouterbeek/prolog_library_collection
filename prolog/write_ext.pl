@@ -28,6 +28,8 @@
 replace_blobs(X, X) :-
   var(X), !.
 replace_blobs([], []) :- !.
+replace_blobs(Atom, Atom) :-
+  atom(Atom), !.
 replace_blobs(Blob, Atom) :-
   blob(Blob, Type),
   Type \== text, !,
