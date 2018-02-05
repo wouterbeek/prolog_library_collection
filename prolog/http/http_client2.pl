@@ -372,20 +372,20 @@ http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
       _{maximum_number_of_hops: MaxHops} :< State1,
       NumVisited >= MaxHops
   ->  Metas = [],
-      print_message(warning, http_max_redirect(5,Uri2))
+      reverse(Visited2, Visited3),
+      print_message(warning, http(max_redirect(NumVisited,Visited3)))
   ;   include(==(Uri2), Visited2, Visited3),
       length(Visited3, NumRepeats),
       _{maximum_number_of_repeats: MaxRepeats} :< State1,
       NumRepeats >= MaxRepeats
   ->  Metas = [],
-      print_message(warning, http_redirect_loop(Uri2))
+      print_message(warning, http(redirect_loop(Uri2)))
   ;   State2 = State1.put(_{visited: Visited2}),
       http_open2_(Uri2, In2, State2, Metas, Options)
   ).
 % authentication error status code
 http_open2_(_, In, Status, _, In, [], _) :-
-  Status =:= 401,
-  throw(error(http_status(Status))).
+  Status =:= 401, !.
 % non-authentication error status code
 http_open2_(Uri, In1, Status, State1, In2, Metas, Options) :-
   between(400, 599, Status), !,

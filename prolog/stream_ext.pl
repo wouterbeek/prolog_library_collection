@@ -144,6 +144,7 @@ recode_stream(Encoding0, In) :-
 
 recode_stream(Encoding0, In, Out) :-
   clean_encoding(Encoding0, Encoding),
+  print_message(informational, recode(Encoding)),
   process_in_open(iconv, ['-c','-f',Encoding,'-t','utf-8'], In, Out).
 
 clean_encoding(Dirty, Clean) :-
