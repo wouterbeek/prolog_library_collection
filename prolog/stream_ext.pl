@@ -69,7 +69,6 @@ copy_stream_type(In, Out) :-
 % Succeeds iff In contains an byte stream describing an image.
 
 is_image(In) :-
-  gtrace,
   process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))]),
   set_stream(ProcIn, type(binary)),
   call_cleanup(
