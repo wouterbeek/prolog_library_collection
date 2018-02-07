@@ -20,7 +20,7 @@ Design goal: maintain a one-to-one mapping between Media Types and
 file name extensions.
 
 @author Wouter Beek
-@version 2017/12-2018/01
+@version 2017/12-2018/02
 */
 
 :- use_module(library(apply)).
@@ -107,9 +107,9 @@ media_type_comps(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 %! media_type_encoding(+MediaType:compound, -Encoding:atom) is det.
 
 % A parameter `charset'.
-% TBD: Are values to the `charset' parameter case-insensitive?
 media_type_encoding(MediaType, Encoding) :-
-  media_type_parameter(MediaType, charset, Encoding), !.
+  media_type_parameter(MediaType, charset, Encoding0), !,
+  clean_encoding(Encoding0, Encoding).
 % TBD: Integrate this with media_type_/5.
 media_type_encoding(media(application/json,_), utf8).
 media_type_encoding(media(application/'n-quads',_), utf8).
