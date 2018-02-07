@@ -4,6 +4,7 @@
   [
     copy_stream_type/2,     % +In, +Out
     guess_encoding/2,       % +In, -Encoding
+    is_image/1,             % +In
     number_of_open_files/1, % -N
     open_binary_string/2,   % +String, -In
     read_line_to_atom/2,    % +In, -Atom
@@ -21,7 +22,7 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2018/01
+@version 2017/06-2018/02
 */
 
 :- use_module(library(aggregate)).
@@ -60,6 +61,23 @@ copy_stream_type(In, Out) :-
   stream_property(In, type(Type)),
   set_stream(Out, type(Type)),
   copy_stream_data(In, Out).
+
+
+
+%! is_image(+In:stream) is semidet.
+%
+% Succeeds iff In contains an byte stream describing an image.
+
+is_image(In) :-
+  gtrace,
+  process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))]),
+  set_stream(ProcIn, type(binary)),
+  call_cleanup(
+    copy_stream_data(In, ProcIn),
+    close(ProcIn)
+  ),
+  process_wait(Pid, Status),
+  Status == exit(0).
 
 
 

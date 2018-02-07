@@ -28,7 +28,6 @@
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
-    is_image_file/1,              % +File
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
@@ -414,26 +413,6 @@ is_empty_directory(Dir) :-
   exists_directory(Dir),
   \+ directory_file(Dir, _).
 
-
-
-%! is_image_file(+File:atom) is semidet.
-%
-% Succeeds iff File contains an image recognized by ImageMagick.
-
-is_image_file(File) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    setup_call_cleanup(
-      process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))]),
-      (
-        copy_stream_data(In, ProcIn),
-        process_wait(Pid, Status),
-        Status == exit(0)
-      ),
-      close(ProcIn)
-    ),
-    close(In)
-  ).
 
 
 %! resolve_subdirectories(+Subdirectories1:list(atom),
