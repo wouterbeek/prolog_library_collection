@@ -6,7 +6,6 @@
     guess_encoding/2,       % +In, -Encoding
     is_image/1,             % +In
     number_of_open_files/1, % -N
-    open_binary_string/2,   % +String, -In
     read_line_to_atom/2,    % +In, -Atom
     recode_stream/2,        % +FromEncoding, +In
     recode_stream/3,        % +FromEncoding, +In, -Out
@@ -92,16 +91,24 @@ guess_encoding(In, Encoding2) :-
   downcase_atom(Encoding1, Encoding2).
 */
 guess_encoding(In, Encoding) :-
-  setup_call_cleanup(
-    process_in_open(uchardet, In, Out),
-    read_file_encoding(Out, Encoding),
-    close(Out)
+  process_create(
+    path(uchardet),
+    [],
+    [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
+  ),
+  set_stream(ProcIn, encoding(octet)),
+  call_cleanup(
+    copy_stream_data(In, ProcIn),
+    close(ProcIn)
+  ),
+  call_cleanup(
+    (
+      read_string(ProcOut, String1),
+      string_strip(String1, "\n", String2),
+      atom_string(Encoding, String2)
+    ),
+    close(ProcOut)
   ).
-
-read_file_encoding(Out, Encoding) :-
-  read_string(Out, String1),
-  string_strip(String1, "\n", String2),
-  atom_string(Encoding, String2).
 
 
 
@@ -110,14 +117,6 @@ read_file_encoding(Out, Encoding) :-
 number_of_open_files(N) :-
   expand_file_name('/proc/self/fd/*', Files),
   length(Files, N).
-
-
-
-%! open_binary_string(+String:string, -In:stream) is det.
-
-open_binary_string(String, In) :-
-  open_string(String, In),
-  set_stream(In, type(binary)).
 
 
 
