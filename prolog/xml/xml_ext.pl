@@ -6,22 +6,25 @@
     html_download/2,    % +Uri, -Dom
     html_download/3,    % +Uri, -Dom, +Options
     html_insert_dom//1, % +Dom
-    load_xml/2          % +Source, -Dom
+    load_xml/2,         % +Source, -Dom
+    xml_encoding/2      % +In, -Encoding
   ]
 ).
 
 /** <module> XML extensions
 
 @author Wouter Beek
-@version 2016/06-2017/10
+@version 2016/06-2018/02
 */
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(c14n2)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
+:- use_module(library(xml/xml_parser)).
 
 :- meta_predicate
     call_on_xml(+, +, 1),
@@ -115,6 +118,19 @@ html_insert_dom(Dom) -->
 
 load_xml(Source, Dom) :-
   load_xml(Source, Dom, []).
+
+
+
+%! xml_encoding(+In:stream, -Encoding:atom) is semidet.
+
+xml_encoding(In, Encoding) :-
+  phrase_from_stream(xml_encoding(Encoding0), In),
+  nonvar(Encoding0),
+  downcase_atom(Encoding0, Encoding).
+
+xml_encoding(Encoding) -->
+  'XMLDecl'(_,Encoding,_),
+  remainder(_).
 
 
 

@@ -39,7 +39,6 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(readutil)).
 :- use_module(library(string_ext)).
 :- use_module(library(thread_ext)).
-:- use_module(library(xml/xml_parser)).
 :- use_module(library(yall)).
 
 :- thread_local
@@ -80,16 +79,7 @@ is_image(In) :-
 
 
 %! guess_encoding(+In:stream, -Encoding:atom) is det.
-%
-% @tbd Guess encoding from XML prolog.
 
-/*
-guess_encoding(In, Encoding2) :-
-  % Encoding is mentioned in the XML declaration.
-  phrase_from_stream(In, 'XMLDecl'(_, Encoding1, _)),
-  nonvar(Encoding1), !,
-  downcase_atom(Encoding1, Encoding2).
-*/
 guess_encoding(In, Encoding) :-
   process_create(
     path(uchardet),
