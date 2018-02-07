@@ -2,6 +2,7 @@
 :- module(
   stream_ext,
   [
+    clean_encoding/2,       % +DirtyEncoding, -CleanEncoding
     copy_stream_type/2,     % +In, +Out
     guess_encoding/2,       % +In, -Encoding
     is_image/1,             % +In
@@ -50,6 +51,17 @@ debug_indent(0).
 
 
 
+%! clean_encoding(+DirtyEncoding:atom, -CleanEncoding:atom) is det.
+
+clean_encoding(Dirty, Clean) :-
+  downcase_atom(Dirty, Atom),
+  (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
+
+encoding_alias(macroman, macintosh).
+encoding_alias('utf-8', utf8).
+
+
+
 %! copy_stream_type(+In:stream, +Out:stream) is det.
 %
 % Like copy_stream_data/2, but also sets the stream type of Out to
@@ -95,10 +107,11 @@ guess_encoding(In, Encoding) :-
     (
       read_string(ProcOut, String1),
       string_strip(String1, "\n", String2),
-      atom_string(Encoding, String2)
+      atom_string(Encoding0, String2)
     ),
     close(ProcOut)
-  ).
+  ),
+  clean_encoding(Encoding0, Encoding).
 
 
 
@@ -126,8 +139,7 @@ read_line_to_atom(In, A) :-
 %
 % Recoding to UTF-8 that does not require a new stream.
 
-recode_stream(Encoding0, In) :-
-  clean_encoding(Encoding0, Encoding),
+recode_stream(Encoding, In) :-
   (   Encoding == octet
   ->  true
   ;   % The value bom causes the stream to check whether the current
@@ -148,17 +160,10 @@ recode_stream(Encoding0, In) :-
 %
 % See the output of command ~iconv -l~ for the supported encodings.
 
-recode_stream(Encoding0, In, Out) :-
-  clean_encoding(Encoding0, Encoding),
+recode_stream(Encoding, In, Out) :-
   print_message(informational, recode(Encoding)),
   process_in_open(iconv, ['-c','-f',Encoding,'-t','utf-8'], In, Out).
 
-clean_encoding(Dirty, Clean) :-
-  downcase_atom(Dirty, Atom),
-  (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
-
-encoding_alias(macroman, macintosh).
-encoding_alias('utf-8', utf8).
 
 
 %! stream_hash_metadata(+Stream:stream, +Metadata1:list(dict),

@@ -24,6 +24,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(option)).
 :- use_module(library(sgml)).
+:- use_module(library(stream_ext)).
 :- use_module(library(xml/xml_parser)).
 
 :- meta_predicate
@@ -126,7 +127,7 @@ load_xml(Source, Dom) :-
 xml_encoding(In, Encoding) :-
   phrase_from_stream(xml_encoding(Encoding0), In),
   nonvar(Encoding0),
-  downcase_atom(Encoding0, Encoding).
+  clean_encoding(Encoding0, Encoding).
 
 xml_encoding(Encoding) -->
   'XMLDecl'(_,Encoding,_),
