@@ -230,6 +230,7 @@ media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query
 media_type_(rss, media(application/'rss+xml',[]), [gedit], "Rich Site Summary (RSS)").
 media_type_(rtf, media(application/rtf,[]), [], "Rich Text Format (RTF)").
 media_type_(ru, media(application/'sparql-update',[]), [gedit], "SPARQL 1.1 Update").
+media_type_(srx, media(application/'sparql-results+xml',[]), [gedit], "SPARQL Query Results XML Format").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog], "Tagged Image File Format (TIFF)").

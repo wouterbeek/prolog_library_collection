@@ -58,6 +58,7 @@ clean_encoding(Dirty, Clean) :-
   (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
 
 encoding_alias(macroman, macintosh).
+encoding_alias('us-ascii', ascii).
 encoding_alias('utf-8', utf8).
 
 

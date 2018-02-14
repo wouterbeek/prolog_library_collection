@@ -7,26 +7,15 @@
     http_server_init/1,       % +Dict
     http_is_get/1,            % +Method
     http_link_to_id/2,        % +HandleId, -Local
+    http_media_types/2,       % +Request, -MediaTypes
     http_reply_json/1,        % +Json
     rest_media_type/2,        % +MediaTypes, :Goal_1
     rest_method/2,            % +Request, :Goal_2
     rest_method/4,            % +Request, +HandleId, :Plural_2, :Singular_3
+    rest_options/1,           % +Methods
     rest_parameters/2         % +Request, +Parameters
   ]
 ).
-:- reexport(library(http/http_cors)).
-:- reexport(library(http/http_dispatch)).
-:- reexport(library(http/http_header)).
-:- reexport(library(http/http_host)).
-:- reexport(library(http/http_json)).
-:- reexport(library(http/http_parameters)).
-:- reexport(library(http/http_path)).
-:- reexport(library(http/http_resource)).
-:- reexport(library(http/http_session)).
-:- reexport(library(http/http_stream)).
-:- reexport(library(http/http_wrapper)).
-:- reexport(library(http/js_write)).
-:- reexport(library(http/json)).
 
 /** <module> HTTP Server
 
@@ -59,7 +48,7 @@
 451 Unavailable For Legal Reasons
 
 @author Wouter Beek
-@version 2017/04-2017/12
+@version 2017-2018
 */
 
 :- use_module(library(dcg/dcg_ext)).
@@ -149,6 +138,45 @@ http_current_location(Uri) :-
 
 
 
+%! http_is_get(@Method:atom) is semidet.
+%
+% Succeeds for GET and HEAD requests.  HEAD requests are handled just
+% like GET requests.  The SWI HTTP library deals with leaving out the
+% body for HEAD requests.
+
+http_is_get(get).
+http_is_get(head).
+
+
+
+%! http_link_to_id(+HandleId, -Local) is det.
+
+http_link_to_id(HandleId, Local) :-
+  http_link_to_id(HandleId, [], Local).
+
+
+
+%! http_media_types(+Request:compound, +MediaTypes:list(compound)) is det.
+
+% A sequence of Media Types (from most to least acceptable).
+http_media_types(Request, MediaTypes) :-
+  memberchk(accept(MediaTypes0), Request),
+  clean_media_types(MediaTypes0, MediaTypes), !.
+% Any Media Type is accepted (`*`).
+http_media_types(_, [_]).
+
+clean_media_types(L1, L2) :-
+  maplist(clean_media_type, L1, Pairs),
+  sort(1, @>=, Pairs, Sorted),
+  pairs_values(Sorted, L2).
+
+clean_media_type(
+  media(Super/Sub,Parms,QValue,_),
+  QValue-media(Super/Sub,Parms)
+).
+
+
+
 %! http_reply_json(+Json) is det.
 
 http_reply_json(Json) :-
@@ -175,24 +203,6 @@ http_server_init(Dict1) :-
       )
   ;   true
   ).
-
-
-
-%! http_is_get(@Method:atom) is semidet.
-%
-% Succeeds for GET and HEAD requests.  HEAD requests are handled just
-% like GET requests.  The SWI HTTP library deals with leaving out the
-% body for HEAD requests.
-
-http_is_get(get).
-http_is_get(head).
-
-
-
-%! http_link_to_id(+HandleId, -Local) is det.
-
-http_link_to_id(HandleId, Local) :-
-  http_link_to_id(HandleId, [], Local).
 
 
 
@@ -248,7 +258,7 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
   ->  rest_options(Methods)
   ;   % 405 Method Not Allowed
       \+ memberchk(Method, Methods)
-  ->  request_media_types(Request, MediaTypes),
+  ->  http_media_types(Request, MediaTypes),
       rest_exception(MediaTypes, error(http_server(_{status: 405})))
   ;   % `Method' is one of the accepted `Methods'.
       memberchk(request_uri(Uri), Request),
@@ -257,7 +267,7 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
       uri_comps(Uri, uri(Scheme,Authority,Segments,_,_)),
       uri_comps(HandleUri, uri(Scheme,Authority,Segments,_,_)),
       format("Strict-Transport-Security: max-age=31536000; includeSubDomains\n"),
-      request_media_types(Request, MediaTypes),
+      http_media_types(Request, MediaTypes),
       catch(
         (   (var(HandleId) -> true ; http_link_to_id(HandleId, HandleUri))
         ->  call(Mod:Plural_2, Method, MediaTypes)
@@ -330,24 +340,3 @@ product_(X-Y) :- !,
   format("~a/~a", [X,Y]).
 product_(X) :- !,
   format("~a", [X]).
-
-
-
-%! request_media_types(+Request:compound, +MediaTypes:list(compound)) is det.
-
-% A sequence of Media Types (from most to least acceptable).
-request_media_types(Request, MediaTypes) :-
-  memberchk(accept(MediaTypes0), Request),
-  clean_media_types(MediaTypes0, MediaTypes), !.
-% Any Media Type is accepted (`*`).
-request_media_types(_, [_]).
-
-clean_media_types(L1, L2) :-
-  maplist(clean_media_type, L1, Pairs),
-  sort(1, @>=, Pairs, Sorted),
-  pairs_values(Sorted, L2).
-
-clean_media_type(
-  media(MediaType0,Parms,QValue,_),
-  QValue-media(MediaType0,Parms)
-).

@@ -2,6 +2,7 @@
   list_ext,
   [
     common_subsequence/2, % +Subsequences, -Subsequence
+    inflist/2,            % +Elem, -L
     list_intersperse/3,   % +L1, +Separator, -L2
     list_truncate/3,      % +Whole, +MaxLength, -Part
     postfix/2,            % ?Part, ?Whole
@@ -18,7 +19,7 @@
 /** <module> List extensions
 
 @author Wouter Beek
-@version 2017/05-2017/08
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -31,6 +32,31 @@
 
 common_subsequence(Xss, Xs) :-
   maplist(subsequence(Xs), Xss).
+
+
+
+%! inflist(+Elem, -L:list) is det.
+%
+% Lazy-lists containing an infinitely re-occurring element.
+%
+% # Example of use
+%
+% ```prolog
+% ?- inflist(0, L), append([A,B,C,D,E,F|_], _, L).
+% L = [0, 0, 0, 0, 0, 0|_G29924368],
+% A = B, B = C, C = D, D = E, E = F, F = 0,
+% freeze(_G29924368, list_ext: (_G29924368=[0|_G29924422], inflist(0, _G29924422)))
+% ```
+%
+% @see Based on
+%      [a StackOverflow answer](http://stackoverflow.com/questions/8869485/lazy-lists-in-prolog)
+%      by Michael Hendricks.
+
+inflist(X, L) :-
+  freeze(L, (
+    L = [X|T],
+    inflist(X, T)
+  )).
 
 
 

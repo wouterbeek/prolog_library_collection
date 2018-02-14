@@ -2,16 +2,8 @@
 :- module(
   dcg_ext,
   [
-    '...'//0,
-    '...'//1,              % -Codes
-    alpha//1,              % ?Code
-    alphanum//1,           % ?Code
     atom_ci//1,            % ?Atom
-    atom_phrase/2,         % :Dcg_0, ?Atom
-    atom_phrase/3,         % :Dcg_0, +Atomic, ?Atom
     dcg_atom//2,           % :Dcg_1, ?Atom
-    dcg_between//2,        % +Low, +High
-    dcg_between//3,        % +Low, +High, ?Code
     dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_integer//2,        % :Dcg_1, ?Integer
@@ -19,27 +11,14 @@
     dcg_string//2,         % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,            % +N
-    dcg_with_output_to/1,  % :Dcg_0
-    dcg_with_output_to/2,  % +Sink, :Dcg_0
     digit_weight//1,       % ?Digit
-    ellipsis//2,           % +Atom, +MaxLength
     eol//0,
     generate_as_digits//2, % +N, +NumberOfDigits
     generate_as_digits//3, % +N, +Base, +NumberOfDigits
-    indent//1,             % +Indent
-    must_see//1,           % :Dcg_0
-    must_see_code//2,      % +Code, :Skip_0
-    nl//0,
     nonblank//0,
     nonblanks//0,
-    rest//0,
-    rest//1,               % -Rest
-    rest_as_atom//1,       % -Rest
     rest_as_string//1,     % -Rest
-    string_phrase/2,       % :Dcg_0, ?String
-    string_phrase/3,       % :Dcg_0, +String1, -String2
-    thousands//1,          % +Integer
-    'WS'//0
+    thousands//1           % +Integer
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -60,55 +39,14 @@
 :- use_module(library(math_ext)).
 
 :- meta_predicate
-    atom_phrase(//, ?),
-    atom_phrase(//, ?, ?),
     dcg_atom(3, ?, ?, ?),
     dcg_debug(+, //),
     dcg_default(3, -, +, ?, ?),
     dcg_integer(3, ?, ?, ?),
     dcg_integer(3, +, ?, ?, ?),
-    dcg_string(3, ?, ?, ?),
-    dcg_with_output_to(//),
-    dcg_with_output_to(+, //),
-    must_see(//, ?, ?),
-    must_see_code(+, //, ?, ?),
-    string_phrase(//, ?),
-    string_phrase(//, ?, ?).
+    dcg_string(3, ?, ?, ?).
 
 
-
-
-
-%! ...// .
-%! ...(-Codes:list(code))// .
-%
-% Wrapper around string//1.
-
-... -->
-  ...(_).
-
-
-...(Codes) -->
-  string(Codes).
-
-
-
-%! alpha// .
-%! alpha(?Code:code)// .
-
-alpha -->
-  alpha(_).
-
-
-alpha(Code) --> dcg_between(0'a, 0'z, Code).
-alpha(Code) --> dcg_between(0'A, 0'Z, Code).
-
-
-
-%! alphanum(?Code:code)// .
-
-alphanum(Code) --> alpha(Code).
-alphanum(Code) --> digit(Code).
 
 
 
@@ -137,36 +75,6 @@ alphanum(Code) --> digit(Code).
 
 atom_ci(Atom) -->
   dcg_atom(*(code_ci), Atom).
-
-
-
-%! atom_phrase(:Dcg_0, ?Atom)// is nondet.
-%
-% @throws instantiation_error
-% @throws type_error
-
-atom_phrase(Dcg_0, Atom) :-
-  var(Atom), !,
-  phrase(Dcg_0, Codes),
-  atom_codes(Atom, Codes).
-atom_phrase(Dcg_0, Atom) :-
-  atom_codes(Atom, Codes),
-  phrase(Dcg_0, Codes).
-
-
-%! atom_phrase(:Dcg_0, +Atomic, ?Atom)// is nondet.
-%
-% @throws instantiation_error
-% @throws type_error
-
-atom_phrase(Dcg_0, Atomic, Atom) :-
-  (   atom(Atomic)
-  ->  atom_codes(Atomic, Codes1)
-  ;   number(Atomic)
-  ->  number_codes(Atomic, Codes1)
-  ),
-  phrase(Dcg_0, Codes1, Codes2),
-  atom_codes(Atom, Codes2).
 
 
 
@@ -236,19 +144,6 @@ dcg_atom(Dcg_1, Atom) -->
 
 
 
-%! dcg_between(+Low:nonneg, +High:nonneg)// .
-%! dcg_between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
-
-dcg_between(Low, High) -->
-  dcg_between(Low, High, _).
-
-
-dcg_between(Low, High, Code) -->
-  [Code],
-  {between(Low, High, Code)}.
-
-
-
 %! dcg_debug(+Flag, :Dcg_0) is det.
 %
 % Write the first generation of Dcg_0 as a debug message under the
@@ -311,19 +206,6 @@ dcg_tab(N) -->
 
 
 
-%! dcg_with_output_to(:Dcg_0) is nondet.
-%! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
-
-dcg_with_output_to(Dcg_0) :-
-  dcg_with_output_to(current_output, Dcg_0).
-
-
-dcg_with_output_to(Sink, Dcg_0) :-
-  phrase(Dcg_0, Codes),
-  with_output_to(Sink, put_codes(Codes)).
-
-
-
 %! digit_weight(?Digit:between(0,9))// .
 
 digit_weight(Weight) -->
@@ -333,16 +215,6 @@ digit_weight(Weight) -->
 digit_weight(Weight) -->
   {code_type(C, digit(Weight))},
   [C].
-
-
-
-%! ellipsis(+Atom, +MaxLen:nonneg)// is det.
-%
-% MaxLen is the maximum length of the ellipsed atom A.
-
-ellipsis(Atom, Len) -->
-  {atom_ellipsis(Atom, Len, Ellipsed)},
-  atom(Ellipsed).
 
 
 
@@ -374,45 +246,6 @@ generate_as_digits(N1, Base, M1) -->
 
 
 
-%! indent(+Indent:nonneg)// is det.
-
-indent(0) --> !, "".
-indent(N1) -->
-  " ", !,
-  {N2 is N1 - 1},
-  indent(N2).
-
-
-
-%! must_see(:Dcg_0)// .
-
-must_see(Dcg_0, X, Y) :-
-  call(Dcg_0, X, Y), !.
-must_see(_:Dcg_0, _, _) :-
-  Dcg_0 =.. [Pred|_],
-  format(string(Msg), "‘~a’ expected", [Pred]),
-  syntax_error(Msg).
-
-
-
-%! must_see_code(+C, :Skip_0)// .
-
-must_see_code(C, Skip_0) -->
-  [C], !,
-  Skip_0.
-must_see_code(C, _) -->
-  {char_code(Char, C)},
-  syntax_error(expected(Char)).
-
-
-
-%! nl// is det.
-
-nl -->
-  "\n".
-
-
-
 %! nonblank// .
 %
 % Wrapper around nonblank//1 from library(dcg/basics).
@@ -429,51 +262,11 @@ nonblanks -->
 
 
 
-%! rest// is det.
-%! rest(-Rest:list(code))// is det.
-%
-% Same as `rest --> "".'
-
-rest(X, X).
-
-
-rest(X, X, []).
-
-
-
-%! rest_as_atom(-Atom:atom)// is det.
-
-rest_as_atom(Atom) -->
-  rest(Codes),
-  {atom_codes(Atom, Codes)}.
-
-
-
 %! rest_as_string(-String:string)// is det.
 
 rest_as_string(String) -->
   rest(Codes),
   {string_codes(String, Codes)}.
-
-
-
-%! string_phrase(:Dcg_0, ?String) is nondet.
-
-string_phrase(Dcg_0, String) :-
-  var(String), !,
-  phrase(Dcg_0, Codes),
-  string_codes(String, Codes).
-string_phrase(Dcg_0, String) :-
-  string_codes(String, Codes),
-  phrase(Dcg_0, Codes).
-
-
-%! string_phrase(:Dcg_0, +S1, ?S2) is nondet.
-
-string_phrase(Dcg_0, S1, S2) :-
-  string_codes(S1, Codes1),
-  phrase(Dcg_0, Codes1, Codes2),
-  string_codes(S2, Codes2).
 
 
 
@@ -484,21 +277,3 @@ thousands(∞) --> !,
 thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).
-
-
-
-%! 'WS'// .
-%
-% A common definition of white space characters.
-%
-% ```ebnf
-% WS ::= #x20 | #x9 | #xD | #xA
-% ```
-%
-% @compat SPARQL 1.1 grammar rule 162
-% @compat Well-Known Text (WKT)
-
-'WS' --> [0x20]. % space
-'WS' --> [0x09]. % horizontal tag
-'WS' --> [0x0D]. % carriage return
-'WS' --> [0x0A]. % linefeed / new line

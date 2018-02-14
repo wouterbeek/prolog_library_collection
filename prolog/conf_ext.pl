@@ -8,10 +8,10 @@
 /** <module> Configuration extension
 
 @author Wouter Beek
-@version 2017/06-2017/10
+@version 2017-2018
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg/dcg)).
 :- use_module(library(http/json)).
 :- use_module(library(option)).
 
@@ -43,5 +43,5 @@ argument(Arg) -->
   '...'(Codes),
   "=", !,
   {atom_codes(Key, Codes)},
-  rest_as_atom(Value),
+  remainder_as_atom(Value),
   {Arg =.. [Key,Value]}.
