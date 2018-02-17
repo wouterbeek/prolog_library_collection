@@ -1,24 +1,33 @@
 :- module(
   pp,
   [
+    ansi_format/2,   % +Attributes, +String
     call_pp/1,       % :Goal_1
     print_term/1,    % +Term
     print_term_nl/1, % +Term
     print_term_nl/2  % +Term, +Options
   ]
 ).
+:- reexport(library(ansi_term)).
 :- reexport(library(pprint)).
 
 /** <module> Pretty-print
 
 @author Wouter Beek
-@version 2017/07-2017/09
+@version 2017-2018
 */
 
 :- meta_predicate
     call_pp(1).
 
 
+
+
+
+%! ansi_format(+Attributes:list(compound), +String:string) is det.
+
+ansi_format(Attrs, String) :-
+  ansi_format(Attrs, String, []).
 
 
 
