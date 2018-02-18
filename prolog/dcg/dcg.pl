@@ -216,7 +216,7 @@ ellipsis(Atom, Len) -->
 
 indent(0) --> !, "".
 indent(N1) -->
-  " ", !,
+  "  ", !,
   {N2 is N1 - 1},
   indent(N2).
 
