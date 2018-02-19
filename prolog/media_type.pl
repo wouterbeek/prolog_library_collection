@@ -103,8 +103,8 @@ media_type_comps(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 
 
 
-%! media_type_encoding(+MediaType:compound, +Encoding:atom) is det.
-%! media_type_encoding(+MediaType:compound, -Encoding:atom) is det.
+%! media_type_encoding(+MediaType:compound, +Encoding:atom) is semidet.
+%! media_type_encoding(+MediaType:compound, -Encoding:atom) is semidet.
 
 % A parameter `charset'.
 media_type_encoding(MediaType, Encoding) :-
@@ -115,6 +115,7 @@ media_type_encoding(media(application/json,_), utf8).
 media_type_encoding(media(application/'n-quads',_), utf8).
 media_type_encoding(media(application/'n-triples',_), utf8).
 media_type_encoding(media(application/'sparql-query',_), utf8).
+media_type_encoding(media(application/'sparql-results+json',_), utf8).
 media_type_encoding(media(application/'x-prolog',_), utf8).
 media_type_encoding(media(image/jpeg,_), octet).
 media_type_encoding(media(image/png,_), octet).
@@ -230,6 +231,7 @@ media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query
 media_type_(rss, media(application/'rss+xml',[]), [gedit], "Rich Site Summary (RSS)").
 media_type_(rtf, media(application/rtf,[]), [], "Rich Text Format (RTF)").
 media_type_(ru, media(application/'sparql-update',[]), [gedit], "SPARQL 1.1 Update").
+media_type_(srj, media(application/'sparql-results+json',[]), [gedit], "SPARQL 1.1 Query Results JSON Format").
 media_type_(srx, media(application/'sparql-results+xml',[]), [gedit], "SPARQL Query Results XML Format").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
