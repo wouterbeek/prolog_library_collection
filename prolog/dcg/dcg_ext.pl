@@ -11,7 +11,6 @@
     dcg_string//2,         % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,            % +N
-    digit_weight//1,       % ?Digit
     eol//0,
     generate_as_digits//2, % +N, +NumberOfDigits
     generate_as_digits//3, % +N, +Base, +NumberOfDigits
@@ -203,18 +202,6 @@ dcg_tab -->
 
 dcg_tab(N) -->
   dcg_once(#(N, dcg_tab)).
-
-
-
-%! digit_weight(?Digit:between(0,9))// .
-
-digit_weight(Weight) -->
-  parsing, !,
-  [C],
-  {code_type(C, digit(Weight))}.
-digit_weight(Weight) -->
-  {code_type(C, digit(Weight))},
-  [C].
 
 
 

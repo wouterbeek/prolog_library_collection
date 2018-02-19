@@ -13,17 +13,27 @@
     atom_phrase/3,        % :Dcg_0, +Atomic, ?Atom
     dcg_between//2,       % +Low, +High
     dcg_between//3,       % +Low, +High, ?Code
+    dcg_call//1,          % :Dcg_0
+    dcg_call//2,          % :Dcg_1, ?Arg1
+    dcg_call//3,          % :Dcg_2, ?Arg1, ?Arg2
+    dcg_call//4,          % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
+    dcg_call//5,          % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
+    dcg_call//6,          % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
     dcg_with_output_to/1, % :Dcg_0
     dcg_with_output_to/2, % +Sink, :Dcg_0
     'digit*'//1,          % -Codes:list(code)
     'digit*'//2,          % -Codes:list(code), -Tail:list(code)
     'digit+'//1,          % -Codes:list(code)
     'digit+'//2,          % -Codes:list(code), -Tail:list(code)
+    digit_weight//1,      % ?N
+    'digit_weight*'//1,   % ?Ns
+    'digit_weight+'//1,   % ?Ns
     ellipsis//2,          % +Atom, +MaxLength
     indent//1,            % +Indent
     must_see//1,          % :Dcg_0
     must_see_code//2,     % +Code, :Skip_0
     nl//0,
+    parsing//0,
     remainder_as_atom//1, % -Atom
     string_phrase/2,      % :Dcg_0, ?String
     string_phrase/3       % :Dcg_0, +String1, -String2
@@ -45,6 +55,12 @@
 :- meta_predicate
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
+    dcg_call(//, ?, ?),
+    dcg_call(3, ?, ?, ?),
+    dcg_call(4, ?, ?, ?, ?),
+    dcg_call(5, ?, ?, ?, ?, ?),
+    dcg_call(6, ?, ?, ?, ?, ?, ?),
+    dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
     dcg_with_output_to(//),
     dcg_with_output_to(+, //),
     must_see(//, ?, ?),
@@ -162,6 +178,40 @@ dcg_between(Low, High, Code) -->
 
 
 
+%! dcg_call(:Dcg_0)// .
+%! dcg_call(:Dcg_1, ?Arg1)// .
+%! dcg_call(:Dcg_2, ?Arg1, ?Arg2)// .
+%! dcg_call(:Dcg_3, ?Arg1, ?Arg2, ?Arg3)// .
+%! dcg_call(:Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4)// .
+%! dcg_call(:Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5)// .
+%
+% @see call/[1-8]
+
+dcg_call(Dcg_0, X, Y) :-
+  call(Dcg_0, X, Y).
+
+
+dcg_call(Dcg_1, Arg1, X, Y) :-
+  call(Dcg_1, Arg1, X, Y).
+
+
+dcg_call(Dcg_2, Arg1, Arg2, X, Y) :-
+  call(Dcg_2, Arg1, Arg2, X, Y).
+
+
+dcg_call(Dcg_3, Arg1, Arg2, Arg3, X, Y) :-
+  call(Dcg_3, Arg1, Arg2, Arg3, X, Y).
+
+
+dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
+  call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y).
+
+
+dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
+  call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
+
+
+
 %! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
 
@@ -202,6 +252,35 @@ dcg_with_output_to(Sink, Dcg_0) :-
 
 
 
+%! digit_weight(?Weight:between(0,9))// .
+
+digit_weight(Weight) -->
+  parsing, !,
+  [Code],
+  {code_type(Code, digit(Weight))}.
+digit_weight(Weight) -->
+  {code_type(Code, digit(Weight))},
+  [Code].
+
+
+
+%! 'digit_weight*'(-Weights:list(between(0,9)))// is det.
+
+'digit_weight*'([H|T]) -->
+  digit_weight(H), !,
+  'digit_weight*'(T).
+'digit_weight*'([]) --> "".
+
+
+
+%! 'digit_weight+'(-Weights:list(between(0,9)))// is det.
+
+'digit_weight+'([H|T]) -->
+  digit_weight(H), !,
+  'digit_weight*'(T).
+
+
+
 %! ellipsis(+Atom, +MaxLen:nonneg)// is det.
 %
 % MaxLen is the maximum length of the ellipsed atom A.
@@ -233,13 +312,13 @@ must_see(_:Dcg_0, _, _) :-
 
 
 
-%! must_see_code(+C, :Skip_0)// .
+%! must_see_code(+Code, :Skip_0)// .
 
-must_see_code(C, Skip_0) -->
-  [C], !,
+must_see_code(Code, Skip_0) -->
+  [Code], !,
   Skip_0.
-must_see_code(C, _) -->
-  {char_code(Char, C)},
+must_see_code(Code, _) -->
+  {char_code(Char, Code)},
   syntax_error(expected(Char)).
 
 
@@ -248,6 +327,16 @@ must_see_code(C, _) -->
 
 nl -->
   "\n".
+
+
+
+%! parsing// is semidet.
+%
+% Succeeds if currently parsing a list of codes (rather than
+% generating a list of codes).
+
+parsing(H, H) :-
+  nonvar(H).
 
 
 

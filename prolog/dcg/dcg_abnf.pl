@@ -32,14 +32,7 @@
     'm*&n'//5, % ?M, ?N, :Dcg_1, :Sep_0, -Args
     
   % meta-call DCGs
-    dcg_call//1, % :Dcg_0
-    dcg_call//2, % :Dcg_1, ?Arg1
-    dcg_call//3, % :Dcg_2, ?Arg1, ?Arg2
-    dcg_call//4, % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
-    dcg_call//5, % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
-    dcg_call//6, % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
-    dcg_once//1, % :Dcg_0
-    parsing//0
+    dcg_once//1  % :Dcg_0
   ]
 ).
 
@@ -100,12 +93,6 @@ predicates.  Since DCGs take two extra predicate, we can only define
     'm*&n__g'(?, ?, +, 3, //, -, ?, ?),
     'm*&n__p'(?, ?, +, //, //, ?, ?),
     'm*&n__p'(?, ?, +, 3, //, -, ?, ?),
-    dcg_call(//, ?, ?),
-    dcg_call(3, ?, ?, ?),
-    dcg_call(4, ?, ?, ?, ?),
-    dcg_call(5, ?, ?, ?, ?, ?),
-    dcg_call(6, ?, ?, ?, ?, ?, ?),
-    dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
     dcg_once(//, ?, ?).
 
 
@@ -352,53 +339,9 @@ predicates.  Since DCGs take two extra predicate, we can only define
 
 
 
-%! dcg_call(:Dcg_0)// .
-%! dcg_call(:Dcg_1, ?Arg1)// .
-%! dcg_call(:Dcg_2, ?Arg1, ?Arg2)// .
-%! dcg_call(:Dcg_3, ?Arg1, ?Arg2, ?Arg3)// .
-%! dcg_call(:Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4)// .
-%! dcg_call(:Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5)// .
-%
-% @see call/[1-8]
-
-dcg_call(Dcg_0, X, Y) :-
-  call(Dcg_0, X, Y).
-
-
-dcg_call(Dcg_1, Arg1, X, Y) :-
-  call(Dcg_1, Arg1, X, Y).
-
-
-dcg_call(Dcg_2, Arg1, Arg2, X, Y) :-
-  call(Dcg_2, Arg1, Arg2, X, Y).
-
-
-dcg_call(Dcg_3, Arg1, Arg2, Arg3, X, Y) :-
-  call(Dcg_3, Arg1, Arg2, Arg3, X, Y).
-
-
-dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
-  call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y).
-
-
-dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
-  call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
-
-
-
 %! dcg_once(:Dcg_0)// is det.
 %
 % @see once/1
 
 dcg_once(Dcg_0, X, Y) :-
   once(dcg_call(Dcg_0, X, Y)).
-
-
-
-%! parsing// is semidet.
-%
-% Succeeds if currently parsing a list of codes (rather than
-% generating a list of codes).
-
-parsing(H, H) :-
-  nonvar(H).
