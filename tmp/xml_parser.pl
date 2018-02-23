@@ -727,46 +727,6 @@ elementdecl(element_decl(Name,ContentSpec)) -->
 
 
 
-%! 'EncodingDecl'(-Encoding:atom)// .
-%
-% ```ebnf
-% EncodingDecl ::= S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
-% ```
-%
-% @compat XML 1.0.5 [80]
-% @compat XML 1.1.2 [80]
-
-'EncodingDecl'(Encoding) -->
-  'S',
-  "encoding",
-  'Eq',
-  quoted('EncName'(Encoding)).
-
-
-
-%! 'EncName'(-Encoding:atom)// is det.
-%
-% ```bnf
-% EncName ::= [A-Za-z] ([A-Za-z0-9._] | '-')*
-% ```
-%
-% compat XML 1.0.5 [81]
-% compat XML 1.1.2 [81]
-
-'EncName'(Encoding) -->
-  dcg_atom('EncName_', Encoding).
-
-'EncName_'([H|T]) -->
-  alpha(H),
-  *(enc_name_char, T).
-
-enc_name_char(Code) --> alphanum(Code).
-enc_name_char(0'.) --> ".".
-enc_name_char(0'_) --> "_".
-enc_name_char(0'-) --> "-".
-
-
-
 %! 'EntityDecl'(?Version:compound, ?EntityDeclaration:compound)// .
 %
 % ```bnf
@@ -884,22 +844,6 @@ enc_name_char(0'-) --> "-".
   +&('Nmtoken', Tokens, pipe_sep),
   ?('S'),
   ")".
-
-
-
-%! 'Eq'// is det.
-%
-% ```bnf
-% Eq ::= S? '=' S?
-% ```
-%
-% @compat XML 1.0.5 [25].
-% @compat XML 1.1.2 [25].
-
-'Eq' -->
-  ?('S'),
-  "=",
-  ?('S').
 
 
 
@@ -1704,56 +1648,6 @@ prolog(Version, prolog(Encoding,Standalone,PIs4,Decl)) -->
 
 
 
-%! 'S'// is det.
-%
-% Greedy white space.
-%
-% ```ebnf
-% S ::= ( #x20 | #x9 | #xD | #xA )+ // Any consecutive number of spaces,
-%                                   // carriage returns, line feeds, and
-%                                   // horizontal tabs.
-% ```
-%
-% The presence of carriage_return// in the above production is
-% maintained purely for backward compatibility with the First Edition.
-% All `#xD` characters literally present in an XML document are either
-% removed or replaced by line_feed// (i.e., `#xA`) characters before
-% any other processing is done.
-
-'S' -->
-  +(s_code), !.
-
-s_code --> [0x20].
-s_code --> [0x9].
-s_code --> [0xD].
-s_code --> [0xA].
-
-
-
-%! 'SDDecl'(-Standalone:boolean)// is det.
-%
-% Standalone Declaration
-%
-% ```ebnf
-% SDDecl ::= S 'standalone' Eq
-%            (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
-% ```
-%
-% @compat XML 1.0.5 [32].
-% @compat XML 1.1.2 [32].
-% @tbd [VC: Standalone Document Declaration]
-
-'SDDecl'(Standalone) -->
-  'S',
-  "standalone",
-  'Eq',
-  ("'" -> yesno(Standalone), "'" ; "\"" -> yesno(Standalone), "\"").
-
-yesno(true) -->"yes".
-yesno(false) --> "no".
-
-
-
 %! seq(?SequenceOfContentParticles:compound)// .
 %
 % ```bnf
@@ -1878,76 +1772,6 @@ xml_comma -->
 'TokenizedType'(entities) --> "ENTITIES".
 'TokenizedType'(nmtoken) --> "NMTOKEN".
 'TokenizedType'(nmtokens) --> "NMTOKENS".
-
-
-
-%! 'VersionInfo'(-Version:compound)// is det.
-%
-% ```ebnf
-% VersionInfo ::= S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
-% ```
-%
-% @compat XML 1.0.5 [24].
-% @compat XML 1.1.2 [24].
-
-'VersionInfo'(Version) -->
-  'S',
-  "version",
-  'Eq',
-  (   "'"
-  ->  'VersionNum'(Version),
-      "'"
-  ;   "\""
-  ->  'VersionNum'(Version),
-      "\""
-  ).
-
-
-
-%! 'VersionNum'(-Version:compound)// is det.
-%
-% # XML 1.0
-%
-% ```bnf
-% VersionNum ::= '1.' [0-9]+
-% ```
-%
-% # XML 1.1
-%
-% ```bnf
-% VersionNum ::= '1.1'
-% ```
-%
-% @arg Version is a compound term of the form
-%      `version(Major:nonneg,Minor:nonneg)'.
-%
-% @compat XML 1.0.5 [26].
-% @compat XML 1.1.2 [26].
-
-'VersionNum'(version(1,Minor)) -->
-  "1.",
-  dcg_integer(+(digit_weight), Minor).
-'VersionNum'(version(1,1)) -->
-  "1.1".
-
-
-
-%! 'XMLDecl'(-Version:compound, -Encoding:atom, -Standalone:boolean)// is det.
-%
-% ```ebnf
-% XMLDecl ::= '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
-% ```
-%
-% @compat XML 1.0.5 [23].
-% @compat XML 1.1.2 [23].
-
-'XMLDecl'(Version, Encoding, Standalone) -->
-  "<?xml",
-  'VersionInfo'(Version),
-  ('EncodingDecl'(Encoding) -> "" ; ""),
-  ('SDDecl'(Standalone) -> "" ; ""),
-  ('S' -> "" ; ""),
-  "?>".
 
 
 

@@ -11,11 +11,8 @@
     dcg_string//2,          % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,             % +N
-    eol//0,
     generate_as_digits//2,  % +N, +NumberOfDigits
     generate_as_digits//3,  % +N, +Base, +NumberOfDigits
-    nonblank//0,
-    nonblanks//0,
     thousands//1            % +Integer
   ]
 ).
@@ -205,13 +202,6 @@ dcg_tab(N) -->
 
 
 
-%! eol// .
-
-eol --> "\n".
-eol --> "\r\n".
-
-
-
 %! generate_as_digits(+N:nonneg, +NumberOfDigits:nonneg)// is det.
 %! generate_as_digits(+N:nonneg, +Base:positive_integer,
 %!                    +NumberOfDigits:nonneg)// is det.
@@ -230,22 +220,6 @@ generate_as_digits(N1, Base, M1) -->
   digit_weight(D),
   {N2 is N1 mod Base ^ M2},
   generate_as_digits(N2, Base, M2).
-
-
-
-%! nonblank// .
-%
-% Wrapper around nonblank//1 from library(dcg/basics).
-
-nonblank -->
-  nonblank(_).
-
-
-
-%! nonblanks// .
-
-nonblanks -->
-  nonblanks(_).
 
 
 

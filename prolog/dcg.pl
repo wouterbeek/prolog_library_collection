@@ -33,6 +33,8 @@
     must_see//1,            % :Dcg_0
     must_see_code//2,       % +Code, :Skip_0
     nl//0,
+    nonblank//0,
+    nonblanks//0,
     parsing//0,
     remainder_as_atom//1,   % -Remainder
     remainder_as_string//1, % -Remainder
@@ -328,6 +330,22 @@ must_see_code(Code, _) -->
 
 nl -->
   "\n".
+
+
+
+%! nonblank// .
+%
+% Wrapper around nonblank//1 from library(dcg/basics).
+
+nonblank -->
+  nonblank(_).
+
+
+
+%! nonblanks// .
+
+nonblanks -->
+  nonblanks(_).
 
 
 

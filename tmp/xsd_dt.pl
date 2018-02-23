@@ -16,7 +16,6 @@
 :- use_module(library(aggregate)).
 :- use_module(library(arithmetic)).
 :- use_module(library(default)).
-:- use_module(library(semweb/rdf_api)).
 
 :- arithmetic_function(xsd_div/2).
 
@@ -31,9 +30,6 @@
 
 xsd_div(X, Y, Z):-
   Z is floor(X rdiv Y).
-
-:- rdf_meta
-   xsd_date_time_to_dt(+, r, -).
 
 
 
