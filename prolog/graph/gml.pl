@@ -13,7 +13,7 @@
 @version 2017/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 

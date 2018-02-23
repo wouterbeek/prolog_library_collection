@@ -13,7 +13,7 @@
 @version 2015/07, 2015/10-2015/11
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 
 :- meta_predicate(dcg_strip(//,?,?)).
 :- meta_predicate(dcg_strip_left(//,?,?)).

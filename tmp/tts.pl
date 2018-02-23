@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(os_ext)).
 :- use_module(library(uri)).

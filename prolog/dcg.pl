@@ -2,41 +2,42 @@
   dcg,
   [
     '...'//0,
-    '...'//1,             % -Codes
-    alpha//1,             % ?Code
-    'alpha*'//2,          % -Codes:list(code), -Tail:list(code)
-    'alpha+'//2,          % -Codes:list(code), -Tail:list(code)
-    alphanum//1,          % ?Code
-    'alphanum*'//2,       % -Codes:list(code), -Tail:list(code)
-    'alphanum+'//2,       % -Codes:list(code), -Tail:list(code)
-    atom_phrase/2,        % :Dcg_0, ?Atom
-    atom_phrase/3,        % :Dcg_0, +Atomic, ?Atom
-    dcg_between//2,       % +Low, +High
-    dcg_between//3,       % +Low, +High, ?Code
-    dcg_call//1,          % :Dcg_0
-    dcg_call//2,          % :Dcg_1, ?Arg1
-    dcg_call//3,          % :Dcg_2, ?Arg1, ?Arg2
-    dcg_call//4,          % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
-    dcg_call//5,          % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
-    dcg_call//6,          % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
-    dcg_with_output_to/1, % :Dcg_0
-    dcg_with_output_to/2, % +Sink, :Dcg_0
-    'digit*'//1,          % -Codes:list(code)
-    'digit*'//2,          % -Codes:list(code), -Tail:list(code)
-    'digit+'//1,          % -Codes:list(code)
-    'digit+'//2,          % -Codes:list(code), -Tail:list(code)
-    digit_weight//1,      % ?N
-    'digit_weight*'//1,   % ?Ns
-    'digit_weight+'//1,   % ?Ns
-    ellipsis//2,          % +Atom, +MaxLength
-    indent//1,            % +Indent
-    must_see//1,          % :Dcg_0
-    must_see_code//2,     % +Code, :Skip_0
+    '...'//1,               % -Codes
+    alpha//1,               % ?Code
+    'alpha*'//2,            % -Codes:list(code), -Tail:list(code)
+    'alpha+'//2,            % -Codes:list(code), -Tail:list(code)
+    alphanum//1,            % ?Code
+    'alphanum*'//2,         % -Codes:list(code), -Tail:list(code)
+    'alphanum+'//2,         % -Codes:list(code), -Tail:list(code)
+    atom_phrase/2,          % :Dcg_0, ?Atom
+    atom_phrase/3,          % :Dcg_0, +Atomic, ?Atom
+    dcg_between//2,         % +Low, +High
+    dcg_between//3,         % +Low, +High, ?Code
+    dcg_call//1,            % :Dcg_0
+    dcg_call//2,            % :Dcg_1, ?Arg1
+    dcg_call//3,            % :Dcg_2, ?Arg1, ?Arg2
+    dcg_call//4,            % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
+    dcg_call//5,            % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
+    dcg_call//6,            % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_with_output_to/1,   % :Dcg_0
+    dcg_with_output_to/2,   % +Sink, :Dcg_0
+    'digit*'//1,            % -Codes:list(code)
+    'digit*'//2,            % -Codes:list(code), -Tail:list(code)
+    'digit+'//1,            % -Codes:list(code)
+    'digit+'//2,            % -Codes:list(code), -Tail:list(code)
+    digit_weight//1,        % ?N
+    'digit_weight*'//1,     % ?Ns
+    'digit_weight+'//1,     % ?Ns
+    ellipsis//2,            % +Atom, +MaxLength
+    indent//1,              % +Indent
+    must_see//1,            % :Dcg_0
+    must_see_code//2,       % +Code, :Skip_0
     nl//0,
     parsing//0,
-    remainder_as_atom//1, % -Atom
-    string_phrase/2,      % :Dcg_0, ?String
-    string_phrase/3       % :Dcg_0, +String1, -String2
+    remainder_as_atom//1,   % -Remainder
+    remainder_as_string//1, % -Remainder
+    string_phrase/2,        % :Dcg_0, ?String
+    string_phrase/3         % :Dcg_0, +String1, -String2
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -44,7 +45,7 @@
 /** <module> DCG
 
 @author Wouter Beek
-@version 2018
+@version 2017-2018
 */
 
 :- use_module(library(error)).
@@ -345,6 +346,14 @@ parsing(H, H) :-
 remainder_as_atom(Atom) -->
   remainder(Codes),
   {atom_codes(Atom, Codes)}.
+
+
+
+%! remainder_as_string(-Remainder:string)// is det.
+
+remainder_as_string(String) -->
+  remainder(Codes),
+  {string_codes(String, Codes)}.
 
 
 

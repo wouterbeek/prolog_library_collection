@@ -15,8 +15,8 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_pl)).
 :- use_module(library(default)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).

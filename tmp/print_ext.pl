@@ -37,10 +37,10 @@ Additional predicates for printing.
 */
 
 :- use_module(library(check_installation), []).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_table)).
-:- use_module(library(dcg/dcg_tree)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_pl)).
+:- use_module(library(dcg_table)).
+:- use_module(library(dcg_tree)).
 :- use_module(library(settings)).
 
 is_meta(node_writer).

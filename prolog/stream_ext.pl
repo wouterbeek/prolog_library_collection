@@ -28,8 +28,8 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(archive)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(debug_ext)).
 :- use_module(library(error)).
 :- use_module(library(file_ext), []).

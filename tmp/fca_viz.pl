@@ -15,8 +15,8 @@
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_pl)).
 :- use_module(library(fca/fca)).
 :- use_module(library(graph/build_export_graph)).
 :- use_module(library(graph/s/s_graph)).

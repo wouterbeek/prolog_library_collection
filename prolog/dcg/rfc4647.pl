@@ -14,7 +14,7 @@
 @version 2017/05-2017/08
 */
 
-:- use_module(library(dcg/dcg_ext), except([alphanum//1])).
+:- use_module(library(dcg), except([alphanum//1])).
 :- use_module(library(dcg/rfc4234)).
 
 

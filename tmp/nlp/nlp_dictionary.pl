@@ -16,13 +16,13 @@ Support for natural language dictionaries.
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(persistency)).
 :- use_module(library(random)).
 :- use_module(library(readutil)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(yall)).
 
 :- persistent
@@ -170,11 +170,9 @@ nlp_dict_update(Lang, _) :-
 word_entry(Word, Something) -->
   word_part(Word0), !,
   {string_codes(Word, Word0)},
-  rest(Something0),
-  {string_codes(Something, Something0)}.
+  remainder_as_string(Something).
 word_entry(Word, "") -->
-  rest(Word0),
-  {string_codes(Word, Word0)}.
+  remainder_as_string(Word).
 
 word_part([]) -->
   "/", !.

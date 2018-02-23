@@ -11,7 +11,7 @@
 @version 2017-2018
 */
 
-:- use_module(library(dcg/dcg)).
+:- use_module(library(dcg)).
 :- use_module(library(http/json)).
 :- use_module(library(option)).
 

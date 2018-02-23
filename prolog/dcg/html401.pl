@@ -11,7 +11,7 @@
 @version 2017/05
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 
 
 

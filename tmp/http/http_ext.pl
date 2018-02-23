@@ -19,8 +19,8 @@ messages.
 
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_io)).
@@ -30,7 +30,7 @@ messages.
 :- use_module(library(http/http11)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 
 

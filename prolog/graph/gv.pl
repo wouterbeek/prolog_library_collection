@@ -55,7 +55,7 @@ cell:   <TD> label </TD>
 */
 
 :- use_module(library(call_ext)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(media_type)).

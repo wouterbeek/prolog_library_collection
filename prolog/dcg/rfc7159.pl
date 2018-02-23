@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(clpfd)).
-:- use_module(library(dcg/dcg_ext), except([number//1,string//1])).
+:- use_module(library(dcg), except([number//1,string//1])).
 :- use_module(library(dcg/rfc5234)).
 :- use_module(library(math_ext)).
 

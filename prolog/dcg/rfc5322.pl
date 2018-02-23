@@ -14,7 +14,7 @@
 */
 
 :- use_module(library(clpfd)).
-:- use_module(library(dcg/dcg_ext), except([
+:- use_module(library(dcg), except([
      atom//1
    ])).
 :- use_module(library(dcg/rfc5234), [

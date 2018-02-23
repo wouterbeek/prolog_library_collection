@@ -1,40 +1,40 @@
 :- encoding(utf8).
 :- module(
-  dcg_ext,
+  dcg,
   [
-    atom_ci//1,            % ?Atom
-    dcg_atom//2,           % :Dcg_1, ?Atom
-    dcg_debug/2,           % +Flag, :Dcg_0
-    dcg_default//3,        % :Dcg_0, -Arg1, +Default
-    dcg_integer//2,        % :Dcg_1, ?Integer
-    dcg_integer//3,        % :Dcg_1, +Base, ?Integer
-    dcg_string//2,         % :Dcg_1, ?String
+    atom_ci//1,             % ?Atom
+    dcg_atom//2,            % :Dcg_1, ?Atom
+    dcg_debug/2,            % +Flag, :Dcg_0
+    dcg_default//3,         % :Dcg_0, -Arg1, +Default
+    dcg_integer//2,         % :Dcg_1, ?Integer
+    dcg_integer//3,         % :Dcg_1, +Base, ?Integer
+    dcg_string//2,          % :Dcg_1, ?String
     dcg_tab//0,
-    dcg_tab//1,            % +N
+    dcg_tab//1,             % +N
     eol//0,
-    generate_as_digits//2, % +N, +NumberOfDigits
-    generate_as_digits//3, % +N, +Base, +NumberOfDigits
+    generate_as_digits//2,  % +N, +NumberOfDigits
+    generate_as_digits//3,  % +N, +Base, +NumberOfDigits
     nonblank//0,
     nonblanks//0,
-    rest_as_string//1,     % -Rest
-    thousands//1           % +Integer
+    thousands//1            % +Integer
   ]
 ).
 :- reexport(library(dcg/basics)).
-:- reexport(library(dcg/dcg_abnf)).
+:- reexport(library(dcg_abnf)).
 
 /** <module> DCG extensions
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(atom_ext)).
-:- use_module(library(code_ext)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+
+:- use_module(library(atom_ext)).
+:- use_module(library(code_ext)).
 :- use_module(library(math_ext)).
 
 :- meta_predicate
@@ -246,14 +246,6 @@ nonblank -->
 
 nonblanks -->
   nonblanks(_).
-
-
-
-%! rest_as_string(-String:string)// is det.
-
-rest_as_string(String) -->
-  rest(Codes),
-  {string_codes(String, Codes)}.
 
 
 

@@ -11,7 +11,7 @@
 @version 2016/11, 2017/02-2017/05, 2017/11
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 
 :- meta_predicate

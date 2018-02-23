@@ -33,7 +33,7 @@
 @version 2017/05-2017/09
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/http_client2)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri/rfc2396), [

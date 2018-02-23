@@ -18,7 +18,7 @@ Japanese (^_^) style emoticons not covered.
 @version 2013, 2015/10
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(lists)).
 :- use_module(library(string_ext)).
 

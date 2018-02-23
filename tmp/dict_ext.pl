@@ -1,5 +1,5 @@
 :- module(
-  dict_ext,
+  dict,
   [
   % NEW
     dict_key/2,            % +Dict, ?Key
@@ -37,7 +37,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(list_ext)).
 :- use_module(library(pair_ext)).
 :- use_module(library(yall)).

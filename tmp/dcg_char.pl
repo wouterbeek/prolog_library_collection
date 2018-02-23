@@ -43,7 +43,7 @@ Atom = 'Q'.
 @version 2015/07
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 
 :- meta_predicate(char_code_metacall(3,?,?,?)).
 

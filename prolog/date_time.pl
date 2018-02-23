@@ -46,8 +46,8 @@ This is a huge date/time-saver!
 
 :- use_module(library(apply)).
 :- use_module(library(call_ext)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(nlp/nlp_lang)).
 :- use_module(library(solution_sequences)).

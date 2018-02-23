@@ -62,7 +62,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/html401), [
      'MediaDesc'//1 % -MediaDescriptions
    ]).
@@ -92,7 +92,7 @@ Link: <http://example.org/>; rel="start http://example.net/relation/other"
      'URI'//1,                             % -Uri
      'URI-reference'//2 as 'URI-Reference' % ?BaseUri, -Uri
    ]).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- dynamic
     http:http_header/1,

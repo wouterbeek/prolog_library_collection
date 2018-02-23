@@ -20,7 +20,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % ?Code
      'CHAR'//1, % ?Code

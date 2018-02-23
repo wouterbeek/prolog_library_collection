@@ -19,7 +19,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pagination_client)).
 :- use_module(library(settings)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- meta_predicate
     brt_request(+, 3),

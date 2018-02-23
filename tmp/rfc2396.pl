@@ -18,12 +18,12 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext), except([
+:- use_module(library(dcg), except([
      alpha//1,
      alphanum//1,
      digit//1
    ])).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri)).
 

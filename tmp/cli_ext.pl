@@ -16,7 +16,7 @@
 @version 2015/09-2015/10, 2016/04-2016/05, 2016/10
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(uri)).
 

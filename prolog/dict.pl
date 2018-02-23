@@ -1,5 +1,5 @@
 :- module(
-  dict_ext,
+  dict,
   [
     dict_delete_or_default/5, % +Key, +Dict1, +Default, -Value, -Dict2
     dict_get/3,               % ?Key, +Dict, -Value

@@ -13,7 +13,7 @@
 
 :- use_module(library(option)).
 
-:- use_module(plc(dcg/dcg_char)).
+:- use_module(plc(dcg_char)).
 
 
 

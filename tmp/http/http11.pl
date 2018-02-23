@@ -135,7 +135,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1,  % ?C
      'CHAR'//1,   % ?C
@@ -155,7 +155,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'SP'//1,     % ?C
      'VCHAR'//1   % ?C
    ]).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(http/cors)).
 :- use_module(library(http/csp2)).
 :- use_module(library(http/dcg_http)).
@@ -184,7 +184,7 @@ X-Frame-Options: SAMEORIGIN, SAMEORIGIN
      'relative-part'//2,    % -Auth:compound, -Segments:list(atom)
      'URI-reference'//1     % -Uri:compound
    ]).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- discontiguous
     http_known_known/1.

@@ -22,8 +22,8 @@ DCG rules for printing terms.
 */
 
 :- use_module(library(date_time/date_time)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(list_ext)).
 :- use_module(library(typecheck)).
 

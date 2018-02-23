@@ -20,11 +20,11 @@
 @version 2016/12-2017/01
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/rest)).
 :- use_module(library(print_ext)).
 :- use_module(library(settings)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- meta_predicate
     curl_get(+, 3, +),

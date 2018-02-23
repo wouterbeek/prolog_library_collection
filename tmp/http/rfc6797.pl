@@ -13,7 +13,7 @@
 @version 2015/11-2016/01, 2016/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
      'quoted-string'//1, % -String:atom

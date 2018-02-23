@@ -13,7 +13,7 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(fca/fca_viz)).
 :- use_module(library(os_ext)).
 :- use_module(library(solution_sequences)).

@@ -12,7 +12,7 @@
 @version 2015/07, 2015/12, 2017/08
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(html/html_dcg)).
 
 

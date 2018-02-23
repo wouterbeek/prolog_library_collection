@@ -18,30 +18,29 @@
     uri_media_type/2       % +Uri, -MediaType
   ]
 ).
-:- reexport(library(stream_ext)).
 :- reexport(library(uri)).
 
 /** <module> URI extensions
 
 @author Wouter Beek
-@version 2017/04-2018/01
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
-:- use_module(library(default)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
 :- use_module(library(error)).
-:- use_module(library(file_ext)).
-:- use_module(library(hash_ext)).
-:- use_module(library(http/http_client2)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(settings)).
-:- use_module(library(uri/rfc3987)).
 :- use_module(library(uuid)).
 :- use_module(library(zlib)).
+
+:- use_module(library(default)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
+:- use_module(library(file_ext)).
+:- use_module(library(hash_ext)).
+:- use_module(library(http/http_client2)).
 
 :- multifile
     error:has_type/2,

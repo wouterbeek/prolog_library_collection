@@ -17,7 +17,7 @@ cannot be processed.
 @version 2015/08, 2015/10, 2016/04
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 

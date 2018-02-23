@@ -32,7 +32,7 @@ Tools that ease debugging SWI-Prolog programs.
 :- use_module(library(apply)).
 :- use_module(library(atom_ext)).
 :- use_module(library(check_installation)). % Private predicates.
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug)).
 :- use_module(library(default)).
 :- use_module(library(file_ext)).

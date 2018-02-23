@@ -13,7 +13,7 @@
 @version 2016/12, 2017/08
 */
 
-:- use_module(library(dcg/dcg_ext), except([number//1])).
+:- use_module(library(dcg), except([number//1])).
 :- use_module(library(http/http11), [
      charset//1,      % -Charset:atom
      'media-type'//1, % -MT:compound

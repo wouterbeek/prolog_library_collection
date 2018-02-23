@@ -17,7 +17,7 @@
 @version 2015/11-2016/02, 2016/12-2017/01
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/http11), [
      'delta-seconds'//1, % -Delta:nonneg

@@ -18,10 +18,10 @@ An association list with multiple values per key, using ordered sets.
 @version 2015/10-2016/02, 2016/05
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_tree)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_tree)).
 :- use_module(library(debug)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(lists)).
 :- use_module(library(ordsets)).
 :- use_module(library(pairs)).

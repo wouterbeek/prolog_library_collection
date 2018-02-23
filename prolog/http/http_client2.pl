@@ -46,13 +46,11 @@ merge_separable_header(Key-[H|T], Key-H) :-
 ```
 
 @author Wouter Beek
-@version 2017/05-2018/02
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
 :- use_module(library(debug)).
-:- use_module(library(dict_ext)).
 :- use_module(library(error)).
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
@@ -62,11 +60,14 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/http_path)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
-:- use_module(library(media_type)).
 :- use_module(library(option)).
+
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
+:- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- use_module(http_open_cp, []).
 
@@ -448,9 +449,8 @@ http_parse_header_simple(Key, Value) -->
     atom_codes(Key0, KeyCodes),
     downcase_atom(Key0, Key)
   },
-  rest(Codes),
+  remainder_as_string(String0),
   {
-    string_codes(String0, Codes),
     string_strip(String0, "\s\t", String),
     atom_string(Value, String)
   }.

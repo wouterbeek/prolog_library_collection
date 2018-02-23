@@ -13,7 +13,7 @@ Grammar snippets for files.
 @version 2015/08, 2015/11, 2017/01-2017/02
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(file_ext)).
 :- use_module(library(os_ext)).
 

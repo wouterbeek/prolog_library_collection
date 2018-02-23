@@ -13,7 +13,7 @@
 @version 2015/12, 2016/12-2017/01, 2017/08
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1,  % ?Code
      'CHAR'//1,   % ?Code
@@ -30,7 +30,7 @@
      'VCHAR'//1,  % ?Code
      'WSP'//0
    ]).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(http/rfc1034)).
 :- use_module(library(http/rfc2616), [
      'rfc1123-date'//1, % -Date

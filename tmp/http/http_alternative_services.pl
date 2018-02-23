@@ -12,7 +12,7 @@
 @version 2017/01
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/http11)).
 :- use_module(library(http/rfc2616), [
      'quoted-string'//1, % -String:atom

@@ -12,7 +12,7 @@
 @version 2016/01-2016/02, 2016/05, 2016/07, 2016/10
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(list_ext)).
 :- use_module(library(option)).
 

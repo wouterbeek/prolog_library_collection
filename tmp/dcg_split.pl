@@ -5,7 +5,7 @@
   ]
 ).
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 
 :- meta_predicate
     dcg_split(//, -, ?, ?).

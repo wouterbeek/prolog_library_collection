@@ -17,8 +17,8 @@ This module is a wrapper around the external library
 @version 2015/08, 2016/05, 2017/02
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_file)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_file)).
 :- use_module(library(lists)).
 :- use_module(library(process)).
 

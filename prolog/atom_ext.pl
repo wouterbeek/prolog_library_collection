@@ -21,7 +21,7 @@
 @version 2017/04-2018/01
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 

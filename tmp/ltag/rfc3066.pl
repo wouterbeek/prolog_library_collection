@@ -22,7 +22,7 @@ which does not exist.  'Language-Tag'//1 does exist.
 @version 2015/11-2015/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(dcg/rfc2234), [
      'ALPHA'//1, % -Code:code
      'DIGIT'//2 % -Weight:between(0,9)

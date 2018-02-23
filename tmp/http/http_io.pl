@@ -476,15 +476,14 @@ http_lines_pairs(Lines, MergedPairs) :-
   group_pairs_by_key(SortedPairs, Groups),
   maplist(http_merge_headers, Groups, MergedPairs).
 
-http_parse_header_pair(Line, Key-Val) :-
-  phrase(http_parse_header_simple(Key, Val), Line).
+http_parse_header_pair(Line, Key-Value) :-
+  phrase(http_parse_header_simple(Key, Value), Line).
 
-http_parse_header_simple(Key, Val) -->
+http_parse_header_simple(Key, Value) -->
   'field-name'(Key),
   ":",
   'OWS',
-  rest(Val0),
-  {atom_codes(Val, Val0)}.
+  remainder_as_atom(Value).
 
 
 
@@ -512,9 +511,9 @@ http_lines_headers(Lines, Headers) :-
 % NOT change the order of these field values when a message is
 % forwarded.”
 
-http_merge_headers(Key-[Val], Key-Val) :- !.
-http_merge_headers(Key-Vals, Key-Val) :-
-  atomic_list_concat(Vals, ', ', Val).
+http_merge_headers(Key-[Value], Key-Value) :- !.
+http_merge_headers(Key-Values, Key-Value) :-
+  atomic_list_concat(Values, ', ', Value).
 
 
 
@@ -527,7 +526,7 @@ http_msg(Flag, Status, Lines) :-
   maplist(http_header_msg(Flag), Pairs),
   debug(Flag, "", []).
 
-http_header_msg(Flag, Key1-Val) :-
+http_header_msg(Flag, Key1-Value) :-
   (http_known(Key1) -> true ; gtrace),
   capitalize_atom(Key1, Key2),
-  debug(Flag, "< ~a: ~a", [Key2,Val]).
+  debug(Flag, "< ~a: ~a", [Key2,Value]).

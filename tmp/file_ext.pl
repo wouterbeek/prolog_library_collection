@@ -100,7 +100,7 @@ ad-hoc attempt:
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(filesex)).
 :- use_module(library(http/http_ext)).
@@ -112,7 +112,7 @@ ad-hoc attempt:
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(string_ext)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
 

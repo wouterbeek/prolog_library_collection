@@ -27,7 +27,7 @@
 @version 2017/05-2017/08
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/rfc7230)).
 :- use_module(library(math_ext)).
 :- use_module(library(uri/rfc3986)).

@@ -46,12 +46,12 @@
 @version 2017/05-2017/09
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug)).
 :- use_module(library(http/http_generic)).
 :- use_module(library(lists)).
 :- use_module(library(math_ext)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- discontiguous
     http:http_header/1,

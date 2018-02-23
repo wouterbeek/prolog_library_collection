@@ -58,16 +58,16 @@ The following debug flags are used:
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(hash_stream)).
 :- use_module(library(http/http_io)).
 :- use_module(library(os_ext)).
 :- use_module(library(print_ext)).
 :- use_module(library(string_ext)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 :- use_module(library(xml/xml_parser)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).

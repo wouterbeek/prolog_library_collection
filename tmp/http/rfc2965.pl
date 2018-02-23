@@ -14,7 +14,7 @@
 @version 2015/12-2016/01, 2017/08
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/dcg_http)).
 :- use_module(library(http/rfc2616), [
      'DIGIT'//1,

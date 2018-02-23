@@ -1,5 +1,5 @@
 :- module(
-  dcg_ext,
+  dcg,
   [
     atom_lower//1,         % ?Atom
     atom_title//1,         % ?Atom
@@ -109,11 +109,11 @@ My favorite collection of DCG rules.
 :- use_module(library(aggregate)).
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
-:- use_module(library(dcg/dcg_ascii)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dcg/dcg_pl)).
-:- use_module(library(dcg/dcg_unicode)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg_ascii)).
+:- use_module(library(dcg)).
+:- use_module(library(dcg_pl)).
+:- use_module(library(dcg_unicode)).
+:- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(math/math_ext)).

@@ -16,7 +16,7 @@ Takes over the definition and registration of the
 @version 2015/11-2016/01, 2016/12
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/rfc2616), [
      'LWS'//0,
      token//1,           % -Token:atom

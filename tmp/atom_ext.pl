@@ -31,8 +31,8 @@ atom to be translated to/from a list of numeric codes.  For example,
 escaping spaces and grave accent (e.g. in URIs):
 
 ```prolog
-:- use_module(plc(dcg/dcg_ext)).
-:- use_module(plc(dcg/dcg_replace)).
+:- use_module(plc(dcg)).
+:- use_module(plc(dcg_replace)).
 % Escape space (SPACE to `%20`) and grave accent (GRAVE-ACCENT to `%60`).
 atom_phrase(
   *(dcg_replace, [[32],[96]], [[37,50,48],[37,54,48]], []),
@@ -57,7 +57,7 @@ Titlecase atoms can be created using upcase_atom/2.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(list_ext)).
 :- use_module(library(char_ext)).
 :- use_module(library(typecheck)).

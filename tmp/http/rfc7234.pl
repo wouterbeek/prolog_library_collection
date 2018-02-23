@@ -12,7 +12,7 @@
 @version 2017/05-2017/06
 */
 
-:- use_module(library(dcg/dcg_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(http/rfc7230)).
 :- use_module(library(http/rfc7231)).
 :- use_module(library(math_ext)).

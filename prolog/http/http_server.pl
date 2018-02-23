@@ -51,13 +51,13 @@
 @version 2017-2018
 */
 
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(pair_ext)).
 :- use_module(library(settings)).
-:- use_module(library(uri/uri_ext)).
+:- use_module(library(uri_ext)).
 
 :- meta_predicate
     rest_media_type(+, 1),

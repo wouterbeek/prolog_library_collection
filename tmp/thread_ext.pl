@@ -29,9 +29,9 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(dcg/dcg_cli)).
-:- use_module(library(dcg/dcg_ext)).
-:- use_module(library(dict_ext)).
+:- use_module(library(dcg_cli)).
+:- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(print_ext)).
 :- use_module(library(stream_ext)).
 
