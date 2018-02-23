@@ -30,6 +30,12 @@ file name extensions.
 :- use_module(library(lists)).
 :- use_module(library(stream_ext)).
 
+:- multifile
+    http:mime_type_encoding/2.
+
+http:mime_type_encoding('application/sparql-results+json', utf8).
+http:mime_type_encoding('application/trig', utf8).
+
 
 
 
