@@ -5,7 +5,6 @@
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % :Cond_0, :Goal_0
-    call_default_option/3,  % ?Option, +Options, :Goal_1
     call_must_be/2,         % :Goal_1, @Term
     call_or_warning/1,      % :Goal_0
     call_pair/3,            % :Goal_2, +Pair1, -Pair2
@@ -33,7 +32,6 @@
 
 :- meta_predicate
     call_bool(0, -),
-    call_default_option(?, +, 1),
     call_det_when(0, 0),
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
@@ -55,16 +53,6 @@
 call_bool(Goal_0, true) :-
   Goal_0, !.
 call_bool(_, false).
-
-
-
-%! call_default_option(?Option, +Options, :Goal_1) is det.
-
-call_default_option(Option, Options, _) :-
-  option(Option, Options), !.
-call_default_option(Option, _, Goal_1) :-
-  Option =.. [_,Value],
-  (call(Goal_1, DefaultValue) -> Value = DefaultValue).
 
 
 

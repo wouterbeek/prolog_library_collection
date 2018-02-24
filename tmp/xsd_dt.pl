@@ -10,7 +10,7 @@
 /** <module> XSD date/time
 
 @author Wouter Beek
-@version 2017/08-2017/11
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
@@ -143,7 +143,7 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
   % otherwise.
   (var(Y1) -> Y2 = 1971 ; Y2 is Y1 - 1),
   % Let ‘mo’ be 12 or (dt's month), similarly.
-  defval(Mo1, 12, Mo2),
+  default_value(Mo1, Mo2, 12),
   % Let ‘da’ be daysInMonth(yr+1,mo)-1 or (dt's day)-1, similarly.
   Y3 is Y2 + 1,
   (   var(D1)
@@ -152,11 +152,11 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
   ;   D2 is D1 - 1
   ),
   % Let ‘hr’ be 0 or (dt's hour), similarly.
-  defval(0, H),
+  default_value(H, 0),
   % Let ‘mi’ be 0 or (dt's minute), similarly.
-  defval(0, Mi1),
+  default_value(Mi1, 0),
   % Let ‘se’ be 0 or (dt's second), similarly.
-  defval(0, S),
+  default_value(S, 0),
   % Subtract ‘timezoneOffset’ from ‘mi’ when ‘timezoneOffset’ is not
   % absent.
   (var(Off) -> Mi2 = Mi1 ; Mi2 is Mi1 - Off),
@@ -210,15 +210,15 @@ xsd_date_time_to_dt(time(H,Mi,S), xsd:time, dt(_,_,_,H,Mi,S,0)).
 
 % HELPERS %
 
-%! defval(?FromValue, +DefaultValue, -ToValue) is det.
+%! default_value(?FromValue, -ToValue, +DefaultValue) is det.
 %
 % Returns the given value, unless the given value is a variable.  In
 % the latter case, the default value is returned instead.
 %
-% @note We are sometimes using this predicate instead of defval/2 from
-%       `library(default)' because we do not want variable occurrences
-%       of `FromValue' to get instantiated.
+% @note We are sometimes using this predicate instead of
+%       default_value/2 from `library(default)' because we do not want
+%       variable occurrences of `FromValue' to get instantiated.
 
-defval(X, Y, Y):-
+default_value(X, Y, Y):-
   var(X), !.
-defval(X, _, X).
+default_value(X, X, _).

@@ -88,7 +88,7 @@ file_download(Uri, File, Options) :-
 
 fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
   uuid(Uuid),
-  defval([], Segments1),
+  default_value(Segments1, []),
   append(Segments1, [Uuid], Segments2),
   uri_comps(Uri, uri(Scheme,Authority,Segments2,Query,Fragment)).
 
