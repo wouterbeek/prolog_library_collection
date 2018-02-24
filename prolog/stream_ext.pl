@@ -162,7 +162,6 @@ recode_stream(Encoding, In) :-
 % See the output of command ~iconv -l~ for the supported encodings.
 
 recode_stream(Encoding, In, Out) :-
-  print_message(informational, recode(Encoding)),
   process_in_open(iconv, ['-c','-f',Encoding,'-t','utf-8'], In, Out).
 
 
