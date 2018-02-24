@@ -10,6 +10,7 @@
     atom_prefix/3,     % +Atom, ?Length, ?Prefix
     atom_strip/2,      % +Atom, -Stripped
     atom_strip/3,      % +StripChars, +Atom, -Stripped
+    atom_terminator/3, % +Atom1, +Terminator, +Atom2
     atom_truncate/3,   % +Atom, +MaxLength, -Truncated
     is_empty_atom/1    % @Term
   ]
@@ -137,6 +138,19 @@ atom_strip_end0(StripChars, A1, A3) :-
   atom_concat(A2, StripChar, A1), !,
   atom_strip_end0(StripChars, A2, A3).
 atom_strip_end0(_, A, A).
+
+
+
+%! atom_terminator(+Atom1:atom, +Terminator:code, +Atom2:atom) is det.
+
+atom_terminator(Atom1, Terminator, Atom2) :-
+  atom_codes(Atom1, Codes1),
+  once(append(_, [Last], Codes1)),
+  (   Last == Terminator
+  ->  Codes2 = Codes1
+  ;   append(Codes1, [Terminator], Codes2)
+  ),
+  atom_codes(Atom2, Codes2).
 
 
 
