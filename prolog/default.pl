@@ -1,9 +1,10 @@
 :- module(
   default,
   [
-    call_default/2,        % ?Value, :Goal_1
     call_default_option/3, % ?Option, +Options, :Goal_1
-    default_value/2               % +DefaultValue, ?Value
+    call_default_value/2,  % ?Value, :Goal_1
+    call_default_value/3,  % ?Value, :Goal_1, +DefaultValue
+    default_value/2        % ?Value, +DefaultValue
   ]
 ).
 
@@ -14,29 +15,46 @@
 */
 
 :- meta_predicate
-    call_default(?, 1),
-    call_default_option(?, +, 1).
+    call_default_option(?, +, 1),
+    call_default_value(?, 1),
+    call_default_value(?, 1, +).
 
 
-
-
-
-%! call_default(?Value, :Goal_1) is det.
-
-call_default(Value, _) :-
-  nonvar(Value), !.
-call_default(Value, Goal_1) :-
-  call(Goal_1, Value).
 
 
 
 %! call_default_option(?Option, +Options, :Goal_1) is det.
+%
+% If `Option' cannot be bound based on the given `Options', call
+% `Goal_1' to determine the option's binding instead.
 
 call_default_option(Option, Options, _) :-
   option(Option, Options), !.
 call_default_option(Option, _, Goal_1) :-
   Option =.. [_,Value],
   (call(Goal_1, DefaultValue) -> Value = DefaultValue).
+
+
+
+%! call_default_value(?Value, :Goal_1) is det.
+%
+% If `Value' is not bound, vall `Goal_1' to determine its default
+% value.
+
+call_default_value(Value, _) :-
+  nonvar(Value), !.
+call_default_value(Value, Goal_1) :-
+  call(Goal_1, Value).
+
+
+%! call_default_value(?Value, :Goal_1, +DefaultValue) is det.
+%
+% If `Value' cannot be determined by calling `Goal_1', using the
+% `DefaultValue' instead.
+
+call_default_value(Value, Goal_1, _) :-
+  call(Goal_1, Value), !.
+call_default_value(DefaultValue, _, DefaultValue).
 
 
 
