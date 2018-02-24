@@ -144,7 +144,7 @@ enc_name_char(0'-) --> "-".
 % @compat XML 1.1.2 [80]
 
 'EncodingDecl'(Encoding) -->
-  'S',
+  'S+',
   "encoding",
   'Eq',
   (   "\""
@@ -167,9 +167,9 @@ enc_name_char(0'-) --> "-".
 % @compat XML 1.1.2 [25].
 
 'Eq' -->
-  ('S' -> "" ; ""),
+  'S*',
   "=",
-  ('S' -> "" ; "").
+  'S*'.
 
 
 
@@ -189,22 +189,19 @@ enc_name_char(0'-) --> "-".
 % removed or replaced by line_feed// (i.e., `#xA`) characters before
 % any other processing is done.
 
-'S' -->
-  's_code+'.
+'S' --> [0x20].
+'S' --> [0x9].
+'S' --> [0xD].
+'S' --> [0xA].
 
-'s_code+' -->
-  s_code,
-  's_code*'.
+'S+' -->
+  'S',
+  'S*'.
 
-'s_code*' -->
-  s_code, !,
-  's_code*'.
-'s_code*' --> "".
-
-s_code --> [0x20].
-s_code --> [0x9].
-s_code --> [0xD].
-s_code --> [0xA].
+'S*' -->
+  'S', !,
+  'S*'.
+'S*' --> "".
 
 
 
@@ -222,7 +219,7 @@ s_code --> [0xA].
 % @tbd [VC: Standalone Document Declaration]
 
 'SDDecl'(Standalone) -->
-  'S',
+  'S+',
   "standalone",
   'Eq',
   (   "'"
@@ -252,7 +249,7 @@ yesno(false) --> "no".
   'VersionInfo'(Version),
   ('EncodingDecl'(Encoding) -> "" ; ""),
   ('SDDecl'(Standalone) -> "" ; ""),
-  ('S' -> "" ; ""),
+  'S*',
   "?>".
 
 
@@ -267,7 +264,7 @@ yesno(false) --> "no".
 % @compat XML 1.1.2 [24].
 
 'VersionInfo'(Version) -->
-  'S',
+  'S+',
   "version",
   'Eq',
   (   "'"
@@ -315,4 +312,4 @@ yesno(false) --> "no".
 %! must_see_code(+Code:code)// is det.
 
 must_see_code(Code) -->
-  must_see_code(Code, 'S').
+  must_see_code(Code, 'S*').
