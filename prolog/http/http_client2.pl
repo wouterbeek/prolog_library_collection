@@ -430,18 +430,27 @@ http_open2_success_(Uri, In, _, In) :-
   ).
 
 http_lines_pairs(Lines, GroupedPairs) :-
-  maplist(http_parse_header_pair, Lines, Pairs),
+  findall(
+    Key-Value,
+    (
+      member(Line, Lines),
+      % HTTP header parsing may fail, e.g., due to obsolete line
+      % folding (where one header is spread over multiple lines).
+      phrase(http_parse_header_simple(Key, Value), Line)
+    ),
+    Pairs
+  ),
   keysort(Pairs, SortedPairs),
   group_pairs_by_key(SortedPairs, GroupedPairs).
 
-http_parse_header_pair(Line, Key-Value) :-
-  once(phrase(http_parse_header_simple(Key, Value), Line)).
-
+%! http_parse_header_simple(-Key:atom, -Value:atom)// is semidet.
+%
 % ```
 % header-field = field-name ":" OWS field-value OWS
 % field-name = token
 % OWS = *( SP | HTAB )
 % ```
+
 http_parse_header_simple(Key, Value) -->
   string_without(":", KeyCodes),
   ":",
@@ -453,7 +462,7 @@ http_parse_header_simple(Key, Value) -->
   {
     string_strip(String0, "\s\t", String),
     atom_string(Value, String)
-  }.
+  }, !.
 
 http:post_data_hook(string(String), Out, HdrExtra) :-
   atom_string(Atom, String),
