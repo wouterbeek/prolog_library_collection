@@ -524,9 +524,12 @@ http_metadata_status(In, Metas, Options) :-
   option(failure(Failure), Options, 400),
   (   Status =:= Success
   ->  true
-  ;   call_cleanup(
-        read_string(In, 1 000, Msg),
-        close(In)
+  ;   (   ground(In)
+      ->  call_cleanup(
+            read_string(In, 1 000, Msg),
+            close(In)
+          )
+      ;   Msg = "no content"
       ),
       % Map the failure code to `fail', but throw an error for other
       % error codes.
