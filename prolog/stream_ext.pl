@@ -6,6 +6,7 @@
     copy_stream_type/2,     % +In, +Out
     guess_encoding/2,       % +In, -Encoding
     is_image/1,             % +In
+    is_image/2,             % +In, +Options
     number_of_open_files/1, % -N
     read_line_to_atom/2,    % +In, -Atom
     recode_stream/2,        % +FromEncoding, +In
@@ -15,14 +16,13 @@
     wc/2                    % +In, -Stats
   ]
 ).
-:- reexport(library(readutil)).
 
 /** <module> Stream extensions
 
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017/06-2018/02
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
@@ -76,11 +76,24 @@ copy_stream_type(In, Out) :-
 
 
 %! is_image(+In:stream) is semidet.
+%! is_image(+In:stream, +Options:list(compound)) is semidet.
 %
 % Succeeds iff In contains an byte stream describing an image.
+%
+% The following options are defined:
+%
+%   * verbose(+boolean)
+%
+%     If `true' (default `false'), emits the output from `identify' to
+%     standard out.
 
 is_image(In) :-
-  process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))]),
+  is_image(In, []).
+
+
+is_image(In, Options) :-
+  (option(verbose(true), Options) -> T = [] ; T = [stdout(null)]),
+  process_create(path(identify), [-], [process(Pid),stdin(pipe(ProcIn))|T]),
   set_stream(ProcIn, type(binary)),
   call_cleanup(
     copy_stream_data(In, ProcIn),
