@@ -7,6 +7,7 @@
     http_head2/2,                  % +Uri, +Options
     http_metadata_content_type/2,  % +Metas, -MediaType
     http_metadata_file_name/2,     % +Metas, -File
+    http_metadata_final_uri/2,     % +Metas, -Uri
     http_metadata_last_modified/2, % +Uri, -Time
     http_metadata_link/3,          % +Metas, +Relation, -Uri
     http_open2/2,                  % +CurrentUri, -In
@@ -208,6 +209,14 @@ http_metadata_file_name(Metas, File) :-
   member(Param, Params),
   split_string(Param, "=", "\"", ["filename",File0]), !,
   atom_string(File, File0).
+
+
+
+%! http_metadata_final_uri(+Metas:list(dict), -Uri:atom) is det.
+
+http_metadata_final_uri(Metas, Uri) :-
+  Metas = [Meta|_],
+  _{uri: Uri} :< Meta.
 
 
 
