@@ -68,9 +68,14 @@ params_generate([H|T]) -->
   param_generate(H),
   params_generate(T).
 
-param_generate(Key=Value) -->
-  {format(atom(Atom), "~a=~w", [Key,Value])},
-  atom(Atom).
+% Support notations `Key=Value' and `Key(Value)'.
+param_generate(Key=Value) --> !,
+  atom(Key),
+  "=",
+  atom(Value).
+param_generate(Param) -->
+  {Param =.. [Key,Value]},
+  param_generate(Key=Value).
 
 media_type_parse(media(Super/Sub,Params)) -->
   ...(SuperCodes),
