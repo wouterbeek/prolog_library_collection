@@ -2,15 +2,15 @@
 :- module(
   http_client2,
   [
-    http_call/2,                  % +Uri, :Goal_1
-    http_call/3,                  % +Uri, :Goal_1, +Options
-    http_head2/2,                 % +Uri, +Options
-    http_lmod/2,                  % +Uri, -Time
-    http_metadata_content_type/2, % +Metas, -MediaType
-    http_metadata_file_name/2,    % +Metas, -File
-    http_metadata_link/3,         % +Metas, +Relation, -Uri
-    http_open2/2,                 % +CurrentUri, -In
-    http_open2/3,                 % +CurrentUri, -In, +Options
+    http_call/2,                   % +Uri, :Goal_1
+    http_call/3,                   % +Uri, :Goal_1, +Options
+    http_head2/2,                  % +Uri, +Options
+    http_metadata_content_type/2,  % +Metas, -MediaType
+    http_metadata_file_name/2,     % +Metas, -File
+    http_metadata_last_modified/2, % +Uri, -Time
+    http_metadata_link/3,          % +Metas, +Relation, -Uri
+    http_open2/2,                  % +CurrentUri, -In
+    http_open2/3,                  % +CurrentUri, -In, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -178,22 +178,94 @@ http_head2(Uri, Options1) :-
 
 
 
-%! http_lmod(+Uri:atom, -Time:float) is det.
+%! http_metadata_content_type(+Metas:list(dict), -MediaType:compound) is semidet.
+%
+% We cannot expect that an HTTP `Content-Type' header is present:
+%
+%   - Some HTTP replies have no content.
+%
+%   - Some non-empty HTTP replies omit the header (probably
+%     incorrectly), e.g., `http://abs.270a.info/sparql'.
+%
+%   - Some Content-Type headers' values do not follow the grammar for
+%     Media Types.
 
-http_lmod(Uri, Time) :-
+http_metadata_content_type(Metas, MediaType) :-
+  Metas = [Meta|_],
+  get_dict('content-type', Meta.headers, [ContentType|T]),
+  assertion(T == []),
+  http_parse_header_value(content_type, ContentType, MediaType).
+
+
+
+%! http_metadata_file_name(+Metas:list(dict), -File:atom) is semidet.
+
+http_metadata_file_name(Metas, File) :-
+  Metas = [Meta|_],
+  dict_get('content-disposition', Meta.headers, [ContentDisposition|T]),
+  assertion(T == []),
+  split_string(ContentDisposition, ";", " ", ["attachment"|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["filename",File0]), !,
+  atom_string(File, File0).
+
+
+
+%! http_metadata_last_modified(+Uri:atom, -Time:float) is det.
+
+http_metadata_last_modified(Uri, Time) :-
   http_open_cp:http_open(
     Uri,
     In,
     [header(last_modified,LastModified),method(head),status_code(Status)]
   ),
+  Status =:= 200,
   call_cleanup(
-    (
-      assertion(Status =:= 200),
-      assertion(at_end_of_stream(In))
-    ),
+    at_end_of_stream(In),
     close(In)
   ),
   parse_time(LastModified, Time).
+
+
+
+%! http_metadata_link(+Metas:list(dict), +Relation:atom, -Uri:atom) is semidet.
+
+http_metadata_link(Metas, Relation, Uri) :-
+  [Meta|_] = Metas,
+  dict_get(link, Meta.headers, Links),
+  % This header may appear multiple times.
+  atomic_list_concat(Links, ;, Link),
+  atom_string(Relation, Relation0),
+  split_string(Link, ",", " ", Comps),
+  member(Comp, Comps),
+  split_string(Comp, ";", "<> ", [Uri0|Params]),
+  member(Param, Params),
+  split_string(Param, "=", "\"", ["rel",Relation0]), !,
+  atom_string(Uri, Uri0).
+
+
+
+%! http_metadata_status(+In:stream, +Metas:list(dict),
+%!                      +Options:list(compound)) is det.
+
+http_metadata_status(In, Metas, Options) :-
+  Metas = [Meta|_],
+  _{status: Status, uri: Uri} :< Meta,
+  option(success(Success), Options, 200),
+  option(failure(Failure), Options, 400),
+  (   Status =:= Success
+  ->  true
+  ;   (   ground(In)
+      ->  call_cleanup(
+            read_string(In, 1 000, Msg),
+            close(In)
+          )
+      ;   Msg = "no content"
+      ),
+      % Map the failure code to `fail', but throw an error for other
+      % error codes.
+      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg),Uri)))
+  ).
 
 
 
@@ -470,80 +542,6 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
-
-
-
-%! http_metadata_content_type(+Metas:list(dict), -MediaType:compound) is semidet.
-%
-% We cannot expect that an HTTP `Content-Type' header is present:
-%
-%   - Some HTTP replies have no content.
-%
-%   - Some non-empty HTTP replies omit the header (probably
-%     incorrectly), e.g., `http://abs.270a.info/sparql'.
-%
-%   - Some Content-Type headers' values do not follow the grammar for
-%     Media Types.
-
-http_metadata_content_type(Metas, MediaType) :-
-  Metas = [Meta|_],
-  get_dict('content-type', Meta.headers, [ContentType|T]),
-  assertion(T == []),
-  http_parse_header_value(content_type, ContentType, MediaType).
-
-
-
-%! http_metadata_file_name(+Metas:list(dict), -File:atom) is semidet.
-
-http_metadata_file_name(Metas, File) :-
-  Metas = [Meta|_],
-  dict_get('content-disposition', Meta.headers, [ContentDisposition|T]),
-  assertion(T == []),
-  split_string(ContentDisposition, ";", " ", ["attachment"|Params]),
-  member(Param, Params),
-  split_string(Param, "=", "\"", ["filename",File0]), !,
-  atom_string(File, File0).
-
-
-
-%! http_metadata_link(+Metas:list(dict), +Relation:atom, -Uri:atom) is semidet.
-
-http_metadata_link(Metas, Relation, Uri) :-
-  [Meta|_] = Metas,
-  dict_get(link, Meta.headers, Links),
-  % This header may appear multiple times.
-  atomic_list_concat(Links, ;, Link),
-  atom_string(Relation, Relation0),
-  split_string(Link, ",", " ", Comps),
-  member(Comp, Comps),
-  split_string(Comp, ";", "<> ", [Uri0|Params]),
-  member(Param, Params),
-  split_string(Param, "=", "\"", ["rel",Relation0]), !,
-  atom_string(Uri, Uri0).
-
-
-
-%! http_metadata_status(+In:stream, +Metas:list(dict),
-%!                      +Options:list(compound)) is det.
-
-http_metadata_status(In, Metas, Options) :-
-  Metas = [Meta|_],
-  _{status: Status, uri: Uri} :< Meta,
-  option(success(Success), Options, 200),
-  option(failure(Failure), Options, 400),
-  (   Status =:= Success
-  ->  true
-  ;   (   ground(In)
-      ->  call_cleanup(
-            read_string(In, 1 000, Msg),
-            close(In)
-          )
-      ;   Msg = "no content"
-      ),
-      % Map the failure code to `fail', but throw an error for other
-      % error codes.
-      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg),Uri)))
-  ).
 
 
 
