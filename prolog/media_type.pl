@@ -93,9 +93,8 @@ param_parse(Key-Value) -->
   ...(KeyCodes),
   "=",
   ...(ValueCodes),
-  ";",
-  {maplist(atom_codes, [Key,Value], [KeyCodes,ValueCodes])},
-  whites.
+  (";" -> whites ; eos),
+  {maplist(atom_codes, [Key,Value], [KeyCodes,ValueCodes])}.
 
 
 
