@@ -51,12 +51,15 @@
 @version 2017-2018
 */
 
+:- use_module(library(error)).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_path)).
+:- use_module(library(lists)).
+:- use_module(library(settings)).
+
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
-:- use_module(library(error)).
-:- use_module(library(lists)).
 :- use_module(library(pair_ext)).
-:- use_module(library(settings)).
 :- use_module(library(uri_ext)).
 
 :- meta_predicate
