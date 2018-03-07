@@ -190,6 +190,7 @@ media_type_(dot, media(text/'vnd.graphviz',[]), [gedit], "GraphViz DOT").
 media_type_(dotm, media(application/'vnd.ms-word.template.macroenabled.12',[]), [program(libreoffice,'--writer')], "Microsoft Word Template").
 media_type_(dotx, media(application/'vnd.openxmlformats-officedocument.wordprocessingml.template',[]), [program(libreoffice,'--writer')], "OpenOffice Wordprocessing Template").
 media_type_(epub, media(application/'epub+zip',[]), [], "ePub").
+media_type_(fits, media(application/fits,[]), [], "Flexible Image Transport System (FITS)").
 media_type_(geojson, media(application/'vnd.geo+json',[]), [gedit], "GeoJSON").
 media_type_(gif, media(image/gif,[]), [eog], "Graphics Interchange Format (GIF)").
 media_type_(gml, media(application/'gml+xml',[]), [gedit], "GML").
@@ -209,7 +210,9 @@ media_type_(kml, media(application/'vnd.google-earth.kml+xml',[]), [], "KML").
 media_type_(kmz, media(application/'vnd.google-earth.kmz',[]), [], "KMZ").
 media_type_(mdb, media(application/'vnd.ms-access',[]), [program(libreoffice,['--base'])], "Microsoft Access Database").
 media_type_(mobi, media(application/'vnd.amazon.mobi8-ebook',[]), [], "Mobi").
+media_type_(mp4, media(video/mp4,[]), [vlc], "MPEG-4 Part 14").
 media_type_(n3, media(text/n3,[]), [gedit], "Notation 3 (N3)").
+media_type_(nc, media(application/netcdf,[]), [], "Network Common Data Form (NetCDF)").
 media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
 media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
 media_type_(ods, media(application/'vnd.oasis.opendocument.spreadsheet',[]), [program(libreoffice,['--calc'])], "OpenDocument Spreadsheet").
@@ -266,6 +269,7 @@ media_type_(xltx, media(application/'vnd.openxmlformats-officedocument.spreadshe
 media_type_(xml, media(text/xml,[]), [gedit], "Extended Markup Language (XML)").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog], "X PixMap (XPM)").
 media_type_(webp, media(image/webp,[]), [], "WebP").
+media_type_(wmv, media(video/'x-ms-wmv',[]), [vlc], "Windows Media Video (WMV)").
 media_type_(zip, media(application/zip,[]), [], "ZIP").
 
 no_media_type_(ras, _, [eog], "Sun Raster").
