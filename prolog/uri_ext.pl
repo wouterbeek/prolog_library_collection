@@ -209,6 +209,8 @@ uri_comps(Uri, uri(Scheme,Authority0,Segments,QueryComponents,Fragment)) :-
   ),
   (   var(QueryComponents)
   ->  true
+  ;   atomic(QueryComponents)
+  ->  Query = QueryComponents
   ;   is_dict(QueryComponents)
   ->  dict_pairs(QueryComponents, QueryPairs),
       uri_query_components(Query, QueryPairs)
