@@ -73,8 +73,8 @@ file_download(Uri, File) :-
 
 
 file_download(Uri, File, Options) :-
-  setup_call_cleanup(
-    http_open2(Uri, In, Options),
+  http_open2(Uri, In, Options),
+  call_cleanup(
     setup_call_cleanup(
       open(File, write, Out, [type(binary)]),
       copy_stream_data(In, Out),
