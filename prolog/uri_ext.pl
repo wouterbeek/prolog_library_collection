@@ -33,6 +33,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
+:- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- use_module(library(default)).
@@ -57,10 +58,10 @@ error:has_type(uri, Term):-
 %! append_segments(+Segments1:list(atom), +Segments2:list(atom),
 %!                 -Segments3:list(atom)) is det.
 
-append_segments([''|L1], L2, L3) :- !,
-  append(L1, L2, L3).
-append_segments(L1, L2, L3) :-
-  append(L1, L2, L3).
+append_segments(L1a, L2a, L3) :-
+  exclude([X]>>(X==''), L1a, L1b),
+  exclude([X]>>(X==''), L2a, L2b),
+  append(L1b, L2b, L3).
 
 
 
