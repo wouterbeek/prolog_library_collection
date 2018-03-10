@@ -16,14 +16,10 @@ html_download(Uri, Dom) :-
   html_download(Uri, Dom, []).
 
 
-html_download(Uri, Dom2, Options) :-
-  setup_call_cleanup(
-    http_open2(Uri, In, Options),
-    (
-      merge_options([encoding('utf-8'),max_errors(-1)], Options, HtmlOptions),
-      load_html(In, Dom1, HtmlOptions),
-      clean_dom(Dom1, Dom2)
-    ),
+html_download(Uri, Dom, Options) :-
+  http_open2(Uri, In, Options),
+  call_cleanup(
+    load_html(In, Dom, Options),
     close(In)
   ).
 
