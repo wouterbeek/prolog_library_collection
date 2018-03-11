@@ -6,7 +6,8 @@
     thread_list/0,
     thread_monitor/0,
     thread_name/2,            % ?Id:handle, ?Name:atom
-    thread_self_property/1    % ?Property
+    thread_self_property/1,   % ?Property
+    threaded_maplist/3        % +N, :Goal_1, +L1
   ]
 ).
 :- reexport(library(thread)).
@@ -14,7 +15,7 @@
 /** <module> Thread extensions
 
 @author Wouter Beek
-@version 2017/12-2018/01
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
@@ -22,7 +23,8 @@
 
 :- meta_predicate
     create_detached_thread(0),
-    create_detached_thread(+, 0).
+    create_detached_thread(+, 0),
+    threaded_maplist(+, 1, +).
 
 
 
@@ -81,3 +83,20 @@ thread_name(Id, Id).
 thread_self_property(Property) :-
   thread_self(Thread),
   thread_property(Thread, Property).
+
+
+
+%! threaded_maplist(+NumberOfThreads:nonneg, :Goal_1, +L1:list) is det.
+
+threaded_maplist(N, Mod:Goal_1, L1) :-
+  findall(
+    Mod:Goal_0,
+    (
+      Goal_1 =.. [Pred|Args1],
+      member(X1, L1),
+      append(Args1, [X1], Args2),
+      Goal_0 =.. [Pred|Args2]
+    ),
+    Goals
+  ),
+  concurrent(N, Goals, []).
