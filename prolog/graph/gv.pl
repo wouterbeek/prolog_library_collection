@@ -51,18 +51,20 @@ cell:   <TD> label </TD>
 ```
 
 @author Wouter Beek
-@version 2017/08-2017/12
+@version 2017-2018
 */
+
+:- use_module(library(apply)).
+:- use_module(library(option)).
+:- use_module(library(process)).
+:- use_module(library(settings)).
 
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(debug_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(media_type)).
-:- use_module(library(option)).
 :- use_module(library(os_ext)).
-:- use_module(library(process)).
-:- use_module(library(settings)).
 
 :- discontiguous
     extension_type_/1,
@@ -94,8 +96,9 @@ gv_attribute(Attr, Str) :-
 
 gv_attribute(label, Values, Str) :-
   is_list(Values), !,
-  atomics_to_string(Values, "<BR/>", Value),
-  gv_attribute(label, Value, Str).
+  maplist(string_phrase(html_replace), Values, Strs),
+  atomics_to_string(Strs, "<BR/>", Str0),
+  format(string(Str), "label=<~s>", [Str0]).
 gv_attribute(label, Value0, Str) :- !,
   string_phrase(html_replace, Value0, Value),
   format(string(Str), "label=<~s>", [Value]).
