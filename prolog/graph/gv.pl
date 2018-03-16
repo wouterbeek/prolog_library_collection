@@ -97,7 +97,7 @@ gv_attribute(Attr, Str) :-
 
 gv_attribute(label, Values, Str) :-
   is_list(Values), !,
-  maplist(string_phrase(html_replace), Values, Strs),
+  maplist(gv_html_replace, Values, Strs),
   atomics_to_string(Strs, "<BR/>", Str0),
   format(string(Str), "label=<~s>", [Str0]).
 gv_attribute(label, Value0, Str) :- !,
