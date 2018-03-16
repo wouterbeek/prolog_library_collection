@@ -6,6 +6,7 @@
     gv_export/2,       % +File, :Goal_1
     gv_export/4,       % +Method, +Ext, +File, :Goal_1
     gv_extension/1,    % ?Ext
+    gv_html_replace/2, % +Unescaped, -Escaped
     gv_id/2,           % +Term, -Id
     gv_node/3,         % +Out, +Id, +Attributes
     gv_open/1,         % -ProcIn
@@ -97,19 +98,13 @@ gv_attribute(label, Values, Str) :-
   atomics_to_string(Values, "<BR/>", Value),
   gv_attribute(label, Value, Str).
 gv_attribute(label, Value0, Str) :- !,
-  string_phrase(html_replace, Value0, Value),
+  gv_html_replace(Value0, Value),
   format(string(Str), "label=<~s>", [Value]).
 gv_attribute('URL', Value0, Str) :- !,
-  string_phrase(html_replace, Value0, Value),
+  gv_html_replace(Value0, Value),
   format(string(Str), "URL=\"~s\"", [Value]).
 gv_attribute(Name, Value, Str) :-
   format(string(Str), "~a=\"~s\"", [Name,Value]).
-
-html_replace, "&lt;" --> "<", !, html_replace.
-html_replace, "&gt;" --> ">", !, html_replace.
-html_replace, "&amp;" --> "&", !, html_replace.
-html_replace, [C] --> [C], !, html_replace.
-html_replace --> "".
 
 
 
@@ -178,6 +173,19 @@ gv_extension(png).
 gv_extension(ps).
 gv_extension(svg).
 gv_extension(tiff).
+
+
+
+%! gv_html_replace(+Unescaped:string, -Escaped:string) is det.
+
+gv_html_replace(String1, String2) :-
+  string_phrase(html_replace, String1, String2).
+
+html_replace, "&lt;" --> "<", !, html_replace.
+html_replace, "&gt;" --> ">", !, html_replace.
+html_replace, "&amp;" --> "&", !, html_replace.
+html_replace, [C] --> [C], !, html_replace.
+html_replace --> "".
 
 
 
