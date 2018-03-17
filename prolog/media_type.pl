@@ -20,7 +20,7 @@ Design goal: maintain a one-to-one mapping between Media Types and
 file name extensions.
 
 @author Wouter Beek
-@version 2017/12-2018/02
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -179,9 +179,12 @@ media_type_program(MediaType, Program, Args) :-
 
 % GENERICS %
 
+media_type_('7z', media(application/'x-7z-compressed',[]), [], "7z").
 media_type_(atom, media(application/'atom+x',[]), [gedit], "Atom XML").
 media_type_(bmp, media(image/bmp,[]), [eog], "Windows Bitmap (BMP)").
 media_type_(bz2, media(application/'x-bzip2',[]), [program(bzip2,['-d'])], "bzip2").
+media_type_(cab, media(application/'vnd.ms-cab-compressed',[]), [], "Microsoft Cabinet").
+media_type_(cpio, media(application/'x-cpio',[]), [], "cpio").
 media_type_(csv, media(text/csv,[]), [gedit], "Comma-separated values (CSV)").
 media_type_(doc, media(application/msword,[]), [program(libreoffice,'--writer')], "Microsoft Word Document").
 media_type_(docm, media(application/'vnd.ms-word.document.macroenabled.12',[]), [program(libreoffice,'--writer')], "Microsoft Word Document").
@@ -208,6 +211,7 @@ media_type_(jsp, media(application/jsp,[]), [], "Java Server Pages (JSP)").
 media_type_(gml, media(text/'x-gml',[]), [gephi], "Graph Markup Language (GML)").
 media_type_(kml, media(application/'vnd.google-earth.kml+xml',[]), [], "KML").
 media_type_(kmz, media(application/'vnd.google-earth.kmz',[]), [], "KMZ").
+media_type_(lha, media(application/'x-lzh-compressed',[]), [], "LHA").
 media_type_(mdb, media(application/'vnd.ms-access',[]), [program(libreoffice,['--base'])], "Microsoft Access Database").
 media_type_(mobi, media(application/'vnd.amazon.mobi8-ebook',[]), [], "Mobi").
 media_type_(mp4, media(video/mp4,[]), [vlc], "MPEG-4 Part 14").
