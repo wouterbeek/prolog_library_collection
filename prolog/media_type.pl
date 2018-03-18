@@ -184,6 +184,7 @@ media_type_(atom, media(application/'atom+x',[]), [gedit], "Atom XML").
 media_type_(bmp, media(image/bmp,[]), [eog], "Windows Bitmap (BMP)").
 media_type_(bz2, media(application/'x-bzip2',[]), [program(bzip2,['-d'])], "bzip2").
 media_type_(cab, media(application/'vnd.ms-cab-compressed',[]), [], "Microsoft Cabinet").
+media_type_(cdx, media(chemical/'x-cdx',[]), [], "CambridgeSoft ChemDraw").
 media_type_(cpio, media(application/'x-cpio',[]), [], "cpio").
 media_type_(csv, media(text/csv,[]), [gedit], "Comma-separated values (CSV)").
 media_type_(doc, media(application/msword,[]), [program(libreoffice,'--writer')], "Microsoft Word Document").
@@ -192,11 +193,14 @@ media_type_(docx, media(application/'vnd.openxmlformats-officedocument.wordproce
 media_type_(dot, media(text/'vnd.graphviz',[]), [gedit], "GraphViz DOT").
 media_type_(dotm, media(application/'vnd.ms-word.template.macroenabled.12',[]), [program(libreoffice,'--writer')], "Microsoft Word Template").
 media_type_(dotx, media(application/'vnd.openxmlformats-officedocument.wordprocessingml.template',[]), [program(libreoffice,'--writer')], "OpenOffice Wordprocessing Template").
+media_type_(dwg, media(application/dwg,[]), [], "Drawing (DWG) proprietary format used by CAD software").
+media_type_(dxf, media(image/'vnd.dxf',[]), [], "AutoCAD Drawing Exchange Format (DXF)").
 media_type_(epub, media(application/'epub+zip',[]), [], "ePub").
 media_type_(fits, media(application/fits,[]), [], "Flexible Image Transport System (FITS)").
 media_type_(geojson, media(application/'vnd.geo+json',[]), [gedit], "GeoJSON").
 media_type_(gif, media(image/gif,[]), [eog], "Graphics Interchange Format (GIF)").
 media_type_(gml, media(application/'gml+xml',[]), [gedit], "GML").
+media_type_(gpx, media(application/'gpx+xml',[]), [], "GPS Exchange Format (GPX)").
 media_type_(gz, media(application/gzip,[]), [], "GNU Zip").
 media_type_(hdt, media(application/'vnd.hdt',[]), [], "Header Dictionary Triples (HDT)").
 media_type_(html, media(text/html,[]), [firefox], "Hyper Text Markup Language (HTML)").
@@ -214,6 +218,7 @@ media_type_(kmz, media(application/'vnd.google-earth.kmz',[]), [], "KMZ").
 media_type_(lha, media(application/'x-lzh-compressed',[]), [], "LHA").
 media_type_(mdb, media(application/'vnd.ms-access',[]), [program(libreoffice,['--base'])], "Microsoft Access Database").
 media_type_(mobi, media(application/'vnd.amazon.mobi8-ebook',[]), [], "Mobi").
+media_type_(mol, media(chemical/'x-mdl-molfile',[]), [], "MDL Information Systems (MDL) Molfile").
 media_type_(mp4, media(video/mp4,[]), [vlc], "MPEG-4 Part 14").
 media_type_(n3, media(text/n3,[]), [gedit], "Notation 3 (N3)").
 media_type_(nc, media(application/netcdf,[]), [], "Network Common Data Form (NetCDF)").
@@ -272,10 +277,11 @@ media_type_(xltm, media(application/'vnd.ms-excel.template.macroenabled.12',[]),
 media_type_(xltx, media(application/'vnd.openxmlformats-officedocument.spreadsheetml.template',[]), [program(libreoffice,['--calc'])], "OpenOffice Spreadsheet Template").
 media_type_(xml, media(text/xml,[]), [gedit], "Extended Markup Language (XML)").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog], "X PixMap (XPM)").
+media_type_(yml, media(application/'x-yaml',[]), [gedit], "YAML Ain't Markup Language (YAML)").
+media_type_(warc, media(application/warc,[]), [], "Web ARChive (WARC) archive format").
 media_type_(webp, media(image/webp,[]), [], "WebP").
 media_type_(wmv, media(video/'x-ms-wmv',[]), [vlc], "Windows Media Video (WMV)").
 media_type_(zip, media(application/zip,[]), [], "ZIP").
 
 no_media_type_(ras, _, [eog], "Sun Raster").
 no_media_type_(trix, _, [gedit], "Triples in XML (TriX)").
-no_media_type_(yml, _, [gedit], "YAML Ain't Markup Language").
