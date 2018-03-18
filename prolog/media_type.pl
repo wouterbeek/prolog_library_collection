@@ -197,6 +197,7 @@ media_type_(dwg, media(application/dwg,[]), [], "Drawing (DWG) proprietary forma
 media_type_(dxf, media(image/'vnd.dxf',[]), [], "AutoCAD Drawing Exchange Format (DXF)").
 media_type_(epub, media(application/'epub+zip',[]), [], "ePub").
 media_type_(fits, media(application/fits,[]), [], "Flexible Image Transport System (FITS)").
+media_type_(flv, media(video/'x-flv',[]), [], "Flash video (FLV)").
 media_type_(geojson, media(application/'vnd.geo+json',[]), [gedit], "GeoJSON").
 media_type_(gif, media(image/gif,[]), [eog], "Graphics Interchange Format (GIF)").
 media_type_(gml, media(application/'gml+xml',[]), [gedit], "GML").
@@ -224,6 +225,7 @@ media_type_(n3, media(text/n3,[]), [gedit], "Notation 3 (N3)").
 media_type_(nc, media(application/netcdf,[]), [], "Network Common Data Form (NetCDF)").
 media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
 media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
+media_type_(odp, media(application/'vnd.oasis.opendocument.presentation',[]), [program(libreoffice)], "OpenDocument presenatation").
 media_type_(ods, media(application/'vnd.oasis.opendocument.spreadsheet',[]), [program(libreoffice,['--calc'])], "OpenDocument Spreadsheet").
 media_type_(odt, media(application/'vnd.oasis.opendocument.text',[]), [program(libreoffice,['--writer'])], "OpenDocument Text").
 media_type_(pbm, media(image/'x-portable-bitmap',[]), [], "Portable Bitmap Format (PBM)").
@@ -277,6 +279,7 @@ media_type_(xltm, media(application/'vnd.ms-excel.template.macroenabled.12',[]),
 media_type_(xltx, media(application/'vnd.openxmlformats-officedocument.spreadsheetml.template',[]), [program(libreoffice,['--calc'])], "OpenOffice Spreadsheet Template").
 media_type_(xml, media(text/xml,[]), [gedit], "Extended Markup Language (XML)").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog], "X PixMap (XPM)").
+media_type_(xz, media(application/'x-xz',[]), [], "xz").
 media_type_(yml, media(application/'x-yaml',[]), [gedit], "YAML Ain't Markup Language (YAML)").
 media_type_(warc, media(application/warc,[]), [], "Web ARChive (WARC) archive format").
 media_type_(webp, media(image/webp,[]), [], "WebP").
