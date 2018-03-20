@@ -56,6 +56,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
