@@ -40,4 +40,4 @@ http_header_name_label(Name, Label) :-
 
 http_status_reason(Status, Reason):-
   http_header:status_number_fact(Fact, Status),
-  string_phrase(http_header:status_comment(Fact), Reason).
+  once(string_phrase(http_header:status_comment(Fact), Reason)).
