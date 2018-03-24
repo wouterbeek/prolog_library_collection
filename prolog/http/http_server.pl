@@ -301,9 +301,17 @@ rest_options(Methods) :-
 %! rest_parameters(+Request:compound, +Parameters:list(compound)) is det.
 
 rest_parameters(Request, Params) :-
-  http_parameters(Request, Params, [attribute_declarations(http:param)]), !.
+  catch(
+    http_parameters(Request, Params, [attribute_declarations(http:param)]),
+    _,
+    fail
+  ), !.
 rest_parameters(_, _) :-
-  throw(error(http_status(400),rest_parameters)).
+  throw(
+    error(
+      http_server(_{message: "Could not read HTTP parameters.", status: 400})
+    )
+  ).
 
 
 
