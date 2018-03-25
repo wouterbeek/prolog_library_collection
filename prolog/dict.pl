@@ -21,7 +21,7 @@
 /** <module> Dictionary extension
 
 @author Wouter Beek
-@version 2017/04-2017/10
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -144,16 +144,31 @@ merge_dicts([H1,H2|T1], T2) :-
 % merge_options/3 from library(option).
 %
 % If NewDict and OldDict contain the same key then the value from
-% NewDict is used.  If NewDict and OldDict have a different tag, then
-% the tag from NewDict is used.
+% NewDict is used, unless both are dicts, in which case the dicts are
+% merged recursively.  If NewDict and OldDict have a different tag,
+% then the tag from NewDict is used.
 
 merge_dicts(NewDict, OldDict, Dict):-
-  dict_pairs(NewDict, Tag, NewPairs),
-  dict_pairs(OldDict, _, OldPairs),
-  pairs_keys(NewPairs, NewKeys),
-  exclude(key_in_keys0(NewKeys), OldPairs, OnlyOldPairs),
-  append(OnlyOldPairs, NewPairs, Pairs),
+  dict_pairs(OldDict, _, OldPairs0),
+  dict_pairs(NewDict, Tag, NewPairs0),
+  maplist(sort(1, @<), [OldPairs0,NewPairs0], [OldPairs,NewPairs]),
+  merge_pairs_(OldPairs, NewPairs, Pairs),
   dict_pairs(Dict, Tag, Pairs).
 
-key_in_keys0(Keys, Key-_) :-
-  memberchk(Key, Keys).
+% Key is only present in old dict.
+merge_pairs_([Key1-Value1|T1], [Key2-Value2|T2], [Key1-Value1|T3]) :-
+  Key1 @< Key2, !,
+  merge_pairs_(T1, [Key2-Value2|T2], T3).
+% Key is only present in old dict.
+merge_pairs_([Key1-Value1|T1], [Key2-Value2|T2], [Key2-Value2|T3]) :-
+  Key2 @< Key1, !,
+  merge_pairs_([Key1-Value1|T1], T2, T3).
+% Key is present in both dicts: either merge recursively (for dicts),
+% or take the new value.
+merge_pairs_([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
+  (   maplist(is_dict, [Old,New])
+  ->  merge_dicts(Old, New, Value)
+  ;   Value = New
+  ),
+  merge_pairs_(T1, T2, T3).
+merge_pairs_([], [], []).
