@@ -171,4 +171,5 @@ merge_pairs_([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
   ;   Value = New
   ),
   merge_pairs_(T1, T2, T3).
-merge_pairs_([], [], []).
+merge_pairs_([], L, L) :- !.
+merge_pairs_(L, [], L).
