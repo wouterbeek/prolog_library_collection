@@ -38,7 +38,7 @@ call_default_option(Option, _, Goal_1) :-
 
 %! call_default_value(?Value, :Goal_1) is det.
 %
-% If `Value' is not bound, vall `Goal_1' to determine its default
+% If `Value' is not bound, call `Goal_1' to determine its default
 % value.
 
 call_default_value(Value, _) :-
@@ -49,8 +49,8 @@ call_default_value(Value, Goal_1) :-
 
 %! call_default_value(?Value, :Goal_1, +DefaultValue) is det.
 %
-% If `Value' cannot be determined by calling `Goal_1', using the
-% `DefaultValue' instead.
+% If `Value' cannot be determined by calling `Goal_1', the
+% `DefaultValue' is used instead.
 
 call_default_value(Value, Goal_1, _) :-
   call(Goal_1, Value), !.
