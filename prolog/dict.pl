@@ -167,7 +167,7 @@ merge_pairs_([Key1-Value1|T1], [Key2-Value2|T2], [Key2-Value2|T3]) :-
 % or take the new value.
 merge_pairs_([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
   (   maplist(is_dict, [Old,New])
-  ->  merge_dicts(Old, New, Value)
+  ->  merge_dicts(New, Old, Value)
   ;   Value = New
   ),
   merge_pairs_(T1, T2, T3).
