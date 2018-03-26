@@ -260,9 +260,11 @@ http_metadata_link(Metas, Relation, Uri) :-
 http_metadata_status(In, Metas, Options) :-
   Metas = [Meta|_],
   _{status: Status, uri: Uri} :< Meta,
-  option(success(Success), Options, 200),
-  option(failure(Failure), Options, 400),
-  (   Status =:= Success
+  option(success(Success), Options, 200), % Use `2xx' to succeed for all.
+  option(failure(Failure), Options, 400), % Use `-1' to disable.
+  (   Success == '2xx'
+  ->  true
+  ;   Status =:= Success
   ->  true
   ;   (   ground(In)
       ->  call_cleanup(
