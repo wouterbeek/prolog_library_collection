@@ -242,9 +242,3 @@ pairs_to_set(Pairs, Set):-
 sum_keys(Pairs, Sum) :-
   pairs_keys(Pairs, Keys),
   sum_list(Keys, Sum).
-
-
-%! sum_value(+Pair1, -Pair2) is det.
-
-sum_value(Key-Vals, Key-Val) :-
-  sum_list(Vals, Val).
