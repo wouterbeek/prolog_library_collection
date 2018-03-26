@@ -5,7 +5,7 @@
     increment_counter/1, % +Name
     increment_counter/2, % +Name, -Count
     increment_counter/3, % +Name, +Diff, -Count
-    retract_counter/2    % ?Name, -Count
+    retractall_counter/1 % +Name
   ]
 ).
 
@@ -47,10 +47,7 @@ increment_counter(Name, Diff, N1) :-
 
 
 
-%! retract_counter(?Name:compound, -Count:number) is det.
+%! retractall_counter(?Name:compound) is det.
 
-retract_counter(Name, N) :-
-  with_mutex(counter, (
-    counter(Name, N),
-    retract(counter(Name, N))
-  )).
+retractall_counter(Name) :-
+  retractall(counter(Name,_)).
