@@ -77,7 +77,11 @@ merge_separable_header(Key-[H|T], Key-H) :-
     http_call(+, 1, +).
 
 :- multifile
-    http:post_data_hook/3.
+    http:post_data_hook/3,
+    http:encoding_filter/3.
+
+http:encoding_filter('x-gzip', In1, In2) :-
+  http:encoding_filter(gzip, In1, In2).
 
 :- public
     ssl_verify/5.
