@@ -57,6 +57,7 @@ clean_encoding(Dirty, Clean) :-
   downcase_atom(Dirty, Atom),
   (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
 
+encoding_alias('iso-8859-15.latin1', 'iso8859-15').
 encoding_alias(macroman, macintosh).
 encoding_alias('us-ascii', ascii).
 encoding_alias('utf-8', utf8).
