@@ -24,7 +24,7 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 ```
 
 @author Wouter Beek
-@version 2017/05-2017/12
+@version 2017-2018
 */
 
 :- use_module(library(dict)).
@@ -38,18 +38,10 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
     pagination(+, 0, 1, +, -),
     pagination_bulk(1, +, -).
 
-:- setting(
-     default_page_size,
-     positive_integer,
-     10,
-     "The default number of triples that is retreived in one request."
-   ).
-:- setting(
-     maximum_page_size,
-     positive_integer,
-     100,
-     "The maximum number of triples that can be retrieved in one request."
-   ).
+:- setting(default_page_size, positive_integer, 10,
+           "The default number of triples that is retreived in one request.").
+:- setting(maximum_page_size, positive_integer, 100,
+           "The maximum number of triples that can be retrieved in one request.").
 
 
 
