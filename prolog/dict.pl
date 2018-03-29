@@ -14,7 +14,8 @@
     dict_tag/2,               % +Dict, ?Tag
     dict_tag/3,               % +Dict1, ?Tag, -Dict2
     merge_dicts/2,            % +Dicts, -Dict
-    merge_dicts/3             % +Dict1, +Dict2, -Dict3
+    merge_dicts/3,            % +Dict1, +Dict2, -Dict3
+    nb_increment_dict/2       % +Dict, +Key
   ]
 ).
 
@@ -173,3 +174,12 @@ merge_pairs_([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
   merge_pairs_(T1, T2, T3).
 merge_pairs_([], L, L) :- !.
 merge_pairs_(L, [], L).
+
+
+
+%! nb_increment_dict(+Dict:dict, +Key:atom) is det.
+
+nb_increment_dict(Dict, Key) :-
+  get_dict(Key, Dict, N1),
+  N2 is N1 + 1,
+  nb_set_dict(Key, Dict, N2).
