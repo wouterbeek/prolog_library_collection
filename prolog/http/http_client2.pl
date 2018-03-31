@@ -263,12 +263,11 @@ http_metadata_link(Metas, Relation, Uri) :-
 
 http_metadata_status(In, Metas, Options) :-
   Metas = [Meta|_],
-  _{status: Status, uri: Uri} :< Meta,
   option(success(Success), Options, 200), % Use `2xx' to succeed for all.
   option(failure(Failure), Options, 400), % Use `-1' to disable.
   (   Success == '2xx'
   ->  true
-  ;   Status =:= Success
+  ;   Meta.status =:= Success
   ->  true
   ;   (   ground(In)
       ->  call_cleanup(
@@ -279,7 +278,10 @@ http_metadata_status(In, Metas, Options) :-
       ),
       % Map the failure code to `fail', but throw an error for other
       % error codes.
-      (Status =:= Failure -> fail ; throw(error(http_status(Status,Msg),Uri)))
+      (   Meta.status =:= Failure
+      ->  fail
+      ;   throw(error(http_status(Meta.status,Msg),Meta.uri))
+      )
   ).
 
 
