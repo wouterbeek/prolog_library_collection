@@ -15,7 +15,7 @@
 Extended support for using hashes.
 
 @author Wouter Beek
-@version 2016/07, 2017/08
+@version 2016-2018
 */
 
 :- use_module(library(file_ext)).
@@ -29,12 +29,11 @@ Extended support for using hashes.
 
 %! hash_directory(+Root:atom, +Hash:atom, -Directory:atom) is det.
 
-hash_directory(Root, Hash, Dir) :-
-  atom_codes(Hash, Codes),
-  append([H1,H2], T, Codes),
-  atom_codes(Dir1, [H1,H2]),
-  atom_codes(Dir2, T),
-  append_directories([Root,Dir1,Dir2], Dir).
+hash_directory(Root, Hash, Dir2) :-
+  sub_atom(Hash, 0, 2, _, Subdir1),
+  directory_file_path(Root, Subdir1, Dir1),
+  sub_atom(Hash, 2, _, 0, Subdir2),
+  directory_file_path(Dir1, Subdir2, Dir2).
 
 
 
