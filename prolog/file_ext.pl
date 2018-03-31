@@ -29,6 +29,7 @@
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
+    is_empty_file/1,              % +File
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
@@ -437,6 +438,13 @@ is_dummy_file(..).
 is_empty_directory(Dir) :-
   exists_directory(Dir),
   \+ directory_file(Dir, _).
+
+
+
+%! is_empty_file(+File:atom) is semidet.
+
+is_empty_file(File) :-
+  call_stream_file(File, at_end_of_stream).
 
 
 
