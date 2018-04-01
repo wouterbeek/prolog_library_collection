@@ -26,6 +26,7 @@
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
+    guess_file_encoding/2,        % +File, -Encoding
     image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
@@ -393,6 +394,13 @@ file_name_extensions(File, Name, Extensions) :-
 file_to_string(File, String) :-
   read_file_to_string(File, Codes, []),
   string_codes(String, Codes).
+
+
+
+%! guess_file_encoding(+File:atom, -Encoding:atom) is det.
+
+guess_file_encoding(File, Encoding) :-
+  call_stream_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
 
 
 
