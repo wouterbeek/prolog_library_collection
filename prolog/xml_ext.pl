@@ -4,7 +4,8 @@
     call_on_xml/3,      % +In, +RecordNames, :Goal_1
     call_on_xml/4,      % +In, +RecordNames, :Goal_1, +Options
     load_xml/2,         % +Source, -Dom
-    xml_encoding/2      % +In, -Encoding
+    xml_encoding/2,     % +In, -Encoding
+    xml_file_encoding/2 % +File, -Encoding
   ]
 ).
 
@@ -18,9 +19,11 @@
 :- use_module(library(option)).
 :- use_module(library(pure_input)).
 :- use_module(library(sgml)).
+:- use_module(library(yall)).
 
 :- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
+:- use_module(library(file_ext)).
 :- use_module(library(stream_ext)).
 
 :- meta_predicate
@@ -101,6 +104,13 @@ xml_encoding(In, Encoding) :-
 xml_encoding(Encoding) -->
   'XMLDecl'(_,Encoding,_),
   remainder(_).
+
+
+
+%! xml_file_encoding(+File:atom, -Encoding:atom) is semidet.
+
+xml_file_encoding(File, Encoding) :-
+  call_stream_file(File, {Encoding}/[In]>>xml_encoding(In, Encoding)).
 
 
 
