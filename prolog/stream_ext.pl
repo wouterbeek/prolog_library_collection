@@ -9,7 +9,6 @@
     is_image/2,             % +In, +Options
     number_of_open_files/1, % -N
     read_line_to_atom/2,    % +In, -Atom
-    recode_stream/2,        % +FromEncoding, +In
     recode_stream/3,        % +FromEncoding, +In, -Out
     stream_metadata/3,      % +Stream, +Metadata1, -Metadata2
     stream_hash_metadata/4, % +Stream, +Metadata1, -Metadata2, +Options
@@ -105,8 +104,14 @@ is_image(In, Options) :-
 
 
 
-%! guess_encoding(+In:stream, -Encoding:atom) is det.
+%! guess_encoding(+In:stream, -Encoding:atom) is semidet.
 
+% The value bom causes the stream to check whether the current
+% character is a Unicode BOM marker.  If a BOM marker is found, the
+% encoding is set accordingly and the call succeeds; otherwise the
+% call fails.
+guess_encoding(In, utf8) :-
+  set_stream(In, encoding(bom)), !.
 guess_encoding(In, Encoding) :-
   process_create(
     path(uchardet),
@@ -126,7 +131,8 @@ guess_encoding(In, Encoding) :-
     ),
     close(ProcOut)
   ),
-  clean_encoding(Encoding0, Encoding).
+  clean_encoding(Encoding0, Encoding),
+  Encoding \== unknown.
 
 
 
@@ -146,25 +152,6 @@ read_line_to_atom(In, A) :-
   (   Cs == end_of_file
   ->  !, fail
   ;   atom_codes(A, Cs)
-  ).
-
-
-
-%! recode_stream(+FromEncoding:atom, +In:stream) is det.
-%
-% Recoding to UTF-8 that does not require a new stream.
-
-recode_stream(Encoding, In) :-
-  (   Encoding == octet
-  ->  true
-  ;   % The value bom causes the stream to check whether the current
-      % character is a Unicode BOM marker.  If a BOM marker is found,
-      % the encoding is set accordingly and the call succeeds.
-      % Otherwise the call fails.
-      set_stream(In, encoding(bom))
-  ->  true
-  ;   memberchk(Encoding, [ascii,utf8])
-  ->  set_stream(In, encoding(utf8))
   ).
 
 
