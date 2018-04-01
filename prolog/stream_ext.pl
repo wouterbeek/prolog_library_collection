@@ -10,8 +10,8 @@
     number_of_open_files/1, % -N
     read_line_to_atom/2,    % +In, -Atom
     recode_stream/3,        % +FromEncoding, +In, -Out
-    stream_metadata/3,      % +Stream, +Metadata1, -Metadata2
-    stream_hash_metadata/4, % +Stream, +Metadata1, -Metadata2, +Options
+    stream_metadata/2,      % +Stream, -Metadata
+    stream_hash_metadata/3, % +Stream, -Metadata, +Options
     wc/2                    % +In, -Stats
   ]
 ).
@@ -167,11 +167,11 @@ recode_stream(Encoding, In, Out) :-
 
 
 
-%! stream_hash_metadata(+Stream:stream, +Metadata1:list(dict),
-%!                      -Metadata2:list(dict), +Options:list(compound)) is det.
+%! stream_hash_metadata(+Stream:stream, -Metadata:dict,
+%!                      +Options:list(compound)) is det.
 
-stream_hash_metadata(Stream, [Dict1|Metadata], [Dict3|Metadata], Options) :-
-  stream_metadata(Stream, [Dict1|Metadata], [Dict2|Metadata]),
+stream_hash_metadata(Stream, Meta2, Options) :-
+  stream_metadata(Stream, Meta1),
   (   (   option(md5(Value), Options)
       ->  Key = md5
       ;   option(sha1(Value), Options)
@@ -185,31 +185,26 @@ stream_hash_metadata(Stream, [Dict1|Metadata], [Dict3|Metadata], Options) :-
       ;   option(sha512(Value), Options)
       ->  Key = sha512
       )
-  ->  dict_put(Key, Dict2, Value, Dict3)
-  ;   Dict3 = Dict2
+  ->  dict_put(Key, Meta1, Value, Meta2)
+  ;   Meta2 = Meta1
   ).
 
 
 
-%! stream_metadata(+Stream:stream, +Metadata1:list(dict),
-%!                 -Metadata2:list(dict)) is det.
+%! stream_metadata(+Stream:stream, -Metadata:dict) is det.
 
-stream_metadata(Stream, [Dict1|Metadata], [Dict2|Metadata]) :-
-  stream_property(Stream, position(Position)),
-  stream_position_data(byte_count, Position, NumberOfBytes),
-  stream_position_data(char_count, Position, NumberOfChars),
-  stream_position_data(line_count, Position, NumberOfLines),
+stream_metadata(Stream, Meta) :-
+  stream_property(Stream, position(Pos)),
+  stream_position_data(byte_count, Pos, NumBytes),
+  stream_position_data(char_count, Pos, NumChars),
+  stream_position_data(line_count, Pos, NumLines),
   stream_property(Stream, newline(Newline)),
-  merge_dicts(
-    Dict1,
-    _{
-      newline: Newline,
-      number_of_bytes: NumberOfBytes,
-      number_of_chars: NumberOfChars,
-      number_of_lines: NumberOfLines
-    },
-    Dict2
-  ).
+  Meta = _{
+    bytes: NumBytes,
+    characters: NumChars,
+    lines: NumLines,
+    newline: Newline
+  }.
 
 
 
