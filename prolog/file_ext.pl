@@ -345,6 +345,7 @@ directory_subdirectory(Dir, Local, Subdir) :-
   exists_directory(Subdir).
 directory_subdirectory(Dir, Local, Subdir) :-
   directory_path(Dir, Subdir),
+  exists_directory(Subdir),
   directory_file_path(_, Local, Subdir).
 
 
