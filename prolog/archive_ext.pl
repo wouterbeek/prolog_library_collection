@@ -26,16 +26,36 @@
 
 archive_extension(Ext) :-
   var(Ext), !,
-  archive_media_type_format_(MediaType, _),
+  archive_media_type(MediaType),
   media_type_extension(MediaType, Ext).
 archive_extension(Ext) :-
   media_type_extension(MediaType, Ext),
-  archive_media_type_format_(MediaType, _).
+  archive_media_type(MediaType).
 
 
 
-%! archive_format(+Fromat:atom) is semidet.
-%! archive_format(-Fromat:atom) is multi.
+%! archive_filter(+Filter:atom) is semidet.
+%! archive_filter(-Filter:atom) is multi.
+
+archive_filter(Filter) :-
+  archive_media_type_filter_(_, Filter).
+archive_filter(compress).
+archive_filter(grzip).
+archive_filter(lrzip).
+archive_filter(lzip).
+archive_filter(lzma).
+archive_filter(lzop).
+archive_filter(rpm).
+archive_filter(uu).
+
+archive_media_type_filter_(media(application/'x-bzip2',[]), bzip2).
+archive_media_type_filter_(media(application/gzip,[]), gz).
+archive_media_type_filter_(media(application/'x-xz',[]), xz).
+
+
+
+%! archive_format(+Format:atom) is semidet.
+%! archive_format(-Format:atom) is multi.
 
 archive_format(Format) :-
   archive_media_type_format_(_, Format).
@@ -54,6 +74,8 @@ archive_format(xar).
 %! archive_media_type(+MediaType:compound) is semidet.
 %! archive_media_type(-MediaType:compound) is multi.
 
+archive_media_type(MediaType) :-
+  archive_media_type_filter_(MediaType, _).
 archive_media_type(MediaType) :-
   archive_media_type_format_(MediaType, _).
 
