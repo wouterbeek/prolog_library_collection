@@ -165,6 +165,9 @@ pagination_bulk(Goal_1, Options1, Page2) :-
 pagination_is_at_end(Page) :-
   _{single_page: true} :< Page, !.
 pagination_is_at_end(Page) :-
+  dict_get(total_number_of_results, Page, TotalNumResults),
+  Page.page_number >= ceil(TotalNumResults / Page.page_size), !.
+pagination_is_at_end(Page) :-
   Page.number_of_results < Page.page_size.
 
 
@@ -176,8 +179,7 @@ pagination_is_empty(Page) :-
 
 
 
-%! pagination_options(+Options1:list(compound),
-%!                    -StartPageNumber:positive_integer,
+%! pagination_options(+Options1:list(compound), -StartPageNumber:positive_integer,
 %!                    -PageSize:nonneg, -Options2:list(compound)) is det.
 
 pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
@@ -190,10 +192,8 @@ pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
 
 
 
-%! pagination_page(+Page:dict, +Relation:atom,
-%!                 -PageNumber:positive_integer) is semidet.
-%! pagination_page(+Page:dict, -Relation:atom,
-%!                 -PageNumber:positive_integer) is nondet.
+%! pagination_page(+Page:dict, +Relation:atom, -PageNumber:positive_integer) is semidet.
+%! pagination_page(+Page:dict, -Relation:atom, -PageNumber:positive_integer) is nondet.
 %
 % PageNumber is the first, last, next, and previous page number for
 % Page.

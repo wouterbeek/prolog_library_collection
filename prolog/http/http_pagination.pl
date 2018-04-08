@@ -77,13 +77,13 @@ http_pagination_json(Page) :-
 
 http_pagination_link(Page, Relation, Uri) :-
   pagination_page(Page, Relation, PageNumber),
-  dict_get(query, Page, [], QueryComps1),
+  dict_get(query, Page, [], Query1),
   (   dict_get(page_size, Page, PageSize)
-  ->  QueryComps2 = [page_size(PageSize)|QueryComps1]
-  ;   QueryComps2 = QueryComps1
+  ->  Query2 = [page_size(PageSize)|Query1]
+  ;   Query2 = Query1
   ),
   uri_comps(Page.uri, uri(Scheme,Auth,Segments,_,_)),
-  uri_comps(Uri, uri(Scheme,Auth,Segments,[page(PageNumber)|QueryComps2],_)).
+  uri_comps(Uri, uri(Scheme,Auth,Segments,[page(PageNumber)|Query2],_)).
 
 
 
