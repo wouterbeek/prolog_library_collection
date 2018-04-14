@@ -2,7 +2,9 @@
 :- module(
   debug_ext,
   [
+    debug_call/2,   % +Flag, :Goal_0
     debug_dict/2,   % +Flag, +Dict
+    debug_phrase/2, % +Flag, :Dcg_0
     dmon/0,
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
@@ -15,13 +17,17 @@
 /** <module> Debug extensions
 
 @author Wouter Beek
-@version 2017/09-2018/01
+@version 2017-2018
 */
 
 :- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(pp)).
 :- use_module(library(swi_ide)).
+
+:- meta_predicate
+    debug_call(+, 0),
+    debug_phrase(+, //).
 
 :- thread_local
    debug_indent/1.
@@ -32,6 +38,14 @@ debug_indent(0).
 
 
 
+%! debug_call(+Flag:compound, :Goal_0) is det.
+
+debug_call(Flag, Goal_0) :-
+  with_output_to(string(String), Goal_0),
+  debug(Flag, "~s", [String]).
+
+
+
 %! debug_dict(+Flag:compound, +Dict:dict) is det.
 
 debug_dict(Flag, Dict) :-
@@ -39,6 +53,14 @@ debug_dict(Flag, Dict) :-
   with_output_to(string(String), print_term(Dict)),
   debug(Flag, "~s", [String]).
 debug_dict(_, _).
+
+
+
+%! debug_phrase(+Flag:compound, :Dcg_0) is det.
+
+debug_phrase(Flag, Dcg_0) :-
+  dcg_with_output_to(string(String), Dcg_0),
+  debug(Flag, "~s", [String]).
 
 
 

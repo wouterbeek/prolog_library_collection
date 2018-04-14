@@ -13,7 +13,6 @@
     debug_verbose/2,            % +Flag, :Goal_0
     debug_verbose/3,            % +Flag, :Goal_0, +Format
     debug_verbose/4,            % +Flag, :Goal_0, +Format, +Args
-    debug_with_output_to/2,     % ?Flag, :Goal_0
     if_debug/2,                 % ?Flag, :Goal_0
     indent_debug_call/3         % +Flag, +Format, :Goal_0
   ]
@@ -54,7 +53,6 @@ Tools that ease debugging SWI-Prolog programs.
     debug_verbose(?, 0),
     debug_verbose(?, 0, +),
     debug_verbose(?, 0, +, +),
-    debug_with_output_to(?, 0),
     if_debug(?, 0),
     indent_debug_call(+, +, 0).
 
@@ -194,17 +192,10 @@ debug_verbose(Flag, Goal_0, Fragment, Args) :-
 
 
 
-%! debug_with_output_to(?Flag, :Goal_0) is det.
-
-debug_with_output_to(Flag, Goal_0) :-
-  with_output_to(string(Str), Goal_0),
-  debug(Flag, "~a", [Str]).
-
-
-
 %! if_debug(?Flag, :Goal_0) is det.
-% Calls the given goal only if the given flag is an active debugging topic.
-% Succeeds if Flag is uninstantiated.
+%
+% Calls the given goal only if the given flag is an active debugging
+% topic.  Succeeds if Flag is uninstantiated.
 %
 % @see library(debug)
 

@@ -222,8 +222,8 @@ gv_node(Out, Id, Attrs) :-
 %! gv_open(+Method:atom, +Extension:atom, -ProcIn:stream) is det.
 %
 % Open a GraphViz input stream but no GraphViz output stream.  This is
-% used when _no_ export needs to be created, but content is for
-% example displayed temporarily inside an application.
+% used when _no_ export needs to be created, but content is displayed
+% temporarily inside an application.
 
 gv_open(ProcIn) :-
   setting(default_method, Method),
