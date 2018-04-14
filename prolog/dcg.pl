@@ -39,7 +39,8 @@
     remainder_as_atom//1,   % -Remainder
     remainder_as_string//1, % -Remainder
     string_phrase/2,        % :Dcg_0, ?String
-    string_phrase/3         % :Dcg_0, +String1, -String2
+    string_phrase/3,        % :Dcg_0, +String1, -String2
+    term//1                 % +Term
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -391,3 +392,11 @@ string_phrase(Dcg_0, String1, String2) :-
   string_codes(String1, Codes1),
   phrase(Dcg_0, Codes1, Codes2),
   string_codes(String2, Codes2).
+
+
+
+%! term(+Term)// is det.
+
+term(Term) -->
+  {format(atom(Atom), "~w", [Term])},
+  atom(Atom).
