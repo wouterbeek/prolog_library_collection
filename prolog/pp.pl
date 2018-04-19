@@ -3,6 +3,8 @@
   [
     ansi_format/2,   % +Attributes, +String
     call_pp/1,       % :Goal_1
+    pp_json/1,       % +Dict
+    pp_json/2,       % +Indent, +Dict
     print_term/1,    % +Term
     print_term_nl/1, % +Term
     print_term_nl/2  % +Term, +Options
@@ -16,6 +18,8 @@
 @author Wouter Beek
 @version 2017-2018
 */
+
+:- use_module(library(dict)).
 
 :- meta_predicate
     call_pp(1).
@@ -36,6 +40,49 @@ ansi_format(Attrs, String) :-
 call_pp(Goal_1) :-
   catch(call(Goal_1, Term), E, true),
   (var(E) -> print_term(Term) ; print_message(warning, E)).
+
+
+
+%! pp_json(+Dict:dict) is det.
+%! pp_json(+Indent:nonneg, +Dict:dict) is det.
+
+pp_json(Dict) :-
+  pp_json(0, Dict).
+
+
+pp_json(N1, Dict) :-
+  is_dict(Dict), !,
+  dict_pairs(Dict, Pairs),
+  format("{\n"),
+  N2 is N1 + 1,
+  pp_dict_pairs(N2, Pairs),
+  pp_tab(N1),
+  format("}").
+pp_json(_, N) :-
+  number(N), !,
+  format("~w", [N]).
+pp_json(_, Str) :-
+  string(Str),
+  format('"~s"', [Str]).
+
+pp_dict_pair(N, Key-Value) :-
+  pp_tab(N),
+  format("~a: ", [Key]),
+  pp_json(N, Value).
+
+pp_dict_pairs(N, [H]) :- !,
+  pp_dict_pair(N, H),
+  format("\n").
+pp_dict_pairs(N, [H|T]) :-
+  pp_dict_pair(N, H),
+  format(",\n"),
+  pp_dict_pairs(N, T).
+
+pp_tab(0) :- !.
+pp_tab(N1) :-
+  format("  "),
+  N2 is N1 - 1,
+  pp_tab(N2).
 
 
 
