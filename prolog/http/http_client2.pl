@@ -263,12 +263,16 @@ http_metadata_link(Metas, Relation, Uri) :-
 
 http_metadata_status(In, Metas, Options) :-
   Metas = [Meta|_],
-  option(success(Success), Options, 200), % Use `2xx' to succeed for all.
-  option(failure(Failure), Options, 400), % Use `-1' to disable.
+  % Use `2xx' to succeed for all HTTP success codes.
+  option(success(Success), Options, 200),
+  option(failure(Failure), Options, _),
   (   Success == '2xx'
   ->  true
   ;   Meta.status =:= Success
   ->  true
+  ;   ground(Failure),
+      Meta.status =:= Failure
+  ->  fail
   ;   (   ground(In)
       ->  call_cleanup(
             read_string(In, 1 000, Msg),
@@ -276,12 +280,7 @@ http_metadata_status(In, Metas, Options) :-
           )
       ;   Msg = "no content"
       ),
-      % Map the failure code to `fail', but throw an error for other
-      % error codes.
-      (   Meta.status =:= Failure
-      ->  fail
-      ;   throw(error(http_status(Meta.status,Msg),Meta.uri))
-      )
+      throw(error(http_status(Meta.status,Msg),Meta.uri))
   ).
 
 
@@ -314,7 +313,7 @@ http_metadata_status(In, Metas, Options) :-
 %
 %   * accept(+Accept)
 %
-%     Accept is either a registered file name extension, a Media Types
+%     Accept is either a registered file name extension, a Media Type
 %     compound term, or a list of Media Type compounds.
 %
 %   * failure(+or([-1,between(400,599)]))
@@ -501,12 +500,10 @@ http_open2_(_, In, Status, _, _, [], _) :-
 http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
   http_metadata_content_type([Meta], _MediaType), !.
-/*
-  (   media_type_encoding(MediaType, Encoding)
-  ->  recode_stream(Encoding, In1, In2)
-  ;   In2 = In1
-  ).
-*/
+%  (   media_type_encoding(MediaType, Encoding)
+%  ->  recode_stream(Encoding, In1, In2)
+%  ;   In2 = In1
+%  ).
 % If there is no `Content-Type' header, then there must be no content
 % either.
 http_open2_success_(Uri, In, _, In) :-
