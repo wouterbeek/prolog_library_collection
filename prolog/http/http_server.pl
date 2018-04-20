@@ -254,6 +254,12 @@ http:error_status_message(
     "😿 Your request is incorrect!  You have specified the value ‘~a’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
     [Value,Key,Type]
   ).
+http:error_status_message(error(existence_error(Type,Term),_), 404, Msg) :-
+  format(
+    string(Msg),
+    "😿 Your request is incorrect!  There is no resource denoted by term ‘~w’ of type ‘~w’.",
+    [Term,Type]
+  ).
 http:error_status_message(E, Status, Msg) :-
   gtrace,
   writeln(args(E,Status,Msg)).
