@@ -90,11 +90,6 @@ http:convert_parameter(positive_integer, Atom, Integer) :-
   ;   instantiation_error(positive_integer)
   ).
 
-:- initialization
-   current_prolog_flag(version_data, swi(Major,Minor,Patch,Extra)),
-   format(string(Version), "v~d.~d.~d (~w)", [Major,Minor,Patch,Extra]),
-   set_setting(http:products, ["SWI-Prolog"-Version]).
-
 :- setting(
      http:client_name,
      list(string),
