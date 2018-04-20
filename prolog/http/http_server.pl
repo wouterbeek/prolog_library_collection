@@ -65,6 +65,9 @@
 :- use_module(library(pair_ext)).
 :- use_module(library(uri_ext)).
 
+:- http_handler(/, http_not_found_handler,
+                [methods([get,head,options]),prefix,priority(-1)]).
+
 :- meta_predicate
     rest_media_type(+, 1),
     rest_method(+, 2),
@@ -72,8 +75,10 @@
 
 :- multifile
     error:has_type/2,
-    html:rest_exception/1,
-    http:convert_parameter/3.
+    html:page_exception/2,
+    http:convert_parameter/3,
+    http:error_status_message/3,
+    http:not_found_media_type/2.
 
 error:has_type(or(Types), Term) :-
   member(Type, Types),
@@ -183,6 +188,26 @@ clean_media_type(
 
 
 
+%! http_not_found_handler(+Request:compound) is det.
+%
+% Default HTTP handler for replies with a 404 status code.
+
+http_not_found_handler(Request) :-
+  rest_method(Request, http_not_found_method(Request)).
+
+% GET,HEAD
+http_not_found_method(Request, Method, MediaTypes) :-
+  http_is_get(Method),
+  memberchk(request_uri(Uri), Request),
+  rest_media_type(MediaTypes, http:not_found_media_type(Uri)).
+
+% GET,HEAD: application/json
+http:not_found_media_type(Uri, media(application/json,_)) :-
+  format(string(Msg), "Path ‘~a’ does not exist on this server.", [Uri]),
+  http_reply_json(_{message: Msg, status: 404}).
+
+
+
 %! http_reply_json(+Json) is det.
 
 http_reply_json(Json) :-
@@ -214,27 +239,31 @@ http_server_init(Dict1) :-
 
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
-% Map compound terms to HTTP server error dict.
-rest_exception(MediaTypes, error(existence_error(http_parameter,Key))) :- !,
-  format(string(Message), "", [Key]),
-  rest_exception(MediaTypes, _{message: Message, status: 400}).
-rest_exception(MediaTypes, error(instantiation_error,_)) :- !,
-  rest_exception(MediaTypes, error(http_server(_{message: "Instantiation error", status: 400}))).
-rest_exception(MediaTypes, error(representation_error(_),_)) :- !,
-  rest_exception(MediaTypes, error(http_server(_{message: "Representation error", status: 400}))).
-% Try to return the exception reply in an acceptable Media Type first.
-rest_exception(MediaTypes, error(http_server(Dict))) :- !,
+rest_exception(MediaTypes, E) :-
+  http:error_status_message(E, Status, Msg),
   member(MediaType, MediaTypes),
-  rest_exception_media_type(MediaType, Dict), !.
-% The exception reply cannot be returned in an acceptable Media Type.
-rest_exception(_, error(http_server(Dict))) :-
-  format("Status: ~d\n\n", [Dict.status]).
+  rest_exception_media_type(MediaType, Status, Msg), !.
 
-% HTML hookable by a specific website style.
-rest_exception_media_type(media(text/html,_), Dict) :-
-  html:rest_exception(Dict).
-rest_exception_media_type(media(application/json,_), Dict) :-
-  reply_json_dict(Dict, [status(Dict.status)]).
+http:error_status_message(
+  error(type_error(Type,Value),context(_,http_parameter(Key))),
+  400,
+  Msg
+) :-
+  format(
+    string(Msg),
+    "😿 Your request is incorrect!  You have specified the value ‘~a’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
+    [Value,Key,Type]
+  ).
+http:error_status_message(E, Status, Msg) :-
+  gtrace,
+  writeln(args(E,Status,Msg)).
+
+% application/json
+rest_exception_media_type(media(application/json,_), Status, Msg) :-
+  reply_json_dict(_{message: Msg, status: Status}, [status(Status)]).
+% text/html
+rest_exception_media_type(media(text/html,_), Status, Msg) :-
+  html:page_exception(Status, Msg).
 
 
 
