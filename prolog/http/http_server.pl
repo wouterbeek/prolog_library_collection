@@ -244,17 +244,20 @@ rest_exception(MediaTypes, E) :-
   member(MediaType, MediaTypes),
   rest_exception_media_type(MediaType, Status, Msg), !.
 
-http:error_status_message(
-  error(type_error(Type,Value),context(_,http_parameter(Key))),
-  400,
-  Msg
-) :-
+http:error_status_message(error(type_error(Type,Value),context(_,Context)), 400, Msg) :-
+  var(Context), !,
   format(
     string(Msg),
-    "😿 Your request is incorrect!  You have specified the value ‘~a’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
+    "😿 Your request is incorrect!  You have specified the value ‘~w’.  However, the value must be of type ‘~w’.",
+    [Value,Type]
+  ).
+http:error_status_message(error(type_error(Type,Value),context(_,http_parameter(Key))), 400, Msg) :- !,
+  format(
+    string(Msg),
+    "😿 Your request is incorrect!  You have specified the value ‘~w’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
     [Value,Key,Type]
   ).
-http:error_status_message(error(existence_error(Type,Term),_), 404, Msg) :-
+http:error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
   format(
     string(Msg),
     "😿 Your request is incorrect!  There is no resource denoted by term ‘~w’ of type ‘~w’.",
