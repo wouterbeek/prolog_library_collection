@@ -78,7 +78,8 @@
     html:page_exception/2,
     http:convert_parameter/3,
     http:error_status_message/3,
-    http:not_found_media_type/2.
+    http:not_found_media_type/2,
+    http:param/2.
 
 error:has_type(or(Types), Term) :-
   member(Type, Types),
@@ -244,6 +245,13 @@ rest_exception(MediaTypes, E) :-
   member(MediaType, MediaTypes),
   rest_exception_media_type(MediaType, Status, Msg), !.
 
+http:error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :-
+  atomics_to_string(Keys, ", ", KeysLabel),
+  format(
+    string(Msg),
+    "😿 Your request is incorrect!  You have specified the following conflicting HTTP parameters: ‘[~s]’.",
+    [KeysLabel]
+  ).
 http:error_status_message(
   error(type_error(Type,Value),context(_,http_parameter(Key))),
   400,
@@ -336,17 +344,7 @@ rest_options(Methods) :-
 %! rest_parameters(+Request:compound, +Parameters:list(compound)) is det.
 
 rest_parameters(Request, Params) :-
-  catch(
-    http_parameters(Request, Params, [attribute_declarations(http:param)]),
-    _,
-    fail
-  ), !.
-rest_parameters(_, _) :-
-  throw(
-    error(
-      http_server(_{message: "Could not read HTTP parameters.", status: 400})
-    )
-  ).
+  http_parameters(Request, Params, [attribute_declarations(http:param)]).
 
 
 
