@@ -282,10 +282,9 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
 %! rest_options(+Methods:list(atom)) is det.
 
 rest_options(Methods) :-
-  setting(http:products, Products),
   format("Status: 204\n"),
   write_allow_header(Methods),
-  write_server_header(Products),
+  write_server_header,
   nl.
 
 
@@ -306,10 +305,10 @@ rest_parameters(Request, Params) :-
 
 write_allow_header([H|T]) :-
   format("Allow: ~a", [H]),
-  maplist(write_allow_header_, T),
+  maplist(write_sep_allow, T),
   nl.
 
-write_allow_header_(X) :-
+write_sep_allow(X) :-
   format(", ~a", [X]).
 
 
@@ -322,17 +321,21 @@ write_allow_header_(X) :-
 % product-version = token
 % ```
 
-write_server_header([H|T]) :-
+write_server_header :-
+  setting(http:products, Products),
+  write_products(Products).
+
+write_products([H|T]) :-
   format("Server: "),
-  product_(H),
-  maplist(write_server_header_, T),
+  write_product(H),
+  maplist(write_sep_product, T),
   nl.
 
-write_server_header_(X) :-
-  format(" "),
-  product_(X).
-
-product_(X-Y) :- !,
+write_product(X-Y) :- !,
   format("~a/~a", [X,Y]).
-product_(X) :- !,
+write_product(X) :- !,
   format("~a", [X]).
+
+write_sep_product(X) :-
+  format(" "),
+  write_product(X).
