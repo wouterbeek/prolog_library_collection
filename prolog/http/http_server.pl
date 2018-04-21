@@ -19,34 +19,6 @@
 
 /** <module> HTTP Server
 
-401 Unauthorized (RFC 7235)
-402 Payment Required
-403 Forbidden
-404 Not Found
-405 Method Not Allowed
-406 Unacceptable
-407 Proxy Authentication Required (RFC 7235)
-408 Request Time-out
-409 Conflict
-410 Gone
-411 Length Required
-412 Precondition Failed (RFC 7232)
-413 Payload Too Large (RFC 7231)
-414 URI Too Long (RFC 7231)
-415 Unsupported Media Type
-416 Range Not Satisfiable (RFC 7233)
-417 Expectation Failed
-418 I'm a teapot (RFC 2324)
-421 Misdirected Request (RFC 7540)
-422 Unprocessable Entity (WebDAV; RFC 4918)
-423 Locked (WebDAV; RFC 4918)
-424 Failed Dependency (WebDAV; RFC 4918)
-426 Upgrade Required
-428 Precondition Required (RFC 6585)
-429 Too Many Requests (RFC 6585)
-431 Request Header Fields Too Large (RFC 6585)
-451 Unavailable For Legal Reasons
-
 @author Wouter Beek
 @version 2017-2018
 */
@@ -91,24 +63,6 @@ http:convert_parameter(positive_integer, Atom, Integer) :-
   ;   instantiation_error(positive_integer)
   ).
 
-:- setting(
-     http:client_name,
-     list(string),
-     ["SWI-Prolog"],
-     "The name of the client that creates HTTP replies."
-   ).
-:- setting(
-     http:data_host,
-     atom,
-     'example.org',
-     "The authority component of data IRIs."
-   ).
-:- setting(
-     http:data_scheme,
-     oneof([http,https]),
-     https,
-     "The scheme components of data IRIs."
-   ).
 :- setting(
      http:products,
      list(pair(string)),
