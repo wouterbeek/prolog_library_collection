@@ -4,7 +4,7 @@
     data_uri/2,                % +Segments, -Uri
     http_absolute_location/2,  % +Spec, -Path
     http_current_location/1,   % -Uri
-    http_parameter_conflict/2, % +Param1, +Param2
+    http_parameter_conflict/2, % +Parameter1, +Parameter2
     http_server_init/1,        % +Dict
     http_is_get/1,             % +Method
     http_link_to_id/2,         % +HandleId, -Local
@@ -159,11 +159,12 @@ http:not_found_media_type(Uri, media(application/json,_)) :-
 
 
 
-%! http_parameter_conflict(+Parameter1:pair(atom,term),
-%!                         +Parameter2:pair(atom,term)) is det.
+%! http_parameter_conflict(+Parameter1:compound, +Parameter2:compound) is det.
 
-http_parameter_conflict(Key1-Value1, Key2-Value2) :-
-  ground([Value1,Value2]), !,
+http_parameter_conflict(Param1, Param2) :-
+  ground([Param1,Param2]), !,
+  Param1 =.. [Key1,_],
+  Param2 =.. [Key2,_],
   throw(error(conflicting_http_parameters([Key1,Key2]))).
 http_parameter_conflict(_, _).
 
