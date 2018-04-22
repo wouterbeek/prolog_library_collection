@@ -229,6 +229,12 @@ http:error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
     "😿 Your request is incorrect!  There is no resource denoted by term ‘~w’ of type ‘~w’.",
     [Term,Type]
   ).
+http:error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :- !,
+  format(
+    string(Msg),
+    "Could not parse according to the ~a grammar: “~a”",
+    [Language,Atom]
+  ).
 http:error_status_message(E, Status, Msg) :-
   gtrace,
   writeln(args(E,Status,Msg)).
