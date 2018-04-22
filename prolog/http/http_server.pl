@@ -1,19 +1,20 @@
 :- module(
   http_server,
   [
-    data_uri/2,               % +Segments, -Uri
-    http_absolute_location/2, % +Spec, -Path
-    http_current_location/1,  % -Uri
-    http_server_init/1,       % +Dict
-    http_is_get/1,            % +Method
-    http_link_to_id/2,        % +HandleId, -Local
-    http_media_types/2,       % +Request, -MediaTypes
-    http_reply_json/1,        % +Json
-    rest_media_type/2,        % +MediaTypes, :Goal_1
-    rest_method/2,            % +Request, :Goal_2
-    rest_method/4,            % +Request, +HandleId, :Plural_2, :Singular_3
-    rest_options/1,           % +Methods
-    rest_parameters/2         % +Request, +Parameters
+    data_uri/2,                % +Segments, -Uri
+    http_absolute_location/2,  % +Spec, -Path
+    http_current_location/1,   % -Uri
+    http_parameter_conflict/2, % +Param1, +Param2
+    http_server_init/1,        % +Dict
+    http_is_get/1,             % +Method
+    http_link_to_id/2,         % +HandleId, -Local
+    http_media_types/2,        % +Request, -MediaTypes
+    http_reply_json/1,         % +Json
+    rest_media_type/2,         % +MediaTypes, :Goal_1
+    rest_method/2,             % +Request, :Goal_2
+    rest_method/4,             % +Request, +HandleId, :Plural_2, :Singular_3
+    rest_options/1,            % +Methods
+    rest_parameters/2          % +Request, +Parameters
   ]
 ).
 
@@ -155,6 +156,16 @@ http_not_found_method(Request, Method, MediaTypes) :-
 http:not_found_media_type(Uri, media(application/json,_)) :-
   format(string(Msg), "Path ‘~a’ does not exist on this server.", [Uri]),
   http_reply_json(_{message: Msg, status: 404}).
+
+
+
+%! http_parameter_conflict(+Parameter1:pair(atom,term),
+%!                         +Parameter2:pair(atom,term)) is det.
+
+http_parameter_conflict(Key1-Value1, Key2-Value2) :-
+  ground([Value1,Value2]), !,
+  throw(error(conflicting_http_parameters([Key1,Key2]))).
+http_parameter_conflict(_, _).
 
 
 
