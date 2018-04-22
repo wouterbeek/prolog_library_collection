@@ -1,10 +1,11 @@
 :- module(
   pagination,
   [
-    pagination/3,           % +Pattern, :Goal_0, -Page
-    pagination/4,           % +Pattern, :Goal_0, +Options, -Page
-    pagination/5,           % +Pattern, :Goal_0, :Estimate_1, +Options, -Page
+    pagination/3,           % +Template, :Goal_0, -Page
+    pagination/4,           % +Template, :Goal_0, +Options, -Page
+    pagination/5,           % +Template, :Goal_0, :Estimate_1, +Options, -Page
     pagination_bulk/3,      % :Goal_1, +Options, -Page
+    pagination_bulk/4,      % +Template, :Goal_0, +Options, -Page
     pagination_is_at_end/1, % +Result
     pagination_is_empty/1,  % +Result
     pagination_page/3,      % +Page, ?Relation, -PageNumber
@@ -27,16 +28,18 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 @version 2017-2018
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(list_ext)).
 :- use_module(library(settings)).
 
 :- meta_predicate
-    pagination(+, 0, -),
-    pagination(+, 0, +, -),
-    pagination(+, 0, 1, +, -),
-    pagination_bulk(1, +, -).
+    pagination(?, 0, -),
+    pagination(?, 0, +, -),
+    pagination(?, 0, 1, +, -),
+    pagination_bulk(1, +, -),
+    pagination_bulk(?, 0, +, -).
 
 :- setting(default_page_size, positive_integer, 10,
            "The default number of triples that is retreived in one request.").
@@ -130,10 +133,19 @@ pagination(Templ, Goal_0, Estimate_1, Options1, Page2) :-
 
 
 %! pagination_bulk(:Goal_1, +Options:list(compound), -Page:dict) is nondet.
+%! pagination_bulk(?Template, :Goal_0, +Options:list(compound), -Page:dict) is nondet.
 
-pagination_bulk(Goal_1, Options1, Page2) :-
-  pagination_options(Options1, StartPageNumber, PageSize, Options2),
+pagination_bulk(Goal_1, Options, Page) :-
   call(Goal_1, AllResults),
+  pagination_bulk_(AllResults, Options, Page).
+
+
+pagination_bulk(Templ, Goal_0, Options, Page) :-
+  aggregate_all(set(Templ), Goal_0, AllResults),
+  pagination_bulk_(AllResults, Options, Page).
+
+pagination_bulk_(AllResults, Options1, Page2) :-
+  pagination_options(Options1, StartPageNumber, PageSize, Options2),
   length(AllResults, TotalNumberOfResults),
   NumberOfPages is ceil(TotalNumberOfResults / PageSize),
   must_be(between(1, NumberOfPages), StartPageNumber),
