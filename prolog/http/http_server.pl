@@ -237,9 +237,8 @@ error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :-
     "Could not parse according to the ~a grammar: “~a”",
     [Language,Atom]
   ).
-error_status_message(E, Status, Msg) :-
-  gtrace,
-  writeln(args(E,Status,Msg)).
+error_status_message(E, 500, Msg) :-
+  format(string(Msg), "The following error occurred on the server: ‘~w’.", [E]).
 
 % application/json
 rest_exception_media_type(media(application/json,_), Status, Msg) :-
