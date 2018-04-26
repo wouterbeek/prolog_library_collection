@@ -154,7 +154,7 @@ http_not_found_method(Request, Method, MediaTypes) :-
 
 % GET,HEAD: application/json
 http:not_found_media_type(Uri, media(application/json,_)) :-
-  format(string(Msg), "Path ‘~a’ does not exist on this server.", [Uri]),
+  format(string(Msg), "😿 Path ‘~a’ does not exist on this server.", [Uri]),
   http_reply_json(_{message: Msg, status: 404}).
 
 
@@ -201,10 +201,24 @@ http_server_init(Dict1) :-
 
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
+rest_exception(_, http_error(media_types_not_supported(MediaTypes))) :- !,
+  format(
+    string(Msg),
+    "😿 None of the specified Media Types is supported: “~w”.",
+    MediaTypes
+  ),
+  rest_exception_media_type(media(application/json,_), 406, Msg).
 rest_exception(MediaTypes, E) :-
   error_status_message(E, Status, Msg),
   member(MediaType, MediaTypes),
   rest_exception_media_type(MediaType, Status, Msg), !.
+
+% application/json
+rest_exception_media_type(media(application/json,_), Status, Msg) :-
+  reply_json_dict(_{message: Msg, status: Status}, [status(Status)]).
+% text/html
+rest_exception_media_type(media(text/html,_), Status, Msg) :-
+  html:page_exception(Status, Msg).
 
 error_status_message(E, Status, Msg) :-
   http:error_status_message_hook(E, Status, Msg), !.
@@ -234,18 +248,17 @@ error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
 error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :- !,
   format(
     string(Msg),
-    "Could not parse according to the ~a grammar: “~a”",
+    "😿 Could not parse according to the ~a grammar: “~a”",
     [Language,Atom]
   ).
+error_status_message(http_error(method_not_allowed(Method)), 405, Msg) :- !,
+  format(
+    string(Msg),
+    "😿 HTTP method ‘~a’ is not allowed for this path.",
+    [Method]
+  ).
 error_status_message(E, 500, Msg) :-
-  format(string(Msg), "The following error occurred on the server: ‘~w’.", [E]).
-
-% application/json
-rest_exception_media_type(media(application/json,_), Status, Msg) :-
-  reply_json_dict(_{message: Msg, status: Status}, [status(Status)]).
-% text/html
-rest_exception_media_type(media(text/html,_), Status, Msg) :-
-  html:page_exception(Status, Msg).
+  format(string(Msg), "😿 The following error occurred on the server: ‘~w’.", [E]).
 
 
 
@@ -255,7 +268,7 @@ rest_media_type(MediaTypes, Goal_1) :-
   member(MediaType, MediaTypes),
   call(Goal_1, MediaType), !.
 rest_media_type(MediaTypes, _) :-
-  rest_exception(MediaTypes, error(http_server(_{status: 406}))).
+  rest_exception(MediaTypes, http_error(media_types_not_supported(MediaTypes))).
 
 
 
@@ -276,7 +289,7 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
   ;   % 405 Method Not Allowed
       \+ memberchk(Method, Methods)
   ->  http_media_types(Request, MediaTypes),
-      rest_exception(MediaTypes, error(http_server(_{status: 405})))
+      rest_exception(MediaTypes, http_error(method_not_allowed(Method)))
   ;   % `Method' is one of the accepted `Methods'.
       memberchk(request_uri(Uri), Request),
       % Remove the query and fragment components from the URI in order

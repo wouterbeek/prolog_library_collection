@@ -527,6 +527,6 @@ http_msg(Flag, Status, Lines) :-
   debug(Flag, "", []).
 
 http_header_msg(Flag, Key1-Value) :-
-  (http_known(Key1) -> true ; gtrace),
+  (http_known(Key1) -> true ; trace),
   capitalize_atom(Key1, Key2),
   debug(Flag, "< ~a: ~a", [Key2,Value]).
