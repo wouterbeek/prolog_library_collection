@@ -50,7 +50,7 @@
     error:has_type/2,
     html:page_exception/2,
     http:convert_parameter/3,
-    http:error_status_message/3,
+    http:error_status_message_hook/3,
     http:not_found_media_type/2,
     http:param/2.
 
@@ -202,18 +202,20 @@ http_server_init(Dict1) :-
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
 rest_exception(MediaTypes, E) :-
-  http:error_status_message(E, Status, Msg),
+  error_status_message(E, Status, Msg),
   member(MediaType, MediaTypes),
   rest_exception_media_type(MediaType, Status, Msg), !.
 
-http:error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :-
+error_status_message(E, Status, Msg) :-
+  http:error_status_message_hook(E, Status, Msg), !.
+error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :-
   atomics_to_string(Keys, ", ", KeysLabel),
   format(
     string(Msg),
     "😿 Your request is incorrect!  You have specified the following conflicting HTTP parameters: ‘[~s]’.",
     [KeysLabel]
   ).
-http:error_status_message(
+error_status_message(
   error(type_error(Type,Value),context(_,http_parameter(Key))),
   400,
   Msg
@@ -223,19 +225,19 @@ http:error_status_message(
     "😿 Your request is incorrect!  You have specified the value ‘~w’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
     [Value,Key,Type]
   ).
-http:error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
+error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
   format(
     string(Msg),
     "😿 Your request is incorrect!  There is no resource denoted by term ‘~w’ of type ‘~w’.",
     [Term,Type]
   ).
-http:error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :- !,
+error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :- !,
   format(
     string(Msg),
     "Could not parse according to the ~a grammar: “~a”",
     [Language,Atom]
   ).
-http:error_status_message(E, Status, Msg) :-
+error_status_message(E, Status, Msg) :-
   gtrace,
   writeln(args(E,Status,Msg)).
 
