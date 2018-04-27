@@ -55,7 +55,6 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(error)).
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
-:- use_module(library(http/http_generic)).
 :- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_path)).
@@ -65,6 +64,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
+:- use_module(library(http/http_generic)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -266,12 +266,14 @@ http_metadata_status(In, Metas, Options) :-
   % Use `2xx' to succeed for all HTTP success codes.
   option(success(Success), Options, 200),
   option(failure(Failure), Options, _),
+  Status = Meta.status,
+  must_be(http_status, Status),
   (   Success == '2xx'
   ->  true
-  ;   Meta.status =:= Success
+  ;   Status =:= Success
   ->  true
   ;   ground(Failure),
-      Meta.status =:= Failure
+      Status =:= Failure
   ->  fail
   ;   (   ground(In)
       ->  call_cleanup(
@@ -280,7 +282,7 @@ http_metadata_status(In, Metas, Options) :-
           )
       ;   Msg = "no content"
       ),
-      throw(error(http_status(Meta.status,Msg),Meta.uri))
+      throw(http(status(Status,Msg),Meta.uri))
   ).
 
 

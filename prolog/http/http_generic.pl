@@ -9,7 +9,7 @@
 /** <module> HTTP generics
 
 @author Wouter Beek
-@version 2017/08-2017/09
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -18,7 +18,21 @@
 :- use_module(library(http/http_header), []).
 
 :- multifile
+    error:hdt_type/2,
+    http_header:status_comment//1,
+    http_header:status_number_fact/2,
     uri:default_port/2.
+
+error:has_type(http_status, Status) :-
+  http_header:status_number_fact(_, Status).
+
+http_header:status_number_fact(522, 522).
+http_header:status_number_fact(523, 523).
+
+http_header:status_comment(522) -->
+  "CloudFlare: Connection timed out".
+http_header:status_comment(523) -->
+  "CloudFlare: Origin is unreachable".
 
 uri:default_port(http, 80).
 uri:default_port(https, 443).
