@@ -11,9 +11,9 @@
     http_metadata_last_modified/2, % +Uri, -Time
     http_metadata_link/3,          % +Metas, +Relation, -Uri
     http_metadata_status/2,        % +Metas, -Status
-    http_metadata_status/4,        % +In, +Metas, ?Failure, ?Success
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
+    http_status/4,                 % +In, +Metas, +Failure, +Success
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -268,49 +268,6 @@ http_metadata_status(Metas, Status) :-
 
 
 
-%! http_metadata_status(+In:stream, +Metas:list(dict),
-%!                      ?Failure:between(400,599),
-%!                      ?Success:or([oneof(['2xx']),beteen(200,299)])) is det.
-%
-% @arg Failure
-%
-%      If supplied, maps an HTTP code onto Prolog failure.
-%
-% @arg Success
-%
-%      If supplied, maps an HTTP code onto Prolog success.
-
-http_metadata_status(In, Metas, Failure, Success) :-
-  Metas = [Meta|_],
-  Status = Meta.status,
-  must_be(http_status, Status),
-  (   % Mapped to Prolog failure.
-      ground(Failure),
-      Status =:= Failure
-  ->  fail
-  ;   % Mapped to Prolog success.
-      ground(Success),
-      (Success == '2xx' -> between(200, 299, Status) ; Status =:= Success)
-  ->  true
-  ;   % HTTP status code 2xx, but not the one mapped to Prolog
-      % success.
-      ground(Success)
-  ->  http_metadata_status_error(In, Status, Meta.uri)
-  ;   % HTTP status code 2xx, but nothing is mapped to Prolog success.
-      between(200, 299, Status)
-  ->  true
-  ;   http_metadata_status_error(In, Status, Meta.uri)
-  ).
-
-http_metadata_status_error(In, Status, Uri) :-
-  call_cleanup(
-    read_string(In, 1 000, Msg),
-    close(In)
-  ),
-  throw(http(status(Status,Msg),Uri)).
-
-
-
 %! http_open2(+CurrentUri:atom, -In:stream) is det.
 %! http_open2(+CurrentUri:atom, -In:stream, +Options:list(compound)) is det.
 %
@@ -376,7 +333,18 @@ http_open2(CurrentUri, In, Options1) :-
   http_open2_(CurrentUri, In, State, Metas0, Options2),
   reverse(Metas0, Metas),
   % Instantiate the next/1 option.
-  ignore(http_metadata_link(Metas, next, NextUri)).
+  ignore(http_metadata_link(Metas, next, NextUri)),
+  http_status_(In, Metas, Options1).
+
+http_status_(In, Metas, Options) :-
+  option(failure(Failure), Options),
+  option(success(Success), Options, 200), !,
+  http_status(In, Metas, Failure, Success).
+http_status_(In, Metas, Options) :-
+  option(success(Success), Options),
+  option(failure(Failure), Options, 400), !,
+  http_status(In, Metas, Failure, Success).
+http_status_(_, _, _).
 
 http_options_(Options1, State, Options3) :-
   (   select_option(accept(Accept), Options1, Options2)
@@ -572,6 +540,45 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
+
+
+
+%! http_status(+In:stream, +Metas:list(dict), +Failure:between(400,599),
+%!             +Success:beteen(200,299)) is det.
+%
+% @arg Failure
+%
+%      If supplied, maps an HTTP code onto Prolog failure.
+%
+% @arg Success
+%
+%      If supplied, maps an HTTP code onto Prolog success.
+
+http_status(In, Metas, Failure, Success) :-
+  Metas = [Meta|_],
+  Status = Meta.status,
+  must_be(http_status, Status),
+  (   % HTTP failure codes.
+      between(400, 599, Status)
+  ->  (   Status =:= Failure
+      ->  fail
+      ;   http_status_error(In, Status, Meta.uri)
+      )
+  ;   % HTTP success codes.  The asserion indicates that we do not
+      % expect a 1xx or 3xx status code here.
+      assertion(between(200, 299, Status))
+  ->  (   Status =:= Success
+      ->  true
+      ;   http_status_error(In, Status, Meta.uri)
+      )
+  ).
+
+http_status_error(In, Status, Uri) :-
+  call_cleanup(
+    read_string(In, 1 000, Msg),
+    close(In)
+  ),
+  throw(http(status(Status,Msg),Uri)).
 
 
 
