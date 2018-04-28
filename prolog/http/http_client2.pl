@@ -10,6 +10,8 @@
     http_metadata_final_uri/2,     % +Metas, -Uri
     http_metadata_last_modified/2, % +Uri, -Time
     http_metadata_link/3,          % +Metas, +Relation, -Uri
+    http_metadata_status/2,        % +Metas, -Status
+    http_metadata_status/4,        % +In, +Metas, ?Failure, ?Success
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
   % DEBUGGING
@@ -258,32 +260,54 @@ http_metadata_link(Metas, Relation, Uri) :-
 
 
 
-%! http_metadata_status(+In:stream, +Metas:list(dict),
-%!                      +Options:list(compound)) is det.
+%! http_metadata_status(+Metas:list(dict), -Success:between(100,599)) is det.
 
-http_metadata_status(In, Metas, Options) :-
+http_metadata_status(Metas, Status) :-
   Metas = [Meta|_],
-  % Use `2xx' to succeed for all HTTP success codes.
-  option(success(Success), Options, 200),
-  option(failure(Failure), Options, _),
+  Status = Meta.status.
+
+
+
+%! http_metadata_status(+In:stream, +Metas:list(dict),
+%!                      ?Failure:between(400,599),
+%!                      ?Success:or([oneof(['2xx']),beteen(200,299)])) is det.
+%
+% @arg Failure
+%
+%      If supplied, maps an HTTP code onto Prolog failure.
+%
+% @arg Success
+%
+%      If supplied, maps an HTTP code onto Prolog success.
+
+http_metadata_status(In, Metas, Failure, Success) :-
+  Metas = [Meta|_],
   Status = Meta.status,
   must_be(http_status, Status),
-  (   Success == '2xx'
-  ->  true
-  ;   Status =:= Success
-  ->  true
-  ;   ground(Failure),
+  (   % Mapped to Prolog failure.
+      ground(Failure),
       Status =:= Failure
   ->  fail
-  ;   (   ground(In)
-      ->  call_cleanup(
-            read_string(In, 1 000, Msg),
-            close(In)
-          )
-      ;   Msg = "no content"
-      ),
-      throw(http(status(Status,Msg),Meta.uri))
+  ;   % Mapped to Prolog success.
+      ground(Success),
+      (Success == '2xx' -> between(200, 299, Status) ; Status =:= Success)
+  ->  true
+  ;   % HTTP status code 2xx, but not the one mapped to Prolog
+      % success.
+      ground(Success)
+  ->  http_metadata_status_error(In, Status, Meta.uri)
+  ;   % HTTP status code 2xx, but nothing is mapped to Prolog success.
+      between(200, 299, Status)
+  ->  true
+  ;   http_metadata_status_error(In, Status, Meta.uri)
   ).
+
+http_metadata_status_error(In, Status, Uri) :-
+  call_cleanup(
+    read_string(In, 1 000, Msg),
+    close(In)
+  ),
+  throw(http(status(Status,Msg),Uri)).
 
 
 
@@ -318,11 +342,6 @@ http_metadata_status(In, Metas, Options) :-
 %     Accept is either a registered file name extension, a Media Type
 %     compound term, or a list of Media Type compounds.
 %
-%   * failure(+or([-1,between(400,599)]))
-%
-%     Default is 400.  -1 means that no status code is mapped onto
-%     failure.
-%
 %   * metadata(-list(dict))
 %
 %   * number_of_hops(+positive_integer)
@@ -342,10 +361,6 @@ http_metadata_status(In, Metas, Options) :-
 %     receiving an HTTP error code (i.e., HTTP status codes 400
 %     through 599).  The default is 1.
 %
-%   * success(+between(200,299))
-%
-%     Default is 200.
-%
 %   * Other options are passed to http_open/3.
 
 http_open2(CurrentUri, In) :-
@@ -353,12 +368,14 @@ http_open2(CurrentUri, In) :-
 
 
 http_open2(CurrentUri, In, Options1) :-
+  % Allow the next/1 option to be instantiated later.
   ignore(option(next(NextUri), Options1)),
+  % Allow the metadata/1 optiont to be instantiated later.
   ignore(option(metadata(Metas), Options1)),
   http_options_(Options1, State, Options2),
   http_open2_(CurrentUri, In, State, Metas0, Options2),
   reverse(Metas0, Metas),
-  http_metadata_status(In, Metas, Options2),
+  % Instantiate the next/1 option.
   ignore(http_metadata_link(Metas, next, NextUri)).
 
 http_options_(Options1, State, Options3) :-
