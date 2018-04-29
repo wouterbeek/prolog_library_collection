@@ -20,8 +20,6 @@
     http_put/4,                  % +Uri, +Data, :Goal_3, +Opts
     http_retry_until_success/1,  % :Goal_0
     http_retry_until_success/2,  % :Goal_0, +Timeout
-    http_status_must_be/2,       % +Status, +Succeeds
-    http_status_must_be/3,       % +Status, +Succeeds, +Fails
     http_throw_bad_request/1     % :Goal_0
   ]
 ).
@@ -152,154 +150,6 @@ http_is_scheme(https).
 
 
 
-%! http_open_any(+Uri, -In, -Path, +Opts) is det.
-%
-% The following options are supported:
-%
-%   * max_redirects(+nonneg) Default is 5.
-%
-%   * max_retries(+nonneg) Default is 1.
-%
-%   * metadata(-list(dict))
-%
-%     Contains the following keys:
-%
-%       * '@id'(atom)
-%
-%       * '@type'(oneof([uri]))
-%
-%       * headers(list(list(code)))
-%
-%       * status(between(100,599))
-%
-%       * time(float)
-%
-%       * version(dict)
-%
-%         Contains the following keys:
-%
-%           * major(nonneg)
-%
-%           * minor(nonneg)
-%
-%   * method(+oneof([delete,get,head,options,post,put])
-%
-%     Default is `true`.
-%
-%   * status(-between(100,599))
-%
-%     The HTTP status code of the _last_ reply message.
-%
-%   * verbose(+oneof([all,error,none]))
-%
-%     Whether all, error or no messages are printed.  Default is
-%     `error`.
-%
-% Since InPath returns an entry list that may contain headers from
-% multiple consecutive HTTP replies, option header/1 is not supported.
-
-http_open_any(Uri, In, InPath, Opts) :-
-  option(max_redirects(MaxRedirect), Opts, 5),
-  option(max_retries(MaxRetry), Opts, 1),
-  State = _{
-    max_redirects: MaxRedirect,
-    max_retries: MaxRetry,
-    redirects: 0,
-    retries: 0,
-    visited: []
-  },
-  (   option(verbose(all), Opts)
-  ->  Flags = [http(reply),http(send_request)]
-  ;   Flags = []
-  ),
-  option(method(Method), Opts, get),
-  debug_call(Flags, http_open1(Uri, Method, State, In, InPath0, Opts)),
-  reverse(InPath0, InPath).
-
-http_open1(Uri, Method, State, In2, [InEntry|InPath], Opts) :-
-  copy_term(Opts, OldOpts),
-  setting(http:user_agent, UA),
-  NewOpts = [
-    authenticate(false),
-    cert_verify_hook(cert_accept_any),
-    header(location,Location),
-    method(Method),
-    raw_headers(Lines),
-    redirect(false),
-    status_code(Status),
-    user_agent(UA),
-    version(Major-Minor)
-  ],
-  merge_options(NewOpts, OldOpts, HttpOpts),
-  option(timeout(Time), Opts, inf),
-  call_timeout(
-    Time,
-    call_statistics(
-      catch(http_open(Uri, In1, HttpOpts), E, true),
-      walltime,
-      TS
-    )
-  ),
-  (   % No exception, so http_open/3 was successful.
-      var(E)
-  ->  http_lines_headers(Lines, Headers),
-      (   debugging(http(reply))
-      ->  http_msg(http(reply), Status, Lines)
-      ;   true
-      ),
-      atomic_list_concat([Major,Minor], ., Version),
-      InEntry = _{
-        '@id': Uri,
-        '@type': uri,
-        headers: Headers,
-        status: Status,
-        time: TS,
-        version: Version
-      },
-      http_open2(Uri, Method, State, Location, Lines, In1, Status, InPath, In2, Opts)
-  ;   throw(E)
-  ).
-
-% Authentication error.
-http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
-  Status =:= 401,
-  http_open:parse_headers(Lines, Headers),
-  http:authenticate_client(Uri, auth_reponse(Headers, Opts, AuthOpts)), !,
-  close(In1),
-  http_open1(Uri, Method, State, In2, InPath, AuthOpts).
-% Non-authentication error.
-http_open2(Uri, Method, State, _, Lines, In1, Status, InPath, In2, Opts) :-
-  between(400, 599, Status), !,
-  (option(verbose(error), Opts) -> http_error_msg(Status, Lines, In1) ; true),
-  dict_inc(retries, State),
-  (   State.retries >= State.max_retries
-  ->  In1 = In2,
-      InPath = [],
-      print_message(warning, http_error_code(Status)),
-      ignore(option(status(Status), Opts))
-  ;   http_open1(Uri, Method, State, In2, InPath, Opts)
-  ).
-% Redirect.
-http_open2(Uri1, Method, State, Location, _, In1, Status, InPath, In2, Opts) :-
-  between(300, 399, Status), !,
-  close(In1),
-  uri_resolve(Location, Uri1, Uri2),
-  dict_prepend(visited, State, Uri2),
-  (   http_is_redirect_limit_exceeded(State)
-  ->  print_message(warning, http_max_redirect(State.max_redirects,Uri2)),
-      ignore(option(status(Status), Opts))
-  ;   http_is_redirect_loop(Uri2, State)
-  ->  print_message(warning, http_redirect_loop(Uri2)),
-      ignore(option(status(Status), Opts))
-  ;   http_open:redirect_options(Opts, RedirectOpts),
-      http_open1(Uri2, Method, State, In2, InPath, RedirectOpts)
-  ).
-% Success.
-http_open2(_, _, _, _, _, In, Status, [], In, Opts) :-
-  ignore(option(status(Status), Opts)).
-
-
-
 %! http_options(+Uri) is semidet.
 %! http_options(+Uri, +Opts) is semidet.
 
@@ -385,32 +235,6 @@ http_retry_until_success(Goal_0, Timeout) :-
 
 
 
-%! http_status_must_be(+Status, +Succeeds) is det.
-%! http_status_must_be(+Status, +Succeeds, +Fails) is det.
-%
-% MustBe is a list of 2xx or 4xx range HTTP status codes.
-%
-% Succeeds if Status is an anticipated 2xx range HTTP status codes
-%
-% Fails silently if Status is an anticipated 4xx range HTTP status
-% codes
-%
-% @throws `http_status(Status,MustBe)`
-
-http_status_must_be(Status, Succeeds) :-
-  http_status_must_be(Status, Succeeds, []).
-
-
-http_status_must_be(Status, Succeeds, _) :-
-  memberchk(Status, Succeeds), !.
-http_status_must_be(Status, _, Fails) :-
-  memberchk(Status, Fails), !,
-  fail.
-http_status_must_be(Status, Succeeds, Fails) :-
-  throw(http_status(Status,Succeeds,Fails)).
-
-
-
 %! http_throw_bad_request(:Goal_0) is det.
 
 http_throw_bad_request(Goal_0) :-
@@ -435,16 +259,6 @@ http_throw_bad_request(Goal_0) :-
 http_default_success(In, InPath, InPath) :-
   maplist(print_dict, InPath),
   copy_stream_data(In, user_output).
-
-
-
-%! http_error_msg(+Status, +Lines, +In) is det.
-
-http_error_msg(Status, Lines, In) :-
-  debug(http(error), "HTTP ERROR:", []),
-  http_msg(http(error), Status, Lines),
-  peek_string(In, 1000, Str),
-  debug(http(error), "  Message content:~n    ~s", [Str]).
 
 
 
