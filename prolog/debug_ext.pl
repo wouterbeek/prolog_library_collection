@@ -104,7 +104,7 @@ indent_debug(Mode, Flag, Format, Args) :-
   format(string(Msg1), Format, Args),
   (Mode =:= -1 -> N = N1 ; N = N2),
   dcg_with_output_to(string(Msg2), msg1(Mode, N, Msg1)),
-  debug(Flag, Msg2, []).
+  debug(Flag, "~s", [Msg2]).
 indent_debug(_, _, _, _).
 
 msg1(_, 0, Msg) --> !,
