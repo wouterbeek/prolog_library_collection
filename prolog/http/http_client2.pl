@@ -551,7 +551,8 @@ http_status(In, Metas, Failure, Success) :-
   (   % HTTP failure codes.
       between(400, 599, Status)
   ->  (   Status =:= Failure
-      ->  fail
+      ->  close(In),
+          fail
       ;   http_status_error(In, Status, Meta.uri)
       )
   ;   % HTTP success codes.  The asserion indicates that we do not
