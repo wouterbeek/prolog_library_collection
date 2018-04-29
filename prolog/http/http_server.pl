@@ -201,7 +201,7 @@ http_server_init(Dict1) :-
 
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
-rest_exception(_, http_error(media_types_not_supported(MediaTypes))) :- !,
+rest_exception(_, error(http_error(media_types_not_supported,MediaTypes),_Context)) :- !,
   format(
     string(Msg),
     "😿 None of the specified Media Types is supported: “~w”.",
@@ -251,7 +251,7 @@ error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :-
     "😿 Could not parse according to the ~a grammar: “~a”",
     [Language,Atom]
   ).
-error_status_message(http_error(method_not_allowed(Method)), 405, Msg) :- !,
+error_status_message(error(http_error(method_not_allowed,Method)), 405, Msg) :- !,
   format(
     string(Msg),
     "😿 HTTP method ‘~a’ is not allowed for this path.",
@@ -268,7 +268,7 @@ rest_media_type(MediaTypes, Goal_1) :-
   member(MediaType, MediaTypes),
   call(Goal_1, MediaType), !.
 rest_media_type(MediaTypes, _) :-
-  rest_exception(MediaTypes, http_error(media_types_not_supported(MediaTypes))).
+  rest_exception(MediaTypes, error(http_error(media_types_not_supported,MediaTypes))).
 
 
 
@@ -289,7 +289,7 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
   ;   % 405 Method Not Allowed
       \+ memberchk(Method, Methods)
   ->  http_media_types(Request, MediaTypes),
-      rest_exception(MediaTypes, http_error(method_not_allowed(Method)))
+      rest_exception(MediaTypes, error(http_error(method_not_allowed,Method),_))
   ;   % `Method' is one of the accepted `Methods'.
       memberchk(request_uri(Uri), Request),
       % Remove the query and fragment components from the URI in order
