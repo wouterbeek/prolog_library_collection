@@ -306,12 +306,6 @@ http_metadata_status(Metas, Status) :-
 %     The maximum number of consecutive redirects that is followed.
 %     The default is 5.
 %
-%   * number_of_repeats(+positive_integer)
-%
-%     The maximum number of times the same URI is allowed to be
-%     addressed during a redirect cycle.  The default
-%     is 2.
-%
 %   * number_of_retries(+positive_integer)
 %
 %     The maximum number of times the same HTTP request is retries upon
@@ -354,11 +348,9 @@ http_options_(Options1, State, Options3) :-
   ),
   Options3 = [request_header('Accept'=Atom)|Options2],
   option(number_of_hops(MaxHops), Options3, 5),
-  option(number_of_repeats(MaxRepeats), Options3, 2),
   option(number_of_retries(MaxRetries), Options3, 1),
   State = _{
     maximum_number_of_hops: MaxHops,
-    maximum_number_of_repeats: MaxRepeats,
     maximum_number_of_retries: MaxRetries,
     number_of_retries: 1,
     visited: []
@@ -449,13 +441,11 @@ http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
       NumVisited >= MaxHops
   ->  Metas = [],
       reverse(Visited2, Visited3),
-      print_message(warning, http(max_redirect(NumVisited,Visited3)))
-  ;   include(==(Uri2), Visited2, Visited3),
-      length(Visited3, NumRepeats),
-      _{maximum_number_of_repeats: MaxRepeats} :< State1,
-      NumRepeats >= MaxRepeats
+      throw(http(max_redirect(NumVisited,Visited3)))
+  ;   memberchk(Uri2, Visited1)
   ->  Metas = [],
-      print_message(warning, http(redirect_loop(Uri2)))
+      reverse(Visited2, Visited3),
+      throw(http(redirect_loop(Visited3)))
   ;   State2 = State1.put(_{visited: Visited2}),
       http_open2_(Uri2, In2, State2, Metas, Options)
   ).
