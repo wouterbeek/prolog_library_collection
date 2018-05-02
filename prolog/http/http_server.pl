@@ -202,16 +202,21 @@ http_server_init(Dict1) :-
 %! rest_exception(+MediaTypes:list(compound), +Error:between(400,499)) is det.
 
 rest_exception(_, error(http_error(media_types_not_supported,MediaTypes),_Context)) :- !,
+  media_types_not_supported_(MediaTypes).
+rest_exception(MediaTypes, E) :-
+  error_status_message(E, Status, Msg),
+  member(MediaType, MediaTypes),
+  rest_exception_media_type(MediaType, Status, Msg), !.
+rest_exception(MediaTypes, _) :-
+  media_types_not_supported_(MediaTypes).
+
+media_types_not_supported_(MediaTypes) :-
   format(
     string(Msg),
     "😿 None of the specified Media Types is supported: “~w”.",
     MediaTypes
   ),
   rest_exception_media_type(media(application/json,_), 406, Msg).
-rest_exception(MediaTypes, E) :-
-  error_status_message(E, Status, Msg),
-  member(MediaType, MediaTypes),
-  rest_exception_media_type(MediaType, Status, Msg), !.
 
 % application/json
 rest_exception_media_type(media(application/json,_), Status, Msg) :-
@@ -222,7 +227,7 @@ rest_exception_media_type(media(text/html,_), Status, Msg) :-
 
 error_status_message(E, Status, Msg) :-
   http:error_status_message_hook(E, Status, Msg), !.
-error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :-
+error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :- !,
   atomics_to_string(Keys, ", ", KeysLabel),
   format(
     string(Msg),
@@ -233,7 +238,7 @@ error_status_message(
   error(type_error(Type,Value),context(_,http_parameter(Key))),
   400,
   Msg
-) :-
+) :- !,
   format(
     string(Msg),
     "😿 Your request is incorrect!  You have specified the value ‘~w’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
