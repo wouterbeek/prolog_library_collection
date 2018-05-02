@@ -184,28 +184,6 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
 
 
 
-%! xsd_date_time_to_dt(+DateTime:compound, +D:atom, -DT:compound) is det.
-
-% xsd:date
-xsd_date_time_to_dt(date(Y,Mo,D), xsd:date, dt(Y,Mo,D,_,_,_,0)).
-% xsd:dateTime
-xsd_date_time_to_dt(date_time(Y,Mo,D,H,Mi,S), xsd:dateTime, dt(Y,Mo,D,H,Mi,S,0)).
-xsd_date_time_to_dt(date_time(Y,Mo,D,H,Mi,S,TZ), xsd:dateTime, dt(Y,Mo,D,H,Mi,S,TZ)).
-% xsd:gDay
-xsd_date_time_to_dt(D, xsd:gDay, dt(_,_,D,_,_,_,0)).
-% xsd:gMonth
-xsd_date_time_to_dt(Mo, xsd:gMonth, dt(_,Mo,_,_,_,_,0)).
-% xsd:gMonthDay
-xsd_date_time_to_dt(month_day(Mo,D), xsd:gMonthDay, dt(_,Mo,D,_,_,_,0)).
-% xsd:gYear
-xsd_date_time_to_dt(Y, xsd:gYear, dt(Y,_,_,_,_,_,0)).
-% xsd:gYearMonth
-xsd_date_time_to_dt(year_month(Y,Mo), xsd:gYearMonth, dt(Y,Mo,_,_,_,_,0)).
-% xsd:time
-xsd_date_time_to_dt(time(H,Mi,S), xsd:time, dt(_,_,_,H,Mi,S,0)).
-
-
-
 
 
 % HELPERS %
