@@ -10,8 +10,9 @@
     number_of_open_files/1, % -N
     read_line_to_atom/2,    % +In, -Atom
     recode_stream/3,        % +FromEncoding, +In, -Out
-    stream_metadata/2,      % +Stream, -Metadata
     stream_hash_metadata/3, % +Stream, -Metadata, +Options
+    stream_line_column/3,   % +Stream, -Line, -Column
+    stream_metadata/2,      % +Stream, -Metadata
     wc/2                    % +In, -Stats
   ]
 ).
@@ -188,6 +189,15 @@ stream_hash_metadata(Stream, Meta2, Options) :-
   ->  dict_put(Key, Meta1, Value, Meta2)
   ;   Meta2 = Meta1
   ).
+
+
+
+%! stream_line_column(+Stream:stream, -Line:nonneg, -Column:nonneg) is det.
+
+stream_line_column(Stream, Line, Column) :-
+  stream_property(Stream, position(Pos)),
+  stream_position_data(line_count, Pos, Line),
+  stream_position_data(line_position, Pos, Column).
 
 
 
