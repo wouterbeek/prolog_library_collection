@@ -49,7 +49,7 @@ archive_filter(rpm).
 archive_filter(uu).
 
 archive_media_type_filter_(media(application/'x-bzip2',[]), bzip2).
-archive_media_type_filter_(media(application/gzip,[]), gz).
+archive_media_type_filter_(media(application/gzip,[]), gzip).
 archive_media_type_filter_(media(application/'x-xz',[]), xz).
 
 
