@@ -273,7 +273,10 @@ rest_media_type(MediaTypes, Goal_1) :-
   member(MediaType, MediaTypes),
   call(Goal_1, MediaType), !.
 rest_media_type(MediaTypes, _) :-
-  rest_exception(MediaTypes, error(http_error(media_types_not_supported,MediaTypes))).
+  rest_exception(
+    MediaTypes,
+    error(http_error(media_types_not_supported,MediaTypes),http_server)
+  ).
 
 
 
