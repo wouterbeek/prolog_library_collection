@@ -147,7 +147,7 @@ pagination_bulk(Templ, Goal_0, Options, Page) :-
 pagination_bulk_(AllResults, Options1, Page2) :-
   pagination_options(Options1, StartPageNumber, PageSize, Options2),
   length(AllResults, TotalNumberOfResults),
-  NumberOfPages is ceil(TotalNumberOfResults / PageSize),
+  NumberOfPages is max(1, ceil(TotalNumberOfResults / PageSize)),
   must_be(between(1, NumberOfPages), StartPageNumber),
   between(StartPageNumber, NumberOfPages, PageNumber),
   SkipLength is PageSize * (PageNumber - 1),
