@@ -102,7 +102,7 @@ es(Segments1, Result, Options) :-
   Hits = Status.hits.hits,
   % Remove choicepoints when there are no more results.
   length(Hits, NumberOfHits),
-  (NumberOfHits < PageSize -> !, true ; true),
+  (NumberOfHits < PageSize -> ! ; true),
   member(Hit, Hits),
   _{'_id': Id, '_source': Source} :< Hit,
   dict_tag(Source, Id, Result).
