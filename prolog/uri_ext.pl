@@ -8,6 +8,7 @@
     fresh_uri/2,           % -Uri, +Components
     iri_to_uri/2,          % +Iri, -Uri
     is_http_uri/1,         % @Term
+    is_iri/1,              % @Term
     is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
@@ -119,6 +120,51 @@ is_http_uri(Uri) :-
   uri_components(Uri, Comps),
   uri_data(scheme, Comps, Scheme),
   memberchk(Scheme, [http,https]).
+
+
+
+%! is_iri(+Iri:atom) is semidet.
+%
+% There is not implementation of the IRI grammar yet, but we still
+% want to exclude at least some non-IRI strings.
+
+is_iri(Iri) :-
+  atom(Iri),
+  uri_components(Iri, uri_components(Scheme,Auth,Path,_Query,_Fragment)),
+  is_ground_iri(Scheme, Auth, Path),
+  atom_phrase(check_scheme, Scheme).
+
+% Scheme is missing: fail silently.
+is_ground_iri(Var, _, _) :-
+  var(Var), !,
+  fail.
+% Schemes that require a ground authority component.
+is_ground_iri(Scheme, Auth, _) :-
+  memberchk(Scheme, [http,https]), !,
+  ground(Auth).
+% Schemes that require a ground path component.
+is_ground_iri(Scheme, _, Path) :-
+  memberchk(Scheme, [file,mailto,urn]), !,
+  ground(Path).
+% Unrecognized schemes.
+is_ground_iri(Scheme, _, _) :-
+  existence_error(iri_scheme,Scheme).
+
+% scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+check_scheme -->
+  alpha(_), !,
+  'check_scheme_nonfirst*'.
+
+'check_scheme_nonfirst*' -->
+  check_scheme_nonfirst, !,
+  'check_scheme_nonfirst*'.
+'check_scheme_nonfirst*' --> "".
+
+check_scheme_nonfirst --> alpha(_).
+check_scheme_nonfirst --> digit(_).
+check_scheme_nonfirst --> "+".
+check_scheme_nonfirst --> "-".
+check_scheme_nonfirst --> ".".
 
 
 
