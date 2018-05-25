@@ -323,7 +323,7 @@ http_open2(CurrentUri, In, Options1) :-
   ignore(option(next(NextUri), Options1)),
   % Allow the metadata/1 optiont to be instantiated later.
   ignore(option(metadata(Metas), Options1)),
-  http_options_(Options1, State, Options2),
+  http_options_(CurrentUri, Options1, State, Options2),
   http_open2_(CurrentUri, In, State, Metas0, Options2),
   reverse(Metas0, Metas),
   % Instantiate the next/1 option.
@@ -340,7 +340,7 @@ http_status_(In, Metas, Options) :-
   http_status(In, Metas, Failure, Success).
 http_status_(_, _, _).
 
-http_options_(Options1, State, Options3) :-
+http_options_(Uri, Options1, State, Options3) :-
   (   select_option(accept(Accept), Options1, Options2)
   ->  http_open2_accept_(Accept, Atom)
   ;   Atom = '*',
@@ -353,7 +353,7 @@ http_options_(Options1, State, Options3) :-
     maximum_number_of_hops: MaxHops,
     maximum_number_of_retries: MaxRetries,
     number_of_retries: 1,
-    visited: []
+    visited: [Uri]
   }.
 
 http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
