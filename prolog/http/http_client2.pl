@@ -363,7 +363,6 @@ http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
   ;   true
   ),
   merge_options(
-    Options1,
     [
       cert_verify_hook(cert_accept_any),
       raw_headers(HeaderLines),
@@ -372,6 +371,7 @@ http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
       timeout(60),
       version(Major-Minor)
     ],
+    Options1,
     Options2
   ),
   get_time(Start),
