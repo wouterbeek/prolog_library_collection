@@ -294,12 +294,17 @@ http_metadata_status(Metas, Status) :-
 %
 % @arg Options The following options are supported:
 %
-%   * accept(+Accept)
+%   * accept(+Accept:term)
 %
 %     Accept is either a registered file name extension, a Media Type
 %     compound term, or a list of Media Type compounds.
 %
-%   * metadata(-list(dict))
+%   * failure(+Status:between(400,599))
+%
+%     Status code that is mapped onto Prolog silent failure.  Default
+%     is `400'.
+%
+%   * metadata(-Metas:list(dict))
 %
 %   * number_of_hops(+positive_integer)
 %
@@ -311,6 +316,11 @@ http_metadata_status(Metas, Status) :-
 %     The maximum number of times the same HTTP request is retries upon
 %     receiving an HTTP error code (i.e., HTTP status codes 400
 %     through 599).  The default is 1.
+%
+%   * success(+Status:between(200,299))
+%
+%     Status code that is mapped onto Prolog success.  Default is
+%     `200'.
 %
 %   * Other options are passed to http_open/3.
 
