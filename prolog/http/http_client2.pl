@@ -4,6 +4,8 @@
   [
     http_call/2,                   % +Uri, :Goal_1
     http_call/3,                   % +Uri, :Goal_1, +Options
+    http_download/2,               % +Uri, +File
+    http_download/3,               % +Uri, +File, +Options
     http_head2/2,                  % +Uri, +Options
     http_metadata_content_type/2,  % +Metas, -MediaType
     http_metadata_file_name/2,     % +Metas, -File
@@ -66,6 +68,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
+:- use_module(library(file_ext)).
 :- use_module(library(http/http_generic)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
@@ -172,6 +175,22 @@ http_call(FirstUri, Goal_1, Options1) :-
         close(In)
       )
   ;   !, fail
+  ).
+
+
+
+%! http_download(+Uri:atom, +File:atom) is det.
+%! http_download(+Uri:atom, +File:atom, +Options:list(compound)) is det.
+
+http_download(Uri, File) :-
+  http_download(Uri, File, []).
+
+
+http_download(Uri, File, Options) :-
+  setup_call_cleanup(
+    open(File, write, Out, [type(binary)]),
+    http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options),
+    close(Out)
   ).
 
 
