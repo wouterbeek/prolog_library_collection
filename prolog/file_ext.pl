@@ -5,6 +5,7 @@
     append_directories/2,         % +Directories, -Directory
     append_directories/3,         % +Directory1, +Directory2, -Directory3
     call_stream_file/2,           % +File, :Goal_1
+    call_stream_file/3,           % +File, +Mode, :Goal_1
     cat/2,                        % +Out, +Files
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
@@ -64,7 +65,8 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    call_stream_file(+, 1).
+    call_stream_file(+, 1),
+    call_stream_file(+, +, 1).
 
 :- multifile
     error:has_type/2.
@@ -117,20 +119,25 @@ append_directories(Dir1, Dir2, Dir3) :-
 
 
 %! call_stream_file(+File:atom, :Goal_1) is det.
+%! call_stream_file(+File:atom, +Mode:oneof([append,read,write]), :Goal_1) is det.
 %
 % Calls Goal_1 on the input stream derived from the given File.  If
 % the filen name ends in `.gz', GNU zip decompression is applied.
 
 call_stream_file(File, Goal_1) :-
+  call_stream_file(File, read, Goal_1).
+
+
+call_stream_file(File, Mode, Goal_1) :-
   file_name_extension(_, gz, File), !,
   setup_call_cleanup(
-    gzopen(File, read, In),
+    gzopen(File, Mode, In),
     call(Goal_1, In),
     close(In)
   ).
-call_stream_file(File, Goal_1) :-
+call_stream_file(File, Mode, Goal_1) :-
   setup_call_cleanup(
-    open(File, read, In),
+    open(File, Mode, In),
     call(Goal_1, In),
     close(In)
   ).
