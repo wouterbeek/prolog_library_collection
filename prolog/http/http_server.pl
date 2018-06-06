@@ -1,20 +1,21 @@
 :- module(
   http_server,
   [
-    data_uri/2,                % +Segments, -Uri
-    http_absolute_location/2,  % +Spec, -Path
-    http_current_location/1,   % -Uri
-    http_parameter_conflict/2, % +Parameter1, +Parameter2
-    http_server_init/1,        % +Dict
-    http_is_get/1,             % +Method
-    http_link_to_id/2,         % +HandleId, -Local
-    http_media_types/2,        % +Request, -MediaTypes
-    http_reply_json/1,         % +Json
-    rest_media_type/2,         % +MediaTypes, :Goal_1
-    rest_method/2,             % +Request, :Goal_2
-    rest_method/4,             % +Request, +HandleId, :Plural_2, :Singular_3
-    rest_options/1,            % +Methods
-    rest_parameters/2          % +Request, +Parameters
+    data_uri/2,                    % +Segments, -Uri
+    http_absolute_location/2,      % +Spec, -Path
+    http_current_location/1,       % -Uri
+    http_parameter_alternatives/2, % +Parameters, -Value
+    http_parameter_conflict/2,     % +Parameter1, +Parameter2
+    http_server_init/1,            % +Dict
+    http_is_get/1,                 % +Method
+    http_link_to_id/2,             % +HandleId, -Local
+    http_media_types/2,            % +Request, -MediaTypes
+    http_reply_json/1,             % +Json
+    rest_media_type/2,             % +MediaTypes, :Goal_1
+    rest_method/2,                 % +Request, :Goal_2
+    rest_method/4,                 % +Request, +HandleId, :Plural_2, :Singular_3
+    rest_options/1,                % +Methods
+    rest_parameters/2              % +Request, +Parameters
   ]
 ).
 
@@ -24,6 +25,7 @@
 @version 2017-2018
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_json)).
@@ -32,6 +34,8 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
+:- use_module(library(ordsets)).
+:- use_module(library(pairs)).
 :- use_module(library(settings)).
 
 :- use_module(library(dict)).
@@ -156,6 +160,23 @@ http_not_found_method(Request, Method, MediaTypes) :-
 http:not_found_media_type(Uri, media(application/json,_)) :-
   format(string(Msg), "😿 Path ‘~a’ does not exist on this server.", [Uri]),
   http_reply_json(_{message: Msg, status: 404}).
+
+
+
+%! http_parameter_alternatives(+Params:list(compound), -Value:term) is det.
+
+http_parameter_alternatives(Params, Value) :-
+  convlist(http_parameter_value, Params, Pairs),
+  pairs_keys_values(Pairs, Keys, Values1),
+  (   list_to_ord_set(Values1, Values2),
+      (Values2 = [Value] ; Values2 = [])
+  ->  true
+  ;   throw(error(conflicting_http_parameters(Keys)))
+  ).
+
+http_parameter_value(Param, Key-Value) :-
+  ground(Param),
+  Param =.. [Key,Value].
 
 
 
