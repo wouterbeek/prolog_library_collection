@@ -1,6 +1,7 @@
 :- module(
   assoc_ext,
   [
+    merge_assoc/3,    % +New, +Old, -Merge
     transpose_assoc/2 % +Assoc1, -Assoc2
   ]
 ).
@@ -12,9 +13,19 @@
 @version 2018
 */
 
-:- use_module(library(pairs)).
+:- use_module(library(apply)).
+
+:- use_module(library(pair_ext)).
 
 
+
+
+
+%! merge_assoc(+New:assic, +Old:assoc, -Merge:assoc) is det.
+
+merge_assoc(New1, Old1, Merge) :-
+  maplist(assoc_to_list, [New1,Old1], [New2,Old2]),
+  merge_pairs(New2, Old2, Merge).
 
 
 

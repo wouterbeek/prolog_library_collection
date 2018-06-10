@@ -27,7 +27,8 @@
 
 :- use_module(library(apply)).
 :- use_module(library(lists)).
-:- use_module(library(pairs)).
+
+:- use_module(library(pair_ext)).
 
 
 
@@ -153,27 +154,8 @@ merge_dicts(NewDict, OldDict, Dict):-
   dict_pairs(OldDict, _, OldPairs0),
   dict_pairs(NewDict, Tag, NewPairs0),
   maplist(sort(1, @<), [OldPairs0,NewPairs0], [OldPairs,NewPairs]),
-  merge_pairs_(OldPairs, NewPairs, Pairs),
+  merge_pairs(OldPairs, NewPairs, Pairs),
   dict_pairs(Dict, Tag, Pairs).
-
-% Key is only present in old dict.
-merge_pairs_([Key1-Value1|T1], [Key2-Value2|T2], [Key1-Value1|T3]) :-
-  Key1 @< Key2, !,
-  merge_pairs_(T1, [Key2-Value2|T2], T3).
-% Key is only present in old dict.
-merge_pairs_([Key1-Value1|T1], [Key2-Value2|T2], [Key2-Value2|T3]) :-
-  Key2 @< Key1, !,
-  merge_pairs_([Key1-Value1|T1], T2, T3).
-% Key is present in both dicts: either merge recursively (for dicts),
-% or take the new value.
-merge_pairs_([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
-  (   maplist(is_dict, [Old,New])
-  ->  merge_dicts(New, Old, Value)
-  ;   Value = New
-  ),
-  merge_pairs_(T1, T2, T3).
-merge_pairs_([], L, L) :- !.
-merge_pairs_(L, [], L).
 
 
 
