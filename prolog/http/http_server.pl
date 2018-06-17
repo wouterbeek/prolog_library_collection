@@ -68,6 +68,11 @@ http:convert_parameter(positive_integer, Atom, Integer) :-
   ;   instantiation_error(positive_integer)
   ).
 
+% GET,HEAD: application/json
+http:not_found_media_type(Uri, media(application/json,_)) :-
+  format(string(Msg), "😿 Path ‘~a’ does not exist on this server.", [Uri]),
+  http_reply_json(_{message: Msg, status: 404}).
+
 :- setting(
      http:products,
      list(pair(string)),
@@ -155,11 +160,6 @@ http_not_found_method(Request, Method, MediaTypes) :-
   http_is_get(Method),
   memberchk(request_uri(Uri), Request),
   rest_media_type(MediaTypes, http:not_found_media_type(Uri)).
-
-% GET,HEAD: application/json
-http:not_found_media_type(Uri, media(application/json,_)) :-
-  format(string(Msg), "😿 Path ‘~a’ does not exist on this server.", [Uri]),
-  http_reply_json(_{message: Msg, status: 404}).
 
 
 
