@@ -318,7 +318,7 @@ uri_file_extensions(Uri, Extensions) :-
 uri_file_local(Uri, Local) :-
   uri_comps(Uri, uri(_,_,Segments,_,_)),
   last(Segments, Local).
-  
+
 
 
 %! uri_hash(+Uri:atom, -Hash:atom) is det.

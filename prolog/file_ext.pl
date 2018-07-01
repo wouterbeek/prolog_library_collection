@@ -17,6 +17,7 @@
     delete_files_by_extension/1,  % +Extension
     directory_file/2,             % +Directory, -File
     directory_file_path2/3,       % ?Directory, ?File, ?Path
+    directory_parent/2,           % +ChildDirectory, -ParentDirectory
     directory_path/2,             % ?Directory, ?Path
     directory_path_recursive/2,   % +Directory, -Path
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
@@ -293,6 +294,15 @@ directory_file_path2(Dir, File, Path) :-
   directory_file_path(Dir, File, Path).
 directory_file_path2(Dir, File, Path) :-
   directory_file_path(Dir, File, Path).
+
+
+
+%! directory_parent(+ChildDirectory:atom, -ParentDirectory:atom) is det.
+
+directory_parent(Dir1, Dir2) :-
+  directory_subdirectories(Dir1, Subdirs1),
+  once(append(Subdirs2, [_], Subdirs1)),
+  directory_subdirectories(Dir2, Subdirs2).
 
 
 

@@ -79,12 +79,7 @@ The following debug flags are used:
 
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
 
-:- setting(
-     http:user_agent,
-     string,
-     "SWI-Prolog",
-     "The HTTP User Agent."
-   ).
+:- setting(http:user_agent, string, "SWI-Prolog", "The HTTP User Agent.").
 
 
 
