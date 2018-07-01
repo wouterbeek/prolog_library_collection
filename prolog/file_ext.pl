@@ -7,6 +7,7 @@
     call_stream_file/2,           % +File, :Goal_1
     call_stream_file/3,           % +File, +Mode, :Goal_1
     cat/2,                        % +Out, +Files
+    change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
@@ -155,6 +156,15 @@ cat_file(Out, File) :-
     copy_stream_data(In, Out),
     close(In)
   ).
+
+
+
+%! change_file_name_extension(+File1:atom, +Extension1:atom, +Extension2:atom,
+%!                            +File2:atom) is det.
+
+change_file_name_extension(File1, Ext1, Ext2, File2) :-
+  file_name_extension(Base, Ext1, File1),
+  file_name_extension(Base, Ext2, File2).
 
 
 
