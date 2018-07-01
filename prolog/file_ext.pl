@@ -29,7 +29,6 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     guess_file_encoding/2,        % +File, -Encoding
-    image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     is_empty_file/1,              % +File
@@ -420,36 +419,6 @@ file_to_string(File, String) :-
 
 guess_file_encoding(File, Encoding) :-
   call_stream_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
-
-
-
-%! image_dimensions(+File:atom, -Dimensions:pair(float)) is det.
-%
-% @see Requires ImageMagick.
-
-image_dimensions(File, Dimensions) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    process(
-      identify,
-      [],
-      {Dimensions}/[ProcOut]>>read_image_dimensions(ProcOut, Dimensions)
-    ),
-    close(In)
-  ).
-
-read_image_dimensions(Out, Dimensions) :-
-  read_stream_to_codes(Out, Codes),
-  phrase(read_image_dimensions(Dimensions), Codes, _).
-
-read_image_dimensions(Width-Height) -->
-  atom(_File),
-  " ",
-  ...,
-  " ",
-  integer(Width),
-  "x",
-  integer(Height).
 
 
 
