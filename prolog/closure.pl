@@ -96,11 +96,11 @@ path_closure(Goal_2, X, Y) :-
 path_closure(Goal_2, X, Z, Path) :-
   ground(X), !,
   call(Goal_2, X, Y),
-  path_closure_1(Goal_2, Y, Z, [X,Y], Path).
+  path_closure_1(Goal_2, Y, Z, [Y,X], Path).
 path_closure(Goal_2, X, Z, Path) :-
   ground(Z), !,
   call(Goal_2, Y, Z),
-  path_closure_2(Goal_2, X, Y, [Y,Z], Path).
+  path_closure_2(Goal_2, X, Y, [Z,Y], Path).
 path_closure(_, X, Y, _) :-
   instantiation_error(args(X,Y)).
 
