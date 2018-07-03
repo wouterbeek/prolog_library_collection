@@ -27,7 +27,6 @@
     is_file_link/1,             % +File
     is_fresh_age/2,             % +Age, +FreshnessLifetime
     is_fresh_file/2,            % +File, +FreshnessLifetime
-    is_image_file/1,            % @Term
     is_older_file/2,            % +Path1, +Path2
     is_stale_age/2,             % +Age, +FreshnessLifetime
     is_stale_file/2,            % +File, +FreshnessLifetime
@@ -126,12 +125,6 @@ ad-hoc attempt:
 :- multifile
     error:has_type/2,
     user:prolog_file_type/2.
-
-user:prolog_file_type(bmp, image).
-user:prolog_file_type(gif, image).
-user:prolog_file_type(jpeg, image).
-user:prolog_file_type(jpg, image).
-user:prolog_file_type(png, image).
 
 error:has_type(absolute_path, Term) :-
   error:has_type(atom, Term),
@@ -438,20 +431,6 @@ is_fresh_file(File, FreshnessLifetime) :-
   file_age(File, Age),
   is_fresh_age(Age, FreshnessLifetime).
 
-
-
-%! is_image_file(+File) is semidet.
-%
-% Determines whether a file stores an image or not based on the file
-% extension.
-
-is_image_file(File) :-
-  file_extensions(File, Exts),
-  once((
-    member(Ext, Exts),
-    user:prolog_file_type(Ext, image)
-  )).
-  
 
 
 %! is_older_file(+Path1, +Path2) is semidet.

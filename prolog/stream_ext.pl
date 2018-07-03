@@ -2,18 +2,20 @@
 :- module(
   stream_ext,
   [
-    clean_encoding/2,       % +DirtyEncoding, -CleanEncoding
-    copy_stream_type/2,     % +In, +Out
-    guess_encoding/2,       % +In, -Encoding
-    is_image/1,             % +In
-    is_image/2,             % +In, +Options
-    number_of_open_files/1, % -N
-    read_line_to_atom/2,    % +In, -Atom
-    recode_stream/3,        % +FromEncoding, +In, -Out
-    stream_hash_metadata/3, % +Stream, -Metadata, +Options
-    stream_line_column/3,   % +Stream, -Line, -Column
-    stream_metadata/2,      % +Stream, -Metadata
-    wc/2                    % +In, -Stats
+    clean_encoding/2,        % +DirtyEncoding, -CleanEncoding
+    copy_stream_type/2,      % +In, +Out
+    guess_encoding/2,        % +In, -Encoding
+    is_image/1,              % +In
+    is_image/2,              % +In, +Options
+    number_of_open_files/1,  % -N
+    read_line_to_atom/2,     % +In, -Atom
+    read_stream_to_atom/2,   % +In, -Atom
+    read_stream_to_string/2, % +In, -String
+    recode_stream/3,         % +FromEncoding, +In, -Out
+    stream_hash_metadata/3,  % +Stream, -Metadata, +Options
+    stream_line_column/3,    % +Stream, -Line, -Column
+    stream_metadata/2,       % +Stream, -Metadata
+    wc/2                     % +In, -Stats
   ]
 ).
 
@@ -147,13 +149,29 @@ number_of_open_files(N) :-
 
 %! read_line_to_atom(+In:stream, -Atom:atom) is nondet.
 
-read_line_to_atom(In, A) :-
+read_line_to_atom(In, Atom) :-
   repeat,
-  read_line_to_codes(In, Cs),
-  (   Cs == end_of_file
+  read_line_to_codes(In, Codes),
+  (   Codes == end_of_file
   ->  !, fail
-  ;   atom_codes(A, Cs)
+  ;   atom_codes(Atom, Codes)
   ).
+
+
+
+%! read_stream_to_atom(+In:stream, -Atom:atom) is det.
+
+read_stream_to_atom(In, Atom) :-
+  read_stream_to_codes(In, Codes),
+  atom_codes(Atom, Codes).
+
+
+
+%! read_stream_to_string(+In:stream, -String:string) is det.
+
+read_stream_to_string(In, String) :-
+  read_stream_to_codes(In, Codes),
+  string_codes(String, Codes).
 
 
 

@@ -217,7 +217,6 @@ media_type_(ico, media(image/'vnd.microsoft.icon',[]), [eog], "Windows Icon (Mic
 media_type_(jgf, media(application/'vnd.jgf+json',[]), [gedit], "JSON Graph Format (JGF)").
 media_type_(jp2, media(image,jp2,[]), [], "JPEG 2000").
 media_type_(jpeg, media(image/jpeg,[]), [eog,xfig], "Joint Photographic Experts Group (JPEG)").
-extension__(jpg, jpeg).
 media_type_(js, media(application/javascript,[]), [gedit], "JavaScript (JS)").
 media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notation (JSON)").
 media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").

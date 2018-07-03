@@ -7,6 +7,7 @@
     call_stream_file/2,           % +File, :Goal_1
     call_stream_file/3,           % +File, +Mode, :Goal_1
     cat/2,                        % +Out, +Files
+    change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
     compress_file/1,              % +File
     compress_file/2,              % +File, ?CompressedFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
@@ -17,6 +18,7 @@
     delete_files_by_extension/1,  % +Extension
     directory_file/2,             % +Directory, -File
     directory_file_path2/3,       % ?Directory, ?File, ?Path
+    directory_parent/2,           % +ChildDirectory, -ParentDirectory
     directory_path/2,             % ?Directory, ?Path
     directory_path_recursive/2,   % +Directory, -Path
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
@@ -28,7 +30,6 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     guess_file_encoding/2,        % +File, -Encoding
-    image_dimensions/2,           % +File, -Dimensions
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     is_empty_file/1,              % +File
@@ -155,6 +156,15 @@ cat_file(Out, File) :-
     copy_stream_data(In, Out),
     close(In)
   ).
+
+
+
+%! change_file_name_extension(+File1:atom, +Extension1:atom, +Extension2:atom,
+%!                            +File2:atom) is det.
+
+change_file_name_extension(File1, Ext1, Ext2, File2) :-
+  file_name_extension(Base, Ext1, File1),
+  file_name_extension(Base, Ext2, File2).
 
 
 
@@ -296,6 +306,15 @@ directory_file_path2(Dir, File, Path) :-
 
 
 
+%! directory_parent(+ChildDirectory:atom, -ParentDirectory:atom) is det.
+
+directory_parent(Dir1, Dir2) :-
+  directory_subdirectories(Dir1, Subdirs1),
+  once(append(Subdirs2, [_], Subdirs1)),
+  directory_subdirectories(Dir2, Subdirs2).
+
+
+
 %! directory_path(+Dir, -Path) is nondet.
 %! directory_path(-Dir, +Path) is det.
 
@@ -410,36 +429,6 @@ file_to_string(File, String) :-
 
 guess_file_encoding(File, Encoding) :-
   call_stream_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
-
-
-
-%! image_dimensions(+File:atom, -Dimensions:pair(float)) is det.
-%
-% @see Requires ImageMagick.
-
-image_dimensions(File, Dimensions) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    process(
-      identify,
-      [],
-      {Dimensions}/[ProcOut]>>read_image_dimensions(ProcOut, Dimensions)
-    ),
-    close(In)
-  ).
-
-read_image_dimensions(Out, Dimensions) :-
-  read_stream_to_codes(Out, Codes),
-  phrase(read_image_dimensions(Dimensions), Codes, _).
-
-read_image_dimensions(Width-Height) -->
-  atom(_File),
-  " ",
-  ...,
-  " ",
-  integer(Width),
-  "x",
-  integer(Height).
 
 
 

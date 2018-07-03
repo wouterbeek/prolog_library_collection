@@ -23,9 +23,6 @@
     is_archive_file/1,       % +File
     open_any2/6,             % +Spec, +Mode, -Stream, -Close, -Path, +SourceOpts
     read_mode/1,             % ?Mode
-    read_stream_to_atom/2,   % +In, -A
-   %read_stream_to_codes/2,  % +In, -Cs
-    read_stream_to_string/2, % +In, -Str
     read_to_atom/2,          % +Source, -A
     read_to_codes/2,         % +Source, -Cs
     read_to_string/2,        % +Source, -Str
@@ -587,22 +584,6 @@ is_archive_file(File) :-
 %   * read
 
 read_mode(read).
-
-
-
-%! read_stream_to_atom(+In, -A) is det.
-
-read_stream_to_atom(In, A) :-
-  read_stream_to_codes(In, Cs),
-  atom_codes(A, Cs).
-
-
-
-%! read_stream_to_string(+In, -Str) is det.
-
-read_stream_to_string(In, Str) :-
-  read_stream_to_codes(In, Cs),
-  string_codes(Str, Cs).
 
 
 

@@ -7,7 +7,8 @@
     thread_monitor/0,
     thread_name/2,            % ?Id:handle, ?Name:atom
     thread_self_property/1,   % ?Property
-    threaded_maplist/3        % +N, :Goal_1, +L1
+    threaded_maplist/2,       % :Goal_1, +Args
+    threaded_maplist/3        % +N, :Goal_1, +Args
   ]
 ).
 :- reexport(library(thread)).
@@ -19,11 +20,13 @@
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
 :- use_module(library(lists)).
 
 :- meta_predicate
     create_detached_thread(0),
     create_detached_thread(+, 0),
+    threaded_maplist(1, +),
     threaded_maplist(+, 1, +).
 
 
@@ -86,17 +89,19 @@ thread_self_property(Property) :-
 
 
 
-%! threaded_maplist(+NumberOfThreads:nonneg, :Goal_1, +L1:list) is det.
+%! threaded_maplist(:Goal_1, +Args:list) is det.
+%! threaded_maplist(+NumberOfThreads:nonneg, :Goal_1, +Args:list) is det.
 
-threaded_maplist(N, Mod:Goal_1, L1) :-
-  findall(
-    Mod:Goal_0,
-    (
-      Goal_1 =.. [Pred|Args1],
-      member(X1, L1),
-      append(Args1, [X1], Args2),
-      Goal_0 =.. [Pred|Args2]
-    ),
-    Goals
-  ),
+threaded_maplist(Goal_1, Args) :-
+  current_prolog_flag(cpu_count, N),
+  threaded_maplist(N, Goal_1, Args).
+
+
+threaded_maplist(N, Mod:Goal_1, Args) :-
+  maplist(make_goal(Mod:Goal_1), Args, Goals),
   concurrent(N, Goals, []).
+
+make_goal(Mod:Goal_1, Arg, Mod:Goal_0) :-
+  Goal_1 =.. [Pred|Args1],
+  append(Args1, [Arg], Args2),
+  Goal_0 =.. [Pred|Args2].
