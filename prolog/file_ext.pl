@@ -26,6 +26,7 @@
     directory_subdirectory/3,     % +Dir, ?Local, ?Subdir
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
+    file_media_type/2,            % +File, -MediaType
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
@@ -390,6 +391,15 @@ file_extensions(File, Extensions) :-
 file_extensions_media_type(Extensions, MediaType) :-
   member(Extension1, Extensions),
   media_type_extension(MediaType, Extension1), !.
+
+
+
+%! file_media_type(+File:atom, -MediaType:compound) is nondet.
+
+file_media_type(File, MediaType) :-
+  file_extensions(File, Exts),
+  member(Ext, Exts),
+  media_type_extension(MediaType, Ext).
 
 
 
