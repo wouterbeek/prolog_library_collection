@@ -6,7 +6,6 @@
     file_download/2,       % +Uri, +File
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
-    iri_to_uri/2,          % +Iri, -Uri
     is_http_uri/1,         % @Term
     is_iri/1,              % @Term
     is_uri/1,              % @Term
@@ -93,21 +92,6 @@ fresh_uri(Uri, uri(Scheme,Authority,Segments1,Query,Fragment)) :-
   default_value(Segments1, []),
   append(Segments1, [Uuid], Segments2),
   uri_comps(Uri, uri(Scheme,Authority,Segments2,Query,Fragment)).
-
-
-
-%! iri_to_uri(+Iri:atom, -Uri:atom) is det.
-%
-% # Example
-%
-% ```prolog
-% ?- iri_to_uri('http://dbpedia.org/resource/%C3%84iwoo_language', Uri).
-% Uri = 'http://dbpedia.org/resource/Ã%84iwoo_language'.
-% ```
-
-iri_to_uri(Iri, Uri) :-
-  once(atom_phrase('IRI'(Comps), Iri)),
-  once(atom_phrase('URI'(Comps), Uri)).
 
 
 

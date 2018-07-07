@@ -1,6 +1,7 @@
 :- module(
   uri_ext,
   [
+    iri_to_uri/2,          % +Iri, -Uri
     relative_uri_path/3, % ?Uri:atom
                          % ?RelativeTo:atom
                          % ?RelativeUri:atom
@@ -37,6 +38,21 @@ error:has_type(email, Term):-
   After > 0.
 
 
+
+
+
+%! iri_to_uri(+Iri:atom, -Uri:atom) is det.
+%
+% # Example
+%
+% ```prolog
+% ?- iri_to_uri('http://dbpedia.org/resource/%C3%84iwoo_language', Uri).
+% Uri = 'http://dbpedia.org/resource/Ã%84iwoo_language'.
+% ```
+
+iri_to_uri(Iri, Uri) :-
+  once(atom_phrase('IRI'(Comps), Iri)),
+  once(atom_phrase('URI'(Comps), Uri)).
 
 
 

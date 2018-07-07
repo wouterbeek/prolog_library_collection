@@ -15,6 +15,7 @@
 @version 2017/04-2018/01
 */
 
+:- use_module(library(file_ext)).
 :- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(process)).
