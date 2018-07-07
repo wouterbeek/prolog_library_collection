@@ -1,9 +1,9 @@
-#+TITLE: Prolog-Library-Collection
+#+TITLE: Prolog-Library-Collection (PLC)
 #+AUTHOR: Wouter Beek
 
-This is a collection of Prolog libraries that augment the
-functionality available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.  It
-contains the following modules:
+A collection of Prolog libraries that extends the functionality
+available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.  It contains the
+following modules:
 
   - ~archive_ext~
   - ~atom_ext~: support for working with atoms, e.g., capitalization,
@@ -37,7 +37,31 @@ contains the following modules:
   - ~write_ext~
   - ~xml/~: streamed processing of XML DOMs
 
-* ~/dcg~ Definite Clause Grammars
+* Installation
+
+  1. Install a recent version of [[http://www.swi-prolog.org][SWI-Prolog]].
+  2. Start Prolog and install the [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] (PPM):
+     ~pack_install('git://github.com/wouterbeek/ppm').~
+  3. Activate PPM: ~[library(ppm)].~
+  4. Install Prolog Library Collection through the PPM:
+     ~ppm_install('Prolog-Library-Collection').~
+
+* Usage
+
+In order to access the libraries in the Prolog Library Collection from
+the Prolog ~library~ path, you must first load PPM and the libraries
+you want to use afterwards:
+
+#+BEGIN_SRC prolog
+?- [library(ppm)].
+?- [library(atom_ext)].
+#+END_SRC
+
+Since the above is a bit cumbersome, it is common practice to place
+the PPM load command in the Prolog startup file (~~/.swiplrc~).
+
+* Library overview
+** ~/dcg~ Definite Clause Grammars
 
 In directory ~/dcg~ you will find a collection of Definite Clause
 Grammar (DCG) modules.
@@ -142,5 +166,3 @@ Optional sequence is a special case of [[variable repetition]], because
 | ~?(:Dcg_0)//~             | Process ~Dcg_0~ 0 or 1 times.                       | [[optional sequence]]   |
 | ~'m*'(?M, :Dcg_0)//~      | Process ~Dcg_0~ at least ~M~ times.                 |                     |
 | ~'m*n'(?M, ?N, :Dcg_0)//~ | Process ~Dcg_0~ at least ~M~ and at most ~N~ times. | [[variable repetition]] |
-* TO-DO
-** TODO File download predicate
