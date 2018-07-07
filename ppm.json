@@ -1,3 +1,18 @@
 {
-  "dependencies": []
+  "description": "A collection of SWI-Prolog libraries.",
+  "keywords": [
+    "atom",
+    "DCG",
+    "date-time",
+    "dictionary",
+    "difference list",
+    "file system",
+    "math",
+    "pair",
+    "sort",
+    "string",
+    "URI",
+    "WKT",
+    "XML"
+  ]
 }
