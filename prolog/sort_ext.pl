@@ -72,7 +72,17 @@ sort_stream(In, Out, Options1) :-
   select_option(utf8(Utf8), Options2, Options3, false),
   (Utf8 == true -> Env = EnvT ; Env = ['LC_ALL'='C'|EnvT]),
   maplist(sort_flag, Options3, Flags),
-  process_in_open(sort, Flags, In, Out, [env(Env)]).
+  process_create(
+    path(sort),
+    Flags,
+    [env(Env),stdin(pipe(ProcIn)),stdout(pipe(Out))]
+  ),
+  create_detached_thread(
+    call_cleanup(
+      copy_stream_data(In, ProcIn),
+      close(ProcIn)
+    )
+  ).
 
 % --buffer-size
 sort_flag(buffer_size(Size), Flag) :-

@@ -43,7 +43,7 @@ renice(Pid, N) :-
   with_mutex(process_id,(
     (   process_id(Pid)
     ->  must_be(between(-20,19), N),
-        process(renice, [Pid]),
+        process_create(renice, [Pid], []),
     ;   existence_error(process, Pid)
     )
   )).

@@ -14,11 +14,13 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg)).
 :- use_module(library(error)).
-:- use_module(library(os_ext)).
+:- use_module(library(process)).
 :- use_module(library(uri)).
 :- use_module(library(yall)).
+
+:- use_module(library(dcg)).
+:- use_module(library(os_ext)).
 
 :- multifile
     user:module_uses/2.
@@ -37,7 +39,7 @@ user:module_uses(tts, program(espeak)).
 % @throws existence_error if `espeak' is not installed.
 
 tts(Line):-
-  process(espeak, ['--',Line]).
+  process_create(path(espeak), ['--',Line], []).
 
 
 

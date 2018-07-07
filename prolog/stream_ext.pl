@@ -182,7 +182,17 @@ read_stream_to_string(In, String) :-
 % See the output of command ~iconv -l~ for the supported encodings.
 
 recode_stream(Encoding, In, Out) :-
-  process_in_open(iconv, ['-c','-f',Encoding,'-t','utf-8'], In, Out).
+  process_create(
+    path(iconv),
+    ['-c','-f',Encoding,'-t','utf-8'],
+    [stdin(pipe(ProcIn)),stdout(pipe(Out))]
+  ),
+  create_detached_thread(
+    call_cleanup(
+      copy_stream_data(In, ProcIn),
+      close(ProcIn)
+    )
+  ).
 
 
 
@@ -297,8 +307,16 @@ wc(In, Lines) :-
 
 wc(In, Stats) :-
   setup_call_cleanup(
-    process_in_open(wc, In, Out),
-    read_wc(Out, Lines, Words, Bytes),
+    process_create(path(wc), [], [stdin(pipe(ProcIn)),stdout(pipe(Out))]),
+    (
+      create_detached_thread(
+        call_cleanup(
+          copy_stream_data(In, ProcIn),
+          close(ProcIn)
+        )
+      ),
+      read_wc(Out, Lines, Words, Bytes)
+    ),
     close(Out)
   ),
   Stats = _{
