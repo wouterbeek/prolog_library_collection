@@ -147,10 +147,10 @@ atom_terminator(Atom1, Terminator, Atom2) :-
   atom_codes(Atom1, Codes1),
   once(append(_, [Last], Codes1)),
   (   Last == Terminator
-  ->  Codes2 = Codes1
-  ;   append(Codes1, [Terminator], Codes2)
-  ),
-  atom_codes(Atom2, Codes2).
+  ->  Atom2 = Atom1
+  ;   append(Codes1, [Terminator], Codes2),
+      atom_codes(Atom2, Codes2)
+  ).
 
 
 
