@@ -24,10 +24,12 @@ file name extensions.
 */
 
 :- use_module(library(apply)).
-:- use_module(library(call_ext)).
-:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(settings)).
+
+:- use_module(library(call_ext)).
+:- use_module(library(dcg)).
 :- use_module(library(stream_ext)).
 
 :- discontiguous
@@ -39,6 +41,9 @@ file name extensions.
 
 http:mime_type_encoding('application/sparql-results+json', utf8).
 http:mime_type_encoding('application/trig', utf8).
+
+:- setting(default_text_editor, atom, emacs,
+           "The default program that is used for opening text files.").
 
 
 
@@ -174,27 +179,30 @@ media_type_parameter(media(_/_,Parameters), Key, Value) :-
 
 media_type_program(MediaType, Program, Args) :-
   media_type_(_, MediaType, Programs, _),
-  member(Program0, Programs),
-  (Program0 = program(Program,Args) ; Program = Program0).
+  (   Programs == text_editor
+  ->  setting(default_text_editor, Program)
+  ;   member(Program0, Programs),
+      (Program0 = program(Program,Args) ; Program = Program0)
+  ).
 
 
 
 
 
-% GENERICS %
+% MEDIA TYPE REGISTRATIONS %
 
 media_type_('7z', media(application/'x-7z-compressed',[]), [], "7z").
-media_type_(atom, media(application/'atom+x',[]), [gedit], "Atom XML").
+media_type_(atom, media(application/'atom+x',[]), text_editor, "Atom XML").
 media_type_(bmp, media(image/bmp,[]), [eog], "Windows Bitmap (BMP)").
 media_type_(bz2, media(application/'x-bzip2',[]), [program(bzip2,['-d'])], "bzip2").
 media_type_(cab, media(application/'vnd.ms-cab-compressed',[]), [], "Microsoft Cabinet").
 media_type_(cdx, media(chemical/'x-cdx',[]), [], "CambridgeSoft ChemDraw").
 media_type_(cpio, media(application/'x-cpio',[]), [], "cpio").
-media_type_(csv, media(text/csv,[]), [gedit], "Comma-separated values (CSV)").
+media_type_(csv, media(text/csv,[]), text_editor, "Comma-separated values (CSV)").
 media_type_(doc, media(application/msword,[]), [program(libreoffice,'--writer')], "Microsoft Word Document").
 media_type_(docm, media(application/'vnd.ms-word.document.macroenabled.12',[]), [program(libreoffice,'--writer')], "Microsoft Word Document").
 media_type_(docx, media(application/'vnd.openxmlformats-officedocument.wordprocessingml.document',[]), [program(libreoffice,'--writer')], "OpenOffice Wordprocessing Document").
-media_type_(dot, media(text/'vnd.graphviz',[]), [gedit], "GraphViz DOT").
+media_type_(dot, media(text/'vnd.graphviz',[]), text_editor, "GraphViz DOT").
 media_type_(dotm, media(application/'vnd.ms-word.template.macroenabled.12',[]), [program(libreoffice,'--writer')], "Microsoft Word Template").
 media_type_(dotx, media(application/'vnd.openxmlformats-officedocument.wordprocessingml.template',[]), [program(libreoffice,'--writer')], "OpenOffice Wordprocessing Template").
 media_type_(dwg, media(application/dwg,[]), [], "Drawing (DWG) proprietary format used by CAD software").
@@ -205,21 +213,21 @@ extension__(exr, _, [], "OpenEXR is a high dynamic-range (HDR) image file format
 extension__(fig, _, [xfig], "FIG graphics language (Xfig)").
 media_type_(fits, media(application/fits,[]), [], "Flexible Image Transport System (FITS)").
 media_type_(flv, media(video/'x-flv',[]), [], "Flash video (FLV)").
-media_type_(geojson, media(application/'vnd.geo+json',[]), [gedit], "GeoJSON").
+media_type_(geojson, media(application/'vnd.geo+json',[]), text_editor, "GeoJSON").
 media_type_(gif, media(image/gif,[]), [eog,xfig], "Graphics Interchange Format (GIF)").
-media_type_(gml, media(application/'gml+xml',[]), [gedit], "Geography Markup Language (GML)").
+media_type_(gml, media(application/'gml+xml',[]), text_editor, "Geography Markup Language (GML)").
 media_type_(gml, media(text/'x-gml',[]), [gephi], "Graph Markup Language (GML)").
 media_type_(gpx, media(application/'gpx+xml',[]), [], "GPS Exchange Format (GPX)").
 media_type_(gz, media(application/gzip,[]), [], "GNU Zip").
 media_type_(hdt, media(application/'vnd.hdt',[]), [], "Header Dictionary Triples (HDT)").
 media_type_(html, media(text/html,[]), [firefox], "Hyper Text Markup Language (HTML)").
 media_type_(ico, media(image/'vnd.microsoft.icon',[]), [eog], "Windows Icon (Microsoft uses Media Type `image/x-icon')").
-media_type_(jgf, media(application/'vnd.jgf+json',[]), [gedit], "JSON Graph Format (JGF)").
+media_type_(jgf, media(application/'vnd.jgf+json',[]), text_editor, "JSON Graph Format (JGF)").
 media_type_(jp2, media(image/jp2,[]), [], "JPEG 2000").
 media_type_(jpeg, media(image/jpeg,[]), [eog,xfig], "Joint Photographic Experts Group (JPEG)").
-media_type_(js, media(application/javascript,[]), [gedit], "JavaScript (JS)").
-media_type_(json, media(application/json,[]), [gedit], "JavaScript Object Notation (JSON)").
-media_type_(jsonld, media(application/'ld+json',[]), [gedit], "JSON-LD 1.0").
+media_type_(js, media(application/javascript,[]), text_editor, "JavaScript (JS)").
+media_type_(json, media(application/json,[]), text_editor, "JavaScript Object Notation (JSON)").
+media_type_(jsonld, media(application/'ld+json',[]), text_editor, "JSON-LD 1.0").
 media_type_(jsp, media(application/jsp,[]), [], "Java Server Pages (JSP)").
 media_type_(kml, media(application/'vnd.google-earth.kml+xml',[]), [], "KML").
 media_type_(kmz, media(application/'vnd.google-earth.kmz',[]), [], "KMZ").
@@ -228,10 +236,10 @@ media_type_(mdb, media(application/'vnd.ms-access',[]), [program(libreoffice,['-
 media_type_(mobi, media(application/'vnd.amazon.mobi8-ebook',[]), [], "Mobi").
 media_type_(mol, media(chemical/'x-mdl-molfile',[]), [], "MDL Information Systems (MDL) Molfile").
 media_type_(mp4, media(video/mp4,[]), [vlc], "MPEG-4 Part 14").
-media_type_(n3, media(text/n3,[]), [gedit], "Notation 3 (N3)").
+media_type_(n3, media(text/n3,[]), text_editor, "Notation 3 (N3)").
 media_type_(nc, media(application/netcdf,[]), [], "Network Common Data Form (NetCDF)").
-media_type_(nq, media(application/'n-quads',[]), [gedit], "N-Quads 1.1").
-media_type_(nt, media(application/'n-triples',[]), [gedit], "N-Triples 1.1").
+media_type_(nq, media(application/'n-quads',[]), text_editor, "N-Quads 1.1").
+media_type_(nt, media(application/'n-triples',[]), text_editor, "N-Triples 1.1").
 media_type_(odp, media(application/'vnd.oasis.opendocument.presentation',[]), [program(libreoffice)], "OpenDocument presenatation").
 media_type_(ods, media(application/'vnd.oasis.opendocument.spreadsheet',[]), [program(libreoffice,['--calc'])], "OpenDocument Spreadsheet").
 media_type_(odt, media(application/'vnd.oasis.opendocument.text',[]), [program(libreoffice,['--writer'])], "OpenDocument Text").
@@ -241,7 +249,7 @@ media_type_(pcx, media(image/'vnd.zbrush.pcx',[]), [eog,xfig], "PiCture EXchange
 media_type_(pdf, media(application/pdf,[]), [evince,xpdf], "Portable Document Format (PDF)").
 media_type_(pgm, media(image/'x-portable-graymap',[]), [], "Portable Graymap Format (PGM)").
 extension__(pic, _, [], "PIC language").
-media_type_(pl, media(application/'x-prolog',[]), [gedit], "Prolog").
+media_type_(pl, media(application/'x-prolog',[]), text_editor, "Prolog").
 media_type_(png, media(image/png,[]), [eog,xfig], "Portable Network Graphics (PNG)").
 media_type_(pnm, media(image/'x-portable-anymap',[]), [eog], "Portable Anymap Format (PNM)").
 media_type_(pot, media(application/'vnd.ms-powerpoint',[]), [program(libreoffice,['--impress'])], "Microsoft PowerPoint").
@@ -261,26 +269,26 @@ media_type_(ps, media(application/postscript,[]), [evince,xfig,xpdf], "PostScrip
 media_type_(psd, media(image/'image/vnd.adobe.photoshop',[]), [], "Adobe Photoshop Document (PSD)").
 media_type_(rar, media(application/'vnd.rar',[]), [], "Roshal Archive (RAR)").
 extension__(ras, _, [eog], "Sun Raster").
-media_type_(rdf, media(application/'rdf+xml',[]), [gedit], "RDF/XML 1.1").
-media_type_(rq, media(application/'sparql-query',[]), [gedit], "SPARQL 1.1 Query").
-media_type_(rss, media(application/'rss+xml',[]), [gedit], "Rich Site Summary (RSS)").
+media_type_(rdf, media(application/'rdf+xml',[]), text_editor, "RDF/XML 1.1").
+media_type_(rq, media(application/'sparql-query',[]), text_editor, "SPARQL 1.1 Query").
+media_type_(rss, media(application/'rss+xml',[]), text_editor, "Rich Site Summary (RSS)").
 media_type_(rtf, media(application/rtf,[]), [], "Rich Text Format (RTF)").
-media_type_(ru, media(application/'sparql-update',[]), [gedit], "SPARQL 1.1 Update").
+media_type_(ru, media(application/'sparql-update',[]), text_editor, "SPARQL 1.1 Update").
 media_type_(sgi, media(image/sgi,[]), [], "Silicon Graphics Image (SGI)").
-media_type_(srj, media(application/'sparql-results+json',[]), [gedit], "SPARQL 1.1 Query Results JSON Format").
-media_type_(srx, media(application/'sparql-results+xml',[]), [gedit], "SPARQL Query Results XML Format").
+media_type_(srj, media(application/'sparql-results+json',[]), text_editor, "SPARQL 1.1 Query Results JSON Format").
+media_type_(srx, media(application/'sparql-results+xml',[]), text_editor, "SPARQL Query Results XML Format").
 media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
 media_type_(tar, media(application/'x-tar',[]), [], "TAR").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog,xfig], "Tagged Image File Format (TIFF)").
 media_type_(torrent, media(application/'x-bittorrent',[]), ['transmission-gtk'], "BitTorrent").
-media_type_(trig, media(application/trig,[]), [gedit], "TriG 1.1").
-extension__(trix, _, [gedit], "Triples in XML (TriX)").
-media_type_(tsv, media(text/'tab-separated-values',[]), [gedit], "Tag-separated values (TSV)").
-media_type_(ttl, media(text/turtle,[]), [gedit], "Turtle 1.1").
+media_type_(trig, media(application/trig,[]), text_editor, "TriG 1.1").
+extension__(trix, _, text_editor, "Triples in XML (TriX)").
+media_type_(tsv, media(text/'tab-separated-values',[]), text_editor, "Tag-separated values (TSV)").
+media_type_(ttl, media(text/turtle,[]), text_editor, "Turtle 1.1").
 media_type_(wbmp, media(image/'vnd.wap.bmp',[]), [eog], "Wireless Application Protocol Bitmap Format (Wireless Bitmap)").
 media_type_(xbm, media(image/'x-bitmap',[]), [eog,xfig], "X BitMap (XBM)").
-media_type_(xhtml, media(application/'xhtml+xml',[]), [gedit], "XHTML").
+media_type_(xhtml, media(application/'xhtml+xml',[]), text_editor, "XHTML").
 media_type_(xla, media(application/'vnd.ms-excel',[]), [program(libreoffice,['--calc'])], "Microsoft Excel").
 media_type_(xlam, media(application/'vnd.ms-excel.addin.macroenabled.12',[]), [program(libreoffice,['--calc'])], "Microsoft Excel Add-in").
 media_type_(xls, media(application/'vnd.ms-excel',[]), [program(libreoffice,['--calc'])], "Microsoft Excel").
@@ -290,10 +298,10 @@ media_type_(xlsx, media(application/'vnd.openxmlformats-officedocument.spreadshe
 media_type_(xlt, media(application/'vnd.ms-excel',[]), [program(libreoffice,['--calc'])], "Microsoft Excel").
 media_type_(xltm, media(application/'vnd.ms-excel.template.macroenabled.12',[]), [program(libreoffice,['--calc'])], "Microsoft Excel Template").
 media_type_(xltx, media(application/'vnd.openxmlformats-officedocument.spreadsheetml.template',[]), [program(libreoffice,['--calc'])], "OpenOffice Spreadsheet Template").
-media_type_(xml, media(text/xml,[]), [gedit], "Extended Markup Language (XML)").
+media_type_(xml, media(text/xml,[]), text_editor, "Extended Markup Language (XML)").
 media_type_(xpm, media(image/'x-xpixmap',[]), [eog,xfig], "X PixMap (XPM)").
 media_type_(xz, media(application/'x-xz',[]), [], "xz").
-media_type_(yml, media(application/'x-yaml',[]), [gedit], "YAML Ain't Markup Language (YAML)").
+media_type_(yml, media(application/'x-yaml',[]), text_editor, "YAML Ain't Markup Language (YAML)").
 extension__(vdx, _, [], "Microsoft Visio XML drawing").
 media_type_(vml, media(application/'vnd.openxmlformats-officedocument.vmlDrawing',[]), [], "Vector Markup Language (VML), part of Microsoft Open Office XML").
 media_type_(vmlz, media(application/'vnd.openxmlformats-officedocument.vmlDrawing',[]), [], "GNU zipped VML").
