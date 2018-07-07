@@ -5,8 +5,12 @@
     hash_file/4,      % +Root, +Hash, +Local, -File
     md5/2,            % +Term, -Hash
     md5/3,            % +Term, -Hash, +Options
+    md5_text/2,       % +Text, -Hash
+    md5_text/3,       % +Text, -Hash, +Options
     sha/2,            % +Term, -Hash
-    sha/3             % +Term, -Hash, +Options
+    sha/3,            % +Term, -Hash, +Options
+    sha_text/2,       % +Text, -Hash
+    sha_text/3        % +Text, -Hash, +Options
   ]
 ).
 
@@ -20,8 +24,12 @@ Extended support for using hashes.
 
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
-:- use_module(library(md5)).
-:- use_module(library(sha)).
+:- reexport(library(md5), [
+     md5_hash/3 as md5_text
+   ]).
+:- reexport(library(sha), [
+     sha_hash/3 as sha_text
+   ]).
 
 
 
@@ -46,8 +54,8 @@ hash_file(Root, Hash, Local, File) :-
 
 
 
-%! md5(+Term, -Hash) is det.
-%! md5(+Term, -Hash, +Options) is det.
+%! md5(+Term, -Hash:atom) is det.
+%! md5(+Term, -Hash:atom, +Options:list(compound)) is det.
 
 md5(Term, Hash) :-
   md5(Term, Hash, []).
@@ -59,8 +67,16 @@ md5(Term, Hash, Options) :-
 
 
 
-%! sha(+Term, -Hash) is det.
-%! sha(+Term, -Hash, +Options) is det.
+%! md5_text(+Text:text, -Hash:atom) is det.
+%! md5_text(+Text:text, -Hash:atom, +Options:list(compound)) is det.
+
+md5_text(Text, Hash) :-
+  md5_text(Text, Hash, []).
+
+
+
+%! sha(+Term, -Hash:atom) is det.
+%! sha(+Term, -Hash:atom, +Options:list(compound)) is det.
 
 sha(Data, Hash) :-
   sha(Data, Hash, []).
@@ -69,3 +85,11 @@ sha(Data, Hash) :-
 sha(Term, Hash, Options) :-
   term_to_atom(Term, Atom),
   sha_hash(Atom, Hash, Options).
+
+
+
+%! sha_text(+Text:text, -Hash:atom) is det.
+%! sha_text(+Text:text, -Hash:atom, +Options:list(compound)) is det.
+
+sha_text(Text, Hash) :-
+  sha_text(Text, Hash, []).
