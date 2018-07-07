@@ -10,7 +10,7 @@
     'alphanum*'//2,         % -Codes:list(code), -Tail:list(code)
     'alphanum+'//2,         % -Codes:list(code), -Tail:list(code)
     atom_phrase/2,          % :Dcg_0, ?Atom
-    atom_phrase/3,          % :Dcg_0, +Atomic, ?Atom
+    atom_phrase/3,          % :Dcg_0, +Atom1, ?Atom2
     dcg_between//2,         % +Low, +High
     dcg_between//3,         % +Low, +High, ?Code
     dcg_call//1,            % :Dcg_0
@@ -144,7 +144,7 @@ alphanum(Code) --> digit(Code).
 
 
 %! atom_phrase(:Dcg_0, ?Atom:atom)// is nondet.
-%! atom_phrase(:Dcg_0, +Atomic:atomic, ?Atom:atom)// is nondet.
+%! atom_phrase(:Dcg_0, +Atom1:atomic, ?Atom2:atom)// is nondet.
 %
 % @throws instantiation_error
 % @throws type_error
@@ -158,14 +158,11 @@ atom_phrase(Dcg_0, Atom) :-
   phrase(Dcg_0, Codes).
 
 
-atom_phrase(Dcg_0, Atomic, Atom) :-
-  (   atom(Atomic)
-  ->  atom_codes(Atomic, Codes1)
-  ;   number(Atomic)
-  ->  number_codes(Atomic, Codes1)
-  ),
+atom_phrase(Dcg_0, Atom1, Atom2) :-
+  must_be(atom, Atom1),
+  atom_codes(Atom1, Codes1),
   phrase(Dcg_0, Codes1, Codes2),
-  atom_codes(Atom, Codes2).
+  atom_codes(Atom2, Codes2).
 
 
 
