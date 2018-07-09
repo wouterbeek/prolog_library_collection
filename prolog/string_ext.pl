@@ -3,19 +3,20 @@
   string_ext,
   [
     read_string/2,        % +In, -String
-    string_ellipsis/3,    % +String, ?MaxLength, -Ellipsis
+    string_ellipsis/3,    % +Original, ?MaxLength, -Ellipsed
     string_list_concat/2, % +Strings, -String
     string_list_concat/3, % ?Strings, ?Separator, ?String
-    string_prefix/3,      % +String, ?Length, ?SubString
-    string_strip/3,       % +String1, +StripChars, -String2
-    string_truncate/3     % +String, +Max, -Truncated
+    string_postfix/3,     % +Original, ?Length, ?Postfix
+    string_prefix/3,      % +Original, ?Length, ?Prefix
+    string_strip/3,       % +Original, +Chars, -Stripped
+    string_truncate/3     % +Original, +MaxLength, -Truncated
   ]
 ).
 
 /** <module> String extensions
 
 @author Wouter Beek
-@version 2017/05-2018/01
+@version 2017-2018
 */
 
 :- use_module(library(error)).
@@ -24,43 +25,50 @@
 
 
 
-%! read_string(+In, -String) is det.
+%! read_string(+In:stream, -String:string) is det.
+%
+% Wrapper for read_string/3 when the number of read characters does
+% not matter.
 
 read_string(In, String) :-
   read_string(In, _, String).
 
 
 
-%! string_ellipsis(+String, +Length, +Ellipsis) is semidet.
-%! string_ellipsis(+String, +Length, -Ellipsis) is semidet.
-%! string_ellipsis(+String, -Length, -Ellipsis) is nondet.
+%! string_ellipsis(+Original:string, +MaxLength:nonneg, +Ellipsed:string) is semidet.
+%! string_ellipsis(+Original:string, +MaxLength:nonneg, -Ellipsed:string) is semidet.
+%! string_ellipsis(+Original:string, -MaxLength:nonneg, -Ellipsed:string) is nondet.
+%
+% Succeeds if Ellipsed is like Orginal, but has ellipsis applied in
+% order to have MaxLength.  If Original is not longer than MaxLength,
+% Orignal and Ellipsed are the same.
 %
 % ```
-% ?- string_ellipsis("monkey", N, X).
-% N = 2,
-% X = "m…" ;
-% N = 3,
-% X = "mo…" ;
-% N = 4,
-% X = "mon…" ;
-% N = 5,
-% X = "monk…" ;
-% N = 6,
-% X = "monkey".
+% ?- string_ellipsis("monkey", Length, Ellipsed).
+% Length = 2,
+% Ellipsed = "m…" ;
+% Length = 3,
+% Ellipsed = "mo…" ;
+% Length = 4,
+% Ellipsed = "mon…" ;
+% Length = 5,
+% Ellipsed = "monk…" ;
+% Length = 6,
+% Ellipsed = "monkey".
 % ```
+%
+% @see atom_ellipsis/3 provides the same functionality for atoms.
 
-string_ellipsis(String, ELength, Ellipsis) :-
-  string_length(String, Length),
-  (   ELength == ∞
-  ->  Ellipsis = String
-  ;   between(2, Length, ELength)
-  *-> (   ELength =:= Length
-      ->  Ellipsis = String
-      ;   TLength is ELength - 1,
-          string_truncate(String, TLength, Truncated),
-          string_concat(Truncated, "…", Ellipsis)
+string_ellipsis(Original, MaxLength, Ellipsed) :-
+  string_length(Original, Length),
+  (   between(2, Length, MaxLength)
+  *-> (   MaxLength =:= Length
+      ->  Ellipsed = Original
+      ;   PrefixLength is MaxLength - 1,
+          string_prefix(Original, PrefixLength, Prefix),
+          string_concat(Prefix, "…", Ellipsed)
       )
-  ;   Ellipsis = String
+  ;   Ellipsed = Original
   ).
 
 
@@ -86,35 +94,58 @@ string_list_concat(Strings, Separator, String):-
 
 
 
-%! string_prefix(+String, +Length, +SubString) is semidet.
-%! string_prefix(+String, +Length, -SubString) is semidet.
-%! string_prefix(+String, -Length, +SubString) is semidet.
-%! string_prefix(+String, -Length, -SubString) is multi.
+%! string_postfix(+Original:string, +Length:nonneg, +Postfix:string) is semidet.
+%! string_postfix(+Original:string, +Length:nonneg, -Postfix:string) is semidet.
+%! string_postfix(+Original:string, -Length:nonneg, +Postfix:string) is semidet.
+%! string_postfix(+Original:string, -Length:nonneg, -Postfix:string) is multi.
 %
-% SubString is the prefix of string String that has length Length.
+% @arg Length is the number of characters in the Postfix string.
+%
+% @arg Postfix is the postfix of the Original string that has Length
+%      characters.
 %
 % Fails in case Length is higher than the length of string String.
 
-string_prefix(String, Length, SubString) :-
-  sub_string(String, 0, Length, _, SubString).
+string_postfix(Original, Length, Postfix) :-
+  sub_string(Original, _, Length, 0, Postfix).
 
 
 
-%! string_strip(+String1:string, +StripChars:string, -String2:string) is det.
-
-string_strip(String1, Strip, String2) :-
-  split_string(String1, "", Strip, [String2]).
-
-
-
-%! string_truncate(+String, +Max, -Truncated) is det.
+%! string_prefix(+Original:string, +Length:nonneg, +Prefix:string) is semidet.
+%! string_prefix(+Original:string, +Length:nonneg, -Prefix:string) is semidet.
+%! string_prefix(+Original:string, -Length:nonneg, +Prefix:string) is semidet.
+%! string_prefix(+Original:string, -Length:nonneg, -Prefix:string) is multi.
 %
-% @see string_ellipsis
+% @arg Length is the number of characters in the Prefix string.
+%
+% @arg Prefix is the prefix of the Original string that has Length
+%      characters.
+%
+% Fails in case Length exceeds the Original string length.
 
-string_truncate(String, ∞, String) :- !.
-string_truncate(String, MaxLength, String) :-
-  must_be(nonneg, MaxLength),
-  string_length(String, Length),
-  Length =< MaxLength, !.
-string_truncate(String, MaxLength, Prefix) :-
-  string_prefix(String, MaxLength, Prefix).
+string_prefix(Original, Length, Prefix) :-
+  sub_string(Original, 0, Length, _, Prefix).
+
+
+
+%! string_strip(+Original:string, +Chars:string, -Stripped:string) is det.
+%
+% @arg Chars is a string of charaters that will be stripped from the
+%      Original string.
+%
+% @arg Stripped is the Original string, but without any of the leading
+%      and/or trailing characters that appear in Chars.
+
+string_strip(Original, Chars, Stripped) :-
+  split_string(Original, "", Chars, [Stripped]).
+
+
+
+%! string_truncate(+Original:string, +MaxLength:nonneg, -Truncated:string) is det.
+%
+% Like string_prefix/3, but the Truncated string is the Original
+% string in case MaxLength exceeds the Original string length.
+
+string_truncate(Original, MaxLength, Prefix) :-
+  string_prefix(Original, MaxLength, Prefix).
+string_truncate(Original, _, Original).

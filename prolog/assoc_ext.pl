@@ -2,7 +2,7 @@
   assoc_ext,
   [
     merge_assoc/3,    % +New, +Old, -Merge
-    transpose_assoc/2 % +Assoc1, -Assoc2
+    transpose_assoc/2 % +Original, -Transposed
   ]
 ).
 :- reexport(library(assoc)).
@@ -21,7 +21,7 @@
 
 
 
-%! merge_assoc(+New:assic, +Old:assoc, -Merge:assoc) is det.
+%! merge_assoc(+New:assoc, +Old:assoc, -Merge:assoc) is det.
 
 merge_assoc(New1, Old1, Merge) :-
   maplist(assoc_to_list, [New1,Old1], [New2,Old2]),
@@ -29,7 +29,7 @@ merge_assoc(New1, Old1, Merge) :-
 
 
 
-%! transpose_assoc(+Assoc1:assoc, -Assoc2:assoc) is det.
+%! transpose_assoc(+Original:assoc, -Transposed:assoc) is det.
 
 transpose_assoc(Assoc1, Assoc2) :-
   assoc_to_list(Assoc1, Pairs1),

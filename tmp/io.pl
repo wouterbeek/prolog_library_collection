@@ -1,7 +1,6 @@
 :- module(
   io,
   [
-    archive_path/2,          % +Source, -InPath
     call_on_stream/2,        % +Source, :Goal_3
     call_on_stream/3,        % +Source, :Goal_3, +SourceOpts
     call_onto_stream/3,      % +Source, +Sink, :Goal_4
@@ -32,27 +31,6 @@
     write_mode/1             % ?Mode
   ]
 ).
-
-/** <module> I/O
-
-The following external programs are used:
-
-  * iconv
-
-  * uchardet
-
-The following debug flags are used:
-
-  * io(close)
-
-  * io(open)
-
-  * io(recode)
-
-@author Wouter Beek
-@tbd Implement metadata using backtrackable setval.
-@version 2016/07-2017/04
-*/
 
 :- use_module(library(apply)).
 :- use_module(library(dcg)).
@@ -92,28 +70,6 @@ The following debug flags are used:
     call_to_streams(+, +, 2, +, +),
     call_to_streams0(+, +, 2, +, -, +, +, -, +),
     call_to_string(1, +).
-
-:- multifile
-    error:has_type/2.
-
-error:has_type(read_mode, Term) :-
-  error:has_type(oneof([read]), Term).
-
-error:has_type(write_mode, Term) :-
-  error:has_type(oneof([append,write]), Term).
-
-
-
-
-
-%! archive_path(+Source, -InPath) is nondet.
-%
-% Enumerates the entry paths in the archive stored at Source.
-
-archive_path(Source, InPath) :-
-  call_on_stream(Source, archive_path0(InPath)).
-
-archive_path0(InPath, _, InPath, InPath).
 
 
 
@@ -550,43 +506,6 @@ copy_stream_data(In, InPath, InPath, Out) :-
 
 
 
-%! archive_file_extension(+Extension:atom) is semidet.
-%! archive_file_extension(-Extension:atom) is multi.
-%
-% Often occurring file extensions for archvies.
-
-archive_file_extension(cab).
-archive_file_extension(rar).
-archive_file_extension(tar).
-archive_file_extension(xar).
-archive_file_extension(zip).
-
-
-
-%! is_archive_file(+File) is semidet.
-%
-% Succeeds if File is a common way of naming an archive file.
-
-is_archive_file(File) :-
-  file_extensions(File, Exts),
-  once((
-    member(Ext, Exts),
-    archive_file_extension(Ext)
-  )).
-
-
-
-%! read_mode(+Mode) is semidet.
-%! read_mode(-Mode) is multi.
-%
-% Mode is one of the following values:
-%
-%   * read
-
-read_mode(read).
-
-
-
 %! read_to_atom(+Source, -A) is det.
 
 read_to_atom(Source, A) :-
@@ -662,24 +581,6 @@ source_entry_segments([_|T], L, Segments) :-
   source_entry_segments(T, L, Segments).
 
 
-
-%! write_mode(+Mode) is semidet.
-%! write_mode(-Mode) is multi.
-%
-% Mode is one of the following values:
-%
-%   * append
-%
-%   * write
-
-write_mode(append).
-write_mode(write).
-
-
-
-
-
-% HELPERS %
 
 %! call_to_something(:Goal_1, +Type, -Result) is det.
 

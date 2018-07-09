@@ -2,48 +2,15 @@
 #+AUTHOR: Wouter Beek
 
 A collection of Prolog libraries that extends the functionality
-available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.  It contains the
-following modules:
-
-  - ~archive_ext~
-  - ~atom_ext~: support for working with atoms, e.g., capitalization,
-    ellipsis, strip, truncate.
-  - ~call_ext~: meta-predicates
-  - ~code_ext~
-  - ~conf_ext~
-  - ~csv_ext~: streamed processing of CSV files
-  - ~date_time~
-  - ~dcg/~: DCG support
-  - ~default~
-  - ~dict_ext~: SWI7 dictionaries
-  - ~dlist~: difference lists
-  - ~file_ext~: handling files and directories
-  - ~geo/~: parsing & generating of Well-Known Text (WKT) strings
-  - ~has_ext~
-  - ~http/~: HTTP client & server support
-  - ~json_ext~
-  - ~list_ext~
-  - ~math_ext~
-  - ~nlp/~
-  - ~os_ext~: running external processes, streaming to/from external
-    processes
-  - ~pair_ext~
-  - ~pp~
-  - ~sort_ext~
-  - ~stream_ext~: support for recoding, unpacking, sorting, and hasing
-    streams.
-  - ~string_ext~
-  - ~uri/~: constructing/decomposing URIs
-  - ~write_ext~
-  - ~xml/~: streamed processing of XML DOMs
+available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
 
 * Installation
 
-  1. Install a recent version of [[http://www.swi-prolog.org][SWI-Prolog]].
-  2. Start Prolog and install the [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] (PPM):
+  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+  2. Run Prolog and install the [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] (PPM):
      ~pack_install('git://github.com/wouterbeek/ppm').~
   3. Activate PPM: ~[library(ppm)].~
-  4. Install Prolog Library Collection through the PPM:
+  4. Install Prolog Library Collection:
      ~ppm_install('Prolog-Library-Collection').~
 
 * Usage
@@ -60,12 +27,68 @@ you want to use afterwards:
 Since the above is a bit cumbersome, it is common practice to place
 the PPM load command in the Prolog startup file (~~/.swiplrc~).
 
-* Library overview
+* Module overview
+
+** ~archive_ext~
+
+This module extends the standard library ~archive~:
+
+  - ~archive_extension(?Extension:atom)~
+
+    Succeeds if ~Extension~ is a default file name extension for an
+    archive filter or format, as declared in library [[media_type]].
+
+  - ~archive_media_type(?MediaType:media)~
+
+    Succeeds if ~MediaType~ is the Media Type of an archive filter or
+    format.
+
+  - ~archive_open(+In:stream, -Archive:blob)~
+
+    Opens an archive over all supported and sensible archive filters
+    and formats.  This specifically excludes format ~mtree~, which is
+    a plain text format that is almost never used yet leads to many
+    false positives in practice.
+
+** ~assoc_ext~
+
+This module extends the standard library ~assoc~:
+
+  - ~merge_assoc(+New:assoc, +Old:assoc, -Merge:assoc)~
+
+    Merges two assocs into a new one.  If the same key exists in ~New~
+    and ~Old~, the format replaces the latter in ~Merge~.  These
+    semantics are inspired by those of the standard library predicate
+    ~merge_options/3~ in library ~option~.
+
+  - ~transpose_assoc(+Assoc:assoc, -Transposed:assoc)~
+
+    Turns an assoc of (key,value) pairs into one with(value,key)
+    pairs.
+
+** ~atom_ext~
+
+  - ~atom_capitalize(+Original:atom, -Capitalized:atom)~
+
+    ~Capitalized~ is like ~Orginal~, but its first character is
+    ensured to be in upper case (if possible).
+
+  - ~atom_ellipsis(+Original:atom, ?MaxLength:nonneg, ?Ellipsed:atom)~
+
+
+Support for working with atoms, e.g., capitalization, ellipsis, strip, truncate.
+
+** ~call_ext~
+meta-predicates
+** ~code_ext~
+** ~conf_ext~
+** ~csv_ext~
+Streamed processing of CSV files.
+** ~date_time~
 ** ~/dcg~ Definite Clause Grammars
 
 In directory ~/dcg~ you will find a collection of Definite Clause
 Grammar (DCG) modules.
-
 
 ** ~/dcg/dcg_abnf.pl~ Advanced Bauckus-Naur Form (ABNF)
 
@@ -166,3 +189,41 @@ Optional sequence is a special case of [[variable repetition]], because
 | ~?(:Dcg_0)//~             | Process ~Dcg_0~ 0 or 1 times.                       | [[optional sequence]]   |
 | ~'m*'(?M, :Dcg_0)//~      | Process ~Dcg_0~ at least ~M~ times.                 |                     |
 | ~'m*n'(?M, ?N, :Dcg_0)//~ | Process ~Dcg_0~ at least ~M~ and at most ~N~ times. | [[variable repetition]] |
+  It contains the
+following modules:
+
+| *Type*  | *Definition*                                                                                                       |
+|---------+--------------------------------------------------------------------------------------------------------------------|
+| ~media~ | A compound term of the form ~media(Super:atom/Sub:atom,Parameters:list(opt))~                                      |
+| ~opt~   | A unary compound term whose predicate letter is an option name and whose argument is a corresponding option value. |
+
+** ~default~
+** ~dict_ext~
+SWI7 dictionaries
+** ~dlist~
+difference lists
+** ~file_ext~
+Handling files and directories.
+** ~geo/~
+Parsing & generating of Well-Known Text (WKT) strings.
+** ~has_ext~
+** ~http/~
+HTTP client & server support.
+** ~json_ext~
+** ~list_ext~
+** ~math_ext~
+** ~media_type~ <<media_type>>
+** ~nlp/~
+** ~os_ext~
+Running external processes, streaming to/from external processes.
+** ~pair_ext~
+** ~pp~
+** ~sort_ext~
+** ~stream_ext~
+Support for recoding, unpacking, sorting, and hasing streams.
+** ~string_ext~
+** ~uri/~
+Constructing/decomposing URIs.
+** ~write_ext~
+** ~xml/~
+Streamed processing of XML DOMs.

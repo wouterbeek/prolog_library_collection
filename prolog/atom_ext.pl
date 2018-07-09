@@ -2,17 +2,16 @@
 :- module(
   atom_ext,
   [
-    atom_capitalize/2, % +Atom, -Capitalized
-    atom_ellipsis/3,   % +Atom, ?Length, ?Ellipsis
-    atom_postfix/2,    % +Atom, ?Postfix
-    atom_postfix/3,    % +Atom, ?Length, ?Postfix
-   %atom_prefix/2,     % +Atom, ?Prefix
-    atom_prefix/3,     % +Atom, ?Length, ?Prefix
-    atom_strip/2,      % +Atom, -Stripped
-    atom_strip/3,      % +StripChars, +Atom, -Stripped
-    atom_terminator/3, % +Atom1, +Terminator, +Atom2
-    atom_truncate/3,   % +Atom, +MaxLength, -Truncated
-    is_empty_atom/1    % @Term
+    atom_capitalize/2, % +Original, ?Capitalized
+    atom_ellipsis/3,   % +Original, ?MaxLength, ?Ellipsed
+    atom_postfix/2,    % +Original, ?Postfix
+    atom_postfix/3,    % +Original, ?Length, ?Postfix
+   %atom_prefix/2,     % +Original, ?Prefix
+    atom_prefix/3,     % +Original, ?Length, ?Prefix
+    atom_strip/2,      % +Original, ?Stripped
+    atom_strip/3,      % +Original, +Strip, ?Stripped
+    atom_terminator/3, % +Original, +Terminator, ?Terminated
+    atom_truncate/3    % +Original, +MaxLength, ?Truncated
   ]
 ).
 
@@ -25,12 +24,14 @@
 :- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(plunit)).
 
 
 
 
 
-%! atom_capitalize(+Atom:atom, -Capitalized:atom) is det.
+%! atom_capitalize(+Original:atom, +Capitalized:atom) is semidet.
+%! atom_capitalize(+Original:atom, -Capitalized:atom) is det.
 %
 % Succeeds if Capitalized is a copy of Atom where the first character
 % is in upper case.
@@ -44,73 +45,162 @@ atom_capitalize(Atom, Capitalized) :-
   to_upper(H1, H2),
   atom_codes(Capitalized, [H2|T]).
 
+:- begin_tests(atom_capitalize).
+
+test('atom_capitalize(+,+)', [forall(atom_capitalize_test(Original,Capitalized))]) :-
+  atom_capitalize(Original, Capitalized).
+test('atom_capitalize(+,-)', [forall(atom_capitalize_test(Original,Capitalized))]) :-
+  atom_capitalize(Original, Capitalized0),
+  assertion(Capitalized == Capitalized0).
+
+atom_capitalize_test(monkey, 'Monkey').
+% Atoms with a first character that does not have a capital variant.
+atom_capitalize_test('123', '123').
+atom_capitalize_test(' a ', ' a ').
+% Atom with a first character this is non-ASCII.
+atom_capitalize_test('ὰ', 'Ὰ').
+
+:- end_tests(atom_capitalize).
 
 
-%! atom_ellipsis(+Atom:atom, +MaxLength:nonneg, +Ellipsis:atom) is semidet.
-%! atom_ellipsis(+Atom:atom, +MaxLength:nonneg, -Ellipsis:atom) is semidet.
-%! atom_ellipsis(+Atom:atom, -MaxLength:nonneg, -Ellipsis:atom) is nondet.
+
+%! atom_ellipsis(+Original:atom, +MaxLength:between(2,inf), +Ellipsed:atom) is semidet.
+%! atom_ellipsis(+Original:atom, +MaxLength:between(2,inf), -Ellipsed:atom) is semidet.
+%! atom_ellipsis(+Original:atom, -MaxLength:between(2,inf), -Ellipsed:atom) is nondet.
+%
+% Succeeds if Ellipsed is like Orginal, but has ellipsis applied in
+% order to have MaxLength.  If Original is not longer than MaxLength,
+% Orignal and Ellipsed are the same.
+%
+% For mode `(+,-,-)' the enumeration order prioritizes shorter atoms:
 %
 % ```
-% ?- atom_ellipsis(monkey, N, X).
-% N = 2,
-% X = 'm…' ;
-% N = 3,
-% X = 'mo…' ;
-% N = 4,
-% X = 'mon…' ;
-% N = 5,
-% X = 'monk…' ;
-% N = 6,
-% X = monkey.
+% ?- atom_ellipsis(monkey, Length, Ellipsed).
+% Length = 2,
+% Ellipsed = 'm…' ;
+% Length = 3,
+% Ellipsed = 'mo…' ;
+% Length = 4,
+% Ellipsed = 'mon…' ;
+% Length = 5,
+% Ellipsed = 'monk…' ;
+% Length = 6,
+% Ellipsed = monkey.
 % ```
+%
+% @see string_ellipsis/3 provides the same functionality for strings.
 
-atom_ellipsis(Atom, MaxLength, Ellipsis) :-
-  atom_length(Atom, Length),
-  (   MaxLength = ∞
-  ->  Ellipsis = Atom
-  ;   between(2, Length, MaxLength)
+atom_ellipsis(Original, MaxLength, Ellipsed) :-
+  atom_length(Original, Length),
+  (   between(2, Length, MaxLength)
   *-> (   MaxLength =:= Length
-      ->  Ellipsis = Atom
+      ->  Ellipsed = Original
       ;   TruncateLength is MaxLength - 1,
-          atom_truncate(Atom, TruncateLength, Truncated),
-          atomic_concat(Truncated, "…", Ellipsis)
+          atom_truncate(Original, TruncateLength, Truncated),
+          atomic_concat(Truncated, "…", Ellipsed)
       )
-  ;   Ellipsis = Atom
+  ;   must_be(between(2,inf), MaxLength),
+      Ellipsed = Original
   ).
 
+:- begin_tests(atom_ellipsis).
+
+test('atom_ellipsis(+,+,+)', [forall(atom_ellipsis_test(Original,MaxLength,Ellipsed))]) :-
+  atom_ellipsis(Original, MaxLength, Ellipsed).
+test('atom_ellipsis(+,+,-) err', [error(type_error(between(2,inf),_MaxLength))]) :-
+  atom_ellipsis(monkey, 1, _).
+test('atom_ellipsis(+,+,-)', [forall(atom_ellipsis_test(Original,MaxLength,Ellipsed))]) :-
+  atom_ellipsis(Original, MaxLength, Ellipsed0),
+  assertion(Ellipsed == Ellipsed0).
+test('atom_ellipsis(+,-,-)', [all(MaxLength-Ellipsed == [2-'a…',3-'ab…',4-abcd])]) :-
+  atom_ellipsis(abcd, MaxLength, Ellipsed).
+
+atom_ellipsis_test(monkey, 3, 'mo…').
+
+:- end_tests(atom_ellipsis).
 
 
-%! atom_postfix(+Atom:atom, -Postfix:atom) is multi.
-%! atom_postfix(+Atom:atom, ?Length:nonneg, -Postfix:atom) is multi.
+
+%! atom_postfix(+Original:atom, +Postfix:atom) is semidet.
+%! atom_postfix(+Original:atom, -Postfix:atom) is multi.
+%! atom_postfix(+Original:atom, +Length:nonneg, +Postfix:atom) is multi.
+%! atom_postfix(+Original:atom, +Length:nonneg, -Postfix:atom) is semidet.
+%! atom_postfix(+Original:atom, -Length:nonneg, +Postfix:atom) is semidet.
+%! atom_postfix(+Original:atom, -Length:nonneg, -Postfix:atom) is multi.
+%
+% For mode `(+,-,-)' the enumeration order prioritizes longer atoms.
 
 atom_postfix(Atom, Postfix) :-
   atom_postfix(Atom, _, Postfix).
 
 
 atom_postfix(Atom, Length, Postfix) :-
-  atom_codes(Atom, Codes),
-  append(_, PostfixCodes, Codes),
-  length(PostfixCodes, Length),
-  atom_codes(Postfix, PostfixCodes).
+  sub_atom(Atom, _, Length, 0, Postfix).
+
+:- begin_tests(atom_postfix).
+
+test('atom_postfix(+,+,+)', [forall(test_atom_postfix(Original,Length,Postfix))]) :-
+  atom_postfix(Original, Length, Postfix).
+test('atom_postfix(+,+,-)', [forall(test_atom_postfix(Original,Length,Postfix))]) :-
+  atom_postfix(Original, Length, Postfix0),
+  assertion(Postfix == Postfix0).
+test('atom_postfix(+,-,+)', [forall(test_atom_postfix(Original,Length,Postfix))]) :-
+  atom_postfix(Original, Length0, Postfix),
+  assertion(Length == Length0).
+test('atom_postfix(+,-,-)', [all(Length-Postfix == [4-abcd,3-bcd,2-cd,1-d,0-''])]) :-
+  atom_postfix(abcd, Length, Postfix).
+
+test_atom_postfix(abcd, 4, abcd).
+test_atom_postfix(abcd, 3, bcd).
+test_atom_postfix(abcd, 2, cd).
+test_atom_postfix(abcd, 1, d).
+test_atom_postfix(abcd, 0, '').
+
+:- end_tests(atom_postfix).
 
 
 
-%! atom_prefix(+Atom:atom, +Length:nonneg, +Prefix:atom) is semidet.
-%! atom_prefix(+Atom:atom, +Length:nonneg, -Prefix:atom) is semidet.
-%! atom_prefix(+Atom:atom, -Length:nonneg, +Prefix:atom) is semidet.
-%! atom_prefix(+Atom:atom, -Length:nonneg, -Prefix:atom) is multi.
+%! atom_prefix(+Original:atom, +Length:nonneg, +Prefix:atom) is semidet.
+%! atom_prefix(+Original:atom, +Length:nonneg, -Prefix:atom) is semidet.
+%! atom_prefix(+Original:atom, -Length:nonneg, +Prefix:atom) is semidet.
+%! atom_prefix(+Original:atom, -Length:nonneg, -Prefix:atom) is multi.
 %
 % Prefix is the prefix of Atom that has length Length.
 %
 % Fails in case Length is higher than the length of Atom.
+%
+% For mode `(+,-,-)' the enumeration order prioritizes shorter atoms.
 
 atom_prefix(Atom, Length, Prefix) :-
   sub_atom(Atom, 0, Length, _, Prefix).
 
+:- begin_tests(atom_prefix).
+
+test('atom_prefix(+,+,+)', [forall(test_atom_prefix(Original,Length,Prefix))]) :-
+  atom_prefix(Original, Length, Prefix).
+test('atom_prefix(+,+,-)', [forall(test_atom_prefix(Original,Length,Prefix))]) :-
+  atom_prefix(Original, Length, Prefix0),
+  assertion(Prefix == Prefix0).
+test('atom_prefix(+,-,+)', [forall(test_atom_prefix(Original,Length,Prefix))]) :-
+  atom_prefix(Original, Length0, Prefix),
+  assertion(Length == Length0).
+test('atom_prefix(+,-,-)', [all(Length-Prefix == [0-'',1-a,2-ab,3-abc,4-abcd])]) :-
+  atom_prefix(abcd, Length, Prefix).
+
+test_atom_prefix(abcd, 0, '').
+test_atom_prefix(abcd, 1, a).
+test_atom_prefix(abcd, 2, ab).
+test_atom_prefix(abcd, 3, abc).
+test_atom_prefix(abcd, 4, abcd).
+
+:- end_tests(atom_prefix).
 
 
-%! atom_strip(+Atom:atom, -Stripped:atom) is det.
-%! atom_strip(+StripChars:list(char), +Atom:atom, -Stripped:atom) is det.
+
+%! atom_strip(+Original:atom, +Stripped:atom) is det.
+%! atom_strip(+Original:atom, -Stripped:atom) is det.
+%! atom_strip(+Original:atom, +Strip:list(char), +Stripped:atom) is semidet.
+%! atom_strip(+Original:atom, +Strip:list(char), -Stripped:atom) is det.
 %
 % Return Atom with any occurrens of PadChars remove from the front
 % and/or back.
@@ -119,69 +209,96 @@ atom_prefix(Atom, Length, Prefix) :-
 %
 % The default PadChars are space, newline and horizontal tab.
 
-atom_strip(A1, A2) :-
-  atom_strip([' ','\n','\t'], A1, A2).
+atom_strip(Original, Stripped) :-
+  atom_strip(Original, [' ','\n','\t'], Stripped).
 
 
-atom_strip(StripChars, A1, A3) :-
-  atom_strip_begin0(StripChars, A1, A2),
-  atom_strip_end0(StripChars, A2, A3).
+atom_strip(A1, Strip, A3) :-
+  atom_strip_begin_(A1, Strip, A2),
+  atom_strip_end_(A2, Strip, A3).
 
-atom_strip_begin0(StripChars, A1, A3) :-
-  member(StripChar, StripChars),
-  atom_concat(StripChar, A2, A1), !,
-  atom_strip_begin0(StripChars, A2, A3).
-atom_strip_begin0(_, A, A).
+atom_strip_begin_(A1, Strip, A3) :-
+  member(Char, Strip),
+  atom_concat(Char, A2, A1), !,
+  atom_strip_begin_(A2, Strip, A3).
+atom_strip_begin_(A, _, A).
 
-atom_strip_end0(StripChars, A1, A3) :-
-  member(StripChar, StripChars),
-  atom_concat(A2, StripChar, A1), !,
-  atom_strip_end0(StripChars, A2, A3).
-atom_strip_end0(_, A, A).
+atom_strip_end_(A1, Strip, A3) :-
+  member(Char, Strip),
+  atom_concat(A2, Char, A1), !,
+  atom_strip_end_(A2, Strip, A3).
+atom_strip_end_(A, _, A).
+
+:- begin_tests(atom_strip).
+
+test('atom_strip(+,+,+)', [forall(test_atom_strip(Original,Strip,Stripped))]) :-
+  atom_strip(Original, Strip, Stripped).
+test('atom_strip(+,+,-)', [forall(test_atom_strip(Original,Strip,Stripped))]) :-
+  atom_strip(Original, Strip, Stripped0),
+  assertion(Stripped == Stripped0).
+
+test_atom_strip(' a ', [' '], a).
+test_atom_strip(' a ', [' ',a], '').
+test_atom_strip('', [' '], '').
+test_atom_strip(' ', [], ' ').
+
+:- end_tests(atom_strip).
 
 
 
-%! atom_terminator(+Atom1:atom, +Terminator:code, +Atom2:atom) is det.
+%! atom_terminator(+Original:atom, +Terminator:char, +Terminated:atom) is semidet.
+%! atom_terminator(+Original:atom, +Terminator:char, -Terminated:atom) is det.
+%
+% @arg Terminated is an atom similar to Original, which is ensured to
+%      end with the given Terminator character.
 
-atom_terminator(Atom1, Terminator, Atom2) :-
-  atom_codes(Atom1, Codes1),
-  once(append(_, [Last], Codes1)),
+atom_terminator(Original, Terminator, Terminated) :-
+  atom_chars(Original, Chars1),
+  (Chars1 == [] -> true ; once(append(_, [Last], Chars1))),
   (   Last == Terminator
-  ->  Atom2 = Atom1
-  ;   append(Codes1, [Terminator], Codes2),
-      atom_codes(Atom2, Codes2)
+  ->  Terminated = Original
+  ;   append(Chars1, [Terminator], Chars2),
+      atom_chars(Terminated, Chars2)
   ).
 
+:- begin_tests(atom_terminator).
 
+test('atom_terminator(+,+,+)', [forall(test_atom_terminator(Original,Terminator,Terminated))]) :-
+  atom_terminator(Original, Terminator, Terminated).
+test('atom_terminator(+,+,-)', [forall(test_atom_terminator(Original,Terminator,Terminated))]) :-
+  atom_terminator(Original, Terminator, Terminated0),
+  assertion(Terminated == Terminated0).
 
-%! atom_truncate(+Atom:atom, +MaxLength:nonneg, -Truncated:atom) is det.
-%
-% Return a truncated version of the given atom.  MaxLength is the
-% exact maximum lenght of the truncated atom.  Truncation will always
-% result in an atom which has at most `MaxLength`.
-%
-% @param MaxLength must be a non-negative integer or `∞`.  When `∞`
-%        the original atom is returned without truncation.
-%
-% @see atom_ellipsis/3 for returning a truncated atom with ellipsis
-%      sign.
-%
-% @throws type_error
+test_atom_terminator('https://abc.com', /, 'https://abc.com/').
+test_atom_terminator('https://abc.com/', /, 'https://abc.com/').
+test_atom_terminator(/, /, /).
+test_atom_terminator('', /, /).
 
-atom_truncate(A, ∞, A) :- !.
-atom_truncate(A, MaxLength, A) :-
-  must_be(nonneg, MaxLength),
-  atom_length(A, Length),
-  Length =< MaxLength, !.
-atom_truncate(A, MaxLength, Prefix) :-
-  atom_prefix(A, MaxLength, Prefix).
+:- end_tests(atom_terminator).
 
 
 
-%! is_empty_atom(@Term) is semidet.
-%
-% Succeeds only on the empty atom.
+%! atom_truncate(+Original:atom, +MaxLength:nonneg, +Truncated:atom) is semidet.
+%! atom_truncate(+Original:atom, +MaxLength:nonneg, -Truncated:atom) is det.
 
-is_empty_atom(A) :-
-  atom_codes(A, Cs),
-  phrase(blanks, Cs).
+atom_truncate(Original, MaxLength, Truncated) :-
+  atom_length(Original, Length),
+  (   Length > MaxLength
+  ->  atom_prefix(Original, MaxLength, Truncated)
+  ;   Truncated = Original
+  ).
+
+:- begin_tests(atom_truncate).
+
+test('atom_truncate(+,+,+)', [forall(atom_truncate_test(Original,MaxLength,Truncated))]) :-
+  atom_truncate(Original, MaxLength, Truncated).
+test('atom_truncate(+,+,-)', [forall(atom_truncate_test(Original,MaxLength,Truncated))]) :-
+  atom_truncate(Original, MaxLength, Truncated0),
+  assertion(Truncated == Truncated0).
+test('atom_truncate(+,-,-)', [error(instantiation_error,_Context)]) :-
+  atom_truncate(abcd, _MaxLength, abcd).
+
+atom_truncate_test(monkey, 3, mon).
+atom_truncate_test(monkey, 1 000, monkey).
+
+:- end_tests(atom_truncate).

@@ -93,23 +93,21 @@ dcg_table(Rows1, Opts0) -->
 
 
 
-%! dcg_table_cell(+Type, +ContentWidth, :Cell_1, +Elem)// is det.
-%
-% Type is either `head` or `data`.
+%! dcg_table_cell(+Type:oneof([data,head]), +MaxWidth:nonneg, :Cell_1, +Elem)// is det.
 
-dcg_table_cell(Type, MaxContentWidth, Cell_1, Elem) --> !,
+dcg_table_cell(Type, MaxWidth, Cell_1, Elem) --> !,
   {
-    string_phrase(dcg_call_cp(Cell_1, Elem), Content),
-    string_truncate(Content, MaxContentWidth, TruncatedContent),
-    (   Content == TruncatedContent
-    ->  string_length(Content, ContentWidth),
-        Indent is MaxContentWidth - ContentWidth
-    ;   Indent = 0
-    )
+    string_phrase(dcg_call_cp(Cell_1, Elem), Original),
+    string_ellipsis(Original, MaxWidth, Display)
   },
   " ",
-  ({Type == data} -> atom(Content) ; bold(Content)),
+  ({Type == data} -> atom(Display) ; bold(Display)),
   " ",
+  {(  Display == Original
+  ->  Indent = 0
+  ;   string_length(Original, Width),
+      Indent is MaxWidth - Width
+  )},
   indent(Indent).
 
 
@@ -125,7 +123,7 @@ dcg_table_data_rows(State1, Cell_1, [H|T], State3) -->
 
 
 
-%! dcg_table_row(+Type, +Ws, :Cell_1, +Row)// is det.
+%! dcg_table_row(+Type:oneof([data,head]), +Ws, :Cell_1, +Row)// is det.
 
 dcg_table_row(Type, [W|Ws], Cell_1, [H|T]) --> !,
   "│",

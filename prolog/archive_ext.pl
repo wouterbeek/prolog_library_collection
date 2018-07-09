@@ -1,10 +1,9 @@
 :- module(
   archive_ext,
   [
-    archive_extension/1,  % ?Ext
+    archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
-    archive_open/2,       % +In, -Archive
-    archive_path/3        % +File, -Path, +Options
+    archive_open/2        % +In, -Archive
   ]
 ).
 
@@ -21,8 +20,8 @@
 
 
 
-%! archive_extension(+Ext:atom) is semidet.
-%! archive_extension(-Ext:atom) is multi.
+%! archive_extension(+Extension:atom) is semidet.
+%! archive_extension(-Extension:atom) is multi.
 
 archive_extension(Ext) :-
   var(Ext), !,
@@ -94,23 +93,4 @@ archive_media_type_format_(media(application/zip,[]), zip).
 
 archive_open(In, Archive) :-
   findall(format(Format), archive_format(Format), Formats),
-  archive_open(In, Archive, [filter(all)|Formats]).
-
-
-
-%! archive_path(+File:atom, -Path:list(dict), +Options:list(compound)) is nondet.
-
-archive_path(File, Path, Options) :-
-  setup_call_cleanup(
-    open(File, read, In, Options),
-    setup_call_cleanup(
-      archive_open(In, Archive, Options),
-      setup_call_cleanup(
-        archive_data_stream(Archive, In, [meta_data(Path)]),
-        true,
-        close(In)
-      ),
-      archive_close(Archive)
-    ),
-    close(In)
-  ).
+  archive_open(In, Archive, Formats).

@@ -65,26 +65,19 @@ on_begin0(ElementName, Attr, Parser) :-
   b_getval(xml_stream_record_names, ElementNames),
   memberchk(ElementName, ElementNames), !,
   sgml_parse(Parser, [document(Dom1),parse(content)]),
-  xml_clean_dom(Dom1, Dom2),
+  convlist(xml_clean_dom, Dom1, Dom2),
   (   call(Goal_1, [element(ElementName,Attr,Dom2)])
   ->  true
   ;   print_message(warning, xml_error(element(ElementName,Attr,Dom2)))
   ).
 
 xml_clean_dom([element(ElementName,Attr,Dom1)|T1], [element(ElementName,Attr,Dom2)|T2]) :- !,
-  xml_clean_dom(Dom1, Dom2),
-  xml_clean_dom(T1, T2).
-% Strip all blanks from the beginning and end of all strings.
-xml_clean_dom([H1|T1], L2) :-
-  atom_strip(H1, H2), !,
-  (   % Remove all strings that are empty (after stripping blanks form
-      % beginning and end).
-      is_empty_atom(H2)
-  ->  L2 = T2
-  ;   L2 = [H2|T2]
-  ),
-  xml_clean_dom(T1, T2).
-xml_clean_dom([], []).
+  convlist(xml_clean_dom, Dom1, Dom2).
+% 1. Strip all leading and trailing blanks.
+% 2. Remove elements that only contain blanks.
+xml_clean_dom(H1, H2) :-
+  atom_strip(H1, H2),
+  H2 \== ''.
 
 
 

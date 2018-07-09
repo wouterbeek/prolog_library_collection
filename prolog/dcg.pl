@@ -55,6 +55,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(string_ext)).
 
 :- meta_predicate
     atom_phrase(//, ?),
@@ -282,12 +283,12 @@ digit_weight(Weight) -->
 
 
 
-%! ellipsis(+Atom, +MaxLen:nonneg)// is det.
+%! ellipsis(+Original:text, +MaxLength:nonneg)// is det.
 %
-% MaxLen is the maximum length of the ellipsed atom A.
+% @arg MaxLength The maximum length of the generated ellipsed string.
 
-ellipsis(Atom, Len) -->
-  {atom_ellipsis(Atom, Len, Ellipsed)},
+ellipsis(Original, MaxLength) -->
+  {string_ellipsis(Original, MaxLength, Ellipsed)},
   atom(Ellipsed).
 
 
