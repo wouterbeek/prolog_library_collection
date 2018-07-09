@@ -275,5 +275,5 @@ an XML DOM:
 The following predicates allow the encoding of an XML file or stream
 to be determined:
 
-  - ~xml_encoding(+In:stream, -Encoding:atom) is semidet.
-  - ~xml_file_encoding(+File:atom, -Encoding:atom) is semidet.
+  - ~xml_encoding(+In:stream, -Encoding:atom) is semidet.~
+  - ~xml_file_encoding(+File:atom, -Encoding:atom) is semidet.~
