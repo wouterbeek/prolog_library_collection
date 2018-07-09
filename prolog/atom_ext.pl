@@ -18,10 +18,9 @@
 /** <module> Atom extensions
 
 @author Wouter Beek
-@version 2017/04-2018/01
+@version 2017-2018
 */
 
-:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(plunit)).
@@ -123,7 +122,7 @@ atom_ellipsis_test(monkey, 3, 'mo…').
 
 %! atom_postfix(+Original:atom, +Postfix:atom) is semidet.
 %! atom_postfix(+Original:atom, -Postfix:atom) is multi.
-%! atom_postfix(+Original:atom, +Length:nonneg, +Postfix:atom) is multi.
+%! atom_postfix(+Original:atom, +Length:nonneg, +Postfix:atom) is semidet.
 %! atom_postfix(+Original:atom, +Length:nonneg, -Postfix:atom) is semidet.
 %! atom_postfix(+Original:atom, -Length:nonneg, +Postfix:atom) is semidet.
 %! atom_postfix(+Original:atom, -Length:nonneg, -Postfix:atom) is multi.
@@ -280,6 +279,9 @@ test_atom_terminator('', /, /).
 
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, +Truncated:atom) is semidet.
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, -Truncated:atom) is det.
+%
+% @see Like atom_prefix/3, but the Truncated string is the Original
+%      string in case MaxLength exceeds the Original string length.
 
 atom_truncate(Original, MaxLength, Truncated) :-
   atom_length(Original, Length),
