@@ -26,13 +26,15 @@ gv_attr(
 */
 
 :- use_module(library(apply)).
-:- use_module(library(dcg)).
-:- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- use_module(library(sgml)).
-:- use_module(library(write_ext)).
-:- use_module(library(xml/xpath_ext)).
 :- use_module(library(yall)).
+
+:- use_module(library(dcg)).
+:- use_module(library(file_ext)).
+:- use_module(library(term_ext)).
+:- use_module(library(xml_ext)).
+:- use_module(library(xml/xpath_ext)).
 
 
 
@@ -40,12 +42,12 @@ gv_attr(
 
 %! gv_scrape_attrs(+FileSpec:term) is det.
 
-gv_scrape_attrs(FileSpec):-
+gv_scrape_attrs(FileSpec) :-
   call_to_file(FileSpec, gv_scrape_attrs).
 
 
 gv_scrape_attrs(Out, M1, M1) :-
-  load_html('http://www.graphviz.org/doc/info/attrs.html', Dom, []),
+  load_html('http://www.graphviz.org/doc/info/attrs.html', Dom),
   xpath_chk(Dom, //table(@align=lower_case(center)), Table),
   xpath_table(Table, Rows),
   member([Name,UsedBy0,Types0,Default0,Minimum,Notes], Rows),
@@ -62,16 +64,16 @@ gv_scrape_attrs(Out, M1, M1) :-
 
 %! gv_scrape_color(+FileSpec:term) is det.
 
-gv_scrape_color(FileSpec):-
+gv_scrape_color(FileSpec) :-
   call_to_file(FileSpec, gv_scrape_color).
 
-gv_scrape_color(Out, M1, M1):-
+gv_scrape_color(Out, M1, M1) :-
   load_html('http://www.graphviz.org/doc/info/colors.html', Dom, []),
   xpath_chk(Dom, //table(1), Table1),
   xpath_chk(Dom, //table(2), Table2),
   maplist(write_color_table(Out), [x11,svg], [Table1,Table2]).
 
-write_color_table(Out, Colorscheme, Table):-
+write_color_table(Out, Colorscheme, Table) :-
   xpath_table(Table, Rows),
   append(Rows, Cells),
   forall(
@@ -88,9 +90,9 @@ write_color_table(Out, Colorscheme, Table):-
 %! translate_default(+Default1, -Default2) is det.
 
 % The empty string is represented by the empty atom.
-translate_default('""', ''):- !.
+translate_default('""', '') :- !.
 % The absence of a default value is represented by an uninstantiated variable.
-translate_default('<none>', _):- !.
+translate_default('<none>', _) :- !.
 translate_default(Default, Default).
 
 
@@ -114,9 +116,7 @@ type_(Atom) -->
 
 
 
-%! usedby(
-%!   -Categories:ordset(oneof([cluster,edge,graph,node,subgraph]))
-%! )// is det.
+%! usedby(-Categories:ordset(oneof([cluster,edge,graph,node,subgraph])))// is det.
 
 usedby(Categories) -->
   usedby_([], Categories).

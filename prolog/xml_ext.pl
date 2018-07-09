@@ -2,7 +2,6 @@
   xml_ext,
   [
     call_on_xml/3,      % +In, +Names, :Goal_1
-    call_on_xml/4,      % +In, +Names, :Goal_1, +Options
     load_xml/2,         % +Source, -Dom
     xml_encoding/2,     % +In, -Encoding
     xml_file_encoding/2 % +File, -Encoding
@@ -16,7 +15,6 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(option)).
 :- use_module(library(pure_input)).
 :- use_module(library(sgml)).
 :- use_module(library(yall)).
@@ -27,39 +25,30 @@
 :- use_module(library(stream_ext)).
 
 :- meta_predicate
-    call_on_xml(+, +, 1),
-    call_on_xml(+, +, 1, +).
+    call_on_xml(+, +, 1).
 
 
 
 
 
 %! call_on_xml(+In:stream, +Names:list(atom), :Goal_1) is det.
-%! call_on_xml(+In:stream, +Names:list(atom), :Goal_1, +Options:list(compound)) is det.
 %
 % Call Goal_1 on an XML stream, where the argument supplied to Goal_1
 % is a subtree that starts with an element called Name.
-%
-% @arg Options are set with set_sgml_parser/2.
 
 call_on_xml(In, Names, Goal_1) :-
-  call_on_xml(In, Names, Goal_1, []).
-
-
-call_on_xml(In, Names, Goal_1, Options1) :-
   b_setval(xml_stream_record_names, Names),
   b_setval(xml_stream_goal, Goal_1),
-  merge_options(Options1, [space(remove)], Options2),
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
-      maplist(set_sgml_parser(Parser), Options2),
-      sgml_parse(Parser, [call(begin,on_begin0),source(In)])
+      maplist(set_sgml_parser(Parser), [space(remove)]),
+      sgml_parse(Parser, [call(begin,on_begin_),source(In)])
     ),
     free_sgml_parser(Parser)
   ).
 
-on_begin0(Name, Attr, Parser) :-
+on_begin_(Name, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
   b_getval(xml_stream_record_names, Names),
   memberchk(Name, Names), !,
@@ -81,6 +70,8 @@ xml_clean_dom(H1, H2) :-
 
 
 %! load_xml(+Source, -Dom:list(compound)) is det.
+%
+% @see Wrapper around load_xml/3 with default options.
 
 load_xml(Source, Dom) :-
   load_xml(Source, Dom, []).

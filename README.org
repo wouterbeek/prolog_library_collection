@@ -88,6 +88,7 @@ Support for working with atoms, e.g., capitalization, ellipsis, strip, truncate.
 
 ** ~call_ext~
 meta-predicates
+** ~closure~
 ** ~code_ext~
 This module extends support for working with character-denoting
 numeric codes:
@@ -102,15 +103,18 @@ configuration files:
   - ~cli_arguments(-Args:list(opt)) is det.~
   - ~conf_json(-Conf:dict) is det.~
 
+** ~counter~
 ** ~csv_ext~
 Streamed processing of CSV files.
 ** ~date_time~
-** ~dcg~ Definite Clause Grammars
+** ~dcg~
+Definite Clause Grammars
 
 In directory ~/dcg~ you will find a collection of Definite Clause
 Grammar (DCG) modules.
 
-** ~dcg_abnf~ Advanced Bauckus-Naur Form (ABNF)
+** ~dcg/dcg_abnf~
+Advanced Bauckus-Naur Form (ABNF)
 
 While DCGs are nice, they can be a bit verbose for expressing common
 repetition patterns.  To make DCGs that include repetitions less
@@ -217,18 +221,24 @@ following modules:
 | ~media~ | A compound term of the form ~media(Super:atom/Sub:atom,Parameters:list(opt))~                                      |
 | ~opt~   | A unary compound term whose predicate letter is an option name and whose argument is a corresponding option value. |
 
+** ~dcg/dcg_ext~
+** ~debug_ext~
 ** ~default~
-** ~dict_ext~
+** ~dict~
 SWI7 dictionaries
 ** ~dlist~
 difference lists
 ** ~file_ext~
 Handling files and directories.
-** ~geo/~
-Parsing & generating of Well-Known Text (WKT) strings.
-** ~has_ext~
-** ~http/~
-HTTP client & server support.
+** ~graph/gml~
+** ~graph/graph_ext~
+** ~graph/jgf~
+** ~hash_ext~
+** ~http/http_client2~
+** ~http/http_generic~
+** ~http/http_pagination~
+** ~http/http_resource~
+** ~http/http_server~
 ** ~json_ext~
 This module provides extended JSON support on top of the standard
 library ~http/json~:
@@ -240,17 +250,30 @@ library ~http/json~:
 ** ~list_ext~
 ** ~math_ext~
 ** ~media_type~ <<media_type>>
-** ~nlp/~
+** ~nlp/nlp_lang~
 ** ~os_ext~
 Running external processes, streaming to/from external processes.
+** ~pagination~
 ** ~pair_ext~
 ** ~pp~
+** ~pure~
 ** ~sort_ext~
 ** ~stream_ext~
 Support for recoding, unpacking, sorting, and hasing streams.
 ** ~string_ext~
-** ~uri/~
+** ~task~
+** ~term_ext~
+** ~thread_ext~
+** ~uri_ext~
 Constructing/decomposing URIs.
-** ~write_ext~
-** ~xml/~
-Streamed processing of XML DOMs.
+** ~xml_ext~
+This module allows Prolog goals to be called on a stream that encodes
+an XML DOM:
+
+  - ~call_on_xml(+In:stream, +Names:list(atom), :Goal_1) is det.~
+
+The following predicates allow the encoding of an XML file or stream
+to be determined:
+
+  - ~xml_encoding(+In:stream, -Encoding:atom) is semidet.
+  - ~xml_file_encoding(+File:atom, -Encoding:atom) is semidet.
