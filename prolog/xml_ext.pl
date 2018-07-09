@@ -1,8 +1,8 @@
 :- module(
   xml_ext,
   [
-    call_on_xml/3,      % +In, +ElementNames, :Goal_1
-    call_on_xml/4,      % +In, +ElementNames, :Goal_1, +Options
+    call_on_xml/3,      % +In, +Names, :Goal_1
+    call_on_xml/4,      % +In, +Names, :Goal_1, +Options
     load_xml/2,         % +Source, -Dom
     xml_encoding/2,     % +In, -Encoding
     xml_file_encoding/2 % +File, -Encoding
@@ -34,21 +34,20 @@
 
 
 
-%! call_on_xml(+In:stream, +ElementNames:list(atom), :Goal_1) is det.
-%! call_on_xml(+In:stream, +ElementNames:list(atom), :Goal_1,
-%!             +Options:list(compound)) is det.
+%! call_on_xml(+In:stream, +Names:list(atom), :Goal_1) is det.
+%! call_on_xml(+In:stream, +Names:list(atom), :Goal_1, +Options:list(compound)) is det.
 %
 % Call Goal_1 on an XML stream, where the argument supplied to Goal_1
-% is a subtree that starts with an element called ElementName.
+% is a subtree that starts with an element called Name.
 %
 % @arg Options are set with set_sgml_parser/2.
 
-call_on_xml(In, ElementNames, Goal_1) :-
-  call_on_xml(In, ElementNames, Goal_1, []).
+call_on_xml(In, Names, Goal_1) :-
+  call_on_xml(In, Names, Goal_1, []).
 
 
-call_on_xml(In, ElementNames, Goal_1, Options1) :-
-  b_setval(xml_stream_record_names, ElementNames),
+call_on_xml(In, Names, Goal_1, Options1) :-
+  b_setval(xml_stream_record_names, Names),
   b_setval(xml_stream_goal, Goal_1),
   merge_options(Options1, [space(remove)], Options2),
   setup_call_cleanup(
@@ -60,18 +59,18 @@ call_on_xml(In, ElementNames, Goal_1, Options1) :-
     free_sgml_parser(Parser)
   ).
 
-on_begin0(ElementName, Attr, Parser) :-
+on_begin0(Name, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
-  b_getval(xml_stream_record_names, ElementNames),
-  memberchk(ElementName, ElementNames), !,
+  b_getval(xml_stream_record_names, Names),
+  memberchk(Name, Names), !,
   sgml_parse(Parser, [document(Dom1),parse(content)]),
   convlist(xml_clean_dom, Dom1, Dom2),
-  (   call(Goal_1, [element(ElementName,Attr,Dom2)])
+  (   call(Goal_1, [element(Name,Attr,Dom2)])
   ->  true
-  ;   print_message(warning, xml_error(element(ElementName,Attr,Dom2)))
+  ;   print_message(warning, xml_error(element(Name,Attr,Dom2)))
   ).
 
-xml_clean_dom([element(ElementName,Attr,Dom1)|T1], [element(ElementName,Attr,Dom2)|T2]) :- !,
+xml_clean_dom([element(Name,Attr,Dom1)|T1], [element(Name,Attr,Dom2)|T2]) :- !,
   convlist(xml_clean_dom, Dom1, Dom2).
 % 1. Strip all leading and trailing blanks.
 % 2. Remove elements that only contain blanks.

@@ -4,7 +4,6 @@
     char_digit/2,    % ?Char, ?Digit
     downcase_char/2, % +Char, -DowncaseChar
     first_char/2,    % +Source, ?Char
-    is_char/1,       % @Term
     last_char/2,     % +Source, ?Char
     to_chars/2,      % +Source, -Chars
     upcase_char/2    % +Char, -UpcaseChar
@@ -18,7 +17,6 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(lists)).
 
 
 
@@ -48,14 +46,6 @@ downcase_char(X, Y) :-
 
 first_char(In, H):-
   to_chars(In, [H|_]).
-
-
-
-% is_char(@Term) is semidet.
-
-is_char(Term):-
-  atom(Term),
-  atom_length(Term, 1).
 
 
 

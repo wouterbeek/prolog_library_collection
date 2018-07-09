@@ -77,7 +77,7 @@ Predicates used for parsing and checking value-type conformance.
 
 % Character
 error:has_type(char, T) :-
-  is_char(T).
+  char(T).
 % Code
 error:has_type(code, T) :-
   once(code_type(T, _)).

@@ -1,8 +1,8 @@
 :- module(
   json_ext,
   [
-    json_load/2, % +File, -Dict
-    json_save/2  % +File, +Dict
+    json_load/2, % +File, -Structure
+    json_save/2  % +File, +Structure
   ]
 ).
 :- reexport(library(http/json)).
@@ -21,17 +21,21 @@
 
 
 
-%! json_load(+File:atom, -Dict:dict) is det.
+%! json_load(+File:atom, -Structure:dict) is det.
 
-json_load(File, Dict) :-
+json_load(File, Structure) :-
   call_stream_file(
     File,
-    {Dict}/[In]>>json_read_dict(In, Dict, [value_string_as(atom)])
+    {Structure}/[In]>>json_read_dict(In, Structure, [value_string_as(atom)])
   ).
 
 
 
-%! json_save(+File:atom, +Dict:dict) is det.
+%! json_save(+File:atom, +Structure:dict) is det.
 
-json_save(File, Dict) :-
-  call_stream_file(File, write, {Dict}/[Out]>>json_write_dict(Out, Dict)).
+json_save(File, Structure) :-
+  call_stream_file(
+    File,
+    write,
+    {Structure}/[Out]>>json_write_dict(Out, Structure)
+  ).
