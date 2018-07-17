@@ -32,8 +32,8 @@
 %! atom_capitalize(+Original:atom, +Capitalized:atom) is semidet.
 %! atom_capitalize(+Original:atom, -Capitalized:atom) is det.
 %
-% Succeeds if Capitalized is a copy of Atom where the first character
-% is in upper case.
+% Succeeds if Capitalized is a copy of Original where the first
+% character is in upper case (if applicable).
 %
 % If the first character of Atom is already in upper case then
 % Capitalized is a plain copy of Atom.
@@ -127,7 +127,12 @@ atom_ellipsis_test(monkey, 3, 'mo…').
 %! atom_postfix(+Original:atom, -Length:nonneg, +Postfix:atom) is semidet.
 %! atom_postfix(+Original:atom, -Length:nonneg, -Postfix:atom) is multi.
 %
+% Succeeds if Postfix is a postfix of Original with consisting of
+% Length characters.
+%
 % For mode `(+,-,-)' the enumeration order prioritizes longer atoms.
+%
+% @see string_postfix/[2,3] provides the same functionality for strings.
 
 atom_postfix(Atom, Postfix) :-
   atom_postfix(Atom, _, Postfix).
@@ -164,11 +169,14 @@ test_atom_postfix(abcd, 0, '').
 %! atom_prefix(+Original:atom, -Length:nonneg, +Prefix:atom) is semidet.
 %! atom_prefix(+Original:atom, -Length:nonneg, -Prefix:atom) is multi.
 %
-% Prefix is the prefix of Atom that has length Length.
+% Succeeds if Prefix is a prefix of Original consisting of Length
+% characters.
 %
-% Fails in case Length is higher than the length of Atom.
+% Fails when Length is greater than the length of Original.
 %
 % For mode `(+,-,-)' the enumeration order prioritizes shorter atoms.
+%
+% @see string_prefix/[2,3] provides the same functionality for strings.
 
 atom_prefix(Atom, Length, Prefix) :-
   sub_atom(Atom, 0, Length, _, Prefix).
@@ -201,12 +209,18 @@ test_atom_prefix(abcd, 4, abcd).
 %! atom_strip(+Original:atom, +Strip:list(char), +Stripped:atom) is semidet.
 %! atom_strip(+Original:atom, +Strip:list(char), -Stripped:atom) is det.
 %
-% Return Atom with any occurrens of PadChars remove from the front
-% and/or back.
+% Succeeds if Stripped is a copy of Original where leading and
+% trailing characters in Strip have been removed.
 %
-% Notice that the order in which the PadChars occur is significant.
+% Notice that the order in which the characters in Strip are specified
+% is significant.
 %
-% The default PadChars are space, newline and horizontal tab.
+% The default Strip characters are space, newline and horizontal tab.
+%
+% @arg Strip is a list of charaters that will be stripped from the
+%      Original atom.
+%
+% @see string_strip/[2,3] provides the same functionality for strings.
 
 atom_strip(Original, Stripped) :-
   atom_strip(Original, [' ','\n','\t'], Stripped).
@@ -248,8 +262,8 @@ test_atom_strip(' ', [], ' ').
 %! atom_terminator(+Original:atom, +Terminator:char, +Terminated:atom) is semidet.
 %! atom_terminator(+Original:atom, +Terminator:char, -Terminated:atom) is det.
 %
-% @arg Terminated is an atom similar to Original, which is ensured to
-%      end with the given Terminator character.
+% Succeeds if Terminated is a copy of Original which is ensured to end
+% with the Terminator character.
 
 atom_terminator(Original, Terminator, Terminated) :-
   atom_chars(Original, Chars1),
@@ -280,8 +294,10 @@ test_atom_terminator('', /, /).
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, +Truncated:atom) is semidet.
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, -Truncated:atom) is det.
 %
-% @see Like atom_prefix/3, but the Truncated string is the Original
-%      string in case MaxLength exceeds the Original string length.
+% @see Like atom_prefix/3, but the Truncated atom is the Original
+%      atom in case MaxLength exceeds the Original atom length.
+%
+% @see string_truncate/3 provides the same functionality for strings.
 
 atom_truncate(Original, MaxLength, Truncated) :-
   atom_length(Original, Length),

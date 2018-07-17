@@ -10,7 +10,8 @@
     string_postfix/3,     % +Original, ?Length, ?Postfix
     string_prefix/2,      % +Original, ?Prefix
     string_prefix/3,      % +Original, ?Length, ?Prefix
-    string_strip/3,       % +Original, +Chars, ?Stripped
+    string_strip/2,       % +Original, ?Stripped
+    string_strip/3,       % +Original, +Strip, ?Stripped
     string_truncate/3     % +Original, +MaxLength, ?Truncated
   ]
 ).
@@ -99,7 +100,7 @@ string_ellipsis_test("monkey", 3, "mo…").
 %! string_list_concat(+Strings:list(string), +Separator:string, -String:string) is det.
 %! string_list_concat(-Strings:list(string), +Separator:string, +String:string) is semidet.
 %
-% @see Like atomic_list_concat/3, but for strings.
+% @see atomic_list_concat/3 provides the same functionality for atoms.
 
 string_list_concat(Strings, String) :-
   atomics_to_string(Strings, String).
@@ -146,6 +147,8 @@ test_string_list_concat(["","","",""], "a", "aaa").
 %      characters.
 %
 % Fails in case Length is higher than the length of string String.
+%
+% @see atom_postfix/[2,3] provides the same functionality for atoms.
 
 string_postfix(Original, Postfix) :-
   string_postfix(Original, _, Postfix).
@@ -184,12 +187,17 @@ test_string_postfix("abcd", 0, "").
 %! string_prefix(+Original:string, -Length:nonneg, +Prefix:string) is semidet.
 %! string_prefix(+Original:string, -Length:nonneg, -Prefix:string) is multi.
 %
+% Succeeds if Prefix is a prefix of Original consisting of Length
+% characters.
+%
+% Fails in case Length exceeds the Original string length.
+%
 % @arg Length is the number of characters in the Prefix string.
 %
 % @arg Prefix is the prefix of the Original string that has Length
 %      characters.
 %
-% Fails in case Length exceeds the Original string length.
+% @see atom_prefix/[2,3] provides the same functionality for atoms.
 
 string_prefix(Original, Prefix) :-
   string_prefix(Original, _, Prefix).
@@ -221,18 +229,27 @@ test_string_prefix("abcd", 4, "abcd").
 
 
 
-%! string_strip(+Original:string, +Chars:list(char), +Stripped:string) is semidet.
-%! string_strip(+Original:string, +Chars:list(char), -Stripped:string) is det.
+%! string_strip(+Original:string, +Stripped:string) is semidet.
+%! string_strip(+Original:string, -Stripped:string) is det.
+%! string_strip(+Original:string, +Strip:list(char), +Stripped:string) is semidet.
+%! string_strip(+Original:string, +Strip:list(char), -Stripped:string) is det.
 %
-% @arg Chars is a string of charaters that will be stripped from the
+% Succeeds if Stripped is a copy of Original where leading and
+% trailing characters in Strip have been removed.
+%
+% Notice that the order in which the characters in Strip are specified
+% is significant.
+%
+% The default Strip characters are space, newline and horizontal tab.
+%
+% @arg Strip is a list of charaters that will be stripped from the
 %      Original string.
 %
-% @arg Stripped is the Original string, but without any of the leading
-%      and/or trailing characters that appear in Chars.
+% @see atom_strip/[2,3] provides the same functionality for atoms.
 
-string_strip(Original, Chars, Stripped) :-
-  string_chars(String, Chars),
-  split_string(Original, "", String, [Stripped]).
+string_strip(Original, Strip0, Stripped) :-
+  string_chars(Strip, Strip0),
+  split_string(Original, "", Strip, [Stripped]).
 
 :- begin_tests(string_strip).
 
@@ -256,6 +273,8 @@ test_string_strip(" ", [], " ").
 %
 % @see Like string_prefix/3, but the Truncated string is the Original
 %      string in case MaxLength exceeds the Original string length.
+%
+% @see atom_truncate/3 provides the same functionality for atoms.
 
 string_truncate(Original, MaxLength, Truncated) :-
   string_length(Original, Length),

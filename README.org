@@ -33,11 +33,11 @@ you want to use afterwards:
 #+END_SRC
 
 Since the above is a bit cumbersome, it is common practice to place
-the PPM load command in the Prolog startup file (~~/.swiplrc~).
+the PPM load command in the Prolog startup file (~.swiplrc~).
 
 * Module overview
 
-** ~archive_ext~
+** Module ~archive_ext~
 
 This module extends the standard library ~archive~:
 
@@ -58,7 +58,7 @@ This module extends the standard library ~archive~:
     a plain text format that is almost never used yet leads to many
     false positives in practice.
 
-** ~assoc_ext~
+** Module ~assoc_ext~
 
 This module extends the standard library ~assoc~:
 
@@ -74,17 +74,48 @@ This module extends the standard library ~assoc~:
     Turns an assoc of (key,value) pairs into one with(value,key)
     pairs.
 
-** ~atom_ext~
+** Module ~atom_ext~
 
-  - ~atom_capitalize(+Original:atom, -Capitalized:atom)~
+This module provides additional support for working with atoms:
 
-    ~Capitalized~ is like ~Orginal~, but its first character is
-    ensured to be in upper case (if possible).
+  - ~atom_capitalize(+Original:atom, ?Capitalized:atom)~
 
-  - ~atom_ellipsis(+Original:atom, ?MaxLength:nonneg, ?Ellipsed:atom)~
+    Succeeds if ~Capitalized~ is a copt of ~Orginal~ where the first
+    character is in upper case (if applicable).
+
+  - ~atom_ellipsis(+Original:atom, ?MaxLength:between(2,inf), ?Ellipsed:atom)~
+
+    Succeeds if ~Ellipsed~ is like ~Original~, but has ellipsis
+    applied in order to have ~MaxLength~.
+
+  - ~atom_postfix(+Original:atom, ?PostFix:atom)~
+  - ~atom_postfix(+Original:atom, ?Length:nonneg, ?PostFix:atom)~
+
+    Succeeds if ~Postfix~ is a postfix of ~Original~ consisting of
+    ~Length~ characters.
 
 
-Support for working with atoms, e.g., capitalization, ellipsis, strip, truncate.
+  - ~atom_prefix(+Original:atom, ?PostFix:atom)~
+  - ~atom_prefix(+Original:atom, ?Length:nonneg, ?PostFix:atom)~
+
+    Succeeds if ~Prefix~ is a prefix of ~Original~ consisting of
+    ~Length~ characters.
+
+  - ~atom_strip(+Original:atom, ?Stripped:atom)~
+  - ~atom_strip(+Original:atom, +Strip:list(char), ?Stripped:atom)~
+
+    Succeeds if ~Stripped~ is a copy of ~Original~ where leading and
+    trailing characters in ~Strip~ have been removed.
+
+  - ~atom_terminator(+Original:atom, +Terminator:atom, ?Terminated:atom)~
+
+    Succeeds if ~Terminated~ is a copy of ~Original~ which is ensured
+    to end with the ~Terminator~ character.
+
+  - ~atom_truncate(+Original:atom, +MaxLenhgt:noneng, ?Truncated:atom)~
+
+    Like ~atom_prefix/3~, but the ~Truncated~ atom is the ~Original~
+    atom in case ~MaxLength~ exceeds the ~Original~ atom length.
 
 ** ~call_ext~
 meta-predicates
