@@ -247,6 +247,10 @@ test_string_prefix("abcd", 4, "abcd").
 %
 % @see atom_strip/[2,3] provides the same functionality for atoms.
 
+string_strip(Original, Stripped) :-
+  string_strip(Original, [' ','\n','\t'], Stripped).
+
+
 string_strip(Original, Strip0, Stripped) :-
   string_chars(Strip, Strip0),
   split_string(Original, "", Strip, [Stripped]).
