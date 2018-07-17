@@ -2,7 +2,7 @@
 :- module(
   uri_ext,
   [
-    append_segments/3,     % +Segments1, +Segments2, -Segments3
+    append_segments/3,     % +Segments1, +Segments2, ?Segments3
     file_download/2,       % +Uri, +File
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
@@ -31,6 +31,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
+:- use_module(library(plunit)).
 :- use_module(library(settings)).
 :- use_module(library(uuid)).
 :- use_module(library(yall)).
@@ -55,13 +56,28 @@ error:has_type(uri, Term):-
 
 
 
-%! append_segments(+Segments1:list(atom), +Segments2:list(atom),
-%!                 -Segments3:list(atom)) is det.
+%! append_segments(+Segments1:list(atom), +Segments2:list(atom), +Segments3:list(atom)) is semidet.
+%! append_segments(+Segments1:list(atom), +Segments2:list(atom), -Segments3:list(atom)) is det.
+%
+% Appends lists of path segments.  Empty segments commonly appear at
+% the beginning and end of URI paths.
 
 append_segments(L1a, L2a, L3) :-
   exclude([X]>>(X==''), L1a, L1b),
   exclude([X]>>(X==''), L2a, L2b),
   append(L1b, L2b, L3).
+
+:- begin_tests(append_segments).
+
+test('append_segments(+,+,+)', [forall(test_append_segments(L1,L2,L3))]) :-
+  append_segments(L1, L2, L3).
+test('append_segments(+,+,+)', [forall(test_append_segments(L1,L2,L3))]) :-
+  append_segments(L1, L2, L3_),
+  assertion(L3_ == L3).
+
+test_append_segments(['',a,b,c,''], [''], [a,b,c]).
+
+:- end_tests(append_segments).
 
 
 
@@ -162,24 +178,29 @@ is_uri(Uri) :-
 
 
 
-%! uri_comp_add(+Kind:oneof([path,query]), +Uri1, +Component, -Uri2) is det.
+%! uri_comp_add(+Kind:oneof([path,query]), +Uri1:uri, +Component, -Uri2:uri) is det.
 %
 % For `Kind=path' we remove empty segments in the middle of a path.
 % For example, adding `[b]` to `/a/' is `/a/b' (and not `/a//b').
 
-uri_comp_add(path, Uri1, Segments3, Uri2) :-
+uri_comp_add(path, Uri1, Segments2, Uri2) :-
   uri_comps(Uri1, uri(Scheme,Authority,Segments1,Query,Fragment)),
-  remove_last_segment_if_empty1(Segments1, Segments2),
-  append(Segments2, Segments3, Segments4),
-  uri_comps(Uri2, uri(Scheme,Authority,Segments4,Query,Fragment)).
+  append_segments(Segments1, Segments2, Segments3),
+  uri_comps(Uri2, uri(Scheme,Authority,Segments3,Query,Fragment)).
 uri_comp_add(query, Uri1, QueryComps2, Uri2) :-
   uri_comps(Uri1, uri(Scheme,Authority,Segments,QueryComps1,Fragment)),
   append(QueryComps1, QueryComps2, QueryComps3),
   uri_comps(Uri2, uri(Scheme,Authority,Segments,QueryComps3,Fragment)).
 
-remove_last_segment_if_empty1(Segments1, Segments2) :-
-  append(Segments2, [''], Segments1), !.
-remove_last_segment_if_empty1(Segments, Segments).
+:- begin_tests(uri_comp_add).
+
+test('uri_comp_add(+,+,+,-)', [forall(test_uri_comp_add(Kind,Uri1,Comp,Uri2))]) :-
+  uri_comp_add(Kind, Uri1, Comp, Uri2_),
+  assertion(Uri2_ = Uri2).
+
+test_uri_comp_add(query, 'https://example.org/?a=b', [c(d)], 'https://example.org/?a=b&c=d').
+
+:- end_tests(uri_comp_add).
 
 
 
