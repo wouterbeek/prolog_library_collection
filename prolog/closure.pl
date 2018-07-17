@@ -4,20 +4,21 @@
     leave_closure/3,  % :Goal_2, ?X, ?Y
     leave_closure0/3, % :Goal_2, ?X, ?Y
     path_closure/3,   % :Goal_2, ?X, ?Y
-    path_closure/4,   % :Goal_2, ?X, ?Y, -Path
+    path_closure/4,   % :Goal_2, ?X, ?Y, ?Path
     path_closure0/3,  % :Goal_2, ?X, ?Y
-    path_closure0/4,  % :Goal_2, ?X, ?Y, -Path
-    path_distance/4   % :Goal_2, ?X, ?Y. -N
+    path_closure0/4,  % :Goal_2, ?X, ?Y, ?Path
+    path_distance/4   % :Goal_2, ?X, ?Y. ?Distance
   ]
 ).
 
 /** <module> Closure
 
 @author Wouter Beek
-@verion 2017/11
+@verion 2017-2018
 */
 
 :- use_module(library(error)).
+:- use_module(library(lists)).
 
 :- meta_predicate
     leave_closure(2, ?, ?),
@@ -83,6 +84,7 @@ leave_closure_2(_, X, X, _).
 %! path_closure(:Goal_2, +X, +Y) is semidet.
 %! path_closure(:Goal_2, +X, -Y) is nondet.
 %! path_closure(:Goal_2, -X, +Y) is nondet.
+%! path_closure(:Goal_2, +X, +Y, +Path:list) is semidet.
 %! path_closure(:Goal_2, +X, +Y, -Path:list) is semidet.
 %! path_closure(:Goal_2, +X, -Y, -Path:list) is nondet.
 %! path_closure(:Goal_2, -X, +Y, -Path:list) is nondet.
@@ -96,19 +98,38 @@ path_closure(Goal_2, X, Y) :-
 path_closure(Goal_2, X, Z, Path) :-
   ground(X), !,
   call(Goal_2, X, Y),
-  path_closure_1(Goal_2, Y, Z, [Y,X], Path).
+  X \== Y,
+  path_closure_1(Goal_2, Y, Z, [Y,X], Path0),
+  reverse(Path0, Path).
 path_closure(Goal_2, X, Z, Path) :-
   ground(Z), !,
   call(Goal_2, Y, Z),
-  path_closure_2(Goal_2, X, Y, [Z,Y], Path).
+  Y \== Z,
+  path_closure_2(Goal_2, X, Y, [Z,Y], Path0),
+  reverse(Path0, Path).
 path_closure(_, X, Y, _) :-
   instantiation_error(args(X,Y)).
+
+:- begin_tests(path_closure).
+
+test(path_closure, [set(Y-P == [b-[a,b],c-[a,b,c]])]) :-
+  path_closure(connection, a, Y, P).
+
+test(path_closure0, [set(Y-P == [a-[a],b-[a,b],c-[a,b,c]])]) :-
+  path_closure0(connection, a, Y, P).
+
+connection(a, a).
+connection(a, b).
+connection(b, c).
+
+:- end_tests(path_closure).
 
 
 
 %! path_closure0(:Goal_2, +X, +Y) is semidet.
 %! path_closure0(:Goal_2, +X, -Y) is nondet.
 %! path_closure0(:Goal_2, -X, +Y) is nondet.
+%! path_closure0(:Goal_2, +X, +Y, +Path:list) is semidet.
 %! path_closure0(:Goal_2, +X, +Y, -Path:list) is semidet.
 %! path_closure0(:Goal_2, +X, -Y, -Path:list) is nondet.
 %! path_closure0(:Goal_2, -X, +Y, -Path:list) is nondet.
@@ -121,10 +142,12 @@ path_closure0(Goal_2, X, Y) :-
 
 path_closure0(Goal_2, X, Y, Path) :-
   ground(X), !,
-  path_closure_1(Goal_2, X, Y, [X], Path).
+  path_closure_1(Goal_2, X, Y, [X], Path0),
+  reverse(Path0, Path).
 path_closure0(Goal_2, X, Y, Path) :-
   ground(Y), !,
-  path_closure_2(Goal_2, X, Y, [Y], Path).
+  path_closure_2(Goal_2, X, Y, [Y], Path0),
+  reverse(Path0, Path).
 path_closure0(_, X, Y, _) :-
   instantiation_error(args(X,Y)).
 
@@ -142,9 +165,10 @@ path_closure_2(Goal_2, Z, X, Hist, Path) :-
 
 
 
-%! path_distance(:Goal_2, +X, +Y, -N:nonneg) is semidet.
-%! path_distance(:Goal_2, +X, -Y, -N:nonneg) is nondet.
-%! path_distance(:Goal_2, -X, +Y, -N:nonneg) is nondet.
+%! path_distance(:Goal_2, +X, +Y, +Distance:nonneg) is semidet.
+%! path_distance(:Goal_2, +X, +Y, -Distance:nonneg) is semidet.
+%! path_distance(:Goal_2, +X, -Y, -Distance:nonneg) is nondet.
+%! path_distance(:Goal_2, -X, +Y, -Distance:nonneg) is nondet.
 
 path_distance(Goal_2, X, Y, N) :-
   ground(X), !,

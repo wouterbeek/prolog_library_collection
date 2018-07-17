@@ -1,7 +1,7 @@
 :- module(
   call_ext,
   [
-    call_bool/2,            % :Goal_0, -Bool
+    call_bool/2,            % :Goal_0, ?Succeeded
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
@@ -22,12 +22,13 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2017/04-2017/11
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dif)).
 :- use_module(library(option)).
+:- use_module(library(plunit)).
 :- use_module(library(when)).
 
 :- meta_predicate
@@ -48,17 +49,35 @@
 
 
 
-%! call_bool(:Goal_0, -Bool) is det.
+%! call_bool(:Goal_0, +Succeeded:bool) is semidet.
+%! call_bool(:Goal_0, -Succeeded:bool) is det.
+%
+% Returns whether Goal_0 succeeded once as a Boolean.
 
 call_bool(Goal_0, true) :-
   Goal_0, !.
 call_bool(_, false).
 
+:- begin_tests(call_bool).
+
+test('call_bool(:,+)', [forall(test_call_bool(Goal_1,Succeeded))]) :-
+  call_bool(Goal_1, Succeeded).
+test('call_bool(:,-)', [forall(test_call_bool(Goal_1,Succeeded))]) :-
+  call_bool(Goal_1, Succeeded0),
+  assertion(Succeeded == Succeeded0).
+
+test_call_bool(false, false).
+test_call_bool(member(_,[]), false).
+test_call_bool(member(_,[_]), true).
+test_call_bool(true, true).
+
+:- end_tests(call_bool).
+
 
 
 %! call_det_when(:Cond_0, :Goal_0) .
 %
-% Call `Goal_0' once when `Cond_0' succeeds.  Otherwise call `Goal_0'
+% Calls Goal_0 once when Cond_0 succeeds; otherwise calls Goal_0
 % normally.
 
 call_det_when(Cond_0, Goal_0) :-
@@ -72,8 +91,8 @@ call_det_when(_, Goal_0) :-
 %! call_det_when_ground(:Goal_0) .
 %! call_det_when_ground(?Term:term, :Goal_0) .
 %
-% Call `Goal_0' deterministically in case Term is ground.  Otherwise
-% call `Goal_0' normally.
+% Call Goal_0 deterministically in case Term is ground.  Otherwise
+% call Goal_0 normally.
 
 call_det_when_ground(Mod:Goal_0) :-
   call_det_when_ground(Goal_0, Mod:Goal_0).
@@ -289,6 +308,8 @@ is_det(Goal_0) :-
 %! true(?Arg1) is det.
 %! true(?Arg1, ?Arg2) is det.
 %! true(?Arg1, ?Arg2, ?Arg3) is det.
+%
+% Always succeeds.
 
 true(_).
 true(_, _).
