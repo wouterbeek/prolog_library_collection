@@ -59,7 +59,7 @@ on_begin_(Name, Attr, Parser) :-
   ;   print_message(warning, xml_error(element(Name,Attr,Dom2)))
   ).
 
-xml_clean_dom([element(Name,Attr,Dom1)|T1], [element(Name,Attr,Dom2)|T2]) :- !,
+xml_clean_dom(element(Name,Attr,Dom1), element(Name,Attr,Dom2)) :- !,
   convlist(xml_clean_dom, Dom1, Dom2).
 % 1. Strip all leading and trailing blanks.
 % 2. Remove elements that only contain blanks.

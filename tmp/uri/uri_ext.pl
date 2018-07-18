@@ -5,7 +5,6 @@
     is_data_uri/1,          % +Uri
     is_image_uri/1,         % @Term
     uri_add_path_postfix/3, % +Uri1, +PathPostfix, -Uri2
-    uri_alias_uuid/2,       % -Uri, +Alias
     uri_comp/3,             % +Uri, ?Key, ?Val
     uri_last_segment/2,     % +Uri, -LastSegment
     uri_optional_query_enc//0,
@@ -31,7 +30,6 @@
 :- use_module(library(error)).
 :- use_module(library(file_ext)).
 :- use_module(library(lists)).
-:- use_module(library(semweb/rdf11)).
 :- use_module(library(uri/rfc3986)).
 
 
@@ -98,14 +96,6 @@ uri_add_path_postfix(Uri1, PathPostfix, Uri2) :-
   uri_comps(Uri1, uri(Scheme,Auth,Segments1,_,_)),
   append(Segments1, PathPostfix, Segments2),
   uri_comps(Uri2, uri(Scheme,Auth,Segments2,_,_)).
-
-
-
-%! uri_alias_uuid(-Uri, +Alias) is det.
-
-uri_alias_uuid(Uri, Alias) :-
-  uuid(Local),
-  rdf_global_id(Alias:Local, Uri).
 
 
 
