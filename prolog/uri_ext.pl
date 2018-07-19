@@ -131,24 +131,29 @@ is_http_uri(Uri) :-
 
 is_iri(Iri) :-
   atom(Iri),
-  uri_components(Iri, uri_components(Scheme,Auth,Path,_Query,_Fragment)),
+  uri_components(Iri, uri_components(Scheme,Auth,Path,_,_)),
   \+ var(Scheme),
-  is_iri_(Scheme, Auth, Path),
-  atom_phrase(check_scheme, Scheme).
+  check_scheme_syntax(Scheme),
+  check_scheme_registration(Scheme, Auth, Path).
+
+check_scheme_syntax(Scheme) :-
+  atom_phrase(check_scheme, Scheme), !.
+check_scheme_syntax(Scheme) :-
+  syntax_error(uri_scheme(Scheme)).
 
 % URI schemes that require a ground authority component
-is_iri_(Scheme, Auth, _) :-
+check_scheme_registration(Scheme, Auth, _) :-
   memberchk(Scheme, [http,https]), !,
-  ground(Auth).
+  (ground(Auth) -> true ; syntax_error(uri_authority(Scheme,Auth))).
 % URI schemes that require a ground path component
-is_iri_(Scheme, _, Path) :-
+check_scheme_registration(Scheme, _, Path) :-
   memberchk(Scheme, [file,mailto,urn]), !,
-  ground(Path).
+  (ground(Path) -> true ; syntax_error(uri_path(Scheme,Path))).
 % recognized URI scheme without (known) syntactic restrictions
-is_iri_(Scheme, _, _) :-
+check_scheme_registration(Scheme, _, _) :-
   uri_scheme(Scheme), !.
 % unrecognized URI scheme
-is_iri_(Scheme, _, _) :-
+check_scheme_registration(Scheme, _, _) :-
   existence_error(uri_scheme, Scheme).
 
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
