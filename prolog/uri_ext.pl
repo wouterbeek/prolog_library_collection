@@ -43,6 +43,7 @@
 :- use_module(library(file_ext)).
 :- use_module(library(hash_ext)).
 :- use_module(library(http/http_client2)).
+:- use_module(library(uri_scheme)).
 
 :- multifile
     error:has_type/2,
@@ -131,24 +132,24 @@ is_http_uri(Uri) :-
 is_iri(Iri) :-
   atom(Iri),
   uri_components(Iri, uri_components(Scheme,Auth,Path,_Query,_Fragment)),
-  is_ground_iri(Scheme, Auth, Path),
+  \+ var(Scheme),
+  is_iri_(Scheme, Auth, Path),
   atom_phrase(check_scheme, Scheme).
 
-% Scheme is missing: fail silently.
-is_ground_iri(Var, _, _) :-
-  var(Var), !,
-  fail.
-% Schemes that require a ground authority component.
-is_ground_iri(Scheme, Auth, _) :-
+% URI schemes that require a ground authority component
+is_iri_(Scheme, Auth, _) :-
   memberchk(Scheme, [http,https]), !,
   ground(Auth).
-% Schemes that require a ground path component.
-is_ground_iri(Scheme, _, Path) :-
+% URI schemes that require a ground path component
+is_iri_(Scheme, _, Path) :-
   memberchk(Scheme, [file,mailto,urn]), !,
   ground(Path).
-% Unrecognized schemes.
-is_ground_iri(Scheme, _, _) :-
-  existence_error(iri_scheme,Scheme).
+% recognized URI scheme without (known) syntactic restrictions
+is_iri_(Scheme, _, _) :-
+  uri_scheme(Scheme), !.
+% unrecognized URI scheme
+is_iri_(Scheme, _, _) :-
+  existence_error(uri_scheme, Scheme).
 
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 check_scheme -->
