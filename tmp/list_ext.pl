@@ -19,7 +19,6 @@
     list_split/2,           % ?L, ?X
     list_split/3,           % ?L, ?X, ?Y
     list_split/4,           % ?L, ?X, ?Y, ?Z
-    member/3,               % ?X, ?Y, ?L
     member_default/3,       % ?X, +L, +Def
     nth0_minus/3,           % ?I, ?L, ?X
     nth0_minus/4,           % ?I, ?L, ?X
@@ -114,7 +113,7 @@ combination([ListH|ListT], [H|T]) :-
 
 %! common_list_prefix(+L1, +L2, +Sublist) is semidet.
 %! common_list_prefix(+L1, +L2, -Sublist) is det.
-% 
+%
 % Sublist is the longest common prefix of lists L1 and L2.
 
 common_list_prefix([H1|_], [H2|_], []) :-
@@ -315,16 +314,6 @@ list_split([X,Y], X, Y).
 
 
 list_split([X,Y,Z], X, Y, Z).
-
-
-
-%! member(X, Y, L) is nondet.
-%
-% Pairs from a list.
-
-member(X, Y, L) :-
-  member(X, L),
-  member(Y, L).
 
 
 
