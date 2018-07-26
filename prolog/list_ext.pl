@@ -6,6 +6,7 @@
     inflist/2,            % +Elem, -L
     list_intersperse/3,   % +L1, +Separator, -L2
     list_truncate/3,      % +Whole, +MaxLength, -Part
+    member/3,             % ?X, ?Y, +L
     postfix/2,            % ?Part, ?Whole
     postfix/3,            % ?Part, ?Length, ?Whole
    %prefix/2,             % ?Part, ?Whole
@@ -91,6 +92,14 @@ list_truncate(Whole, MaxLength, Whole) :-
 % The list exceeds the maximum length, it is truncated.
 list_truncate(Whole, MaxLength, Part) :-
   prefix(Part, MaxLength, Whole).
+
+
+
+%! member(?X:term, ?Y:term, +L:list(term)) is nondet.
+
+member(X, Y, L) :-
+  member(X, L),
+  member(Y, L).
 
 
 
