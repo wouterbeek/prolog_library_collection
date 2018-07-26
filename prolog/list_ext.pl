@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   list_ext,
   [
