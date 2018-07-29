@@ -13,11 +13,13 @@
     call_stats_n/3,         % +Repeats, :Goal_0, -Stats
     call_when_ground/1,     % :Goal_0
     is_det/1,               % :Goal_0
+    maplist/6,              % :Goal_5, ?Args1, ?Args2, ?Args3, ?Args4, ?Args5
     true/1,                 % ?Arg1
     true/2,                 % ?Arg1, ?Arg2
     true/3                  % ?Arg1, ?Arg2, ?Arg3
   ]
 ).
+:- reexport(library(apply)).
 
 /** <module> Call extensions
 
@@ -25,7 +27,6 @@
 @version 2017-2018
 */
 
-:- use_module(library(apply)).
 :- use_module(library(dif)).
 :- use_module(library(option)).
 :- use_module(library(plunit)).
@@ -43,7 +44,8 @@
     call_stats(1, 1, -),
     call_stats_n(+, 0, -),
     call_when_ground(0),
-    is_det(0).
+    is_det(0),
+    maplist(5, ?, ?, ?, ?, ?).
 
 
 
@@ -302,6 +304,18 @@ call_when_ground(Goal_0) :-
 is_det(Goal_0) :-
   call_cleanup(Goal_0, Det = true),
   (Det == true -> true ; !, fail).
+
+
+
+%! maplist(:Goal_5, ?Args1:list, ?Args2:list, ?Args3:list, ?Args4:list, ?Args5:list) .
+
+maplist(Goal_5, L1, L2, L3, L4, L5) :-
+  maplist_(L1, L2, L3, L4, L5, Goal_5).
+
+maplist_([], [], [], [], [], _).
+maplist_([H1|T1], [H2|T2], [H3|T3], [H4|T4], [H5|T5], Goal_5) :-
+  call(Goal_5, H1, H2, H3, H4, H5),
+  maplist_(T1, T2, T3, T4, T5, Goal_5).
 
 
 
