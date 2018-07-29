@@ -228,7 +228,7 @@ convert_file(File1, Format, File2) :-
   file_name_extension(Base, _, File1),
   file_name_extension(Base, Format, File2),
   call_must_be(convert_format, Format),
-  process_create(libreoffice, ['--convert-to',Format,file(File1)], []).
+  process_create(path(libreoffice), ['--convert-to',Format,file(File1)], []).
 
 convert_format(csv).
 
