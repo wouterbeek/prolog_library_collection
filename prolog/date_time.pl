@@ -13,7 +13,10 @@
     number_of_days_in_month_of_year/3, % ?Year, ?Month, ?MaxDay
   % PP
     dt_label/2,        % +Datetime, -Label
-    dt_label/3         % +Datetime, -Label, +Options
+    dt_label/3,        % +Datetime, -Label, +Options
+  % HELPERS
+    generate_as_digits//2, % +N, +NumberOfDigits
+    generate_as_digits//3  % +N, +Base, +NumberOfDigits
   ]
 ).
 
@@ -41,16 +44,17 @@ predicates that use date/time representations to only work with dt/7.
 This is a huge date/time-saver!
 
 @author Wouter Beek
-@version 2017/05-2017/09
+@version 2017-2018
 */
 
 :- use_module(library(apply)).
+:- use_module(library(error)).
+:- use_module(library(solution_sequences)).
+
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
-:- use_module(library(error)).
 :- use_module(library(nlp/nlp_lang)).
-:- use_module(library(solution_sequences)).
 
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
@@ -346,12 +350,6 @@ month_day(Da, Options) -->
   ).
 
 
-%! padding_zero(+N:between(0,9))// is det.
-
-padding_zero(N) -->
-  ({N =< 9} -> "0" ; "").
-
-
 %! ordinal(+N:nonneg, +Options:list(compound))// is det.
 
 ordinal(N, Options) -->
@@ -374,7 +372,10 @@ second(S0, _) -->
 %! sign(+N:number)// is det.
 
 sign(N) -->
-  ({N < 0} -> "-" ; "+").
+  {N < 0}, !,
+  "-".
+sign(_) -->
+  "+".
 
 
 
@@ -392,19 +393,16 @@ time(H, Mi, S, Options) -->
 %! timezone_offset(+Offset:between(-840,840))// is det.
 
 timezone_offset(Off) -->
-  (   {Off =:= 0}
-  ->  "Z"
-  ;   {
-        H is Off // 60,
-        dcg_with_output_to(string(H0), generate_as_digits(H, 2)),
-        Mi is Off mod 60,
-        dcg_with_output_to(string(Mi0), generate_as_digits(Mi, 2))
-      },
-      sign(Off),
-      H0,
-      ":",
-      Mi0
-  ).
+  {Off =:= 0}, !,
+  "Z".
+timezone_offset(Off) -->
+  sign(Off),
+  {H is Off // 60},
+  generate_as_digits(H, 2),
+  ":",
+  {Mi is Off mod 60},
+  generate_as_digits(Mi, 2).
+
 
 
 %! year(+Year:integer, +Options:list(compound))// is det.
@@ -419,3 +417,37 @@ year(Y, _) -->
 yearless_date(Mo, Da, Options) -->
   month(Mo, Options),
   month_day(Da, Options).
+
+
+
+
+
+% HELPERS %
+
+%! generate_as_digits(+N:nonneg, +NumberOfDigits:nonneg)// is det.
+%! generate_as_digits(+N:nonneg, +Base:positive_integer, +NumberOfDigits:nonneg)// is det.
+%
+% Generate the non-negative integer N using exactly NumberOfDigits
+% digits, using `0' as padding if needed.
+
+generate_as_digits(N, M) -->
+  generate_as_digits(N, 10, M).
+
+
+generate_as_digits(_, _, 0) --> !, "".
+generate_as_digits(N1, Base, M1) -->
+  {M2 is M1 - 1},
+  {D is N1 // Base ^ M2},
+  digit_weight(D),
+  {N2 is N1 mod Base ^ M2},
+  generate_as_digits(N2, Base, M2).
+
+
+
+%! padding_zero(+N:between(0,9))// is det.
+
+padding_zero(N) -->
+  {N =< 9}, !,
+  "0".
+padding_zero(_) -->
+  "".

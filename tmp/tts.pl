@@ -115,19 +115,6 @@ test("One Art", "I love) I shan't have lied.  It's evident").
 test("One Art", "the art of losing's not too hard to master").
 test("One Art", "though it may look like (Write it!) like disaster.").
 
-test("Biden", "I have two shotguns at my home.").
-test("Biden", "They're locked in a safe.").
-test("Biden", "There's a metal gun case.").
-test("Biden", "We live in an area that's wooded, somewhat secluded.").
-test("Biden", "Somewhat secluded.").
-test("Biden", "And I've said Jill, if there's ever a problem, just walk out").
-test("Biden", "on the balcony and fire two blasts outside the house.").
-test("Biden", "Buy a shotgun, buy a shotgun...").
-test("Biden", "Buy a shotgun, buy a shotgun...").
-test("Biden", "We don't need a machine gun, we don't need 30 rounds").
-test("Biden", "buy a shotgun, buy a double-barreled shotgun.").
-
-
 test_tts_to_file(Poem):-
   findall(Line, test(Poem, Line), Lines),
   atom_string(Base, Poem),

@@ -57,8 +57,6 @@
 
 Generic graph traversal algorithm.
 
----
-
 @author Wouter Beek
 @version 2015/10
 */
@@ -68,7 +66,6 @@ Generic graph traversal algorithm.
 :- use_module(library(error)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
-:- use_module(library(semweb/rdf_db)).
 
 :- meta_predicate
     traverse(2,3,+,+,-,:),

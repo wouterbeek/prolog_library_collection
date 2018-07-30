@@ -11,8 +11,6 @@
     dcg_string//2,          % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,             % +N
-    generate_as_digits//2,  % +N, +NumberOfDigits
-    generate_as_digits//3,  % +N, +Base, +NumberOfDigits
     thousands//1            % +Integer
   ]
 ).
@@ -199,27 +197,6 @@ dcg_tab -->
 
 dcg_tab(N) -->
   dcg_once(#(N, dcg_tab)).
-
-
-
-%! generate_as_digits(+N:nonneg, +NumberOfDigits:nonneg)// is det.
-%! generate_as_digits(+N:nonneg, +Base:positive_integer,
-%!                    +NumberOfDigits:nonneg)// is det.
-%
-% Generate the non-negative integer N using exactly NumberOfDigits digits,
-% using `0' as padding if needed.
-
-generate_as_digits(N, M) -->
-  generate_as_digits(N, 10, M).
-
-
-generate_as_digits(_, _, 0) --> !, "".
-generate_as_digits(N1, Base, M1) -->
-  {M2 is M1 - 1},
-  {D is N1 // Base ^ M2},
-  digit_weight(D),
-  {N2 is N1 mod Base ^ M2},
-  generate_as_digits(N2, Base, M2).
 
 
 
