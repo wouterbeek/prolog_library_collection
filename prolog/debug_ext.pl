@@ -73,9 +73,17 @@ dmon :-
 
 
 
-%! format_debug(+Flag, +Out:stream, +Pattern:string) is det.
-%! format_debug(+Flag, +Out:stream, +Pattern:string,
-%!              +Args:list(term)) is det.
+%! format_debug(+Flag:term, +Out:stream, +Pattern:string) is det.
+%! format_debug(+Flag:term, +Out:stream, +Pattern:string, +Arguments:list(term)) is det.
+%
+% Allows a line of text to be written to an output stream and --
+% optionally -- to a debug stream as well.
+%
+% Pattern and Arguments are used to compose a line of text.  The
+% newline character is automatically added at the end.
+%
+% Debug information is displayed by calling `debug(Flag)` (see library
+% debug).  Flag can be an atom or a compound term.
 
 format_debug(Flag, Out, Pattern) :-
   format_debug(Flag, Out, Pattern, []).
