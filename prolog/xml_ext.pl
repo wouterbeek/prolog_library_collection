@@ -94,7 +94,7 @@ xml_encoding(Encoding) -->
 %! xml_file_encoding(+File:atom, -Encoding:atom) is semidet.
 
 xml_file_encoding(File, Encoding) :-
-  call_stream_file(File, {Encoding}/[In]>>xml_encoding(In, Encoding)).
+  read_from_file(File, {Encoding}/[In]>>xml_encoding(In, Encoding)).
 
 
 

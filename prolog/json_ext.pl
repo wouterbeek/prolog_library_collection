@@ -24,7 +24,7 @@
 %! json_load(+File:atom, -Structure:dict) is det.
 
 json_load(File, Structure) :-
-  call_stream_file(
+  read_from_file(
     File,
     {Structure}/[In]>>json_read_dict(In, Structure, [value_string_as(atom)])
   ).
@@ -34,8 +34,4 @@ json_load(File, Structure) :-
 %! json_save(+File:atom, +Structure:dict) is det.
 
 json_save(File, Structure) :-
-  call_stream_file(
-    File,
-    write,
-    {Structure}/[Out]>>json_write_dict(Out, Structure)
-  ).
+  write_to_file(File, {Structure}/[Out]>>json_write_dict(Out, Structure)).

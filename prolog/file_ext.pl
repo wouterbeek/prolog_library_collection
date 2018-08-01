@@ -4,8 +4,6 @@
   [
     append_directories/2,         % +Directories, -Directory
     append_directories/3,         % +Directory1, +Directory2, -Directory3
-    call_stream_file/2,           % +File, :Goal_1
-    call_stream_file/3,           % +File, +Mode, :Goal_1
     cat/2,                        % +Out, +Files
     change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
     compress_file/1,              % +File
@@ -35,10 +33,12 @@
     is_empty_directory/1,         % +Directory
     is_empty_file/1,              % +File
     peek_file/3,                  % +File, +Size, -String
+    read_from_file/2,             % +File, :Goal_1
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
-    working_directory/1           % -Dir
+    working_directory/1,          % -Dir
+    write_to_file/2               % +File, :Goal_1
   ]
 ).
 :- reexport(library(filesex)).
@@ -67,8 +67,9 @@
 :- use_module(library(zlib)).
 
 :- meta_predicate
-    call_stream_file(+, 1),
-    call_stream_file(+, +, 1).
+    call_file_(+, +, 1),
+    read_from_file(+, 1),
+    write_to_file(+, 1).
 
 :- multifile
     error:has_type/2.
@@ -117,32 +118,6 @@ append_directories(Dir1, Dir2, Dir3) :-
   directory_subdirectories(Dir2, Subdirs2),
   append(Subdirs1, Subdirs2, Subdirs3),
   directory_subdirectories(Dir3, Subdirs3).
-
-
-
-%! call_stream_file(+File:atom, :Goal_1) is det.
-%! call_stream_file(+File:atom, +Mode:oneof([append,read,write]), :Goal_1) is det.
-%
-% Calls Goal_1 on the input stream derived from the given File.  If
-% the filen name ends in `.gz', GNU zip decompression is applied.
-
-call_stream_file(File, Goal_1) :-
-  call_stream_file(File, read, Goal_1).
-
-
-call_stream_file(File, Mode, Goal_1) :-
-  file_name_extension(_, gz, File), !,
-  setup_call_cleanup(
-    gzopen(File, Mode, In),
-    call(Goal_1, In),
-    close(In)
-  ).
-call_stream_file(File, Mode, Goal_1) :-
-  setup_call_cleanup(
-    open(File, Mode, In),
-    call(Goal_1, In),
-    close(In)
-  ).
 
 
 
@@ -438,7 +413,7 @@ file_to_string(File, String) :-
 %! guess_file_encoding(+File:atom, -Encoding:atom) is det.
 
 guess_file_encoding(File, Encoding) :-
-  call_stream_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
+  read_from_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
 
 
 
@@ -460,14 +435,38 @@ is_empty_directory(Dir) :-
 %! is_empty_file(+File:atom) is semidet.
 
 is_empty_file(File) :-
-  call_stream_file(File, at_end_of_stream).
+  read_from_file(File, at_end_of_stream).
 
 
 
 %! peek_file(+File:atom, +Size:nonneg, -String:string) is det.
 
 peek_file(File, Size, Str) :-
-  call_stream_file(File, {Size,Str}/[In]>>peek_string(In, Size, Str)).
+  read_from_file(File, {Size,Str}/[In]>>peek_string(In, Size, Str)).
+
+
+
+%! read_from_file(+File:atom, :Goal_1) is det.
+%
+% Calls Goal_1 on the input stream derived from the given File.  If
+% the filen name ends in `.gz', GNU zip decompression is applied.
+
+read_from_file(File, Goal_1) :-
+  call_file_(File, read, Goal_1).
+
+call_file_(File, Mode, Goal_1) :-
+  file_name_extension(_, gz, File), !,
+  setup_call_cleanup(
+    gzopen(File, Mode, In),
+    call(Goal_1, In),
+    close(In)
+  ).
+call_file_(File, Mode, Goal_1) :-
+  setup_call_cleanup(
+    open(File, Mode, In),
+    call(Goal_1, In),
+    close(In)
+  ).
 
 
 
@@ -497,11 +496,17 @@ sort_file(File1) :-
 sort_file(File1, Options) :-
   file_name_extension(File1, sorting, File2),
   setup_call_cleanup(
-    maplist(gzopen, [File1,File2], [read,write], [In,Out]),
-    sort_stream(In, Out, Options),
-    maplist(close, [In,Out])
+    maplist(gzopen, [File1,File2], [read,write], [ProcIn,Out]),
+    (
+      sort_stream(ProcIn, ProcOut, Options),
+      call_cleanup(
+        copy_stream_data(ProcOut, Out),
+        close(ProcOut)
+      )
+    ),
+    close(Out)
   ),
-  rename_file(File1, File2).
+  rename_file(File2, File1).
 
 
 
@@ -520,3 +525,10 @@ touch(File) :-
 
 working_directory(Directory) :-
   working_directory(Directory, Directory).
+
+
+
+%! write_to_file(+File:atom, :Goal_1) is det.
+
+write_to_file(File, Goal_1) :-
+  call_file_(File, write, Goal_1).
