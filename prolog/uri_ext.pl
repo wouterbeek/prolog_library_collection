@@ -15,6 +15,7 @@
     uri_file_extensions/2, % +Uri, -Extensions
     uri_file_local/2,      % +Uri, -Local
     uri_hash/2,            % +Uri, -Hash
+    uri_local_name/2,      % +Uri, ?Local
     uri_media_type/2       % +Uri, -MediaType
   ]
 ).
@@ -340,7 +341,19 @@ uri_hash(Uri1, Hash) :-
 
 
 
-%! uri_media_type(+Uri, -MediaType) is det.
+%! uri_local_name(+Uri:atom, +Local:atom) is semidet.
+%! uri_local_name(+Uri:atom, -Local:atom) is semidet.
+
+uri_local_name(Uri, Local) :-
+  uri_comps(Uri, uri(_,_,Segments,_,Fragment)),
+  (   atom(Fragment)
+  ->  Local = Fragment
+  ;   last(Segments, Local)
+  ).
+
+
+
+%! uri_media_type(+Uri:atom, -MediaType:compound) is det.
 
 uri_media_type(Uri, MediaType) :-
   uri_file_extensions(Uri, Extensions),
