@@ -182,7 +182,11 @@ media_type_program(MediaType, Program, Args) :-
   (   Programs == text_editor
   ->  setting(default_text_editor, Program)
   ;   member(Program0, Programs),
-      (Program0 = program(Program,Args) ; Program = Program0)
+      (   Program0 = program(Program,Args)
+      ->  true
+      ;   Program = Program0,
+          Args = []
+      )
   ).
 
 
@@ -277,7 +281,7 @@ media_type_(ru, media(application/'sparql-update',[]), text_editor, "SPARQL 1.1 
 media_type_(sgi, media(image/sgi,[]), [], "Silicon Graphics Image (SGI)").
 media_type_(srj, media(application/'sparql-results+json',[]), text_editor, "SPARQL 1.1 Query Results JSON Format").
 media_type_(srx, media(application/'sparql-results+xml',[]), text_editor, "SPARQL Query Results XML Format").
-media_type_(svg, media(image/'svg+xml',[]), [firefox,eog], "Scalable Vector Graphics (SVG)").
+media_type_(svg, media(image/'svg+xml',[]), [eog,firefox], "Scalable Vector Graphics (SVG)").
 media_type_(tar, media(application/'x-tar',[]), [], "TAR").
 media_type_(tga, media(image/'x-targa',[]), [eog], "Truevision Advanced Raster Graphics Adapter (TARGA)").
 media_type_(tiff, media(image/tiff,[]), [eog,xfig], "Tagged Image File Format (TIFF)").

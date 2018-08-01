@@ -55,7 +55,7 @@ open_file(File) :-
 
 open_file(MediaType, File) :-
   media_type_program(MediaType, Program, Args),
-  exists_program(Program),
+  exists_program(Program), !,
   process_create(path(Program), [file(File)|Args], []).
 
 
