@@ -34,6 +34,7 @@
     is_empty_file/1,              % +File
     peek_file/3,                  % +File, +Size, -String
     read_from_file/2,             % +File, :Goal_1
+    read_write_file/2,            % +File, :Goal_2
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
@@ -69,6 +70,7 @@
 :- meta_predicate
     call_file_(+, +, 1),
     read_from_file(+, 1),
+    read_write_file(+, 2),
     write_to_file(+, 1).
 
 :- multifile
@@ -455,18 +457,30 @@ read_from_file(File, Goal_1) :-
   call_file_(File, read, Goal_1).
 
 call_file_(File, Mode, Goal_1) :-
+  setup_call_cleanup(
+    open_(File, Mode, In),
+    call(Goal_1, In),
+    close(In)
+  ).
+
+open_(File, Mode, Stream) :-
   file_name_extension(_, gz, File), !,
+  gzopen(File, Mode, Stream).
+open_(File, Mode, Stream) :-
+  open(File, Mode, Stream).
+
+
+
+%! read_write_file(+File:atom, :Goal_2) is det.
+
+read_write_file(File1, Goal_2) :-
+  file_name_extension(File1, tmp, File2),
   setup_call_cleanup(
-    gzopen(File, Mode, In),
-    call(Goal_1, In),
-    close(In)
-  ).
-call_file_(File, Mode, Goal_1) :-
-  setup_call_cleanup(
-    open(File, Mode, In),
-    call(Goal_1, In),
-    close(In)
-  ).
+    maplist(open_, [File1,File2], [read,write], [In,Out]),
+    call(Goal_2, In, Out),
+    maplist(close, [In,Out])
+  ),
+  rename_file(File2, File1).
 
 
 
