@@ -74,9 +74,17 @@ archive_format(xar).
 %! archive_media_type(-MediaType:compound) is multi.
 
 archive_media_type(MediaType) :-
-  archive_media_type_filter_(MediaType, _).
+  ground(MediaType), !,
+  (   archive_media_type_filter_(MediaType, _)
+  ;   archive_media_type_format_(MediaType, _)
+  ), !.
 archive_media_type(MediaType) :-
-  archive_media_type_format_(MediaType, _).
+  distinct(
+    MediaType,
+    (   archive_media_type_filter_(MediaType, _)
+    ;   archive_media_type_format_(MediaType, _)
+    )
+  ).
 
 archive_media_type_format_(media(application/'x-7z-compressed',[]), '7zip').
 archive_media_type_format_(media(application/'vnd.ms-cab-compressed',[]), cab).
