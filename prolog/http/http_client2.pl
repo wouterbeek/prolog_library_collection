@@ -164,7 +164,7 @@ http_call(FirstUri, Goal_1, Options1) :-
       ->  State = state(CurrentUri),
           % Detect directly cyclic `Link' headers.
           (   CurrentUri == NextUri
-          ->  throw(error(cyclic_link_header(NextUri)))
+          ->  throw(error(http_error(cyclic_link_header,NextUri),http_call/3))
           ;   nb_setarg(1, State, NextUri)
           )
       ;   % There is no next URI: abandon choicepoint.
@@ -470,11 +470,11 @@ http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
       NumVisited >= MaxHops
   ->  Metas = [],
       reverse(Visited2, Visited3),
-      throw(error(http_error(max_redirect,NumVisited,Visited3),_))
+      throw(error(http_error(max_redirect,NumVisited,Visited3),http_open2_/7))
   ;   memberchk(Uri2, Visited1)
   ->  Metas = [],
       reverse(Visited2, Visited3),
-      throw(error(http_error(redirect_loop,Visited3),_))
+      throw(error(http_error(redirect_loop,Visited3),http_open2_/7))
   ;   State2 = State1.put(_{visited: Visited2}),
       http_open2_(Uri2, In2, State2, Metas, Options)
   ).
@@ -515,7 +515,7 @@ http_open2_success_(_, In, State, In) :-
 http_open2_success_(Uri, In, _, In) :-
   (   at_end_of_stream(In)
   ->  true
-  ;   print_message(warning, error(http_error(no_content_type,Uri),_))
+  ;   print_message(warning, error(http_error(no_content_type,Uri),http_open2_success_/4))
   ).
 
 http_lines_pairs(Lines, GroupedPairs) :-
@@ -598,7 +598,7 @@ http_status_error(In, Status, Uri) :-
     read_string(In, 1 000, Msg),
     close(In)
   ),
-  throw(error(http_error(status,Status,Msg),Uri)).
+  throw(error(http_error(status,Status,Msg,Uri),http_status_error/3)).
 
 
 

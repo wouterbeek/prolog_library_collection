@@ -310,8 +310,7 @@ must_see(Dcg_0, X, Y) :-
   call(Dcg_0, X, Y), !.
 must_see(_:Dcg_0, _, _) :-
   Dcg_0 =.. [Pred|_],
-  format(string(Msg), "‘~a’ expected", [Pred]),
-  syntax_error(Msg).
+  syntax_error(expected(Pred)).
 
 
 

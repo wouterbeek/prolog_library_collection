@@ -1,6 +1,7 @@
 :- module(
   http_server,
   [
+    conflicting_http_parameters/1, % +Parameters
     data_uri/2,                    % +Segments, -Uri
     http_absolute_location/2,      % +Spec, -Path
     http_current_location/1,       % -Uri
@@ -171,7 +172,7 @@ http_parameter_alternatives(Params, Value) :-
   (   list_to_ord_set(Values1, Values2),
       (Values2 = [Value] ; Values2 = [])
   ->  true
-  ;   throw(error(conflicting_http_parameters(Keys)))
+  ;   conflicting_http_parameters(Keys)
   ).
 
 http_parameter_value(Param, Key-Value) :-
@@ -186,7 +187,12 @@ http_parameter_conflict(Param1, Param2) :-
   ground([Param1,Param2]), !,
   Param1 =.. [Key1,_],
   Param2 =.. [Key2,_],
-  throw(error(conflicting_http_parameters([Key1,Key2]))).
+  throw(
+    error(
+      http_error(conflicting_parameters([Key1,Key2])),
+      http_parameter_conflict/2
+    )
+  ).
 http_parameter_conflict(_, _).
 
 
@@ -248,40 +254,42 @@ rest_exception_media_type(media(text/html,_), Status, Msg) :-
 
 error_status_message(E, Status, Msg) :-
   http:error_status_message_hook(E, Status, Msg), !.
-error_status_message(error(conflicting_http_parameters(Keys)), 400, Msg) :- !,
-  atomics_to_string(Keys, ", ", KeysLabel),
-  format(
-    string(Msg),
-    "😿 Your request is incorrect!  You have specified the following conflicting HTTP parameters: ‘[~s]’.",
-    [KeysLabel]
-  ).
-error_status_message(
-  error(type_error(Type,Value),context(_,http_parameter(Key))),
-  400,
-  Msg
-) :- !,
-  format(
-    string(Msg),
-    "😿 Your request is incorrect!  You have specified the value ‘~w’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
-    [Value,Key,Type]
-  ).
 error_status_message(error(existence_error(Type,Term),_), 404, Msg) :- !,
   format(
     string(Msg),
     "😿 Your request is incorrect!  There is no resource denoted by term ‘~w’ of type ‘~w’.",
     [Term,Type]
   ).
-error_status_message(error(syntax_error(grammar(Language,Atom)),_), 400, Msg) :- !,
+error_status_message(error(http_error(conflicting_http_parameters(Keys)),_), 400, Msg) :- !,
+  atomics_to_string(Keys, ", ", KeysLabel),
   format(
     string(Msg),
-    "😿 Could not parse according to the ~a grammar: “~a”",
-    [Language,Atom]
+    "😿 Your request is incorrect!  You have specified the following conflicting HTTP parameters: ‘[~s]’.",
+    [KeysLabel]
   ).
 error_status_message(error(http_error(method_not_allowed,Method)), 405, Msg) :- !,
   format(
     string(Msg),
     "😿 HTTP method ‘~a’ is not allowed for this path.",
     [Method]
+  ).
+error_status_message(error(syntax_error(grammar(Language,Source)),_), 400, Msg) :- !,
+  format(
+    string(Msg),
+    "😿 Could not parse the following according to the ~a grammar: “~a”",
+    [Language,Source]
+  ).
+error_status_message(error(syntax_error(grammar(Language,Expr,Source)),_), 400, Msg) :- !,
+  format(
+    string(Msg),
+    "😿 Could not parse the following as a ~a expression in the ~a grammar: “~a”",
+    [Expr,Language,Source]
+  ).
+error_status_message(error(type_error(Type,Value),context(_,http_parameter(Key))), 400, Msg) :- !,
+  format(
+    string(Msg),
+    "😿 Your request is incorrect!  You have specified the value ‘~w’ for HTTP parameter ‘~a’.  However, values for this parameter must be of type ‘~w’.",
+    [Value,Key,Type]
   ).
 error_status_message(E, 500, Msg) :-
   format(string(Msg), "😿 The following error occurred on the server: ‘~w’.", [E]).

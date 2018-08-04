@@ -7,7 +7,6 @@
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
     is_http_uri/1,         % @Term
-    is_iri/1,              % @Term
     is_uri/1,              % @Term
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
@@ -125,36 +124,36 @@ is_http_uri(Uri) :-
 
 
 
-%! is_iri(+Iri:atom) is semidet.
+%! is_uri(+Uri:atom) is semidet.
 %
-% There is not implementation of the IRI grammar yet, but we still
-% want to exclude at least some non-IRI strings.
+% There is not implementation of the URI grammar yet, but we still
+% want to exclude at least some non-URI strings.
 
-is_iri(Iri) :-
-  atom(Iri),
-  uri_components(Iri, uri_components(Scheme,Auth,Path,_,_)),
+is_uri(Uri) :-
+  atom(Uri),
+  uri_components(Uri, uri_components(Scheme,Auth,Path,_,_)),
   \+ var(Scheme),
   check_scheme_syntax(Scheme),
-  check_scheme_registration(Scheme, Auth, Path).
+  check_scheme_registration(Uri, Scheme, Auth, Path).
 
 check_scheme_syntax(Scheme) :-
   atom_phrase(check_scheme, Scheme), !.
 check_scheme_syntax(Scheme) :-
-  syntax_error(uri_scheme(Scheme)).
+  syntax_error(grammar(uri,scheme,Scheme)).
 
-% URI schemes that require a ground authority component
-check_scheme_registration(Scheme, Auth, _) :-
+% URI schemes that require a ground authority component.
+check_scheme_registration(Uri, Scheme, Auth, _) :-
   memberchk(Scheme, [http,https]), !,
-  (ground(Auth) -> true ; syntax_error(uri_authority(Scheme,Auth))).
-% URI schemes that require a ground path component
-check_scheme_registration(Scheme, _, Path) :-
+  (ground(Auth) -> true ; syntax_error(grammar(uri,Uri))).
+% URI schemes that require a ground path component.
+check_scheme_registration(Uri, Scheme, _, Path) :-
   memberchk(Scheme, [file,mailto,urn]), !,
-  (ground(Path) -> true ; syntax_error(uri_path(Scheme,Path))).
-% recognized URI scheme without (known) syntactic restrictions
-check_scheme_registration(Scheme, _, _) :-
+  (ground(Path) -> true ; syntax_error(grammar(uri,Uri))).
+% Recognized URI scheme (IANA).
+check_scheme_registration(_, Scheme, _, _) :-
   uri_scheme(Scheme), !.
-% unrecognized URI scheme
-check_scheme_registration(Scheme, _, _) :-
+% Unrecognized URI scheme.
+check_scheme_registration(_, Scheme, _, _) :-
   existence_error(uri_scheme, Scheme).
 
 % scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
@@ -172,16 +171,6 @@ check_scheme_nonfirst --> digit(_).
 check_scheme_nonfirst --> "+".
 check_scheme_nonfirst --> "-".
 check_scheme_nonfirst --> ".".
-
-
-
-%! is_uri(@Term) is semidet.
-%
-% Succeeds iff Term is an atom that conforms to the URI grammar.
-
-is_uri(Uri) :-
-  atom(Uri),
-  uri_is_global(Uri).
 
 
 
@@ -274,7 +263,7 @@ uri_comps(Uri, uri(Scheme,Authority0,Segments,QueryComponents,Fragment)) :-
       uri_query_components(Query, QueryPairs)
   ;   atomic(QueryComponents)
   ->  Query = QueryComponents
-  ;   syntax_error(QueryComponents)
+  ;   type_error(uri_query_components, QueryComponents)
   ),
   uri_components(Uri, uri_components(Scheme,Authority,Path,Query,Fragment)).
 
