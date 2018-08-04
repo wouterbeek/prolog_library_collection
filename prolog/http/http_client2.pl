@@ -15,7 +15,6 @@
     http_metadata_status/2,        % +Metas, -Status
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
-    http_status/4,                 % +In, +Metas, +Failure, +Success
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -588,11 +587,7 @@ http_status(In, Metas, Failure, Success) :-
   ;   % HTTP success codes.  The asserion indicates that we do not
       % expect a 1xx or 3xx status code here.
       assertion(between(200, 299, Status))
-  ->  (   number(Success),
-          Status =:= Success
-      ->  true
-      ;   http_status_error(In, Status, Meta.uri)
-      )
+  ->  (number(Success) -> Status =:= Success ; true)
   ).
 
 http_status_error(In, Status, Uri) :-
