@@ -562,8 +562,8 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_status(+In:stream, +Metas:list(dict), +Failure:between(400,599),
-%!             +Success:beteen(200,299)) is det.
+%! http_status(+In:stream, +Metas:list(dict), ?Failure:between(400,599),
+%!             ?Success:beteen(200,299)) is det.
 %
 % @arg Failure
 %
@@ -579,7 +579,8 @@ http_status(In, Metas, Failure, Success) :-
   must_be(http_status, Status),
   (   % HTTP failure codes.
       between(400, 599, Status)
-  ->  (   Status =:= Failure
+  ->  (   number(Failure),
+          Status =:= Failure
       ->  close(In),
           fail
       ;   http_status_error(In, Status, Meta.uri)
@@ -587,7 +588,8 @@ http_status(In, Metas, Failure, Success) :-
   ;   % HTTP success codes.  The asserion indicates that we do not
       % expect a 1xx or 3xx status code here.
       assertion(between(200, 299, Status))
-  ->  (   Status =:= Success
+  ->  (   number(Success),
+          Status =:= Success
       ->  true
       ;   http_status_error(In, Status, Meta.uri)
       )
@@ -595,10 +597,10 @@ http_status(In, Metas, Failure, Success) :-
 
 http_status_error(In, Status, Uri) :-
   call_cleanup(
-    read_string(In, 1 000, Msg),
+    read_string(In, 1 000, Body),
     close(In)
   ),
-  throw(error(http_error(status,Status,Msg,Uri),http_status_error/3)).
+  throw(error(http_error(status,Status,Body,Uri),http_status_error/3)).
 
 
 
