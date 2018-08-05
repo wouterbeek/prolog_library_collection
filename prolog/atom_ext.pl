@@ -218,12 +218,13 @@ test_atom_prefix(abcd, 4, abcd).
 % The default Strip characters are space, newline and horizontal tab.
 %
 % @arg Strip is a list of charaters that will be stripped from the
-%      Original atom.
+%      Original atom.  The default includes: horizontal tab, newline,
+%      space, NO-BREAK SPACE (0xa0).
 %
 % @see string_strip/[2,3] provides the same functionality for strings.
 
 atom_strip(Original, Stripped) :-
-  atom_strip(Original, [' ','\n','\t'], Stripped).
+  atom_strip(Original, ['\t','\n',' ','\u00a0'], Stripped).
 
 
 atom_strip(A1, Strip, A3) :-
