@@ -133,7 +133,7 @@ weight_(N) -->
   atom(Atom).
 
 
-     
+
 %! http_call(+Uri:atom, :Goal_1) is nondet.
 %! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is nondet.
 %
@@ -509,7 +509,7 @@ http_open2_success_(_, In, State, In) :-
 %  ->  recode_stream(Encoding, In1, In2)
 %  ;   In2 = In1
 %  ).
-% If there is no `Content-Type' header, then there must be no content
+% If there is no `Content-Type' header, then there MUST be no content
 % either.
 http_open2_success_(Uri, In, _, In) :-
   (   at_end_of_stream(In)
