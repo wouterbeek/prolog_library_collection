@@ -5,7 +5,6 @@
     debug_call/2,   % +Flag, :Goal_0
     debug_dict/2,   % +Flag, +Dict
     debug_phrase/2, % +Flag, :Dcg_0
-    dmon/0,
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
@@ -23,7 +22,6 @@
 :- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(pp)).
-:- use_module(library(swi_ide)).
 
 :- meta_predicate
     debug_call(+, 0),
@@ -61,15 +59,6 @@ debug_dict(_, _).
 debug_phrase(Flag, Dcg_0) :-
   dcg_with_output_to(string(String), Dcg_0),
   debug(Flag, "~s", [String]).
-
-
-
-%! dmon is det.
-%
-% Wrapper that starts the debug monitor.
-
-dmon :-
-  prolog_ide(debug_monitor).
 
 
 
