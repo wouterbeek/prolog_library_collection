@@ -1,7 +1,7 @@
 :- module(
   http_server,
   [
-    conflicting_http_parameters/1, % +Parameters
+    conflicting_http_parameters/1, % +Keys
     data_uri/2,                    % +Segments, -Uri
     http_absolute_location/2,      % +Spec, -Path
     http_current_location/1,       % -Uri
@@ -82,6 +82,12 @@ http:not_found_media_type(Uri, media(application/json,_)) :-
    ).
 
 
+
+
+%! conflicting_http_parameters(+Keys:list(atom)) is det.
+
+conflicting_http_parameters(Keys) :-
+  throw(error(conflicting_http_parameters(Keys))).
 
 
 
