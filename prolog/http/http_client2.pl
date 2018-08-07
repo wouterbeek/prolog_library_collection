@@ -322,6 +322,8 @@ http_metadata_status(Metas, Status) :-
 %     Status code that is mapped onto Prolog silent failure.  Default
 %     is `400'.
 %
+%   * final_uri(-Uri:atom)
+%
 %   * metadata(-Metas:list(dict))
 %
 %   * number_of_hops(+positive_integer)
@@ -334,6 +336,11 @@ http_metadata_status(Metas, Status) :-
 %     The maximum number of times the same HTTP request is retries upon
 %     receiving an HTTP error code (i.e., HTTP status codes 400
 %     through 599).  The default is 1.
+%
+%   * status(-between(100,599))
+%
+%     Returns the final status code.  When present, options failure/1
+%     and success/1 are not processed.
 %
 %   * success(+Status:between(200,299))
 %
@@ -356,17 +363,23 @@ http_open2(CurrentUri, In, Options1) :-
   reverse(Metas0, Metas),
   % Instantiate the next/1 option.
   ignore(http_metadata_link(Metas, next, NextUri)),
-  http_status_(In, Metas, Options1).
+  Metas = [Meta|_],
+  _{status: Status, uri: FinalUri} :< Meta,
+  ignore(option(final_uri(FinalUri), Options1)),
+  (   option(status(Status), Options1)
+  ->  true
+  ;   http_status_(In, Status, FinalUri, Options1)
+  ).
 
-http_status_(In, Metas, Options) :-
+http_status_(In, Status, FinalUri, Options) :-
   option(failure(Failure), Options),
   option(success(Success), Options, 200), !,
-  http_status(In, Metas, Failure, Success).
-http_status_(In, Metas, Options) :-
+  http_status(In, Status, FinalUri, Failure, Success).
+http_status_(In, Status, FinalUri, Options) :-
   option(success(Success), Options),
   option(failure(Failure), Options, 400), !,
-  http_status(In, Metas, Failure, Success).
-http_status_(_, _, _).
+  http_status(In, Status, FinalUri, Failure, Success).
+http_status_(_, _, _, _).
 
 http_options_(Uri, Options1, State, Options3) :-
   (   select_option(accept(Accept), Options1, Options2)
@@ -469,11 +482,13 @@ http_open2_(Uri1, In1, Status, State1, In2, Metas, Options) :-
       NumVisited >= MaxHops
   ->  Metas = [],
       reverse(Visited2, Visited3),
-      throw(error(http_error(max_redirect,NumVisited,Visited3),http_open2_/7))
-  ;   memberchk(Uri2, Visited1)
-  ->  Metas = [],
-      reverse(Visited2, Visited3),
-      throw(error(http_error(redirect_loop,Visited3),http_open2_/7))
+      % Wait until redirect loops have reached the maximum number of
+      % hops.  The same URI can sometimes be legitimately requested
+      % more than once, e.g., without and with a cookie.
+      (   memberchk(Uri2, Visited1)
+      ->  throw(error(http_error(redirect_loop,Visited3),http_open2_/7))
+      ;   throw(error(http_error(max_redirect,NumVisited,Visited3),http_open2_/7))
+      )
   ;   State2 = State1.put(_{visited: Visited2}),
       http_open2_(Uri2, In2, State2, Metas, Options)
   ).
@@ -495,7 +510,7 @@ http_open2_(Uri, In1, Status, State1, In2, Metas, Options) :-
       State2 = State1.put(_{number_of_retries: Retries2}),
       http_open2_(Uri, In2, State2, Metas, Options)
   ).
-% unrecodnized status code
+% unrecognized status code
 http_open2_(_, In, Status, _, _, [], _) :-
   close(In),
   domain_error(http_status, Status).
@@ -561,8 +576,8 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_status(+In:stream, +Metas:list(dict), ?Failure:between(400,599),
-%!             ?Success:beteen(200,299)) is det.
+%! http_status(+In:stream, +Status:between(100,599), FinalUri:atom,
+%              ?Failure:between(400,599), ?Success:beteen(200,299)) is det.
 %
 % @arg Failure
 %
@@ -572,9 +587,7 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 %
 %      If supplied, maps an HTTP code onto Prolog success.
 
-http_status(In, Metas, Failure, Success) :-
-  Metas = [Meta|_],
-  Status = Meta.status,
+http_status(In, Status, FinalUri, Failure, Success) :-
   must_be(http_status, Status),
   (   % HTTP failure codes.
       between(400, 599, Status)
@@ -582,7 +595,7 @@ http_status(In, Metas, Failure, Success) :-
           Status =:= Failure
       ->  close(In),
           fail
-      ;   http_status_error(In, Status, Meta.uri)
+      ;   http_status_error(In, Status, FinalUri)
       )
   ;   % HTTP success codes.  The asserion indicates that we do not
       % expect a 1xx or 3xx status code here.
@@ -590,12 +603,12 @@ http_status(In, Metas, Failure, Success) :-
   ->  (number(Success) -> Status =:= Success ; true)
   ).
 
-http_status_error(In, Status, Uri) :-
+http_status_error(In, Status, FinalUri) :-
   call_cleanup(
     read_string(In, 1 000, Body),
     close(In)
   ),
-  throw(error(http_error(status,Status,Body,Uri),http_status_error/3)).
+  throw(error(http_error(status,Status,Body,FinalUri),http_status_error/3)).
 
 
 
