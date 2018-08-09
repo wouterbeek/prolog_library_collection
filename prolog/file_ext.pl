@@ -24,6 +24,7 @@
     directory_subdirectory/3,     % +Dir, ?Local, ?Subdir
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
+    file_line/2,                  % +File, -Line
     file_media_type/2,            % +File, -MediaType
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
@@ -352,6 +353,20 @@ file_extensions(File, Extensions) :-
 file_extensions_media_type(Extensions, MediaType) :-
   member(Extension1, Extensions),
   media_type_extension(MediaType, Extension1), !.
+
+
+
+%! file_line(+File:atom, -Line:string) is nondet.
+
+file_line(File, Line) :-
+  read_from_file(
+    File,
+    [In]>>(
+      repeat,
+      read_line_to_string(In, Line),
+      (Line == end_of_file -> !, fail ; true)
+    )
+  ).
 
 
 
