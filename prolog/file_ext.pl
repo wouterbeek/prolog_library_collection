@@ -226,18 +226,6 @@ create_file_directory(Path) :-
 
 
 
-%! delete_file_silent(+File) is det.
-%
-% Succeed silently if File does not exist and print a message when
-% it does exist and is deleted.
-
-delete_file_silent(File) :-
-  exists_file(File), !,
-  delete_file(File).
-delete_file_silent(_).
-
-
-
 %! delete_files_by_extension(+Extension:atom) is det.
 %! delete_files_by_extension(+Directory:atom, +Extension:atom) is det.
 
