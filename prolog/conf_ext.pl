@@ -13,8 +13,12 @@ This module is typically used in the following way:
 ```prolog
 :- initialization
    conf_json(Conf),
-   configure_application(Conf).
+   configure_your_application(Conf).
 ```
+
+The configuration file location must be supplied on the command line
+(`--conf=$(FILE)').  Otherwise the default configuration file location
+is used, i.e., `~/conf.json'.
 
 ---
 
@@ -60,6 +64,7 @@ argument(Arg) -->
 
 conf_json(Conf) :-
   cli_arguments(Args),
-  option(conf(File0), Args),
-  expand_file_name(File0, [File|_]),
+  option(conf(Spec), Args, '~/conf.json'),
+  expand_file_name(Spec, [File|_]),
+  exists_file(File),
   json_load(File, Conf).
