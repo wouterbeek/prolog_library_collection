@@ -30,6 +30,7 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_to_string/2,             % +File, -String
     guess_file_encoding/2,        % +File, -Encoding
+    home_directory/1,             % ?Directory
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
     is_empty_file/1,              % +File
@@ -415,6 +416,14 @@ file_to_string(File, String) :-
 
 guess_file_encoding(File, Encoding) :-
   read_from_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
+
+
+
+%! home_directory(+Directory:atom) is semidet.
+%! home_directory(-Directory:atom) is nondet.
+
+home_directory(Dir) :-
+  expand_file_name(~, [Dir]).
 
 
 
