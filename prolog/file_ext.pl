@@ -52,20 +52,16 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(call_ext)).
-:- use_module(library(dcg)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(media_type)).
-:- use_module(library(option)).
-:- use_module(library(os_ext)).
 :- use_module(library(readutil)).
-:- use_module(library(sort_ext)).
-:- use_module(library(stream_ext)).
-:- use_module(library(string_ext)).
-:- use_module(library(thread_ext)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
+
+:- use_module(library(call_ext)).
+:- use_module(library(media_type)).
+:- use_module(library(sort_ext)).
+:- use_module(library(stream_ext)).
 
 :- meta_predicate
     call_file_(+, +, 1),
