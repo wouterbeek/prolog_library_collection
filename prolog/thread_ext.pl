@@ -4,7 +4,6 @@
     create_detached_thread/1, % :Goal_0
     create_detached_thread/2, % +Alias, :Goal_0
     thread_list/0,
-    thread_monitor/0,
     thread_name/2,            % ?Id:handle, ?Name:atom
     thread_self_property/1,   % ?Property
     threaded_maplist/2,       % :Goal_1, ?Args1
@@ -60,15 +59,6 @@ thread_list :-
     member(Name-Status, Pairs),
     format(user_output, "~a\t~a\n", [Name,Status])
   ).
-
-
-
-%! thread_monitor is det.
-%
-% Wrapper that starts the thread monitor.
-
-thread_monitor :-
-  prolog_ide(thread_monitor).
 
 
 

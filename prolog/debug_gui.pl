@@ -1,7 +1,8 @@
 :- module(
   debug_gui,
   [
-    dmon/0
+    dmon/0,
+    tmon/0
   ]
 ).
 
@@ -23,3 +24,12 @@
 
 dmon :-
   prolog_ide(debug_monitor).
+
+
+
+%! tmon is det.
+%
+% Wrapper that starts the thread monitor.
+
+tmon :-
+  prolog_ide(thread_monitor).
