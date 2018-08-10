@@ -13,8 +13,8 @@
     dict_put/4,               % +Key, +Dict1, +Value, -Dict2
     dict_tag/2,               % +Dict, ?Tag
     dict_tag/3,               % +Dict1, ?Tag, -Dict2
-    merge_dicts/2,            % +Dicts, -Dict
-    merge_dicts/3,            % +Dict1, +Dict2, -Dict3
+    merge_dicts/2,            % +Dicts, -MergedDict
+    merge_dicts/3,            % +NewDict, +OldDict, -MergedDict
     nb_increment_dict/2       % +Dict, +Key
   ]
 ).
