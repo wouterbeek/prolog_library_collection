@@ -5,6 +5,7 @@
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
+    call_forall/2,          % :A_1, :B_1
     call_must_be/2,         % :Goal_1, @Term
     call_or_warning/1,      % :Goal_0
     call_pair/3,            % :Goal_2, +Pair1, -Pair2
@@ -37,6 +38,7 @@
     call_det_when(0, 0),
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
+    call_forall(1, 1),
     call_must_be(1, +),
     call_or_warning(0),
     call_pair(2, +, -),
@@ -105,6 +107,16 @@ call_det_when_ground(Term, Goal_0) :-
   once(Goal_0).
 call_det_when_ground(_, Goal_0) :-
   Goal_0.
+
+
+
+%! call_forall(:A_1, :B_1) .
+
+call_forall(A_1, B_1) :-
+  forall(
+    call(A_1, X),
+    call(B_1, X)
+  ).
 
 
 
