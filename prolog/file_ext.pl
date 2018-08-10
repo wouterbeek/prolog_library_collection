@@ -20,8 +20,8 @@
     directory_path/2,             % ?Directory, ?Path
     directory_path_recursive/2,   % +Directory, -Path
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
-    directory_subdirectory/2,     % +Dir, ?Subdir
-    directory_subdirectory/3,     % +Dir, ?Local, ?Subdir
+    directory_subdirectory/2,     % +Directory, ?Subdirectory
+    directory_subdirectory/3,     % +Directory, ?Local, ?Subdirectory
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_line/2,                  % +File, -Line
@@ -40,7 +40,7 @@
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
-    working_directory/1,          % -Dir
+    working_directory/1,          % -Directory
     write_to_file/2               % +File, :Goal_1
   ]
 ).
@@ -103,8 +103,7 @@ append_directories_(Dir1, [H|T], Dir3) :-
   append_directories_(Dir2, T, Dir3).
 
 
-%! append_directories(+Directory1:atom, +Directory2:atom,
-%!                    -Directory:atom) is det.
+%! append_directories(+Directory1:atom, +Directory2:atom, -Directory:atom) is det.
 %
 % Returns the directory name obtained by concatenating the given
 % directory names.
@@ -209,7 +208,7 @@ convert_format(csv).
 
 
 
-%! create_directory(+Dir) is det.
+%! create_directory(+Directory:atom) is det.
 
 create_directory(Dir) :-
   exists_directory(Dir), !.
@@ -257,9 +256,12 @@ directory_file(Dir, File) :-
 
 
 
-%! directory_file_path2(+Dir, -File, -Path) is nondet.
-%! directory_file_path2(+Dir, +File, -Path) is det.
-%! directory_file_path2(-Dir, -File, +Path) is det.
+%! directory_file_path2(+Directory:atom, +File:atom, -Path:atom) is det.
+%! directory_file_path2(+Directory:atom, -File:atom, -Path:atom) is nondet.
+%! directory_file_path2(-Directory:atom, -File:atom, +Path:atom) is det.
+%
+% Instantiation pattern (+,-,-) is not supported by
+% directory_file_path/3 from the standard library.
 
 directory_file_path2(Dir, File, Path) :-
   ground(Dir), var(File), var(Path), !,
@@ -279,8 +281,8 @@ directory_parent(Dir1, Dir2) :-
 
 
 
-%! directory_path(+Dir, -Path) is nondet.
-%! directory_path(-Dir, +Path) is det.
+%! directory_path(+Directory:atom, -Path:atom) is nondet.
+%! directory_path(-Directory:atom, +Path:atom) is det.
 
 directory_path(Dir, Path) :-
   directory_file(Dir, File),
