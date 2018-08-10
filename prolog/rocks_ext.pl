@@ -5,11 +5,21 @@
     call_on_rocks/3,   % +Alias, :Goal_1, +Options
     rocks/3,           % +Db, ?Key, ?Value
     rocks_alias/2,     % ?Alias, -Directory
+   %rocks_batch/2,     % +Db, +Actions
     rocks_clear/1,     % +Alias
+   %rocks_close/1,     % +Db
+    rocks_delete/2,    % +Db, +Key
+   %rocks_delete/3,    % +Db, +Key, -Value
     rocks_directory/1, % -Directory
+   %rocks_enum/3,      % +Db, ?Key, ?Value
+   %rocks_get/3,       % +Db, +Key, -Value
     rocks_key/2,       % +DB, ?Key
     rocks_init/2,      % +Alias, +Options
     rocks_init/3,      % +Alias, -Db, +Options
+   %rocks_merge/3,     % +Db, +Key, +Value
+   %rocks_open/3,      % +Directory, +Db, +Options
+   %rocks_property/2,  % +Db, ?Property
+   %rocks_put/3,       % +Db, +Key, +Value
     rocks_size/2,      % +Db, -Size
     rocks_value/2      % +Db, -Value
   ]
@@ -19,7 +29,7 @@
 /** <module> RocksDB extension
 
 @author Wouter Beek
-@version 2017/06-2018/01
+@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
@@ -99,6 +109,13 @@ rocks_clear(Alias) :-
   rocks_directory(Dir0),
   directory_file_path(Dir0, Alias, Dir),
   (exists_directory(Dir) -> delete_directory_and_contents(Dir) ; true).
+
+
+
+%! rocks_delete(+Db, +Key:atom) is det.
+
+rocks_delete(Db, Key) :-
+  rocks_delete(Db, Key, _).
 
 
 
