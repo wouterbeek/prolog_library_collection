@@ -605,10 +605,10 @@ http_status(In, Status, FinalUri, Failure, Success) :-
 
 http_status_error(In, Status, FinalUri) :-
   call_cleanup(
-    read_string(In, 1 000, Body),
+    read_string(In, 1 000, Content),
     close(In)
   ),
-  throw(error(http_error(status,Status,Body,FinalUri),http_status_error/3)).
+  throw(error(http_error(status,Status,Content,FinalUri),http_status_error/3)).
 
 
 

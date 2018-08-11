@@ -128,11 +128,7 @@ xml_clean_dom(H1, H2) :-
 %      for XML 1.1.
 
 'Char'(Version) -->
-  'Char'(Version, C), !,
-  {writeln(C)}.
-'Char'(_) -->
-  [C],
-  {writeln(-C)}.
+  'Char'(Version, _).
 
 
 'Char'(version(1,0), 0x9) --> [0x9].
