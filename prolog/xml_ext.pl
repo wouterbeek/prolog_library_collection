@@ -2,6 +2,8 @@
   xml_ext,
   [
     call_on_xml/3,      % +In, +Names, :Goal_1
+    'Char'//1,          % +Version
+    'Char'//2,          % +Version, ?Code
     load_xml/2,         % +Source, -Dom
     xml_encoding/2,     % +In, -Encoding
     xml_file_encoding/2 % +File, -Encoding
@@ -66,6 +68,82 @@ xml_clean_dom(element(Name,Attr,Dom1), element(Name,Attr,Dom2)) :- !,
 xml_clean_dom(H1, H2) :-
   atom_strip(H1, H2),
   H2 \== ''.
+
+
+
+%! 'Char'(+Version:compound)// .
+%! 'Char'(+Version:compound, ?Code:code)// .
+%
+% An **XML Character** is an atomic unit of text specified by ISO/IEC
+% 10646.
+%
+% # XML 1.0
+%
+% ```ebnf
+% Char ::= #x9                // Horizontal tab
+%        | #xA                // Line feed
+%        | #xD                // Carriage return
+%        | [#x20-#xD7FF]      // Space, punctuation, numbers, letters
+%        | [#xE000-#xFFFD]
+%        | [#x10000-#x10FFFF]
+% ```
+%
+% Avoid comapatibility characters [Unicode, section 2.3].  Avoid the
+% following characters (control characters, permanently undefined
+% Unicode characters):
+%
+% ```
+% [#x7F-#x84] // Delete, ...
+% [#x86-#x9F]
+% [#xFDD0-#xFDEF],
+% [#x1FFFE-#x1FFFF]
+% [#x2FFFE-#x2FFFF]
+% [#x3FFFE-#x3FFFF]
+% [#x4FFFE-#x4FFFF]
+% [#x5FFFE-#x5FFFF]
+% [#x6FFFE-#x6FFFF]
+% [#x7FFFE-#x7FFFF]
+% [#x8FFFE-#x8FFFF]
+% [#x9FFFE-#x9FFFF]
+% [#xAFFFE-#xAFFFF]
+% [#xBFFFE-#xBFFFF]
+% [#xCFFFE-#xCFFFF]
+% [#xDFFFE-#xDFFFF]
+% [#xEFFFE-#xEFFFF]
+% [#xFFFFE-#xFFFFF]
+% [#x10FFFE-#x10FFFF]
+% ```
+%
+% # XML 1.1
+%
+% ```ebnf
+% Char ::= [#x1-#xD7FF]
+%        | [#xE000-#xFFFD]
+%        | [#x10000-#x10FFFF]
+% /* any Unicode character, excluding the surrogate blocks,
+%    FFFE, and FFFF. */
+% ```
+%
+% @arg Version is either `version(1,0)' for XML 1.0 or `version(1,1)'
+%      for XML 1.1.
+
+'Char'(Version) -->
+  'Char'(Version, C), !,
+  {writeln(C)}.
+'Char'(_) -->
+  [C],
+  {writeln(-C)}.
+
+
+'Char'(version(1,0), 0x9) --> [0x9].
+'Char'(version(1,0), 0xA) --> [0xA].
+'Char'(version(1,0), 0xD) --> [0xD].
+'Char'(version(1,0), Code) --> dcg_between(0x20, 0xD7FF, Code).
+'Char'(version(1,0), Code) --> dcg_between(0xE000, 0xFFFD, Code).
+'Char'(version(1,0), Code) --> dcg_between(0x10000, 0x10FFFF, Code).
+'Char'(version(1,1), Code) --> dcg_between(0x1, 0xD7FF, Code).
+'Char'(version(1,1), Code) --> dcg_between(0xE000, 0xFFFD, Code).
+'Char'(version(1,1), Code) --> dcg_between(0x10000, 0x10FFFF, Code).
 
 
 
