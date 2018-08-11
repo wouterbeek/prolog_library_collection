@@ -1,8 +1,7 @@
 :- module(
   radconv,
   [
-    radconv/2 % +From:compound
-              % ?To:compound
+    radconv/2 % +From:compound, ?To:compound
   ]
 ).
 
@@ -14,10 +13,11 @@ Converts between numbers in binary, octal, decimal and hexadecimal radix.
 @version 2015/07
 */
 
-:- use_module(library(char_ext)).
 :- use_module(library(clpfd)).
 :- use_module(library(error)).
 :- use_module(library(typecheck)).
+
+:- use_module(library(char_ext)).
 
 
 
@@ -25,6 +25,7 @@ Converts between numbers in binary, octal, decimal and hexadecimal radix.
 
 %! radconv(+From:compound, +To:compound) is det.
 %! radconv(+From:compound, -To:compound) is det.
+%
 % Radix conversion between often used bases.
 %
 % From and To make use of the followig radix notations:
@@ -33,20 +34,13 @@ Converts between numbers in binary, octal, decimal and hexadecimal radix.
 %   - hex(+atom)
 %   - oct(+nonneg)
 %
-% If From is an atom it is assumed to be `hex(+atom)`.
-% If From is a non-negative integer it is assumed to be `dec(+nonneg)`.
-%
 % @throws instantiation_error If both From and To are uninstantiated.
 
-% Swap arguments or
-% instantiation error.
+% Swap arguments or throw an instantiation error.
 radconv(From, To):-
   \+ ground(From), !,
   % One argument has to be ground.
-  (   \+ ground(To)
-  ->  instantiation_error(To)
-  ;   radconv(To, From)
-  ).
+  (\+ ground(To) -> instantiation_error(To) ; radconv(To, From)).
 % Non-radix notation for input: hexadecimal.
 radconv(From, To):-
   atom(From), !,
@@ -59,7 +53,8 @@ radconv(From, To):-
 radconv(From, To):-
   From =.. [FromRadix,FromValue], !,
   to_decimal(FromRadix, FromValue, Decimal),
-  % If there is no radix for the output value then we assume decimal base.
+  % If there is no radix for the output value then we assume decimal
+  % base.
   (   var(To)
   ->  ToRadix = dec,
       To = dec(ToValue)
@@ -73,11 +68,8 @@ radconv(From, To):-
 
 % HELPERS %
 
-%! from_decimal(
-%!   +Decimal:nonneg,
-%!   +Radix:rad_name,
-%!   -Value:or([atom,nonneg])
-%! ) is det.
+%! from_decimal(+Decimal:nonneg, +Radix:oneof([bin,oct,dec,hex]),
+%!              -Value:or([atom,nonneg])) is det.
 
 from_decimal(Decimal, dec, Decimal):- !.
 from_decimal(Decimal, Radix, Value):-
@@ -94,11 +86,8 @@ from_decimal(N, Base, T, Sol):-
 
 
 
-%! radix_chars_to_atomic(
-%!   +Radix:rad_name,
-%!   +Chars:list(char),
-%!   -Value:atomic
-%! ) is det.
+%! radix_chars_to_atomic(+Radix:oneof([bin,oct,dec,hex]), +Chars:list(char),
+%!                       -Value:atomic) is det.
 
 radix_chars_to_atomic(hex, Chars, Atom):- !,
   atom_chars(Atom, Chars).
@@ -108,7 +97,7 @@ radix_chars_to_atomic(Radix, Chars, Value):-
 
 
 
-%! radix_value(+Radix:rad_name, -Value:rad_number) is det.
+%! radix_value(+Radix:oneof([bin,oct,dec,hex]), -Value:rad_number) is det.
 
 radix_value(bin,  2).
 radix_value(dec, 10).
@@ -129,11 +118,9 @@ radix_value(Radix, Char, Value):-
 
 
 
-%! to_decimal(
-%!   +Radix:rad_number,
-%!   +Value:or([atom,list(char),list(code),nonneg,string]),
-%!   -Decimal:nonneg
-%! ) is det.
+%! to_decimal(+Radix:rad_number,
+%!            +Value:or([atom,list(char),list(code),nonneg,string]),
+%!            -Decimal:nonneg) is det.
 
 to_decimal(dec, N, N):-
   nonneg(N), !.

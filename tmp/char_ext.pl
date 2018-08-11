@@ -13,85 +13,91 @@
 /** <module> Character extensions
 
 @author Wouter Beek
-@version 2015/07, 2016/02
+@version 2018
 */
 
 :- use_module(library(apply)).
+:- use_module(library(lists)).
 
 
 
 
 
-%! char_digit(+Char, -Digit) is semidet.
-%! char_digit(-Char, +Digit) is det.
+%! char_digit(+Char:char, -Digit:between(0,9)) is semidet.
+%! char_digit(-Char:char, +Digit:between(0,9)) is det.
 
 char_digit(Char, Digit) :-
   char_type(Char, digit(Digit)).
 
 
 
-%! downcase_char(+Char, -DowncaseChar) is det.
+%! downcase_char(+Char:char, -DowncaseChar:char) is det.
 
 downcase_char(X, Y) :-
   char_type(Y, to_lower(X)).
 
 
 
-%! first_char(+Source, +Char) is semidet.
-%! first_char(+Source, -Char) is semidet.
-% Source is either an atom, a list of characters, a list of codes, a number or
-% a string.
+%! first_char(+Source, +Char:char) is semidet.
+%! first_char(+Source, -Char:char) is semidet.
+%
+% Source is either an atom, a list of characters, a list of codes, a
+% number or a string.
 %
 % Silently fails if the source does not have a first character.
 
-first_char(In, H):-
-  to_chars(In, [H|_]).
+first_char(Source, H):-
+  to_chars(Source, [H|_]).
 
 
 
-%! last_char(+Source, +Char) is semidet.
-%! last_char(+Source, -Char) is semidet.
-% Source is either an atom, a list of characters, a list of codes, a number or
-% a string.
+%! last_char(+Source, +Char:char) is semidet.
+%! last_char(+Source, -Char:char) is semidet.
+%
+% Source is either an atom, a list of characters, a list of codes, a
+% number or a string.
 %
 % Silently fails if the source does not have a last character.
 
-last_char(In, X):-
-  to_chars(In, L),
+last_char(Source, X):-
+  to_chars(Source, L),
   last(L, X).
 
 
 
-%! to_chars(+Source, -Chars:list(char)) is det.
-% Source is either an atom, a list of characters, a list of codes, a number or
-% a string.
+%! to_chars(+Source:or([atom,list(char),list(code),number,string]),
+%!          -Chars:list(char)) is det.
+%
+% Source is either an atom, a list of characters, a list of codes, a
+% number or a string.
 %
 % Notice that the empty list of characters and the empty list of codes
 % both map onto the empty list of characters.
 
-% Atom.
+% the empty list
+to_chars([], []) :- !.
+% atom
 to_chars(A, L):-
   atom(A), !,
   atom_chars(A, L).
-% Non-empty list of characters.
-% Includes the empty list.
+% non-empty list of characters
 to_chars(L, L):-
   maplist(is_char, L), !.
-% Non-empty list of codes.
+% non-empty list of codes
 to_chars(Cs, L):-
   maplist(char_code, L, Cs).
-% Number.
+% number
 to_chars(N, L):-
   number(N), !,
   number_chars(N, L).
-% String.
+% string
 to_chars(S, L):-
   string(S), !,
   string_chars(S, L).
 
 
 
-%! upcase_char(+Char, -UpcaseChar) is det.
+%! upcase_char(+Char:char, -UpcaseChar:char) is det.
 
 upcase_char(X, Y) :-
   char_type(Y, to_upper(X)).

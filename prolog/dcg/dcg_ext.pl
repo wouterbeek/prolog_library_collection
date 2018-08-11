@@ -3,12 +3,10 @@
   dcg,
   [
     atom_ci//1,             % ?Atom
-    dcg_atom//2,            % :Dcg_1, ?Atom
     dcg_debug/2,            % +Flag, :Dcg_0
     dcg_default//3,         % :Dcg_0, -Arg1, +Default
     dcg_integer//2,         % :Dcg_1, ?Integer
     dcg_integer//3,         % :Dcg_1, +Base, ?Integer
-    dcg_string//2,          % :Dcg_1, ?String
     dcg_tab//0,
     dcg_tab//1,             % +N
     thousands//1            % +Integer
@@ -94,50 +92,6 @@ code_ci(Code) -->
 
 
 
-%! dcg_atom(:Dcg_1, ?Atom:atom)// .
-%
-% This meta-DCG rule handles the translation between the word and the
-% character level of parsing/generating.
-%
-% Typically, grammar *A* specifies how words can be formed out of
-% characters.  A character is a code, and a word is a list of codes.
-% Grammar *B* specifies how sentences can be built out of words.  Now
-% the word is an atom, and the sentences in a list of atoms.
-%
-% This means that at some point, words in grammar *A*, i.e. lists of
-% codes, need to be translated to words in grammar *B*, i.e. atoms.
-%
-% This is where dcg_atom//2 comes in.  We illustrate this with a
-% schematic example:
-%
-% ```prolog
-% sentence([W1,...,Wn]) -->
-%   word2(W1),
-%   ...,
-%   word2(Wn).
-%
-% word2(W) -->
-%   dcg_atom(word1, W).
-%
-% word1([C1, ..., Cn]) -->
-%   char(C1),
-%   ...,
-%   char(Cn).
-% ```
-%
-% @throws instantiation_error
-% @throws type_error
-
-dcg_atom(Dcg_1, Atom) -->
-  {var(Atom)}, !,
-  dcg_call(Dcg_1, Codes),
-  {atom_codes(Atom, Codes)}.
-dcg_atom(Dcg_1, Atom) -->
-  {atom_codes(Atom, Codes)},
-  dcg_call(Dcg_1, Codes).
-
-
-
 %! dcg_debug(+Flag, :Dcg_0) is det.
 %
 % Write the first generation of Dcg_0 as a debug message under the
@@ -173,18 +127,6 @@ dcg_integer(Dcg_1, Base, N) -->
 dcg_integer(Dcg_1, Base, N) -->
   {integer_weights(N, Base, Weights)},
   dcg_call(Dcg_1, Weights).
-
-
-
-%! dcg_string(:Dcg_1, ?String)// .
-
-dcg_string(Dcg_1, String) -->
-  {var(String)}, !,
-  dcg_call(Dcg_1, Codes),
-  {string_codes(String, Codes)}.
-dcg_string(Dcg_1, String) -->
-  {string_codes(String, Codes)},
-  dcg_call(Dcg_1, Codes).
 
 
 

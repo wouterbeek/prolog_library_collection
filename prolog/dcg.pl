@@ -12,6 +12,7 @@
     'alphanum+'//2,         % -Codes:list(code), -Tail:list(code)
     atom_phrase/2,          % :Dcg_0, ?Atom
     atom_phrase/3,          % :Dcg_0, +Atom1, ?Atom2
+    dcg_atom//2,            % :Dcg_1, ?Atom
     dcg_between//2,         % +Low, +High
     dcg_between//3,         % +Low, +High, ?Code
     dcg_call//1,            % :Dcg_0
@@ -20,6 +21,7 @@
     dcg_call//4,            % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call//5,            % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call//6,            % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_string//2,          % :Dcg_1, ?String
     dcg_with_output_to/1,   % :Dcg_0
     dcg_with_output_to/2,   % +Sink, :Dcg_0
     'digit*'//1,            % -Codes:list(code)
@@ -168,6 +170,50 @@ atom_phrase(Dcg_0, Atom1, Atom2) :-
 
 
 
+%! dcg_atom(:Dcg_1, ?Atom:atom)// .
+%
+% This meta-DCG rule handles the translation between the word and the
+% character level of parsing/generating.
+%
+% Typically, grammar *A* specifies how words can be formed out of
+% characters.  A character is a code, and a word is a list of codes.
+% Grammar *B* specifies how sentences can be built out of words.  Now
+% the word is an atom, and the sentences in a list of atoms.
+%
+% This means that at some point, words in grammar *A*, i.e. lists of
+% codes, need to be translated to words in grammar *B*, i.e. atoms.
+%
+% This is where dcg_atom//2 comes in.  We illustrate this with a
+% schematic example:
+%
+% ```prolog
+% sentence([W1,...,Wn]) -->
+%   word2(W1),
+%   ...,
+%   word2(Wn).
+%
+% word2(W) -->
+%   dcg_atom(word1, W).
+%
+% word1([C1, ..., Cn]) -->
+%   char(C1),
+%   ...,
+%   char(Cn).
+% ```
+%
+% @throws instantiation_error
+% @throws type_error
+
+dcg_atom(Dcg_1, Atom) -->
+  {var(Atom)}, !,
+  dcg_call(Dcg_1, Codes),
+  {atom_codes(Atom, Codes)}.
+dcg_atom(Dcg_1, Atom) -->
+  {atom_codes(Atom, Codes)},
+  dcg_call(Dcg_1, Codes).
+
+
+
 %! dcg_between(+Low:nonneg, +High:nonneg)// .
 %! dcg_between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
 
@@ -212,6 +258,18 @@ dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
 
 dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
   call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
+
+
+
+%! dcg_string(:Dcg_1, ?String)// .
+
+dcg_string(Dcg_1, String) -->
+  {var(String)}, !,
+  dcg_call(Dcg_1, Codes),
+  {string_codes(String, Codes)}.
+dcg_string(Dcg_1, String) -->
+  {string_codes(String, Codes)},
+  dcg_call(Dcg_1, Codes).
 
 
 

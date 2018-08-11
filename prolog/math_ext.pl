@@ -2,7 +2,7 @@
 :- module(
   math_ext,
   [
-    avg_list/2,            % +Numbers, -Avg
+    avg_list/2,           % +Numbers, -Avg
     between/4,            % +Low, +High, +Interval, ?Value
     decimal_parts/3,      % ?Decimal, ?Integer, ?Fractorial
     fractional_integer/2, % +Number, -Fractorial
