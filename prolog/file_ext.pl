@@ -6,6 +6,7 @@
     append_directories/3,         % +Directory1, +Directory2, -Directory3
     cat/2,                        % +Out, +Files
     change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
+    compress_file/1,              % +FromFile
     compress_file/2,              % +FromFile, ?ToFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
     convert_file/2,               % +File, +Format
@@ -153,8 +154,13 @@ change_file_name_extension(File1, Ext1, Ext2, File2) :-
 
 
 
+%! compress_file(+FromFile:atom) is det.
 %! compress_file(+FromFile:atom, +ToFile:atom) is det.
 %! compress_file(+FromFile:atom, -ToFile:atom) is det.
+
+compress_file(FromFile) :-
+  compress_file(FromFile, _).
+
 
 compress_file(FromFile, ToFile) :-
   (var(ToFile) -> file_name_extension(FromFile, gz, ToFile) ; true),
