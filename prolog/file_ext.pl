@@ -6,8 +6,7 @@
     append_directories/3,         % +Directory1, +Directory2, -Directory3
     cat/2,                        % +Out, +Files
     change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
-    compress_file/1,              % +File
-    compress_file/2,              % +File, ?CompressedFile
+    compress_file/2,              % +FromFile, ?ToFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
     convert_file/2,               % +File, +Format
     convert_file/3,               % +File1, +Format, ?File2
@@ -36,12 +35,20 @@
     is_empty_file/1,              % +File
     peek_file/3,                  % +File, +Size, -String
     read_from_file/2,             % +File, :Goal_1
-    read_write_file/2,            % +File, :Goal_2
+    read_from_file/3,             % +File, :Goal_1, +Options
+    read_write_file/2,            % +FromFile, :Goal_2
+    read_write_file/3,            % +FromFile, :Goal_2, +Options
+    read_write_file/4,            % +FromFile, :Goal_2, +ReadOptions, +WriteOptions
+    read_write_files/3,           % +FromFile, +ToFile, :Goal_2
+    read_write_files/4,           % +FromFile, +ToFile, :Goal_2, +Options
+    read_write_files/5,           % +FromFile, +ToFile, :Goal_2, +ReadOptions, +WriteOptions
+    recode_file/2,                % +FromEncoding, +File
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
     working_directory/1,          % -Directory
-    write_to_file/2               % +File, :Goal_1
+    write_to_file/2,              % +File, :Goal_1
+    write_to_file/3               % +File, :Goal_1, +Options
   ]
 ).
 :- reexport(library(filesex)).
@@ -64,12 +71,20 @@
 :- use_module(library(media_type)).
 :- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
+:- use_module(library(thread_ext)).
 
 :- meta_predicate
-    call_file_(+, +, 1),
+    call_file_(+, +, 1, +),
     read_from_file(+, 1),
+    read_from_file(+, 1, +),
     read_write_file(+, 2),
-    write_to_file(+, 1).
+    read_write_file(+, 2, +),
+    read_write_file(+, 2, +, +),
+    read_write_files(+, +, 2),
+    read_write_files(+, +, 2, +),
+    read_write_files(+, +, 2, +, +),
+    write_to_file(+, 1),
+    write_to_file(+, 1, +).
 
 :- multifile
     error:has_type/2.
@@ -126,16 +141,11 @@ cat(Out, Files) :-
   maplist(cat_file(Out), Files).
 
 cat_file(Out, File) :-
-  setup_call_cleanup(
-    open(File, read, In),
-    copy_stream_data(In, Out),
-    close(In)
-  ).
+  read_from_file(File, {Out}/[In]>>copy_stream_data(In, Out)).
 
 
 
-%! change_file_name_extension(+File1:atom, +Extension1:atom, +Extension2:atom,
-%!                            +File2:atom) is det.
+%! change_file_name_extension(+File1:atom, +Extension1:atom, +Extension2:atom, +File2:atom) is det.
 
 change_file_name_extension(File1, Ext1, Ext2, File2) :-
   file_name_extension(Base, Ext1, File1),
@@ -143,28 +153,12 @@ change_file_name_extension(File1, Ext1, Ext2, File2) :-
 
 
 
-%! compress_file(+File) is det.
-%! compress_file(+File, ?CompressedFile) is det.
+%! compress_file(+FromFile:atom, +ToFile:atom) is det.
+%! compress_file(+FromFile:atom, -ToFile:atom) is det.
 
-compress_file(File) :-
-  compress_file(File, _).
-
-
-compress_file(File, CompressedFile) :-
-  (   var(CompressedFile)
-  ->  file_name_extension(File, gz, CompressedFile)
-  ;   true
-  ),
-  file_name_extension(CompressedFile, tmp, TmpFile),
-  setup_call_cleanup(
-    (
-      open(File, read, In),
-      gzopen(TmpFile, write, Out, [format(gzip)])
-    ),
-    copy_stream_data(In, Out),
-    maplist(close, [In,Out])
-  ),
-  rename_file(TmpFile, CompressedFile).
+compress_file(FromFile, ToFile) :-
+  (var(ToFile) -> file_name_extension(FromFile, gz, ToFile) ; true),
+  read_write_files(FromFile, ToFile, copy_stream_data).
 
 
 
@@ -345,16 +339,15 @@ directory_subdirectory(Dir, Local, Subdir) :-
 
 %! file_extensions(+File:atom, -Extensions:list(atom)) is det.
 
-file_extensions(File, Extensions) :-
-  file_name_extensions(File, _, Extensions).
+file_extensions(File, Exts) :-
+  file_name_extensions(File, _, Exts).
 
 
 
-%! file_extensions_media_type(+Extensions:list(atom),
-%!                            -MediaType:media_type) is det.
+%! file_extensions_media_type(+Extensions:list(atom), -MediaType:media_type) is det.
 
-file_extensions_media_type(Extensions, MediaType) :-
-  member(Extension1, Extensions),
+file_extensions_media_type(Exts, MediaType) :-
+  member(Extension1, Exts),
   media_type_extension(MediaType, Extension1), !.
 
 
@@ -401,8 +394,8 @@ file_mode(File, Mode) :-
 %! file_name_extensions(+File:atom, -Name:atom, -Extensions:list(atom)) is det.
 %! file_name_extensions(-File:atom, +Name:atom, +Extensions:list(atom)) is det.
 
-file_name_extensions(File, Name, Extensions) :-
-  atomic_list_concat([Name|Extensions], ., File).
+file_name_extensions(File, Name, Exts) :-
+  atomic_list_concat([Name|Exts], ., File).
 
 
 
@@ -416,8 +409,12 @@ file_to_string(File, String) :-
 
 %! guess_file_encoding(+File:atom, -Encoding:atom) is det.
 
-guess_file_encoding(File, Encoding) :-
-  read_from_file(File, {Encoding}/[In]>>guess_encoding(In, Encoding)).
+guess_file_encoding(File, Enc) :-
+  read_from_file(
+    File,
+    {Enc}/[In]>>guess_encoding(In, Enc),
+    [type(binary)]
+  ).
 
 
 
@@ -459,43 +456,116 @@ peek_file(File, Size, Str) :-
 
 
 %! read_from_file(+File:atom, :Goal_1) is det.
+%! read_from_file(+File:atom, :Goal_1, +Options:list(compound)) is det.
 %
 % Calls Goal_1 on the input stream derived from the given File.  If
 % the filen name ends in `.gz', GNU zip decompression is applied.
 
 read_from_file(File, Goal_1) :-
-  call_file_(File, read, Goal_1).
+  read_from_file(File, Goal_1, []).
 
-call_file_(File, Mode, Goal_1) :-
+
+read_from_file(File, Goal_1, Options) :-
+  call_file_(File, read, Goal_1, Options).
+
+call_file_(File, Mode, Goal_1, Options) :-
   setup_call_cleanup(
-    open_(File, Mode, In),
+    open_(File, Mode, In, Options),
     call(Goal_1, In),
     close(In)
   ).
 
 open_(File, Mode, Stream) :-
+  open_(File, Mode, Stream, []).
+
+open_(File, Mode, Stream, Options) :-
   file_name_extension(_, gz, File), !,
-  gzopen(File, Mode, Stream).
-open_(File, Mode, Stream) :-
-  open(File, Mode, Stream).
+  gzopen(File, Mode, Stream, Options).
+open_(File, Mode, Stream, Options) :-
+  open(File, Mode, Stream, Options).
 
 
 
-%! read_write_file(+File:atom, :Goal_2) is det.
+%! read_write_file(+FromFile:atom, :Goal_2) is det.
+%! read_write_file(+FromFile:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
 
-read_write_file(File1, Goal_2) :-
-  file_name_extension(File1, tmp, File2),
+read_write_file(FromFile, Goal_2) :-
+  read_write_file(FromFile, Goal_2, []).
+
+
+read_write_file(FromFile, Goal_2, Options) :-
+  read_write_file(FromFile, Goal_2, Options, Options).
+
+
+read_write_file(FromFile, Goal_2, ReadOptions, WriteOptions) :-
+  file_name_extensions(FromFile, Base, FromExts),
+  (   append(Exts, [gz], FromExts)
+  ->  append(Exts, [tmp,gz], ToExts),
+      file_name_extensions(ToFile, Base, ToExts)
+  ;   ToFile = FromFile
+  ),
+  read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions).
+
+
+
+%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2) is det.
+%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +Options:list(compound)) is det.
+%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
+
+read_write_files(FromFile, ToFile, Goal_2) :-
+  read_write_files(FromFile, ToFile, Goal_2, []).
+
+
+read_write_files(FromFile, ToFile, Goal_2, Options) :-
+  read_write_files(FromFile, ToFile, Goal_2, Options, Options).
+
+
+read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions) :-
   setup_call_cleanup(
-    maplist(open_, [File1,File2], [read,write], [In,Out]),
+    maplist(open_, [FromFile,ToFile], [read,write], [In,Out], [ReadOptions,WriteOptions]),
     call(Goal_2, In, Out),
     maplist(close, [In,Out])
   ),
-  rename_file(File2, File1).
+  rename_file(ToFile, FromFile).
 
 
 
-%! resolve_subdirectories(+Subdirectories1:list(atom),
-%!                        -Subdirectories2:list(atom)) is det.
+%! recode_file(+FromEncoding:atom, +File:atom) is det.
+%
+% Recodes the given File from the given FromEncoding to UTF-8.
+
+% Noting to do: already in UTF-8.
+recode_file(Enc, _) :-
+  must_be(atom, Enc),
+  memberchk(Enc, [ascii,utf8]), !.
+% TBD: Is it _really_ impossible to reuse recode_stream/2 here?
+recode_file(Enc, File) :-
+  read_write_file(
+    File,
+    {Enc}/[In,Out]>>(
+      process_create(
+        path(iconv),
+        ['-c','-f',Enc,'-t','utf-8',-],
+        [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
+      ),
+      maplist([Stream]>>set_stream(Stream, type(binary)), [ProcIn,ProcOut]),
+      create_detached_thread(
+        call_cleanup(
+          copy_stream_data(In, ProcIn),
+          close(ProcIn)
+        )
+      ),
+      call_cleanup(
+        copy_stream_data(ProcOut, Out),
+        close(ProcOut)
+      )
+    ),
+    [type(binary)]
+  ).
+
+
+
+%! resolve_subdirectories(+Subdirectories1:list(atom), -Subdirectories2:list(atom)) is det.
 %
 % Resolves `.' and `..'.
 
@@ -517,20 +587,17 @@ sort_file(File1) :-
   sort_file(File1, []).
 
 
-sort_file(File1, Options) :-
-  file_name_extension(File1, sorting, File2),
-  setup_call_cleanup(
-    maplist(gzopen, [File1,File2], [read,write], [ProcIn,Out]),
-    (
-      sort_stream(ProcIn, ProcOut, Options),
+sort_file(File, Options) :-
+  read_write_file(
+    File,
+    {Options}/[In,Out]>>(
+      sort_stream(In, ProcOut, Options),
       call_cleanup(
         copy_stream_data(ProcOut, Out),
         close(ProcOut)
       )
-    ),
-    close(Out)
-  ),
-  rename_file(File2, File1).
+    )
+  ).
 
 
 
@@ -553,6 +620,11 @@ working_directory(Directory) :-
 
 
 %! write_to_file(+File:atom, :Goal_1) is det.
+%! write_to_file(+File:atom, :Goal_1, +Options:list(compound)) is det.
 
 write_to_file(File, Goal_1) :-
-  call_file_(File, write, Goal_1).
+  write_to_file(File, Goal_1, []).
+
+
+write_to_file(File, Goal_1, Options) :-
+  call_file_(File, write, Goal_1, Options).

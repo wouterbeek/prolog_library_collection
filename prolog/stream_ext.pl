@@ -84,7 +84,7 @@ copy_stream_type(In, Out) :-
 % call fails.
 guess_encoding(In, utf8) :-
   set_stream(In, encoding(bom)), !.
-guess_encoding(In, Encoding) :-
+guess_encoding(In, Enc) :-
   process_create(
     path(uchardet),
     [],
@@ -99,12 +99,12 @@ guess_encoding(In, Encoding) :-
     (
       read_string(ProcOut, String1),
       string_strip(String1, "\n", String2),
-      atom_string(Encoding0, String2)
+      atom_string(Enc0, String2)
     ),
     close(ProcOut)
   ),
-  clean_encoding(Encoding0, Encoding),
-  Encoding \== unknown.
+  clean_encoding(Enc0, Enc),
+  Enc \== unknown.
 
 
 
@@ -150,12 +150,13 @@ read_stream_to_string(In, String) :-
 %
 % See the output of command ~iconv -l~ for the supported encodings.
 
-recode_stream(Encoding, In, Out) :-
+recode_stream(Enc, In, Out) :-
   process_create(
     path(iconv),
-    ['-c','-f',Encoding,'-t','utf-8'],
+    ['-c','-f',Enc,'-t','utf-8',-],
     [stdin(pipe(ProcIn)),stdout(pipe(Out))]
   ),
+  maplist([Stream]>>set_stream(Stream, type(binary)), [ProcIn,Out]),
   create_detached_thread(
     call_cleanup(
       copy_stream_data(In, ProcIn),
