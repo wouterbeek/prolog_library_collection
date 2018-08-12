@@ -1,6 +1,8 @@
+:- encoding(utf8).
 :- module(
   dcg,
   [
+    atom_ci//1,            % ?Atom
     atom_lower//1,         % ?Atom
     atom_title//1,         % ?Atom
     atom_upper//1,         % ?Atom
@@ -41,16 +43,23 @@
     dcg_call_cp//4,        % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call_cp//5,        % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call_cp//6,        % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_debug/2,           % +Flag, :Dcg_0
+    dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_dict//1,           % +Dict
     dcg_dict//2,           % :Dcg_1, +Dict
     dcg_dict//3,           % :Dcg_1, +Dict, +I
     dcg_goal//1,           % :Goal_0
+    dcg_integer//2,        % :Dcg_1, ?Integer
+    dcg_integer//3,        % :Dcg_1, +Base, ?Integer
     dcg_list//1,           % +L
     dcg_list//2,           % :Dcg_1, +L
     dcg_list//3,           % :Dcg_1, +L, +I
     dcg_max_width/3,       % :Dcg_1, +Args, -MaxWidth
+    dcg_once//1,           % :Dcg_0
     dcg_strip//0,
     dcg_strip//1,          % +StripCodes
+    dcg_tab//0,
+    dcg_tab//1,            % +N
     dcg_width/2,           % :Dcg_0, -Width
     digit_code//1,         % ?Code
     done//0,
@@ -79,6 +88,7 @@
     string//0,
     string_atom_phrase/3,  % :Dcg_0, ?String, ?Atom
     string_without//1,     % +EndCodes
+    thousands//1           % +Integer
     triple//3,             % :DcgX_0, :DcgY_0, :DcgZ_0
     tuple//1,              % +L
     tuple//2,              % :Dcg_1, +L
@@ -103,23 +113,25 @@
 My favorite collection of DCG rules.
 
 @author Wouter Beek
-@version 2015/11-2017/03
+@version 2015-2018
 */
 
 :- use_module(library(aggregate)).
+:- use_module(library(debug)).
+:- use_module(library(error)).
+:- use_module(library(settings)).
+
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
-:- use_module(library(dcg_ascii)).
 :- use_module(library(dcg)).
+:- use_module(library(dcg_ascii)).
 :- use_module(library(dcg_pl)).
 :- use_module(library(dcg_unicode)).
 :- use_module(library(dict)).
-:- use_module(library(error)).
 :- use_module(library(list_ext)).
-:- use_module(library(math/math_ext)).
+:- use_module(library(math_ext)).
 :- use_module(library(math/radconv)).
 :- use_module(library(pair_ext)).
-:- use_module(library(settings)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri/rfc1738), [
      hialpha//1, % ?Code
@@ -133,6 +145,7 @@ My favorite collection of DCG rules.
     dcg(//),
     dcg_apply(//,+, ?, ?),
     dcg_apply_cp(//, +, ?, ?),
+    dcg_atom(3, ?, ?, ?),
     dcg_between(//, //, ?, ?),
     dcg_between(//, //, //, ?, ?),
     dcg_call(4, ?, ?, ?, ?),
@@ -146,13 +159,19 @@ My favorite collection of DCG rules.
     dcg_call_cp(5, ?, ?, ?, ?, ?),
     dcg_call_cp(6, ?, ?, ?, ?, ?, ?),
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_debug(+, //),
+    dcg_default(3, -, +, ?, ?),
     dcg_dict(3, +, ?, ?),
     dcg_dict(3, +, +, ?, ?),
     dcg_dict0(3, +, +, ?, ?),
     dcg_goal(0, ?, ?),
+    dcg_integer(3, ?, ?, ?),
+    dcg_integer(3, +, ?, ?, ?),
     dcg_list(3, +, ?, ?),
     dcg_list(3, +, +, ?, ?),
     dcg_max_width(3, +, -),
+    dcg_once(//, ?, ?),
+    dcg_string(3, ?, ?, ?),
     dcg_width(//, -),
     dq(//, ?, ?),
     indent(+, //, ?, ?),
@@ -181,6 +200,34 @@ dcg:dcg_hook(thousands(N)) -->
   thousands(N).
 
 
+
+
+
+%! atom_ci(?Atom)// .
+%
+% ```prolog
+% ?- phrase(atom_ci(http), Codes).
+% Codes = "HTTP" ;
+% Codes = "HTTp" ;
+% Codes = "HTtP" ;
+% Codes = "HTtp" ;
+% Codes = "HtTP" ;
+% Codes = "HtTp" ;
+% Codes = "HttP" ;
+% Codes = "Http" ;
+% Codes = "hTTP" ;
+% Codes = "hTTp" ;
+% Codes = "hTtP" ;
+% Codes = "hTtp" ;
+% Codes = "htTP" ;
+% Codes = "htTp" ;
+% Codes = "httP" ;
+% Codes = "http" ;
+% false.
+% ```
+
+atom_ci(Atom) -->
+  dcg_atom(*(code_ci), Atom).
 
 
 
@@ -270,12 +317,7 @@ between_code_rad(Low1, High1, C) -->
 
 %! between_digit(+LowWeight:hex, +HighWeight:hex)// .
 %! between_digit(+LowWeight:hex, +HighWeight:hex, -Weight:between(0,15))// .
-%! between_digit(
-%!   +LowWeight:hex,
-%!   +HighWeight:hex,
-%!   -Weight:between(0,15),
-%!   -Code:code
-%! )// .
+%! between_digit(+LowWeight:hex, +HighWeight:hex, -Weight:between(0,15), -Code:code)// .
 % Consume digits between the given lower and higher bounds.
 %
 % This supports digits of hexadecimal radix.
@@ -311,9 +353,10 @@ between_radix(Low, High) --> between_radix(Low, High, _).
 
 
 %! between_radix(+Low:compound, +High:compound, ?Value:compound)// .
-% Consume integers that are specified in various bases
-% (binary, octal, decimal, hexadecimal)
-% and that are between the lower and higher bounds.
+%
+% Consume integers that are specified in various bases (binary, octal,
+% decimal, hexadecimal) and that are between the lower and higher
+% bounds.
 %
 % # Example
 %
@@ -347,8 +390,8 @@ between_radix(Low, High, Value) -->
 
 
 %! bit(?I:between(0,1))// .
-% Wrapper around bit//2.
 %! bit(?I:between(0,1), ?C)// .
+%
 % Binary digit.
 %
 % ```abnf
@@ -362,6 +405,7 @@ bit(1, 0'1) --> "1".
 
 
 %! bracketed(:Dcg_0)// .
+%
 % Wrapper around bracketed//2 using round brackets.
 
 bracketed(Dcg_0) -->
@@ -370,6 +414,7 @@ bracketed(Dcg_0) -->
 
 %! bracketed(+Type:oneof([angular,curly,round,square,ungular]), :Dcg_0)// is det.
 %! bracketed(-Type:oneof([angular,curly,round,square,ungular]), :Dcg_0)// is nondet.
+%
 % The following bracket types are supported:
 %   - `angular`
 %   - `curly`
@@ -417,9 +462,10 @@ code(C) -->
 
 %! code_ci(+C)// is multi.
 %! code_ci(-C)// is nondet.
-% Writes case-insensitive variants of the given code.
-% Generates the upper- and lowercase variants of a given letter
-% (in no particular order).
+%
+% Writes case-insensitive variants of the given code.  Generates the
+% upper- and lowercase variants of a given letter (in no particular
+% order).
 %
 % ```prolog
 % ?- phrase(code_ci(66), Cs).
@@ -431,8 +477,8 @@ code(C) -->
 %
 % ```
 %
-% Parses letters returning the chracter codes of their
-% lower- and upper-case variants (in no particular order).
+% Parses letters returning the chracter codes of their lower- and
+% upper-case variants (in no particular order).
 %
 % ```prolog
 % ?- phrase(code_ci(X), `b`).
@@ -475,6 +521,28 @@ code_ci(C) -->
 code_ci(C) -->
   {code_ci(C, C0)},
   [C0].
+
+
+
+%! code_ci(+Code:code, -CiCode:code) is nondet.
+%! code_ci(+Code:code)// .
+%
+% Returns case-insensitive variants of the given code.
+% This includes the code itself.
+
+% Lowercase is a case-insensitive variant of uppercase.
+code_ci(Upper, Lower) :-
+  code_type(Upper, upper(Lower)).
+% Uppercase is a case-insensitive variant of lowercase.
+code_ci(Lower, Upper) :-
+  code_type(Lower, lower(Upper)).
+% Every code is a case-insensitive variant of itself.
+code_ci(Code, Code).
+
+
+code_ci(Code) -->
+  {code_ci(Code, CiCode)},
+  [CiCode].
 
 
 
@@ -692,6 +760,27 @@ dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y) :-
 
 
 
+%! dcg_debug(+Flag, :Dcg_0) is det.
+%
+% Write the first generation of Dcg_0 as a debug message under the
+% given Flag.
+
+dcg_debug(Flag, Dcg_0) :-
+  debugging(Flag), !,
+  phrase(Dcg_0, Codes),
+  debug(Flag, "~s", [Codes]).
+dcg_debug(_, _).
+
+
+
+%! dcg_default(:Dcg_1, -Arg, +Def)// .
+
+dcg_default(Dcg_1, Arg, _) -->
+  dcg_call(Dcg_1, Arg), !.
+dcg_default(_, Default, Default) --> "".
+
+
+
 %! dcg_dict(+Dict)// is det.
 %! dcg_dict(:Dcg_1, +Dict)// is det.
 %! dcg_dict(:Dcg_1, +Dict, +I)// is det.
@@ -803,6 +892,23 @@ dcg_goal(Goal_0) -->
 
 
 
+%! dcg_integer(:Dcg_1, ?Integer)// .
+%! dcg_integer(:Dcg_1, +Base:nonneg, ?Integer)// .
+
+dcg_integer(Dcg_1, N) -->
+  dcg_integer(Dcg_1, 10, N).
+
+
+dcg_integer(Dcg_1, Base, N) -->
+  parsing, !,
+  dcg_call(Dcg_1, Weights),
+  {integer_weights(N, Base, Weights)}.
+dcg_integer(Dcg_1, Base, N) -->
+  {integer_weights(N, Base, Weights)},
+  dcg_call(Dcg_1, Weights).
+
+
+
 %! dcg_list(+L)// is det.
 %! dcg_list(:Dcg_1, +L)// is det.
 %! dcg_list(:Dcg_1, +L, +I)// is det.
@@ -851,6 +957,15 @@ dcg_max_width(Dcg_1, Args, MaxW) :-
 
 
 
+%! dcg_once(:Dcg_0)// is det.
+%
+% @see once/1
+
+dcg_once(Dcg_0, X, Y) :-
+  once(dcg_call(Dcg_0, X, Y)).
+
+
+
 %! dcg_strip// is det.
 %! dcg_strip(+StripCs)// is det.
 
@@ -880,6 +995,18 @@ dcg_strip_end(StripCs) -->
   dcg_strip_end(StripCs).
 dcg_strip_end(_) -->
   eos.
+
+
+
+%! dcg_tab// is det.
+%! dcg_tab(+N:nonneg)// is det.
+
+dcg_tab -->
+  "\t".
+
+
+dcg_tab(N) -->
+  dcg_once(#(N, dcg_tab)).
 
 
 
@@ -952,6 +1079,7 @@ lowercase --> "".
 
 
 %! number// .
+%
 % Wrapper around number//1 from library(dcg/basics).
 
 number --> number(_).
@@ -1113,6 +1241,7 @@ str_ellipsis(Str, MaxLen) -->
 
 
 %! string// .
+%
 % Wrapper around string//1.
 
 string -->
@@ -1130,6 +1259,7 @@ string_atom_phrase(Dcg_0, S, A) :-
 
 
 %! string_without(+EndCodes:list(code))// .
+%
 % Wrapper around string_without//2.
 
 string_without(End) -->
@@ -1137,7 +1267,18 @@ string_without(End) -->
 
 
 
+%! thousands(+I)// is det.
+
+thousands(∞) --> !,
+  "∞".
+thousands(I) -->
+  {format(atom(A), "~D", [I])},
+  atom(A).
+
+
+
 %! triple(:DcgX_0, :DcgY_0, :DcgZ_0)// is det.
+%
 % Wrapper around triple//4 using the default writer.
 
 triple(DcgX_0, DcgY_0, DcgZ_0) -->
@@ -1147,6 +1288,7 @@ triple(DcgX_0, DcgY_0, DcgZ_0) -->
 
 %! tuple(+L)// is det.
 %! tuple(:Dcg_1, +L)// is det.
+%
 % Prints a tuple.
 
 tuple(L) -->

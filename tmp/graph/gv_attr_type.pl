@@ -49,8 +49,7 @@
 @version 2015/07, 2015/11, 2016/02, 2017/08, 2017/10
 */
 
-:- use_module(library(dcg_abnf)).
-:- use_module(library(dcg), except([string//1])).
+:- use_module(library(dcg)).
 :- use_module(library(gv/gv_html)).
 
 
