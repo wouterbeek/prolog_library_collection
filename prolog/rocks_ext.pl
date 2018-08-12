@@ -8,7 +8,7 @@
    %rocks_batch/2,     % +Db, +Actions
     rocks_clear/1,     % +Alias
    %rocks_close/1,     % +Db
-    rocks_delete/2,    % +Db, +Key
+   %rocks_delete/2,    % +Db, +Key
    %rocks_delete/3,    % +Db, +Key, -Value
     rocks_directory/1, % -Directory
    %rocks_enum/3,      % +Db, ?Key, ?Value
@@ -109,13 +109,6 @@ rocks_clear(Alias) :-
   rocks_directory(Dir0),
   directory_file_path(Dir0, Alias, Dir),
   (exists_directory(Dir) -> delete_directory_and_contents(Dir) ; true).
-
-
-
-%! rocks_delete(+Db, +Key:atom) is det.
-
-rocks_delete(Db, Key) :-
-  rocks_delete(Db, Key, _).
 
 
 
