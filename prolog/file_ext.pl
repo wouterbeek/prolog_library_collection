@@ -481,9 +481,6 @@ call_file_(File, Mode, Goal_1, Options) :-
     close(In)
   ).
 
-open_(File, Mode, Stream) :-
-  open_(File, Mode, Stream, []).
-
 open_(File, Mode, Stream, Options) :-
   file_name_extension(_, gz, File), !,
   gzopen(File, Mode, Stream, Options).
@@ -508,9 +505,10 @@ read_write_file(FromFile, Goal_2, ReadOptions, WriteOptions) :-
   (   append(Exts, [gz], FromExts)
   ->  append(Exts, [tmp,gz], ToExts),
       file_name_extensions(ToFile, Base, ToExts)
-  ;   ToFile = FromFile
+  ;   file_name_extension(FromFile, tmp, ToFile)
   ),
-  read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions).
+  read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions),
+  rename_file(ToFile, FromFile).
 
 
 
@@ -531,8 +529,7 @@ read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions) :-
     maplist(open_, [FromFile,ToFile], [read,write], [In,Out], [ReadOptions,WriteOptions]),
     call(Goal_2, In, Out),
     maplist(close, [In,Out])
-  ),
-  rename_file(ToFile, FromFile).
+  ).
 
 
 
