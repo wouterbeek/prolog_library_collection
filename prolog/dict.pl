@@ -15,7 +15,8 @@
     dict_tag/3,               % +Dict1, ?Tag, -Dict2
     merge_dicts/2,            % +Dicts, -MergedDict
     merge_dicts/3,            % +NewDict, +OldDict, -MergedDict
-    nb_increment_dict/2       % +Dict, +Key
+    nb_increment_dict/2,      % +Dict, +Key
+    nb_increment_dict/3       % +Dict, +Key, -Value
   ]
 ).
 
@@ -160,8 +161,13 @@ merge_dicts(NewDict, OldDict, Dict):-
 
 
 %! nb_increment_dict(+Dict:dict, +Key:atom) is det.
+%! nb_increment_dict(+Dict:dict, +Key:atom, -Value:positive_integer) is det.
 
 nb_increment_dict(Dict, Key) :-
+  nb_increment_dict(Dict, Key, _).
+
+
+nb_increment_dict(Dict, Key, N2) :-
   get_dict(Key, Dict, N1),
   N2 is N1 + 1,
   nb_set_dict(Key, Dict, N2).
