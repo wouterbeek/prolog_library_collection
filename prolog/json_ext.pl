@@ -23,15 +23,15 @@
 
 %! json_load(+File:atom, -Structure:dict) is det.
 
-json_load(File, Structure) :-
+json_load(File, Struct) :-
   read_from_file(
     File,
-    {Structure}/[In]>>json_read_dict(In, Structure, [value_string_as(atom)])
+    {Struct}/[In]>>json_read_dict(In, Struct, [value_string_as(atom)])
   ).
 
 
 
 %! json_save(+File:atom, +Structure:dict) is det.
 
-json_save(File, Structure) :-
-  write_to_file(File, {Structure}/[Out]>>json_write_dict(Out, Structure)).
+json_save(File, Struct) :-
+  write_to_file(File, {Struct}/[Out]>>json_write_dict(Out, Struct)).
