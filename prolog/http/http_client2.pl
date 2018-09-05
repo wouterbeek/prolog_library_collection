@@ -4,8 +4,9 @@
   [
     http_call/2,                   % +Uri, :Goal_1
     http_call/3,                   % +Uri, :Goal_1, +Options
-    http_download/2,               % +Uri, +File
-    http_download/3,               % +Uri, +File, +Options
+    http_download/1,               % +Uri
+    http_download/2,               % +Uri, ?File
+    http_download/3,               % +Uri, ?File, +Options
     http_head2/2,                  % +Uri, +Options
     http_metadata_content_type/2,  % +Metas, -MediaType
     http_metadata_file_name/2,     % +Metas, -File
@@ -15,6 +16,9 @@
     http_metadata_status/2,        % +Metas, -Status
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
+    http_sync/1,                   % +Uri
+    http_sync/2,                   % +Uri, ?File
+    http_sync/3,                   % +Uri, ?File, +Options
   % DEBUGGING
     curl/0,
     nocurl/0
@@ -178,19 +182,29 @@ http_call(FirstUri, Goal_1, Options1) :-
 
 
 
+%! http_download(+Uri:atom) is det.
 %! http_download(+Uri:atom, +File:atom) is det.
+%! http_download(+Uri:atom, -File:atom) is det.
 %! http_download(+Uri:atom, +File:atom, +Options:list(compound)) is det.
+%! http_download(+Uri:atom, -File:atom, +Options:list(compound)) is det.
+
+http_download(Uri) :-
+  http_download(Uri, _).
+
 
 http_download(Uri, File) :-
   http_download(Uri, File, []).
 
 
 http_download(Uri, File, Options) :-
+  uri_file_(Uri, File),
+  file_name_extension(File, tmp, TmpFile),
   setup_call_cleanup(
-    open(File, write, Out, [type(binary)]),
+    open(TmpFile, write, Out, [type(binary)]),
     http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options),
     close(Out)
-  ).
+  ),
+  rename_file(TmpFile, File).
 
 
 
@@ -612,6 +626,29 @@ http_status_error(In, Status, FinalUri) :-
 
 
 
+%! http_sync(+Uri:atom) is det.
+%! http_sync(+Uri:atom, +File:atom) is det.
+%! http_sync(+Uri:atom, -File:atom) is det.
+%! http_sync(+Uri:atom, +File:atom, +Options:list(compound)) is det.
+%! http_sync(+Uri:atom, -File:atom, +Options:list(compound)) is det.
+%
+% Like http_download/[1-3], but does not download File if it already
+% exists.
+
+http_sync(Uri) :-
+  http_sync(Uri, _).
+
+
+http_sync(Uri, File) :-
+  http_sync(Uri, File, []).
+
+
+http_sync(Uri, File, Options) :-
+  uri_file_(Uri, File),
+  (exists_file(File) -> true ; http_download(Uri, File, Options)).
+
+
+
 
 
 % DEBUGGING %
@@ -633,3 +670,18 @@ curl :-
 nocurl :-
   nodebug(http(receive_reply)),
   nodebug(http(send_request)).
+
+
+
+
+
+% HELPERS %
+
+%! uri_file_(+Uri:atom, +File:atom) is det.
+%! uri_file_(+Uri:atom, -File:atom) is det.
+
+uri_file_(_, File) :-
+  ground(File), !,
+  must_be(atom, File).
+uri_file_(Uri, File) :-
+  uri_file_local(Uri, File).
