@@ -198,6 +198,9 @@ http_download(Uri, File) :-
 
 http_download(Uri, File, Options) :-
   uri_file_(Uri, File),
+  http_download_(Uri, File, Options).
+
+http_download_(Uri, File, Options) :-
   file_name_extension(File, tmp, TmpFile),
   setup_call_cleanup(
     open(TmpFile, write, Out, [type(binary)]),
@@ -645,7 +648,7 @@ http_sync(Uri, File) :-
 
 http_sync(Uri, File, Options) :-
   uri_file_(Uri, File),
-  (exists_file(File) -> true ; http_download(Uri, File, Options)).
+  (exists_file(File) -> true ; http_download_(Uri, File, Options)).
 
 
 
