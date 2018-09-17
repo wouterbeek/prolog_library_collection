@@ -22,6 +22,7 @@
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
     directory_subdirectory/2,     % +Directory, ?Subdirectory
     directory_subdirectory/3,     % +Directory, ?Local, ?Subdirectory
+    file_extension/2,             % +File, -Extension
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
     file_line/2,                  % +File, -Line
@@ -340,6 +341,14 @@ directory_subdirectory(Dir, Local, Subdir) :-
   directory_path(Dir, Subdir),
   exists_directory(Subdir),
   directory_file_path(_, Local, Subdir).
+
+
+
+%! file_extension(+File:atom, -Extension:atom) is det.
+
+file_extension(File, Ext) :-
+  file_extensions(File, Exts),
+  last(Exts, Ext).
 
 
 
