@@ -44,6 +44,7 @@
     read_write_files/3,           % +FromFile, +ToFile, :Goal_2
     read_write_files/4,           % +FromFile, +ToFile, :Goal_2, +Options
     read_write_files/5,           % +FromFile, +ToFile, :Goal_2, +ReadOptions, +WriteOptions
+    recode_file/1,                % +File
     recode_file/2,                % +FromEncoding, +File
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
@@ -548,9 +549,15 @@ read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions) :-
 
 
 
+%! recode_file(+File:atom) is det.
 %! recode_file(+FromEncoding:atom, +File:atom) is det.
 %
 % Recodes the given File from the given FromEncoding to UTF-8.
+
+recode_file(File) :-
+  guess_file_encoding(File, Enc),
+  recode_file(Enc, File).
+
 
 % Noting to do: already in UTF-8.
 recode_file(Enc, _) :-
