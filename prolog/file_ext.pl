@@ -63,6 +63,7 @@
 */
 
 :- use_module(library(apply)).
+:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(readutil)).
@@ -74,6 +75,8 @@
 :- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(thread_ext)).
+
+:- debug(recode_file).
 
 :- meta_predicate
     call_file_(+, +, 1, +),
@@ -555,6 +558,7 @@ recode_file(Enc, _) :-
   memberchk(Enc, [ascii,utf8]), !.
 % TBD: Is it _really_ impossible to reuse recode_stream/2 here?
 recode_file(Enc, File) :-
+  debug(recode_file, "Recoding from `~a'.", [Enc]),
   read_write_file(
     File,
     {Enc}/[In,Out]>>(
