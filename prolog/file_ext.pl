@@ -13,7 +13,7 @@
     convert_file/3,               % +File1, +Format, ?File2
     create_directory/1,           % +Directory
     create_file_directory/1,      % +File
-    delete_files_by_extension/1,  % +Extension
+    delete_files_by_extensions/1, % +Extensions
     directory_file/2,             % +Directory, -File
     directory_file_path2/3,       % ?Directory, ?File, ?Path
     directory_parent/2,           % +ChildDirectory, -ParentDirectory
@@ -228,17 +228,20 @@ create_file_directory(Path) :-
 
 
 
-%! delete_files_by_extension(+Extension:atom) is det.
-%! delete_files_by_extension(+Directory:atom, +Extension:atom) is det.
+%! delete_files_by_extensions(+Extensions:list(atom)) is det.
+%! delete_files_by_extensions(+Directory:atom, +Extensions:list(atom)) is det.
 
-delete_files_by_extension(Extension) :-
-  working_directory(Directory),
-  delete_files_by_extension(Directory, Extension).
+delete_files_by_extensions(Exts) :-
+  working_directory(Dir),
+  delete_files_by_extensions(Dir, Exts).
 
 
-delete_files_by_extension(Directory, Extension) :-
-  format(atom(Wildcard1), "*.~a", [Extension]),
-  directory_file_path(Directory, Wildcard1, Wildcard2),
+delete_files_by_extensions(Dir, Exts) :-
+  threaded_maplist_1(delete_files_by_extension(Dir), Exts).
+
+delete_files_by_extension(Dir, Ext) :-
+  format(atom(Wildcard1), "*.~a", [Ext]),
+  directory_file_path(Dir, Wildcard1, Wildcard2),
   expand_file_name(Wildcard2, Files),
   maplist(delete_file, Files).
 
@@ -362,8 +365,8 @@ file_extensions(File, Exts) :-
 %! file_extensions_media_type(+Extensions:list(atom), -MediaType:media_type) is det.
 
 file_extensions_media_type(Exts, MediaType) :-
-  member(Extension1, Exts),
-  media_type_extension(MediaType, Extension1), !.
+  member(Ext, Exts),
+  media_type_extension(MediaType, Ext), !.
 
 
 
