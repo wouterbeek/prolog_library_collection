@@ -5,7 +5,8 @@
     open_file/1,       % +File
     open_file/2,       % +MediaType, +File
     os/1,              % ?Os
-    os_path/1          % ?Directory
+    os_path/1,         % ?Directory
+    process_create/2   % +Exe, +Args
   ]
 ).
 
@@ -97,3 +98,10 @@ os_path_separator(Sep) :-
 os_path_separator(mac, :).
 os_path_separator(unix, :).
 os_path_separator(windows, ;).
+
+
+
+%! process_create(+Exe, +Args:list) is det.
+
+process_create(Exe, Args) :-
+  process_create(Exe, Args, []).
