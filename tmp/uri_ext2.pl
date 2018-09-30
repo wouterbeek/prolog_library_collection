@@ -6,7 +6,6 @@
     file_download/3,       % +Uri, +File, +Options
     fresh_uri/2,           % -Uri, +Components
     uri_comp_add/4,        % +Kind, +Uri1, +Component, -Uri2
-    uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_hash/2,            % +Uri, -Hash
     uri_local_name/2,      % +Uri, ?Local
   ]
@@ -102,18 +101,6 @@ test('uri_comp_add(+,+,+,-)', [forall(test_uri_comp_add(Kind,Uri1,Comp,Uri2))]) 
 test_uri_comp_add(query, 'https://example.org/?a=b', [c(d)], 'https://example.org/?a=b&c=d').
 
 :- end_tests(uri_comp_add).
-
-
-
-%! uri_comp_set(+Kind:oneof([fragment,query]), +Uri1, +Component, -Uri2) is det.
-
-uri_comp_set(fragment, Uri1, Fragment, Uri2) :-
-  uri_components(Uri1, uri_components(Scheme,Authority,Path,Query,_)),
-  uri_components(Uri2, uri_components(Scheme,Authority,Path,Query,Fragment)).
-uri_comp_set(query, Uri1, QueryComponents, Uri2) :-
-  uri_components(Uri1, uri_components(Scheme,Authority,Path,_,Fragment)),
-  uri_query_components(Query, QueryComponents),
-  uri_components(Uri2, uri_components(Scheme,Authority,Path,Query,Fragment)).
 
 
 
