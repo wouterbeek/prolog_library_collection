@@ -144,11 +144,9 @@ xml_clean_dom(H1, H2) :-
 
 
 %! load_xml(+Source, -Dom:list(compound)) is det.
-%
-% @see Wrapper around load_xml/3 with default options.
 
 load_xml(Source, Dom) :-
-  load_xml(Source, Dom, []).
+  load_xml(Source, Dom, [space(remove)]).
 
 
 
