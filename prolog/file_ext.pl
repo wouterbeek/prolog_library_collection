@@ -29,6 +29,7 @@
     file_media_type/2,            % +File, -MediaType
     file_mode/2,                  % +File, +Mode
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
+    file_size/2,                  % +File, -Size
     file_to_string/2,             % +File, -String
     guess_file_encoding/2,        % +File, -Encoding
     home_directory/1,             % ?Directory
@@ -418,6 +419,15 @@ file_mode(File, Mode) :-
 
 file_name_extensions(File, Name, Exts) :-
   atomic_list_concat([Name|Exts], ., File).
+
+
+
+%! file_size(+File:atom, -Size:nonneg) is det.
+%
+% @see Wrapper around size_file/2.
+
+file_size(File, Size) :-
+  size_file(File, Size).
 
 
 
