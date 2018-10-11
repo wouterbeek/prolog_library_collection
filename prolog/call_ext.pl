@@ -120,6 +120,8 @@ call_forall(A_1, B_1) :-
 
 
 %! call_must_be(:Goal_1, @Term) is det.
+%
+% Assumes that terms enumerated by `Goal_1' are ground.
 
 call_must_be(Goal_1, Term) :-
   findall(Term0, call(Goal_1, Term0), Terms),
