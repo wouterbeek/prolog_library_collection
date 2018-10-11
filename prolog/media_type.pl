@@ -90,7 +90,7 @@ media_type_parse(media(Super/Sub,Params)) -->
   ...(SuperCodes),
   "/",
   ...(SubCodes),
-  (";" -> whites, params_parse(Params) ; eos),
+  (";" -> whites, params_parse(Params) ; eos, {Params = []}), !,
   {maplist(atom_codes, [Super,Sub], [SuperCodes,SubCodes])}.
 
 params_parse([H|T]) -->
