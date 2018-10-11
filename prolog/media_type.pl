@@ -98,12 +98,15 @@ params_parse([H|T]) -->
   params_parse(T).
 params_parse([]) --> "".
 
-param_parse(Key-Value) -->
+param_parse(Param) -->
   ...(KeyCodes),
   "=",
   ...(ValueCodes),
   (";" -> whites ; eos),
-  {maplist(atom_codes, [Key,Value], [KeyCodes,ValueCodes])}.
+  {
+    maplist(atom_codes, [Key,Value], [KeyCodes,ValueCodes]),
+    Param =.. [Key,Value]
+  }.
 
 
 
