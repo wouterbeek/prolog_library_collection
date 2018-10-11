@@ -122,8 +122,8 @@ call_forall(A_1, B_1) :-
 %! call_must_be(:Goal_1, @Term) is det.
 
 call_must_be(Goal_1, Term) :-
-  findall(Atom, call(Goal_1, Atom), Atoms),
-  must_be(oneof(Atoms), Term).
+  findall(Term0, call(Goal_1, Term0), Terms),
+  must_be(oneof(Terms), Term).
 
 
 
