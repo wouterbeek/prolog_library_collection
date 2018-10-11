@@ -808,9 +808,10 @@ map_error_code(405, permission_error).
 map_error_code(407, permission_error).
 map_error_code(410, existence_error).
 
-redirect_code(301).                     % moved permanently
-redirect_code(302).                     % moved temporary
-redirect_code(303).                     % see also
+redirect_code(301).                     % Moved Permanently
+redirect_code(302).                     % Found (previously "Moved Temporary")
+redirect_code(303).                     % See Other
+redirect_code(307).                     % Temporary Redirect
 
 authenticate_code(401).
 
