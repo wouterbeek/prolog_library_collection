@@ -1,17 +1,17 @@
 :- module(
   dcg_cli,
   [
-    ansi_str//2,  % +Modifiers, +Str
-    bold//1,      % +Str
-    enumerate//1, % +L
-    enumerate//2, % :Dcg_1, +L
-    enumerate//3, % :Dcg_1, +L, +Opts
-    itemize//1,   % +L
-    itemize//2,   % :Dcg_1, +L
-    itemize//3,   % :Dcg_1, +L, +Opts
-    section//1,   % :Header_0
-    section//2,   % +Header_0, :Content_0
-    section//3    % +Indent, +Header_0, :Content_0
+    ansi_string//2, % +Modifiers, +String
+    bold//1,        % +String
+    enumerate//1,   % +L
+    enumerate//2,   % :Dcg_1, +L
+    enumerate//3,   % :Dcg_1, +L, +Opts
+    itemize//1,     % +L
+    itemize//2,     % :Dcg_1, +L
+    itemize//3,     % :Dcg_1, +L, +Opts
+    section//1,     % :Header_0
+    section//2,     % +Header_0, :Content_0
+    section//3      % +Indent, +Header_0, :Content_0
   ]
 ).
 
@@ -45,7 +45,7 @@ dcg:dcg_hook(bold(Term)) -->
 
 
 
-%! ansi_str(+Modifiers, +Str)// is det.
+%! ansi_string(+Modifiers, +String)// is det.
 %
 % # Text attributes
 %
@@ -88,19 +88,19 @@ dcg:dcg_hook(bold(Term)) -->
 %   | White        | 47       |
 %   | Default      | 49       |
 
-ansi_str(Modifiers, Str) -->
+ansi_string(Modifiers, String) -->
   "\e[",
   *&(integer, ";", Modifiers),
   "m",
-  atom(Str),
+  atom(String),
   "\e[0m", !.
 
 
 
-%! bold(+Str)// is det.
+%! bold(+String)// is det.
 
-bold(Str) -->
-  ansi_str([1], Str).
+bold(String) -->
+  ansi_string([1], String).
 
 
 
