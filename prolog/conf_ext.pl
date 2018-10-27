@@ -64,7 +64,12 @@ argument(Arg) -->
 
 conf_json(Conf) :-
   cli_arguments(Args),
-  option(conf(Spec), Args, '~/conf.json'),
+  conf_file(Spec, Args),
   expand_file_name(Spec, [File|_]),
   exists_file(File),
   json_load(File, Conf).
+
+conf_file(Spec, Args) :-
+  option(conf(Spec), Args), !.
+conf_file('conf.json', _).
+conf_file('~/conf.json', _).
