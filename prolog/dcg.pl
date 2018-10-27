@@ -15,6 +15,7 @@
     dcg_atom//2,            % :Dcg_1, ?Atom
     dcg_between//2,         % +Low, +High
     dcg_between//3,         % +Low, +High, ?Code
+    dcg_bool//1,            % +Bool
     dcg_call//1,            % :Dcg_0
     dcg_call//2,            % :Dcg_1, ?Arg1
     dcg_call//3,            % :Dcg_2, ?Arg1, ?Arg2
@@ -224,6 +225,13 @@ dcg_between(Low, High) -->
 dcg_between(Low, High, Code) -->
   [Code],
   {between(Low, High, Code)}.
+
+
+
+%! dcg_bool(+Boolean:bool)// is det.
+
+dcg_bool(false) --> !, "❌".
+dcg_bool(true) --> "✓".
 
 
 
