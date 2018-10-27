@@ -33,6 +33,8 @@ error:has_type(pair(KeyType,ValueType), Key- Value) :-
 
 %! merge_pairs(+New:list(pair), +Old:list(pair), -Merge:list(pair)) is det.
 
+merge_pairs([], L, L) :- !.
+merge_pairs(L, [], L) :- !.
 % Key is only present in new dict: use it in merge.
 merge_pairs([Key1-Value1|T1], [Key2-Value2|T2], [Key1-Value1|T3]) :-
   Key1 @< Key2, !,
@@ -43,14 +45,12 @@ merge_pairs([Key1-Value1|T1], [Key2-Value2|T2], [Key2-Value2|T3]) :-
   merge_pairs([Key1-Value1|T1], T2, T3).
 % Key is present in both dicts: either merge recursively (for dicts),
 % or take the new value.
-merge_pairs([Key-Old|T1], [Key-New|T2], [Key-Value|T3]) :- !,
+merge_pairs([Key-New|T1], [Key-Old|T2], [Key-Value|T3]) :-
   (   maplist(is_dict, [Old,New])
   ->  merge_dicts(New, Old, Value)
   ;   Value = New
   ),
   merge_pairs(T1, T2, T3).
-merge_pairs([], L, L) :- !.
-merge_pairs(L, [], L).
 
 
 
