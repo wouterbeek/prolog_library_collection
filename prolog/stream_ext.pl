@@ -93,7 +93,7 @@ guess_encoding(In, Enc) :-
     close(ProcOut)
   ),
   clean_encoding_(Enc0, Enc),
-  (Enc == unknown -> throw(error(cannot_guess_encoding,guess_encoding/2))).
+  (Enc == unknown -> throw(error(cannot_guess_encoding,guess_encoding/2)) ; true).
 
 
 
