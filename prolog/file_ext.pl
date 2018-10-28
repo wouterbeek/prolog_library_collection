@@ -10,7 +10,7 @@
     compress_file/2,              % +FromFile, ?ToFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
     convert_file/2,               % +File, +Format
-    convert_file/3,               % +File1, +Format, ?File2
+    convert_file/3,               % +FromFile, +Format, ?ToFile
     create_directory/1,           % +Directory
     create_file_directory/1,      % +File
     delete_files_by_extensions/1, % +Extensions
@@ -194,7 +194,7 @@ concatenate_files0([H|T], Out) :- !,
 
 
 %! convert_file(+File:atom, +Format:atom) is det.
-%! convert_file(+File1:atom, +Format:atom, ?File2:atom) is det.
+%! convert_file(+FromFile:atom, +Format:atom, ?ToFile:atom) is det.
 %
 % @see Formats are ‘documented’ over at
 % https://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
@@ -203,11 +203,12 @@ convert_file(File, Format) :-
   convert_file(File, Format, _).
 
 
-convert_file(File1, Format, File2) :-
-  file_name_extension(Base, _, File1),
-  file_name_extension(Base, Format, File2),
+convert_file(FromFile, Format, ToFile) :-
+  file_name_extension(Base, _, FromFile),
+  file_name_extension(Base, Format, TmpFile),
   call_must_be(convert_format, Format),
-  process_create(path(libreoffice), ['--convert-to',Format,file(File1)], []).
+  process_create(path(libreoffice), ['--convert-to',Format,file(FromFile)], []),
+  (var(ToFile) -> ToFile = TmpFile ; rename_file(TmpFile, ToFile)).
 
 convert_format(csv).
 
@@ -533,7 +534,7 @@ read_write_file(FromFile, Goal_2, ReadOptions, WriteOptions) :-
   ;   file_name_extension(FromFile, tmp, ToFile)
   ),
   read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions),
-  rename_file(ToFile, FromFile).
+  rename_file(FromFile, ToFile).
 
 
 
@@ -616,8 +617,8 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 %! sort_file(+File:atom) is det.
 %! sort_file(+File:atom, +Options:list(compound)) is det.
 
-sort_file(File1) :-
-  sort_file(File1, []).
+sort_file(File) :-
+  sort_file(File, []).
 
 
 sort_file(File, Options) :-
