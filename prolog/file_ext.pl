@@ -515,26 +515,26 @@ read_from_file(File, Goal_1, Options) :-
 
 
 
-%! read_write_file(+FromFile:atom, :Goal_2) is det.
-%! read_write_file(+FromFile:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
+%! read_write_file(+File:atom, :Goal_2) is det.
+%! read_write_file(+File:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
 
-read_write_file(FromFile, Goal_2) :-
-  read_write_file(FromFile, Goal_2, []).
-
-
-read_write_file(FromFile, Goal_2, Options) :-
-  read_write_file(FromFile, Goal_2, Options, Options).
+read_write_file(File, Goal_2) :-
+  read_write_file(File, Goal_2, []).
 
 
-read_write_file(FromFile, Goal_2, ReadOptions, WriteOptions) :-
-  file_name_extensions(FromFile, Base, FromExts),
+read_write_file(File, Goal_2, Options) :-
+  read_write_file(File, Goal_2, Options, Options).
+
+
+read_write_file(File, Goal_2, ReadOptions, WriteOptions) :-
+  file_name_extensions(File, Base, FromExts),
   (   append(Exts, [gz], FromExts)
-  ->  append(Exts, [tmp,gz], ToExts),
-      file_name_extensions(ToFile, Base, ToExts)
-  ;   file_name_extension(FromFile, tmp, ToFile)
+  ->  append(Exts, [tmp,gz], TmpExts),
+      file_name_extensions(TmpFile, Base, TmpExts)
+  ;   file_name_extension(File, tmp, TmpFile)
   ),
-  read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions),
-  rename_file(FromFile, ToFile).
+  read_write_files(File, TmpFile, Goal_2, ReadOptions, WriteOptions),
+  rename_file(TmpFile, File).
 
 
 
