@@ -157,7 +157,7 @@ load_xml(Source, Dom) :-
 xml_encoding(In, Encoding) :-
   phrase_from_stream(xml_encoding(Encoding0), In),
   nonvar(Encoding0),
-  clean_encoding(Encoding0, Encoding).
+  stream_ext:clean_encoding_(Encoding0, Encoding).
 
 xml_encoding(Encoding) -->
   'XMLDecl'(_,Encoding,_),

@@ -2,15 +2,13 @@
 :- module(
   stream_ext,
   [
-    clean_encoding/2,        % +DirtyEncoding, -CleanEncoding
     copy_stream_type/2,      % +In, +Out
     guess_encoding/2,        % +In, -Encoding
     number_of_open_files/1,  % -N
     read_line_to_atom/2,     % +In, -Atom
     read_stream_to_atom/2,   % +In, -Atom
     read_stream_to_string/2, % +In, -String
-    recode_stream/3,         % +FromEncoding, +In, -Out
-    stream_hash_metadata/3,  % +Stream, -Metadata, +Options
+    recode_stream/3,         % +In, +FromEncoding, -Out
     stream_line_column/3,    % +Stream, -Line, -Column
     stream_metadata/2,       % +Stream, -Metadata
     wc/2                     % +In, -Stats
@@ -28,19 +26,20 @@ Uses the external programs `iconv' and `uchardet'.
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(archive)).
+:- use_module(library(error)).
+:- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(readutil)).
+:- use_module(library(yall)).
+
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(debug_ext)).
-:- use_module(library(error)).
 :- use_module(library(file_ext), []).
 :- use_module(library(hash_stream)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(os_ext)).
-:- use_module(library(readutil)).
 :- use_module(library(string_ext)).
 :- use_module(library(thread_ext)).
-:- use_module(library(yall)).
 
 :- thread_local
    debug_indent/1.
@@ -48,19 +47,6 @@ Uses the external programs `iconv' and `uchardet'.
 debug_indent(0).
 
 
-
-
-
-%! clean_encoding(+DirtyEncoding:atom, -CleanEncoding:atom) is det.
-
-clean_encoding(Dirty, Clean) :-
-  downcase_atom(Dirty, Atom),
-  (encoding_alias(Atom, Clean) -> true ; Clean = Atom).
-
-encoding_alias('iso-8859-15.latin1', 'iso8859-15').
-encoding_alias(macroman, macintosh).
-encoding_alias('us-ascii', ascii).
-encoding_alias('utf-8', utf8).
 
 
 
@@ -76,7 +62,10 @@ copy_stream_type(In, Out) :-
 
 
 
-%! guess_encoding(+In:stream, -Encoding:atom) is semidet.
+%! guess_encoding(+In:stream, -Encoding:atom) is det.
+%
+% If the encoding cannot be guessed (`unknown'), the error
+% cannot_guess_encoding/0 is thrown.
 
 % The value bom causes the stream to check whether the current
 % character is a Unicode BOM marker.  If a BOM marker is found, the
@@ -103,8 +92,8 @@ guess_encoding(In, Enc) :-
     ),
     close(ProcOut)
   ),
-  clean_encoding(Enc0, Enc),
-  Enc \== unknown.
+  clean_encoding_(Enc0, Enc),
+  (Enc == unknown -> throw(error(cannot_guess_encoding,guess_encoding/2))).
 
 
 
@@ -144,48 +133,34 @@ read_stream_to_string(In, String) :-
 
 
 
-%! recode_stream(+FromEncoding:atom, +In:stream, -Out:stream) is det.
+%! recode_stream(+In:stream, +FromEncoding:atom, -Out:stream) is det.
 %
 % We only recode to UTF-8.
 %
 % See the output of command ~iconv -l~ for the supported encodings.
+%
+% Assumes that In and Out are binary streams.
 
-recode_stream(Enc, In, Out) :-
+recode_stream(In, Enc0, Out) :-
+  clean_encoding_(Enc0, Enc),
   process_create(
     path(iconv),
     ['-c','-f',Enc,'-t','utf-8',-],
-    [stdin(pipe(ProcIn)),stdout(pipe(Out))]
+    [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
   ),
-  maplist([Stream]>>set_stream(Stream, type(binary)), [ProcIn,Out]),
   create_detached_thread(
     call_cleanup(
-      copy_stream_data(In, ProcIn),
+      copy_stream_type(In, ProcIn),
       close(ProcIn)
     )
-  ).
-
-
-
-%! stream_hash_metadata(+Stream:stream, -Metadata:dict,
-%!                      +Options:list(compound)) is det.
-
-stream_hash_metadata(Stream, Meta2, Options) :-
-  stream_metadata(Stream, Meta1),
-  (   (   option(md5(Value), Options)
-      ->  Key = md5
-      ;   option(sha1(Value), Options)
-      ->  Key = sha1
-      ;   option(sha224(Value), Options)
-      ->  Key = sha224
-      ;   option(sha256(Value), Options)
-      ->  Key = sha256
-      ;   option(sha384(Value), Options)
-      ->  Key = sha384
-      ;   option(sha512(Value), Options)
-      ->  Key = sha512
+  ),
+  set_stream(ProcOut, type(binary)),
+  (   ground(Out)
+  ->  call_cleanup(
+        copy_stream_data(ProcOut, Out),
+        close(ProcOut)
       )
-  ->  dict_put(Key, Meta1, Value, Meta2)
-  ;   Meta2 = Meta1
+  ;   ProcOut = Out
   ).
 
 
@@ -213,40 +188,6 @@ stream_metadata(Stream, Meta) :-
     lines: NumLines,
     newline: Newline
   }.
-
-
-
-
-
-% ARGUMENTS TO META-PREDICATES %
-
-%! copy_stream_data(+In:stream, +Out:stream, +Metadata1:list(dict),
-%!                  -Metadata:list(dict)) is det.
-%
-% copy_stream_data/2 with metadata.
-
-copy_stream_data(In, Out, Metadata, Metadata) :-
-  copy_stream_data(In, Out).
-
-
-
-
-
-% COMMON METADATA EXTRACTIONS
-
-%! metadata_status_code(+Metadata:list(dict), -Status:between(100,599)) is det.
-
-metadata_status_code(Metadata, Status) :-
-  member(Dict, Metadata),
-  dict_get(status, Dict, Status).
-
-
-
-%! metadata_uri(+Metadata:list(dict), -Uri:atom) is semidet.
-
-metadata_uri(Metadata, Uri) :-
-  member(Dict, Metadata),
-  dict_get(uri, Dict, Uri), !.
 
 
 
@@ -312,24 +253,18 @@ read_wc(Lines, Words, Bytes) -->
 
 
 
-% HELPERS %
+% GENERICS %
 
-%! open_hash(+Stream1:stream, -Stream2:stream,
-%!           +Options:list(compound)) is semidet.
+%! clean_encoding_(+Encoding:atom, -CleanEncoding:atom) is det.
 
-open_hash(Stream1, Stream2, Options1) :-
-  (   option(md5(_), Options1)
-  ->  Algorithm = md5
-  ;   option(sha1(_), Options1)
-  ->  Algorithm = sha1
-  ;   option(sha224(_), Options1)
-  ->  Algorithm = sha224
-  ;   option(sha256(_), Options1)
-  ->  Algorithm = sha256
-  ;   option(sha384(_), Options1)
-  ->  Algorithm = sha384
-  ;   option(sha512(_), Options1)
-  ->  Algorithm = sha512
-  ),
-  Options2 = [algorithm(Algorithm),close_parent(false)],
-  open_hash_stream(Stream1, Stream2, Options2).
+clean_encoding_(Enc1, Enc4) :-
+  downcase_atom(Enc1, Enc2),
+  (encoding_alias_(Enc2, Enc3) -> true ; Enc3 = Enc2),
+  (encoding_promotion_(Enc3, Enc4) -> true ; Enc4 = Enc3).
+
+encoding_alias_('iso-8859-15.latin1', 'iso8859-15').
+encoding_alias_(macroman, macintosh).
+encoding_alias_('us-ascii', ascii).
+encoding_alias_('utf-8', utf8).
+
+encoding_promotion_(ascii, utf8).

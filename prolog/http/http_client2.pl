@@ -538,7 +538,7 @@ http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
   http_metadata_content_type([Meta], _MediaType), !.
 %  (   media_type_encoding(MediaType, Enc)
-%  ->  recode_stream(Enc, In1, In2)
+%  ->  recode_stream(In1, Enc, In2)
 %  ;   In2 = In1
 %  ).
 % If there is no `Content-Type' header, then there MUST be no content

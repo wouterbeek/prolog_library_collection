@@ -131,7 +131,7 @@ media_type_comps(media(Supertype/Subtype,Params), Supertype, Subtype, Params).
 % A parameter `charset'.
 media_type_encoding(MediaType, Encoding) :-
   media_type_parameter(MediaType, charset, Encoding0), !,
-  clean_encoding(Encoding0, Encoding).
+  stream_ext:clean_encoding_(Encoding0, Encoding).
 media_type_encoding(MediaType, Encoding) :-
   media_type_encoding_(MediaType, Encoding), !.
 

@@ -31,7 +31,7 @@
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_size/2,                  % +File, -Size
     file_to_string/2,             % +File, -String
-    guess_file_encoding/2,        % +File, -Encoding
+    guess_file_encoding/2,        % +File, ?Encoding
     home_directory/1,             % ?Directory
     is_dummy_file/1,              % +File
     is_empty_directory/1,         % +Directory
@@ -46,7 +46,9 @@
     read_write_files/4,           % +FromFile, +ToFile, :Goal_2, +Options
     read_write_files/5,           % +FromFile, +ToFile, :Goal_2, +ReadOptions, +WriteOptions
     recode_file/1,                % +File
-    recode_file/2,                % +FromEncoding, +File
+    recode_file/2,                % +File, +FromEncoding
+    recode_files/2,               % +FromFile, +ToFile
+    recode_files/3,               % +FromFile, +FromEncoding, +ToFile
     sort_file/1,                  % +File
     sort_file/2,                  % +File, +Options
     touch/1,                      % +File
@@ -65,7 +67,6 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(debug)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(readutil)).
@@ -77,8 +78,6 @@
 :- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
 :- use_module(library(thread_ext)).
-
-:- debug(recode_file).
 
 :- meta_predicate
     call_file_(+, +, 1, +),
@@ -439,13 +438,26 @@ file_to_string(File, String) :-
 
 
 
+%! guess_file_encoding(+File:atom, +Encoding:atom) is det.
 %! guess_file_encoding(+File:atom, -Encoding:atom) is det.
+%
+% When Encoding is instantiated to an encoding different from the
+% guessed encoding, the error unexpected_encoding/2 is thrown.
+%
+% @see guess_encoding/2.
 
-guess_file_encoding(File, Enc) :-
+guess_file_encoding(File, Enc1) :-
   read_from_file(
     File,
-    {Enc}/[In]>>guess_encoding(In, Enc),
+    {Enc2}/[In]>>guess_encoding(In, Enc2),
     [type(binary)]
+  ),
+  (   var(Enc1)
+  ->  Enc1 = Enc2
+  ;   stream_ext:clean_encoding_(Enc1, Enc3),
+      Enc3 == Enc2
+  ->  true
+  ;   throw(error(unexpected_encoding(Enc2,Enc1),guess_file_encoding/2))
   ).
 
 
@@ -500,19 +512,6 @@ read_from_file(File, Goal_1) :-
 read_from_file(File, Goal_1, Options) :-
   call_file_(File, read, Goal_1, Options).
 
-call_file_(File, Mode, Goal_1, Options) :-
-  setup_call_cleanup(
-    open_(File, Mode, In, Options),
-    call(Goal_1, In),
-    close(In)
-  ).
-
-open_(File, Mode, Stream, Options) :-
-  file_name_extension(_, gz, File), !,
-  gzopen(File, Mode, Stream, Options).
-open_(File, Mode, Stream, Options) :-
-  open(File, Mode, Stream, Options).
-
 
 
 %! read_write_file(+FromFile:atom, :Goal_2) is det.
@@ -552,51 +551,49 @@ read_write_files(FromFile, ToFile, Goal_2, Options) :-
 
 read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions) :-
   setup_call_cleanup(
-    maplist(open_, [FromFile,ToFile], [read,write], [In,Out], [ReadOptions,WriteOptions]),
+    maplist(open_file_, [FromFile,ToFile], [read,write], [In,Out], [ReadOptions,WriteOptions]),
     call(Goal_2, In, Out),
     maplist(close, [In,Out])
   ).
 
 
 
-%! recode_file(+File:atom) is det.
-%! recode_file(+FromEncoding:atom, +File:atom) is det.
+%! recode_file(+FromFile:atom) is det.
+%! recode_file(+FromFile:atom, +FromEncoding:atom) is det.
 %
 % Recodes the given File from the given FromEncoding to UTF-8.
 
 recode_file(File) :-
   guess_file_encoding(File, Enc),
-  recode_file(Enc, File).
+  recode_file(File, Enc).
 
 
-% Noting to do: already in UTF-8.
-recode_file(Enc, _) :-
-  must_be(atom, Enc),
-  memberchk(Enc, [ascii,utf8]), !.
-% TBD: Is it _really_ impossible to reuse recode_stream/2 here?
-recode_file(Enc, File) :-
-  debug(recode_file, "Recoding from `~a'.", [Enc]),
-  read_write_file(
-    File,
-    {Enc}/[In,Out]>>(
-      process_create(
-        path(iconv),
-        ['-c','-f',Enc,'-t','utf-8',-],
-        [stdin(pipe(ProcIn)),stdout(pipe(ProcOut))]
-      ),
-      maplist([Stream]>>set_stream(Stream, type(binary)), [ProcIn,ProcOut]),
-      create_detached_thread(
-        call_cleanup(
-          copy_stream_data(In, ProcIn),
-          close(ProcIn)
-        )
-      ),
-      call_cleanup(
-        copy_stream_data(ProcOut, Out),
-        close(ProcOut)
-      )
-    ),
-    [type(binary)]
+recode_file(File, Enc1) :-
+  stream_ext:clean_encoding_(Enc1, Enc2),
+  (   % Optimization: do not copy stream contents when the encoding
+      % remains the same.
+      Enc2 == utf8
+  ->  true
+  ;   read_write_file(File, {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out), [type(binary)])
+  ).
+
+
+
+%! recode_files(+FromFile:atom, +ToFile:atom) is det.
+%! recode_files(+FromFile:atom, +FromEncoding:atom, +ToFile:atom) is det.
+
+recode_files(FromFile, ToFile) :-
+  guess_file_encoding(FromFile, Enc),
+  recode_files(FromFile, Enc, ToFile).
+
+
+recode_files(FromFile, Enc1, ToFile) :-
+  stream_ext:clean_encoding_(Enc1, Enc2),
+  (   % Optimization: do not copy stream contents when the encoding
+      % remains the same.
+      Enc2 == utf8
+  ->  true
+  ;   read_write_files(FromFile, ToFile, {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out), [type(binary)])
   ).
 
 
@@ -664,3 +661,58 @@ write_to_file(File, Goal_1) :-
 
 write_to_file(File, Goal_1, Options) :-
   call_file_(File, write, Goal_1, Options).
+
+
+
+
+
+% GENERICS %
+
+%! call_file_(+File:atom, +Mode:oneof([append,read,write]), :Goal_1, +Options:list(compound)) is det.
+
+call_file_(File, Mode, Goal_1, Options) :-
+  setup_call_cleanup(
+    open_file_(File, Mode, Stream, Options),
+    call(Goal_1, Stream),
+    close(Stream)
+  ).
+
+
+
+%! open_file_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compoind)) is det.
+
+open_file_(File, Mode, Stream2, Options) :-
+  open_gz_(File, Mode, Stream1, Options),
+  open_hash_(Stream1, Stream2, Options).
+
+
+
+%! open_gz_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compound)) is det.
+
+open_gz_(File, Mode, Stream, Options) :-
+  file_name_extension(_, gz, File), !,
+  gzopen(File, Mode, Stream, Options).
+open_gz_(File, Mode, Stream, Options) :-
+  open(File, Mode, Stream, Options).
+
+
+
+%! open_hash_(+Stream1:stream, -Stream2:stream, +Options:list(compound)) is semidet.
+
+open_hash_(Stream1, Stream2, Options) :-
+  select_algorithm_option_(Algorithm, Options), !,
+  open_hash_stream(Stream1, Stream2, [algorithm(Algorithm),close_parent(false)]).
+open_hash_(Stream, Stream, _).
+
+select_algorithm_option_(md5, Options) :-
+  option(md5(_), Options).
+select_algorithm_option_(sha1, Options) :-
+  option(sha1(_), Options).
+select_algorithm_option_(sha224, Options) :-
+  option(sha224(_), Options).
+select_algorithm_option_(sha256, Options) :-
+  option(sha256(_), Options).
+select_algorithm_option_(sha384, Options) :-
+  option(sha384(_), Options).
+select_algorithm_option_(sha512, Options) :-
+  option(sha512(_), Options).
