@@ -4,7 +4,8 @@
     call_default_option/3, % ?Option, +Options, :Goal_1
     call_default_value/2,  % ?Value, :Goal_1
     call_default_value/3,  % ?Value, :Goal_1, +DefaultValue
-    default_value/2        % ?Value, +DefaultValue
+    default_value/2,       % ?Value, +DefaultValue
+    default_value/3        % ?FromValue, -ToValue, +DefaultValue
   ]
 ).
 
@@ -78,3 +79,18 @@ call_default_value(DefaultValue, _, DefaultValue).
 default_value(Value, _):-
   nonvar(Value), !.
 default_value(DefaultValue, DefaultValue).
+
+
+
+%! default_value(?FromValue, -ToValue, +DefaultValue) is det.
+%
+% Returns the given value, unless the given value is a variable.  In
+% the latter case, the default value is returned instead.
+%
+% @note We are sometimes using this predicate instead of
+%       default_value/2 from `library(default)' because we do not want
+%       variable occurrences of `FromValue' to get instantiated.
+
+default_value(X, Y, Y):-
+  var(X), !.
+default_value(X, X, _).
