@@ -44,9 +44,7 @@ call_on_xml(In, Names, Goal_1) :-
   setup_call_cleanup(
     new_sgml_parser(Parser, []),
     (
-      maplist(set_sgml_parser(Parser), [dialect(xml),
-                                        shorttag(true),%@bug Does not seem to work!
-                                        space(remove)]),
+      maplist(set_sgml_parser(Parser), [dialect(xml),space(remove)]),
       sgml_parse(Parser, [call(begin,on_begin_),source(In)])
     ),
     free_sgml_parser(Parser)
