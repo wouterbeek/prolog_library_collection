@@ -68,6 +68,7 @@ merge_separable_header(Key-[H|T], Key-H) :-
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(yall)).
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
@@ -197,17 +198,8 @@ http_download(Uri, File) :-
 
 
 http_download(Uri, File, Options) :-
-  uri_file_(Uri, File),
+  ensure_uri_file_(Uri, File),
   http_download_(Uri, File, Options).
-
-http_download_(Uri, File, Options) :-
-  file_name_extension(File, tmp, TmpFile),
-  setup_call_cleanup(
-    open(TmpFile, write, Out, [type(binary)]),
-    http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options),
-    close(Out)
-  ),
-  rename_file(TmpFile, File).
 
 
 
@@ -647,7 +639,7 @@ http_sync(Uri, File) :-
 
 
 http_sync(Uri, File, Options) :-
-  uri_file_(Uri, File),
+  ensure_uri_file_(Uri, File),
   (exists_file(File) -> true ; http_download_(Uri, File, Options)).
 
 
@@ -678,13 +670,25 @@ nocurl :-
 
 
 
-% HELPERS %
+% GENERICS %
 
-%! uri_file_(+Uri:atom, +File:atom) is det.
-%! uri_file_(+Uri:atom, -File:atom) is det.
+%! ensure_uri_file_(+Uri:atom, +File:atom) is det.
+%! ensure_uri_file_(+Uri:atom, -File:atom) is det.
 
-uri_file_(_, File) :-
+ensure_uri_file_(_, File) :-
   ground(File), !,
   must_be(atom, File).
-uri_file_(Uri, File) :-
+ensure_uri_file_(Uri, File) :-
   uri_file_local(Uri, File).
+
+
+
+%! http_download_(+Uri:atom, +File:atom, +Options:list(compound)) is det.
+
+http_download_(Uri, File, Options) :-
+  file_name_extension(File, tmp, TmpFile),
+  write_to_file(TmpFile, http_download_stream_(Uri, Options), [type(binary)]),
+  rename_file(TmpFile, File).
+
+http_download_stream_(Uri, Options, Out) :-
+  http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options).
