@@ -54,20 +54,11 @@ on_begin_(Name, Attr, Parser) :-
   b_getval(xml_stream_goal, Goal_1),
   b_getval(xml_stream_record_names, Names),
   memberchk(Name, Names), !,
-  sgml_parse(Parser, [document(Dom1),parse(content)]),
-  convlist(xml_clean_dom, Dom1, Dom2),
-  (   call(Goal_1, [element(Name,Attr,Dom2)])
+  sgml_parse(Parser, [document(Dom),parse(content)]),
+  (   call(Goal_1, [element(Name,Attr,Dom)])
   ->  true
-  ;   print_message(warning, xml_error(element(Name,Attr,Dom2)))
+  ;   print_message(warning, xml_error(element(Name,Attr,Dom)))
   ).
-
-xml_clean_dom(element(Name,Attr,Dom1), element(Name,Attr,Dom2)) :- !,
-  convlist(xml_clean_dom, Dom1, Dom2).
-% 1. Strip all leading and trailing blanks.
-% 2. Remove elements that only contain blanks.
-xml_clean_dom(H1, H2) :-
-  atom_strip(H1, H2),
-  H2 \== ''.
 
 
 
