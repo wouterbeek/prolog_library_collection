@@ -43,7 +43,6 @@
     dcg_call_cp//4,        % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call_cp//5,        % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call_cp//6,        % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
-    dcg_debug/2,           % +Flag, :Dcg_0
     dcg_default//3,        % :Dcg_0, -Arg1, +Default
     dcg_dict//1,           % +Dict
     dcg_dict//2,           % :Dcg_1, +Dict
@@ -159,7 +158,6 @@ My favorite collection of DCG rules.
     dcg_call_cp(5, ?, ?, ?, ?, ?),
     dcg_call_cp(6, ?, ?, ?, ?, ?, ?),
     dcg_call_cp(7, ?, ?, ?, ?, ?, ?, ?),
-    dcg_debug(+, //),
     dcg_default(3, -, +, ?, ?),
     dcg_dict(3, +, ?, ?),
     dcg_dict(3, +, +, ?, ?),
@@ -757,19 +755,6 @@ dcg_call_cp(Dcg_4, A1, A2, A3, A4, X, Y) :-
 dcg_call_cp(Dcg_5, A1, A2, A3, A4, A5, X, Y) :-
   copy_term(Dcg_5, Dcg__5),
   call(Dcg__5, A1, A2, A3, A4, A5, X, Y).
-
-
-
-%! dcg_debug(+Flag, :Dcg_0) is det.
-%
-% Write the first generation of Dcg_0 as a debug message under the
-% given Flag.
-
-dcg_debug(Flag, Dcg_0) :-
-  debugging(Flag), !,
-  phrase(Dcg_0, Codes),
-  debug(Flag, "~s", [Codes]).
-dcg_debug(_, _).
 
 
 

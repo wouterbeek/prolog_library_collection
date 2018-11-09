@@ -2,6 +2,7 @@
 :- module(
   debug_ext,
   [
+    dcg_debug/2,    % +Flag, :Dcg_0
     debug_call/2,   % +Flag, :Goal_0
     debug_dict/2,   % +Flag, +Dict
     debug_phrase/2, % +Flag, :Dcg_0
@@ -24,6 +25,7 @@
 :- use_module(library(pp)).
 
 :- meta_predicate
+    dcg_debug(+, //),
     debug_call(+, 0),
     debug_phrase(+, //).
 
@@ -33,6 +35,19 @@
 debug_indent(0).
 
 
+
+
+
+%! dcg_debug(+Flag, :Dcg_0) is det.
+%
+% Write the first generation of Dcg_0 as a debug message under the
+% given Flag.
+
+dcg_debug(Flag, Dcg_0) :-
+  debugging(Flag), !,
+  string_phrase(Dcg_0, String),
+  debug(Flag, String, []).
+dcg_debug(_, _).
 
 
 
