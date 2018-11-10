@@ -27,7 +27,6 @@
     code_rad//1,           % ?RadCode
     code_rad//2,           % ?RadCode, -Code
     code_upper//1,         % ?Code
-    dcg/1,                 % :Dcg_0
     dcg_apply//2,          % :Dcg_1, +Args
     dcg_apply_cp//2,       % :Dcg_1, +Args
     dcg_between//2,        % :Between_0, :Dcg_0
@@ -639,13 +638,6 @@ code_upper(Upper) -->
 
 
 
-%! dcg(:Dcg_0) is det.
-
-dcg(Dcg_0) :-
-  dcg_with_output_to(current_output, Dcg_0).
-
-
-
 %! dcg_apply(:Dcg, +Args)// .
 % Variant of apply/2 for DCGs.
 
@@ -997,9 +989,9 @@ dcg_tab(N) -->
 
 %! dcg_width(:Dcg_0, -Width:nonneg) is det.
 
-dcg_width(Dcg_0, W) :-
-  dcg_with_output_to(codes(Cs), Dcg_0),
-  length(Cs, W).
+dcg_width(Dcg_0, Width) :-
+  dcg_with_output_to(codes(Codes), Dcg_0),
+  length(Codes, Width).
 
 
 

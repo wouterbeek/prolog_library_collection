@@ -251,9 +251,9 @@ dt_label(Datetime, Label) :-
 
 
 dt_label(Datetime, Label, Options) :-
-  dcg_with_output_to(string(Label), dt(Datetime, Options)).
+  string_phrase(dt_(Datetime, Options), Label).
 
-dt(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
+dt_(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
   (   {ground(date(Y,Mo,Da,H,Mi,S,Off))}
   ->  global_date_and_time(Y, Mo, Da, H, Mi, S, Off, Options)
   ;   {ground(date(Y,Mo,Da,H,Mi,S))}

@@ -86,7 +86,7 @@ inc_assoc(A1, Key, A2) :-
 
 print_assoc(Assoc):-
   assoc_to_tree(Assoc, Tree),
-  dcg_with_output_to(current_output, dcg_tree(Tree)).
+  dcg_with_output_to(dcg_tree(Tree)).
 
 
 

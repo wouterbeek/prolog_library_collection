@@ -1,13 +1,14 @@
 :- module(
   pp,
   [
-    ansi_format/2,   % +Attributes, +String
-    call_pp/1,       % :Goal_1
-    pp_json/1,       % +Dict
-    pp_json/2,       % +Indent, +Dict
-    print_term/1,    % +Term
-    print_term_nl/1, % +Term
-    print_term_nl/2  % +Term, +Options
+    ansi_format/2,     % +Attributes, +String
+    call_pp/1,         % :Goal_1
+    dcg_ansi_format/2, % +Attributes, :Dcg_0
+    pp_json/1,         % +Dict
+    pp_json/2,         % +Indent, +Dict
+    print_term/1,      % +Term
+    print_term_nl/1,   % +Term
+    print_term_nl/2    % +Term, +Options
   ]
 ).
 :- reexport(library(ansi_term)).
@@ -19,10 +20,12 @@
 @version 2017-2018
 */
 
+:- use_module(library(dcg)).
 :- use_module(library(dict)).
 
 :- meta_predicate
-    call_pp(1).
+    call_pp(1),
+    dcg_ansi_format(+, //).
 
 
 
@@ -40,6 +43,14 @@ ansi_format(Attrs, String) :-
 call_pp(Goal_1) :-
   catch(call(Goal_1, Term), E, true),
   (var(E) -> print_term(Term) ; print_message(warning, E)).
+
+
+
+%! dcg_ansi_format(+Attributes:list(compound), :Dcg_0) is det.
+
+dcg_ansi_format(Attrs, Dcg_0) :-
+  string_phrase(Dcg_0, String),
+  ansi_format(Attrs, String, []).
 
 
 

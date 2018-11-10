@@ -156,14 +156,14 @@ print_thread:-
 
 
 print_thread(Name) :-
-  dcg_with_output_to(user_output, thread(0, Name)).
+  dcg_with_output_to(thread(0, Name)).
 
 
 
 print_threads:-
   % Print the threads in alphabetical order.
   aggregate_all(set(Name), thread_property(_, alias(Name)), Names),
-  dcg_with_output_to(user_output, threads(0, Names)).
+  dcg_with_output_to(threads(0, Names)).
 
 
 
