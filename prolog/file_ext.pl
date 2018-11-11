@@ -365,11 +365,11 @@ directory_subdirectory(Dir, Local, Subdir) :-
 
 
 
-%! file_extension(+File:atom, -Extension:atom) is det.
+%! file_extension(+File:atom, -Extension:atom) is nondet.
 
 file_extension(File, Ext) :-
   file_extensions(File, Exts),
-  last(Exts, Ext).
+  member(Ext, Exts).
 
 
 
@@ -405,8 +405,7 @@ file_line(File, Line) :-
 %! file_media_type(+File:atom, -MediaType:compound) is nondet.
 
 file_media_type(File, MediaType) :-
-  file_extensions(File, Exts),
-  member(Ext, Exts),
+  file_extension(File, Ext),
   media_type_extension(MediaType, Ext).
 
 
