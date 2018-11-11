@@ -1718,8 +1718,8 @@ xml_comma -->
 % ```
 
 kleene(0-1) --> "?".
-kleene(0-inf) --> "*".
-kleene(1-inf) --> "+".
+kleene(0-∞) --> "*".
+kleene(1-∞) --> "+".
 kleene(1-1) --> "".
 
 

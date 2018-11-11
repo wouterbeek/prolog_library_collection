@@ -44,9 +44,6 @@
            % ?Maximum:number
     median/2, % +Ms, -N
     min_max_range/3, % +Min, +Max, -Range
-    minus/3, % ?X:number
-             % ?Y:number
-             % ?Z:number
     mod/3,
     normalized_number/3, % +Decimal:compound
                          % -NormalizedDecimal:compound
@@ -293,7 +290,7 @@ euclidean_distance(
 
 factorial(N, F):-
   numlist(1, N, Ns), !,
-  foldl([Y,X,Z]>>(Z is X * Y), Ns, 1, F).  
+  foldl([Y,X,Z]>>(Z is X * Y), Ns, 1, F).
 % E.g., $0!$.
 factorial(_, 1).
 
@@ -395,24 +392,6 @@ min_max_range(Min, Max, range(Begin,End,Step)) :-
   Step is 10 ** ceil(log10(Diff / 100)),
   Begin is floor(Min / Step) * Step,
   End is ceil(Max / Step) * Step.
-
-
-
-%! minus(+X:number, +Y:number, +Z:number) is semidet.
-%! minus(+X:number, +Y:number, -Z:number) is det.
-%! minus(+X:number, -Y:number, +Z:number) is det.
-%! minus(-X:number, +Y:number, +Z:number) is det.
-
-minus(∞, _, ∞) :- !.
-minus(X, Y, Z):-
-  nonvar(X), nonvar(Y), !,
-  Z is X - Y.
-minus(X, Y, Z):-
-  nonvar(X), nonvar(Z), !,
-  Y is X - Z.
-minus(X, Y, Z):-
-  nonvar(Y), nonvar(Z), !,
-  X is Y + Z.
 
 
 

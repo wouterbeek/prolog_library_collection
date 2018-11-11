@@ -1246,8 +1246,6 @@ string_without(End) -->
 
 %! thousands(+I)// is det.
 
-thousands(∞) --> !,
-  "∞".
 thousands(I) -->
   {format(atom(A), "~D", [I])},
   atom(A).
