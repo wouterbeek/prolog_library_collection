@@ -99,7 +99,7 @@ html_element(Name0, Attrs, Content_0) -->
   "<",
   {upcase_atom(Name0, Name)},
   atom(Name),
-  *(html_attribute, Attrs),
+  *(html_attribute, Attrs), !,
   ">",
   Content_0,
   "</",
