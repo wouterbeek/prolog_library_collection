@@ -44,6 +44,7 @@
     remainder_as_string//1, % -Remainder
     string_phrase/2,        % :Dcg_0, ?String
     string_phrase/3,        % :Dcg_0, +String1, -String2
+    tab//1,                 % +N
     term//1                 % +Term
   ]
 ).
@@ -456,6 +457,16 @@ string_phrase(Dcg_0, String1, String2) :-
   string_codes(String1, Codes1),
   phrase(Dcg_0, Codes1, Codes2),
   string_codes(String2, Codes2).
+
+
+
+%! tab(+N:nonneg)// is det.
+
+tab(0) --> !, "".
+tab(N1) -->
+  " ",
+  {N2 is N1 - 1},
+  tab(N2).
 
 
 
