@@ -61,7 +61,7 @@ r_plot(Rows, File, Opts) :-
   option(xlabel(XLbl), Opts, "X"),
   option(ylabel(YLbl), Opts, "Y"),
   maplist(list_split, Rows, Xs0, Ys),
-  maplist([X0,X]>>string_phrase(rdf_dcg_term(X0), X), Xs0, Xs),
+  maplist([X0,X]>>string_phrase(rdf_dcg_node(X0), X), Xs0, Xs),
   absolute_file_name(test, File, [access(write),extensions([svg])]),
   <- svg(+File),
   <- barplot(
