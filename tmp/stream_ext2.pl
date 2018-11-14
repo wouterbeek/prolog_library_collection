@@ -1,3 +1,5 @@
+:- encoding(utf8).
+
 %! call_on_uri(+UriSpec:term, :Goal_3) is nondet.
 %! call_on_uri(+UriSpec:term, :Goal_3, +Options:list(compound)) is nondet.
 %

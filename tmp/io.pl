@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   io,
   [

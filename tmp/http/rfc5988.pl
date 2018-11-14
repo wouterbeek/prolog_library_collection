@@ -1,3 +1,4 @@
+:- encoding(utf8).
 :- module(
   rfc5988,
   [
@@ -21,7 +22,7 @@ Typed links are comprised of:
     - _not_ media types
 
     - only the semantics of ‘alternate’ and ‘stylesheet’ interact
-   
+
     - ‘rel’: at most once
 
   - target IRI
