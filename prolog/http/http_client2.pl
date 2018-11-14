@@ -124,13 +124,11 @@ http_accept_value(MediaTypes, Accept) :-
   atom_phrase(accept_(MediaTypes, Interval, Interval), Accept).
 
 accept_([], _, _) --> !, "".
-accept_([H], N, _) --> !,
-  media_type(H),
-  weight_(N).
 accept_([H|T], N1, Interval) -->
   media_type(H),
   weight_(N1),
   {N2 is N1 + Interval},
+  ({T = []} -> "" ; ", "),
   accept_(T, N2, Interval).
 
 weight_(N) -->
