@@ -14,26 +14,20 @@ available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
 
 * Installation
 
-  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
-  2. Run Prolog and install the [[https://github.com/wouterbeek/ppm][Prolog Package Manager]] (PPM):
-     ~pack_install('git://github.com/wouterbeek/ppm').~
-  3. Activate PPM: ~[library(ppm)].~
-  4. Install Prolog Library Collection:
-     ~ppm_install('Prolog-Library-Collection').~
+  1. Clone this repositoy.
+  2. Add the following line to your ~.swiplrc~ file:
+
+#+BEGIN_SRC
+user:file_search_path(library, '/your/path/to/Prolog-Library-Collection/prolog').
+#+END_SRC
 
 * Usage
 
-In order to access the libraries in the Prolog Library Collection from
-the Prolog ~library~ path, you must first load PPM and the libraries
-you want to use afterwards:
+After [[Installation]], libraries can be loaded in the following way:
 
 #+BEGIN_SRC prolog
-?- [library(ppm)].
 ?- [library(atom_ext)].
 #+END_SRC
-
-Since the above is a bit cumbersome, it is common practice to place
-the PPM load command in the Prolog startup file (~.swiplrc~).
 
 * Module overview
 
