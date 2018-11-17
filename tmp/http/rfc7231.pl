@@ -714,7 +714,7 @@ qvalue(N) -->
 % Referer = absolute-URI | partial-URI
 % ```
 %
-% Example: `Referer: http://www.example.org/hypertext/Overview.html`
+% Example: `Referer: https://www.example.org/hypertext/Overview.html`
 
 http:http_header(referer).
 referer(Uri) --> 'absolute-URI'(Uri).

@@ -45,13 +45,13 @@ Typed links are comprised of:
 Examples:
 
 ```http
-Link: <http://example.com/TheBook/chapter2>; rel="previous"; title="previous chapter"
+Link: <https://example.com/TheBook/chapter2>; rel="previous"; title="previous chapter"
 
-Link: </>; rel="http://example.net/foo"
+Link: </>; rel="https://example.net/foo"
 
 Link: </TheBook/chapter2>; rel="previous"; title*=UTF-8'de'letztes%20Kapitel, </TheBook/chapter4>; rel="next"; title*=UTF-8'de'n%c3%a4chstes%20Kapitel
 
-Link: <http://example.org/>; rel="start http://example.net/relation/other"
+Link: <https://example.org/>; rel="start http://example.net/relation/other"
 ```
 
 ---

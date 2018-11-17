@@ -45,7 +45,7 @@ debug_indent(0).
 
 dcg_debug(Flag, Dcg_0) :-
   debugging(Flag), !,
-  string_phrase(Dcg_0, String),
+  once(string_phrase(Dcg_0, String)),
   debug(Flag, String, []).
 dcg_debug(_, _).
 
