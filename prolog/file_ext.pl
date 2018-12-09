@@ -694,6 +694,7 @@ call_file_(File, Mode, Goal_1, Options) :-
 %! open_file_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compoind)) is det.
 
 open_file_(File, Mode, Stream2, Options) :-
+  access_file(File, Mode),
   open_gz_(File, Mode, Stream1, Options),
   open_hash_(Stream1, Stream2, Options).
 
