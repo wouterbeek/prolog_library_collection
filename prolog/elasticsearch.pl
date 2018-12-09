@@ -23,7 +23,7 @@
 /** <module> ElasticSearch API
 
 @author Wouter Beek
-@version 2017/09, 2017/12
+@version 2017
 */
 
 :- use_module(library(call_ext)).
