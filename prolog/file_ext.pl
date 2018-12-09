@@ -3,7 +3,6 @@
   file_ext,
   [
     append_directories/2,         % +Directories, -Directory
-    append_directories/3,         % +Directory1, +Directory2, -Directory3
     cat/2,                        % +Out, +Files
     change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
     compress_file/1,              % +FromFile
