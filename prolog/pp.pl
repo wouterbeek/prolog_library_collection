@@ -41,8 +41,8 @@ ansi_format(Attrs, String) :-
 %! call_pp(:Goal_1) is det.
 
 call_pp(Goal_1) :-
-  catch(call(Goal_1, Term), E, true),
-  (var(E) -> print_term(Term) ; print_message(warning, E)).
+  catch(call(Goal_1, Term), Error, true),
+  (var(Error) -> print_term(Term) ; print_message(warning, Error)).
 
 
 

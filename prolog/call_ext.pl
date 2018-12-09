@@ -132,8 +132,8 @@ call_must_be(Goal_1, Term) :-
 %! call_or_warning(:Goal_0) is semidet.
 
 call_or_warning(Goal_0) :-
-  catch(Goal_0, E, true),
-  (var(E) -> true ; print_message(warning, E), fail).
+  catch(Goal_0, Error, true),
+  (var(Error) -> true ; print_message(warning, Error), fail).
 
 
 

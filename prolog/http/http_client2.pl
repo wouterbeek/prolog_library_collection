@@ -27,32 +27,6 @@
 
 /** <module> HTTP Client
 
-```prolog
-%! merge_separable_header(+Pair1:pair(atom,list(term)),
-%!                         -Pair2:pair(atom,term)) is det.
-%
-% Succeeds iff the given HTTP Key is separable.
-%
-% “Multiple message-header fields with the same field-name MAY be
-% present in a message if and only if the entire field-value for that
-% header field is defined as a comma-separated list [i.e., #(values)].
-% It MUST be possible to combine the multiple header fields into one
-% "field-name: field-value" pair, without changing the semantics of
-% the message, by appending each subsequent field-value to the first,
-% each separated by a comma.  The order in which header fields with
-% the same field-name are received is therefore significant to the
-% interpretation of the combined field value, and thus a proxy MUST
-% NOT change the order of these field values when a message is
-% forwarded.”
-
-merge_separable_header(Key-[Val], Key-Val) :- !.
-merge_separable_header(Key-Vals, Key-Val) :-
-  http:http_separable(Key), !,
-  atomic_list_concat(Vals, ', ', Val).
-merge_separable_header(Key-[H|T], Key-H) :-
-  print_message(warning, http_nonseparable(Key,[H|T])).
-```
-
 @author Wouter Beek
 @version 2017-2018
 */

@@ -34,12 +34,13 @@
 
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(conf_ext)).
 :- use_module(library(debug)).
-:- use_module(library(file_ext)).
 :- use_module(library(option)).
 :- use_module(library(rlimit)).
 :- use_module(library(settings)).
+
+:- use_module(library(conf_ext)).
+:- use_module(library(file_ext)).
 
 :- meta_predicate
     call_on_rocks(+, 1),
