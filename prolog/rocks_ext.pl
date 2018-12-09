@@ -196,15 +196,7 @@ debug_merge_set_(Sets) :-
 % INITIALIZATION %
 
 init_rocks :-
-  conf_json(Conf0),
-  _{rocks: Conf} :< Conf0,
-  (   _{directory: Dir} :< Conf
-  ->  create_directory(Dir),
-      set_setting(rocks:directory, Dir)
-  ;   true
-  ),
-  (   _{nofiles: NumFiles} :< Conf
-  ->  rlimit(nofile, _, NumFiles)
-  ;   true
-  ).
-init_rocks.
+  conf_json(rocks, Conf, Dir),
+  create_directory(Dir),
+  set_setting(rocks:directory, Dir)
+  (dict_get(files, Conf, NumFiles) -> rlimit(nofile, _, NumFiles) ; true).
