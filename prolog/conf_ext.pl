@@ -3,6 +3,7 @@
   conf,
   [
     cli_argument/2,  % +Key, -Argument
+    cli_argument/3,  % +Key, +Default, -Argument
     cli_arguments/1, % -Arguments
     conf_json/1,     % -Configuration
     conf_json/3      % +Key, -Configuration, -Directory
@@ -56,7 +57,7 @@ configuration file location is used, i.e., `~/conf.json'.
 
 
 
-%! cli_argument(+Key:atom, -Value:compound) is semidet.
+%! cli_argument(+Key:atom, -Value:term) is semidet.
 %
 % @throws existence_error/2 if CLI argument Key does not exist.
 
@@ -69,6 +70,14 @@ cli_argument_(Key, Value) :-
   cli_arguments(L),
   X =.. [Key,Value],
   memberchk(X, L), !.
+
+
+
+%! cli_argument(+Key:atom, +Default:term, -Value:term) is det.
+
+cli_argument(Key, _, Value) :-
+  cli_argument_(Key, Value), !.
+cli_argument(_, Value, Value).
 
 
 
