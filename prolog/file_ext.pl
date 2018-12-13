@@ -83,6 +83,7 @@
 
 :- meta_predicate
     call_file_(+, +, 1, +),
+    call_files_(+, +, +, +, 2, +, +),
     read_from_file(+, 1),
     read_from_file(+, 1, +),
     read_write_file(+, 2),
@@ -562,11 +563,8 @@ read_write_files(FromFile, ToFile, Goal_2, Options) :-
 
 
 read_write_files(FromFile, ToFile, Goal_2, ReadOptions, WriteOptions) :-
-  setup_call_cleanup(
-    maplist(open_file_, [FromFile,ToFile], [read,write], [In,Out], [ReadOptions,WriteOptions]),
-    call(Goal_2, In, Out),
-    maplist(close, [In,Out])
-  ).
+  create_file_directory(ToFile),
+  call_files_(FromFile, read, ToFile, write, Goal_2, ReadOptions, WriteOptions).
 
 
 
@@ -666,12 +664,15 @@ working_directory(Directory) :-
 
 %! write_to_file(+File:atom, :Goal_1) is det.
 %! write_to_file(+File:atom, :Goal_1, +Options:list(compound)) is det.
+%
+% If File's directory does not exist it is created.
 
 write_to_file(File, Goal_1) :-
   write_to_file(File, Goal_1, []).
 
 
 write_to_file(File, Goal_1, Options) :-
+  create_file_directory(File),
   call_file_(File, write, Goal_1, Options).
 
 
@@ -687,6 +688,23 @@ call_file_(File, Mode, Goal_1, Options) :-
     open_file_(File, Mode, Stream, Options),
     call(Goal_1, Stream),
     close(Stream)
+  ).
+
+
+
+%! call_files_(+File1:atom, +Mode1:oneof([append,read,write]), +File2:atom, +Mode2:oneof([append,read,write]), :Goal_2, +Options1:list(compound), +Options2:list(compound)) is det.
+
+call_files_(File1, Mode1, File2, Mode2, Goal_2, Options1, Options2) :-
+  setup_call_cleanup(
+    maplist(
+      open_file_,
+      [File1,File2],
+      [Mode1,Mode2],
+      [Stream1,Stream2],
+      [Options1,Options2]
+    ),
+    call(Goal_2, Stream1, Stream2),
+    maplist(close, [Stream1,Stream2])
   ).
 
 
