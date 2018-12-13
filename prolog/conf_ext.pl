@@ -62,7 +62,7 @@ configuration file location is used, i.e., `~/conf.json'.
 % @throws existence_error/2 if CLI argument Key does not exist.
 
 cli_argument(Key, Value) :-
-  cli_argument_(Key, Value).
+  cli_argument_(Key, Value), !.
 cli_argument(Key, _) :-
   existence_error(cli_argument, Key).
 
