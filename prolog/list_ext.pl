@@ -12,6 +12,7 @@
    %prefix/2,             % ?Part, ?Whole
     prefix/3,             % ?Part, ?Length, ?Whole
     repeating_list/3,     % ?Elem, ?N, ?L
+    singleton_list/2,     % ?X, ?L
     substring/2,          % ?Substring, +String
     subsequence/2         % ?Subsequence, ?Sequence
   ]
@@ -142,6 +143,15 @@ prefix(Part, Length, Whole) :-
 repeating_list(Elem, N, L) :-
   length(L, N),
   maplist(=(Elem), L).
+
+
+
+%! singleton_list(+X, +L) is semidet.
+%! singleton_list(+X, -L) is det.
+%! singleton_list(-X, +L) is det.
+%! singleton_list(-X, -L) is det.
+
+singleton_list(X, [X]).
 
 
 
