@@ -14,9 +14,10 @@ available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
 
 * Installation
 
-  1. Clone this repository: ~git clone
+  1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
+  2. Clone this repository: ~git clone
      https://github.com/wouterbeek/Prolog-Library-Collection~
-  2. Add the following line to your ~.swiplrc~ file:
+  3. Add the following line to your ~.swiplrc~ file:
 
 #+BEGIN_SRC
 user:file_search_path(library, '/your/path/to/Prolog-Library-Collection/prolog').
