@@ -45,7 +45,9 @@
     string_phrase/2,        % :Dcg_0, ?String
     string_phrase/3,        % :Dcg_0, +String1, -String2
     tab//1,                 % +N
-    term//1                 % +Term
+    term//1,                % +Term
+    thousands//1,           % +N
+    ws//0
   ]
 ).
 :- reexport(library(dcg/basics)).
@@ -60,6 +62,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(math_ext)).
 :- use_module(library(string_ext)).
 
 :- meta_predicate
@@ -475,3 +478,19 @@ tab(N1) -->
 term(Term) -->
   {format(atom(Atom), "~w", [Term])},
   atom(Atom).
+
+
+
+%! thousands(+N:integer)// is det.
+
+thousands(N) -->
+  {format(atom(Atom), "~D", [N])},
+  atom(Atom).
+
+
+
+%! ws// is det.
+
+ws --> white.
+% NO-BREAK SPACE (0240, 0xA0)
+ws --> [160].
