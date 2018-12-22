@@ -11,6 +11,8 @@
     postfix/3,            % ?Part, ?Length, ?Whole
    %prefix/2,             % ?Part, ?Whole
     prefix/3,             % ?Part, ?Length, ?Whole
+    repeating_list/1,     % ?L
+    repeating_list/2,     % ?Elem, ?L
     repeating_list/3,     % ?Elem, ?N, ?L
     singleton_list/2,     % ?X, ?L
     substring/2,          % ?Substring, +String
@@ -127,6 +129,22 @@ prefix(Part, Length, Whole) :-
   length(Part, Length),
   append(Part, _, Whole).
 
+
+
+%! repeating_list(+L:list) is semidet.
+%! repeating_list(-L:list) is multi.
+
+repeating_list(L) :-
+  repeating_list(_, _, L).
+
+
+%! repeating_list(+Elem, +L:list) is semidet.
+%! repeating_list(+Elem, -L:list) is multi.
+%! repeating_list(-Elem, +L:list) is semidet.
+%! repeating_list(-Elem, -L:list) is multi.
+
+repeating_list(Elem, L) :-
+  repeating_list(Elem, _, L).
 
 
 %! repeating_list(+Elem, +N:nonneg, +L:list) is semidet.
