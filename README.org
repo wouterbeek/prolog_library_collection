@@ -15,13 +15,23 @@ available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
 * Installation
 
   1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
-  2. Clone this repository: ~git clone
-     https://github.com/wouterbeek/Prolog-Library-Collection~
+  2. Clone this repository:
+
+     #+begin_src sh
+     git clone https://github.com/wouterbeek/Prolog-Library-Collection~
+     #+end_src
+
   3. Add the following line to your ~.swiplrc~ file:
 
-  #+BEGIN_SRC
-user:file_search_path(library, '/your/path/to/Prolog-Library-Collection/prolog').
-  #+END_SRC
+     #+begin_src prolog
+     user:file_search_path(library, '/your/path/to/Prolog-Library-Collection/prolog').
+     #+end_src
+
+Optionally install dependencies that are used by some of the modules:
+
+  - ~iconv~ :: for changing stream encodings.
+  - LibreOffice :: for converting Office Documents to CSV text files.
+  - ~uchardet~ :: for guessing stream encodings.
 
 * Usage
 
