@@ -69,12 +69,11 @@ pp_json(N1, Dict) :-
   pp_dict_pairs(N2, Pairs),
   pp_tab(N1),
   format("}").
-pp_json(_, N) :-
-  number(N), !,
-  format("~w", [N]).
 pp_json(_, Str) :-
-  string(Str),
+  string(Str), !,
   format('"~s"', [Str]).
+pp_json(_, Term) :-
+  format("~w", [Term]).
 
 pp_dict_pair(N, Key-Value) :-
   pp_tab(N),
