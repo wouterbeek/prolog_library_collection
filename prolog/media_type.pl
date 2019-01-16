@@ -141,6 +141,7 @@ media_type_encoding_(media(application/'n-quads',_), utf8).
 media_type_encoding_(media(application/'n-triples',_), utf8).
 media_type_encoding_(media(application/'sparql-query',_), utf8).
 media_type_encoding_(media(application/'sparql-results+json',_), utf8).
+media_type_encoding_(media(application/trig,_), utf8).
 media_type_encoding_(media(application/'x-prolog',_), utf8).
 media_type_encoding_(media(image/jpeg,_), octet).
 media_type_encoding_(media(image/png,_), octet).
