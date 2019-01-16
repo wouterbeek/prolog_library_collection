@@ -578,14 +578,11 @@ recode_file(File) :-
   recode_file(File, Enc).
 
 
-recode_file(File, Enc1) :-
-  stream_ext:clean_encoding_(Enc1, Enc2),
-  (   % Optimization: do not copy stream contents when the encoding
-      % remains the same.
-      Enc2 == utf8
-  ->  true
-  ;   read_write_file(File, {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out), [type(binary)])
-  ).
+% Optimization: do not copy stream contents when the encoding remains
+% the same.
+recode_file(_, utf8) :- !.
+recode_file(File, Enc) :-
+  read_write_file(File, {Enc}/[In,Out]>>recode_stream(In, Enc, Out), [type(binary)]).
 
 
 
