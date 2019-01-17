@@ -65,7 +65,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(apply)).
@@ -391,14 +391,7 @@ file_extensions_media_type(Exts, MediaType) :-
 %! file_line(+File:atom, -Line:string) is nondet.
 
 file_line(File, Line) :-
-  read_from_file(
-    File,
-    [In]>>(
-      repeat,
-      read_line_to_string(In, Line),
-      (Line == end_of_file -> !, fail ; true)
-    )
-  ).
+  read_from_file(File, {Line}/[In]>>stream_line(In, Line)).
 
 
 

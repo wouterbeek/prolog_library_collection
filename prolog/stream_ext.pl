@@ -9,6 +9,7 @@
     read_stream_to_atom/2,   % +In, -Atom
     read_stream_to_string/2, % +In, -String
     recode_stream/3,         % +In, +FromEncoding, -Out
+    stream_line/2,           % +In, -Line
     stream_line_column/3,    % +Stream, -Line, -Column
     stream_metadata/2,       % +Stream, -Metadata
     wc/2                     % +In, -Stats
@@ -20,7 +21,7 @@
 Uses the external programs `iconv' and `uchardet'.
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(aggregate)).
@@ -162,6 +163,15 @@ recode_stream(In, Enc0, Out) :-
       )
   ;   ProcOut = Out
   ).
+
+
+
+%! stream_line(+In:stream, -Line:string) is nondet.
+
+stream_line(In, Line) :-
+  repeat,
+  read_line_to_string(In, Line),
+  (Line == end_of_file -> !, fail ; true).
 
 
 
