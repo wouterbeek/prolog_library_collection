@@ -65,7 +65,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(apply)).
@@ -391,14 +391,7 @@ file_extensions_media_type(Exts, MediaType) :-
 %! file_line(+File:atom, -Line:string) is nondet.
 
 file_line(File, Line) :-
-  read_from_file(
-    File,
-    [In]>>(
-      repeat,
-      read_line_to_string(In, Line),
-      (Line == end_of_file -> !, fail ; true)
-    )
-  ).
+  read_from_file(File, {Line}/[In]>>stream_line(In, Line)).
 
 
 
@@ -578,14 +571,11 @@ recode_file(File) :-
   recode_file(File, Enc).
 
 
-recode_file(File, Enc1) :-
-  stream_ext:clean_encoding_(Enc1, Enc2),
-  (   % Optimization: do not copy stream contents when the encoding
-      % remains the same.
-      Enc2 == utf8
-  ->  true
-  ;   read_write_file(File, {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out), [type(binary)])
-  ).
+% Optimization: do not copy stream contents when the encoding remains
+% the same.
+recode_file(_, utf8) :- !.
+recode_file(File, Enc) :-
+  read_write_file(File, {Enc}/[In,Out]>>recode_stream(In, Enc, Out), [type(binary)]).
 
 
 
