@@ -6,6 +6,7 @@
     debug_call/2,   % +Flag, :Goal_0
     debug_dict/2,   % +Flag, +Dict
     debug_phrase/2, % +Flag, :Dcg_0
+    debug_time/2,   % +Flag, +Message
     format_debug/3, % +Flag, +Out, +Pattern
     format_debug/4, % +Flag, +Out, +Pattern, +Args
     indent_debug/3, % +Mode, +Flag, +Format
@@ -17,7 +18,7 @@
 /** <module> Debug extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(dcg)).
@@ -74,6 +75,16 @@ debug_dict(_, _).
 debug_phrase(Flag, Dcg_0) :-
   dcg_with_output_to(string(String), Dcg_0),
   debug(Flag, "~s", [String]).
+
+
+
+%! debug_time(+Flag:compound, +Message:string) is det.
+
+debug_time(Flag, Msg) :-
+  debugging(Flag), !,
+  get_time(Time),
+  debug(Flag, Msg, [Time]).
+debug_time(_, _).
 
 
 
