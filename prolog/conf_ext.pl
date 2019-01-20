@@ -88,9 +88,10 @@ cli_arguments(Args) :-
   convlist(parse_argument, Flags, Args).
 
 parse_argument(Flag, Arg) :-
-  atom_phrase(argument(Arg), Flag).
+  atom_phrase(flag_argument(Arg), Flag), !.
+parse_argument(Arg, Arg).
 
-argument(Arg) -->
+flag_argument(Arg) -->
   "--",
   '...'(Codes),
   "=", !,
