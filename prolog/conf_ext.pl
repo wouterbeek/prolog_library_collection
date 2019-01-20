@@ -136,7 +136,7 @@ conf_file_spec('~/conf.json').
 % the same configuration file, using the first level keys as
 % library/application identifiers that can be supplied as Key.
 %
-% This also support the specification of optional outer and inner
+% This also supports the specification of optional outer and inner
 % `directory' keys, which are appended and bound to Directory.
 %
 % @throws existence_error/1 if no configuration files exists.
