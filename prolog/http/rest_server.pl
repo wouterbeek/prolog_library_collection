@@ -1,6 +1,6 @@
 :- encoding(utf8).
 :- module(
-  http_server,
+  rest_server,
   [
     conflicting_http_parameters/1, % +Keys
     data_uri/2,                    % +Segments, -Uri
@@ -21,10 +21,10 @@
   ]
 ).
 
-/** <module> HTTP Server
+/** <module> REST Server
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(apply)).
