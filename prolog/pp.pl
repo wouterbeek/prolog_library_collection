@@ -2,6 +2,7 @@
   pp,
   [
     ansi_format/2,     % +Attributes, +String
+    call_bool_pp/1,    % :Goal_0
     call_pp/1,         % :Goal_1
     dcg_ansi_format/2, % +Attributes, :Dcg_0
     pp_json/1,         % +Dict
@@ -17,13 +18,14 @@
 /** <module> Pretty-print
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 
 :- meta_predicate
+    call_bool_pp(0),
     call_pp(1),
     dcg_ansi_format(+, //).
 
@@ -35,6 +37,16 @@
 
 ansi_format(Attrs, String) :-
   ansi_format(Attrs, String, []).
+
+
+
+%! call_bool_pp(:Goal_0) is det.
+
+call_bool_pp(Goal_0) :-
+  Goal_0, !,
+  format("✓").
+call_bool_pp(_) :-
+  format("❌").
 
 
 
