@@ -7,11 +7,11 @@
     call_det_when_ground/2, % ?Term, :Goal_0
     call_forall/2,          % :A_1, :B_1
     call_must_be/2,         % :Goal_1, @Term
-    call_or_warning/1,      % :Goal_0
     call_pair/3,            % :Goal_2, +Pair1, -Pair2
     call_statistics/3,      % :Goal_0, +Key, -Delta
     call_stats/3,           % :Select_1, :Goal_1, -Stats
     call_stats_n/3,         % +Repeats, :Goal_0, -Stats
+    call_warning/1,         % :Goal_0
     call_when_ground/1,     % :Goal_0
     is_det/1,               % :Goal_0
     maplist/6,              % :Goal_5, ?Args1, ?Args2, ?Args3, ?Args4, ?Args5
@@ -25,7 +25,7 @@
 /** <module> Call extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(dif)).
@@ -40,11 +40,11 @@
     call_det_when_ground(?, 0),
     call_forall(1, 1),
     call_must_be(1, +),
-    call_or_warning(0),
     call_pair(2, +, -),
     call_statistics(0, +, -),
     call_stats(1, 1, -),
     call_stats_n(+, 0, -),
+    call_warning(0),
     call_when_ground(0),
     is_det(0),
     maplist(5, ?, ?, ?, ?, ?).
@@ -126,14 +126,6 @@ call_forall(A_1, B_1) :-
 call_must_be(Goal_1, Term) :-
   findall(Term0, call(Goal_1, Term0), Terms),
   must_be(oneof(Terms), Term).
-
-
-
-%! call_or_warning(:Goal_0) is semidet.
-
-call_or_warning(Goal_0) :-
-  catch(Goal_0, Error, true),
-  (var(Error) -> true ; print_message(warning, Error), fail).
 
 
 
@@ -302,6 +294,14 @@ update_average(Key, State, Avg) :-
   N2 is N1 + 1,
   M2 is ((N1 * M1) + Avg) / N2,
   nb_set_dict(Key, State, M2-N2).
+
+
+
+%! call_warning(:Goal_0) is semidet.
+
+call_warning(Goal_0) :-
+  catch(Goal_0, Error, true),
+  (var(Error) -> true ; print_message(warning, Error), fail).
 
 
 
