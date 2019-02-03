@@ -28,7 +28,7 @@
 /** <module> HTTP Client
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(apply)).
@@ -36,7 +36,6 @@
 :- use_module(library(error)).
 :- use_module(library(http/http_client), []).
 :- use_module(library(http/http_cookie), []).
-:- use_module(library(http/http_header)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/json)).
@@ -48,6 +47,7 @@
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(http/http_generic)).
+:- use_module(library(http/http_header_cp), [http_parse_header_value/3]).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -550,10 +550,10 @@ http_parse_header_simple(Key, Value) -->
 
 http:post_data_hook(string(String), Out, HdrExtra) :-
   atom_string(Atom, String),
-  http_header:http_post_data(atom(Atom), Out, HdrExtra).
+  http_header_cp:http_post_data(atom(Atom), Out, HdrExtra).
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
-  http_header:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
+  http_header_cp:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
 
 
 

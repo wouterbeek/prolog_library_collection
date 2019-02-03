@@ -49,7 +49,7 @@
 :- use_module(library(debug)).
 :- use_module(library(aggregate)).
 :- use_module(library(apply)).
-:- use_module(library(http/http_header), [http_parse_header/2]).
+:- use_module(library(http/http_header_cp), [http_parse_header/2]).
 :- use_module(library(http/http_stream)).
 
 /** <module> HTTP client library
@@ -557,7 +557,7 @@ guarded_send_rec_header(StreamPair, Stream, Host, RequestURI, Parts, Options) :-
     x_headers(Options, URI, StreamPair),
     write_cookies(StreamPair, Parts, Options),
     (   option(post(PostData), Options)
-    ->  http_header:http_post_data(PostData, StreamPair, [])
+    ->  http_header_cp:http_post_data(PostData, StreamPair, [])
     ;   format(StreamPair, '\r\n', [])
     ),
     flush_output(StreamPair),
