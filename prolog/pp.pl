@@ -5,6 +5,7 @@
     call_bool_pp/1,    % :Goal_0
     call_pp/1,         % :Goal_1
     dcg_ansi_format/2, % +Attributes, :Dcg_0
+    pp_bool/1,         % +Bool
     pp_json/1,         % +Dict
     pp_json/2,         % +Indent, +Dict
     print_term/1,      % +Term
@@ -21,6 +22,7 @@
 @version 2017-2019
 */
 
+:- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 
@@ -43,10 +45,8 @@ ansi_format(Attrs, String) :-
 %! call_bool_pp(:Goal_0) is det.
 
 call_bool_pp(Goal_0) :-
-  Goal_0, !,
-  format("✓").
-call_bool_pp(_) :-
-  format("❌").
+  call_bool(Goal_0, Bool),
+  pp_bool(Bool).
 
 
 
@@ -63,6 +63,15 @@ call_pp(Goal_1) :-
 dcg_ansi_format(Attrs, Dcg_0) :-
   string_phrase(Dcg_0, String),
   ansi_format(Attrs, String, []).
+
+
+
+%! pp_bool(+Bool:boolean) is det.
+
+pp_bool(false) :-
+  format("❌").
+pp_bool(true) :-
+  format("✓").
 
 
 
