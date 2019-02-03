@@ -1,7 +1,8 @@
 :- module(
   call_ext,
   [
-    call_bool/2,            % :Goal_0, ?Success
+    call_bool/2,            % :Goal_0, ?Bool
+    call_default_option/3,  % ?Option, +OptionList, :Goal_1
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
@@ -35,6 +36,7 @@
 
 :- meta_predicate
     call_bool(0, -),
+    call_default_option(?, +, 1),
     call_det_when(0, 0),
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
@@ -53,21 +55,21 @@
 
 
 
-%! call_bool(:Goal_0, +Success:bool) is semidet.
-%! call_bool(:Goal_0, -Success:bool) is det.
+%! call_bool(:Goal_0, +Bool:boolean) is semidet.
+%! call_bool(:Goal_0, -Bool:boolean) is det.
 %
 % Returns whether Goal_0 succeeded once as a Boolean.
 
-call_bool(Goal_0, Success) :-
-  (Goal_0 -> Success = true ; Success = false).
+call_bool(Goal_0, Bool) :-
+  (Goal_0 -> Bool = true ; Bool = false).
 
 :- begin_tests(call_bool).
 
-test('call_bool(:,+)', [forall(test_call_bool(Goal_1,Success))]) :-
-  call_bool(Goal_1, Success).
-test('call_bool(:,-)', [forall(test_call_bool(Goal_1,Success))]) :-
-  call_bool(Goal_1, Success0),
-  assertion(Success == Success0).
+test('call_bool(:,+)', [forall(test_call_bool(Goal_1,Bool))]) :-
+  call_bool(Goal_1, Bool).
+test('call_bool(:,-)', [forall(test_call_bool(Goal_1,Bool))]) :-
+  call_bool(Goal_1, Bool0),
+  assertion(Bool == Bool0).
 
 test_call_bool(false, false).
 test_call_bool(member(_,[]), false).
@@ -75,6 +77,16 @@ test_call_bool(member(_,[_]), true).
 test_call_bool(true, true).
 
 :- end_tests(call_bool).
+
+
+
+%! call_default_option(?Option:compound, +OptionList:list(compound), :Goal_1) is det.
+
+call_default_option(Option, Options, _) :-
+  option(Option, Options), !.
+call_default_option(Option, _, Goal_1) :-
+  compound_name_arguments(Option, Key, Value),
+  call(Goal_1, Value).
 
 
 
