@@ -85,8 +85,8 @@ test_call_bool(true, true).
 call_default_option(Option, Options, _) :-
   option(Option, Options), !.
 call_default_option(Option, _, Goal_1) :-
-  compound_name_arguments(Option, Key, Value),
-  call(Goal_1, Value).
+  compound_name_arguments(Option, _, [Value]),
+  once(call(Goal_1, Value)).
 
 
 
