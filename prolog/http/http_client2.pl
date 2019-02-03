@@ -293,42 +293,42 @@ http_metadata_status(Metas, Status) :-
 %
 % @arg Options The following options are supported:
 %
-%   * accept(+Accept:term)
+%      * accept(+Accept:term)
 %
-%     Accept is either a registered file name extension, a Media Type
-%     compound term, or a list of Media Type compounds.
+%        Accept is either a registered file name extension, a Media
+%        Type compound term, or a list of Media Type compounds.
 %
-%   * failure(+Status:between(400,599))
+%      * failure(+Status:or([oneof([warning]),between(400,599)]))
 %
-%     Status code that is mapped onto Prolog silent failure.  Default
-%     is `400'.
+%        Status code that is mapped onto Prolog silent failure.
+%        Default is `400'.
 %
-%   * final_uri(-Uri:atom)
+%      * final_uri(-Uri:atom)
 %
-%   * metadata(-Metas:list(dict))
+%      * metadata(-Metas:list(dict))
 %
-%   * number_of_hops(+positive_integer)
+%      * number_of_hops(+positive_integer)
 %
-%     The maximum number of consecutive redirects that is followed.
-%     The default is 5.
+%        The maximum number of consecutive redirects that is followed.
+%        The default is 5.
 %
-%   * number_of_retries(+positive_integer)
+%      * number_of_retries(+positive_integer)
 %
-%     The maximum number of times the same HTTP request is retries upon
-%     receiving an HTTP error code (i.e., HTTP status codes 400
-%     through 599).  The default is 1.
+%        The maximum number of times the same HTTP request is retries
+%        upon receiving an HTTP error code (i.e., HTTP status codes
+%        400 through 599).  The default is 1.
 %
-%   * status(-between(100,599))
+%      * status(-between(100,599))
 %
-%     Returns the final status code.  When present, options failure/1
-%     and success/1 are not processed.
+%        Returns the final status code.  When present, options
+%        failure/1 and success/1 are not processed.
 %
-%   * success(+Status:between(200,299))
+%      * success(+Status:between(200,299))
 %
-%     Status code that is mapped onto Prolog success.  Default is
-%     `200'.
+%        Status code that is mapped onto Prolog success.  Default is
+%        `200'.
 %
-%   * Other options are passed to http_open/3.
+%      * Other options are passed to http_open/3.
 
 http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, []).
@@ -557,8 +557,7 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_status(+In:stream, +Status:between(100,599), FinalUri:atom,
-%              ?Failure:between(400,599), ?Success:beteen(200,299)) is det.
+%! http_status(+In:stream, +Status:between(100,599), FinalUri:atom, ?Failure:between(400,599), ?Success:beteen(200,299)) is det.
 %
 % @arg Failure
 %
@@ -572,24 +571,27 @@ http_status(In, Status, FinalUri, Failure, Success) :-
   must_be(http_status, Status),
   (   % HTTP failure codes.
       between(400, 599, Status)
-  ->  (   number(Failure),
-          Status =:= Failure
-      ->  close(In),
+  ->  call_cleanup(
+        read_string(In, 1 000, Content),
+        close(In)
+      ),
+      (   Failure == warning
+      ->  print_message(
+            warning,
+            error(http_error(status,Status,Content,FinalUri),http_status_error/3)
+          ),
           fail
-      ;   http_status_error(In, Status, FinalUri)
+      ;   must_be(between(400,599), Failure),
+          Status =:= Failure
+      ->  fail
+      ;   % Throw an exception, indicating an error.
+          throw(error(http_error(status,Status,Content,FinalUri),http_status_error/3))
       )
   ;   % HTTP success codes.  The asserion indicates that we do not
       % expect a 1xx or 3xx status code here.
       assertion(between(200, 299, Status))
   ->  (number(Success) -> Status =:= Success ; true)
   ).
-
-http_status_error(In, Status, FinalUri) :-
-  call_cleanup(
-    read_string(In, 1 000, Content),
-    close(In)
-  ),
-  throw(error(http_error(status,Status,Content,FinalUri),http_status_error/3)).
 
 
 
