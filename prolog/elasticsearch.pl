@@ -26,18 +26,19 @@
 @version 2017
 */
 
-:- use_module(library(call_ext)).
 :- use_module(library(dict)).
 :- use_module(library(error)).
 :- use_module(library(http/json)).
 :- use_module(library(http/http_header)).
-:- use_module(library(http/http_client2)).
 :- use_module(library(lists)).
-:- use_module(library(media_type)).
 :- use_module(library(option)).
-:- use_module(library(pagination), []).
 :- use_module(library(settings)).
 :- use_module(library(readutil)).
+
+:- use_module(library(call_ext)).
+:- use_module(library(http/http_client2)).
+:- use_module(library(media_type)).
+:- use_module(library(pagination), []).
 :- use_module(library(uri_ext)).
 
 :- setting(host, atom, localhost,
