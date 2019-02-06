@@ -1,20 +1,35 @@
 :- module(
   graph_ext,
   [
-    edges_to_vertices/2 % +Edges, -Vertices
+    arcs_to_vertices/2, % +Arcs, -Vertices
+    edges_to_vertices/2  % +Edges, -Vertices
   ]
 ).
 
 /** <module> Graph extensions
 
 @author Wouter Beek
-@version 2017/11
+@version 2017-2019
 */
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 
+
+
+
+%! arcs_to_vertices(+Arcs:list(compound), -Vertices:ordset) is det.
+
+arcs_to_vertices(Arcs, Vertices) :-
+  aggregate_all(
+    set(Vertice),
+    (
+      member(arc(X,_,Y), Arcs),
+      member(Vertice, [X,Y])
+    ),
+    Vertices
+  ).
 
 
 
