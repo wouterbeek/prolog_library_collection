@@ -381,7 +381,7 @@ http_options_(Uri, Options1, State, Options3) :-
 http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
   (   debugging(http(send_request)),
       option(post(RequestBody), Options1)
-  ->  debug(http(send_request), "REQUEST BODY\n~w", [RequestBody])
+  ->  debug(http(send_request), "REQUEST BODY\n~w\n", [RequestBody])
   ;   true
   ),
   merge_options(
@@ -653,7 +653,7 @@ ensure_uri_file_(_, File) :-
   ground(File), !,
   must_be(atom, File).
 ensure_uri_file_(Uri, File) :-
-  uri_file_local(Uri, File).
+  uri_local_name(Uri, File).
 
 
 

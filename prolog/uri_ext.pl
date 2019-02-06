@@ -5,7 +5,7 @@
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
     uri_file_extensions/2, % +Uri, -Extensions
-    uri_file_local/2,      % +Uri, -Local
+    uri_local_name/2,      % +Uri, -Local
     uri_media_type/2,      % +Uri, -MediaType
     uri_scheme/1,          % ?Scheme
     uri_strip/2            % +Uri, -Base
@@ -145,14 +145,14 @@ auth_comps_(Scheme, Authority, auth(User,Password,Host,Port0)) :-
 %! uri_file_extensions(+Uri:atom, -Extensions:list(atom)) is det.
 
 uri_file_extensions(Uri, Extensions) :-
-  uri_file_local(Uri, Local),
+  uri_local_name(Uri, Local),
   file_extensions(Local, Extensions).
 
 
 
-%! uri_file_local(+Uri:atom, -Local:atom) is det.
+%! uri_local_name(+Uri:atom, -Local:atom) is det.
 
-uri_file_local(Uri, Local) :-
+uri_local_name(Uri, Local) :-
   uri_comps(Uri, uri(_,_,Segments,_,_)),
   last(Segments, Local).
 
