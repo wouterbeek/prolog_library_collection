@@ -11,14 +11,15 @@
     atom_strip/2,      % +Original, ?Stripped
     atom_strip/3,      % +Original, +Strip, ?Stripped
     atom_terminator/3, % +Original, +Terminator, ?Terminated
-    atom_truncate/3    % +Original, +MaxLength, ?Truncated
+    atom_truncate/3,   % +Original, +MaxLength, ?Truncated
+    sub_atom/2         % ?Atom, ?Subatom
   ]
 ).
 
 /** <module> Atom extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(error)).
@@ -321,3 +322,11 @@ atom_truncate_test(monkey, 3, mon).
 atom_truncate_test(monkey, 1 000, monkey).
 
 :- end_tests(atom_truncate).
+
+
+
+%! sub_atom(+Atom:atom, +Subatom:atom) is semidet.
+%! sub_atom(+Atom:atom, -Subatom:atom) is nondet.
+
+sub_atom(Atom, Subatom) :-
+  sub_atom(Atom, _, _, _, Subatom).
