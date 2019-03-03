@@ -2,6 +2,7 @@
   csv_ext,
   [
     csv_named_row/2, % +In, -Row
+    csv_named_row/3, % +In, +Header, -Row
     csv_row/2        % +In, -Row
   ]
 ).
@@ -19,11 +20,20 @@
 
 
 %! csv_named_row(+In:stream, -Row:list(pair(atom,term))) is nondet.
+%! csv_named_row(+In:stream, +Header:list(atom), -Row:list(pair(atom,term))) is nondet.
 
 csv_named_row(In, Row) :-
   csv_options_(Options),
   csv:csv_read_row(In, Header, Options),
   compound_name_arguments(Header, row, Keys),
+  csv_named_row_(In, Keys, Row, Options).
+
+
+csv_named_row(In, Keys, Row) :-
+  csv_options_(Options),
+  csv_named_row_(In, Keys, Row, Options).
+
+csv_named_row_(In, Keys, Row, Options) :-
   csv_row_(In, Values, Options),
   pairs_keys_values(Row, Keys, Values).
 
