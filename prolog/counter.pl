@@ -1,53 +1,38 @@
 :- module(
   counter,
   [
-    counter/2,           % ?Name, ?Count
-    increment_counter/1, % +Name
-    increment_counter/2, % +Name, -Count
-    increment_counter/3, % +Name, +Diff, -Count
-    retractall_counter/1 % +Name
+    counter_value/2,    % +Counter, ?N
+    create_counter/1,   % -Counter
+    increment_counter/1 % +Counter
   ]
 ).
 
 /** <module> Counter
 
 @author Wouter Beek
-@version 2018
+@version 2018-2019
 */
 
-%! counter(?Name:compound, ?Count:number) is nondet.
-
-:- dynamic
-    counter/2.
 
 
 
 
+%! counter_value(+Counter:compound, +N:nonneg) is semidet.
+%! counter_value(+Counter:compound, -N:nonneg) is det.
 
-%! increment_counter(+Name:compound) is det.
-%! increment_counter(+Name:compound, -Count:number) is det.
-%! increment_counter(+Name:compound, +Diff:number, -Count:number) is det.
-
-increment_counter(Name) :-
-  increment_counter(Name, _).
-
-
-increment_counter(Name, N) :-
-  increment_counter(Name, 1, N).
-
-
-increment_counter(Name, Diff, N1) :-
-  with_mutex(counter, (
-    (   retract(counter(Name,N1))
-    ->  N2 is N1 + Diff
-    ;   N2 = 1
-    ),
-    assert(counter(Name,N2))
-  )).
+counter_value(counter(N), N).
 
 
 
-%! retractall_counter(?Name:compound) is det.
+%! create_counter(-Counter:compound) is det.
 
-retractall_counter(Name) :-
-  retractall(counter(Name,_)).
+create_counter(counter(0)).
+
+
+
+%! increment_counter(+Counter:compound) is det.
+
+increment_counter(Counter) :-
+  arg(1, Counter, N1),
+  N2 is N1 + 1,
+  nb_setarg(1, Counter, N2).
