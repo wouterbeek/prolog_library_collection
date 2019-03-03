@@ -1,12 +1,10 @@
 :- module(
   csv_ext,
   [
-    csv_read_stream_row/2, % +In, -Row
-    csv_read_stream_row/3, % +In, -Row, +Options
-    row_list/2
+    csv_named_row/2, % +In, -Row
+    csv_row/2        % +In, -Row
   ]
 ).
-:- reexport(library(csv)).
 
 /** <module> CSV extension
 
@@ -14,43 +12,45 @@
 @version 2017-2019
 */
 
-:- use_module(library(error)).
-:- use_module(library(option)).
+:- use_module(library(pairs)).
 
 
 
 
 
-%! csv_read_stream_row(+In, -Row) is nondet.
-%! csv_read_stream_row(+In, -Row, +Options) is nondet.
-%
-% The following options are supported:
-%
-%   * skip_header(+boolean)
-%
-%     Default is `true'.
-%
-%   * Other options are passed to csv_read_row/3.
+%! csv_named_row(+In:stream, -Row:list(pair(atom,term))) is nondet.
 
-csv_read_stream_row(In, Row) :-
-  csv_read_stream_row(In, Row, []).
+csv_named_row(In, Row) :-
+  csv_options_(Options),
+  csv:csv_read_row(In, Header, Options),
+  compound_name_arguments(Header, row, Keys),
+  csv_row_(In, Values, Options),
+  pairs_keys_values(Row, Keys, Values).
 
 
-csv_read_stream_row(In, Row, Options1) :-
-  csv_options(Options2, Options1),
-  (   option(skip_header(true), Options1, true)
-  ->  csv_read_row(In, _, Options2)
-  ;   true
-  ),
+
+%! csv_row(+In:stream, -Row:list(term)) is nondet.
+
+csv_row(In, Data) :-
+  csv_options_(Options),
+  csv_row_(In, Data, Options).
+
+
+
+
+
+% HELPERS %
+
+%! csv_options_(-Options:list(compound)) is det.
+
+csv_options_(Options) :-
+  csv:csv_options(Options, []).
+
+
+
+%! csv_row_(+In:stream, -Data:list(term), +Options:list(compound)) is nondet.
+
+csv_row_(In, Data, Options) :-
   repeat,
-  csv_read_row(In, Row, Options2),
-  (Row == end_of_file -> !, fail ; true).
-
-
-
-%! row_list(+Row:compound, +List:list(term)) is semidet.
-%! row_list(+Row:compound, -List:list(term)) is det.
-%! row_list(-Row:compound, +List:list(term)) is det.
-
-row_list(Row, Args) :-
-  compound_name_arguments(Row, row, Args).
+  csv:csv_read_row(In, Row, Options),
+  (Row == end_of_file -> !, fail ; compound_name_arguments(Row, row, Data)).
