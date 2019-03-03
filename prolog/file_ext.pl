@@ -30,6 +30,8 @@
     file_line/2,                  % +File, -Line
     file_media_type/2,            % +File, -MediaType
     file_mode/2,                  % +File, +Mode
+    file_name/2,                  % ?File, ?Name
+    file_name_extension2/3,       % ?File, ?Name, ?Extension
     file_name_extensions/3,       % ?File, ?Name, ?Extensions
     file_size/2,                  % +File, -Size
     file_to_string/2,             % +File, -String
@@ -416,6 +418,22 @@ file_mode(File, Mode) :-
       )
   ;   existence_error(file, File)
   ).
+
+
+
+%! file_name(+File:atom, +Name:atom) is semidet.
+%! file_name(+File:atom, -Name:atom) is det.
+
+file_name(File, Name) :-
+  file_name_extensions(File, Name, _).
+
+
+
+%! file_name_extension2(+File:atom, -Name:atom, -Extension:atom) is det.
+%! file_name_extension2(-File:atom, +Name:atom, +Extension:atom) is det.
+
+file_name_extension2(File, Name, Ext) :-
+  file_name_extensions(File, Name, [Ext]).
 
 
 
