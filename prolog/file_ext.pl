@@ -209,11 +209,14 @@ convert_file(File, Format) :-
 
 
 convert_file(FromFile, Format, ToFile) :-
-  file_name_extension(Base, _, FromFile),
-  file_name_extension(Base, Format, TmpFile),
   call_must_be(convert_format, Format),
-  process_create(path(libreoffice), ['--convert-to',Format,file(FromFile)], []),
-  (var(ToFile) -> ToFile = TmpFile ; rename_file(TmpFile, ToFile)).
+  from_to_file_(FromFile, [Format], ToFile),
+  file_directory_name(ToFile, ToDir),
+  process_create(
+    path(libreoffice),
+    ['--convert-to',Format,'--outdir',ToDir,file(FromFile)],
+    []
+  ).
 
 convert_format(csv).
 
@@ -714,6 +717,19 @@ call_files_(File1, Mode1, File2, Mode2, Goal_2, Options1, Options2) :-
     call(Goal_2, Stream1, Stream2),
     maplist(close, [Stream1,Stream2])
   ).
+
+
+
+%! from_to_file_(+FromFile:atom, +Extensions:list(atom), +ToFile:atom) is semidet.
+%! from_to_file_(+FromFile:atom, +Extensions:list(atom), -ToFile:atom) is det.
+
+from_to_file_(FromFile, Exts, ToFile) :-
+  var(ToFile), !,
+  directory_file_path2(Dir, FromBase, FromFile),
+  file_name(FromBase, Local),
+  file_name_extensions(ToBase, Local, Exts),
+  directory_file_path2(Dir, ToBase, ToFile).
+from_to_file_(_, _, _).
 
 
 
