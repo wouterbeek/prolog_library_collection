@@ -1,6 +1,7 @@
 :- module(
   archive_ext,
   [
+    archive_call/2,       % +In, :Goal_1
     archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
     archive_open/2        % +In, -Archive
@@ -10,13 +11,27 @@
 /** <module> Archive extensions
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- reexport(library(archive)).
 :- use_module(library(media_type)).
 
+:- meta_predicate
+    archive_call(+, 1).
 
+
+
+
+
+%! archive_call(+In:stream, :Goal_1) is det.
+
+archive_call(In, Goal_1) :-
+  setup_call_cleanup(
+    archive_open(In, Arch),
+    call(Goal_1, Arch),
+    archive_close(Arch)
+  ).
 
 
 
