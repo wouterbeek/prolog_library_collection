@@ -500,11 +500,12 @@ http_open2_(_, In, Status, _, _, [], _) :-
 % `Content-Type' header.
 http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
-  http_metadata_content_type([Meta], _MediaType), !.
-%  (   media_type_encoding(MediaType, Enc)
-%  ->  recode_stream(In1, Enc, In2)
-%  ;   In2 = In1
-%  ).
+  http_metadata_content_type([Meta], _MediaType), !,
+  (   debugging(http(peek))
+  ->  peek_string(In, 100, String),
+      debug(http(peek), "~s", [String])
+  ;   true
+  ).
 % If there is no `Content-Type' header, then there MUST be no content
 % either.
 http_open2_success_(Uri, In, _, In) :-
