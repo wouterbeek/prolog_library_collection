@@ -6,6 +6,7 @@
     guess_encoding/2,        % +In, -Encoding
     number_of_open_files/1,  % -N
     read_line_to_atom/2,     % +In, -Atom
+    read_line_to_number/2,   % +In, -N
     read_stream_to_atom/2,   % +In, -Atom
     read_stream_to_string/2, % +In, -String
     recode_stream/3,         % +In, +FromEncoding, -Out
@@ -115,6 +116,14 @@ read_line_to_atom(In, Atom) :-
   ->  !, fail
   ;   atom_codes(Atom, Codes)
   ).
+
+
+
+%! read_line_to_number(+In:stream, -N:number) is nondet.
+
+read_line_to_number(In, N) :-
+  read_line_to_atom(In, Atom),
+  atom_number(Atom, N).
 
 
 
