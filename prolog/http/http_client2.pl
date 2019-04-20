@@ -122,6 +122,12 @@ weight_(N) -->
 % cyclic_link_header/1 is thrown.
 %
 % The following call is made: `call(Goal_1, In)'.
+%
+% The following options are supported:
+%
+%  - next(-atom)
+%
+%  - Other options are passed to http_open2/3.
 
 http_call(Uri, Goal_1) :-
   http_call(Uri, Goal_1, []).
@@ -314,7 +320,7 @@ http_metadata_status(Metas, Status) :-
 %
 %      * number_of_retries(+positive_integer)
 %
-%        The maximum number of times the same HTTP request is retries
+%        The maximum number of times the same HTTP request is retried
 %        upon receiving an HTTP error code (i.e., HTTP status codes
 %        400 through 599).  The default is 1.
 %
