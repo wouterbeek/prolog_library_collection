@@ -4,9 +4,11 @@
     archive_call/2,       % +In, :Goal_1
     archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
-    archive_open/2        % +In, -Archive
+    archive_open/2,       % +In, -Archive
+    archive_stream/2      % +In1, -In2
   ]
 ).
+:- reexport(library(archive)).
 
 /** <module> Archive extensions
 
@@ -14,7 +16,8 @@
 @version 2017-2019
 */
 
-:- reexport(library(archive)).
+:- use_module(library(yall)).
+
 :- use_module(library(media_type)).
 
 :- meta_predicate
@@ -25,6 +28,12 @@
 
 
 %! archive_call(+In:stream, :Goal_1) is det.
+%
+% The following call is made:
+%
+% ```
+% call(Goal_1, Arch)
+% ```
 
 archive_call(In, Goal_1) :-
   setup_call_cleanup(
@@ -117,3 +126,10 @@ archive_media_type_format_(media(application/zip,[]), zip).
 archive_open(In, Archive) :-
   findall(format(Format), archive_format(Format), Formats),
   archive_open(In, Archive, Formats).
+
+
+
+%! archive_stream(+In1:stream, -In2:stream) is nondet.
+
+archive_stream(In1, In2) :-
+  archive_call(In1, {In2}/[Arch]>>archive_data_stream(Arch, In2, [])).
