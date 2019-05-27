@@ -14,6 +14,7 @@
     call_stats_n/3,         % +Repeats, :Goal_0, -Stats
     call_warning/1,         % :Goal_0
     call_when_ground/1,     % :Goal_0
+    call_when_ground/2,     % ?Term, :Goal_0
     is_det/1,               % :Goal_0
     maplist/6,              % :Goal_5, ?Args1, ?Args2, ?Args3, ?Args4, ?Args5
     permlist/3,             % :Goal_2, ?Args1, ?Args2
@@ -49,6 +50,7 @@
     call_stats_n(+, 0, -),
     call_warning(0),
     call_when_ground(0),
+    call_when_ground(?, 0),
     is_det(0),
     maplist(5, ?, ?, ?, ?, ?),
     permlist(2, ?, ?),
@@ -322,9 +324,14 @@ call_warning(Goal_0) :-
 
 
 %! call_when_ground(:Goal_0) is det.
+%! call_when_ground(?Term:term, :Goal_0) is det.
 
 call_when_ground(Goal_0) :-
-  when(ground(Goal_0), Goal_0).
+  call_when_ground(Goal_0, Goal_0).
+
+
+call_when_ground(Term, Goal_0) :-
+  when(ground(Term), Goal_0).
 
 
 
@@ -353,12 +360,12 @@ maplist_([H1|T1], [H2|T2], [H3|T3], [H4|T4], [H5|T5], Goal_5) :-
 permlist(Goal_2, Args1, Args2) :-
   permlist1_(Goal_2, Args1, Args2).
 
-permlist1_(_, [], _).
+permlist1_(_, [], _) :- !.
 permlist1_(Goal_2, [H1|T1], L2) :-
   permlist2_(Goal_2, H1, L2),
   permlist1_(Goal_2, T1, L2).
 
-permlist2_(_, _, []).
+permlist2_(_, _, []) :- !.
 permlist2_(Goal_2, H1, [H2|T2]) :-
   call(Goal_2, H1, H2),
   permlist2_(Goal_2, H1, T2).
