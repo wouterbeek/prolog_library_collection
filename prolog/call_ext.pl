@@ -6,6 +6,9 @@
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
+    call_if_ground/1,       % :Goal_0
+    call_if_ground/2,       % ?Term, :Goal_0
+    call_if_nonvar/2,       % ?Term, :Goal_0
     call_forall/2,          % :A_1, :B_1
     call_must_be/2,         % :Goal_1, @Term
     call_pair/3,            % :Goal_2, +Pair1, -Pair2
@@ -43,6 +46,9 @@
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
     call_forall(1, 1),
+    call_if_ground(0),
+    call_if_ground(?, 0),
+    call_if_nonvar(?, 0),
     call_must_be(1, +),
     call_pair(2, +, -),
     call_statistics(0, +, -),
@@ -134,6 +140,29 @@ call_forall(A_1, B_1) :-
     call(A_1, X),
     call(B_1, X)
   ).
+
+
+
+%! call_if_ground(:Goal_0) is det.
+%! call_if_ground(?Term:term, :Goal_0) is det.
+
+call_if_ground(Mod:Goal_0) :-
+  call_if_ground(Goal_0, Mod:Goal_0).
+
+
+call_if_ground(Term, Goal_0) :-
+  ground(Term), !,
+  Goal_0.
+call_if_ground(_, _).
+
+
+
+%! call_if_nonvar(?Term:term, :Goal_0) is det.
+
+call_if_nonvar(Term, _) :-
+  var(Term), !.
+call_if_nonvar(_, Goal_0) :-
+  Goal_0.
 
 
 
