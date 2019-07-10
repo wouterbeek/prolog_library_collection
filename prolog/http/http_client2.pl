@@ -42,6 +42,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(yall)).
+:- use_module(library(zlib)).
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
@@ -63,6 +64,8 @@
     http:post_data_hook/3,
     http:encoding_filter/3.
 
+http:encoding_filter('application/gzip', In1, In2) :-
+  http:encoding_filter(gzip, In1, In2).
 http:encoding_filter('x-gzip', In1, In2) :-
   http:encoding_filter(gzip, In1, In2).
 

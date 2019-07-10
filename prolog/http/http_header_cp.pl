@@ -1168,7 +1168,7 @@ post_header(cgi_data(Size), HdrExtra) -->
 post_header(codes(Type, Codes), HdrExtra) -->
     header_fields(HdrExtra, Len),
     content_length(codes(Codes, utf8), Len),
-    content_type(Type),
+    content_type(Type, utf8),
     "\r\n".
 post_header(bytes(Type, Bytes), HdrExtra) -->
     header_fields(HdrExtra, Len),
@@ -1178,7 +1178,7 @@ post_header(bytes(Type, Bytes), HdrExtra) -->
 post_header(atom(Type, Atom), HdrExtra) -->
     header_fields(HdrExtra, Len),
     content_length(atom(Atom, utf8), Len),
-    content_type(Type),
+    content_type(Type, utf8),
     "\r\n".
 
 
@@ -1230,7 +1230,7 @@ reply_header(string(Type, String), HdrExtra, Code) -->
     date(now),
     header_fields(HdrExtra, CLen),
     content_length(codes(String, utf8), CLen),
-    content_type(Type),
+    content_type(Type, utf8),
     "\r\n".
 reply_header(bytes(Type, Bytes), HdrExtra, Code) -->
     vstatus(ok, Code, HdrExtra),
@@ -2472,8 +2472,7 @@ ws --> [].
 %
 %   True if input represents a valid  Cookie option. Officially, all
 %   cookie  options  use  the  syntax   <name>=<value>,  except  for
-%   =secure=.  M$  decided  to  extend  this  to  include  at  least
-%   =httponly= (only the Gods know what it means).
+%   =Secure= and =HttpOnly=.
 %
 %   @param  Option  Term of the form Name=Value
 %   @bug    Incorrectly accepts options without = for M$ compatibility.
