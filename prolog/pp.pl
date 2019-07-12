@@ -1,16 +1,18 @@
 :- module(
   pp,
   [
-    ansi_format/2,     % +Attributes, +String
-    call_bool_pp/1,    % :Goal_0
-    call_pp/1,         % :Goal_1
-    dcg_ansi_format/2, % +Attributes, :Dcg_0
-    pp_bool/1,         % +Bool
-    pp_json/1,         % +Dict
-    pp_json/2,         % +Indent, +Dict
-    print_term/1,      % +Term
-    print_term_nl/1,   % +Term
-    print_term_nl/2    % +Term, +Options
+    ansi_format/2,       % +Attributes, +String
+    call_bool_pp/1,      % :Goal_0
+    call_pp/1,           % :Goal_1
+    dcg_ansi_format/2,   % +Attributes, :Dcg_0
+    pp_bool/1,           % +Bool
+    pp_json/1,           % +Dict
+    pp_json/2,           % +Indent, +Dict
+    print_file_peek/2,   % +File, +Length
+    print_stream_peek/2, % +In, +Length
+    print_term/1,        % +Term
+    print_term_nl/1,     % +Term
+    print_term_nl/2      % +Term, +Options
   ]
 ).
 :- reexport(library(ansi_term)).
@@ -25,6 +27,8 @@
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
+:- use_module(library(file_ext)).
+:- use_module(library(string_ext)).
 
 :- meta_predicate
     call_bool_pp(0),
@@ -114,6 +118,28 @@ pp_tab(N1) :-
   format("  "),
   N2 is N1 - 1,
   pp_tab(N2).
+
+
+
+%! print_file_peek(+File:atom, +Length:nonneg) is det.
+
+print_file_peek(File, Length1) :-
+  Length2 is Length1 + 5,
+  peek_file(File, Length2, String),
+  print_string_(String, Length1).
+
+
+
+%! print_stream_peek(+In:stream, Length:nonneg) is det.
+
+print_stream_peek(In, Length1) :-
+  Length2 is Length1 + 5,
+  peek_string(In, Length2, String),
+  print_string_(String, Length1).
+
+print_string_(String1, Length) :-
+  string_ellipsis(String1, Length, String2),
+  format(user_ouput, "~s", [String2]).
 
 
 
