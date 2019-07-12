@@ -4,6 +4,7 @@
   [
     '...'//0,
     '...'//1,               % -Codes
+    add_indent//1,          % +Indent
     alpha//1,               % ?Code
     'alpha*'//2,            % -Codes:list(code), -Tail:list(code)
     'alpha+'//2,            % -Codes:list(code), -Tail:list(code)
@@ -55,7 +56,7 @@
 /** <module> DCG
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(error)).
@@ -96,6 +97,18 @@
 
 ...(Codes) -->
   string(Codes).
+
+
+
+%! add_indent(+Indent:positive_integer)// .
+
+add_indent(N), "\n", indent(N) -->
+  "\n", !,
+  add_indent(N).
+add_indent(N), [Code] -->
+  [Code], !,
+  add_indent(N).
+add_indent(_) --> "".
 
 
 
