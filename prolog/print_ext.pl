@@ -2,8 +2,8 @@
   print_ext,
   [
     ansi_format/2,       % +Attributes, +String
-    call_bool_pp/1,      % :Goal_0
-    call_pp/1,           % :Goal_1
+    call_print/1,        % :Goal_1
+    call_print_bool/1,   % :Goal_0
     dcg_ansi_format/2,   % +Attributes, :Dcg_0
     print_bool/1,        % +Bool
     print_json/1,        % +Dict
@@ -32,8 +32,8 @@
 :- use_module(library(string_ext)).
 
 :- meta_predicate
-    call_bool_pp(0),
-    call_pp(1),
+    call_print(1),
+    call_print_bool(0),
     dcg_ansi_format(+, //).
 
 
@@ -47,19 +47,19 @@ ansi_format(Attrs, String) :-
 
 
 
-%! call_bool_pp(:Goal_0) is det.
+%! call_print(:Goal_1) is det.
 
-call_bool_pp(Goal_0) :-
-  call_bool(Goal_0, Bool),
-  print_bool(Bool).
-
-
-
-%! call_pp(:Goal_1) is det.
-
-call_pp(Goal_1) :-
+call_print(Goal_1) :-
   catch(call(Goal_1, Term), Error, true),
   (var(Error) -> print_term(Term) ; print_message(warning, Error)).
+
+
+
+%! call_print_bool(:Goal_0) is det.
+
+call_print_bool(Goal_0) :-
+  call_bool(Goal_0, Bool),
+  print_bool(Bool).
 
 
 
