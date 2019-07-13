@@ -11,6 +11,7 @@
     print_file_peek/2,   % +File, +Length
     print_stream_peek/2, % +In, +Length
     print_term/1,        % +Term
+   %print_term/2,        % +Term, +Options
     print_term_nl/1,     % +Term
     print_term_nl/2      % +Term, +Options
   ]
