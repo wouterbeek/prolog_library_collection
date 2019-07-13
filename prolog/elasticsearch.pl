@@ -18,7 +18,7 @@
     es_update_document/3 % +Segments, +Document, -Status
   ]
 ).
-:- reexport(library(pp)).
+:- reexport(library(print_ext)).
 
 /** <module> ElasticSearch API
 

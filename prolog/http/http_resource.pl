@@ -5,19 +5,19 @@
 Initialize locations for serving HTTP resources.
 
 @author Wouter Beek
-@version 2017-2018
+@version 2017-2019
 */
 
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_server_files)).
 
+:- use_module(library(resource)).
+
 :- dynamic
-    http:location/3,
-    user:file_search_path/2.
+    http:location/3.
 
 :- multifile
-    http:location/3,
-    user:file_search_path/2.
+    http:location/3.
 
 http:location(css, root(css), []).
 http:location(fonts, root(fonts), []).
@@ -28,17 +28,6 @@ http:location(md, root(md), []).
 http:location(pdf, root(pdf), []).
 http:location(ttl, root(ttl), []).
 http:location(yaml, root(yaml), []).
-
-user:file_search_path(resource, library(resource)).
-  user:file_search_path(css, resource(css)).
-  user:file_search_path(fonts, resource(fonts)).
-  user:file_search_path(html, resource(html)).
-  user:file_search_path(img, resource(img)).
-  user:file_search_path(js, resource(js)).
-  user:file_search_path(md, resource(md)).
-  user:file_search_path(pdf, resource(pdf)).
-  user:file_search_path(ttl, resource(ttl)).
-  user:file_search_path(yaml, resource(yaml)).
 
 :- http_handler(css(.), serve_files_in_directory(css), [prefix]).
 :- http_handler(fonts(.), serve_files_in_directory(fonts), [prefix]).

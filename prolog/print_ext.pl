@@ -1,13 +1,13 @@
 :- module(
-  pp,
+  print_ext,
   [
     ansi_format/2,       % +Attributes, +String
     call_bool_pp/1,      % :Goal_0
     call_pp/1,           % :Goal_1
     dcg_ansi_format/2,   % +Attributes, :Dcg_0
-    pp_bool/1,           % +Bool
-    pp_json/1,           % +Dict
-    pp_json/2,           % +Indent, +Dict
+    print_bool/1,        % +Bool
+    print_json/1,        % +Dict
+    print_json/2,        % +Indent, +Dict
     print_file_peek/2,   % +File, +Length
     print_stream_peek/2, % +In, +Length
     print_term/1,        % +Term
@@ -50,7 +50,7 @@ ansi_format(Attrs, String) :-
 
 call_bool_pp(Goal_0) :-
   call_bool(Goal_0, Bool),
-  pp_bool(Bool).
+  print_bool(Bool).
 
 
 
@@ -70,54 +70,54 @@ dcg_ansi_format(Attrs, Dcg_0) :-
 
 
 
-%! pp_bool(+Bool:boolean) is det.
+%! print_bool(+Bool:boolean) is det.
 
-pp_bool(false) :-
+print_bool(false) :-
   format("❌").
-pp_bool(true) :-
+print_bool(true) :-
   format("✓").
 
 
 
-%! pp_json(+Dict:dict) is det.
-%! pp_json(+Indent:nonneg, +Dict:dict) is det.
+%! print_json(+Dict:dict) is det.
+%! print_json(+Indent:nonneg, +Dict:dict) is det.
 
-pp_json(Dict) :-
-  pp_json(0, Dict).
+print_json(Dict) :-
+  print_json(0, Dict).
 
 
-pp_json(N1, Dict) :-
+print_json(N1, Dict) :-
   is_dict(Dict), !,
   dict_pairs(Dict, Pairs),
   format("{\n"),
   N2 is N1 + 1,
-  pp_dict_pairs(N2, Pairs),
-  pp_tab(N1),
+  print_dict_pairs(N2, Pairs),
+  print_tab(N1),
   format("}").
-pp_json(_, Str) :-
+print_json(_, Str) :-
   string(Str), !,
   format('"~s"', [Str]).
-pp_json(_, Term) :-
+print_json(_, Term) :-
   format("~w", [Term]).
 
-pp_dict_pair(N, Key-Value) :-
-  pp_tab(N),
+print_dict_pair(N, Key-Value) :-
+  print_tab(N),
   format("~a: ", [Key]),
-  pp_json(N, Value).
+  print_json(N, Value).
 
-pp_dict_pairs(N, [H]) :- !,
-  pp_dict_pair(N, H),
+print_dict_pairs(N, [H]) :- !,
+  print_dict_pair(N, H),
   format("\n").
-pp_dict_pairs(N, [H|T]) :-
-  pp_dict_pair(N, H),
+print_dict_pairs(N, [H|T]) :-
+  print_dict_pair(N, H),
   format(",\n"),
-  pp_dict_pairs(N, T).
+  print_dict_pairs(N, T).
 
-pp_tab(0) :- !.
-pp_tab(N1) :-
+print_tab(0) :- !.
+print_tab(N1) :-
   format("  "),
   N2 is N1 - 1,
-  pp_tab(N2).
+  print_tab(N2).
 
 
 

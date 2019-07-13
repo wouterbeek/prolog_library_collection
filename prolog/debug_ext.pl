@@ -21,9 +21,10 @@
 @version 2017-2019
 */
 
-:- use_module(library(dcg)).
 :- use_module(library(error)).
-:- use_module(library(pp)).
+
+:- use_module(library(dcg)).
+:- use_module(library(print_ext)).
 
 :- meta_predicate
     dcg_debug(+, //),
