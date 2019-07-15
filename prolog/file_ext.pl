@@ -203,6 +203,9 @@ concatenate_files0([H|T], Out) :- !,
 %
 % @see Formats are ‘documented’ over at
 % https://cgit.freedesktop.org/libreoffice/core/tree/filter/source/config/fragments/filters
+%
+% @see Encodings are ‘documented’ over at
+% https://wiki.openoffice.org/wiki/Documentation/DevGuide/Spreadsheets/Filter_Options
 
 convert_file(File, Format) :-
   convert_file(File, Format, _).
@@ -214,7 +217,7 @@ convert_file(FromFile, Format, ToFile) :-
   file_directory_name(ToFile, ToDir),
   process_create(
     path(libreoffice),
-    ['--convert-to',Format,'--outdir',ToDir,file(FromFile)],
+    ['--convert-to',Format,'--infilter=CSV:44,34,76,1','--outdir',ToDir,file(FromFile)],
     []
   ).
 
