@@ -140,7 +140,7 @@ print_stream_peek(In, Length1) :-
 
 print_string_(String1, Length) :-
   string_ellipsis(String1, Length, String2),
-  format(user_ouput, "~s", [String2]).
+  format("~s", [String2]).
 
 
 

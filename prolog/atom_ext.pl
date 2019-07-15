@@ -225,7 +225,7 @@ test_atom_prefix(abcd, 4, abcd).
 % @see string_strip/[2,3] provides the same functionality for strings.
 
 atom_strip(Original, Stripped) :-
-  atom_strip(Original, ['\t','\n',' ','\u00a0'], Stripped).
+  atom_strip(Original, ['\r','\t','\n',' ','\u00a0'], Stripped).
 
 
 atom_strip(A1, Strip, A3) :-
