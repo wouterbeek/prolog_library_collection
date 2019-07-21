@@ -2,15 +2,18 @@
 :- module(
   debug_ext,
   [
-    dcg_debug/2,    % +Flag, :Dcg_0
-    debug_call/2,   % +Flag, :Goal_0
-    debug_dict/2,   % +Flag, +Dict
-    debug_phrase/2, % +Flag, :Dcg_0
-    debug_time/2,   % +Flag, +Message
-    format_debug/3, % +Flag, +Out, +Pattern
-    format_debug/4, % +Flag, +Out, +Pattern, +Args
-    indent_debug/3, % +Mode, +Flag, +Format
-    indent_debug/4  % +Mode, +Flag, +Format, +Args
+    dcg_debug/2,        % +Flag, :Dcg_0
+    debug_call/2,       % +Flag, :Goal_0
+    debug_dict/2,       % +Flag, +Dict
+    debug_phrase/2,     % +Flag, :Dcg_0
+    debug_time/2,       % +Flag, +Message
+    format_debug/2,     % +Flag, +Format
+    format_debug/3,     % +Flag, +Out, +Format
+    format_debug/4,     % +Flag, +Out, +Format, +Args
+    indent_debug/3,     % +Mode, +Flag, +Format
+    indent_debug/4,     % +Mode, +Flag, +Format, +Args
+    json_write_debug/2, % +Flag, +Dict
+    json_write_debug/3  % +Flag, +Out, +Dict
   ]
 ).
 :- reexport(library(debug)).
@@ -22,6 +25,7 @@
 */
 
 :- use_module(library(error)).
+:- use_module(library(http/json)).
 
 :- use_module(library(dcg)).
 :- use_module(library(print_ext)).
@@ -89,26 +93,31 @@ debug_time(_, _).
 
 
 
-%! format_debug(+Flag:term, +Out:stream, +Pattern:string) is det.
-%! format_debug(+Flag:term, +Out:stream, +Pattern:string, +Arguments:list(term)) is det.
+%! format_debug(+Flag:term, +Format:string) is det.
+%! format_debug(+Flag:term, +Format:string, +Args:list(term)) is det.
+%! format_debug(+Flag:term, +Out:stream, +Format:string, +Arguments:list(term)) is det.
 %
 % Allows a line of text to be written to an output stream and --
 % optionally -- to a debug stream as well.
 %
-% Pattern and Arguments are used to compose a line of text.  The
+% ‘Format’ and ‘Arguments’ are used to compose a line of text.  The
 % newline character is automatically added at the end.
 %
-% Debug information is displayed by calling `debug(Flag)` (see library
-% debug).  Flag can be an atom or a compound term.
+% Debug information is displayed by calling ‘debug(Flag)’ (see library
+% ‘debug’).  ‘Flag’ can be an atom or a compound term.
 
-format_debug(Flag, Out, Pattern) :-
-  format_debug(Flag, Out, Pattern, []).
+format_debug(Flag, Format) :-
+  format_debug(Flag, current_output, Format).
 
 
-format_debug(Flag, Out, Pattern, Args) :-
-  string_concat(Pattern, "\n", PatternNewline),
-  format(Out, PatternNewline, Args),
-  debug(Flag, Pattern, Args).
+format_debug(Flag, Out, Format) :-
+  format_debug(Flag, Out, Format, []).
+
+
+format_debug(Flag, Out, Format, Args) :-
+  format(Out, Format, Args),
+  nl(Out),
+  debug(Flag, Format, Args).
 
 
 
@@ -149,3 +158,20 @@ msg_diff1(-1) --> "└".
 msg_diff2(1) --> !, "├".
 msg_diff2(0) --> !, "└".
 msg_diff2(-1) --> "└".
+
+
+
+%! json_write_debug(+Flag:term, +Dict:dict) is det.
+%! json_write_debug(+Flag:term, +Out:stream, +Dict:dict) is det.
+
+json_write_debug(Flag, Dict) :-
+  json_write_debug(Flag, current_output, Dict).
+
+
+json_write_debug(Flag, Out, Dict) :-
+  debugging(Flag), !,
+  with_output_to(string(String), json_write_dict(current_output, Dict)),
+  debug(Flag, "~s", [String]),
+  format(Out, "~s", [String]).
+json_write_debug(_, Out, Dict) :-
+  json_write_dict(Out, Dict).
