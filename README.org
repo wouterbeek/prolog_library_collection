@@ -15,17 +15,22 @@ available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
 * Installation
 
   1. Install [[http://www.swi-prolog.org][SWI-Prolog]].
-  2. Clone this repository:
+
+  2. Clone this repository into a subdirectory of your Prolog pack
+     directory:
 
      #+begin_src sh
-     git clone https://github.com/wouterbeek/Prolog-Library-Collection~
+     git clone git@github.com:wouterbeek/Prolog-Library-Collection.git
      #+end_src
 
   3. Add the following line to your ~.swiplrc~ file:
 
      #+begin_src prolog
-     user:file_search_path(library, '/your/path/to/Prolog-Library-Collection/prolog').
+     :- [library(prolog_pack)].
+     :- attach_packs('<your-prolog-pack-directory>', []).
      #+end_src
+
+     You will now be able to load modules from this library.
 
 Optionally install dependencies that are used by some of the modules:
 

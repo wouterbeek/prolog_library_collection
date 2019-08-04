@@ -3,51 +3,54 @@
   dcg,
   [
     '...'//0,
-    '...'//1,               % -Codes
-    add_indent//1,          % +Indent
-    alpha//1,               % ?Code
-    'alpha*'//2,            % -Codes:list(code), -Tail:list(code)
-    'alpha+'//2,            % -Codes:list(code), -Tail:list(code)
-    alphanum//1,            % ?Code
-    'alphanum*'//2,         % -Codes:list(code), -Tail:list(code)
-    'alphanum+'//2,         % -Codes:list(code), -Tail:list(code)
-    atom_phrase/2,          % :Dcg_0, ?Atom
-    atom_phrase/3,          % :Dcg_0, +Atom1, ?Atom2
-    dcg_atom//2,            % :Dcg_1, ?Atom
-    dcg_between//2,         % +Low, +High
-    dcg_between//3,         % +Low, +High, ?Code
-    dcg_bool//1,            % +Bool
-    dcg_call//1,            % :Dcg_0
-    dcg_call//2,            % :Dcg_1, ?Arg1
-    dcg_call//3,            % :Dcg_2, ?Arg1, ?Arg2
-    dcg_call//4,            % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
-    dcg_call//5,            % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
-    dcg_call//6,            % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
-    dcg_string//2,          % :Dcg_1, ?String
-    dcg_with_output_to/1,   % :Dcg_0
-    dcg_with_output_to/2,   % +Sink, :Dcg_0
-    'digit*'//1,            % -Codes:list(code)
-    'digit*'//2,            % -Codes:list(code), -Tail:list(code)
-    'digit+'//1,            % -Codes:list(code)
-    'digit+'//2,            % -Codes:list(code), -Tail:list(code)
-    digit_weight//1,        % ?N
-    'digit_weight*'//1,     % ?Ns
-    'digit_weight+'//1,     % ?Ns
-    ellipsis//2,            % +Atom, +MaxLength
-    indent//1,              % +Indent
-    must_see//1,            % :Dcg_0
-    must_see_code//2,       % +Code, :Skip_0
+    '...'//1,                 % -Codes
+    add_indent//1,            % +Indent
+    alpha//1,                 % ?Code
+    'alpha*'//2,              % -Codes:list(code), -Tail:list(code)
+    'alpha+'//2,              % -Codes:list(code), -Tail:list(code)
+    alphanum//1,              % ?Code
+    'alphanum*'//2,           % -Codes:list(code), -Tail:list(code)
+    'alphanum+'//2,           % -Codes:list(code), -Tail:list(code)
+    atom_phrase/2,            % :Dcg_0, ?Atom
+    atom_phrase/3,            % :Dcg_0, +Atom1, ?Atom2
+    dcg_atom//2,              % :Dcg_1, ?Atom
+    dcg_atom_from_codes//2,   % :Dcg_1, ?Atom
+    dcg_between//2,           % +Low, +High
+    dcg_between//3,           % +Low, +High, ?Code
+    dcg_bool//1,              % +Bool
+    dcg_call//1,              % :Dcg_0
+    dcg_call//2,              % :Dcg_1, ?Arg1
+    dcg_call//3,              % :Dcg_2, ?Arg1, ?Arg2
+    dcg_call//4,              % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
+    dcg_call//5,              % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
+    dcg_call//6,              % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_string//2,            % :Dcg_1, ?String
+    dcg_string_from_codes//2, % :Dcg_1, ?String
+    dcg_with_output_to/1,     % :Dcg_0
+    dcg_with_output_to/2,     % +Sink, :Dcg_0
+    default//2,               % :Dcg_0, ?Default_0
+    'digit*'//1,              % -Codes:list(code)
+    'digit*'//2,              % -Codes:list(code), -Tail:list(code)
+    'digit+'//1,              % -Codes:list(code)
+    'digit+'//2,              % -Codes:list(code), -Tail:list(code)
+    digit_weight//1,          % ?N
+    'digit_weight*'//1,       % ?Ns
+    'digit_weight+'//1,       % ?Ns
+    ellipsis//2,              % +Atom, +MaxLength
+    indent//1,                % +Indent
+    must_see//1,              % :Dcg_0
+    must_see_code//2,         % +Code, :Skip_0
     nl//0,
     nonblank//0,
     nonblanks//0,
     parsing//0,
-    remainder_as_atom//1,   % -Remainder
-    remainder_as_string//1, % -Remainder
-    string_phrase/2,        % :Dcg_0, ?String
-    string_phrase/3,        % :Dcg_0, +String1, -String2
-    tab//1,                 % +N
-    term//1,                % +Term
-    thousands//1,           % +N
+    remainder_as_atom//1,     % -Remainder
+    remainder_as_string//1,   % -Remainder
+    string_phrase/2,          % :Dcg_0, ?String
+    string_phrase/3,          % :Dcg_0, +String1, -String2
+    tab//1,                   % +N
+    term//1,                  % +Term
+    thousands//1,             % +N
     ws//0
   ]
 ).
@@ -69,14 +72,19 @@
 :- meta_predicate
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
+    dcg_atom(3, ?, ?, ?),
+    dcg_atom_from_codes(3, ?, ?, ?),
     dcg_call(//, ?, ?),
     dcg_call(3, ?, ?, ?),
     dcg_call(4, ?, ?, ?, ?),
     dcg_call(5, ?, ?, ?, ?, ?),
     dcg_call(6, ?, ?, ?, ?, ?, ?),
     dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
+    dcg_string(3, ?, ?, ?),
+    dcg_string_from_codes(3, ?, ?, ?),
     dcg_with_output_to(//),
     dcg_with_output_to(+, //),
+    default(//, //, ?, ?),
     must_see(//, ?, ?),
     must_see_code(+, //, ?, ?),
     string_phrase(//, ?),
@@ -232,6 +240,23 @@ dcg_atom(Dcg_1, Atom) -->
 
 
 
+%! dcg_atom_from_codes(:Dcg_1, ?Atom:atom)// .
+
+dcg_atom_from_codes(Dcg_1, Atom) -->
+  {var(Atom)}, !,
+  dcg_codes_(Dcg_1, Cs),
+  {atom_codes(Atom, Cs)}.
+dcg_atom_from_codes(Dcg_1, Atom) -->
+  {atom_codes(Atom, Cs)},
+  dcg_codes_(Dcg_1, Cs).
+
+dcg_codes_(Dcg_1, [H|T]) -->
+  dcg_call(Dcg_1, H), !,
+  dcg_codes_(Dcg_1, T).
+dcg_codes_(_, []) --> "".
+
+
+
 %! dcg_between(+Low:nonneg, +High:nonneg)// .
 %! dcg_between(+Low:nonneg, +High:nonneg, ?Code:nonneg)// .
 
@@ -298,6 +323,18 @@ dcg_string(Dcg_1, String) -->
 
 
 
+%! dcg_string_from_codes(:Dcg_1, ?String:string)// .
+
+dcg_string_from_codes(Dcg_1, String) -->
+  {var(String)}, !,
+  dcg_codes_(Dcg_1, Cs),
+  {string_codes(String, Cs)}.
+dcg_string_from_codes(Dcg_1, String) -->
+  {string_codes(String, Cs)},
+  dcg_codes_(Dcg_1, Cs).
+
+
+
 %! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
 
@@ -308,6 +345,15 @@ dcg_with_output_to(Dcg_0) :-
 dcg_with_output_to(Sink, Dcg_0) :-
   phrase(Dcg_0, Codes),
   with_output_to(Sink, put_codes(Codes)).
+
+
+
+%! default(:Dcg_0, ?Default_0)// .
+
+default(Dcg_0, _) -->
+  Dcg_0, !.
+default(_, Default_0) -->
+  Default_0.
 
 
 

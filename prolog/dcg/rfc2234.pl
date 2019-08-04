@@ -33,7 +33,7 @@
 @author Wouter Beek
 @deprecated dcg/rfc4234
 @see https://tools.ietf.org/html/rfc2234
-@version 2017/05-2017/09
+@version 2017-2019
 */
 
 :- use_module(library(dcg)).
@@ -80,7 +80,7 @@
 % ```
 
 'CHAR'(Code) -->
-  between(1, 127, Code).
+  dcg_between(1, 127, Code).
 
 
 
