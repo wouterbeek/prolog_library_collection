@@ -351,7 +351,7 @@ dcg_call//[1,6].
   {(var(N) -> true ; Count1 < N)},
   dcg_call(Dcg_1, H), !,
   {Count2 is Count1 + 1},
-  'm*n__p'(M, N, Count2, Dcg_1, T).
+  'm*n__p!'(M, N, Count2, Dcg_1, T).
 'm*n__p!'(M, _, Count, _, []) -->
   {(var(M) -> true ; M =< Count)}.
 
