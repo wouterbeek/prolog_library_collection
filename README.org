@@ -23,7 +23,7 @@ available in the [[http://www.swi-prolog.org][SWI-Prolog]] standard libraries.
      git clone git@github.com:wouterbeek/Prolog-Library-Collection.git
      #+end_src
 
-  3. Add the following line to your ~.swiplrc~ file:
+  3. Add the following to your ~.swiplrc~ file:
 
      #+begin_src prolog
      :- [library(prolog_pack)].
