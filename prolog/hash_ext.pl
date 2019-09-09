@@ -1,7 +1,9 @@
 :- module(
   hash_ext,
   [
+    hash_directory/2, % +Hash, -Directory
     hash_directory/3, % +Root, +Hash, -Directory
+    hash_file/3,      % +Hash, +Local, -File
     hash_file/4,      % +Root, +Hash, +Local, -File
     md5/2,            % +Term, -Hash
     md5/3,            % +Term, -Hash, +Options
@@ -19,10 +21,9 @@
 Extended support for using hashes.
 
 @author Wouter Beek
-@version 2016-2018
+@version 2016-2019
 */
 
-:- use_module(library(file_ext)).
 :- use_module(library(lists)).
 :- reexport(library(md5), [
      md5_hash/3 as md5_text
@@ -31,11 +32,19 @@ Extended support for using hashes.
      sha_hash/3 as sha_text
    ]).
 
+:- use_module(library(file_ext)).
 
 
 
 
+
+%! hash_directory(+Hash:atom, -Directory:atom) is det.
 %! hash_directory(+Root:atom, +Hash:atom, -Directory:atom) is det.
+
+hash_directory(Hash, Dir2) :-
+  working_directory(Root),
+  hash_directory(Root, Hash, Dir2).
+
 
 hash_directory(Root, Hash, Dir2) :-
   sub_atom(Hash, 0, 2, _, Subdir1),
@@ -45,7 +54,13 @@ hash_directory(Root, Hash, Dir2) :-
 
 
 
+%! hash_file(+Hash:atom, +Local:atom, -File:atom) is det.
 %! hash_file(+Root:atom, +Hash:atom, +Local:atom, -File:atom) is det.
+
+hash_file(Hash, Local, File) :-
+  working_directory(Root),
+  hash_file(Root, Hash, Local, File).
+
 
 hash_file(Root, Hash, Local, File) :-
   hash_directory(Root, Hash, Dir),

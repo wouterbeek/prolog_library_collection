@@ -361,15 +361,59 @@ http_open2(CurrentUri, In, Options1) :-
   ;   http_status_(In, Status, FinalUri, Options1)
   ).
 
+%! http_status_(+In:stream,
+%!              +Status:between(100,599),
+%!              +FinalUri:atom,
+%!              +Options:list(compound)) is det.
+
 http_status_(In, Status, FinalUri, Options) :-
   option(failure(Failure), Options),
   option(success(Success), Options, 200), !,
-  http_status(In, Status, FinalUri, Failure, Success).
+  http_status_(In, Status, FinalUri, Failure, Success).
 http_status_(In, Status, FinalUri, Options) :-
   option(success(Success), Options),
   option(failure(Failure), Options, 400), !,
-  http_status(In, Status, FinalUri, Failure, Success).
+  http_status_(In, Status, FinalUri, Failure, Success).
 http_status_(_, _, _, _).
+
+%! http_status_(+In:stream,
+%!              +Status:between(100,599),
+%!              +FinalUri:atom,
+%!              ?Failure:or([oneof([warning]),between(400,599)]),
+%!              ?Success:beteen(200,299)) is det.
+%
+% @arg Failure
+%
+%      If supplied, maps an HTTP code onto Prolog silent failure.
+%
+% @arg Success
+%
+%      If supplied, maps an HTTP code onto Prolog success.
+
+http_status_(In, Status, FinalUri, Failure, Success) :-
+  must_be(http_status, Status),
+  (   % HTTP failure codes.
+      between(400, 599, Status)
+  ->  call_cleanup(
+        read_string(In, 1 000, Content),
+        close(In)
+      ),
+      (   Failure == warning
+      ->  print_message(
+            warning,
+            error(http_error(status,Status,Content,FinalUri),http_status_error/3)
+          )
+      ;   must_be(between(400,599), Failure),
+          Status =:= Failure
+      ->  fail
+      ;   % Throw an exception, indicating an error.
+          throw(error(http_error(status,Status,Content,FinalUri),http_status_error/3))
+      )
+  ;   % HTTP success codes.  The asserion indicates that we do not
+      % expect a 1xx or 3xx status code here.
+      assertion(between(200, 299, Status))
+  ->  (number(Success) -> Status =:= Success ; true)
+  ).
 
 http_options_(Uri, Options1, State, Options3) :-
   (   select_option(accept(Accept), Options1, Options2)
@@ -564,44 +608,6 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header_cp:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
-
-
-
-%! http_status(+In:stream, +Status:between(100,599), FinalUri:atom, ?Failure:between(400,599), ?Success:beteen(200,299)) is det.
-%
-% @arg Failure
-%
-%      If supplied, maps an HTTP code onto Prolog failure.
-%
-% @arg Success
-%
-%      If supplied, maps an HTTP code onto Prolog success.
-
-http_status(In, Status, FinalUri, Failure, Success) :-
-  must_be(http_status, Status),
-  (   % HTTP failure codes.
-      between(400, 599, Status)
-  ->  call_cleanup(
-        read_string(In, 1 000, Content),
-        close(In)
-      ),
-      (   Failure == warning
-      ->  print_message(
-            warning,
-            error(http_error(status,Status,Content,FinalUri),http_status_error/3)
-          ),
-          fail
-      ;   must_be(between(400,599), Failure),
-          Status =:= Failure
-      ->  fail
-      ;   % Throw an exception, indicating an error.
-          throw(error(http_error(status,Status,Content,FinalUri),http_status_error/3))
-      )
-  ;   % HTTP success codes.  The asserion indicates that we do not
-      % expect a 1xx or 3xx status code here.
-      assertion(between(200, 299, Status))
-  ->  (number(Success) -> Status =:= Success ; true)
-  ).
 
 
 
