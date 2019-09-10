@@ -213,15 +213,13 @@ convert_file(File, Format) :-
 
 convert_file(FromFile, Format, ToFile) :-
   call_must_be(convert_format, Format),
-  from_to_file_(FromFile, [Format], TmpFile),
   from_to_file_(FromFile, [Format], ToFile),
   file_directory_name(ToFile, ToDir),
   process_create(
     path(libreoffice),
     ['--convert-to',Format,'--infilter=CSV:44,34,76,1','--outdir',ToDir,file(FromFile)],
     []
-  ),
-  rename_file(TmpFile, ToFile).
+  ).
 
 convert_format(csv).
 
