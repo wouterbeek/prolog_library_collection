@@ -73,6 +73,7 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
 :- use_module(library(readutil)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
@@ -696,10 +697,15 @@ write_to_file(File, Goal_1, Options) :-
 % GENERICS %
 
 %! call_file_(+File:atom, +Mode:oneof([append,read,write]), :Goal_1, +Options:list(compound)) is det.
+%
+% @arg Options The following options are supported:
+%
+%      * mode(+oneof([append,read,write]) Overrules the default mode.
 
-call_file_(File, Mode, Goal_1, Options) :-
+call_file_(File, Mode1, Goal_1, Options) :-
+  option(mode(Mode2), Options, Mode1),
   setup_call_cleanup(
-    open_file_(File, Mode, Stream, Options),
+    open_file_(File, Mode2, Stream, Options),
     call(Goal_1, Stream),
     close(Stream)
   ).
