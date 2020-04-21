@@ -1,4 +1,4 @@
-# Prolog-Library-Collection (PLC)
+# Prolog-Library-Collection
 
 A collection of Prolog libraries that have proven useful in various
 projects.  These libraries are intended to extend the functionality
@@ -238,22 +238,22 @@ Optional sequence is a metasyntactic construct which states that
 Optional sequence is a special case of [[variable repetition]],
 because `?(Dcg_0)` is the same as `'m*n'(0, 1, Dcg_0)`.
 
-  | *DCG*                     | *Meaning*                                           | *Name*              |
-  |---------------------------+-----------------------------------------------------+---------------------|
-  | `#(?N, :Dcg_0)//`         | Process `Dcg_0` exactly `N` times.                  | specific repetition |
-  | `*(:Dcg_0)//`             | Process `Dcg_0` 0 or more times.                    | Kleene star         |
-  | `'*n'(?N, :Dcg_0)//`      | Process `Dcg_0` at most `N` times.                  |                     |
-  | `+(:Dcg_0)//`             | Process `Dcg_0` 1 or more times.                    | Kleene sum          |
-  | `?(:Dcg_0)//`             | Process `Dcg_0` 0 or 1 times.                       | optional sequence   |
-  | `'m*'(?M, :Dcg_0)//`      | Process `Dcg_0` at least `M` times.                 |                     |
-  | `'m*n'(?M, ?N, :Dcg_0)//` | Process `Dcg_0` at least `M` and at most `N` times. | variable repetition |
+|  DCG                      |  Meaning                                            |  Name               |
+| ------------------------- | --------------------------------------------------- | ------------------- |
+| `#(?N, :Dcg_0)//`         | Process `Dcg_0` exactly `N` times.                  | specific repetition |
+| `*(:Dcg_0)//`             | Process `Dcg_0` 0 or more times.                    | Kleene star         |
+| `'*n'(?N, :Dcg_0)//`      | Process `Dcg_0` at most `N` times.                  |                     |
+| `+(:Dcg_0)//`             | Process `Dcg_0` 1 or more times.                    | Kleene sum          |
+| `?(:Dcg_0)//`             | Process `Dcg_0` 0 or 1 times.                       | optional sequence   |
+| `'m*'(?M, :Dcg_0)//`      | Process `Dcg_0` at least `M` times.                 |                     |
+| `'m*n'(?M, ?N, :Dcg_0)//` | Process `Dcg_0` at least `M` and at most `N` times. | variable repetition |
 
 It contains the following modules:
 
-  | *Type*  | *Definition*                                                                                                       |
-  |---------+--------------------------------------------------------------------------------------------------------------------|
-  | `media` | A compound term of the form `media(Super:atom/Sub:atom,Parameters:list(opt))`                                      |
-  | `opt`   | A unary compound term whose predicate letter is an option name and whose argument is a corresponding option value. |
+|  Type   |  Definition                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| `media` | A compound term of the form `media(Super:atom/Sub:atom,Parameters:list(opt))`                                      |
+| `opt`   | A unary compound term whose predicate letter is an option name and whose argument is a corresponding option value. |
 
 ## `dcg/dcg_ext`
 
