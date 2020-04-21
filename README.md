@@ -18,7 +18,7 @@ swipl
   3. Make the following call inside Prolog:
 
 ```pl
-:- pack_install('Prolog-Library-Collection').
+:- pack_install(plc).
 ```
 
 That it!  You can now load modules from this library in the following way:
