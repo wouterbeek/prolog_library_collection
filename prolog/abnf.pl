@@ -1,7 +1,8 @@
+:- encoding(utf8).
 :- module(
-  dcg_abnf,
+  abnf,
   [
-  % SEQUENCE PATTERNS WITH NO SEPARATOR
+  % NON-DETERMINISTIC SEQUENCE PATTERNS WITH NO SEPARATOR
     '#'//2,    % ?N, :Dcg_0
     '#'//3,    % ?N, :Dcg_1, -Args
     '*'//1,    % :Dcg_0
@@ -16,7 +17,7 @@
     '*n'//3,   % ?N, :Dcg_1, -Args
     'm*n'//3,  % ?M, ?N, :Dcg_0
     'm*n'//4,  % ?M, ?N, :Dcg_1, -Args
-  % SEQUENCE PATTERNS WITH NO SEPARATOR
+  % DETERMINISTIC SEQUENCE PATTERNS WITH NO SEPARATOR
     '#!'//2,   % ?N, :Dcg_0
     '#!'//3,   % ?N, :Dcg_1, -Args
     '*!'//1,   % :Dcg_0
@@ -31,7 +32,7 @@
     '*n!'//3,  % ?N, :Dcg_1, -Args
     'm*n!'//3, % ?M, ?N, :Dcg_0
     'm*n!'//4, % ?M, ?N, :Dcg_1, -Args
-  % SEQUENCE PATTERNS WITH SEPARATOR
+  % NON-DETERMINISTIC SEQUENCE PATTERNS WITH SEPARATOR
     '#&'//3,   % ?N, :Dcg_0, :Sep_0
     '#&'//4,   % ?N, :Dcg_1, :Sep_0, -Args
     '*&'//2,   % :Dcg_0, :Sep_0
@@ -63,10 +64,10 @@ This module also defines the DCGs correlates to the ISO call/[1-8]
 predicates.  Since DCGs take two extra predicate, we can only define
 dcg_call//[1,6].
 
-@author Wouter Beek
-@compat RFC 5234: Augmented BNF for Syntax Specifications: ABNF
+@compat RFC 5234 ― Augmented BNF for Syntax Specifications: ABNF
+
 @see https://tools.ietf.org/html/rfc5234
-@version 2017-2019
+
 */
 
 :- use_module(library(dcg)).

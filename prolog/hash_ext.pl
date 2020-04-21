@@ -16,12 +16,8 @@
   ]
 ).
 
-/** <module> Hash extensions
+/** <module> Extended support for hashes
 
-Extended support for using hashes.
-
-@author Wouter Beek
-@version 2016-2019
 */
 
 :- use_module(library(lists)).

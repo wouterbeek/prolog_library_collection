@@ -13,16 +13,12 @@
   ]
 ).
 
-/** <module> HTML DCG
+/** <module> DCG grammar for generating HTML snippets
 
-DCG grammar for generating HTML snippets.
-
-@author Wouter Beek
-@version 2015-2018
 */
 
+:- use_module(library(abnf)).
 :- use_module(library(dcg)).
-:- use_module(library(dcg/dcg_abnf)).
 
 :- meta_predicate
     html_element(+, +, //, ?, ?).

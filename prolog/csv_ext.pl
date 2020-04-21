@@ -2,17 +2,18 @@
   csv_ext,
   [
     csv_named_row/2, % +In, -Row
-    csv_named_row/3, % +In, +Header, -Row
-    csv_row/2        % +In, -Row
+    csv_named_row/3, % +In, -Row, +Options
+    csv_row/2,       % +In, -Row
+    csv_row/3        % +In, -Row, +Options
   ]
 ).
 
-/** <module> CSV extension
+/** <module> Enhanced CSV support
 
-@author Wouter Beek
-@version 2017-2019
 */
 
+:- use_module(library(csv)).
+:- use_module(library(option)).
 :- use_module(library(pairs)).
 
 
@@ -20,30 +21,39 @@
 
 
 %! csv_named_row(+In:stream, -Row:list(pair(atom,term))) is nondet.
-%! csv_named_row(+In:stream, +Header:list(atom), -Row:list(pair(atom,term))) is nondet.
+%! csv_named_row(+In:stream, -Row:list(pair(atom,term)), +Options:list(compound)) is nondet.
+%
+% @param Options The following options are supported:
+%
+%        - header(+list(atom)) The list of header names.
+%
+%        - Other options are passed to csv_row/3.
 
 csv_named_row(In, Row) :-
-  csv_options_(Options),
-  csv:csv_read_row(In, Header, Options),
-  compound_name_arguments(Header, row, Keys),
-  csv_named_row_(In, Keys, Row, Options).
+  csv_named_row(In, Row, []).
 
 
-csv_named_row(In, Keys, Row) :-
-  csv_options_(Options),
-  csv_named_row_(In, Keys, Row, Options).
-
-csv_named_row_(In, Keys, Row, Options) :-
+csv_named_row(In, Row, Options1) :-
+  (   select_option(header(Keys), Options1, Options2)
+  ->  csv:csv_options(Options, Options2)
+  ;   csv:csv_options(Options, Options1),
+      csv:csv_read_row(In, Header, Options),
+      compound_name_arguments(Header, row, Keys)
+  ),
   csv_row_(In, Values, Options),
   pairs_keys_values(Row, Keys, Values).
 
 
 
 %! csv_row(+In:stream, -Row:list(term)) is nondet.
+%! csv_row(+In:stream, -Row:list(term), +Options:list(compound)) is nondet.
 
-csv_row(In, Data) :-
-  csv_options_(Options),
-  csv_row_(In, Data, Options).
+csv_row(In, Row) :-
+  csv_row(In, Row, []).
+
+csv_row(In, Row, Options1) :-
+  csv:csv_options(Options2, Options1),
+  csv_row_(In, Row, Options2).
 
 
 
@@ -51,16 +61,7 @@ csv_row(In, Data) :-
 
 % HELPERS %
 
-%! csv_options_(-Options:list(compound)) is det.
-
-csv_options_(Options) :-
-  csv:csv_options(Options, []).
-
-
-
-%! csv_row_(+In:stream, -Data:list(term), +Options:list(compound)) is nondet.
-
-csv_row_(In, Data, Options) :-
+csv_row_(In, Row, Options) :-
   repeat,
-  csv:csv_read_row(In, Row, Options),
-  (Row == end_of_file -> !, fail ; compound_name_arguments(Row, row, Data)).
+  csv:csv_read_row(In, Data, Options),
+  (Data == end_of_file -> !, fail ; compound_name_arguments(Data, row, Row)).

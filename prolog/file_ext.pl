@@ -4,7 +4,8 @@
   [
     append_directories/2,         % +Directories, -Directory
     cat/2,                        % +Out, +Files
-    change_file_name_extension/4, % +File1, +Extension1, +Extension2, +File2
+    change_file_name_extension/3, % ?FromFile, ?FromExtension, ?ToFile
+    change_file_name_extension/4, % ?FromFile, ?FromExtension, ?ToExtension, ?ToFile
     compress_file/1,              % +FromFile
     compress_file/2,              % +FromFile, ?ToFile
     concatenate_files/2,          % +Files, +ConcatenatedFile
@@ -12,6 +13,7 @@
     convert_file/3,               % +FromFile, +Format, ?ToFile
     create_directory/1,           % +Directory
     create_file_directory/1,      % +File
+    decompress_file/2,            % +FromFile, +ToFile
     delete_files_by_extension/1,  % +Extension
     delete_files_by_extension/2,  % +Directory, +Extension
     delete_files_by_extensions/1, % +Extensions
@@ -65,10 +67,8 @@
 :- reexport(library(filesex)).
 :- reexport(library(stream_ext)).
 
-/** <module> File extensions
+/** <module> Additional support for working with files
 
-@author Wouter Beek
-@version 2017-2020
 */
 
 :- use_module(library(apply)).
@@ -159,11 +159,16 @@ cat_file(Out, File) :-
 
 
 
-%! change_file_name_extension(+File1:atom, +Extension1:atom, +Extension2:atom, +File2:atom) is det.
+%! change_file_name_extension(?FromFile:atom, ?ToExtension:atom, ?ToFile:atom) is det.
+%! change_file_name_extension(?FromFile:atom, ?FromExtension:atom, ?ToExtension:atom, ?ToFile:atom) is det.
 
-change_file_name_extension(File1, Ext1, Ext2, File2) :-
-  file_name_extension(Base, Ext1, File1),
-  file_name_extension(Base, Ext2, File2).
+change_file_name_extension(FromFile, ToExt, ToFile) :-
+  change_file_name_extension(FromFile, _, ToExt, ToFile).
+
+
+change_file_name_extension(FromFile, FromExt, ToExt, ToFile) :-
+  file_name_extension(Base, FromExt, FromFile),
+  file_name_extension(Base, ToExt, ToFile).
 
 
 
@@ -245,6 +250,12 @@ create_file_directory(Path) :-
   (exists_directory(Path) -> Dir = Path ; directory_file_path(Dir, _, Path)),
   create_directory(Dir).
 
+
+
+%! decompress_file(+FromFile:atom, +ToFile:atom) is det.
+
+decompress_file(FromFile, ToFile) :-
+  read_write_files(FromFile, ToFile, copy_stream_data).
 
 
 
@@ -460,6 +471,11 @@ file_name_extension2(File, Name, Ext) :-
 %! file_name_extensions(+File:atom, -Name:atom, -Extensions:list(atom)) is det.
 %! file_name_extensions(-File:atom, +Name:atom, +Extensions:list(atom)) is det.
 
+file_name_extensions(File, Name, Exts) :-
+  ground(File), !,
+  directory_file_path2(Dir, Local, File),
+  atomic_list_concat([Base|Exts], ., Local),
+  directory_file_path2(Dir, Base, Name).
 file_name_extensions(File, Name, Exts) :-
   atomic_list_concat([Name|Exts], ., File).
 
@@ -765,10 +781,22 @@ open_file_(File, Mode, Stream2, Options) :-
 
 
 %! open_gz_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compound)) is det.
+%
+% @arg Options The following options are supported:
+%
+%      - compression(+oneof([gzip,none]))
 
+% explicitly no compression
 open_gz_(File, Mode, Stream, Options) :-
-  file_name_extension(_, gz, File), !,
+  option(compression(none), Options), !,
+  open(File, Mode, Stream, Options).
+% compression (GNU zip)
+open_gz_(File, Mode, Stream, Options) :-
+  (   option(compression(gzip), Options)
+  ;   file_name_extension(_, gz, File)
+  ), !,
   gzopen(File, Mode, Stream, Options).
+% implicitly no compression
 open_gz_(File, Mode, Stream, Options) :-
   open(File, Mode, Stream, Options).
 

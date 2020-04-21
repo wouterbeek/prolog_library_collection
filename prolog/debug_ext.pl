@@ -10,6 +10,8 @@
     format_debug/2,     % +Flag, +Format
     format_debug/3,     % +Flag, +Out, +Format
     format_debug/4,     % +Flag, +Out, +Format, +Args
+    format_interval/2,  % +Index, +Interval
+    format_interval/5,  % +Index, +Interval, +Out, +Format, +Args
     indent_debug/3,     % +Mode, +Flag, +Format
     indent_debug/4,     % +Mode, +Flag, +Format, +Args
     json_write_debug/2, % +Flag, +Dict
@@ -18,10 +20,8 @@
 ).
 :- reexport(library(debug)).
 
-/** <module> Debug extensions
+/** <module> Extended support for debugging
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(error)).
@@ -118,6 +118,22 @@ format_debug(Flag, Out, Format, Args) :-
   format(Out, Format, Args),
   nl(Out),
   debug(Flag, Format, Args).
+
+
+
+%! format_interval(+Index:nonneg, +Interval:nonneg) is det.
+%! format_interval(+Index:nonneg, +Interval:nonneg, +Out, +Format:atom, +Argumentss:list) is det.
+%
+% Only emit a message with a certain interval.
+
+format_interval(Index, Interval) :-
+  format_interval(Index, Interval, user_output, "~D\n", [Index]).
+
+
+format_interval(Index, Interval, Out, Format, Args) :-
+  Index mod Interval =:= 0, !,
+  format(Out, Format, Args).
+format_interval(_, _, _, _, _).
 
 
 

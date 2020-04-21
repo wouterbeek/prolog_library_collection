@@ -7,10 +7,8 @@
   ]
 ).
 
-/** <module> Counter
+/** <module> A simple counter
 
-@author Wouter Beek
-@version 2018-2019
 */
 
 

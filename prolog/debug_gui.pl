@@ -6,10 +6,8 @@
   ]
 ).
 
-/** <module> XPCE-based debug tools
+/** <module> GUI (XPCE) support for debugging
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(swi_ide)).

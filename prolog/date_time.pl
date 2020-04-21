@@ -1,6 +1,7 @@
 :- module(
   date_time,
   [
+    cpu_time/2,        % :Goal_0, -Delta
   % CONVERSIONS
     date_time_to_dt/2, % +Datetime1, -Datetime2
     dt_to_date_time/2, % +Datetime1, -Datetime2
@@ -12,6 +13,8 @@
     now/1,             % -Datetime
     number_of_days_in_month_of_year/3, % ?Year, ?Month, ?MaxDay
   % PP
+    date_time_label/2, % +Datetime, -Label
+    date_time_label/3, % +Datetime, -Label, +Options
     dt_label/2,        % +Datetime, -Label
     dt_label/3,        % +Datetime, -Label, +Options
   % HELPERS
@@ -56,6 +59,9 @@ This is a huge date/time-saver!
 :- use_module(library(dict)).
 :- use_module(library(nlp/nlp_lang)).
 
+:- meta_predicate
+    cpu_time(0, -).
+
 % XSD-inspired 7-value model, except for seconds,
 % which is a float or integer rather than a rational,
 error:has_type(dt, dt(Y,Mo,D,H,Mi,S,Off)):-
@@ -79,6 +85,18 @@ error:has_type(date_time, time(H,Mi,S)):-
   (var(H) -> true ; error:has_type(between(0,24), H)),
   (var(Mi) -> true ; error:has_type(between(0,59), Mi)),
   (var(S) -> true ; error:has_type(float, S)).
+
+
+
+
+
+%! cpu_time(:Goal_0, -Delta:double) is det.
+
+cpu_time(Goal_0, Delta) :-
+  statistics(cputime, Cpu1),
+  call(Goal_0),
+  statistics(cputime, Cpu2),
+  Delta is Cpu2 - Cpu1.
 
 
 
@@ -243,15 +261,29 @@ number_of_days_in_month_of_year(_, _, 28).
 
 % PP %
 
-%! dt_label(+Datetime:dt, -Label:string) is det.
-%! dt_label(+Datetime:dt, -Label:string, +Options:dict) is det.
+%! date_time_label(+Datetime:compound, -Label:string) is det.
+%! date_time_label(+Datetime:compound, -Label:string, +Options:dict) is det.
 
-dt_label(Datetime, Label) :-
-  dt_label(Datetime, Label, _{}).
+date_time_label(DateTime, Label) :-
+  date_time_to_dt(DateTime, Dt),
+  dt_label(Dt, Label).
 
 
-dt_label(Datetime, Label, Options) :-
-  string_phrase(dt_(Datetime, Options), Label).
+date_time_label(DateTime, Label, Options) :-
+  date_time_to_dt(DateTime, Dt),
+  dt_label(Dt, Label, Options).
+
+
+
+%! dt_label(+Dt:dt, -Label:string) is det.
+%! dt_label(+Dt:dt, -Label:string, +Options:dict) is det.
+
+dt_label(Dt, Label) :-
+  dt_label(Dt, Label, _{}).
+
+
+dt_label(Dt, Label, Options) :-
+  string_phrase(dt_(Dt, Options), Label).
 
 dt_(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
   (   {ground(date(Y,Mo,Da,H,Mi,S,Off))}

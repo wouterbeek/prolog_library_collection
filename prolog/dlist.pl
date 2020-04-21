@@ -12,8 +12,6 @@
 
 /** <module> Difference lists
 
-@author Wouter Beek
-@version 2015-2018
 */
 
 :- use_module(library(apply)).

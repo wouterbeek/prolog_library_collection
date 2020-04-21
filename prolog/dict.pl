@@ -1,7 +1,7 @@
 :- module(
   dict,
   [
-    dict_del/3,               % +KeyOrKeys, +From, -To
+    dict_del/3,               % +Keys, +From, -To
     dict_delete_or_default/5, % +Key, +From, +Default, -Value, -To
     dict_get/3,               % ?Keys, +Dict, -Value
     dict_get/4,               % +Keys, +Dict, +Default, -Value
@@ -22,11 +22,10 @@
   ]
 ).
 
-/** <module> Extended support for dictionaries
+/** <module> Dictionary extension
 
-This module extends the support for dictionaries in the SWI-Prolog
-standard library.
-
+@author Wouter Beek
+@version 2017-2020
 */
 
 :- use_module(library(apply)).
@@ -38,16 +37,12 @@ standard library.
 
 
 
-%! dict_del(+KeyOrKeys:or([atom,list(atom)]), +From:dict, -To:dict) is det.
-%
-% Deletes one or more keys.
+%! dict_del(+Keys:list(atom), +From:dict, -To:dict) is det.
 
 dict_del([], Dict, Dict) :- !.
 dict_del([H|T], Dict1, Dict3) :-
-  dict_del(H, Dict1, _, Dict2),
+  del_dict(H, Dict1, _, Dict2),
   dict_del(T, Dict2, Dict3).
-dict_del(Key, Dict1, Dict2) :-
-  del_dict(Key, Dict1, _, Dict2).
 
 
 

@@ -9,10 +9,8 @@
   ]
 ).
 
-/** <module> Default
+/** <module> Support for default values
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- meta_predicate
@@ -32,8 +30,8 @@
 call_default_option(Option, Options, _) :-
   option(Option, Options), !.
 call_default_option(Option, _, Goal_1) :-
-  Option =.. [_,Value],
-  (call(Goal_1, DefaultValue) -> Value = DefaultValue).
+  compound_name_arguments(Option, _, [Value]),
+  once(call(Goal_1, Value)).
 
 
 

@@ -2,11 +2,14 @@
 :- module(
   conf,
   [
-    cli_argument/2,  % +Key, -Argument
-    cli_argument/3,  % +Key, +Default, -Argument
-    cli_arguments/1, % -Arguments
-    conf_json/1,     % -Configuration
-    conf_json/3      % +Key, -Configuration, -Directory
+    cli_argument/2,   % +Key, -Value
+    cli_argument/3,   % +Key, +Default, -Value
+    cli_arguments/1,  % -Values
+    conf_json/1,      % -Configuration
+    conf_json/2,      % +Key, -Value
+    data_directory/1, % -Directory
+    data_file/1,      % -AbsolutePath
+    data_file/2       % +RelativePath, -AbsolutePath
   ]
 ).
 
@@ -14,7 +17,7 @@
 
 This module is typically used in the following way:
 
-```prolog
+```pl
 :- initialization
    conf_json(Conf),
    configure_your_application(Conf).
@@ -22,10 +25,10 @@ This module is typically used in the following way:
 
 or
 
-```prolog
+```pl
 :- initialization
-   conf_json('my-application', Conf, Dir),
-   configure_your_application(Conf, Dir).
+   conf_json('my-application', Conf),
+   configure_your_application(Conf).
 ```
 
 The configuration file location can be supplied from the command line
@@ -37,16 +40,12 @@ configuration file location is used, i.e., `~/conf.json'.
 --conf=$(FILE)
 ```
 
----
-
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(apply)).
-:- use_module(library(http/json)).
+:- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(option)).
+:- use_module(library(uuid)).
 
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
@@ -81,7 +80,7 @@ cli_argument(_, Value, Value).
 
 
 
-%! cli_arguments(-Argumentss:list(compound)) is det.
+%! cli_arguments(-Arguments:list(compound)) is det.
 
 cli_arguments(Args) :-
   current_prolog_flag(argv, Flags),
@@ -127,31 +126,47 @@ conf_file_spec('conf.json').
 conf_file_spec('~/conf.json').
 
 
-%! conf_json(+Key:atom, -Configuration:dict, -Directory:atom) is semidet.
+%! conf_json(+Key:atom, -Value:atom) is semidet.
 %
 % Like conf_json/1, but only returns that part of the configuration
 % that resides underneath the given Key.
-%
-% This allows multiple libraries/applications to be configured within
-% the same configuration file, using the first level keys as
-% library/application identifiers that can be supplied as Key.
-%
-% This also supports the specification of optional outer and inner
-% `directory' keys, which are appended and bound to Directory.
 %
 % @throws existence_error/1 if no configuration files exists.
 %
 % @throws existence_error/2 if Key does not occur in the configuration
 % file.
 
-conf_json(Key, Conf2, Dir) :-
-  conf_json(Conf1),
-  dict_get(directory, Conf1, '', Dir1),
-  dict_get(Key, Conf1, Conf2), !,
-  dict_get(directory, Conf2, '', Dir2),
-  append_directories([Dir1,Dir2], Dir).
-conf_json(Key, _, _) :-
+conf_json(Key, Value) :-
+  conf_json(Conf),
+  dict_get(Key, Conf, Value), !.
+conf_json(Key, _) :-
   existence_error(conf_key, Key).
+
+
+
+%! data_directory(-Directory:atom) is semidet.
+
+data_directory(Dir) :-
+  conf_json('data-directory', Dir), !.
+data_directory(_) :-
+  existence_error(config, data_directory).
+
+
+
+%! data_file(-AbsolutePath:atom) is multi.
+
+data_file(File) :-
+  uuid(Local),
+  data_file(Local, File).
+
+
+
+%! data_file(+RelativePath:atom, -AbsolutePath:atom) is det.
+
+data_file(RelativePath, AbsolutePath) :-
+  data_directory(Dir),
+  absolute_file_name(RelativePath, AbsolutePath, [relative_to(Dir)]),
+  create_file_directory(AbsolutePath).
 
 
 

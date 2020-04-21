@@ -6,10 +6,8 @@
   ]
 ).
 
-/** <module> Code extensions
+/** <module> Extended support for codes
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(apply)).

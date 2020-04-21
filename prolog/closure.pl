@@ -11,14 +11,15 @@
   ]
 ).
 
-/** <module> Closure
+/** <module> Closures
 
-@author Wouter Beek
-@verion 2017-2018
+Generic closure predicates that operate over graph data structures.
+
 */
 
 :- use_module(library(error)).
 :- use_module(library(lists)).
+:- use_module(library(plunit)).
 
 :- meta_predicate
     leave_closure(2, ?, ?),
@@ -110,20 +111,6 @@ path_closure(Goal_2, X, Z, Path) :-
 path_closure(_, X, Y, _) :-
   instantiation_error(args(X,Y)).
 
-:- begin_tests(path_closure).
-
-test(path_closure, [set(Y-P == [b-[a,b],c-[a,b,c]])]) :-
-  path_closure(connection, a, Y, P).
-
-test(path_closure0, [set(Y-P == [a-[a],b-[a,b],c-[a,b,c]])]) :-
-  path_closure0(connection, a, Y, P).
-
-connection(a, a).
-connection(a, b).
-connection(b, c).
-
-:- end_tests(path_closure).
-
 
 
 %! path_closure0(:Goal_2, +X, +Y) is semidet.
@@ -192,3 +179,37 @@ path_distance2(Goal_2, Z, X, Hist, N1, N) :-
   \+ memberchk(Y, Hist),
   N2 is N1 + 1,
   path_distance2(Goal_2, Z, Y, [Y|Hist], N2, N).
+
+
+
+
+
+% TESTS %
+
+:- begin_tests(closure).
+
+test(leave_closure, [set(Y==[charing_cross])]) :-
+  leave_closure(arc(1), bond_street, Y).
+
+test(path_closure, [set(Y-P == [b-[a,b],c-[a,b,c]])]) :-
+  path_closure(arc(2), a, Y, P).
+
+test(path_closure0, [set(Y-P == [a-[a],b-[a,b],c-[a,b,c]])]) :-
+  path_closure0(arc(2), a, Y, P).
+
+arc(1, bond_street, oxford_circus).
+arc(1, oxford_circus, tottenham_court_road).
+arc(1, bond_street, green_park).
+arc(1, green_park, charing_cross).
+arc(1, green_park, piccadilly_circus).
+arc(1, piccadilly_circus, leicester_square).
+arc(1, green_park, oxford_circus).
+arc(1, oxford_circus, piccadilly_circus).
+arc(1, piccadilly_circus, charing_cross).
+arc(1, tottenham_court_road, leicester_square).
+arc(1, leicester_square, charing_cross).
+arc(2, a, a).
+arc(2, a, b).
+arc(2, b, c).
+
+:- end_tests(closure).

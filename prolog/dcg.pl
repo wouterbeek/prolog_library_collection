@@ -175,9 +175,6 @@ alphanum(Code) --> digit(Code).
 
 %! atom_phrase(:Dcg_0, ?Atom:atom)// is nondet.
 %! atom_phrase(:Dcg_0, +Atom1:atomic, ?Atom2:atom)// is nondet.
-%
-% @throws instantiation_error
-% @throws type_error
 
 atom_phrase(Dcg_0, Atom) :-
   var(Atom), !,
