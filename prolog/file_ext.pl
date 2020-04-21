@@ -24,6 +24,7 @@
     directory_subdirectories/2,   % ?Directory, ?Subdirectories
     directory_subdirectory/2,     % +Directory, ?Subdirectory
     directory_subdirectory/3,     % +Directory, ?Local, ?Subdirectory
+    file_call/2,                  % +File, Goal_1
     file_extension/2,             % +File, -Extension
     file_extensions/2,            % +File, -Extensions
     file_extensions_media_type/2, % +Extensions, -MediaType
@@ -67,7 +68,7 @@
 /** <module> File extensions
 
 @author Wouter Beek
-@version 2017-2019
+@version 2017-2020
 */
 
 :- use_module(library(apply)).
@@ -87,6 +88,7 @@
 :- meta_predicate
     call_file_(+, +, 1, +),
     call_files_(+, +, +, +, 2, +, +),
+    file_call(+, 1),
     read_from_file(+, 1),
     read_from_file(+, 1, +),
     read_write_file(+, 2),
@@ -371,6 +373,17 @@ directory_subdirectory(Dir, Local, Subdir) :-
   directory_path(Dir, Subdir),
   exists_directory(Subdir),
   directory_file_path(_, Local, Subdir).
+
+
+
+%! file_call(+File:atom, :Goal_1) is det.
+
+file_call(File, Goal_1) :-
+  setup_call_cleanup(
+    open(File, read, In),
+    call(Goal_1, In),
+    close(In)
+  ).
 
 
 

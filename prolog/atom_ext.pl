@@ -8,6 +8,7 @@
     atom_postfix/3,    % +Original, ?Length, ?Postfix
    %atom_prefix/2,     % +Original, ?Prefix
     atom_prefix/3,     % +Original, ?Length, ?Prefix
+    atom_same_ci/2,    % +Atom1, +Atom2
     atom_strip/2,      % +Original, ?Stripped
     atom_strip/3,      % +Original, +Strip, ?Stripped
     atom_terminator/3, % +Original, +Terminator, ?Terminated
@@ -16,15 +17,19 @@
   ]
 ).
 
-/** <module> Atom extensions
+/** <module> Extended support for atoms
 
-@author Wouter Beek
-@version 2017-2019
+This module extends the support for handling atoms in the SWI-Prolog
+standard library.
+
 */
 
+:- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 :- use_module(library(plunit)).
+
+:- use_module(library(call_ext)).
 
 
 
@@ -87,6 +92,9 @@ atom_capitalize_test('ὰ', 'Ὰ').
 % Length = 6,
 % Ellipsed = monkey.
 % ```
+%
+% Can be used to display a shorter atom to human users.  For example,
+% an atom that is displayed inside a table cell.
 %
 % @see string_ellipsis/3 provides the same functionality for strings.
 
@@ -205,6 +213,13 @@ test_atom_prefix(abcd, 4, abcd).
 
 
 
+%! atom_same_ci(+A:atom, +B:atom) is semidet.
+
+atom_same_ci(A, B) :-
+  equal_under(downcase_atom, A, B).
+
+
+
 %! atom_strip(+Original:atom, +Stripped:atom) is det.
 %! atom_strip(+Original:atom, -Stripped:atom) is det.
 %! atom_strip(+Original:atom, +Strip:list(char), +Stripped:atom) is semidet.
@@ -296,8 +311,21 @@ test_atom_terminator('', /, /).
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, +Truncated:atom) is semidet.
 %! atom_truncate(+Original:atom, +MaxLength:nonneg, -Truncated:atom) is det.
 %
-% @see Like atom_prefix/3, but the Truncated atom is the Original
-%      atom in case MaxLength exceeds the Original atom length.
+% Hard-truncates the `Original' atom.
+%
+% For example:
+%
+% ```pl
+% ?- atom_truncate('This atom is too long.', 15, Truncated).
+% Trunaced = 'This atom is to'
+% ```
+%
+% @see Similar to atom_prefix/3, but the `Truncated' atom is the
+% `Original' atom in case `MaxLength' exceeds the `Original' atom's
+% length.
+%
+% @see Use atom_ellipse/3 in case the truncated atom will be displayed
+% to human users.
 %
 % @see string_truncate/3 provides the same functionality for strings.
 
@@ -327,6 +355,8 @@ atom_truncate_test(monkey, 1 000, monkey).
 
 %! sub_atom(+Atom:atom, +Subatom:atom) is semidet.
 %! sub_atom(+Atom:atom, -Subatom:atom) is nondet.
+%
+% Suceeds iff `Subatom' is a subatom of `Atom'.
 
 sub_atom(Atom, Subatom) :-
   sub_atom(Atom, _, _, _, Subatom).

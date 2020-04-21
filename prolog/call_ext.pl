@@ -1,8 +1,8 @@
 :- module(
   call_ext,
   [
+    bagof/4,                % +Template, :Goal, -Bag, +Zero
     call_bool/2,            % :Goal_0, ?Bool
-    call_default_option/3,  % ?Option, +OptionList, :Goal_1
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
@@ -18,6 +18,7 @@
     call_warning/1,         % :Goal_0
     call_when_ground/1,     % :Goal_0
     call_when_ground/2,     % ?Term, :Goal_0
+    equal_under/3,          % :Goal_2, +A, +B
     is_det/1,               % :Goal_0
     maplist/6,              % :Goal_5, ?Args1, ?Args2, ?Args3, ?Args4, ?Args5
     permlist/3,             % :Goal_2, ?Args1, ?Args2
@@ -30,8 +31,6 @@
 
 /** <module> Call extensions
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(dif)).
@@ -39,9 +38,11 @@
 :- use_module(library(plunit)).
 :- use_module(library(when)).
 
+:- use_module(library(dict)).
+
 :- meta_predicate
+    bagof(+, 0, -, +),
     call_bool(0, -),
-    call_default_option(?, +, 1),
     call_det_when(0, 0),
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
@@ -57,6 +58,7 @@
     call_warning(0),
     call_when_ground(0),
     call_when_ground(?, 0),
+    equal_under(2, +, +),
     is_det(0),
     maplist(5, ?, ?, ?, ?, ?),
     permlist(2, ?, ?),
@@ -64,6 +66,14 @@
     permlist2_(2, ?, ?).
 
 
+
+
+
+%! bagof(+Template:T, :Goal_0, -Bag:list(T), +Zero:list(T)) is det.
+
+bagof(Template, Goal_0, Bag, _) :-
+  bagof(Template, Goal_0, Bag), !.
+bagof(_, _, Zero, Zero).
 
 
 
@@ -91,14 +101,6 @@ test_call_bool(true, true).
 :- end_tests(call_bool).
 
 
-
-%! call_default_option(?Option:compound, +OptionList:list(compound), :Goal_1) is det.
-
-call_default_option(Option, Options, _) :-
-  option(Option, Options), !.
-call_default_option(Option, _, Goal_1) :-
-  compound_name_arguments(Option, _, [Value]),
-  once(call(Goal_1, Value)).
 
 
 
@@ -168,6 +170,8 @@ call_if_nonvar(_, Goal_0) :-
 
 %! call_must_be(:Goal_1, @Term) is det.
 %
+% Checks whether Term belongs to the set of terms denoted by Goal_1.
+%
 % Assumes that terms enumerated by `Goal_1' are ground.
 
 call_must_be(Goal_1, Term) :-
@@ -236,12 +240,12 @@ call_stats(Select_1, Goal_1, Stats) :-
       update_average(cputime, State, Cpu34),
       Inf34 is Inf4 - Inf3,
       update_average(inferences, State, Inf34),
-      (   get_dict(maxcpu, State, Max),
+      (   dict_get(maxcpu, State, Max),
           Cpu34 > Max
       ->  nb_set_dict(maxcpu, State, Cpu34)
       ;   true
       ),
-      (   get_dict(mincpu, State, Min),
+      (   dict_get(mincpu, State, Min),
           Cpu34 < Min
       ->  nb_set_dict(mincpu, State, Cpu34)
       ;   true
@@ -302,12 +306,12 @@ call_stats_n(Repeats, Goal_0, Stats) :-
       update_average(cputime, State, Cpu34),
       Inf34 is Inf4 - Inf3,
       update_average(inferences, State, Inf34),
-      (   get_dict(maxcpu, State, Max),
+      (   dict_get(maxcpu, State, Max),
           Cpu34 > Max
       ->  nb_set_dict(maxcpu, State, Cpu34)
       ;   true
       ),
-      (   get_dict(mincpu, State, Min),
+      (   dict_get(mincpu, State, Min),
           Cpu34 < Min
       ->  nb_set_dict(mincpu, State, Cpu34)
       ;   true
@@ -337,7 +341,7 @@ stats(Cpu, Inf, Wall) :-
   get_time(Wall).
 
 update_average(Key, State, Avg) :-
-  get_dict(Key, State, M1-N1),
+  dict_get(Key, State, M1-N1),
   N2 is N1 + 1,
   M2 is ((N1 * M1) + Avg) / N2,
   nb_set_dict(Key, State, M2-N2).
@@ -361,6 +365,16 @@ call_when_ground(Goal_0) :-
 
 call_when_ground(Term, Goal_0) :-
   when(ground(Term), Goal_0).
+
+
+
+%! equal_under(:Goal_2, +A:term, +B:term) is semidet.
+%
+% Succeeds iff `A' and `B' are equal under transformation `Goal_2'.
+
+equal_under(Goal_2, A1, B1) :-
+  maplist(GOal_2, [A1,B1], [A2,B2]),
+  A2 == B2.
 
 
 

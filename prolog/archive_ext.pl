@@ -4,16 +4,16 @@
     archive_call/2,       % +In, :Goal_1
     archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
-    archive_open/2,       % +In, -Archive
-    archive_stream/2      % +In1, -In2
+    archive_open/2        % +In, -Archive
   ]
 ).
 :- reexport(library(archive)).
 
-/** <module> Archive extensions
+/** <module> Extended support for handling archives
 
-@author Wouter Beek
-@version 2017-2019
+This module extends the support for archives in the SWI-Prolog
+standard library.
+
 */
 
 :- use_module(library(yall)).
@@ -27,18 +27,23 @@
 
 
 
-%! archive_call(+In:stream, :Goal_1) is det.
+%! archive_call(+In:stream, :Goal_1) is multi.
 %
-% The following call is made:
+% Calls unary goal `Goal_1' on a decompressed input stream that is
+% present in the encoded input stream `In'.
 %
-% ```
-% call(Goal_1, Arch)
-% ```
+% Supports non-deterministically iterating over all archive members.
+%
+% Uses archive_open/2 to automatically process all supporter archive
+% filters and formats.
 
-archive_call(In, Goal_1) :-
+archive_call(In1, Goal_1) :-
   setup_call_cleanup(
-    archive_open(In, Arch),
-    call(Goal_1, Arch),
+    archive_open(In1, Arch),
+    (
+      archive_data_stream(Arch, In2, []),
+      call(Goal_1, In2)
+    ),
     archive_close(Arch)
   ).
 
@@ -46,6 +51,11 @@ archive_call(In, Goal_1) :-
 
 %! archive_extension(+Extension:atom) is semidet.
 %! archive_extension(-Extension:atom) is multi.
+%
+% Uses the Media Type library in order to determine whether a given
+% `Extension' is commonly used to denote an archive file.
+%
+% Can also be used to enumerate such known file name extensions.
 
 archive_extension(Ext) :-
   var(Ext), !,
@@ -59,6 +69,9 @@ archive_extension(Ext) :-
 
 %! archive_filter(+Filter:atom) is semidet.
 %! archive_filter(-Filter:atom) is multi.
+%
+% Succeeds for all and only filter-denoting atoms that are supported
+% by the archive library.
 
 archive_filter(Filter) :-
   archive_media_type_filter_(_, Filter).
@@ -79,15 +92,22 @@ archive_media_type_filter_(media(application/'x-xz',[]), xz).
 
 %! archive_format(+Format:atom) is semidet.
 %! archive_format(-Format:atom) is multi.
+%
+% Succeeds for all and only format-denoting atoms that are supported
+% by the archive library.
+%
+% This predicate purposefully skips the `mtree' archive format,
+% becasue its use results in many false positives in real-world use
+% cases.  `mtree` is a plain text format, and libarchive someitmes
+% considers a regular (non-archive) text file to be of this format.
+% Also, `mtree` archives are rarely used in practice, so the loss of
+% excluding this format is not that big.
 
 archive_format(Format) :-
   archive_media_type_format_(_, Format).
 archive_format(ar).
 archive_format(empty).
 archive_format(iso9660).
-% The `mtree' format is not supported, because archives in that format
-% are regular text files and result in false positives.
-% archive_format(mtree).
 archive_format(raw).
 % eXtensible ARchive
 archive_format(xar).
@@ -96,6 +116,9 @@ archive_format(xar).
 
 %! archive_media_type(+MediaType:compound) is semidet.
 %! archive_media_type(-MediaType:compound) is multi.
+%
+% Succeeds for all and only those Media Types that denote an archive
+% format.  These are recorded in the Media Type library.
 
 archive_media_type(MediaType) :-
   ground(MediaType), !,
@@ -122,14 +145,10 @@ archive_media_type_format_(media(application/zip,[]), zip).
 
 
 %! archive_open(+In:stream, -Archive:blob) is det.
+%
+% Tries to open an archive of any of the supported formats, using any
+% of the supported filters, from the input stream `In`.
 
 archive_open(In, Archive) :-
   findall(format(Format), archive_format(Format), Formats),
   archive_open(In, Archive, Formats).
-
-
-
-%! archive_stream(+In1:stream, -In2:stream) is nondet.
-
-archive_stream(In1, In2) :-
-  archive_call(In1, {In2}/[Arch]>>archive_data_stream(Arch, In2, [])).

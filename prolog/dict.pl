@@ -1,9 +1,10 @@
 :- module(
   dict,
   [
+    dict_del/3,               % +KeyOrKeys, +From, -To
     dict_delete_or_default/5, % +Key, +From, +Default, -Value, -To
-    dict_get/3,               % ?Key, +Dict, -Value
-    dict_get/4,               % +Key, +Dict, +Default, -Value
+    dict_get/3,               % ?Keys, +Dict, -Value
+    dict_get/4,               % +Keys, +Dict, +Default, -Value
     dict_inc/2,               % +Key, +Dict
     dict_inc/3,               % +Key, +Dict, -Value
     dict_inc/4,               % +Key, +Dict, +Diff, -Value
@@ -21,10 +22,11 @@
   ]
 ).
 
-/** <module> Dictionary extension
+/** <module> Extended support for dictionaries
 
-@author Wouter Beek
-@version 2017-2018
+This module extends the support for dictionaries in the SWI-Prolog
+standard library.
+
 */
 
 :- use_module(library(apply)).
@@ -33,6 +35,19 @@
 :- use_module(library(pair_ext)).
 
 
+
+
+
+%! dict_del(+KeyOrKeys:or([atom,list(atom)]), +From:dict, -To:dict) is det.
+%
+% Deletes one or more keys.
+
+dict_del([], Dict, Dict) :- !.
+dict_del([H|T], Dict1, Dict3) :-
+  dict_del(H, Dict1, _, Dict2),
+  dict_del(T, Dict2, Dict3).
+dict_del(Key, Dict1, Dict2) :-
+  del_dict(Key, Dict1, _, Dict2).
 
 
 
@@ -47,17 +62,24 @@ dict_delete_or_default(_, Dict, Default, Default, Dict).
 
 
 
-%! dict_get(?Key:atom, +Dict:dict, -Value:term) is nondet.
+%! dict_get(?Keys:or([atom,list(atom)]), +Dict:dict, -Value:term) is nondet.
+%! dict_get(+Keys:or([atom,list(atom)], +Dict:dict, +Default:term, -Value:term) is semidet.
 
 dict_get(Key, Dict, Value) :-
-  get_dict(Key, Dict, Value).
+  atom(Key), !,
+  dict_get_([Key], Dict, Value).
+dict_get(Keys, Dict, Value) :-
+  dict_get_(Keys, Dict, Value).
+
+dict_get_([], Value, Value) :- !.
+dict_get_([H|T], Dict1, Value) :-
+  get_dict(H, Dict1, Dict2),
+  dict_get_(T, Dict2, Value).
 
 
-
-%! dict_get(+Key:atom, +Dict:dict, +Default:term, -Value:term) is semidet.
-
-dict_get(Key, Dict, _, Value) :-
-  get_dict(Key, Dict, Value), !.
+dict_get(Keys, Dict, _, Value2) :-
+  dict_get(Keys, Dict, Value1), !,
+  Value2 = Value1.
 dict_get(_, _, Default, Default).
 
 
@@ -85,7 +107,7 @@ dict_inc(Key, Dict, Diff, Value2) :-
 %! dict_key(+Dict:dict, -Key:atom) is nondet.
 
 dict_key(Dict, Key) :-
-  dict_get(Key, Dict, _).
+  get_dict(Key, Dict, _).
 
 
 
