@@ -10,7 +10,7 @@ that is already available in the
 Perform the following call in [SWI-Prolog](http://www.swi-prolog.org):
 
 ```pl
-:- pack_install(plc).
+:- pack_install(prolog_library_collection).
 ```
 
 That's it!  You can now load modules from this library in the following way:
