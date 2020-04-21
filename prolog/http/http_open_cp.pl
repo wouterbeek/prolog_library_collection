@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2002-2018, University of Amsterdam
+    Copyright (c)  2002-2020, University of Amsterdam
                               VU University Amsterdam
                               CWI, Amsterdam
     All rights reserved.
@@ -39,18 +39,33 @@
             http_set_authorization/2,   % +URL, +Authorization
             http_close_keep_alive/1     % +Address
           ]).
-:- use_module(library(uri)).
-:- use_module(library(readutil)).
-:- use_module(library(socket)).
-:- use_module(library(lists)).
-:- use_module(library(option)).
-:- use_module(library(error)).
-:- use_module(library(base64)).
-:- use_module(library(debug)).
-:- use_module(library(aggregate)).
-:- use_module(library(apply)).
-:- use_module(library(http/http_header_cp), [http_parse_header/2]).
-:- use_module(library(http/http_stream)).
+:- autoload(library(aggregate),[aggregate_all/3]).
+:- autoload(library(apply),[foldl/4,include/3]).
+:- autoload(library(base64),[base64/3]).
+:- autoload(library(debug),[debug/3,debugging/1]).
+:- autoload(library(error),
+	    [ domain_error/2, must_be/2, existence_error/2, instantiation_error/1
+	    ]).
+:- autoload(library(lists),[last/2,member/2]).
+:- autoload(library(option),
+	    [ meta_options/3, option/2, select_option/4, merge_options/3,
+	      option/3, select_option/3
+	    ]).
+:- autoload(library(readutil),[read_line_to_codes/2]).
+:- autoload(library(socket),
+	    [tcp_connect/3,negotiate_socks_connection/2]).
+:- autoload(library(uri),
+	    [ uri_resolve/3, uri_components/2, uri_data/3,
+              uri_authority_components/2, uri_authority_data/3,
+	      uri_encoded/3, uri_query_components/2, uri_is_global/1
+	    ]).
+:- autoload(library(http/http_header_cp),
+            [ http_parse_header/2, http_post_data/3 ]).
+:- autoload(library(http/http_stream),[stream_range_open/3]).
+:- if(( exists_source(library(ssl)),
+        \+ current_prolog_flag(pldoc_to_tex,true))).
+:- autoload(library(ssl), [ssl_upgrade_legacy_options/2]).
+:- endif.
 
 /** <module> HTTP client library
 
@@ -376,16 +391,15 @@ user_agent('SWI-Prolog').
     socket:proxy_for_url/3.           % +URL, +Host, -ProxyList
 
 http_open(URL, Stream, QOptions) :-
-    meta_options(is_meta, QOptions, Options),
+    meta_options(is_meta, QOptions, Options0),
     (   atomic(URL)
     ->  parse_url_ex(URL, Parts)
     ;   Parts = URL
     ),
     autoload_https(Parts),
+    upgrade_ssl_options(Parts, Options0, Options),
     add_authorization(Parts, Options, Options1),
-    findall(HostOptions,
-            http:open_options(Parts, HostOptions),
-            AllHostOptions),
+    findall(HostOptions, hooked_options(Parts, HostOptions), AllHostOptions),
     foldl(merge_options_rev, AllHostOptions, Options1, Options2),
     (   option(bypass_proxy(true), Options)
     ->  try_http_proxy(direct, Parts, Stream, Options2)
@@ -483,6 +497,23 @@ http:http_connection_over_proxy(socks(SocksHost, SocksPort), _Parts, Host:Port,
             throw(Error)
           )).
 
+%!  hooked_options(+Parts, -Options) is nondet.
+%
+%   Calls  http:open_options/2  and  if  necessary    upgrades  old  SSL
+%   cacerts_file(File) option to a cacerts(List) option to ensure proper
+%   merging of options.
+
+hooked_options(Parts, Options) :-
+    http:open_options(Parts, Options0),
+    upgrade_ssl_options(Parts, Options0, Options).
+
+:- if(current_predicate(ssl_upgrade_legacy_options/2)).
+upgrade_ssl_options(Parts, Options0, Options) :-
+    requires_ssl(Parts),
+    !,
+    ssl_upgrade_legacy_options(Options0, Options).
+:- endif.
+upgrade_ssl_options(_, Options, Options).
 
 merge_options_rev(Old, New, Merged) :-
     merge_options(New, Old, Merged).
@@ -505,13 +536,17 @@ host_and_port(Host, _,       Port,    Host:Port).
 %   If the requested scheme is https or wss, load the HTTPS plugin.
 
 autoload_https(Parts) :-
+    requires_ssl(Parts),
     memberchk(scheme(S), Parts),
-    secure_scheme(S),
     \+ clause(http:http_protocol_hook(S, _, StreamPair, StreamPair, _),_),
     exists_source(library(http/http_ssl_plugin)),
     !,
     use_module(library(http/http_ssl_plugin)).
 autoload_https(_).
+
+requires_ssl(Parts) :-
+    memberchk(scheme(S), Parts),
+    secure_scheme(S).
 
 secure_scheme(https).
 secure_scheme(wss).
@@ -557,7 +592,7 @@ guarded_send_rec_header(StreamPair, Stream, Host, RequestURI, Parts, Options) :-
     x_headers(Options, URI, StreamPair),
     write_cookies(StreamPair, Parts, Options),
     (   option(post(PostData), Options)
-    ->  http_header_cp:http_post_data(PostData, StreamPair, [])
+    ->  http_post_data(PostData, StreamPair, [])
     ;   format(StreamPair, '\r\n', [])
     ),
     flush_output(StreamPair),
@@ -932,8 +967,19 @@ transfer_encoding_filter_(Encoding, In0, In) :-
     ),
     (   http:encoding_filter(Encoding, In1, In)
     ->  true
+    ;   autoload_encoding(Encoding),
+        http:encoding_filter(Encoding, In1, In)
+    ->  true
     ;   domain_error(http_encoding, Encoding)
     ).
+
+:- multifile
+    autoload_encoding/1.
+
+:- if(exists_source(library(zlib))).
+autoload_encoding(gzip) :-
+    use_module(library(zlib)).
+:- endif.
 
 content_type(Lines, Type) :-
     member(Line, Lines),
@@ -1195,6 +1241,7 @@ add_authorization(_, Options, Options) :-
 add_authorization(Parts, Options0, Options) :-
     url_part(user(User), Parts),
     url_part(password(Passwd), Parts),
+    !,
     Options = [authorization(basic(User,Passwd))|Options0].
 add_authorization(Parts, Options0, Options) :-
     stored_authorization(_, _) ->   % quick test to avoid work
@@ -1220,6 +1267,7 @@ parse_url_ex(URL, [uri(URL)|Parts]) :-
 
 components(Components) -->
     uri_scheme(Components),
+    uri_path(Components),
     uri_authority(Components),
     uri_request_uri(Components).
 
@@ -1229,6 +1277,18 @@ uri_scheme(Components) -->
     [ scheme(Scheme)
     ].
 uri_scheme(_) --> [].
+
+uri_path(Components) -->
+    { uri_data(path, Components, Path0), nonvar(Path0),
+      (   Path0 == ''
+      ->  Path = (/)
+      ;   Path = Path0
+      )
+    },
+    !,
+    [ path(Path)
+    ].
+uri_path(_) --> [].
 
 uri_authority(Components) -->
     { uri_data(authority, Components, Auth), nonvar(Auth),
