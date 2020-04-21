@@ -7,15 +7,12 @@
     uri_file_extensions/2, % +Uri, -Extensions
     uri_local_name/2,      % +Uri, -Local
     uri_media_type/2,      % +Uri, -MediaType
-    uri_scheme/1,          % ?Scheme
     uri_strip/2            % +Uri, -Base
   ]
 ).
 
-/** <module> URI extension
+/** <module> Extended support for URIs
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(apply)).
