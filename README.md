@@ -7,21 +7,13 @@ that is already available in the
 
 ## Installation
 
-  1. Install [SWI-Prolog](http://www.swi-prolog.org).
-
-  2. Run Prolog with the following command:
-
-```sh
-swipl
-```
-
-  3. Make the following call inside Prolog:
+Perform the following call in [SWI-Prolog](http://www.swi-prolog.org):
 
 ```pl
 :- pack_install(plc).
 ```
 
-That it!  You can now load modules from this library in the following way:
+That's it!  You can now load modules from this library in the following way:
 
 ```pl
 :- [library(atom_ext)].
