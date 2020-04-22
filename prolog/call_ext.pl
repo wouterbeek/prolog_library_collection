@@ -373,7 +373,7 @@ call_when_ground(Term, Goal_0) :-
 % Succeeds iff `A' and `B' are equal under transformation `Goal_2'.
 
 equal_under(Goal_2, A1, B1) :-
-  maplist(GOal_2, [A1,B1], [A2,B2]),
+  maplist(Goal_2, [A1,B1], [A2,B2]),
   A2 == B2.
 
 

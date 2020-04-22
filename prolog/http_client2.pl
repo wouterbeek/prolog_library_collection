@@ -50,7 +50,6 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_generic)).
 :- use_module(library(http/http_header_cp), [http_parse_header_value/3]).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).

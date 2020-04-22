@@ -14,7 +14,7 @@ Support for downloading HTML.
 
 :- use_module(library(sgml)).
 
-:- use_module(library(http/http_client2)).
+:- use_module(library(http_client2)).
 
 
 

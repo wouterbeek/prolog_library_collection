@@ -56,10 +56,8 @@
 ).
 :- reexport(library(dcg/basics)).
 
-/** <module> DCG
+/** <module> Extended support for DCGs
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(error)).

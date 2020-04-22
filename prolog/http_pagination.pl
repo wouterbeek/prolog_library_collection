@@ -8,17 +8,16 @@
   ]
 ).
 
-/** <module> HTTP support for pagination
+/** <module> Support for HTTP pagination
 
-@author Wouter Beek
-@version 2017/05-2017/12
 */
 
-:- use_module(library(dict)).
 :- use_module(library(http/json)).
-:- use_module(library(http/rest_server), []). % HTTP parameter hook
-:- use_module(library(pagination)).
 :- use_module(library(settings)).
+
+:- use_module(library(dict)).
+:- use_module(library(pagination)).
+:- use_module(library(rest_server), []). % HTTP parameter hook
 :- use_module(library(uri_ext)).
 
 :- multifile

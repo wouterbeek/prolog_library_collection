@@ -46,8 +46,6 @@ The purpose of this module is to allow the programmer to write all
 predicates that use date/time representations to only work with dt/7.
 This is a huge date/time-saver!
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(apply)).
@@ -57,7 +55,7 @@ This is a huge date/time-saver!
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
-:- use_module(library(nlp/nlp_lang)).
+:- use_module(library(nlp_lang)).
 
 :- meta_predicate
     cpu_time(0, -).

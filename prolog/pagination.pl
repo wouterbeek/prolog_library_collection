@@ -18,7 +18,7 @@
 
 This module creates pages that group results.
 
-```
+```pl
 ?- pagination(N, between(1, 1000000, N), _{page: 856}, Result).
 Result = _G120{number_of_results:20, page:856, page_size:20, results:[17101, 17102, 17103, 17104, 17105, 17106, 17107, 17108|...]} ;
 Result = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 17122, 17123, 17124, 17125, 17126, 17127, 17128|...]} ;
@@ -28,10 +28,11 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 */
 
 :- use_module(library(aggregate)).
-:- use_module(library(dict)).
 :- use_module(library(error)).
-:- use_module(library(list_ext)).
 :- use_module(library(settings)).
+
+:- use_module(library(dict)).
+:- use_module(library(list_ext)).
 
 :- meta_predicate
     pagination(?, 0, -),

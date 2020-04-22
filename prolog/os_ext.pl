@@ -14,12 +14,13 @@
 
 */
 
-:- use_module(library(file_ext)).
-:- use_module(library(media_type)).
 :- use_module(library(option)).
 :- use_module(library(process)).
-:- use_module(library(thread_ext)).
 :- use_module(library(yall)).
+
+:- use_module(library(file_ext)).
+:- use_module(library(media_type)).
+:- use_module(library(thread_ext)).
 
 
 

@@ -7,10 +7,8 @@
 ).
 :- reexport(library(http/json)).
 
-/** <module> JSON extensions
+/** <module> Extended JSON support
 
-@author Wouter Beek
-@version 2018
 */
 
 :- use_module(library(yall)).

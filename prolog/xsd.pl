@@ -24,7 +24,6 @@
 
 :- use_module(library(abnf)).
 :- use_module(library(dcg)).
-:- use_module(library(rdf/rdf_prefix)).
 :- use_module(library(xml_ext)).
 
 :- rdf_meta

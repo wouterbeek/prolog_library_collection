@@ -342,3 +342,23 @@ to be determined:
 
    - `xml_encoding(+In:stream, -Encoding:atom) is semidet.`
    - `xml_file_encoding(+File:atom, -Encoding:atom) is semidet.`
+
+## `xsd`
+
+Support for XML Schema 1.1 Part 2: Datatypes.
+
+  - `xsd_date_time/3` for translating between XSD date/time
+    representations and date/time representations as supported by
+    [[https://github.com/wouterbeek/Prolog-Library-Collection][Prolog-Library-Collection]].
+
+  - `xsd_date_time_type/1` for checking/enumerating the XSD date/time
+    datatype IRIs.
+
+  - `xsd_encode_string//0` a DCG rule for encoding strings of
+    characters according to the restrictions of the XSD string
+    datatype.
+
+  - `xsd_numeric_type/1` enumerates XSD numeric datatype IRIs.
+
+  - `xsd_strict_subtype/2` and `xsd:subtype/2` allow the hierarchy of
+    XSD datatype IRIs to be queried.
