@@ -10,10 +10,11 @@
   ]
 ).
 
-/** <module> XML extensions
+/** <module> Extended support for XML
 
-@author Wouter Beek
-@version 2016-2018
+Extends the support for working with XML provided by the SWI-Prolog
+standard library.
+
 */
 
 :- use_module(library(apply)).

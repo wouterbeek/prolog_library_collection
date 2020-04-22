@@ -8,8 +8,6 @@
 
 /** <module> Predicates for working with proofs
 
-@author Wouter Beek
-@version 2019
 */
 
 :- use_module(library(apply)).

@@ -7,10 +7,8 @@
   ]
 ).
 
-/** <module> Sort extensions
+/** <module> Supoort for sorting
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(apply)).

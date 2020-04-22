@@ -1,16 +1,17 @@
 :- module(
   pair_ext,
   [
-    merge_pairs/3, % +New, +Old, -Merge
-    sum_value/2    % +Pair1, -Pair2
+    compound_pair/2, % ?Compound, ?Pair
+    merge_pairs/3,   % +New, +Old, -Merge
+    sum_value/2      % +Pair1, -Pair2
   ]
 ).
 :- reexport(library(pairs)).
 
-/** <module> Pair extensions
+/** <module> Extended support for pairs
 
-@author Wouter Beek
-@version 2017-2018
+Extends the support for pairs in the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(error)).
@@ -28,6 +29,15 @@ error:has_type(pair(KeyType,ValueType), Key- Value) :-
   error:has_type(ValueType, Value).
 
 
+
+
+
+%! compound_pair(+Compound:compound, +Pair:pair) is semidet.
+%! compound_pair(+Compound:compound, -Pair:pair) is semidet.
+%! compound_pair(-Compound:compound, +Pair:pair) is det.
+
+compound_pair(Compound, Key-Value) :-
+  compound_name_arguments(Compound, Key, [Value]).
 
 
 

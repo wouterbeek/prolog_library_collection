@@ -1,11 +1,9 @@
 :- module(resource, []).
 
-/** <module> Resource
+/** <module> Common resource directories
 
-Sets common resource directories.
+Declarations for common resource directories.
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- dynamic

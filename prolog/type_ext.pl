@@ -5,10 +5,10 @@
   ]
 ).
 
-/** <module> Type extension
+/** <module> Extended support for types
 
-@author Wouter Beek
-@version 2019
+Extends support for types in the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(error)).

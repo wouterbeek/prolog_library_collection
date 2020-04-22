@@ -6,10 +6,8 @@
   ]
 ).
 
-/** <module> Graph extensions
+/** <module> Generic support for graphs
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(aggregate)).

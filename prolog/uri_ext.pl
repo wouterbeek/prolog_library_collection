@@ -4,14 +4,20 @@
     append_segments/3,     % +Segments1, +Segments2, ?Segments3
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
+    uri_data_file/2,       % +Uri, -File
     uri_file_extensions/2, % +Uri, -Extensions
     uri_local_name/2,      % +Uri, -Local
     uri_media_type/2,      % +Uri, -MediaType
+    uri_relative_path/3,   % +Uri, +Local, -RelativePath
+    uri_scheme/2,          % +Uri, ?Scheme
     uri_strip/2            % +Uri, -Base
   ]
 ).
+:- reexport(library(uri)).
 
 /** <module> Extended support for URIs
+
+Extends the support for URIs in the SWI-Prolog standard library.
 
 */
 
@@ -19,9 +25,9 @@
 :- use_module(library(lists)).
 :- use_module(library(plunit)).
 
+:- use_module(library(conf)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_generic), []).
 
 
 
@@ -88,7 +94,7 @@ uri_comps(Uri, uri(Scheme,AuthorityComp,Segments,QueryComponents,Fragment)) :-
   ->  AuthorityComp = Authority
   ;   auth_comps_(Scheme, Authority, AuthorityComp)
   ),
-  atomic_list_concat([''|Segments], /, Path),
+  (atomic_list_concat([''|Segments], /, Path) -> true ; Segments = [Path]),
   (   var(Query)
   ->  QueryComponents = []
   ;   % @hack Currently needed because buggy URI query components are
@@ -139,6 +145,23 @@ auth_comps_(Scheme, Authority, auth(User,Password,Host,Port0)) :-
 
 
 
+%! uri_data_file(+Uri:atom, -File:atom) is det.
+%! uri_data_file(-Uri:atom, +File:atom) is det.
+
+uri_data_file(Uri, File) :-
+  var(File), !,
+  uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,_,_)),
+  data_directory(Dir1),
+  exclude(==(''), Segments1, Segments2),
+  append(Subdirs, [Local], [Scheme,Host|Segments2]),
+  directory_subdirectories(Dir2, Subdirs),
+  directory_file_path2(Dir1, Dir2, Dir3),
+  directory_file_path2(Dir3, Local, File).
+uri_data_file(Uri, File) :-
+  uri_file_name(Uri, File).
+
+
+
 %! uri_file_extensions(+Uri:atom, -Extensions:list(atom)) is det.
 
 uri_file_extensions(Uri, Extensions) :-
@@ -160,6 +183,23 @@ uri_local_name(Uri, Local) :-
 uri_media_type(Uri, MediaType) :-
   uri_file_extensions(Uri, Extensions),
   file_extensions_media_type(Extensions, MediaType).
+
+
+
+%! uri_relative_path(+Uri:atom, +Local:atom, -RelativePath:atom) is det.
+
+uri_relative_path(Uri, Local, RelativePath) :-
+  uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,_,_)),
+  append(Segments1, [Local], Segments2),
+  atomic_list_concat([Scheme,Host|Segments2], /, RelativePath).
+
+
+
+%! uri_scheme(+Uri:atom, +Scheme:atom) is semidet.
+%! uri_scheme(+Uri:atom, -Scheme:atom) is semidet.
+
+uri_scheme(Uri, Scheme) :-
+  uri_components(Uri, uri_components(Scheme,_,_,_,_)).
 
 
 

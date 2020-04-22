@@ -10,10 +10,8 @@
   ]
 ).
 
-/** <module> OS extensions
+/** <module> Operating System interactions
 
-@author Wouter Beek
-@version 2017/04-2018/01
 */
 
 :- use_module(library(file_ext)).

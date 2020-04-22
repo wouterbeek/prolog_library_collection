@@ -8,6 +8,7 @@
     http_download/2,               % +Uri, ?File
     http_download/3,               % +Uri, ?File, +Options
     http_head2/2,                  % +Uri, +Options
+    http_header_name_label/2,      % +Name, -Label
     http_metadata_content_type/2,  % +Metas, -MediaType
     http_metadata_file_name/2,     % +Metas, -File
     http_metadata_final_uri/2,     % +Metas, -Uri
@@ -16,6 +17,7 @@
     http_metadata_status/2,        % +Metas, -Status
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
+    http_status_reason/2,          % +Status, -Reason
     http_sync/1,                   % +Uri
     http_sync/2,                   % +Uri, ?File
     http_sync/3,                   % +Uri, ?File, +Options
@@ -27,8 +29,8 @@
 
 /** <module> HTTP Client
 
-@author Wouter Beek
-@version 2017-2019
+Alternative to the HTTP client that is part of the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(apply)).
@@ -44,6 +46,7 @@
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
+:- use_module(library(atom_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
@@ -61,13 +64,30 @@
     http_call(+, 1, +).
 
 :- multifile
+    http:encoding_filter/3,
+    http_header:status_comment//1,
+    http_header:status_number_fact/2,
     http:post_data_hook/3,
-    http:encoding_filter/3.
+    uri:default_port/2.
 
 http:encoding_filter('application/gzip', In1, In2) :-
   http:encoding_filter(gzip, In1, In2).
 http:encoding_filter('x-gzip', In1, In2) :-
   http:encoding_filter(gzip, In1, In2).
+
+error:has_type(http_status, Status) :-
+  http_header:status_number_fact(_, Status).
+
+http_header:status_number_fact(522, 522).
+http_header:status_number_fact(523, 523).
+
+http_header:status_comment(522) -->
+  "CloudFlare: Connection timed out".
+http_header:status_comment(523) -->
+  "CloudFlare: Origin is unreachable".
+
+uri:default_port(http, 80).
+uri:default_port(https, 443).
 
 :- public
     ssl_verify/5.
@@ -114,8 +134,8 @@ weight_(N) -->
 
 
 
-%! http_call(+Uri:atom, :Goal_1) is nondet.
-%! http_call(+Uri:atom, :Goal_1, +Options:list(compound)) is nondet.
+%! http_call(+Uri:or([atom,compound]), :Goal_1) is nondet.
+%! http_call(+Uri:or([atom,compound]), :Goal_1, +Options:list(compound)) is nondet.
 %
 % Uses URIs that appear with the ‘next’ keyword in HTTP Link headers
 % to non-deterministically call Goal_1 for all subsequent input
@@ -136,7 +156,8 @@ http_call(Uri, Goal_1) :-
   http_call(Uri, Goal_1, []).
 
 
-http_call(FirstUri, Goal_1, Options1) :-
+http_call(FirstUri0, Goal_1, Options1) :-
+  ensure_uri_(FirstUri0, FirstUri),
   State = state(FirstUri),
   % Non-deterministically enumerate over URIs that appear in HTTP Link
   % headers with the ‘next’ keyword.
@@ -164,11 +185,11 @@ http_call(FirstUri, Goal_1, Options1) :-
 
 
 
-%! http_download(+Uri:atom) is det.
-%! http_download(+Uri:atom, +File:atom) is det.
-%! http_download(+Uri:atom, -File:atom) is det.
-%! http_download(+Uri:atom, +File:atom, +Options:list(compound)) is det.
-%! http_download(+Uri:atom, -File:atom, +Options:list(compound)) is det.
+%! http_download(+Uri:or([atom,compound])) is det.
+%! http_download(+Uri:or([atom,compound]), +File:atom) is det.
+%! http_download(+Uri:or([atom,compound]), -File:atom) is det.
+%! http_download(+Uri:or([atom,compound]), +File:atom, +Options:list(compound)) is det.
+%! http_download(+Uri:or([atom,compound]), -File:atom, +Options:list(compound)) is det.
 
 http_download(Uri) :-
   http_download(Uri, _).
@@ -188,8 +209,19 @@ http_download(Uri, File, Options) :-
 
 http_head2(Uri, Options1) :-
   merge_options([method(head)], Options1, Options2),
-  http_open2(Uri, In, Options2),
-  close(In).
+  call_cleanup(
+    http_open2(Uri, In, Options2),
+    close(In)
+  ).
+
+
+
+%! http_header_name_label(+Name:atom, -Label:string) is det.
+
+http_header_name_label(Name, Label) :-
+  atomic_list_concat(Atoms, -, Name),
+  maplist(atom_capitalize, Atoms, CAtoms),
+  atomics_to_string(CAtoms, " ", Label).
 
 
 
@@ -207,7 +239,7 @@ http_head2(Uri, Options1) :-
 
 http_metadata_content_type(Metas, MediaType) :-
   Metas = [Meta|_],
-  get_dict('content-type', Meta.headers, [ContentType|T]),
+  dict_get([headers,'content-type'], Meta, [ContentType|T]),
   assertion(T == []),
   http_parse_header_value(content_type, ContentType, MediaType).
 
@@ -234,9 +266,10 @@ http_metadata_final_uri(Metas, Uri) :-
 
 
 
-%! http_metadata_last_modified(+Uri:atom, -Time:float) is det.
+%! http_metadata_last_modified(+Uri:or([atom,compound]), -Time:float) is det.
 
-http_metadata_last_modified(Uri, Time) :-
+http_metadata_last_modified(Uri0, Time) :-
+  ensure_uri_(Uri0, Uri),
   http_open_cp:http_open(
     Uri,
     In,
@@ -276,8 +309,8 @@ http_metadata_status(Metas, Status) :-
 
 
 
-%! http_open2(+CurrentUri:atom, -In:stream) is det.
-%! http_open2(+CurrentUri:atom, -In:stream, +Options:list(compound)) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:stream) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:list(compound)) is det.
 %
 % Alternative to http_open/3 in the SWI standard library with the
 % following additons:
@@ -343,7 +376,8 @@ http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, []).
 
 
-http_open2(CurrentUri, In, Options1) :-
+http_open2(CurrentUri0, In, Options1) :-
+  ensure_uri_(CurrentUri0, CurrentUri),
   % Allow the next/1 option to be instantiated later.
   ignore(option(next(NextUri), Options1)),
   % Allow the metadata/1 optiont to be instantiated later.
@@ -367,31 +401,8 @@ http_open2(CurrentUri, In, Options1) :-
 %!              +Options:list(compound)) is det.
 
 http_status_(In, Status, FinalUri, Options) :-
-  option(failure(Failure), Options),
-  option(success(Success), Options, 200), !,
-  http_status_(In, Status, FinalUri, Failure, Success).
-http_status_(In, Status, FinalUri, Options) :-
-  option(success(Success), Options),
-  option(failure(Failure), Options, 400), !,
-  http_status_(In, Status, FinalUri, Failure, Success).
-http_status_(_, _, _, _).
-
-%! http_status_(+In:stream,
-%!              +Status:between(100,599),
-%!              +FinalUri:atom,
-%!              ?Failure:or([oneof([warning]),between(400,599)]),
-%!              ?Success:beteen(200,299)) is det.
-%
-% @arg Failure
-%
-%      If supplied, maps an HTTP code onto Prolog silent failure.
-%
-% @arg Success
-%
-%      If supplied, maps an HTTP code onto Prolog success.
-
-http_status_(In, Status, FinalUri, Failure, Success) :-
-  must_be(http_status, Status),
+  option(failure(Failure), Options, 400),
+  option(success(Success), Options, 200),
   (   % HTTP failure codes.
       between(400, 599, Status)
   ->  call_cleanup(
@@ -477,6 +488,12 @@ http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
       debug(http(receive_reply), "", [])
   ;   true
   ),
+  (   dict_get('content-type', HeadersMeta, [ContentType|_]),
+      http_parse_header_value(content_type, ContentType, MediaType),
+      media_type_encoding(MediaType, Encoding)
+  ->  set_stream(In1, encoding(Encoding))
+  ;   true
+  ),
   http_open2_(Uri, In1, Status, State3, In2, Metas, Options1).
 
 debug_header(Key-Values) :-
@@ -555,7 +572,7 @@ http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
   http_metadata_content_type([Meta], _MediaType), !,
   (   debugging(http(peek))
-  ->  peek_string(In, 100, String),
+  ->  peek_string(In, 1 000, String),
       debug(http(peek), "~s", [String])
   ;   true
   ).
@@ -611,11 +628,11 @@ http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
 
 
 
-%! http_sync(+Uri:atom) is det.
-%! http_sync(+Uri:atom, +File:atom) is det.
-%! http_sync(+Uri:atom, -File:atom) is det.
-%! http_sync(+Uri:atom, +File:atom, +Options:list(compound)) is det.
-%! http_sync(+Uri:atom, -File:atom, +Options:list(compound)) is det.
+%! http_sync(+Uri:or([atom,compound])) is det.
+%! http_sync(+Uri:or([atom,compound]), +File:atom) is det.
+%! http_sync(+Uri:or([atom,compound]), -File:atom) is det.
+%! http_sync(+Uri:or([atom,compound]), +File:atom, +Options:list(compound)) is det.
+%! http_sync(+Uri:or([atom,compound]), -File:atom, +Options:list(compound)) is det.
 %
 % Like http_download/[1-3], but does not download File if it already
 % exists.
@@ -628,8 +645,9 @@ http_sync(Uri, File) :-
   http_sync(Uri, File, []).
 
 
-http_sync(Uri, File, Options) :-
-  ensure_uri_file_(Uri, File),
+http_sync(Uri0, File, Options) :-
+  ensure_uri_(Uri0, Uri),
+  uri_to_file_(Uri, File),
   (exists_file(File) -> true ; http_download_(Uri, File, Options)).
 
 
@@ -662,23 +680,35 @@ nocurl :-
 
 % GENERICS %
 
-%! ensure_uri_file_(+Uri:atom, +File:atom) is det.
-%! ensure_uri_file_(+Uri:atom, -File:atom) is det.
+%! ensure_uri_(+Input:or([atom,compound]), -Uri:atom) is det.
+%
+% Allows URIs to be input as atom or as compounds.
 
-ensure_uri_file_(_, File) :-
-  ground(File), !,
-  must_be(atom, File).
-ensure_uri_file_(Uri, File) :-
-  uri_local_name(Uri, File).
+ensure_uri_(uri(Scheme,Authority,Segments,Query,Fragment), Uri) :- !,
+  uri_comps(Uri, uri(Scheme,Authority,Segments,Query,Fragment)).
+ensure_uri_(Uri, Uri) :-
+  must_be(atom, Uri).
 
 
 
 %! http_download_(+Uri:atom, +File:atom, +Options:list(compound)) is det.
 
 http_download_(Uri, File, Options) :-
-  file_name_extension(File, tmp, TmpFile),
+  file_name_extensions(File, Name, Exts),
+  file_name_extensions(TmpFile, Name, [tmp|Exts]),
   write_to_file(TmpFile, http_download_stream_(Uri, Options), [type(binary)]),
   rename_file(TmpFile, File).
 
 http_download_stream_(Uri, Options, Out) :-
   http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options).
+
+
+
+%! uri_to_file_(+Uri:atom, +File:atom) is det.
+%! uri_to_file_(+Uri:atom, -File:atom) is det.
+
+uri_to_file_(_, File) :-
+  ground(File), !,
+  must_be(atom, File).
+uri_to_file_(Uri, File) :-
+  uri_data_file(Uri, File).

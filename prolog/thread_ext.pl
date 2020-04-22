@@ -14,10 +14,10 @@
 ).
 :- reexport(library(thread)).
 
-/** <module> Thread extensions
+/** <module> Extended support for threads
 
-@author Wouter Beek
-@version 2017-2018
+Extends support for threads in the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(aggregate)).

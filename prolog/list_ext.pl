@@ -3,10 +3,14 @@
   list_ext,
   [
     common_subsequence/2, % +Subsequences, -Subsequence
+    empty_list/1,         % ?L
+    first/2,              % ?L, ?Elem
     inflist/2,            % +Elem, -L
     list_intersperse/3,   % +L1, +Separator, -L2
     list_truncate/3,      % +Whole, +MaxLength, -Part
+    max_list/3,           % +L, -Max, +Zero
     member/3,             % ?X, ?Y, +L
+    min_list/3,           % +L, -Min, +Zero
     postfix/2,            % ?Part, ?Whole
     postfix/3,            % ?Part, ?Length, ?Whole
    %prefix/2,             % ?Part, ?Whole
@@ -21,10 +25,11 @@
 ).
 :- reexport(library(lists)).
 
-/** <module> List extensions
+/** <module> Extended support for lists
 
-@author Wouter Beek
-@version 2017-2018
+Extends the list support that is provided by the SWI-Prolog standard
+library.
+
 */
 
 :- use_module(library(apply)).
@@ -37,6 +42,19 @@
 
 common_subsequence(Xss, Xs) :-
   maplist(subsequence(Xs), Xss).
+
+
+
+%! empty_list(+L:list) is semidet.
+%! empty_list(-L:list) is det.
+
+empty_list([]).
+
+
+
+%! first(?L, ?Elem) is semidet.
+
+first([H|_], H).
 
 
 
@@ -98,11 +116,27 @@ list_truncate(Whole, MaxLength, Part) :-
 
 
 
+%! max_list(+L:list(number), -Max:number, +Zero:number) is det.
+
+max_list([], Zero, Zero) :- !.
+max_list(L, Max, _) :-
+  max_list(L, Max).
+
+
+
 %! member(?X:term, ?Y:term, +L:list(term)) is nondet.
 
 member(X, Y, L) :-
   member(X, L),
   member(Y, L).
+
+
+
+%! min_list(+L:list(number), -Min:number, +Zero:number) is det.
+
+min_list([], Zero, Zero) :- !.
+min_list(L, Min, _) :-
+  min_list(L, Min).
 
 
 

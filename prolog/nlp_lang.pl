@@ -11,10 +11,8 @@
   ]
 ).
 
-/** <module> NLP: Language setting
+/** <module> Natural language support
 
-@author Wouter Beek
-@version 2016/02, 2016/04, 2016/06, 2016/09, 2017/05
 */
 
 :- use_module(library(http/html_write)).

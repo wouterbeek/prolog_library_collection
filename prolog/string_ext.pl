@@ -16,10 +16,10 @@
   ]
 ).
 
-/** <module> String extensions
+/** <module> Extended support for strings
 
-@author Wouter Beek
-@version 2017-2018
+Extends the string support in the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(apply)).

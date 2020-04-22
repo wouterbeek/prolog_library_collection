@@ -17,12 +17,11 @@
   ]
 ).
 
-/** <module> Stream extensions
+/** <module> Support for working with streams.
 
-Uses the external programs `iconv' and `uchardet'.
+Some predicates in the library use the external programs ‘iconv’ and
+‘uchardet’.
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(aggregate)).

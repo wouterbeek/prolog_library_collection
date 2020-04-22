@@ -8,10 +8,8 @@
 ).
 :- reexport(library(debug)).
 
-/** <module> Debug extensions
+/** <module> Support for running tasks
 
-@author Wouter Beek
-@version 2017/08-2017/09
 */
 
 :- use_module(library(ansi_term)).

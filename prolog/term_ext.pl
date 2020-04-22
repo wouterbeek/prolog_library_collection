@@ -8,10 +8,10 @@
   ]
 ).
 
-/** <module> Term extensions
+/** <module> Extended support for terms
 
-@author Wouter Beek
-@version 2018
+Extends the support for terms in the SWI-Prolog standard library.
+
 */
 
 :- use_module(library(apply)).

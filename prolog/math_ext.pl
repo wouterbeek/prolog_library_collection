@@ -7,6 +7,8 @@
     decimal_parts/3,      % ?Decimal, ?Integer, ?Fractorial
     fractional_integer/2, % +Number, -Fractorial
     fractional_weights/2, % ?Fractional, ?Weights
+    inf_max/3,            % +X, +Y, -Z
+    inf_min/3,            % +X, +Y, -Z
     integer_weights/2,    % ?Integer, ?Weights
     integer_weights/3     % ?Integer, +Base, ?Weights
   ]
@@ -14,8 +16,6 @@
 
 /** <module> Mathematics extensions
 
-@author Wouter Beek
-@version 2017/04-2018/01
 */
 
 :- use_module(library(aggregate)).
@@ -126,6 +126,28 @@ fractional_weights(Frac, Weights):-
   integer_weights(Int, Weights).
 fractional_weights(_, _):-
   instantiation_error(_).
+
+
+
+%! inf_max(+X, +Y, -Z) is det.
+
+inf_max(∞, _, ∞) :- !.
+inf_max(_, ∞, ∞) :- !.
+inf_max(-∞, Y, Y) :- !.
+inf_max(X, -∞, X) :- !.
+inf_max(X, Y, Z) :-
+  Z is max(X, Y).
+
+
+
+%! inf_min(+X, +Y, -Z) is det.
+
+inf_min(-∞, _, -∞) :- !.
+inf_min(_, -∞, -∞) :- !.
+inf_min(∞, Y, Y) :- !.
+inf_min(X, ∞, X) :- !.
+inf_min(X, Y, Z) :-
+  Z is min(X, Y).
 
 
 

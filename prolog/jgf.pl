@@ -6,10 +6,8 @@
   ]
 ).
 
-/** <module> JSON Graph Format (JGF)
+/** <module> Support for the JSON Graph Format (JGF)
 
-@author Wouter Beek
-@version 2017/11
 */
 
 :- use_module(library(apply)).

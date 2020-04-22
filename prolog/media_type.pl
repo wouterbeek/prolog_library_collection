@@ -14,13 +14,21 @@
   ]
 ).
 
-/** <module> Media Types
+/** <module> Media Types library
 
-Design goal: maintain a one-to-one mapping between Media Types and
-file name extensions.
+Library of Media Types, based on the official Media Types as
+maintained by IANA, and de facto Media Types as they are used in the
+wild.
 
-@author Wouter Beek
-@version 2017-2018
+Media Types are a common way of denoting binary and textual content.
+As such, this library is useful to base sensible defaults for
+processing input files on, and can be used to simplify HTTP requests
+and aspects of serving content over HTTP.
+
+Also tries to maintain a one-to-one mapping between Media Types and
+the most commonly used file name extension for files containing
+content in that Media Type.
+
 */
 
 :- use_module(library(apply)).
@@ -235,7 +243,7 @@ media_type_(html, media(text/html,[]), [firefox], "Hyper Text Markup Language (H
 media_type_(ico, media(image/'vnd.microsoft.icon',[]), [eog], "Windows Icon (Microsoft uses Media Type `image/x-icon')").
 media_type_(jgf, media(application/'vnd.jgf+json',[]), text_editor, "JSON Graph Format (JGF)").
 media_type_(jp2, media(image/jp2,[]), [], "JPEG 2000").
-media_type_(jpeg, media(image/jpeg,[]), [eog,xfig], "Joint Photographic Experts Group (JPEG)").
+media_type_(jpg, media(image/jpeg,[]), [eog,xfig], "Joint Photographic Experts Group (JPEG)").
 media_type_(js, media(application/javascript,[]), text_editor, "JavaScript (JS)").
 media_type_(json, media(application/json,[]), text_editor, "JavaScript Object Notation (JSON)").
 media_type_(jsonld, media(application/'ld+json',[]), text_editor, "JSON-LD 1.0").

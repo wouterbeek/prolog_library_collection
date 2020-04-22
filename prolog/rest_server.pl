@@ -21,10 +21,8 @@
   ]
 ).
 
-/** <module> REST Server
+/** <module> REST server support
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(apply)).
@@ -33,6 +31,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/http_server_files)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
@@ -42,10 +41,36 @@
 
 :- use_module(library(dict)).
 :- use_module(library(pair_ext)).
+:- use_module(library(resource)).
 :- use_module(library(uri_ext)).
+
+:- dynamic
+    http:location/3.
+
+:- multifile
+    http:location/3.
+
+http:location(css, root(css), []).
+http:location(fonts, root(fonts), []).
+http:location(html, root(html), []).
+http:location(img, root(img), []).
+http:location(js, root(js), []).
+http:location(md, root(md), []).
+http:location(pdf, root(pdf), []).
+http:location(ttl, root(ttl), []).
+http:location(yaml, root(yaml), []).
 
 :- http_handler(/, http_not_found_handler,
                 [methods([get,head,options]),prefix,priority(-1)]).
+:- http_handler(css(.), serve_files_in_directory(css), [prefix]).
+:- http_handler(fonts(.), serve_files_in_directory(fonts), [prefix]).
+:- http_handler(html(.), serve_files_in_directory(html), [prefix]).
+:- http_handler(img(.), serve_files_in_directory(img), [prefix]).
+:- http_handler(js(.), serve_files_in_directory(js), [prefix]).
+:- http_handler(md(.), serve_files_in_directory(md), [prefix]).
+:- http_handler(pdf(.), serve_files_in_directory(pdf), [prefix]).
+:- http_handler(ttl(.), serve_files_in_directory(ttl), [prefix]).
+:- http_handler(yaml(.), serve_files_in_directory(yaml), [prefix]).
 
 :- meta_predicate
     rest_media_type(+, 1),
@@ -150,9 +175,17 @@ clean_media_types(L1, L2) :-
   pairs_values(Sorted, L2).
 
 clean_media_type(
-  media(Super/Sub,Parms,QValue,_),
-  QValue-media(Super/Sub,Parms)
-).
+  media(Super/Sub,Params1,QValue,_),
+  QValue-media(Super/Sub,Params2)
+) :-
+  maplist(clean_parameter, Params1, Params2).
+
+clean_parameter(charset=Value1, Value2) :- !,
+  clean_charset(Value1, Value2).
+clean_parameter(Param, Param).
+
+clean_charset('UTF-8', utf8) :- !.
+clean_charset(Value, Value).
 
 
 

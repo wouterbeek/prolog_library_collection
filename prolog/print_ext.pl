@@ -10,20 +10,21 @@
     print_json/1,        % +Dict
     print_json/2,        % +Indent, +Dict
     print_file_peek/2,   % +File, +Length
+    print_file_peek/3,   % +File, +Length, +Attributes
     print_stream_peek/2, % +In, +Length
+    print_stream_peek/3, % +In, +Length, +Attributes
     print_term/1,        % +Term
    %print_term/2,        % +Term, +Options
     print_term_nl/1,     % +Term
-    print_term_nl/2      % +Term, +Options
+    print_term_nl/2,     % +Term, +Options
+    print_term_nl/3      % +Out, +Term, +Options
   ]
 ).
 :- reexport(library(ansi_term)).
 :- reexport(library(pprint)).
 
-/** <module> Pretty-print
+/** <module> Support for printing
 
-@author Wouter Beek
-@version 2017-2019
 */
 
 :- use_module(library(call_ext)).
@@ -124,24 +125,30 @@ print_tab(N1) :-
 
 
 %! print_file_peek(+File:atom, +Length:nonneg) is det.
+%! print_file_peek(+File:atom, +Length:nonneg, +Attributes:list(compound)) is det.
 
-print_file_peek(File, Length1) :-
+print_file_peek(File, Length) :-
+  print_file_peek(File, Length, options{}).
+
+
+print_file_peek(File, Length1, Attributes) :-
   Length2 is Length1 + 5,
   peek_file(File, Length2, String),
-  print_string_(String, Length1).
+  print_string_(String, Length1, Attributes).
 
 
 
 %! print_stream_peek(+In:stream, Length:nonneg) is det.
+%! print_stream_peek(+In:stream, Length:nonneg, +Attributes:list(compound)) is det.
 
-print_stream_peek(In, Length1) :-
+print_stream_peek(In, Length) :-
+  print_stream_peek(In, Length, options{}).
+
+
+print_stream_peek(In, Length1, Attributes) :-
   Length2 is Length1 + 5,
   peek_string(In, Length2, String),
-  print_string_(String, Length1).
-
-print_string_(String1, Length) :-
-  string_ellipsis(String1, Length, String2),
-  format("~s", [String2]).
+  print_string_(String, Length1, Attributes).
 
 
 
@@ -154,6 +161,7 @@ print_term(Term) :-
 
 %! print_term_nl(+Term:term) is det.
 %! print_term_nl(+Term:term, +Options:list(compound)) is det.
+%! print_term_nl(+Out:blob, +Term:term, +Options:list(compound)) is det.
 
 print_term_nl(Term) :-
   print_term_nl(Term, []).
@@ -162,3 +170,24 @@ print_term_nl(Term) :-
 print_term_nl(Term, Options) :-
   print_term(Term, Options),
   nl.
+
+
+print_term_nl(Out, Term, Options) :-
+  with_output_to(
+    Out,
+    (
+      print_term(Term, Options),
+      nl
+    )
+  ).
+
+
+
+% SHARED CODE %
+
+print_string_(String1, Length, Attributes) :-
+  string_ellipsis(String1, Length, String2),
+  (   Attributes == []
+  ->  format("~s", [String2])
+  ;   ansi_format(Attributes, String2)
+  ).

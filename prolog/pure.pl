@@ -9,7 +9,10 @@
 ).
 :- reexport(library(dif)).
 
-/** <module> Pure
+/** <module> Pure predicates
+
+Some pure predicates that I learned from others.
+
 */
 
 :- meta_predicate

@@ -14,7 +14,7 @@
   ]
 ).
 
-/** <module> Pagination
+/** <module> Pagination support
 
 This module creates pages that group results.
 
@@ -25,8 +25,6 @@ Result = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 171
 Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17142, 17143, 17144, 17145, 17146, 17147, 17148|...]}
 ```
 
-@author Wouter Beek
-@version 2017-2018
 */
 
 :- use_module(library(aggregate)).
