@@ -3,11 +3,11 @@
 A collection of Prolog libraries that have proven useful in various
 projects.  These libraries are intended to extend the functionality
 that is already available in the
-[SWI-Prolog](http://www.swi-prolog.org) standard libraries.
+[SWI-Prolog](https://www.swi-prolog.org) standard libraries.
 
 ## Installation
 
-Perform the following call in [SWI-Prolog](http://www.swi-prolog.org):
+Perform the following call in [SWI-Prolog](https://www.swi-prolog.org):
 
 ```pl
 :- pack_install(prolog_library_collection).

@@ -17,7 +17,7 @@
     http_metadata_status/2,        % +Metas, -Status
     http_open2/2,                  % +CurrentUri, -In
     http_open2/3,                  % +CurrentUri, -In, +Options
-    http_status_reason/2,          % +Status, -Reason
+    http_status_reason/2,          % ?Status, ?Reason
     http_sync/1,                   % +Uri
     http_sync/2,                   % +Uri, ?File
     http_sync/3,                   % +Uri, ?File, +Options
@@ -50,13 +50,13 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_header_cp), [http_parse_header_value/3]).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
 
-:- use_module(http_open_cp, []).
+:- use_module(http/http_header_cp, [http_parse_header_value/3]).
+:- use_module(http/http_open_cp, []).
 
 :- meta_predicate
     http_call(+, 1),
@@ -624,6 +624,53 @@ http:post_data_hook(string(String), Out, HdrExtra) :-
 http:post_data_hook(string(MediaType,String), Out, HdrExtra) :-
   atom_string(Atom, String),
   http_header_cp:http_post_data(atom(MediaType,Atom), Out, HdrExtra).
+
+
+
+%! http_status_reason(+Status:between(100,523), +Reason:string) is semidet.
+%! http_status_reason(+Status:between(100,523), -Reason:string) is det.
+%! http_status_reason(-Status:between(100,523), +Reason:string) is det.
+%! http_status_reason(-Status:between(100,523), -Reason:string) is multi.
+
+http_status_reason(100, "Continue").
+http_status_reason(101, "Switching Protocols").
+http_status_reason(200, "OK").
+http_status_reason(201, "Created").
+http_status_reason(202, "Accepted").
+http_status_reason(203, "Non-Authoritative Information").
+http_status_reason(204, "No Content").
+http_status_reason(205, "Reset Content").
+http_status_reason(206, "Partial Content").
+http_status_reason(300, "Multiple Choices").
+http_status_reason(301, "Moved Permanently").
+http_status_reason(302, "Moved Temporarily").
+http_status_reason(303, "See Other").
+http_status_reason(304, "Not Modified").
+http_status_reason(305, "Use Proxy").
+http_status_reason(400, "Bad Request").
+http_status_reason(401, "Unauthorized").
+http_status_reason(402, "Payment Required").
+http_status_reason(403, "Forbidden").
+http_status_reason(404, "Not Found").
+http_status_reason(405, "Method Not Allowed").
+http_status_reason(406, "Not Acceptable").
+http_status_reason(407, "Proxy Authentication Required").
+http_status_reason(408, "Request Time-out").
+http_status_reason(409, "Conflict").
+http_status_reason(410, "Gone").
+http_status_reason(411, "Length Required").
+http_status_reason(412, "Precondition Failed").
+http_status_reason(413, "Request Entity Too Large").
+http_status_reason(414, "Request-URI Too Large").
+http_status_reason(415, "Unsupported Media Type").
+http_status_reason(500, "Internal Server Error").
+http_status_reason(501, "Not Implemented").
+http_status_reason(502, "Bad Gateway").
+http_status_reason(503, "Service Unavailable").
+http_status_reason(504, "Gateway Time-out").
+http_status_reason(505, "HTTP Version not supported").
+http_status_reason(522, "CloudFlare: Connection timed out").
+http_status_reason(523, "CloudFlare: Origin is unreachable").
 
 
 
