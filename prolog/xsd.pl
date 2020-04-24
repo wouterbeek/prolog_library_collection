@@ -19,7 +19,7 @@
 
 :- use_module(library(dif)).
 :- use_module(library(error)).
-:- use_module(library(semweb/rdf11), []).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(xsdp_types)).
 
 :- use_module(library(abnf)).
@@ -161,4 +161,4 @@ xsd_global_local_(Global, Local) :-
   var(Global),
   var(Local), !.
 xsd_global_local_(Global, Local) :-
-  rdf_prefix_iri(xsd:Local, Global).
+  rdf_global_id(xsd:Local, Global).
