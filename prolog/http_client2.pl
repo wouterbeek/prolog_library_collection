@@ -199,7 +199,7 @@ http_download(Uri, File) :-
 
 
 http_download(Uri, File, Options) :-
-  ensure_uri_file_(Uri, File),
+  uri_to_file_(Uri, File),
   http_download_(Uri, File, Options).
 
 
