@@ -4,7 +4,8 @@
     archive_call/2,       % +In, :Goal_1
     archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
-    archive_open/2        % +In, -Archive
+    archive_open/2,       % +In, -Archive
+    archive_stream/2      % +In1, -In2
   ]
 ).
 :- reexport(library(archive)).
@@ -152,3 +153,14 @@ archive_media_type_format_(media(application/zip,[]), zip).
 archive_open(In, Archive) :-
   findall(format(Format), archive_format(Format), Formats),
   archive_open(In, Archive, Formats).
+
+
+
+%! archive_stream(+In1:stream, -In2:stream) is det.
+
+archive_stream(In1, In2) :-
+  setup_call_cleanup(
+    archive_open(In1, Archive),
+    archive_data_stream(Archive, In2, []),
+    archive_close(Archive)
+  ).
