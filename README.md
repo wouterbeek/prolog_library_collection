@@ -5,15 +5,21 @@ projects.  These libraries are intended to extend the functionality
 that is already available in the
 [SWI-Prolog](https://www.swi-prolog.org) standard libraries.
 
+## Dependencies
+
+Install [SWI-Prolog](https://www.swi-prolog.org).
+
 ## Installation
 
-Perform the following call in [SWI-Prolog](https://www.swi-prolog.org):
+Install this library:
 
-```pl
-:- pack_install(prolog_library_collection).
+```sh
+swipl -g 'pack_install(prolog_library_collection)' -t halt
 ```
 
-That's it!  You can now load modules from this library in the following way:
+## Use
+
+Once installed, modules from this library are loaded as follows:
 
 ```pl
 :- [library(atom_ext)].
@@ -21,7 +27,7 @@ That's it!  You can now load modules from this library in the following way:
 
 ## Module overview
 
-## Module `archive_ext`
+### Module `archive_ext`
 
 This module extends the standard library `archive`:
 
@@ -42,7 +48,7 @@ This module extends the standard library `archive`:
     a plain text format that is almost never used yet leads to many
     false positives in practice.
 
-## Module `assoc_ext`
+### Module `assoc_ext`
 
 This module extends the standard library `assoc`:
 
@@ -58,7 +64,7 @@ This module extends the standard library `assoc`:
     Turns an assoc of (key,value) pairs into one with(value,key)
     pairs.
 
-## Module `atom_ext`
+### Module `atom_ext`
 
 This module provides additional support for working with atoms:
 
@@ -101,13 +107,13 @@ This module provides additional support for working with atoms:
     Like `atom_prefix/3`, but the `Truncated` atom is the `Original`
     atom in case `MaxLength` exceeds the `Original` atom length.
 
-## `call_ext`
+### `call_ext`
 
 meta-predicates
 
-## `closure`
+### `closure`
 
-## `code_ext`
+### `code_ext`
 
 This module extends support for working with character-denoting
 numeric codes:
@@ -115,7 +121,7 @@ numeric codes:
    - `put_codes(+Codes:list(code))`
    - `put_codes(+Out:stream, +Codes:list(code))`
 
-## `conf_ext`
+### `conf_ext`
 
 This module introduces a generic way for dealing with external
 configuration files:
@@ -123,22 +129,22 @@ configuration files:
    - `cli_arguments(-Args:list(opt)) is det.`
    - `conf_json(-Conf:dict) is det.`
 
-## `counter`
+### `counter`
 
-## `csv_ext`
+### `csv_ext`
 
 Streamed processing of CSV files.
 
-## `date_time`
+### `date_time`
 
-## `dcg`
+### `dcg`
 
 Definite Clause Grammars
 
 In directory `/dcg` you will find a collection of Definite Clause
 Grammar (DCG) modules.
 
-## `dcg/dcg_abnf`
+### `dcg/dcg_abnf`
 
 Advanced Bauckus-Naur Form (ABNF)
 
@@ -148,7 +154,7 @@ verbose, this module implements *variable repetition* as defined in
 [[https://tools.ietf.org/html/rfc5234][RFC 5234: Augmented BNF for
 Syntax Specifications: ABNF]].
 
-### A simple example
+#### A simple example
 
 Suppose we want to parse sentences, which are non-empty sequences of
 words:
@@ -171,9 +177,9 @@ sentence(L) -->
   +(word, L).
 ```
 
-### definition
+#### definition
 
-#### variable repetition
+##### variable repetition
 
 Variable repetition is a metasyntactic construct which states that at
 least `M` and at most `N` occurrences of `:Dcg_0` must be processed:
@@ -182,7 +188,7 @@ least `M` and at most `N` occurrences of `:Dcg_0` must be processed:
 'm*n'(?M:nonneg, ?N:nonneg, :Dcg_0)//
 ```
 
-#### specific repetition
+##### specific repetition
 
 Specific repetition is a metasyntactic construct which states that
 exactly `N` occurrences of `Dcg_0` must be processed:
@@ -194,7 +200,7 @@ exactly `N` occurrences of `Dcg_0` must be processed:
 Specific repetition is a special case of [[variable repetition]],
 because `#(N, Dcg_0)` is the same as `'m*n'(N, N, Dcg_0)`.
 
-#### Kleene
+##### Kleene
 
 Kleene star is a metasyntactic construct which states that zero or
 more occurrences of `Dcg_0` must be processed:
@@ -206,7 +212,7 @@ more occurrences of `Dcg_0` must be processed:
 Kleene star is a special case of [[variable repetition]], because
 `*(N, Dcg_0)` is the same as `'m*n'(_, _, Dcg_0)`.
 
-#### Kleene sum
+##### Kleene sum
 
 Kleene sum is a metasyntactic construct which states that one or more
 occurrences of `Dcg_0` must be processed:
@@ -218,7 +224,7 @@ occurrences of `Dcg_0` must be processed:
 Kleene sum is a special case of [[variable repetition]], because `+(N,
 Dcg_0)` is the same as `'m*n'(1, _, Dcg_0)`.
 
-#### optional sequence
+##### optional sequence
 
 Optional sequence is a metasyntactic construct which states that
 `Dcg_0` should either be processed once or not at all:
@@ -247,43 +253,43 @@ It contains the following modules:
 | `media` | A compound term of the form `media(Super:atom/Sub:atom,Parameters:list(opt))`                                      |
 | `opt`   | A unary compound term whose predicate letter is an option name and whose argument is a corresponding option value. |
 
-## `dcg/dcg_ext`
+### `dcg/dcg_ext`
 
-## `debug_ext`
+### `debug_ext`
 
-## `default`
+### `default`
 
-## `dict`
+### `dict`
 
 Dictionaries.
 
-## `dlist`
+### `dlist`
 
 Difference lists.
 
-## `file_ext`
+### `file_ext`
 
 Handling files and directories.
 
-## `graph/gml`
+### `graph/gml`
 
-## `graph/graph_ext`
+### `graph/graph_ext`
 
-## `graph/jgf`
+### `graph/jgf`
 
-## `hash_ext`
+### `hash_ext`
 
-## `http/http_client2`
+### `http/http_client2`
 
-## `http/http_generic`
+### `http/http_generic`
 
-## `http/http_pagination`
+### `http/http_pagination`
 
-## `http/http_resource`
+### `http/http_resource`
 
-## `http/http_server`
+### `http/http_server`
 
-## `json_ext`
+### `json_ext`
 
 This module provides extended JSON support on top of the standard
 library `http/json`:
@@ -292,45 +298,45 @@ library `http/json`:
 
    - `json_save(+File:atom, +Structure:dict) is det.`
 
-## `list_ext`
+### `list_ext`
 
-## `math_ext`
+### `math_ext`
 
-## `media_type`
+### `media_type`
 
-## `nlp/nlp_lang`
+### `nlp/nlp_lang`
 
-## `os_ext`
+### `os_ext`
 
 Running external processes, streaming to/from external processes.
 
-## `pagination`
+### `pagination`
 
-## `pair_ext`
+### `pair_ext`
 
-## `pp`
+### `pp`
 
-## `pure`
+### `pure`
 
-## `sort_ext`
+### `sort_ext`
 
-## `stream_ext`
+### `stream_ext`
 
 Support for recoding, unpacking, sorting, and hasing streams.
 
-## `string_ext`
+### `string_ext`
 
-## `task`
+### `task`
 
-## `term_ext`
+### `term_ext`
 
-## `thread_ext`
+### `thread_ext`
 
-## `uri_ext`
+### `uri_ext`
 
 Constructing/decomposing URIs.
 
-## `xml_ext`
+### `xml_ext`
 
 This module allows Prolog goals to be called on a stream that encodes
 an XML DOM:
@@ -343,7 +349,7 @@ to be determined:
    - `xml_encoding(+In:stream, -Encoding:atom) is semidet.`
    - `xml_file_encoding(+File:atom, -Encoding:atom) is semidet.`
 
-## `xsd`
+### `xsd`
 
 Support for XML Schema 1.1 Part 2: Datatypes.
 
