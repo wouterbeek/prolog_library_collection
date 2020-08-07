@@ -3,6 +3,7 @@
   string_ext,
   [
     read_string/2,        % +In, -String
+    string_code/2,        % ?String, ?Code
     string_ellipsis/3,    % +Original, ?MaxLength, ?Ellipsed
     string_list_concat/2, % +Strings, ?String
     string_list_concat/3, % ?Strings, ?Separator, ?String
@@ -36,6 +37,23 @@ Extends the string support in the SWI-Prolog standard library.
 
 read_string(In, String) :-
   read_string(In, _, String).
+
+
+
+%! string_code(+String:string, +Code:atom) is semidet.
+%! string_code(+String:string, -Code:atom) is det.
+%! string_code(-String:string, +Code:atom) is det.
+
+string_code(String, Code) :-
+  ground(String), !,
+  atom_string(Char, String),
+  char_code(Char, Code).
+string_code(String, Code) :-
+  ground(Code), !,
+  char_code(Char, Code),
+  atom_string(Char, String).
+string_code(String, Code) :-
+  instantiation_error([String,Code]).
 
 
 
