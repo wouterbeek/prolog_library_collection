@@ -1,6 +1,7 @@
 :- module(
   term_ext,
   [
+    compound_name/2,       % +Term, ?Name
     number_of_variables/2, % +Term, -NumberOfVariables
     replace_blobs/2,       % +Term1, -Term2
     write_fact/1,          % @Term
@@ -17,6 +18,14 @@ Extends the support for terms in the SWI-Prolog standard library.
 :- use_module(library(apply)).
 
 
+
+
+
+%! compound_name(+Term:compound, +Name:atom) is semidet.
+%! compound_name(+Term:compound, -Name:atom) is det.
+
+compound_name(Term, Name) :-
+  compound_name_arity(Term, Name, _).
 
 
 
