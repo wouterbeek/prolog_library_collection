@@ -34,9 +34,10 @@ csv_named_row(In, Row) :-
 
 
 csv_named_row(In, Row, Options1) :-
-  (   select_option(header(Keys), Options1, Options2)
-  ->  csv:csv_options(Options, Options2)
-  ;   csv:csv_options(Options, Options1),
+  merge_options([convert(false)], Options1, Options2),
+  (   select_option(header(Keys), Options2, Options3)
+  ->  csv:csv_options(Options, Options3)
+  ;   csv:csv_options(Options, Options2),
       csv:csv_read_row(In, Header, Options),
       compound_name_arguments(Header, row, Keys)
   ),
