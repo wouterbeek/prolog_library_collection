@@ -1,7 +1,7 @@
 :- module(
   archive_ext,
   [
-    archive_call/2,       % +In, :Goal_1
+    archive_call/2,       % +In, :Goal_2
     archive_extension/1,  % ?Extension
     archive_media_type/1, % ?MediaType
     archive_open/2,       % +In, -Archive
@@ -22,28 +22,28 @@ standard library.
 :- use_module(library(media_type)).
 
 :- meta_predicate
-    archive_call(+, 1).
+    archive_call(+, 2).
 
 
 
 
 
-%! archive_call(+In:stream, :Goal_1) is multi.
+%! archive_call(+In:stream, :Goal_2) is multi.
 %
-% Calls unary goal `Goal_1' on a decompressed input stream that is
-% present in the encoded input stream `In'.
+% Calls `Goal_2' on a decompressed input stream that is present in the
+% encoded input stream `In' and the metadata object `Metas'.
 %
 % Supports non-deterministically iterating over all archive members.
 %
 % Uses archive_open/2 to automatically process all supporter archive
 % filters and formats.
 
-archive_call(In1, Goal_1) :-
+archive_call(In1, Goal_2) :-
   setup_call_cleanup(
     archive_open(In1, Arch),
     (
-      archive_data_stream(Arch, In2, []),
-      call(Goal_1, In2)
+      archive_data_stream(Arch, In2, [meta_data(Metas)]),
+      call(Goal_2, In2, Metas)
     ),
     archive_close(Arch)
   ).
