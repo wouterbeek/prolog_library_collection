@@ -153,7 +153,8 @@ uri_data_file(Uri, File) :-
   uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,_,_)),
   data_directory(Dir1),
   exclude(==(''), Segments1, Segments2),
-  append(Subdirs, [Local], [Scheme,Host|Segments2]),
+  % TODO: SWI does not yet detect that this is deterministic.
+  once(append(Subdirs, [Local], [Scheme,Host|Segments2])),
   directory_subdirectories(Dir2, Subdirs),
   directory_file_path2(Dir1, Dir2, Dir3),
   directory_file_path2(Dir3, Local, File).
