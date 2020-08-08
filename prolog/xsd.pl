@@ -2,10 +2,10 @@
 :- module(
   xsd,
   [
-    xsd_date_time/3,       % ?Dt, ?D, ?XsdDt
-    xsd_date_time_type/1,  % ?D
+    xsd_date_time/3,       % ?RdfDateTime, ?DatatypeIri, ?XsdDateTime
+    xsd_date_time_type/1,  % ?DatatypeIri
     xsd_encode_string//0,  % +String, -EncodedString
-    xsd_numeric_type/1,    % ?D
+    xsd_numeric_type/1,    % ?DatatypeIri
     xsd_strict_subtype/2,  % ?Sub, ?Super
     xsd_subtype/2          % ?Sub, ?Super
   ]
@@ -38,17 +38,17 @@
 
 
 
-%! xsd_date_time(+Dt:compound, +D:rdf_datatype_iri, -XsdDt:compound) is det.
-%! xsd_date_time(-Dt:compound, ?D:rdf_datatype_iri, +XsdDt:compound) is det.
+%! xsd_date_time(+RdfDateTime:compound, +DatatypeIri:atom, -XsdDateTime:compound) is det.
+%! xsd_date_time(-RdfDateTime:compound, ?DatatypeIri:atom, +XsdDateTime:compound) is det.
 
-xsd_date_time(Dt, D, XsdDt) :-
-  nonvar(Dt), !,
-  dt_to_xsd_date_time_(Dt, D, XsdDt).
-xsd_date_time(Dt, D, XsdDt) :-
-  nonvar(XsdDt), !,
-  xsd_date_time_to_dt_(XsdDt, D, Dt).
-xsd_date_time(Dt, _, XsdDt) :-
-  instantiation_error(args([Dt,XsdDt])).
+xsd_date_time(RdfDateTime, DatatypeIri, XsdDateTime) :-
+  nonvar(RdfDateTime), !,
+  dt_to_xsd_date_time_(RdfDateTime, DatatypeIri, XsdDateTime).
+xsd_date_time(RdfDateTime, DatatypeIri, XsdDateTime) :-
+  nonvar(XsdDateTime), !,
+  xsd_date_time_to_dt_(XsdDateTime, DatatypeIri, RdfDateTime).
+xsd_date_time(RdfDateTime, _, XsdDateTime) :-
+  instantiation_error(args([RdfDateTime,XsdDateTime])).
 
 dt_to_xsd_date_time_(dt(Y,Mo,D,_,_,_,_), xsd:date, date(Y,Mo,D)) :- !.
 dt_to_xsd_date_time_(dt(Y,Mo,D,H,Mi,S1,_), xsd:dateTime, date_time(Y,Mo,D,H,Mi,S2)) :- !,
@@ -85,11 +85,11 @@ xsd_date_time_to_dt_(time(H,Mi,S1), xsd:time, dt(_,_,_,H,Mi,S2,_)) :-
 
 
 
-%! xsd_date_time_type(+D:atom) is semidet.
-%! xsd_date_time_type(-D:atom) is multi.
+%! xsd_date_time_type(+DatatypeIri:atom) is semidet.
+%! xsd_date_time_type(-DatatypeIri:atom) is multi.
 
-xsd_date_time_type(D) :-
-  rdf11:xsd_date_time_type(D).
+xsd_date_time_type(DatatypeIri) :-
+  rdf11:xsd_date_time_type(DatatypeIri).
 
 
 
@@ -130,13 +130,13 @@ zero_padded(N1, [H|T]) -->
 
 
 
-%! xsd_numeric_type(+D:iri) is semidet.
-%! xsd_numeric_type(-D:iri) is multi.
+%! xsd_numeric_type(+DatatypeIri:atom) is semidet.
+%! xsd_numeric_type(-DatatypeIri:atom) is multi.
 
 xsd_numeric_type(xsd:double).
 xsd_numeric_type(xsd:float).
-xsd_numeric_type(D) :-
-  xsd_subtype(D, xsd:decimal).
+xsd_numeric_type(DatatypeIri) :-
+  xsd_subtype(DatatypeIri, xsd:decimal).
 
 
 

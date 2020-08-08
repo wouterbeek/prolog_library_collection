@@ -3,20 +3,21 @@
   [
     cpu_time/2,        % :Goal_0, -Delta
   % CONVERSIONS
-    date_time_to_dt/2, % +Datetime1, -Datetime2
-    dt_to_date_time/2, % +Datetime1, -Datetime2
+    date_time_to_dt/2, % +SwiDateTime, -RdfDateTime
+    dt_to_timestamp/2, % +RdfDateTime, -Timestamp
+    dt_to_date_time/2, % +RdfDateTime, -SwiDateTime
     is_date_time/1,    % @Term
     is_dt/1,           % @Term
-    timestamp_to_dt/2, % +Timestamp, -Datetime
+    timestamp_to_dt/2, % +Timestamp, -RdfDateTime
   % OPERATIONS
-    date_time_masks/3, % +Masks, +Datetime1, -Datetime2
-    now/1,             % -Datetime
+    date_time_masks/3, % +Masks, +DateTime1, -DateTime2
+    now/1,             % -DateTime
     number_of_days_in_month_of_year/3, % ?Year, ?Month, ?MaxDay
   % PP
-    date_time_label/2, % +Datetime, -Label
-    date_time_label/3, % +Datetime, -Label, +Options
-    dt_label/2,        % +Datetime, -Label
-    dt_label/3,        % +Datetime, -Label, +Options
+    date_time_label/2, % +SwiDateTime, -Label
+    date_time_label/3, % +SwiDateTime, -Label, +Options
+    dt_label/2,        % +RdfDateTime, -Label
+    dt_label/3,        % +RdfDateTime, -Label, +Options
   % HELPERS
     generate_as_digits//2, % +N, +NumberOfDigits
     generate_as_digits//3  % +N, +Base, +NumberOfDigits
@@ -31,16 +32,26 @@ Prolog uses multiple representations for date/time values.  This
 module converts all these representations into one that is consistent
 with the XSD 7-property model.
 
-Prolog uses the following date/time representations:
+Prolog uses the following date/time representations, indicated with
+`SwiDateTime':
 
-  * float (timestamp)
+  * floating-point (timestamp)
   * time/3
   * date/3
   * date/9
 
-We use the following date/time representation:
+We use the following date/time representation, indicated with
+`RdfDateTime':
 
   * dt/7
+
+The SWI standard library `sgml' uses the following date/time
+representation, indicated with `XsdDateTime':
+
+  * floating-point (timestamp)
+  * date/3
+  * date/9
+  * time/3
 
 The purpose of this module is to allow the programmer to write all
 predicates that use date/time representations to only work with dt/7.
@@ -102,7 +113,7 @@ cpu_time(Goal_0, Delta) :-
 
 % CONVERSIONS %
 
-%! date_time_to_dt(+Datetime:date_time, -Datetime:dt) is det.
+%! date_time_to_dt(+SwiDateTime:compound, -RdfDateTime:compound) is det.
 %
 % Converts the three Prolog date/time representations to the one
 % XSD-inspired 7-property model representation (type `dt`).
@@ -138,7 +149,7 @@ date_time_to_dt(time(H,Mi,S), dt(_,_,_,H,Mi,S,0)).
 
 
 
-%! dt_to_date_time(+Datetime:dt, -Datetime:date_time) is det.
+%! dt_to_date_time(+RdfDateTime:compound, -SwiDateTime:compound) is det.
 %
 % Conversion from the XSD-inspired 7-property model to the three
 % Prolog date/time compound term representations.
@@ -151,6 +162,14 @@ dt_to_date_time(dt(Y,Mo,D,H,Mi,S,Off), date(Y,Mo,D)):-
 dt_to_date_time(dt(Y,Mo,D,H,Mi,S1,Off1), date(Y,Mo,D,H,Mi,S2,Off2,-,-)):-
   (var(Off1) -> true ; Off2 is Off1 * 60),
   S2 is float(S1).
+
+
+
+%! dt_to_timestamp(+RdfDateTime:compound, -Timestamp:float) is det.
+
+dt_to_timestamp(RdfDateTime, Timestamp) :-
+  dt_to_date_time(RdfDateTime, SwiDateTime),
+  date_time_stamp(SwiDateTime, Timestamp).
 
 
 
@@ -168,12 +187,11 @@ is_date_time(Term) :-
 
 
 
-%! timestamp_to_dt(+Timestamp:float, -Datetime:dt) is det.
+%! timestamp_to_dt(+Timestamp:float, -RdfDateTime:compound) is det.
 
-timestamp_to_dt(Timestamp, Datetime2) :-
-  stamp_date_time(Timestamp, Datetime1, local),
-  date_time_to_dt(Datetime1, Datetime2).
-
+timestamp_to_dt(Timestamp, RdfDateTime) :-
+  stamp_date_time(Timestamp, SwiDateTime, local),
+  date_time_to_dt(SwiDateTime, RdfDateTime).
 
 
 
@@ -188,18 +206,18 @@ date_time_mask(Mask) :-
 
 
 
-%! date_time_mask(+Mask:atom, +Datetime1:dt, -Datetime2:dt) is det.
+%! date_time_mask(+Mask:atom, +DateTime1:dt, -DateTime2:dt) is det.
 %
 % @arg Mask is one of the values of date_time_mask/1.
 %
 % TBD: Support Mask=none?
 
-date_time_mask(Mask, Datetime1, Datetime2) :-
+date_time_mask(Mask, DateTime1, DateTime2) :-
   call_must_be(date_time_mask, Mask),
-  must_be(dt, Datetime1),
-  once(date_time_mask_(Mask, Datetime1, Datetime2)).
+  must_be(dt, DateTime1),
+  once(date_time_mask_(Mask, DateTime1, DateTime2)).
 
-date_time_mask_(none,   Datetime,              Datetime             ).
+date_time_mask_(none,   DateTime,              DateTime             ).
 date_time_mask_(year,   dt(_,Mo,D,H,Mi,S,Off), dt(_,Mo,D,H,Mi,S,Off)).
 date_time_mask_(month,  dt(Y,_, D,H,Mi,S,Off), dt(Y,_, D,H,Mi,S,Off)).
 date_time_mask_(day,    dt(Y,Mo,_,H,Mi,S,Off), dt(Y,Mo,_,H,Mi,S,Off)).
@@ -210,26 +228,28 @@ date_time_mask_(offset, dt(Y,Mo,D,H,Mi,S,_  ), dt(Y,Mo,D,H,Mi,S,_  )).
 
 
 
-%! date_time_masks(+Masks:list(atom), +Datetime1:dt, -Datetime2:dt) is det.
+%! date_time_masks(+Masks:list(atom),
+%!                 +DateTime1:compound,
+%!                 -DateTime2:compound) is det.
 %
 % Apply an arbitrary number of date/time masks.
 %
 % @see date_time_mask/3
 
-date_time_masks([], Datetime, Datetime) :- !.
-date_time_masks([H|T], Datetime1, Datetime3) :-
-  date_time_mask(H, Datetime1, Datetime2),
-  date_time_masks(T, Datetime2, Datetime3).
+date_time_masks([], DateTime, DateTime) :- !.
+date_time_masks([H|T], DateTime1, DateTime3) :-
+  date_time_mask(H, DateTime1, DateTime2),
+  date_time_masks(T, DateTime2, DateTime3).
 
 
 
-%! now(-Datetime:dt) is det.
+%! now(-RdfDateTime:compound) is det.
 %
 % Return the current date/time as a `dt`-typed compound term.
 
-now(Datetime):-
+now(DateTime):-
   get_time(Timestamp),
-  timestamp_to_dt(Timestamp, Datetime).
+  timestamp_to_dt(Timestamp, DateTime).
 
 
 
@@ -259,8 +279,8 @@ number_of_days_in_month_of_year(_, _, 28).
 
 % PP %
 
-%! date_time_label(+Datetime:compound, -Label:string) is det.
-%! date_time_label(+Datetime:compound, -Label:string, +Options:dict) is det.
+%! date_time_label(+DateTime:compound, -Label:string) is det.
+%! date_time_label(+DateTime:compound, -Label:string, +Options:dict) is det.
 
 date_time_label(DateTime, Label) :-
   date_time_to_dt(DateTime, Dt),
@@ -302,8 +322,9 @@ dt_(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
   ->  timezone_offset(Off)
   ).
 
-
-%! date(+Year:integer, +Month:between(1,12), +Day:between(1,31),
+%! date(+Year:integer,
+%!      +Month:between(1,12),
+%!      +Day:between(1,31),
 %!      +Options:list(compound))// is det.
 
 date(Y, Mo, Da, Options) -->
@@ -311,10 +332,12 @@ date(Y, Mo, Da, Options) -->
   " ",
   month(Y, Mo, Options).
 
-
-%! floating_date_and_time(+Year:integer, +Month:between(1,12),
-%!                        +Day:between(1,31), +Hour:between(0,24),
-%!                        +Minute:between(0,59), +Second:float,
+%! floating_date_and_time(+Year:integer,
+%!                        +Month:between(1,12),
+%!                        +Day:between(1,31),
+%!                        +Hour:between(0,24),
+%!                        +Minute:between(0,59),
+%!                        +Second:float,
 %!                        +Options:list(compound))// is det.
 
 floating_date_and_time(Y, Mo, Da, H, Mi, S, Options) -->
@@ -322,10 +345,12 @@ floating_date_and_time(Y, Mo, Da, H, Mi, S, Options) -->
   " ",
   time(H, Mi, S, Options).
 
-
-%! global_date_and_time(+Year:integer, +Month:between(1,12),
-%!                      +Day:between(1,31), +Hour:between(0,24),
-%!                      +Minute:between(0,59), +Second:float,
+%! global_date_and_time(+Year:integer,
+%!                      +Month:between(1,12),
+%!                      +Day:between(1,31),
+%!                      +Hour:between(0,24),
+%!                      +Minute:between(0,59),
+%!                      +Second:float,
 %!                      +Offset:between(-840,840),
 %!                      +Options:list(compound))// is det.
 
@@ -333,20 +358,17 @@ global_date_and_time(Y, Mo, Da, H, Mi, S, Off, Options) -->
   floating_date_and_time(Y, Mo, Da, H, Mi, S, Options),
   timezone_offset(Off).
 
-
 %! hour(+Hour:between(0,24), +Options:list(compound))// is det.
 
 hour(H, _) -->
   padding_zero(H),
   integer(H).
 
-
 %! minute(+Minute:between(0,59), +Options:list(compound))// is det.
 
 minute(Mi, _) -->
   padding_zero(Mi),
   integer(Mi).
-
 
 %! month(+Month:between(1,12), +Options:list(compound))// is det.
 
@@ -359,17 +381,14 @@ month(Mo, Options) -->
   },
   atom(Month).
 
-
-
-%! month(+Year:integer, +Month:between(1,12),
+%! month(+Year:integer,
+%!       +Month:between(1,12),
 %!       +Options:list(compound))// is det.
 
 month(Y, Mo, Options) -->
   month(Mo, Options),
   " ",
   year(Y, Options).
-
-
 
 %! month_day(+Day:between(1,31), +Options:list(compound)) is det.
 
@@ -378,7 +397,6 @@ month_day(Da, Options) -->
   ->  integer(Da)
   ;   ordinal(Da, Options)
   ).
-
 
 %! ordinal(+N:nonneg, +Options:list(compound))// is det.
 
@@ -390,14 +408,12 @@ ordinal(N, Options) -->
   integer(N),
   atom(Suffix).
 
-
 %! second(+Second:float, +Options:list(compound))// is det.
 
 second(S0, _) -->
   {S is floor(S0)},
   padding_zero(S),
   integer(S).
-
 
 %! sign(+N:number)// is det.
 
@@ -407,9 +423,9 @@ sign(N) -->
 sign(_) -->
   "+".
 
-
-
-%! time(+Hour:between(0,24), +Minute:between(0,59), +Second:float,
+%! time(+Hour:between(0,24),
+%!      +Minute:between(0,59),
+%!      +Second:float,
 %!      +Options:list(compound))// is det.
 
 time(H, Mi, S, Options) -->
@@ -418,7 +434,6 @@ time(H, Mi, S, Options) -->
   minute(Mi, Options),
   ":",
   second(S, Options).
-
 
 %! timezone_offset(+Offset:between(-840,840))// is det.
 
@@ -433,15 +448,13 @@ timezone_offset(Off) -->
   {Mi is Off mod 60},
   generate_as_digits(Mi, 2).
 
-
-
 %! year(+Year:integer, +Options:list(compound))// is det.
 
 year(Y, _) -->
   integer(Y).
 
-
-%! yearless_date(+Month:between(1,12), +Day:between(1,31),
+%! yearless_date(+Month:between(1,12),
+%!               +Day:between(1,31),
 %!               +Options:list(compound))// is det.
 
 yearless_date(Mo, Da, Options) -->
