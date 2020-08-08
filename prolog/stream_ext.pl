@@ -29,7 +29,6 @@ Some predicates in the library use the external programs ‘iconv’ and
 :- use_module(library(archive)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(readutil)).
 :- use_module(library(yall)).
 

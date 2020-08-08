@@ -30,10 +30,10 @@ whitespace ::= space | tabulator | newline
 */
 
 :- use_module(library(apply)).
-:- use_module(library(option)).
 
 :- use_module(library(call_ext)).
 :- use_module(library(dcg)).
+:- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(debug_ext)).
 :- use_module(library(graph/dot), []).
@@ -47,30 +47,30 @@ whitespace ::= space | tabulator | newline
 
 
 
-%! gml_attributes(+Options:list(compound), -String:string) is det.
+%! gml_attributes(+Options:dict, -String:string) is det.
 
 gml_attributes(Options, String) :-
-  maplist(gml_attribute, Options, Strings),
+  dict_pairs(Options, Pairs),
+  maplist(gml_attribute_, Pairs, Strings),
   atomics_to_string(Strings, " ", String).
 
-gml_attribute(Option, String) :-
-  Option =.. [Key,Value1],
-  (   number(Value1)
-  ->  format(string(String), "~a ~w", [Key,Value1])
-  ;   (   Key == label
-      ->  string_phrase(gml_encode_label, Value1, Value2)
-      ;   Value2 = Value1
-      ),
-      format(string(String), "~a \"~w\"", [Key,Value2])
-  ).
+gml_attribute_(Key-Value1, String) :-
+  number(Value1), !,
+  format(string(String), "~a ~w", [Key,Value1]).
+gml_attribute_(Key-Value1, String) :-
+  (   Key == label
+  ->  string_phrase(gml_encode_label, Value1, Value2)
+  ;   Value2 = Value1
+  ),
+  format(string(String), "~a \"~w\"", [Key,Value2]).
 
 
 
 %! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term) is det.
-%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term, +Options:list(compound)) is det.
+%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term, +Options:dict) is det.
 
 gml_edge(Out, FromTerm, ToTerm) :-
-  gml_edge(Out, FromTerm, ToTerm, []).
+  gml_edge(Out, FromTerm, ToTerm, options{}).
 
 
 gml_edge(Out, FromTerm, ToTerm, Options) :-
@@ -81,21 +81,21 @@ gml_edge(Out, FromTerm, ToTerm, Options) :-
 
 
 %! gml_graph(+Out:stream, :Goal_1) is det.
-%! gml_graph(+Out:stream, :Goal_1, +Options:list(compound)) is det.
+%! gml_graph(+Out:stream, :Goal_1, +Options:dict) is det.
 %
-% The following options are supported:
+% @arg Options The following options are supported:
 %
-%   * directed(+boolean)
+%      * directed(+boolean)
 %
-%     Whether the graph is directed (`true`) or undirected (`false`,
-%     default).
+%        Whether the graph is directed (`true`) or undirected
+%        (`false`, default).
 
 gml_graph(Out, Goal_1) :-
-  gml_graph(Out, Goal_1, []).
+  gml_graph(Out, Goal_1, options{}).
 
 
 gml_graph(Out, Goal_1, Options) :-
-  option(directed(Directed), Options, false),
+  dict_get(directed, false, Options, Directed),
   must_be(boolean, Directed),
   boolean_value(Directed, DirectedN),
   format_debug(gml, Out, "graph [ directed ~d", [DirectedN]),
@@ -105,7 +105,7 @@ gml_graph(Out, Goal_1, Options) :-
 
 
 %! gml_node(+Out:stream, +Term:term) is det.
-%! gml_node(+Out:stream, +Term:term, +Options:list(compound)) is det.
+%! gml_node(+Out:stream, +Term:term, +Options:dict) is det.
 
 gml_node(Out, Term) :-
   gml_node(Out, Term, []).

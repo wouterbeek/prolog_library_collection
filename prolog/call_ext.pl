@@ -34,7 +34,6 @@
 */
 
 :- use_module(library(dif)).
-:- use_module(library(option)).
 :- use_module(library(plunit)).
 :- use_module(library(when)).
 

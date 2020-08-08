@@ -42,7 +42,6 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 :- use_module(library(http/http_path)).
 :- use_module(library(http/json)).
 :- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
@@ -134,7 +133,7 @@ weight_(N) -->
 
 
 %! http_call(+Uri:or([atom,compound]), :Goal_1) is nondet.
-%! http_call(+Uri:or([atom,compound]), :Goal_1, +Options:list(compound)) is nondet.
+%! http_call(+Uri:or([atom,compound]), :Goal_1, +Options:dict) is nondet.
 %
 % Uses URIs that appear with the ‘next’ keyword in HTTP Link headers
 % to non-deterministically call Goal_1 for all subsequent input
@@ -143,16 +142,16 @@ weight_(N) -->
 % Detects cycles in HTTP Link header referals, in which case the
 % cyclic_link_header/1 is thrown.
 %
-% The following call is made: `call(Goal_1, In)'.
+% @arg Goal_1 The following call is made: `call(Goal_1, In)'.
 %
-% The following options are supported:
+% @arg Options The following options are supported:
 %
-%  - next(-atom)
+%      * next(-atom)
 %
-%  - Other options are passed to http_open2/3.
+%      * Other options are passed to http_open2/3.
 
 http_call(Uri, Goal_1) :-
-  http_call(Uri, Goal_1, []).
+  http_call(Uri, Goal_1, options{}).
 
 
 http_call(FirstUri0, Goal_1, Options1) :-
@@ -162,7 +161,7 @@ http_call(FirstUri0, Goal_1, Options1) :-
   % headers with the ‘next’ keyword.
   repeat,
   State = state(CurrentUri),
-  merge_options([next(NextUri)], Options1, Options2),
+  merge_dicts(options{next: NextUri}, Options1, Options2),
   (   http_open2(CurrentUri, In, Options2)
   ->  (   % There is a next URI: keep the choicepoint open.
           atom(NextUri)
@@ -187,15 +186,15 @@ http_call(FirstUri0, Goal_1, Options1) :-
 %! http_download(+Uri:or([atom,compound])) is det.
 %! http_download(+Uri:or([atom,compound]), +File:atom) is det.
 %! http_download(+Uri:or([atom,compound]), -File:atom) is det.
-%! http_download(+Uri:or([atom,compound]), +File:atom, +Options:list(compound)) is det.
-%! http_download(+Uri:or([atom,compound]), -File:atom, +Options:list(compound)) is det.
+%! http_download(+Uri:or([atom,compound]), +File:atom, +Options:dict) is det.
+%! http_download(+Uri:or([atom,compound]), -File:atom, +Options:dict) is det.
 
 http_download(Uri) :-
   http_download(Uri, _).
 
 
 http_download(Uri, File) :-
-  http_download(Uri, File, []).
+  http_download(Uri, File, options{}).
 
 
 http_download(Uri, File, Options) :-
@@ -204,10 +203,10 @@ http_download(Uri, File, Options) :-
 
 
 
-%! http_head2(+Uri:atom, +Options:list(compound)) is det.
+%! http_head2(+Uri:atom, +Options:dict) is det.
 
 http_head2(Uri, Options1) :-
-  merge_options([method(head)], Options1, Options2),
+  merge_dicts(options{method: head}, Options1, Options2),
   call_cleanup(
     http_open2(Uri, In, Options2),
     close(In)
@@ -309,7 +308,7 @@ http_metadata_status(Metas, Status) :-
 
 
 %! http_open2(+CurrentUri:or([atom,compound]), -In:stream) is det.
-%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:list(compound)) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:dict) is det.
 %
 % Alternative to http_open/3 in the SWI standard library with the
 % following additons:
@@ -378,9 +377,9 @@ http_open2(CurrentUri, In) :-
 http_open2(CurrentUri0, In, Options1) :-
   ensure_uri_(CurrentUri0, CurrentUri),
   % Allow the next/1 option to be instantiated later.
-  ignore(option(next(NextUri), Options1)),
+  ignore(option{next: NextUri} :< Options1),
   % Allow the metadata/1 optiont to be instantiated later.
-  ignore(option(metadata(Metas), Options1)),
+  ignore(option{metadata: Metas} :< Options1),
   http_options_(CurrentUri, Options1, State, Options2),
   http_open2_(CurrentUri, In, State, Metas0, Options2),
   reverse(Metas0, Metas),
@@ -388,8 +387,8 @@ http_open2(CurrentUri0, In, Options1) :-
   ignore(http_metadata_link(Metas, next, NextUri)),
   Metas = [Meta|_],
   _{status: Status, uri: FinalUri} :< Meta,
-  ignore(option(final_uri(FinalUri), Options1)),
-  (   option(status(Status), Options1)
+  ignore(option{final_uri: FinalUri} :< Options1),
+  (   option{status: Status} :< Options1
   ->  true
   ;   http_status_(In, Status, FinalUri, Options1)
   ).
@@ -397,11 +396,11 @@ http_open2(CurrentUri0, In, Options1) :-
 %! http_status_(+In:stream,
 %!              +Status:between(100,599),
 %!              +FinalUri:atom,
-%!              +Options:list(compound)) is det.
+%!              +Options:dict) is det.
 
 http_status_(In, Status, FinalUri, Options) :-
-  option(failure(Failure), Options, 400),
-  option(success(Success), Options, 200),
+  dict_get(failure, Options, 400, Failure),
+  dict_get(success, Options, 200, Success),
   (   % HTTP failure codes.
       between(400, 599, Status)
   ->  call_cleanup(
@@ -426,15 +425,15 @@ http_status_(In, Status, FinalUri, Options) :-
   ).
 
 http_options_(Uri, Options1, State, Options3) :-
-  (   select_option(accept(Accept), Options1, Options2)
+  (   dict_select(accept, Options1, Options2, Accept)
   ->  http_open2_accept_(Accept, Atom)
   ;   Atom = '*',
       Options2 = Options1
   ),
-  Options3 = [request_header('Accept'=Atom)|Options2],
-  option(number_of_hops(MaxHops), Options3, 5),
-  option(number_of_retries(MaxRetries), Options3, 1),
-  State = _{
+  merge_dicts(options{request_header: 'Accept'=Atom}, Options2, Options3),
+  dict_get(number_of_hops, Options3, 5, MaxHops),
+  dict_get(number_of_retries, Options3, 1, MaxRetries),
+  State = state{
     maximum_number_of_hops: MaxHops,
     maximum_number_of_retries: MaxRetries,
     number_of_retries: 1,
@@ -443,25 +442,26 @@ http_options_(Uri, Options1, State, Options3) :-
 
 http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
   (   debugging(http(send_request)),
-      option(post(RequestBody), Options1)
+      options{post: RequestBody} :< Options1
   ->  debug(http(send_request), "REQUEST BODY\n~w\n", [RequestBody])
   ;   true
   ),
-  merge_options(
-    [
-      cert_verify_hook(cert_accept_any),
-      raw_headers(HeaderLines),
-      redirect(false),
-      status_code(Status),
-      timeout(60),
-      version(Major-Minor)
-    ],
+  merge_dicts(
+    options{
+      cert_verify_hook: cert_accept_any,
+      raw_headers: HeaderLines,
+      redirect: false,
+      status_code: Status,
+      timeout: 60,
+      version: Major-Minor
+    },
     Options1,
     Options2
   ),
   get_time(Start),
-  http_open_cp:http_open(Uri, In1, Options2),
-  ignore(option(status_code(Status), Options2)),
+  dict_terms(Options2, Options3),
+  http_open_cp:http_open(Uri, In1, Options3),
+  ignore(options{status_code: Status} :< Options2),
   get_time(End),
   http_lines_pairs(HeaderLines, HeaderPairs),
   (   memberchk(location-[Location], HeaderPairs)
@@ -677,8 +677,8 @@ http_status_reason(523, "CloudFlare: Origin is unreachable").
 %! http_sync(+Uri:or([atom,compound])) is det.
 %! http_sync(+Uri:or([atom,compound]), +File:atom) is det.
 %! http_sync(+Uri:or([atom,compound]), -File:atom) is det.
-%! http_sync(+Uri:or([atom,compound]), +File:atom, +Options:list(compound)) is det.
-%! http_sync(+Uri:or([atom,compound]), -File:atom, +Options:list(compound)) is det.
+%! http_sync(+Uri:or([atom,compound]), +File:atom, +Options:dict) is det.
+%! http_sync(+Uri:or([atom,compound]), -File:atom, +Options:dict) is det.
 %
 % Like http_download/[1-3], but does not download File if it already
 % exists.
@@ -737,12 +737,16 @@ ensure_uri_(Uri, Uri) :-
 
 
 
-%! http_download_(+Uri:atom, +File:atom, +Options:list(compound)) is det.
+%! http_download_(+Uri:atom, +File:atom, +Options:dict) is det.
 
 http_download_(Uri, File, Options) :-
   file_name_extensions(File, Name, Exts),
   file_name_extensions(TmpFile, Name, [tmp|Exts]),
-  write_to_file(TmpFile, http_download_stream_(Uri, Options), [type(binary)]),
+  write_to_file(
+    TmpFile,
+    http_download_stream_(Uri, Options),
+    options{type: binary}
+  ),
   rename_file(TmpFile, File).
 
 http_download_stream_(Uri, Options, Out) :-

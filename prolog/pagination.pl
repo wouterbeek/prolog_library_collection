@@ -50,7 +50,7 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 
 
 
-%! empty_pagination(+Options:list(compound), -Page:dict) is det.
+%! empty_pagination(+Options:dict, -Page:dict) is det.
 %
 % Returns a pagination Page dictionary with empty results.
 
@@ -60,8 +60,8 @@ empty_pagination(Options, Page) :-
 
 
 %! pagination(+Templ, :Goal_0, -Page:dict) is det.
-%! pagination(+Templ, :Goal_0, +Options:list(compound), -Page:dict) is det.
-%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:list(compound), -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, +Options:dict, -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:dict, -Page:dict) is det.
 %
 % The following options are supported:
 %
@@ -132,8 +132,8 @@ pagination(Templ, Goal_0, Estimate_1, Options1, Page2) :-
 
 
 
-%! pagination_bulk(:Goal_1, +Options:list(compound), -Page:dict) is nondet.
-%! pagination_bulk(?Template, :Goal_0, +Options:list(compound), -Page:dict) is nondet.
+%! pagination_bulk(:Goal_1, +Options:dict, -Page:dict) is nondet.
+%! pagination_bulk(?Template, :Goal_0, +Options:dict, -Page:dict) is nondet.
 
 pagination_bulk(Goal_1, Options, Page) :-
   call(Goal_1, AllResults),
@@ -191,12 +191,14 @@ pagination_is_empty(Page) :-
 
 
 
-%! pagination_options(+Options1:list(compound), -StartPageNumber:positive_integer,
-%!                    -PageSize:nonneg, -Options2:list(compound)) is det.
+%! pagination_options(+Options1:dict,
+%!                    -StartPageNumber:positive_integer,
+%!                    -PageSize:nonneg,
+%!                    -Options2:dict) is det.
 
 pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
   dict_delete_or_default(page_number, Options1, 1, StartPageNumber, Options2),
-  (   del_dict(page_size, Options2, PageSize, Options3)
+  (   dict_delete(page_size, Options2, PageSize, Options3)
   ->  true
   ;   setting(default_page_size, PageSize),
       Options3 = Options2

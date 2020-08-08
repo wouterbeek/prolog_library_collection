@@ -74,12 +74,13 @@
 :- use_module(library(apply)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
-:- use_module(library(option)).
 :- use_module(library(readutil)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- use_module(library(call_ext)).
+:- use_module(library(dict)).
+:- use_module(library(hash_ext)).
 :- use_module(library(media_type)).
 :- use_module(library(sort_ext)).
 :- use_module(library(stream_ext)).
@@ -510,7 +511,7 @@ guess_file_encoding(File, Enc1) :-
   read_from_file(
     File,
     {Enc2}/[In]>>guess_encoding(In, Enc2),
-    [type(binary)]
+    options{type: binary}
   ),
   (   var(Enc1)
   ->  Enc1 = Enc2
@@ -560,13 +561,13 @@ peek_file(File, Size, Str) :-
 
 
 %! read_from_file(+File:atom, :Goal_1) is det.
-%! read_from_file(+File:atom, :Goal_1, +Options:list(compound)) is det.
+%! read_from_file(+File:atom, :Goal_1, +Options:dict) is det.
 %
 % Calls Goal_1 on the input stream derived from the given File.  If
 % the filen name ends in `.gz', GNU zip decompression is applied.
 
 read_from_file(File, Goal_1) :-
-  read_from_file(File, Goal_1, []).
+  read_from_file(File, Goal_1, options{}).
 
 
 read_from_file(File, Goal_1, Options) :-
@@ -575,10 +576,10 @@ read_from_file(File, Goal_1, Options) :-
 
 
 %! read_write_file(+File:atom, :Goal_2) is det.
-%! read_write_file(+File:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
+%! read_write_file(+File:atom, :Goal_2, +ReadOptions:dict, +WriteOptions:dict) is det.
 
 read_write_file(File, Goal_2) :-
-  read_write_file(File, Goal_2, []).
+  read_write_file(File, Goal_2, options{}).
 
 
 read_write_file(File, Goal_2, Options) :-
@@ -598,11 +599,11 @@ read_write_file(File, Goal_2, ReadOptions, WriteOptions) :-
 
 
 %! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2) is det.
-%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +Options:list(compound)) is det.
-%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +ReadOptions:list(compound), +WriteOptions:list(compound)) is det.
+%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +Options:dict) is det.
+%! read_write_files(+FromFile:atom, +ToFile:atom, :Goal_2, +ReadOptions:dict, +WriteOptions:dict) is det.
 
 read_write_files(FromFile, ToFile, Goal_2) :-
-  read_write_files(FromFile, ToFile, Goal_2, []).
+  read_write_files(FromFile, ToFile, Goal_2, options{}).
 
 
 read_write_files(FromFile, ToFile, Goal_2, Options) :-
@@ -629,7 +630,11 @@ recode_file(File) :-
 % the same.
 recode_file(_, utf8) :- !.
 recode_file(File, Enc) :-
-  read_write_file(File, {Enc}/[In,Out]>>recode_stream(In, Enc, Out), [type(binary)]).
+  read_write_file(
+    File,
+    {Enc}/[In,Out]>>recode_stream(In, Enc, Out),
+    options{type: binary}
+  ).
 
 
 
@@ -647,7 +652,12 @@ recode_files(FromFile, Enc1, ToFile) :-
       % remains the same.
       Enc2 == utf8
   ->  true
-  ;   read_write_files(FromFile, ToFile, {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out), [type(binary)])
+  ;   read_write_files(
+        FromFile,
+        ToFile,
+        {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out),
+        options{type: binary}
+      )
   ).
 
 
@@ -668,10 +678,10 @@ resolve_subdirectories([H|T1], [H|T2]) :-
 
 
 %! sort_file(+File:atom) is det.
-%! sort_file(+File:atom, +Options:list(compound)) is det.
+%! sort_file(+File:atom, +Options:dict) is det.
 
 sort_file(File) :-
-  sort_file(File, []).
+  sort_file(File, options{}).
 
 
 sort_file(File, Options) :-
@@ -707,12 +717,12 @@ working_directory(Directory) :-
 
 
 %! write_to_file(+File:atom, :Goal_1) is det.
-%! write_to_file(+File:atom, :Goal_1, +Options:list(compound)) is det.
+%! write_to_file(+File:atom, :Goal_1, +Options:dict) is det.
 %
 % If File's directory does not exist it is created.
 
 write_to_file(File, Goal_1) :-
-  write_to_file(File, Goal_1, []).
+  write_to_file(File, Goal_1, options{}).
 
 
 write_to_file(File, Goal_1, Options) :-
@@ -725,23 +735,34 @@ write_to_file(File, Goal_1, Options) :-
 
 % GENERICS %
 
-%! call_file_(+File:atom, +Mode:oneof([append,read,write]), :Goal_1, +Options:list(compound)) is det.
+%! call_file_(+File:atom,
+%!            +DefaultMode:oneof([append,read,write]),
+%!            :Goal_1,
+%!            +Options:dict) is det.
 %
 % @arg Options The following options are supported:
 %
-%      * mode(+oneof([append,read,write]) Overrules the default mode.
+%      * mode(+oneof([append,read,write])
+%
+%        Overrules the default mode.
 
-call_file_(File, Mode1, Goal_1, Options) :-
-  option(mode(Mode2), Options, Mode1),
+call_file_(File, DefaultMode, Goal_1, Options) :-
+  dict_get(mode, Options, DefaultMode, Mode),
   setup_call_cleanup(
-    open_file_(File, Mode2, Stream, Options),
+    open_file_(File, Mode, Stream, Options),
     call(Goal_1, Stream),
     close(Stream)
   ).
 
 
 
-%! call_files_(+File1:atom, +Mode1:oneof([append,read,write]), +File2:atom, +Mode2:oneof([append,read,write]), :Goal_2, +Options1:list(compound), +Options2:list(compound)) is det.
+%! call_files_(+File1:atom,
+%!             +Mode1:oneof([append,read,write]),
+%!             +File2:atom,
+%!             +Mode2:oneof([append,read,write]),
+%!             :Goal_2,
+%!             +Options1:dict,
+%!             +Options2:dict) is det.
 
 call_files_(File1, Mode1, File2, Mode2, Goal_2, Options1, Options2) :-
   setup_call_cleanup(
@@ -771,7 +792,10 @@ from_to_file_(_, _, _).
 
 
 
-%! open_file_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compoind)) is det.
+%! open_file_(+File:atom,
+%!            +Mode:oneof([append,read,write]),
+%!            -Stream:stream,
+%!            +Options:dict) is det.
 
 open_file_(File, Mode, Stream2, Options) :-
   access_file(File, Mode),
@@ -780,44 +804,40 @@ open_file_(File, Mode, Stream2, Options) :-
 
 
 
-%! open_gz_(+File:atom, +Mode:oneof([append,read,write]), -Stream:stream, +Options:list(compound)) is det.
+%! open_gz_(+File:atom,
+%!          +Mode:oneof([append,read,write]),
+%!          -Stream:stream,
+%!          +Options:dict) is det.
 %
 % @arg Options The following options are supported:
 %
-%      - compression(+oneof([gzip,none]))
+%      * compression(+oneof([gzip,none]))
 
 % explicitly no compression
 open_gz_(File, Mode, Stream, Options) :-
-  option(compression(none), Options), !,
+  options{compression: none} :< Options, !,
   open(File, Mode, Stream, Options).
 % compression (GNU zip)
 open_gz_(File, Mode, Stream, Options) :-
-  (   option(compression(gzip), Options)
+  (   options{compression: gzip} :< Options
   ;   file_name_extension(_, gz, File)
   ), !,
-  gzopen(File, Mode, Stream, Options).
+  dict_terms(Options, SwiOptions),
+  gzopen(File, Mode, Stream, SwiOptions).
 % implicitly no compression
 open_gz_(File, Mode, Stream, Options) :-
-  open(File, Mode, Stream, Options).
+  dict_terms(Options, SwiOptions),
+  open(File, Mode, Stream, SwiOptions).
 
 
 
-%! open_hash_(+Stream1:stream, -Stream2:stream, +Options:list(compound)) is semidet.
+%! open_hash_(+Stream1:stream, -Stream2:stream, +Options:dict) is semidet.
 
 open_hash_(Stream1, Stream2, Options) :-
-  select_algorithm_option_(Algorithm, Options), !,
+  hash_algorithm_(Options, Algorithm), !,
   open_hash_stream(Stream1, Stream2, [algorithm(Algorithm),close_parent(false)]).
 open_hash_(Stream, Stream, _).
 
-select_algorithm_option_(md5, Options) :-
-  option(md5(_), Options).
-select_algorithm_option_(sha1, Options) :-
-  option(sha1(_), Options).
-select_algorithm_option_(sha224, Options) :-
-  option(sha224(_), Options).
-select_algorithm_option_(sha256, Options) :-
-  option(sha256(_), Options).
-select_algorithm_option_(sha384, Options) :-
-  option(sha384(_), Options).
-select_algorithm_option_(sha512, Options) :-
-  option(sha512(_), Options).
+hash_algorithm_(Options, Algorithm) :-
+  hash_algorithm(Algorithm),
+  dict_key(Options, Algorithm).

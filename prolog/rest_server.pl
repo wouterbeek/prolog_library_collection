@@ -360,7 +360,7 @@ rest_method(Request, HandleId, Mod:Plural_2, Mod:Singular_3) :-
   memberchk(method(Method), Request),
   memberchk(path(Path), Request),
   Mod:http_current_handler(Path, _, Options),
-  memberchk(methods(Methods), Options),
+  _{methods: Methods} :< Options,
   (   Method == options
   ->  rest_options(Methods)
   ;   % 405 Method Not Allowed

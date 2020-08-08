@@ -13,9 +13,9 @@
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
-:- use_module(library(option)).
 :- use_module(library(process)).
 
+:- use_module(library(dict)).
 :- use_module(library(thread_ext)).
 
 :- meta_predicate
@@ -68,7 +68,7 @@ predmerge(<, P, H1, H2, T1, T2, [H1|R]) :-
 
 
 %! sort_stream(+In:stream, -Out:stream) is det.
-%! sort_stream(+In:stream, -Out:stream, +Options:list(compound)) is det.
+%! sort_stream(+In:stream, -Out:stream, +Options:dict) is det.
 %
 % @arg Options The following options are supported:
 %
@@ -113,8 +113,8 @@ sort_stream(In, Out) :-
 
 
 sort_stream(In, Out, Options1) :-
-  select_option(env(EnvT), Options1, Options2, []),
-  select_option(utf8(Utf8), Options2, Options3, false),
+  dict_select(env, Options1, [], Options2, EnvT),
+  dict_select(utf8, Options2, false, Options3, Utf8),
   (Utf8 == true -> Env = EnvT ; Env = ['LC_ALL'='C'|EnvT]),
   maplist(sort_flag, Options3, Flags),
   process_create(

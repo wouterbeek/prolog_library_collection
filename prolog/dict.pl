@@ -1,27 +1,28 @@
 :- module(
   dict,
   [
-    dict_del/3,               % +Keys, +From, -To
-    dict_delete_or_default/5, % +Key, +From, +Default, -Value, -To
-    dict_get/3,               % ?KeyOrKeys, +Dict, -Value
-    dict_get/4,               % +KeyOrKeys, +Dict, +Default, -Value
-    dict_inc/2,               % +Key, +Dict
-    dict_inc/3,               % +Key, +Dict, -Value
-    dict_inc/4,               % +Key, +Dict, +Diff, -Value
-    dict_key/2,               % +Dict, ?Key
-    dict_pairs/2,             % ?Dict, ?Pairs
-    dict_put/3,               % +From1, +From2, -To
-    dict_put/4,               % +Key, +From, +Value, -To
-    dict_select/3,            % +Select, +From, -To
-    dict_select/4,            % +Key, +From, -Value, -To
-    dict_select/5,            % +Key, +DefaultValue, +From, -Value, -To
-    dict_tag/2,               % +Dict, ?Tag
-    dict_tag/3,               % +From, ?Tag, -To
-    dict_terms/2,             % ?Dict, ?Terms
-    merge_dicts/2,            % +Froms, -To
-    merge_dicts/3,            % +NewFrom, +OldFrom, -To
-    nb_increment_dict/2,      % +Dict, +Key
-    nb_increment_dict/3       % +Dict, +Key, -Value
+    dict_delete/3,       % +KeyOrKeys, +From, -To
+    dict_delete/4,       % +Key, +From, -Value, -To
+    dict_delete/5,       % +Key, +From, +Default, -Value, -To
+    dict_get/3,          % ?KeyOrKeys, +Dict, -Value
+    dict_get/4,          % +KeyOrKeys, +Dict, +Default, -Value
+    dict_inc/2,          % +Key, +Dict
+    dict_inc/3,          % +Key, +Dict, -Value
+    dict_inc/4,          % +Key, +Dict, +Diff, -Value
+    dict_key/2,          % +Dict, ?Key
+    dict_pairs/2,        % ?Dict, ?Pairs
+    dict_put/3,          % +From1, +From2, -To
+    dict_put/4,          % +Key, +From, +Value, -To
+    dict_select/3,       % +Select, +From, -To
+    dict_select/4,       % +Key, +From, -To, -Value
+    dict_select/5,       % +Key, +From, +Default, -To, -Value
+    dict_tag/2,          % +Dict, ?Tag
+    dict_tag/3,          % +From, ?Tag, -To
+    dict_terms/2,        % ?Dict, ?Terms
+    merge_dicts/2,       % +Froms, -To
+    merge_dicts/3,       % +NewFrom, +OldFrom, -To
+    nb_increment_dict/2, % +Dict, +Key
+    nb_increment_dict/3  % +Dict, +Key, -Value
   ]
 ).
 
@@ -39,28 +40,39 @@
 
 
 
-%! dict_del(+Keys:list(atom), +From:dict, -To:dict) is det.
+%! dict_delete(+KeyOrKeys:or([atom,list(atom)]), +From:dict, -To:dict) is det.
 
-dict_del([], Dict, Dict) :- !.
-dict_del([H|T], Dict1, Dict3) :-
+dict_delete(Key, From, To) :-
+  atom(Key), !,
+  del_dict(Key, From, _, To).
+dict_delete([], Dict, Dict) :- !.
+dict_delete([H|T], Dict1, Dict3) :-
   del_dict(H, Dict1, _, Dict2),
-  dict_del(T, Dict2, Dict3).
+  dict_delete(T, Dict2, Dict3).
 
 
 
-%! dict_delete_or_default(+Key:atom, +From:dict, +Default:term, -Value:term, -To:dict) is det.
+%! dict_delete(+Key:atom, +From:dict, -Value:term, -To:dict) is det.
+%! dict_delete(+Key:atom, +From:dict, +Default:term, -Value:term, -To:dict) is det.
 %
 % Either delete the Value for Key from From resulting in To, or
 % return the Default value and leave the dictionary unchanged.
 
-dict_delete_or_default(Key, From, _, Value, To) :-
+dict_delete(Key, From, Value, To) :-
+  del_dict(Key, From, Value, To).
+
+
+dict_delete(Key, From, _, Value, To) :-
   del_dict(Key, From, Value, To), !.
-dict_delete_or_default(_, Dict, Default, Default, Dict).
+dict_delete(_, Dict, Value, Value, Dict).
 
 
 
 %! dict_get(?KeyOrKeys:or([atom,list(atom)]), +Dict:dict, -Value:term) is nondet.
-%! dict_get(+KeyOrKeys:or([atom,list(atom)], +Dict:dict, +Default:term, -Value:term) is semidet.
+%! dict_get(+KeyOrKeys:or([atom,list(atom)],
+%!          +Dict:dict,
+%!          +Default:term,
+%!          -Value:term) is semidet.
 
 dict_get(Key, Dict, Value) :-
   atom(Key), !,
@@ -77,7 +89,7 @@ dict_get_([H|T], Dict1, Value) :-
 dict_get(Keys, Dict, _, Value2) :-
   dict_get(Keys, Dict, Value1), !,
   Value2 = Value1.
-dict_get(_, _, Default, Default).
+dict_get(_, _, Value, Value).
 
 
 
@@ -138,17 +150,17 @@ dict_select(Select, From, To) :-
 
 
 
-%! dict_select(+Key:atom, +From:dict, -Value:term, -To:dict) is semidet.
-%! dict_select(+Key:atom, +DefaultValue:term, +From:dict, -Value:term, -To:dict) is det.
+%! dict_select(+Key:atom, +From:dict, -To:dict, -Value:term) is semidet.
+%! dict_select(+Key:atom, +From:dict, +Default:term, -To:dict, -Value:term) is det.
 
-dict_select(Key, From, Value, To) :-
+dict_select(Key, From, To, Value) :-
   dict_pairs(Select, [Key-Value]),
   select_dict(Select, From, To), !.
 
 
-dict_select(Key, _, From, Value, To) :-
+dict_select(Key, From, _, To, Value) :-
   dict_select(Key, From, Value, To), !.
-dict_select(_, Value, Dict, Value, Dict).
+dict_select(_, Dict, Value, Dict, Value).
 
 
 
@@ -200,7 +212,7 @@ merge_dicts([H1,H2|T1], T2) :-
 %! merge_dicts(+NewFrom:dict, +OldFrom:dict, -To:dict) is det.
 %
 % Merges two dictionaries into one new dictionary, similar to
-% merge_options/3 from library(option).
+% merge_options/3 from the `option' standard library.
 %
 % If NewFrom and OldFrom contain the same key then the value from
 % NewFrom is used, unless both are dicts, in which case the dicts are

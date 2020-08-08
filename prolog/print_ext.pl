@@ -160,11 +160,11 @@ print_term(Term) :-
 
 
 %! print_term_nl(+Term:term) is det.
-%! print_term_nl(+Term:term, +Options:list(compound)) is det.
-%! print_term_nl(+Out:blob, +Term:term, +Options:list(compound)) is det.
+%! print_term_nl(+Term:term, +Options:dict) is det.
+%! print_term_nl(+Out:blob, +Term:term, +Options:dict) is det.
 
 print_term_nl(Term) :-
-  print_term_nl(Term, []).
+  print_term_nl(Term, options{}).
 
 
 print_term_nl(Term, Options) :-
