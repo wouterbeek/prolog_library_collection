@@ -62,8 +62,7 @@
 :- autoload(library(http/http_header_cp),
             [ http_parse_header/2, http_post_data/3 ]).
 :- autoload(library(http/http_stream),[stream_range_open/3]).
-:- if(( exists_source(library(ssl)),
-        \+ current_prolog_flag(pldoc_to_tex,true))).
+:- if(exists_source(library(ssl))).
 :- autoload(library(ssl), [ssl_upgrade_legacy_options/2]).
 :- endif.
 
@@ -80,10 +79,20 @@ additional modules that act as plugins:
     `https` is requested using a default SSL context. See the plugin for
     additional information regarding security.
 
+    * library(zlib)
+    Loading this library supports the `gzip` transfer encoding.  This
+    plugin is lazily loaded if a connection is opened that claims this
+    transfer encoding.
+
     * library(http/http_cookie)
     Loading this library adds tracking cookies to http_open/3. Returned
     cookies are collected in the Prolog database and supplied for
     subsequent requests.
+
+    * library(http/http_stream)
+    This library adds support for _chunked_ encoding and makes the
+    http_open/3 advertise itself as HTTP/1.1 instead of HTTP/1.0.
+
 
 Here is a simple example to fetch a web-page:
 
