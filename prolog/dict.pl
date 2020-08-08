@@ -3,8 +3,8 @@
   [
     dict_del/3,               % +Keys, +From, -To
     dict_delete_or_default/5, % +Key, +From, +Default, -Value, -To
-    dict_get/3,               % ?Keys, +Dict, -Value
-    dict_get/4,               % +Keys, +Dict, +Default, -Value
+    dict_get/3,               % ?KeyOrKeys, +Dict, -Value
+    dict_get/4,               % +KeyOrKeys, +Dict, +Default, -Value
     dict_inc/2,               % +Key, +Dict
     dict_inc/3,               % +Key, +Dict, -Value
     dict_inc/4,               % +Key, +Dict, +Diff, -Value
@@ -13,8 +13,11 @@
     dict_put/3,               % +From1, +From2, -To
     dict_put/4,               % +Key, +From, +Value, -To
     dict_select/3,            % +Select, +From, -To
+    dict_select/4,            % +Key, +From, -Value, -To
+    dict_select/5,            % +Key, +DefaultValue, +From, -Value, -To
     dict_tag/2,               % +Dict, ?Tag
     dict_tag/3,               % +From, ?Tag, -To
+    dict_terms/2,             % ?Dict, ?Terms
     merge_dicts/2,            % +Froms, -To
     merge_dicts/3,            % +NewFrom, +OldFrom, -To
     nb_increment_dict/2,      % +Dict, +Key
@@ -24,11 +27,10 @@
 
 /** <module> Dictionary extension
 
-@author Wouter Beek
-@version 2017-2020
 */
 
 :- use_module(library(apply)).
+:- use_module(library(error)).
 :- use_module(library(lists)).
 
 :- use_module(library(pair_ext)).
@@ -57,8 +59,8 @@ dict_delete_or_default(_, Dict, Default, Default, Dict).
 
 
 
-%! dict_get(?Keys:or([atom,list(atom)]), +Dict:dict, -Value:term) is nondet.
-%! dict_get(+Keys:or([atom,list(atom)], +Dict:dict, +Default:term, -Value:term) is semidet.
+%! dict_get(?KeyOrKeys:or([atom,list(atom)]), +Dict:dict, -Value:term) is nondet.
+%! dict_get(+KeyOrKeys:or([atom,list(atom)], +Dict:dict, +Default:term, -Value:term) is semidet.
 
 dict_get(Key, Dict, Value) :-
   atom(Key), !,
@@ -136,6 +138,20 @@ dict_select(Select, From, To) :-
 
 
 
+%! dict_select(+Key:atom, +From:dict, -Value:term, -To:dict) is semidet.
+%! dict_select(+Key:atom, +DefaultValue:term, +From:dict, -Value:term, -To:dict) is det.
+
+dict_select(Key, From, Value, To) :-
+  dict_pairs(Select, [Key-Value]),
+  select_dict(Select, From, To), !.
+
+
+dict_select(Key, _, From, Value, To) :-
+  dict_select(Key, From, Value, To), !.
+dict_select(_, Value, Dict, Value, Dict).
+
+
+
 %! dict_tag(+Dict:dict, +Tag:atom) is semidet.
 %! dict_tag(+Dict:dict, -Tag:atom) is det.
 
@@ -151,6 +167,21 @@ dict_tag(Dict, Tag) :-
 dict_tag(From, Tag, To):-
   dict_pairs(From, _, Pairs),
   dict_pairs(To, Tag, Pairs).
+
+
+
+%! dict_terms(+Dict:dict, -Terms:list(compound)) is det.
+%! dict_terms(-Dict:dict, +Terms:list(compound)) is det.
+
+dict_terms(Dict, Terms) :-
+  var(Terms), !,
+  dict_pairs(Dict, Pairs),
+  maplist(compound_pair, Terms, Pairs).
+dict_terms(Dict, Terms) :-
+  maplist(compound_pair, Terms, Pairs),
+  dict_pairs(Dict, Pairs).
+dict_terms(Dict, Pairs) :-
+  instantiation_error([Dict,Pairs]).
 
 
 

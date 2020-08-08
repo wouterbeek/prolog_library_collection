@@ -1,7 +1,6 @@
 :- module(
   default,
   [
-    call_default_option/3, % ?Option, +Options, :Goal_1
     call_default_value/2,  % ?Value, :Goal_1
     call_default_value/3,  % ?Value, :Goal_1, +DefaultValue
     default_value/2,       % ?Value, +DefaultValue
@@ -14,24 +13,10 @@
 */
 
 :- meta_predicate
-    call_default_option(?, +, 1),
     call_default_value(?, 1),
     call_default_value(?, 1, +).
 
 
-
-
-
-%! call_default_option(?Option, +Options, :Goal_1) is det.
-%
-% If `Option' cannot be bound based on the given `Options', call
-% `Goal_1' to determine the option's binding instead.
-
-call_default_option(Option, Options, _) :-
-  option(Option, Options), !.
-call_default_option(Option, _, Goal_1) :-
-  compound_name_arguments(Option, _, [Value]),
-  once(call(Goal_1, Value)).
 
 
 
