@@ -159,7 +159,7 @@ dict_select(Key, From, To, Value) :-
 
 
 dict_select(Key, From, _, To, Value) :-
-  dict_select(Key, From, Value, To), !.
+  dict_select(Key, From, To, Value), !.
 dict_select(_, Dict, Value, Dict, Value).
 
 
