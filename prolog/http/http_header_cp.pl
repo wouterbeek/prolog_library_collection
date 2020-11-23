@@ -60,13 +60,13 @@
             http_update_connection/4,   % +HeaderIn, +Request, -Connection, -HeaderOut
             http_update_transfer/4      % +HeaderIn, +Request, -Transfer, -HeaderOut
           ]).
-:- autoload(html_write,
+:- autoload(library(http/html_write),
 	    [ print_html/2, print_html/1, page/4, html/3,
 	      html_print_length/2
 	    ]).
-:- autoload(http_exception,[map_exception_to_http_status/4]).
-:- autoload(mimepack,[mime_pack/3]).
-:- autoload(mimetype,[file_mime_type/2]).
+:- autoload(library(http/http_exception),[map_exception_to_http_status/4]).
+:- autoload(library(http/mimepack),[mime_pack/3]).
+:- autoload(library(http/mimetype),[file_mime_type/2]).
 :- autoload(library(apply),[maplist/2]).
 :- autoload(library(base64),[base64/2]).
 :- autoload(library(debug),[debug/3,debugging/1]).
