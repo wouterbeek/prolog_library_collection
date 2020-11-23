@@ -13,6 +13,7 @@
 */
 
 :- use_module(library(csv)).
+:- use_module(library(dict)).
 :- use_module(library(pairs)).
 
 
