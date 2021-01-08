@@ -52,8 +52,6 @@
 	      option/3, select_option/3
 	    ]).
 :- autoload(library(readutil),[read_line_to_codes/2]).
-:- autoload(library(socket),
-	    [tcp_connect/3,negotiate_socks_connection/2]).
 :- autoload(library(uri),
 	    [ uri_resolve/3, uri_components/2, uri_data/3,
               uri_authority_components/2, uri_authority_data/3,
@@ -65,6 +63,8 @@
 :- if(exists_source(library(ssl))).
 :- autoload(library(ssl), [ssl_upgrade_legacy_options/2]).
 :- endif.
+:- use_module(library(socket)).
+
 
 /** <module> HTTP client library
 
@@ -195,6 +195,7 @@ Title = 'Free Online Version - Learn Prolog
                        status_code(-integer),
                        output(-stream),
                        timeout(number),
+                       unix_socket(+atom),
                        proxy(atom, integer),
                        proxy_authorization(compound),
                        bypass_proxy(boolean),
@@ -241,6 +242,14 @@ user_agent('SWI-Prolog').
 %       - digest(+User, +Password)
 %       HTTP Digest authentication.  This option is only provided
 %       if the plugin library(http/http_digest) is also loaded.
+%
+%     * unix_socket(+Path)
+%     Connect to the given Unix domain socket.  In this scenario
+%     the host name and port or ignored.  If the server replies
+%     with a _redirect_ message and the host differs from the
+%     original host as normal TCP connection is used to handle
+%     the redirect.  This option is inspired by curl(1)'s option
+%     `--unix-socket`.
 %
 %     * connection(+Connection)
 %     Specify the =Connection= header.  Default is =close=.  The
@@ -427,7 +436,9 @@ http_open(URL, Stream, QOptions) :-
 try_a_proxy(Parts, Result, Options) :-
     parts_uri(Parts, AtomicURL),
     option(host(Host), Parts),
-    (   (   option(proxy(ProxyHost:ProxyPort), Options)
+    (   option(unix_socket(Path), Options)
+    ->  Proxy = unix_socket(Path)
+    ;   (   option(proxy(ProxyHost:ProxyPort), Options)
         ;   is_list(Options),
             memberchk(proxy(ProxyHost,ProxyPort), Options)
         )
@@ -447,10 +458,7 @@ try_a_proxy(Parts, Result, Options) :-
 
 try_http_proxy(Method, Parts, Stream, Options0) :-
     option(host(Host), Parts),
-    (   Method == direct
-    ->  parts_request_uri(Parts, RequestURI)
-    ;   parts_uri(Parts, RequestURI)
-    ),
+    proxy_request_uri(Method, Parts, RequestURI),
     select_option(visited(Visited0), Options0, OptionsV, []),
     Options = [visited([Parts|Visited0])|OptionsV],
     parts_scheme(Parts, Scheme),
@@ -483,6 +491,22 @@ try_http_proxy(Method, Parts, Stream, Options0) :-
     ),
     return_final_url(Options).
 
+proxy_request_uri(direct, Parts, RequestURI) :-
+    !,
+    parts_request_uri(Parts, RequestURI).
+proxy_request_uri(unix_socket(_), Parts, RequestURI) :-
+    !,
+    parts_request_uri(Parts, RequestURI).
+proxy_request_uri(_, Parts, RequestURI) :-
+    parts_uri(Parts, RequestURI).
+
+http:http_connection_over_proxy(unix_socket(Path), _, _,
+                                StreamPair, Options, Options) :-
+    !,
+    unix_domain_socket(Socket),
+    tcp_connect(Socket, Path),
+    tcp_open_socket(Socket, In, Out),
+    stream_pair(StreamPair, In, Out).
 http:http_connection_over_proxy(direct, _, Host:Port,
                                 StreamPair, Options, Options) :-
     !,
@@ -640,6 +664,14 @@ method(Options, MNAME) :-
     ;   domain_error(method, M)
     ).
 
+%!  map_method(+MethodID, -Method)
+%
+%   Support additional ``METHOD`` keywords.  Default   are  the official
+%   HTTP methods as defined by the various RFCs.
+
+:- multifile
+    map_method/2.
+
 map_method(delete,  'DELETE').
 map_method(get,     'GET').
 map_method(head,    'HEAD').
@@ -750,7 +782,7 @@ do_open(_, Code, _, Lines, Options0, Parts, _, In, Stream) :-
                     context(_, 'Redirection loop')))
     ;   true
     ),
-    redirect_options(Options0, Options),
+    redirect_options(Parts, RedirectedParts, Options0, Options),
     http_open(RedirectedParts, Stream, Options).
                                         % Need authentication
 do_open(_Version, Code, _Comment, Lines, Options0, Parts, _Host, In0, Stream) :-
@@ -826,11 +858,26 @@ redirect_loop(Parts, Options) :-
     Count > 2.
 
 
-%!  redirect_options(+Options0, -Options) is det.
+%!  redirect_options(+Parts, +RedirectedParts, +Options0, -Options) is det.
 %
-%   A redirect from a POST should do a GET on the returned URI. This
-%   means we must remove  the   method(post)  and post(Data) options
-%   from the original option-list.
+%   A redirect from a POST should do  a   GET  on the returned URI. This
+%   means we must remove the method(post)   and  post(Data) options from
+%   the original option-list.
+%
+%   If we are connecting over a Unix   domain socket we drop this option
+%   if the redirect host does not match the initial host.
+
+redirect_options(Parts, RedirectedParts, Options0, Options) :-
+    select_option(unix_socket(_), Options0, Options1),
+    memberchk(host(Host), Parts),
+    memberchk(host(RHost), RedirectedParts),
+    debug(http(redirect), 'http_open: redirecting AF_UNIX ~w to ~w',
+          [Host, RHost]),
+    Host \== RHost,
+    !,
+    redirect_options(Options1, Options).
+redirect_options(_, _, Options0, Options) :-
+    redirect_options(Options0, Options).
 
 redirect_options(Options0, Options) :-
     (   select_option(post(_), Options0, Options1)

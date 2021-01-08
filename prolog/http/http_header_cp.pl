@@ -2458,9 +2458,16 @@ cookie_value(Value) -->
     { atom_codes(Value, Chars)
     }.
 
+chars_to_semicolon_or_blank([]), ";" -->
+    ";",
+    !.
+chars_to_semicolon_or_blank([]) -->
+    " ",
+    blanks,
+    eos,
+    !.
 chars_to_semicolon_or_blank([H|T]) -->
     [H],
-    { H \== 32, H \== 0'; },
     !,
     chars_to_semicolon_or_blank(T).
 chars_to_semicolon_or_blank([]) -->
