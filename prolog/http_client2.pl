@@ -65,8 +65,7 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
     http:encoding_filter/3,
     http_header:status_comment//1,
     http_header:status_number_fact/2,
-    http:post_data_hook/3,
-    uri:default_port/2.
+    http:post_data_hook/3.
 
 http:encoding_filter('application/gzip', In1, In2) :-
   http:encoding_filter(gzip, In1, In2).
@@ -83,9 +82,6 @@ http_header:status_comment(522) -->
   "CloudFlare: Connection timed out".
 http_header:status_comment(523) -->
   "CloudFlare: Origin is unreachable".
-
-uri:default_port(http, 80).
-uri:default_port(https, 443).
 
 :- public
     ssl_verify/5.

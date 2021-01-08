@@ -28,6 +28,7 @@ Extends the support for URIs in the SWI-Prolog standard library.
 :- use_module(library(conf)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
+:- use_module(library(http/http_open_cp), []).
 
 
 
@@ -136,7 +137,7 @@ auth_comps_(Scheme, Authority, auth(User,Password,Host,Port0)) :-
   ;   % Leave out the port if it is the default port for the given
       % Scheme.
       ground(Scheme),
-      uri:default_port(Scheme, Port0)
+      http_open_cp:default_port(Scheme, Port0)
   ->  true
   ;   Port = Port0
   ),
