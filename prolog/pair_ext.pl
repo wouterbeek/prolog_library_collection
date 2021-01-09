@@ -1,6 +1,7 @@
 :- module(
   pair_ext,
   [
+    change_keys/3,   % +Pairs1, +Changes, -Pairs2
     compound_pair/2, % ?Compound, ?Pair
     merge_pairs/3,   % +New, +Old, -Merge
     sum_value/2      % +Pair1, -Pair2
@@ -29,6 +30,19 @@ error:has_type(pair(KeyType,ValueType), Key- Value) :-
   error:has_type(ValueType, Value).
 
 
+
+
+
+%! change_keys(+Pairs1:list(pair(atom,term)),
+%!             +Changes:ordset(pair(atom,atom)),
+%!             -Pairs2:list(pair(atom,term))) is det.
+
+change_keys(L, [], L) :- !.
+change_keys([Key1-Value|T1], [Key1-Key2|T2], [Key2-Value|T3]) :- !,
+  change_keys(T1, T2, T3).
+change_keys([H|T1], Changes, [H|T2]) :- !,
+  change_keys(T1, Changes, T2).
+change_keys([], _, []).
 
 
 

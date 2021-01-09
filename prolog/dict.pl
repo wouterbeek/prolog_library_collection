@@ -1,6 +1,7 @@
 :- module(
   dict,
   [
+    dict_change_keys/3,  % +Dict1, +KeyChanges, -Dict2
     dict_delete/3,       % +KeyOrKeys, +From, -To
     dict_delete/4,       % +Key, +From, -Value, -To
     dict_delete/5,       % +Key, +From, +Default, -Value, -To
@@ -37,6 +38,15 @@
 :- use_module(library(pair_ext)).
 
 
+
+
+
+%! dict_change_keys(+Dict1:dict, +KeyChanges:list(pair(atom)), -Dict2:dict) is det.
+
+dict_change_keys(Dict1, Changes, Dict2) :-
+  dict_pairs(Dict1, Pairs1),
+  change_keys(Pairs1, Changes, Pairs2),
+  dict_pairs(Dict2, Pairs2).
 
 
 
