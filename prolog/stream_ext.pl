@@ -279,6 +279,7 @@ clean_encoding_(Enc1, Enc4) :-
   (encoding_alias_(Enc2, Enc3) -> true ; Enc3 = Enc2),
   (encoding_promotion_(Enc3, Enc4) -> true ; Enc4 = Enc3).
 
+encoding_alias_('iso-8859-1', iso_latin_1).
 encoding_alias_('iso-8859-15.latin1', 'iso8859-15').
 encoding_alias_(macroman, macintosh).
 encoding_alias_('us-ascii', ascii).
