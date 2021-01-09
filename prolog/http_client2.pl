@@ -129,7 +129,7 @@ weight_(N) -->
 
 
 %! http_call(+Uri:or([atom,compound]), :Goal_1) is nondet.
-%! http_call(+Uri:or([atom,compound]), :Goal_1, +Options:dict) is nondet.
+%! http_call(+Uri:or([atom,compound]), :Goal_1, +Options:options) is nondet.
 %
 % Uses URIs that appear with the ‘next’ keyword in HTTP Link headers
 % to non-deterministically call Goal_1 for all subsequent input
@@ -182,8 +182,8 @@ http_call(FirstUri0, Goal_1, Options1) :-
 %! http_download(+Uri:or([atom,compound])) is det.
 %! http_download(+Uri:or([atom,compound]), +File:atom) is det.
 %! http_download(+Uri:or([atom,compound]), -File:atom) is det.
-%! http_download(+Uri:or([atom,compound]), +File:atom, +Options:dict) is det.
-%! http_download(+Uri:or([atom,compound]), -File:atom, +Options:dict) is det.
+%! http_download(+Uri:or([atom,compound]), +File:atom, +Options:options) is det.
+%! http_download(+Uri:or([atom,compound]), -File:atom, +Options:options) is det.
 
 http_download(Uri) :-
   http_download(Uri, _).
@@ -199,7 +199,7 @@ http_download(Uri, File, Options) :-
 
 
 
-%! http_head2(+Uri:atom, +Options:dict) is det.
+%! http_head2(+Uri:atom, +Options:options) is det.
 
 http_head2(Uri, Options1) :-
   merge_dicts(options{method: head}, Options1, Options2),
@@ -304,7 +304,7 @@ http_metadata_status(Metas, Status) :-
 
 
 %! http_open2(+CurrentUri:or([atom,compound]), -In:stream) is det.
-%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:dict) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:options) is det.
 %
 % Alternative to http_open/3 in the SWI standard library with the
 % following additons:
@@ -367,7 +367,7 @@ http_metadata_status(Metas, Status) :-
 %      * Other options are passed to http_open/3.
 
 http_open2(CurrentUri, In) :-
-  http_open2(CurrentUri, In, []).
+  http_open2(CurrentUri, In, options{}).
 
 
 http_open2(CurrentUri0, In, Options1) :-
@@ -392,7 +392,7 @@ http_open2(CurrentUri0, In, Options1) :-
 %! http_status_(+In:stream,
 %!              +Status:between(100,599),
 %!              +FinalUri:atom,
-%!              +Options:dict) is det.
+%!              +Options:options) is det.
 
 http_status_(In, Status, FinalUri, Options) :-
   dict_get(failure, Options, 400, Failure),
@@ -673,8 +673,8 @@ http_status_reason(523, "CloudFlare: Origin is unreachable").
 %! http_sync(+Uri:or([atom,compound])) is det.
 %! http_sync(+Uri:or([atom,compound]), +File:atom) is det.
 %! http_sync(+Uri:or([atom,compound]), -File:atom) is det.
-%! http_sync(+Uri:or([atom,compound]), +File:atom, +Options:dict) is det.
-%! http_sync(+Uri:or([atom,compound]), -File:atom, +Options:dict) is det.
+%! http_sync(+Uri:or([atom,compound]), +File:atom, +Options:options) is det.
+%! http_sync(+Uri:or([atom,compound]), -File:atom, +Options:options) is det.
 %
 % Like http_download/[1-3], but does not download File if it already
 % exists.
@@ -684,7 +684,7 @@ http_sync(Uri) :-
 
 
 http_sync(Uri, File) :-
-  http_sync(Uri, File, []).
+  http_sync(Uri, File, options{}).
 
 
 http_sync(Uri0, File, Options) :-
@@ -733,7 +733,7 @@ ensure_uri_(Uri, Uri) :-
 
 
 
-%! http_download_(+Uri:atom, +File:atom, +Options:dict) is det.
+%! http_download_(+Uri:atom, +File:atom, +Options:options) is det.
 
 http_download_(Uri, File, Options) :-
   file_name_extensions(File, Name, Exts),

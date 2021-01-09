@@ -47,7 +47,7 @@ whitespace ::= space | tabulator | newline
 
 
 
-%! gml_attributes(+Options:dict, -String:string) is det.
+%! gml_attributes(+Options:options, -String:string) is det.
 
 gml_attributes(Options, String) :-
   dict_pairs(Options, Pairs),
@@ -67,7 +67,7 @@ gml_attribute_(Key-Value1, String) :-
 
 
 %! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term) is det.
-%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term, +Options:dict) is det.
+%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term, +Options:options) is det.
 
 gml_edge(Out, FromTerm, ToTerm) :-
   gml_edge(Out, FromTerm, ToTerm, options{}).
@@ -81,7 +81,7 @@ gml_edge(Out, FromTerm, ToTerm, Options) :-
 
 
 %! gml_graph(+Out:stream, :Goal_1) is det.
-%! gml_graph(+Out:stream, :Goal_1, +Options:dict) is det.
+%! gml_graph(+Out:stream, :Goal_1, +Options:options) is det.
 %
 % @arg Options The following options are supported:
 %
@@ -105,7 +105,7 @@ gml_graph(Out, Goal_1, Options) :-
 
 
 %! gml_node(+Out:stream, +Term:term) is det.
-%! gml_node(+Out:stream, +Term:term, +Options:dict) is det.
+%! gml_node(+Out:stream, +Term:term, +Options:options) is det.
 
 gml_node(Out, Term) :-
   gml_node(Out, Term, []).

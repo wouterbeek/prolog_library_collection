@@ -280,7 +280,7 @@ number_of_days_in_month_of_year(_, _, 28).
 % PP %
 
 %! date_time_label(+SwiDateTime:compound, -Label:string) is det.
-%! date_time_label(+SwiDateTime:compound, -Label:string, +Options:dict) is det.
+%! date_time_label(+SwiDateTime:compound, -Label:string, +Options:options) is det.
 
 date_time_label(SwiDateTime, Label) :-
   date_time_to_dt(SwiDateTime, RdfDateTime),
@@ -294,10 +294,10 @@ date_time_label(SwiDateTime, Label, Options) :-
 
 
 %! dt_label(+RdfDateTime:compound, -Label:string) is det.
-%! dt_label(+RdfDateTime:compound, -Label:string, +Options:dict) is det.
+%! dt_label(+RdfDateTime:compound, -Label:string, +Options:options) is det.
 
 dt_label(RdfDateTime, Label) :-
-  dt_label(RdfDateTime, Label, _{}).
+  dt_label(RdfDateTime, Label, options{}).
 
 
 dt_label(RdfDateTime, Label, Options) :-
@@ -325,7 +325,7 @@ dt_(dt(Y,Mo,Da,H,Mi,S,Off), Options) -->
 %! date(+Year:integer,
 %!      +Month:between(1,12),
 %!      +Day:between(1,31),
-%!      +Options:dict)// is det.
+%!      +Options:options)// is det.
 
 date(Y, Mo, Da, Options) -->
   month_day(Da, Options),
@@ -338,7 +338,7 @@ date(Y, Mo, Da, Options) -->
 %!                        +Hour:between(0,24),
 %!                        +Minute:between(0,59),
 %!                        +Second:float,
-%!                        +Options:dict)// is det.
+%!                        +Options:options)// is det.
 
 floating_date_and_time(Y, Mo, Da, H, Mi, S, Options) -->
   date(Y, Mo, Da, Options),
@@ -352,25 +352,25 @@ floating_date_and_time(Y, Mo, Da, H, Mi, S, Options) -->
 %!                      +Minute:between(0,59),
 %!                      +Second:float,
 %!                      +Offset:between(-840,840),
-%!                      +Options:dict)// is det.
+%!                      +Options:options)// is det.
 
 global_date_and_time(Y, Mo, Da, H, Mi, S, Off, Options) -->
   floating_date_and_time(Y, Mo, Da, H, Mi, S, Options),
   timezone_offset(Off).
 
-%! hour(+Hour:between(0,24), +Options:dict)// is det.
+%! hour(+Hour:between(0,24), +Options:options)// is det.
 
 hour(H, _) -->
   padding_zero(H),
   integer(H).
 
-%! minute(+Minute:between(0,59), +Options:dict)// is det.
+%! minute(+Minute:between(0,59), +Options:options)// is det.
 
 minute(Mi, _) -->
   padding_zero(Mi),
   integer(Mi).
 
-%! month(+Month:between(1,12), +Options:dict)// is det.
+%! month(+Month:between(1,12), +Options:options)// is det.
 
 month(Mo, Options) -->
   {
@@ -381,14 +381,14 @@ month(Mo, Options) -->
   },
   atom(Month).
 
-%! month(+Year:integer, +Month:between(1,12), +Options:dict)// is det.
+%! month(+Year:integer, +Month:between(1,12), +Options:options)// is det.
 
 month(Y, Mo, Options) -->
   month(Mo, Options),
   " ",
   year(Y, Options).
 
-%! month_day(+Day:between(1,31), +Options:dict)// is det.
+%! month_day(+Day:between(1,31), +Options:options)// is det.
 
 month_day(Da, Options) -->
   (   {dict_get(ltag, Options, nl)}
@@ -396,7 +396,7 @@ month_day(Da, Options) -->
   ;   ordinal(Da, Options)
   ).
 
-%! ordinal(+N:nonneg, +Options:dict)// is det.
+%! ordinal(+N:nonneg, +Options:options)// is det.
 
 ordinal(N, Options) -->
   {
@@ -406,7 +406,7 @@ ordinal(N, Options) -->
   integer(N),
   atom(Suffix).
 
-%! second(+Second:float, +Options:dict)// is det.
+%! second(+Second:float, +Options:options)// is det.
 
 second(S0, _) -->
   {S is floor(S0)},
@@ -424,7 +424,7 @@ sign(_) -->
 %! time(+Hour:between(0,24),
 %!      +Minute:between(0,59),
 %!      +Second:float,
-%!      +Options:dict)// is det.
+%!      +Options:options)// is det.
 
 time(H, Mi, S, Options) -->
   hour(H, Options),
@@ -446,12 +446,12 @@ timezone_offset(Off) -->
   {Mi is Off mod 60},
   generate_as_digits(Mi, 2).
 
-%! year(+Year:integer, +Options:dict)// is det.
+%! year(+Year:integer, +Options:options)// is det.
 
 year(Y, _) -->
   integer(Y).
 
-%! yearless_date(+Month:between(1,12), +Day:between(1,31), +Options:dict)// is det.
+%! yearless_date(+Month:between(1,12), +Day:between(1,31), +Options:options)// is det.
 
 yearless_date(Mo, Da, Options) -->
   month(Mo, Options),

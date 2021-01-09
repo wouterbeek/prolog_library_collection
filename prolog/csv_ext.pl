@@ -21,7 +21,7 @@
 
 
 %! csv_named_row(+In:stream, -Row:list(pair(atom,term))) is nondet.
-%! csv_named_row(+In:stream, -Row:list(pair(atom,term)), +Options:dict) is nondet.
+%! csv_named_row(+In:stream, -Row:list(pair(atom,term)), +Options:options) is nondet.
 %
 % @param Options The following options are supported:
 %
@@ -47,7 +47,7 @@ csv_named_row(In, Row, Options1) :-
 
 
 %! csv_row(+In:stream, -Row:list(term)) is nondet.
-%! csv_row(+In:stream, -Row:list(term), +Options:dict) is nondet.
+%! csv_row(+In:stream, -Row:list(term), +Options:options) is nondet.
 
 csv_row(In, Row) :-
   csv_row(In, Row, []).

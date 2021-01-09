@@ -19,7 +19,7 @@
 This module creates pages that group results.
 
 ```pl
-?- pagination(N, between(1, 1000000, N), _{page: 856}, Result).
+?- pagination(N, between(1, 1000000, N), options{page: 856}, Result).
 Result = _G120{number_of_results:20, page:856, page_size:20, results:[17101, 17102, 17103, 17104, 17105, 17106, 17107, 17108|...]} ;
 Result = _G147{number_of_results:20, page:857, page_size:20, results:[17121, 17122, 17123, 17124, 17125, 17126, 17127, 17128|...]} ;
 Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 17142, 17143, 17144, 17145, 17146, 17147, 17148|...]}
@@ -50,7 +50,7 @@ Result = _G147{number_of_results:20, page:858, page_size:20, results:[17141, 171
 
 
 
-%! empty_pagination(+Options:dict, -Page:dict) is det.
+%! empty_pagination(+Options:options, -Page:dict) is det.
 %
 % Returns a pagination Page dictionary with empty results.
 
@@ -60,8 +60,8 @@ empty_pagination(Options, Page) :-
 
 
 %! pagination(+Templ, :Goal_0, -Page:dict) is det.
-%! pagination(+Templ, :Goal_0, +Options:dict, -Page:dict) is det.
-%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:dict, -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, +Options:options, -Page:dict) is det.
+%! pagination(+Templ, :Goal_0, :Estimate_1, +Options:options, -Page:dict) is det.
 %
 % The following options are supported:
 %
@@ -105,7 +105,7 @@ empty_pagination(Options, Page) :-
 %     only present when etimation goal Estimate_1 is passed.
 
 pagination(Templ, Goal_0, Page) :-
-  pagination(Templ, Goal_0, _{}, Page).
+  pagination(Templ, Goal_0, options{}, Page).
 
 
 pagination(Templ, Goal_0, Options1, Page2) :-
@@ -113,7 +113,7 @@ pagination(Templ, Goal_0, Options1, Page2) :-
   Offset is PageSize * (PageNumber - 1),
   findall(Templ, limit(PageSize, offset(Offset, Goal_0)), Results),
   length(Results, NumResults),
-  Page1 = _{
+  Page1 = options{
     number_of_results: NumResults,
     page_number: PageNumber,
     page_size: PageSize,
@@ -132,8 +132,8 @@ pagination(Templ, Goal_0, Estimate_1, Options1, Page2) :-
 
 
 
-%! pagination_bulk(:Goal_1, +Options:dict, -Page:dict) is nondet.
-%! pagination_bulk(?Template, :Goal_0, +Options:dict, -Page:dict) is nondet.
+%! pagination_bulk(:Goal_1, +Options:options, -Page:dict) is nondet.
+%! pagination_bulk(?Template, :Goal_0, +Options:options, -Page:dict) is nondet.
 
 pagination_bulk(Goal_1, Options, Page) :-
   call(Goal_1, AllResults),
@@ -155,7 +155,7 @@ pagination_bulk_(AllResults, Options1, Page2) :-
   append(Skip, Rest, AllResults),
   list_truncate(Rest, PageSize, Results),
   length(Results, NumberOfResults),
-  Page1 = _{
+  Page1 = options{
     number_of_results: NumberOfResults,
     page_number: PageNumber,
     page_size: PageSize,
@@ -175,7 +175,7 @@ pagination_bulk_(AllResults, Options1, Page2) :-
 % be empty.
 
 pagination_is_at_end(Page) :-
-  _{single_page: true} :< Page, !.
+  options{single_page: true} :< Page, !.
 pagination_is_at_end(Page) :-
   dict_get(total_number_of_results, Page, TotalNumResults),
   Page.page_number >= ceil(TotalNumResults / Page.page_size), !.

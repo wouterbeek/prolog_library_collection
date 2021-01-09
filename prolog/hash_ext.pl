@@ -82,7 +82,7 @@ hash_file(Root, Hash, Local, File) :-
 
 
 %! md5(+Term, -Hash:atom) is det.
-%! md5(+Term, -Hash:atom, +Options:dict) is det.
+%! md5(+Term, -Hash:atom, +Options:options) is det.
 
 md5(Term, Hash) :-
   md5(Term, Hash, options{}).
@@ -96,7 +96,7 @@ md5(Term, Hash, Options1) :-
 
 
 %! md5_text(+Text:text, -Hash:atom) is det.
-%! md5_text(+Text:text, -Hash:atom, +Options:dict) is det.
+%! md5_text(+Text:text, -Hash:atom, +Options:options) is det.
 
 md5_text(Text, Hash) :-
   md5_text(Text, Hash, []).
@@ -104,7 +104,7 @@ md5_text(Text, Hash) :-
 
 
 %! sha(+Term, -Hash:atom) is det.
-%! sha(+Term, -Hash:atom, +Options:dict) is det.
+%! sha(+Term, -Hash:atom, +Options:options) is det.
 
 sha(Data, Hash) :-
   sha(Data, Hash, options{}).
@@ -118,7 +118,7 @@ sha(Term, Hash, Options1) :-
 
 
 %! sha_text(+Text:text, -Hash:atom) is det.
-%! sha_text(+Text:text, -Hash:atom, +Options:dict) is det.
+%! sha_text(+Text:text, -Hash:atom, +Options:options) is det.
 
 sha_text(Text, Hash) :-
   sha_text(Text, Hash, []).

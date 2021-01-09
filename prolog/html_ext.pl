@@ -21,7 +21,7 @@ Support for downloading HTML.
 
 
 %! html_download(+Uri:atom, -Dom:compound) is semidet.
-%! html_download(+Uri:atom, -Dom:compound, +Options:dict) is semidet.
+%! html_download(+Uri:atom, -Dom:compound, +Options:options) is semidet.
 
 html_download(Uri, Dom) :-
   html_download(Uri, Dom, options{}).
