@@ -33,6 +33,7 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 
 */
 
+:- use_module(library(aggregate)).
 :- use_module(library(apply)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
@@ -579,9 +580,9 @@ http_open2_success_(Uri, In, _, In) :-
   ;   print_message(warning, error(http_error(no_content_type,Uri),http_open2_success_/4))
   ).
 
-http_lines_pairs(Lines, GroupedPairs) :-
-  findall(
-    Key-Value,
+http_lines_pairs(Lines, Groups) :-
+  aggregate_all(
+    set(Key-Value),
     (
       member(Line, Lines),
       % HTTP header parsing may fail, e.g., due to obsolete line
@@ -590,8 +591,7 @@ http_lines_pairs(Lines, GroupedPairs) :-
     ),
     Pairs
   ),
-  keysort(Pairs, SortedPairs),
-  group_pairs_by_key(SortedPairs, GroupedPairs).
+  group_pairs_by_key(Pairs, Groups).
 
 %! http_parse_header_simple(-Key:atom, -Value:atom)// is semidet.
 %
