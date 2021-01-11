@@ -4,8 +4,10 @@
   [
     cli_argument/2,   % +Key, -Value
     cli_argument/3,   % +Key, +Default, -Value
-    cli_arguments/1,  % -Values
-    conf_json/1,      % -Configuration
+    cli_arguments/1,  % -Conf
+    cli_arguments/2,  % +FlagMap, -Conf
+    cli_arguments/3,  % +Argv, +FlagMap, -Conf
+    conf_json/1,      % -Conf
     conf_json/2,      % +Key, -Value
     data_directory/1, % -Directory
     data_file/1,      % -AbsolutePath
@@ -57,46 +59,68 @@ configuration file location is used, i.e., `~/conf.json'.
 
 
 %! cli_argument(+Key:atom, -Value:term) is semidet.
-%
-% @throws existence_error/2 if CLI argument Key does not exist.
 
 cli_argument(Key, Value) :-
-  cli_argument_(Key, Value), !.
-cli_argument(Key, _) :-
-  existence_error(cli_argument, Key).
-
-cli_argument_(Key, Value) :-
-  cli_arguments(L),
-  X =.. [Key,Value],
-  memberchk(X, L), !.
+  cli_arguments(Conf),
+  dict_get(Key, Conf, Value).
 
 
 
 %! cli_argument(+Key:atom, +Default:term, -Value:term) is det.
 
-cli_argument(Key, _, Value) :-
-  cli_argument_(Key, Value), !.
-cli_argument(_, Value, Value).
+cli_argument(Key, Default, Value) :-
+  cli_arguments(Conf),
+  dict_get(Key, Conf, Default, Value).
 
 
 
-%! cli_arguments(-Arguments:list(compound)) is det.
+%! cli_arguments(-Conf:dict) is det.
+%! cli_arguments(+FlagMap:list(pair(atom,atom)), -Conf:dict) is det.
+%! cli_arguments(+Argv:list(atom), +FlagMap:list(pair(atom,atom)), -Conf:dict) is det.
 
-cli_arguments(Args) :-
-  current_prolog_flag(argv, Flags),
-  convlist(parse_argument, Flags, Args).
+cli_arguments(Conf) :-
+  current_prolog_flag(argv, Argv),
+  cli_arguments(Argv, [], Conf).
 
-parse_argument(Flag, Arg) :-
-  atom_phrase(flag_argument(Arg), Flag), !.
-parse_argument(Arg, Arg).
+cli_arguments(FlagMap, Conf) :-
+  current_prolog_flag(argv, Argv),
+  cli_arguments(Argv, FlagMap, Conf).
 
-flag_argument(Arg) -->
-  "--",
-  '...'(Codes),
-  "=", !,
-  {atom_codes(Key, Codes)},
-  remainder_as_atom(Value),
-  {Arg =.. [Key,Value]}.
+cli_arguments(Argv, FlagMap, Conf) :-
+  maplist(cli_argument_(FlagMap), Argv, Pairs1),
+  keysort(Pairs1, Pairs2),
+  group_pairs_by_key(Pairs2, GroupedPairs1),
+  maplist(remove_singleton_value_, GroupedPairs1, GroupedPairs2),
+  dict_pairs(Conf, GroupedPairs2).
+
+remove_singleton_value_(Key-[Value], Key-Value) :- !.
+remove_singleton_value_(Pair, Pair).
+
+cli_argument_(Map, Flag, Arg) :-
+  atom_phrase(cli_flag_(Map, Arg), Flag), !.
+cli_argument_(_, Arg, positional-Arg).
+
+cli_flag_(Map, Key-Value) -->
+  (   "--"
+  ->  '...'(Codes),
+      "=",
+      {atom_codes(Key, Codes)}
+  ;   "-"
+  ->  '...'(Codes),
+      "=",
+      {
+        atom_codes(Short, Codes),
+        memberchk(Short-Key, Map)
+      }
+  ), !,
+  remainder_as_atom(Value).
+cli_flag_(Map, Key-true) -->
+  (   "--"
+  ->  remainder_as_atom(Key)
+  ;   "-"
+  ->  remainder_as_atom(Short),
+      {memberchk(Short-Key, Map)}
+  ).
 
 
 
@@ -121,7 +145,7 @@ conf_file(File) :-
   access_file(File, read), !.
 
 conf_file_spec(Spec) :-
-  cli_argument_(conf, Spec), !.
+  cli_argument(conf, Spec), !.
 conf_file_spec('conf.json').
 conf_file_spec('~/conf.json').
 
