@@ -1,10 +1,11 @@
 :- module(
   pair_ext,
   [
-    change_keys/3,   % +Pairs1, +Changes, -Pairs2
-    compound_pair/2, % ?Compound, ?Pair
-    merge_pairs/3,   % +New, +Old, -Merge
-    sum_value/2      % +Pair1, -Pair2
+    change_keys/3,         % +Pairs1, +Changes, -Pairs2
+    compound_pair/2,       % ?Compound, ?Pair
+    group_values_by_key/2, % +Pairs, -Groups
+    merge_pairs/3,         % +New, +Old, -Merge
+    sum_value/2            % +Pair1, -Pair2
   ]
 ).
 :- reexport(library(pairs)).
@@ -52,6 +53,14 @@ change_keys([], _, []).
 
 compound_pair(Compound, Key-Value) :-
   compound_name_arguments(Compound, Key, [Value]).
+
+
+
+%! group_values_by_key(+Pairs:ordset(pair(term,term)), -Groups:ordset(term)) is det.
+
+group_values_by_key(Pairs, Groups) :-
+  group_pairs_by_key(Pairs, GroupedPairs),
+  pairs_values(GroupedPairs, Groups).
 
 
 
