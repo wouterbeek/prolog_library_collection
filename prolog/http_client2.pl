@@ -376,7 +376,7 @@ http_open2(CurrentUri0, In, Options1) :-
   % Allow the next/1 option to be instantiated later.
   ignore(option{next: NextUri} :< Options1),
   % Allow the metadata/1 optiont to be instantiated later.
-  ignore(option{metadata: Metas} :< Options1),
+  ignore(dict_get(metadata, Options1, Metas)),
   http_options_(CurrentUri, Options1, State, Options2),
   http_open2_(CurrentUri, In, State, Metas0, Options2),
   reverse(Metas0, Metas),
