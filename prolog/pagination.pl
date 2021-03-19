@@ -197,7 +197,7 @@ pagination_is_empty(Page) :-
 %!                    -Options2:dict) is det.
 
 pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
-  dict_delete_or_default(page_number, Options1, 1, StartPageNumber, Options2),
+  dict_delete(page_number, Options1, 1, StartPageNumber, Options2),
   (   dict_delete(page_size, Options2, PageSize, Options3)
   ->  true
   ;   setting(default_page_size, PageSize),
