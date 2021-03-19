@@ -11,7 +11,7 @@
 */
 
 :- use_module(library(apply)).
-:- use_module(library(http/json)).
+:- use_module(library(http/http_json)).
 
 :- meta_predicate
     jgf(+, 2, -),
@@ -53,4 +53,4 @@ jgf_node(NodeLabel_2, Node, _{id: Node, label: Label}) :-
 
 jgf_reply(Graph, NodeLabel_2) :-
   jgf(Graph, NodeLabel_2, Dict),
-  json_reply_dict(Dict, [content_type('application/vnd.jgf+json')]).
+  reply_json_dict(Dict, [content_type('application/vnd.jgf+json')]).
