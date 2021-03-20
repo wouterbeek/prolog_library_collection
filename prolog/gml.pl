@@ -57,12 +57,12 @@ gml_attributes(Options, String) :-
 gml_attribute_(Key-Value1, String) :-
   number(Value1), !,
   format(string(String), "~a ~w", [Key,Value1]).
-gml_attribute_(Key-Value1, String) :-
-  (   Key == label
-  ->  string_phrase(gml_encode_label, Value1, Value2)
-  ;   Value2 = Value1
-  ),
-  format(string(String), "~a \"~w\"", [Key,Value2]).
+gml_attribute_(Key-Value, String) :-
+  %(   Key == label
+  %->  string_phrase(gml_encode_label, Value1, Value2)
+  %;   Value2 = Value1
+  %),
+  format(string(String), "~a \"~w\"", [Key,Value]).
 
 
 
