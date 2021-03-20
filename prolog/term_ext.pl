@@ -1,6 +1,8 @@
 :- module(
   term_ext,
   [
+    ascii_id/1,            % -Id
+    ascii_id/2,            % +Term, -Id
     compound_name/2,       % +Term, ?Name
     number_of_variables/2, % +Term, -NumberOfVariables
     replace_blobs/2,       % +Term1, -Term2
@@ -23,6 +25,9 @@ This module introduces the following types:
 :- use_module(library(apply)).
 :- use_module(library(dict)).
 :- use_module(library(error)).
+:- use_module(library(uuid)).
+
+:- use_module(library(hash_ext)).
 
 :- multifile
     error:has_type/2.
@@ -32,6 +37,35 @@ error:has_type(options, Term) :-
   dict_key(Term, options).
 
 
+
+
+
+%! ascii_id(-Id:atom) is det.
+
+ascii_id(Id) :-
+  uuid(Id0, [format(integer)]),
+  atom_concat(n, Id0, Id).
+
+
+
+%! ascii_id(+Term:term, -Id:atom) is det.
+%
+% Generates an Id for the given Prolog term.  The Id is guarantee to
+% only contain ASCII letter and digits to ensure that it can be used
+% by many programs.
+%
+% Prolog terms can contain many characters and can have arbitrary
+% size.  For these reasons, this predicate generates the Id based on
+% the MD5 hash of a serialization of the given Prolog term.
+%
+% MD5 hashes sometimes start with an ASCII digit, which is not
+% supported in some languages/context (for example, the DOT language
+% does not allow IDs to start with a digit).  For this reason, an
+% arbitrary ASCII letter is prefixed at the beginning of the Id.
+
+ascii_id(Term, Id) :-
+  md5(Term, Hash),
+  atomic_concat(n, Hash, Id).
 
 
 

@@ -36,8 +36,8 @@ whitespace ::= space | tabulator | newline
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
 :- use_module(library(debug_ext)).
-:- use_module(library(graph/dot), []).
 :- use_module(library(hash_ext)).
+:- use_module(library(term_ext)).
 
 :- meta_predicate
     gml_graph(+, 1),
@@ -74,7 +74,7 @@ gml_edge(Out, FromTerm, ToTerm) :-
 
 
 gml_edge(Out, FromTerm, ToTerm, Options) :-
-  maplist(dot:dot_id, [FromTerm,ToTerm,FromTerm-ToTerm], [FromId,ToId,Id]),
+  maplist(ascii_id, [FromTerm,ToTerm,FromTerm-ToTerm], [FromId,ToId,Id]),
   gml_attributes(Options, String),
   format_debug(gml, Out, "  edge [ id \"~a\" source \"~a\" target \"~a\" ~s ]", [Id,FromId,ToId,String]).
 
@@ -112,7 +112,7 @@ gml_node(Out, Term) :-
 
 
 gml_node(Out, Term, Options) :-
-  dot:dot_id(Term, Id),
+  ascii_id(Term, Id),
   gml_attributes(Options, String),
   format_debug(gml, Out, "  node [ id \"~a\" ~s ]", [Id,String]).
 
