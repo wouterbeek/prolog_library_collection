@@ -423,7 +423,7 @@ status_reply_flush(Status, Out, Options) :-
     !,
     flush_output(Out).
 
-%!  status_reply(+Status, +Out, +Options:Dict)
+%!  status_reply(+Status, +Out, +Options:options)
 %
 %   Formulate a non-200 reply and send it to the stream Out.  Options
 %   is a dict containing:

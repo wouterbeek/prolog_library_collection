@@ -761,8 +761,8 @@ call_file_(File, DefaultMode, Goal_1, Options) :-
 %!             +File2:atom,
 %!             +Mode2:oneof([append,read,write]),
 %!             :Goal_2,
-%!             +Options1:dict,
-%!             +Options2:dict) is det.
+%!             +Options1:options,
+%!             +Options2:options) is det.
 
 call_files_(File1, Mode1, File2, Mode2, Goal_2, Options1, Options2) :-
   setup_call_cleanup(
