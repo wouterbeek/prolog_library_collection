@@ -180,7 +180,7 @@ uri_local_name(Uri, Local) :-
 
 
 
-%! uri_media_type(+Uri:atom, -MediaType:compound) is det.
+%! uri_media_type(+Uri:atom, -MediaType:media_type) is det.
 
 uri_media_type(Uri, MediaType) :-
   uri_file_extensions(Uri, Extensions),

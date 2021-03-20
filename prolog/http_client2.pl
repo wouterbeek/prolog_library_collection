@@ -220,7 +220,7 @@ http_header_name_label(Name, Label) :-
 
 
 
-%! http_metadata_content_type(+Metas:list(dict), -MediaType:compound) is semidet.
+%! http_metadata_content_type(+Metas:list(dict), -MediaType:media_type) is semidet.
 %
 % We cannot expect that an HTTP `Content-Type' header is present:
 %

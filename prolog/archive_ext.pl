@@ -115,8 +115,8 @@ archive_format(xar).
 
 
 
-%! archive_media_type(+MediaType:compound) is semidet.
-%! archive_media_type(-MediaType:compound) is multi.
+%! archive_media_type(+MediaType:media_type) is semidet.
+%! archive_media_type(-MediaType:media_type) is multi.
 %
 % Succeeds for all and only those Media Types that denote an archive
 % format.  These are recorded in the Media Type library.

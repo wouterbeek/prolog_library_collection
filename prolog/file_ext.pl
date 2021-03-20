@@ -429,7 +429,7 @@ file_line(File, Line) :-
 
 
 
-%! file_media_type(+File:atom, -MediaType:compound) is nondet.
+%! file_media_type(+File:atom, -MediaType:media_type) is nondet.
 
 file_media_type(File, MediaType) :-
   file_extension(File, Ext),

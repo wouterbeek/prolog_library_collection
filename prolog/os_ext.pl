@@ -37,7 +37,7 @@ exists_program(Program) :-
 
 
 %! open_file(+File:atom) is semidet.
-%! open_file(+MediaType:compound, +File:atom) is det.
+%! open_file(+MediaType:media_type, +File:atom) is det.
 %
 % Open the file using the first existing program that is registered
 % with the Media Type denote by its file name extension.
