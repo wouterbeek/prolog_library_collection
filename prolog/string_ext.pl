@@ -81,6 +81,8 @@ string_code(String, Code) :-
 %
 % @see atom_ellipsis/3 provides the same functionality for atoms.
 
+string_ellipsis(String, MaxLength, String) :-
+  MaxLength == inf, !.
 string_ellipsis(Original, MaxLength, Ellipsed) :-
   string_length(Original, Length),
   (   between(2, Length, MaxLength)
@@ -98,15 +100,22 @@ string_ellipsis(Original, MaxLength, Ellipsed) :-
 
 test('string_ellipsis(+,+,+)', [forall(string_ellipsis_test(Original,MaxLength,Ellipsed))]) :-
   string_ellipsis(Original, MaxLength, Ellipsed).
-test('string_ellipsis(+,+,-) err', [error(type_error(between(2,inf),_MaxLength))]) :-
-  string_ellipsis(monkey, 1, _).
 test('string_ellipsis(+,+,-)', [forall(string_ellipsis_test(Original,MaxLength,Ellipsed))]) :-
   string_ellipsis(Original, MaxLength, Ellipsed0),
   assertion(Ellipsed == Ellipsed0).
-test('string_ellipsis(+,-,-)', [all(MaxLength-Ellipsed == [2-"a…",3-"ab…",4-"abcd"])]) :-
-  string_ellipsis("abcd", MaxLength, Ellipsed).
+test('string_ellipsis(+,+,-) err_1', [error(type_error(between(2,inf),MaxLength))]) :-
+  member(MaxLength, [-1,0,1,'0']),
+  string_ellipsis("monkey", MaxLength, "").
+test('string_ellipsis(+,-,-)', [forall(string_ellipsis_test(Original,MaxLength,Ellipsed))]) :-
+  string_ellipsis(Original, MaxLength, Ellipsed).
 
+string_ellipsis_test("monkey", 2, "m…").
 string_ellipsis_test("monkey", 3, "mo…").
+string_ellipsis_test("monkey", 4, "mon…").
+string_ellipsis_test("monkey", 5, "monk…").
+string_ellipsis_test("monkey", 6, "monkey").
+string_ellipsis_test("monkey", 7, "monkey").
+string_ellipsis_test("monkey", inf, "monkey").
 
 :- end_tests(string_ellipsis).
 

@@ -408,7 +408,7 @@ digit_weight(Weight) -->
 
 
 
-%! ellipsis(+Original:text, +MaxLength:nonneg)// is det.
+%! ellipsis(+Original:text, +MaxLength:beteen(2,inf))// is det.
 %
 % @arg MaxLength The maximum length of the generated ellipsed string.
 
