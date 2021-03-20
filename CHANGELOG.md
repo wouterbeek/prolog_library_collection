@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.0.11 (2021-03-20)
+## 1.0.12 (2021-03-20)
 
 This release introduces many improvements to the `media_type` library,
 together with several smaller improvements and some bug fixes (see
