@@ -32,6 +32,10 @@ This module introduces the following types:
 :- multifile
     error:has_type/2.
 
+error:has_type(maybe(Type), Term) :-
+  ( error:has_type(Type, Term)
+  ; error:has_type(var, Term)
+  ).
 error:has_type(options, Term) :-
   error:has_type(dict, Term),
   dict_key(Term, options).
