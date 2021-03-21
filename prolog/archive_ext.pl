@@ -28,7 +28,7 @@ standard library.
 
 
 
-%! archive_call(+In:stream, :Goal_2) is multi.
+%! archive_call(+In:istream, :Goal_2) is multi.
 %
 % Calls `Goal_2' on a decompressed input stream that is present in the
 % encoded input stream `In' and the metadata object `Metas'.
@@ -145,7 +145,7 @@ archive_media_type_format_(media(application/zip,[]), zip).
 
 
 
-%! archive_open(+In:stream, -Archive:blob) is det.
+%! archive_open(+In:istream, -Archive:blob) is det.
 %
 % Tries to open an archive of any of the supported formats, using any
 % of the supported filters, from the input stream `In`.
@@ -156,7 +156,7 @@ archive_open(In, Archive) :-
 
 
 
-%! archive_stream(+In1:stream, -In2:stream) is det.
+%! archive_stream(+In1:istream, -In2:istream) is det.
 
 archive_stream(In1, In2) :-
   setup_call_cleanup(

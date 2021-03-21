@@ -122,7 +122,7 @@ other parts of the HTTP server and client libraries.
                  *          READ REQUEST        *
                  *******************************/
 
-%!  http_read_request(+FdIn:stream, -Request) is det.
+%!  http_read_request(+FdIn:istream, -Request) is det.
 %
 %   Read an HTTP request-header from FdIn and return the broken-down
 %   request fields as +Name(+Value) pairs  in   a  list.  Request is
@@ -175,11 +175,11 @@ http_read_reply_header(In, [input(In)|Reply]) :-
                  *        FORMULATE REPLY       *
                  *******************************/
 
-%!  http_reply(+Data, +Out:stream) is det.
-%!  http_reply(+Data, +Out:stream, +HdrExtra) is det.
-%!  http_reply(+Data, +Out:stream, +HdrExtra, -Code) is det.
-%!  http_reply(+Data, +Out:stream, +HdrExtra, +Context, -Code) is det.
-%!  http_reply(+Data, +Out:stream, +HdrExtra, +Context, +Request, -Code) is det.
+%!  http_reply(+Data, +Out:ostream) is det.
+%!  http_reply(+Data, +Out:ostream, +HdrExtra) is det.
+%!  http_reply(+Data, +Out:ostream, +HdrExtra, -Code) is det.
+%!  http_reply(+Data, +Out:ostream, +HdrExtra, +Context, -Code) is det.
+%!  http_reply(+Data, +Out:ostream, +HdrExtra, +Context, +Request, -Code) is det.
 %
 %   Compose  a  complete  HTTP  reply  from   the  term  Data  using
 %   additional headers from  HdrExtra  to   the  output  stream Out.
@@ -897,7 +897,7 @@ content_length_in_encoding(Enc, Stream, Bytes) :-
                  *          POST SUPPORT        *
                  *******************************/
 
-%!  http_post_data(+Data, +Out:stream, +HdrExtra) is det.
+%!  http_post_data(+Data, +Out:ostream, +HdrExtra) is det.
 %
 %   Send data on behalf on an HTTP   POST request. This predicate is
 %   normally called by http_post/4 from   http_client.pl to send the
@@ -1191,7 +1191,7 @@ post_header(atom(Type, Atom), HdrExtra) -->
                  *       OUTPUT HEADER DCG      *
                  *******************************/
 
-%!  http_reply_header(+Out:stream, +What, +HdrExtra) is det.
+%!  http_reply_header(+Out:ostream, +What, +HdrExtra) is det.
 %
 %   Create a reply header  using  reply_header//3   and  send  it to
 %   Stream.
@@ -2372,7 +2372,7 @@ uri_fragment(Components) -->
     [ fragment(Fragment) ].
 uri_fragment(_) --> [].
 
-%!  request_header(+In:stream, -Header:list) is det.
+%!  request_header(+In:istream, -Header:list) is det.
 %
 %   Read the remainder (after the request-uri)   of  the HTTP header
 %   and return it as a Name(Value) list.

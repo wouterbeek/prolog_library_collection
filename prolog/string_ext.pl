@@ -30,7 +30,7 @@ Extends the string support in the SWI-Prolog standard library.
 
 
 
-%! read_string(+In:stream, -String:string) is det.
+%! read_string(+In:istream, -String:string) is det.
 %
 % Wrapper for read_string/3 when the number of read characters does
 % not matter.

@@ -67,8 +67,8 @@ predmerge(<, P, H1, H2, T1, T2, [H1|R]) :-
 
 
 
-%! sort_stream(+In:stream, -Out:stream) is det.
-%! sort_stream(+In:stream, -Out:stream, +Options:options) is det.
+%! sort_stream(+In:istream, -Out:ostream) is det.
+%! sort_stream(+In:istream, -Out:ostream, +Options:options) is det.
 %
 % @arg Options The following options are supported:
 %

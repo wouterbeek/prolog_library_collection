@@ -95,7 +95,7 @@ debug_time(_, _).
 
 %! format_debug(+Flag:term, +Format:string) is det.
 %! format_debug(+Flag:term, +Format:string, +Args:list(term)) is det.
-%! format_debug(+Flag:term, +Out:stream, +Format:string, +Arguments:list(term)) is det.
+%! format_debug(+Flag:term, +Out:ostream, +Format:string, +Arguments:list(term)) is det.
 %
 % Allows a line of text to be written to an output stream and --
 % optionally -- to a debug stream as well.
@@ -178,7 +178,7 @@ msg_diff2(-1) --> "└".
 
 
 %! json_write_debug(+Flag:term, +Dict:dict) is det.
-%! json_write_debug(+Flag:term, +Out:stream, +Dict:dict) is det.
+%! json_write_debug(+Flag:term, +Out:ostream, +Dict:dict) is det.
 
 json_write_debug(Flag, Dict) :-
   json_write_debug(Flag, current_output, Dict).

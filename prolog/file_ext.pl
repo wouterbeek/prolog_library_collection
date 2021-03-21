@@ -150,7 +150,7 @@ append_directories(Dir1, Dir2, Dir3) :-
 
 
 
-%! cat(+Out:stream, +Files:list(atom)) is det.
+%! cat(+Out:ostream, +Files:list(atom)) is det.
 
 cat(Out, Files) :-
   maplist(cat_file(Out), Files).

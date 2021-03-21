@@ -34,7 +34,7 @@ standard library.
 
 
 
-%! call_on_xml(+In:stream, +Names:list(atom), :Goal_1) is det.
+%! call_on_xml(+In:istream, +Names:list(atom), :Goal_1) is det.
 %
 % Call Goal_1 on an XML stream, where the argument supplied to Goal_1
 % is a subtree that starts with an element called Name.
@@ -142,7 +142,7 @@ load_xml(Source, Dom) :-
 
 
 
-%! xml_encoding(+In:stream, -Encoding:atom) is semidet.
+%! xml_encoding(+In:istream, -Encoding:atom) is semidet.
 
 xml_encoding(In, Encoding) :-
   phrase_from_stream(xml_encoding(Encoding0), In),

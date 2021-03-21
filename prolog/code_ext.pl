@@ -2,7 +2,7 @@
   code_ext,
   [
     put_codes/1, % +Codes
-    put_codes/2  % +Out:stream, +Codes
+    put_codes/2  % +Out:ostream, +Codes
   ]
 ).
 
@@ -17,7 +17,7 @@
 
 
 %! put_codes(+Codes:list(code)) is det.
-%! put_codes(+Out:stream, +Codes:list(code)) is det.
+%! put_codes(+Out:ostream, +Codes:list(code)) is det.
 %
 % @see Wrappers around put_code/1 that work on lists of codes and
 %      that can write to an arbitrary output stream.

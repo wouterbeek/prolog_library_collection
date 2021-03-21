@@ -1087,7 +1087,7 @@ encoding_(transfer_encoding, 'Transfer-encoding') -->
 content_encoding(Lines, Encoding) :-
     what_encoding(content_encoding, Lines, Encoding).
 
-%!  read_header(+In:stream, +Parts, -Version, -Code:int,
+%!  read_header(+In:istream, +Parts, -Version, -Code:int,
 %!  -Comment:atom, -Lines:list) is det.
 %
 %   Read the HTTP reply-header.  If the reply is completely empty

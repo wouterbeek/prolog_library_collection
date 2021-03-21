@@ -304,8 +304,8 @@ http_metadata_status(Metas, Status) :-
 
 
 
-%! http_open2(+CurrentUri:or([atom,compound]), -In:stream) is det.
-%! http_open2(+CurrentUri:or([atom,compound]), -In:stream, +Options:options) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:istream) is det.
+%! http_open2(+CurrentUri:or([atom,compound]), -In:istream, +Options:options) is det.
 %
 % Alternative to http_open/3 in the SWI standard library with the
 % following additons:
@@ -390,7 +390,7 @@ http_open2(CurrentUri0, In, Options1) :-
   ;   http_status_(In, Status, FinalUri, Options1)
   ).
 
-%! http_status_(+In:stream,
+%! http_status_(+In:istream,
 %!              +Status:between(100,599),
 %!              +FinalUri:atom,
 %!              +Options:options) is det.

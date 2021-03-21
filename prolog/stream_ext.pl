@@ -50,7 +50,7 @@ debug_indent(0).
 
 
 
-%! copy_stream_type(+In:stream, +Out:stream) is det.
+%! copy_stream_type(+In:istream, +Out:ostream) is det.
 %
 % Like copy_stream_data/2, but also sets the stream type of Out to
 % match the stream type of In, if needed,
@@ -62,7 +62,7 @@ copy_stream_type(In, Out) :-
 
 
 
-%! guess_encoding(+In:stream, -Encoding:atom) is det.
+%! guess_encoding(+In:istream, -Encoding:atom) is det.
 %
 % If the encoding cannot be guessed (`unknown'), the error
 % cannot_guess_encoding/0 is thrown.
@@ -105,7 +105,7 @@ number_of_open_files(N) :-
 
 
 
-%! read_line_to_atom(+In:stream, -Atom:atom) is nondet.
+%! read_line_to_atom(+In:istream, -Atom:atom) is nondet.
 
 read_line_to_atom(In, Atom) :-
   repeat,
@@ -117,7 +117,7 @@ read_line_to_atom(In, Atom) :-
 
 
 
-%! read_line_to_number(+In:stream, -N:number) is nondet.
+%! read_line_to_number(+In:istream, -N:number) is nondet.
 
 read_line_to_number(In, N) :-
   read_line_to_atom(In, Atom),
@@ -125,7 +125,7 @@ read_line_to_number(In, N) :-
 
 
 
-%! read_stream_to_atom(+In:stream, -Atom:atom) is det.
+%! read_stream_to_atom(+In:istream, -Atom:atom) is det.
 
 read_stream_to_atom(In, Atom) :-
   read_stream_to_codes(In, Codes),
@@ -133,7 +133,7 @@ read_stream_to_atom(In, Atom) :-
 
 
 
-%! read_stream_to_string(+In:stream, -String:string) is det.
+%! read_stream_to_string(+In:istream, -String:string) is det.
 
 read_stream_to_string(In, String) :-
   read_stream_to_codes(In, Codes),
@@ -141,7 +141,7 @@ read_stream_to_string(In, String) :-
 
 
 
-%! recode_stream(+In:stream, +FromEncoding:atom, -Out:stream) is det.
+%! recode_stream(+In:istream, +FromEncoding:atom, -Out:ostream) is det.
 %
 % We only recode to UTF-8.
 %
@@ -173,7 +173,7 @@ recode_stream(In, Enc0, Out) :-
 
 
 
-%! stream_line(+In:stream, -Line:string) is nondet.
+%! stream_line(+In:istream, -Line:string) is nondet.
 
 stream_line(In, Line) :-
   repeat,
@@ -209,7 +209,7 @@ stream_metadata(Stream, Meta) :-
 
 
 /*
-%! wc(+In:stream, -Lines:nonneg) is det.
+%! wc(+In:istream, -Lines:nonneg) is det.
 %
 % Native implementation of line count.
 %
@@ -229,7 +229,7 @@ wc(In, Lines) :-
   ).
 */
 
-%! wc(+In:stream, -Stats:dict) is det.
+%! wc(+In:istream, -Stats:dict) is det.
 %
 % Linux-only parsing of GNU wc output.
 

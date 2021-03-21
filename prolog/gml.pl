@@ -66,8 +66,8 @@ gml_attribute_(Key-Value, String) :-
 
 
 
-%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term) is det.
-%! gml_edge(+Out:stream, +FromTerm:term, +ToTerm:term, +Options:options) is det.
+%! gml_edge(+Out:ostream, +FromTerm:term, +ToTerm:term) is det.
+%! gml_edge(+Out:ostream, +FromTerm:term, +ToTerm:term, +Options:options) is det.
 
 gml_edge(Out, FromTerm, ToTerm) :-
   gml_edge(Out, FromTerm, ToTerm, options{}).
@@ -80,8 +80,8 @@ gml_edge(Out, FromTerm, ToTerm, Options) :-
 
 
 
-%! gml_graph(+Out:stream, :Goal_1) is det.
-%! gml_graph(+Out:stream, :Goal_1, +Options:options) is det.
+%! gml_graph(+Out:ostream, :Goal_1) is det.
+%! gml_graph(+Out:ostream, :Goal_1, +Options:options) is det.
 %
 % @arg Options The following options are supported:
 %
@@ -104,8 +104,8 @@ gml_graph(Out, Goal_1, Options) :-
 
 
 
-%! gml_node(+Out:stream, +Term:term) is det.
-%! gml_node(+Out:stream, +Term:term, +Options:options) is det.
+%! gml_node(+Out:ostream, +Term:term) is det.
+%! gml_node(+Out:ostream, +Term:term, +Options:options) is det.
 
 gml_node(Out, Term) :-
   gml_node(Out, Term, []).

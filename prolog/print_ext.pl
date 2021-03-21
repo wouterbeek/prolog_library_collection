@@ -138,8 +138,8 @@ print_file_peek(File, Length1, Attributes) :-
 
 
 
-%! print_stream_peek(+In:stream, Length:nonneg) is det.
-%! print_stream_peek(+In:stream, Length:nonneg, +Attributes:list(compound)) is det.
+%! print_stream_peek(+In:istream, Length:nonneg) is det.
+%! print_stream_peek(+In:istream, Length:nonneg, +Attributes:list(compound)) is det.
 
 print_stream_peek(In, Length) :-
   print_stream_peek(In, Length, options{}).
