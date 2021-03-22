@@ -15,32 +15,13 @@
 
 Extends the support for terms in the SWI-Prolog standard library.
 
-This module introduces the following types:
-
-  - `options`: A dictionary with tag `options` that is used to
-               represent options passed to predicates.
-
 */
 
 :- use_module(library(apply)).
 :- use_module(library(dict)).
-:- use_module(library(error)).
 :- use_module(library(uuid)).
 
 :- use_module(library(hash_ext)).
-
-:- multifile
-    error:has_type/2.
-
-error:has_type(maybe(Type), Term) :-
-  ( error:has_type(Type, Term)
-  ; error:has_type(var, Term)
-  ).
-error:has_type(options, Term) :-
-  error:has_type(dict, Term),
-  dict_key(Term, options).
-
-
 
 
 
