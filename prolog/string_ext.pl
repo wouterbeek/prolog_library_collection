@@ -2,6 +2,7 @@
 :- module(
   string_ext,
   [
+    max_string_length/2,  % +Strings, -Max
     read_string/2,        % +In, -String
     split_string/3,       % +String, +SepChars, -SubStrings
     string_code/2,        % ?String, ?Code
@@ -26,8 +27,15 @@ Extends the string support in the SWI-Prolog standard library.
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 
 
+
+%! max_string_length(+Strings:list(string), -Max:nonneg) is det.
+
+max_string_length(Strings, N) :-
+  max_member(String, Strings),
+  string_length(String, N).
 
 
 
