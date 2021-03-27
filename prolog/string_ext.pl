@@ -37,9 +37,15 @@ Extends the string support in the SWI-Prolog standard library.
 
 %! max_string_length(+Strings:list(string), -Max:nonneg) is det.
 
-max_string_length(Strings, N) :-
-  max_member(String, Strings),
-  string_length(String, N).
+max_string_length(Strings, Len) :-
+  aggregate_all(
+    max(Len0),
+    (
+      member(String, Strings),
+      string_length(String, Len0)
+    ),
+    Len
+  ).
 
 
 
