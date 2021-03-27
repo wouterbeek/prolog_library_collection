@@ -78,12 +78,12 @@ dict_delete(_, Dict, Value, Value, Dict).
 
 
 
-%! dict_get(?KeyOrKeys:or([atom,list(atom)]), +Dict:dict, -Value:term) is nondet.
-%! dict_get(+KeyOrKeys:or([atom,list(atom)],
-%!          +Dict:dict,
-%!          +Default:term,
-%!          -Value:term) is semidet.
+%! dict_get(+KeyOrKeys:or([atom,list(atom)]), +Dict:dict, -Value:term) is semidet.
+%! dict_get(-Key:atom, +Dict:dict, -Value:term) is nondet.
 
+dict_get(Key, Dict, Value) :-
+  var(Key), !,
+  get_dict(Key, Dict, Value).
 dict_get(Key, Dict, Value) :-
   atom(Key), !,
   dict_get_([Key], Dict, Value).
