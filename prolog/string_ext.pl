@@ -3,6 +3,7 @@
   string_ext,
   [
     read_string/2,        % +In, -String
+    split_string/3,       % +String, +SepChars, -SubStrings
     string_code/2,        % ?String, ?Code
     string_ellipsis/3,    % +Original, ?MaxLength, ?Ellipsed
     string_list_concat/2, % +Strings, ?String
@@ -37,6 +38,14 @@ Extends the string support in the SWI-Prolog standard library.
 
 read_string(In, String) :-
   read_string(In, _, String).
+
+
+
+%! split_string(+String:string, +SepChars:string, +SubStrings:list(string)) is semidet.
+%! split_string(+String:string, +SepChars:string, -SubStrings:list(string)) is det.
+
+split_string(String, SepChars, SubStrings) :-
+  split_string(String, SepChars, "", SubStrings).
 
 
 
