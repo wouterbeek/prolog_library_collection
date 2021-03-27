@@ -77,12 +77,15 @@ pp_short_flags(Spec, String) :-
 
 format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line, Options) :-
   optionSpec{help: Message} :< Dict,
-  group_length(LongWidth1, LongStrings1, LongStrings2),
+  (   options{break_long_flags: false} :< Options
+  ->  Sep = ", "
+  ;   Sep = ",\n"
+  ),
+  words_lines(LongStrings1, LongWidth1, Sep, LongStrings2),
   % Make room for a comma and a space.
   LongWidth2 #= LongWidth1 + 2,
-  separator_(Separator, Options),
   maplist(
-    {Separator}/[Strings,String]>>string_list_concat(Strings, Separator, String),
+    {Sep}/[Strings,String]>>string_list_concat(Strings, Sep, String),
     LongStrings2,
     LongStrings3
   ),
@@ -94,12 +97,6 @@ format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line, Optio
     "~w~t~*+~w~t~*+~w~n",
     [LongsString,LongWidth2,ShortString,ShortWidth,Lines]
   ).
-
-% Explicitly asked to not split long flags.
-separator_(", ", Options) :-
-  dict_get(break_long_flags, Options, false), !.
-% By default, split long flags.
-separator_(",\n", _).
 
 
 %! format_lines(+Message1:or([string,list(string)]),
@@ -125,43 +122,15 @@ format_lines(Message, Indent, Message, _) :-
 %!                    -TextLines:list(string)) is det.
 
 insert_line_breaks(Message, LineLength, Indent, TextLines) :-
-  string_list_concat(Words, ' ', Message),
-  group_length(LineLength, Words, WordGroups),
-  maplist(
-    [Strings,String]>>string_list_concat(Strings, ' ', String),
-    WordGroups,
-    Lines
-  ),
+  message_lines(Message, LineLength, Lines),
   indent_lines(Lines, Indent, TextLines).
 
 
 %! indent_lines(+Lines:list(string), +Indent:nonneg, -Message:string) is det.
 
 indent_lines(Lines, Indent, Message) :-
-  format(string(Separator), "~n~*|", [Indent]),
-  string_list_concat(Lines, Separator, Message).
-
-
-%! group_length(+LineLength:positive_integer,
-%!              +Words:list(string),
-%!              -WordGroups:list(list(string))) is det.
-
-group_length(LineLength, Words, Groups) :-
-  group_length_(Words, LineLength, LineLength, [], [], Groups).
-
-group_length_([], _, _, ThisLine, GroupsAcc, Groups) :-
-  maplist(reverse, [ThisLine|GroupsAcc], GroupsAcc1),
-  reverse(GroupsAcc1, Groups).
-group_length_([Word|Words], LineLength, Remains1, ThisLine, Groups, GroupsAcc) :-
-  atom_length(Word, WordLength),
-  (  (Remains1 >= WordLength; ThisLine = [])
-  -> % The word fits on the same line.
-     Remains2 #= Remains1 - WordLength - 1,
-     group_length_(Words, LineLength, Remains2, [Word|ThisLine], Groups, GroupsAcc)
-  ;  % The word does not fit on the same line.
-     group_length_([Word|Words], LineLength, LineLength, [], [ThisLine|Groups], GroupsAcc)
-  ).
-
+  format(string(Sep), "~n~*|", [Indent]),
+  string_list_concat(Lines, Sep, Message).
 
 
 %! usage_lines(+Lines:list(string), -String:string) is det.

@@ -3,6 +3,7 @@
   string_ext,
   [
     max_string_length/2,  % +Strings, -Max
+    message_lines/3,      % +Message, +MaxLength, -Lines
     read_string/2,        % +In, -String
     split_string/3,       % +String, +SepChars, -SubStrings
     string_code/2,        % ?String, ?Code
@@ -15,7 +16,9 @@
     string_prefix/3,      % +Original, ?Length, ?Prefix
     string_strip/2,       % +Original, ?Stripped
     string_strip/3,       % +Original, +Strip, ?Stripped
-    string_truncate/3     % +Original, +MaxLength, ?Truncated
+    string_truncate/3,    % +Original, +MaxLength, ?Truncated
+    words_lines/3,        % +Words, +MaxLength, -Lines
+    words_lines/4         % +Words, +MaxLength, +Separator, -Lines
   ]
 ).
 
@@ -26,6 +29,7 @@ Extends the string support in the SWI-Prolog standard library.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(clpfd)).
 :- use_module(library(error)).
 :- use_module(library(lists)).
 
@@ -36,6 +40,16 @@ Extends the string support in the SWI-Prolog standard library.
 max_string_length(Strings, N) :-
   max_member(String, Strings),
   string_length(String, N).
+
+
+
+%! message_lines(+Message:string,
+%!               +MaxLength:positive_integer,
+%!               -Lines:list(string)) is det.
+
+message_lines(Message, Max, Lines) :-
+  string_list_concat(Words, ' ', Message),
+  words_lines(Words, Max, Lines).
 
 
 
@@ -346,3 +360,44 @@ string_truncate_test("monkey", 3, "mon").
 string_truncate_test("monkey", 1 000, "monkey").
 
 :- end_tests(string_truncate).
+
+
+
+%! words_lines(+Words:list(string),
+%!             +MaxLength:positive_integer,
+%!             -Lines:list(string)) is det.
+%! words_lines(+Words:list(string),
+%!             +MaxLength:positive_integer,
+%!             +Separator:string,
+%!             -Lines:list(string)) is det.
+%
+% Splits the given list of words into lines that do not exceed
+% MaxLength.
+
+words_lines(Words, Max, Lines) :-
+  words_lines(Words, Max, ' ', Lines).
+
+
+words_lines(Words, Max, Sep, Lines) :-
+  string_length(Sep, SepLen),
+  words_lines_(Words, SepLen, Max, Wordss),
+  maplist(
+    {Sep}/[Strings,String]>>string_list_concat(Strings, Sep, String),
+    Wordss,
+    Lines
+  ).
+
+words_lines_([], _, _, []) :- !.
+words_lines_(Words1, SepLen, Max, [Line|Lines]) :-
+  words_line_(Words1, SepLen, Max, Max, Line, Words2),
+  words_lines_(Words2, SepLen, Max, Lines).
+
+words_line_([Word|Words], _, _, Max, _, [Word], Words) :-
+  string_length(Word, Length),
+  Length >= Max, !.
+words_line_([Word|Words], SepLen, Remaining1, Max, [Word|Line], WordsSol) :-
+  string_length(Word, Length),
+  Length =< Remaining1, !,
+  Remaining2 #= Remaining1 - Length - SepLen,
+  words_line_(Words, SepLen, Remaining2, Max, Line, WordsSol).
+words_line_(Words, _, _, _, [], Words).
