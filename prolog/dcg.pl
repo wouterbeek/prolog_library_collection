@@ -17,7 +17,7 @@
     dcg_atom_from_codes//2,   % :Dcg_1, ?Atom
     dcg_between//2,           % +Low, +High
     dcg_between//3,           % +Low, +High, ?Code
-    dcg_bool//1,              % +Bool
+    dcg_boolean//1,           % ?Boolean
     dcg_call//1,              % :Dcg_0
     dcg_call//2,              % :Dcg_1, ?Arg1
     dcg_call//3,              % :Dcg_2, ?Arg1, ?Arg2
@@ -25,6 +25,7 @@
     dcg_call//5,              % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call//6,              % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
     dcg_char//1,              % ?Char
+    dcg_pp_boolean//1,        % +Boolean
     dcg_string//2,            % :Dcg_1, ?String
     dcg_string_from_codes//2, % :Dcg_1, ?String
     dcg_with_output_to/1,     % :Dcg_0
@@ -266,10 +267,11 @@ dcg_between(Low, High, Code) -->
 
 
 
-%! dcg_bool(+Boolean:bool)// is det.
+%! dcg_boolean(+Boolean:boolean)// is det.
+%! dcg_boolean(-Boolean:boolean)// is det.
 
-dcg_bool(false) --> !, "❌".
-dcg_bool(true) --> "✓".
+dcg_boolean(false) --> "false".
+dcg_boolean(true) --> "true".
 
 
 
@@ -317,6 +319,13 @@ dcg_char(Char) -->
 dcg_char(Char) -->
   {char_code(Char, Code)},
   [Code].
+
+
+
+%! dcg_pp_boolean(+Boolean:boolean)// is det.
+
+dcg_pp_boolean(false) --> !, "❌".
+dcg_pp_boolean(true) --> "✓".
 
 
 

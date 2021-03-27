@@ -2,22 +2,22 @@
 :- module(
   print_ext,
   [
-    ansi_format/2,       % +Attributes, +String
-    call_print/1,        % :Goal_1
-    call_print_bool/1,   % :Goal_0
-    dcg_ansi_format/2,   % +Attributes, :Dcg_0
-    print_bool/1,        % +Bool
-    print_json/1,        % +Dict
-    print_json/2,        % +Indent, +Dict
-    print_file_peek/2,   % +File, +Length
-    print_file_peek/3,   % +File, +Length, +Attributes
-    print_stream_peek/2, % +In, +Length
-    print_stream_peek/3, % +In, +Length, +Attributes
-    print_term/1,        % +Term
-   %print_term/2,        % +Term, +Options
-    print_term_nl/1,     % +Term
-    print_term_nl/2,     % +Term, +Options
-    print_term_nl/3      % +Out, +Term, +Options
+    ansi_format/2,        % +Attributes, +String
+    call_print/1,         % :Goal_1
+    call_print_boolean/1, % :Goal_0
+    dcg_ansi_format/2,    % +Attributes, :Dcg_0
+    print_boolean/1,      % +Boolean
+    print_json/1,         % +Dict
+    print_json/2,         % +Indent, +Dict
+    print_file_peek/2,    % +File, +Length
+    print_file_peek/3,    % +File, +Length, +Attributes
+    print_stream_peek/2,  % +In, +Length
+    print_stream_peek/3,  % +In, +Length, +Attributes
+    print_term/1,         % +Term
+   %print_term/2,         % +Term, +Options
+    print_term_nl/1,      % +Term
+    print_term_nl/2,      % +Term, +Options
+    print_term_nl/3       % +Out, +Term, +Options
   ]
 ).
 :- reexport(library(ansi_term)).
@@ -35,7 +35,7 @@
 
 :- meta_predicate
     call_print(1),
-    call_print_bool(0),
+    call_print_boolean(0),
     dcg_ansi_format(+, //).
 
 
@@ -57,11 +57,11 @@ call_print(Goal_1) :-
 
 
 
-%! call_print_bool(:Goal_0) is det.
+%! call_print_boolean(:Goal_0) is det.
 
-call_print_bool(Goal_0) :-
-  call_bool(Goal_0, Bool),
-  print_bool(Bool).
+call_print_boolean(Goal_0) :-
+  call_boolean(Goal_0, Boolean),
+  print_boolean(Boolean).
 
 
 
@@ -73,11 +73,11 @@ dcg_ansi_format(Attrs, Dcg_0) :-
 
 
 
-%! print_bool(+Bool:boolean) is det.
+%! print_boolean(+Boolean:boolean) is det.
 
-print_bool(false) :-
+print_boolean(false) :-
   format("❌").
-print_bool(true) :-
+print_boolean(true) :-
   format("✓").
 
 

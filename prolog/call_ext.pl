@@ -2,7 +2,7 @@
   call_ext,
   [
     bagof/4,                % +Template, :Goal, -Bag, +Zero
-    call_bool/2,            % :Goal_0, ?Bool
+    call_boolean/2,         % :Goal_0, ?Boolean
     call_det_when/2,        % :Cond_0, :Goal_0
     call_det_when_ground/1, % :Goal_0
     call_det_when_ground/2, % ?Term, :Goal_0
@@ -41,7 +41,7 @@
 
 :- meta_predicate
     bagof(+, 0, -, +),
-    call_bool(0, -),
+    call_boolean(0, -),
     call_det_when(0, 0),
     call_det_when_ground(0),
     call_det_when_ground(?, 0),
@@ -66,8 +66,6 @@
 
 
 
-
-
 %! bagof(+Template:T, :Goal_0, -Bag:list(T), +Zero:list(T)) is det.
 
 bagof(Template, Goal_0, Bag, _) :-
@@ -76,30 +74,28 @@ bagof(_, _, Zero, Zero).
 
 
 
-%! call_bool(:Goal_0, +Bool:boolean) is semidet.
-%! call_bool(:Goal_0, -Bool:boolean) is det.
+%! call_boolean(:Goal_0, +Boolean:boolean) is semidet.
+%! call_boolean(:Goal_0, -Boolean:boolean) is det.
 %
 % Returns whether Goal_0 succeeded once as a Boolean.
 
-call_bool(Goal_0, Bool) :-
-  (Goal_0 -> Bool = true ; Bool = false).
+call_boolean(Goal_0, Boolean) :-
+  (Goal_0 -> Boolean = true ; Boolean = false).
 
-:- begin_tests(call_bool).
+:- begin_tests(call_boolean).
 
-test('call_bool(:,+)', [forall(test_call_bool(Goal_1,Bool))]) :-
-  call_bool(Goal_1, Bool).
-test('call_bool(:,-)', [forall(test_call_bool(Goal_1,Bool))]) :-
-  call_bool(Goal_1, Bool0),
-  assertion(Bool == Bool0).
+test('call_boolean(:,+)', [forall(test_call_boolean(Goal_1,Boolean))]) :-
+  call_boolean(Goal_1, Boolean).
+test('call_boolean(:,-)', [forall(test_call_boolean(Goal_1,Boolean))]) :-
+  call_boolean(Goal_1, Boolean0),
+  assertion(Boolean == Boolean0).
 
-test_call_bool(false, false).
-test_call_bool(member(_,[]), false).
-test_call_bool(member(_,[_]), true).
-test_call_bool(true, true).
+test_call_boolean(false, false).
+test_call_boolean(member(_,[]), false).
+test_call_boolean(member(_,[_]), true).
+test_call_boolean(true, true).
 
-:- end_tests(call_bool).
-
-
+:- end_tests(call_boolean).
 
 
 
