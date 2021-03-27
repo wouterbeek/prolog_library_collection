@@ -24,6 +24,7 @@
     dcg_call//4,              % :Dcg_3, ?Arg1, ?Arg2, ?Arg3
     dcg_call//5,              % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call//6,              % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
+    dcg_char//1,              % ?Char
     dcg_string//2,            % :Dcg_1, ?String
     dcg_string_from_codes//2, % :Dcg_1, ?String
     dcg_with_output_to/1,     % :Dcg_0
@@ -303,6 +304,19 @@ dcg_call(Dcg_4, Arg1, Arg2, Arg3, Arg4, X, Y) :-
 
 dcg_call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y) :-
   call(Dcg_5, Arg1, Arg2, Arg3, Arg4, Arg5, X, Y).
+
+
+
+%! dcg_char(+Char:char)//.
+%! dcg_char(-Char:char)//.
+
+dcg_char(Char) -->
+  {var(Char)}, !,
+  [Code],
+  {char_code(Char, Code)}.
+dcg_char(Char) -->
+  {char_code(Char, Code)},
+  [Code].
 
 
 
