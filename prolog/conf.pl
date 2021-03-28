@@ -144,9 +144,12 @@ conf_file(File) :-
   member(File, Files),
   access_file(File, read), !.
 
+% Specified in a command-line argument.
 conf_file_spec(Spec) :-
   cli_argument(conf, Spec), !.
+% Present in the directory from which the program was started.
 conf_file_spec('conf.json').
+% Present in the home directory of the current user.
 conf_file_spec('~/conf.json').
 
 

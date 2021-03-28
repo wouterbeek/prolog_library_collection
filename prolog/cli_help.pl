@@ -1,34 +1,35 @@
 :- module(
   cli_help,
   [
-    cli_help/3 % +Usages, +Specs, +Options
+    cli_help/3 % +Name, +Usages, +Specs
   ]
 ).
 
-/** <module> Command Line Interface: help messages
+/** <module> Command-line tools: help messages
 
 */
 
 :- use_module(library(apply)).
 :- use_module(library(clpfd)).
 
+:- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(pair_ext)).
 :- use_module(library(string_ext)).
 
 
 
-%! cli_help(+Usages:list(string), +Specs:dict, +Options:options) is det.
+%! cli_help(+Name:atom, +Usages:list(atom), +Specs:dict) is det.
 
-cli_help(Usages, Specs, Options) :-
-  usage_lines(Usages, String1),
-  opt_help(Specs, String2, Options),
+cli_help(Name, Usages, Specs) :-
+  usages_message(Name, Usages, String1),
+  flags_message(Specs, String2),
   format(user_output, "Usage:\n~s\nOptions:\n~s", [String1,String2]).
 
 
-%! opt_help(+Specs:dict, -Message:string, +Options:options) is det.
+%! flags_message(+Specs:dict, -Message:string) is det.
 
-opt_help(Dict, Message, Options) :-
+flags_message(Dict, Message) :-
   dict_pairs(Dict, Pairs),
   pairs_values(Pairs, Dicts),
   maplist(pp_short_flags, Dicts, ShortStrings),
@@ -37,14 +38,13 @@ opt_help(Dict, Message, Options) :-
   flatten(LongStringss, LongStrings0),
   max_string_length(LongStrings0, LongWidth),
   maplist(
-    {ShortWidth,LongWidth,Options}/
+    {ShortWidth,LongWidth}/
       [ShortString,LongStrings,Dict,Line]>>
       format_option(
         ShortWidth-ShortString,
         LongWidth-LongStrings,
         Dict,
-        Line,
-        Options
+        Line
       ),
     ShortStrings,
     LongStringss,
@@ -69,29 +69,19 @@ pp_short_flags(Spec, String) :-
   string_list_concat(Strings, ',',  String).
 
 
-%! format_options(+ShortFlags:pair(nonneg,string),
-%!                +LongFlags:pair(nonneg,list(string)),
-%!                +OptionSpec:dict,
-%!                -Line:string,
-%!                +Options:options) is det.
+%! format_option(+ShortFlags:pair(nonneg,string),
+%!               +LongFlags:pair(nonneg,list(string)),
+%!               +OptionSpec:dict,
+%!               -Line:string) is det.
 
-format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line, Options) :-
+format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line) :-
   optionSpec{help: Message} :< Dict,
-  (   options{break_long_flags: false} :< Options
-  ->  Sep = ", "
-  ;   Sep = ",\n"
-  ),
-  words_lines(LongStrings1, LongWidth1, Sep, LongStrings2),
+  words_lines(LongStrings1, LongWidth1, ", ", LongStrings2),
   % Make room for a comma and a space.
   LongWidth2 #= LongWidth1 + 2,
-  maplist(
-    {Sep}/[Strings,String]>>string_list_concat(Strings, Sep, String),
-    LongStrings2,
-    LongStrings3
-  ),
-  string_list_concat(LongStrings3, ",\n", LongsString),
+  string_list_concat(LongStrings2, ",\n", LongsString),
   Indent #= ShortWidth + LongWidth2 + 4,
-  format_lines(Message, Indent, Lines, Options),
+  format_lines(Message, Indent, Lines),
   format(
     string(Line),
     "~w~t~*+~w~t~*+~w~n",
@@ -101,18 +91,17 @@ format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line, Optio
 
 %! format_lines(+Message1:or([string,list(string)]),
 %!              +Indent:nonneg,
-%!              -Message2:string,
-%!              +Options:options) is det.
+%!              -Message2:string) is det.
 
 % Line splitting determined algorithmically.
-format_lines(Message1, Indent, Message2, Options) :-
+format_lines(Message1, Indent, Message2) :-
   string(Message1), !,
-  dict_get(min_help_width, Options, 40, MinWidth),
-  dict_get(line_width, Options, 80, LineWidth),
+  MinWidth = 40,
+  LineWidth = 80,
   MaxWidth #= max(MinWidth, LineWidth - Indent),
   insert_line_breaks(Message1, MaxWidth, Indent, Message2).
 % Line splitting determined by the option specification.
-format_lines(Message, Indent, Message, _) :-
+format_lines(Message, Indent, Message) :-
   indent_lines(Message, Indent, Message).
 
 
@@ -133,11 +122,26 @@ indent_lines(Lines, Indent, Message) :-
   string_list_concat(Lines, Sep, Message).
 
 
-%! usage_lines(+Lines:list(string), -String:string) is det.
+%! usages_message(+Name:atom,
+%!                +Usages:list(list(atom)),
+%!                -Message:string) is det.
 
-usage_lines(Lines1, String) :-
-  maplist(usage_line_, Lines1, Lines2),
-  string_list_concat(Lines2, String).
+usages_message(Name, Usages, Msg) :-
+  maplist(usage_line(Name), Usages, Lines),
+  string_list_concat(Lines, Msg).
 
-usage_line_(String1, String2) :-
-  format(string(String2), "  ~s\n", [String1]).
+usage_line(Name, Usage, Line) :-
+  string_phrase(usage_line(Name, Usage), Line).
+
+usage_line(Name, PosArgs) -->
+  "  ",
+  atom(Name),
+  pos_args(PosArgs),
+  " [options]\n".
+
+pos_args([]) --> !, "".
+pos_args([H|T]) -->
+  " {",
+  atom(H),
+  "}",
+  pos_args(T).
