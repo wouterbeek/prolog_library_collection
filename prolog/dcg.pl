@@ -65,10 +65,8 @@
 
 :- use_module(library(error)).
 
-:- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
 :- use_module(library(list_ext)).
-:- use_module(library(math_ext)).
 :- use_module(library(string_ext)).
 
 :- meta_predicate

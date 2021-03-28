@@ -14,8 +14,6 @@ SWI-Prolog standard library.
 
 */
 
-:- use_module(library(error)).
-
 :- use_module(library(pair_ext)).
 
 :- multifile

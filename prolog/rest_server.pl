@@ -8,7 +8,6 @@
     http_current_location/1,       % -Uri
     http_parameter_alternatives/2, % +Parameters, -Value
     http_parameter_conflict/2,     % +Parameter1, +Parameter2
-    http_server_init/1,            % +Dict
     http_is_get/1,                 % +Method
     http_link_to_id/2,             % +HandleId, -Local
     http_media_types/2,            % +Request, -MediaTypes
@@ -39,7 +38,6 @@
 :- use_module(library(pairs)).
 :- use_module(library(settings)).
 
-:- use_module(library(dict)).
 :- use_module(library(pair_ext)).
 :- use_module(library(resource)).
 :- use_module(library(uri_ext)).
@@ -242,27 +240,6 @@ http_parameter_conflict(_, _).
 http_reply_json(Json) :-
   format("Content-Type: application/json; charset=UTF-8\n\n"),
   json_write_dict(current_output, Json).
-
-
-
-%! http_server_init(+Conf:dict) is det.
-
-http_server_init(Dict1) :-
-  (   dict_get(endpoint, Dict1, Dict2)
-  ->  (   dict_get(host, Dict2, Host)
-      ->  set_setting(http:public_host, Host)
-      ;   true
-      ),
-      (   dict_get(port, Dict2, Port)
-      ->  set_setting(http:public_port, Port)
-      ;   true
-      ),
-      (   dict_get(scheme, Dict2, Scheme)
-      ->  set_setting(http:public_scheme, Scheme)
-      ;   true
-      )
-  ;   true
-  ).
 
 
 
