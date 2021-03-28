@@ -25,6 +25,7 @@
     dcg_call//5,              % :Dcg_4, ?Arg1, ?Arg2, ?Arg3, ?Arg4
     dcg_call//6,              % :Dcg_5, ?Arg1, ?Arg2, ?Arg3, ?Arg4, ?Arg5
     dcg_char//1,              % ?Char
+    dcg_peek//1,              % +Length
     dcg_pp_boolean//1,        % +Boolean
     dcg_string//2,            % :Dcg_1, ?String
     dcg_string_from_codes//2, % :Dcg_1, ?String
@@ -66,6 +67,7 @@
 
 :- use_module(library(atom_ext)).
 :- use_module(library(code_ext)).
+:- use_module(library(list_ext)).
 :- use_module(library(math_ext)).
 :- use_module(library(string_ext)).
 
@@ -322,6 +324,16 @@ dcg_char(Char) -->
 
 
 
+%! dcg_peek(+Length:nonneg)// .
+
+dcg_peek(Len, Codes, Codes) :-
+  length(Prefix, Len),
+  prefix(Prefix, Codes),
+  string_codes(String, Prefix),
+  format(user_output, "\n|~s|\n", [String]).
+
+
+
 %! dcg_pp_boolean(+Boolean:boolean)// is det.
 
 dcg_pp_boolean(false) --> !, "❌".
@@ -457,7 +469,8 @@ must_see(Dcg_0, X, Y) :-
   call(Dcg_0, X, Y), !.
 must_see(_:Dcg_0, _, _) :-
   Dcg_0 =.. [Pred|_],
-  syntax_error(expected(Pred)).
+  format(string(Call), "~w", [Dcg_0]),
+  syntax_error(expected(Pred,Call)).
 
 
 
@@ -466,8 +479,8 @@ must_see(_:Dcg_0, _, _) :-
 must_see_code(Code, Skip_0) -->
   [Code], !,
   Skip_0.
-must_see_code(Code, _) -->
-  {char_code(Char, Code)},
+must_see_code(Code, _, _, _) :-
+  char_code(Char, Code),
   syntax_error(expected(Char)).
 
 
