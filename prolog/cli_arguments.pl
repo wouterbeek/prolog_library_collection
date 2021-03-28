@@ -42,28 +42,11 @@
 % @error Dashed args not in Specs are not permitted and will raise an
 %        error.
 
-cli_arguments(Usages, Specs1, Options, PosArgs) :-
-  Specs0 = optionSpecs{
-    help: optionSpec{
-      default: false,
-      help: "Display help information for this tool and exit.",
-      longflags: [help],
-      shortflags: [h],
-      type: boolean
-    },
-    version: optionSpec{
-      default: false,
-      help: "Display the version number of this tool and exit.",
-      longflags: [version],
-      shortflags: [v],
-      type: boolean
-    }
-  },
-  merge_dicts(Specs0, Specs1, Specs2),
+cli_arguments(Usages, Specs, Options, PosArgs) :-
   current_prolog_flag(argv, Atoms),
-  parse_arguments(Specs2, Atoms, Pairs1, PosArgs),
+  parse_arguments(Specs, Atoms, Pairs1, PosArgs),
   usage_arguments(Usages, PosArgs),
-  set_default_options(Specs2, Pairs1, Pairs2),
+  set_default_options(Specs, Pairs1, Pairs2),
   dict_pairs(Options, Pairs2).
 
 %! parse_arguments(+Specs:dict,

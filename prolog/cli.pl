@@ -1,7 +1,8 @@
 :- module(
   cli,
   [
-    cli_main/4 % +Name, +Usages, +Specs, :Goal_2
+    cli_main/3, % +Name, +Usages, :Goal_2
+    cli_main/4  % +Name, +Usages, +Specs, :Goal_2
   ]
 ).
 
@@ -44,25 +45,50 @@ distinguised:
 :- use_module(library(cli_arguments)).
 :- use_module(library(cli_help)).
 :- use_module(library(cli_version)).
+:- use_module(library(dict)).
 
 :- meta_predicate
+    cli_main(+, +, 2),
     cli_main(+, +, +, 2),
     cli_main_(+, +, +, +, +, 2).
 
 
 
+%! cli_main(+Name:atom, +Usages:list(list(atom)), :Goal_2) is det.
+
+cli_main(Name, Usages, Goal_2) :-
+  cli_main(Name, Usages, optionSpecs{}, Goal_2).
+
+
 %! cli_main(+Name:atom, +Usages:list(list(atom)), +Specs:dict, :Goal_2) is det.
 
-cli_main(Name, Usages, Specs, Goal_2) :-
+cli_main(Name, Usages, Specs1, Goal_2) :-
+  Specs0 = optionSpecs{
+    help: optionSpec{
+      default: false,
+      help: "Display help information for this tool and exit.",
+      longflags: [help],
+      shortflags: [h],
+      type: boolean
+    },
+    version: optionSpec{
+      default: false,
+      help: "Display the version number of this tool and exit.",
+      longflags: [version],
+      shortflags: [v],
+      type: boolean
+    }
+  },
+  merge_dicts(Specs0, Specs1, Specs2),
   catch(
     (
-      cli_arguments(Usages, Specs, Options, Args),
-      cli_main_(Name, Usages, Specs, Options, Args, Goal_2)
+      cli_arguments(Usages, Specs2, Options, Args),
+      cli_main_(Name, Usages, Specs2, Options, Args, Goal_2)
     ),
     Error,
     (
       cli_error(Error),
-      cli_help(Name, Usages, Specs)
+      cli_help(Name, Usages, Specs2)
     )
   ).
 
