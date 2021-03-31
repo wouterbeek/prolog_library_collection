@@ -622,8 +622,8 @@ media_type_(srj_1, media(application/'sparql-results+json',[])).
 program_(srj_1, text_editor).
 
 extension_(srx_1, srx).
-family_(srj_1, sparql(ask)).
-family_(srj_1, sparql(select)).
+family_(srx_1, sparql(ask)).
+family_(srx_1, sparql(select)).
 label_(srx_1, "SPARQL Query Results XML Format").
 media_type_(srx_1, media(application/'sparql-results+xml',[])).
 program_1(srx_1, text_editor).
