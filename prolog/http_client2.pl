@@ -31,6 +31,14 @@
 
 Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 
+# Debugging
+
+The following debug flags are used:
+
+  - http(peek)
+  - http(receive_reply)
+  - http(send_request)
+
 */
 
 :- use_module(library(aggregate)).
@@ -55,7 +63,6 @@ Alternative to the HTTP client that is part of the SWI-Prolog standard library.
 :- use_module(library(string_ext)).
 :- use_module(library(uri_ext)).
 
-:- use_module(http/http_header_cp, [http_parse_header_value/3]).
 :- use_module(http/http_open_cp, []).
 
 :- meta_predicate
@@ -93,7 +100,7 @@ ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Erro
 
 
 
-%! http_accept_value(+MediaTypes:list(compound), -Accept:atom) is det.
+%! http_accept_value(+MediaTypes:list(media_type), -Accept:atom) is det.
 %
 % Create an atomic HTTP Accept header value out of a given list of
 % Media Types (from most to least acceptable).
@@ -236,7 +243,7 @@ http_metadata_content_type(Metas, MediaType) :-
   Metas = [Meta|_],
   dict_get([headers,'content-type'], Meta, [ContentType|T]),
   assertion(T == []),
-  http_parse_header_value(content_type, ContentType, MediaType).
+  atom_phrase(media_type(MediaType), ContentType).
 
 
 
@@ -485,7 +492,7 @@ http_open2_(Uri, In2, State1, [Meta|Metas], Options1) :-
   ;   true
   ),
   (   dict_get('content-type', HeadersMeta, [ContentType|_]),
-      http_parse_header_value(content_type, ContentType, MediaType),
+      atom_phrase(media_type(MediaType), ContentType),
       media_type_encoding(MediaType, Encoding)
   ->  set_stream(In1, encoding(Encoding))
   ;   true
@@ -497,6 +504,10 @@ debug_header(Key-Values) :-
 
 debug_header(Key, Value) :-
   debug(http(receive_reply), "< ~a: ~w", [Key,Value]).
+
+
+%! http_open2_accept_(+Accept:or([atom,list(media_type),media_type]),
+%!                    -Atom:atom) is det.
 
 % list of Media Types
 http_open2_accept_(MediaTypes, Atom) :-
@@ -566,7 +577,7 @@ http_open2_(_, In, Status, _, _, [], _) :-
 % `Content-Type' header.
 http_open2_success_(_, In, State, In) :-
   _{meta: Meta} :< State,
-  http_metadata_content_type([Meta], _MediaType), !,
+  http_metadata_content_type([Meta], _), !,
   (   debugging(http(peek))
   ->  peek_string(In, 1 000, String),
       debug(http(peek), "~s", [String])

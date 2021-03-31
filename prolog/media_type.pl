@@ -2,7 +2,7 @@
 :- module(
   media_type,
   [
-    media_type//1,          % +MediaType
+    media_type//1,          % ?MediaType
     media_type/1,           % ?MediaType
     media_type_encoding/2,  % ?MediaType, ?Encoding
     media_type_extension/2, % ?MediaType, ?Extension
@@ -76,6 +76,7 @@ extension_label(Ext, Label) :-
 
 
 %! media_type(+MediaType:media_type)// is det.
+%! media_type(-MediaType:media_type)// is det.
 
 media_type(MediaType) -->
   {ground(MediaType)}, !,
