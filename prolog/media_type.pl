@@ -63,19 +63,6 @@ error:has_type(media_type, MediaType) :-
 
 
 
-
-
-%! extension_label(+Extension:atom, -Label:string) is det.
-%! extension_label(-Extension:atom, -Label:string) is multi.
-
-extension_label(Ext, Label) :-
-  call_det_when(
-    ground(Ext),
-    (extension_(Key, Ext),
-     label_(Key, Label))).
-
-
-
 %! media_type(+MediaType:media_type)// is det.
 %! media_type(-MediaType:media_type)// is det.
 
