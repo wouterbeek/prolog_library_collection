@@ -44,7 +44,20 @@
     '*&n'//3,  % ?N, :Dcg_0, :Sep_0
     '*&n'//4,  % ?N, :Dcg_1, :Sep_0, -Args
     'm*&n'//4, % ?M, ?N, :Dcg_0, :Sep_0
-    'm*&n'//5  % ?M, ?N, :Dcg_1, :Sep_0, -Args
+    'm*&n'//5, % ?M, ?N, :Dcg_1, :Sep_0, -Args
+  % DETERMINISTIC SEQUENCE PATTERNS WITH SEPARATOR
+    '#&!'//3,   % ?N, :Dcg_0, :Sep_0
+    '#&!'//4,   % ?N, :Dcg_1, :Sep_0, -Args
+    '*&!'//2,   % :Dcg_0, :Sep_0
+    '*&!'//3,   % :Dcg_1, :Sep_0, ?Args
+    '+&!'//2,   % :Dcg_0, :Sep_0
+    '+&!'//3,   % :Dcg_1, :Sep_0, ?Args
+    'm*&!'//3,  % ?M, :Dcg_0, :Sep_0
+    'm*&!'//4,  % ?M, :Dcg_1, :Sep_0, -Args
+    '*&n!'//3,  % ?N, :Dcg_0, :Sep_0
+    '*&n!'//4,  % ?N, :Dcg_1, :Sep_0, -Args
+    'm*&n!'//4, % ?M, ?N, :Dcg_0, :Sep_0
+    'm*&n!'//5  % ?M, ?N, :Dcg_1, :Sep_0, -Args
   ]
 ).
 
@@ -122,9 +135,23 @@ dcg_call//[1,6].
     'm*&n__g'(?, ?, +, //, //, ?, ?),
     'm*&n__g'(?, ?, +, 3, //, -, ?, ?),
     'm*&n__p'(?, ?, +, //, //, ?, ?),
-    'm*&n__p'(?, ?, +, 3, //, -, ?, ?).
-
-
+    'm*&n__p'(?, ?, +, 3, //, -, ?, ?),
+    '#&!'(+, //, //, ?, ?),
+    '#&!'(+, 3, //, -, ?, ?),
+    '*&!'(//, //, ?, ?),
+    '*&!'(3, //, -, ?, ?),
+    '+&!'(//, //, ?, ?),
+    '+&!'(3, //, -, ?, ?),
+    'm*&!'(?, //, //, ?, ?),
+    'm*&!'(?, 3, //, -, ?, ?),
+    '*&n!'(?, //, //, ?, ?),
+    '*&n!'(?, 3, //, -, ?, ?),
+    'm*&n!'(?, ?, //, //, ?, ?),
+    'm*&n!'(?, ?, 3, //, -, ?, ?),
+    'm*&n__g!'(?, ?, +, //, //, ?, ?),
+    'm*&n__g!'(?, ?, +, 3, //, -, ?, ?),
+    'm*&n__p!'(?, ?, +, //, //, ?, ?),
+    'm*&n__p!'(?, ?, +, 3, //, -, ?, ?).
 
 
 
@@ -471,4 +498,122 @@ dcg_call//[1,6].
   {Count2 is Count1 + 1},
   'm*&n__p'(M, N, Count2, Dcg_1, Sep_0, T).
 'm*&n__p'(M, _, Count, _, _, []) -->
+  {(var(M) -> true ; M =< Count)}.
+
+
+
+%! '#&!'(?N, :Dcg_0, :Sep_0)// is semidet.
+%! '#&!'(?N, :Dcg_1, :Sep_0, ?Args:list)// is semidet.
+
+'#&!'(N, Dcg_0, Sep_0) -->
+  'm*&n!'(N, N, Dcg_0, Sep_0).
+
+
+'#&!'(N, Dcg_1, Sep_0, Args) -->
+  'm*&n!'(N, N, Dcg_1, Sep_0, Args).
+
+
+
+%! '*&!'(:Dcg_0, :Sep_0)// is det.
+%! '*&!'(:Dcg_1, :Sep_0, ?Args:list)// is det.
+
+'*&!'(Dcg_0, Sep_0) -->
+  'm*&n!'(0, _, Dcg_0, Sep_0).
+
+
+'*&!'(Dcg_1, Sep_0, Args) -->
+  'm*&n!'(0, _, Dcg_1, Sep_0, Args).
+
+
+
+%! '+&!'(:Dcg_0, :Sep_0)// is det.
+%! '+&!'(:Dcg_1, :Sep_0, ?Args:list)// is det.
+
+'+&!'(Dcg_0, Sep_0) -->
+  'm*&n!'(1, _, Dcg_0, Sep_0).
+
+
+'+&!'(Dcg_1, Sep_0, Args) -->
+  'm*&n!'(1, _, Dcg_1, Sep_0, Args).
+
+
+
+%! 'm*&!'(?M:nonneg, :Dcg_0, :Sep_0)// is det.
+%! 'm*&!'(?M:nonneg, :Dcg_1, :Sep_0, ?Args:list)// is det.
+
+'m*&!'(M, Dcg_0, Sep_0) -->
+  'm*&n!'(M, _, Dcg_0, Sep_0).
+
+
+'m*&!'(M, Dcg_1, Sep_0, Args) -->
+  'm*&n!'(M, _, Dcg_1, Sep_0, Args).
+
+
+
+%! '*&n!'(?N:nonneg, :Dcg_0, :Sep_0)// is det.
+%! '*&n!'(?N:nonneg, :Dcg_1, :Sep_0, ?Args:list)// is det.
+
+'*&n!'(N, Dcg_0, Sep_0) -->
+  'm*&n!'(_, N, Dcg_0, Sep_0).
+
+
+'*&n!'(N, Dcg_1, Sep_0, Args) -->
+  'm*&n!'(_, N, Dcg_1, Sep_0, Args).
+
+
+
+%! 'm*&n!'(?M:nonneg, ?N:nonneg, :Dcg_0, :Sep_0)// is det.
+%! 'm*&n!'(?M:nonneg, ?N:nonneg, :Dcg_1, :Sep_0, ?Args:list)// is det.
+%
+% Notice that it is possible for a production of ~Sep_0~ to appear
+% after the last production of ~Dcg_n~.  This meand that eager parsing
+% must cut after ~(Sep_0, Dcg_n)~, and not after ~Sep_0~ alone.
+
+'m*&n!'(M, N, Dcg_0, Sep_0) -->
+  parsing, !,
+  'm*&n__p!'(M, N, 0, Dcg_0, Sep_0).
+'m*&n!'(M, N, Dcg_0, Sep_0) -->
+  'm*&n__g!'(M, N, 0, Dcg_0, Sep_0).
+
+'m*&n__g!'(M, _, Count, _, _) -->
+  {(var(M) -> true ; M =< Count)}.
+'m*&n__g!'(M, N, Count1, Dcg_0, Sep_0) -->
+  {(var(N) -> true ; Count1 < N)},
+  ({Count1 =:= 0} -> "" ; Sep_0),
+  Dcg_0,
+  {Count2 is Count1 + 1},
+  'm*&n__g!'(M, N, Count2, Dcg_0, Sep_0).
+
+'m*&n__p!'(M, N, Count1, Dcg_0, Sep_0) -->
+  {(var(N) -> true ; Count1 < N)},
+  ({Count1 =:= 0} -> "" ; Sep_0),
+  Dcg_0,
+  {Count2 is Count1 + 1},
+  'm*&n__p!'(M, N, Count2, Dcg_0, Sep_0).
+'m*&n__p!'(M, _, Count, _, _) -->
+  {(var(M) -> true ; M =< Count)}.
+
+
+'m*&n!'(M, N, Dcg_1, Sep_0, Args) -->
+  parsing, !,
+  'm*&n__p!'(M, N, 0, Dcg_1, Sep_0, Args).
+'m*&n!'(M, N, Dcg_1, Sep_0, Args) -->
+  'm*&n__g!'(M, N, 0, Dcg_1, Sep_0, Args).
+
+'m*&n__g!'(M, _, Count, _, _, []) -->
+  {(var(M) -> true ; M =< Count)}.
+'m*&n__g!'(M, N, Count1, Dcg_1, Sep_0, [H|T]) -->
+  {(var(N) -> true ; Count1 < N)},
+  ({Count1 =:= 0} -> "" ; Sep_0),
+  dcg_call(Dcg_1, H),
+  {Count2 is Count1 + 1},
+  'm*&n__g!'(M, N, Count2, Dcg_1, Sep_0, T).
+
+'m*&n__p!'(M, N, Count1, Dcg_1, Sep_0, [H|T]) -->
+  {(var(N) -> true ; Count1 < N)},
+  ({Count1 =:= 0} -> "" ; Sep_0),
+  dcg_call(Dcg_1, H),
+  {Count2 is Count1 + 1},
+  'm*&n__p!'(M, N, Count2, Dcg_1, Sep_0, T).
+'m*&n__p!'(M, _, Count, _, _, []) -->
   {(var(M) -> true ; M =< Count)}.
