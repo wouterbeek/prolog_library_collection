@@ -9,7 +9,8 @@
     media_type_family/2,    % ?MediaType, ?Family
     media_type_label/2,     % ?MediaType, ?Label
     media_type_parameter/2, % +MediaType, ?Parameter
-    media_type_program/3    % ?MediaType, -Program, -Args
+    media_type_program/3,   % ?MediaType, -Program, -Args
+    must_be_media_type/2    % +MediaTypes, +MediaType
   ]
 ).
 
@@ -204,6 +205,13 @@ media_type_program_(text_editor, Program, []) :- !,
 media_type_program_(Program, Program, []).
 
 
+
+%! must_be_media_type(+MediaTypes:list(media_type), +MediaType:media_type) is det.
+
+must_be_media_type(MediaTypes, media(Super/Sub,_)) :-
+  memberchk(media(Super/Sub,_), MediaTypes), !.
+must_be_media_type(MediaTypes, MediaType) :-
+  must_be(oneof(MediaTypes), MediaType).
 
 
 
