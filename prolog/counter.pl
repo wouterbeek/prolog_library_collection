@@ -1,9 +1,10 @@
 :- module(
   counter,
   [
-    counter_value/2,    % +Counter, ?N
-    create_counter/1,   % -Counter
-    increment_counter/1 % +Counter
+    counter_create/1,    % -Counter
+    counter_increment/1, % +Counter
+    counter_increment/2, % +Counter, -Value
+    counter_value/2      % +Counter, ?Value
   ]
 ).
 
@@ -11,7 +12,25 @@
 
 */
 
+:- use_module(library(nb_ext)).
 
+
+
+%! counter_create(-Counter:compound) is det.
+
+counter_create(counter(0)).
+
+
+
+%! counter_increment(+Counter:compound) is det.
+%! counter_increment(+Counter:compound, -Value:nonneg) is det.
+
+counter_increment(Counter) :-
+  counter_increment(Counter, _).
+
+
+counter_increment(Counter, Value) :-
+  nb_increment(Counter, 1, Value).
 
 
 
@@ -19,18 +38,3 @@
 %! counter_value(+Counter:compound, -N:nonneg) is det.
 
 counter_value(counter(N), N).
-
-
-
-%! create_counter(-Counter:compound) is det.
-
-create_counter(counter(0)).
-
-
-
-%! increment_counter(+Counter:compound) is det.
-
-increment_counter(Counter) :-
-  arg(1, Counter, N1),
-  N2 is N1 + 1,
-  nb_setarg(1, Counter, N2).
