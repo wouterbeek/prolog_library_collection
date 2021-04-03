@@ -118,6 +118,8 @@ dcg_call//[1,6].
     '*n!'(?, 3, -, ?, ?),
     'm*n!'(?, ?, //, ?, ?),
     'm*n!'(?, ?, 3, -, ?, ?),
+    'm*n__g!'(?, ?, +, //, ?, ?),
+    'm*n__g!'(?, ?, +, 3, -, ?, ?),
     'm*n__p!'(?, ?, +, //, ?, ?),
     'm*n__p!'(?, ?, +, 3, -, ?, ?),
     #&(+, //, //, ?, ?),
@@ -358,7 +360,15 @@ dcg_call//[1,6].
   parsing, !,
   'm*n__p!'(M, N, 0, Dcg_0).
 'm*n!'(M, N, Dcg_0) -->
-  'm*n__g'(M, N, 0, Dcg_0).
+  'm*n__g!'(M, N, 0, Dcg_0).
+
+'m*n__g!'(M, _, Count, _) -->
+  {(var(M) -> true ; M =< Count)}, !.
+'m*n__g!'(M, N, Count1, Dcg_0) -->
+  {(var(N) -> true ; Count1 < N)},
+  Dcg_0,
+  {Count2 is Count1 + 1},
+  'm*n__g!'(M, N, Count2, Dcg_0).
 
 'm*n__p!'(M, N, Count1, Dcg_0) -->
   {(var(N) -> true ; Count1 < N)},
@@ -373,7 +383,15 @@ dcg_call//[1,6].
   parsing, !,
   'm*n__p!'(M, N, 0, Dcg_1, Args).
 'm*n!'(M, N, Dcg_1, Args) -->
-  'm*n__g'(M, N, 0, Dcg_1, Args).
+  'm*n__g!'(M, N, 0, Dcg_1, Args).
+
+'m*n__g!'(M, _, Count, _, []) -->
+  {(var(M) -> true ; M =< Count)}, !.
+'m*n__g!'(M, N, Count1, Dcg_1, [H|T]) -->
+  {(var(N) -> true ; Count1 < N)},
+  dcg_call(Dcg_1, H),
+  {Count2 is Count1 + 1},
+  'm*n__g!'(M, N, Count2, Dcg_1, T).
 
 'm*n__p!'(M, N, Count1, Dcg_1, [H|T]) -->
   {(var(N) -> true ; Count1 < N)},
@@ -576,7 +594,7 @@ dcg_call//[1,6].
   'm*&n__g!'(M, N, 0, Dcg_0, Sep_0).
 
 'm*&n__g!'(M, _, Count, _, _) -->
-  {(var(M) -> true ; M =< Count)}.
+  {(var(M) -> true ; M =< Count)}, !.
 'm*&n__g!'(M, N, Count1, Dcg_0, Sep_0) -->
   {(var(N) -> true ; Count1 < N)},
   ({Count1 =:= 0} -> "" ; Sep_0),
@@ -601,7 +619,7 @@ dcg_call//[1,6].
   'm*&n__g!'(M, N, 0, Dcg_1, Sep_0, Args).
 
 'm*&n__g!'(M, _, Count, _, _, []) -->
-  {(var(M) -> true ; M =< Count)}.
+  {(var(M) -> true ; M =< Count)}, !.
 'm*&n__g!'(M, N, Count1, Dcg_1, Sep_0, [H|T]) -->
   {(var(N) -> true ; Count1 < N)},
   ({Count1 =:= 0} -> "" ; Sep_0),
