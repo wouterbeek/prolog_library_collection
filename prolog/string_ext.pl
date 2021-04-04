@@ -206,10 +206,10 @@ test_string_list_concat(["","","",""], "a", "aaa").
 %! string_postfix(+Original:string, -Length:nonneg, +Postfix:string) is semidet.
 %! string_postfix(+Original:string, -Length:nonneg, -Postfix:string) is multi.
 %
-% @arg Length is the number of characters in the Postfix string.
+% @param Length is the number of characters in the Postfix string.
 %
-% @arg Postfix is the postfix of the Original string that has Length
-%      characters.
+% @param Postfix is the postfix of the Original string that has Length
+%        characters.
 %
 % Fails in case Length is higher than the length of string String.
 %
@@ -257,10 +257,10 @@ test_string_postfix("abcd", 0, "").
 %
 % Fails in case Length exceeds the Original string length.
 %
-% @arg Length is the number of characters in the Prefix string.
+% @param Length is the number of characters in the Prefix string.
 %
-% @arg Prefix is the prefix of the Original string that has Length
-%      characters.
+% @param Prefix is the prefix of the Original string that has Length
+%        characters.
 %
 % @see atom_prefix/[2,3] provides the same functionality for atoms.
 
@@ -307,9 +307,9 @@ test_string_prefix("abcd", 4, "abcd").
 %
 % The default Strip characters are space, newline and horizontal tab.
 %
-% @arg Strip is a list of charaters that will be stripped from the
-%      Original string.  The default includes: horizontal tab,
-%      newline, space, NO-BREAK SPACE (0xa0).
+% @param Strip is a list of charaters that will be stripped from the
+%        Original string.  The default includes: horizontal tab,
+%        newline, space, NO-BREAK SPACE (0xa0).
 %
 % @see atom_strip/[2,3] provides the same functionality for atoms.
 

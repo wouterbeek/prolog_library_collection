@@ -116,8 +116,8 @@ on_begin_(Name, Attr, Parser) :-
 %    FFFE, and FFFF. */
 % ```
 %
-% @arg Version is either `version(1,0)' for XML 1.0 or `version(1,1)'
-%      for XML 1.1.
+% @param Version is either `version(1,0)' for XML 1.0 or
+%        `version(1,1)' for XML 1.1.
 
 'Char'(Version) -->
   'Char'(Version, _).
@@ -349,8 +349,8 @@ yesno(false) --> "no".
 % VersionNum ::= '1.1'
 % ```
 %
-% @arg Version is a compound term of the form
-%      `version(Major:nonneg,Minor:nonneg)'.
+% @param Version is a compound term of the form
+%        `version(Major:nonneg,Minor:nonneg)'.
 %
 % @compat XML 1.0.5 [26].
 % @compat XML 1.1.2 [26].

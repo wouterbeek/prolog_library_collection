@@ -63,46 +63,47 @@ empty_pagination(Options, Page) :-
 %! pagination(+Templ, :Goal_0, +Options:options, -Page:dict) is det.
 %! pagination(+Templ, :Goal_0, :Estimate_1, +Options:options, -Page:dict) is det.
 %
-% The following options are supported:
+% @param Options The following options are supported:
 %
-%   * page_number(+nonneg)
+%        * page_number(+nonneg)
 %
-%     The page number of the Page in the implicit sequence.  The
-%     default is 1.
+%          The page number of the Page in the implicit sequence.  The
+%          default is 1.
 %
-%   * page_size(+positive_integer)
+%        * page_size(+positive_integer)
 %
-%     The number of results per (full) page.  The default is 10.
+%          The number of results per (full) page.  The default is 10.
 %
-% @arg Page is a dictionary with the following keys:
+% @param Page is a dictionary with the following keys:
 %
-%   * number_of_results(nonneg)
+%        * number_of_results(nonneg)
 %
-%     The number of results on the page.  This is either identical to
-%     or less than the value of option page_size/1.
+%          The number of results on the page.  This is either
+%          identical to or less than the value of option page_size/1.
 %
-%   * page_number(positive_integer)
+%        * page_number(positive_integer)
 %
-%     The page number of the page within the implicit sequence.
+%          The page number of the page within the implicit sequence.
 %
-%   * page_size(positive_integer)
+%        * page_size(positive_integer)
 %
-%     The number of results if the page were full.  This is identical
-%     to the value of option page_size/1.
+%          The number of results if the page were full.  This is
+%          identical to the value of option page_size/1.
 %
-%   * results(list(term))
+%        * results(list(term))
 %
-%     The results that are held by this Page.
+%          The results that are held by this Page.
 %
-%   * single_page(boolean)
+%        * single_page(boolean)
 %
-%     A dirty hack to allow ‘pagination’ of one page, i.e., without
-%     ‘next’ links.
+%          A dirty hack to allow ‘pagination’ of one page, i.e.,
+%          without ‘next’ links.
 %
-%   * total_number_of_results(nonneg)
+%        * total_number_of_results(nonneg)
 %
-%     The total number of results, independent of pagination.  This is
-%     only present when etimation goal Estimate_1 is passed.
+%          The total number of results, independent of pagination.
+%          This is only present when etimation goal Estimate_1 is
+%          passed.
 
 pagination(Templ, Goal_0, Page) :-
   pagination(Templ, Goal_0, options{}, Page).
@@ -214,9 +215,9 @@ pagination_options(Options1, StartPageNumber, PageSize, Options3) :-
 %
 % Fails silently when there is no page with relation Relation.
 %
-% @arg Relation is either `first', `last', `next', or `prev'.
+% @param Relation is either `first', `last', `next', or `prev'.
 %
-% @arg PageNumber is a positive integer.
+% @param PageNumber is a positive integer.
 
 pagination_page(Page, first, 1) :-
   Page.number_of_results > 0.

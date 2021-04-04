@@ -83,12 +83,12 @@ gml_edge(Out, FromTerm, ToTerm, Options) :-
 %! gml_graph(+Out:ostream, :Goal_1) is det.
 %! gml_graph(+Out:ostream, :Goal_1, +Options:options) is det.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * directed(+boolean)
+%        * directed(+boolean)
 %
-%        Whether the graph is directed (`true`) or undirected
-%        (`false`, default).
+%          Whether the graph is directed (`true`) or undirected
+%          (`false`, default).
 
 gml_graph(Out, Goal_1) :-
   gml_graph(Out, Goal_1, options{}).

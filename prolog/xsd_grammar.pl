@@ -58,7 +58,7 @@ xsd_mod(X, Y, Z):-
 %
 % # Arguments
 %
-% @arg Date A complete date value.
+% @param Date A complete date value.
 %
 % # Algorithm
 %
@@ -96,7 +96,7 @@ dateCanonicalMap(date_time(Y,Mo,D,_,_,_,Off)) -->
 %
 % Arguments
 %
-% @arg Date A complete date value.
+% @param Date A complete date value.
 %
 % # Algorithm
 %
@@ -134,7 +134,7 @@ dateLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg Date A complete datetime value.
+% @param Date A complete datetime value.
 %
 % # Algorithm
 %
@@ -191,7 +191,7 @@ dateTimeCanonicalMap(date_time(Y,Mo,D,H,Mi,S,Off)) -->
 %
 % # Arguments
 %
-% @arg Date A complete dateTime value.
+% @param Date A complete dateTime value.
 %
 % # Algorithm
 %
@@ -250,9 +250,9 @@ dateTimeLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg du A duration value.
+% @param du A duration value.
 %
-% @arg dt A date/time value.
+% @param dt A date/time value.
 %
 % # Result
 %
@@ -312,8 +312,8 @@ dateTimePlusDuration(duration(Mo0,S0), date_time(Y1,Mo1,D1,H1,Mi1,S1,Off), DT) :
 %
 % # Arguments
 %
-% @arg Day An integer between 1 and 31 inclusive (may be limited
-%          further depending on associated year and month).
+% @param Day An integer between 1 and 31 inclusive (may be limited
+%            further depending on associated year and month).
 %
 % # Algorithm
 %
@@ -337,7 +337,7 @@ dayCanonicalFragmentMap(D) -->
 %
 % # Arguments
 %
-% @arg Day An integer.
+% @param Day An integer.
 %
 % # Algorithm
 %
@@ -439,7 +439,7 @@ dayTimeDurationCanonicalMap(duration(0,S)) -->
 %
 % # Arguments
 %
-% @arg Duration A dayTimeDuration value.
+% @param Duration A dayTimeDuration value.
 %
 % # Algorithm
 %
@@ -470,7 +470,7 @@ dayTimeDurationMap(duration(0,S)) -->
 %
 % # Arguments
 %
-% @arg Decimal A decimal value.
+% @param Decimal A decimal value.
 %
 % # Algorithm
 %
@@ -491,7 +491,7 @@ decimalCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A decimal value.
+% @param Decimal A decimal value.
 %
 % # Algorithm
 %
@@ -519,7 +519,7 @@ decimalLexicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A decimal number.
+% @param Decimal A decimal number.
 %
 % # Algorithm
 %
@@ -543,7 +543,7 @@ decimalPtCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A decimal number.
+% @param Decimal A decimal number.
 %
 % # Algorithm
 %
@@ -571,7 +571,7 @@ decimalPtMap(N) -->
 %
 % # Arguments
 %
-% @arg Integer Between 0 and 9 inclusive.
+% @param Integer Between 0 and 9 inclusive.
 %
 % # Algorithm:
 %
@@ -590,9 +590,9 @@ decimalPtMap(N) -->
 %
 % # Arguments
 %
-% @arg I   A nonnegative integer.
+% @param I A nonnegative integer.
 %
-% @arg Seq A infinite sequence of nonnegative integers
+% @param Seq A infinite sequence of nonnegative integers
 %
 % # Algorithm
 %
@@ -629,10 +629,10 @@ digitRemainderSeq(I1, [I1|T]):-
 %
 % # Arguments
 %
-% @arg I        A nonnegative integer.
+% @param I A nonnegative integer.
 %
-% @arg Sequence A sequence of integers where each term is between 0
-%               and 9 inclusive.
+% @param Sequence A sequence of integers where each term is between 0
+%        and 9 inclusive.
 %
 % # Algorithm:
 %
@@ -655,10 +655,10 @@ digitSeq(I1, [I|T]):-
 %
 % # Arguments
 %
-% @arg Digits A finite sequence of literals, each term matching
-%      digit//1.
+% @param Digits A finite sequence of literals, each term matching
+%        `digit//1`.
 %
-% @arg Integer A nonnegative integer.
+% @param Integer A nonnegative integer.
 %
 % # Algorithm
 %
@@ -681,7 +681,7 @@ digitSequenceValue(Ds, N) :-
 %
 % # Arguments
 %
-% @arg Integer A nonnegative integer less than ten.
+% @param Integer A nonnegative integer less than ten.
 %
 % # Algorithm
 %
@@ -703,7 +703,7 @@ digitValue(N) -->
 %
 % # Arguments
 %
-% @arg D A nonnegative integer.
+% @param D A nonnegative integer.
 %
 % # Algorithm
 %
@@ -727,7 +727,7 @@ duDayFragmentMap(D) -->
 %
 % # Arguments
 %
-% @arg Day A nonnegative integer.
+% @param Day A nonnegative integer.
 %
 % # Algorithm
 %
@@ -752,7 +752,7 @@ duDayCanonicalFragmentMap(D) -->
 %
 % # Arguments
 %
-% @arg Second A nonnegative decimal number.
+% @param Second A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -836,7 +836,7 @@ duDayTimeFragmentMap(S) -->
 %
 % # Arguments
 %
-% @arg Hour A nonnegative integer.
+% @param Hour A nonnegative integer.
 %
 % # Algorithm
 %
@@ -860,7 +860,7 @@ duHourCanonicalFragmentMap(H) -->
 %
 % # Arguments
 %
-% @arg H A nonnegative integer.
+% @param H A nonnegative integer.
 %
 % # Algorithm
 %
@@ -886,7 +886,7 @@ duHourFragmentMap(H) -->
 %
 % # Arguments
 %
-% @arg Minute A nonnegative integer.
+% @param Minute A nonnegative integer.
 %
 % # Algorithm
 %
@@ -910,7 +910,7 @@ duMinuteCanonicalFragmentMap(M) -->
 %
 % # Arguments
 %
-% @arg Mi A nonnegative integer.
+% @param Mi A nonnegative integer.
 %
 % # Algorithm
 %
@@ -933,7 +933,7 @@ duMinuteFragmentMap(Mi) -->
 %
 % # Arguments
 %
-% @arg Mo A nonnegative integer.
+% @param Mo A nonnegative integer.
 %
 % # Algorithm
 %
@@ -956,7 +956,7 @@ duMonthFragmentMap(Mo) -->
 %
 % # Arguments
 %
-% @arg Duration A complete duration value.
+% @param Duration A complete duration value.
 %
 % # Algorithm
 %
@@ -1006,7 +1006,7 @@ durationCanonicalMap(duration(Mo,S)) -->
 %
 % # Arguments
 %
-% @arg Duration A complete duration value.
+% @param Duration A complete duration value.
 %
 % # Algorithm
 %
@@ -1060,7 +1060,7 @@ durationMap(duration(Mo,S)) -->
 %
 % # Arguments
 %
-% @arg Second A nonnegative decimal number.
+% @param Second A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -1092,7 +1092,7 @@ duSecondCanonicalFragmentMap(S) -->
 %
 % # Arguments
 %
-% @arg Second A nonnegative decimal number.
+% @param Second A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -1122,11 +1122,11 @@ duSecondFragmentMap(S) -->
 %
 % # Arguments
 %
-% @arg Hour A nonnegative integer.
+% @param Hour A nonnegative integer.
 %
-% @arg Minute A nonnegative integer.
+% @param Minute A nonnegative integer.
 %
-% @arg Seconds A nonnegative decimal number.
+% @param Seconds A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -1155,7 +1155,7 @@ duTimeCanonicalFragmentMap(H, Mi, S) -->
 %
 % # Arguments
 %
-% @arg Seconds A nonnegative decimal number
+% @param Seconds A nonnegative decimal number
 %
 % # Algorithm
 %
@@ -1198,7 +1198,7 @@ duTimeFragmentMap(S) -->
 %
 % # Arguments
 %
-% @arg Mo A nonnegative integer.
+% @param Mo A nonnegative integer.
 %
 % # Algorithm
 %
@@ -1245,7 +1245,7 @@ duYearMonthCanonicalFragmentMap(YM) -->
 %
 % # Arguments
 %
-% @arg Y A nonnegative integer.
+% @param Y A nonnegative integer.
 %
 % # Algorithm
 %
@@ -1268,7 +1268,7 @@ duYearFragmentMap(Y) -->
 %
 % # Arguments
 %
-% @arg Month A nonnegative integer.
+% @param Month A nonnegative integer.
 %
 % # Algorithm
 %
@@ -1314,7 +1314,7 @@ endOfDayFrag(24, 0, 0) -->
 %
 % # Arguments
 %
-% @arg Integer An integer whose absolute value is less than 10000.
+% @param Integer An integer whose absolute value is less than 10000.
 %
 % # Algorithm
 %
@@ -1343,9 +1343,9 @@ fourDigitCanonicalFragmentMap(N) -->
 %
 % # Arguments:
 %
-% @arg Fraction A nonnegative rational number smaller than 1.
+% @param Fraction A nonnegative rational number smaller than 1.
 %
-% @arg Sequence A sequence of nonnegative rational numbers.
+% @param Sequence A sequence of nonnegative rational numbers.
 %
 % # Algorithm
 %
@@ -1372,10 +1372,10 @@ fourDigitCanonicalFragmentMap(N) -->
 %
 % # Arguments
 %
-% @arg Fraction A nonnegative rational number smaller than 1.
+% @param Fraction A nonnegative rational number smaller than 1.
 %
-% @arg Sequence A sequence of integers where each term is between 0
-%               and 9 inclusive.
+% @param Sequence A sequence of integers where each term is between 0
+%        and 9 inclusive.
 %
 % # Algorithm
 %
@@ -1400,7 +1400,7 @@ fractionDigitSeq(F1, [F0|T]):-
 %
 % # Arguments
 %
-% @arg Fraction A nonnegative rational number smaller than 1.
+% @param Fraction A nonnegative rational number smaller than 1.
 %
 % # Algorithm
 %
@@ -1432,9 +1432,9 @@ fractionDigitsCanonicalFragmentMap(Frac) -->
 %
 % # Arguments
 %
-% @arg Digits A finite sequence of literals, each term matching digit.
+% @param Digits A finite sequence of literals, each term matching digit.
 %
-% @arg Integer A nonnegative integer.
+% @param Integer A nonnegative integer.
 %
 % # Algorithm
 %
@@ -1457,7 +1457,7 @@ fractionDigitSequenceValue(Ds, F):-
 %
 % # Arguments
 %
-% @arg Fraction A nonnegative decimal number.
+% @param Fraction A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -1478,7 +1478,7 @@ fractionFragValue(Frac) -->
 %
 % # Arguments
 %
-% @arg Datetime A complete gDay value.
+% @param Datetime A complete gDay value.
 %
 % # Algorithm
 %
@@ -1503,7 +1503,7 @@ gDayCanonicalMap(date_time(_,_,D,_,_,_,Off)) -->
 %
 % # Arguments
 %
-% @arg DT A complete gDay value.
+% @param DT A complete gDay value.
 %
 % #Algorithm
 %
@@ -1534,7 +1534,7 @@ gDayLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg DT A complete gMonth value.
+% @param DT A complete gMonth value.
 %
 % # Algorithm
 %
@@ -1559,7 +1559,7 @@ gMonthCanonicalMap(date_time(_,Mo,_,_,_,_,Off)) -->
 %
 % # Arguments
 %
-% @arg DT A complete gMonthDay value.
+% @param DT A complete gMonthDay value.
 %
 % # Algorithm
 %
@@ -1595,7 +1595,7 @@ gMonthDayCanonicalMap(date_time(_,Mo,D,_,_,_,Off)) -->
 %
 % # Arguments
 %
-% @arg DT A complete gMonthDay value.
+% @param DT A complete gMonthDay value.
 %
 % # Algorithm
 %
@@ -1624,7 +1624,7 @@ gMonthDayLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg Date A complete gMonth value.
+% @param Date A complete gMonth value.
 %
 % # Algorithm
 %
@@ -1650,7 +1650,7 @@ gMonthLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg DT A complete gYear value.
+% @param DT A complete gYear value.
 %
 % # Algorithm
 %
@@ -1674,7 +1674,7 @@ gYearCanonicalMap(date_time(Y,_,_,_,_,_,Off)) -->
 %
 % # Arguments
 %
-% @arg DT A complete gYear value.
+% @param DT A complete gYear value.
 %
 % # Algorithm
 %
@@ -1699,7 +1699,7 @@ gYearLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg YM A complete gYearMonth value.
+% @param YM A complete gYearMonth value.
 %
 % # Algorithm
 %
@@ -1732,7 +1732,7 @@ gYearMonthCanonicalMap(date_time(Y,Mo,_,_,_,_,Off)) -->
 %
 % # Arguments
 %
-% @arg Date A complete gYearMonth value.
+% @param Date A complete gYearMonth value.
 %
 % # Algorithm
 %
@@ -1766,7 +1766,7 @@ gYearMonthLexicalMap(DT) -->
 %
 % # Arguments
 %
-% @arg Hour An integer between 0 and 23 inclusive.
+% @param Hour An integer between 0 and 23 inclusive.
 %
 % # Algorithm
 %
@@ -1786,7 +1786,7 @@ hourCanonicalFragmentMap(H) -->
 %
 % # Arguments
 %
-% @arg Hour An integer.
+% @param Hour An integer.
 %
 % # Algorithm
 %
@@ -1814,9 +1814,9 @@ hourFragValue(Hour) -->
 %
 % # Arguments
 %
-% @arg Sequence Aa sequence of nonnegative integers.
+% @param Sequence Aa sequence of nonnegative integers.
 %
-% @arg Index A nonnegative integer.
+% @param Index A nonnegative integer.
 %
 % # Algorithm
 %
@@ -1837,7 +1837,7 @@ lastSignificantDigit(Seq, J):-
 %
 % # Arguments
 %
-% @arg Minute An integer between 0 and 59 inclusive.
+% @param Minute An integer between 0 and 59 inclusive.
 %
 % # Algorithm
 %
@@ -1857,7 +1857,7 @@ minuteCanonicalFragmentMap(Mi) -->
 %
 % # Arguments
 %
-% @arg Minute An integer.
+% @param Minute An integer.
 %
 % # Algorithm
 %
@@ -1880,7 +1880,7 @@ minuteFragValue(Minute) -->
 %
 % # Arguments
 %
-% @arg Month An integer between 1 and 12 inclusive.
+% @param Month An integer between 1 and 12 inclusive.
 %
 % # Algorithm
 %
@@ -1900,7 +1900,7 @@ monthCanonicalFragmentMap(Mo) -->
 %
 % # Arguments
 %
-% @arg Month An integer.
+% @param Month An integer.
 %
 % # Algorithm
 %
@@ -1932,20 +1932,20 @@ monthFragValue(Month) -->
 %
 % # Arguments
 %
-% @arg Y  An optional integer.
+% @param Y An optional integer.
 %
-% @arg Mo An optional integer between 1 and 12 inclusive.
+% @param Mo An optional integer between 1 and 12 inclusive.
 %
-% @arg D  An optional integer between 1 and 31 inclusive.
+% @param D An optional integer between 1 and 31 inclusive.
 %
-% @arg H  An optional integer between 0 and 24 inclusive.
+% @param H An optional integer between 0 and 24 inclusive.
 %
-% @arg Mi An optional integer between 0 and 59 inclusive.
+% @param Mi An optional integer between 0 and 59 inclusive.
 %
-% @arg S  An optional decimal number greater than or equal to 0 and
-%         less than 60.
+% @param S An optional decimal number greater than or equal to 0 and
+%        less than 60.
 %
-% @arg Off An optional integer between -840 and 840 inclusive.
+% @param Off An optional integer between -840 and 840 inclusive.
 %
 % # Algorithm
 %
@@ -2021,7 +2021,7 @@ newDateTime(
 %
 % Arguments
 %
-% @arg Integer An integer.
+% @param Integer An integer.
 %
 % # Algorithm
 %
@@ -2046,7 +2046,7 @@ noDecimalMap(N) -->
 %
 % # Arguments
 %
-% @arg Integer An integer.
+% @param Integer An integer.
 %
 % # Algorithm
 %
@@ -2203,7 +2203,7 @@ normalizeSecond(Y1, Mo1, D1, H1, Mi1, S1, Y2, Mo2, D2, H2, Mi2, S2):-
 %
 % # Arguments
 %
-% @arg Decimal A decimal number.
+% @param Decimal A decimal number.
 %
 % # Algorithm
 %
@@ -2232,7 +2232,7 @@ scientificCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A decimal number.
+% @param Decimal A decimal number.
 %
 % # Algorithm
 %
@@ -2267,7 +2267,7 @@ scientificMap(N) -->
 %
 % # Arguments
 %
-% @arg Second A nonnegative decimal number less than 70.
+% @param Second A nonnegative decimal number less than 70.
 %
 % # Algorithm
 %
@@ -2301,7 +2301,7 @@ secondCanonicalFragmentMap(S) -->
 %
 % # Arguments
 %
-% @arg Second A decimal number.
+% @param Second A decimal number.
 %
 % # Algorithm
 %
@@ -2330,8 +2330,8 @@ secondFragValue(S) -->
 %
 % # Arguments
 %
-% @arg SpecialValue One of `positiveInfinity`, `negativeInfinity`,
-%                   and `notANumber`.
+% @param SpecialValue One of `positiveInfinity`, `negativeInfinity`,
+%        and `notANumber`.
 %
 % # Algorithm
 %
@@ -2356,8 +2356,8 @@ specialRepCanonicalMap(notANumber) --> "NaN".
 %
 % # Arguments
 %
-% @arg SpecialValue One of `positiveInfinity`, `negativeInfinity`,
-%                   or `notANumber`.
+% @param SpecialValue One of `positiveInfinity`, `negativeInfinity`,
+%        or `notANumber`.
 %
 % # Algorithm
 %
@@ -2379,7 +2379,7 @@ specialRepValue(notANumber) --> "NaN".
 %
 % # Arguments
 %
-% @arg Time A complete time value.
+% @param Time A complete time value.
 %
 % # Algorithm
 %
@@ -2417,7 +2417,7 @@ timeCanonicalMap(date_time(_,_,_,H,Mi,S,Off)) -->
 %
 % # Arguments
 %
-% @arg DT A complete time value.
+% @param DT A complete time value.
 %
 % # Algorithm
 %
@@ -2561,7 +2561,7 @@ timeOnTimeline(dt(Y1,Mo1,D1,H,Mi1,S,Off), ToTl5) :-
 %
 % # Arguments
 %
-% @arg Off An integer between -840 and 840 inclusive.
+% @param Off An integer between -840 and 840 inclusive.
 %
 % # Algorithm
 %
@@ -2595,7 +2595,7 @@ timezoneCanonicalFragmentMap(Off) -->
 %
 % # Arguments
 %
-% @arg Timezone An integer.
+% @param Timezone An integer.
 %
 % # Algorithm
 %
@@ -2634,7 +2634,7 @@ timezoneFragValue(Off) -->
 %
 % # Arguments
 %
-% @arg Decimal A nonnegative decimal number.
+% @param Decimal A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -2658,7 +2658,7 @@ unsignedDecimalPtCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A nonnegative decimal number.
+% @param Decimal A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -2696,7 +2696,7 @@ unsignedDecimalPtMap(N) -->
 %
 % # Arguments
 %
-% @arg Integer A nonnegative integer.
+% @param Integer A nonnegative integer.
 %
 % # Algorithm
 %
@@ -2718,7 +2718,7 @@ unsignedNoDecimalMap(N) -->
 %
 % # Arguments
 %
-% @arg Integer A nonnegative integer.
+% @param Integer A nonnegative integer.
 %
 % # Algorithm
 %
@@ -2750,7 +2750,7 @@ unsignedNoDecimalPtCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Decimal A nonnegative decimal number.
+% @param Decimal A nonnegative decimal number.
 %
 % # Algorithm
 %
@@ -2778,7 +2778,7 @@ unsignedScientificCanonicalMap(N) -->
 %
 % # Arguments
 %
-% @arg Integer A nonnegative integer less than 100
+% @param Integer A nonnegative integer less than 100
 %
 % # Algorithm
 %
@@ -2800,7 +2800,7 @@ unsTwoDigitCanonicalFragmentMap(N) -->
 %
 % # Arguments
 %
-% @arg Year An integer.
+% @param Year An integer.
 %
 % # Algorithm
 %
@@ -2826,7 +2826,7 @@ yearCanonicalFragmentMap(Y) -->
 %
 % # Arguments
 %
-% @arg Year An integer.
+% @param Year An integer.
 %
 % # Algorithm
 %
@@ -2846,7 +2846,7 @@ yearFragValue(YR) -->
 %
 % # Arguments
 %
-% @arg Duration A complete yearMonthDuration value.
+% @param Duration A complete yearMonthDuration value.
 %
 % # Algorithm
 %
@@ -2873,7 +2873,7 @@ yearMonthDurationCanonicalMap(duration(Mo,0)) -->
 %
 % # Arguments
 %
-% @arg Duration A complete yearMonthDuration value.
+% @param Duration A complete yearMonthDuration value.
 %
 % # Algorithm
 %

@@ -146,13 +146,13 @@ weight_(N) -->
 % Detects cycles in HTTP Link header referals, in which case the
 % cyclic_link_header/1 is thrown.
 %
-% @arg Goal_1 The following call is made: `call(Goal_1, In)'.
+% @param Goal_1 The following call is made: `call(Goal_1, In)'.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * next(-atom)
+%        * next(-atom)
 %
-%      * Other options are passed to http_open2/3.
+%        * Other options are passed to http_open2/3.
 
 http_call(Uri, Goal_1) :-
   http_call(Uri, Goal_1, options{}).
@@ -331,48 +331,48 @@ http_metadata_status(Metas, Status) :-
 %   * Emits detailed, cURL-like debug messages about sent requests and
 %     received replies.
 %
-% @arg Meta A list of dictionaries, each of which describing an
-%      HTTP(S) request/reply interaction as well metadata about the
-%      stream.
+% @param Meta A list of dictionaries, each of which describing an
+%        HTTP(S) request/reply interaction as well metadata about the
+%        stream.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * accept(+Accept:term)
+%        * accept(+Accept:term)
 %
-%        Accept is either a registered file name extension, a Media
-%        Type compound term, or a list of Media Type compounds.
+%          Accept is either a registered file name extension, a Media
+%          Type compound term, or a list of Media Type compounds.
 %
-%      * failure(+Status:or([oneof([warning]),between(400,599)]))
+%        * failure(+Status:or([oneof([warning]),between(400,599)]))
 %
-%        Status code that is mapped onto Prolog silent failure.
-%        Default is `400'.
+%          Status code that is mapped onto Prolog silent failure.
+%          Default is `400'.
 %
-%      * final_uri(-Uri:atom)
+%        * final_uri(-Uri:atom)
 %
-%      * metadata(-Metas:list(dict))
+%        * metadata(-Metas:list(dict))
 %
-%      * number_of_hops(+positive_integer)
+%        * number_of_hops(+positive_integer)
 %
-%        The maximum number of consecutive redirects that is followed.
-%        The default is 5.
+%          The maximum number of consecutive redirects that is
+%          followed.  The default is 5.
 %
-%      * number_of_retries(+positive_integer)
+%        * number_of_retries(+positive_integer)
 %
-%        The maximum number of times the same HTTP request is retried
-%        upon receiving an HTTP error code (i.e., HTTP status codes
-%        400 through 599).  The default is 1.
+%          The maximum number of times the same HTTP request is
+%          retried upon receiving an HTTP error code (i.e., HTTP
+%          status codes 400 through 599).  The default is 1.
 %
-%      * status(-between(100,599))
+%        * status(-between(100,599))
 %
-%        Returns the final status code.  When present, options
-%        failure/1 and success/1 are not processed.
+%          Returns the final status code.  When present, options
+%          failure/1 and success/1 are not processed.
 %
-%      * success(+Status:between(200,299))
+%        * success(+Status:between(200,299))
 %
-%        Status code that is mapped onto Prolog success.  Default is
-%        `200'.
+%          Status code that is mapped onto Prolog success.  Default is
+%          `200'.
 %
-%      * Other options are passed to http_open/3.
+%        * Other options are passed to http_open/3.
 
 http_open2(CurrentUri, In) :-
   http_open2(CurrentUri, In, options{}).

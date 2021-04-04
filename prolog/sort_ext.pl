@@ -70,43 +70,43 @@ predmerge(<, P, H1, H2, T1, T2, [H1|R]) :-
 %! sort_stream(+In:istream, -Out:ostream) is det.
 %! sort_stream(+In:istream, -Out:ostream, +Options:options) is det.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * buffer_size(+nonneg)
+%        * buffer_size(+nonneg)
 %
-%        Optionally, the size of the buffer in kilobytes.
+%          Optionally, the size of the buffer in kilobytes.
 %
-%      * duplicates(+boolean)
+%        * duplicates(+boolean)
 %
-%        Whether duplicates are allowed in the result.  Default is
-%        `true'.
+%          Whether duplicates are allowed in the result.  Default is
+%          `true'.
 %
-%      * numeric(+boolean)
+%        * numeric(+boolean)
 %
-%        Whether numberic sort is performed.  Default is `false'.
+%          Whether numberic sort is performed.  Default is `false'.
 %
-%      * output(+atom)
+%        * output(+atom)
 %
-%        The name of the output file, as processed by
-%        `absolute_file_name/[2,3]'.  Default is the input file.
+%          The name of the output file, as processed by
+%          `absolute_file_name/[2,3]'.  Default is the input file.
 %
-%      * temporary_directory(+atom)
+%        * temporary_directory(+atom)
 %
-%        The directory that is used for storing intermediary results
-%        of sorting.  Default is the value of setting
-%        `temporary_directory'.
+%          The directory that is used for storing intermediary results
+%          of sorting.  Default is the value of setting
+%          `temporary_directory'.
 %
-%      * threads(+positive_integer)
+%        * threads(+positive_integer)
 %
-%        The number of threads that is used.  Default is the number of
-%        available processors, but not larger than 8.  Larger numbers
-%        have diminishing returns.  Using $n$ threads increases the
-%        memory use by $\log n$.
+%          The number of threads that is used.  Default is the number
+%          of available processors, but not larger than 8.  Larger
+%          numbers have diminishing returns.  Using $n$ threads
+%          increases the memory use by $\log n$.
 %
-%      * utf8(+boolean)
+%        * utf8(+boolean)
 %
-%        Whether the environment is set to UTF-8 encoding.  Default is
-%        `false'.
+%          Whether the environment is set to UTF-8 encoding.  Default
+%          is `false'.
 
 sort_stream(In, Out) :-
   sort_stream(In, Out, []).

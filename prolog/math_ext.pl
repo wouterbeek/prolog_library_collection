@@ -212,14 +212,14 @@ integer_weights_test(120, 60, [2,0]).
 %
 % Returns the length of the given number ‘before the dot’.
 %
-% @arg An integer representing a decimal number.
+% @param An integer representing a decimal number.
 %
-% @arg Radix An integer representing the radix used.  Common values
-%      are `2.0` (binary), `8.0` (octal), `10.0` (decimal, used by
-%      number_length/2, and `16.0` (hexadecimal).
+% @param Radix An integer representing the radix used.  Common values
+%        are `2.0` (binary), `8.0` (octal), `10.0` (decimal, used by
+%        number_length/2, and `16.0` (hexadecimal).
 %
-% @arg Length An integer representing the number of digits in the
-%      given number.
+% @param Length An integer representing the number of digits in the
+%        given number.
 
 number_length(M, L):-
   number_length(M, 10.0, L).

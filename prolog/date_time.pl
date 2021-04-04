@@ -208,9 +208,9 @@ date_time_mask(Mask) :-
 
 %! date_time_mask(+Mask:atom, +RdfDateTime1:compound, -RdfDateTime2:compound) is det.
 %
-% @arg Mask is one of the values of date_time_mask/1.
+% @param Mask is one of the values of date_time_mask/1.
 %
-% TBD: Support Mask=none?
+% @todo Support Mask=none?
 
 date_time_mask(Mask, RdfDateTime1, RdfDateTime2) :-
   call_must_be(date_time_mask, Mask),

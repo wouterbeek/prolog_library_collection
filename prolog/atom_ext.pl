@@ -233,9 +233,9 @@ atom_same_ci(A, B) :-
 %
 % The default Strip characters are space, newline and horizontal tab.
 %
-% @arg Strip is a list of charaters that will be stripped from the
-%      Original atom.  The default includes: horizontal tab, newline,
-%      space, NO-BREAK SPACE (0xa0).
+% @param Strip is a list of charaters that will be stripped from the
+%        Original atom.  The default includes: horizontal tab,
+%        newline, space, NO-BREAK SPACE (0xa0).
 %
 % @see string_strip/[2,3] provides the same functionality for strings.
 

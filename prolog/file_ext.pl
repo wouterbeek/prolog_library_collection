@@ -740,11 +740,11 @@ write_to_file(File, Goal_1, Options) :-
 %!            :Goal_1,
 %!            +Options:options) is det.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * mode(+oneof([append,read,write])
+%        * mode(+oneof([append,read,write])
 %
-%        Overrules the default mode.
+%          Overrules the default mode.
 
 call_file_(File, DefaultMode, Goal_1, Options) :-
   dict_get(mode, Options, DefaultMode, Mode),
@@ -809,9 +809,9 @@ open_file_(File, Mode, Stream2, Options) :-
 %!          -Stream:stream,
 %!          +Options:options) is det.
 %
-% @arg Options The following options are supported:
+% @param Options The following options are supported:
 %
-%      * compression(+oneof([gzip,none]))
+%        * compression(+oneof([gzip,none]))
 
 % explicitly no compression
 open_gz_(File, Mode, Stream, Options) :-
