@@ -2,66 +2,68 @@
 :- module(
   file_ext,
   [
-    append_directories/2,         % +Directories, -Directory
-    cat/2,                        % +Out, +Files
-    change_file_name_extension/3, % ?FromFile, ?FromExtension, ?ToFile
-    change_file_name_extension/4, % ?FromFile, ?FromExtension, ?ToExtension, ?ToFile
-    compress_file/1,              % +FromFile
-    compress_file/2,              % +FromFile, ?ToFile
-    concatenate_files/2,          % +Files, +ConcatenatedFile
-    convert_file/2,               % +File, +Format
-    convert_file/3,               % +FromFile, +Format, ?ToFile
-    create_directory/1,           % +Directory
-    create_file_directory/1,      % +File
-    decompress_file/2,            % +FromFile, +ToFile
-    delete_files_by_extension/1,  % +Extension
-    delete_files_by_extension/2,  % +Directory, +Extension
-    delete_files_by_extensions/1, % +Extensions
-    delete_files_by_extensions/2, % +Directory, +Extensions
-    directory_file/2,             % +Directory, -File
-    directory_file_path2/3,       % ?Directory, ?File, ?Path
-    directory_parent/2,           % +ChildDirectory, -ParentDirectory
-    directory_path/2,             % ?Directory, ?Path
-    directory_path_recursive/2,   % +Directory, -Path
-    directory_subdirectories/2,   % ?Directory, ?Subdirectories
-    directory_subdirectory/2,     % +Directory, ?Subdirectory
-    directory_subdirectory/3,     % +Directory, ?Local, ?Subdirectory
-    file_call/2,                  % +File, Goal_1
-    file_extension/2,             % +File, -Extension
-    file_extensions/2,            % +File, -Extensions
-    file_extensions_media_type/2, % +Extensions, -MediaType
-    file_line/2,                  % +File, -Line
-    file_media_type/2,            % +File, -MediaType
-    file_mode/2,                  % +File, +Mode
-    file_name/2,                  % ?File, ?Name
-    file_name_extension2/3,       % ?File, ?Name, ?Extension
-    file_name_extensions/3,       % ?File, ?Name, ?Extensions
-    file_size/2,                  % +File, -Size
-    file_to_string/2,             % +File, -String
-    guess_file_encoding/2,        % +File, ?Encoding
-    home_directory/1,             % ?Directory
-    is_dummy_file/1,              % +File
-    is_empty_directory/1,         % +Directory
-    is_empty_file/1,              % +File
-    peek_file/3,                  % +File, +Size, -String
-    read_from_file/2,             % +File, :Goal_1
-    read_from_file/3,             % +File, :Goal_1, +Options
-    read_write_file/2,            % +FromFile, :Goal_2
-    read_write_file/3,            % +FromFile, :Goal_2, +Options
-    read_write_file/4,            % +FromFile, :Goal_2, +ReadOptions, +WriteOptions
-    read_write_files/3,           % +FromFile, +ToFile, :Goal_2
-    read_write_files/4,           % +FromFile, +ToFile, :Goal_2, +Options
-    read_write_files/5,           % +FromFile, +ToFile, :Goal_2, +ReadOptions, +WriteOptions
-    recode_file/1,                % +File
-    recode_file/2,                % +File, +FromEncoding
-    recode_files/2,               % +FromFile, +ToFile
-    recode_files/3,               % +FromFile, +FromEncoding, +ToFile
-    sort_file/1,                  % +File
-    sort_file/2,                  % +File, +Options
-    touch/1,                      % +File
-    working_directory/1,          % -Directory
-    write_to_file/2,              % +File, :Goal_1
-    write_to_file/3               % +File, :Goal_1, +Options
+    append_directories/2,          % +Directories, -Directory
+    cat/2,                         % +Out, +Files
+    change_file_name_extension/3,  % ?FromFile, ?FromExtension, ?ToFile
+    change_file_name_extension/4,  % ?FromFile, ?FromExtension, ?ToExtension, ?ToFile
+    change_file_name_extensions/3, % ?FromFile, ?FromExtensions, ?ToFile
+    change_file_name_extensions/4, % ?FromFile, ?FromExtensions, ?ToExtensions, ?ToFile
+    compress_file/1,               % +FromFile
+    compress_file/2,               % +FromFile, ?ToFile
+    concatenate_files/2,           % +Files, +ConcatenatedFile
+    convert_file/2,                % +File, +Format
+    convert_file/3,                % +FromFile, +Format, ?ToFile
+    create_directory/1,            % +Directory
+    create_file_directory/1,       % +File
+    decompress_file/2,             % +FromFile, +ToFile
+    delete_files_by_extension/1,   % +Extension
+    delete_files_by_extension/2,   % +Directory, +Extension
+    delete_files_by_extensions/1,  % +Extensions
+    delete_files_by_extensions/2,  % +Directory, +Extensions
+    directory_file/2,              % +Directory, -File
+    directory_file_path2/3,        % ?Directory, ?File, ?Path
+    directory_parent/2,            % +ChildDirectory, -ParentDirectory
+    directory_path/2,              % ?Directory, ?Path
+    directory_path_recursive/2,    % +Directory, -Path
+    directory_subdirectories/2,    % ?Directory, ?Subdirectories
+    directory_subdirectory/2,      % +Directory, ?Subdirectory
+    directory_subdirectory/3,      % +Directory, ?Local, ?Subdirectory
+    file_call/2,                   % +File, Goal_1
+    file_extension/2,              % +File, -Extension
+    file_extensions/2,             % +File, -Extensions
+    file_extensions_media_type/2,  % +Extensions, -MediaType
+    file_line/2,                   % +File, -Line
+    file_media_type/2,             % +File, -MediaType
+    file_mode/2,                   % +File, +Mode
+    file_name/2,                   % ?File, ?Name
+    file_name_extension2/3,        % ?File, ?Name, ?Extension
+    file_name_extensions/3,        % ?File, ?Name, ?Extensions
+    file_size/2,                   % +File, -Size
+    file_to_string/2,              % +File, -String
+    guess_file_encoding/2,         % +File, ?Encoding
+    home_directory/1,              % ?Directory
+    is_dummy_file/1,               % +File
+    is_empty_directory/1,          % +Directory
+    is_empty_file/1,               % +File
+    peek_file/3,                   % +File, +Size, -String
+    read_from_file/2,              % +File, :Goal_1
+    read_from_file/3,              % +File, :Goal_1, +Options
+    read_write_file/2,             % +FromFile, :Goal_2
+    read_write_file/3,             % +FromFile, :Goal_2, +Options
+    read_write_file/4,             % +FromFile, :Goal_2, +ReadOptions, +WriteOptions
+    read_write_files/3,            % +FromFile, +ToFile, :Goal_2
+    read_write_files/4,            % +FromFile, +ToFile, :Goal_2, +Options
+    read_write_files/5,            % +FromFile, +ToFile, :Goal_2, +ReadOptions, +WriteOptions
+    recode_file/1,                 % +File
+    recode_file/2,                 % +File, +FromEncoding
+    recode_files/2,                % +FromFile, +ToFile
+    recode_files/3,                % +FromFile, +FromEncoding, +ToFile
+    sort_file/1,                   % +File
+    sort_file/2,                   % +File, +Options
+    touch/1,                       % +File
+    working_directory/1,           % -Directory
+    write_to_file/2,               % +File, :Goal_1
+    write_to_file/3                % +File, :Goal_1, +Options
   ]
 ).
 :- reexport(library(filesex)).
@@ -165,15 +167,36 @@ cat_file(Out, File) :-
 
 
 %! change_file_name_extension(?FromFile:atom, ?ToExtension:atom, ?ToFile:atom) is det.
-%! change_file_name_extension(?FromFile:atom, ?FromExtension:atom, ?ToExtension:atom, ?ToFile:atom) is det.
 
 change_file_name_extension(FromFile, ToExt, ToFile) :-
   change_file_name_extension(FromFile, _, ToExt, ToFile).
 
 
+%! change_file_name_extension(?FromFile:atom,
+%!                            ?FromExtension:atom,
+%!                            ?ToExtension:atom,
+%!                            ?ToFile:atom) is det.
+
 change_file_name_extension(FromFile, FromExt, ToExt, ToFile) :-
   file_name_extension(Base, FromExt, FromFile),
   file_name_extension(Base, ToExt, ToFile).
+
+
+
+%! change_file_name_extensions(?FromFile:atom, ?ToExtensions:list(atom), ?ToFile:atom) is det.
+
+change_file_name_extensions(FromFile, ToExt, ToFile) :-
+  change_file_name_extensions(FromFile, _, ToExt, ToFile).
+
+
+%! change_file_name_extensions(?FromFile:atom,
+%!                             ?FromExtensions:list(atom),
+%!                             ?ToExtensions:list(atom),
+%!                             ?ToFile:atom) is det.
+
+change_file_name_extensions(FromFile, FromExt, ToExt, ToFile) :-
+  file_name_extensions(Base, FromExt, FromFile),
+  file_name_extensions(Base, ToExt, ToFile).
 
 
 
