@@ -144,9 +144,13 @@ append_directories_(Dir1, [H|T], Dir3) :-
 
 append_directories(Dir1, Dir2, Dir3) :-
   directory_subdirectories(Dir1, Subdirs1),
-  directory_subdirectories(Dir2, Subdirs2),
-  append(Subdirs1, Subdirs2, Subdirs3),
+  directory_subdirectories(Dir2, Subdirs2a),
+  remove_root_(Subdirs2a, Subdirs2b),
+  append(Subdirs1, Subdirs2b, Subdirs3),
   directory_subdirectories(Dir3, Subdirs3).
+
+remove_root_([''|T], T) :- !.
+remove_root_(L, L).
 
 
 
