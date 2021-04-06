@@ -2,6 +2,7 @@
   uri_ext,
   [
     append_segments/3,     % +Segments1, +Segments2, ?Segments3
+    uri_comp_get/3,        % +Kindm +Uri, ?Compound
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
     uri_data_file/2,       % +Uri, -File
@@ -56,6 +57,34 @@ test('append_segments(+,+,+)', [forall(test_append_segments(L1,L2,L3))]) :-
 test_append_segments(['',a,b,c,''], [''], [a,b,c]).
 
 :- end_tests(append_segments).
+
+
+
+%! uri_comp_get(+Kind:oneof([authority,fragment,host,password,path,port,query,scheme,user]),
+%!              +Uri:uri,
+%!              +Component:term) is semidet.
+%! uri_comp_get(+Kind:oneof([authority,fragment,host,password,path,port,query,scheme,user]),
+%!              +Uri:uri,
+%!              -Component:term) is det.
+
+uri_comp_get(authority, Uri, Authority) :- !,
+  uri_comps(Uri, uri(_,Authority,_,_,_)).
+uri_comp_get(fragment, Uri, Fragment) :- !,
+  uri_comps(Uri, uri(_,_,_,_,Fragment)).
+uri_comp_get(host, Uri, Host) :- !,
+  uri_comps(Uri, uri(_,auth(_,_,Host,_),_,_,_)).
+uri_comp_get(password, Uri, Password) :- !,
+  uri_comps(Uri, uri(_,auth(_,Password,_,_),_,_,_)).
+uri_comp_get(path, Uri, Segments) :- !,
+  uri_comps(Uri, uri(_,_,Segments,_,_)).
+uri_comp_get(port, Uri, Port) :- !,
+  uri_comps(Uri, uri(_,auth(_,_,_,Port),_,_,_)).
+uri_comp_get(query, Uri, Query) :- !,
+  uri_comps(Uri, uri(_,_,_,Query,_)).
+uri_comp_get(scheme, Uri, Scheme) :- !,
+  uri_comps(Uri, uri(Scheme,_,_,_,_)).
+uri_comp_get(user, Uri, User) :- !,
+  uri_comps(Uri, uri(_,auth(User,_,_,_),_,_,_)).
 
 
 
@@ -154,7 +183,7 @@ uri_data_file(Uri, File) :-
   uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,_,_)),
   data_directory(Dir1),
   exclude(==(''), Segments1, Segments2),
-  % TODO: SWI does not yet detect that this is deterministic.
+  % @tbd SWI does not yet detect that this is deterministic.
   once(append(Subdirs, [Local], [Scheme,Host|Segments2])),
   directory_subdirectories(Dir2, Subdirs),
   directory_file_path2(Dir1, Dir2, Dir3),
