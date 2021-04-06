@@ -2,25 +2,27 @@
 :- module(
   list_ext,
   [
-    common_subsequence/2, % +Subsequences, -Subsequence
-    empty_list/1,         % ?L
-    first/2,              % ?L, ?Elem
-    inflist/2,            % +Elem, -L
-    list_intersperse/3,   % +L1, +Separator, -L2
-    list_truncate/3,      % +Whole, +MaxLength, -Part
-    max_list/3,           % +L, -Max, +Zero
-    member/3,             % ?X, ?Y, +L
-    min_list/3,           % +L, -Min, +Zero
-    postfix/2,            % ?Part, ?Whole
-    postfix/3,            % ?Part, ?Length, ?Whole
-   %prefix/2,             % ?Part, ?Whole
-    prefix/3,             % ?Part, ?Length, ?Whole
-    repeating_list/1,     % ?L
-    repeating_list/2,     % ?Elem, ?L
-    repeating_list/3,     % ?Elem, ?N, ?L
-    singleton_list/2,     % ?X, ?L
-    substring/2,          % ?Substring, +String
-    subsequence/2         % ?Subsequence, ?Sequence
+    common_subsequence/2,      % +Subsequences, -Subsequence
+    empty_list/1,              % ?L
+    first/2,                   % ?L, ?Elem
+    inflist/2,                 % +Elem, -L
+    list_intersperse/3,        % +L1, +Separator, -L2
+    list_truncate/3,           % +Whole, +MaxLength, -Part
+    max_list/3,                % +L, -Max, +Zero
+    member/3,                  % ?X, ?Y, +L
+    min_list/3,                % +L, -Min, +Zero
+    postfix/2,                 % ?Part, ?Whole
+    postfix/3,                 % ?Part, ?Length, ?Whole
+   %prefix/2,                  % ?Part, ?Whole
+    prefix/3,                  % ?Part, ?Length, ?Whole
+    remove_initial_members/3,  % +List1, +Members, -List2
+    remove_trailing_members/3, % +List1, +Members, -List2
+    repeating_list/1,          % ?L
+    repeating_list/2,          % ?Elem, ?L
+    repeating_list/3,          % ?Elem, ?N, ?L
+    singleton_list/2,          % ?X, ?L
+    substring/2,               % ?Substring, +String
+    subsequence/2              % ?Subsequence, ?Sequence
   ]
 ).
 :- reexport(library(lists)).
@@ -162,6 +164,29 @@ postfix(Part, Length, Whole) :-
 prefix(Part, Length, Whole) :-
   length(Part, Length),
   append(Part, _, Whole).
+
+
+
+%! remove_initial_members(+List1:list(term),
+%!                        +Members:list(term),
+%!                        -List2:list(term)) is det.
+
+remove_initial_members([H|T1], Xs, T2) :-
+  memberchk(H, Xs), !,
+  remove_initial_members(T1, Xs, T2).
+remove_initial_members(L, _, L).
+
+
+
+%! remove_trailing_members_(+List1:list(term),
+%!                          +Members:list(term),
+%!                          -List2:list(term)) is det.
+
+remove_trailing_members(L1, Xs, L2) :-
+  reverse(L1, L1Rev),
+  remove_initial_members(L1Rev, Xs, L2Rev),
+  % @bug: reverse(+,?) and reverse(?,+) should be deterministic
+  once(reverse(L2, L2Rev)).
 
 
 
