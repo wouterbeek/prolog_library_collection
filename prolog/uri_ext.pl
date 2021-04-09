@@ -5,7 +5,8 @@
     uri_comp_get/3,        % +Kindm +Uri, ?Compound
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
-    uri_data_file/2,       % +Uri, -File
+    uri_data_directory/2,  % +Uri, -Directory
+    uri_data_file/3,       % +Uri, +Local, -File
     uri_file_extensions/2, % +Uri, -Extensions
     uri_local_name/2,      % +Uri, -Local
     uri_media_type/2,      % +Uri, -MediaType
@@ -175,21 +176,31 @@ auth_comps_(Scheme, Authority, auth(User,Password,Host,Port0)) :-
 
 
 
-%! uri_data_file(+Uri:atom, -File:atom) is det.
-%! uri_data_file(-Uri:atom, +File:atom) is det.
+%! uri_data_directory(+Uri:atom, -Directory:atom) is det.
 
-uri_data_file(Uri, File) :-
-  var(File), !,
-  uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,_,_)),
+uri_data_directory(Uri, Dir3) :-
   data_directory(Dir1),
-  exclude(==(''), Segments1, Segments2),
-  % @tbd SWI does not yet detect that this is deterministic.
-  once(append(Subdirs, [Local], [Scheme,Host|Segments2])),
-  directory_subdirectories(Dir2, Subdirs),
-  directory_file_path2(Dir1, Dir2, Dir3),
-  directory_file_path2(Dir3, Local, File).
-uri_data_file(Uri, File) :-
-  uri_file_name(Uri, File).
+  uri_comps(Uri, uri(Scheme,auth(_,_,Host,_),Segments1,Query,_)),
+  add_query_segments_(Segments1, Query, Segments2),
+  exclude(==(''), Segments2, Segments3),
+  directory_subdirectories(Dir2, [Scheme,Host|Segments3]),
+  directory_file_path2(Dir1, Dir2, Dir3).
+
+add_query_segments_(Segments, [], Segments) :- !.
+add_query_segments_(Segments1, Query, Segments3) :-
+  maplist(query_segment_, Query, Segments2),
+  append(Segments1, [?|Segments2], Segments3).
+
+query_segment_(Key=Value, Segment) :-
+  format(atom(Segment), "~a=~a", [Key,Value]).
+
+
+
+%! uri_data_file(+Uri:atom, +Local:atom, -File:atom) is det.
+
+uri_data_file(Uri, Local, File) :-
+  uri_data_directory(Uri, Dir),
+  directory_file_path2(Dir, Local, File).
 
 
 

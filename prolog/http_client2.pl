@@ -768,4 +768,4 @@ uri_to_file_(_, File) :-
   ground(File), !,
   must_be(atom, File).
 uri_to_file_(Uri, File) :-
-  uri_data_file(Uri, File).
+  uri_data_file(Uri, data, File).
