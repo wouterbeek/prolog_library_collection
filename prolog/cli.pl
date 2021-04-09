@@ -42,6 +42,10 @@ distinguised:
 
 */
 
+:- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+
 :- use_module(library(cli_arguments)).
 :- use_module(library(cli_help)).
 :- use_module(library(cli_version)).
@@ -57,32 +61,33 @@ distinguised:
 %! cli_main(+Name:atom, +Usages:list(list(atom)), :Goal_2) is det.
 
 cli_main(Name, Usages, Goal_2) :-
-  cli_main(Name, Usages, optionSpecs{}, Goal_2).
+  cli_main(Name, Usages, [], Goal_2).
 
 
-%! cli_main(+Name:atom, +Usages:list(list(atom)), +Specs:dict, :Goal_2) is det.
+%! cli_main(+Name:atom, +Usages:list(list(atom)), +Specs:list(dict), :Goal_2) is det.
 
 cli_main(Name, Usages, Specs1, Goal_2) :-
-  Specs0 = optionSpecs{
-    help: optionSpec{
+  Specs0 = [
+    optionSpec{
       default: false,
       help: "Display help information for this tool and exit.",
       longflags: [help],
       shortflags: [h],
       type: boolean
     },
-    version: optionSpec{
+    optionSpec{
       default: false,
       help: "Display the version number of this tool and exit.",
       longflags: [version],
       shortflags: [v],
       type: boolean
     }
-  },
-  merge_dicts(Specs0, Specs1, Specs2),
+  ],
+  append(Specs0, Specs1, Specs2),
+  maplist(compile_flags_(Specs2), [longflags,shortflags], [LongSpecs,ShortSpecs]),
   catch(
     (
-      cli_arguments(Usages, Specs2, Options, Args),
+      cli_arguments(Usages, LongSpecs, ShortSpecs, Options, Args),
       cli_main_(Name, Usages, Specs2, Options, Args, Goal_2)
     ),
     Error,
@@ -94,18 +99,29 @@ cli_main(Name, Usages, Specs1, Goal_2) :-
 
 % Explicitly requested help message.
 cli_main_(Name, Usages, Specs, Options, _, _) :-
-  options{help: true} :< Options, !,
+  member(Key, [h,help]),
+  dict_get(Key, Options, true), !,
   cli_help(Name, Usages, Specs).
 % Explicitly requested version message.
 cli_main_(_, _, _, Options, _, _) :-
-  options{version: true} :< Options, !,
+  member(Key, [v,version]),
+  dict_get(Key, Options, true), !,
   cli_version.
-% Zero positional arguments: show help message.
-cli_main_(Name, Usages, Specs, _, [], _) :- !,
-  cli_help(Name, Usages, Specs).
 % A recognized usage.
 cli_main_(_, _, _, Options, Args, Goal_2) :-
   call(Goal_2, Args, Options).
 
 cli_error(Error) :-
   print_message(error, Error).
+
+compile_flags_(Specs1, Key0, Specs2) :-
+  aggregate_all(
+    set(Key-Spec),
+    (
+      member(Spec, Specs1),
+      dict_get(Key0, Spec, Keys),
+      member(Key, Keys)
+    ),
+    Pairs2
+  ),
+  dict_pairs(Specs2, Pairs2).

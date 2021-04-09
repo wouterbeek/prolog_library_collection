@@ -19,7 +19,7 @@
 
 
 
-%! cli_help(+Name:atom, +Usages:list(atom), +Specs:dict) is det.
+%! cli_help(+Name:atom, +Usages:list(atom), +Specs:list(dict)) is det.
 
 cli_help(Name, Usages, Specs) :-
   usages_message(Name, Usages, String1),
@@ -27,14 +27,12 @@ cli_help(Name, Usages, Specs) :-
   format(user_output, "Usage:\n~s\nOptions:\n~s", [String1,String2]).
 
 
-%! flags_message(+Specs:dict, -Message:string) is det.
+%! flags_message(+Specs:list(dict), -Message:string) is det.
 
-flags_message(Dict, Message) :-
-  dict_pairs(Dict, Pairs),
-  pairs_values(Pairs, Dicts),
-  maplist(pp_short_flags, Dicts, ShortStrings),
+flags_message(Specs, Message) :-
+  maplist(pp_short_flags, Specs, ShortStrings),
   max_string_length(ShortStrings, ShortWidth),
-  maplist(pp_long_flags, Dicts, LongStringss),
+  maplist(pp_long_flags, Specs, LongStringss),
   flatten(LongStringss, LongStrings0),
   max_string_length(LongStrings0, LongWidth),
   maplist(
@@ -48,7 +46,7 @@ flags_message(Dict, Message) :-
       ),
     ShortStrings,
     LongStringss,
-    Dicts,
+    Specs,
     Lines
   ),
   string_list_concat(Lines, Message).
@@ -74,18 +72,19 @@ pp_short_flags(Spec, String) :-
 %!               +OptionSpec:dict,
 %!               -Line:string) is det.
 
-format_option(ShortWidth-ShortString, LongWidth1-LongStrings1, Dict, Line) :-
+format_option(ShortWidth1-ShortString, LongWidth1-LongStrings1, Dict, Line) :-
   optionSpec{help: Message} :< Dict,
   words_lines(LongStrings1, LongWidth1, ", ", LongStrings2),
   % Make room for a comma and a space.
   LongWidth2 #= LongWidth1 + 2,
+  ShortWidth2 #= ShortWidth1 + 2,
   string_list_concat(LongStrings2, ",\n", LongsString),
-  Indent #= ShortWidth + LongWidth2 + 4,
+  Indent #= ShortWidth2 + LongWidth2 + 4,
   format_lines(Message, Indent, Lines),
   format(
     string(Line),
-    "~w~t~*+~w~t~*+~w~n",
-    [LongsString,LongWidth2,ShortString,ShortWidth,Lines]
+    "~s~t~*+~s~t~*+~s\n",
+    [LongsString,LongWidth2,ShortString,ShortWidth2,Lines]
   ).
 
 

@@ -39,8 +39,6 @@
 
 
 
-
-
 %! dict_change_keys(+Dict1:dict, +KeyChanges:list(pair(atom)), -Dict2:dict) is det.
 
 dict_change_keys(Dict1, Changes, Dict2) :-

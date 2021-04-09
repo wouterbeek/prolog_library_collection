@@ -1,7 +1,7 @@
 :- module(
   cli_arguments,
   [
-    cli_arguments/4 % +Usages, +Specs, -Options, -PositionalArguments
+    cli_arguments/5 % +Usages, +LongSpecs, +ShortSpecs, -Options, -PositionalArguments
   ]
 ).
 
@@ -11,6 +11,7 @@
 
 :- use_module(library(apply)).
 :- use_module(library(error)).
+:- use_module(library(lists)).
 :- use_module(library(pairs)).
 
 :- use_module(library(dcg)).
@@ -20,7 +21,8 @@
 
 
 %! cli_arguments(+Usages:list(list(atom)),
-%!               +Specs:dict,
+%!               +LongSpecs:dict,
+%!               +ShortSpecs:dict,
 %!               -Options:options,
 %!               -PositionalArguments:list(atom)) is det
 %
@@ -42,60 +44,61 @@
 % @error Dashed args not in Specs are not permitted and will raise an
 %        error.
 
-cli_arguments(Usages, Specs, Options, PosArgs) :-
+cli_arguments(Usages, LongSpecs, ShortSpecs, Options, PosArgs) :-
   current_prolog_flag(argv, Atoms),
-  parse_arguments(Specs, Atoms, Pairs1, PosArgs),
+  parse_arguments(LongSpecs, ShortSpecs, Atoms, Pairs1, PosArgs),
   usage_arguments(Usages, PosArgs),
-  set_default_options(Specs, Pairs1, Pairs2),
+  set_default_options(LongSpecs, ShortSpecs, Pairs1, Pairs2),
   dict_pairs(Options, Pairs2).
 
-%! parse_arguments(+Specs:dict,
+%! parse_arguments(+LongSpecs:dict,
+%!                 +ShortSpecs:dict,
 %!                 +Arguments:list(atom),
 %!                 -Pairs:list(pair(atom,term)),
 %!                 -PositionalArguments:list(atom)) is det.
 
 % done
-parse_arguments(_, [], [], []) :- !.
+parse_arguments(_, _, [], [], []) :- !.
 % flag argument
-parse_arguments(Specs, [H1|T1], [H2|T2], L3) :-
-  atom_phrase(parse_flag(Specs, H2), H1), !,
-  parse_arguments(Specs, T1, T2, L3).
+parse_arguments(LongSpecs, ShortSpecs, [H1|T1], [H2|T2], L3) :-
+  atom_phrase(parse_flag(LongSpecs, ShortSpecs, H2), H1), !,
+  parse_arguments(LongSpecs, ShortSpecs, T1, T2, L3).
 % positional argument
-parse_arguments(Specs, [Arg|T1], L2, [Arg|T3]) :-
-  parse_arguments(Specs, T1, L2, T3).
+parse_arguments(LongSpecs, ShortSpecs, [Arg|T1], L2, [Arg|T3]) :-
+  parse_arguments(LongSpecs, ShortSpecs, T1, L2, T3).
 
-%! parse_flag(+Specs:dict, -Pair:pair(atom,term))// .
+%! parse_flag(+LongSpecs:dict, +ShortSpecs:dict, -Pair:pair(atom,term))// .
 
 % Long negative flag: Boolean false.
-parse_flag(Specs, Key-false) -->
+parse_flag(LongSpecs, _, Key-false) -->
   "--no-", !,
-  {must_be_key_type_(Specs, Key, boolean)},
+  {must_be_key_type_(LongSpecs, Key, boolean)},
   remainder_as_atom(Key).
 % Long explicit flag: the specified type.
-parse_flag(Specs, Key-Value) -->
+parse_flag(LongSpecs, _, Key-Value) -->
   "--",
   '...'(Codes),
   "=", !,
   {atom_codes(Key, Codes)},
-  {key_type_(Specs, Key, Type)},
+  {key_type_(LongSpecs, Key, Type)},
   parse_value(Type, Value).
 % Long implicit flag: Boolean true.
-parse_flag(Specs, Key-true) -->
+parse_flag(LongSpecs, _, Key-true) -->
   "--", !,
   remainder_as_atom(Key),
-  {must_be_key_type_(Specs, Key, boolean)}.
+  {must_be_key_type_(LongSpecs, Key, boolean)}.
 % Short explicit flag: the specified type.
-parse_flag(Specs, Key-Value) -->
+parse_flag(_, ShortSpecs, Key-Value) -->
   "-",
   dcg_char(Key),
   "=", !,
-  {key_type_(Specs, Key, Type)},
+  {key_type_(ShortSpecs, Key, Type)},
   parse_value(Type, Value).
 % Short implicit flag: Boolean true.
-parse_flag(Specs, Key-true) -->
+parse_flag(_, ShortSpecs, Key-true) -->
   "-", !,
   dcg_char(Key),
-  {must_be_key_type_(Specs, Key, boolean)}.
+  {must_be_key_type_(ShortSpecs, Key, boolean)}.
 
 key_type_(Specs, Key, Type) :-
   dict_get(Key, Specs, Spec), !,
@@ -122,12 +125,14 @@ parse_value(oneof(Values), Value) --> !,
 parse_value(string, Value) -->
   remainder_as_string(Value).
 
-%! set_default_options(+Specs:dict,
+%! set_default_options(+LongSpecs:list(dict),
+%!                     +ShortSpecs:list(dict),
 %!                     +Pairs1:pair(atom,term),
 %!                     -Pairs2:pair(atom,term)) is det.
 
-set_default_options(Specs, L2, L3) :-
-  dict_pairs(Specs, L1),
+set_default_options(LongSpecs, ShortSpecs, L2, L3) :-
+  maplist(dict_pairs, [LongSpecs,ShortSpecs], L0),
+  append(L0, L1),
   set_default_options_(L1, L2, L3).
 
 % done
