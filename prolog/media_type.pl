@@ -331,7 +331,7 @@ extension_(gpx_1, gpx).
 label_(gpx_1, "GPS Exchange Format (GPX)").
 media_type_(gpx_1, media(application/'gpx+xml',[])).
 
-extension(gz_1, gz).
+extension_(gz_1, gz).
 label_(gz_1, "GNU Zip").
 media_type_(gz_1, media(application/gzip,[])).
 
@@ -554,7 +554,7 @@ label_(ppt_1, "Microsoft PowerPoint").
 media_type_(ppt_1, media(application/'vnd.ms-powerpoint',[])).
 program_(ppt_1, program(libreoffice,['--impress'])).
 
-extension_1(pptm_1, pptm).
+extension_(pptm_1, pptm).
 label_(pptm_1, "Microsoft PowerPoint Presentation").
 media_type_(pptm_1, media(application/'vnd.ms-powerpoint.presentation.macroenabled.12',[])).
 program_(pptm_1, program(libreoffice,['--impress'])).
@@ -626,7 +626,7 @@ family_(srx_1, sparql(ask)).
 family_(srx_1, sparql(select)).
 label_(srx_1, "SPARQL Query Results XML Format").
 media_type_(srx_1, media(application/'sparql-results+xml',[])).
-program_1(srx_1, text_editor).
+program_(srx_1, text_editor).
 
 extension_(svg_1, svg).
 label_(svg_1, "Scalable Vector Graphics (SVG)").
@@ -656,6 +656,7 @@ program_(torrent_1, 'transmission-gtk').
 
 encoding_(trig_1, utf8).
 extension_(trig_1, trig).
+family_(trig_1, rdf).
 label_(trig_1, "TriG 1.1").
 media_type_(trig_1, media(application/trig,[])).
 program_(trig_1, text_editor).
