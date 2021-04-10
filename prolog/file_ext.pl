@@ -32,6 +32,7 @@
     file_extension/2,              % +File, -Extension
     file_extensions/2,             % +File, -Extensions
     file_extensions_media_type/2,  % +Extensions, -MediaType
+    file_is_fresh/2,               % +File, +LastModified
     file_line/2,                   % +File, -Line
     file_media_type/2,             % +File, -MediaType
     file_mode/2,                   % +File, +Mode
@@ -446,6 +447,16 @@ file_extensions(File, Exts) :-
 file_extensions_media_type(Exts, MediaType) :-
   member(Ext, Exts),
   media_type_extension(MediaType, Ext), !.
+
+
+
+%! file_is_fresh(+File:atom, +LastModified:nonneg) is det.
+
+file_is_fresh(File, LMod) :-
+  exists_file(File),
+  \+ is_empty_file(File),
+  time_file(File, Sync),
+  Sync > LMod.
 
 
 

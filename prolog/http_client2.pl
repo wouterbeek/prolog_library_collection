@@ -9,10 +9,11 @@
     http_download/3,               % +Uri, ?File, +Options
     http_head2/2,                  % +Uri, +Options
     http_header_name_label/2,      % +Name, -Label
+    http_last_modified/2,          % +Uri, -Time
     http_metadata_content_type/2,  % +Metas, -MediaType
     http_metadata_file_name/2,     % +Metas, -File
     http_metadata_final_uri/2,     % +Metas, -Uri
-    http_metadata_last_modified/2, % +Uri, -Time
+    http_metadata_last_modified/2, % +Metas, -Time
     http_metadata_link/3,          % +Metas, +Relation, -Uri
     http_metadata_status/2,        % +Metas, -Status
     http_open2/2,                  % +CurrentUri, -In
@@ -50,14 +51,15 @@ The following debug flags are used:
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/json)).
-:- use_module(library(lists)).
 :- use_module(library(yall)).
 :- use_module(library(zlib)).
 
 :- use_module(library(atom_ext)).
+:- use_module(library(call_ext)).
 :- use_module(library(dcg)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
+:- use_module(library(list_ext)).
 :- use_module(library(media_type)).
 :- use_module(library(stream_ext)).
 :- use_module(library(string_ext)).
@@ -95,8 +97,6 @@ http_header:status_comment(523) -->
     ssl_verify/5.
 
 ssl_verify(_SSL, _ProblemCertificate, _AllCertificates, _FirstCertificate, _Error).
-
-
 
 
 
@@ -211,10 +211,7 @@ http_download(Uri, File, Options) :-
 
 http_head2(Uri, Options1) :-
   merge_dicts(options{method: head}, Options1, Options2),
-  call_cleanup(
-    http_open2(Uri, In, Options2),
-    close(In)
-  ).
+  http_call(Uri, true, Options2).
 
 
 
@@ -224,6 +221,14 @@ http_header_name_label(Name, Label) :-
   atomic_list_concat(Atoms, -, Name),
   maplist(atom_capitalize, Atoms, CAtoms),
   atomics_to_string(CAtoms, " ", Label).
+
+
+
+%! http_last_modified(+Uri:or([atom,compound]), -Time:float) is det.
+
+http_last_modified(Uri, Time) :-
+  http_head2(Uri, options{metadata: Metas}),
+  http_metadata_last_modified(Metas, Time).
 
 
 
@@ -241,7 +246,7 @@ http_header_name_label(Name, Label) :-
 
 http_metadata_content_type(Metas, MediaType) :-
   Metas = [Meta|_],
-  dict_get([headers,'content-type'], Meta, [ContentType|T]),
+  dict_get('content-type', Meta.headers, [ContentType|T]),
   assertion(T == []),
   atom_phrase(media_type(MediaType), ContentType).
 
@@ -263,26 +268,17 @@ http_metadata_file_name(Metas, File) :-
 %! http_metadata_final_uri(+Metas:list(dict), -Uri:atom) is det.
 
 http_metadata_final_uri(Metas, Uri) :-
-  Metas = [Meta|_],
-  _{uri: Uri} :< Meta.
+  first(Metas, Meta),
+  http{uri: Uri} :< Meta.
 
 
 
-%! http_metadata_last_modified(+Uri:or([atom,compound]), -Time:float) is det.
+%! http_metadata_last_modified(+Metas:list(dict), -Time:float) is det.
 
-http_metadata_last_modified(Uri0, Time) :-
-  ensure_uri_(Uri0, Uri),
-  http_open_cp:http_open(
-    Uri,
-    In,
-    [header(last_modified,LastModified),method(head),status_code(Status)]
-  ),
-  Status =:= 200,
-  call_cleanup(
-    at_end_of_stream(In),
-    close(In)
-  ),
-  parse_time(LastModified, Time).
+http_metadata_last_modified(Metas, Time) :-
+  first(Metas, Meta),
+  dict_get('last-modified', Meta.headers, [LMod]),
+  parse_time(LMod, Time).
 
 
 
@@ -389,8 +385,8 @@ http_open2(CurrentUri0, In, Options1) :-
   reverse(Metas0, Metas),
   % Instantiate the next/1 option.
   ignore(http_metadata_link(Metas, next, NextUri)),
-  Metas = [Meta|_],
-  _{status: Status, uri: FinalUri} :< Meta,
+  first(Metas, Meta),
+  http{status: Status, uri: FinalUri} :< Meta,
   ignore(option{final_uri: FinalUri} :< Options1),
   (   option{status: Status} :< Options1
   ->  true

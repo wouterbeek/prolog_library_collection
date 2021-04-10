@@ -8,6 +8,7 @@
     uri_data_directory/2,  % +Uri, -Directory
     uri_data_file/3,       % +Uri, +Local, -File
     uri_file_extensions/2, % +Uri, -Extensions
+    uri_file_is_fresh/2,   % +Uri, +File
     uri_local_name/2,      % +Uri, -Local
     uri_media_type/2,      % +Uri, -MediaType
     uri_relative_path/3,   % +Uri, +Local, -RelativePath
@@ -30,9 +31,7 @@ Extends the support for URIs in the SWI-Prolog standard library.
 :- use_module(library(conf)).
 :- use_module(library(dict)).
 :- use_module(library(file_ext)).
-:- use_module(library(http/http_open_cp), []).
-
-
+:- use_module(library(http_client2)).
 
 
 
@@ -209,6 +208,14 @@ uri_data_file(Uri, Local, File) :-
 uri_file_extensions(Uri, Extensions) :-
   uri_local_name(Uri, Local),
   file_extensions(Local, Extensions).
+
+
+
+%! uri_file_is_fresh(+Uri:uri, +File:atom) is det.
+
+uri_file_is_fresh(Uri, File) :-
+  http_last_modified(Uri, LMod),
+  file_is_fresh(File, LMod).
 
 
 
