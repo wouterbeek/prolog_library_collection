@@ -431,7 +431,7 @@ http_status_(In, Status, FinalUri, Options) :-
 http_options_(Uri, Options1, State, Options3) :-
   (   dict_select(accept, Options1, Options2, Accept)
   ->  http_open2_accept_(Accept, Atom)
-  ;   Atom = '*',
+  ;   Atom = '*/*',
       Options2 = Options1
   ),
   merge_dicts(options{request_header: 'Accept'=Atom}, Options2, Options3),
