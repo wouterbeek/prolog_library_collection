@@ -654,6 +654,8 @@ http_status_reason(302, "Moved Temporarily").
 http_status_reason(303, "See Other").
 http_status_reason(304, "Not Modified").
 http_status_reason(305, "Use Proxy").
+http_status_reason(306, "Switch Proxy").
+http_status_reason(307, "Temporary Redirect").
 http_status_reason(400, "Bad Request").
 http_status_reason(401, "Unauthorized").
 http_status_reason(402, "Payment Required").
