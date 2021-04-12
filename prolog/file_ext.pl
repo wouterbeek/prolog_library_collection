@@ -163,7 +163,7 @@ cat(Out, Files) :-
   maplist(cat_file(Out), Files).
 
 cat_file(Out, File) :-
-  read_from_file(File, {Out}/[In]>>copy_stream_data(In, Out)).
+  read_from_file(File, {Out}/[In0]>>copy_stream_data(In0, Out)).
 
 
 
@@ -463,7 +463,7 @@ file_is_fresh(File, LMod) :-
 %! file_line(+File:atom, -Line:string) is nondet.
 
 file_line(File, Line) :-
-  read_from_file(File, {Line}/[In]>>stream_line(In, Line)).
+  read_from_file(File, {Line}/[In0]>>stream_line(In0, Line)).
 
 
 
@@ -548,7 +548,7 @@ file_to_string(File, String) :-
 guess_file_encoding(File, Enc1) :-
   read_from_file(
     File,
-    {Enc2}/[In]>>guess_encoding(In, Enc2),
+    {Enc2}/[In0]>>guess_encoding(In0, Enc2),
     options{type: binary}
   ),
   (   var(Enc1)
@@ -594,7 +594,7 @@ is_empty_file(File) :-
 %! peek_file(+File:atom, +Size:nonneg, -String:string) is det.
 
 peek_file(File, Size, Str) :-
-  read_from_file(File, {Size,Str}/[In]>>peek_string(In, Size, Str)).
+  read_from_file(File, {Size,Str}/[In0]>>peek_string(In0, Size, Str)).
 
 
 
@@ -670,7 +670,7 @@ recode_file(_, utf8) :- !.
 recode_file(File, Enc) :-
   read_write_file(
     File,
-    {Enc}/[In,Out]>>recode_stream(In, Enc, Out),
+    {Enc}/[In,Out0]>>recode_stream(In, Enc, Out0),
     options{type: binary}
   ).
 
@@ -693,7 +693,7 @@ recode_files(FromFile, Enc1, ToFile) :-
   ;   read_write_files(
         FromFile,
         ToFile,
-        {Enc2}/[In,Out]>>recode_stream(In, Enc2, Out),
+        {Enc2}/[In0,Out0]>>recode_stream(In0, Enc2, Out0),
         options{type: binary}
       )
   ).
@@ -725,10 +725,10 @@ sort_file(File) :-
 sort_file(File, Options) :-
   read_write_file(
     File,
-    {Options}/[In,Out]>>(
-      sort_stream(In, ProcOut, Options),
+    {Options}/[In0,Out0]>>(
+      sort_stream(In0, ProcOut, Options),
       call_cleanup(
-        copy_stream_data(ProcOut, Out),
+        copy_stream_data(ProcOut, Out0),
         close(ProcOut)
       )
     )

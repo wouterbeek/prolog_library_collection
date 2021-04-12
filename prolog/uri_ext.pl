@@ -42,8 +42,8 @@ Extends the support for URIs in the SWI-Prolog standard library.
 % the beginning and end of URI paths.
 
 append_segments(L1a, L2a, L3) :-
-  exclude([X]>>(X==''), L1a, L1b),
-  exclude([X]>>(X==''), L2a, L2b),
+  exclude([X0]>>(X0==''), L1a, L1b),
+  exclude([X0]>>(X0==''), L2a, L2b),
   append(L1b, L2b, L3).
 
 :- begin_tests(append_segments).

@@ -389,7 +389,7 @@ words_lines(Words, Max, Sep, Lines) :-
   string_length(Sep, SepLen),
   words_lines_(Words, SepLen, Max, Wordss),
   maplist(
-    {Sep}/[Strings,String]>>string_list_concat(Strings, Sep, String),
+    {Sep}/[Strings0,String0]>>string_list_concat(Strings0, Sep, String0),
     Wordss,
     Lines
   ).

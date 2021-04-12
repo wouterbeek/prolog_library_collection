@@ -37,12 +37,12 @@ flags_message(Specs, Message) :-
   max_string_length(LongStrings0, LongWidth),
   maplist(
     {ShortWidth,LongWidth}/
-      [ShortString,LongStrings,Dict,Line]>>
+      [ShortString0,LongStrings0,Dict0,Line0]>>
       format_option(
-        ShortWidth-ShortString,
-        LongWidth-LongStrings,
-        Dict,
-        Line
+        ShortWidth-ShortString0,
+        LongWidth-LongStrings0,
+        Dict0,
+        Line0
       ),
     ShortStrings,
     LongStringss,

@@ -755,7 +755,7 @@ http_download_(Uri, File, Options) :-
   rename_file(TmpFile, File).
 
 http_download_stream_(Uri, Options, Out) :-
-  http_call(Uri, {Out}/[In]>>copy_stream_data(In, Out), Options).
+  http_call(Uri, {Out}/[In0]>>copy_stream_data(In0, Out), Options).
 
 
 
