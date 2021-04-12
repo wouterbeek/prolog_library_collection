@@ -1,5 +1,71 @@
 # CHANGELOG
 
+## 1.0.14 (2021-04-12)
+
+This release adds several new features to several different modules.
+See the full log for more details.
+
+### abnf
+
+- Added deterministic sequence patterns with separator.  This combines
+  the features of the existing set of deterministic sequence patterns
+  and the existing set of sequence patters with separator.
+- Fixed determinism for generative calls to the deterministic sequence
+  patterns.
+
+### cli
+
+- Changed the specification of CLI flags: from a nested dict to a list
+  of dicts.
+
+### counter
+
+- Full rewriting, using module `nb_ext`.
+- Renamed `create_counter/1` to `counter_create/1`.
+- Renamed `increment_counter/1` to `counter_increment/1`.
+- Added `counter_increment/2`.
+
+### file_ext
+
+- Fixed non-first root elements in `append_directories/3`.
+- Added `change_file_name_extensions/[3,4]`.
+- Added `file_is_fresh/2`.
+
+### http_client2
+
+- Fixed the generic `Accept` header.
+- Added support for the reasons for HTTP status codes 306 and 307.
+- Added `http_last_modified/2` and reimplemented
+  `http_metadata_last_modified/2`.
+
+### list_ext
+
+- Added `remove_initial_members/3`.
+- Added `remove_trailing_members/3`.
+
+### media_type
+
+- Added `must_be_media_type/2`.
+- Removed `extension_label/2`.
+- Fixed bugs in registrations for SPARQL Query Results XML Format, GNU
+  Zip, Microsoft PowerPoint Presentation, TriG.
+
+### nb_ext
+
+- Added `nb_increment/3`.
+- Added `nb_plus/4`.
+
+### term_ext
+
+- Added `shared_vars/2`.
+
+### uri_ext
+
+- Added `uri_comp_get/3`.
+- Added `uri_data_directory/2`.
+- Changed `uri_data_file/2` → `uri_data_file/3`.
+- Added `uri_file_is_fresh/2`.
+
 ## 1.0.13 (2021-03-28)
 
 This release introduces support for creating simple command-line

@@ -2,7 +2,7 @@
   uri_ext,
   [
     append_segments/3,     % +Segments1, +Segments2, ?Segments3
-    uri_comp_get/3,        % +Kindm +Uri, ?Compound
+    uri_comp_get/3,        % +Kind, +Uri, ?Compound
     uri_comp_set/4,        % +Kind, +Uri1, +Component, -Uri2
     uri_comps/2,           % ?Uri, ?Components
     uri_data_directory/2,  % +Uri, -Directory
