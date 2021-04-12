@@ -6,6 +6,7 @@
     compound_name/2,       % +Term, ?Name
     number_of_variables/2, % +Term, -NumberOfVariables
     replace_blobs/2,       % +Term1, -Term2
+    shared_vars/2,         % +Terms, -SharedVariables
     write_fact/1,          % @Term
     write_term/1           % @Term
   ]
@@ -18,7 +19,9 @@ Extends the support for terms in the SWI-Prolog standard library.
 */
 
 :- use_module(library(apply)).
+:- use_module(library(dialect/sicstus4/terms)).
 :- use_module(library(dict)).
+:- use_module(library(ordsets)).
 :- use_module(library(uuid)).
 
 :- use_module(library(hash_ext)).
@@ -91,6 +94,14 @@ replace_blobs(Term0, Term) :-
   maplist(replace_blobs, Args0, Args),
   compound_name_arguments(Term, Pred, Args).
 replace_blobs(Term, Term).
+
+
+
+%! shared_vars(+Terms:list(term), -SharedVariables:ordset(var)) is det.
+
+shared_vars(Terms, Shared) :-
+  maplist(term_variables_set, Terms, Sets),
+  ord_intersection(Sets, Shared).
 
 
 
