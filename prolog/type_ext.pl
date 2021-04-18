@@ -1,7 +1,8 @@
 :- module(
   type_ext,
   [
-    positive_integer/1 % @Value
+    boolean/1,         % @Term
+    positive_integer/1 % @Term
   ]
 ).
 
@@ -34,6 +35,13 @@ error:has_type(options, Term) :-
 error:has_type(or(Types), Term) :-
   member(Type, Types),
   error:has_type(Type, Term), !.
+
+
+
+%! boolean(@Term) is semidet.
+
+boolean(false).
+boolean(true).
 
 
 
