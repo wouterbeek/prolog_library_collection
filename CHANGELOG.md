@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.0.15 (2021-04-21)
+
+This is a very small release with only the following changes:
+
+### term_ext
+
+- Added convenience predicate compound_arguments/2.
+- Added convenience predicate compound_arity/2.
+
+### type_ext
+
+- Added boolean/1
+
 ## 1.0.14 (2021-04-12)
 
 This release adds several new features to several different modules.
