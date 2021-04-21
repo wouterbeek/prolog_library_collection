@@ -3,6 +3,8 @@
   [
     ascii_id/1,            % -Id
     ascii_id/2,            % +Term, -Id
+    compound_arguments/2,  % +Term, -Arguments
+    compound_arity/2,      % +Term, -Arity
     compound_name/2,       % +Term, ?Name
     number_of_variables/2, % +Term, -NumberOfVariables
     replace_blobs/2,       % +Term1, -Term2
@@ -57,8 +59,22 @@ ascii_id(Term, Id) :-
 
 
 
-%! compound_name(+Term:compound, +Name:atom) is semidet.
-%! compound_name(+Term:compound, -Name:atom) is det.
+%! compound_arguments(+Term:term, -Arguments:list(term)) is det.
+
+compound_arguments(Term, Args) :-
+  compound_name_arguments(Term, _, Args).
+
+
+
+%! compound_arity(+Term:term, -Arity:nonneg) is det.
+
+compound_arity(Term, Arity) :-
+  compound_name_arity(Term, _, Arity).
+
+
+
+%! compound_name(+Term:term, +Name:atom) is semidet.
+%! compound_name(+Term:term, -Name:atom) is det.
 
 compound_name(Term, Name) :-
   compound_name_arity(Term, Name, _).
