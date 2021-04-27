@@ -3,9 +3,9 @@
   [
     dappend/2,         % +Ls:list(dlist), -L:dlist
     dappend/3,         % +L1:dlist, +L2:dlist, -L3:dlist
-    dappend_to_list/2, % +DLs:list(dlist), -L:list
-    dappend_to_list/3, % +DL1:dlist, +DL2:dlist, -L:list
-    dlist_to_list/2,   % +DL:dlist, -L:list
+    dappend_to_list/2, % +Ls:list(dlist), -L:list
+    dappend_to_list/3, % +L1:dlist, +L2:dlist, -L3:list
+    dlist_to_list/2,   % +L1:dlist, -L2:list
     is_dlist/1         % @Term
   ]
 ).
@@ -15,8 +15,6 @@
 */
 
 :- use_module(library(apply)).
-
-
 
 
 

@@ -28,6 +28,8 @@
     default//2,               % :Dcg_0, ?Default_0
     digit_weight//1,          % ?N
     ellipsis//2,              % +Atom, +MaxLength
+    error_location/2,         % +SyntaxError, +Input, +Length
+    error_location/3,         % +SyntaxError, +Input, +Length
     indent//1,                % +Indent
     must_see//1,              % :Dcg_0
     must_see_code//2,         % +Code, :Skip_0
@@ -51,7 +53,7 @@
 
 */
 
-:- use_module(library(error)).
+:- use_module(library(pure_input)).
 
 :- use_module(library(code_ext)).
 :- use_module(library(list_ext)).
@@ -329,6 +331,47 @@ ellipsis(Original, MaxLength) -->
 
 
 
+%! error_location(+SyntaxError:compound, +Input:list(code)) is det.
+%! error_location(+SyntaxError:compound, +Input:list(code), +Length:nonneg) is det.
+
+error_location(Error, Input) :-
+  error_location(Error, Input, 80).
+
+
+error_location(error(syntax_error(What),Location), Input, Length) :-
+  subsumes_term(end_of_file-CharCount, Location),
+  end_of_file-CharCount = Location,
+  length(After, CharCount),
+  % BUG: Should have detected determinism.
+  once(append(Before, After, Input)),
+  length(Before, BL),
+  string_codes("…", Elipsis),
+  string_codes("\n**here**\n", Here),
+  (   BL =< Length
+  ->  BC = Before
+  ;   length(BC0, Length),
+      % BUG: Should have detected determinism.
+      once(append(_, BC0, Before)),
+      append(Elipsis, BC0, BC)
+  ),
+  length(After, AL),
+  (   AL =< Length
+  ->  AC = After
+  ;   length(AC0, Length),
+      % BUG: Should have detected determinism.
+      once(append(AC0, _, After)),
+      append(AC0, Elipsis, AC)
+  ),
+  % BUG: Should have detected determinism.
+  once(append(Here, AC, HAC)),
+  append([0'\n|BC], HAC, ContextCodes),
+  string_codes(Context, ContextCodes), !,
+  syntax_error(error_location(What,Context)).
+error_location(Error, _, _) :-
+  throw(Error).
+
+
+
 %! indent(+Indent:nonneg)// is det.
 
 indent(0) --> !, "".
@@ -343,9 +386,11 @@ indent(N1) -->
 
 must_see(Dcg_0, X, Y) :-
   call(Dcg_0, X, Y), !.
-must_see(_:Dcg_0, _, _) :-
-  Dcg_0 =.. [Pred|_],
-  format(string(Call), "~w", [Dcg_0]),
+must_see(_:Dcg_0) -->
+  {
+    Dcg_0 =.. [Pred|_],
+    format(string(Call), "~w", [Dcg_0])
+  },
   syntax_error(expected(Pred,Call)).
 
 
@@ -355,8 +400,8 @@ must_see(_:Dcg_0, _, _) :-
 must_see_code(Code, Skip_0) -->
   [Code], !,
   Skip_0.
-must_see_code(Code, _, _, _) :-
-  char_code(Char, Code),
+must_see_code(Code, _) -->
+  {char_code(Char, Code)},
   syntax_error(expected(Char)).
 
 
