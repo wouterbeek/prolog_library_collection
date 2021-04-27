@@ -1420,7 +1420,7 @@ fractionDigitsCanonicalFragmentMap(Frac) -->
     length(Ds, Last),
     prefix(Ds, Seq)
   },
-  'digit_weight*'(Ds), !.
+  '*!'(digit_weight, Ds), !.
 
 
 
@@ -1467,7 +1467,7 @@ fractionDigitSequenceValue(Ds, F):-
 % Return fractionDigitSequenceValue(S).
 
 fractionFragValue(Frac) -->
-  'digit_weight*'(Ds), !,
+  '*!'(digit_weight, Ds), !,
   {fractionDigitSequenceValue(Ds, Frac)}.
 
 
@@ -2706,7 +2706,7 @@ unsignedDecimalPtMap(N) -->
 % Return `digitSequenceValue(S)`.
 
 unsignedNoDecimalMap(N) -->
-  'digit_weight*'(Ds), !,
+  '*!'(digit_weight, Ds), !,
   {digitSequenceValue(Ds, N)}.
 
 
@@ -2739,7 +2739,7 @@ unsignedNoDecimalPtCanonicalMap(N) -->
     prefix(Ds0, Seq),
     reverse(Ds0, Ds)
   },
-  ({Ds == []} -> "0" ; 'digit_weight+'(Ds), !).
+  ({Ds == []} -> "0" ; '+!'(digit_weight, Ds), !).
 
 
 

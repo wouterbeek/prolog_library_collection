@@ -6,15 +6,10 @@
     '...'//1,                 % -Codes
     add_indent//1,            % +Indent
     alpha//1,                 % ?Code
-    'alpha*'//2,              % -Codes:list(code), -Tail:list(code)
-    'alpha+'//2,              % -Codes:list(code), -Tail:list(code)
     alphanum//1,              % ?Code
-    'alphanum*'//2,           % -Codes:list(code), -Tail:list(code)
-    'alphanum+'//2,           % -Codes:list(code), -Tail:list(code)
     atom_phrase/2,            % :Dcg_0, ?Atom
     atom_phrase/3,            % :Dcg_0, +Atom1, ?Atom2
     dcg_atom//2,              % :Dcg_1, ?Atom
-    dcg_atom_from_codes//2,   % :Dcg_1, ?Atom
     dcg_between//2,           % +Low, +High
     dcg_between//3,           % +Low, +High, ?Code
     dcg_boolean//1,           % ?Boolean
@@ -28,17 +23,10 @@
     dcg_peek//1,              % +Length
     dcg_pp_boolean//1,        % +Boolean
     dcg_string//2,            % :Dcg_1, ?String
-    dcg_string_from_codes//2, % :Dcg_1, ?String
     dcg_with_output_to/1,     % :Dcg_0
     dcg_with_output_to/2,     % +Sink, :Dcg_0
     default//2,               % :Dcg_0, ?Default_0
-    'digit*'//1,              % -Codes:list(code)
-    'digit*'//2,              % -Codes:list(code), -Tail:list(code)
-    'digit+'//1,              % -Codes:list(code)
-    'digit+'//2,              % -Codes:list(code), -Tail:list(code)
     digit_weight//1,          % ?N
-    'digit_weight*'//1,       % ?Ns
-    'digit_weight+'//1,       % ?Ns
     ellipsis//2,              % +Atom, +MaxLength
     indent//1,                % +Indent
     must_see//1,              % :Dcg_0
@@ -73,7 +61,6 @@
     atom_phrase(//, ?),
     atom_phrase(//, ?, ?),
     dcg_atom(3, ?, ?, ?),
-    dcg_atom_from_codes(3, ?, ?, ?),
     dcg_call(//, ?, ?),
     dcg_call(3, ?, ?, ?),
     dcg_call(4, ?, ?, ?, ?),
@@ -81,7 +68,6 @@
     dcg_call(6, ?, ?, ?, ?, ?, ?),
     dcg_call(7, ?, ?, ?, ?, ?, ?, ?),
     dcg_string(3, ?, ?, ?),
-    dcg_string_from_codes(3, ?, ?, ?),
     dcg_with_output_to(//),
     dcg_with_output_to(+, //),
     default(//, //, ?, ?),
@@ -130,44 +116,10 @@ alpha(Code) --> dcg_between(0'A, 0'Z, Code).
 
 
 
-%! 'alpha*'(-Codes:list(code), -Tail:list(code))// .
-
-'alpha*'([H|T0], T) -->
-  alpha(H), !,
-  'alpha*'(T0, T).
-'alpha*'(T, T) --> "".
-
-
-
-%! 'alpha+'(-Codes:list(code), -Tail:list(code))// .
-
-'alpha+'([H|T0], T) -->
-  alpha(H),
-  'alpha*'(T0, T).
-
-
-
 %! alphanum(?Code:code)// .
 
 alphanum(Code) --> alpha(Code).
 alphanum(Code) --> digit(Code).
-
-
-
-%! 'alphanum*'(-Codes:list(code), -Tail:list(code))// .
-
-'alphanum*'([H|T0], T) -->
-  alphanum(H), !,
-  'alphanum*'(T0, T).
-'alphanum*'(T, T) --> "".
-
-
-
-%! 'alphanum+'(-Codes:list(code), -Tail:list(code))// .
-
-'alphanum+'([H|T0], T) -->
-  alphanum(H),
-  'alphanum*'(T0, T).
 
 
 
@@ -232,23 +184,6 @@ dcg_atom(Dcg_1, Atom) -->
 dcg_atom(Dcg_1, Atom) -->
   {atom_codes(Atom, Codes)},
   dcg_call(Dcg_1, Codes).
-
-
-
-%! dcg_atom_from_codes(:Dcg_1, ?Atom:atom)// .
-
-dcg_atom_from_codes(Dcg_1, Atom) -->
-  {var(Atom)}, !,
-  dcg_codes_(Dcg_1, Cs),
-  {atom_codes(Atom, Cs)}.
-dcg_atom_from_codes(Dcg_1, Atom) -->
-  {atom_codes(Atom, Cs)},
-  dcg_codes_(Dcg_1, Cs).
-
-dcg_codes_(Dcg_1, [H|T]) -->
-  dcg_call(Dcg_1, H), !,
-  dcg_codes_(Dcg_1, T).
-dcg_codes_(_, []) --> "".
 
 
 
@@ -349,18 +284,6 @@ dcg_string(Dcg_1, String) -->
 
 
 
-%! dcg_string_from_codes(:Dcg_1, ?String:string)// .
-
-dcg_string_from_codes(Dcg_1, String) -->
-  {var(String)}, !,
-  dcg_codes_(Dcg_1, Cs),
-  {string_codes(String, Cs)}.
-dcg_string_from_codes(Dcg_1, String) -->
-  {string_codes(String, Cs)},
-  dcg_codes_(Dcg_1, Cs).
-
-
-
 %! dcg_with_output_to(:Dcg_0) is nondet.
 %! dcg_with_output_to(+Sink, :Dcg_0) is nondet.
 
@@ -383,33 +306,6 @@ default(_, Default_0) -->
 
 
 
-%! 'digit*'(-Codes:list(code))// .
-%! 'digit*'(-Codes:list(code), -Tail:list(code))// .
-
-'digit*'(Codes) -->
-  'digit*'(Codes, []).
-
-
-'digit*'([H|T0], T) -->
-  digit(H), !,
-  'digit*'(T0, T).
-'digit*'(T, T) --> "".
-
-
-
-%! 'digit+'(-Codes:list(code))// .
-%! 'digit+'(-Codes:list(code), -Tail:list(code))// .
-
-'digit+'(Codes) -->
-  'digit+'(Codes, []).
-
-
-'digit+'([H|T0], T) -->
-  digit(H),
-  'digit*'(T0, T).
-
-
-
 %! digit_weight(?Weight:between(0,9))// .
 
 digit_weight(Weight) -->
@@ -419,23 +315,6 @@ digit_weight(Weight) -->
 digit_weight(Weight) -->
   {code_type(Code, digit(Weight))},
   [Code].
-
-
-
-%! 'digit_weight*'(-Weights:list(between(0,9)))// is det.
-
-'digit_weight*'([H|T]) -->
-  digit_weight(H), !,
-  'digit_weight*'(T).
-'digit_weight*'([]) --> "".
-
-
-
-%! 'digit_weight+'(-Weights:list(between(0,9)))// is det.
-
-'digit_weight+'([H|T]) -->
-  digit_weight(H), !,
-  'digit_weight*'(T).
 
 
 
