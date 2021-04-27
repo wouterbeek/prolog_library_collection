@@ -9,6 +9,7 @@
     number_of_variables/2, % +Term, -NumberOfVariables
     replace_blobs/2,       % +Term1, -Term2
     shared_vars/2,         % +Terms, -SharedVariables
+    shared_vars/3,         % +Term1, +Term2, -SharedVariables
     write_fact/1,          % @Term
     write_term/1           % @Term
   ]
@@ -118,6 +119,12 @@ replace_blobs(Term, Term).
 shared_vars(Terms, Shared) :-
   maplist(term_variables_set, Terms, Sets),
   ord_intersection(Sets, Shared).
+
+
+%! shared_vars(+Term1:term, +Term2:term, -SharedVariables:ordset(var)) is det.
+
+shared_vars(Term1, Term2, Shared) :-
+  shared_vars([Term1,Term2], Shared).
 
 
 
