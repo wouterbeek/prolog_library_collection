@@ -1,6 +1,7 @@
 :- module(
   sort_ext,
   [
+    order_by2/2,   % +Spec, :Goal_0
     predmsort/3,   % :Compare_2, +Original, -Sorted
     sort_stream/2, % +In, -Out
     sort_stream/3  % +In, -Out, +Options
@@ -19,12 +20,20 @@
 :- use_module(library(thread_ext)).
 
 :- meta_predicate
+    order_by2(+, 0),
     predmerge(3, +, +, -),
     predmerge(+, 3, +, +, -, -, -),
     predmsort(3, +, -),
     predmsort(3, ?, +, ?, -).
 
 
+
+%! order_by2(+Spec:list(compound), :Goal_0) is det.
+
+order_by2([], Goal_0) :- !,
+  Goal_0.
+order_by2(Order, Goal_0) :-
+  order_by(Order, Goal_0).
 
 
 
