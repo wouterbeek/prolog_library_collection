@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 1.0.16 (2021-05-03)
+
+Another small release with the following changes:
+
+### dcg
+
+- Removal of many DCG rules that now can be implemented by using the
+  more generic `abnf` module.
+- Added `error_location/[2,3]` for communicating parsing errors to the
+  user.
+
+### sort_ext
+
+- Added `order_by2/2` as an alternative to the built-in `order_by/2`
+  predicate.  The difference that this `order_by2/2` is able to handle
+  the empty list of ordering commands (useful in situations where the
+  ordered commands are generated algorithmically).
+
+### term_ext
+
+- Added `shared_vars/3` as a convenience predicate for `shared_vars/2`
+  that calculates the shared variables between exactly two terms.
+
 ## 1.0.15 (2021-04-21)
 
 This is a very small release with only the following changes:
