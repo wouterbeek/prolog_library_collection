@@ -38,12 +38,20 @@
  */
 
 :- use_module(library(aggregate)).
+:- use_module(library(error)).
 :- use_module(library(lists)).
 
+error:has_type(tree, Tree) :-
+  error:has_type(compound, Tree),
+  Tree = tree(Label,Conclusion,Children),
+  error:has_type(any, Label),
+  error:has_type(any, Conclusion),
+  error:has_type(list(tree), Children).
 
 
-%! depth(+Tree:compound, +Depth:nonneg) is semidet.
-%! depth(+Tree:compound, -Depth:nonneg) is det.
+
+%! depth(+Tree:tree, +Depth:nonneg) is semidet.
+%! depth(+Tree:tree, -Depth:nonneg) is det.
 %
 % Succeeds for the Depth of the Tree.
 %
@@ -64,8 +72,8 @@ depth(tree(_,_,Trees), Depth) :-
 
 
 
-%! shortest(+Trees:list(compound), +Tree:compound) is semidet.
-%! shortest(+Trees:list(compound), -Tree:compound) is det.
+%! shortest(+Trees:list(tree), +Tree:tree) is semidet.
+%! shortest(+Trees:list(tree), -Tree:tree) is det.
 %
 % Succeeds if Tree is the shotests of Trees.
 
