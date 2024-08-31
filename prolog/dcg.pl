@@ -456,16 +456,17 @@ remainder_as_string(String) -->
 
 
 %! string_phrase(:Dcg_0, ?String) is nondet.
+
+string_phrase(Dcg_0, String) :-
+  (   var(String)
+  ->  phrase(Dcg_0, Codes),
+      string_codes(String, Codes)
+  ;   string_codes(String, Codes),
+      phrase(Dcg_0, Codes)
+  ).
+
+
 %! string_phrase(:Dcg_0, +String1, ?String2) is nondet.
-
-string_phrase(Dcg_0, String) :-
-  var(String), !,
-  phrase(Dcg_0, Codes),
-  string_codes(String, Codes).
-string_phrase(Dcg_0, String) :-
-  string_codes(String, Codes),
-  phrase(Dcg_0, Codes).
-
 
 string_phrase(Dcg_0, String1, String2) :-
   string_codes(String1, Codes1),
